@@ -11,9 +11,7 @@ import {
   Calendar,
   Package,
   DollarSign,
-  TrendingDown,
   ArrowRight,
-  ShoppingBag,
   CalendarClock
 } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
@@ -27,12 +25,8 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Animate in
     setTimeout(() => setIsOpen(true), 10);
-
-    // Prevent body scroll
     document.body.style.overflow = 'hidden';
-
     return () => {
       document.body.style.overflow = '';
     };
@@ -92,7 +86,6 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
 
   const statusInfo = getStatusInfo(transaction.status);
 
-  // Calculate stay duration
   const getStayDuration = () => {
     if (!transaction.sales_date_in || !transaction.sales_date_out) return '-';
     const inTime = new Date(transaction.sales_date_in);
@@ -118,16 +111,16 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
 
       {/* Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] lg:w-[560px] bg-white shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[440px] lg:w-[480px] bg-white shadow-2xl transition-transform duration-300 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-slate-200 z-10">
-          <div className="flex items-center justify-between px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Receipt size={20} className="text-blue-600" />
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                <Receipt size={20} className="text-white" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-slate-900">Transaction Detail</h2>
@@ -145,80 +138,102 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
 
         {/* Content */}
         <div className="h-[calc(100vh-73px)] overflow-y-auto">
-          {/* Status & Branch Banner */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-4">
+          {/* Status Banner */}
+          <div className="px-5 py-4 bg-gradient-to-r from-slate-800 to-slate-700">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusInfo.bg} ${statusInfo.text}`}>
+                <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${statusInfo.bg} ${statusInfo.text}`}>
                   {statusInfo.label}
                 </span>
+                <span className="flex items-center gap-1.5 text-white/80 text-sm">
+                  <MapPin size={14} />
+                  {transaction.branch_name || '-'}
+                </span>
               </div>
-              <div className="text-right text-white">
-                <p className="text-xs opacity-80">Total</p>
-                <p className="text-xl font-bold">{formatCurrency(transaction.total_amount)}</p>
+              <div className="text-right">
+                <p className="text-xs text-white/60">Total Amount</p>
+                <p className="text-2xl font-bold text-white">{formatCurrency(transaction.total_amount)}</p>
               </div>
-            </div>
-            <div className="flex items-center gap-2 mt-3 text-white/80 text-sm">
-              <MapPin size={14} />
-              <span>{transaction.branch_name || '-'}</span>
             </div>
           </div>
 
-          {/* Main Info Section */}
-          <div className="px-4 sm:px-6 py-4">
+          {/* Info Grid */}
+          <div className="px-5 py-4 border-b border-slate-100">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Transaction Info</h3>
             <div className="grid grid-cols-2 gap-3">
-              <InfoCard icon={<Receipt size={14} />} label="Bill Number" value={transaction.bill_num || '-'} />
-              <InfoCard icon={<Calendar size={14} />} label="Sales Date" value={formatDateOnly(transaction.sales_date)} />
-              <InfoCard icon={<CreditCard size={14} />} label="Payment" value={transaction.payment_method || '-'} />
-              <InfoCard icon={<User size={14} />} label="Cashier" value={transaction.cashier_id || '-'} />
-            </div>
-          </div>
-
-          {/* Timeline Section */}
-          <div className="px-4 sm:px-6 py-4 border-t border-slate-100">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Timeline</h3>
-            <div className="relative">
-              {/* Timeline Line */}
-              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200" />
-
-              {/* Timeline Items */}
-              <div className="space-y-4">
-                <TimelineItem
-                  icon={<ArrowRight size={12} />}
-                  iconBg="bg-blue-100"
-                  iconColor="text-blue-600"
-                  label="Time In"
-                  value={formatDate(transaction.sales_date_in)}
-                />
-                <TimelineItem
-                  icon={<CalendarClock size={12} />}
-                  iconBg="bg-emerald-100"
-                  iconColor="text-emerald-600"
-                  label="Order Time"
-                  value={formatDate(transaction.order_time)}
-                />
-                <TimelineItem
-                  icon={<ArrowRight size={12} />}
-                  iconBg="bg-purple-100"
-                  iconColor="text-purple-600"
-                  label="Time Out"
-                  value={formatDate(transaction.sales_date_out)}
-                />
-                <TimelineItem
-                  icon={<Clock size={12} />}
-                  iconBg="bg-amber-100"
-                  iconColor="text-amber-600"
-                  label="Duration"
-                  value={getStayDuration()}
-                  isLast
-                />
+              <div className="bg-slate-50 rounded-lg p-3">
+                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Bill Number</p>
+                <p className="text-sm font-medium text-slate-900 truncate">{transaction.bill_num || '-'}</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3">
+                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Sales Date</p>
+                <p className="text-sm font-medium text-slate-900">{formatDateOnly(transaction.sales_date)}</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3">
+                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Payment Method</p>
+                <p className="text-sm font-medium text-slate-900">{transaction.payment_method || '-'}</p>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3">
+                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Cashier</p>
+                <p className="text-sm font-medium text-slate-900 truncate">{transaction.cashier_id || '-'}</p>
               </div>
             </div>
           </div>
 
-          {/* Order Item Section */}
-          <div className="px-4 sm:px-6 py-4 border-t border-slate-100">
+          {/* Timeline */}
+          <div className="px-5 py-4 border-b border-slate-100">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Timeline</h3>
+            <div className="relative pl-4">
+              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-slate-200"></div>
+
+              <div className="space-y-4">
+                <div className="relative">
+                  <div className="absolute -left-4 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <ArrowRight size={12} className="text-blue-600" />
+                  </div>
+                  <div className="ml-2">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide">Time In</p>
+                    <p className="text-sm font-medium text-slate-900">{formatDate(transaction.sales_date_in)}</p>
+                  </div>
+                </div>
+
+                {transaction.order_time && (
+                  <div className="relative">
+                    <div className="absolute -left-4 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <CalendarClock size={12} className="text-emerald-600" />
+                    </div>
+                    <div className="ml-2">
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wide">Order Time</p>
+                      <p className="text-sm font-medium text-slate-900">{formatDate(transaction.order_time)}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="relative">
+                  <div className="absolute -left-4 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                    <ArrowRight size={12} className="text-purple-600" />
+                  </div>
+                  <div className="ml-2">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide">Time Out</p>
+                    <p className="text-sm font-medium text-slate-900">{formatDate(transaction.sales_date_out)}</p>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute -left-4 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                    <Clock size={12} className="text-amber-600" />
+                  </div>
+                  <div className="ml-2">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide">Duration</p>
+                    <p className="text-sm font-semibold text-amber-600">{getStayDuration()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Item */}
+          <div className="px-5 py-4 border-b border-slate-100">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Order Item</h3>
             <div className="bg-slate-50 rounded-xl overflow-hidden">
               <table className="w-full">
@@ -231,8 +246,8 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
                     <th className="px-3 py-2 text-right text-[10px] font-semibold text-slate-500">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
-                  <tr>
+                <tbody>
+                  <tr className="border-t border-slate-200">
                     <td className="px-3 py-2.5 text-xs text-slate-400">{transaction.line_number || '-'}</td>
                     <td className="px-3 py-2.5">
                       <p className="text-sm font-medium text-slate-900">{transaction.menu_name || 'N/A'}</p>
@@ -240,13 +255,9 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
                         <p className="text-xs text-slate-500">{transaction.menu_category}</p>
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-xs text-slate-600 text-center">
-                      {transaction.quantity ?? '-'}
-                    </td>
-                    <td className="px-3 py-2.5 text-xs text-slate-600 text-right">
-                      {formatCurrency(transaction.unit_price)}
-                    </td>
-                    <td className="px-3 py-2.5 text-xs font-medium text-slate-900 text-right">
+                    <td className="px-3 py-2.5 text-xs text-slate-600 text-center">{transaction.quantity ?? '-'}</td>
+                    <td className="px-3 py-2.5 text-xs text-slate-600 text-right">{formatCurrency(transaction.unit_price)}</td>
+                    <td className="px-3 py-2.5 text-xs font-semibold text-slate-900 text-right">
                       {formatCurrency(transaction.total_item)}
                     </td>
                   </tr>
@@ -255,13 +266,20 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
             </div>
           </div>
 
-          {/* Payment Summary Section */}
-          <div className="px-4 sm:px-6 py-4 border-t border-slate-100">
+          {/* Payment Summary */}
+          <div className="px-5 py-4 border-b border-slate-100">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Payment Summary</h3>
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4">
+            <div className="bg-slate-50 rounded-xl p-4">
               <div className="space-y-2.5">
-                <SummaryRow label="Subtotal" value={formatCurrency(transaction.subtotal)} />
-                <SummaryRow label="Discount" value={`-${formatCurrency(transaction.discount_amount)}`} isDiscount />
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Subtotal</span>
+                  <span className="text-slate-700 font-medium">{formatCurrency(transaction.subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Discount</span>
+                  <span className="text-rose-600 font-medium">-{formatCurrency(transaction.discount_amount)}</span>
+                </div>
+
                 <div className="border-t border-slate-200 pt-2.5 mt-2">
                   <div className="flex justify-between items-center">
                     <span className="text-base font-semibold text-slate-900">Grand Total</span>
@@ -270,99 +288,84 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
                     </span>
                   </div>
                 </div>
-                <div className="border-t border-slate-200 pt-2.5 mt-2 space-y-1.5">
-                  <SummaryRow label="Cash Received" value={formatCurrency(transaction.cash_received)} />
-                  <SummaryRow label="Change Given" value={formatCurrency(transaction.change_given)} />
+
+                <div className="border-t border-slate-200 pt-2.5 mt-2 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Cash Received</span>
+                    <span className="text-slate-700 font-medium">{formatCurrency(transaction.cash_received)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Change Given</span>
+                    <span className="text-slate-700 font-medium">{formatCurrency(transaction.change_given)}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Additional Info Section */}
-          {(transaction.customer_name || transaction.employee_name || transaction.regular_member_name) && (
-            <div className="px-4 sm:px-6 py-4 border-t border-slate-100">
+          {/* Additional Info */}
+          {(transaction.customer_name || transaction.employee_name || transaction.pax_total) && (
+            <div className="px-5 py-4 border-b border-slate-100">
               <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Customer & Employee</h3>
               <div className="grid grid-cols-2 gap-3">
                 {transaction.customer_name && (
-                  <InfoCard icon={<User size={14} />} label="Customer" value={transaction.customer_name} />
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Customer</p>
+                    <p className="text-sm font-medium text-slate-900 truncate">{transaction.customer_name}</p>
+                  </div>
                 )}
                 {transaction.employee_name && (
-                  <InfoCard icon={<User size={14} />} label="Employee" value={transaction.employee_name} />
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Employee</p>
+                    <p className="text-sm font-medium text-slate-900 truncate">{transaction.employee_name}</p>
+                  </div>
                 )}
                 {transaction.regular_member_name && (
-                  <InfoCard icon={<Receipt size={14} />} label="Member" value={transaction.regular_member_name} />
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Member</p>
+                    <p className="text-sm font-medium text-slate-900 truncate">{transaction.regular_member_name}</p>
+                  </div>
                 )}
-                {transaction.loyalty_member_type && (
-                  <InfoCard icon={<Package size={14} />} label="Member Type" value={transaction.loyalty_member_type} />
+                {transaction.pax_total !== undefined && transaction.pax_total !== null && (
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Pax</p>
+                    <p className="text-sm font-medium text-slate-900">{transaction.pax_total}</p>
+                  </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Visit Info */}
-          <div className="px-4 sm:px-6 py-4 border-t border-slate-100">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Visit Information</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <InfoCard label="Pax Total" value={transaction.pax_total?.toString() || '0'} />
-              <InfoCard label="Visit Purpose" value={transaction.visit_purpose || '-'} />
-              {transaction.brand && <InfoCard label="Brand" value={transaction.brand} />}
-              {transaction.city && <InfoCard label="City" value={transaction.city} />}
+          {/* Location Info */}
+          {(transaction.brand || transaction.city || transaction.area) && (
+            <div className="px-5 py-4">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Location</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {transaction.brand && (
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Brand</p>
+                    <p className="text-sm font-medium text-slate-900">{transaction.brand}</p>
+                  </div>
+                )}
+                {transaction.city && (
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">City</p>
+                    <p className="text-sm font-medium text-slate-900">{transaction.city}</p>
+                  </div>
+                )}
+                {transaction.area && (
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Area</p>
+                    <p className="text-sm font-medium text-slate-900">{transaction.area}</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Footer Spacing */}
           <div className="h-8" />
         </div>
       </div>
     </>
-  );
-}
-
-function InfoCard({ icon, label, value }: { icon?: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="bg-slate-50 rounded-lg p-3">
-      <div className="flex items-center gap-1.5 mb-1">
-        {icon && <span className="text-slate-400">{icon}</span>}
-        <span className="text-[10px] text-slate-500 uppercase tracking-wide">{label}</span>
-      </div>
-      <p className="text-sm font-medium text-slate-900 truncate">{value}</p>
-    </div>
-  );
-}
-
-function TimelineItem({
-  icon,
-  iconBg,
-  iconColor,
-  label,
-  value,
-  isLast = false
-}: {
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-  label: string;
-  value: string;
-  isLast?: boolean;
-}) {
-  return (
-    <div className="relative flex items-start gap-3 pl-1">
-      <div className={`relative z-10 w-7 h-7 rounded-full ${iconBg} flex items-center justify-center ${iconColor}`}>
-        {icon}
-      </div>
-      <div className="flex-1 pt-0.5">
-        <p className="text-xs text-slate-500">{label}</p>
-        <p className="text-sm font-medium text-slate-900">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function SummaryRow({ label, value, isDiscount = false }: { label: string; value: string; isDiscount?: boolean }) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-slate-600">{label}</span>
-      <span className={`font-medium ${isDiscount ? 'text-rose-600' : 'text-slate-900'}`}>{value}</span>
-    </div>
   );
 }

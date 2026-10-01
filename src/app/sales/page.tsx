@@ -13,7 +13,10 @@ import {
   ChevronUp,
   Eye,
   Loader2,
-  Package
+  Package,
+  SortAsc,
+  SortDesc,
+  Calendar
 } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 
@@ -21,15 +24,6 @@ interface PaginationInfo {
   cursor: string | null;
   hasMore: boolean;
   limit: number;
-}
-
-interface SummaryInfo {
-  totalRows: number;
-  totalHeaders: number;
-  totalItems: number;
-  totalRevenue: number;
-  totalTransactions: number;
-  avgTransactionValue: number;
 }
 
 interface Branch {
@@ -46,25 +40,21 @@ export default function SalesPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationInfo>({ cursor: null, hasMore: false, limit: DEFAULT_LIMIT });
-  const [summary, setSummary] = useState<SummaryInfo>({
-    totalRows: 0,
-    totalHeaders: 0,
-    totalItems: 0,
-    totalRevenue: 0,
-    totalTransactions: 0,
-    avgTransactionValue: 0
-  });
+
+  // Filters
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [branch, setBranch] = useState('');
+
+  // UI State
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionCombined | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [localSearch, setLocalSearch] = useState('');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch branches
   const fetchBranches = useCallback(async () => {
@@ -115,10 +105,6 @@ export default function SalesPage() {
           setData(prev => [...(prev || []), ...(result.data || [])]);
         }
         setPagination(result.pagination || { cursor: null, hasMore: false, limit: DEFAULT_LIMIT });
-
-        // Summary from all loaded data
-        const loadedData = isReset || !cursor ? (result.data || []) : [...(data || []), ...(result.data || [])];
-        calculateSummary(loadedData);
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -130,49 +116,6 @@ export default function SalesPage() {
     }
   }, [search, dateFrom, dateTo, branch]);
 
-  // Calculate summary from loaded data
-  const calculateSummary = (loadedData: TransactionCombined[]) => {
-    if (!loadedData || loadedData.length === 0) {
-      setSummary({
-        totalRows: 0,
-        totalHeaders: 0,
-        totalItems: 0,
-        totalRevenue: 0,
-        totalTransactions: 0,
-        avgTransactionValue: 0
-      });
-      return;
-    }
-
-    const uniqueTransactions = new Map<string, { total: number; items: number }>();
-    let totalItems = 0;
-
-    for (const row of loadedData) {
-      const existing = uniqueTransactions.get(row.sales_num);
-      const total = parseFloat(String(row.total_amount || 0));
-
-      if (existing) {
-        existing.items += 1;
-      } else {
-        uniqueTransactions.set(row.sales_num, { total, items: 1 });
-      }
-
-      if (row.line_number) totalItems++;
-    }
-
-    const totalRevenue = Array.from(uniqueTransactions.values()).reduce((sum, t) => sum + t.total, 0);
-    const totalTransactions = uniqueTransactions.size;
-
-    setSummary({
-      totalRows: loadedData.length,
-      totalHeaders: totalTransactions,
-      totalItems: totalItems,
-      totalRevenue: Math.round(totalRevenue * 100) / 100,
-      totalTransactions,
-      avgTransactionValue: totalTransactions > 0 ? Math.round((totalRevenue / totalTransactions) * 100) / 100 : 0
-    });
-  };
-
   useEffect(() => {
     isMounted.current = true;
     fetchData(null, true);
@@ -182,20 +125,17 @@ export default function SalesPage() {
     };
   }, []);
 
-  // Debounced search
+  // Auto-search as you type
   const handleSearchChange = (value: string) => {
-    setLocalSearch(value);
+    setSearch(value);
+
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearch(value);
-    }, 500);
-  };
 
-  const handleSearch = () => {
-    setSearch(localSearch);
-    fetchData(null, true);
+    searchTimeoutRef.current = setTimeout(() => {
+      fetchData(null, true);
+    }, 400);
   };
 
   const handleDateFrom = (value: string) => {
@@ -218,7 +158,6 @@ export default function SalesPage() {
     setDateTo('');
     setBranch('');
     setSearch('');
-    setLocalSearch('');
     fetchData(null, true);
   };
 
@@ -265,7 +204,7 @@ export default function SalesPage() {
     return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">{status}</span>;
   };
 
-  const hasActiveFilters = dateFrom || dateTo || branch || search;
+  const hasActiveFilters = dateFrom || dateTo || branch;
 
   const toggleRowExpand = (salesNum: string) => {
     setExpandedRow(expandedRow === salesNum ? null : salesNum);
@@ -282,7 +221,8 @@ export default function SalesPage() {
               <div>
                 <h1 className="text-xl font-bold text-slate-900">Sales Transactions</h1>
                 <p className="text-sm text-slate-500">
-                  {formatNumber(summary.totalRows)} rows • {formatNumber(summary.totalTransactions)} transactions
+                  {formatNumber(data.length)} rows displayed
+                  {pagination.hasMore && ' (more available)'}
                 </p>
               </div>
 
@@ -295,12 +235,26 @@ export default function SalesPage() {
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  <Filter size={16} />
-                  <span className="hidden sm:inline">Filters</span>
+                  <Calendar size={16} />
+                  <span className="hidden sm:inline">Date Filter</span>
                   {hasActiveFilters && (
                     <span className="w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center">
-                      {[dateFrom, dateTo, branch, search].filter(Boolean).length}
+                      {[dateFrom, dateTo].filter(Boolean).length}
                     </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    showFilters || branch
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <Filter size={16} />
+                  <span className="hidden sm:inline">Branch</span>
+                  {branch && (
+                    <span className="w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center">1</span>
                   )}
                 </button>
                 <ExportButton dateFrom={dateFrom} dateTo={dateTo} branch={branch} />
@@ -308,56 +262,9 @@ export default function SalesPage() {
             </div>
           </div>
 
-          {/* Search & Summary Row */}
-          <div className="px-4 py-3">
-            {/* Search */}
-            <div className="flex gap-2 mb-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search sales number, bill, branch..."
-                  value={localSearch}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                />
-              </div>
-              <button
-                onClick={handleSearch}
-                className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Search
-              </button>
-            </div>
-
-            {/* Summary Stats */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500">Revenue:</span>
-                <span className="font-semibold text-emerald-600">{formatCurrency(summary.totalRevenue)}</span>
-              </div>
-              <div className="w-px h-4 bg-slate-300"></div>
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500">Transactions:</span>
-                <span className="font-semibold text-blue-600">{formatNumber(summary.totalTransactions)}</span>
-              </div>
-              <div className="w-px h-4 bg-slate-300"></div>
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500">Items:</span>
-                <span className="font-semibold text-purple-600">{formatNumber(summary.totalItems)}</span>
-              </div>
-              <div className="w-px h-4 bg-slate-300"></div>
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500">Avg:</span>
-                <span className="font-semibold text-amber-600">{formatCurrency(summary.avgTransactionValue)}</span>
-              </div>
-            </div>
-          </div>
-
           {/* Filter Panel */}
-          <div className={`px-4 pb-3 ${showFilters ? 'block' : 'hidden'}`}>
-            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+          {showFilters && (
+            <div className="px-4 py-4 bg-slate-50 border-b border-slate-200">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Branch Filter */}
                 <div>
@@ -386,23 +293,27 @@ export default function SalesPage() {
                 {/* Date From */}
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1.5">From Date</label>
-                  <input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => handleDateFrom(e.target.value)}
-                    className="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => handleDateFrom(e.target.value)}
+                      className="w-full pl-3 pr-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
                 </div>
 
                 {/* Date To */}
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1.5">To Date</label>
-                  <input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => handleDateTo(e.target.value)}
-                    className="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => handleDateTo(e.target.value)}
+                      className="w-full pl-3 pr-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
                 </div>
 
                 {/* Clear Button */}
@@ -411,50 +322,40 @@ export default function SalesPage() {
                     onClick={clearFilters}
                     className="w-full px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                   >
-                    Clear Filters
+                    Clear All
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Active Filters Pills */}
-          {hasActiveFilters && (
-            <div className="px-4 pb-3">
-              <div className="flex flex-wrap gap-2">
-                {branch && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                    Branch: {branch}
-                    <button onClick={() => handleBranchChange('')} className="hover:text-blue-900">
-                      <X size={12} />
-                    </button>
-                  </span>
-                )}
-                {dateFrom && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                    From: {dateFrom}
-                    <button onClick={() => handleDateFrom('')} className="hover:text-blue-900">
-                      <X size={12} />
-                    </button>
-                  </span>
-                )}
-                {dateTo && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                    To: {dateTo}
-                    <button onClick={() => handleDateTo('')} className="hover:text-blue-900">
-                      <X size={12} />
-                    </button>
-                  </span>
-                )}
-                {search && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                    Search: &quot;{search}&quot;
-                    <button onClick={() => { setSearch(''); setLocalSearch(''); }} className="hover:text-blue-900">
-                      <X size={12} />
-                    </button>
-                  </span>
-                )}
-              </div>
+              {/* Active Filters */}
+              {hasActiveFilters && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {branch && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                      Branch: {branch}
+                      <button onClick={() => handleBranchChange('')} className="hover:text-blue-900">
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+                  {dateFrom && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                      From: {dateFrom}
+                      <button onClick={() => handleDateFrom('')} className="hover:text-blue-900">
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+                  {dateTo && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                      To: {dateTo}
+                      <button onClick={() => handleDateTo('')} className="hover:text-blue-900">
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -470,7 +371,7 @@ export default function SalesPage() {
                   <div className="absolute inset-0 w-16 h-16 border-4 border-t-blue-600 rounded-full animate-spin"></div>
                 </div>
                 <p className="text-base font-medium text-slate-700">Loading transactions...</p>
-                <p className="text-sm text-slate-400 mt-1">Fetching data from database</p>
+                <p className="text-sm text-slate-400 mt-1">Please wait while we fetch the data</p>
               </div>
             </div>
           )}
@@ -483,7 +384,7 @@ export default function SalesPage() {
                   <Package size={28} className="text-slate-400" />
                 </div>
                 <p className="text-base font-medium text-slate-700">No transactions found</p>
-                <p className="text-sm text-slate-400 mt-1">Try adjusting your search or filters</p>
+                <p className="text-sm text-slate-400 mt-1">Try adjusting your filters or search criteria</p>
               </div>
             </div>
           )}
@@ -499,7 +400,6 @@ export default function SalesPage() {
                     isExpanded ? 'border-blue-300 shadow-lg' : 'border-slate-200'
                   }`}
                 >
-                  {/* Card Header */}
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -512,7 +412,6 @@ export default function SalesPage() {
                       </div>
                     </div>
 
-                    {/* Info Pills */}
                     <div className="flex flex-wrap gap-2 mt-3">
                       <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600 truncate max-w-[150px]">
                         {tx.branch_name || '-'}
@@ -523,7 +422,6 @@ export default function SalesPage() {
                     </div>
                   </div>
 
-                  {/* Expand Toggle */}
                   <button
                     onClick={() => toggleRowExpand(tx.sales_num)}
                     className="w-full flex items-center justify-center gap-1 py-2.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-t border-blue-100"
@@ -532,7 +430,6 @@ export default function SalesPage() {
                     {isExpanded ? 'Hide Details' : 'View Details'}
                   </button>
 
-                  {/* Expanded Content */}
                   {isExpanded && (
                     <div className="p-4 bg-slate-50 border-t border-slate-200">
                       <div className="grid grid-cols-2 gap-3 text-sm">
@@ -573,7 +470,12 @@ export default function SalesPage() {
               <table className="w-full min-w-[1200px]">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Sales #</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <SortDesc size={12} className="text-slate-400" />
+                        Sales #
+                      </div>
+                    </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider hidden md:table-cell">Bill #</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Date</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Branch</th>
@@ -585,6 +487,32 @@ export default function SalesPage() {
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Qty</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Price</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Subtotal</th>
+                  </tr>
+                  {/* Search Row in Table Header */}
+                  <tr className="bg-white">
+                    <th className="px-4 py-2">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                        <input
+                          type="text"
+                          placeholder="Search..."
+                          value={search}
+                          onChange={(e) => handleSearchChange(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500"
+                        />
+                      </div>
+                    </th>
+                    <th className="px-4 py-2 hidden md:table-cell"></th>
+                    <th className="px-4 py-2"></th>
+                    <th className="px-4 py-2 hidden lg:table-cell"></th>
+                    <th className="px-4 py-2 hidden xl:table-cell"></th>
+                    <th className="px-4 py-2"></th>
+                    <th className="px-4 py-2"></th>
+                    <th className="px-4 py-2 hidden lg:table-cell"></th>
+                    <th className="px-4 py-2 hidden lg:table-cell"></th>
+                    <th className="px-4 py-2 hidden lg:table-cell"></th>
+                    <th className="px-4 py-2 hidden lg:table-cell"></th>
+                    <th className="px-4 py-2 hidden lg:table-cell"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -633,9 +561,9 @@ export default function SalesPage() {
             <div className="mt-4 bg-white rounded-xl border border-slate-200 px-4 py-3">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="text-sm text-slate-600 order-2 sm:order-1">
-                  Showing <span className="font-semibold">{formatNumber(data.length)}</span> rows
+                  Displaying <span className="font-semibold">{formatNumber(data.length)}</span> rows
                   {pagination.hasMore && (
-                    <span className="text-slate-400 ml-1">(more available, click Load More)</span>
+                    <span className="text-slate-400 ml-1">(load more for additional rows)</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 order-1 sm:order-2">

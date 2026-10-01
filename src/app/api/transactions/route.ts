@@ -167,6 +167,18 @@ export async function GET(request: NextRequest) {
       effectiveDateTo = new Date().toISOString().slice(0, 10);
     }
 
+    // Helper to convert date string to proper format for PostgreSQL
+    const formatDateForDB = (dateStr: string) => {
+      return dateStr + 'T00:00:00.000Z';
+    };
+
+    // Helper to get next day for inclusive date range
+    const getNextDay = (dateStr: string) => {
+      const date = new Date(dateStr + 'T00:00:00.000Z');
+      date.setDate(date.getDate() + 1);
+      return date.toISOString().slice(0, 10);
+    };
+
     // Check cache for non-search queries (without cursor)
     if (useCache && !search && !cursor && !branch && limit === 50) {
       const cacheKey = `transactions:${effectiveDateFrom}:${effectiveDateTo}:${limit}`;
@@ -187,12 +199,12 @@ export async function GET(request: NextRequest) {
     if (effectiveDateFrom) {
       paramCount++;
       whereClause += ` AND sales_date >= $${paramCount}`;
-      params.push(effectiveDateFrom);
+      params.push(formatDateForDB(effectiveDateFrom));
     }
     if (effectiveDateTo) {
       paramCount++;
-      whereClause += ` AND sales_date <= $${paramCount}`;
-      params.push(effectiveDateTo);
+      whereClause += ` AND sales_date < $${paramCount}`;
+      params.push(getNextDay(effectiveDateTo));
     }
     if (cursor) {
       const [cursorDate, cursorNum] = cursor.split('|||');
