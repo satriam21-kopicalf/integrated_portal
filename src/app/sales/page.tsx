@@ -8,15 +8,8 @@ import {
   Search,
   ChevronRight,
   X,
-  ChevronsLeft,
   ChevronDown,
-  TrendingUp,
-  Receipt,
-  ShoppingCart,
-  DollarSign,
   Filter,
-  RefreshCw,
-  ChevronLeft,
   ChevronUp,
   Eye
 } from 'lucide-react';
@@ -42,7 +35,7 @@ interface Branch {
   count: number;
 }
 
-const DEFAULT_LIMIT = 50;
+const DEFAULT_LIMIT = 100;
 
 export default function SalesPage() {
   const [data, setData] = useState<TransactionCombined[]>([]);
@@ -67,7 +60,6 @@ export default function SalesPage() {
   const [localSearch, setLocalSearch] = useState('');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const limitRef = useRef(DEFAULT_LIMIT);
 
   const isMounted = useRef(true);
 
@@ -96,7 +88,7 @@ export default function SalesPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.append('limit', limitRef.current.toString());
+      params.append('limit', DEFAULT_LIMIT.toString());
       params.append('cache', 'false');
 
       if (cursor) params.append('cursor', cursor);
@@ -115,14 +107,10 @@ export default function SalesPage() {
           setData(prev => [...(prev || []), ...(result.data || [])]);
         }
         setPagination(result.pagination || { cursor: null, hasMore: false, limit: DEFAULT_LIMIT });
-        setSummary(result.summary || {
-          totalRows: 0,
-          totalHeaders: 0,
-          totalItems: 0,
-          totalRevenue: 0,
-          totalTransactions: 0,
-          avgTransactionValue: 0
-        });
+
+        // Summary from loaded data
+        const loadedData = isReset || !cursor ? (result.data || []) : [...(data || []), ...(result.data || [])];
+        calculateSummary(loadedData);
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -132,6 +120,50 @@ export default function SalesPage() {
       }
     }
   }, [search, dateFrom, dateTo, branch]);
+
+  // Calculate summary from loaded data
+  const calculateSummary = (loadedData: TransactionCombined[]) => {
+    if (!loadedData || loadedData.length === 0) {
+      setSummary({
+        totalRows: 0,
+        totalHeaders: 0,
+        totalItems: 0,
+        totalRevenue: 0,
+        totalTransactions: 0,
+        avgTransactionValue: 0
+      });
+      return;
+    }
+
+    // Group by sales_num for unique transactions
+    const uniqueTransactions = new Map<string, { total: number; items: number }>();
+    let totalItems = 0;
+
+    for (const row of loadedData) {
+      const existing = uniqueTransactions.get(row.sales_num);
+      const total = parseFloat(String(row.total_amount || 0));
+
+      if (existing) {
+        existing.items += 1;
+      } else {
+        uniqueTransactions.set(row.sales_num, { total, items: 1 });
+      }
+
+      if (row.line_number) totalItems++;
+    }
+
+    const totalRevenue = Array.from(uniqueTransactions.values()).reduce((sum, t) => sum + t.total, 0);
+    const totalTransactions = uniqueTransactions.size;
+
+    setSummary({
+      totalRows: loadedData.length,
+      totalHeaders: totalTransactions,
+      totalItems: totalItems,
+      totalRevenue: Math.round(totalRevenue * 100) / 100,
+      totalTransactions,
+      avgTransactionValue: totalTransactions > 0 ? Math.round((totalRevenue / totalTransactions) * 100) / 100 : 0
+    });
+  };
 
   useEffect(() => {
     isMounted.current = true;
@@ -188,10 +220,6 @@ export default function SalesPage() {
     }
   };
 
-  const refreshData = () => {
-    fetchData(null, true);
-  };
-
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return '-';
     return new Intl.NumberFormat('id-ID', {
@@ -238,26 +266,19 @@ export default function SalesPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-slate-100">
-        {/* Page Header - Mobile Responsive */}
+        {/* Page Header */}
         <div className="bg-white border-b border-slate-200 px-3 sm:px-4 py-3 sm:py-4">
           {/* Title Row */}
           <div className="flex items-center justify-between gap-2 mb-3">
             <div>
               <h1 className="text-lg sm:text-xl font-bold text-slate-900">Sales Transactions</h1>
               <p className="text-xs sm:text-sm text-slate-500">
-                {formatNumber(summary.totalRows)} rows
+                {formatNumber(summary.totalRows)} rows • {formatNumber(summary.totalTransactions)} transactions
               </p>
             </div>
 
-            {/* Quick Actions - Mobile First */}
+            {/* Quick Actions */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <button
-                onClick={refreshData}
-                className="p-2 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-                title="Refresh"
-              >
-                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-              </button>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2 rounded-lg transition-colors ${
@@ -272,7 +293,7 @@ export default function SalesPage() {
             </div>
           </div>
 
-          {/* Search Bar - Full Width */}
+          {/* Search Bar - Inside Header */}
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -293,23 +314,26 @@ export default function SalesPage() {
             </button>
           </div>
 
-          {/* Summary Cards - Horizontal Scroll on Mobile */}
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-            <div className="flex-shrink-0 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-2.5 text-white min-w-[100px]">
-              <p className="text-[10px] opacity-80">Revenue</p>
-              <p className="text-sm font-bold truncate">{formatCurrency(summary.totalRevenue)}</p>
+          {/* Summary Stats - Inline Design */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500">Revenue:</span>
+              <span className="font-semibold text-emerald-600">{formatCurrency(summary.totalRevenue)}</span>
             </div>
-            <div className="flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-2.5 text-white min-w-[80px]">
-              <p className="text-[10px] opacity-80">Transactions</p>
-              <p className="text-sm font-bold">{formatNumber(summary.totalTransactions)}</p>
+            <div className="w-px h-4 bg-slate-300 hidden sm:block"></div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500">Transactions:</span>
+              <span className="font-semibold text-blue-600">{formatNumber(summary.totalTransactions)}</span>
             </div>
-            <div className="flex-shrink-0 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-2.5 text-white min-w-[70px]">
-              <p className="text-[10px] opacity-80">Items</p>
-              <p className="text-sm font-bold">{formatNumber(summary.totalItems)}</p>
+            <div className="w-px h-4 bg-slate-300 hidden sm:block"></div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500">Items:</span>
+              <span className="font-semibold text-purple-600">{formatNumber(summary.totalItems)}</span>
             </div>
-            <div className="flex-shrink-0 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg p-2.5 text-white min-w-[90px]">
-              <p className="text-[10px] opacity-80">Avg</p>
-              <p className="text-sm font-bold truncate">{formatCurrency(summary.avgTransactionValue)}</p>
+            <div className="w-px h-4 bg-slate-300 hidden sm:block"></div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500">Avg:</span>
+              <span className="font-semibold text-amber-600">{formatCurrency(summary.avgTransactionValue)}</span>
             </div>
           </div>
 
@@ -382,7 +406,7 @@ export default function SalesPage() {
               )}
               {dateFrom && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">
-                  {dateFrom}
+                  From: {dateFrom}
                   <button onClick={() => handleDateFrom('')} className="hover:text-blue-800">
                     <X size={12} />
                   </button>
@@ -390,7 +414,7 @@ export default function SalesPage() {
               )}
               {dateTo && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">
-                  {dateTo}
+                  To: {dateTo}
                   <button onClick={() => handleDateTo('')} className="hover:text-blue-800">
                     <X size={12} />
                   </button>
@@ -497,10 +521,6 @@ export default function SalesPage() {
                           <p className="font-medium text-slate-700">{tx.status || '-'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400">Line #</p>
-                          <p className="font-medium text-slate-700">{tx.line_number || '-'}</p>
-                        </div>
-                        <div>
                           <p className="text-slate-400">Menu</p>
                           <p className="font-medium text-slate-700">{tx.menu_name || '-'}</p>
                         </div>
@@ -508,13 +528,9 @@ export default function SalesPage() {
                           <p className="text-slate-400">Quantity</p>
                           <p className="font-medium text-slate-700">{tx.quantity ?? '-'}</p>
                         </div>
-                        <div>
-                          <p className="text-slate-400">Unit Price</p>
-                          <p className="font-medium text-slate-700">{formatCurrency(tx.unit_price)}</p>
-                        </div>
                         <div className="col-span-2">
-                          <p className="text-slate-400">Total Item</p>
-                          <p className="font-bold text-slate-900">{formatCurrency(tx.total_item)}</p>
+                          <p className="text-slate-400">Total</p>
+                          <p className="font-bold text-slate-900">{formatCurrency(tx.total_amount)}</p>
                         </div>
                       </div>
 
@@ -613,17 +629,18 @@ export default function SalesPage() {
             <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="text-xs sm:text-sm text-slate-600 order-2 sm:order-1">
-                  Showing <span className="font-medium">{data.length}</span> rows
-                  {pagination.hasMore && <span className="ml-1">(more available)</span>}
+                  Showing <span className="font-medium">{formatNumber(data.length)}</span> rows
+                  {pagination.hasMore && (
+                    <span className="ml-1">(Load more for next page)</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 order-1 sm:order-2">
                   <button
                     onClick={() => fetchData(null, true)}
                     disabled={loading}
-                    className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 transition-colors"
-                    title="Reset"
+                    className="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
                   >
-                    <ChevronsLeft size={16} />
+                    Reset
                   </button>
                   <button
                     onClick={loadMore}
@@ -645,7 +662,7 @@ export default function SalesPage() {
           )}
         </div>
 
-        {/* Detail Modal */}
+        {/* Detail Drawer */}
         {selectedTransaction && (
           <TransactionDetail
             transaction={selectedTransaction}
