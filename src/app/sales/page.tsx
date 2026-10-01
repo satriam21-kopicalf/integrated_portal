@@ -11,7 +11,9 @@ import {
   ChevronDown,
   Filter,
   ChevronUp,
-  Eye
+  Eye,
+  Loader2,
+  Package
 } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 
@@ -40,6 +42,7 @@ const DEFAULT_LIMIT = 100;
 export default function SalesPage() {
   const [data, setData] = useState<TransactionCombined[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationInfo>({ cursor: null, hasMore: false, limit: DEFAULT_LIMIT });
@@ -85,7 +88,12 @@ export default function SalesPage() {
   const fetchData = useCallback(async (cursor: string | null = null, isReset: boolean = false) => {
     if (!isMounted.current) return;
 
-    setLoading(true);
+    if (cursor) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const params = new URLSearchParams();
       params.append('limit', DEFAULT_LIMIT.toString());
@@ -108,7 +116,7 @@ export default function SalesPage() {
         }
         setPagination(result.pagination || { cursor: null, hasMore: false, limit: DEFAULT_LIMIT });
 
-        // Summary from loaded data
+        // Summary from all loaded data
         const loadedData = isReset || !cursor ? (result.data || []) : [...(data || []), ...(result.data || [])];
         calculateSummary(loadedData);
       }
@@ -117,6 +125,7 @@ export default function SalesPage() {
     } finally {
       if (isMounted.current) {
         setLoading(false);
+        setLoadingMore(false);
       }
     }
   }, [search, dateFrom, dateTo, branch]);
@@ -135,7 +144,6 @@ export default function SalesPage() {
       return;
     }
 
-    // Group by sales_num for unique transactions
     const uniqueTransactions = new Map<string, { total: number; items: number }>();
     let totalItems = 0;
 
@@ -172,7 +180,7 @@ export default function SalesPage() {
     return () => {
       isMounted.current = false;
     };
-  }, [fetchData]);
+  }, []);
 
   // Debounced search
   const handleSearchChange = (value: string) => {
@@ -215,7 +223,7 @@ export default function SalesPage() {
   };
 
   const loadMore = () => {
-    if (pagination.cursor && !loading) {
+    if (pagination.cursor && !loadingMore) {
       fetchData(pagination.cursor);
     }
   };
@@ -267,87 +275,98 @@ export default function SalesPage() {
     <DashboardLayout>
       <div className="min-h-screen bg-slate-100">
         {/* Page Header */}
-        <div className="bg-white border-b border-slate-200 px-3 sm:px-4 py-3 sm:py-4">
-          {/* Title Row */}
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold text-slate-900">Sales Transactions</h1>
-              <p className="text-xs sm:text-sm text-slate-500">
-                {formatNumber(summary.totalRows)} rows • {formatNumber(summary.totalTransactions)} transactions
-              </p>
-            </div>
+        <div className="bg-white border-b border-slate-200">
+          {/* Top Bar */}
+          <div className="px-4 py-3 border-b border-slate-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">Sales Transactions</h1>
+                <p className="text-sm text-slate-500">
+                  {formatNumber(summary.totalRows)} rows • {formatNumber(summary.totalTransactions)} transactions
+                </p>
+              </div>
 
-            {/* Quick Actions */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    showFilters || hasActiveFilters
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <Filter size={16} />
+                  <span className="hidden sm:inline">Filters</span>
+                  {hasActiveFilters && (
+                    <span className="w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center">
+                      {[dateFrom, dateTo, branch, search].filter(Boolean).length}
+                    </span>
+                  )}
+                </button>
+                <ExportButton dateFrom={dateFrom} dateTo={dateTo} branch={branch} />
+              </div>
+            </div>
+          </div>
+
+          {/* Search & Summary Row */}
+          <div className="px-4 py-3">
+            {/* Search */}
+            <div className="flex gap-2 mb-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search sales number, bill, branch..."
+                  value={localSearch}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
               <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 rounded-lg transition-colors ${
-                  showFilters || hasActiveFilters
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                }`}
+                onClick={handleSearch}
+                className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
-                <Filter size={16} />
+                Search
               </button>
-              <ExportButton dateFrom={dateFrom} dateTo={dateTo} branch={branch} />
+            </div>
+
+            {/* Summary Stats */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500">Revenue:</span>
+                <span className="font-semibold text-emerald-600">{formatCurrency(summary.totalRevenue)}</span>
+              </div>
+              <div className="w-px h-4 bg-slate-300"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500">Transactions:</span>
+                <span className="font-semibold text-blue-600">{formatNumber(summary.totalTransactions)}</span>
+              </div>
+              <div className="w-px h-4 bg-slate-300"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500">Items:</span>
+                <span className="font-semibold text-purple-600">{formatNumber(summary.totalItems)}</span>
+              </div>
+              <div className="w-px h-4 bg-slate-300"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500">Avg:</span>
+                <span className="font-semibold text-amber-600">{formatCurrency(summary.avgTransactionValue)}</span>
+              </div>
             </div>
           </div>
 
-          {/* Search Bar - Inside Header */}
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                type="text"
-                placeholder="Search sales number, bill, branch..."
-                value={localSearch}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
-            <button
-              onClick={handleSearch}
-              className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Search
-            </button>
-          </div>
-
-          {/* Summary Stats - Inline Design */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs">
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-500">Revenue:</span>
-              <span className="font-semibold text-emerald-600">{formatCurrency(summary.totalRevenue)}</span>
-            </div>
-            <div className="w-px h-4 bg-slate-300 hidden sm:block"></div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-500">Transactions:</span>
-              <span className="font-semibold text-blue-600">{formatNumber(summary.totalTransactions)}</span>
-            </div>
-            <div className="w-px h-4 bg-slate-300 hidden sm:block"></div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-500">Items:</span>
-              <span className="font-semibold text-purple-600">{formatNumber(summary.totalItems)}</span>
-            </div>
-            <div className="w-px h-4 bg-slate-300 hidden sm:block"></div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-500">Avg:</span>
-              <span className="font-semibold text-amber-600">{formatCurrency(summary.avgTransactionValue)}</span>
-            </div>
-          </div>
-
-          {/* Filter Panel - Collapsible */}
-          {showFilters && (
-            <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="flex flex-col gap-3">
+          {/* Filter Panel */}
+          <div className={`px-4 pb-3 ${showFilters ? 'block' : 'hidden'}`}>
+            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Branch Filter */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Branch</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1.5">Branch</label>
                   <div className="relative">
                     <select
                       value={branch}
                       onChange={(e) => handleBranchChange(e.target.value)}
-                      className="w-full pl-3 pr-8 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white appearance-none"
+                      className="w-full pl-3 pr-8 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white appearance-none"
                     >
                       <option value="">All Branches</option>
                       {branchesLoading ? (
@@ -360,184 +379,183 @@ export default function SalesPage() {
                         ))
                       )}
                     </select>
-                    <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">From Date</label>
-                    <input
-                      type="date"
-                      value={dateFrom}
-                      onChange={(e) => handleDateFrom(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">To Date</label>
-                    <input
-                      type="date"
-                      value={dateTo}
-                      onChange={(e) => handleDateTo(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                    />
-                  </div>
+
+                {/* Date From */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1.5">From Date</label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => handleDateFrom(e.target.value)}
+                    className="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
                 </div>
-                <button
-                  onClick={clearFilters}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  Clear All Filters
-                </button>
+
+                {/* Date To */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1.5">To Date</label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => handleDateTo(e.target.value)}
+                    className="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Clear Button */}
+                <div className="flex items-end">
+                  <button
+                    onClick={clearFilters}
+                    className="w-full px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Active Filters Pills */}
           {hasActiveFilters && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {branch && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">
-                  <span className="truncate max-w-[120px]">{branch}</span>
-                  <button onClick={() => handleBranchChange('')} className="hover:text-blue-800 flex-shrink-0">
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-              {dateFrom && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">
-                  From: {dateFrom}
-                  <button onClick={() => handleDateFrom('')} className="hover:text-blue-800">
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-              {dateTo && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">
-                  To: {dateTo}
-                  <button onClick={() => handleDateTo('')} className="hover:text-blue-800">
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-              {search && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">
-                  &quot;{search}&quot;
-                  <button onClick={() => { setSearch(''); setLocalSearch(''); }} className="hover:text-blue-800">
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
+            <div className="px-4 pb-3">
+              <div className="flex flex-wrap gap-2">
+                {branch && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                    Branch: {branch}
+                    <button onClick={() => handleBranchChange('')} className="hover:text-blue-900">
+                      <X size={12} />
+                    </button>
+                  </span>
+                )}
+                {dateFrom && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                    From: {dateFrom}
+                    <button onClick={() => handleDateFrom('')} className="hover:text-blue-900">
+                      <X size={12} />
+                    </button>
+                  </span>
+                )}
+                {dateTo && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                    To: {dateTo}
+                    <button onClick={() => handleDateTo('')} className="hover:text-blue-900">
+                      <X size={12} />
+                    </button>
+                  </span>
+                )}
+                {search && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                    Search: &quot;{search}&quot;
+                    <button onClick={() => { setSearch(''); setLocalSearch(''); }} className="hover:text-blue-900">
+                      <X size={12} />
+                    </button>
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Mobile Card View / Desktop Table View */}
-        <div className="p-3 sm:p-4 space-y-2">
+        {/* Content Area */}
+        <div className="p-4">
           {/* Loading State */}
           {loading && data.length === 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-sm text-slate-500">Loading transactions...</p>
+            <div className="bg-white rounded-xl border border-slate-200 p-12">
+              <div className="flex flex-col items-center justify-center">
+                <div className="relative mb-4">
+                  <div className="w-16 h-16 border-4 border-slate-200 rounded-full"></div>
+                  <div className="absolute inset-0 w-16 h-16 border-4 border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
+                <p className="text-base font-medium text-slate-700">Loading transactions...</p>
+                <p className="text-sm text-slate-400 mt-1">Fetching data from database</p>
+              </div>
             </div>
           )}
 
           {/* Empty State */}
           {!loading && data.length === 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-              <p className="font-medium text-slate-700">No transactions found</p>
-              <p className="text-xs text-slate-400 mt-1">Try adjusting your search or filters</p>
+            <div className="bg-white rounded-xl border border-slate-200 p-12">
+              <div className="flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                  <Package size={28} className="text-slate-400" />
+                </div>
+                <p className="text-base font-medium text-slate-700">No transactions found</p>
+                <p className="text-sm text-slate-400 mt-1">Try adjusting your search or filters</p>
+              </div>
             </div>
           )}
 
           {/* Mobile Card View */}
-          <div className="lg:hidden space-y-2">
+          <div className="lg:hidden space-y-3">
             {data.map((tx, index) => {
               const isExpanded = expandedRow === tx.sales_num;
               return (
                 <div
                   key={`${tx.sales_num}-${tx.line_number || index}`}
-                  className={`bg-white rounded-xl border ${isExpanded ? 'border-blue-300 shadow-md' : 'border-slate-200'} overflow-hidden`}
+                  className={`bg-white rounded-xl border transition-all ${
+                    isExpanded ? 'border-blue-300 shadow-lg' : 'border-slate-200'
+                  }`}
                 >
                   {/* Card Header */}
-                  <div className="p-3">
-                    <div className="flex items-start justify-between gap-2">
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-blue-600 text-sm truncate">{tx.sales_num || '-'}</p>
                         <p className="text-xs text-slate-500 mt-0.5">{formatDate(tx.sales_date)}</p>
                       </div>
-                      <div className="text-right flex-shrink-0">
+                      <div className="text-right">
                         <p className="font-bold text-slate-900">{formatCurrency(tx.total_amount)}</p>
                         {getStatusBadge(tx.status)}
                       </div>
                     </div>
 
-                    {/* Quick Info Row */}
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-500">
-                      <span className="truncate max-w-[100px]">{tx.branch_name || '-'}</span>
-                      <span>•</span>
-                      <span>{tx.payment_method || '-'}</span>
-                      <span>•</span>
-                      <span>{tx.menu_name || '-'}</span>
+                    {/* Info Pills */}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600 truncate max-w-[150px]">
+                        {tx.branch_name || '-'}
+                      </span>
+                      <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600">
+                        {tx.payment_method || '-'}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Expand Button */}
+                  {/* Expand Toggle */}
                   <button
                     onClick={() => toggleRowExpand(tx.sales_num)}
-                    className="w-full flex items-center justify-center gap-1 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+                    className="w-full flex items-center justify-center gap-1 py-2.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-t border-blue-100"
                   >
-                    {isExpanded ? (
-                      <>
-                        <ChevronUp size={14} />
-                        Hide Details
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown size={14} />
-                        View Details
-                      </>
-                    )}
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    {isExpanded ? 'Hide Details' : 'View Details'}
                   </button>
 
-                  {/* Expanded Details */}
+                  {/* Expanded Content */}
                   {isExpanded && (
-                    <div className="p-3 bg-slate-50 border-t border-slate-200">
-                      <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-4 bg-slate-50 border-t border-slate-200">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <p className="text-slate-400">Bill Number</p>
+                          <p className="text-xs text-slate-400">Bill Number</p>
                           <p className="font-medium text-slate-700">{tx.bill_num || '-'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400">Branch</p>
-                          <p className="font-medium text-slate-700">{tx.branch_name || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400">Payment</p>
-                          <p className="font-medium text-slate-700">{tx.payment_method || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400">Status</p>
-                          <p className="font-medium text-slate-700">{tx.status || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-400">Menu</p>
+                          <p className="text-xs text-slate-400">Menu</p>
                           <p className="font-medium text-slate-700">{tx.menu_name || '-'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-400">Quantity</p>
+                          <p className="text-xs text-slate-400">Quantity</p>
                           <p className="font-medium text-slate-700">{tx.quantity ?? '-'}</p>
                         </div>
-                        <div className="col-span-2">
-                          <p className="text-slate-400">Total</p>
-                          <p className="font-bold text-slate-900">{formatCurrency(tx.total_amount)}</p>
+                        <div>
+                          <p className="text-xs text-slate-400">Unit Price</p>
+                          <p className="font-medium text-slate-700">{formatCurrency(tx.unit_price)}</p>
                         </div>
                       </div>
-
-                      {/* View Full Detail Button */}
                       <button
                         onClick={() => setSelectedTransaction(tx)}
-                        className="w-full mt-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                        className="w-full mt-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                       >
                         <Eye size={16} />
                         View Full Details
@@ -555,18 +573,18 @@ export default function SalesPage() {
               <table className="w-full min-w-[1200px]">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Sales #</th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap hidden md:table-cell">Bill #</th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Date</th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Branch</th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap hidden xl:table-cell">Payment</th>
-                    <th className="px-3 py-2.5 text-right text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Total</th>
-                    <th className="px-3 py-2.5 text-center text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">Status</th>
-                    <th className="px-3 py-2.5 text-center text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">#</th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Menu</th>
-                    <th className="px-3 py-2.5 text-right text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Qty</th>
-                    <th className="px-3 py-2.5 text-right text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Price</th>
-                    <th className="px-3 py-2.5 text-right text-[10px] font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Subtotal</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Sales #</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider hidden md:table-cell">Bill #</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Branch</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider hidden xl:table-cell">Payment</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Menu</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Qty</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Price</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Subtotal</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -576,45 +594,31 @@ export default function SalesPage() {
                       className={`hover:bg-slate-50 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}
                       onClick={() => setSelectedTransaction(tx)}
                     >
-                      <td className="px-3 py-2.5">
-                        <span className="font-semibold text-blue-600 text-xs">{tx.sales_num || '-'}</span>
+                      <td className="px-4 py-3">
+                        <span className="font-semibold text-blue-600 text-sm">{tx.sales_num || '-'}</span>
                       </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600 hidden md:table-cell">
-                        {tx.bill_num || '-'}
+                      <td className="px-4 py-3 text-sm text-slate-600 hidden md:table-cell">{tx.bill_num || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{formatDate(tx.sales_date)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 hidden lg:table-cell">
+                        <span className="max-w-[150px] truncate block">{tx.branch_name || '-'}</span>
                       </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">
-                        {formatDate(tx.sales_date)}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600 hidden lg:table-cell">
-                        <span className="max-w-[120px] truncate block">{tx.branch_name || '-'}</span>
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600 hidden xl:table-cell">
-                        {tx.payment_method || '-'}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs font-semibold text-slate-900 text-right whitespace-nowrap">
+                      <td className="px-4 py-3 text-sm text-slate-600 hidden xl:table-cell">{tx.payment_method || '-'}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-900 text-right whitespace-nowrap">
                         {formatCurrency(tx.total_amount)}
                       </td>
-                      <td className="px-3 py-2.5 text-center">
-                        {getStatusBadge(tx.status)}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-500 text-center hidden lg:table-cell">
-                        {tx.line_number || '-'}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600 hidden lg:table-cell">
-                        <div className="max-w-[150px] truncate">
-                          <span className="font-medium">{tx.menu_name || '-'}</span>
+                      <td className="px-4 py-3 text-center">{getStatusBadge(tx.status)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-500 text-center hidden lg:table-cell">{tx.line_number || '-'}</td>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        <div className="max-w-[180px]">
+                          <span className="text-sm font-medium text-slate-700">{tx.menu_name || '-'}</span>
                           {tx.menu_category && (
-                            <span className="block text-[10px] text-slate-400">{tx.menu_category}</span>
+                            <p className="text-xs text-slate-400">{tx.menu_category}</p>
                           )}
                         </div>
                       </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600 text-right hidden lg:table-cell">
-                        {tx.quantity ?? '-'}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600 text-right hidden lg:table-cell">
-                        {formatCurrency(tx.unit_price)}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs font-medium text-slate-900 text-right hidden lg:table-cell">
+                      <td className="px-4 py-3 text-sm text-slate-600 text-right hidden lg:table-cell">{tx.quantity ?? '-'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 text-right hidden lg:table-cell">{formatCurrency(tx.unit_price)}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900 text-right hidden lg:table-cell">
                         {formatCurrency(tx.total_item)}
                       </td>
                     </tr>
@@ -624,31 +628,34 @@ export default function SalesPage() {
             </div>
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination Footer */}
           {data.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
+            <div className="mt-4 bg-white rounded-xl border border-slate-200 px-4 py-3">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="text-xs sm:text-sm text-slate-600 order-2 sm:order-1">
-                  Showing <span className="font-medium">{formatNumber(data.length)}</span> rows
+                <div className="text-sm text-slate-600 order-2 sm:order-1">
+                  Showing <span className="font-semibold">{formatNumber(data.length)}</span> rows
                   {pagination.hasMore && (
-                    <span className="ml-1">(Load more for next page)</span>
+                    <span className="text-slate-400 ml-1">(more available, click Load More)</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 order-1 sm:order-2">
                   <button
                     onClick={() => fetchData(null, true)}
                     disabled={loading}
-                    className="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
                   >
                     Reset
                   </button>
                   <button
                     onClick={loadMore}
-                    disabled={loading || !pagination.hasMore}
-                    className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    disabled={loadingMore || !pagination.hasMore}
+                    className="px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                   >
-                    {loading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    {loadingMore ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        Loading...
+                      </>
                     ) : (
                       <>
                         Load More
@@ -658,6 +665,14 @@ export default function SalesPage() {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Loading More Indicator */}
+          {loadingMore && data.length > 0 && (
+            <div className="mt-4 flex items-center justify-center gap-2 py-3 text-sm text-slate-500">
+              <Loader2 size={18} className="animate-spin text-blue-600" />
+              <span>Loading more transactions...</span>
             </div>
           )}
         </div>
