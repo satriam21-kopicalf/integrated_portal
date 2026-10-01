@@ -153,6 +153,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const dateFrom = searchParams.get('dateFrom') || '';
     const dateTo = searchParams.get('dateTo') || '';
+    const branch = searchParams.get('branch') || '';
     const useCache = searchParams.get('cache') !== 'false'; // Default to use cache
 
     // Calculate default date range
@@ -167,7 +168,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check cache for non-search queries (without cursor)
-    if (useCache && !search && !cursor && limit === 50) {
+    if (useCache && !search && !cursor && !branch && limit === 50) {
       const cacheKey = `transactions:${effectiveDateFrom}:${effectiveDateTo}:${limit}`;
       const cached = getCached(cacheKey);
       if (cached) {
@@ -204,6 +205,11 @@ export async function GET(request: NextRequest) {
       whereClause += ` AND (sales_num ILIKE $${paramCount} OR bill_num ILIKE $${paramCount} OR branch_name ILIKE $${paramCount})`;
       params.push(`%${search}%`);
     }
+    if (branch) {
+      paramCount++;
+      whereClause += ` AND branch_name = $${paramCount}`;
+      params.push(branch);
+    }
 
     // Query headers with selective columns (use VIEW if available, fallback to table)
     const headersQuery = `
@@ -223,7 +229,14 @@ export async function GET(request: NextRequest) {
       const response = {
         data: [],
         pagination: { cursor: null, hasMore: false, limit },
-        summary: { totalRows: 0, totalHeaders: 0, totalItems: 0 },
+        summary: {
+          totalRows: 0,
+          totalHeaders: 0,
+          totalItems: 0,
+          totalRevenue: 0,
+          totalTransactions: 0,
+          avgTransactionValue: 0
+        },
         dateRange: { from: effectiveDateFrom, to: effectiveDateTo }
       };
       return NextResponse.json(response);
@@ -276,6 +289,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Calculate summary statistics
+    const uniqueHeadersMap = new Map<string, { total: number }>();
+    for (const row of resultData) {
+      const total = parseFloat(String(row.total_amount || 0));
+      if (uniqueHeadersMap.has(row.sales_num)) {
+        uniqueHeadersMap.get(row.sales_num)!.total += total;
+      } else {
+        uniqueHeadersMap.set(row.sales_num, { total });
+      }
+    }
+
+    const totalRevenue = Array.from(uniqueHeadersMap.values()).reduce((sum, h) => sum + h.total, 0);
+    const totalTransactions = uniqueHeadersMap.size;
+    const avgTransactionValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+
     // Next cursor
     let nextCursor = null;
     if (hasMore && resultData.length > 0) {
@@ -295,13 +323,16 @@ export async function GET(request: NextRequest) {
       summary: {
         totalRows: combinedData.length,
         totalHeaders: uniqueHeaders.size,
-        totalItems: itemsResult.rows.length
+        totalItems: itemsResult.rows.length,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        totalTransactions,
+        avgTransactionValue: Math.round(avgTransactionValue * 100) / 100
       },
       dateRange: { from: effectiveDateFrom, to: effectiveDateTo }
     };
 
     // Cache non-search results
-    if (useCache && !search && !cursor && limit === 50) {
+    if (useCache && !search && !cursor && !branch && limit === 50) {
       const cacheKey = `transactions:${effectiveDateFrom}:${effectiveDateTo}:${limit}`;
       setCache(cacheKey, response, 60); // Cache for 60 seconds
       console.log(`Cached ${cacheKey} for 60s`);

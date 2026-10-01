@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import * as XLSX from 'xlsx';
 
 interface Props {
   dateFrom?: string;
   dateTo?: string;
+  branch?: string;
 }
 
-export default function ExportButton({ dateFrom, dateTo }: Props) {
+export default function ExportButton({ dateFrom, dateTo, branch }: Props) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -19,12 +19,14 @@ export default function ExportButton({ dateFrom, dateTo }: Props) {
     setMessage(null);
 
     try {
+      // Call export API
       const res = await fetch('/api/transactions/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           dateFrom,
           dateTo,
+          branch,
         }),
       });
 
@@ -35,86 +37,68 @@ export default function ExportButton({ dateFrom, dateTo }: Props) {
         return;
       }
 
-      // Create workbook
-      const wb = XLSX.utils.book_new();
-
-      // Summary sheet
-      const summaryData = [
-        ['ESB Sales Recapitulation Report'],
-        ['PT Yuda Prawira Group'],
-        [''],
-        ['Generated', new Date().toLocaleString('id-ID')],
-        ['Period', `${data.dateRange?.from || 'N/A'} - ${data.dateRange?.to || 'N/A'}`],
-        [''],
-        ['Summary'],
-        ['Total Rows', data.totalRows || 0],
-        ['Total Transactions', data.totalHeaders || 0],
-        ['Total Items', data.totalItems || 0],
-      ];
-
-      const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-      XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
-
-      // Data sheet with headers and data
+      // If data is returned as JSON, convert to XLSX on client
       if (data.data && data.data.length > 0) {
+        // Dynamically import xlsx to avoid SSR issues
+        const XLSX = await import('xlsx');
+
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+
+        // Build summary data array
+        const summaryData: (string | number | null)[][] = [
+          ['ESB Sales Recapitulation Report'],
+          ['PT Yuda Prawira Group'],
+          [''],
+          ['Generated', new Date().toLocaleString('id-ID')],
+          ['Period', `${data.dateRange?.from || 'N/A'} - ${data.dateRange?.to || 'N/A'}`],
+        ];
+
+        // Add branch if selected
+        if (branch) {
+          summaryData.push(['Branch', branch]);
+        }
+
+        summaryData.push(
+          [''],
+          ['Summary'],
+          ['Total Rows', data.totalRows || 0],
+          ['Total Transactions', data.totalHeaders || 0],
+          ['Total Items', data.totalItems || 0]
+        );
+
+        const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+        // Data sheet with headers and data
         const wsData = XLSX.utils.aoa_to_sheet([data.headers, ...data.data]);
 
         // Set column widths
         wsData['!cols'] = [
-          { wch: 20 }, // Sales Number
-          { wch: 20 }, // Bill Number
-          { wch: 15 }, // Sales Type
-          { wch: 12 }, // Batch Order
-          { wch: 15 }, // Table Section
-          { wch: 20 }, // Table Name
-          { wch: 12 }, // Sales Date
-          { wch: 20 }, // Sales Date In
-          { wch: 20 }, // Sales Date Out
-          { wch: 25 }, // Branch
-          { wch: 15 }, // Brand
-          { wch: 15 }, // City
-          { wch: 15 }, // Area
-          { wch: 15 }, // Visit Purpose
-          { wch: 15 }, // Member Code
-          { wch: 20 }, // Member Name
-          { wch: 15 }, // Visitor Type
-          { wch: 15 }, // Employee Code
-          { wch: 20 }, // Employee Name
-          { wch: 20 }, // Customer Name
-          { wch: 15 }, // Payment Method
-          { wch: 15 }, // Subtotal
-          { wch: 15 }, // Discount Total
-          { wch: 15 }, // Service Charge
-          { wch: 15 }, // Tax Total
-          { wch: 15 }, // Grand Total
-          { wch: 15 }, // Voucher Discount
-          { wch: 15 }, // Cash Received
-          { wch: 15 }, // Change Given
-          { wch: 15 }, // Cashier
-          { wch: 12 }, // Status
-          { wch: 8 },  // Pax Total
-          { wch: 8 },  // Line Number
-          { wch: 15 }, // Menu Category
-          { wch: 20 }, // Menu Category Detail
-          { wch: 25 }, // Menu
-          { wch: 15 }, // Menu Code
-          { wch: 20 }, // Menu Notes
-          { wch: 10 }, // Quantity
-          { wch: 12 }, // Unit Price
-          { wch: 12 }, // Subtotal Item
-          { wch: 12 }, // Discount Item
-          { wch: 12 }, // Total Item
-          { wch: 20 }, // Order Time
+          { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 15 },
+          { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 25 },
+          { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+          { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 },
+          { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+          { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 },
+          { wch: 8 }, { wch: 8 }, { wch: 15 }, { wch: 20 }, { wch: 25 },
+          { wch: 15 }, { wch: 20 }, { wch: 10 }, { wch: 12 }, { wch: 12 },
+          { wch: 12 }, { wch: 12 }, { wch: 20 },
         ];
 
         XLSX.utils.book_append_sheet(wb, wsData, 'Transactions');
+
+        // Generate filename with date range
+        const fromDate = data.dateRange?.from || new Date().toISOString().slice(0, 10);
+        const toDate = data.dateRange?.to || new Date().toISOString().slice(0, 10);
+        const fileName = `ESB_Sales_${fromDate}_to_${toDate}.xlsx`;
+
+        XLSX.writeFile(wb, fileName);
+
+        setMessage({ type: 'success', text: `Exported ${data.totalRows || 0} rows successfully!` });
+      } else {
+        setMessage({ type: 'error', text: 'No data to export' });
       }
-
-      // Save file
-      const fileName = `ESB_Sales_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-
-      setMessage({ type: 'success', text: `Exported ${data.totalRows || 0} rows successfully!` });
 
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
@@ -131,11 +115,11 @@ export default function ExportButton({ dateFrom, dateTo }: Props) {
       <button
         onClick={handleExport}
         disabled={loading}
-        className="p-2 text-slate-600 hover:text-green-600 hover:bg-slate-100 rounded-lg transition-colors"
+        className="p-2 text-slate-600 hover:text-green-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
         title="Export to Excel"
       >
         {loading ? (
-          <Loader2 size={20} className="animate-spin" />
+          <Loader2 size={18} className="animate-spin" />
         ) : (
           <div className="w-6 h-6 relative">
             <Image

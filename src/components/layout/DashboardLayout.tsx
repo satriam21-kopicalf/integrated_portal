@@ -8,23 +8,16 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className="flex min-h-screen bg-slate-100">
-      {/* Sidebar - Sticky on desktop, fixed on mobile */}
-      <div className="relative lg:sticky lg:top-0 lg:h-screen lg:flex-shrink-0 z-[70]">
+    <div className="flex h-screen overflow-hidden bg-slate-100">
+      {/* Sidebar - Fixed on mobile, sticky on desktop */}
+      <div className="flex-shrink-0">
         <Sidebar />
       </div>
 
       {/* Main Content Area - Scrollable */}
-      <main className="flex-1 min-w-0">
-        {/* Mobile Header - visible only on mobile */}
-        <div className="lg:hidden">
-          <Sidebar />
-        </div>
-
+      <main className="flex-1 overflow-auto">
         {/* Page Content */}
-        <div className="min-h-screen lg:pt-0 pt-16">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );

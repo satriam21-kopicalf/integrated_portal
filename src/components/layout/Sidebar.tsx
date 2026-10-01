@@ -14,7 +14,7 @@ import {
   User,
   Layers
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const navigation = [
   {
@@ -42,42 +42,67 @@ const platformMenu = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showPlatformMenu, setShowPlatformMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile/desktop
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth >= 1024) {
+        setIsMobileOpen(false);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleSignOut = () => {
     router.push('/');
     setShowUserMenu(false);
   };
 
+  const sidebarWidth = isCollapsed ? 'w-20' : 'w-72';
+
   return (
     <>
-      {/* Mobile menu button */}
+      {/* Mobile menu button - Always visible on mobile */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-[70] p-2.5 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-200 active:scale-95"
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className={`fixed top-4 left-4 z-[70] p-2.5 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-200 active:scale-95 ${
+          isMobile ? '' : 'hidden'
+        }`}
         aria-label="Toggle menu"
       >
-        {isOpen ? <X size={22} /> : <Menu size={22} />}
+        {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
 
       {/* Mobile overlay */}
-      {isOpen && (
+      {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] transition-opacity duration-300"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] transition-opacity duration-300"
+          onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`lg:sticky lg:top-0 lg:h-screen z-[65] bg-white border-r border-slate-200 transition-all duration-300 ease-in-out flex flex-col ${
-          isOpen ? 'fixed inset-y-0 left-0 translate-x-0' : '-translate-x-full lg:translate-x-0 fixed lg:relative inset-y-0 left-0'
-        } ${
-          isCollapsed ? 'lg:w-20 w-72' : 'w-72'
-        }`}
+        className={`
+          ${sidebarWidth}
+          flex-shrink-0
+          bg-white border-r border-slate-200
+          transition-all duration-300 ease-in-out
+          flex flex-col h-screen
+          ${isMobile
+            ? `fixed inset-y-0 left-0 z-[65] ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`
+            : 'sticky top-0'
+          }
+        `}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Logo Section */}
@@ -130,7 +155,7 @@ export default function Sidebar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => setIsMobileOpen(false)}
                   className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 mb-1 ${
                     isActive
                       ? 'bg-blue-50 text-blue-600'
