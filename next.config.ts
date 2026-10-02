@@ -7,14 +7,10 @@ const BACKEND_URL = (process.env.BACKEND_URL || "http://187.52.114.14:8002").rep
 
 const nextConfig: NextConfig = {
   images: {
-    // Logos/icons live in the Supabase Storage bucket `portal-assets` (see src/lib/assets.ts)
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "awcoxytlmjiyfmpzinam.supabase.co",
-        pathname: "/storage/v1/object/public/portal-assets/**",
-      },
-    ],
+    // Logos/icons are small files already served by the Supabase Storage CDN
+    // (bucket `portal-assets`, see src/lib/assets.ts), so they are loaded as-is
+    // instead of going through the Next.js image optimizer.
+    unoptimized: true,
   },
   async rewrites() {
     return [

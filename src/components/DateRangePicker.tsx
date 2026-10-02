@@ -1,267 +1,197 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { formatDate, toIsoDate } from '@/lib/format';
+import { useClickOutside } from '@/lib/useClickOutside';
 
 interface DateRangePickerProps {
   dateFrom: string;
   dateTo: string;
-  onDateFromChange: (date: string) => void;
-  onDateToChange: (date: string) => void;
-  onClear: () => void;
+  /** Called once per change with the full range ('' = no bound). */
+  onChange: (dateFrom: string, dateTo: string) => void;
 }
 
-export default function DateRangePicker({
-  dateFrom,
-  dateTo,
-  onDateFromChange,
-  onDateToChange,
-  onClear
-}: DateRangePickerProps) {
+const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function presets(): { label: string; from: string; to: string }[] {
+  const today = new Date();
+  const d = (offset: number) => {
+    const x = new Date(today);
+    x.setDate(x.getDate() + offset);
+    return toIsoDate(x);
+  };
+  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const firstOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const lastOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+  return [
+    { label: 'Today', from: d(0), to: d(0) },
+    { label: 'Yesterday', from: d(-1), to: d(-1) },
+    { label: 'Last 7 days', from: d(-6), to: d(0) },
+    { label: 'Last 30 days', from: d(-29), to: d(0) },
+    { label: 'This month', from: toIsoDate(firstOfMonth), to: d(0) },
+    { label: 'Last month', from: toIsoDate(firstOfLastMonth), to: toIsoDate(lastOfLastMonth) },
+  ];
+}
+
+export default function DateRangePicker({ dateFrom, dateTo, onChange }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selecting, setSelecting] = useState<'from' | 'to'>('from');
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [month, setMonth] = useState(() => {
+    const base = dateTo || dateFrom ? new Date(`${dateTo || dateFrom}T00:00:00`) : new Date();
+    return new Date(base.getFullYear(), base.getMonth(), 1);
+  });
+  // first click picks the start, second click the end
+  const [pendingFrom, setPendingFrom] = useState<string | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const hasDateRange = dateFrom || dateTo;
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDay = firstDay.getDay();
-
-    // Adjust for Monday start (ISO week)
-    const adjustedStart = startingDay === 0 ? 6 : startingDay - 1;
-
-    const days: (number | null)[] = [];
-    for (let i = 0; i < adjustedStart; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-    return days;
-  };
-
-  const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatDisplayDate = (dateStr: string) => {
-    if (!dateStr) return '-';
-    const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
-
-  const handleDateClick = (day: number) => {
-    if (day === null) return;
-
-    const selectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    const dateStr = formatDate(selectedDate);
-
-    if (selecting === 'from') {
-      onDateFromChange(dateStr);
-      setSelecting('to');
-    } else {
-      onDateToChange(dateStr);
-      setSelecting('from');
-      setIsOpen(false);
-    }
-  };
-
-  const isSelected = (day: number) => {
-    if (day === null) return false;
-    const dateStr = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day));
-    if (dateFrom && dateTo) {
-      return dateStr >= dateFrom && dateStr <= dateTo;
-    }
-    if (dateFrom && dateStr === dateFrom) return true;
-    if (dateTo && dateStr === dateTo) return true;
-    return false;
-  };
-
-  const isRange = (day: number) => {
-    if (day === null || !dateFrom || !dateTo) return false;
-    const dateStr = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day));
-    return dateStr > dateFrom && dateStr < dateTo;
-  };
-
-  const isEdge = (day: number) => {
-    if (day === null) return false;
-    const dateStr = formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day));
-    return dateStr === dateFrom || dateStr === dateTo;
-  };
-
-  const prevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  };
-
-  const monthName = currentMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-  const days = getDaysInMonth(currentMonth);
-  const weekDays = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-
-  const setQuickRange = (daysBack: number) => {
-    const today = new Date();
-    const past = new Date();
-    past.setDate(past.getDate() - daysBack);
-    onDateFromChange(formatDate(past));
-    onDateToChange(formatDate(today));
-    setSelecting('from');
+  const close = useCallback(() => {
     setIsOpen(false);
+    setPendingFrom(null);
+  }, []);
+  useClickOutside(ref, close, isOpen);
+
+  const active = Boolean(dateFrom || dateTo);
+  const ranges = useMemo(() => presets(), []);
+
+  const days = useMemo(() => {
+    const first = new Date(month.getFullYear(), month.getMonth(), 1);
+    const count = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+    const lead = (first.getDay() + 6) % 7; // Monday-first grid
+    return [...Array(lead).fill(null), ...Array.from({ length: count }, (_, i) => i + 1)] as (number | null)[];
+  }, [month]);
+
+  const iso = (day: number) => toIsoDate(new Date(month.getFullYear(), month.getMonth(), day));
+  const today = toIsoDate(new Date());
+  const rangeFrom = pendingFrom ?? dateFrom;
+  const rangeTo = pendingFrom ? '' : dateTo;
+
+  const pick = (day: number) => {
+    const value = iso(day);
+    if (!pendingFrom) {
+      setPendingFrom(value);
+      return;
+    }
+    const [from, to] = value < pendingFrom ? [value, pendingFrom] : [pendingFrom, value];
+    onChange(from, to);
+    close();
   };
+
+  const applyPreset = (from: string, to: string) => {
+    onChange(from, to);
+    setMonth(new Date(`${to}T00:00:00`));
+    close();
+  };
+
+  const label = active ? `${formatDate(dateFrom) !== '-' ? formatDate(dateFrom) : '…'} – ${formatDate(dateTo) !== '-' ? formatDate(dateTo) : '…'}` : 'Date range: last 65 days';
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={ref}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
-          hasDateRange
-            ? 'bg-blue-50 border-blue-300 text-blue-700 hover:border-blue-400'
-            : 'bg-white border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-700'
+        type="button"
+        onClick={() => (isOpen ? close() : setIsOpen(true))}
+        className={`relative inline-flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${
+          active || isOpen
+            ? 'border-slate-900 bg-slate-900 text-white'
+            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'
         }`}
+        title={label}
+        aria-label={label}
+        aria-expanded={isOpen}
       >
-        <Calendar size={16} />
-        <span>
-          {hasDateRange ? (
-            <>
-              {formatDisplayDate(dateFrom)} - {formatDisplayDate(dateTo)}
-            </>
-          ) : (
-            'Select Date'
-          )}
-        </span>
-        {hasDateRange && (
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              onClear();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.stopPropagation();
-                onClear();
-              }
-            }}
-            className="ml-1 p-0.5 hover:bg-blue-100 rounded transition-colors cursor-pointer"
-          >
-            <X size={14} />
-          </span>
-        )}
+        <CalendarDays size={18} strokeWidth={1.75} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 w-[320px] overflow-hidden">
-          {/* Header */}
-          <div className="px-4 py-3 border-b border-slate-100">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={prevMonth}
-                className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <ChevronLeft size={18} className="text-slate-600" />
-              </button>
-              <span className="font-semibold text-slate-900">{monthName}</span>
-              <button
-                onClick={nextMonth}
-                className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <ChevronRight size={18} className="text-slate-600" />
-              </button>
+        <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Date range</p>
+              <p className="text-xs text-slate-500">
+                {pendingFrom ? `From ${formatDate(pendingFrom)} — select end date` : active ? label : 'Default: last 65 days'}
+              </p>
             </div>
+            {active && (
+              <button
+                type="button"
+                onClick={() => { onChange('', ''); close(); }}
+                className="rounded-md px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              >
+                Clear
+              </button>
+            )}
           </div>
 
-          {/* Calendar */}
-          <div className="p-4">
-            {/* Week Days Header */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
-              {weekDays.map((day) => (
-                <div key={day} className="text-center text-[11px] font-medium text-slate-400 py-1">
-                  {day}
-                </div>
-              ))}
+          <div className="flex flex-col sm:flex-row">
+            {/* Presets */}
+            <div className="flex gap-1 overflow-x-auto border-b border-slate-100 p-2 sm:w-32 sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r">
+              {ranges.map(r => {
+                const selected = r.from === dateFrom && r.to === dateTo;
+                return (
+                  <button
+                    key={r.label}
+                    type="button"
+                    onClick={() => applyPreset(r.from, r.to)}
+                    className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-left text-xs font-medium transition-colors ${
+                      selected ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Days Grid */}
-            <div className="grid grid-cols-7 gap-1">
-              {days.map((day, index) => (
+            {/* Calendar */}
+            <div className="flex-1 p-3">
+              <div className="mb-2 flex items-center justify-between">
                 <button
-                  key={index}
-                  onClick={() => handleDateClick(day!)}
-                  disabled={day === null}
-                  className={`
-                    h-9 w-9 text-sm rounded-lg transition-all
-                    ${day === null ? 'cursor-default' : ''}
-                    ${day !== null && isSelected(day) ? 'bg-blue-600 text-white font-semibold shadow-sm' : ''}
-                    ${day !== null && isRange(day) ? 'bg-blue-100 rounded-none' : ''}
-                    ${day !== null && !isSelected(day) ? 'hover:bg-slate-100' : ''}
-                    ${day !== null && isEdge(day) && !isSelected(day) ? 'bg-blue-50 font-medium' : ''}
-                  `}
+                  type="button"
+                  onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+                  className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                  aria-label="Previous month"
                 >
-                  {day}
+                  <ChevronLeft size={16} />
                 </button>
-              ))}
-            </div>
-          </div>
+                <span className="text-sm font-semibold text-slate-900">
+                  {month.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+                  className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                  aria-label="Next month"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
 
-          {/* Footer */}
-          <div className="px-4 py-3 border-t border-slate-100 bg-slate-50">
-            {/* Quick Select Buttons */}
-            <div className="flex gap-2 mb-3">
-              <button
-                onClick={() => setQuickRange(7)}
-                className="flex-1 px-3 py-2 text-xs font-medium bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-lg transition-all"
-              >
-                7 Hari
-              </button>
-              <button
-                onClick={() => setQuickRange(30)}
-                className="flex-1 px-3 py-2 text-xs font-medium bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-lg transition-all"
-              >
-                30 Hari
-              </button>
-              <button
-                onClick={() => setQuickRange(65)}
-                className="flex-1 px-3 py-2 text-xs font-medium bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-lg transition-all"
-              >
-                65 Hari
-              </button>
-            </div>
-
-            {/* Selection Info */}
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>
-                {selecting === 'from' ? 'Pilih tanggal mulai' : 'Pilih tanggal akhir'}
-              </span>
-              <span>
-                {dateFrom && (
-                  <span className="text-slate-700 font-medium">
-                    {formatDisplayDate(dateFrom)}
-                    {dateTo && ` - ${formatDisplayDate(dateTo)}`}
-                  </span>
-                )}
-              </span>
+              <div className="grid grid-cols-7 text-center">
+                {WEEK_DAYS.map(d => (
+                  <div key={d} className="py-1 text-[11px] font-medium text-slate-400">{d}</div>
+                ))}
+                {days.map((day, i) => {
+                  if (day === null) return <div key={`blank-${i}`} />;
+                  const value = iso(day);
+                  const isEdge = value === rangeFrom || value === rangeTo;
+                  const inRange = Boolean(rangeFrom && rangeTo && value > rangeFrom && value < rangeTo);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => pick(day)}
+                      className={`h-9 text-sm transition-colors ${
+                        isEdge
+                          ? 'rounded-md bg-slate-900 font-semibold text-white'
+                          : inRange
+                          ? 'bg-slate-100 text-slate-900'
+                          : `rounded-md hover:bg-slate-100 ${value === today ? 'font-semibold text-blue-600' : 'text-slate-700'}`
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

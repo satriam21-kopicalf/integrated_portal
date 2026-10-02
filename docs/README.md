@@ -299,6 +299,14 @@ Tombol export dengan progress indicator:
 
 ## 📝 Changelog
 
+### v1.4.0
+- Redesign UI (English): kartu ringkasan Sales/Nett/Gross/Deductions, tab tipe transaksi dengan jumlah, filter tanggal & cabang berupa ikon (popover kalender dengan preset, daftar cabang yang bisa dicari), chip filter aktif
+- Tabel transaksi: header sticky, baris dikelompokkan per transaksi, skeleton saat load, overlay "Updating results…" saat refresh; tampilan kartu di mobile
+- Panel progres export: persentase, hari yang diproses, baris, waktu berjalan & estimasi sisa, ringkasan file, download ulang / coba lagi
+- Detail transaksi menampilkan seluruh item (menu, package, extra) dari backend
+- Sidebar: header PORTAL · Integration Platform, menu HRMS, collapse yang diingat browser, app bar + drawer di mobile
+- Ikon dimuat langsung dari CDN Supabase (tanpa Next.js image optimizer)
+
 ### v1.3.0
 - Angka dashboard & export identik dengan ESB ERP (validasi Sep 2026: Subtotal Sales 30/30 hari sama)
 - Filter Tipe: Sales (sesuai ESB) / Void & Cancelled / Other Cost (CUPPING, WASTE) / Semua

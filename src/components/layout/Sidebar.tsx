@@ -1,327 +1,296 @@
 'use client';
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-  LayoutDashboard,
-  Receipt,
-  Menu,
-  X,
-  ChevronDown,
-  ChevronRight,
-  LogOut,
-  User,
-  Layers
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ChevronDown, ChevronsUpDown, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, X } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
+import { useClickOutside } from '@/lib/useClickOutside';
 
 const navigation = [
-  {
-    name: 'Dashboard',
-    href: '/overview',
-    icon: LayoutDashboard,
-    description: 'Overview & Analytics'
-  },
-  {
-    name: 'Sales Transactions',
-    href: '/sales',
-    icon: Receipt,
-    description: 'View & Export Data'
-  },
+  { name: 'Dashboard', href: '/overview', icon: LayoutDashboard, description: 'Overview & analytics' },
+  { name: 'Sales Transactions', href: '/sales', icon: Receipt, description: 'View & export data' },
 ];
 
-const platformMenu = [
+const platforms = [
   { name: 'Roastery', href: '#', icon: assetUrl('assets/roastery.png') },
   { name: 'Central Kitchen', href: '#', icon: assetUrl('assets/ck.png') },
   { name: 'Warehouse Management System', href: '#', icon: assetUrl('assets/warehouse.png') },
   { name: 'Operational', href: '#', icon: assetUrl('assets/operational.png') },
   { name: 'Finance', href: '#', icon: assetUrl('assets/finance.png') },
+  { name: 'HRMS', href: '#', icon: assetUrl('assets/hr.png') },
 ];
 
-export default function Sidebar() {
+const COLLAPSED_KEY = 'portal.sidebar.collapsed';
+const PLATFORMS_KEY = 'portal.sidebar.platforms';
+
+function readFlag(key: string, fallback: boolean): boolean {
+  try {
+    const v = window.localStorage.getItem(key);
+    return v === null ? fallback : v === '1';
+  } catch {
+    return fallback;
+  }
+}
+
+function writeFlag(key: string, value: boolean) {
+  try {
+    window.localStorage.setItem(key, value ? '1' : '0');
+  } catch {
+    /* storage unavailable: preference just isn't remembered */
+  }
+}
+
+interface SidebarProps {
+  mobileOpen: boolean;
+  onMobileClose: () => void;
+}
+
+export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showPlatformMenu, setShowPlatformMenu] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [platformsOpen, setPlatformsOpen] = useState(true);
 
-  // Detect mobile/desktop
+  // restore preferences after mount (avoids hydration mismatches)
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-      if (window.innerWidth >= 1024) {
-        setIsMobileOpen(false);
-      }
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    setCollapsed(readFlag(COLLAPSED_KEY, false));
+    setPlatformsOpen(readFlag(PLATFORMS_KEY, true));
   }, []);
 
-  const handleSignOut = () => {
-    router.push('/');
-    setShowUserMenu(false);
+  const toggleCollapsed = () => {
+    setCollapsed(c => {
+      writeFlag(COLLAPSED_KEY, !c);
+      return !c;
+    });
   };
-
-  const sidebarWidth = isCollapsed ? 'w-20' : 'w-72';
+  const togglePlatforms = () => {
+    setPlatformsOpen(o => {
+      writeFlag(PLATFORMS_KEY, !o);
+      return !o;
+    });
+  };
 
   return (
     <>
-      {/* Mobile menu button - Always visible on mobile */}
-      <button
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className={`fixed top-4 left-4 z-[70] p-2.5 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-200 active:scale-95 ${
-          isMobile ? '' : 'hidden'
-        }`}
-        aria-label="Toggle menu"
-      >
-        {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
-      </button>
-
-      {/* Mobile overlay */}
-      {isMobileOpen && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] transition-opacity duration-300"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* Desktop sidebar */}
       <aside
-        className={`
-          ${sidebarWidth}
-          flex-shrink-0
-          bg-white border-r border-slate-200
-          transition-all duration-300 ease-in-out
-          flex flex-col h-screen
-          ${isMobile
-            ? `fixed inset-y-0 left-0 z-[65] ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`
-            : 'sticky top-0'
-          }
-        `}
+        className={`hidden h-full flex-shrink-0 border-r border-slate-200 bg-white transition-[width] duration-200 lg:flex ${
+          collapsed ? 'w-[72px]' : 'w-64'
+        }`}
       >
-        <div className="flex flex-col h-full overflow-hidden">
-          {/* Logo Section */}
-          <div className="flex items-center justify-between px-5 py-5 border-b border-slate-100 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              {/* Logo Image */}
-              <div className="w-10 h-10 relative rounded-xl overflow-hidden shadow-lg flex-shrink-0">
-                <Image
-                  src={assetUrl('assets/calf-logo.png')}
-                  alt="Kopi Calf Logo"
-                  fill
-                  sizes="40px"
-                  className="object-contain"
-                />
-              </div>
-              {!isCollapsed && (
-                <div>
-                  <h1 className="text-lg font-bold text-slate-900 tracking-tight">Kopi Calf</h1>
-                  <p className="text-xs text-slate-500">Integration Dashboard</p>
-                </div>
-              )}
-            </div>
+        <SidebarContent collapsed={collapsed} pathname={pathname} platformsOpen={platformsOpen} onTogglePlatforms={togglePlatforms}>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          </button>
+        </SidebarContent>
+      </aside>
 
-            {/* Collapse button - Desktop only */}
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden lg:flex p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-              aria-label="Toggle sidebar"
-            >
-              <ChevronDown
-                size={16}
-                className={`transition-transform duration-300 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
-              />
-            </button>
-          </div>
-
-          {/* Main Navigation */}
-          <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-thin">
-            {/* Section Label */}
-            {!isCollapsed && (
-              <p className="px-3 mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Main Menu
-              </p>
-            )}
-
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setIsMobileOpen(false)}
-                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 mb-1 ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <div className={`flex-shrink-0 transition-colors ${
-                    isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
-                  }`}>
-                    <Icon size={20} />
-                  </div>
-
-                  {!isCollapsed && (
-                    <div className="flex-1 min-w-0">
-                      <p className="truncate">
-                        {item.name}
-                      </p>
-                      <p className={`text-xs truncate ${isActive ? 'text-blue-400' : 'text-slate-400'}`}>
-                        {item.description}
-                      </p>
-                    </div>
-                  )}
-                </Link>
-              );
-            })}
-
-            {/* Platform Menu - Collapsible */}
-            {!isCollapsed && (
-              <div className="mt-4 pt-4 border-t border-slate-100">
-                <button
-                  onClick={() => setShowPlatformMenu(!showPlatformMenu)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 mb-1"
-                >
-                  <div className="flex-shrink-0 text-slate-400">
-                    <Layers size={20} />
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-slate-700">Platform</p>
-                  </div>
-                  <ChevronRight
-                    size={16}
-                    className={`text-slate-400 transition-transform duration-200 ${showPlatformMenu ? 'rotate-90' : ''}`}
-                  />
-                </button>
-
-                {/* Platform Submenu Popup */}
-                {showPlatformMenu && (
-                  <div className="ml-3 mt-1 space-y-0.5">
-                    {platformMenu.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-all duration-200"
-                      >
-                        <div className="w-5 h-5 relative">
-                          <Image
-                            src={item.icon}
-                            alt={item.name}
-                            fill
-                            sizes="20px"
-                            className="object-contain"
-                          />
-                        </div>
-                        <span>{item.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Collapsed view - Platform icon only */}
-            {isCollapsed && (
-              <div className="relative mt-4 pt-4 border-t border-slate-100">
-                <button
-                  onClick={() => setShowPlatformMenu(!showPlatformMenu)}
-                  className="w-full flex items-center justify-center p-2.5 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all duration-200"
-                >
-                  <Layers size={20} />
-                </button>
-
-                {/* Tooltip for collapsed state */}
-                {showPlatformMenu && (
-                  <div className="absolute left-full top-0 ml-3 p-3 bg-white rounded-xl shadow-xl border border-slate-200 min-w-[200px] z-50 space-y-0.5">
-                    <p className="text-xs font-semibold text-slate-400 uppercase mb-2 px-2">Platform</p>
-                    {platformMenu.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                      >
-                        <div className="w-5 h-5 relative">
-                          <Image
-                            src={item.icon}
-                            alt={item.name}
-                            fill
-                            sizes="20px"
-                            className="object-contain"
-                          />
-                        </div>
-                        <span>{item.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </nav>
-
-          {/* Footer */}
-          <div className="border-t border-slate-100 p-3 flex-shrink-0">
-            {/* User Profile with Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className={`w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition-colors ${
-                  isCollapsed ? 'justify-center' : ''
-                }`}
-              >
-                <div className="w-9 h-9 bg-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <User size={18} className="text-slate-600" />
-                </div>
-                {!isCollapsed && (
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-slate-900 truncate">Admin User</p>
-                  </div>
-                )}
-                {!isCollapsed && (
-                  <ChevronDown
-                    size={16}
-                    className={`text-slate-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
-                  />
-                )}
-              </button>
-
-              {/* User Dropdown Menu */}
-              {showUserMenu && !isCollapsed && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
-                  <div className="p-3 border-b border-slate-100">
-                    <p className="text-sm font-medium text-slate-900">Admin User</p>
-                    <p className="text-xs text-slate-500">admin@esbportal.com</p>
-                  </div>
-                  <div className="p-2">
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <LogOut size={16} />
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Version */}
-            {!isCollapsed && (
-              <p className="text-center text-xs text-slate-400 mt-3">
-                Kopi Calf Integrated v1.0.0
-              </p>
-            )}
-          </div>
-        </div>
+      {/* Mobile drawer */}
+      <div
+        className={`fixed inset-0 z-[60] bg-slate-900/50 transition-opacity duration-200 lg:hidden ${
+          mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={onMobileClose}
+        aria-hidden="true"
+      />
+      <aside
+        className={`fixed inset-y-0 left-0 z-[65] flex w-72 max-w-[85vw] bg-white shadow-2xl transition-transform duration-200 lg:hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        aria-hidden={!mobileOpen}
+      >
+        <SidebarContent
+          collapsed={false}
+          pathname={pathname}
+          platformsOpen={platformsOpen}
+          onTogglePlatforms={togglePlatforms}
+          onNavigate={onMobileClose}
+        >
+          <button
+            type="button"
+            onClick={onMobileClose}
+            className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
+        </SidebarContent>
       </aside>
     </>
+  );
+}
+
+export function Brand({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
+        <Image src={assetUrl('assets/calf-logo.png')} alt="Kopi Calf" fill sizes="36px" className="object-contain p-0.5" />
+      </div>
+      {!compact && (
+        <div className="min-w-0 leading-tight">
+          <p className="text-[15px] font-bold tracking-wide text-slate-900">PORTAL</p>
+          <p className="truncate text-xs text-slate-500">Integration Platform</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SidebarContent({
+  collapsed, pathname, platformsOpen, onTogglePlatforms, onNavigate, children,
+}: {
+  collapsed: boolean;
+  pathname: string;
+  platformsOpen: boolean;
+  onTogglePlatforms: () => void;
+  onNavigate?: () => void;
+  children: React.ReactNode; // header action (collapse / close)
+}) {
+  return (
+    <div className="flex h-full w-full flex-col">
+      {/* Header */}
+      <div className={`flex h-16 flex-shrink-0 items-center border-b border-slate-100 ${collapsed ? 'flex-col justify-center gap-1 px-2 py-2 h-auto' : 'justify-between gap-2 px-4'}`}>
+        <Brand compact={collapsed} />
+        {children}
+      </div>
+
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Main menu</p>}
+        <ul className="space-y-0.5">
+          {navigation.map(item => {
+            const active = pathname === item.href;
+            const Icon = item.icon;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={onNavigate}
+                  title={collapsed ? item.name : undefined}
+                  aria-current={active ? 'page' : undefined}
+                  className={`relative flex items-center gap-3 rounded-lg py-2 text-sm transition-colors ${
+                    collapsed ? 'justify-center px-0' : 'px-2.5'
+                  } ${active ? 'bg-slate-100 font-semibold text-slate-900' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                >
+                  {active && <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-slate-900" />}
+                  <Icon size={18} strokeWidth={1.75} className={active ? 'text-slate-900' : 'text-slate-400'} />
+                  {!collapsed && (
+                    <span className="min-w-0">
+                      <span className="block truncate">{item.name}</span>
+                      <span className="block truncate text-xs font-normal text-slate-400">{item.description}</span>
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="mt-5 border-t border-slate-100 pt-4">
+          {collapsed ? (
+            <ul className="space-y-1">
+              {platforms.map(p => (
+                <li key={p.name}>
+                  <Link href={p.href} title={p.name} className="flex justify-center rounded-lg py-2 hover:bg-slate-50">
+                    <span className="relative h-5 w-5">
+                      <Image src={p.icon} alt={p.name} fill sizes="20px" className="object-contain" />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onTogglePlatforms}
+                className="mb-1 flex w-full items-center justify-between rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600"
+                aria-expanded={platformsOpen}
+              >
+                Platforms
+                <ChevronDown size={14} className={`transition-transform ${platformsOpen ? '' : '-rotate-90'}`} />
+              </button>
+              {platformsOpen && (
+                <ul className="space-y-0.5">
+                  {platforms.map(p => (
+                    <li key={p.name}>
+                      <Link
+                        href={p.href}
+                        onClick={onNavigate}
+                        className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                      >
+                        <span className="relative h-5 w-5 flex-shrink-0">
+                          <Image src={p.icon} alt="" fill sizes="20px" className="object-contain" />
+                        </span>
+                        <span className="truncate">{p.name}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
+      </nav>
+
+      <UserMenu collapsed={collapsed} />
+    </div>
+  );
+}
+
+function UserMenu({ collapsed }: { collapsed: boolean }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useClickOutside(ref, close, open);
+
+  return (
+    <div className="flex-shrink-0 border-t border-slate-100 p-3" ref={ref}>
+      <div className="relative">
+        {open && (
+          <div className={`absolute bottom-full mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl ${collapsed ? 'left-0 w-56' : 'inset-x-0'}`}>
+            <div className="border-b border-slate-100 px-3 py-2.5">
+              <p className="text-sm font-medium text-slate-900">Admin User</p>
+              <p className="truncate text-xs text-slate-500">admin@esbportal.com</p>
+            </div>
+            <div className="p-1.5">
+              <button
+                type="button"
+                onClick={() => { setOpen(false); router.push('/'); }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50"
+              >
+                <LogOut size={16} /> Sign out
+              </button>
+            </div>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className={`flex w-full items-center gap-3 rounded-lg p-2 transition-colors hover:bg-slate-50 ${collapsed ? 'justify-center' : ''}`}
+          aria-expanded={open}
+          title={collapsed ? 'Admin User' : undefined}
+        >
+          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">AU</span>
+          {!collapsed && (
+            <>
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-sm font-medium text-slate-900">Admin User</span>
+                <span className="block truncate text-xs text-slate-400">admin@esbportal.com</span>
+              </span>
+              <ChevronsUpDown size={15} className="text-slate-400" />
+            </>
+          )}
+        </button>
+      </div>
+      {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">Integration Platform v1.4.0</p>}
+    </div>
   );
 }

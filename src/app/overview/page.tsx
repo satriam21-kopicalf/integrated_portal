@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 export default function OverviewPage() {
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 lg:p-8">
+      <div className="p-4 sm:p-6">
         {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Dashboard Overview</h1>

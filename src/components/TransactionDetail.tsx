@@ -1,321 +1,213 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-  X,
-  Clock,
-  Receipt,
-  MapPin,
-  ArrowRight,
-  CalendarClock
-} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { MapPin, Receipt, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
+import { formatCurrency, formatDate, formatDateTime, formatNumber, parseLocalDate } from '@/lib/format';
 
 interface Props {
   transaction: TransactionCombined;
   onClose: () => void;
 }
 
+/** Response of GET /api/transactions/{sales_num} (header + ESB report rows). */
+type Detail = TransactionCombined & { report_rows?: TransactionCombined[] };
+
+function statusStyle(status?: string | null) {
+  const s = (status || '').toLowerCase();
+  if (s === 'finished' || s === 'completed') return 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
+  if (s === 'void' || s === 'cancelled') return 'bg-rose-50 text-rose-700 ring-rose-600/20';
+  return 'bg-amber-50 text-amber-700 ring-amber-600/20';
+}
+
+function duration(from?: string | null, to?: string | null): string {
+  if (!from || !to) return '-';
+  const mins = Math.round((parseLocalDate(to).getTime() - parseLocalDate(from).getTime()) / 60000);
+  if (!Number.isFinite(mins) || mins < 0) return '-';
+  return mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
+}
+
 export default function TransactionDrawer({ transaction, onClose }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [detail, setDetail] = useState<Detail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+    setTimeout(onClose, 250);
+  }, [onClose]);
 
   useEffect(() => {
-    setTimeout(() => setIsOpen(true), 10);
+    const t = setTimeout(() => setIsOpen(true), 10);
     document.body.style.overflow = 'hidden';
     return () => {
+      clearTimeout(t);
       document.body.style.overflow = '';
     };
   }, []);
 
-  const handleClose = () => {
-    setIsOpen(false);
-    setTimeout(onClose, 300);
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [handleClose]);
 
-  const formatCurrency = (value?: number | string | null) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    if (num === null || num === undefined || isNaN(num)) return '-';
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(num);
-  };
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/transactions/${encodeURIComponent(transaction.sales_num)}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(body => { if (!cancelled) setDetail(body); })
+      .catch(error => console.error('Error fetching transaction:', error))
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [transaction.sales_num]);
 
-  const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return '-';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '-';
-    return date.toLocaleString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const formatDateOnly = (dateStr?: string | null) => {
-    if (!dateStr) return '-';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '-';
-    return date.toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const getStatusInfo = (status?: string | null) => {
-    if (!status) return { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Unknown' };
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'finished' || statusLower === 'completed') {
-      return { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Completed' };
-    }
-    if (statusLower === 'void' || statusLower === 'cancelled') {
-      return { bg: 'bg-red-50', text: 'text-red-600', label: 'Void' };
-    }
-    return { bg: 'bg-gray-100', text: 'text-gray-700', label: status };
-  };
-
-  const statusInfo = getStatusInfo(transaction.status);
-
-  const getStayDuration = () => {
-    if (!transaction.sales_date_in || !transaction.sales_date_out) return '-';
-    const inTime = new Date(transaction.sales_date_in);
-    const outTime = new Date(transaction.sales_date_out);
-    if (isNaN(inTime.getTime()) || isNaN(outTime.getTime())) return '-';
-
-    const diffMs = outTime.getTime() - inTime.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const hours = Math.floor(diffMins / 60);
-    const mins = diffMins % 60;
-
-    if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m`;
-  };
+  const tx: TransactionCombined = detail ?? transaction;
+  const rows = detail?.report_rows ?? [];
+  const discount = Number(tx.discount_amount || 0);
 
   return (
     <>
-      {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/40 z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed inset-0 z-[80] bg-slate-900/40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={handleClose}
       />
-
-      {/* Drawer */}
-      <div
-        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] bg-white shadow-xl transition-transform duration-300 ease-out ${
+      <aside
+        className={`fixed inset-y-0 right-0 z-[80] flex w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out sm:w-[440px] ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Transaction detail"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                <Receipt size={20} className="text-gray-600" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Transaction Detail</h2>
-                <p className="text-xs text-gray-500 font-mono">{transaction.sales_num}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X size={20} className="text-gray-400" />
-            </button>
+        <div className="flex items-start gap-3 border-b border-slate-200 px-5 py-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100">
+            <Receipt size={20} className="text-slate-600" />
           </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Transaction</p>
+            <p className="truncate font-mono text-sm font-semibold text-slate-900">{tx.sales_num}</p>
+          </div>
+          <button type="button" onClick={handleClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Close">
+            <X size={18} />
+          </button>
         </div>
 
-        {/* Content */}
-        <div className="h-[calc(100vh-73px)] overflow-y-auto">
-          {/* Status & Total */}
-          <div className="px-5 py-5 bg-gray-900">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${statusInfo.bg} ${statusInfo.text}`}>
-                  {statusInfo.label}
-                </span>
-                <span className="flex items-center gap-1.5 text-gray-400 text-sm">
-                  <MapPin size={14} />
-                  {transaction.branch_name || '-'}
-                </span>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Amount</p>
-                <p className="text-2xl font-bold text-white">{formatCurrency(transaction.total_amount)}</p>
-              </div>
+        <div className="flex-1 overflow-y-auto">
+          {/* Total */}
+          <div className="border-b border-slate-100 px-5 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyle(tx.status)}`}>
+                {tx.status || 'Unknown'}
+              </span>
+              <span className="flex min-w-0 items-center gap-1 text-xs text-slate-500">
+                <MapPin size={12} className="flex-shrink-0" />
+                <span className="truncate">{tx.branch_name || '-'}</span>
+              </span>
             </div>
+            <p className="mt-3 text-xs text-slate-500">Grand total</p>
+            <p className="text-3xl font-semibold tabular-nums text-slate-900">{formatCurrency(tx.total_amount)}</p>
           </div>
 
-          {/* Transaction Info */}
-          <div className="px-5 py-4">
-            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Information</h4>
-            <div className="grid grid-cols-2 gap-2.5">
-              <InfoItem label="Bill Number" value={transaction.bill_num || '-'} />
-              <InfoItem label="Sales Date" value={formatDateOnly(transaction.sales_date)} />
-              <InfoItem label="Payment" value={transaction.payment_method || '-'} />
-              <InfoItem label="Cashier" value={transaction.cashier_id || '-'} />
-            </div>
-          </div>
+          {/* Information */}
+          <Section title="Information">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+              <Field label="Bill number" value={tx.bill_num || 'No bill number'} />
+              <Field label="Sales date" value={formatDate(tx.sales_date)} />
+              <Field label="Payment method" value={tx.payment_method || '-'} />
+              <Field label="Visit purpose" value={tx.visit_purpose || '-'} />
+              <Field label="Customer" value={tx.customer_name && tx.customer_name !== '-' ? tx.customer_name : 'Walk-in'} />
+              <Field label="Cashier" value={tx.cashier_id || '-'} />
+              <Field label="Time in" value={formatDateTime(tx.sales_date_in)} />
+              <Field label="Time out" value={formatDateTime(tx.sales_date_out)} />
+              <Field label="Duration" value={duration(tx.sales_date_in, tx.sales_date_out)} />
+              <Field label="Pax" value={formatNumber(tx.pax_total)} />
+            </dl>
+          </Section>
 
-          {/* Timeline */}
-          <div className="px-5 py-4 border-t border-gray-100">
-            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Timeline</h4>
-            <div className="space-y-3">
-              <TimelineItem
-                label="Time In"
-                value={formatDate(transaction.sales_date_in)}
-                icon={<ArrowRight size={12} />}
-                iconBg="bg-gray-200"
-                iconColor="text-gray-600"
-              />
-              {transaction.order_time && (
-                <TimelineItem
-                  label="Order"
-                  value={formatDate(transaction.order_time)}
-                  icon={<CalendarClock size={12} />}
-                  iconBg="bg-gray-200"
-                  iconColor="text-gray-600"
-                />
-              )}
-              <TimelineItem
-                label="Time Out"
-                value={formatDate(transaction.sales_date_out)}
-                icon={<ArrowRight size={12} />}
-                iconBg="bg-gray-200"
-                iconColor="text-gray-600"
-              />
-              <TimelineItem
-                label="Duration"
-                value={getStayDuration()}
-                icon={<Clock size={12} />}
-                iconBg="bg-gray-200"
-                iconColor="text-gray-600"
-              />
-            </div>
-          </div>
-
-          {/* Order Item */}
-          <div className="px-5 py-4 border-t border-gray-100">
-            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Order Item</h4>
-            <div className="bg-gray-50 rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500">#</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500">Item</th>
-                    <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500">Qty</th>
-                    <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-500">Price</th>
-                    <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-500">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-t border-gray-200">
-                    <td className="px-3 py-2.5 text-xs text-gray-400">{transaction.line_number || '-'}</td>
-                    <td className="px-3 py-2.5">
-                      <p className="text-sm font-medium text-gray-900">{transaction.menu_name || 'N/A'}</p>
-                      {transaction.menu_category && (
-                        <p className="text-xs text-gray-500">{transaction.menu_category}</p>
-                      )}
-                    </td>
-                    <td className="px-3 py-2.5 text-xs text-gray-600 text-center">{transaction.quantity ?? '-'}</td>
-                    <td className="px-3 py-2.5 text-xs text-gray-600 text-right">{formatCurrency(transaction.unit_price)}</td>
-                    <td className="px-3 py-2.5 text-xs font-semibold text-gray-900 text-right">
-                      {formatCurrency(transaction.total_item)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Payment Summary */}
-          <div className="px-5 py-4 border-t border-gray-100">
-            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Payment Summary</h4>
-            <div className="bg-gray-50 rounded-xl p-4">
+          {/* Items */}
+          <Section title={`Items${rows.length ? ` (${rows.filter(r => !r.menu_name?.endsWith(')')).length})` : ''}`}>
+            {loading ? (
               <div className="space-y-2">
-                <PaymentRow label="Subtotal" value={formatCurrency(transaction.subtotal)} />
-                <PaymentRow label="Discount" value={`-${formatCurrency(transaction.discount_amount)}`} isDiscount />
-                <div className="border-t border-gray-200 pt-2 mt-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold text-gray-900">Grand Total</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatCurrency(transaction.total_amount)}
-                    </span>
-                  </div>
-                </div>
-                <div className="border-t border-gray-200 pt-2 mt-2 space-y-1.5">
-                  <PaymentRow label="Cash Received" value={formatCurrency(transaction.cash_received)} />
-                  <PaymentRow label="Change" value={formatCurrency(transaction.change_given)} />
-                </div>
+                {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-9 animate-pulse rounded bg-slate-100" />)}
               </div>
-            </div>
-          </div>
+            ) : rows.length === 0 ? (
+              <p className="text-sm text-slate-500">No items recorded for this transaction.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                {rows.map((r, i) => {
+                  const addon = r.menu_name?.endsWith(')');
+                  return (
+                    <li key={i} className={`flex items-start justify-between gap-3 px-3 py-2 ${addon ? 'bg-slate-50/60' : ''}`}>
+                      <div className="min-w-0">
+                        <p className={`truncate text-sm ${addon ? 'pl-3 text-slate-500' : 'font-medium text-slate-800'}`}>{r.menu_name}</p>
+                        <p className={`text-xs text-slate-400 ${addon ? 'pl-3' : ''}`}>
+                          {formatNumber(r.quantity)} × {formatCurrency(r.unit_price)}
+                          {Number(r.discount_item) ? ` · disc. ${formatCurrency(r.discount_item)}` : ''}
+                        </p>
+                      </div>
+                      <p className="whitespace-nowrap text-sm tabular-nums text-slate-800">{formatCurrency(r.total_item)}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Section>
 
-          {/* Location */}
-          {(transaction.brand || transaction.city || transaction.area) && (
-            <div className="px-5 py-4 border-t border-gray-100">
-              <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Location</h4>
-              <div className="grid grid-cols-2 gap-2.5">
-                {transaction.brand && <InfoItem label="Brand" value={transaction.brand} />}
-                {transaction.city && <InfoItem label="City" value={transaction.city} />}
-                {transaction.area && <InfoItem label="Area" value={transaction.area} />}
-              </div>
-            </div>
+          {/* Payment summary */}
+          <Section title="Payment summary">
+            <dl className="space-y-1.5 text-sm">
+              <Row label="Subtotal" value={formatCurrency(tx.subtotal)} />
+              {discount > 0 && <Row label="Discount" value={`−${formatCurrency(discount)}`} tone="text-rose-600" />}
+              {Number(tx.tax_amount) > 0 && <Row label="Tax" value={formatCurrency(tx.tax_amount)} />}
+              <div className="my-2 border-t border-slate-200" />
+              <Row label="Grand total" value={formatCurrency(tx.total_amount)} strong />
+              {tx.nett_sales !== undefined && <Row label="Nett sales" value={formatCurrency(tx.nett_sales)} />}
+            </dl>
+          </Section>
+
+          {(tx.brand || tx.city) && (
+            <Section title="Branch">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <Field label="Branch" value={tx.branch_name || '-'} />
+                <Field label="Code" value={tx.branch_code || '-'} />
+                {tx.brand && <Field label="Brand" value={tx.brand} />}
+                {tx.city && <Field label="City" value={tx.city} />}
+              </dl>
+            </Section>
           )}
-
-          <div className="h-6" />
         </div>
-      </div>
+      </aside>
     </>
   );
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-3">
-      <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">{label}</p>
-      <p className="text-sm font-medium text-gray-900 truncate">{value}</p>
+    <section className="border-b border-slate-100 px-5 py-4">
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs text-slate-400">{label}</dt>
+      <dd className="truncate text-sm font-medium text-slate-800" title={value}>{value}</dd>
     </div>
   );
 }
 
-function TimelineItem({
-  label,
-  value,
-  icon,
-  iconBg,
-  iconColor,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-}) {
+function Row({ label, value, strong = false, tone = 'text-slate-700' }: { label: string; value: string; strong?: boolean; tone?: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className={`w-7 h-7 rounded-full ${iconBg} flex items-center justify-center ${iconColor}`}>
-        {icon}
-      </div>
-      <div className="flex-1">
-        <p className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</p>
-        <p className="text-sm font-medium text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function PaymentRow({ label, value, isDiscount = false }: { label: string; value: string; isDiscount?: boolean }) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className={`font-medium ${isDiscount ? 'text-red-500' : 'text-gray-700'}`}>{value}</span>
+    <div className="flex justify-between gap-3">
+      <dt className={strong ? 'font-semibold text-slate-900' : 'text-slate-500'}>{label}</dt>
+      <dd className={`tabular-nums ${strong ? 'font-semibold text-slate-900' : tone}`}>{value}</dd>
     </div>
   );
 }
