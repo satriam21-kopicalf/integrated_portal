@@ -4,10 +4,8 @@ import { useEffect, useState } from 'react';
 import {
   X,
   Clock,
-  CreditCard,
   Receipt,
   MapPin,
-  Calendar,
   ArrowRight,
   CalendarClock
 } from 'lucide-react';
@@ -198,7 +196,6 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
                 icon={<Clock size={12} />}
                 iconBg="bg-gray-200"
                 iconColor="text-gray-600"
-                isLast
               />
             </div>
           </div>
@@ -294,14 +291,12 @@ function TimelineItem({
   icon,
   iconBg,
   iconColor,
-  isLast = false
 }: {
   label: string;
   value: string;
   icon: React.ReactNode;
   iconBg: string;
   iconColor: string;
-  isLast?: boolean;
 }) {
   return (
     <div className="flex items-center gap-3">

@@ -43,7 +43,7 @@ integrated_portal/
 │   │       ├── DashboardLayout.tsx # Main layout wrapper
 │   │       └── Sidebar.tsx        # Sidebar navigation
 │   ├── lib/
-│   │   └── db_optimizations.sql  # Index/optimasi database
+│   │   └── assets.ts             # URL logo/ikon (Supabase Storage)
 │   └── types/
 │       └── transactions.ts        # TypeScript types
 ├── docs/

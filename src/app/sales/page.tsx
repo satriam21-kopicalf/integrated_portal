@@ -10,12 +10,8 @@ import {
   ChevronRight,
   X,
   ChevronDown,
-  Filter,
-  ChevronUp,
-  Eye,
   Loader2,
   Package,
-  SlidersHorizontal
 } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 
@@ -75,8 +71,6 @@ export default function SalesPage() {
 
   // UI State
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionCombined | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   // Search input updates `search` immediately; the query uses the debounced value
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -260,11 +254,7 @@ export default function SalesPage() {
   const typeLabel = TX_TYPES.find(t => t.value === txType)?.label || txType;
 
   const hasActiveFilters = dateFrom || dateTo || branch || txType !== 'sales';
-  const activeFilterCount = [dateFrom, dateTo, branch].filter(Boolean).length;
 
-  const toggleRowExpand = (salesNum: string) => {
-    setExpandedRow(expandedRow === salesNum ? null : salesNum);
-  };
 
   return (
     <DashboardLayout>
