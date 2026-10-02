@@ -16,7 +16,6 @@ const pool = new Pool({
 const SCHEMA = 'integration_esb';
 const DEFAULT_DAYS = 65;
 
-// Excel column headers matching ESB report format
 const EXCEL_HEADERS = [
   'Sales Number', 'Bill Number', 'Sales Type', 'Batch Order',
   'Table Section', 'Table Name', 'Sales Date', 'Sales Date In', 'Sales Date Out',
@@ -50,7 +49,7 @@ export async function POST(request: NextRequest) {
   try {
     const { dateFrom, dateTo, branch } = await request.json();
 
-    // Calculate default date range if not specified
+    // Calculate default date range
     let effectiveDateFrom = dateFrom;
     let effectiveDateTo = dateTo;
 
@@ -61,18 +60,27 @@ export async function POST(request: NextRequest) {
       effectiveDateTo = new Date().toISOString().slice(0, 10);
     }
 
-    // Build where clause
-    let whereClause = 'WHERE h.sales_date >= $1 AND h.sales_date <= $2';
-    const params: unknown[] = [effectiveDateFrom, effectiveDateTo];
-    let paramCount = 2;
+    // Build where clause with proper date handling
+    let whereClause = 'WHERE 1=1';
+    const params: unknown[] = [];
+    let paramCount = 0;
 
+    if (effectiveDateFrom) {
+      paramCount++;
+      whereClause += ` AND h.sales_date >= $${paramCount}`;
+      params.push(effectiveDateFrom + 'T00:00:00.000Z');
+    }
+    if (effectiveDateTo) {
+      paramCount++;
+      whereClause += ` AND h.sales_date <= $${paramCount}`;
+      params.push(effectiveDateTo + 'T23:59:59.999Z');
+    }
     if (branch) {
       paramCount++;
       whereClause += ` AND h.branch_name = $${paramCount}`;
       params.push(branch);
     }
 
-    // Query headers using PostgreSQL
     const headersQuery = `
       SELECT h.*, i.line_number, i.menu_category, i.menu_category_detail,
              i.menu_name, i.menu_code, i.menu_notes, i.quantity, i.unit_price,
@@ -82,6 +90,7 @@ export async function POST(request: NextRequest) {
       LEFT JOIN ${SCHEMA}.transactions_pos_sales_items i ON h.sales_num = i.sales_num
       ${whereClause}
       ORDER BY h.sales_date DESC, h.sales_num DESC, i.line_number ASC
+      LIMIT 50000
     `;
 
     const startTime = Date.now();
@@ -100,7 +109,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Transform to Excel format
     const data = rows.map(row => [
       row.sales_num || '',
       row.bill_num || '',
@@ -148,7 +156,6 @@ export async function POST(request: NextRequest) {
       formatDateTimeValue(row.order_time),
     ]);
 
-    // Count unique transactions and items
     const uniqueSalesNums = new Set(rows.map(r => r.sales_num));
     const itemsCount = rows.filter(r => r.line_number).length;
 
