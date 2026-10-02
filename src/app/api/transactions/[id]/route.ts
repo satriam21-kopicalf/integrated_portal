@@ -1,24 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/database';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://awcoxytlmjiyfmpzinam.supabase.co',
-  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_KEY || ''
-);
-
-const SCHEMA = 'integration_esb';
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: RouteParams
 ) {
   try {
+    const supabase = getSupabaseAdmin();
     const { id } = await params;
     const decodedId = decodeURIComponent(id);
 
     // Get header
     const { data: header, error: headerError } = await supabase
-      .from(`${SCHEMA}.transactions_pos_sales`)
+      .from('integration_esb.transactions_pos_sales')
       .select('*')
       .eq('sales_num', decodedId)
       .single();
@@ -32,7 +30,7 @@ export async function GET(
 
     // Get items
     const { data: items, error: itemsError } = await supabase
-      .from(`${SCHEMA}.transactions_pos_sales_items`)
+      .from('integration_esb.transactions_pos_sales_items')
       .select('*')
       .eq('sales_num', decodedId)
       .order('line_number');

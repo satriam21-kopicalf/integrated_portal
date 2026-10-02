@@ -1,24 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool, QueryResult } from 'pg';
+import { getSupabaseAdmin, TABLE_TRANSACTIONS, TABLE_ITEMS } from '@/lib/database';
 
-// Session Pooler connection
-const pool = new Pool({
-  host: process.env.DB_HOST || 'aws-0-ap-southeast-1.pooler.supabase.com',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'postgres',
-  user: process.env.DB_USER || 'postgres.awcoxytlmjiyfmpzinam',
-  password: process.env.DB_PASSWORD || 'Kopicalf2019@@',
-  ssl: { rejectUnauthorized: false },
-  max: 5,
-  idleTimeoutMillis: 20000,
-  connectionTimeoutMillis: 30000,
-});
-
-pool.on('error', (err) => {
-  console.error('Unexpected pool error:', err);
-});
-
-const SCHEMA = 'integration_esb';
 const DEFAULT_DAYS = 65;
 
 // Cache
@@ -51,83 +33,11 @@ setInterval(() => {
   }
 }, 300000);
 
-// Types
-interface SalesHeader {
-  sales_num: string;
-  bill_num: string | null;
-  sales_date: Date;
-  branch_name: string | null;
-  brand: string | null;
-  city: string | null;
-  area: string | null;
-  visit_purpose: string | null;
-  sales_type: string | null;
-  batch_order: number | null;
-  table_section: string | null;
-  table_name: string | null;
-  sales_date_in: Date | null;
-  sales_date_out: Date | null;
-  regular_member_code: string | null;
-  regular_member_name: string | null;
-  loyalty_member_type: string | null;
-  employee_code: string | null;
-  employee_name: string | null;
-  customer_name: string | null;
-  payment_method: string | null;
-  subtotal: number | null;
-  discount_amount: number | null;
-  service_charge: number | null;
-  tax_amount: number | null;
-  total_amount: number | null;
-  bill_discount: number | null;
-  cash_received: number | null;
-  change_given: number | null;
-  cashier_id: string | null;
-  status: string | null;
-  pax_total: number | null;
-  [key: string]: unknown;
-}
-
-interface SalesItem {
-  sales_num: string;
-  line_number: number;
-  menu_category: string | null;
-  menu_category_detail: string | null;
-  menu_name: string | null;
-  menu_code: string | null;
-  menu_notes: string | null;
-  quantity: number | null;
-  unit_price: number | null;
-  subtotal: number | null;
-  discount_amount: number | null;
-  total: number | null;
-  order_time: Date | null;
-  [key: string]: unknown;
-}
-
-const HEADER_COLUMNS = `
-  sales_num, bill_num, sales_type, batch_order,
-  table_section, table_name, sales_date,
-  sales_date_in, sales_date_out, branch_name,
-  brand, city, area, visit_purpose,
-  regular_member_code, regular_member_name, loyalty_member_type,
-  employee_code, employee_name, customer_name,
-  payment_method, subtotal, discount_amount, service_charge,
-  tax_amount, total_amount, bill_discount,
-  cash_received, change_given, cashier_id, status, pax_total
-`;
-
-const ITEM_COLUMNS = `
-  sales_num, line_number, menu_category, menu_category_detail,
-  menu_name, menu_code, menu_notes,
-  quantity, unit_price, subtotal, discount_amount, total, order_time
-`;
-
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  const client = await pool.connect();
 
   try {
+    const supabase = getSupabaseAdmin();
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get('cursor') || null;
     const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 100);
@@ -151,72 +61,51 @@ export async function GET(request: NextRequest) {
     // Cache key
     const cacheKey = `transactions:${effectiveDateFrom}:${effectiveDateTo}:${search}:${branch}:${limit}`;
 
-    // Check cache only for first page without filters
+    // Check cache
     if (useCache && !cursor && !search && !branch) {
       const cached = getCached(cacheKey);
       if (cached) {
-        console.log(`Cache hit for ${cacheKey}`);
+        console.log(`Cache hit`);
         return NextResponse.json(cached, {
           headers: { 'X-Cache': 'HIT', 'X-Response-Time': `${Date.now() - startTime}ms` }
         });
       }
     }
 
-    // Build query using CAST for fast date comparison
-    let whereClause = 'WHERE 1=1';
-    const params: string[] = [];
-    let paramCount = 0;
+    // Build query using Supabase
+    let query = supabase
+      .from(TABLE_TRANSACTIONS)
+      .select('*')
+      .order('sales_date', { ascending: false })
+      .order('sales_num', { ascending: false })
+      .limit(limit);
 
-    // Date range filter - use CAST to date for comparison
+    // Apply filters
     if (effectiveDateFrom) {
-      paramCount++;
-      whereClause += ` AND CAST(sales_date AS DATE) >= CAST($${paramCount} AS DATE)`;
-      params.push(effectiveDateFrom);
+      query = query.gte('sales_date', effectiveDateFrom);
     }
     if (effectiveDateTo) {
-      paramCount++;
-      whereClause += ` AND CAST(sales_date AS DATE) <= CAST($${paramCount} AS DATE)`;
-      params.push(effectiveDateTo);
+      query = query.lte('sales_date', effectiveDateTo);
     }
-
-    // Cursor for pagination
-    if (cursor) {
-      const [cursorDate, cursorSalesNum] = cursor.split('|||');
-      paramCount++;
-      whereClause += ` AND (CAST(sales_date AS DATE) < CAST($${paramCount} AS DATE) OR (CAST(sales_date AS DATE) = CAST($${paramCount} AS DATE) AND sales_num < $${paramCount + 1}))`;
-      params.push(cursorDate, cursorSalesNum);
-    }
-
-    // Search filter
-    if (search) {
-      paramCount++;
-      whereClause += ` AND (sales_num ILIKE $${paramCount} OR bill_num ILIKE $${paramCount} OR branch_name ILIKE $${paramCount})`;
-      params.push(`%${search}%`);
-    }
-
-    // Branch filter
     if (branch) {
-      paramCount++;
-      whereClause += ` AND branch_name = $${paramCount}`;
-      params.push(branch);
+      query = query.eq('branch_name', branch);
+    }
+    if (search) {
+      query = query.or(`sales_num.ilike.%25${search}%25,bill_num.ilike.%25${search}%25,branch_name.ilike.%25${search}%25`);
     }
 
-    // Query
-    const headersQuery = `
-      SELECT ${HEADER_COLUMNS}
-      FROM ${SCHEMA}.transactions_pos_sales
-      ${whereClause}
-      ORDER BY sales_date DESC, sales_num DESC
-      LIMIT ${limit}
-    `;
+    console.log('Query params:', { effectiveDateFrom, effectiveDateTo, branch, search });
+    const { data: headers, error: headersError } = await query;
 
-    console.log('Query params:', params);
-    const headersResult: QueryResult<SalesHeader> = await client.query(headersQuery, params);
-    const headers = headersResult.rows;
+    if (headersError) {
+      console.error('Headers error:', headersError);
+      throw headersError;
+    }
 
-    const hasMore = headers.length === limit;
+    const headersList = headers || [];
+    const hasMore = headersList.length === limit;
 
-    if (headers.length === 0) {
+    if (headersList.length === 0) {
       const response = {
         data: [],
         pagination: { cursor: null, hasMore: false, limit },
@@ -227,27 +116,32 @@ export async function GET(request: NextRequest) {
     }
 
     // Get items
-    const salesNums = headers.map(h => h.sales_num);
-    const itemsQuery = `
-      SELECT ${ITEM_COLUMNS}
-      FROM ${SCHEMA}.transactions_pos_sales_items
-      WHERE sales_num = ANY($1)
-      ORDER BY sales_num, line_number
-    `;
-    const itemsResult = await client.query(itemsQuery, [salesNums]);
+    const salesNums = headersList.map(h => h.sales_num);
+    const { data: items, error: itemsError } = await supabase
+      .from(TABLE_ITEMS)
+      .select('*')
+      .in('sales_num', salesNums)
+      .order('sales_num')
+      .order('line_number');
+
+    if (itemsError) {
+      console.error('Items error:', itemsError);
+    }
 
     // Group items
-    const itemsBySales = new Map<string, SalesItem[]>();
-    for (const item of itemsResult.rows) {
-      if (!itemsBySales.has(item.sales_num)) {
-        itemsBySales.set(item.sales_num, []);
+    const itemsBySales = new Map<string, typeof items>();
+    if (items) {
+      for (const item of items) {
+        if (!itemsBySales.has(item.sales_num)) {
+          itemsBySales.set(item.sales_num, []);
+        }
+        itemsBySales.get(item.sales_num)!.push(item);
       }
-      itemsBySales.get(item.sales_num)!.push(item);
     }
 
     // Merge header + items
     const combinedData = [];
-    for (const header of headers) {
+    for (const header of headersList) {
       const headerItems = itemsBySales.get(header.sales_num) || [];
       if (headerItems.length === 0) {
         combinedData.push({
@@ -275,7 +169,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate summary
     const uniqueHeadersMap = new Map<string, { total: number }>();
-    for (const row of headers) {
+    for (const row of headersList) {
       const total = parseFloat(String(row.total_amount || 0));
       if (uniqueHeadersMap.has(row.sales_num)) {
         uniqueHeadersMap.get(row.sales_num)!.total += total;
@@ -290,15 +184,15 @@ export async function GET(request: NextRequest) {
 
     // Generate next cursor
     let nextCursor = null;
-    if (hasMore && headers.length > 0) {
-      const last = headers[headers.length - 1];
+    if (hasMore && headersList.length > 0) {
+      const last = headersList[headersList.length - 1];
       const cursorDate = last.sales_date instanceof Date
         ? last.sales_date.toISOString().slice(0, 10)
         : String(last.sales_date).slice(0, 10);
       nextCursor = `${cursorDate}|||${last.sales_num}`;
     }
 
-    const uniqueHeaders = new Set(headers.map(h => h.sales_num));
+    const uniqueHeaders = new Set(headersList.map(h => h.sales_num));
     const responseTime = Date.now() - startTime;
 
     const response = {
@@ -307,7 +201,7 @@ export async function GET(request: NextRequest) {
       summary: {
         totalRows: combinedData.length,
         totalHeaders: uniqueHeaders.size,
-        totalItems: itemsResult.rows.length,
+        totalItems: items?.length || 0,
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         totalTransactions,
         avgTransactionValue: Math.round(avgTransactionValue * 100) / 100
@@ -318,7 +212,6 @@ export async function GET(request: NextRequest) {
     // Cache first page
     if (useCache && !cursor && !search && !branch) {
       setCache(cacheKey, response, 60);
-      console.log(`Cached ${cacheKey} for 60s`);
     }
 
     return NextResponse.json(response, {
@@ -329,12 +222,10 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('PG Error:', error);
+    console.error('Error:', error);
     return NextResponse.json(
-      { error: 'Database query failed', details: error instanceof Error ? error.message : 'Unknown' },
+      { error: 'Failed to fetch transactions', details: error instanceof Error ? error.message : 'Unknown' },
       { status: 500 }
     );
-  } finally {
-    client.release();
   }
 }

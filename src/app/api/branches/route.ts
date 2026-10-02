@@ -1,22 +1,9 @@
 import { NextResponse } from 'next/server';
-import { Pool, QueryResult } from 'pg';
-
-// Session Pooler connection
-const pool = new Pool({
-  host: process.env.DB_HOST || 'aws-0-ap-southeast-1.pooler.supabase.com',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'postgres',
-  user: process.env.DB_USER || 'postgres.awcoxytlmjiyfmpzinam',
-  password: process.env.DB_PASSWORD || 'Kopicalf2019@@',
-  ssl: { rejectUnauthorized: false },
-  max: 3,
-  idleTimeoutMillis: 15000,
-  connectionTimeoutMillis: 15000,
-});
+import { getSupabaseAdmin } from '@/lib/database';
 
 const SCHEMA = 'integration_esb';
 
-// Cache for branches
+// Cache for branches (5 minutes)
 let branchesCache: { data: { branch_name: string; count: number }[]; expiry: number } | null = null;
 
 export async function GET() {
@@ -26,36 +13,40 @@ export async function GET() {
       return NextResponse.json(branchesCache.data);
     }
 
-    const client = await pool.connect();
-    try {
-      // Get unique branches with transaction count (last 65 days)
-      const result: QueryResult = await client.query(`
-        SELECT
-          branch_name,
-          COUNT(*) as count
-        FROM ${SCHEMA}.transactions_pos_sales
-        WHERE sales_date >= CURRENT_DATE - INTERVAL '65 days'
-          AND branch_name IS NOT NULL
-          AND branch_name != ''
-        GROUP BY branch_name
-        ORDER BY count DESC, branch_name ASC
-      `);
+    const supabase = getSupabaseAdmin();
 
-      const data = result.rows.map(row => ({
-        branch_name: row.branch_name,
-        count: parseInt(row.count)
-      }));
+    // Get unique branches with transaction count (last 65 days) using raw SQL for aggregation
+    const { data, error } = await supabase
+      .from(`${SCHEMA}.transactions_pos_sales`)
+      .select('branch_name')
+      .gte('sales_date', new Date(Date.now() - 65 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
+      .not('branch_name', 'is', null)
+      .not('branch_name', 'eq', '');
 
-      // Cache for 5 minutes
-      branchesCache = {
-        data,
-        expiry: Date.now() + 5 * 60 * 1000
-      };
-
-      return NextResponse.json(data);
-    } finally {
-      client.release();
+    if (error) {
+      throw error;
     }
+
+    // Count branches locally
+    const branchCounts = new Map<string, number>();
+    for (const row of data || []) {
+      if (row.branch_name) {
+        branchCounts.set(row.branch_name, (branchCounts.get(row.branch_name) || 0) + 1);
+      }
+    }
+
+    // Sort by count descending, then name ascending
+    const sortedBranches = Array.from(branchCounts.entries())
+      .map(([branch_name, count]) => ({ branch_name, count }))
+      .sort((a, b) => b.count - a.count || a.branch_name.localeCompare(b.branch_name));
+
+    // Cache for 5 minutes
+    branchesCache = {
+      data: sortedBranches,
+      expiry: Date.now() + 5 * 60 * 1000
+    };
+
+    return NextResponse.json(sortedBranches);
   } catch (error) {
     console.error('Error fetching branches:', error);
     return NextResponse.json(
