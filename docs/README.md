@@ -4,7 +4,16 @@ Dokumentasi lengkap untuk project Integrated Portal - Frontend Dashboard.
 
 ## 📋 Overview
 
-Integrated Portal adalah aplikasi dashboard untuk menampilkan dan mengelola data transaksi penjualan dari sistem ESB (Enterprise Service Bus). Aplikasi ini dibangun dengan Next.js 16 dan menggunakan database PostgreSQL dari Supabase.
+Integrated Portal adalah aplikasi dashboard untuk menampilkan dan mengelola data transaksi penjualan dari sistem ESB (Enterprise Service Bus). Aplikasi ini dibangun dengan Next.js 16. Data diambil dari backend Python terpisah, [integrated_portal_be](https://github.com/satriam21-kopicalf/integrated_portal_be), yang berjalan di VPS dan terhubung ke PostgreSQL (Supabase).
+
+## 🏗️ Arsitektur
+
+```
+Browser ──> Next.js (Vercel) ──/api/* rewrite──> integrated_portal_be (FastAPI, VPS :8002) ──> Supabase PostgreSQL
+```
+
+- Frontend **tidak** lagi mengakses database secara langsung dan tidak menyimpan kredensial database.
+- Browser tetap memanggil `/api/*` (same-origin). `next.config.ts` mem-proxy request tersebut ke `BACKEND_URL` di sisi server, sehingga tidak ada masalah CORS maupun mixed content (HTTPS → HTTP).
 
 ## 🛠️ Tech Stack
 
@@ -13,8 +22,7 @@ Integrated Portal adalah aplikasi dashboard untuk menampilkan dan mengelola data
 | **Next.js 16** | React framework dengan Turbopack |
 | **TypeScript** | Type-safe JavaScript |
 | **Tailwind CSS** | Utility-first CSS framework |
-| **PostgreSQL** | Database (Supabase) |
-| **pg (node-postgres)** | PostgreSQL client untuk Node.js |
+| **integrated_portal_be** | Backend API (Python FastAPI) |
 
 ## 📁 Struktur Project
 
@@ -22,13 +30,6 @@ Integrated Portal adalah aplikasi dashboard untuk menampilkan dan mengelola data
 integrated_portal/
 ├── src/
 │   ├── app/
-│   │   ├── api/
-│   │   │   ├── branches/          # API untuk daftar branch
-│   │   │   │   └── route.ts
-│   │   │   ├── transactions/      # API transaksi
-│   │   │   │   ├── [id]/         # Detail transaksi
-│   │   │   │   ├── export/       # Export Excel
-│   │   │   │   └── route.ts      # List transaksi
 │   │   │   ├── page.tsx          # Home page
 │   │   │   ├── layout.tsx        # Root layout
 │   │   │   ├── sales/            # Sales transactions page
@@ -42,7 +43,7 @@ integrated_portal/
 │   │       ├── DashboardLayout.tsx # Main layout wrapper
 │   │       └── Sidebar.tsx        # Sidebar navigation
 │   ├── lib/
-│   │   └── database.ts           # Database configuration
+│   │   └── db_optimizations.sql  # Index/optimasi database
 │   └── types/
 │       └── transactions.ts        # TypeScript types
 ├── docs/
@@ -52,10 +53,12 @@ integrated_portal/
 ├── package.json
 ├── tsconfig.json
 ├── tailwind.config.js
-└── next.config.ts
+└── next.config.ts                # Proxy /api/* -> BACKEND_URL
 ```
 
 ## 🔌 API Endpoints
+
+Semua endpoint di bawah disediakan oleh **integrated_portal_be** (dokumentasi interaktif: `http://187.52.114.14:8002/docs`) dan diakses frontend melalui proxy `/api/*`.
 
 ### 1. GET /api/transactions
 
@@ -136,7 +139,7 @@ Export data transaksi ke format Excel.
 |--------|------|-------------|
 | sales_num | VARCHAR | Primary key, nomor transaksi |
 | bill_num | VARCHAR | Nomor bill/faktur |
-| sales_date | DATE | Tanggal transaksi |
+| sales_date | TIMESTAMPTZ | Tanggal transaksi (00:00 UTC) |
 | sales_date_in | TIMESTAMP | Waktu masuk |
 | sales_date_out | TIMESTAMP | Waktu keluar |
 | branch_name | VARCHAR | Nama branch/outlet |
@@ -174,32 +177,17 @@ Export data transaksi ke format Excel.
 
 ### Environment Variables
 
-Buat file `.env.local` di root project:
+| Variable | Default | Deskripsi |
+|----------|---------|-----------|
+| `BACKEND_URL` | `http://187.52.114.14:8002` | URL backend integrated_portal_be (tujuan proxy `/api/*`) |
+
+Untuk development lokal (backend dijalankan di mesin sendiri), buat `.env.local`:
 
 ```env
-# Supabase Session Pooler (Direct PostgreSQL)
-DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
-DB_PORT=5432
-DB_NAME=postgres
-DB_USER=postgres.awcoxytlmjiyfmpzinam
-DB_PASSWORD=Kopicalf2019@@
-
-# Supabase Project
-NEXT_PUBLIC_SUPABASE_URL=https://awcoxytlmjiyfmpzinam.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+BACKEND_URL=http://localhost:8002
 ```
 
-### Database Connection
-
-Aplikasi menggunakan **Session Pooler** dari Supabase untuk koneksi langsung ke PostgreSQL. Ini lebih cepat dari direct connection karena menggunakan connection pooling.
-
-```
-Host: aws-0-ap-southeast-1.pooler.supabase.com
-Port: 5432
-Database: postgres
-User: postgres.awcoxytlmjiyfmpzinam
-Password: [password]
-```
+Di Vercel, `BACKEND_URL` bersifat opsional (default ke backend VPS). Jika diubah, lakukan redeploy karena rewrite dibaca saat build. Kredensial database hanya ada di backend (`/opt/integrated-portal-be/.env` di VPS).
 
 ## 🚀 Cara Menjalankan
 
@@ -283,25 +271,21 @@ Tombol export dengan progress indicator:
 ## 🔒 Security Notes
 
 1. **Environment Variables**: Jangan commit `.env.local` ke Git
-2. **Database Credentials**: Menggunakan Session Pooler untuk akses langsung ke PostgreSQL
-3. **SSL Connection**: Koneksi menggunakan SSL dengan `rejectUnauthorized: false`
+2. **Database Credentials**: Tidak ada kredensial database di frontend; semuanya di backend
+3. **Akses data**: Hanya melalui backend API (read-only)
 
 ## 📊 Performa
 
-- **Default Limit**: 100 rows per page
-- **Cache**: Simple in-memory cache untuk query default (60 detik)
-- **Connection Pooling**: Max 5 connections, idle timeout 20 detik
-- **Query Optimization**: Menggunakan `TO_CHAR()` untuk perbandingan tanggal string
+- **Default Limit**: 100 rows per page (cursor pagination)
+- **Cache**: In-memory cache di backend (transaksi 60 detik, branches 5 menit)
+- **Kolom**: Backend tidak mengambil kolom `raw_data` sehingga payload jauh lebih kecil
+- **Export**: Maksimal 50.000 transaksi per export, response dikompresi gzip
 
 ## 🐛 Troubleshooting
 
-### Error: Connection Timeout
-- Pastikan koneksi internet stabil
-- Coba gunakan Session Pooler (aws-0-ap-southeast-1.pooler.supabase.com)
-
-### Error: ETIMEDOUT
-- Firewall atau network issue
-- Coba lagi beberapa saat kemudian
+### Data tidak muncul / error 500 / 502
+- Cek status backend: `curl http://187.52.114.14:8002/health`
+- Di VPS: `docker logs --tail 50 integrated-portal-be`
 
 ### Data tidak muncul
 - Cek apakah date filter benar
@@ -312,6 +296,12 @@ Tombol export dengan progress indicator:
 - Pastikan browser mengizinkan download file
 
 ## 📝 Changelog
+
+### v1.1.0
+- Data diambil dari backend Python (integrated_portal_be) via proxy `/api/*`
+- Menghapus Next.js API routes, Supabase client, dan dependency `pg` (frontend tanpa kredensial database)
+- Fix: filter (tanggal, branch, search) sebelumnya terkirim dengan nilai lama sehingga hasilnya telat satu langkah
+- Fix: "Load More" sekarang benar-benar memuat halaman berikutnya (cursor sebelumnya diabaikan)
 
 ### v1.0.0
 - Initial release

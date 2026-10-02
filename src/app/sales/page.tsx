@@ -51,8 +51,13 @@ export default function SalesPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
+  // Search input updates `search` immediately; the query uses the debounced value
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMounted = useRef(true);
+  // Ignore responses from requests that were superseded by a newer one
+  const requestIdRef = useRef(0);
 
   // Fetch branches
   const fetchBranches = useCallback(async () => {
@@ -75,6 +80,7 @@ export default function SalesPage() {
 
   const fetchData = useCallback(async (cursor: string | null = null, isReset: boolean = false) => {
     if (!isMounted.current) return;
+    const requestId = ++requestIdRef.current;
 
     if (cursor) {
       setLoadingMore(true);
@@ -88,15 +94,16 @@ export default function SalesPage() {
       params.append('cache', 'false');
 
       if (cursor) params.append('cursor', cursor);
-      if (search) params.append('search', search);
+      if (debouncedSearch) params.append('search', debouncedSearch);
       if (dateFrom) params.append('dateFrom', dateFrom);
       if (dateTo) params.append('dateTo', dateTo);
       if (branch) params.append('branch', branch);
 
       const res = await fetch(`/api/transactions?${params}`);
       const result = await res.json();
+      if (!res.ok) throw new Error(result.error || `HTTP ${res.status}`);
 
-      if (isMounted.current) {
+      if (isMounted.current && requestId === requestIdRef.current) {
         if (isReset || !cursor) {
           setData(result.data || []);
         } else {
@@ -107,21 +114,25 @@ export default function SalesPage() {
     } catch (error) {
       console.error('Error fetching transactions:', error);
     } finally {
-      if (isMounted.current) {
+      if (isMounted.current && requestId === requestIdRef.current) {
         setLoading(false);
         setLoadingMore(false);
       }
     }
-  }, [search, dateFrom, dateTo, branch]);
+  }, [debouncedSearch, dateFrom, dateTo, branch]);
 
   useEffect(() => {
     isMounted.current = true;
-    fetchData(null, true);
-
     return () => {
       isMounted.current = false;
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
   }, []);
+
+  // Refetch from the first page whenever a filter changes (fetchData changes with them)
+  useEffect(() => {
+    fetchData(null, true);
+  }, [fetchData]);
 
   // Auto-search as you type
   const handleSearchChange = (value: string) => {
@@ -132,31 +143,29 @@ export default function SalesPage() {
     }
 
     searchTimeoutRef.current = setTimeout(() => {
-      fetchData(null, true);
+      setDebouncedSearch(value);
     }, 400);
   };
 
   const handleDateFromChange = (value: string) => {
     setDateFrom(value);
-    fetchData(null, true);
   };
 
   const handleDateToChange = (value: string) => {
     setDateTo(value);
-    fetchData(null, true);
   };
 
   const handleBranchChange = (value: string) => {
     setBranch(value);
-    fetchData(null, true);
   };
 
   const clearFilters = () => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     setDateFrom('');
     setDateTo('');
     setBranch('');
     setSearch('');
-    fetchData(null, true);
+    setDebouncedSearch('');
   };
 
   const loadMore = () => {
