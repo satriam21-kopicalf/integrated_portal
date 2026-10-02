@@ -151,15 +151,23 @@ export default function DateRangePicker({
           )}
         </span>
         {hasDateRange && (
-          <button
+          <span
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
               e.stopPropagation();
               onClear();
             }}
-            className="ml-1 p-0.5 hover:bg-blue-100 rounded transition-colors"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation();
+                onClear();
+              }
+            }}
+            className="ml-1 p-0.5 hover:bg-blue-100 rounded transition-colors cursor-pointer"
           >
             <X size={14} />
-          </button>
+          </span>
         )}
       </button>
 
