@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import { assetUrl } from '@/lib/assets';
 import { Loader2, CheckCircle, AlertCircle, Download } from 'lucide-react';
 
 interface ExportButtonProps {
@@ -10,108 +11,144 @@ interface ExportButtonProps {
   branch?: string;
 }
 
+// Excel export job state returned by integrated_portal_be (/api/exports)
+interface ExportJob {
+  id: string;
+  status: 'queued' | 'running' | 'done' | 'error';
+  totalDays: number;
+  daysDone: number;
+  rows: number;
+  headers: number;
+  sheets: number;
+  fileName: string | null;
+  fileSize: number | null;
+  error: string | null;
+  downloadUrl: string | null;
+}
+
+const POLL_INTERVAL_MS = 2000;
+const DEFAULT_DAYS = 65; // backend default when no dates are selected
+const LARGE_RANGE_DAYS = 31;
+const ROWS_PER_DAY_ESTIMATE = 65000;
+
+function rangeDays(dateFrom?: string, dateTo?: string): number {
+  const toDate = (s: string) => new Date(`${s}T00:00:00Z`).getTime();
+  const today = new Date().toISOString().slice(0, 10);
+  if (!dateFrom && !dateTo) return DEFAULT_DAYS + 1;
+  if (!dateFrom) return DEFAULT_DAYS + 1;
+  return Math.round((toDate(dateTo || today) - toDate(dateFrom)) / 86_400_000) + 1;
+}
+
+function formatNumber(value: number) {
+  return value.toLocaleString('id-ID');
+}
+
+function startDownload(url: string, fileName: string) {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
 export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonProps) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'progress'; text: string } | null>(null);
+  const [lastDownload, setLastDownload] = useState<{ url: string; fileName: string } | null>(null);
+
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      // The export keeps running on the server; we only stop polling.
+      isMounted.current = false;
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+    };
+  }, []);
+
+  const finish = (type: 'success' | 'error', text: string) => {
+    if (!isMounted.current) return;
+    setLoading(false);
+    setProgress(null);
+    setMessage({ type, text });
+    if (type === 'success') setTimeout(() => isMounted.current && setMessage(null), 15000);
+  };
+
+  const handleJobUpdate = (job: ExportJob) => {
+    if (!isMounted.current) return;
+
+    if (job.status === 'error') {
+      finish('error', job.error || 'Export gagal. Silakan coba lagi.');
+      return;
+    }
+
+    if (job.status === 'done') {
+      if (!job.rows || !job.downloadUrl || !job.fileName) {
+        finish('error', 'Tidak ada data untuk periode ini');
+        return;
+      }
+      startDownload(job.downloadUrl, job.fileName);
+      setLastDownload({ url: job.downloadUrl, fileName: job.fileName });
+      const sizeMb = job.fileSize ? ` · ${(job.fileSize / 1_000_000).toFixed(1)} MB` : '';
+      const sheets = job.sheets > 1 ? ` · ${job.sheets} sheet` : '';
+      finish('success', `Export selesai: ${formatNumber(job.rows)} baris${sizeMb}${sheets}`);
+      return;
+    }
+
+    setProgress({ current: Math.round((job.daysDone / job.totalDays) * 100), total: job.totalDays });
+    setMessage({
+      type: 'progress',
+      text: job.status === 'queued'
+        ? 'Menunggu antrian export...'
+        : `Memproses hari ${job.daysDone}/${job.totalDays} · ${formatNumber(job.rows)} baris`,
+    });
+    pollTimer.current = setTimeout(() => poll(job.id), POLL_INTERVAL_MS);
+  };
+
+  const poll = async (jobId: string) => {
+    try {
+      const res = await fetch(`/api/exports/${jobId}`, { cache: 'no-store' });
+      const job = await res.json();
+      if (!res.ok) throw new Error(job.error || `HTTP ${res.status}`);
+      handleJobUpdate(job);
+    } catch (error) {
+      console.error('Export status error:', error);
+      // transient network errors: keep polling
+      if (isMounted.current) pollTimer.current = setTimeout(() => poll(jobId), POLL_INTERVAL_MS * 2);
+    }
+  };
 
   const handleExport = async () => {
+    const days = rangeDays(dateFrom, dateTo);
+    if (days > LARGE_RANGE_DAYS) {
+      const estimate = branch ? '' : ` (perkiraan ±${formatNumber(days * ROWS_PER_DAY_ESTIMATE)} baris)`;
+      const period = dateFrom || dateTo ? `${days} hari` : `${days} hari terakhir (tanpa filter tanggal)`;
+      if (!window.confirm(`Export ${period}${estimate}. Proses bisa memakan beberapa menit. Lanjutkan?`)) {
+        return;
+      }
+    }
+
     setLoading(true);
-    setMessage(null);
-    setProgress(null);
+    setLastDownload(null);
+    setProgress({ current: 0, total: days });
+    setMessage({ type: 'progress', text: 'Memulai export...' });
 
     try {
-      // Call export API
-      setProgress({ current: 0, total: 0 });
-      setMessage({ type: 'progress', text: 'Fetching data...' });
-
-      const res = await fetch('/api/transactions/export', {
+      const res = await fetch('/api/exports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dateFrom,
-          dateTo,
-          branch,
-        }),
+        body: JSON.stringify({ dateFrom: dateFrom || null, dateTo: dateTo || null, branch: branch || null }),
       });
-
-      const data = await res.json();
-
-      if (data.error) {
-        setMessage({ type: 'error', text: data.error });
-        return;
-      }
-
-      if (data.totalRows === 0) {
-        setMessage({ type: 'error', text: 'No data to export' });
-        return;
-      }
-
-      setProgress({ current: 50, total: data.totalRows });
-      setMessage({ type: 'progress', text: `Processing ${data.totalRows} rows...` });
-
-      // Generate Excel file
-      const XLSX = await import('xlsx');
-
-      setMessage({ type: 'progress', text: 'Generating Excel file...' });
-
-      const wb = XLSX.utils.book_new();
-
-      // Summary sheet
-      const summaryData = [
-        ['ESB Sales Report'],
-        ['Generated', new Date().toLocaleString('id-ID')],
-        ['Period', `${data.dateRange?.from || 'N/A'} - ${data.dateRange?.to || 'N/A'}`],
-        branch && ['Branch', branch],
-        [''],
-        ['Summary'],
-        ['Total Rows', data.totalRows || 0],
-        ['Total Transactions', data.totalHeaders || 0],
-        ['Total Items', data.totalItems || 0],
-      ].filter(Boolean);
-
-      const wsSummary = XLSX.utils.aoa_to_sheet(summaryData as (string | number | null)[][]);
-      XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
-
-      // Data sheet
-      setProgress({ current: 75, total: data.totalRows });
-      setMessage({ type: 'progress', text: 'Writing data...' });
-
-      const wsData = XLSX.utils.aoa_to_sheet([data.headers, ...data.data]);
-      wsData['!cols'] = [
-        { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 15 },
-        { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 25 },
-        { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-        { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 },
-        { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-        { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 },
-        { wch: 8 }, { wch: 8 }, { wch: 15 }, { wch: 20 }, { wch: 25 },
-        { wch: 15 }, { wch: 20 }, { wch: 10 }, { wch: 12 }, { wch: 12 },
-        { wch: 12 }, { wch: 12 }, { wch: 20 },
-      ];
-
-      XLSX.utils.book_append_sheet(wb, wsData, 'Transactions');
-
-      const fromDate = data.dateRange?.from || new Date().toISOString().slice(0, 10);
-      const toDate = data.dateRange?.to || new Date().toISOString().slice(0, 10);
-      const fileName = `ESB_Sales_${fromDate}_to_${toDate}.xlsx`;
-
-      setProgress({ current: 90, total: data.totalRows });
-      XLSX.writeFile(wb, fileName);
-
-      setProgress({ current: 100, total: data.totalRows });
-      setMessage({
-        type: 'success',
-        text: `Exported ${data.totalRows?.toLocaleString() || 0} rows successfully!`
-      });
-
-      setTimeout(() => setMessage(null), 5000);
+      const job = await res.json();
+      if (!res.ok) throw new Error(job.error || `HTTP ${res.status}`);
+      handleJobUpdate(job);
     } catch (error) {
       console.error('Export error:', error);
-      setMessage({ type: 'error', text: 'Export failed. Please try again.' });
-    } finally {
-      setLoading(false);
-      setProgress(null);
+      finish('error', error instanceof Error ? `Export gagal: ${error.message}` : 'Export gagal. Silakan coba lagi.');
     }
   };
 
@@ -128,9 +165,10 @@ export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonP
         ) : (
           <div className="w-6 h-6 relative">
             <Image
-              src="/assets/xlsx.png"
+              src={assetUrl('assets/xlsx.png')}
               alt="Export Excel"
               fill
+              sizes="24px"
               className="object-contain"
             />
           </div>
@@ -139,7 +177,7 @@ export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonP
 
       {/* Progress/Message Toast */}
       {message && (
-        <div className={`absolute right-0 top-full mt-2 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm whitespace-nowrap min-w-[200px] ${
+        <div className={`absolute right-0 top-full mt-2 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm whitespace-nowrap min-w-[260px] ${
           message.type === 'success'
             ? 'bg-green-50 text-green-700 border border-green-200'
             : message.type === 'error'
@@ -155,7 +193,16 @@ export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonP
           )}
           <div className="flex-1">
             <p>{message.text}</p>
-            {progress && progress.total > 0 && (
+            {message.type === 'success' && lastDownload && (
+              <a
+                href={lastDownload.url}
+                download={lastDownload.fileName}
+                className="mt-1 inline-flex items-center gap-1 text-xs font-medium underline"
+              >
+                <Download size={12} /> Unduh ulang
+              </a>
+            )}
+            {message.type === 'progress' && progress && progress.total > 0 && (
               <div className="mt-1.5">
                 <div className="w-full bg-blue-200 rounded-full h-1.5">
                   <div

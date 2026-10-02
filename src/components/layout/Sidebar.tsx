@@ -15,6 +15,7 @@ import {
   Layers
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { assetUrl } from '@/lib/assets';
 
 const navigation = [
   {
@@ -32,11 +33,11 @@ const navigation = [
 ];
 
 const platformMenu = [
-  { name: 'Roastery', href: '#', icon: '/assets/roastery.png' },
-  { name: 'Central Kitchen', href: '#', icon: '/assets/ck.png' },
-  { name: 'Warehouse Management System', href: '#', icon: '/assets/warehouse.png' },
-  { name: 'Operational', href: '#', icon: '/assets/operational.png' },
-  { name: 'Finance', href: '#', icon: '/assets/finance.png' },
+  { name: 'Roastery', href: '#', icon: assetUrl('assets/roastery.png') },
+  { name: 'Central Kitchen', href: '#', icon: assetUrl('assets/ck.png') },
+  { name: 'Warehouse Management System', href: '#', icon: assetUrl('assets/warehouse.png') },
+  { name: 'Operational', href: '#', icon: assetUrl('assets/operational.png') },
+  { name: 'Finance', href: '#', icon: assetUrl('assets/finance.png') },
 ];
 
 export default function Sidebar() {
@@ -111,9 +112,10 @@ export default function Sidebar() {
               {/* Logo Image */}
               <div className="w-10 h-10 relative rounded-xl overflow-hidden shadow-lg flex-shrink-0">
                 <Image
-                  src="/assets/calf-logo.png"
+                  src={assetUrl('assets/calf-logo.png')}
                   alt="Kopi Calf Logo"
                   fill
+                  sizes="40px"
                   className="object-contain"
                 />
               </div>
@@ -215,6 +217,7 @@ export default function Sidebar() {
                             src={item.icon}
                             alt={item.name}
                             fill
+                            sizes="20px"
                             className="object-contain"
                           />
                         </div>
@@ -251,6 +254,7 @@ export default function Sidebar() {
                             src={item.icon}
                             alt={item.name}
                             fill
+                            sizes="20px"
                             className="object-contain"
                           />
                         </div>

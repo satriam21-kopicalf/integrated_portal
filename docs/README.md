@@ -180,6 +180,7 @@ Export data transaksi ke format Excel.
 | Variable | Default | Deskripsi |
 |----------|---------|-----------|
 | `BACKEND_URL` | `http://187.52.114.14:8002` | URL backend integrated_portal_be (tujuan proxy `/api/*`) |
+| `NEXT_PUBLIC_ASSETS_URL` | bucket Supabase `portal-assets` | Basis URL logo & ikon (`src/lib/assets.ts`) |
 
 Untuk development lokal (backend dijalankan di mesin sendiri), buat `.env.local`:
 
@@ -233,9 +234,10 @@ npm start
 
 ### 4. Export to Excel
 
-- Progress bar saat export
-- Download file Excel dengan format ESB Report
-- Include summary sheet dan data sheet
+- Diproses di backend sebagai job (`POST /api/exports`), tanpa batas rentang tanggal
+- Progress per hari + jumlah baris, lalu file `.xlsx` otomatis terunduh
+- Format ESB Report: sheet Summary + Transactions (otomatis dipecah ke `Transactions (2)` dst. jika > 1.048.575 baris)
+- Konfirmasi jika rentang > 31 hari (1 bulan ≈ 2 juta baris ≈ 250 MB, ±5 menit)
 
 ## 🎨 Komponen UI
 
@@ -296,6 +298,10 @@ Tombol export dengan progress indicator:
 - Pastikan browser mengizinkan download file
 
 ## 📝 Changelog
+
+### v1.2.0
+- Export Excel diproses di backend (job + progress), tanpa batas rentang; sebelumnya data terpotong di 50.000 transaksi
+- Logo & ikon dimuat dari Supabase Storage (bucket `portal-assets`, lihat `scripts/upload-assets.sh`)
 
 ### v1.1.0
 - Data diambil dari backend Python (integrated_portal_be) via proxy `/api/*`
