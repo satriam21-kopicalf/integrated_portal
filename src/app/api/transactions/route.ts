@@ -167,18 +167,6 @@ export async function GET(request: NextRequest) {
       effectiveDateTo = new Date().toISOString().slice(0, 10);
     }
 
-    // Helper to convert date string to proper format for PostgreSQL
-    const formatDateForDB = (dateStr: string) => {
-      return dateStr + 'T00:00:00.000Z';
-    };
-
-    // Helper to get next day for inclusive date range
-    const getNextDay = (dateStr: string) => {
-      const date = new Date(dateStr + 'T00:00:00.000Z');
-      date.setDate(date.getDate() + 1);
-      return date.toISOString().slice(0, 10);
-    };
-
     // Check cache for non-search queries (without cursor)
     if (useCache && !search && !cursor && !branch && limit === 50) {
       const cacheKey = `transactions:${effectiveDateFrom}:${effectiveDateTo}:${limit}`;
@@ -193,23 +181,23 @@ export async function GET(request: NextRequest) {
 
     // Build query with selective columns
     let whereClause = 'WHERE 1=1';
-    const params: unknown[] = [];
+    const params: string[] = [];
     let paramCount = 0;
 
     if (effectiveDateFrom) {
       paramCount++;
-      whereClause += ` AND sales_date >= $${paramCount}`;
-      params.push(formatDateForDB(effectiveDateFrom));
+      whereClause += ` AND TO_CHAR(sales_date, 'YYYY-MM-DD') >= $${paramCount}`;
+      params.push(effectiveDateFrom);
     }
     if (effectiveDateTo) {
       paramCount++;
-      whereClause += ` AND sales_date < $${paramCount}`;
-      params.push(getNextDay(effectiveDateTo));
+      whereClause += ` AND TO_CHAR(sales_date, 'YYYY-MM-DD') <= $${paramCount}`;
+      params.push(effectiveDateTo);
     }
     if (cursor) {
       const [cursorDate, cursorNum] = cursor.split('|||');
       paramCount++;
-      whereClause += ` AND (sales_date < $${paramCount} OR (sales_date = $${paramCount} AND sales_num < $${paramCount + 1}))`;
+      whereClause += ` AND (TO_CHAR(sales_date, 'YYYY-MM-DD') < $${paramCount} OR (TO_CHAR(sales_date, 'YYYY-MM-DD') = $${paramCount} AND sales_num < $${paramCount + 1}))`;
       params.push(cursorDate, cursorNum);
     }
     if (search) {

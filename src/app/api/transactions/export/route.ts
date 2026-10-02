@@ -8,9 +8,9 @@ const pool = new Pool({
   user: process.env.DB_USER || 'postgres.awcoxytlmjiyfmpzinam',
   password: process.env.DB_PASSWORD || 'Kopicalf2019@@',
   ssl: { rejectUnauthorized: false },
-  max: 3,
-  idleTimeoutMillis: 60000,
-  connectionTimeoutMillis: 30000,
+  max: 5,
+  idleTimeoutMillis: 120000,
+  connectionTimeoutMillis: 60000,
 });
 
 const SCHEMA = 'integration_esb';
@@ -44,9 +44,10 @@ function formatDateTimeValue(value: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
-  const client = await pool.connect();
+  let client;
 
   try {
+    client = await pool.connect();
     const { dateFrom, dateTo, branch } = await request.json();
 
     // Calculate default date range
@@ -60,20 +61,20 @@ export async function POST(request: NextRequest) {
       effectiveDateTo = new Date().toISOString().slice(0, 10);
     }
 
-    // Build where clause with proper date handling
+    // Build where clause - use simple date string comparison
     let whereClause = 'WHERE 1=1';
-    const params: unknown[] = [];
+    const params: string[] = [];
     let paramCount = 0;
 
     if (effectiveDateFrom) {
       paramCount++;
-      whereClause += ` AND h.sales_date >= $${paramCount}`;
-      params.push(effectiveDateFrom + 'T00:00:00.000Z');
+      whereClause += ` AND TO_CHAR(h.sales_date, 'YYYY-MM-DD') >= $${paramCount}`;
+      params.push(effectiveDateFrom);
     }
     if (effectiveDateTo) {
       paramCount++;
-      whereClause += ` AND h.sales_date <= $${paramCount}`;
-      params.push(effectiveDateTo + 'T23:59:59.999Z');
+      whereClause += ` AND TO_CHAR(h.sales_date, 'YYYY-MM-DD') <= $${paramCount}`;
+      params.push(effectiveDateTo);
     }
     if (branch) {
       paramCount++;
@@ -81,15 +82,26 @@ export async function POST(request: NextRequest) {
       params.push(branch);
     }
 
+    console.log('Export params:', params);
+    console.log('Where clause:', whereClause);
+
     const headersQuery = `
-      SELECT h.*, i.line_number, i.menu_category, i.menu_category_detail,
+      SELECT h.sales_num, h.bill_num, h.sales_type, h.batch_order,
+             h.table_section, h.table_name, h.sales_date, h.sales_date_in, h.sales_date_out,
+             h.branch_name, h.brand, h.city, h.area, h.visit_purpose,
+             h.regular_member_code, h.regular_member_name, h.loyalty_member_type,
+             h.employee_code, h.employee_name, h.customer_name,
+             h.payment_method, h.subtotal, h.discount_amount, h.service_charge,
+             h.tax_amount, h.total_amount, h.bill_discount,
+             h.cash_received, h.change_given, h.cashier_id, h.status, h.pax_total,
+             i.line_number, i.menu_category, i.menu_category_detail,
              i.menu_name, i.menu_code, i.menu_notes, i.quantity, i.unit_price,
              i.subtotal as item_subtotal, i.discount_amount as item_discount,
              i.total as item_total, i.order_time
       FROM ${SCHEMA}.transactions_pos_sales h
       LEFT JOIN ${SCHEMA}.transactions_pos_sales_items i ON h.sales_num = i.sales_num
       ${whereClause}
-      ORDER BY h.sales_date DESC, h.sales_num DESC, i.line_number ASC
+      ORDER BY h.sales_date DESC, h.sales_num DESC, COALESCE(i.line_number, 0) ASC
       LIMIT 50000
     `;
 
@@ -175,6 +187,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
