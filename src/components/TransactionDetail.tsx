@@ -9,10 +9,9 @@ import {
   Receipt,
   MapPin,
   Calendar,
-  Package,
-  DollarSign,
   ArrowRight,
-  CalendarClock
+  CalendarClock,
+  ChevronRight
 } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 
@@ -105,13 +104,13 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed inset-0 bg-black/40 z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={handleClose}
       />
 
       {/* Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[440px] lg:w-[480px] bg-white shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-white shadow-xl transition-transform duration-300 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -131,110 +130,84 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
               onClick={handleClose}
               className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              <X size={20} className="text-slate-500" />
+              <X size={20} className="text-slate-400" />
             </button>
           </div>
         </div>
 
         {/* Content */}
         <div className="h-[calc(100vh-73px)] overflow-y-auto">
-          {/* Status Banner */}
-          <div className="px-5 py-4 bg-gradient-to-r from-slate-800 to-slate-700">
+          {/* Status & Total Banner */}
+          <div className="px-5 py-5 bg-gradient-to-br from-slate-800 to-slate-900">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${statusInfo.bg} ${statusInfo.text}`}>
                   {statusInfo.label}
                 </span>
-                <span className="flex items-center gap-1.5 text-white/80 text-sm">
+                <span className="flex items-center gap-1.5 text-white/70 text-sm">
                   <MapPin size={14} />
                   {transaction.branch_name || '-'}
                 </span>
               </div>
               <div className="text-right">
-                <p className="text-xs text-white/60">Total Amount</p>
+                <p className="text-[10px] text-white/50 uppercase tracking-wide">Total Amount</p>
                 <p className="text-2xl font-bold text-white">{formatCurrency(transaction.total_amount)}</p>
               </div>
             </div>
           </div>
 
-          {/* Info Grid */}
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Transaction Info</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-50 rounded-lg p-3">
-                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Bill Number</p>
-                <p className="text-sm font-medium text-slate-900 truncate">{transaction.bill_num || '-'}</p>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-3">
-                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Sales Date</p>
-                <p className="text-sm font-medium text-slate-900">{formatDateOnly(transaction.sales_date)}</p>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-3">
-                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Payment Method</p>
-                <p className="text-sm font-medium text-slate-900">{transaction.payment_method || '-'}</p>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-3">
-                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Cashier</p>
-                <p className="text-sm font-medium text-slate-900 truncate">{transaction.cashier_id || '-'}</p>
-              </div>
+          {/* Transaction Info */}
+          <div className="px-5 py-4">
+            <h4 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Information</h4>
+            <div className="grid grid-cols-2 gap-2.5">
+              <InfoItem label="Bill Number" value={transaction.bill_num || '-'} />
+              <InfoItem label="Sales Date" value={formatDateOnly(transaction.sales_date)} />
+              <InfoItem label="Payment" value={transaction.payment_method || '-'} />
+              <InfoItem label="Cashier" value={transaction.cashier_id || '-'} />
             </div>
           </div>
 
           {/* Timeline */}
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Timeline</h3>
-            <div className="relative pl-4">
-              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-slate-200"></div>
-
-              <div className="space-y-4">
-                <div className="relative">
-                  <div className="absolute -left-4 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <ArrowRight size={12} className="text-blue-600" />
-                  </div>
-                  <div className="ml-2">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide">Time In</p>
-                    <p className="text-sm font-medium text-slate-900">{formatDate(transaction.sales_date_in)}</p>
-                  </div>
-                </div>
-
-                {transaction.order_time && (
-                  <div className="relative">
-                    <div className="absolute -left-4 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <CalendarClock size={12} className="text-emerald-600" />
-                    </div>
-                    <div className="ml-2">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wide">Order Time</p>
-                      <p className="text-sm font-medium text-slate-900">{formatDate(transaction.order_time)}</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="relative">
-                  <div className="absolute -left-4 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                    <ArrowRight size={12} className="text-purple-600" />
-                  </div>
-                  <div className="ml-2">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide">Time Out</p>
-                    <p className="text-sm font-medium text-slate-900">{formatDate(transaction.sales_date_out)}</p>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute -left-4 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                    <Clock size={12} className="text-amber-600" />
-                  </div>
-                  <div className="ml-2">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide">Duration</p>
-                    <p className="text-sm font-semibold text-amber-600">{getStayDuration()}</p>
-                  </div>
-                </div>
-              </div>
+          <div className="px-5 py-4 border-t border-slate-100">
+            <h4 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Timeline</h4>
+            <div className="space-y-3">
+              <TimelineItem
+                label="Time In"
+                value={formatDate(transaction.sales_date_in)}
+                icon={<ArrowRight size={12} />}
+                iconBg="bg-blue-100"
+                iconColor="text-blue-600"
+              />
+              {transaction.order_time && (
+                <TimelineItem
+                  label="Order"
+                  value={formatDate(transaction.order_time)}
+                  icon={<CalendarClock size={12} />}
+                  iconBg="bg-emerald-100"
+                  iconColor="text-emerald-600"
+                />
+              )}
+              <TimelineItem
+                label="Time Out"
+                value={formatDate(transaction.sales_date_out)}
+                icon={<ArrowRight size={12} />}
+                iconBg="bg-purple-100"
+                iconColor="text-purple-600"
+              />
+              <TimelineItem
+                label="Duration"
+                value={getStayDuration()}
+                icon={<Clock size={12} />}
+                iconBg="bg-amber-100"
+                iconColor="text-amber-600"
+                isLast
+              />
             </div>
           </div>
 
           {/* Order Item */}
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Order Item</h3>
+          <div className="px-5 py-4 border-t border-slate-100">
+            <h4 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Order Item</h4>
             <div className="bg-slate-50 rounded-xl overflow-hidden">
               <table className="w-full">
                 <thead className="bg-slate-100">
@@ -267,105 +240,104 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
           </div>
 
           {/* Payment Summary */}
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Payment Summary</h3>
+          <div className="px-5 py-4 border-t border-slate-100">
+            <h4 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Payment Summary</h4>
             <div className="bg-slate-50 rounded-xl p-4">
-              <div className="space-y-2.5">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Subtotal</span>
-                  <span className="text-slate-700 font-medium">{formatCurrency(transaction.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Discount</span>
-                  <span className="text-rose-600 font-medium">-{formatCurrency(transaction.discount_amount)}</span>
-                </div>
-
-                <div className="border-t border-slate-200 pt-2.5 mt-2">
+              <div className="space-y-2">
+                <PaymentRow label="Subtotal" value={formatCurrency(transaction.subtotal)} />
+                <PaymentRow label="Discount" value={`-${formatCurrency(transaction.discount_amount)}`} isDiscount />
+                <div className="border-t border-slate-200 pt-2 mt-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-base font-semibold text-slate-900">Grand Total</span>
-                    <span className="text-xl font-bold text-blue-600">
+                    <span className="text-sm font-semibold text-slate-900">Grand Total</span>
+                    <span className="text-lg font-bold text-blue-600">
                       {formatCurrency(transaction.total_amount)}
                     </span>
                   </div>
                 </div>
-
-                <div className="border-t border-slate-200 pt-2.5 mt-2 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Cash Received</span>
-                    <span className="text-slate-700 font-medium">{formatCurrency(transaction.cash_received)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Change Given</span>
-                    <span className="text-slate-700 font-medium">{formatCurrency(transaction.change_given)}</span>
-                  </div>
+                <div className="border-t border-slate-200 pt-2 mt-2 space-y-1.5">
+                  <PaymentRow label="Cash Received" value={formatCurrency(transaction.cash_received)} />
+                  <PaymentRow label="Change" value={formatCurrency(transaction.change_given)} />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Additional Info */}
-          {(transaction.customer_name || transaction.employee_name || transaction.pax_total) && (
-            <div className="px-5 py-4 border-b border-slate-100">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Customer & Employee</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {transaction.customer_name && (
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Customer</p>
-                    <p className="text-sm font-medium text-slate-900 truncate">{transaction.customer_name}</p>
-                  </div>
-                )}
-                {transaction.employee_name && (
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Employee</p>
-                    <p className="text-sm font-medium text-slate-900 truncate">{transaction.employee_name}</p>
-                  </div>
-                )}
-                {transaction.regular_member_name && (
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Member</p>
-                    <p className="text-sm font-medium text-slate-900 truncate">{transaction.regular_member_name}</p>
-                  </div>
-                )}
+          {/* Customer Info */}
+          {(transaction.customer_name || transaction.employee_name || transaction.regular_member_name) && (
+            <div className="px-5 py-4 border-t border-slate-100">
+              <h4 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Customer & Employee</h4>
+              <div className="grid grid-cols-2 gap-2.5">
+                {transaction.customer_name && <InfoItem label="Customer" value={transaction.customer_name} />}
+                {transaction.employee_name && <InfoItem label="Employee" value={transaction.employee_name} />}
+                {transaction.regular_member_name && <InfoItem label="Member" value={transaction.regular_member_name} />}
                 {transaction.pax_total !== undefined && transaction.pax_total !== null && (
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Pax</p>
-                    <p className="text-sm font-medium text-slate-900">{transaction.pax_total}</p>
-                  </div>
+                  <InfoItem label="Pax" value={String(transaction.pax_total)} />
                 )}
               </div>
             </div>
           )}
 
-          {/* Location Info */}
+          {/* Location */}
           {(transaction.brand || transaction.city || transaction.area) && (
-            <div className="px-5 py-4">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Location</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {transaction.brand && (
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Brand</p>
-                    <p className="text-sm font-medium text-slate-900">{transaction.brand}</p>
-                  </div>
-                )}
-                {transaction.city && (
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">City</p>
-                    <p className="text-sm font-medium text-slate-900">{transaction.city}</p>
-                  </div>
-                )}
-                {transaction.area && (
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Area</p>
-                    <p className="text-sm font-medium text-slate-900">{transaction.area}</p>
-                  </div>
-                )}
+            <div className="px-5 py-4 border-t border-slate-100">
+              <h4 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Location</h4>
+              <div className="grid grid-cols-2 gap-2.5">
+                {transaction.brand && <InfoItem label="Brand" value={transaction.brand} />}
+                {transaction.city && <InfoItem label="City" value={transaction.city} />}
+                {transaction.area && <InfoItem label="Area" value={transaction.area} />}
               </div>
             </div>
           )}
 
-          <div className="h-8" />
+          <div className="h-6" />
         </div>
       </div>
     </>
+  );
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-slate-50 rounded-lg p-3">
+      <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">{label}</p>
+      <p className="text-sm font-medium text-slate-900 truncate">{value}</p>
+    </div>
+  );
+}
+
+function TimelineItem({
+  label,
+  value,
+  icon,
+  iconBg,
+  iconColor,
+  isLast = false
+}: {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  isLast?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`w-7 h-7 rounded-full ${iconBg} flex items-center justify-center ${iconColor}`}>
+        {icon}
+      </div>
+      <div className="flex-1">
+        <p className="text-[10px] text-slate-400 uppercase tracking-wide">{label}</p>
+        <p className="text-sm font-medium text-slate-900">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function PaymentRow({ label, value, isDiscount = false }: { label: string; value: string; isDiscount?: boolean }) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span className="text-slate-500">{label}</span>
+      <span className={`font-medium ${isDiscount ? 'text-rose-600' : 'text-slate-700'}`}>{value}</span>
+    </div>
   );
 }

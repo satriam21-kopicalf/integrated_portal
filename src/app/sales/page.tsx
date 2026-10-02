@@ -14,9 +14,7 @@ import {
   Eye,
   Loader2,
   Package,
-  SortAsc,
-  SortDesc,
-  Calendar
+  SlidersHorizontal
 } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 
@@ -52,9 +50,8 @@ export default function SalesPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const isMounted = useRef(true);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMounted = useRef(true);
 
   // Fetch branches
   const fetchBranches = useCallback(async () => {
@@ -167,16 +164,6 @@ export default function SalesPage() {
     }
   };
 
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return '-';
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
   const formatNumber = (value: number | null | undefined) => {
     if (value === null || value === undefined) return '-';
     return new Intl.NumberFormat('id-ID').format(value);
@@ -192,6 +179,16 @@ export default function SalesPage() {
     });
   };
 
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return '-';
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
   const getStatusBadge = (status: string | null | undefined) => {
     if (!status) return <span className="text-slate-400">-</span>;
     const statusLower = status.toLowerCase();
@@ -205,6 +202,7 @@ export default function SalesPage() {
   };
 
   const hasActiveFilters = dateFrom || dateTo || branch;
+  const activeFilterCount = [dateFrom, dateTo, branch].filter(Boolean).length;
 
   const toggleRowExpand = (salesNum: string) => {
     setExpandedRow(expandedRow === salesNum ? null : salesNum);
@@ -216,7 +214,7 @@ export default function SalesPage() {
         {/* Page Header */}
         <div className="bg-white border-b border-slate-200">
           {/* Top Bar */}
-          <div className="px-4 py-3 border-b border-slate-100">
+          <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-xl font-bold text-slate-900">Sales Transactions</h1>
@@ -235,26 +233,12 @@ export default function SalesPage() {
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  <Calendar size={16} />
-                  <span className="hidden sm:inline">Date Filter</span>
-                  {hasActiveFilters && (
+                  <SlidersHorizontal size={16} />
+                  <span>Filter</span>
+                  {activeFilterCount > 0 && (
                     <span className="w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center">
-                      {[dateFrom, dateTo].filter(Boolean).length}
+                      {activeFilterCount}
                     </span>
-                  )}
-                </button>
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    showFilters || branch
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  <Filter size={16} />
-                  <span className="hidden sm:inline">Branch</span>
-                  {branch && (
-                    <span className="w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center">1</span>
                   )}
                 </button>
                 <ExportButton dateFrom={dateFrom} dateTo={dateTo} branch={branch} />
@@ -264,156 +248,163 @@ export default function SalesPage() {
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="px-4 py-4 bg-slate-50 border-b border-slate-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Branch Filter */}
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1.5">Branch</label>
-                  <div className="relative">
-                    <select
-                      value={branch}
-                      onChange={(e) => handleBranchChange(e.target.value)}
-                      className="w-full pl-3 pr-8 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white appearance-none"
-                    >
-                      <option value="">All Branches</option>
-                      {branchesLoading ? (
-                        <option value="" disabled>Loading...</option>
-                      ) : (
-                        branches.map((b) => (
-                          <option key={b.branch_name} value={b.branch_name}>
-                            {b.branch_name} ({formatNumber(b.count)})
-                          </option>
-                        ))
-                      )}
-                    </select>
-                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <div className="px-4 pb-4 border-t border-slate-100">
+              <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {/* Branch */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1.5">Branch</label>
+                    <div className="relative">
+                      <select
+                        value={branch}
+                        onChange={(e) => handleBranchChange(e.target.value)}
+                        className="w-full pl-3 pr-8 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white appearance-none"
+                      >
+                        <option value="">All Branches</option>
+                        {branchesLoading ? (
+                          <option value="" disabled>Loading...</option>
+                        ) : (
+                          branches.map((b) => (
+                            <option key={b.branch_name} value={b.branch_name}>
+                              {b.branch_name} ({formatNumber(b.count)})
+                            </option>
+                          ))
+                        )}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
                   </div>
-                </div>
 
-                {/* Date From */}
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1.5">From Date</label>
-                  <div className="relative">
+                  {/* Date From */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1.5">From Date</label>
                     <input
                       type="date"
                       value={dateFrom}
                       onChange={(e) => handleDateFrom(e.target.value)}
-                      className="w-full pl-3 pr-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      className="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                     />
                   </div>
-                </div>
 
-                {/* Date To */}
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1.5">To Date</label>
-                  <div className="relative">
+                  {/* Date To */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1.5">To Date</label>
                     <input
                       type="date"
                       value={dateTo}
                       onChange={(e) => handleDateTo(e.target.value)}
-                      className="w-full pl-3 pr-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      className="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                     />
+                  </div>
+
+                  {/* Clear */}
+                  <div className="flex items-end">
+                    <button
+                      onClick={clearFilters}
+                      className="w-full px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      Clear Filters
+                    </button>
                   </div>
                 </div>
 
-                {/* Clear Button */}
-                <div className="flex items-end">
-                  <button
-                    onClick={clearFilters}
-                    className="w-full px-4 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    Clear All
-                  </button>
-                </div>
+                {/* Active Filter Tags */}
+                {hasActiveFilters && (
+                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-200">
+                    {branch && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                        Branch: {branch}
+                        <button onClick={() => handleBranchChange('')} className="hover:text-blue-900">
+                          <X size={12} />
+                        </button>
+                      </span>
+                    )}
+                    {dateFrom && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                        From: {dateFrom}
+                        <button onClick={() => handleDateFrom('')} className="hover:text-blue-900">
+                          <X size={12} />
+                        </button>
+                      </span>
+                    )}
+                    {dateTo && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                        To: {dateTo}
+                        <button onClick={() => handleDateTo('')} className="hover:text-blue-900">
+                          <X size={12} />
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
-
-              {/* Active Filters */}
-              {hasActiveFilters && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {branch && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                      Branch: {branch}
-                      <button onClick={() => handleBranchChange('')} className="hover:text-blue-900">
-                        <X size={12} />
-                      </button>
-                    </span>
-                  )}
-                  {dateFrom && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                      From: {dateFrom}
-                      <button onClick={() => handleDateFrom('')} className="hover:text-blue-900">
-                        <X size={12} />
-                      </button>
-                    </span>
-                  )}
-                  {dateTo && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                      To: {dateTo}
-                      <button onClick={() => handleDateTo('')} className="hover:text-blue-900">
-                        <X size={12} />
-                      </button>
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>
 
         {/* Content Area */}
         <div className="p-4">
-          {/* Loading State */}
-          {loading && data.length === 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-12">
-              <div className="flex flex-col items-center justify-center">
-                <div className="relative mb-4">
-                  <div className="w-16 h-16 border-4 border-slate-200 rounded-full"></div>
-                  <div className="absolute inset-0 w-16 h-16 border-4 border-t-blue-600 rounded-full animate-spin"></div>
-                </div>
-                <p className="text-base font-medium text-slate-700">Loading transactions...</p>
-                <p className="text-sm text-slate-400 mt-1">Please wait while we fetch the data</p>
-              </div>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!loading && data.length === 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 p-12">
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                  <Package size={28} className="text-slate-400" />
-                </div>
-                <p className="text-base font-medium text-slate-700">No transactions found</p>
-                <p className="text-sm text-slate-400 mt-1">Try adjusting your filters or search criteria</p>
-              </div>
-            </div>
-          )}
-
           {/* Mobile Card View */}
-          <div className="lg:hidden space-y-3">
-            {data.map((tx, index) => {
+          <div className="lg:hidden">
+            {/* Search in Card View */}
+            <div className="mb-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search sales number, bill, branch..."
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Loading State */}
+            {loading && (
+              <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+                <div className="w-10 h-10 mx-auto mb-3 relative">
+                  <div className="absolute inset-0 w-10 h-10 border-3 border-slate-200 rounded-full"></div>
+                  <div className="absolute inset-0 w-10 h-10 border-3 border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
+                <p className="text-sm font-medium text-slate-600">Loading transactions...</p>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && data.length === 0 && (
+              <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 bg-slate-100 rounded-full flex items-center justify-center">
+                  <Package size={24} className="text-slate-400" />
+                </div>
+                <p className="text-sm font-medium text-slate-600">No transactions found</p>
+                <p className="text-xs text-slate-400 mt-1">Try adjusting your filters</p>
+              </div>
+            )}
+
+            {/* Card List */}
+            {!loading && data.map((tx, index) => {
               const isExpanded = expandedRow === tx.sales_num;
               return (
                 <div
                   key={`${tx.sales_num}-${tx.line_number || index}`}
-                  className={`bg-white rounded-xl border transition-all ${
-                    isExpanded ? 'border-blue-300 shadow-lg' : 'border-slate-200'
+                  className={`bg-white rounded-xl border mb-2 overflow-hidden transition-all ${
+                    isExpanded ? 'border-blue-300 shadow-md' : 'border-slate-200'
                   }`}
                 >
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-3">
+                  <div className="p-3" onClick={() => toggleRowExpand(tx.sales_num)}>
+                    <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-blue-600 text-sm truncate">{tx.sales_num || '-'}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{formatDate(tx.sales_date)}</p>
+                        <p className="text-xs text-slate-500">{formatDate(tx.sales_date)}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right ml-2">
                         <p className="font-bold text-slate-900">{formatCurrency(tx.total_amount)}</p>
                         {getStatusBadge(tx.status)}
                       </div>
                     </div>
-
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600 truncate max-w-[150px]">
+                    <div className="flex gap-2 mt-2">
+                      <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600 truncate max-w-[140px]">
                         {tx.branch_name || '-'}
                       </span>
                       <span className="px-2 py-1 bg-slate-100 rounded text-xs text-slate-600">
@@ -424,38 +415,25 @@ export default function SalesPage() {
 
                   <button
                     onClick={() => toggleRowExpand(tx.sales_num)}
-                    className="w-full flex items-center justify-center gap-1 py-2.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-t border-blue-100"
+                    className="w-full flex items-center justify-center gap-1 py-2 text-xs font-medium text-blue-600 bg-blue-50 border-t border-blue-100"
                   >
                     {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    {isExpanded ? 'Hide Details' : 'View Details'}
+                    {isExpanded ? 'Less' : 'More'}
                   </button>
 
                   {isExpanded && (
-                    <div className="p-4 bg-slate-50 border-t border-slate-200">
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <p className="text-xs text-slate-400">Bill Number</p>
-                          <p className="font-medium text-slate-700">{tx.bill_num || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-400">Menu</p>
-                          <p className="font-medium text-slate-700">{tx.menu_name || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-400">Quantity</p>
-                          <p className="font-medium text-slate-700">{tx.quantity ?? '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-400">Unit Price</p>
-                          <p className="font-medium text-slate-700">{formatCurrency(tx.unit_price)}</p>
-                        </div>
+                    <div className="p-3 bg-slate-50 border-t border-slate-200">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div><p className="text-slate-400">Bill</p><p className="font-medium">{tx.bill_num || '-'}</p></div>
+                        <div><p className="text-slate-400">Menu</p><p className="font-medium">{tx.menu_name || '-'}</p></div>
+                        <div><p className="text-slate-400">Qty</p><p className="font-medium">{tx.quantity ?? '-'}</p></div>
+                        <div><p className="text-slate-400">Price</p><p className="font-medium">{formatCurrency(tx.unit_price)}</p></div>
                       </div>
                       <button
                         onClick={() => setSelectedTransaction(tx)}
-                        className="w-full mt-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                        className="w-full mt-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg flex items-center justify-center gap-1"
                       >
-                        <Eye size={16} />
-                        View Full Details
+                        <Eye size={14} /> Full Details
                       </button>
                     </div>
                   )}
@@ -469,10 +447,10 @@ export default function SalesPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1200px]">
                 <thead className="bg-slate-50 border-b border-slate-200">
+                  {/* Table Header Row */}
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
-                        <SortDesc size={12} className="text-slate-400" />
                         Sales #
                       </div>
                     </th>
@@ -488,7 +466,7 @@ export default function SalesPage() {
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Price</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Subtotal</th>
                   </tr>
-                  {/* Search Row in Table Header */}
+                  {/* Search Row */}
                   <tr className="bg-white">
                     <th className="px-4 py-2">
                       <div className="relative">
@@ -516,7 +494,36 @@ export default function SalesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {data.map((tx, index) => (
+                  {/* Loading Row */}
+                  {loading && data.length === 0 && (
+                    <tr>
+                      <td colSpan={12} className="px-4 py-16 text-center">
+                        <div className="flex flex-col items-center">
+                          <div className="w-10 h-10 mb-3 relative">
+                            <div className="absolute inset-0 w-10 h-10 border-3 border-slate-200 rounded-full"></div>
+                            <div className="absolute inset-0 w-10 h-10 border-3 border-t-blue-600 rounded-full animate-spin"></div>
+                          </div>
+                          <p className="text-sm font-medium text-slate-600">Loading transactions...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {/* Empty Row */}
+                  {!loading && data.length === 0 && (
+                    <tr>
+                      <td colSpan={12} className="px-4 py-16 text-center">
+                        <div className="flex flex-col items-center">
+                          <div className="w-12 h-12 mb-3 bg-slate-100 rounded-full flex items-center justify-center">
+                            <Package size={24} className="text-slate-400" />
+                          </div>
+                          <p className="text-sm font-medium text-slate-600">No transactions found</p>
+                          <p className="text-xs text-slate-400 mt-1">Try adjusting your filters</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  {/* Data Rows */}
+                  {!loading && data.map((tx, index) => (
                     <tr
                       key={`${tx.sales_num}-${tx.line_number || index}`}
                       className={`hover:bg-slate-50 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}
@@ -537,12 +544,8 @@ export default function SalesPage() {
                       <td className="px-4 py-3 text-center">{getStatusBadge(tx.status)}</td>
                       <td className="px-4 py-3 text-sm text-slate-500 text-center hidden lg:table-cell">{tx.line_number || '-'}</td>
                       <td className="px-4 py-3 hidden lg:table-cell">
-                        <div className="max-w-[180px]">
-                          <span className="text-sm font-medium text-slate-700">{tx.menu_name || '-'}</span>
-                          {tx.menu_category && (
-                            <p className="text-xs text-slate-400">{tx.menu_category}</p>
-                          )}
-                        </div>
+                        <span className="text-sm font-medium text-slate-700">{tx.menu_name || '-'}</span>
+                        {tx.menu_category && <p className="text-xs text-slate-400">{tx.menu_category}</p>}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600 text-right hidden lg:table-cell">{tx.quantity ?? '-'}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 text-right hidden lg:table-cell">{formatCurrency(tx.unit_price)}</td>
@@ -557,20 +560,17 @@ export default function SalesPage() {
           </div>
 
           {/* Pagination Footer */}
-          {data.length > 0 && (
+          {!loading && data.length > 0 && (
             <div className="mt-4 bg-white rounded-xl border border-slate-200 px-4 py-3">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="text-sm text-slate-600 order-2 sm:order-1">
-                  Displaying <span className="font-semibold">{formatNumber(data.length)}</span> rows
-                  {pagination.hasMore && (
-                    <span className="text-slate-400 ml-1">(load more for additional rows)</span>
-                  )}
+                  Showing <span className="font-semibold">{formatNumber(data.length)}</span> rows
+                  {pagination.hasMore && <span className="text-slate-400 ml-1">(more available)</span>}
                 </div>
                 <div className="flex items-center gap-2 order-1 sm:order-2">
                   <button
                     onClick={() => fetchData(null, true)}
-                    disabled={loading}
-                    className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                   >
                     Reset
                   </button>
@@ -581,14 +581,10 @@ export default function SalesPage() {
                   >
                     {loadingMore ? (
                       <>
-                        <Loader2 size={16} className="animate-spin" />
-                        Loading...
+                        <Loader2 size={16} className="animate-spin" /> Loading...
                       </>
                     ) : (
-                      <>
-                        Load More
-                        <ChevronRight size={16} />
-                      </>
+                      <>Load More <ChevronRight size={16} /></>
                     )}
                   </button>
                 </div>
@@ -596,8 +592,8 @@ export default function SalesPage() {
             </div>
           )}
 
-          {/* Loading More Indicator */}
-          {loadingMore && data.length > 0 && (
+          {/* Loading More */}
+          {loadingMore && (
             <div className="mt-4 flex items-center justify-center gap-2 py-3 text-sm text-slate-500">
               <Loader2 size={18} className="animate-spin text-blue-600" />
               <span>Loading more transactions...</span>
