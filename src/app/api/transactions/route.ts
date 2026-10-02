@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool, QueryResult } from 'pg';
 
-// =====================================================
-// OPTIMIZED DATABASE CONFIGURATION
-// Using Session Pooler for better connection performance
-// =====================================================
-
-// Session Pooler connection (faster from Southeast Asia)
+// Session Pooler connection
 const pool = new Pool({
   host: process.env.DB_HOST || 'aws-0-ap-southeast-1.pooler.supabase.com',
   port: parseInt(process.env.DB_PORT || '5432'),
@@ -14,13 +9,11 @@ const pool = new Pool({
   user: process.env.DB_USER || 'postgres.awcoxytlmjiyfmpzinam',
   password: process.env.DB_PASSWORD || 'Kopicalf2019@@',
   ssl: { rejectUnauthorized: false },
-  // Connection pool settings
-  max: 5,                       // Limit concurrent connections
-  idleTimeoutMillis: 20000,      // Close idle connections after 20s
-  connectionTimeoutMillis: 30000, // Connection timeout 30s
+  max: 5,
+  idleTimeoutMillis: 20000,
+  connectionTimeoutMillis: 30000,
 });
 
-// Handle pool errors
 pool.on('error', (err) => {
   console.error('Unexpected pool error:', err);
 });
@@ -28,10 +21,7 @@ pool.on('error', (err) => {
 const SCHEMA = 'integration_esb';
 const DEFAULT_DAYS = 65;
 
-// =====================================================
-// IN-MEMORY CACHE (Simple TTL Cache)
-// =====================================================
-
+// Cache
 interface CacheEntry {
   data: unknown;
   expiry: number;
@@ -52,7 +42,6 @@ function setCache(key: string, data: unknown, ttlSeconds: number = 60): void {
   cache.set(key, { data, expiry: Date.now() + ttlSeconds * 1000 });
 }
 
-// Clean expired cache entries every 5 minutes
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of cache.entries()) {
@@ -62,10 +51,7 @@ setInterval(() => {
   }
 }, 300000);
 
-// =====================================================
-// TYPE DEFINITIONS
-// =====================================================
-
+// Types
 interface SalesHeader {
   sales_num: string;
   bill_num: string | null;
@@ -119,7 +105,6 @@ interface SalesItem {
   [key: string]: unknown;
 }
 
-// Selective columns query (avoids fetching unnecessary data)
 const HEADER_COLUMNS = `
   sales_num, bill_num, sales_type, batch_order,
   table_section, table_name, sales_date,
@@ -138,10 +123,6 @@ const ITEM_COLUMNS = `
   quantity, unit_price, subtotal, discount_amount, total, order_time
 `;
 
-// =====================================================
-// API HANDLER
-// =====================================================
-
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   const client = await pool.connect();
@@ -149,12 +130,12 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get('cursor') || null;
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 100);
     const search = searchParams.get('search') || '';
     const dateFrom = searchParams.get('dateFrom') || '';
     const dateTo = searchParams.get('dateTo') || '';
     const branch = searchParams.get('branch') || '';
-    const useCache = searchParams.get('cache') !== 'false'; // Default to use cache
+    const useCache = searchParams.get('cache') !== 'false';
 
     // Calculate default date range
     let effectiveDateFrom = dateFrom;
@@ -167,9 +148,11 @@ export async function GET(request: NextRequest) {
       effectiveDateTo = new Date().toISOString().slice(0, 10);
     }
 
-    // Check cache for non-search queries (without cursor)
-    if (useCache && !search && !cursor && !branch && limit === 50) {
-      const cacheKey = `transactions:${effectiveDateFrom}:${effectiveDateTo}:${limit}`;
+    // Cache key
+    const cacheKey = `transactions:${effectiveDateFrom}:${effectiveDateTo}:${search}:${branch}:${limit}`;
+
+    // Check cache only for first page without filters
+    if (useCache && !cursor && !search && !branch) {
       const cached = getCached(cacheKey);
       if (cached) {
         console.log(`Cache hit for ${cacheKey}`);
@@ -179,80 +162,81 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build query with selective columns
+    // Build query using CAST for fast date comparison
     let whereClause = 'WHERE 1=1';
     const params: string[] = [];
     let paramCount = 0;
 
+    // Date range filter - use CAST to date for comparison
     if (effectiveDateFrom) {
       paramCount++;
-      whereClause += ` AND TO_CHAR(sales_date, 'YYYY-MM-DD') >= $${paramCount}`;
+      whereClause += ` AND CAST(sales_date AS DATE) >= CAST($${paramCount} AS DATE)`;
       params.push(effectiveDateFrom);
     }
     if (effectiveDateTo) {
       paramCount++;
-      whereClause += ` AND TO_CHAR(sales_date, 'YYYY-MM-DD') <= $${paramCount}`;
+      whereClause += ` AND CAST(sales_date AS DATE) <= CAST($${paramCount} AS DATE)`;
       params.push(effectiveDateTo);
     }
+
+    // Cursor for pagination
     if (cursor) {
-      const [cursorDate, cursorNum] = cursor.split('|||');
+      const [cursorDate, cursorSalesNum] = cursor.split('|||');
       paramCount++;
-      whereClause += ` AND (TO_CHAR(sales_date, 'YYYY-MM-DD') < $${paramCount} OR (TO_CHAR(sales_date, 'YYYY-MM-DD') = $${paramCount} AND sales_num < $${paramCount + 1}))`;
-      params.push(cursorDate, cursorNum);
+      whereClause += ` AND (CAST(sales_date AS DATE) < CAST($${paramCount} AS DATE) OR (CAST(sales_date AS DATE) = CAST($${paramCount} AS DATE) AND sales_num < $${paramCount + 1}))`;
+      params.push(cursorDate, cursorSalesNum);
     }
+
+    // Search filter
     if (search) {
       paramCount++;
       whereClause += ` AND (sales_num ILIKE $${paramCount} OR bill_num ILIKE $${paramCount} OR branch_name ILIKE $${paramCount})`;
       params.push(`%${search}%`);
     }
+
+    // Branch filter
     if (branch) {
       paramCount++;
       whereClause += ` AND branch_name = $${paramCount}`;
       params.push(branch);
     }
 
-    // Query headers with selective columns (use VIEW if available, fallback to table)
+    // Query
     const headersQuery = `
       SELECT ${HEADER_COLUMNS}
       FROM ${SCHEMA}.transactions_pos_sales
       ${whereClause}
       ORDER BY sales_date DESC, sales_num DESC
-      LIMIT ${limit + 1}
+      LIMIT ${limit}
     `;
 
+    console.log('Query params:', params);
     const headersResult: QueryResult<SalesHeader> = await client.query(headersQuery, params);
     const headers = headersResult.rows;
-    const hasMore = headers.length > limit;
-    const resultData = hasMore ? headers.slice(0, limit) : headers;
 
-    if (resultData.length === 0) {
+    const hasMore = headers.length === limit;
+
+    if (headers.length === 0) {
       const response = {
         data: [],
         pagination: { cursor: null, hasMore: false, limit },
-        summary: {
-          totalRows: 0,
-          totalHeaders: 0,
-          totalItems: 0,
-          totalRevenue: 0,
-          totalTransactions: 0,
-          avgTransactionValue: 0
-        },
+        summary: { totalRows: 0, totalHeaders: 0, totalItems: 0, totalRevenue: 0, totalTransactions: 0, avgTransactionValue: 0 },
         dateRange: { from: effectiveDateFrom, to: effectiveDateTo }
       };
       return NextResponse.json(response);
     }
 
-    // Get items (only for visible headers)
-    const salesNums = resultData.map((h: SalesHeader) => h.sales_num);
+    // Get items
+    const salesNums = headers.map(h => h.sales_num);
     const itemsQuery = `
       SELECT ${ITEM_COLUMNS}
       FROM ${SCHEMA}.transactions_pos_sales_items
       WHERE sales_num = ANY($1)
       ORDER BY sales_num, line_number
     `;
-    const itemsResult: QueryResult<SalesItem> = await client.query(itemsQuery, [salesNums]);
+    const itemsResult = await client.query(itemsQuery, [salesNums]);
 
-    // Group items by sales_num
+    // Group items
     const itemsBySales = new Map<string, SalesItem[]>();
     for (const item of itemsResult.rows) {
       if (!itemsBySales.has(item.sales_num)) {
@@ -263,7 +247,7 @@ export async function GET(request: NextRequest) {
 
     // Merge header + items
     const combinedData = [];
-    for (const header of resultData) {
+    for (const header of headers) {
       const headerItems = itemsBySales.get(header.sales_num) || [];
       if (headerItems.length === 0) {
         combinedData.push({
@@ -289,9 +273,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Calculate summary statistics
+    // Calculate summary
     const uniqueHeadersMap = new Map<string, { total: number }>();
-    for (const row of resultData) {
+    for (const row of headers) {
       const total = parseFloat(String(row.total_amount || 0));
       if (uniqueHeadersMap.has(row.sales_num)) {
         uniqueHeadersMap.get(row.sales_num)!.total += total;
@@ -304,17 +288,17 @@ export async function GET(request: NextRequest) {
     const totalTransactions = uniqueHeadersMap.size;
     const avgTransactionValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
-    // Next cursor
+    // Generate next cursor
     let nextCursor = null;
-    if (hasMore && resultData.length > 0) {
-      const last = resultData[resultData.length - 1];
+    if (hasMore && headers.length > 0) {
+      const last = headers[headers.length - 1];
       const cursorDate = last.sales_date instanceof Date
         ? last.sales_date.toISOString().slice(0, 10)
         : String(last.sales_date).slice(0, 10);
       nextCursor = `${cursorDate}|||${last.sales_num}`;
     }
 
-    const uniqueHeaders = new Set(resultData.map((h: SalesHeader) => h.sales_num));
+    const uniqueHeaders = new Set(headers.map(h => h.sales_num));
     const responseTime = Date.now() - startTime;
 
     const response = {
@@ -331,10 +315,9 @@ export async function GET(request: NextRequest) {
       dateRange: { from: effectiveDateFrom, to: effectiveDateTo }
     };
 
-    // Cache non-search results
-    if (useCache && !search && !cursor && !branch && limit === 50) {
-      const cacheKey = `transactions:${effectiveDateFrom}:${effectiveDateTo}:${limit}`;
-      setCache(cacheKey, response, 60); // Cache for 60 seconds
+    // Cache first page
+    if (useCache && !cursor && !search && !branch) {
+      setCache(cacheKey, response, 60);
       console.log(`Cached ${cacheKey} for 60s`);
     }
 
@@ -352,6 +335,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   } finally {
-    client.release(); // Always release client back to pool
+    client.release();
   }
 }
