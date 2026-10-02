@@ -299,6 +299,14 @@ Tombol export dengan progress indicator:
 
 ## 📝 Changelog
 
+### v1.3.0
+- Angka dashboard & export identik dengan ESB ERP (validasi Sep 2026: Subtotal Sales 30/30 hari sama)
+- Filter Tipe: Sales (sesuai ESB) / Void & Cancelled / Other Cost (CUPPING, WASTE) / Semua
+- Kartu ringkasan: Gross − Void & Cancelled − Other Cost − Open Bill = Sales Subtotal, Nett Sales
+- Export pilihan: Sales Recapitulation Detail (46 kolom) atau Daily Sales Recapitulation (per tanggal & cabang), layout sama dengan file ESB
+- Filter cabang memakai kode cabang & nama terkini dari master ESB
+- Jam transaksi tampil sesuai WIB
+
 ### v1.2.0
 - Export Excel diproses di backend (job + progress), tanpa batas rentang; sebelumnya data terpotong di 50.000 transaksi
 - Logo & ikon dimuat dari Supabase Storage (bucket `portal-assets`, lihat `scripts/upload-assets.sh`)

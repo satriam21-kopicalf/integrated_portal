@@ -26,8 +26,32 @@ interface PaginationInfo {
 }
 
 interface Branch {
+  branch_code: string;
   branch_name: string;
   count: number;
+}
+
+// Same buckets as the backend (/api/summary); "sales" equals the ESB
+// Sales Recapitulation Detail Report.
+type TxType = 'sales' | 'void' | 'other_cost' | 'all';
+const TX_TYPES: { value: TxType; label: string }[] = [
+  { value: 'sales', label: 'Sales (sesuai ESB)' },
+  { value: 'void', label: 'Void & Cancelled' },
+  { value: 'other_cost', label: 'Other Cost (CUPPING, WASTE)' },
+  { value: 'all', label: 'Semua transaksi' },
+];
+
+interface SummaryBucket {
+  transactions: number;
+  subtotal: number;
+  nettSales: number;
+  total: number;
+}
+
+interface SalesSummary {
+  dateRange: { from: string; to: string };
+  totals: Record<'gross' | 'void' | 'other_cost' | 'open' | 'sales', SummaryBucket>;
+  otherCostByMethod: Record<string, SummaryBucket>;
 }
 
 const DEFAULT_LIMIT = 100;
@@ -44,7 +68,10 @@ export default function SalesPage() {
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [branch, setBranch] = useState('');
+  const [branch, setBranch] = useState(''); // branch_code
+  const [txType, setTxType] = useState<TxType>('sales');
+  const [summary, setSummary] = useState<SalesSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
 
   // UI State
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionCombined | null>(null);
@@ -98,6 +125,7 @@ export default function SalesPage() {
       if (dateFrom) params.append('dateFrom', dateFrom);
       if (dateTo) params.append('dateTo', dateTo);
       if (branch) params.append('branch', branch);
+      params.append('type', txType);
 
       const res = await fetch(`/api/transactions?${params}`);
       const result = await res.json();
@@ -119,7 +147,7 @@ export default function SalesPage() {
         setLoadingMore(false);
       }
     }
-  }, [debouncedSearch, dateFrom, dateTo, branch]);
+  }, [debouncedSearch, dateFrom, dateTo, branch, txType]);
 
   useEffect(() => {
     isMounted.current = true;
@@ -133,6 +161,22 @@ export default function SalesPage() {
   useEffect(() => {
     fetchData(null, true);
   }, [fetchData]);
+
+  // Gross / deductions / sales summary for the selected period and branch
+  useEffect(() => {
+    let cancelled = false;
+    const params = new URLSearchParams();
+    if (dateFrom) params.append('dateFrom', dateFrom);
+    if (dateTo) params.append('dateTo', dateTo);
+    if (branch) params.append('branch', branch);
+    setSummaryLoading(true);
+    fetch(`/api/summary?${params}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(result => { if (!cancelled) setSummary(result); })
+      .catch(error => console.error('Error fetching summary:', error))
+      .finally(() => { if (!cancelled) setSummaryLoading(false); });
+    return () => { cancelled = true; };
+  }, [dateFrom, dateTo, branch]);
 
   // Auto-search as you type
   const handleSearchChange = (value: string) => {
@@ -164,6 +208,7 @@ export default function SalesPage() {
     setDateFrom('');
     setDateTo('');
     setBranch('');
+    setTxType('sales');
     setSearch('');
     setDebouncedSearch('');
   };
@@ -211,7 +256,10 @@ export default function SalesPage() {
     return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">{status}</span>;
   };
 
-  const hasActiveFilters = dateFrom || dateTo || branch;
+  const branchName = (code: string) => branches.find(b => b.branch_code === code)?.branch_name || code;
+  const typeLabel = TX_TYPES.find(t => t.value === txType)?.label || txType;
+
+  const hasActiveFilters = dateFrom || dateTo || branch || txType !== 'sales';
   const activeFilterCount = [dateFrom, dateTo, branch].filter(Boolean).length;
 
   const toggleRowExpand = (salesNum: string) => {
@@ -227,11 +275,46 @@ export default function SalesPage() {
             <div>
               <h1 className="text-xl font-bold text-slate-900">Sales Transactions</h1>
               <p className="text-sm text-slate-500">
-                {formatNumber(data.length)} rows displayed
+                {typeLabel} · {formatNumber(data.length)} rows displayed
                 {pagination.hasMore && ' (more available)'}
               </p>
             </div>
           </div>
+
+          {/* Gross - deductions = Sales (identical to the ESB Sales Recapitulation report) */}
+          <div className="mt-3 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2">
+            {[
+              { key: 'gross', label: 'Gross Subtotal', value: summary?.totals.gross.subtotal, count: summary?.totals.gross.transactions, tone: 'text-slate-900' },
+              { key: 'void', label: '− Void & Cancelled', value: summary ? -summary.totals.void.subtotal : undefined, count: summary?.totals.void.transactions, tone: 'text-rose-600' },
+              {
+                key: 'other_cost',
+                label: '− Other Cost',
+                value: summary ? -summary.totals.other_cost.subtotal : undefined,
+                count: summary?.totals.other_cost.transactions,
+                tone: 'text-amber-600',
+                hint: summary ? Object.entries(summary.otherCostByMethod).map(([m, b]) => `${m}: ${formatCurrency(b.subtotal)}`).join(' · ') : '',
+              },
+              { key: 'open', label: '− Open Bill', value: summary ? -summary.totals.open.subtotal : undefined, count: summary?.totals.open.transactions, tone: 'text-slate-500' },
+              { key: 'sales', label: '= Sales Subtotal (ESB)', value: summary?.totals.sales.subtotal, count: summary?.totals.sales.transactions, tone: 'text-emerald-700' },
+              { key: 'nett', label: 'Nett Sales', value: summary?.totals.sales.nettSales, count: summary?.totals.sales.transactions, tone: 'text-blue-700' },
+            ].map(card => (
+              <div key={card.key} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2" title={card.hint || undefined}>
+                <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">{card.label}</p>
+                <p className={`text-base font-bold ${card.tone}`}>
+                  {summaryLoading && !summary ? '…' : formatCurrency(card.value)}
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {card.count !== undefined ? `${formatNumber(card.count)} transaksi` : ''}
+                  {card.hint ? ` · ${card.hint}` : ''}
+                </p>
+              </div>
+            ))}
+          </div>
+          {summary && (
+            <p className="mt-1 text-[11px] text-slate-400">
+              Periode {summary.dateRange.from} s/d {summary.dateRange.to}{branch ? ` · ${branchName(branch)}` : ' · semua cabang'}
+            </p>
+          )}
         </div>
 
         {/* Table Container */}
@@ -274,7 +357,7 @@ export default function SalesPage() {
                       <option value="" disabled>Loading...</option>
                     ) : (
                       branches.map((b) => (
-                        <option key={b.branch_name} value={b.branch_name}>
+                        <option key={b.branch_code} value={b.branch_code}>
                           {b.branch_name}
                         </option>
                       ))
@@ -283,8 +366,23 @@ export default function SalesPage() {
                   <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
 
+                {/* Transaction Type Filter */}
+                <div className="relative">
+                  <select
+                    value={txType}
+                    onChange={(e) => setTxType(e.target.value as TxType)}
+                    className="pl-3 pr-8 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white appearance-none"
+                    title="Tipe transaksi"
+                  >
+                    {TX_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+
                 {/* Export Button */}
-                <ExportButton dateFrom={dateFrom} dateTo={dateTo} branch={branch} />
+                <ExportButton dateFrom={dateFrom} dateTo={dateTo} branch={branch} txType={txType} />
               </div>
 
               {/* Active Filter Tags */}
@@ -292,8 +390,16 @@ export default function SalesPage() {
                 <div className="px-4 py-2 flex flex-wrap gap-2 border-t border-slate-100">
                   {branch && (
                     <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
-                      Branch: {branch}
+                      Branch: {branchName(branch)}
                       <button onClick={() => handleBranchChange('')} className="hover:text-blue-900">
+                        <X size={12} />
+                      </button>
+                    </span>
+                  )}
+                  {txType !== 'sales' && (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs font-medium">
+                      Tipe: {typeLabel}
+                      <button onClick={() => setTxType('sales')} className="hover:text-amber-900">
                         <X size={12} />
                       </button>
                     </span>

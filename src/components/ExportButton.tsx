@@ -8,7 +8,8 @@ import { Loader2, CheckCircle, AlertCircle, Download } from 'lucide-react';
 interface ExportButtonProps {
   dateFrom?: string;
   dateTo?: string;
-  branch?: string;
+  branch?: string; // branch_code
+  txType?: string; // sales (ESB report) | void | other_cost | all
 }
 
 // Excel export job state returned by integrated_portal_be (/api/exports)
@@ -27,6 +28,13 @@ interface ExportJob {
 }
 
 const POLL_INTERVAL_MS = 2000;
+
+// Report layouts produced by the backend, identical to the ESB ERP reports
+type ReportKind = 'detail' | 'daily';
+const REPORTS: { value: ReportKind; label: string; description: string }[] = [
+  { value: 'detail', label: 'Sales Recapitulation Detail', description: 'Per item menu (46 kolom ESB)' },
+  { value: 'daily', label: 'Daily Sales Recapitulation', description: 'Per tanggal & cabang' },
+];
 const DEFAULT_DAYS = 65; // backend default when no dates are selected
 const LARGE_RANGE_DAYS = 31;
 const ROWS_PER_DAY_ESTIMATE = 65000;
@@ -52,11 +60,12 @@ function startDownload(url: string, fileName: string) {
   link.remove();
 }
 
-export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonProps) {
+export default function ExportButton({ dateFrom, dateTo, branch, txType = 'sales' }: ExportButtonProps) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'progress'; text: string } | null>(null);
   const [lastDownload, setLastDownload] = useState<{ url: string; fileName: string } | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMounted = useRef(true);
@@ -122,9 +131,10 @@ export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonP
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (report: ReportKind) => {
+    setMenuOpen(false);
     const days = rangeDays(dateFrom, dateTo);
-    if (days > LARGE_RANGE_DAYS) {
+    if (report === 'detail' && days > LARGE_RANGE_DAYS) {
       const estimate = branch ? '' : ` (perkiraan ±${formatNumber(days * ROWS_PER_DAY_ESTIMATE)} baris)`;
       const period = dateFrom || dateTo ? `${days} hari` : `${days} hari terakhir (tanpa filter tanggal)`;
       if (!window.confirm(`Export ${period}${estimate}. Proses bisa memakan beberapa menit. Lanjutkan?`)) {
@@ -141,7 +151,13 @@ export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonP
       const res = await fetch('/api/exports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dateFrom: dateFrom || null, dateTo: dateTo || null, branch: branch || null }),
+        body: JSON.stringify({
+          dateFrom: dateFrom || null,
+          dateTo: dateTo || null,
+          branch: branch || null,
+          type: txType,
+          report,
+        }),
       });
       const job = await res.json();
       if (!res.ok) throw new Error(job.error || `HTTP ${res.status}`);
@@ -155,7 +171,7 @@ export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonP
   return (
     <div className="relative">
       <button
-        onClick={handleExport}
+        onClick={() => setMenuOpen(open => !open)}
         disabled={loading}
         className="p-2 text-slate-600 hover:text-green-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
         title="Export to Excel"
@@ -174,6 +190,23 @@ export default function ExportButton({ dateFrom, dateTo, branch }: ExportButtonP
           </div>
         )}
       </button>
+
+      {/* Report choice */}
+      {menuOpen && !loading && (
+        <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-1.5">
+          <p className="px-2.5 pt-1 pb-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Export Excel</p>
+          {REPORTS.map(r => (
+            <button
+              key={r.value}
+              onClick={() => handleExport(r.value)}
+              className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <p className="text-sm font-medium text-slate-800">{r.label}</p>
+              <p className="text-xs text-slate-500">{r.description}</p>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Progress/Message Toast */}
       {message && (
