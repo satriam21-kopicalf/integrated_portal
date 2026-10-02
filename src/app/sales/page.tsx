@@ -444,6 +444,19 @@ export default function SalesPage() {
 
           {/* Desktop Table View */}
           <div className="hidden lg:block bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Search Above Table */}
+            <div className="px-4 py-3 border-b border-slate-200">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search sales number, bill, branch..."
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1200px]">
                 <thead className="bg-slate-50 border-b border-slate-200">
@@ -465,32 +478,6 @@ export default function SalesPage() {
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Qty</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Price</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider hidden lg:table-cell">Subtotal</th>
-                  </tr>
-                  {/* Search Row */}
-                  <tr className="bg-white">
-                    <th className="px-4 py-2">
-                      <div className="relative">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                        <input
-                          type="text"
-                          placeholder="Search..."
-                          value={search}
-                          onChange={(e) => handleSearchChange(e.target.value)}
-                          className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500"
-                        />
-                      </div>
-                    </th>
-                    <th className="px-4 py-2 hidden md:table-cell"></th>
-                    <th className="px-4 py-2"></th>
-                    <th className="px-4 py-2 hidden lg:table-cell"></th>
-                    <th className="px-4 py-2 hidden xl:table-cell"></th>
-                    <th className="px-4 py-2"></th>
-                    <th className="px-4 py-2"></th>
-                    <th className="px-4 py-2 hidden lg:table-cell"></th>
-                    <th className="px-4 py-2 hidden lg:table-cell"></th>
-                    <th className="px-4 py-2 hidden lg:table-cell"></th>
-                    <th className="px-4 py-2 hidden lg:table-cell"></th>
-                    <th className="px-4 py-2 hidden lg:table-cell"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
