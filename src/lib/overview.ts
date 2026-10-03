@@ -1,0 +1,321 @@
+'use client';
+
+// Overview page data layer: types of /api/overview/* (integrated_portal_be,
+// app/routes/overview.py), a fetch hook and the fixed channel palette.
+
+import { useEffect, useState } from 'react';
+
+export interface OverviewFilters {
+  from: string;
+  to: string;
+  days: number;
+  previous: { from: string; to: string; complete: boolean };
+  branch: string | null;
+  channels: string[];
+}
+
+export interface Freshness {
+  dataFrom: string | null;
+  dataTo: string | null;
+  lastSyncedAt: string | null;
+  refreshedAt: string | null;
+}
+
+export interface Kpi {
+  value: number;
+  previous: number;
+  deltaPct: number | null;
+}
+
+export interface KpisResponse {
+  filters: OverviewFilters;
+  kpis: Record<'sales' | 'nettSales' | 'bills' | 'avgTicket', Kpi>;
+  daily: { date: string; subtotal: number; nettSales: number; bills: number; avgTicket: number | null }[];
+  freshness: Freshness;
+}
+
+export type Granularity = 'day' | 'week' | 'month';
+
+export interface TrendPoint {
+  date: string;
+  days: number;
+  subtotal: number;
+  nettSales: number;
+  bills: number;
+  discountPct: number | null;
+  previous: { subtotal: number; nettSales: number; bills: number };
+}
+
+export interface TrendResponse {
+  filters: OverviewFilters;
+  granularity: Granularity;
+  series: TrendPoint[];
+}
+
+export interface ChannelRow {
+  channel: string;
+  bills: number;
+  subtotal: number;
+  nettSales: number;
+  share: number | null;
+  avgTicket: number | null;
+  discountPct: number | null;
+  previousSubtotal: number;
+  deltaPct: number | null;
+}
+
+export interface ChannelsResponse {
+  filters: OverviewFilters;
+  granularity: Granularity;
+  channels: ChannelRow[];
+  series: { date: string; days: number; values: Record<string, { subtotal: number; bills: number }> }[];
+}
+
+export interface BranchRow {
+  branchCode: string;
+  branchName: string;
+  subtotal: number;
+  nettSales: number;
+  bills: number;
+  activeDays: number;
+  voidBills: number;
+  spark: number[];
+  avgTicket: number;
+  subtotalPerDay: number;
+  previousSubtotal: number;
+  deltaPct: number | null;
+  isNew: boolean;
+  voidRate: number | null;
+}
+
+export interface BranchesResponse {
+  filters: OverviewFilters;
+  granularity: Granularity;
+  buckets: string[];
+  branches: BranchRow[];
+}
+
+export interface HourCell {
+  dow: number; // 1 = Monday
+  hour: number;
+  bills: number;
+  subtotal: number;
+  avgBills: number;
+  avgSubtotal: number;
+}
+
+export interface HourlyResponse {
+  filters: OverviewFilters;
+  daysPerDow: Record<string, number>;
+  cells: HourCell[];
+  peak: HourCell | null;
+}
+
+export interface MenuRow {
+  menuId: string;
+  name: string;
+  category: string;
+  categoryDetail: string;
+  bills: number;
+  qty: number;
+  subtotal: number;
+  discount: number;
+  share: number | null;
+}
+
+export interface MenusResponse {
+  filters: OverviewFilters;
+  totals: { subtotal: number; qty: number };
+  top: MenuRow[];
+  categories: { category: string; qty: number; subtotal: number; share: number | null; details: { name: string; qty: number; subtotal: number }[] }[];
+  addons: { group: string; qty: number; subtotal: number; options: { menuId: string; name: string; qty: number; subtotal: number; share: number | null }[] }[];
+}
+
+interface Bucket {
+  bills: number;
+  subtotal: number;
+}
+
+export interface DeductionBranch {
+  branchCode: string;
+  branchName: string;
+  bills: number;
+  voidBills: number;
+  voidSubtotal: number;
+  otherCostBills: number;
+  otherCostSubtotal: number;
+  voidRate: number;
+  status: 'review' | 'normal';
+}
+
+export interface DeductionsResponse {
+  filters: OverviewFilters;
+  totals: Record<'sales' | 'void' | 'other_cost' | 'open' | 'gross' | 'otherCost', Bucket>;
+  voidRate: number;
+  threshold: number | null;
+  otherCostByMethod: { method: string; bills: number; subtotal: number }[];
+  branches: DeductionBranch[];
+  daily: { date: string; bills: number; voidBills: number; voidSubtotal: number; otherCostSubtotal: number; voidRate: number }[];
+}
+
+export interface MonthRow {
+  month: string;
+  days: number;
+  partial: boolean;
+  subtotal: number;
+  nettSales: number;
+  bills: number;
+  branches: number;
+  avgDaily: number | null;
+  momPct: number | null;
+  yoyPct: number | null;
+  sameStore: { branches: number; growthPct: number | null };
+}
+
+export interface MonthlyResponse {
+  filters: OverviewFilters;
+  months: MonthRow[];
+}
+
+export interface PaymentsResponse {
+  filters: OverviewFilters;
+  methods: { type: string; method: string; bills: number; subtotal: number; share: number | null; billShare: number | null }[];
+  types: { type: string; bills: number; subtotal: number; share: number | null }[];
+}
+
+export interface Basket {
+  bills: number;
+  linesPerBill: number | null;
+  qtyPerBill: number | null;
+  beverageBills: number;
+  foodBills: number;
+  bothBills: number;
+  foodSharePct: number | null;
+  foodAttachPct: number | null;
+}
+
+export interface BasketResponse {
+  filters: OverviewFilters;
+  granularity: Granularity;
+  totals: Basket;
+  previous: Basket;
+  channels: (Basket & { channel: string })[];
+  series: (Basket & { date: string })[];
+}
+
+export interface MetaResponse {
+  channels: { channel: string; bills: number }[];
+  defaultPeriod: { from: string; to: string };
+  freshness: Freshness;
+}
+
+export interface Resource<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+  retry: () => void;
+}
+
+/** GET /api/overview/{path}?{query}. Keeps the previous data while a new request runs. */
+export function useOverview<T>(path: string, query: string): Resource<T> {
+  const [state, setState] = useState<{ data: T | null; loading: boolean; error: string | null }>({
+    data: null,
+    loading: true,
+    error: null,
+  });
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setState(s => ({ ...s, loading: true, error: null }));
+    fetch(`/api/overview/${path}${query ? `?${query}` : ''}`, { signal: controller.signal })
+      .then(async res => {
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+        setState({ data: body as T, loading: false, error: null });
+      })
+      .catch((error: Error) => {
+        if (controller.signal.aborted) return;
+        setState(s => ({ ...s, loading: false, error: error.message || 'Request failed' }));
+      });
+    return () => controller.abort();
+  }, [path, query, attempt]);
+
+  return { ...state, retry: () => setAttempt(a => a + 1) };
+}
+
+// ---------------------------------------------------------------- channels
+
+/** Fixed categorical order (validated palette, docs/overview-analytics.md §5.3). */
+export const CHANNELS: { name: string; color: string }[] = [
+  { name: 'Dine In', color: '#2a78d6' },
+  { name: 'ShopeeFood', color: '#eb6834' },
+  { name: 'GrabFood', color: '#1baf7a' },
+  { name: 'GoFood', color: '#eda100' },
+  { name: 'Takeaway', color: '#e87ba4' },
+];
+export const OTHER_CHANNEL = 'Other';
+export const OTHER_COLOR = '#a8a29e';
+
+export function channelColor(name: string): string {
+  return CHANNELS.find(c => c.name === name)?.color ?? OTHER_COLOR;
+}
+
+/** Known channels keep their slot; anything new from ESB is folded into "Other". */
+export function channelKey(name: string): string {
+  return CHANNELS.some(c => c.name === name) ? name : OTHER_CHANNEL;
+}
+
+export function channelOrder(name: string): number {
+  const i = CHANNELS.findIndex(c => c.name === name);
+  return i === -1 ? CHANNELS.length : i;
+}
+
+// ---------------------------------------------------------------- helpers
+
+export const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/** "Rp 45.8B" / "1.2M" style. */
+const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+
+export function compactNumber(value: number | null | undefined): string {
+  return value === null || value === undefined ? '-' : compact.format(value);
+}
+
+export function compactRupiah(value: number | null | undefined): string {
+  return value === null || value === undefined ? '-' : `Rp ${compact.format(value)}`; // never wraps
+}
+
+export function formatPct(value: number | null | undefined, digits = 1): string {
+  return value === null || value === undefined ? '-' : `${value.toFixed(digits)}%`;
+}
+
+/** Clean axis maximum (1, 2, 2.5, 5 x 10^n) at or above `value`. */
+export function niceMax(value: number): number {
+  if (value <= 0) return 1;
+  const exp = Math.pow(10, Math.floor(Math.log10(value)));
+  for (const step of [1, 2, 2.5, 5, 10]) {
+    if (step * exp >= value) return step * exp;
+  }
+  return 10 * exp;
+}
+
+export function shortDate(value: string, granularity: Granularity = 'day'): string {
+  const d = new Date(`${value}T00:00:00`);
+  if (granularity === 'month') return d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+export function longDate(value: string): string {
+  return new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+  });
+}
+
+export function bucketLabel(value: string, granularity: Granularity): string {
+  if (granularity === 'week') return `Week of ${shortDate(value)}`;
+  if (granularity === 'month') {
+    return new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  }
+  return longDate(value);
+}

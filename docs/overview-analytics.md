@@ -1,6 +1,6 @@
 # Overview Analytics — Analisis & Rencana Implementasi
 
-> Halaman: `/overview` (menu **Dashboard**) · Status: **rencana** (halaman saat ini masih placeholder)
+> Halaman: `/overview` (menu **Dashboard**) · Status: **P1 + P2 live** (3 Okt 2026), P3 sebagian (basket, add-on)
 > Disusun: 2 Oktober 2026 · Data acuan: `integration_esb.transactions_pos_sales` (7,17 juta transaksi Sales, 9 Jun 2025 – 2 Okt 2026)
 
 **Cakupan: khusus data transaksi penjualan POS** — header transaksi (`transactions_pos_sales`, termasuk payload ESB `raw_data`) dan baris menunya (`raw_data.salesMenus`, setara `transactions_pos_sales_items`). Master data (`master_branches`, `master_pos_menu`) hanya dipakai sebagai **referensi** untuk nama cabang terkini dan kategori add-on, bukan sebagai sumber analitik. Data non-transaksi penjualan (purchase order, produk/BOM, customer B2B) berada di luar cakupan.
@@ -193,57 +193,72 @@ Mobile (<768 px): satu kolom — KPI 2×2 → tren → channel → heatmap (scro
 
 Agregasi langsung dari `raw_data` (JSONB) mahal: 1 bulan ≈ 40–90 detik, seluruh riwayat > 10 menit. Overview harus < 1 detik.
 
-### 6.2 Solusi: tabel agregat harian di `integration_esb`
+### 6.2 Solusi: tabel agregat di schema `integration_portal`
 
-Diperbarui oleh engine sinkron (`integrated-esbapi`) **untuk tanggal yang baru disinkron** (setiap jam: hari ini + kemarin; malam: 7 hari), plus backfill sekali untuk seluruh riwayat. Semua sumber field terisi 100% (§2).
+Schema **`integration_portal`** milik `integrated_portal_be` / `integrated_portal` (schema `integration_esb` tetap milik engine sinkron dan hanya dibaca). Di schema ini nanti juga tabel akun user untuk login dashboard. Perubahan schema lewat migration bernomor di `integrated_portal_be/app/migrations/` (dijalankan otomatis setelah deploy, riwayat di `integration_portal.schema_migrations`).
 
-| Tabel | Grain (primary key) | Kolom utama | Perkiraan ukuran |
-|---|---|---|---|
-| `agg_sales_daily` | `sales_date, branch_code, channel, tx_type` | bills, subtotal, nett_sales, grand_total, discount_total, menu_discount, item_qty, menu_lines | ±18,7 rb baris/bulan (±300 rb total) |
-| `agg_sales_hourly` | `sales_date, branch_code, channel, hour` | bills, subtotal (hanya `tx_type = sales`) | ≤8 rb baris/hari (105 cabang × 5 channel × ±16 jam) |
-| `agg_menu_daily` | `sales_date, branch_code, menu_id, kind` (`menu`/`package`/`extra`) | menu_name, category, category_detail, qty, subtotal, discount | ±10 rb baris/hari |
+| Tabel | Grain (primary key) | Isi |
+|---|---|---|
+| `agg_sales_daily` | `sales_date, branch_code, channel, payment_type, payment_method, tx_type` | bills, subtotal, nett_sales, grand_total, diskon (bill/menu/promo/voucher), menu_lines, item_qty, bills dengan beverage/food/keduanya |
+| `agg_sales_hourly` | `sales_date, branch_code, channel, hour` | bills, subtotal (hanya Sales) |
+| `agg_menu_daily` | `sales_date, branch_code, channel, menu_id, kind` (`menu`/`package`/`extra`) | menu_name, category, category_detail, bills, qty, subtotal, discount |
+| `agg_menu_monthly`, `agg_hourly_monthly` | per bulan (hourly: × hari-dalam-minggu) | rollup bulanan; API membaca bulan penuh dari rollup dan hari-hari tepi dari tabel harian |
+| `agg_refresh_log` | `sales_date` | waktu refresh, `synced_at` sumber, rekonsiliasi subtotal |
 
 - `tx_type` ∈ `sales | void | other_cost | open` dengan aturan yang sama seperti backend (`app/esb_report.py` → `TYPE_CONDITIONS`).
-- `channel` = `raw_data->>'visitPurposeName'`; `hour` = jam dari `raw_data->>'salesDateIn'`.
-- Refresh per tanggal: `DELETE … WHERE sales_date = $d` lalu `INSERT … SELECT … GROUP BY` dalam satu transaksi (idempoten).
-- Rekonsiliasi otomatis setelah refresh: Σ`subtotal` (`tx_type = sales`) per hari harus sama dengan agregasi langsung dari `transactions_pos_sales`; selisih dicatat ke log engine.
+- `channel` = `raw_data->>'visitPurposeName'`; `hour` = jam dari `raw_data->>'salesDateIn'`; metode bayar = `salesPayments[0]`.
+- Refresh per tanggal oleh `app/aggregates.py`: `DELETE … WHERE sales_date = $d` lalu `INSERT … SELECT … GROUP BY` dalam satu transaksi (idempoten), lalu rollup bulan yang tersentuh.
+- Rekonsiliasi otomatis: Σ`subtotal` Sales agregat per hari = agregasi langsung dari `transactions_pos_sales` (hasil di `agg_refresh_log`, selisih → status MISMATCH di log).
+- Jadwal (cron VPS `/etc/cron.d/integrated-portal-aggregates`): tiap jam menit :20 (hari ini + kemarin, setelah sinkron ESB :05) dan 02:50 WIB (8 hari, setelah resync 7 hari 02:15 WIB).
+- Backfill 9 Jun 2025 – 3 Okt 2026: 482 hari, 0 gagal, semua hari terekonsiliasi.
+- Riwayat lengkap untuk perbandingan dimulai **1 Agu 2025** (`OVERVIEW_DATA_FROM`): roll-out ESB baru mencakup ±85 cabang pada akhir Juli 2025, sehingga Δ% terhadap periode sebelum itu dikosongkan.
 
 ### 6.3 API backend (`integrated_portal_be`)
 
-Semua menerima `dateFrom`, `dateTo`, `branch` (kode), `channel` (bisa lebih dari satu), dan `compare=previous` (default). Cache 5 menit.
+Semua menerima `dateFrom`, `dateTo` (default 30 hari lengkap s/d kemarin), `branch` (kode), `channel` (dipisah koma). Pembanding = periode sebelumnya dengan panjang sama. Cache 5 menit.
 
 | Endpoint | Isi |
 |---|---|
-| `GET /api/overview/kpis` | 4 KPI + nilai periode pembanding + seri harian (sparkline) |
-| `GET /api/overview/trend?granularity=day\|week\|month` | Seri subtotal/nett/bills + pembanding |
-| `GET /api/overview/channels` | Per channel: bills, subtotal, share, avg ticket, diskon %; seri per hari |
-| `GET /api/overview/branches` | Leaderboard: per cabang metrik + Δ% + sparkline 30 hari + void rate |
-| `GET /api/overview/hourly` | Matriks hari-dalam-minggu × jam (rata-rata bills & subtotal per hari) |
-| `GET /api/overview/menus?limit=10` | Top menu, mix kategori, add-on (P2/P3) |
-| `GET /api/overview/deductions` | Void/Cancelled/Other Cost per cabang & metode (P2) |
+| `GET /api/overview/meta` | Opsi channel, periode default, cakupan & kesegaran data |
+| `GET /api/overview/kpis` | 4 KPI + nilai periode pembanding + nilai harian (sparkline) |
+| `GET /api/overview/trend?granularity=day\|week\|month` | Seri subtotal/nett/bills + pembanding yang digeser ke timeline yang sama |
+| `GET /api/overview/channels` | Per channel: bills, subtotal, share, avg ticket, diskon %, Δ%; mix per periode |
+| `GET /api/overview/branches` | Leaderboard: metrik per cabang + Δ% + sparkline + void rate |
+| `GET /api/overview/hourly` | Hari-dalam-minggu × jam (rata-rata bills & subtotal per hari) |
+| `GET /api/overview/menus?limit=10&sort=subtotal\|qty` | Top menu, mix kategori, preferensi add-on |
+| `GET /api/overview/deductions` | Void/Cancelled, Other Cost per metode, open bill; per hari & cabang; status `review` > P90 void rate |
+| `GET /api/overview/monthly?months=13` | Rata-rata sales per hari kalender per bulan, MoM, YoY, same-store growth (cabang aktif ≥ 90% hari di kedua bulan) |
+| `GET /api/overview/payments` | Mix metode pembayaran |
+| `GET /api/overview/basket` | Baris menu & qty per bill, food share, food attach rate |
+
+Waktu respons di VPS (tanpa cache): periode 30 hari 20–380 ms, 1 tahun 80–500 ms.
 
 ### 6.4 Frontend (`integrated_portal`)
 
-- Halaman `src/app/overview/page.tsx` memakai `DashboardLayout`, `DateRangePicker`, `BranchFilter`, dan util `src/lib/format.ts` yang sudah ada.
-- Library chart: **Recharts** (React, SVG, tooltip & responsif bawaan); heatmap cukup grid CSS/SVG sederhana.
-- Setiap widget memuat datanya sendiri (skeleton saat loading, state error dengan tombol *Try again*), sehingga satu endpoint lambat tidak memblokir halaman.
+- Halaman `src/app/overview/page.tsx`: filter periode (preset sampai kemarin), cabang dan channel tersimpan di URL (`?from=&to=&branch=&channel=`).
+- Chart SVG ringan tanpa library (`src/components/charts/`): garis dengan crosshair, kolom (stacked/100%), heatmap, sparkline, bar list — mengikuti aturan visual §5.3; setiap chart punya tooltip dan tabel/daftar alternatif.
+- Setiap widget memuat datanya sendiri (`src/components/overview/`; skeleton saat pertama, data lama diredupkan saat refetch, state error dengan *Try again*).
 
 ---
 
 ## 7. Rencana implementasi
 
-| Fase | Pekerjaan | Repo | Estimasi |
+| Fase | Pekerjaan | Repo | Status |
 |---|---|---|---|
-| 0 | Migration `006_overview_aggregates.sql` (3 tabel + index), fungsi refresh per tanggal, backfill Agu 2025 – sekarang, rekonsiliasi | integrated-esbapi | 1–1,5 hari |
-| 1 | Hook refresh agregat di `engine2_current.js` (tanggal yang disinkron) + cek di cron 7 hari | integrated-esbapi | 0,5 hari |
-| 2 | Endpoint P1 (`kpis`, `trend`, `channels`, `branches`, `hourly`) + test | integrated_portal_be | 1,5 hari |
-| 3 | Halaman Overview P1 (filter, KPI, tren, channel, leaderboard, heatmap) desktop & mobile | integrated_portal | 2 hari |
-| 4 | P2 (menu, diskon, pengurangan, bulanan/MoM/same-store, pembayaran) | be + fe | 2–3 hari |
-| 5 | P3 sesuai kebutuhan bisnis | be + fe | opsional |
+| 0 | Schema `integration_portal`, migration, tabel agregat + rollup bulanan, refresh per tanggal, backfill, rekonsiliasi | integrated_portal_be | selesai |
+| 1 | Cron refresh agregat setelah sinkron ESB (tiap jam + malam) | integrated_portal_be | selesai |
+| 2 | Endpoint P1 + P2 + test | integrated_portal_be | selesai |
+| 3 | Halaman Overview P1 desktop & mobile | integrated_portal | selesai |
+| 4 | P2 (menu, diskon, pengurangan, bulanan/MoM/same-store, pembayaran) | be + fe | selesai |
+| 5 | P3: basket & add-on selesai; order mode × channel, matriks cabang × channel sesuai kebutuhan | be + fe | sebagian |
+| 6 | Tabel akun user (`integration_portal`) + login dashboard | be + fe | berikutnya |
 
 ---
 
 ## 8. Kriteria penerimaan
+
+Hasil uji 3 Okt 2026: (1) Sep 2026 = Rp45.795.791.100, 30/30 hari sama dengan `/api/summary`; (2) Σ channel = Σ cabang = Σ metode bayar = KPI, Σ jam = total bills, void/other cost = `/api/summary`; (3) hanya field §2.1–2.2; (4) VPS tanpa cache: 30 hari ≤ 380 ms, 1 tahun ≤ ~500 ms; (5) refresh menit :20 setelah sinkron :05; (6) 1440 px & 390 px tanpa overflow horizontal, tanpa error console.
+
 
 1. **Akurasi**: Sales Subtotal Overview untuk 1–30 Sep 2026 = **Rp45.795.791.100** dan per hari sama dengan ERP ESB (30/30 hari); sama dengan `/api/summary` untuk periode & cabang apa pun.
 2. **Konsistensi**: Σ channel = Σ cabang = KPI total; Σ jam = total bills periode.

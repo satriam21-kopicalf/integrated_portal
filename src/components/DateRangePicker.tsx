@@ -10,11 +10,21 @@ interface DateRangePickerProps {
   dateTo: string;
   /** Called once per change with the full range ('' = no bound). */
   onChange: (dateFrom: string, dateTo: string) => void;
+  /** Shortcut ranges; default: Today .. Last month. */
+  presets?: () => DatePreset[];
+  /** What an empty range means, e.g. "last 65 days". */
+  defaultLabel?: string;
+}
+
+export interface DatePreset {
+  label: string;
+  from: string;
+  to: string;
 }
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-function presets(): { label: string; from: string; to: string }[] {
+function defaultPresets(): DatePreset[] {
   const today = new Date();
   const d = (offset: number) => {
     const x = new Date(today);
@@ -34,7 +44,9 @@ function presets(): { label: string; from: string; to: string }[] {
   ];
 }
 
-export default function DateRangePicker({ dateFrom, dateTo, onChange }: DateRangePickerProps) {
+export default function DateRangePicker({
+  dateFrom, dateTo, onChange, presets = defaultPresets, defaultLabel = 'last 65 days',
+}: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [month, setMonth] = useState(() => {
     const base = dateTo || dateFrom ? new Date(`${dateTo || dateFrom}T00:00:00`) : new Date();
@@ -51,7 +63,7 @@ export default function DateRangePicker({ dateFrom, dateTo, onChange }: DateRang
   useClickOutside(ref, close, isOpen);
 
   const active = Boolean(dateFrom || dateTo);
-  const ranges = useMemo(() => presets(), []);
+  const ranges = useMemo(() => presets(), [presets]);
 
   const days = useMemo(() => {
     const first = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -82,7 +94,7 @@ export default function DateRangePicker({ dateFrom, dateTo, onChange }: DateRang
     close();
   };
 
-  const label = active ? `${formatDate(dateFrom) !== '-' ? formatDate(dateFrom) : '…'} – ${formatDate(dateTo) !== '-' ? formatDate(dateTo) : '…'}` : 'Date range: last 65 days';
+  const label = active ? `${formatDate(dateFrom) !== '-' ? formatDate(dateFrom) : '…'} – ${formatDate(dateTo) !== '-' ? formatDate(dateTo) : '…'}` : `Date range: ${defaultLabel}`;
 
   return (
     <div className="relative" ref={ref}>
@@ -107,7 +119,7 @@ export default function DateRangePicker({ dateFrom, dateTo, onChange }: DateRang
             <div>
               <p className="text-sm font-semibold text-slate-900">Date range</p>
               <p className="text-xs text-slate-500">
-                {pendingFrom ? `From ${formatDate(pendingFrom)} — select end date` : active ? label : 'Default: last 65 days'}
+                {pendingFrom ? `From ${formatDate(pendingFrom)} — select end date` : active ? label : `Default: ${defaultLabel}`}
               </p>
             </div>
             {active && (
