@@ -3,7 +3,8 @@
 // Overview page data layer: types of /api/overview/* (integrated_portal_be,
 // app/routes/overview.py), a fetch hook and the fixed channel palette.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRealtime } from './realtime';
 
 export interface OverviewFilters {
   from: string;
@@ -216,19 +217,29 @@ export interface Resource<T> {
   retry: () => void;
 }
 
-/** GET /api/overview/{path}?{query}. Keeps the previous data while a new request runs. */
+/**
+ * GET /api/overview/{path}?{query}. Keeps the previous data while a new request runs,
+ * and re-fetches silently (no loading state) when the realtime aggregates version changes.
+ */
 export function useOverview<T>(path: string, query: string): Resource<T> {
+  const { aggregatesRefreshedAt, ready } = useRealtime();
   const [state, setState] = useState<{ data: T | null; loading: boolean; error: string | null }>({
     data: null,
     loading: true,
     error: null,
   });
   const [attempt, setAttempt] = useState(0);
+  const lastRequest = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!ready) return;
+    const request = `${path}?${query}#${attempt}`;
+    const silent = lastRequest.current === request; // only the data version changed
+    lastRequest.current = request;
     const controller = new AbortController();
-    setState(s => ({ ...s, loading: true, error: null }));
-    fetch(`/api/overview/${path}${query ? `?${query}` : ''}`, { signal: controller.signal })
+    if (!silent) setState(s => ({ ...s, loading: true, error: null }));
+    const params = [query, aggregatesRefreshedAt ? `v=${encodeURIComponent(aggregatesRefreshedAt)}` : ''].filter(Boolean).join('&');
+    fetch(`/api/overview/${path}${params ? `?${params}` : ''}`, { signal: controller.signal })
       .then(async res => {
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
@@ -239,7 +250,7 @@ export function useOverview<T>(path: string, query: string): Resource<T> {
         setState(s => ({ ...s, loading: false, error: error.message || 'Request failed' }));
       });
     return () => controller.abort();
-  }, [path, query, attempt]);
+  }, [path, query, attempt, aggregatesRefreshedAt, ready]);
 
   return { ...state, retry: () => setAttempt(a => a + 1) };
 }

@@ -1,9 +1,10 @@
 'use client';
 
 // /api/live (integrated_portal_be, app/routes/live.py): today so far and the
-// latest sales that reached the database. Polled while the tab is visible.
+// latest sales that reached the database, refreshed through the realtime connection.
 
 import { useEffect, useRef, useState } from 'react';
+import { useRealtime } from './realtime';
 
 export interface LiveSale {
   salesNum: string;
@@ -22,6 +23,12 @@ export interface LiveSale {
   moreItems: number;
 }
 
+export interface LiveHour {
+  hour: number;
+  bills: number;
+  subtotal: number;
+}
+
 export interface LiveResponse {
   serverTime: string;
   lastSyncedAt: string | null;
@@ -31,53 +38,43 @@ export interface LiveResponse {
     subtotal: number;
     nettSales: number;
     avgTicket: number;
-    hours: { hour: number; bills: number; subtotal: number }[];
-    yesterdaySameTime: { bills: number; subtotal: number };
+    hours: LiveHour[];
+    channels: { channel: string; bills: number; subtotal: number }[];
+    yesterdaySameTime: { bills: number; subtotal: number; nettSales: number };
     deltaPct: number | null;
+    billsDeltaPct: number | null;
+    nettDeltaPct: number | null;
   };
+  yesterday: { date: string; bills: number; subtotal: number; hours: LiveHour[] };
+  lastBatch: { bills: number; subtotal: number; syncedHour: string | null };
   transactions: LiveSale[];
 }
 
-export const LIVE_POLL_MS = 30_000;
-
+/**
+ * GET /api/live: re-fetched whenever the realtime connection reports newly
+ * synced sales (no polling of its own).
+ */
 export function useLive(query: string): { data: LiveResponse | null; error: string | null; fetchedAt: number | null } {
+  const { salesSyncedAt, ready } = useRealtime();
   const [state, setState] = useState<{ data: LiveResponse | null; error: string | null; fetchedAt: number | null }>({
     data: null, error: null, fetchedAt: null,
   });
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    let stopped = false;
+    if (!ready) return;
     const controller = new AbortController();
-
-    const load = async () => {
-      if (timer.current) clearTimeout(timer.current);
-      try {
-        const res = await fetch(`/api/live?${query}`, { signal: controller.signal, cache: 'no-store' });
+    const v = salesSyncedAt ? `&v=${encodeURIComponent(salesSyncedAt)}` : '';
+    fetch(`/api/live?${query}${v}`, { signal: controller.signal, cache: 'no-store' })
+      .then(async res => {
         const body = await res.json();
         if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
-        if (!stopped) setState({ data: body, error: null, fetchedAt: Date.now() });
-      } catch (error) {
-        if (stopped || controller.signal.aborted) return;
-        setState(s => ({ ...s, error: (error as Error).message }));
-      }
-      if (!stopped && document.visibilityState === 'visible') timer.current = setTimeout(load, LIVE_POLL_MS);
-    };
-    // pause while the tab is hidden, refresh immediately when it comes back
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') load();
-      else if (timer.current) clearTimeout(timer.current);
-    };
-
-    load();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      stopped = true;
-      controller.abort();
-      if (timer.current) clearTimeout(timer.current);
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [query]);
+        setState({ data: body, error: null, fetchedAt: Date.now() });
+      })
+      .catch((error: Error) => {
+        if (!controller.signal.aborted) setState(s => ({ ...s, error: error.message }));
+      });
+    return () => controller.abort();
+  }, [query, salesSyncedAt, ready]);
 
   return state;
 }

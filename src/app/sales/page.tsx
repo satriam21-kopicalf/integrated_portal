@@ -4,11 +4,13 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import TransactionDetail from '@/components/TransactionDetail';
 import ExportButton from '@/components/ExportButton';
-import DateRangePicker from '@/components/DateRangePicker';
+import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import BranchFilter, { Branch } from '@/components/BranchFilter';
-import { ChevronRight, Info, Loader2, Receipt, RefreshCw, Search, X } from 'lucide-react';
+import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Search, Tag, Wallet, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
-import { formatCompactCurrency, formatCurrency, formatDate, formatNumber, formatTime } from '@/lib/format';
+import { formatCompactCurrency, formatCurrency, formatDate, formatNumber, formatTime, toIsoDate } from '@/lib/format';
+import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
+import { RealtimeIndicator, useRealtime } from '@/lib/realtime';
 
 interface PaginationInfo {
   cursor: string | null;
@@ -47,6 +49,34 @@ interface SaleGroup {
 
 const DEFAULT_LIMIT = 100;
 
+/** The page opens on yesterday: the last complete day. */
+function yesterday(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return toIsoDate(d);
+}
+
+function salesPresets(): DatePreset[] {
+  const now = new Date();
+  const d = (offset: number) => {
+    const x = new Date(now);
+    x.setDate(x.getDate() + offset);
+    return toIsoDate(x);
+  };
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  return [
+    { label: 'Today', from: d(0), to: d(0) },
+    { label: 'Yesterday', from: d(-1), to: d(-1) },
+    { label: 'Last 7 days', from: d(-7), to: d(-1) },
+    { label: 'Last 30 days', from: d(-30), to: d(-1) },
+    { label: 'Last 90 days', from: d(-90), to: d(-1) },
+    { label: 'This month', from: toIsoDate(new Date(y, m, 1)), to: d(0) },
+    { label: 'Last month', from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
+    { label: 'This year', from: toIsoDate(new Date(y, 0, 1)), to: d(0) },
+  ];
+}
+
 export default function SalesPage() {
   const [data, setData] = useState<TransactionCombined[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +95,13 @@ export default function SalesPage() {
   const [txType, setTxType] = useState<TxType>('sales');
   const [summary, setSummary] = useState<SalesSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
+  // dates are set on mount (yesterday in the browser's timezone), fetching waits for that
+  const [datesReady, setDatesReady] = useState(false);
+  const [pagesLoaded, setPagesLoaded] = useState(0);
+  const [newData, setNewData] = useState(false);
+  const { salesSyncedAt, ready: realtimeReady } = useRealtime();
+  const syncedRef = useRef<string | null>(null);
+  const version = salesSyncedAt ? `&v=${encodeURIComponent(salesSyncedAt)}` : '';
 
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionCombined | null>(null);
 
@@ -75,6 +111,13 @@ export default function SalesPage() {
   const requestIdRef = useRef(0);
 
   useEffect(() => {
+    const day = yesterday();
+    setDateFrom(day);
+    setDateTo(day);
+    setDatesReady(true);
+  }, []);
+
+  useEffect(() => {
     fetch('/api/branches')
       .then(res => (res.ok ? res.json() : []))
       .then(setBranches)
@@ -82,11 +125,11 @@ export default function SalesPage() {
       .finally(() => setBranchesLoading(false));
   }, []);
 
-  const fetchData = useCallback(async (cursor: string | null = null) => {
+  const fetchData = useCallback(async (cursor: string | null = null, silent = false) => {
     if (!isMounted.current) return;
     const requestId = ++requestIdRef.current;
     if (cursor) setLoadingMore(true);
-    else setLoading(true);
+    else if (!silent) setLoading(true);
     setLoadError(null);
 
     try {
@@ -104,6 +147,8 @@ export default function SalesPage() {
       if (isMounted.current && requestId === requestIdRef.current) {
         setData(prev => (cursor ? [...prev, ...(result.data || [])] : result.data || []));
         setPagination(result.pagination || { cursor: null, hasMore: false, limit: DEFAULT_LIMIT });
+        setPagesLoaded(n => (cursor ? n + 1 : 1));
+        if (!cursor) setNewData(false);
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -128,24 +173,38 @@ export default function SalesPage() {
 
   // Refetch from the first page whenever a filter changes (fetchData changes with them)
   useEffect(() => {
+    if (!datesReady || !realtimeReady) return;
     fetchData(null);
-  }, [fetchData, refreshKey]);
+  }, [fetchData, datesReady, realtimeReady]);
+
+  // New data synced (realtime): the first page reloads silently; when more pages are
+  // loaded the reader's place is kept and a "new transactions" notice is shown instead.
+  useEffect(() => {
+    if (!salesSyncedAt) return;
+    const previous = syncedRef.current;
+    syncedRef.current = salesSyncedAt;
+    if (!previous || previous === salesSyncedAt || !datesReady) return;
+    if (pagesLoaded <= 1) fetchData(null, true);
+    else setNewData(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salesSyncedAt]);
 
   // Gross / deductions / sales summary for the selected period and branch
   useEffect(() => {
+    if (!datesReady || !realtimeReady) return;
     let cancelled = false;
     const params = new URLSearchParams();
     if (dateFrom) params.append('dateFrom', dateFrom);
     if (dateTo) params.append('dateTo', dateTo);
     if (branch) params.append('branch', branch);
     setSummaryLoading(true);
-    fetch(`/api/summary?${params}`)
+    fetch(`/api/summary?${params}${version}`)
       .then(res => (res.ok ? res.json() : null))
       .then(result => { if (!cancelled) setSummary(result); })
       .catch(error => console.error('Error fetching summary:', error))
       .finally(() => { if (!cancelled) setSummaryLoading(false); });
     return () => { cancelled = true; };
-  }, [dateFrom, dateTo, branch, refreshKey]);
+  }, [dateFrom, dateTo, branch, version, datesReady, realtimeReady]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -159,15 +218,16 @@ export default function SalesPage() {
     setDebouncedSearch('');
   };
 
+  // an empty range ("Clear") goes back to the default day
   const handleDateChange = (from: string, to: string) => {
-    setDateFrom(from);
-    setDateTo(to);
+    setDateFrom(from || to || yesterday());
+    setDateTo(to || from || yesterday());
   };
 
   const clearFilters = () => {
     clearSearch();
-    setDateFrom('');
-    setDateTo('');
+    setDateFrom(yesterday());
+    setDateTo(yesterday());
     setBranch('');
     setTxType('sales');
   };
@@ -176,7 +236,7 @@ export default function SalesPage() {
   const typeInfo = TX_TYPES.find(t => t.value === txType) ?? TX_TYPES[0];
   const periodLabel = summary
     ? `${formatDate(summary.dateRange.from)} – ${formatDate(summary.dateRange.to)}`
-    : dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : 'Last 65 days';
+    : dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : 'Yesterday';
   const branchLabel = branch ? branchName(branch) : 'All branches';
 
   const typeCounts: Record<TxType, number | undefined> = {
@@ -196,7 +256,8 @@ export default function SalesPage() {
     return out;
   }, [data]);
 
-  const hasChips = Boolean(dateFrom || dateTo || branch || txType !== 'sales' || debouncedSearch);
+  const defaultDates = dateFrom === yesterday() && dateTo === yesterday();
+  const hasChips = Boolean(!defaultDates || branch || txType !== 'sales' || debouncedSearch);
   const initialLoading = loading && data.length === 0;
   const refreshing = loading && data.length > 0;
 
@@ -211,20 +272,12 @@ export default function SalesPage() {
                 {periodLabel} · {branchLabel}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setRefreshKey(k => k + 1)}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
-              title="Refresh data"
-            >
-              <RefreshCw size={15} className={loading || summaryLoading ? 'animate-spin' : ''} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
+            <RealtimeIndicator />
           </div>
         </header>
 
         <div className="space-y-4 p-4 sm:p-6">
-          <SummaryCards summary={summary} loading={summaryLoading} />
+          <SummaryStrip summary={summary} loading={summaryLoading} />
 
           {/* Transactions card */}
           <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -246,7 +299,7 @@ export default function SalesPage() {
                 )}
               </div>
               <div className="flex items-center justify-end gap-2">
-                <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} />
+                <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel="yesterday" />
                 <BranchFilter branches={branches} loading={branchesLoading} value={branch} onChange={setBranch} />
                 <ExportButton
                   dateFrom={dateFrom}
@@ -289,7 +342,7 @@ export default function SalesPage() {
             {/* Active filters */}
             {hasChips && (
               <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 sm:px-4">
-                {(dateFrom || dateTo) && <Chip label={`Date: ${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}`} onRemove={() => handleDateChange('', '')} />}
+                {!defaultDates && <Chip label={`Date: ${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}`} onRemove={() => handleDateChange('', '')} />}
                 {branch && <Chip label={`Branch: ${branchName(branch)}`} onRemove={() => setBranch('')} />}
                 {txType !== 'sales' && <Chip label={`Type: ${typeInfo.label}`} onRemove={() => setTxType('sales')} />}
                 {debouncedSearch && <Chip label={`Search: “${debouncedSearch}”`} onRemove={clearSearch} />}
@@ -312,13 +365,22 @@ export default function SalesPage() {
               </div>
             )}
 
+            {newData && (
+              <div className="flex items-center justify-between gap-3 border-b border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800 sm:px-4">
+                <span className="flex items-center gap-1.5"><ArrowUpCircle size={14} /> New transactions were synced.</span>
+                <button type="button" onClick={() => fetchData(null)} className="rounded-md bg-blue-600 px-2.5 py-1 font-medium text-white hover:bg-blue-700">
+                  Show latest
+                </button>
+              </div>
+            )}
+
             {/* Results */}
             <div className="relative">
               {loadError && !loading && (
                 <div className="flex flex-col items-center gap-2 px-4 py-16 text-center">
                   <p className="text-sm font-medium text-slate-800">Couldn’t load transactions</p>
                   <p className="text-xs text-slate-500">{loadError}</p>
-                  <button type="button" onClick={() => setRefreshKey(k => k + 1)} className="mt-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                  <button type="button" onClick={() => fetchData(null)} className="mt-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
                     Try again
                   </button>
                 </div>
@@ -385,105 +447,86 @@ export default function SalesPage() {
 
 /* ------------------------------------------------------------------ summary */
 
-function SummaryCards({ summary, loading }: { summary: SalesSummary | null; loading: boolean }) {
+function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; loading: boolean }) {
   const t = summary?.totals;
   const deductions = t ? t.void.subtotal + t.other_cost.subtotal + t.open.subtotal : undefined;
   const avg = t && t.sales.transactions ? t.sales.subtotal / t.sales.transactions : undefined;
-  const methods = summary ? Object.entries(summary.otherCostByMethod) : [];
+  const methods = summary ? Object.keys(summary.otherCostByMethod) : [];
   const pending = loading && !summary;
+  const discount = t ? t.sales.subtotal - t.sales.nettSales : 0;
+  const parts = t && t.gross.subtotal
+    ? [
+        { key: 'sales', label: 'Sales', value: t.sales.subtotal, color: '#2a78d6' },
+        { key: 'void', label: 'Void & cancelled', value: t.void.subtotal, color: '#e34948' },
+        { key: 'other', label: 'Other cost', value: t.other_cost.subtotal, color: '#eda100' },
+        { key: 'open', label: 'Open bills', value: t.open.subtotal, color: '#a8a29e' },
+      ].filter(p => p.value > 0)
+    : [];
+  const money = (v: number | undefined) => (
+    <>
+      <span className="sm:hidden">{formatCompactCurrency(v)}</span>
+      <span className="hidden sm:inline">{formatCurrency(v)}</span>
+    </>
+  );
 
   return (
-    <section className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Sales summary">
-      <KpiCard
-        className="col-span-2 sm:col-span-1"
-        title="Sales Subtotal"
-        value={t?.sales.subtotal}
-        footer={t ? `${formatNumber(t.sales.transactions)} transactions · avg ${formatCurrency(avg)}` : undefined}
-        loading={pending}
-        emphasis
-      />
-      <KpiCard
-        title="Nett Sales"
-        value={t?.sales.nettSales}
-        footer={t ? `After item & bill discounts · ${formatCurrency(t.sales.subtotal - t.sales.nettSales)} discount` : undefined}
-        loading={pending}
-      />
-      <KpiCard
-        title="Gross Subtotal"
-        value={t?.gross.subtotal}
-        footer={t ? `${formatNumber(t.gross.transactions)} transactions, all statuses` : undefined}
-        loading={pending}
-      />
-      <div className="col-span-2 min-w-0 rounded-xl border border-slate-200 bg-white p-4 sm:col-span-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Deductions</p>
-        {pending ? (
-          <div className="mt-2 h-7 w-40 animate-pulse rounded bg-slate-100" />
-        ) : (
-          <p className="mt-1 text-xl font-semibold tabular-nums text-rose-600 sm:text-2xl">
-            {deductions !== undefined ? `−${formatCurrency(deductions)}` : '-'}
-          </p>
-        )}
+    <StatStrip label="Sales summary">
+      <Stat label="Sales subtotal" icon={<Wallet size={13} aria-hidden />} emphasis className="col-span-2 lg:col-span-1"
+        value={pending ? <StatSkeleton /> : money(t?.sales.subtotal)} title={formatCurrency(t?.sales.subtotal)}>
+        {t && <p>{formatNumber(t.sales.transactions)} transactions · avg {formatCurrency(avg)}</p>}
+      </Stat>
+      <Stat label="Nett sales" icon={<Tag size={13} aria-hidden />}
+        value={pending ? <StatSkeleton /> : money(t?.sales.nettSales)} title={formatCurrency(t?.sales.nettSales)}>
         {t && (
-          <p className="mt-1 text-[11px] text-slate-500 sm:text-xs">
-            {formatNumber(t.void.transactions + t.other_cost.transactions + t.open.transactions)} transactions excluded from sales
+          <p>
+            After discounts · <span className="tabular-nums text-slate-600">{formatCurrency(discount)}</span>
+            {t.sales.subtotal ? ` (${((discount / t.sales.subtotal) * 100).toFixed(1)}%)` : ''}
           </p>
         )}
-        <dl className="mt-2 space-y-1 border-t border-slate-100 pt-2 text-xs">
-          <DeductionRow label="Void & cancelled" value={t?.void.subtotal} count={t?.void.transactions} />
-          <DeductionRow
-            label="Other cost"
-            value={t?.other_cost.subtotal}
-            count={t?.other_cost.transactions}
-            hint={methods.map(([m]) => m).join(', ')}
-          />
-          {!!t?.open.transactions && <DeductionRow label="Open bills" value={t.open.subtotal} count={t.open.transactions} />}
-        </dl>
-      </div>
-    </section>
+      </Stat>
+      <Stat label="Gross subtotal" icon={<Layers size={13} aria-hidden />}
+        value={pending ? <StatSkeleton /> : money(t?.gross.subtotal)} title={formatCurrency(t?.gross.subtotal)}>
+        {t && (
+          <>
+            <p>{formatNumber(t.gross.transactions)} transactions, all statuses</p>
+            {parts.length > 0 && (
+              <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-200" role="img"
+                aria-label={parts.map(p => `${p.label} ${((p.value / t.gross.subtotal) * 100).toFixed(1)}%`).join(', ')}>
+                {parts.map(p => (
+                  <span key={p.key} title={`${p.label}: ${formatCurrency(p.value)} (${((p.value / t.gross.subtotal) * 100).toFixed(1)}%)`}
+                    className="h-full border-r border-slate-50 last:border-r-0"
+                    style={{ width: `${Math.max(0.5, (p.value / t.gross.subtotal) * 100)}%`, background: p.color }} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </Stat>
+      <Stat label="Deductions" icon={<CircleMinus size={13} aria-hidden />} className="col-span-2 lg:col-span-1"
+        value={pending ? <StatSkeleton /> : <span className="text-rose-600">{deductions !== undefined ? <>−{money(deductions)}</> : '-'}</span>}
+        title={deductions !== undefined ? `−${formatCurrency(deductions)}` : undefined}>
+        {t && (
+          <dl className="space-y-0.5">
+            <DeductionRow label="Void & cancelled" color="#e34948" value={t.void.subtotal} count={t.void.transactions} />
+            <DeductionRow label="Other cost" color="#eda100" value={t.other_cost.subtotal} count={t.other_cost.transactions} hint={methods.join(', ')} />
+            {!!t.open.transactions && <DeductionRow label="Open bills" color="#a8a29e" value={t.open.subtotal} count={t.open.transactions} />}
+          </dl>
+        )}
+      </Stat>
+    </StatStrip>
   );
 }
 
-function KpiCard({
-  title, badge, value, footer, loading, emphasis = false, className = '',
-}: {
-  className?: string;
-  title: string;
-  badge?: string;
-  value: number | undefined;
-  footer?: string;
-  loading: boolean;
-  emphasis?: boolean;
-}) {
-  return (
-    <div className={`min-w-0 rounded-xl border p-4 ${className} ${emphasis ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white'}`}>
-      <div className="flex items-center gap-2">
-        <p className={`text-xs font-medium uppercase tracking-wide ${emphasis ? 'text-slate-300' : 'text-slate-500'}`}>{title}</p>
-        {badge && <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide">{badge}</span>}
-      </div>
-      {loading ? (
-        <div className={`mt-2 h-7 w-3/4 animate-pulse rounded ${emphasis ? 'bg-white/20' : 'bg-slate-100'}`} />
-      ) : (
-        <p className={`mt-1 font-semibold tabular-nums ${emphasis ? 'text-white' : 'text-slate-900'}`}>
-          <span className="text-lg sm:hidden">{formatCompactCurrency(value)}</span>
-          <span className="hidden text-2xl sm:inline">{formatCurrency(value)}</span>
-        </p>
-      )}
-      {footer && !loading && (
-        <p className={`mt-1 line-clamp-2 text-[11px] sm:text-xs ${emphasis ? 'text-slate-300' : 'text-slate-500'}`}>{footer}</p>
-      )}
-    </div>
-  );
-}
-
-function DeductionRow({ label, value, count, hint }: { label: string; value?: number; count?: number; hint?: string }) {
-  const title = [hint, count !== undefined ? `${formatNumber(count)} transactions` : ''].filter(Boolean).join(' · ');
+function DeductionRow({ label, color, value, count, hint }: { label: string; color: string; value: number; count: number; hint?: string }) {
+  const title = [hint, `${formatNumber(count)} transactions`].filter(Boolean).join(' · ');
   return (
     <div className="flex items-baseline justify-between gap-3" title={title}>
-      <dt className="min-w-0 truncate text-slate-500">
+      <dt className="flex items-center gap-1.5 whitespace-nowrap">
+        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: color }} aria-hidden />
         {label}
-        {hint && <span className="text-slate-400"> ({hint})</span>}
+        <span className="text-slate-400">· {formatNumber(count)}</span>
       </dt>
-      <dd className="whitespace-nowrap font-medium tabular-nums text-slate-700">{value !== undefined ? `−${formatCurrency(value)}` : '-'}</dd>
+      <dd className="whitespace-nowrap tabular-nums text-slate-700">−{formatCurrency(value)}</dd>
     </div>
   );
 }

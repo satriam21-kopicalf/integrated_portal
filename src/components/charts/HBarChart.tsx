@@ -25,7 +25,7 @@ export default function HBarChart({
   labelWidth?: number;
   max?: number;
 }) {
-  // keyed on content: parents rebuild `items` on every render (e.g. live polling)
+  // keyed on content: parents rebuild `items` on every render (e.g. realtime updates)
   const signature = JSON.stringify(items);
   const option = useMemo<ChartOption>(() => {
     const rows = (JSON.parse(signature) as HBarItem[]).reverse();

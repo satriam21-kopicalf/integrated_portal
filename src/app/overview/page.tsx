@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import BranchFilter, { Branch } from '@/components/BranchFilter';
@@ -19,7 +18,8 @@ import BasketCard from '@/components/overview/BasketCard';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
 import LiveTicker from '@/components/overview/LiveTicker';
 import { useLive } from '@/lib/live';
-import { formatDate, formatDateTime, toIsoDate } from '@/lib/format';
+import { formatDate, toIsoDate } from '@/lib/format';
+import { RealtimeIndicator } from '@/lib/realtime';
 import {
   BasketResponse, BranchesResponse, ChannelsResponse, DeductionsResponse, HourlyResponse, KpisResponse, MetaResponse,
   MonthlyResponse, PaymentsResponse, channelLabel, useOverview,
@@ -80,8 +80,7 @@ export default function OverviewPage() {
   const [filters, setFilters] = useState<Filters | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const meta = useOverview<MetaResponse>('meta', `r=${refreshKey}`);
+  const meta = useOverview<MetaResponse>('meta', '');
 
   // filters live in the URL so a view can be shared
   useEffect(() => {
@@ -104,8 +103,6 @@ export default function OverviewPage() {
     });
   };
 
-  const freshness = meta.data?.freshness;
-
   return (
     <DashboardLayout>
       <div className="min-h-full bg-slate-50">
@@ -113,10 +110,7 @@ export default function OverviewPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Overview</h1>
-              <p className="text-xs text-slate-500 sm:text-sm">
-                Sales analytics
-                {freshness?.lastSyncedAt && <> · data synced {formatDateTime(freshness.lastSyncedAt)}</>}
-              </p>
+              <p className="text-xs text-slate-500 sm:text-sm">Sales analytics · updates automatically</p>
             </div>
             {/* stays right-aligned when wrapped: the popovers open towards the left */}
             <div className="ml-auto flex items-center gap-2">
@@ -129,35 +123,26 @@ export default function OverviewPage() {
               />
               <BranchFilter branches={branches} loading={branchesLoading} value={filters?.branch ?? ''} onChange={branch => update({ branch })} />
               <ChannelFilter channels={meta.data?.channels ?? []} value={filters?.channels ?? []} onChange={channels => update({ channels })} />
-              <button
-                type="button"
-                onClick={() => setRefreshKey(k => k + 1)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
-                title="Refresh data"
-                aria-label="Refresh data"
-              >
-                <RefreshCw size={17} strokeWidth={1.75} className={meta.loading ? 'animate-spin' : ''} />
-              </button>
+              <RealtimeIndicator className="h-10" />
             </div>
           </div>
         </header>
 
-        {filters && <OverviewContent filters={filters} branches={branches} refreshKey={refreshKey} />}
+        {filters && <OverviewContent filters={filters} branches={branches} />}
       </div>
     </DashboardLayout>
   );
 }
 
-function OverviewContent({ filters, branches, refreshKey }: { filters: Filters; branches: Branch[]; refreshKey: number }) {
+function OverviewContent({ filters, branches }: { filters: Filters; branches: Branch[] }) {
   const query = useMemo(() => {
     const p = new URLSearchParams();
     if (filters.from) p.set('dateFrom', filters.from);
     if (filters.to) p.set('dateTo', filters.to || filters.from);
     if (filters.branch) p.set('branch', filters.branch);
     if (filters.channels.length) p.set('channel', filters.channels.join(','));
-    p.set('r', String(refreshKey)); // refetch on Refresh (ignored by the API)
     return p.toString();
-  }, [filters, refreshKey]);
+  }, [filters]);
 
   const kpis = useOverview<KpisResponse>('kpis', query);
   const channels = useOverview<ChannelsResponse>('channels', query);
@@ -185,29 +170,29 @@ function OverviewContent({ filters, branches, refreshKey }: { filters: Filters; 
     <div className="space-y-5 p-4 sm:p-6">
       <LiveTicker data={live.data} />
 
-      <p className="text-xs text-slate-500 sm:text-sm">
-        {f ? (
-          <>
-            <span className="font-medium text-slate-900">{formatDate(f.from)} – {formatDate(f.to)}</span> · {branchName} · {channelText}
-            {f.previous.complete ? <> · vs {formatDate(f.previous.from)} – {formatDate(f.previous.to)}</> : <> · no comparison before Aug 2025</>}
-          </>
-        ) : (
-          <span className="inline-block h-4 w-72 animate-pulse rounded bg-slate-200 align-middle" />
-        )}
-      </p>
+      <div className="space-y-0">
+        <p className="pb-2 text-xs text-slate-500 sm:text-sm">
+          {f ? (
+            <>
+              <span className="font-medium text-slate-900">{formatDate(f.from)} – {formatDate(f.to)}</span> · {branchName} · {channelText}
+              {f.previous.complete ? <> · vs {formatDate(f.previous.from)} – {formatDate(f.previous.to)}</> : <> · no comparison before Aug 2025</>}
+            </>
+          ) : (
+            <span className="inline-block h-4 w-72 animate-pulse rounded bg-slate-200 align-middle" />
+          )}
+        </p>
+        <KpiTiles resource={kpis} />
+      </div>
 
-      <KpiTiles resource={kpis} />
+      <LiveSalesCard key={liveQuery} data={live.data} error={live.error} />
 
       <div className="grid gap-4 xl:grid-cols-12">
         <div className="min-w-0 xl:col-span-8"><TrendCard query={query} /></div>
-        <div className="min-w-0 xl:col-span-4"><LiveSalesCard key={liveQuery} data={live.data} error={live.error} /></div>
+        <div className="min-w-0 xl:col-span-4"><ChannelMixCard resource={channels} /></div>
       </div>
 
-      <Section title="Channels & branches">
-        <div className="grid gap-4 xl:grid-cols-12">
-          <div className="min-w-0 xl:col-span-5"><ChannelMixCard resource={channels} /></div>
-          <div className="min-w-0 xl:col-span-7"><BranchLeaderboard resource={branchBoard} /></div>
-        </div>
+      <Section title="Branches">
+        <BranchLeaderboard resource={branchBoard} />
       </Section>
 
       <Section title="When & what sells">

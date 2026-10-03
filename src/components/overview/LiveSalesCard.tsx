@@ -1,32 +1,38 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Radio } from 'lucide-react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { Clock3, Receipt, ShoppingBag, Tag } from 'lucide-react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, INK, tipRow, tipTitle, tooltip } from '@/lib/chartTheme';
 import { clock, LiveResponse, LiveSale, minutesAgo, useCountUp } from '@/lib/live';
-import { channelColor, channelLabel, compactRupiah, paymentLabel } from '@/lib/overview';
+import { channelColor, channelKey, channelLabel, channelOrder, compactRupiah, paymentLabel } from '@/lib/overview';
+import { RealtimeStatus, useRealtime } from '@/lib/realtime';
 import { Delta } from './Card';
 
-const MAX_ROWS = 30;
+const MAX_ROWS = 25;
 const STREAM_MS = 450; // gap between newly arrived sales sliding in
+const FRESH_MS = 60_000; // how long a newly arrived sale keeps its "New" label
 
 interface Row {
   sale: LiveSale;
   mode: 'initial' | 'fresh';
   delay: number;
+  arrived: number;
 }
 
-/** Pulsing "Live" badge. */
-export function LiveBadge({ stale = false }: { stale?: boolean }) {
+/** Pulsing status badge driven by the realtime connection. */
+export function LiveBadge({ status = 'live' }: { status?: RealtimeStatus }) {
+  const live = status === 'live';
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${stale ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700'}`}>
-      <span className="relative flex h-2 w-2">
-        {!stale && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />}
-        <span className={`relative inline-flex h-2 w-2 rounded-full ${stale ? 'bg-slate-400' : 'bg-emerald-500'}`} />
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+      live ? 'bg-emerald-500/15 text-emerald-600' : 'bg-slate-500/15 text-slate-500'}`}
+    >
+      <span className="relative flex h-1.5 w-1.5">
+        {live && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />}
+        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500' : 'bg-slate-400'}`} />
       </span>
-      Live
+      {live ? 'Live' : status === 'connecting' ? 'Connecting' : 'Reconnecting'}
     </span>
   );
 }
@@ -36,12 +42,15 @@ export function itemsLine(sale: LiveSale): string {
   return sale.moreItems ? `${names} +${sale.moreItems} more` : names;
 }
 
+const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
+
 export default function LiveSalesCard({ data, error }: { data: LiveResponse | null; error: string | null }) {
+  const { status, salesSyncedAt } = useRealtime();
   const [rows, setRows] = useState<Row[]>([]);
   const seen = useRef<Set<string>>(new Set());
   const [now, setNow] = useState(() => Date.now());
 
-  // "updated x min ago" stays current between polls
+  // keeps "x min ago" and the "New" labels current
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
@@ -56,7 +65,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
     const initial = seen.current.size === 0;
     incoming.forEach(t => seen.current.add(t.salesNum));
     if (initial) {
-      setRows(data.transactions.slice(0, MAX_ROWS).map((sale, i) => ({ sale, mode: 'initial', delay: i * 45 })));
+      setRows(data.transactions.slice(0, MAX_ROWS).map((sale, i) => ({ sale, mode: 'initial', delay: i * 40, arrived: 0 })));
       return;
     }
     const queue = [...incoming].reverse(); // oldest first, so the newest ends on top
@@ -67,7 +76,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         clearInterval(id);
         return;
       }
-      setRows(r => [{ sale, mode: 'fresh' as const, delay: 0 }, ...r].slice(0, MAX_ROWS));
+      setRows(r => [{ sale, mode: 'fresh' as const, delay: 0, arrived: Date.now() }, ...r].slice(0, MAX_ROWS));
     }, STREAM_MS);
     return () => clearInterval(id);
   }, [data]);
@@ -75,111 +84,209 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
   const t = data?.today;
   const sales = useCountUp(t?.subtotal ?? 0);
   const bills = useCountUp(t?.bills ?? 0);
-  const syncedAgo = minutesAgo(data?.lastSyncedAt ?? null, now);
-  const stale = !data?.lastSyncedAt || now - new Date(data.lastSyncedAt).getTime() > 2 * 3600_000;
+  const ofYesterday = t && data?.yesterday.subtotal ? (t.subtotal / data.yesterday.subtotal) * 100 : null;
 
   const hourOption = useMemo<ChartOption | null>(() => {
-    if (!t?.hours.length) return null;
-    const hours = t.hours;
-    const last = hours[hours.length - 1].hour;
+    if (!data) return null;
+    const today = new Map(data.today.hours.map(h => [h.hour, h]));
+    const yday = new Map(data.yesterday.hours.map(h => [h.hour, h]));
+    const all = [...today.keys(), ...yday.keys()];
+    if (!all.length) return null;
+    const hours = Array.from({ length: Math.max(...all) - Math.min(...all) + 1 }, (_, i) => Math.min(...all) + i);
     return {
       ...base,
-      grid: { left: 0, right: 0, top: 6, bottom: 0, containLabel: true },
+      grid: { left: 2, right: 2, top: 8, bottom: 2, containLabel: true },
       tooltip: tooltip({
         trigger: 'axis',
         axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(148,163,184,0.12)' } },
         formatter: (items: { dataIndex: number }[]) => {
           const h = hours[items[0]?.dataIndex ?? 0];
-          return tipTitle(`Today ${String(h.hour).padStart(2, '0')}:00–${String(h.hour + 1).padStart(2, '0')}:00`)
-            + tipRow(INK.accent, formatCurrency(h.subtotal), 'sales')
-            + tipRow(INK.accent, formatNumber(h.bills), 'bills');
+          return tipTitle(`${hourLabel(h)}–${hourLabel(h + 1)}`)
+            + tipRow(INK.accent, formatCurrency(today.get(h)?.subtotal ?? 0), `today · ${formatNumber(today.get(h)?.bills ?? 0)} bills`)
+            + tipRow(INK.previous, formatCurrency(yday.get(h)?.subtotal ?? 0), 'yesterday', 'line');
         },
       }),
-      xAxis: categoryAxis(hours.map(h => String(h.hour).padStart(2, '0')), { axisLabel: { color: INK.muted, fontSize: 10, interval: 2 } }),
+      xAxis: categoryAxis(hours.map(h => String(h).padStart(2, '0')), { axisLabel: { color: INK.muted, fontSize: 10, interval: 2 } }),
       yAxis: { type: 'value', show: false },
-      series: [{
-        type: 'bar',
-        barMaxWidth: 14,
-        data: hours.map(h => ({ value: h.subtotal, itemStyle: { color: h.hour === last ? '#1baf7a' : '#9ec5f4', borderRadius: [3, 3, 0, 0] } })),
-      }],
+      series: [
+        { name: 'Today', type: 'bar', barMaxWidth: 12, data: hours.map(h => today.get(h)?.subtotal ?? 0),
+          itemStyle: { color: INK.accent, borderRadius: [3, 3, 0, 0] } },
+        { name: 'Yesterday', type: 'line', symbol: 'none', data: hours.map(h => yday.get(h)?.subtotal ?? 0),
+          lineStyle: { color: INK.previous, width: 1.5, type: 'dashed' } },
+      ],
     };
+  }, [data]);
+
+  const channels = useMemo(() => {
+    if (!t) return [];
+    const folded = new Map<string, { channel: string; subtotal: number; bills: number }>();
+    for (const c of t.channels) {
+      const key = channelKey(c.channel);
+      const f = folded.get(key) ?? { channel: key, subtotal: 0, bills: 0 };
+      f.subtotal += c.subtotal;
+      f.bills += c.bills;
+      folded.set(key, f);
+    }
+    return [...folded.values()].sort((a, b) => channelOrder(a.channel) - channelOrder(b.channel));
   }, [t]);
 
+  const batch = data?.lastBatch;
+  const dateLabel = t
+    ? new Date(`${t.date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+    : '';
+
   return (
-    <section className="flex h-full min-w-0 flex-col rounded-xl border border-slate-200 bg-white">
-      <header className="flex items-start justify-between gap-2 px-4 pb-2 pt-4 sm:px-5">
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white" aria-label="Live sales today">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            Live sales <LiveBadge stale={stale} />
+            Live sales <LiveBadge status={status} />
           </h2>
           <p className="mt-0.5 text-xs text-slate-500">
-            {data ? <>Last sync {syncedAgo} · refreshes every 30 s</> : error ? 'Could not load live sales' : 'Connecting…'}
+            {dateLabel || 'Today'} · follows the branch and channel filters
           </p>
         </div>
-        <Radio size={16} className="mt-0.5 flex-shrink-0 text-slate-300" aria-hidden />
+        <p className="flex items-center gap-1.5 text-xs text-slate-500">
+          <Clock3 size={13} aria-hidden />
+          {data && (data.lastSyncedAt || salesSyncedAt)
+            ? <>Last sync {minutesAgo(data.lastSyncedAt ?? salesSyncedAt, now)}</>
+            : error ? 'Could not load live sales' : 'Connecting…'}
+        </p>
       </header>
 
-      <div className="px-4 sm:px-5">
-        <div className="rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 p-4 text-white">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-300">
-            Today so far{t ? ` · ${new Date(`${t.date}T00:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : ''}
-          </p>
-          {t ? (
-            <>
-              <p className="mt-1 text-2xl font-semibold tabular-nums sm:text-3xl" title={formatCurrency(t.subtotal)}>
-                {formatCurrency(Math.round(sales))}
-              </p>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300">
-                <span><span className="font-semibold tabular-nums text-white">{formatNumber(Math.round(bills))}</span> bills</span>
-                <span>avg <span className="font-semibold tabular-nums text-white">{formatNumber(Math.round(t.avgTicket))}</span></span>
-              </div>
-              <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-300">
-                <span className="rounded bg-white px-1.5 py-0.5"><Delta value={t.deltaPct} /></span>
-                vs yesterday at this time ({compactRupiah(t.yesterdaySameTime.subtotal)})
-              </p>
-            </>
-          ) : (
-            <div className="mt-2 h-9 w-2/3 animate-pulse rounded bg-white/15" />
-          )}
-        </div>
-        {hourOption && (
-          <div className="mt-2">
-            <EChart option={hourOption} height={80} ariaLabel="Sales per hour today" />
-          </div>
-        )}
-      </div>
-
-      <div className="mt-3 flex items-center justify-between px-4 sm:px-5">
-        <p className="text-xs font-medium text-slate-500">Latest sales</p>
-        <p className="text-[11px] text-slate-400">outlet local time</p>
-      </div>
-      <ol className="custom-scrollbar mt-1 max-h-[22rem] flex-1 overflow-y-auto px-2 pb-3 sm:px-3" aria-live="polite" aria-label="Latest sales">
-        {rows.map(({ sale, mode, delay }) => (
-          <li
-            key={sale.salesNum}
-            className={`rounded-lg px-2 py-2 ${mode === 'fresh' ? 'live-enter' : 'live-fade'}`}
-            style={mode === 'initial' ? { animationDelay: `${delay}ms` } : undefined}
-          >
-            <div className="flex items-start gap-2.5">
-              <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full" style={{ background: channelColor(sale.channel) }} title={channelLabel(sale.channel)} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  <p className="truncate text-sm font-medium text-slate-800" title={sale.branchName}>{sale.branchName}</p>
-                  <p className="flex-shrink-0 text-sm font-semibold tabular-nums text-slate-900">{formatCurrency(sale.subtotal)}</p>
-                </div>
-                <p className="truncate text-xs text-slate-500" title={itemsLine(sale)}>{itemsLine(sale)}</p>
-                <p className="text-[11px] text-slate-400">
-                  {clock(sale.orderTime)} · {channelLabel(sale.channel)}{sale.paymentMethod ? ` · ${paymentLabel(sale.paymentMethod)}` : ''}
+      <div className="grid divide-y divide-slate-100 xl:grid-cols-12 xl:divide-x xl:divide-y-0">
+        {/* Today's figures */}
+        <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Sales today</p>
+            {t ? (
+              <>
+                <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 tabular-nums" title={formatCurrency(t.subtotal)}>
+                  {formatCurrency(Math.round(sales))}
                 </p>
+                <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                  <Delta value={t.deltaPct} />
+                  vs yesterday at this time ({compactRupiah(t.yesterdaySameTime.subtotal)})
+                </p>
+              </>
+            ) : (
+              <div className="mt-2 h-9 w-2/3 animate-pulse rounded bg-slate-100" />
+            )}
+          </div>
+
+          {t && ofYesterday !== null && (
+            <div>
+              <div className="flex items-baseline justify-between text-xs">
+                <span className="text-slate-500">Progress vs yesterday&apos;s full day</span>
+                <span className="font-semibold tabular-nums text-slate-900">{ofYesterday.toFixed(0)}%</span>
               </div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-blue-600 transition-[width] duration-700" style={{ width: `${Math.min(100, ofYesterday)}%` }} />
+              </div>
+              <p className="mt-1 text-[11px] text-slate-400">Yesterday: {formatCurrency(data!.yesterday.subtotal)}</p>
             </div>
-          </li>
-        ))}
-        {data && !rows.length && <li className="py-8 text-center text-sm text-slate-400">No sales yet today</li>}
-      </ol>
-      <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400 sm:px-5">
-        New sales arrive with every POS data sync (hourly at :05).
-      </p>
+          )}
+
+          <dl className="grid grid-cols-3 divide-x divide-slate-100 rounded-lg border border-slate-100">
+            <MiniStat icon={<Receipt size={12} />} label="Bills" value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct} />
+            <MiniStat icon={<ShoppingBag size={12} />} label="Avg ticket" value={t ? formatNumber(Math.round(t.avgTicket)) : '—'} />
+            <MiniStat icon={<Tag size={12} />} label="Nett" value={t ? compactRupiah(t.nettSales) : '—'} delta={t?.nettDeltaPct} />
+          </dl>
+        </div>
+
+        {/* Hourly and channels */}
+        <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
+          <div>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Sales by hour</p>
+              <span className="flex items-center gap-3 text-[11px] text-slate-500">
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#2a78d6]" />Today</span>
+                <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />Yesterday</span>
+              </span>
+            </div>
+            {hourOption ? <EChart option={hourOption} height={120} ariaLabel="Sales per hour today compared with yesterday" /> : <div className="h-[120px]" />}
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Channels today</p>
+            {channels.length > 0 && t ? (
+              <>
+                <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label="Share of today's sales per channel">
+                  {channels.map(c => (
+                    <span key={c.channel} className="h-full border-r-2 border-white last:border-r-0"
+                      style={{ width: `${(c.subtotal / t.subtotal) * 100}%`, background: channelColor(c.channel) }} />
+                  ))}
+                </div>
+                <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  {channels.map(c => (
+                    <li key={c.channel} className="flex items-center justify-between gap-2">
+                      <span className="flex min-w-0 items-center gap-1.5 text-slate-600">
+                        <span className="h-2 w-2 flex-shrink-0 rounded-sm" style={{ background: channelColor(c.channel) }} />
+                        <span className="truncate">{channelLabel(c.channel)}</span>
+                      </span>
+                      <span className="tabular-nums text-slate-900">{((c.subtotal / t.subtotal) * 100).toFixed(0)}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="mt-2 text-xs text-slate-400">No sales yet today</p>
+            )}
+          </div>
+        </div>
+
+        {/* Latest sales feed */}
+        <div className="flex min-w-0 flex-col xl:col-span-4">
+          <div className="flex items-center justify-between px-4 pt-4 sm:px-5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Latest sales</p>
+            {batch && batch.bills > 0 && (
+              <span className="text-[11px] text-slate-500" title="Sales that arrived with the most recent sync">
+                +{formatNumber(batch.bills)} at last sync · {compactRupiah(batch.subtotal)}
+              </span>
+            )}
+          </div>
+          <ol className="custom-scrollbar mt-2 max-h-[19rem] flex-1 overflow-y-auto px-2 pb-2 sm:px-3" aria-live="polite" aria-label="Latest sales">
+            {rows.map(({ sale, mode, delay, arrived }) => {
+              const isNew = mode === 'fresh' && now - arrived < FRESH_MS;
+              return (
+                <li
+                  key={sale.salesNum}
+                  className={`grid grid-cols-[3rem_1fr_auto] items-start gap-2 rounded-lg px-2 py-2 ${mode === 'fresh' ? 'live-enter' : 'live-fade'}`}
+                  style={mode === 'initial' ? { animationDelay: `${delay}ms` } : undefined}
+                >
+                  <span className="pt-0.5 font-mono text-[11px] tabular-nums text-slate-400">{clock(sale.orderTime)}</span>
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-slate-800" title={sale.branchName}>
+                      {isNew && <span className="rounded bg-blue-600 px-1 text-[9px] font-bold uppercase tracking-wide text-white">New</span>}
+                      <span className="truncate">{sale.branchName.replace(/^Kopi Calf /, '')}</span>
+                    </p>
+                    <p className="truncate text-[11px] text-slate-500" title={itemsLine(sale)}>{itemsLine(sale)}</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-400">
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: channelColor(sale.channel) }} />
+                      {channelLabel(sale.channel)}
+                      {sale.paymentMethod && <> · {paymentLabel(sale.paymentMethod)}</>}
+                    </p>
+                  </div>
+                  <span className="pt-0.5 text-[13px] font-semibold tabular-nums text-slate-900">{formatNumber(sale.subtotal)}</span>
+                </li>
+              );
+            })}
+            {data && !rows.length && <li className="py-8 text-center text-sm text-slate-400">No sales yet today</li>}
+          </ol>
+          <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400 sm:px-5">
+            Outlet local time · updates automatically after every POS sync (hourly at :05)
+          </p>
+        </div>
+      </div>
     </section>
+  );
+}
+
+function MiniStat({ icon, label, value, delta }: { icon: ReactNode; label: string; value: string; delta?: number | null }) {
+  return (
+    <div className="min-w-0 px-3 py-2">
+      <dt className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{icon}{label}</dt>
+      <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-slate-900">{value}</dd>
+      {delta !== undefined && <dd><Delta value={delta ?? null} /></dd>}
+    </div>
   );
 }

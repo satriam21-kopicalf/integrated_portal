@@ -1,60 +1,64 @@
 'use client';
 
+import { Receipt, ShoppingBag, Tag, Wallet } from 'lucide-react';
 import Sparkline from '@/components/charts/Sparkline';
+import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { compactNumber, compactRupiah, KpisResponse, Resource } from '@/lib/overview';
 import { Delta } from './Card';
 
 type Key = keyof KpisResponse['kpis'];
 
-const TILES: { key: Key; label: string; hint: string; money: boolean; series: (d: KpisResponse['daily'][number]) => number }[] = [
-  { key: 'sales', label: 'Sales', hint: 'Subtotal of finished sales with a bill number', money: true, series: d => d.subtotal },
-  { key: 'nettSales', label: 'Nett sales', hint: 'After item and bill discounts', money: true, series: d => d.nettSales },
-  { key: 'bills', label: 'Bills', hint: 'Number of sales transactions', money: false, series: d => d.bills },
-  { key: 'avgTicket', label: 'Avg ticket', hint: 'Sales ÷ bills', money: true, series: d => d.avgTicket ?? 0 },
+const METRICS: {
+  key: Key; label: string; hint: string; icon: typeof Wallet;
+  format: (v: number) => string; full: (v: number) => string; series: (d: KpisResponse['daily'][number]) => number;
+}[] = [
+  { key: 'sales', label: 'Sales', hint: 'Subtotal of finished sales with a bill number', icon: Wallet,
+    format: compactRupiah, full: formatCurrency, series: d => d.subtotal },
+  { key: 'nettSales', label: 'Nett sales', hint: 'After item and bill discounts', icon: Tag,
+    format: compactRupiah, full: formatCurrency, series: d => d.nettSales },
+  { key: 'bills', label: 'Bills', hint: 'Number of sales transactions', icon: Receipt,
+    format: compactNumber, full: formatNumber, series: d => d.bills },
+  { key: 'avgTicket', label: 'Avg ticket', hint: 'Sales ÷ bills', icon: ShoppingBag,
+    format: formatCurrency, full: formatCurrency, series: d => d.avgTicket ?? 0 },
 ];
 
+/** Period summary: Sales, Nett sales, Bills, Avg ticket (no cards, see StatStrip). */
 export default function KpiTiles({ resource }: { resource: Resource<KpisResponse> }) {
-  const { data, loading, error, retry } = resource;
+  const { data, error, retry } = resource;
   const days = data?.filters.days;
+  const hasPrev = data?.filters.previous.complete;
   return (
-    <section aria-label="Key figures" className={`grid grid-cols-2 gap-3 xl:grid-cols-4 ${loading && data ? 'opacity-50' : ''}`}>
-      {TILES.map(t => {
-        const k = data?.kpis[t.key];
-        const full = k ? (t.money ? formatCurrency(k.value) : formatNumber(k.value)) : '';
+    <StatStrip label="Key figures for the selected period">
+      {METRICS.map((m, i) => {
+        const k = data?.kpis[m.key];
+        const Icon = m.icon;
         return (
-          <div key={t.key} className="min-w-0 rounded-xl border border-slate-200 bg-white p-4" title={t.hint}>
-            <p className="text-xs font-medium text-slate-500">{t.label}</p>
-            {k ? (
+          <Stat
+            key={m.key}
+            label={m.label}
+            icon={<Icon size={13} strokeWidth={2} aria-hidden />}
+            value={k ? m.format(k.value) : error ? '—' : <StatSkeleton />}
+            title={k ? `${m.label}: ${m.full(k.value)} · ${m.hint}` : m.hint}
+            emphasis={i === 0}
+          >
+            {k && (
               <>
-                <p className="mt-1 truncate text-xl font-semibold text-slate-900 sm:text-2xl" title={full}>
-                  {t.key === 'avgTicket' ? formatCurrency(k.value) : t.money ? compactRupiah(k.value) : compactNumber(k.value)}
-                </p>
-                <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-slate-400">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <Delta value={k.deltaPct} />
-                  <span>
-                    vs {data!.filters.previous.complete
-                      ? (t.key === 'avgTicket' ? formatCurrency(k.previous) : t.money ? compactRupiah(k.previous) : compactNumber(k.previous))
-                      : 'n/a'}{' '}
-                    prev. {days} {days === 1 ? 'day' : 'days'}
+                  <span className="truncate">
+                    {hasPrev ? <>vs <span className="tabular-nums text-slate-600">{m.format(k.previous)}</span> · prev. {days} {days === 1 ? 'day' : 'days'}</> : 'no comparison'}
                   </span>
                 </div>
-                <Sparkline className="mt-2" values={data!.daily.map(t.series)} label={`${t.label} per day`} />
+                <Sparkline className="mt-2" values={data!.daily.map(m.series)} height={30} label={`${m.label} per day`} />
               </>
-            ) : error ? (
-              <button type="button" onClick={retry} className="mt-2 text-xs font-medium text-slate-500 underline">
-                Could not load, try again
-              </button>
-            ) : (
-              <div className="mt-2 space-y-2">
-                <div className="h-7 w-3/4 animate-pulse rounded bg-slate-100" />
-                <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
-                <div className="h-7 animate-pulse rounded bg-slate-100" />
-              </div>
             )}
-          </div>
+            {error && !k && (
+              <button type="button" onClick={retry} className="text-xs font-medium text-slate-500 underline">Try again</button>
+            )}
+          </Stat>
         );
       })}
-    </section>
+    </StatStrip>
   );
 }
