@@ -1,16 +1,52 @@
 'use client';
 
+import { useMemo } from 'react';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
-import LineChart from '@/components/charts/LineChart';
+import EChart, { ChartOption } from '@/components/charts/EChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
+import { base, categoryAxis, INK, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import { compactRupiah, DeductionsResponse, longDate, Resource, shortDate } from '@/lib/overview';
 import { Card } from './Card';
+
+function VoidRateChart({ data }: { data: DeductionsResponse }) {
+  const option = useMemo<ChartOption>(() => ({
+    ...base,
+    grid: { left: 4, right: 12, top: 18, bottom: 4, containLabel: true },
+    tooltip: tooltip({
+      trigger: 'axis',
+      axisPointer: { type: 'line', lineStyle: { color: INK.axis } },
+      formatter: (items: { dataIndex: number }[]) => {
+        const d = data.daily[items[0]?.dataIndex ?? 0];
+        return tipTitle(longDate(d.date))
+          + tipRow(INK.accent, `${d.voidRate.toFixed(2)}%`, 'void rate', 'line')
+          + tipFooter(`${formatNumber(d.voidBills)} of ${formatNumber(d.bills)} transactions · ${compactRupiah(d.voidSubtotal)}`);
+      },
+    }),
+    xAxis: categoryAxis(data.daily.map(d => shortDate(d.date)), { boundaryGap: false }),
+    yAxis: valueAxis(v => `${v}%`, { splitNumber: 3 }),
+    series: [{
+      type: 'line',
+      data: data.daily.map(d => d.voidRate),
+      symbol: 'none',
+      lineStyle: { color: INK.accent, width: 2 },
+      areaStyle: { color: 'rgba(42,120,214,0.08)' },
+      markLine: {
+        symbol: 'none',
+        silent: true,
+        lineStyle: { color: '#64748b', type: 'dotted' },
+        label: { formatter: `Period ${data.voidRate.toFixed(2)}%`, color: INK.secondary, fontSize: 11, position: 'insideEndTop' },
+        data: [{ yAxis: data.voidRate }],
+      },
+    }],
+  }), [data]);
+  return <EChart option={option} height={140} ariaLabel="Void and cancelled transactions as a share of all transactions per day" />;
+}
 
 export default function DeductionsCard({ resource }: { resource: Resource<DeductionsResponse> }) {
   return (
     <Card
       title="Deductions"
-      subtitle="Transactions excluded from ESB sales"
+      subtitle="Void, cancelled and other-cost bills, excluded from sales"
       resource={resource}
       minHeight={380}
     >
@@ -34,16 +70,7 @@ export default function DeductionsCard({ resource }: { resource: Resource<Deduct
             {data.daily.length > 1 && (
               <div>
                 <p className="mb-1 text-xs font-medium text-slate-500">Void rate per day</p>
-                <LineChart
-                  ariaLabel="Void and cancelled transactions as a share of all transactions per day"
-                  xLabels={data.daily.map(d => shortDate(d.date))}
-                  series={[{ key: 'rate', label: 'Void rate', color: '#2a78d6', values: data.daily.map(d => d.voidRate) }]}
-                  tooltipTitle={i => longDate(data.daily[i].date)}
-                  formatValue={v => `${v.toFixed(2)}%`}
-                  formatTick={v => `${v}%`}
-                  tooltipFooter={i => `${formatNumber(data.daily[i].voidBills)} of ${formatNumber(data.daily[i].bills)} transactions`}
-                  height={130}
-                />
+                <VoidRateChart data={data} />
               </div>
             )}
 

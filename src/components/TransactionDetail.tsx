@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { MapPin, Receipt, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatDateTime, formatNumber, parseLocalDate } from '@/lib/format';
+import { channelLabel } from '@/lib/overview';
 
 interface Props {
   transaction: TransactionCombined;
@@ -118,7 +119,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
               <Field label="Bill number" value={tx.bill_num || 'No bill number'} />
               <Field label="Sales date" value={formatDate(tx.sales_date)} />
               <Field label="Payment method" value={tx.payment_method || '-'} />
-              <Field label="Visit purpose" value={tx.visit_purpose || '-'} />
+              <Field label="Visit purpose" value={tx.visit_purpose ? channelLabel(tx.visit_purpose) : '-'} />
               <Field label="Customer" value={tx.customer_name && tx.customer_name !== '-' ? tx.customer_name : 'Walk-in'} />
               <Field label="Cashier" value={tx.cashier_id || '-'} />
               <Field label="Time in" value={formatDateTime(tx.sales_date_in)} />

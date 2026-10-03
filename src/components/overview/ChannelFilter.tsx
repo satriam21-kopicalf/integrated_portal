@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Check, Layers } from 'lucide-react';
 import { SeriesKey } from '@/components/charts/common';
 import { formatNumber } from '@/lib/format';
-import { channelColor, channelOrder } from '@/lib/overview';
+import { channelColor, channelLabel, channelOrder } from '@/lib/overview';
 import { useClickOutside } from '@/lib/useClickOutside';
 
 interface ChannelFilterProps {
@@ -21,7 +21,7 @@ export default function ChannelFilter({ channels, value, onChange }: ChannelFilt
   useClickOutside(ref, close, isOpen);
 
   const options = [...channels].sort((a, b) => channelOrder(a.channel) - channelOrder(b.channel) || b.bills - a.bills);
-  const label = value.length ? `Channel: ${value.join(', ')}` : 'Channel: all channels';
+  const label = value.length ? `Channel: ${value.map(channelLabel).join(', ')}` : 'Channel: all channels';
   const toggle = (name: string) => {
     const next = value.includes(name) ? value.filter(v => v !== name) : [...value, name];
     onChange(next.length === options.length ? [] : next);
@@ -78,7 +78,7 @@ export default function ChannelFilter({ channels, value, onChange }: ChannelFilt
                       {checked && <Check size={12} strokeWidth={3} />}
                     </span>
                     <SeriesKey color={channelColor(o.channel)} />
-                    <span className="min-w-0 flex-1 truncate">{o.channel}</span>
+                    <span className="min-w-0 flex-1 truncate">{channelLabel(o.channel)}</span>
                     <span className="text-xs tabular-nums text-slate-400">{formatNumber(o.bills)}</span>
                   </button>
                 </li>

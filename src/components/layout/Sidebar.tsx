@@ -258,7 +258,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
           <div className={`absolute bottom-full mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl ${collapsed ? 'left-0 w-56' : 'inset-x-0'}`}>
             <div className="border-b border-slate-100 px-3 py-2.5">
               <p className="text-sm font-medium text-slate-900">Admin User</p>
-              <p className="truncate text-xs text-slate-500">admin@esbportal.com</p>
+              <p className="truncate text-xs text-slate-500">admin@kopicalf.co.id</p>
             </div>
             <div className="p-1.5">
               <button
@@ -283,7 +283,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
             <>
               <span className="min-w-0 flex-1 text-left">
                 <span className="block truncate text-sm font-medium text-slate-900">Admin User</span>
-                <span className="block truncate text-xs text-slate-400">admin@esbportal.com</span>
+                <span className="block truncate text-xs text-slate-400">admin@kopicalf.co.id</span>
               </span>
               <ChevronsUpDown size={15} className="text-slate-400" />
             </>

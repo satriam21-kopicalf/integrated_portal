@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Integrated Portal - ESB Dashboard",
-  description: "Dashboard for ESB Integration Data",
+  title: "Integrated Portal - Kopi Calf",
+  description: "Kopi Calf sales dashboard",
 };
 
 export default function RootLayout({

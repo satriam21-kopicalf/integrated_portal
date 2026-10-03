@@ -16,10 +16,13 @@ import DeductionsCard from '@/components/overview/DeductionsCard';
 import MonthlyCard from '@/components/overview/MonthlyCard';
 import PaymentsCard from '@/components/overview/PaymentsCard';
 import BasketCard from '@/components/overview/BasketCard';
+import LiveSalesCard from '@/components/overview/LiveSalesCard';
+import LiveTicker from '@/components/overview/LiveTicker';
+import { useLive } from '@/lib/live';
 import { formatDate, formatDateTime, toIsoDate } from '@/lib/format';
 import {
   BasketResponse, BranchesResponse, ChannelsResponse, DeductionsResponse, HourlyResponse, KpisResponse, MetaResponse,
-  MonthlyResponse, PaymentsResponse, useOverview,
+  MonthlyResponse, PaymentsResponse, channelLabel, useOverview,
 } from '@/lib/overview';
 
 interface Filters {
@@ -111,7 +114,7 @@ export default function OverviewPage() {
             <div className="min-w-0">
               <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Overview</h1>
               <p className="text-xs text-slate-500 sm:text-sm">
-                ESB sales analytics
+                Sales analytics
                 {freshness?.lastSyncedAt && <> · data synced {formatDateTime(freshness.lastSyncedAt)}</>}
               </p>
             </div>
@@ -165,16 +168,27 @@ function OverviewContent({ filters, branches, refreshKey }: { filters: Filters; 
   const payments = useOverview<PaymentsResponse>('payments', query);
   const basket = useOverview<BasketResponse>('basket', query);
 
+  // live feed: always today, follows the branch / channel filters
+  const liveQuery = useMemo(() => {
+    const p = new URLSearchParams({ limit: '30' });
+    if (filters.branch) p.set('branch', filters.branch);
+    if (filters.channels.length) p.set('channel', filters.channels.join(','));
+    return p.toString();
+  }, [filters.branch, filters.channels]);
+  const live = useLive(liveQuery);
+
   const f = kpis.data?.filters;
   const branchName = filters.branch ? branches.find(b => b.branch_code === filters.branch)?.branch_name ?? filters.branch : 'All branches';
-  const channelLabel = filters.channels.length ? filters.channels.join(', ') : 'All channels';
+  const channelText = filters.channels.length ? filters.channels.map(channelLabel).join(', ') : 'All channels';
 
   return (
-    <div className="space-y-4 p-4 sm:p-6">
+    <div className="space-y-5 p-4 sm:p-6">
+      <LiveTicker data={live.data} />
+
       <p className="text-xs text-slate-500 sm:text-sm">
         {f ? (
           <>
-            <span className="font-medium text-slate-900">{formatDate(f.from)} – {formatDate(f.to)}</span> · {branchName} · {channelLabel}
+            <span className="font-medium text-slate-900">{formatDate(f.from)} – {formatDate(f.to)}</span> · {branchName} · {channelText}
             {f.previous.complete ? <> · vs {formatDate(f.previous.from)} – {formatDate(f.previous.to)}</> : <> · no comparison before Aug 2025</>}
           </>
         ) : (
@@ -184,26 +198,48 @@ function OverviewContent({ filters, branches, refreshKey }: { filters: Filters; 
 
       <KpiTiles resource={kpis} />
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <div className="min-w-0 xl:col-span-2"><TrendCard query={query} /></div>
-        <div className="min-w-0"><ChannelMixCard resource={channels} /></div>
+      <div className="grid gap-4 xl:grid-cols-12">
+        <div className="min-w-0 xl:col-span-8"><TrendCard query={query} /></div>
+        <div className="min-w-0 xl:col-span-4"><LiveSalesCard key={liveQuery} data={live.data} error={live.error} /></div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <div className="min-w-0 xl:col-span-2"><BranchLeaderboard resource={branchBoard} /></div>
-        <div className="min-w-0"><BusyHoursCard resource={hourly} /></div>
-      </div>
+      <Section title="Channels & branches">
+        <div className="grid gap-4 xl:grid-cols-12">
+          <div className="min-w-0 xl:col-span-5"><ChannelMixCard resource={channels} /></div>
+          <div className="min-w-0 xl:col-span-7"><BranchLeaderboard resource={branchBoard} /></div>
+        </div>
+      </Section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="min-w-0"><MenusCard query={query} /></div>
-        <div className="min-w-0"><DeductionsCard resource={deductions} /></div>
-      </div>
+      <Section title="When & what sells">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <div className="min-w-0"><BusyHoursCard resource={hourly} /></div>
+          <div className="min-w-0"><MenusCard query={query} /></div>
+        </div>
+      </Section>
 
-      <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-        <div className="min-w-0"><MonthlyCard resource={monthly} /></div>
-        <div className="min-w-0"><PaymentsCard resource={payments} /></div>
-        <div className="min-w-0 lg:col-span-2 2xl:col-span-1"><BasketCard resource={basket} /></div>
-      </div>
+      <Section title="Payments, basket & deductions">
+        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+          <div className="min-w-0"><PaymentsCard resource={payments} /></div>
+          <div className="min-w-0"><BasketCard resource={basket} /></div>
+          <div className="min-w-0 lg:col-span-2 2xl:col-span-1"><DeductionsCard resource={deductions} /></div>
+        </div>
+      </Section>
+
+      <Section title="Growth">
+        <MonthlyCard resource={monthly} />
+      </Section>
     </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        {title}
+        <span className="h-px flex-1 bg-slate-200" aria-hidden />
+      </h2>
+      {children}
+    </section>
   );
 }

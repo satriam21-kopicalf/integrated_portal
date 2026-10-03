@@ -2,7 +2,7 @@
 
 import { SeriesKey } from '@/components/charts/common';
 import { formatNumber } from '@/lib/format';
-import { Basket, BasketResponse, channelColor, channelOrder, Resource } from '@/lib/overview';
+import { Basket, BasketResponse, channelColor, channelLabel, channelOrder, Resource } from '@/lib/overview';
 import { Card, Delta } from './Card';
 
 const change = (cur: number | null, prev: number | null) => (cur !== null && prev ? ((cur - prev) / prev) * 100 : null);
@@ -48,7 +48,7 @@ export default function BasketCard({ resource }: { resource: Resource<BasketResp
                 {channels.map(c => (
                   <tr key={c.channel}>
                     <td className="py-1.5">
-                      <span className="flex items-center gap-1.5 text-slate-700"><SeriesKey color={channelColor(c.channel)} />{c.channel}</span>
+                      <span className="flex items-center gap-1.5 text-slate-700"><SeriesKey color={channelColor(c.channel)} />{channelLabel(c.channel)}</span>
                     </td>
                     <td className="py-1.5 text-right tabular-nums text-slate-700">{c.qtyPerBill?.toFixed(2) ?? '-'}</td>
                     <td className="py-1.5 text-right tabular-nums text-slate-700">{c.foodSharePct === null ? '-' : `${c.foodSharePct.toFixed(1)}%`}</td>

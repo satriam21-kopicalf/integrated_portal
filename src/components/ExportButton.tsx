@@ -36,7 +36,7 @@ interface ExportJob {
 
 type ReportKind = 'detail' | 'daily';
 const REPORTS: { value: ReportKind; label: string; description: string }[] = [
-  { value: 'detail', label: 'Sales Recapitulation Detail', description: 'One row per menu item · 46 ESB columns' },
+  { value: 'detail', label: 'Sales Recapitulation Detail', description: 'One row per menu item · 46 columns' },
   { value: 'daily', label: 'Daily Sales Recapitulation', description: 'One row per date and branch' },
 ];
 

@@ -266,6 +266,24 @@ export function channelKey(name: string): string {
   return CHANNELS.some(c => c.name === name) ? name : OTHER_CHANNEL;
 }
 
+/** Display names for source channel values (filters keep using the original value). */
+const CHANNEL_LABELS: Record<string, string> = { 'Esb Order': 'Online Order' };
+
+export function channelLabel(name: string): string {
+  return CHANNEL_LABELS[name] ?? name;
+}
+
+/** Integration payment codes -> readable names. */
+const PAYMENT_LABELS: Record<string, string> = {
+  GOFOOD_INT: 'GoFood (integrated)',
+  GRABFOOD_INT: 'GrabFood (integrated)',
+  SHOPEEFOOD_INT: 'ShopeeFood (integrated)',
+};
+
+export function paymentLabel(method: string | null | undefined): string {
+  return method ? PAYMENT_LABELS[method] ?? method : '';
+}
+
 export function channelOrder(name: string): number {
   const i = CHANNELS.findIndex(c => c.name === name);
   return i === -1 ? CHANNELS.length : i;
@@ -284,20 +302,6 @@ export function compactNumber(value: number | null | undefined): string {
 
 export function compactRupiah(value: number | null | undefined): string {
   return value === null || value === undefined ? '-' : `Rp ${compact.format(value)}`; // never wraps
-}
-
-export function formatPct(value: number | null | undefined, digits = 1): string {
-  return value === null || value === undefined ? '-' : `${value.toFixed(digits)}%`;
-}
-
-/** Clean axis maximum (1, 2, 2.5, 5 x 10^n) at or above `value`. */
-export function niceMax(value: number): number {
-  if (value <= 0) return 1;
-  const exp = Math.pow(10, Math.floor(Math.log10(value)));
-  for (const step of [1, 2, 2.5, 5, 10]) {
-    if (step * exp >= value) return step * exp;
-  }
-  return 10 * exp;
 }
 
 export function shortDate(value: string, granularity: Granularity = 'day'): string {

@@ -1,13 +1,14 @@
 'use client';
 
-import ColumnChart from '@/components/charts/ColumnChart';
+import { useMemo, useState } from 'react';
+import EChart, { ChartOption } from '@/components/charts/EChart';
 import { Legend, SeriesKey } from '@/components/charts/common';
 import { formatCurrency, formatNumber } from '@/lib/format';
+import { base, categoryAxis, INK, rupiahAxis, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import {
-  bucketLabel, channelColor, channelKey, channelOrder, ChannelRow, ChannelsResponse, compactRupiah, OTHER_CHANNEL,
-  Resource, shortDate,
+  bucketLabel, channelColor, channelKey, channelOrder, ChannelRow, ChannelsResponse, compactRupiah, Resource, shortDate,
 } from '@/lib/overview';
-import { Card, Delta } from './Card';
+import { Card, Delta, Segmented } from './Card';
 
 /** Fold channels outside the fixed palette into "Other" (never a generated colour). */
 function foldChannels(rows: ChannelRow[]): ChannelRow[] {
@@ -32,69 +33,123 @@ function foldChannels(rows: ChannelRow[]): ChannelRow[] {
 }
 
 export default function ChannelMixCard({ resource }: { resource: Resource<ChannelsResponse> }) {
+  const [view, setView] = useState<'share' | 'daily'>('share');
   return (
-    <Card title="Channel mix" subtitle="Share of sales per channel" resource={resource} minHeight={300}>
-      {data => {
-        const channels = foldChannels(data.channels);
-        const names = channels.map(c => c.channel);
-        const g = data.granularity;
-        const stacks = names.map(name => ({
-          key: name,
-          label: name,
-          color: channelColor(name),
-          values: data.series.map(b =>
-            Object.entries(b.values)
-              .filter(([ch]) => channelKey(ch) === name)
-              .reduce((sum, [, v]) => sum + v.subtotal, 0),
-          ),
-        }));
-        const totals = data.series.map((_, i) => stacks.reduce((s, st) => s + st.values[i], 0));
-        return (
-          <div className="space-y-3">
-            <Legend items={names.map(n => ({ key: n, label: n, color: channelColor(n) }))} />
-            <ColumnChart
-              ariaLabel={`Channel share of sales per ${g}`}
-              xLabels={data.series.map(b => shortDate(b.date, g))}
-              stacks={stacks}
-              percent
-              tooltipTitle={i => `${bucketLabel(data.series[i].date, g)} · ${compactRupiah(totals[i])}`}
-              formatValue={(v, i) => `${totals[i] ? ((v / totals[i]) * 100).toFixed(1) : '0.0'}% · ${compactRupiah(v)}`}
-              formatTick={v => `${v}%`}
-              height={180}
-            />
-            <div className="custom-scrollbar -mx-1 overflow-x-auto">
-              <table className="w-full min-w-[18rem] whitespace-nowrap text-xs">
-                <caption className="sr-only">Sales per channel</caption>
-                <thead className="text-slate-500">
-                  <tr>
-                    <th scope="col" className="px-1 py-1.5 text-left font-medium">Channel</th>
-                    <th scope="col" className="px-1 py-1.5 text-right font-medium">Sales</th>
-                    <th scope="col" className="px-1 py-1.5 text-right font-medium">Share</th>
-                    <th scope="col" className="px-1 py-1.5 text-right font-medium">Disc.</th>
-                    <th scope="col" className="px-1 py-1.5 text-right font-medium">Change</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {channels.map(c => (
-                    <tr key={c.channel} title={`${c.channel}: ${formatCurrency(c.subtotal)} · ${formatNumber(c.bills)} bills · avg ticket ${formatCurrency(c.avgTicket)}`}>
-                      <td className="px-1 py-1.5">
-                        <span className="flex items-center gap-1.5 text-slate-700">
-                          <SeriesKey color={channelColor(c.channel)} />
-                          {c.channel === OTHER_CHANNEL ? 'Other' : c.channel}
-                        </span>
-                      </td>
-                      <td className="px-1 py-1.5 text-right tabular-nums text-slate-900">{compactRupiah(c.subtotal)}</td>
-                      <td className="px-1 py-1.5 text-right tabular-nums text-slate-700">{c.share === null ? '-' : `${c.share.toFixed(1)}%`}</td>
-                      <td className="px-1 py-1.5 text-right tabular-nums text-slate-700">{c.discountPct === null ? '-' : `${c.discountPct.toFixed(1)}%`}</td>
-                      <td className="px-1 py-1.5 text-right"><Delta value={c.deltaPct} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      }}
+    <Card
+      title="Channel mix"
+      subtitle="Sales and share per channel"
+      resource={resource}
+      minHeight={360}
+      actions={<Segmented label="View" value={view} options={[{ value: 'share', label: 'Share' }, { value: 'daily', label: 'Over time' }]} onChange={setView} />}
+    >
+      {data => <ChannelBody data={data} view={view} />}
     </Card>
+  );
+}
+
+function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | 'daily' }) {
+  const channels = useMemo(() => foldChannels(data.channels), [data]);
+  const g = data.granularity;
+
+  const shareOption = useMemo<ChartOption>(() => {
+    const rows = [...channels].sort((a, b) => a.subtotal - b.subtotal); // largest on top
+    return {
+      ...base,
+      grid: { left: 4, right: 112, top: 4, bottom: 4, containLabel: true },
+      tooltip: tooltip({
+        trigger: 'item',
+        formatter: (p: { dataIndex: number }) => {
+          const c = rows[p.dataIndex];
+          return tipTitle(c.channel)
+            + tipRow(channelColor(c.channel), formatCurrency(c.subtotal), `${c.share?.toFixed(1)}% of sales`)
+            + tipRow(channelColor(c.channel), formatNumber(c.bills), 'bills')
+            + tipFooter(`Avg ticket ${formatCurrency(c.avgTicket)} · discount ${c.discountPct?.toFixed(1) ?? '-'}%`);
+        },
+      }),
+      xAxis: { type: 'value', show: false, max: (v: { max: number }) => v.max * 1.02 },
+      yAxis: categoryAxis(rows.map(c => c.channel), { axisLine: { show: false }, axisLabel: { color: INK.primary, fontSize: 12 } }),
+      series: [{
+        type: 'bar',
+        data: rows.map(c => ({ value: c.subtotal, itemStyle: { color: channelColor(c.channel), borderRadius: [0, 4, 4, 0] } })),
+        barWidth: 18,
+        label: {
+          show: true,
+          position: 'right',
+          color: INK.primary,
+          fontSize: 12,
+          formatter: (p: { dataIndex: number }) => `{b|${compactRupiah(rows[p.dataIndex].subtotal)}}  {m|${rows[p.dataIndex].share?.toFixed(1)}%}`,
+          rich: { b: { fontWeight: 600, color: INK.primary }, m: { color: INK.secondary } },
+        },
+      }],
+    };
+  }, [channels]);
+
+  const dailyOption = useMemo<ChartOption>(() => {
+    const names = channels.map(c => c.channel);
+    const values = (name: string) => data.series.map(b =>
+      Object.entries(b.values).filter(([ch]) => channelKey(ch) === name).reduce((sum, [, v]) => sum + v.subtotal, 0));
+    const stacks = names.map(n => ({ name: n, values: values(n) }));
+    const totals = data.series.map((_, i) => stacks.reduce((s, st) => s + st.values[i], 0));
+    return {
+      ...base,
+      grid: { left: 4, right: 8, top: 10, bottom: 4, containLabel: true },
+      tooltip: tooltip({
+        trigger: 'axis',
+        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(148,163,184,0.12)' } },
+        formatter: (items: { dataIndex: number }[]) => {
+          const i = items[0]?.dataIndex ?? 0;
+          return tipTitle(`${bucketLabel(data.series[i].date, g)} · ${compactRupiah(totals[i])}`)
+            + [...stacks].reverse().map(st => tipRow(channelColor(st.name), compactRupiah(st.values[i]),
+              `${st.name} · ${totals[i] ? ((st.values[i] / totals[i]) * 100).toFixed(1) : '0.0'}%`)).join('');
+        },
+      }),
+      xAxis: categoryAxis(data.series.map(b => shortDate(b.date, g))),
+      yAxis: valueAxis(rupiahAxis),
+      series: stacks.map((st, k) => ({
+        name: st.name,
+        type: 'bar',
+        stack: 'sales',
+        data: st.values,
+        barMaxWidth: 22,
+        itemStyle: { color: channelColor(st.name), borderColor: '#fff', borderWidth: 1, borderRadius: k === stacks.length - 1 ? [4, 4, 0, 0] : 0 },
+        emphasis: { focus: 'series' },
+      })),
+    };
+  }, [channels, data, g]);
+
+  return (
+    <div className="space-y-3">
+      {view === 'share' ? (
+        <EChart option={shareOption} height={Math.max(150, channels.length * 36)} ariaLabel="Sales per channel with share" />
+      ) : (
+        <>
+          <Legend items={channels.map(c => ({ key: c.channel, label: c.channel, color: channelColor(c.channel) }))} />
+          <EChart option={dailyOption} height={220} ariaLabel={`Sales per channel per ${g}`} />
+        </>
+      )}
+      <table className="w-full whitespace-nowrap text-xs">
+        <caption className="sr-only">Sales per channel</caption>
+        <thead className="border-b border-slate-100 text-slate-500">
+          <tr>
+            <th scope="col" className="py-1.5 text-left font-medium">Channel</th>
+            <th scope="col" className="py-1.5 text-right font-medium">Bills</th>
+            <th scope="col" className="py-1.5 text-right font-medium">Avg ticket</th>
+            <th scope="col" className="py-1.5 text-right font-medium">Disc.</th>
+            <th scope="col" className="py-1.5 text-right font-medium">Change</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {channels.map(c => (
+            <tr key={c.channel}>
+              <td className="py-1.5"><span className="flex items-center gap-1.5 text-slate-700"><SeriesKey color={channelColor(c.channel)} />{c.channel}</span></td>
+              <td className="py-1.5 text-right tabular-nums text-slate-700">{formatNumber(c.bills)}</td>
+              <td className="py-1.5 text-right tabular-nums text-slate-700">{c.avgTicket === null ? '-' : formatNumber(Math.round(c.avgTicket))}</td>
+              <td className="py-1.5 text-right tabular-nums text-slate-700">{c.discountPct === null ? '-' : `${c.discountPct.toFixed(1)}%`}</td>
+              <td className="py-1.5 text-right"><Delta value={c.deltaPct} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

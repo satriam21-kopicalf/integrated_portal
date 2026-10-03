@@ -8,7 +8,7 @@ import { Delta } from './Card';
 type Key = keyof KpisResponse['kpis'];
 
 const TILES: { key: Key; label: string; hint: string; money: boolean; series: (d: KpisResponse['daily'][number]) => number }[] = [
-  { key: 'sales', label: 'Sales', hint: 'Subtotal of ESB sales (Finished, with bill number)', money: true, series: d => d.subtotal },
+  { key: 'sales', label: 'Sales', hint: 'Subtotal of finished sales with a bill number', money: true, series: d => d.subtotal },
   { key: 'nettSales', label: 'Nett sales', hint: 'After item and bill discounts', money: true, series: d => d.nettSales },
   { key: 'bills', label: 'Bills', hint: 'Number of sales transactions', money: false, series: d => d.bills },
   { key: 'avgTicket', label: 'Avg ticket', hint: 'Sales ÷ bills', money: true, series: d => d.avgTicket ?? 0 },
@@ -32,7 +32,12 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
                 </p>
                 <div className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-slate-400">
                   <Delta value={k.deltaPct} />
-                  <span>vs previous {days} {days === 1 ? 'day' : 'days'}</span>
+                  <span>
+                    vs {data!.filters.previous.complete
+                      ? (t.key === 'avgTicket' ? formatCurrency(k.previous) : t.money ? compactRupiah(k.previous) : compactNumber(k.previous))
+                      : 'n/a'}{' '}
+                    prev. {days} {days === 1 ? 'day' : 'days'}
+                  </span>
                 </div>
                 <Sparkline className="mt-2" values={data!.daily.map(t.series)} label={`${t.label} per day`} />
               </>

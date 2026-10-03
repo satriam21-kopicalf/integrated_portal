@@ -304,10 +304,10 @@ export default function SalesPage() {
                 <Info size={14} className="mt-0.5 flex-shrink-0" />
                 <span>
                   {txType === 'all'
-                    ? 'Showing every transaction, including void, cancelled and other-cost bills that the ESB sales report excludes.'
+                    ? 'Showing every transaction, including void, cancelled and other-cost bills that are excluded from sales.'
                     : txType === 'void'
-                    ? 'Void and cancelled bills are excluded from ESB sales and shown here as deductions.'
-                    : 'Other-cost bills (e.g. CUPPING, WASTE) have no bill number; ESB excludes them from sales.'}
+                    ? 'Void and cancelled bills are excluded from sales and shown here as deductions.'
+                    : 'Other-cost bills (e.g. CUPPING, WASTE) have no bill number and are excluded from sales.'}
                 </span>
               </div>
             )}
@@ -397,7 +397,6 @@ function SummaryCards({ summary, loading }: { summary: SalesSummary | null; load
       <KpiCard
         className="col-span-2 sm:col-span-1"
         title="Sales Subtotal"
-        badge="ESB"
         value={t?.sales.subtotal}
         footer={t ? `${formatNumber(t.sales.transactions)} transactions · avg ${formatCurrency(avg)}` : undefined}
         loading={pending}
@@ -426,7 +425,7 @@ function SummaryCards({ summary, loading }: { summary: SalesSummary | null; load
         )}
         {t && (
           <p className="mt-1 text-[11px] text-slate-500 sm:text-xs">
-            {formatNumber(t.void.transactions + t.other_cost.transactions + t.open.transactions)} transactions excluded from ESB sales
+            {formatNumber(t.void.transactions + t.other_cost.transactions + t.open.transactions)} transactions excluded from sales
           </p>
         )}
         <dl className="mt-2 space-y-1 border-t border-slate-100 pt-2 text-xs">
