@@ -182,7 +182,7 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
         <span className={`relative inline-flex h-2 w-2 rounded-full ${tone.dot}`} />
       </span>
       <span className={`font-semibold ${tone.text}`}>{tone.label}</span>
-      {synced && <span className="hidden text-slate-500 sm:inline">· synced {synced}</span>}
+      {synced && <span className="hidden text-slate-500 sm:inline">· last data {synced}</span>}
     </span>
   );
 }

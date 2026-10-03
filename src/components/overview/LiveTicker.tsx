@@ -45,7 +45,7 @@ export default function LiveTicker({ data }: { data: LiveResponse | null }) {
         <div className="leading-tight">
           <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">{live ? 'Live' : 'Reconnecting'} · Latest sales</p>
           <p className="hidden text-[11px] text-slate-300 sm:block">
-            {syncedAt ? <>Sync {syncedAt}</> : 'Waiting for data'}
+            {syncedAt ? <>Last data {syncedAt}</> : 'Waiting for data'}
             {batch.bills > 0 && <> · <span className="text-white">+{formatNumber(batch.bills)}</span> sales · {compactRupiah(batch.subtotal)}</>}
           </p>
         </div>

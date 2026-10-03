@@ -149,7 +149,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         <p className="flex items-center gap-1.5 text-xs text-slate-500">
           <Clock3 size={13} aria-hidden />
           {data && (data.lastSyncedAt || salesSyncedAt)
-            ? <>Last sync {minutesAgo(data.lastSyncedAt ?? salesSyncedAt, now)}</>
+            ? <>Last new data {minutesAgo(data.lastSyncedAt ?? salesSyncedAt, now)}</>
             : error ? 'Could not load live sales' : 'Connecting…'}
         </p>
       </header>
