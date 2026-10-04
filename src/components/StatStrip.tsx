@@ -4,13 +4,13 @@ import { ReactNode } from 'react';
 
 /**
  * Headline figures without cards: one band on the page background, metrics
- * separated by hairlines (1px gaps over a slate backdrop). 2 columns on
- * phones, `columns` from lg up.
+ * separated by hairlines (1px gaps over a slate backdrop). Values are shown in
+ * full (no B/M), so: 1 column on phones, 2 on tablets, `columns` from xl up.
  */
 export function StatStrip({ children, columns = 4, label }: { children: ReactNode; columns?: 3 | 4 | 5; label: string }) {
-  const lg = { 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4', 5: 'lg:grid-cols-5' }[columns];
+  const xl = { 3: 'xl:grid-cols-3', 4: 'xl:grid-cols-4', 5: 'xl:grid-cols-5' }[columns];
   return (
-    <section aria-label={label} className={`grid grid-cols-2 gap-px border-y border-slate-200 bg-slate-200 ${lg}`}>
+    <section aria-label={label} className={`grid grid-cols-1 gap-px border-y border-slate-200 bg-slate-200 sm:grid-cols-2 ${xl}`}>
       {children}
     </section>
   );
@@ -35,7 +35,7 @@ export function Stat({
         {icon}
         {label}
       </p>
-      <div className="mt-1.5 truncate text-2xl font-semibold tracking-tight text-slate-900 sm:text-[1.75rem]" title={title}>
+      <div className="mt-1.5 truncate text-2xl font-semibold tracking-tight text-slate-900 tabular-nums" title={title}>
         {value}
       </div>
       {children && <div className="mt-1.5 space-y-1 text-xs text-slate-500">{children}</div>}

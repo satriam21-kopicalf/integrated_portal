@@ -110,7 +110,7 @@ export default function OverviewPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Overview</h1>
-              <p className="text-xs text-slate-500 sm:text-sm">Sales analytics · updates automatically</p>
+              <p className="text-xs text-slate-500 sm:text-sm">Sales Analytics</p>
             </div>
             {/* stays right-aligned when wrapped: the popovers open towards the left */}
             <div className="ml-auto flex items-center gap-2">

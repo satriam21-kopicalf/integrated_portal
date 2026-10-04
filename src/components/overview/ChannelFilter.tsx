@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Check, Layers } from 'lucide-react';
 import { SeriesKey } from '@/components/charts/common';
+import ChannelLogo from '@/components/ChannelLogo';
 import { formatNumber } from '@/lib/format';
 import { channelColor, channelLabel, channelOrder } from '@/lib/overview';
 import { useClickOutside } from '@/lib/useClickOutside';
@@ -78,7 +79,7 @@ export default function ChannelFilter({ channels, value, onChange }: ChannelFilt
                       {checked && <Check size={12} strokeWidth={3} />}
                     </span>
                     <SeriesKey color={channelColor(o.channel)} />
-                    <span className="min-w-0 flex-1 truncate">{channelLabel(o.channel)}</span>
+                    <span className="flex min-w-0 flex-1"><ChannelLogo channel={o.channel} height={15} /></span>
                     <span className="text-xs tabular-nums text-slate-400">{formatNumber(o.bills)}</span>
                   </button>
                 </li>

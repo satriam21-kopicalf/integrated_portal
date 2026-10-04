@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
-import { Legend, SeriesKey } from '@/components/charts/common';
+import { SeriesKey } from '@/components/charts/common';
+import ChannelLogo, { channelRichLabel } from '@/components/ChannelLogo';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, INK, rupiahAxis, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import {
@@ -67,7 +68,15 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
         },
       }),
       xAxis: { type: 'value', show: false, max: (v: { max: number }) => v.max * 1.02 },
-      yAxis: categoryAxis(rows.map(c => c.channel), { axisLine: { show: false }, axisLabel: { color: INK.primary, fontSize: 12 } }),
+      yAxis: categoryAxis(rows.map(c => c.channel), {
+        axisLine: { show: false },
+        axisLabel: {
+          color: INK.primary,
+          fontSize: 12,
+          formatter: (name: string) => channelRichLabel(name).text,
+          rich: Object.assign({}, ...rows.map(c => channelRichLabel(c.channel).rich)),
+        },
+      }),
       series: [{
         type: 'bar',
         data: rows.map(c => ({ value: c.subtotal, itemStyle: { color: channelColor(c.channel), borderRadius: [0, 4, 4, 0] } })),
@@ -123,7 +132,14 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
         <EChart option={shareOption} height={Math.max(150, channels.length * 36)} ariaLabel="Sales per channel with share" />
       ) : (
         <>
-          <Legend items={channels.map(c => ({ key: c.channel, label: c.channel, color: channelColor(c.channel) }))} />
+          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+            {channels.map(c => (
+              <li key={c.channel} className="flex items-center gap-1.5">
+                <SeriesKey color={channelColor(c.channel)} />
+                <ChannelLogo channel={c.channel} height={14} labelClassName="text-slate-600" />
+              </li>
+            ))}
+          </ul>
           <EChart option={dailyOption} height={220} ariaLabel={`Sales per channel per ${g}`} />
         </>
       )}
@@ -141,7 +157,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
         <tbody className="divide-y divide-slate-100">
           {channels.map(c => (
             <tr key={c.channel}>
-              <td className="py-1.5"><span className="flex items-center gap-1.5 text-slate-700"><SeriesKey color={channelColor(c.channel)} />{c.channel}</span></td>
+              <td className="py-1.5"><span className="flex items-center gap-2"><SeriesKey color={channelColor(c.channel)} /><ChannelLogo channel={c.channel} height={14} /></span></td>
               <td className="py-1.5 text-right tabular-nums text-slate-700">{formatNumber(c.bills)}</td>
               <td className="py-1.5 text-right tabular-nums text-slate-700">{c.avgTicket === null ? '-' : formatNumber(Math.round(c.avgTicket))}</td>
               <td className="py-1.5 text-right tabular-nums text-slate-700">{c.discountPct === null ? '-' : `${c.discountPct.toFixed(1)}%`}</td>

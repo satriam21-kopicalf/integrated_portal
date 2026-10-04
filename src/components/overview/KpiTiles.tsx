@@ -4,7 +4,7 @@ import { Receipt, ShoppingBag, Tag, Wallet } from 'lucide-react';
 import Sparkline from '@/components/charts/Sparkline';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { formatCurrency, formatNumber } from '@/lib/format';
-import { compactNumber, compactRupiah, KpisResponse, Resource } from '@/lib/overview';
+import { KpisResponse, Resource } from '@/lib/overview';
 import { Delta } from './Card';
 
 type Key = keyof KpisResponse['kpis'];
@@ -14,11 +14,11 @@ const METRICS: {
   format: (v: number) => string; full: (v: number) => string; series: (d: KpisResponse['daily'][number]) => number;
 }[] = [
   { key: 'sales', label: 'Sales', hint: 'Subtotal of finished sales with a bill number', icon: Wallet,
-    format: compactRupiah, full: formatCurrency, series: d => d.subtotal },
+    format: formatCurrency, full: formatCurrency, series: d => d.subtotal },
   { key: 'nettSales', label: 'Nett sales', hint: 'After item and bill discounts', icon: Tag,
-    format: compactRupiah, full: formatCurrency, series: d => d.nettSales },
+    format: formatCurrency, full: formatCurrency, series: d => d.nettSales },
   { key: 'bills', label: 'Bills', hint: 'Number of sales transactions', icon: Receipt,
-    format: compactNumber, full: formatNumber, series: d => d.bills },
+    format: formatNumber, full: formatNumber, series: d => d.bills },
   { key: 'avgTicket', label: 'Avg ticket', hint: 'Sales ÷ bills', icon: ShoppingBag,
     format: formatCurrency, full: formatCurrency, series: d => d.avgTicket ?? 0 },
 ];

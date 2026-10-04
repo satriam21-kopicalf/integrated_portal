@@ -1,13 +1,14 @@
 'use client';
 
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { Clock3, Receipt, ShoppingBag, Tag } from 'lucide-react';
+import { CalendarClock, Clock3, Receipt, ShoppingBag, Tag } from 'lucide-react';
+import ChannelLogo from '@/components/ChannelLogo';
 import EChart, { ChartOption } from '@/components/charts/EChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, INK, tipRow, tipTitle, tooltip } from '@/lib/chartTheme';
 import { clock, LiveResponse, LiveSale, minutesAgo, useCountUp } from '@/lib/live';
-import { channelColor, channelKey, channelLabel, channelOrder, compactRupiah, paymentLabel } from '@/lib/overview';
-import { RealtimeStatus, useRealtime } from '@/lib/realtime';
+import { channelColor, channelKey, channelOrder, paymentLabel } from '@/lib/overview';
+import { useRealtime } from '@/lib/realtime';
 import { Delta } from './Card';
 
 const MAX_ROWS = 25;
@@ -21,22 +22,6 @@ interface Row {
   arrived: number;
 }
 
-/** Pulsing status badge driven by the realtime connection. */
-export function LiveBadge({ status = 'live' }: { status?: RealtimeStatus }) {
-  const live = status === 'live';
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-      live ? 'bg-emerald-500/15 text-emerald-600' : 'bg-slate-500/15 text-slate-500'}`}
-    >
-      <span className="relative flex h-1.5 w-1.5">
-        {live && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />}
-        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-      </span>
-      {live ? 'Live' : status === 'connecting' ? 'Connecting' : 'Reconnecting'}
-    </span>
-  );
-}
-
 export function itemsLine(sale: LiveSale): string {
   const names = sale.items.map(i => (i.qty > 1 ? `${i.name} ×${i.qty}` : i.name)).join(', ');
   return sale.moreItems ? `${names} +${sale.moreItems} more` : names;
@@ -45,7 +30,7 @@ export function itemsLine(sale: LiveSale): string {
 const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
 export default function LiveSalesCard({ data, error }: { data: LiveResponse | null; error: string | null }) {
-  const { status, salesSyncedAt } = useRealtime();
+  const { salesSyncedAt } = useRealtime();
   const [rows, setRows] = useState<Row[]>([]);
   const seen = useRef<Set<string>>(new Set());
   const [now, setNow] = useState(() => Date.now());
@@ -136,11 +121,11 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
     : '';
 
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white" aria-label="Live sales today">
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white" aria-label="Sales today">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            Live sales <LiveBadge status={status} />
+            <CalendarClock size={15} className="text-blue-600" aria-hidden /> Today
           </h2>
           <p className="mt-0.5 text-xs text-slate-500">
             {dateLabel || 'Today'} · follows the branch and channel filters
@@ -166,7 +151,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                 </p>
                 <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
                   <Delta value={t.deltaPct} />
-                  vs yesterday at this time ({compactRupiah(t.yesterdaySameTime.subtotal)})
+                  vs yesterday at this time ({formatCurrency(t.yesterdaySameTime.subtotal)})
                 </p>
               </>
             ) : (
@@ -187,10 +172,10 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
             </div>
           )}
 
-          <dl className="grid grid-cols-3 divide-x divide-slate-100 rounded-lg border border-slate-100">
-            <MiniStat icon={<Receipt size={12} />} label="Bills" value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct} />
-            <MiniStat icon={<ShoppingBag size={12} />} label="Avg ticket" value={t ? formatNumber(Math.round(t.avgTicket)) : '—'} />
-            <MiniStat icon={<Tag size={12} />} label="Nett" value={t ? compactRupiah(t.nettSales) : '—'} delta={t?.nettDeltaPct} />
+          <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
+            <MiniStat icon={<Receipt size={13} />} label="Bills" value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct} />
+            <MiniStat icon={<ShoppingBag size={13} />} label="Avg ticket" value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} />
+            <MiniStat icon={<Tag size={13} />} label="Nett sales" value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct} />
           </dl>
         </div>
 
@@ -219,9 +204,9 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                 <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                   {channels.map(c => (
                     <li key={c.channel} className="flex items-center justify-between gap-2">
-                      <span className="flex min-w-0 items-center gap-1.5 text-slate-600">
+                      <span className="flex min-w-0 items-center gap-1.5">
                         <span className="h-2 w-2 flex-shrink-0 rounded-sm" style={{ background: channelColor(c.channel) }} />
-                        <span className="truncate">{channelLabel(c.channel)}</span>
+                        <ChannelLogo channel={c.channel} height={13} labelClassName="text-slate-600" />
                       </span>
                       <span className="tabular-nums text-slate-900">{((c.subtotal / t.subtotal) * 100).toFixed(0)}%</span>
                     </li>
@@ -240,7 +225,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Latest sales</p>
             {batch && batch.bills > 0 && (
               <span className="text-[11px] text-slate-500" title="Sales that arrived with the most recent sync">
-                +{formatNumber(batch.bills)} at last sync · {compactRupiah(batch.subtotal)}
+                +{formatNumber(batch.bills)} at last sync · {formatCurrency(batch.subtotal)}
               </span>
             )}
           </div>
@@ -260,10 +245,9 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                       <span className="truncate">{sale.branchName.replace(/^Kopi Calf /, '')}</span>
                     </p>
                     <p className="truncate text-[11px] text-slate-500" title={itemsLine(sale)}>{itemsLine(sale)}</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-400">
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: channelColor(sale.channel) }} />
-                      {channelLabel(sale.channel)}
-                      {sale.paymentMethod && <> · {paymentLabel(sale.paymentMethod)}</>}
+                    <p className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-400">
+                      <ChannelLogo channel={sale.channel} height={12} labelClassName="text-slate-500" />
+                      {sale.paymentMethod && <span className="truncate">· {paymentLabel(sale.paymentMethod)}</span>}
                     </p>
                   </div>
                   <span className="pt-0.5 text-[13px] font-semibold tabular-nums text-slate-900">{formatNumber(sale.subtotal)}</span>
@@ -283,10 +267,10 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
 
 function MiniStat({ icon, label, value, delta }: { icon: ReactNode; label: string; value: string; delta?: number | null }) {
   return (
-    <div className="min-w-0 px-3 py-2">
-      <dt className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{icon}{label}</dt>
-      <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-slate-900">{value}</dd>
-      {delta !== undefined && <dd><Delta value={delta ?? null} /></dd>}
+    <div className="flex items-center gap-3 px-3 py-2">
+      <dt className="flex flex-1 items-center gap-1.5 text-xs text-slate-500">{icon}{label}</dt>
+      <dd className="text-sm font-semibold tabular-nums text-slate-900">{value}</dd>
+      {delta !== undefined && <dd className="w-16 text-right"><Delta value={delta ?? null} /></dd>}
     </div>
   );
 }

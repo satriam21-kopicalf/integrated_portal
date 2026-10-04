@@ -8,7 +8,7 @@ import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import BranchFilter, { Branch } from '@/components/BranchFilter';
 import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Search, Tag, Wallet, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
-import { formatCompactCurrency, formatCurrency, formatDate, formatNumber, formatTime, toIsoDate } from '@/lib/format';
+import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate } from '@/lib/format';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { RealtimeIndicator, useRealtime } from '@/lib/realtime';
 
@@ -462,16 +462,11 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
         { key: 'open', label: 'Open bills', value: t.open.subtotal, color: '#a8a29e' },
       ].filter(p => p.value > 0)
     : [];
-  const money = (v: number | undefined) => (
-    <>
-      <span className="sm:hidden">{formatCompactCurrency(v)}</span>
-      <span className="hidden sm:inline">{formatCurrency(v)}</span>
-    </>
-  );
+  const money = (v: number | undefined) => formatCurrency(v);
 
   return (
     <StatStrip label="Sales summary">
-      <Stat label="Sales subtotal" icon={<Wallet size={13} aria-hidden />} emphasis className="col-span-2 lg:col-span-1"
+      <Stat label="Sales subtotal" icon={<Wallet size={13} aria-hidden />} emphasis
         value={pending ? <StatSkeleton /> : money(t?.sales.subtotal)} title={formatCurrency(t?.sales.subtotal)}>
         {t && <p>{formatNumber(t.sales.transactions)} transactions · avg {formatCurrency(avg)}</p>}
       </Stat>
@@ -502,7 +497,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
           </>
         )}
       </Stat>
-      <Stat label="Deductions" icon={<CircleMinus size={13} aria-hidden />} className="col-span-2 lg:col-span-1"
+      <Stat label="Deductions" icon={<CircleMinus size={13} aria-hidden />}
         value={pending ? <StatSkeleton /> : <span className="text-rose-600">{deductions !== undefined ? <>−{money(deductions)}</> : '-'}</span>}
         title={deductions !== undefined ? `−${formatCurrency(deductions)}` : undefined}>
         {t && (
