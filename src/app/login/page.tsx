@@ -83,7 +83,7 @@ export default function LoginPage() {
         <span className="absolute inset-x-0 bottom-0 h-1 bg-red-500" aria-hidden />
         <div className="relative flex items-center gap-3">
           <span className="relative h-12 w-12 overflow-hidden rounded-xl bg-white">
-            <Image src={assetUrl('assets/calf-logo.png')} alt="Kopi Calf" fill sizes="48px" className="object-contain p-1" />
+            <Image src={assetUrl('assets/calf-logo.png')} alt="Kopi Calf" fill sizes="48px" className="object-contain p-1" priority />
           </span>
           <div className="leading-tight">
             <p className="text-lg font-bold tracking-wide">PORTAL</p>
@@ -105,7 +105,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <span className="relative h-11 w-11 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
-              <Image src={assetUrl('assets/calf-logo.png')} alt="Kopi Calf" fill sizes="44px" className="object-contain p-1" />
+              <Image src={assetUrl('assets/calf-logo.png')} alt="Kopi Calf" fill sizes="44px" className="object-contain p-1" priority />
             </span>
             <div className="leading-tight">
               <p className="font-bold tracking-wide text-slate-900">PORTAL</p>

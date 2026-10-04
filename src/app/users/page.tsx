@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
-import { AuthUser, initials, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
+import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
+import { AuthUser, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
 import { formatDateTime, formatNumber } from '@/lib/format';
 
 const PAGE_SIZE = 20;
@@ -43,7 +44,7 @@ function generatePassword(): string {
 
 export default function UsersPage() {
   const router = useRouter();
-  const { user: me } = useAuth();
+  const { user: me, setUser: setMe } = useAuth();
   const [rows, setRows] = useState<AuthUser[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -100,6 +101,7 @@ export default function UsersPage() {
 
   const saved = (u: AuthUser, created: boolean) => {
     setEditing(null);
+    if (u.id === me?.id) setMe(u);
     setToast({ tone: 'ok', text: created ? `User ${u.username} created` : `User ${u.username} updated` });
     if (viewing?.id === u.id) setViewing(u);
     load();
@@ -201,7 +203,7 @@ export default function UsersPage() {
                 <ul className="divide-y divide-slate-100 md:hidden">
                   {rows.map(u => (
                     <li key={u.id} className="flex items-center gap-3 px-4 py-3">
-                      <Avatar name={u.fullName} />
+                      <Avatar user={u} />
                       <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setViewing(u)}>
                         <p className="truncate text-sm font-medium text-slate-900">{u.fullName}</p>
                         <p className="truncate text-xs text-slate-500">{u.username} · {u.email}</p>
@@ -247,12 +249,8 @@ export default function UsersPage() {
 
 /* ------------------------------------------------------------------ pieces */
 
-function Avatar({ name }: { name: string }) {
-  return (
-    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-blue-900 text-xs font-semibold text-white">
-      {initials(name)}
-    </span>
-  );
+function Avatar({ user }: { user: AuthUser }) {
+  return <UserAvatar name={user.fullName} src={user.avatarUrl} size="md" />;
 }
 
 function RoleBadge({ role }: { role: Role }) {
@@ -276,7 +274,7 @@ function UserRow({ user, isMe, onView, onEdit, onDelete }: { user: AuthUser; isM
     <tr className="hover:bg-slate-50/60">
       <td className="px-4 py-2.5">
         <button type="button" onClick={onView} className="flex items-center gap-3 text-left">
-          <Avatar name={user.fullName} />
+          <Avatar user={user} />
           <span className="min-w-0">
             <span className="block truncate font-medium text-slate-900">{user.fullName}{isMe && <span className="ml-1.5 text-xs font-normal text-slate-400">(you)</span>}</span>
             <span className="block truncate text-xs text-slate-500">{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
@@ -325,12 +323,14 @@ interface FormState {
 
 function UserFormDialog({ user, isMe, onClose, onSaved }: { user: AuthUser | null; isMe: boolean; onClose: () => void; onSaved: (u: AuthUser, created: boolean) => void }) {
   const creating = !user;
+  const { user: me, setUser: setMe } = useAuth();
   const [form, setForm] = useState<FormState>(() => ({
     fullName: user?.fullName ?? '', username: user?.username ?? '', email: user?.email ?? '', role: user?.role ?? 'user',
     isActive: user?.isActive ?? true, phoneNumber: user?.phoneNumber ?? '', jobTitle: user?.jobTitle ?? '',
     department: user?.department ?? '', notes: user?.notes ?? '', password: '', mustChangePassword: creating ? true : user!.mustChangePassword,
   }));
   const [showPassword, setShowPassword] = useState(creating);
+  const [photo, setPhoto] = useState<string | null>(null); // picked before the user exists
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<{ text: string; field?: string | null } | null>(null);
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm(f => ({ ...f, [key]: value }));
@@ -350,9 +350,12 @@ function UserFormDialog({ user, isMe, onClose, onSaved }: { user: AuthUser | nul
     setSaving(true);
     setError(null);
     try {
-      const res = await api<{ user: AuthUser }>(creating ? '/api/users' : `/api/users/${user!.id}`, {
+      let res = await api<{ user: AuthUser }>(creating ? '/api/users' : `/api/users/${user!.id}`, {
         method: creating ? 'POST' : 'PATCH', body: JSON.stringify(payload),
       });
+      if (creating && photo) {
+        res = await api<{ user: AuthUser }>(`/api/users/${res.user.id}/avatar`, { method: 'PUT', body: JSON.stringify({ image: photo }) });
+      }
       onSaved(res.user, creating);
     } catch (err) {
       setError({ text: (err as Error).message, field: (err as ApiError).field });
@@ -376,6 +379,14 @@ function UserFormDialog({ user, isMe, onClose, onSaved }: { user: AuthUser | nul
       }
     >
       <form id="user-form" onSubmit={submit} className="space-y-5">
+        <fieldset>
+          <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Profile photo</legend>
+          {creating
+            ? <AvatarEditor name={form.fullName} src={null} onPick={setPhoto} />
+            : <AvatarEditor name={form.fullName} src={user!.avatarUrl} endpoint={`/api/users/${user!.id}/avatar`}
+                onSaved={u => { if (u.id === me?.id) setMe(u); }} />}
+          {error?.field === 'avatar' && <p className="mt-1 text-xs text-red-600">{error.text}</p>}
+        </fieldset>
         <fieldset className="grid gap-4 sm:grid-cols-2">
           <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 sm:col-span-2">Account</legend>
           <Field label="Full name" htmlFor="f-name" required error={fieldError('fullName')} className="sm:col-span-2">
@@ -483,7 +494,7 @@ function UserDetailDialog({ user, isMe, onClose, onEdit, onDelete, onUnlock }: {
       }
     >
       <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-blue-900 text-base font-semibold text-white">{initials(user.fullName)}</span>
+        <UserAvatar name={user.fullName} src={user.avatarUrl} size="xl" />
         <div>
           <p className="font-semibold text-slate-900">{user.fullName}</p>
           <p className="text-sm text-slate-500">{user.email}</p>

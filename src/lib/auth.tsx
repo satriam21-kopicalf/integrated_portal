@@ -24,6 +24,8 @@ export interface AuthUser {
   department: string | null;
   notes: string | null;
   mustChangePassword: boolean;
+  /** versioned /api/avatars/{id}?v=... or null */
+  avatarUrl: string | null;
   lastLoginAt: string | null;
   lastLoginIp: string | null;
   failedLoginAttempts: number;
@@ -131,7 +133,9 @@ export function useAuth(): AuthState {
   return useContext(AuthContext);
 }
 
+/** "Budi Santoso" -> "BS"; words starting with punctuation such as "(temporary)" are skipped. */
 export function initials(name: string | null | undefined): string {
-  const parts = (name || '?').trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+  const words = (name || '').trim().split(/\s+/).filter(w => /^[\p{L}\p{N}]/u.test(w));
+  if (!words.length) return '?';
+  return (words[0][0] + (words.length > 1 ? words[1][0] : '')).toUpperCase();
 }

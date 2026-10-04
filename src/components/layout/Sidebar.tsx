@@ -5,11 +5,13 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ChevronDown, ChevronsUpDown, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, Users, X,
+  Camera, ChevronDown, ChevronsUpDown, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, Users, X,
 } from 'lucide-react';
 import ChangePasswordDialog from '@/components/ChangePasswordDialog';
+import Dialog from '@/components/ui/Dialog';
+import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
 import { assetUrl } from '@/lib/assets';
-import { initials, ROLE_LABELS, useAuth } from '@/lib/auth';
+import { ROLE_LABELS, useAuth } from '@/lib/auth';
 import { useClickOutside } from '@/lib/useClickOutside';
 
 const navigation = [
@@ -254,9 +256,10 @@ function SidebarContent({
 }
 
 function UserMenu({ collapsed }: { collapsed: boolean }) {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [changing, setChanging] = useState(false);
+  const [photo, setPhoto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
   useClickOutside(ref, close, open);
@@ -271,7 +274,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
           <div className={`absolute bottom-full z-10 mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl ${collapsed ? 'left-0 w-64' : 'inset-x-0'}`}>
             <div className="border-b border-slate-100 px-3 py-3">
               <div className="flex items-center gap-2.5">
-                <Avatar name={user.fullName} />
+                <UserAvatar name={user.fullName} src={user.avatarUrl} size="lg" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-900">{user.fullName}</p>
                   <RoleBadge role={role} superadmin={superadmin} />
@@ -283,6 +286,13 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
               </dl>
             </div>
             <div className="p-1.5">
+              <button
+                type="button"
+                onClick={() => { setOpen(false); setPhoto(true); }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <Camera size={16} /> Profile photo
+              </button>
               <button
                 type="button"
                 onClick={() => { setOpen(false); setChanging(true); }}
@@ -307,7 +317,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
           aria-expanded={open}
           title={collapsed ? `${user.fullName} · ${role}` : undefined}
         >
-          <Avatar name={user.fullName} />
+          <UserAvatar name={user.fullName} src={user.avatarUrl} size="sm" />
           {!collapsed && (
             <>
               <span className="min-w-0 flex-1 text-left">
@@ -321,15 +331,11 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
       </div>
       {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">Integration Platform v1.4.0</p>}
       <ChangePasswordDialog open={changing} onClose={() => setChanging(false)} />
+      <Dialog open={photo} onClose={() => setPhoto(false)} size="sm" title="Profile photo"
+        description="Shown in the sidebar and in User Accounts.">
+        <AvatarEditor name={user.fullName} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser} />
+      </Dialog>
     </div>
-  );
-}
-
-function Avatar({ name }: { name: string }) {
-  return (
-    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-blue-900 text-xs font-semibold text-white">
-      {initials(name)}
-    </span>
   );
 }
 
