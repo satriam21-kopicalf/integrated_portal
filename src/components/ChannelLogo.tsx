@@ -43,8 +43,10 @@ export default function ChannelLogo({
   return (
     <span className={`inline-flex items-center gap-1.5 whitespace-nowrap ${className}`} title={label}>
       {/* eager: logos are tiny and sit in moving / scrolled containers where lazy loading never fires */}
+      {/* explicit width + no max-width: inside shrink-to-fit parents (ticker chips) a percentage
+          max-width (Tailwind preflight) collapses the image to 0 px */}
       <Image src={logo.src} alt={label} width={Math.round(h * logo.ratio)} height={h} loading="eager"
-        className="flex-shrink-0 object-contain" style={{ height: h, width: 'auto' }} unoptimized />
+        className="flex-shrink-0 object-contain" style={{ height: h, width: Math.round(h * logo.ratio), maxWidth: 'none' }} unoptimized />
       {logo.icon && <span className={labelClassName}>{label}</span>}
     </span>
   );
