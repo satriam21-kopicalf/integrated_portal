@@ -18,23 +18,36 @@ export default function Dialog({
   locked?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  // latest close handler / lock state without re-running the effects below:
+  // callers pass a new onClose on every render, and re-running would move focus
+  const closeRef = useRef(onClose);
+  const lockedRef = useRef(locked);
+  useEffect(() => {
+    closeRef.current = onClose;
+    lockedRef.current = locked;
+  });
 
+  // Escape to close + no page scroll behind the dialog, while open
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !locked) onClose();
+      if (e.key === 'Escape' && !lockedRef.current) closeRef.current();
     };
     document.addEventListener('keydown', onKey);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    // focus the first field (or the panel) for keyboard users
-    const first = panel.current?.querySelector<HTMLElement>('input, select, textarea, button:not([data-close])');
-    (first ?? panel.current)?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = overflow;
     };
-  }, [open, locked, onClose]);
+  }, [open]);
+
+  // focus the first field once, when the dialog opens (never while typing)
+  useEffect(() => {
+    if (!open) return;
+    const first = panel.current?.querySelector<HTMLElement>('input, select, textarea, button:not([data-close])');
+    (first ?? panel.current)?.focus();
+  }, [open]);
 
   if (!open) return null;
   const width = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl' }[size];
