@@ -55,6 +55,7 @@ Semua halaman selain `/login` wajib login. Role **user** hanya melihat Overview 
 - **My profile** (`components/AccountDrawers.tsx` + `components/ProfileFields.tsx`): user mengisi identitasnya sendiri — foto, nama lengkap, jenis kelamin, tanggal lahir, telepon, alamat, kota, nomor karyawan, jabatan, departemen, lokasi kerja (outlet dari `/api/branches`) — disimpan lewat `PATCH /api/auth/me`. Username, email & role hanya dibaca (dikelola superadmin). Profil dianggap **lengkap** bila nama lengkap, telepon, jabatan & departemen terisi; selama belum lengkap muncul pengingat di pojok kanan bawah (*Complete profile* / *Later*, disembunyikan per sesi).
 - **User Accounts** (`src/app/users/page.tsx`, superadmin): daftar dengan pencarian (nama, username, email, nomor karyawan), filter role & status (Active/Inactive/Locked), paginasi, badge *Profile incomplete*. *New user* cukup **username, email, password** (otomatis dibuat, bisa di-generate ulang), role & status — profil diisi sendiri oleh user. *Edit*: login, akses, reset password, koreksi profil, foto, catatan admin. *View*: profil pribadi & pekerjaan, akun, aktivitas (login terakhir + IP, percobaan gagal, dibuat/diubah oleh). *Unlock*, *Delete* (konfirmasi). Tidak bisa menghapus/menonaktifkan akun sendiri.
 - **Foto profil** (`components/UserAvatar.tsx`): unggah JPG/PNG/WebP, dipotong persegi & diperkecil ke 256×256 di browser sebelum dikirim; user mengatur fotonya sendiri di *My profile*, superadmin bisa mengatur foto user lain di *Edit*.
+- **Sapaan login & logout** (`src/lib/greetings.ts`, `components/WelcomeNotice.tsx`): setelah login muncul notifikasi kanan atas (sekali per login) — salam sesuai waktu (*Up early / Good morning / Good afternoon / Good evening / Working late*), nama depan, dan kalimat motivasi yang menyesuaikan waktu & hari (Senin, Jumat, akhir pekan); pertanyaan *How are you feeling today?* (Great / Good / Okay / Tired / Stressed) langsung mengganti kalimat sesuai mood dan diingat untuk hari itu. Kalimat yang baru tampil tidak diulang (rotasi 12 terakhir). Tertutup sendiri (12–20 detik, berhenti saat di-hover). Setelah logout, halaman login menampilkan salam perpisahan sesuai waktu/mood + lama sesi. Semua disimpan di browser (localStorage/sessionStorage), tidak dikirim ke server.
 - Akun pertama dibuat di backend dengan CLI (`python -m app.accounts create …`, lihat dokumentasi backend).
 
 ## Realtime (WebSocket)
@@ -90,6 +91,7 @@ src/
 │   ├── ChannelLogo.tsx         # logo channel (JSX & label rich ECharts)
 │   ├── UserAvatar.tsx          # foto profil / inisial + AvatarEditor (unggah)
 │   ├── AccountDrawers.tsx      # My profile, Change password (+ wajib), pengingat profil
+│   ├── WelcomeNotice.tsx       # sapaan setelah login (+ mood)
 │   ├── ProfileFields.tsx       # field identitas (My profile & Edit user)
 │   ├── ChangePasswordDrawer.tsx
 │   ├── ui/Drawer.tsx           # panel geser kanan (form & detail)

@@ -2,14 +2,16 @@
 
 // The signed-in user's own drawers: "My profile" (identity + photo) and
 // "Change password", opened from the sidebar menu or the profile nudge.
-// Mounted once in providers.tsx. Also shows the forced password change and,
-// until the profile is complete, a small reminder to fill it in.
+// Mounted once in providers.tsx. Also shows the forced password change, the
+// welcome after signing in and, until the profile is complete, a small
+// reminder to fill it in.
 
 import { createContext, FormEvent, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AlertCircle, Check, CircleUserRound, KeyRound, Loader2, ShieldCheck, UserRoundPen, X } from 'lucide-react';
 import ChangePasswordDrawer from '@/components/ChangePasswordDrawer';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues, REQUIRED_PROFILE_KEYS, sameProfile } from '@/components/ProfileFields';
 import { AvatarEditor } from '@/components/UserAvatar';
+import WelcomeNotice from '@/components/WelcomeNotice';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { buttonPrimary, buttonSecondary } from '@/components/ui/Dialog';
 import { AuthUser, ROLE_LABELS, useAuth } from '@/lib/auth';
@@ -43,7 +45,12 @@ export function AccountDrawersProvider({ children }: { children: ReactNode }) {
           <ChangePasswordDrawer open={open === 'password'} onClose={close} />
           {user.mustChangePassword
             ? <ChangePasswordDrawer open forced onClose={() => {}} />
-            : !user.profileComplete && open === null && <ProfileNudge user={user} onOpen={openProfile} />}
+            : (
+              <>
+                <WelcomeNotice user={user} />
+                {!user.profileComplete && open === null && <ProfileNudge user={user} onOpen={openProfile} />}
+              </>
+            )}
         </>
       )}
     </Context.Provider>

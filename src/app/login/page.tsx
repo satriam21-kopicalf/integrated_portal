@@ -3,8 +3,10 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, AtSign, Eye, EyeOff, Info, Loader2, Lock, User } from 'lucide-react';
+import { AlertCircle, AtSign, Clock, Eye, EyeOff, Info, Loader2, Lock, User } from 'lucide-react';
+import { DAY_PART_ICONS } from '@/components/WelcomeNotice';
 import { safeNext, useAuth } from '@/lib/auth';
+import { Farewell, markSignedIn, takeFarewell } from '@/lib/greetings';
 
 type Method = 'username' | 'email';
 
@@ -28,13 +30,17 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [farewell, setFarewell] = useState<Farewell | null>(null);
   const [next, setNext] = useState('/overview');
 
   // query string is read on the client (the page is statically rendered)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setNext(safeNext(params.get('next')));
-    setNotice(NOTICES[params.get('reason') ?? ''] ?? null);
+    const reason = params.get('reason') ?? '';
+    const bye = reason === 'signed-out' ? takeFarewell() : null;
+    setFarewell(bye);
+    setNotice(bye ? null : NOTICES[reason] ?? null);
   }, []);
 
   // already signed in: straight to the dashboard
@@ -52,6 +58,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setNotice(null);
+    setFarewell(null);
     if (method === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(identifier.trim())) {
       setError('Masukkan alamat email yang valid');
       return;
@@ -65,6 +72,7 @@ export default function LoginPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || 'Login gagal, coba lagi');
+      markSignedIn(); // the dashboard greets the user once
       setUser(body.user);
       router.replace(next);
     } catch (err) {
@@ -90,6 +98,7 @@ export default function LoginPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)] sm:p-8">
+            {farewell && <FarewellCard farewell={farewell} />}
             {notice && (
               <p className="mb-5 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50/60 px-3 py-2.5 text-sm text-blue-800" role="status">
                 <Info size={16} className="mt-0.5 flex-shrink-0" /> {notice}
@@ -197,5 +206,24 @@ export default function LoginPage() {
         © {new Date().getFullYear()} Kopi Calf · PT Yuda Prawira Group
       </footer>
     </main>
+  );
+}
+
+/** Shown after signing out: a goodbye that fits the time of day (and today's mood). */
+function FarewellCard({ farewell }: { farewell: Farewell }) {
+  const Icon = DAY_PART_ICONS[farewell.part] ?? Info;
+  return (
+    <div className="notice-in mb-6 flex items-start gap-3 rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white px-4 py-3.5" role="status">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+        <Icon size={18} />
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-slate-900">{farewell.title}</p>
+        <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{farewell.message}</p>
+        <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-400">
+          <Clock size={12} /> You have been signed out{farewell.duration ? ` · session ${farewell.duration}` : ''}
+        </p>
+      </div>
+    </div>
   );
 }

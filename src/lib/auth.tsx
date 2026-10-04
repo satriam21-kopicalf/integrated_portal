@@ -6,8 +6,9 @@
 // renders; this provider confirms the session (/api/auth/me), exposes the user
 // and sends the browser back to /login when any /api call answers 401.
 
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { rememberFarewell } from '@/lib/greetings';
 
 export type Role = 'superadmin' | 'user';
 export type Gender = 'male' | 'female';
@@ -85,8 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [user, setUserState] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<Status>('loading');
+  // signing out: the sign-out itself goes to /login?reason=signed-out, so the
+  // redirects below must not race it with a plain /login (losing the farewell)
+  const leaving = useRef(false);
 
   const setUser = useCallback((u: AuthUser | null) => {
+    if (u) leaving.current = false;
     setUserState(u);
     setStatus(u ? 'authenticated' : 'anonymous');
   }, []);
@@ -115,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // not signed in on a protected page -> login
   useEffect(() => {
-    if (status === 'anonymous' && !isPublicPath(pathname)) toLogin();
+    if (status === 'anonymous' && !isPublicPath(pathname) && !leaving.current) toLogin();
   }, [status, pathname, toLogin]);
 
   // any API call answered with 401 (session expired / revoked) -> login
@@ -124,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.fetch = async (...args: Parameters<typeof fetch>) => {
       const res = await original(...args);
       const url = typeof args[0] === 'string' ? args[0] : args[0] instanceof URL ? args[0].pathname : args[0].url;
-      if (res.status === 401 && url.startsWith('/api/') && !url.startsWith('/api/auth/') && !isPublicPath(window.location.pathname)) {
+      if (res.status === 401 && url.startsWith('/api/') && !url.startsWith('/api/auth/') && !isPublicPath(window.location.pathname) && !leaving.current) {
         setUserState(null);
         setStatus('anonymous');
         toLogin('expired');
@@ -135,13 +140,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [toLogin]);
 
   const logout = useCallback(async () => {
+    leaving.current = true;
+    if (user) rememberFarewell(user.id, user.displayName); // shown on the sign-in page
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
       setUser(null);
       router.replace('/login?reason=signed-out');
     }
-  }, [router, setUser]);
+  }, [router, setUser, user]);
 
   const value = useMemo(() => ({ user, status, setUser, logout }), [user, status, setUser, logout]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
