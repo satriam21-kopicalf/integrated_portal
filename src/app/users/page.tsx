@@ -1,16 +1,18 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, KeyRound, Loader2, Lock, Pencil, Plus, Search,
-  ShieldCheck, Trash2, Unlock, UserRound, Users, Wand2, X,
+  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Eye, EyeOff, Info, KeyRound, Loader2, Lock, Pencil, Plus, Search,
+  ShieldCheck, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
 import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
+import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
-import { AuthUser, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
-import { formatDateTime, formatNumber } from '@/lib/format';
+import { AuthUser, GENDER_LABELS, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
+import { formatDateTime, formatNumber, parseLocalDate } from '@/lib/format';
 
 const PAGE_SIZE = 20;
 
@@ -149,7 +151,7 @@ export default function UsersPage() {
             <div className="flex flex-col gap-3 border-b border-slate-200 p-3 sm:flex-row sm:items-center sm:p-4">
               <div className="relative flex-1">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search name, username or email"
+                <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search name, username, email or employee number"
                   className={`${inputClass} pl-9`} aria-label="Search users" />
               </div>
               <div className="flex gap-2">
@@ -205,9 +207,9 @@ export default function UsersPage() {
                     <li key={u.id} className="flex items-center gap-3 px-4 py-3">
                       <Avatar user={u} />
                       <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setViewing(u)}>
-                        <p className="truncate text-sm font-medium text-slate-900">{u.fullName}</p>
+                        <p className="truncate text-sm font-medium text-slate-900">{u.displayName}</p>
                         <p className="truncate text-xs text-slate-500">{u.username} · {u.email}</p>
-                        <div className="mt-1 flex gap-1.5"><RoleBadge role={u.role} /><StatusBadge user={u} /></div>
+                        <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><StatusBadge user={u} />{!u.profileComplete && <ProfileBadge />}</div>
                       </button>
                       <button type="button" onClick={() => setEditing(u)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100" aria-label={`Edit ${u.username}`}><Pencil size={16} /></button>
                     </li>
@@ -228,16 +230,16 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {editing && <UserFormDialog user={editing === 'new' ? null : editing} isMe={editing !== 'new' && editing.id === me?.id}
+      {editing && <UserFormDrawer user={editing === 'new' ? null : editing} isMe={editing !== 'new' && editing.id === me?.id}
         onClose={() => setEditing(null)} onSaved={saved} />}
-      {viewing && <UserDetailDialog user={viewing} isMe={viewing.id === me?.id} onClose={() => setViewing(null)}
+      {viewing && <UserDetailDrawer user={viewing} isMe={viewing.id === me?.id} onClose={() => setViewing(null)}
         onEdit={() => { setEditing(viewing); setViewing(null); }} onDelete={() => { setDeleting(viewing); setViewing(null); }} onUnlock={() => unlock(viewing)} />}
       {deleting && <DeleteDialog user={deleting} onClose={() => setDeleting(null)}
         onDeleted={() => { setToast({ tone: 'ok', text: `User ${deleting.username} deleted` }); setDeleting(null); load(); }}
         onError={text => setToast({ tone: 'error', text })} />}
 
       {toast && (
-        <div className={`fixed bottom-4 right-4 z-[90] flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-slate-900' : 'bg-red-600'}`} role="status">
+        <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-slate-900' : 'bg-red-600'}`} role="status">
           {toast.tone === 'ok' ? <CheckCircle2 size={16} className="text-emerald-400" /> : <AlertCircle size={16} />}
           {toast.text}
           <button type="button" onClick={() => setToast(null)} className="ml-1 rounded p-0.5 opacity-70 hover:opacity-100" aria-label="Dismiss"><X size={14} /></button>
@@ -250,7 +252,7 @@ export default function UsersPage() {
 /* ------------------------------------------------------------------ pieces */
 
 function Avatar({ user }: { user: AuthUser }) {
-  return <UserAvatar name={user.fullName} src={user.avatarUrl} size="md" />;
+  return <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" />;
 }
 
 function RoleBadge({ role }: { role: Role }) {
@@ -269,6 +271,15 @@ function StatusBadge({ user }: { user: AuthUser }) {
     : <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Inactive</span>;
 }
 
+/** the user has not filled in their own profile yet */
+function ProfileBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700" title="Full name, phone number, job title or department is missing">
+      <CircleAlert size={11} /> Profile incomplete
+    </span>
+  );
+}
+
 function UserRow({ user, isMe, onView, onEdit, onDelete }: { user: AuthUser; isMe: boolean; onView: () => void; onEdit: () => void; onDelete: () => void }) {
   return (
     <tr className="hover:bg-slate-50/60">
@@ -276,8 +287,10 @@ function UserRow({ user, isMe, onView, onEdit, onDelete }: { user: AuthUser; isM
         <button type="button" onClick={onView} className="flex items-center gap-3 text-left">
           <Avatar user={user} />
           <span className="min-w-0">
-            <span className="block truncate font-medium text-slate-900">{user.fullName}{isMe && <span className="ml-1.5 text-xs font-normal text-slate-400">(you)</span>}</span>
-            <span className="block truncate text-xs text-slate-500">{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
+            <span className="block truncate font-medium text-slate-900">{user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-slate-400">(you)</span>}</span>
+            {user.profileComplete
+              ? <span className="block truncate text-xs text-slate-500">{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
+              : <span className="mt-0.5 block"><ProfileBadge /></span>}
           </span>
         </button>
       </td>
@@ -296,7 +309,7 @@ function UserRow({ user, isMe, onView, onEdit, onDelete }: { user: AuthUser; isM
   );
 }
 
-function IconButton({ label, onClick, children, disabled, danger }: { label: string; onClick: () => void; children: React.ReactNode; disabled?: boolean; danger?: boolean }) {
+function IconButton({ label, onClick, children, disabled, danger }: { label: string; onClick: () => void; children: ReactNode; disabled?: boolean; danger?: boolean }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} title={disabled ? 'You cannot delete your own account' : label} aria-label={label}
       className={`rounded-md p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${danger ? 'text-slate-400 hover:bg-red-50 hover:text-red-600' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-800'}`}>
@@ -305,57 +318,57 @@ function IconButton({ label, onClick, children, disabled, danger }: { label: str
   );
 }
 
-/* ------------------------------------------------------------------ form */
+/* ------------------------------------------------------------------ new / edit */
 
-interface FormState {
-  fullName: string;
+interface AccountForm {
   username: string;
   email: string;
   role: Role;
   isActive: boolean;
-  phoneNumber: string;
-  jobTitle: string;
-  department: string;
   notes: string;
   password: string;
   mustChangePassword: boolean;
 }
 
-function UserFormDialog({ user, isMe, onClose, onSaved }: { user: AuthUser | null; isMe: boolean; onClose: () => void; onSaved: (u: AuthUser, created: boolean) => void }) {
+/**
+ * New user: only the sign-in (username, email, password) and access; the user
+ * fills in their identity themself under "My profile".
+ * Edit: everything, incl. correcting the profile and the photo.
+ */
+function UserFormDrawer({ user, isMe, onClose, onSaved }: { user: AuthUser | null; isMe: boolean; onClose: () => void; onSaved: (u: AuthUser, created: boolean) => void }) {
   const creating = !user;
   const { user: me, setUser: setMe } = useAuth();
-  const [form, setForm] = useState<FormState>(() => ({
-    fullName: user?.fullName ?? '', username: user?.username ?? '', email: user?.email ?? '', role: user?.role ?? 'user',
-    isActive: user?.isActive ?? true, phoneNumber: user?.phoneNumber ?? '', jobTitle: user?.jobTitle ?? '',
-    department: user?.department ?? '', notes: user?.notes ?? '', password: '', mustChangePassword: creating ? true : user!.mustChangePassword,
+  const [form, setForm] = useState<AccountForm>(() => ({
+    username: user?.username ?? '', email: user?.email ?? '', role: user?.role ?? 'user', isActive: user?.isActive ?? true,
+    notes: user?.notes ?? '', password: creating ? generatePassword() : '', mustChangePassword: creating ? true : user!.mustChangePassword,
   }));
+  const [profile, setProfile] = useState<ProfileValues>(() => profileValues(user));
   const [showPassword, setShowPassword] = useState(creating);
-  const [photo, setPhoto] = useState<string | null>(null); // picked before the user exists
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<{ text: string; field?: string | null } | null>(null);
-  const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm(f => ({ ...f, [key]: value }));
+  const set = <K extends keyof AccountForm>(key: K, value: AccountForm[K]) => setForm(f => ({ ...f, [key]: value }));
+  const setProfileField = <K extends keyof ProfileValues>(key: K, value: ProfileValues[K]) => setProfile(p => ({ ...p, [key]: value }));
 
   const payload = useMemo(() => {
     const body: Record<string, unknown> = {
-      fullName: form.fullName, username: form.username, email: form.email, role: form.role, isActive: form.isActive,
-      phoneNumber: form.phoneNumber, jobTitle: form.jobTitle, department: form.department, notes: form.notes,
-      mustChangePassword: form.mustChangePassword,
+      username: form.username, email: form.email, role: form.role, isActive: form.isActive, mustChangePassword: form.mustChangePassword,
     };
+    if (!creating) {
+      body.notes = form.notes;
+      for (const k of PROFILE_KEYS) body[k] = profile[k].trim();
+    }
     if (form.password) body.password = form.password;
     return body;
-  }, [form]);
+  }, [form, profile, creating]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
     try {
-      let res = await api<{ user: AuthUser }>(creating ? '/api/users' : `/api/users/${user!.id}`, {
+      const res = await api<{ user: AuthUser }>(creating ? '/api/users' : `/api/users/${user!.id}`, {
         method: creating ? 'POST' : 'PATCH', body: JSON.stringify(payload),
       });
-      if (creating && photo) {
-        res = await api<{ user: AuthUser }>(`/api/users/${res.user.id}/avatar`, { method: 'PUT', body: JSON.stringify({ image: photo }) });
-      }
       onSaved(res.user, creating);
     } catch (err) {
       setError({ text: (err as Error).message, field: (err as ApiError).field });
@@ -365,10 +378,13 @@ function UserFormDialog({ user, isMe, onClose, onSaved }: { user: AuthUser | nul
   };
 
   const fieldError = (name: string) => (error?.field === name ? error.text : null);
+  const knownField = error?.field && (['username', 'email', 'role', 'isActive', 'password', 'notes', 'avatar'] as string[]).concat(PROFILE_KEYS).includes(error.field);
 
   return (
-    <Dialog open onClose={onClose} size="lg" title={creating ? 'New user' : `Edit ${user!.username}`}
-      description={creating ? 'The user signs in with the username or email and the password set here.' : 'Leave the password empty to keep the current one.'}
+    <Drawer open onClose={onClose} size={creating ? 'md' : 'lg'}
+      icon={creating ? <UserPlus size={18} /> : <UserRoundPen size={18} />}
+      title={creating ? 'New user' : `Edit ${user!.username}`}
+      description={creating ? 'Create the sign-in. The user completes their own profile after signing in.' : 'Leave the password empty to keep the current one.'}
       footer={
         <>
           <button type="button" className={buttonSecondary} onClick={onClose}>Cancel</button>
@@ -378,113 +394,125 @@ function UserFormDialog({ user, isMe, onClose, onSaved }: { user: AuthUser | nul
         </>
       }
     >
-      <form id="user-form" onSubmit={submit} className="space-y-5">
-        <fieldset>
-          <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Profile photo</legend>
-          {creating
-            ? <AvatarEditor name={form.fullName} src={null} onPick={setPhoto} />
-            : <AvatarEditor name={form.fullName} src={user!.avatarUrl} endpoint={`/api/users/${user!.id}/avatar`}
-                onSaved={u => { if (u.id === me?.id) setMe(u); }} />}
-          {error?.field === 'avatar' && <p className="mt-1 text-xs text-red-600">{error.text}</p>}
-        </fieldset>
-        <fieldset className="grid gap-4 sm:grid-cols-2">
-          <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 sm:col-span-2">Account</legend>
-          <Field label="Full name" htmlFor="f-name" required error={fieldError('fullName')} className="sm:col-span-2">
-            <input id="f-name" className={inputClass} value={form.fullName} onChange={e => set('fullName', e.target.value)} maxLength={120} required />
-          </Field>
-          <Field label="Username" htmlFor="f-username" required error={fieldError('username')} hint="3–32: lowercase letters, numbers, . _ -">
-            <input id="f-username" className={inputClass} value={form.username} onChange={e => set('username', e.target.value.toLowerCase())}
-              autoCapitalize="none" spellCheck={false} maxLength={32} required />
-          </Field>
-          <Field label="Email" htmlFor="f-email" required error={fieldError('email')}>
-            <input id="f-email" type="email" className={inputClass} value={form.email} onChange={e => set('email', e.target.value)} maxLength={254} required />
-          </Field>
-          <Field label="Role" htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? 'Full access incl. platforms and user accounts' : 'Dashboards only (Overview, Sales Transactions)'}>
-            <select id="f-role" className={inputClass} value={form.role} onChange={e => set('role', e.target.value as Role)}>
-              <option value="user">User</option>
-              <option value="superadmin">Super Admin</option>
-            </select>
-          </Field>
-          <Field label="Status" htmlFor="f-active" error={fieldError('isActive')} hint={isMe ? 'You cannot deactivate your own account' : 'Inactive users cannot sign in'}>
-            <select id="f-active" className={inputClass} value={form.isActive ? '1' : '0'} disabled={isMe} onChange={e => set('isActive', e.target.value === '1')}>
-              <option value="1">Active</option>
-              <option value="0">Inactive</option>
-            </select>
-          </Field>
-        </fieldset>
+      <form id="user-form" onSubmit={submit} noValidate>
+        {error && !knownField && (
+          <p className="mb-5 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
+        )}
 
-        <fieldset className="grid gap-4 sm:grid-cols-2">
-          <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 sm:col-span-2">{creating ? 'Password' : 'Reset password'}</legend>
-          <Field label={creating ? 'Password' : 'New password'} htmlFor="f-password" required={creating} error={fieldError('password')}
-            hint="At least 8 characters with letters and numbers" className="sm:col-span-2">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <input id="f-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" className={`${inputClass} pr-10 font-mono`}
-                  value={form.password} onChange={e => set('password', e.target.value)} maxLength={128} required={creating}
-                  placeholder={creating ? '' : 'Keep current password'} />
-                <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+        {!creating && (
+          <DrawerSection title="Profile photo">
+            <AvatarEditor name={user!.displayName} src={user!.avatarUrl} endpoint={`/api/users/${user!.id}/avatar`}
+              onSaved={u => { if (u.id === me?.id) setMe(u); }} />
+            {error?.field === 'avatar' && <p className="text-xs text-red-600">{error.text}</p>}
+          </DrawerSection>
+        )}
+
+        <DrawerSection title="Sign-in" description="The user signs in with the username or the email address.">
+          <div className="grid gap-4">
+            <Field label="Username" htmlFor="f-username" required error={fieldError('username')} hint="3–32: lowercase letters, numbers, . _ -">
+              <input id="f-username" className={inputClass} value={form.username} onChange={e => set('username', e.target.value.toLowerCase())}
+                autoCapitalize="none" spellCheck={false} maxLength={32} required autoComplete="off" />
+            </Field>
+            <Field label="Email" htmlFor="f-email" required error={fieldError('email')}>
+              <input id="f-email" type="email" className={inputClass} value={form.email} onChange={e => set('email', e.target.value)} maxLength={254} required autoComplete="off" />
+            </Field>
+            <Field label={creating ? 'Password' : 'New password'} htmlFor="f-password" required={creating} error={fieldError('password')}
+              hint={creating ? 'Generated for you — share it with the user privately. At least 8 characters with letters and numbers.' : 'At least 8 characters with letters and numbers'}>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input id="f-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" className={`${inputClass} pr-10 font-mono`}
+                    value={form.password} onChange={e => set('password', e.target.value)} maxLength={128} required={creating}
+                    placeholder={creating ? '' : 'Keep current password'} />
+                  <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                <button type="button" className={buttonSecondary} onClick={() => { set('password', generatePassword()); setShowPassword(true); }} title="Generate a strong password">
+                  <Wand2 size={16} /><span className="hidden sm:inline">Generate</span>
                 </button>
               </div>
-              <button type="button" className={buttonSecondary} onClick={() => { set('password', generatePassword()); setShowPassword(true); }} title="Generate a strong password">
-                <Wand2 size={16} /><span className="hidden sm:inline">Generate</span>
-              </button>
-            </div>
-          </Field>
-          <label className="flex items-center gap-2 text-sm text-slate-600 sm:col-span-2">
-            <input type="checkbox" checked={form.mustChangePassword} onChange={e => set('mustChangePassword', e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-blue-700" />
-            Must change password at next sign-in
-          </label>
-        </fieldset>
+            </Field>
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" checked={form.mustChangePassword} onChange={e => set('mustChangePassword', e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-blue-700" />
+              Must change password at next sign-in
+            </label>
+          </div>
+        </DrawerSection>
 
-        <fieldset className="grid gap-4 sm:grid-cols-2">
-          <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 sm:col-span-2">Profile</legend>
-          <Field label="Phone number" htmlFor="f-phone" error={fieldError('phoneNumber')}>
-            <input id="f-phone" type="tel" className={inputClass} value={form.phoneNumber} onChange={e => set('phoneNumber', e.target.value)} maxLength={32} />
-          </Field>
-          <Field label="Job title" htmlFor="f-job" error={fieldError('jobTitle')}>
-            <input id="f-job" className={inputClass} value={form.jobTitle} onChange={e => set('jobTitle', e.target.value)} maxLength={80} />
-          </Field>
-          <Field label="Department" htmlFor="f-dept" error={fieldError('department')} className="sm:col-span-2">
-            <input id="f-dept" className={inputClass} value={form.department} onChange={e => set('department', e.target.value)} maxLength={80} />
-          </Field>
-          <Field label="Notes" htmlFor="f-notes" error={fieldError('notes')} className="sm:col-span-2">
-            <textarea id="f-notes" rows={3} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
-          </Field>
-        </fieldset>
+        <DrawerSection title="Access">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Role" htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? 'Full access incl. platforms and user accounts' : 'Dashboards only (Overview, Sales Transactions)'}>
+              <select id="f-role" className={inputClass} value={form.role} onChange={e => set('role', e.target.value as Role)}>
+                <option value="user">User</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+            </Field>
+            <Field label="Status" htmlFor="f-active" error={fieldError('isActive')} hint={isMe ? 'You cannot deactivate your own account' : 'Inactive users cannot sign in'}>
+              <select id="f-active" className={inputClass} value={form.isActive ? '1' : '0'} disabled={isMe} onChange={e => set('isActive', e.target.value === '1')}>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+            </Field>
+          </div>
+        </DrawerSection>
 
-        {error && !error.field && <p className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>}
+        {creating ? (
+          <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/60 px-3.5 py-3 text-sm text-blue-900">
+            <Info size={16} className="mt-0.5 flex-shrink-0 text-blue-700" />
+            <p>
+              After the first sign-in the user is asked to complete <span className="font-medium">My profile</span>: full name, phone number,
+              job title, department, work location and other details. You can still correct them later under Edit.
+            </p>
+          </div>
+        ) : (
+          <>
+            {!user!.profileComplete && (
+              <p className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-sm text-amber-900">
+                <CircleAlert size={16} className="mt-0.5 flex-shrink-0" /> The user has not completed their profile yet. They can fill it in themself under My profile.
+              </p>
+            )}
+            <ProfileFields values={profile} onChange={setProfileField} fieldError={fieldError} idPrefix="f" markRequired={false}
+              currentBranchName={user!.workBranchName} />
+            <DrawerSection title="Administrator notes" description="Only visible to super admins.">
+              <Field label="Notes" htmlFor="f-notes" error={fieldError('notes')}>
+                <textarea id="f-notes" rows={3} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
+              </Field>
+            </DrawerSection>
+          </>
+        )}
       </form>
-    </Dialog>
+    </Drawer>
   );
 }
 
 /* ------------------------------------------------------------------ view & delete */
 
-function UserDetailDialog({ user, isMe, onClose, onEdit, onDelete, onUnlock }: {
+function DetailList({ rows }: { rows: [string, ReactNode][] }) {
+  return (
+    <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
+      {rows.map(([k, v]) => (
+        <div key={k} className="grid grid-cols-[9.5rem_1fr] gap-3 px-3 py-2 text-sm">
+          <dt className="text-slate-500">{k}</dt>
+          <dd className="min-w-0 break-words text-slate-800">{v ?? '—'}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function birthDateLabel(value: string | null): string {
+  if (!value) return '—';
+  return parseLocalDate(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function UserDetailDrawer({ user, isMe, onClose, onEdit, onDelete, onUnlock }: {
   user: AuthUser; isMe: boolean; onClose: () => void; onEdit: () => void; onDelete: () => void; onUnlock: () => void;
 }) {
-  const rows: [string, React.ReactNode][] = [
-    ['Username', user.username],
-    ['Email', user.email],
-    ['Role', <RoleBadge key="r" role={user.role} />],
-    ['Status', <StatusBadge key="s" user={user} />],
-    ['Phone number', user.phoneNumber || '—'],
-    ['Job title', user.jobTitle || '—'],
-    ['Department', user.department || '—'],
-    ['Notes', user.notes || '—'],
-    ['Must change password', user.mustChangePassword ? 'Yes' : 'No'],
-    ['Last sign-in', user.lastLoginAt ? `${formatDateTime(user.lastLoginAt)}${user.lastLoginIp ? ` · ${user.lastLoginIp}` : ''}` : 'Never'],
-    ['Failed sign-in attempts', formatNumber(user.failedLoginAttempts)],
-    ['Locked until', user.isLocked && user.lockedUntil ? formatDateTime(user.lockedUntil) : '—'],
-    ['Password changed', user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
-    ['Created', `${user.createdAt ? formatDateTime(user.createdAt) : '—'}${user.createdBy ? ` by ${user.createdBy}` : ''}`],
-    ['Updated', `${user.updatedAt ? formatDateTime(user.updatedAt) : '—'}${user.updatedBy ? ` by ${user.updatedBy}` : ''}`],
-  ];
+  const dash = (v: string | null | undefined) => v || '—';
   return (
-    <Dialog open onClose={onClose} size="md" title={user.fullName} description={isMe ? 'This is your account' : undefined}
+    <Drawer open onClose={onClose} size="md" icon={<UserRound size={18} />} title="User details" description={isMe ? 'This is your account' : undefined}
       footer={
         <>
           {user.isLocked && <button type="button" className={buttonSecondary} onClick={onUnlock}><Unlock size={16} /> Unlock</button>}
@@ -493,25 +521,61 @@ function UserDetailDialog({ user, isMe, onClose, onEdit, onDelete, onUnlock }: {
         </>
       }
     >
-      <div className="mb-4 flex items-center gap-3">
-        <UserAvatar name={user.fullName} src={user.avatarUrl} size="xl" />
-        <div>
-          <p className="font-semibold text-slate-900">{user.fullName}</p>
-          <p className="text-sm text-slate-500">{user.email}</p>
+      <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
+        <UserAvatar name={user.displayName} src={user.avatarUrl} size="xl" />
+        <div className="min-w-0">
+          <p className="truncate text-lg font-semibold text-slate-900">{user.displayName}</p>
+          <p className="truncate text-sm text-slate-500">{user.jobTitle ? `${user.jobTitle}${user.department ? ` · ${user.department}` : ''}` : user.email}</p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{!user.profileComplete && <ProfileBadge />}</div>
         </div>
       </div>
-      <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
-        {rows.map(([k, v]) => (
-          <div key={k} className="grid grid-cols-[10rem_1fr] gap-3 px-3 py-2 text-sm">
-            <dt className="text-slate-500">{k}</dt>
-            <dd className="min-w-0 break-words text-slate-800">{v}</dd>
-          </div>
-        ))}
-      </dl>
-    </Dialog>
+
+      <DrawerSection title="Personal information" description={user.profileUpdatedAt ? `Last updated by the user ${formatDateTime(user.profileUpdatedAt)}` : 'Not yet filled in by the user'}>
+        <DetailList rows={[
+          ['Full name', dash(user.fullName)],
+          ['Gender', user.gender ? GENDER_LABELS[user.gender] : '—'],
+          ['Date of birth', birthDateLabel(user.birthDate)],
+          ['Phone number', dash(user.phoneNumber)],
+          ['Address', dash(user.address)],
+          ['City', dash(user.city)],
+        ]} />
+      </DrawerSection>
+
+      <DrawerSection title="Work information">
+        <DetailList rows={[
+          ['Employee number', dash(user.employeeNumber)],
+          ['Job title', dash(user.jobTitle)],
+          ['Department', dash(user.department)],
+          ['Work location', dash(user.workBranchName || user.workBranchCode)],
+        ]} />
+      </DrawerSection>
+
+      <DrawerSection title="Account">
+        <DetailList rows={[
+          ['Username', user.username],
+          ['Email', user.email],
+          ['Role', <RoleBadge key="r" role={user.role} />],
+          ['Status', <StatusBadge key="s" user={user} />],
+          ['Must change password', user.mustChangePassword ? 'Yes' : 'No'],
+          ['Notes', dash(user.notes)],
+        ]} />
+      </DrawerSection>
+
+      <DrawerSection title="Activity">
+        <DetailList rows={[
+          ['Last sign-in', user.lastLoginAt ? `${formatDateTime(user.lastLoginAt)}${user.lastLoginIp ? ` · ${user.lastLoginIp}` : ''}` : 'Never'],
+          ['Failed sign-in attempts', formatNumber(user.failedLoginAttempts)],
+          ['Locked until', user.isLocked && user.lockedUntil ? formatDateTime(user.lockedUntil) : '—'],
+          ['Password changed', user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
+          ['Created', `${user.createdAt ? formatDateTime(user.createdAt) : '—'}${user.createdBy ? ` by ${user.createdBy}` : ''}`],
+          ['Updated', `${user.updatedAt ? formatDateTime(user.updatedAt) : '—'}${user.updatedBy ? ` by ${user.updatedBy}` : ''}`],
+        ]} />
+      </DrawerSection>
+    </Drawer>
   );
 }
 
+/** Confirmation stays a small centered dialog (a destructive yes/no, not a form). */
 function DeleteDialog({ user, onClose, onDeleted, onError }: { user: AuthUser; onClose: () => void; onDeleted: () => void; onError: (text: string) => void }) {
   const [busy, setBusy] = useState(false);
   const remove = async () => {
@@ -541,7 +605,7 @@ function DeleteDialog({ user, onClose, onDeleted, onError }: { user: AuthUser; o
       <div className="flex items-center gap-3 rounded-lg bg-red-50 px-3 py-3">
         <KeyRound size={18} className="text-red-600" />
         <div className="text-sm">
-          <p className="font-semibold text-slate-900">{user.fullName}</p>
+          <p className="font-semibold text-slate-900">{user.displayName}</p>
           <p className="text-slate-600">{user.username} · {user.email}</p>
         </div>
       </div>

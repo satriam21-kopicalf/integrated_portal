@@ -24,7 +24,7 @@ Browser ── portal.kopicalf.co.id (Vercel) ───────────�
 | `/` | Redirect ke `/overview` |
 | `/overview` | Dashboard analitik: strip *Latest sales*, ringkasan KPI, panel *Today*, tren, channel, cabang, jam sibuk, menu, pembayaran, basket, pengurangan, pertumbuhan bulanan |
 | `/sales` | Daftar transaksi (detail per item), ringkasan Sales/Nett/Gross/Deductions, filter, export Excel |
-| `/users` | **User Accounts** (khusus superadmin): CRUD akun login, role, status, foto profil |
+| `/users` | **User Accounts** (khusus superadmin): CRUD akun login, role, status, foto profil, profil user |
 
 Semua halaman selain `/login` wajib login. Role **user** hanya melihat Overview & Sales Transactions (menu *Platforms* dan *User Accounts* disembunyikan, API `/api/users` ditolak); **superadmin** akses penuh.
 
@@ -50,9 +50,11 @@ Semua halaman selain `/login` wajib login. Role **user** hanya melihat Overview 
 - `src/proxy.ts` (Next.js 16 *proxy*, pengganti middleware): halaman tanpa cookie sesi langsung diarahkan ke `/login?next=…`.
 - `src/lib/auth.tsx` — `AuthProvider`: memeriksa sesi (`GET /api/auth/me`), menyediakan `useAuth()` (user, `logout`, `setUser`), mengarahkan ke `/login` bila ada respons 401 (sesi habis/dicabut), dan memaksa ganti password bila `mustChangePassword`.
 - **Login** (`src/app/login/page.tsx`): pilihan *Username* atau *Email*, tampilkan/sembunyikan password, *Keep me signed in for 30 days*, pesan galat (salah, terkunci 15 menit setelah 5 kali salah, nonaktif). Token sesi ada di cookie HttpOnly (tidak terbaca JavaScript).
-- **Profil di sidebar** (`components/layout/Sidebar.tsx`): foto/inisial, nama lengkap, role, username & email; menu *Profile photo*, *Change password*, *Sign out*.
-- **User Accounts** (`src/app/users/page.tsx`, superadmin): daftar dengan pencarian, filter role & status (Active/Inactive/Locked), paginasi; *New user* / *Edit* (nama, username, email, role, status, telepon, jabatan, departemen, catatan, password + generator, wajib ganti password), *View* (detail & audit: login terakhir + IP, percobaan gagal, dibuat/diubah oleh), *Unlock*, *Delete* (konfirmasi). Tidak bisa menghapus/menonaktifkan akun sendiri.
-- **Foto profil** (`components/UserAvatar.tsx`): unggah JPG/PNG/WebP, dipotong persegi & diperkecil ke 256×256 di browser sebelum dikirim; user mengatur fotonya sendiri lewat sidebar, superadmin bisa mengatur foto user lain di form user.
+- **Drawer** (`components/ui/Drawer.tsx`): semua form & detail akun tampil sebagai panel geser dari kanan (layar penuh di ponsel), bukan modal: *New user*, *View*, *Edit*, *Change password* (termasuk ganti password wajib, terkunci), *My profile*. Hanya konfirmasi *Delete* yang tetap modal kecil (`ui/Dialog.tsx`).
+- **Profil di sidebar** (`components/layout/Sidebar.tsx`): foto/inisial, nama tampilan (`displayName` = nama lengkap, atau username selama profil belum diisi), role, username & email; menu *My profile* (label *Incomplete* + titik kuning di avatar bila profil belum lengkap), *Change password*, *Sign out*.
+- **My profile** (`components/AccountDrawers.tsx` + `components/ProfileFields.tsx`): user mengisi identitasnya sendiri — foto, nama lengkap, jenis kelamin, tanggal lahir, telepon, alamat, kota, nomor karyawan, jabatan, departemen, lokasi kerja (outlet dari `/api/branches`) — disimpan lewat `PATCH /api/auth/me`. Username, email & role hanya dibaca (dikelola superadmin). Profil dianggap **lengkap** bila nama lengkap, telepon, jabatan & departemen terisi; selama belum lengkap muncul pengingat di pojok kanan bawah (*Complete profile* / *Later*, disembunyikan per sesi).
+- **User Accounts** (`src/app/users/page.tsx`, superadmin): daftar dengan pencarian (nama, username, email, nomor karyawan), filter role & status (Active/Inactive/Locked), paginasi, badge *Profile incomplete*. *New user* cukup **username, email, password** (otomatis dibuat, bisa di-generate ulang), role & status — profil diisi sendiri oleh user. *Edit*: login, akses, reset password, koreksi profil, foto, catatan admin. *View*: profil pribadi & pekerjaan, akun, aktivitas (login terakhir + IP, percobaan gagal, dibuat/diubah oleh). *Unlock*, *Delete* (konfirmasi). Tidak bisa menghapus/menonaktifkan akun sendiri.
+- **Foto profil** (`components/UserAvatar.tsx`): unggah JPG/PNG/WebP, dipotong persegi & diperkecil ke 256×256 di browser sebelum dikirim; user mengatur fotonya sendiri di *My profile*, superadmin bisa mengatur foto user lain di *Edit*.
 - Akun pertama dibuat di backend dengan CLI (`python -m app.accounts create …`, lihat dokumentasi backend).
 
 ## Realtime (WebSocket)
@@ -87,8 +89,11 @@ src/
 │   ├── StatStrip.tsx           # ringkasan angka tanpa card (Overview & Sales)
 │   ├── ChannelLogo.tsx         # logo channel (JSX & label rich ECharts)
 │   ├── UserAvatar.tsx          # foto profil / inisial + AvatarEditor (unggah)
-│   ├── ChangePasswordDialog.tsx
-│   ├── ui/Dialog.tsx           # modal, field & gaya tombol
+│   ├── AccountDrawers.tsx      # My profile, Change password (+ wajib), pengingat profil
+│   ├── ProfileFields.tsx       # field identitas (My profile & Edit user)
+│   ├── ChangePasswordDrawer.tsx
+│   ├── ui/Drawer.tsx           # panel geser kanan (form & detail)
+│   ├── ui/Dialog.tsx           # modal konfirmasi, field & gaya tombol
 │   ├── DateRangePicker.tsx     # preset + kalender (preset & label default per halaman)
 │   ├── BranchFilter.tsx, ExportButton.tsx, TransactionDetail.tsx
 │   ├── charts/                 # EChart (wrapper ECharts), HBarChart, Sparkline, Legend

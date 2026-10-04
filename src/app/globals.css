@@ -363,3 +363,20 @@
     .live-enter, .live-fade, .live-ticker-track { animation: none; }
   }
 }
+
+/* Drawers (components/ui/Drawer.tsx): panel slides in from the right */
+@layer utilities {
+  @keyframes drawer-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes drawer-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .drawer-panel { animation: drawer-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .drawer-backdrop { animation: drawer-fade 0.2s ease-out both; }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer-panel, .drawer-backdrop { animation: none; }
+  }
+}

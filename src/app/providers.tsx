@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import ChangePasswordDialog from '@/components/ChangePasswordDialog';
+import { AccountDrawersProvider } from '@/components/AccountDrawers';
 import { AuthProvider, isPublicPath, useAuth } from '@/lib/auth';
 import { RealtimeProvider } from '@/lib/realtime';
 
@@ -11,6 +11,8 @@ import { RealtimeProvider } from '@/lib/realtime';
  * Session-wide providers: the signed-in user, then (only once signed in) one
  * realtime WebSocket shared by all pages. Protected pages render only after the
  * session is confirmed, so no dashboard content flashes before a redirect.
+ * AccountDrawersProvider adds "My profile" / "Change password" (incl. the forced
+ * password change and the reminder to complete the profile).
  */
 export default function Providers({ children }: { children: ReactNode }) {
   return (
@@ -34,8 +36,7 @@ function Gate({ children }: { children: ReactNode }) {
   }
   return (
     <RealtimeProvider>
-      {children}
-      {user.mustChangePassword && <ChangePasswordDialog open forced onClose={() => {}} />}
+      <AccountDrawersProvider>{children}</AccountDrawersProvider>
     </RealtimeProvider>
   );
 }

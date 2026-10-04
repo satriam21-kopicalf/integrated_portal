@@ -10,12 +10,16 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { usePathname, useRouter } from 'next/navigation';
 
 export type Role = 'superadmin' | 'user';
+export type Gender = 'male' | 'female';
 
 export interface AuthUser {
   id: string;
   username: string;
   email: string;
-  fullName: string;
+  /** null until the user fills it in under "My profile" */
+  fullName: string | null;
+  /** what to show: the full name, or the username until the profile is completed */
+  displayName: string;
   role: Role;
   isActive: boolean;
   isLocked: boolean;
@@ -23,6 +27,19 @@ export interface AuthUser {
   jobTitle: string | null;
   department: string | null;
   notes: string | null;
+  employeeNumber: string | null;
+  gender: Gender | null;
+  /** YYYY-MM-DD */
+  birthDate: string | null;
+  address: string | null;
+  city: string | null;
+  /** outlet / office: master branch code */
+  workBranchCode: string | null;
+  workBranchName: string | null;
+  /** full name, phone number, job title and department are filled in */
+  profileComplete: boolean;
+  /** last change the user made to their own profile */
+  profileUpdatedAt: string | null;
   mustChangePassword: boolean;
   /** versioned /api/avatars/{id}?v=... or null */
   avatarUrl: string | null;
@@ -52,6 +69,7 @@ const AuthContext = createContext<AuthState>({
 
 export const PUBLIC_PATHS = ['/login'];
 export const ROLE_LABELS: Record<Role, string> = { superadmin: 'Super Admin', user: 'User' };
+export const GENDER_LABELS: Record<Gender, string> = { male: 'Male', female: 'Female' };
 
 export function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(`${p}/`));

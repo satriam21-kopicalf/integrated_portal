@@ -1,8 +1,9 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { Check, Eye, EyeOff, Loader2 } from 'lucide-react';
-import Dialog, { buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
+import { Check, Eye, EyeOff, KeyRound, Loader2 } from 'lucide-react';
+import Drawer from '@/components/ui/Drawer';
+import { buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
 import { useAuth } from '@/lib/auth';
 
 const RULES: { label: string; test: (pw: string) => boolean }[] = [
@@ -11,7 +12,7 @@ const RULES: { label: string; test: (pw: string) => boolean }[] = [
 ];
 
 /** Change your own password; `forced` when the account must change it before continuing. */
-export default function ChangePasswordDialog({ open, onClose, forced = false }: { open: boolean; onClose: () => void; forced?: boolean }) {
+export default function ChangePasswordDrawer({ open, onClose, forced = false }: { open: boolean; onClose: () => void; forced?: boolean }) {
   const { setUser, logout } = useAuth();
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -57,11 +58,12 @@ export default function ChangePasswordDialog({ open, onClose, forced = false }: 
 
   const type = show ? 'text' : 'password';
   return (
-    <Dialog
+    <Drawer
       open={open}
       onClose={close}
       locked={forced}
       size="sm"
+      icon={<KeyRound size={18} />}
       title={forced ? 'Set a new password' : 'Change password'}
       description={forced ? 'Your account requires a new password before you continue.' : 'Other devices will be signed out.'}
       footer={
@@ -76,7 +78,7 @@ export default function ChangePasswordDialog({ open, onClose, forced = false }: 
         </>
       }
     >
-      <form id="change-password" onSubmit={submit} className="space-y-3">
+      <form id="change-password" onSubmit={submit} className="space-y-4">
         <Field label="Current password" htmlFor="pw-current" required>
           <input id="pw-current" type={type} autoComplete="current-password" className={inputClass} value={current} onChange={e => setCurrent(e.target.value)} />
         </Field>
@@ -101,6 +103,6 @@ export default function ChangePasswordDialog({ open, onClose, forced = false }: 
         </Field>
         {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
       </form>
-    </Dialog>
+    </Drawer>
   );
 }
