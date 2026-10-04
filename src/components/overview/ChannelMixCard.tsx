@@ -148,20 +148,20 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
         <thead className="border-b border-slate-100 text-slate-500">
           <tr>
             <th scope="col" className="py-1.5 text-left font-medium">Channel</th>
-            <th scope="col" className="py-1.5 text-right font-medium">Bills</th>
-            <th scope="col" className="py-1.5 text-right font-medium">Avg ticket</th>
-            <th scope="col" className="py-1.5 text-right font-medium">Disc.</th>
-            <th scope="col" className="py-1.5 text-right font-medium">Change</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">Bills</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">Avg ticket</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">Disc.</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">Change</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
           {channels.map(c => (
             <tr key={c.channel}>
               <td className="py-1.5"><span className="flex items-center gap-2"><SeriesKey color={channelColor(c.channel)} /><ChannelLogo channel={c.channel} height={14} /></span></td>
-              <td className="py-1.5 text-right tabular-nums text-slate-700">{formatNumber(c.bills)}</td>
-              <td className="py-1.5 text-right tabular-nums text-slate-700">{c.avgTicket === null ? '-' : formatNumber(Math.round(c.avgTicket))}</td>
-              <td className="py-1.5 text-right tabular-nums text-slate-700">{c.discountPct === null ? '-' : `${c.discountPct.toFixed(1)}%`}</td>
-              <td className="py-1.5 text-right"><Delta value={c.deltaPct} /></td>
+              <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{formatNumber(c.bills)}</td>
+              <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{c.avgTicket === null ? '-' : formatNumber(Math.round(c.avgTicket))}</td>
+              <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{c.discountPct === null ? '-' : `${c.discountPct.toFixed(1)}%`}</td>
+              <td className="py-1.5 pl-3 text-right"><Delta value={c.deltaPct} /></td>
             </tr>
           ))}
         </tbody>
