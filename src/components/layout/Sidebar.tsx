@@ -1,16 +1,21 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, ChevronsUpDown, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, X } from 'lucide-react';
+import {
+  ChevronDown, ChevronsUpDown, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, Users, X,
+} from 'lucide-react';
+import ChangePasswordDialog from '@/components/ChangePasswordDialog';
 import { assetUrl } from '@/lib/assets';
+import { initials, ROLE_LABELS, useAuth } from '@/lib/auth';
 import { useClickOutside } from '@/lib/useClickOutside';
 
 const navigation = [
-  { name: 'Dashboard', href: '/overview', icon: LayoutDashboard, description: 'Overview & analytics' },
-  { name: 'Sales Transactions', href: '/sales', icon: Receipt, description: 'View & export data' },
+  { name: 'Dashboard', href: '/overview', icon: LayoutDashboard, description: 'Overview & analytics', superadmin: false },
+  { name: 'Sales Transactions', href: '/sales', icon: Receipt, description: 'View & export data', superadmin: false },
+  { name: 'User Accounts', href: '/users', icon: Users, description: 'Logins & roles', superadmin: true },
 ];
 
 const platforms = [
@@ -153,6 +158,9 @@ function SidebarContent({
   onNavigate?: () => void;
   children: React.ReactNode; // header action (collapse / close)
 }) {
+  const { user } = useAuth();
+  const isSuperadmin = user?.role === 'superadmin';
+  const items = navigation.filter(item => !item.superadmin || isSuperadmin);
   return (
     <div className="flex h-full w-full flex-col">
       {/* Header */}
@@ -164,7 +172,7 @@ function SidebarContent({
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Main menu</p>}
         <ul className="space-y-0.5">
-          {navigation.map(item => {
+          {items.map(item => {
             const active = pathname === item.href;
             const Icon = item.icon;
             return (
@@ -192,7 +200,8 @@ function SidebarContent({
           })}
         </ul>
 
-        <div className="mt-5 border-t border-slate-100 pt-4">
+        {/* platforms: superadmin only */}
+        {isSuperadmin && <div className="mt-5 border-t border-slate-100 pt-4">
           {collapsed ? (
             <ul className="space-y-1">
               {platforms.map(p => (
@@ -236,7 +245,7 @@ function SidebarContent({
               )}
             </>
           )}
-        </div>
+        </div>}
       </nav>
 
       <UserMenu collapsed={collapsed} />
@@ -245,26 +254,46 @@ function SidebarContent({
 }
 
 function UserMenu({ collapsed }: { collapsed: boolean }) {
-  const router = useRouter();
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [changing, setChanging] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
   useClickOutside(ref, close, open);
+  if (!user) return null;
+  const role = ROLE_LABELS[user.role] ?? user.role;
+  const superadmin = user.role === 'superadmin';
 
   return (
     <div className="flex-shrink-0 border-t border-slate-100 p-3" ref={ref}>
       <div className="relative">
         {open && (
-          <div className={`absolute bottom-full mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl ${collapsed ? 'left-0 w-56' : 'inset-x-0'}`}>
-            <div className="border-b border-slate-100 px-3 py-2.5">
-              <p className="text-sm font-medium text-slate-900">Admin User</p>
-              <p className="truncate text-xs text-slate-500">admin@kopicalf.co.id</p>
+          <div className={`absolute bottom-full z-10 mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl ${collapsed ? 'left-0 w-64' : 'inset-x-0'}`}>
+            <div className="border-b border-slate-100 px-3 py-3">
+              <div className="flex items-center gap-2.5">
+                <Avatar name={user.fullName} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-900">{user.fullName}</p>
+                  <RoleBadge role={role} superadmin={superadmin} />
+                </div>
+              </div>
+              <dl className="mt-2.5 space-y-1 text-xs">
+                <div className="flex justify-between gap-2"><dt className="text-slate-400">Username</dt><dd className="truncate font-medium text-slate-700">{user.username}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-slate-400">Email</dt><dd className="truncate font-medium text-slate-700">{user.email}</dd></div>
+              </dl>
             </div>
             <div className="p-1.5">
               <button
                 type="button"
-                onClick={() => { setOpen(false); router.push('/'); }}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50"
+                onClick={() => { setOpen(false); setChanging(true); }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <KeyRound size={16} /> Change password
+              </button>
+              <button
+                type="button"
+                onClick={() => { setOpen(false); logout(); }}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
               >
                 <LogOut size={16} /> Sign out
               </button>
@@ -276,14 +305,14 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
           onClick={() => setOpen(o => !o)}
           className={`flex w-full items-center gap-3 rounded-lg p-2 transition-colors hover:bg-slate-50 ${collapsed ? 'justify-center' : ''}`}
           aria-expanded={open}
-          title={collapsed ? 'Admin User' : undefined}
+          title={collapsed ? `${user.fullName} · ${role}` : undefined}
         >
-          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">AU</span>
+          <Avatar name={user.fullName} />
           {!collapsed && (
             <>
               <span className="min-w-0 flex-1 text-left">
-                <span className="block truncate text-sm font-medium text-slate-900">Admin User</span>
-                <span className="block truncate text-xs text-slate-400">admin@kopicalf.co.id</span>
+                <span className="block truncate text-sm font-medium text-slate-900">{user.fullName}</span>
+                <span className="block truncate text-xs text-slate-400">{role} · {user.username}</span>
               </span>
               <ChevronsUpDown size={15} className="text-slate-400" />
             </>
@@ -291,6 +320,25 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
         </button>
       </div>
       {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">Integration Platform v1.4.0</p>}
+      <ChangePasswordDialog open={changing} onClose={() => setChanging(false)} />
     </div>
+  );
+}
+
+function Avatar({ name }: { name: string }) {
+  return (
+    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-blue-900 text-xs font-semibold text-white">
+      {initials(name)}
+    </span>
+  );
+}
+
+function RoleBadge({ role, superadmin }: { role: string; superadmin: boolean }) {
+  return (
+    <span className={`mt-0.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+      superadmin ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}
+    >
+      {superadmin && <ShieldCheck size={11} />} {role}
+    </span>
   );
 }

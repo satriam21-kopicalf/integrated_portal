@@ -1,9 +1,41 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { Loader2 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import ChangePasswordDialog from '@/components/ChangePasswordDialog';
+import { AuthProvider, isPublicPath, useAuth } from '@/lib/auth';
 import { RealtimeProvider } from '@/lib/realtime';
 
-/** Client-side providers that live for the whole session (one WebSocket across page changes). */
+/**
+ * Session-wide providers: the signed-in user, then (only once signed in) one
+ * realtime WebSocket shared by all pages. Protected pages render only after the
+ * session is confirmed, so no dashboard content flashes before a redirect.
+ */
 export default function Providers({ children }: { children: ReactNode }) {
-  return <RealtimeProvider>{children}</RealtimeProvider>;
+  return (
+    <AuthProvider>
+      <Gate>{children}</Gate>
+    </AuthProvider>
+  );
+}
+
+function Gate({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const { status, user } = useAuth();
+  if (isPublicPath(pathname)) return <>{children}</>;
+  if (status !== 'authenticated' || !user) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-slate-50 text-slate-400" aria-busy="true">
+        <Loader2 size={22} className="animate-spin" />
+        <span className="sr-only">Checking your session…</span>
+      </div>
+    );
+  }
+  return (
+    <RealtimeProvider>
+      {children}
+      {user.mustChangePassword && <ChangePasswordDialog open forced onClose={() => {}} />}
+    </RealtimeProvider>
+  );
 }
