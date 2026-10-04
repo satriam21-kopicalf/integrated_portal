@@ -4,7 +4,6 @@ import { FormEvent, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, AtSign, Eye, EyeOff, Info, Loader2, Lock, User } from 'lucide-react';
-import { assetUrl } from '@/lib/assets';
 import { safeNext, useAuth } from '@/lib/auth';
 
 type Method = 'username' | 'email';
@@ -83,7 +82,8 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-[400px]">
           <div className="mb-8 flex flex-col items-center text-center">
-            <Image src={assetUrl('assets/calf-logo.png')} alt="Kopi Calf" width={136} height={72} priority
+            {/* served from the site itself (same origin): the first thing on screen, no external round trip */}
+            <Image src="/assets/calf-logo.png" alt="Kopi Calf" width={136} height={72} priority unoptimized
               className="h-[72px] w-auto object-contain" />
             <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900">Sign in to Portal</h1>
             <p className="mt-1.5 text-sm text-slate-500">Kopi Calf Integration Platform</p>
