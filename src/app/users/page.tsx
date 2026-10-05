@@ -3,7 +3,7 @@
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Eye, EyeOff, Info, KeyRound, Loader2, Lock, Pencil, Plus, Search,
+  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, Info, KeyRound, Loader2, Lock, Pencil, Plus, Search,
   ShieldCheck, Store, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
 } from 'lucide-react';
 import BranchAssign from '@/components/BranchAssign';
@@ -46,6 +46,22 @@ function generatePassword(): string {
   return /[A-Za-z]/.test(pw) && /\d/.test(pw) ? pw : generatePassword();
 }
 
+const JOB_TITLES = ['PIC Outlet', 'Store Leader', 'Area Manager', 'Operation Manager', 'Staff'];
+const DEPARTMENTS = ['Operations', 'Finance', 'Purchasing', 'Marketing', 'Human Resources', 'IT'];
+
+/** "Okta Fajri Ramadhan" -> "okta.fajri" (same rule as the accounts imported from user-accounts.xlsx) */
+function suggestUsername(fullName: string): string {
+  const words = fullName.normalize('NFKD').toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean);
+  return words.slice(0, 2).join('.').slice(0, 32);
+}
+
+/** Credentials of an account that was just created or got a new password (kept in memory only). */
+interface IssuedLogin {
+  user: AuthUser;
+  password: string;
+  created: boolean;
+}
+
 export default function UsersPage() {
   const router = useRouter();
   const { user: me, setUser: setMe } = useAuth();
@@ -57,6 +73,8 @@ export default function UsersPage() {
   const [query, setQuery] = useState('');
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
+  const [branchFilter, setBranchFilter] = useState('');
+  const [issued, setIssued] = useState<IssuedLogin | null>(null);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AuthUser | 'new' | null>(null);
   const [viewing, setViewing] = useState<AuthUser | null>(null);
@@ -88,6 +106,7 @@ export default function UsersPage() {
       if (query) params.set('search', query);
       if (role) params.set('role', role);
       if (status) params.set('status', status);
+      if (branchFilter) params.set('branch', branchFilter);
       const body = await api<ListResponse>(`/api/users?${params}`);
       setRows(body.data);
       setTotal(body.total);
@@ -96,7 +115,7 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, query, role, status]);
+  }, [page, query, role, status, branchFilter]);
 
   useEffect(() => {
     if (allowed) load();
@@ -114,8 +133,9 @@ export default function UsersPage() {
     searchTimer.current = setTimeout(() => { setPage(1); setQuery(value.trim()); }, 350);
   };
 
-  const saved = (u: AuthUser, created: boolean) => {
+  const saved = (u: AuthUser, created: boolean, password?: string) => {
     setEditing(null);
+    if (password) setIssued({ user: u, password, created });
     if (u.id === me?.id) setMe(u);
     setToast({ tone: 'ok', text: created ? `User ${u.username} created` : `User ${u.username} updated` });
     if (viewing?.id === u.id) setViewing(u);
@@ -134,7 +154,7 @@ export default function UsersPage() {
   };
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const filtersActive = Boolean(query || role || status);
+  const filtersActive = Boolean(query || role || status || branchFilter);
 
   if (!allowed) {
     return (
@@ -164,10 +184,16 @@ export default function UsersPage() {
             <div className="flex flex-col gap-3 border-b border-slate-200 p-3 sm:flex-row sm:items-center sm:p-4">
               <div className="relative flex-1">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search name, username, email or employee number"
+                <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search name, username, email, phone or job title"
                   className={`${inputClass} pl-9`} aria-label="Search users" />
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <select value={branchFilter} onChange={e => { setBranchFilter(e.target.value); setPage(1); }} className={`${inputClass} w-auto max-w-[14rem]`} aria-label="Branch">
+                  <option value="">All branches</option>
+                  {[...branches].sort((a, b) => a.branch_name.localeCompare(b.branch_name)).map(b => (
+                    <option key={b.branch_code} value={b.branch_code}>{b.branch_name}</option>
+                  ))}
+                </select>
                 <select value={role} onChange={e => { setRole(e.target.value); setPage(1); }} className={`${inputClass} w-auto`} aria-label="Role">
                   <option value="">All roles</option>
                   <option value="superadmin">Super Admin</option>
@@ -252,6 +278,7 @@ export default function UsersPage() {
       {deleting && <DeleteDialog user={deleting} onClose={() => setDeleting(null)}
         onDeleted={() => { setToast({ tone: 'ok', text: `User ${deleting.username} deleted` }); setDeleting(null); load(); }}
         onError={text => setToast({ tone: 'error', text })} />}
+      {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
       {toast && (
         <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-slate-900' : 'bg-red-600'}`} role="status">
@@ -364,12 +391,13 @@ interface AccountForm {
 }
 
 /**
- * New user: only the sign-in (username, email, password) and access; the user
- * fills in their identity themself under "My profile".
+ * New user: identity (optional, as the imported PIC accounts: name, phone, job title,
+ * department), sign-in, access and branches; the user completes the rest under "My profile".
  * Edit: everything, incl. correcting the profile and the photo.
  */
 function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSaved }: {
-  user: AuthUser | null; isMe: boolean; branches: Branch[]; branchesLoading: boolean; onClose: () => void; onSaved: (u: AuthUser, created: boolean) => void;
+  user: AuthUser | null; isMe: boolean; branches: Branch[]; branchesLoading: boolean; onClose: () => void;
+  onSaved: (u: AuthUser, created: boolean, password?: string) => void;
 }) {
   const creating = !user;
   const { user: me, setUser: setMe } = useAuth();
@@ -380,6 +408,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
   const [profile, setProfile] = useState<ProfileValues>(() => profileValues(user));
   const [branchCodes, setBranchCodes] = useState<string[]>(() => user?.branches ?? []);
   const [showPassword, setShowPassword] = useState(creating);
+  // the username follows the full name until it is typed by hand
+  const [usernameTouched, setUsernameTouched] = useState(!creating);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<{ text: string; field?: string | null } | null>(null);
   const set = <K extends keyof AccountForm>(key: K, value: AccountForm[K]) => setForm(f => ({ ...f, [key]: value }));
@@ -392,6 +422,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
     if (!creating) {
       body.notes = form.notes;
       for (const k of PROFILE_KEYS) body[k] = profile[k].trim();
+    } else {
+      if (form.notes.trim()) body.notes = form.notes;
+      for (const k of ['fullName', 'phoneNumber', 'jobTitle', 'department'] as const) {
+        if (profile[k].trim()) body[k] = profile[k].trim();
+      }
     }
     if (form.password) body.password = form.password;
     if (form.role === 'user') body.branches = branchCodes;
@@ -406,7 +441,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
       const res = await api<{ user: AuthUser }>(creating ? '/api/users' : `/api/users/${user!.id}`, {
         method: creating ? 'POST' : 'PATCH', body: JSON.stringify(payload),
       });
-      onSaved(res.user, creating);
+      onSaved(res.user, creating, form.password || undefined);
     } catch (err) {
       setError({ text: (err as Error).message, field: (err as ApiError).field });
     } finally {
@@ -421,7 +456,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
     <Drawer open onClose={onClose} size={creating ? 'md' : 'lg'}
       icon={creating ? <UserPlus size={18} /> : <UserRoundPen size={18} />}
       title={creating ? 'New user' : `Edit ${user!.username}`}
-      description={creating ? 'Create the sign-in. The user completes their own profile after signing in.' : 'Leave the password empty to keep the current one.'}
+      description={creating ? 'Identity, sign-in, role and branches. The user completes the rest of the profile after signing in.' : 'Leave the password empty to keep the current one.'}
       footer={
         <>
           <button type="button" className={buttonSecondary} onClick={onClose}>Cancel</button>
@@ -444,10 +479,38 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
           </DrawerSection>
         )}
 
+        {creating && (
+          <DrawerSection title="Identity" description="Optional — filled in now, the profile is complete at the first sign-in (the user can still change it).">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Full name" htmlFor="f-fullName" error={fieldError('fullName')}>
+                <input id="f-fullName" className={inputClass} value={profile.fullName} maxLength={120} autoComplete="off"
+                  onChange={e => {
+                    setProfileField('fullName', e.target.value);
+                    if (!usernameTouched) set('username', suggestUsername(e.target.value));
+                  }} />
+              </Field>
+              <Field label="Phone number" htmlFor="f-phoneNumber" error={fieldError('phoneNumber')} hint="e.g. 0812-3456-7890">
+                <input id="f-phoneNumber" type="tel" className={inputClass} value={profile.phoneNumber} maxLength={32} autoComplete="off"
+                  onChange={e => setProfileField('phoneNumber', e.target.value)} />
+              </Field>
+              <Field label="Job title" htmlFor="f-jobTitle" error={fieldError('jobTitle')}>
+                <input id="f-jobTitle" list="job-titles" className={inputClass} value={profile.jobTitle} maxLength={80} autoComplete="off"
+                  onChange={e => setProfileField('jobTitle', e.target.value)} placeholder="PIC Outlet" />
+                <datalist id="job-titles">{JOB_TITLES.map(t => <option key={t} value={t} />)}</datalist>
+              </Field>
+              <Field label="Department" htmlFor="f-department" error={fieldError('department')}>
+                <input id="f-department" list="departments" className={inputClass} value={profile.department} maxLength={80} autoComplete="off"
+                  onChange={e => setProfileField('department', e.target.value)} placeholder="Operations" />
+                <datalist id="departments">{DEPARTMENTS.map(t => <option key={t} value={t} />)}</datalist>
+              </Field>
+            </div>
+          </DrawerSection>
+        )}
+
         <DrawerSection title="Sign-in" description="The user signs in with the username or the email address.">
           <div className="grid gap-4">
             <Field label="Username" htmlFor="f-username" required error={fieldError('username')} hint="3–32: lowercase letters, numbers, . _ -">
-              <input id="f-username" className={inputClass} value={form.username} onChange={e => set('username', e.target.value.toLowerCase())}
+              <input id="f-username" className={inputClass} value={form.username} onChange={e => { setUsernameTouched(true); set('username', e.target.value.toLowerCase()); }}
                 autoCapitalize="none" spellCheck={false} maxLength={32} required autoComplete="off" />
             </Field>
             <Field label="Email" htmlFor="f-email" required error={fieldError('email')}>
@@ -507,13 +570,20 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
         )}
 
         {creating ? (
-          <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/60 px-3.5 py-3 text-sm text-blue-900">
-            <Info size={16} className="mt-0.5 flex-shrink-0 text-blue-700" />
-            <p>
-              After the first sign-in the user is asked to complete <span className="font-medium">My profile</span>: full name, phone number,
-              job title, department, work location and other details. You can still correct them later under Edit.
-            </p>
-          </div>
+          <>
+            <DrawerSection title="Administrator notes" description="Only visible to super admins, e.g. area or outlet group.">
+              <Field label="Notes" htmlFor="f-notes" error={fieldError('notes')}>
+                <textarea id="f-notes" rows={2} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
+              </Field>
+            </DrawerSection>
+            <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/60 px-3.5 py-3 text-sm text-blue-900">
+              <Info size={16} className="mt-0.5 flex-shrink-0 text-blue-700" />
+              <p>
+                After saving you get the login details to share with the user. At the first sign-in the user sets a new password and
+                completes <span className="font-medium">My profile</span> (gender, date of birth, address, work location…).
+              </p>
+            </div>
+          </>
         ) : (
           <>
             {!user!.profileComplete && (
@@ -633,6 +703,69 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           ['Password changed', user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
           ['Created', `${user.createdAt ? formatDateTime(user.createdAt) : '—'}${user.createdBy ? ` by ${user.createdBy}` : ''}`],
           ['Updated', `${user.updatedAt ? formatDateTime(user.updatedAt) : '—'}${user.updatedBy ? ` by ${user.updatedBy}` : ''}`],
+        ]} />
+      </DrawerSection>
+    </Drawer>
+  );
+}
+
+/** Login details to hand over after creating an account or setting a new password (never stored). */
+function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogin; branchName: (code: string) => string; onClose: () => void }) {
+  const { user, password, created } = issued;
+  const [show, setShow] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const branches = user.role === 'superadmin' ? 'Semua cabang' : (user.branches ?? []).map(branchName).join(', ') || '—';
+  const text = [
+    'Login Kopi Calf Integrated Portal',
+    `URL: ${typeof window !== 'undefined' ? window.location.origin : ''}`,
+    `Username: ${user.username}`,
+    `Email: ${user.email}`,
+    `Password: ${password}`,
+    `Akses cabang: ${branches}`,
+    user.mustChangePassword ? 'Wajib mengganti password saat login pertama.' : '',
+  ].filter(Boolean).join('\n');
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setShow(true); // clipboard blocked: show the password so it can be copied by hand
+    }
+  };
+  return (
+    <Drawer open onClose={onClose} size="md" icon={<KeyRound size={18} />}
+      title={created ? `User ${user.username} created` : `New password for ${user.username}`}
+      description="Share these details with the user privately. The password is shown only now."
+      footer={
+        <>
+          <button type="button" className={buttonSecondary} onClick={onClose}>Done</button>
+          <button type="button" className={buttonPrimary} onClick={copy}>
+            {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}{copied ? 'Copied' : 'Copy login details'}
+          </button>
+        </>
+      }>
+      <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
+        <UserAvatar name={user.displayName} src={user.avatarUrl} size="lg" />
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-slate-900">{user.displayName}</p>
+          <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><BranchesBadge user={user} branchName={branchName} /></div>
+        </div>
+      </div>
+      <DrawerSection title="Login details">
+        <DetailList rows={[
+          ['Username', <span key="u" className="font-mono">{user.username}</span>],
+          ['Email', user.email],
+          ['Password', (
+            <span key="p" className="flex items-center gap-2">
+              <span className="font-mono">{show ? password : '•'.repeat(Math.min(password.length, 14))}</span>
+              <button type="button" onClick={() => setShow(s => !s)} className="rounded p-1 text-slate-400 hover:text-slate-700" aria-label={show ? 'Hide password' : 'Show password'}>
+                {show ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </span>
+          )],
+          ['Branch access', branches],
+          ['First sign-in', user.mustChangePassword ? 'Must change the password' : 'Password can be kept'],
         ]} />
       </DrawerSection>
     </Drawer>
