@@ -3,20 +3,36 @@
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, Info, KeyRound, Loader2, Lock, Pencil, Plus, Search,
-  ShieldCheck, Store, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
+  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
+  Search, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Wand2, X,
 } from 'lucide-react';
 import BranchAssign from '@/components/BranchAssign';
 import type { Branch } from '@/components/BranchFilter';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
+import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
+import ActionMenu, { ActionItem } from '@/components/ui/ActionMenu';
 import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
+import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
 import { AuthUser, GENDER_LABELS, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
-import { formatDateTime, formatNumber, parseLocalDate } from '@/lib/format';
+import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
 
 const PAGE_SIZE = 20;
+
+interface UsersSummary {
+  total: number;
+  active: number;
+  inactive: number;
+  locked: number;
+  superadmins: number;
+  users: number;
+  withoutBranch: number;
+  neverSignedIn: number;
+  active7d: number;
+  branchesCovered: number;
+}
 
 interface ListResponse {
   data: AuthUser[];
@@ -67,13 +83,13 @@ export default function UsersPage() {
   const { user: me, setUser: setMe } = useAuth();
   const [rows, setRows] = useState<AuthUser[]>([]);
   const [total, setTotal] = useState(0);
+  const [summary, setSummary] = useState<UsersSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
-  const [role, setRole] = useState('');
-  const [status, setStatus] = useState('');
-  const [branchFilter, setBranchFilter] = useState('');
+  const [filters, setFilters] = useState<UserFilters>(NO_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [issued, setIssued] = useState<IssuedLogin | null>(null);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AuthUser | 'new' | null>(null);
@@ -104,18 +120,22 @@ export default function UsersPage() {
     try {
       const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
       if (query) params.set('search', query);
-      if (role) params.set('role', role);
-      if (status) params.set('status', status);
-      if (branchFilter) params.set('branch', branchFilter);
-      const body = await api<ListResponse>(`/api/users?${params}`);
+      if (filters.role) params.set('role', filters.role);
+      if (filters.status) params.set('status', filters.status);
+      if (filters.branch) params.set('branch', filters.branch);
+      const [body, counts] = await Promise.all([
+        api<ListResponse>(`/api/users?${params}`),
+        api<UsersSummary>('/api/users/summary').catch(() => null),
+      ]);
       setRows(body.data);
       setTotal(body.total);
+      if (counts) setSummary(counts);
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [page, query, role, status, branchFilter]);
+  }, [page, query, filters]);
 
   useEffect(() => {
     if (allowed) load();
@@ -132,6 +152,10 @@ export default function UsersPage() {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => { setPage(1); setQuery(value.trim()); }, 350);
   };
+  const applyFilters = (next: UserFilters) => {
+    setFilters(next);
+    setPage(1);
+  };
 
   const saved = (u: AuthUser, created: boolean, password?: string) => {
     setEditing(null);
@@ -146,15 +170,34 @@ export default function UsersPage() {
     try {
       const body = await api<{ user: AuthUser }>(`/api/users/${u.id}/unlock`, { method: 'POST' });
       setToast({ tone: 'ok', text: `${u.username} unlocked` });
-      setViewing(body.user);
+      if (viewing?.id === u.id) setViewing(body.user);
       load();
     } catch (err) {
       setToast({ tone: 'error', text: (err as Error).message });
     }
   };
 
+  const actionsFor = (u: AuthUser): ActionItem[] => {
+    const isMe = u.id === me?.id;
+    return [
+      { label: 'View details', icon: <Eye size={16} />, onSelect: () => setViewing(u) },
+      { label: 'Edit', icon: <Pencil size={16} />, onSelect: () => setEditing(u) },
+      ...(u.isLocked ? [{ label: 'Unlock', icon: <Unlock size={16} />, onSelect: () => unlock(u) }] : []),
+      { label: 'Activity log', icon: <History size={16} />, onSelect: () => router.push(`/activity?user=${u.id}`) },
+      {
+        label: 'Delete', icon: <Trash2 size={16} />, onSelect: () => setDeleting(u), danger: true, separated: true,
+        disabled: isMe, hint: isMe ? 'You cannot delete your own account' : undefined,
+      },
+    ];
+  };
+
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const filtersActive = Boolean(query || role || status || branchFilter);
+  const activeFilters: ActiveFilter[] = [
+    ...(filters.role ? [{ key: 'role', label: `Role: ${ROLE_LABELS[filters.role as Role]}`, onRemove: () => applyFilters({ ...filters, role: '' }) }] : []),
+    ...(filters.status ? [{ key: 'status', label: `Status: ${STATUS_LABELS[filters.status]}`, onRemove: () => applyFilters({ ...filters, status: '' }) }] : []),
+    ...(filters.branch ? [{ key: 'branch', label: `Branch: ${branchName(filters.branch)}`, onRemove: () => applyFilters({ ...filters, branch: '' }) }] : []),
+  ];
+  const filtersActive = Boolean(query || activeFilters.length);
 
   if (!allowed) {
     return (
@@ -164,14 +207,15 @@ export default function UsersPage() {
     );
   }
 
+  const s = summary;
   return (
     <DashboardLayout>
       <div className="min-h-full bg-slate-50">
         <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl"><Users size={20} className="text-blue-700" /> User Accounts</h1>
-              <p className="text-xs text-slate-500 sm:text-sm">Accounts that can sign in to the dashboard, their role and the branches they may see</p>
+              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">User Accounts</h1>
+              <p className="truncate text-xs text-slate-500 sm:text-sm">Sign-in, role and branch access of every dashboard user</p>
             </div>
             <button type="button" className={buttonPrimary} onClick={() => setEditing('new')}>
               <Plus size={16} /> New user
@@ -179,33 +223,41 @@ export default function UsersPage() {
           </div>
         </header>
 
+        <StatStrip label="User summary" columns={5}>
+          <Stat label="Users" value={s ? formatNumber(s.total) : <StatSkeleton />}>
+            {s && <p>{formatNumber(s.superadmins)} super admin · {formatNumber(s.users)} user</p>}
+          </Stat>
+          <Stat label="Active" emphasis value={s ? formatNumber(s.active) : <StatSkeleton />}>
+            {s && <p>{formatNumber(s.inactive)} inactive · {formatNumber(s.locked)} locked</p>}
+          </Stat>
+          <Stat label="Signed in, 7 days" value={s ? formatNumber(s.active7d) : <StatSkeleton />}>
+            {s && <p>{formatNumber(s.neverSignedIn)} never signed in</p>}
+          </Stat>
+          <Stat label="Branches covered" value={s ? formatNumber(s.branchesCovered) : <StatSkeleton />}>
+            {s && <p>of {formatNumber(branches.filter(b => b.count > 0).length)} branches with recent sales</p>}
+          </Stat>
+          <Stat label="Without branch" value={s ? formatNumber(s.withoutBranch) : <StatSkeleton />}>
+            {s && <p>{s.withoutBranch ? 'role User sees no data until assigned' : 'every User has a branch'}</p>}
+          </Stat>
+        </StatStrip>
+
         <div className="space-y-4 p-4 sm:p-6">
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div className="flex flex-col gap-3 border-b border-slate-200 p-3 sm:flex-row sm:items-center sm:p-4">
-              <div className="relative flex-1">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search name, username, email, phone or job title"
-                  className={`${inputClass} pl-9`} aria-label="Search users" />
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="space-y-3 border-b border-slate-200 p-3 sm:p-4">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search name, username, email, phone or job title"
+                    className={`${inputClass} pl-9 pr-9`} aria-label="Search users" />
+                  {search && (
+                    <button type="button" onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label="Clear search">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
               </div>
-              <div className="flex flex-wrap gap-2">
-                <select value={branchFilter} onChange={e => { setBranchFilter(e.target.value); setPage(1); }} className={`${inputClass} w-auto max-w-[14rem]`} aria-label="Branch">
-                  <option value="">All branches</option>
-                  {[...branches].sort((a, b) => a.branch_name.localeCompare(b.branch_name)).map(b => (
-                    <option key={b.branch_code} value={b.branch_code}>{b.branch_name}</option>
-                  ))}
-                </select>
-                <select value={role} onChange={e => { setRole(e.target.value); setPage(1); }} className={`${inputClass} w-auto`} aria-label="Role">
-                  <option value="">All roles</option>
-                  <option value="superadmin">Super Admin</option>
-                  <option value="user">User</option>
-                </select>
-                <select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} className={`${inputClass} w-auto`} aria-label="Status">
-                  <option value="">All statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="locked">Locked</option>
-                </select>
-              </div>
+              <ActiveFilters filters={activeFilters} onClear={() => applyFilters(NO_FILTERS)} />
             </div>
 
             {error ? (
@@ -217,41 +269,43 @@ export default function UsersPage() {
             ) : !loading && rows.length === 0 ? (
               <div className="flex flex-col items-center px-4 py-14 text-center">
                 <UserRound className="mb-2 text-slate-300" size={28} />
-                <p className="text-sm font-medium text-slate-700">{filtersActive ? 'No users match the filters' : 'No users yet'}</p>
+                <p className="text-sm font-medium text-slate-700">{filtersActive ? 'No users match the search or filters' : 'No users yet'}</p>
               </div>
             ) : (
-              <div className={`relative ${loading && rows.length ? 'opacity-60' : ''}`}>
-                <table className="hidden w-full text-sm md:table">
-                  <thead className="border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                    <tr>
-                      <th scope="col" className="px-4 py-2.5">User</th>
-                      <th scope="col" className="px-4 py-2.5">Email</th>
-                      <th scope="col" className="px-4 py-2.5">Role</th>
-                      <th scope="col" className="px-4 py-2.5">Branches</th>
-                      <th scope="col" className="px-4 py-2.5">Status</th>
-                      <th scope="col" className="px-4 py-2.5">Last sign-in</th>
-                      <th scope="col" className="px-4 py-2.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {(loading && !rows.length ? Array.from({ length: 5 }) : rows).map((u, i) => u ? (
-                      <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
-                        onView={() => setViewing(u as AuthUser)} onEdit={() => setEditing(u as AuthUser)} onDelete={() => setDeleting(u as AuthUser)} />
-                    ) : (
-                      <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-8 animate-pulse rounded bg-slate-100" /></td></tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className={loading && rows.length ? 'opacity-60' : ''}>
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full min-w-[760px] text-sm">
+                    <thead className="border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th scope="col" className="px-4 py-2.5">User</th>
+                        <th scope="col" className="hidden px-4 py-2.5 lg:table-cell">Contact</th>
+                        <th scope="col" className="px-4 py-2.5">Role</th>
+                        <th scope="col" className="px-4 py-2.5">Branch access</th>
+                        <th scope="col" className="px-4 py-2.5">Status</th>
+                        <th scope="col" className="hidden px-4 py-2.5 xl:table-cell">Last sign-in</th>
+                        <th scope="col" className="w-14 px-3 py-2.5"><span className="sr-only">Actions</span></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {(loading && !rows.length ? Array.from({ length: 6 }) : rows).map((u, i) => u ? (
+                        <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
+                          onView={() => setViewing(u as AuthUser)} actions={actionsFor(u as AuthUser)} />
+                      ) : (
+                        <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-9 animate-pulse rounded bg-slate-100" /></td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
                 <ul className="divide-y divide-slate-100 md:hidden">
                   {rows.map(u => (
-                    <li key={u.id} className="flex items-center gap-3 px-4 py-3">
+                    <li key={u.id} className="flex items-start gap-3 px-4 py-3">
                       <Avatar user={u} />
                       <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setViewing(u)}>
-                        <p className="truncate text-sm font-medium text-slate-900">{u.displayName}</p>
+                        <p className="truncate text-sm font-medium text-slate-900">{u.displayName}{u.id === me?.id && <span className="ml-1.5 text-xs font-normal text-slate-400">(you)</span>}</p>
                         <p className="truncate text-xs text-slate-500">{u.username} · {u.email}</p>
-                        <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><BranchesBadge user={u} branchName={branchName} /><StatusBadge user={u} />{!u.profileComplete && <ProfileBadge />}</div>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><BranchesBadge user={u} branchName={branchName} /><StatusBadge user={u} /></div>
                       </button>
-                      <button type="button" onClick={() => setEditing(u)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100" aria-label={`Edit ${u.username}`}><Pencil size={16} /></button>
+                      <ActionMenu items={actionsFor(u)} label={`Actions for ${u.username}`} />
                     </li>
                   ))}
                 </ul>
@@ -270,6 +324,8 @@ export default function UsersPage() {
         </div>
       </div>
 
+      {filtersOpen && <UserFiltersDrawer value={filters} branches={branches} branchesLoading={branchesLoading}
+        onApply={next => { applyFilters(next); setFiltersOpen(false); }} onClose={() => setFiltersOpen(false)} />}
       {editing && <UserFormDrawer user={editing === 'new' ? null : editing} isMe={editing !== 'new' && editing.id === me?.id}
         branches={branches} branchesLoading={branchesLoading}
         onClose={() => setEditing(null)} onSaved={saved} />}
@@ -291,6 +347,52 @@ export default function UsersPage() {
   );
 }
 
+/* ------------------------------------------------------------------ filters */
+
+interface UserFilters {
+  role: string;
+  status: string;
+  branch: string;
+}
+
+const NO_FILTERS: UserFilters = { role: '', status: '', branch: '' };
+const STATUS_LABELS: Record<string, string> = { active: 'Active', inactive: 'Inactive', locked: 'Locked' };
+
+/** Role, status and branch in one drawer; applied together. */
+function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose }: {
+  value: UserFilters; branches: Branch[]; branchesLoading: boolean; onApply: (f: UserFilters) => void; onClose: () => void;
+}) {
+  const [draft, setDraft] = useState<UserFilters>(value);
+  const set = (key: keyof UserFilters) => (v: string) => setDraft(d => ({ ...d, [key]: v }));
+  const options = useMemo(() => [...branches].sort((a, b) => a.branch_name.localeCompare(b.branch_name)).map(b => ({
+    value: b.branch_code, label: b.branch_name, meta: <span className="font-mono text-[11px] text-slate-400">{b.branch_code}</span>,
+  })), [branches]);
+  return (
+    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title="Filter users"
+      description="Combine role, status and branch."
+      footer={
+        <>
+          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={() => setDraft(NO_FILTERS)}>Reset</button>
+          <button type="button" className={buttonSecondary} onClick={onClose}>Cancel</button>
+          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>Apply filters</button>
+        </>
+      }>
+      <div className="space-y-6">
+        <ChoiceGroup label="Role" value={draft.role} onChange={set('role')} choices={[
+          { value: '', label: 'All roles' }, { value: 'superadmin', label: 'Super Admin' }, { value: 'user', label: 'User' },
+        ]} />
+        <ChoiceGroup label="Status" value={draft.status} onChange={set('status')} choices={[
+          { value: '', label: 'All' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' },
+          { value: 'locked', label: 'Locked', hint: 'Too many failed sign-ins' },
+        ]} />
+        <SearchChoice label="Branch" anyLabel="All branches" options={options} value={draft.branch} onChange={set('branch')}
+          placeholder="Search outlet name or code" loading={branchesLoading} />
+        <p className="text-xs text-slate-500">A branch shows the users assigned to it; super admins see every branch and are always included.</p>
+      </div>
+    </Drawer>
+  );
+}
+
 /* ------------------------------------------------------------------ pieces */
 
 function Avatar({ user }: { user: AuthUser }) {
@@ -300,25 +402,25 @@ function Avatar({ user }: { user: AuthUser }) {
 function RoleBadge({ role }: { role: Role }) {
   const superadmin = role === 'superadmin';
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${superadmin ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
+    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${superadmin ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
       {superadmin && <ShieldCheck size={12} />}{ROLE_LABELS[role] ?? role}
     </span>
   );
 }
 
 function StatusBadge({ user }: { user: AuthUser }) {
-  if (user.isLocked) return <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700"><Lock size={11} /> Locked</span>;
+  if (user.isLocked) return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700"><Lock size={11} /> Locked</span>;
   return user.isActive
-    ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Active</span>
-    : <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Inactive</span>;
+    ? <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Active</span>
+    : <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Inactive</span>;
 }
 
 /** Branches the account may see: superadmins every branch; a user without branches sees no data. */
 function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code: string) => string }) {
-  if (user.role === 'superadmin') return <span className="text-xs text-slate-500">All branches</span>;
+  if (user.role === 'superadmin') return <span className="whitespace-nowrap text-xs text-slate-500">All branches</span>;
   const codes = user.branches ?? [];
   if (!codes.length) {
-    return <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700" title="This user sees no data until branches are assigned"><CircleAlert size={11} /> No branch</span>;
+    return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700" title="This user sees no data until branches are assigned"><CircleAlert size={11} /> No branch</span>;
   }
   const label = codes.length === 1 ? branchName(codes[0]) : `${codes.length} branches`;
   return (
@@ -331,50 +433,40 @@ function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code
 /** the user has not filled in their own profile yet */
 function ProfileBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700" title="Full name, phone number, job title or department is missing">
+    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700" title="Full name, phone number, job title or department is missing">
       <CircleAlert size={11} /> Profile incomplete
     </span>
   );
 }
 
-function UserRow({ user, isMe, branchName, onView, onEdit, onDelete }: {
-  user: AuthUser; isMe: boolean; branchName: (code: string) => string; onView: () => void; onEdit: () => void; onDelete: () => void;
+function UserRow({ user, isMe, branchName, onView, actions }: {
+  user: AuthUser; isMe: boolean; branchName: (code: string) => string; onView: () => void; actions: ActionItem[];
 }) {
   return (
-    <tr className="hover:bg-slate-50/60">
-      <td className="px-4 py-2.5">
-        <button type="button" onClick={onView} className="flex items-center gap-3 text-left">
+    <tr className="group hover:bg-slate-50/70">
+      <td className="max-w-[18rem] px-4 py-3">
+        <button type="button" onClick={onView} className="flex min-w-0 items-center gap-3 text-left">
           <Avatar user={user} />
           <span className="min-w-0">
-            <span className="block truncate font-medium text-slate-900">{user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-slate-400">(you)</span>}</span>
+            <span className="block truncate font-medium text-slate-900 group-hover:text-blue-700">
+              {user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-slate-400">(you)</span>}
+            </span>
             {user.profileComplete
-              ? <span className="block truncate text-xs text-slate-500">{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
-              : <span className="mt-0.5 block"><ProfileBadge /></span>}
+              ? <span className="block truncate text-xs text-slate-500">@{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
+              : <span className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">@{user.username} <ProfileBadge /></span>}
           </span>
         </button>
       </td>
-      <td className="px-4 py-2.5 text-slate-600">{user.email}</td>
-      <td className="px-4 py-2.5"><RoleBadge role={user.role} /></td>
-      <td className="px-4 py-2.5"><BranchesBadge user={user} branchName={branchName} /></td>
-      <td className="px-4 py-2.5"><StatusBadge user={user} /></td>
-      <td className="px-4 py-2.5 text-xs text-slate-500">{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Never'}</td>
-      <td className="px-4 py-2.5">
-        <div className="flex justify-end gap-1">
-          <IconButton label={`View ${user.username}`} onClick={onView}><Eye size={16} /></IconButton>
-          <IconButton label={`Edit ${user.username}`} onClick={onEdit}><Pencil size={16} /></IconButton>
-          <IconButton label={`Delete ${user.username}`} onClick={onDelete} disabled={isMe} danger><Trash2 size={16} /></IconButton>
-        </div>
+      <td className="hidden max-w-[16rem] px-4 py-3 lg:table-cell">
+        <span className="block truncate text-slate-700">{user.email}</span>
+        <span className="block truncate text-xs text-slate-400">{user.phoneNumber || '—'}</span>
       </td>
+      <td className="px-4 py-3"><RoleBadge role={user.role} /></td>
+      <td className="px-4 py-3"><BranchesBadge user={user} branchName={branchName} /></td>
+      <td className="px-4 py-3"><StatusBadge user={user} /></td>
+      <td className="hidden whitespace-nowrap px-4 py-3 text-xs text-slate-500 xl:table-cell">{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Never'}</td>
+      <td className="px-3 py-3 text-right"><ActionMenu items={actions} label={`Actions for ${user.username}`} /></td>
     </tr>
-  );
-}
-
-function IconButton({ label, onClick, children, disabled, danger }: { label: string; onClick: () => void; children: ReactNode; disabled?: boolean; danger?: boolean }) {
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} title={disabled ? 'You cannot delete your own account' : label} aria-label={label}
-      className={`rounded-md p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${danger ? 'text-slate-400 hover:bg-red-50 hover:text-red-600' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-800'}`}>
-      {children}
-    </button>
   );
 }
 
@@ -620,92 +712,220 @@ function DetailList({ rows }: { rows: [string, ReactNode][] }) {
   );
 }
 
-function birthDateLabel(value: string | null): string {
-  if (!value) return '—';
-  return parseLocalDate(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+/** Label/value pairs in two columns (one on phones). */
+function InfoGrid({ items }: { items: [string, ReactNode][] }) {
+  return (
+    <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+      {items.map(([k, v]) => (
+        <div key={k} className="min-w-0">
+          <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{k}</dt>
+          <dd className="mt-0.5 break-words text-sm text-slate-800">{v === null || v === undefined || v === '' ? <span className="text-slate-400">—</span> : v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 }
+
+function birthDateLabel(value: string | null): string | null {
+  if (!value) return null;
+  const d = parseLocalDate(value);
+  const now = new Date();
+  const age = now.getFullYear() - d.getFullYear() - (now < new Date(now.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
+  return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} (${age} years)`;
+}
+
+/** "3 hours ago", "yesterday", "12 days ago" */
+function ago(value: string | null): string {
+  if (!value) return 'Never';
+  const s = (Date.now() - new Date(value).getTime()) / 1000;
+  if (s < 60) return 'Just now';
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86_400) return `${Math.floor(s / 3600)} h ago`;
+  const d = Math.floor(s / 86_400);
+  return d === 1 ? 'Yesterday' : d < 31 ? `${d} days ago` : formatDateTime(value);
+}
+
+/** WhatsApp link for an Indonesian number ("0812…" -> "62812…"). */
+function whatsApp(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  return `https://wa.me/${digits.startsWith('0') ? `62${digits.slice(1)}` : digits}`;
+}
+
+interface RecentActivity {
+  id: number;
+  at: string;
+  action: string;
+  status: 'ok' | 'failed' | 'denied';
+  summary: string | null;
+  page: string | null;
+}
+
+const PROFILE_REQUIRED: { key: keyof AuthUser; label: string }[] = [
+  { key: 'fullName', label: 'Full name' }, { key: 'phoneNumber', label: 'Phone' }, { key: 'jobTitle', label: 'Job title' }, { key: 'department', label: 'Department' },
+];
 
 function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, onUnlock }: {
   user: AuthUser; isMe: boolean; branchName: (code: string) => string; onClose: () => void; onEdit: () => void; onDelete: () => void; onUnlock: () => void;
 }) {
-  const dash = (v: string | null | undefined) => v || '—';
+  const router = useRouter();
+  const [recent, setRecent] = useState<RecentActivity[] | null>(null);
+  const [counts, setCounts] = useState<{ total: number; exports: number } | null>(null);
+
+  // last activity of this user (30 days)
+  useEffect(() => {
+    let cancelled = false;
+    const from = new Date();
+    from.setDate(from.getDate() - 29);
+    const params = new URLSearchParams({ user: user.id, dateFrom: toIsoDate(from), dateTo: toIsoDate(new Date()) });
+    Promise.all([
+      fetch(`/api/activity?${params}&limit=6`).then(r => (r.ok ? r.json() : { data: [] })),
+      fetch(`/api/activity/summary?${params}`).then(r => (r.ok ? r.json() : null)),
+    ]).then(([list, summary]) => {
+      if (cancelled) return;
+      setRecent(list.data ?? []);
+      if (summary) setCounts({ total: summary.totals.total, exports: summary.totals.exports });
+    }).catch(() => { if (!cancelled) setRecent([]); });
+    return () => { cancelled = true; };
+  }, [user.id]);
+
+  const filled = PROFILE_REQUIRED.filter(f => user[f.key]).length;
+  const missing = PROFILE_REQUIRED.filter(f => !user[f.key]).map(f => f.label);
+  const branchCodes = user.branches ?? [];
+
   return (
-    <Drawer open onClose={onClose} size="md" icon={<UserRound size={18} />} title="User details" description={isMe ? 'This is your account' : undefined}
+    <Drawer open onClose={onClose} size="lg" icon={<UserRound size={18} />} title="User details" description={isMe ? 'This is your account' : `@${user.username}`}
       footer={
         <>
+          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={onDelete} disabled={isMe} title={isMe ? 'You cannot delete your own account' : undefined}>
+            <Trash2 size={16} /> Delete
+          </button>
           {user.isLocked && <button type="button" className={buttonSecondary} onClick={onUnlock}><Unlock size={16} /> Unlock</button>}
-          <button type="button" className={buttonSecondary} onClick={onDelete} disabled={isMe}><Trash2 size={16} /> Delete</button>
           <button type="button" className={buttonPrimary} onClick={onEdit}><Pencil size={16} /> Edit</button>
         </>
       }
     >
-      <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
+      {/* identity */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <UserAvatar name={user.displayName} src={user.avatarUrl} size="xl" />
-        <div className="min-w-0">
-          <p className="truncate text-lg font-semibold text-slate-900">{user.displayName}</p>
-          <p className="truncate text-sm text-slate-500">{user.jobTitle ? `${user.jobTitle}${user.department ? ` · ${user.department}` : ''}` : user.email}</p>
-          <div className="mt-1.5 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{!user.profileComplete && <ProfileBadge />}</div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xl font-semibold text-slate-900">{user.displayName}</p>
+          <p className="truncate text-sm text-slate-500">
+            {[user.jobTitle, user.department].filter(Boolean).join(' · ') || 'Job title not filled in yet'}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{!user.profileComplete && <ProfileBadge />}</div>
         </div>
+      </div>
+
+      {/* at a glance */}
+      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-4">
+        <Glance label="Last sign-in" value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'has not signed in'} />
+        <Glance label="Branch access" value={user.role === 'superadmin' ? 'All' : formatNumber(branchCodes.length)}
+          sub={user.role === 'superadmin' ? 'super admin' : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : 'branches') : 'sees no data'}
+          tone={user.role === 'user' && !branchCodes.length ? 'bad' : undefined} />
+        <Glance label="Profile" value={`${filled}/${PROFILE_REQUIRED.length}`} sub={missing.length ? `missing: ${missing.join(', ')}` : 'complete'}
+          tone={missing.length ? 'warn' : 'good'} />
+        <Glance label="Activity, 30 days" value={counts ? formatNumber(counts.total) : '…'} sub={counts ? `${formatNumber(counts.exports)} exports` : ''} />
       </div>
 
       <DrawerSection title="Branch access" description={user.role === 'superadmin' ? 'Super admins see every branch' : 'Overview, Sales Transactions and exports are limited to these branches'}>
         {user.role === 'superadmin' ? (
-          <p className="text-sm text-slate-600">All branches</p>
-        ) : user.branches?.length ? (
-          <div className="flex flex-wrap gap-1.5">
-            {user.branches.map(code => (
-              <span key={code} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                <Store size={11} />{branchName(code)} <span className="font-mono text-[10px] text-slate-400">{code}</span>
-              </span>
+          <p className="flex items-center gap-2 text-sm text-slate-600"><ShieldCheck size={16} className="text-red-700" /> All branches</p>
+        ) : branchCodes.length ? (
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {branchCodes.map(code => (
+              <li key={code} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                <Store size={14} className="flex-shrink-0 text-slate-400" />
+                <span className="min-w-0 flex-1 truncate text-slate-800">{branchName(code)}</span>
+                <span className="font-mono text-[11px] text-slate-400">{code}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         ) : (
           <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> No branch assigned — this user sees no data.</p>
         )}
       </DrawerSection>
 
-      <DrawerSection title="Personal information" description={user.profileUpdatedAt ? `Last updated by the user ${formatDateTime(user.profileUpdatedAt)}` : 'Not yet filled in by the user'}>
-        <DetailList rows={[
-          ['Full name', dash(user.fullName)],
-          ['Gender', user.gender ? GENDER_LABELS[user.gender] : '—'],
+      <DrawerSection title="Contact">
+        <InfoGrid items={[
+          ['Email', <a key="e" href={`mailto:${user.email}`} className="text-blue-700 hover:underline">{user.email}</a>],
+          ['Phone', user.phoneNumber ? (
+            <span key="p" className="flex flex-wrap items-center gap-2">
+              <a href={`tel:${user.phoneNumber}`} className="text-blue-700 hover:underline">{user.phoneNumber}</a>
+              <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100">WhatsApp</a>
+            </span>
+          ) : null],
+          ['Address', user.address],
+          ['City', user.city],
+        ]} />
+      </DrawerSection>
+
+      <DrawerSection title="Work">
+        <InfoGrid items={[
+          ['Job title', user.jobTitle],
+          ['Department', user.department],
+          ['Employee number', user.employeeNumber],
+          ['Work location', user.workBranchName || user.workBranchCode],
+        ]} />
+      </DrawerSection>
+
+      <DrawerSection title="Personal" description={user.profileUpdatedAt ? `Last updated by the user ${formatDateTime(user.profileUpdatedAt)}` : 'Not yet filled in by the user'}>
+        <InfoGrid items={[
+          ['Gender', user.gender ? GENDER_LABELS[user.gender] : null],
           ['Date of birth', birthDateLabel(user.birthDate)],
-          ['Phone number', dash(user.phoneNumber)],
-          ['Address', dash(user.address)],
-          ['City', dash(user.city)],
         ]} />
       </DrawerSection>
 
-      <DrawerSection title="Work information">
-        <DetailList rows={[
-          ['Employee number', dash(user.employeeNumber)],
-          ['Job title', dash(user.jobTitle)],
-          ['Department', dash(user.department)],
-          ['Work location', dash(user.workBranchName || user.workBranchCode)],
-        ]} />
-      </DrawerSection>
-
-      <DrawerSection title="Account">
-        <DetailList rows={[
-          ['Username', user.username],
-          ['Email', user.email],
-          ['Role', <RoleBadge key="r" role={user.role} />],
-          ['Status', <StatusBadge key="s" user={user} />],
-          ['Must change password', user.mustChangePassword ? 'Yes' : 'No'],
-          ['Notes', dash(user.notes)],
-        ]} />
-      </DrawerSection>
-
-      <DrawerSection title="Activity">
-        <DetailList rows={[
+      <DrawerSection title="Security">
+        <InfoGrid items={[
+          ['Username', <span key="u" className="font-mono">{user.username}</span>],
           ['Last sign-in', user.lastLoginAt ? `${formatDateTime(user.lastLoginAt)}${user.lastLoginIp ? ` · ${user.lastLoginIp}` : ''}` : 'Never'],
+          ['Password changed', user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : null],
+          ['Must change password', user.mustChangePassword ? 'Yes, at the next sign-in' : 'No'],
           ['Failed sign-in attempts', formatNumber(user.failedLoginAttempts)],
-          ['Locked until', user.isLocked && user.lockedUntil ? formatDateTime(user.lockedUntil) : '—'],
-          ['Password changed', user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
+          ['Locked until', user.isLocked && user.lockedUntil ? formatDateTime(user.lockedUntil) : 'Not locked'],
+        ]} />
+      </DrawerSection>
+
+      <DrawerSection title="Recent activity" description="Last 30 days">
+        {recent === null ? (
+          <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100" />)}</div>
+        ) : recent.length === 0 ? (
+          <p className="text-sm text-slate-400">No activity in the last 30 days.</p>
+        ) : (
+          <ol className="relative space-y-3 border-l border-slate-200 pl-4">
+            {recent.map(a => (
+              <li key={a.id} className="relative">
+                <span className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-white ${a.status === 'ok' ? 'bg-slate-300' : a.status === 'denied' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                <p className="text-sm text-slate-800">{a.summary || a.action}</p>
+                <p className="text-[11px] text-slate-400">{formatDateTime(a.at)} · <span className="font-mono">{a.action}</span></p>
+              </li>
+            ))}
+          </ol>
+        )}
+        <button type="button" onClick={() => router.push(`/activity?user=${user.id}`)} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline">
+          <History size={14} /> Open in Activity Logs
+        </button>
+      </DrawerSection>
+
+      <DrawerSection title="Record">
+        <InfoGrid items={[
           ['Created', `${user.createdAt ? formatDateTime(user.createdAt) : '—'}${user.createdBy ? ` by ${user.createdBy}` : ''}`],
           ['Updated', `${user.updatedAt ? formatDateTime(user.updatedAt) : '—'}${user.updatedBy ? ` by ${user.updatedBy}` : ''}`],
+          ['Administrator notes', user.notes],
         ]} />
       </DrawerSection>
     </Drawer>
+  );
+}
+
+function Glance({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: 'good' | 'warn' | 'bad' }) {
+  const color = tone === 'bad' ? 'text-red-700' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : 'text-slate-900';
+  return (
+    <div className="min-w-0 bg-white px-3 py-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className={`mt-0.5 truncate text-base font-semibold tabular-nums ${color}`}>{value}</p>
+      <p className="truncate text-[11px] text-slate-500" title={sub}>{sub}</p>
+    </div>
   );
 }
 
