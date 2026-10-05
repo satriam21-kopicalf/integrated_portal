@@ -9,7 +9,7 @@ import { channelColor, channelLabel, channelOrder } from '@/lib/overview';
 import { useClickOutside } from '@/lib/useClickOutside';
 
 interface ChannelFilterProps {
-  channels: { channel: string; bills: number }[];
+  channels: { channel: string; bills: number | null }[]; // bills: null for role "user"
   value: string[]; // [] = all channels
   onChange: (channels: string[]) => void;
 }
@@ -21,7 +21,7 @@ export default function ChannelFilter({ channels, value, onChange }: ChannelFilt
   const close = useCallback(() => setIsOpen(false), []);
   useClickOutside(ref, close, isOpen);
 
-  const options = [...channels].sort((a, b) => channelOrder(a.channel) - channelOrder(b.channel) || b.bills - a.bills);
+  const options = [...channels].sort((a, b) => channelOrder(a.channel) - channelOrder(b.channel) || (b.bills ?? 0) - (a.bills ?? 0));
   const label = value.length ? `Channel: ${value.map(channelLabel).join(', ')}` : 'Channel: all channels';
   const toggle = (name: string) => {
     const next = value.includes(name) ? value.filter(v => v !== name) : [...value, name];
@@ -80,7 +80,7 @@ export default function ChannelFilter({ channels, value, onChange }: ChannelFilt
                     </span>
                     <SeriesKey color={channelColor(o.channel)} />
                     <span className="flex min-w-0 flex-1"><ChannelLogo channel={o.channel} height={15} /></span>
-                    <span className="text-xs tabular-nums text-slate-400">{formatNumber(o.bills)}</span>
+                    {o.bills !== null && <span className="text-xs tabular-nums text-slate-400">{formatNumber(o.bills)}</span>}
                   </button>
                 </li>
               );

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import TransactionDetail from '@/components/TransactionDetail';
 import ExportButton from '@/components/ExportButton';
+import { useFilterLog } from '@/lib/activity';
 import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import BranchFilter, { Branch, branchesLabel, splitBranches } from '@/components/BranchFilter';
 import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Search, Tag, Wallet, X } from 'lucide-react';
@@ -238,6 +239,13 @@ export default function SalesPage() {
     ? `${formatDate(summary.dateRange.from)} – ${formatDate(summary.dateRange.to)}`
     : dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : 'Yesterday';
   const branchLabel = branchesLabel(branch, branches);
+
+  useFilterLog(
+    '/sales',
+    datesReady ? { dateFrom, dateTo, branches: splitBranches(branch), type: txType, search: debouncedSearch || null } : null,
+    `Filter Sales: ${dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : 'default'} · ${branchLabel} · ${typeInfo.label}`
+      + (debouncedSearch ? ` · cari "${debouncedSearch}"` : ''),
+  );
 
   const typeCounts: Record<TxType, number | undefined> = {
     sales: summary?.totals.sales.transactions,

@@ -24,10 +24,15 @@ Browser ── portal.kopicalf.co.id (Vercel) ───────────�
 | `/` | Redirect ke `/overview` |
 | `/overview` | Dashboard analitik: strip *Latest sales*, ringkasan KPI, panel *Today*, tren, channel, cabang, jam sibuk, menu, pembayaran, basket, pengurangan, pertumbuhan bulanan |
 | `/sales` | Daftar transaksi (detail per item), ringkasan Sales/Nett/Gross/Deductions, filter, export Excel |
-| `/cost-control` | **Cost Control** (superadmin & user): COGS ratio, usage ratio, selisih stok, waste, estimasi belanja 1/2/4 minggu per outlet |
-| `/users` | **User Accounts** (khusus superadmin): CRUD akun login, role, status, foto profil, profil user |
+| `/cost-control` | **Cost Control** (khusus superadmin): COGS ratio, usage ratio, selisih stok, waste, estimasi belanja 1/2/4 minggu per outlet |
+| `/users` | **User Accounts** (khusus superadmin): CRUD akun login, role, **akses cabang**, status, foto profil, profil user |
+| `/activity` | **Activity Logs** (khusus superadmin): siapa melakukan apa — login, halaman & filter, detail transaksi, export (diminta/selesai/gagal/diunduh), perubahan akun, akses ditolak |
 
-Semua halaman selain `/login` wajib login. Role **user** hanya melihat Overview & Sales Transactions (menu *Platforms* dan *User Accounts* disembunyikan, API `/api/users` ditolak); **superadmin** akses penuh.
+Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overview** & **Sales Transactions** (`canAccess` di `src/lib/auth.tsx`; halaman lain dialihkan ke Overview, menu Cost Control, User Accounts, Activity Logs dan *Platforms* disembunyikan, API-nya juga ditolak backend) dan hanya melihat **data cabang yang ditugaskan** ke akunnya (filter cabang hanya berisi cabang tersebut; backend yang menegakkan). **Superadmin** akses penuh.
+
+**Export berjalan terus saat pindah halaman** (`src/lib/exports.tsx` + `components/ExportToasts.tsx`): export dijalankan di server; `ExportsProvider` berada di atas semua halaman sehingga polling & kartu progres tetap ada di halaman mana pun, job yang diikuti disimpan per user di localStorage (reload/tab lain melanjutkan, `GET /api/exports`), dan file otomatis terunduh sekali ketika selesai.
+
+**Activity log** (`src/lib/activity.ts`): dashboard melaporkan halaman yang dibuka (`page.view`) dan perubahan filter Overview/Sales (`filter.change`, debounce 1,5 s); aktivitas lain dicatat backend.
 
 ### Overview (`src/app/overview/page.tsx`)
 
@@ -49,7 +54,7 @@ Semua halaman selain `/login` wajib login. Role **user** hanya melihat Overview 
 
 ### Cost Control (`src/app/cost-control/page.tsx`, `components/cost/`)
 
-- **Akses**: superadmin & user (menu sidebar *Cost Control*); tombol *Settings* (ambang status & parameter forecast) khusus superadmin.
+- **Akses**: khusus superadmin (menu sidebar *Cost Control*; kartu Cost control di Overview juga hanya untuk superadmin).
 - **Filter**: periode (preset This/Last month, 3/6 bulan, This year), cabang (multi), basis rasio **Net sales** (standar) atau **Subtotal**. Data per periode opname: tgl 1–7, 8–14, 15–21, 22–akhir bulan.
 - **Ringkasan**: penjualan, COGS aktual (Rp + % + status), COGS teoretis (menu terjual × resep), usage ratio (+ selisih poin vs resep), selisih stok (termasuk opname belum diposting) & pemakaian lain (waste). Median outlet sebagai pembanding.
 - **Status** (dapat diubah di Settings): COGS ≤ 35% Good · ≤ 40% Watch · ≤ 45% High · > 45% Critical (% net sales); usage ratio ±2/5/10%; selisih aktual−teoretis 1/2/3 poin; waste 1/2/3%. Selalu ikon + label, bukan warna saja.
@@ -64,7 +69,7 @@ Semua halaman selain `/login` wajib login. Role **user** hanya melihat Overview 
 - **Drawer** (`components/ui/Drawer.tsx`): semua form & detail akun tampil sebagai panel geser dari kanan (layar penuh di ponsel), bukan modal: *New user*, *View*, *Edit*, *Change password* (termasuk ganti password wajib, terkunci), *My profile*. Hanya konfirmasi *Delete* yang tetap modal kecil (`ui/Dialog.tsx`).
 - **Profil di sidebar** (`components/layout/Sidebar.tsx`): foto/inisial, nama tampilan (`displayName` = nama lengkap, atau username selama profil belum diisi), role, username & email; menu *My profile* (label *Incomplete* + titik kuning di avatar bila profil belum lengkap), *Change password*, *Sign out*.
 - **My profile** (`components/AccountDrawers.tsx` + `components/ProfileFields.tsx`): user mengisi identitasnya sendiri — foto, nama lengkap, jenis kelamin, tanggal lahir, telepon, alamat, kota, nomor karyawan, jabatan, departemen, lokasi kerja (outlet dari `/api/branches`) — disimpan lewat `PATCH /api/auth/me`. Username, email & role hanya dibaca (dikelola superadmin). Profil dianggap **lengkap** bila nama lengkap, telepon, jabatan & departemen terisi; selama belum lengkap muncul pengingat di pojok kanan bawah (*Complete profile* / *Later*, disembunyikan per sesi).
-- **User Accounts** (`src/app/users/page.tsx`, superadmin): daftar dengan pencarian (nama, username, email, nomor karyawan), filter role & status (Active/Inactive/Locked), paginasi, badge *Profile incomplete*. *New user* cukup **username, email, password** (otomatis dibuat, bisa di-generate ulang), role & status — profil diisi sendiri oleh user. *Edit*: login, akses, reset password, koreksi profil, foto, catatan admin. *View*: profil pribadi & pekerjaan, akun, aktivitas (login terakhir + IP, percobaan gagal, dibuat/diubah oleh). *Unlock*, *Delete* (konfirmasi). Tidak bisa menghapus/menonaktifkan akun sendiri.
+- **User Accounts** (`src/app/users/page.tsx`, superadmin): daftar dengan pencarian (nama, username, email, nomor karyawan), filter role & status (Active/Inactive/Locked), paginasi, badge *Profile incomplete*. *New user* cukup **username, email, password** (otomatis dibuat, bisa di-generate ulang), role, status dan — untuk role User — **akses cabang** (`components/BranchAssign.tsx`: daftar cabang dengan pencarian, *Select all/shown*, chip yang bisa dihapus; wajib minimal 1) — profil diisi sendiri oleh user. Kolom *Branches* di daftar (badge merah *No branch* bila belum ada cabang). *Edit*: login, akses, reset password, koreksi profil, foto, catatan admin. *View*: profil pribadi & pekerjaan, akun, aktivitas (login terakhir + IP, percobaan gagal, dibuat/diubah oleh). *Unlock*, *Delete* (konfirmasi). Tidak bisa menghapus/menonaktifkan akun sendiri.
 - **Foto profil** (`components/UserAvatar.tsx`): unggah JPG/PNG/WebP, dipotong persegi & diperkecil ke 256×256 di browser sebelum dikirim; user mengatur fotonya sendiri di *My profile*, superadmin bisa mengatur foto user lain di *Edit*.
 - **Sapaan login & logout** (`src/lib/greetings.ts`, `components/WelcomeNotice.tsx`): setelah login muncul notifikasi kanan atas (sekali per login) — salam sesuai waktu (*Up early / Good morning / Good afternoon / Good evening / Working late*), nama depan, dan kalimat motivasi yang menyesuaikan waktu & hari (Senin, Jumat, akhir pekan); pertanyaan *How are you feeling today?* (Great / Good / Okay / Tired / Stressed) langsung mengganti kalimat sesuai mood dan diingat untuk hari itu. Kalimat yang baru tampil tidak diulang (rotasi 12 terakhir). Tertutup sendiri (12–20 detik, berhenti saat di-hover). Setelah logout, halaman login menampilkan salam perpisahan sesuai waktu/mood + lama sesi. Semua disimpan di browser (localStorage/sessionStorage), tidak dikirim ke server.
 - Akun pertama dibuat di backend dengan CLI (`python -m app.accounts create …`, lihat dokumentasi backend).
@@ -95,7 +100,8 @@ src/
 │   ├── login/page.tsx          # Login
 │   ├── overview/page.tsx       # Overview
 │   ├── sales/page.tsx          # Sales Transactions
-│   └── users/page.tsx          # User Accounts (superadmin)
+│   ├── users/page.tsx          # User Accounts (superadmin)
+│   └── activity/page.tsx       # Activity Logs (superadmin)
 ├── proxy.ts                    # redirect ke /login bila belum ada sesi
 ├── components/
 │   ├── StatStrip.tsx           # ringkasan angka tanpa card (Overview & Sales)
@@ -130,7 +136,8 @@ src/
 | `GET /api/live` | Live sales, ticker |
 | `GET /api/transactions`, `/api/transactions/{sales_num}`, `/api/summary`, `/api/branches` | Sales |
 | `GET /api/cost-control/{meta,summary,trend,items,forecast}`, `PUT /api/cost-control/settings` | Cost Control, kartu Cost control di Overview |
-| `POST /api/exports`, `GET /api/exports/{id}`, `/api/exports/{id}/download` | Export Excel |
+| `POST /api/exports`, `GET /api/exports`, `GET /api/exports/{id}`, `/api/exports/{id}/download` | Export Excel (global, lintas halaman) |
+| `GET /api/activity`, `GET /api/activity/summary`, `POST /api/activity/events` | Activity Logs, pencatatan halaman & filter |
 | `wss://…/ws`, `GET /api/realtime/version` | Realtime |
 | `/api/auth/*` (login, logout, me, password, me/avatar) | Login, profil sidebar |
 | `/api/users/*`, `/api/avatars/{id}` | User Accounts, foto profil |

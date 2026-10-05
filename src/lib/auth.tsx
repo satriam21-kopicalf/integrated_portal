@@ -37,6 +37,8 @@ export interface AuthUser {
   /** outlet / office: master branch code */
   workBranchCode: string | null;
   workBranchName: string | null;
+  /** branch codes a "user" may see on Overview and Sales (superadmins: [] = every branch) */
+  branches: string[];
   /** full name, phone number, job title and department are filled in */
   profileComplete: boolean;
   /** last change the user made to their own profile */
@@ -71,6 +73,13 @@ const AuthContext = createContext<AuthState>({
 export const PUBLIC_PATHS = ['/login'];
 export const ROLE_LABELS: Record<Role, string> = { superadmin: 'Super Admin', user: 'User' };
 export const GENDER_LABELS: Record<Gender, string> = { male: 'Male', female: 'Female' };
+
+/** Pages role "user" may open; superadmins open everything. The backend enforces the same. */
+export const USER_PAGES = ['/overview', '/sales'];
+
+export function canAccess(role: Role, pathname: string): boolean {
+  return role === 'superadmin' || USER_PAGES.some(p => pathname === p || pathname.startsWith(`${p}/`));
+}
 
 export function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(`${p}/`));

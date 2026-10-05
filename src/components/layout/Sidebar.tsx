@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Calculator, ChevronDown, ChevronsUpDown, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserRoundPen, Users, X,
+  Calculator, ChevronDown, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -16,8 +16,9 @@ import { useClickOutside } from '@/lib/useClickOutside';
 const navigation = [
   { name: 'Dashboard', href: '/overview', icon: LayoutDashboard, description: 'Overview & analytics', superadmin: false },
   { name: 'Sales Transactions', href: '/sales', icon: Receipt, description: 'View & export data', superadmin: false },
-  { name: 'Cost Control', href: '/cost-control', icon: Calculator, description: 'COGS, usage & purchasing', superadmin: false },
-  { name: 'User Accounts', href: '/users', icon: Users, description: 'Logins & roles', superadmin: true },
+  { name: 'Cost Control', href: '/cost-control', icon: Calculator, description: 'COGS, usage & purchasing', superadmin: true },
+  { name: 'User Accounts', href: '/users', icon: Users, description: 'Logins, roles & branches', superadmin: true },
+  { name: 'Activity Logs', href: '/activity', icon: History, description: 'Who did what & exports', superadmin: true },
 ];
 
 const platforms = [

@@ -43,3 +43,6 @@ next-env.d.ts
 .vercel
 .env*
 !.env.example
+
+# spreadsheets in docs/ hold personal data (user accounts, outlets) - never commit
+docs/*.xlsx

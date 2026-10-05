@@ -1,10 +1,13 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AccountDrawersProvider } from '@/components/AccountDrawers';
-import { AuthProvider, isPublicPath, useAuth } from '@/lib/auth';
+import ExportToasts from '@/components/ExportToasts';
+import { usePageViewLog } from '@/lib/activity';
+import { AuthProvider, canAccess, isPublicPath, useAuth } from '@/lib/auth';
+import { ExportsProvider } from '@/lib/exports';
 import { RealtimeProvider } from '@/lib/realtime';
 
 /**
@@ -12,7 +15,9 @@ import { RealtimeProvider } from '@/lib/realtime';
  * realtime WebSocket shared by all pages. Protected pages render only after the
  * session is confirmed, so no dashboard content flashes before a redirect.
  * AccountDrawersProvider adds "My profile" / "Change password" (incl. the forced
- * password change and the reminder to complete the profile).
+ * password change and the reminder to complete the profile). ExportsProvider follows
+ * Excel exports across pages. Role "user" only opens Overview and Sales; every page
+ * visit is reported to the activity log.
  */
 export default function Providers({ children }: { children: ReactNode }) {
   return (
@@ -24,9 +29,18 @@ export default function Providers({ children }: { children: ReactNode }) {
 
 function Gate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { status, user } = useAuth();
-  if (isPublicPath(pathname)) return <>{children}</>;
-  if (status !== 'authenticated' || !user) {
+  const isPublic = isPublicPath(pathname);
+  const allowed = Boolean(user && canAccess(user.role, pathname));
+
+  useEffect(() => {
+    if (user && !isPublic && !allowed) router.replace('/overview');
+  }, [user, isPublic, allowed, router]);
+  usePageViewLog(pathname, Boolean(user) && !isPublic && allowed);
+
+  if (isPublic) return <>{children}</>;
+  if (status !== 'authenticated' || !user || !allowed) {
     return (
       <div className="flex h-dvh items-center justify-center bg-slate-50 text-slate-400" aria-busy="true">
         <Loader2 size={22} className="animate-spin" />
@@ -36,7 +50,10 @@ function Gate({ children }: { children: ReactNode }) {
   }
   return (
     <RealtimeProvider>
-      <AccountDrawersProvider>{children}</AccountDrawersProvider>
+      <ExportsProvider>
+        <AccountDrawersProvider>{children}</AccountDrawersProvider>
+        <ExportToasts />
+      </ExportsProvider>
     </RealtimeProvider>
   );
 }

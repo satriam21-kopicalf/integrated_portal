@@ -4,8 +4,10 @@ import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Eye, EyeOff, Info, KeyRound, Loader2, Lock, Pencil, Plus, Search,
-  ShieldCheck, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
+  ShieldCheck, Store, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
 } from 'lucide-react';
+import BranchAssign from '@/components/BranchAssign';
+import type { Branch } from '@/components/BranchFilter';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
 import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
@@ -61,8 +63,19 @@ export default function UsersPage() {
   const [deleting, setDeleting] = useState<AuthUser | null>(null);
   const [toast, setToast] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [branchesLoading, setBranchesLoading] = useState(true);
 
   const allowed = me?.role === 'superadmin';
+  useEffect(() => {
+    if (!allowed) return;
+    fetch('/api/branches')
+      .then(res => (res.ok ? res.json() : []))
+      .then(setBranches)
+      .catch(error => console.error('Error fetching branches:', error))
+      .finally(() => setBranchesLoading(false));
+  }, [allowed]);
+  const branchName = useCallback((code: string) => branches.find(b => b.branch_code === code)?.branch_name ?? code, [branches]);
   useEffect(() => {
     if (me && !allowed) router.replace('/overview');
   }, [me, allowed, router]);
@@ -138,7 +151,7 @@ export default function UsersPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl"><Users size={20} className="text-blue-700" /> User Accounts</h1>
-              <p className="text-xs text-slate-500 sm:text-sm">Accounts that can sign in to the dashboard and their access role</p>
+              <p className="text-xs text-slate-500 sm:text-sm">Accounts that can sign in to the dashboard, their role and the branches they may see</p>
             </div>
             <button type="button" className={buttonPrimary} onClick={() => setEditing('new')}>
               <Plus size={16} /> New user
@@ -188,6 +201,7 @@ export default function UsersPage() {
                       <th scope="col" className="px-4 py-2.5">User</th>
                       <th scope="col" className="px-4 py-2.5">Email</th>
                       <th scope="col" className="px-4 py-2.5">Role</th>
+                      <th scope="col" className="px-4 py-2.5">Branches</th>
                       <th scope="col" className="px-4 py-2.5">Status</th>
                       <th scope="col" className="px-4 py-2.5">Last sign-in</th>
                       <th scope="col" className="px-4 py-2.5 text-right">Actions</th>
@@ -195,10 +209,10 @@ export default function UsersPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {(loading && !rows.length ? Array.from({ length: 5 }) : rows).map((u, i) => u ? (
-                      <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id}
+                      <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
                         onView={() => setViewing(u as AuthUser)} onEdit={() => setEditing(u as AuthUser)} onDelete={() => setDeleting(u as AuthUser)} />
                     ) : (
-                      <tr key={i}><td colSpan={6} className="px-4 py-3"><div className="h-8 animate-pulse rounded bg-slate-100" /></td></tr>
+                      <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-8 animate-pulse rounded bg-slate-100" /></td></tr>
                     ))}
                   </tbody>
                 </table>
@@ -209,7 +223,7 @@ export default function UsersPage() {
                       <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setViewing(u)}>
                         <p className="truncate text-sm font-medium text-slate-900">{u.displayName}</p>
                         <p className="truncate text-xs text-slate-500">{u.username} · {u.email}</p>
-                        <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><StatusBadge user={u} />{!u.profileComplete && <ProfileBadge />}</div>
+                        <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><BranchesBadge user={u} branchName={branchName} /><StatusBadge user={u} />{!u.profileComplete && <ProfileBadge />}</div>
                       </button>
                       <button type="button" onClick={() => setEditing(u)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100" aria-label={`Edit ${u.username}`}><Pencil size={16} /></button>
                     </li>
@@ -231,8 +245,9 @@ export default function UsersPage() {
       </div>
 
       {editing && <UserFormDrawer user={editing === 'new' ? null : editing} isMe={editing !== 'new' && editing.id === me?.id}
+        branches={branches} branchesLoading={branchesLoading}
         onClose={() => setEditing(null)} onSaved={saved} />}
-      {viewing && <UserDetailDrawer user={viewing} isMe={viewing.id === me?.id} onClose={() => setViewing(null)}
+      {viewing && <UserDetailDrawer user={viewing} isMe={viewing.id === me?.id} branchName={branchName} onClose={() => setViewing(null)}
         onEdit={() => { setEditing(viewing); setViewing(null); }} onDelete={() => { setDeleting(viewing); setViewing(null); }} onUnlock={() => unlock(viewing)} />}
       {deleting && <DeleteDialog user={deleting} onClose={() => setDeleting(null)}
         onDeleted={() => { setToast({ tone: 'ok', text: `User ${deleting.username} deleted` }); setDeleting(null); load(); }}
@@ -271,6 +286,21 @@ function StatusBadge({ user }: { user: AuthUser }) {
     : <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Inactive</span>;
 }
 
+/** Branches the account may see: superadmins every branch; a user without branches sees no data. */
+function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code: string) => string }) {
+  if (user.role === 'superadmin') return <span className="text-xs text-slate-500">All branches</span>;
+  const codes = user.branches ?? [];
+  if (!codes.length) {
+    return <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700" title="This user sees no data until branches are assigned"><CircleAlert size={11} /> No branch</span>;
+  }
+  const label = codes.length === 1 ? branchName(codes[0]) : `${codes.length} branches`;
+  return (
+    <span className="inline-flex max-w-[14rem] items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700" title={codes.map(branchName).join('\n')}>
+      <Store size={11} className="flex-shrink-0" /><span className="truncate">{label}</span>
+    </span>
+  );
+}
+
 /** the user has not filled in their own profile yet */
 function ProfileBadge() {
   return (
@@ -280,7 +310,9 @@ function ProfileBadge() {
   );
 }
 
-function UserRow({ user, isMe, onView, onEdit, onDelete }: { user: AuthUser; isMe: boolean; onView: () => void; onEdit: () => void; onDelete: () => void }) {
+function UserRow({ user, isMe, branchName, onView, onEdit, onDelete }: {
+  user: AuthUser; isMe: boolean; branchName: (code: string) => string; onView: () => void; onEdit: () => void; onDelete: () => void;
+}) {
   return (
     <tr className="hover:bg-slate-50/60">
       <td className="px-4 py-2.5">
@@ -296,6 +328,7 @@ function UserRow({ user, isMe, onView, onEdit, onDelete }: { user: AuthUser; isM
       </td>
       <td className="px-4 py-2.5 text-slate-600">{user.email}</td>
       <td className="px-4 py-2.5"><RoleBadge role={user.role} /></td>
+      <td className="px-4 py-2.5"><BranchesBadge user={user} branchName={branchName} /></td>
       <td className="px-4 py-2.5"><StatusBadge user={user} /></td>
       <td className="px-4 py-2.5 text-xs text-slate-500">{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Never'}</td>
       <td className="px-4 py-2.5">
@@ -335,7 +368,9 @@ interface AccountForm {
  * fills in their identity themself under "My profile".
  * Edit: everything, incl. correcting the profile and the photo.
  */
-function UserFormDrawer({ user, isMe, onClose, onSaved }: { user: AuthUser | null; isMe: boolean; onClose: () => void; onSaved: (u: AuthUser, created: boolean) => void }) {
+function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSaved }: {
+  user: AuthUser | null; isMe: boolean; branches: Branch[]; branchesLoading: boolean; onClose: () => void; onSaved: (u: AuthUser, created: boolean) => void;
+}) {
   const creating = !user;
   const { user: me, setUser: setMe } = useAuth();
   const [form, setForm] = useState<AccountForm>(() => ({
@@ -343,6 +378,7 @@ function UserFormDrawer({ user, isMe, onClose, onSaved }: { user: AuthUser | nul
     notes: user?.notes ?? '', password: creating ? generatePassword() : '', mustChangePassword: creating ? true : user!.mustChangePassword,
   }));
   const [profile, setProfile] = useState<ProfileValues>(() => profileValues(user));
+  const [branchCodes, setBranchCodes] = useState<string[]>(() => user?.branches ?? []);
   const [showPassword, setShowPassword] = useState(creating);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<{ text: string; field?: string | null } | null>(null);
@@ -358,8 +394,9 @@ function UserFormDrawer({ user, isMe, onClose, onSaved }: { user: AuthUser | nul
       for (const k of PROFILE_KEYS) body[k] = profile[k].trim();
     }
     if (form.password) body.password = form.password;
+    if (form.role === 'user') body.branches = branchCodes;
     return body;
-  }, [form, profile, creating]);
+  }, [form, profile, creating, branchCodes]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -378,7 +415,7 @@ function UserFormDrawer({ user, isMe, onClose, onSaved }: { user: AuthUser | nul
   };
 
   const fieldError = (name: string) => (error?.field === name ? error.text : null);
-  const knownField = error?.field && (['username', 'email', 'role', 'isActive', 'password', 'notes', 'avatar'] as string[]).concat(PROFILE_KEYS).includes(error.field);
+  const knownField = error?.field && (['username', 'email', 'role', 'isActive', 'password', 'notes', 'avatar', 'branches'] as string[]).concat(PROFILE_KEYS).includes(error.field);
 
   return (
     <Drawer open onClose={onClose} size={creating ? 'md' : 'lg'}
@@ -458,6 +495,17 @@ function UserFormDrawer({ user, isMe, onClose, onSaved }: { user: AuthUser | nul
           </div>
         </DrawerSection>
 
+        {form.role === 'user' ? (
+          <DrawerSection title="Branch access" description="Overview and Sales Transactions only show the data of these branches (also exports). Required for role User.">
+            <BranchAssign branches={branches} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
+            {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
+          </DrawerSection>
+        ) : (
+          <p className="mt-6 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
+            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> Super admins see every branch.
+          </p>
+        )}
+
         {creating ? (
           <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/60 px-3.5 py-3 text-sm text-blue-900">
             <Info size={16} className="mt-0.5 flex-shrink-0 text-blue-700" />
@@ -507,8 +555,8 @@ function birthDateLabel(value: string | null): string {
   return parseLocalDate(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function UserDetailDrawer({ user, isMe, onClose, onEdit, onDelete, onUnlock }: {
-  user: AuthUser; isMe: boolean; onClose: () => void; onEdit: () => void; onDelete: () => void; onUnlock: () => void;
+function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, onUnlock }: {
+  user: AuthUser; isMe: boolean; branchName: (code: string) => string; onClose: () => void; onEdit: () => void; onDelete: () => void; onUnlock: () => void;
 }) {
   const dash = (v: string | null | undefined) => v || '—';
   return (
@@ -529,6 +577,22 @@ function UserDetailDrawer({ user, isMe, onClose, onEdit, onDelete, onUnlock }: {
           <div className="mt-1.5 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{!user.profileComplete && <ProfileBadge />}</div>
         </div>
       </div>
+
+      <DrawerSection title="Branch access" description={user.role === 'superadmin' ? 'Super admins see every branch' : 'Overview, Sales Transactions and exports are limited to these branches'}>
+        {user.role === 'superadmin' ? (
+          <p className="text-sm text-slate-600">All branches</p>
+        ) : user.branches?.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {user.branches.map(code => (
+              <span key={code} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                <Store size={11} />{branchName(code)} <span className="font-mono text-[10px] text-slate-400">{code}</span>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> No branch assigned — this user sees no data.</p>
+        )}
+      </DrawerSection>
 
       <DrawerSection title="Personal information" description={user.profileUpdatedAt ? `Last updated by the user ${formatDateTime(user.profileUpdatedAt)}` : 'Not yet filled in by the user'}>
         <DetailList rows={[

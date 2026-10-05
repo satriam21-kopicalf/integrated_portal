@@ -18,6 +18,8 @@ import BasketCard from '@/components/overview/BasketCard';
 import CostControlCard from '@/components/overview/CostControlCard';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
 import LiveTicker from '@/components/overview/LiveTicker';
+import { useFilterLog } from '@/lib/activity';
+import { useAuth } from '@/lib/auth';
 import { useLive } from '@/lib/live';
 import { formatDate, toIsoDate } from '@/lib/format';
 import { RealtimeIndicator } from '@/lib/realtime';
@@ -96,6 +98,13 @@ export default function OverviewPage() {
       .finally(() => setBranchesLoading(false));
   }, []);
 
+  useFilterLog(
+    '/overview',
+    filters ? { dateFrom: filters.from || null, dateTo: filters.to || null, branches: filters.branch ? filters.branch.split(',') : [], channels: filters.channels } : null,
+    `Filter Overview: ${filters?.from ? `${formatDate(filters.from)} – ${formatDate(filters.to || filters.from)}` : 'default'} · ${branchesLabel(filters?.branch ?? '', branches)}`
+      + (filters?.channels.length ? ` · ${filters.channels.join(', ')}` : ''),
+  );
+
   const update = (patch: Partial<Filters>) => {
     setFilters(f => {
       const next = { ...(f ?? EMPTY), ...patch };
@@ -136,6 +145,7 @@ export default function OverviewPage() {
 }
 
 function OverviewContent({ filters, branches }: { filters: Filters; branches: Branch[] }) {
+  const superadmin = useAuth().user?.role === 'superadmin';
   const query = useMemo(() => {
     const p = new URLSearchParams();
     if (filters.from) p.set('dateFrom', filters.from);
@@ -192,9 +202,12 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
         <div className="min-w-0 xl:col-span-4"><ChannelMixCard resource={channels} /></div>
       </div>
 
-      <Section title="Cost control">
-        <CostControlCard dateFrom={f?.from} dateTo={f?.to} branch={filters.branch} />
-      </Section>
+      {/* Cost Control is superadmin only (the API refuses role "user") */}
+      {superadmin && (
+        <Section title="Cost control">
+          <CostControlCard dateFrom={f?.from} dateTo={f?.to} branch={filters.branch} />
+        </Section>
+      )}
 
       <Section title="Branches">
         <BranchLeaderboard resource={branchBoard} />

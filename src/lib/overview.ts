@@ -205,7 +205,7 @@ export interface BasketResponse {
 }
 
 export interface MetaResponse {
-  channels: { channel: string; bills: number }[];
+  channels: { channel: string; bills: number | null }[];
   defaultPeriod: { from: string; to: string };
   freshness: Freshness;
 }
