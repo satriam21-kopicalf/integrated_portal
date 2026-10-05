@@ -45,6 +45,8 @@ export interface TrendPoint {
   bills: number;
   discountPct: number | null;
   previous: { subtotal: number; nettSales: number; bills: number };
+  /** this period per channel (the "By channel" chart) */
+  channels: Record<string, { subtotal: number; bills: number }>;
 }
 
 export interface TrendResponse {
@@ -334,3 +336,103 @@ export function bucketLabel(value: string, granularity: Granularity): string {
   }
   return longDate(value);
 }
+
+// ---------------------------------------------------------------- drill-down endpoints
+
+export interface HourStat {
+  hour: number;
+  bills: number;
+  subtotal: number;
+  avgBills: number;
+  avgSubtotal: number;
+  /** % of the period's bills in this hour */
+  share: number;
+}
+
+export interface HoursProfile {
+  from: string;
+  to: string;
+  days: number;
+  complete: boolean;
+  bills: number;
+  subtotal: number;
+  avgBillsPerDay: number;
+  hours: HourStat[];
+  cells: HourCell[];
+  daysPerDow: Record<string, number>;
+  peakHour: number | null;
+}
+
+export interface BranchHours {
+  branchCode: string;
+  branchName: string;
+  activeDays: number;
+  bills: number;
+  subtotal: number;
+  avgBillsPerDay: number;
+  hours: HourStat[];
+  peakHour: number | null;
+}
+
+export type HourlyCompareResponse =
+  | { filters: OverviewFilters; mode: 'period'; current: HoursProfile; compare: HoursProfile }
+  | { filters: OverviewFilters; mode: 'branches'; branches: BranchHours[] };
+
+export interface BreakdownRow {
+  key: string;
+  label: string;
+  bills: number;
+  subtotal: number;
+  nettSales: number;
+  avgTicket: number | null;
+  share: number | null;
+  billShare: number | null;
+  previousSubtotal: number | null;
+  deltaPct: number | null;
+}
+
+export interface BreakdownResponse {
+  filters: OverviewFilters;
+  by: string;
+  paymentMethod: string | null;
+  txType: string;
+  totals: { bills: number; subtotal: number; nettSales: number };
+  rows: BreakdownRow[];
+}
+
+export interface MenuSplit {
+  key: string;
+  label: string;
+  bills: number;
+  qty: number;
+  subtotal: number;
+  share: number | null;
+}
+
+export interface MenuDetailResponse {
+  filters: OverviewFilters;
+  menu: { menuId: string; kind: string; name: string; category: string | null; categoryDetail: string | null };
+  totals: {
+    bills: number; qty: number; subtotal: number; discount: number; avgPrice: number | null; shareOfMenus: number | null;
+    previousQty: number | null; previousSubtotal: number | null; qtyDeltaPct: number | null;
+  };
+  granularity: 'day' | 'month';
+  series: { date: string; bills: number; qty: number; subtotal: number }[];
+  branches: MenuSplit[];
+  channels: MenuSplit[];
+}
+
+/** Fixed categorical order for comparing up to 8 items (validated, see dataviz reference palette). */
+export const SERIES_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
+
+/** `query` with some parameters set (string) or removed (null / ''). */
+export function withParams(query: string, changes: Record<string, string | null | undefined>): string {
+  const p = new URLSearchParams(query);
+  for (const [k, v] of Object.entries(changes)) {
+    if (v === null || v === undefined || v === '') p.delete(k);
+    else p.set(k, v);
+  }
+  return p.toString();
+}
+
+export const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;

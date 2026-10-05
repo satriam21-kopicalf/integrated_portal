@@ -16,7 +16,7 @@ export interface HBarItem {
 
 /** Ranked horizontal bars, largest on top, value label at the bar end. */
 export default function HBarChart({
-  items, ariaLabel, color = INK.accent, rowHeight = 30, labelWidth = 170, max,
+  items, ariaLabel, color = INK.accent, rowHeight = 30, labelWidth = 170, max, onSelect,
 }: {
   items: HBarItem[];
   ariaLabel: string;
@@ -24,6 +24,8 @@ export default function HBarChart({
   rowHeight?: number;
   labelWidth?: number;
   max?: number;
+  /** a bar was clicked (item key) */
+  onSelect?: (key: string) => void;
 }) {
   // keyed on content: parents rebuild `items` on every render (e.g. realtime updates)
   const signature = JSON.stringify(items);
@@ -50,6 +52,7 @@ export default function HBarChart({
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: { color: INK.primary, fontSize: 12, width: labelWidth, overflow: 'truncate' },
+        triggerEvent: true,
       },
       series: [{
         type: 'bar',
@@ -70,5 +73,10 @@ export default function HBarChart({
   }, [signature, color, rowHeight, labelWidth, max]);
 
   if (!items.length) return <p className="py-6 text-center text-sm text-slate-400">No data</p>;
-  return <EChart option={option} height={items.length * rowHeight + 8} ariaLabel={ariaLabel} />;
+  const pick = onSelect ? (p: { dataIndex: number; componentType?: string; value?: unknown }) => {
+    const rows = [...items].reverse();
+    const i = p.componentType === 'yAxis' ? rows.findIndex(r => r.label === p.value) : p.dataIndex;
+    if (rows[i]) onSelect(rows[i].key);
+  } : undefined;
+  return <EChart option={option} height={items.length * rowHeight + 8} ariaLabel={ariaLabel} onClick={pick} />;
 }

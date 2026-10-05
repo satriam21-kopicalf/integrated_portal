@@ -19,6 +19,8 @@ import CostControlCard from '@/components/overview/CostControlCard';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
 import LiveTicker from '@/components/overview/LiveTicker';
 import { useFilterLog } from '@/lib/activity';
+import { DrillProvider } from '@/components/overview/drill/DrillContext';
+import DrillHost from '@/components/overview/drill/DrillHost';
 import { useAuth } from '@/lib/auth';
 import { useLive } from '@/lib/live';
 import { formatDate, toIsoDate } from '@/lib/format';
@@ -178,6 +180,7 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
   const channelText = filters.channels.length ? filters.channels.map(channelLabel).join(', ') : 'All channels';
 
   return (
+    <DrillProvider baseQuery={query} filters={filters} branches={branches}>
     <div className="space-y-5 p-4 sm:p-6">
       <LiveTicker data={live.data} />
 
@@ -215,7 +218,7 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
 
       <Section title="When & what sells">
         <div className="grid gap-4 xl:grid-cols-2">
-          <div className="min-w-0"><BusyHoursCard resource={hourly} /></div>
+          <div className="min-w-0"><BusyHoursCard resource={hourly} query={query} /></div>
           <div className="min-w-0"><MenusCard query={query} /></div>
         </div>
       </Section>
@@ -232,6 +235,8 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
         <MonthlyCard resource={monthly} />
       </Section>
     </div>
+    <DrillHost />
+    </DrillProvider>
   );
 }
 

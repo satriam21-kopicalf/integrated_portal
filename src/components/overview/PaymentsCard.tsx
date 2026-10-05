@@ -4,12 +4,15 @@ import HBarChart from '@/components/charts/HBarChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { compactRupiah, paymentLabel, PaymentsResponse, Resource } from '@/lib/overview';
 import { Card } from './Card';
+import { useDrill } from './drill/DrillContext';
 
 const TOP = 7;
 
 export default function PaymentsCard({ resource }: { resource: Resource<PaymentsResponse> }) {
+  const drill = useDrill();
   return (
-    <Card title="Payment methods" subtitle="Share of sales by the bill's payment method" resource={resource} minHeight={330}>
+    <Card title="Payment methods" subtitle="Share of sales by the bill's payment method · click a method for its details" resource={resource} minHeight={330}
+      onOpen={() => drill.open({ kind: 'payments' })}>
       {data => {
         const top = data.methods.slice(0, TOP);
         const rest = data.methods.slice(TOP);
@@ -33,6 +36,10 @@ export default function PaymentsCard({ resource }: { resource: Resource<Payments
                 display: `${m.share?.toFixed(1) ?? '-'}% · ${compactRupiah(m.subtotal)}`,
                 tip: { rows: [[formatCurrency(m.subtotal), 'sales'], [formatNumber(m.bills), 'bills']], footer: m.type },
               }))}
+              onSelect={key => {
+                const m = top.find(x => `${x.type}-${x.method}` === key);
+                if (m) drill.open({ kind: 'payment', method: m.method, label: paymentLabel(m.method) });
+              }}
             />
             {rest.length > 0 && (
               <p className="text-[11px] text-slate-400">

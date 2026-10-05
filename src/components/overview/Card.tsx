@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Minus, RotateCw } from 'lucide-react';
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Maximize2, Minus, RotateCw } from 'lucide-react';
 import { Resource } from '@/lib/overview';
 
 /**
@@ -9,7 +9,7 @@ import { Resource } from '@/lib/overview';
  * at reduced opacity (no layout jump); errors offer "Try again".
  */
 export function Card<T>({
-  title, subtitle, actions, resource, children, className = '', minHeight = 240,
+  title, subtitle, actions, resource, children, className = '', minHeight = 240, onOpen,
 }: {
   title: string;
   subtitle?: ReactNode;
@@ -18,16 +18,25 @@ export function Card<T>({
   children: (data: T) => ReactNode;
   className?: string;
   minHeight?: number;
+  /** opens the detail drawer of this analytic (title and "Details" button) */
+  onOpen?: () => void;
 }) {
   const { data, loading, error, retry } = resource;
   return (
-    <section className={`flex h-full min-w-0 flex-col rounded-xl border border-slate-200 bg-white ${className}`}>
+    <section className={`group/card flex h-full min-w-0 flex-col rounded-xl border border-slate-200 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-slate-200/70' : ''} ${className}`}>
       <header className="flex flex-wrap items-start justify-between gap-2 px-4 pb-2 pt-4 sm:px-5">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+          {onOpen ? (
+            <button type="button" onClick={onOpen} className="text-left text-sm font-semibold text-slate-900 hover:text-blue-700">{title}</button>
+          ) : (
+            <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+          )}
           {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
         </div>
-        {actions && <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>}
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {actions}
+          {onOpen && <DetailsButton onClick={onOpen} />}
+        </div>
       </header>
       <div className="relative flex-1 px-4 pb-4 sm:px-5" style={{ minHeight }}>
         {error && !loading ? (
@@ -48,6 +57,16 @@ export function Card<T>({
         )}
       </div>
     </section>
+  );
+}
+
+/** "Details" entry to a card's drawer. */
+export function DetailsButton({ onClick, label = 'Details' }: { onClick: () => void; label?: string }) {
+  return (
+    <button type="button" onClick={onClick} title="All data behind this analytic"
+      className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+      <Maximize2 size={12} /> {label}
+    </button>
   );
 }
 

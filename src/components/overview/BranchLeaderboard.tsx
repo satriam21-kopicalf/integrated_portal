@@ -9,6 +9,7 @@ import { base, changeHtml, INK, tipFooter, tipRow, tipTitle, tooltip } from '@/l
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { BranchesResponse, BranchRow, compactRupiah, Resource } from '@/lib/overview';
 import { Card, Delta, Segmented } from './Card';
+import { to, useDrill } from './drill/DrillContext';
 
 type SortKey = 'subtotal' | 'deltaPct' | 'bills' | 'avgTicket' | 'subtotalPerDay' | 'voidRate';
 const COLUMNS: { key: SortKey; label: string; title: string }[] = [
@@ -26,13 +27,15 @@ export default function BranchLeaderboard({ resource }: { resource: Resource<Bra
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [view, setView] = useState<'table' | 'chart'>('table');
+  const drill = useDrill();
 
   return (
     <Card
       title="Branch leaderboard"
-      subtitle="Sales per branch with change vs the previous period"
+      subtitle="Sales per branch with change vs the previous period · click a branch for its full profile"
       resource={resource}
       minHeight={360}
+      onOpen={() => drill.open({ kind: 'branches' })}
       actions={
         <>
         <Segmented label="View" value={view} options={[{ value: 'table', label: 'Table' }, { value: 'chart', label: 'Top 10' }]} onChange={setView} />
@@ -75,6 +78,7 @@ function Board({
     return rows.map(b => ({ ...b, rank: byRank.get(b.branchCode) ?? 0 }));
   }, [data.branches, query, sort]);
 
+  const drill = useDrill();
   const visible = showAll || query ? ranked : ranked.slice(0, PAGE);
   const total = data.branches.reduce((s, b) => s + b.subtotal, 0);
   const toggle = (key: SortKey) => setSort({ key, desc: sort.key === key ? !sort.desc : true });
@@ -106,7 +110,7 @@ function Board({
           </thead>
           <tbody className="divide-y divide-slate-100">
             {visible.map(b => (
-              <tr key={b.branchCode} className="hover:bg-slate-50/60">
+              <tr key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="cursor-pointer hover:bg-blue-50/50">
                 <td className="py-2 pr-2 tabular-nums text-slate-400">{b.rank}</td>
                 <td className="max-w-[16rem] py-2 pr-2">
                   <p className="truncate font-medium text-slate-800" title={b.branchName}>{b.branchName}</p>
@@ -131,7 +135,7 @@ function Board({
       {/* Mobile cards */}
       <ol className="space-y-2 md:hidden">
         {visible.map(b => (
-          <li key={b.branchCode} className="rounded-lg border border-slate-100 p-3">
+          <li key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="cursor-pointer rounded-lg border border-slate-100 p-3 hover:bg-blue-50/50">
             <div className="flex items-start gap-2">
               <span className="w-6 flex-shrink-0 text-xs tabular-nums text-slate-400">{b.rank}</span>
               <div className="min-w-0 flex-1">
@@ -169,6 +173,7 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
   }, [data.branches, query]);
   const short = (name: string) => name.replace(/^Kopi Calf (To Go )?/, '');
   const hasPrev = data.filters.previous.complete;
+  const drill = useDrill();
 
   const option = useMemo<ChartOption>(() => ({
     ...base,
@@ -219,7 +224,8 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
         { key: 'cur', label: 'This period', color: INK.accent },
         ...(hasPrev ? [{ key: 'prev', label: 'Previous period', color: INK.previous }] : []),
       ]} />
-      <EChart option={option} height={Math.max(220, rows.length * 34)} ariaLabel="Top 10 branches by sales, this period and previous period" />
+      <EChart option={option} height={Math.max(220, rows.length * 34)} ariaLabel="Top 10 branches by sales, this period and previous period"
+        onClick={p => { const b = rows[p.dataIndex]; if (b) drill.open(to.branch(b.branchCode, b.branchName)); }} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, INK, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import { compactRupiah, DeductionsResponse, longDate, Resource, shortDate } from '@/lib/overview';
 import { Card } from './Card';
+import { to, useDrill } from './drill/DrillContext';
 
 function VoidRateChart({ data }: { data: DeductionsResponse }) {
   const option = useMemo<ChartOption>(() => ({
@@ -43,12 +44,14 @@ function VoidRateChart({ data }: { data: DeductionsResponse }) {
 }
 
 export default function DeductionsCard({ resource }: { resource: Resource<DeductionsResponse> }) {
+  const drill = useDrill();
   return (
     <Card
       title="Deductions"
       subtitle="Void, cancelled and other-cost bills, excluded from sales"
       resource={resource}
       minHeight={380}
+      onOpen={() => drill.open({ kind: 'deductions' })}
     >
       {data => {
         const t = data.totals;
@@ -82,7 +85,7 @@ export default function DeductionsCard({ resource }: { resource: Resource<Deduct
               </p>
               <ul className="divide-y divide-slate-100">
                 {list.map(b => (
-                  <li key={b.branchCode} className="flex items-center gap-2 py-1.5 text-xs">
+                  <li key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs hover:bg-blue-50/50">
                     {b.status === 'review' ? (
                       <span className="inline-flex w-[4.5rem] flex-shrink-0 items-center gap-1 font-medium text-amber-700">
                         <AlertTriangle size={13} aria-hidden /> Review

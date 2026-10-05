@@ -5,6 +5,7 @@ import HBarChart from '@/components/charts/HBarChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { compactRupiah, MenusResponse, useOverview } from '@/lib/overview';
 import { Card, Segmented } from './Card';
+import { useDrill } from './drill/DrillContext';
 
 type Tab = 'top' | 'categories' | 'addons';
 
@@ -15,13 +16,15 @@ export default function MenusCard({ query }: { query: string }) {
   const [tab, setTab] = useState<Tab>('top');
   const [sort, setSort] = useState<'subtotal' | 'qty'>('subtotal');
   const resource = useOverview<MenusResponse>('menus', `${query}&limit=10&sort=${sort}`);
+  const drill = useDrill();
 
   return (
     <Card
       title="Menus"
-      subtitle="What sells: ordered menus (add-ons counted separately)"
+      subtitle="What sells: ordered menus (add-ons counted separately) · click a menu for its details"
       resource={resource}
       minHeight={420}
+      onOpen={() => drill.open({ kind: 'menus' })}
       actions={
         <Segmented
           label="Menu view"
@@ -116,6 +119,10 @@ export default function MenusCard({ query }: { query: string }) {
                 },
               }))}
               labelWidth={190}
+              onSelect={key => {
+                const m = data.top.find(x => x.menuId === key);
+                if (m) drill.open({ kind: 'menu', menuId: m.menuId, menuKind: 'menu', name: m.name });
+              }}
             />
           </div>
         );

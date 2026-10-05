@@ -6,11 +6,13 @@ import { formatCurrency } from '@/lib/format';
 import { base, categoryAxis, changeHtml, INK, rupiahAxis, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import { compactRupiah, MonthlyResponse, MonthRow, Resource } from '@/lib/overview';
 import { Card, Delta } from './Card';
+import { to, useDrill } from './drill/DrillContext';
+import { bucketRange } from './drill/parts';
 
-const monthLabel = (m: string, style: 'short' | 'long' = 'short') =>
+export const monthLabel = (m: string, style: 'short' | 'long' = 'short') =>
   new Date(`${m}T00:00:00`).toLocaleDateString('en-GB', { month: style, year: style === 'short' ? '2-digit' : 'numeric' });
 
-function MonthlyChart({ months }: { months: MonthRow[] }) {
+export function MonthlyChart({ months, onSelect, height = 240 }: { months: MonthRow[]; onSelect?: (m: MonthRow) => void; height?: number }) {
   const option = useMemo<ChartOption>(() => ({
     ...base,
     grid: { left: 4, right: 8, top: 26, bottom: 4, containLabel: true },
@@ -43,23 +45,29 @@ function MonthlyChart({ months }: { months: MonthRow[] }) {
       },
     }],
   }), [months]);
-  return <EChart option={option} height={240} ariaLabel="Average sales per day for each month" />;
+  return <EChart option={option} height={height} ariaLabel="Average sales per day for each month" onClick={onSelect ? p => { if (months[p.dataIndex]) onSelect(months[p.dataIndex]); } : undefined} />;
 }
 
 export default function MonthlyCard({ resource }: { resource: Resource<MonthlyResponse> }) {
+  const drill = useDrill();
   return (
     <Card
       title="Monthly growth"
       subtitle="Average sales per calendar day, so partial and 30/31-day months compare fairly · lighter bar = month in progress"
       resource={resource}
       minHeight={320}
+      onOpen={() => drill.open({ kind: 'monthly' })}
     >
       {data => {
         const months = data.months;
+        const openMonth = (m: MonthRow) => {
+          const [from, until] = bucketRange(m.month, 'month', data.filters.from, data.filters.to);
+          drill.open(to.period(from, until, monthLabel(m.month, 'long')));
+        };
         return (
           <div className="grid gap-4 xl:grid-cols-5">
             <div className="min-w-0 xl:col-span-3">
-              <MonthlyChart months={months} />
+              <MonthlyChart months={months} onSelect={openMonth} />
             </div>
             <div className="custom-scrollbar min-w-0 overflow-auto xl:col-span-2" style={{ maxHeight: 260 }}>
               <table className="w-full min-w-[22rem] whitespace-nowrap text-xs">
@@ -75,7 +83,7 @@ export default function MonthlyCard({ resource }: { resource: Resource<MonthlyRe
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {[...months].reverse().map(m => (
-                    <tr key={m.month}>
+                    <tr key={m.month} onClick={() => openMonth(m)} className="cursor-pointer hover:bg-blue-50/50">
                       <td className="py-1.5 pr-2 text-slate-700">
                         {monthLabel(m.month)}
                         {m.partial && <span className="ml-1 text-slate-400">({m.days}d)</span>}

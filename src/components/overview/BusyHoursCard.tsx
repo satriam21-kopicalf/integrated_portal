@@ -6,27 +6,45 @@ import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, INK, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import { compactNumber, compactRupiah, DOW_LABELS, HourlyResponse, Resource } from '@/lib/overview';
 import { Card, DataTable, Segmented } from './Card';
+import { useDrill } from './drill/DrillContext';
+import HoursCompare from './HoursCompare';
 
 /** Sequential single-hue ramp (blue 100 -> 700). */
 const SEQUENTIAL = ['#e8f1fd', '#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b'];
 const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
-export default function BusyHoursCard({ resource }: { resource: Resource<HourlyResponse> }) {
+type Mode = 'pattern' | 'period' | 'branches';
+
+export default function BusyHoursCard({ resource, query }: { resource: Resource<HourlyResponse>; query: string }) {
   const [view, setView] = useState<'chart' | 'table'>('chart');
+  const [mode, setMode] = useState<Mode>('pattern');
+  const drill = useDrill();
   return (
     <Card
       title="Busy hours"
-      subtitle="Average bills per day, by hour of order (outlet time)"
+      subtitle={mode === 'pattern' ? 'Average bills per day, by hour of order (outlet time)'
+        : mode === 'period' ? 'This period against another period, per hour'
+          : 'Branches side by side, per hour'}
       resource={resource}
       minHeight={420}
-      actions={<Segmented label="View" value={view} options={[{ value: 'chart', label: 'Chart' }, { value: 'table', label: 'Table' }]} onChange={setView} />}
+      onOpen={() => drill.open({ kind: 'hours' })}
+      actions={
+        <>
+          <Segmented label="Busy hours view" value={mode} onChange={setMode} options={[
+            { value: 'pattern', label: 'Pattern' }, { value: 'period', label: 'Compare periods' }, { value: 'branches', label: 'Compare branches' },
+          ]} />
+          {mode === 'pattern' && <Segmented label="View" value={view} options={[{ value: 'chart', label: 'Chart' }, { value: 'table', label: 'Table' }]} onChange={setView} />}
+        </>
+      }
     >
-      {data => <BusyBody data={data} view={view} />}
+      {data => mode === 'pattern'
+        ? <BusyBody data={data} view={view} />
+        : <HoursCompare query={query} mode={mode} period={{ from: data.filters.from, to: data.filters.to }} />}
     </Card>
   );
 }
 
-function BusyBody({ data, view }: { data: HourlyResponse; view: 'chart' | 'table' }) {
+export function BusyBody({ data, view, large = false }: { data: HourlyResponse; view: 'chart' | 'table'; large?: boolean }) {
   const model = useMemo(() => {
     const withBills = data.cells.filter(c => c.bills > 0).map(c => c.hour);
     if (!withBills.length) return null;
@@ -155,8 +173,8 @@ function BusyBody({ data, view }: { data: HourlyResponse; view: 'chart' | 'table
           {formatNumber(Math.round(peak.avgBills))} bills/day · {compactRupiah(peak.avgSubtotal)}
         </p>
       )}
-      <EChart option={barOption!} height={140} ariaLabel="Average bills per day for each hour" />
-      <EChart option={heatOption!} height={250} ariaLabel="Heatmap of average bills per day by weekday and hour" />
+      <EChart option={barOption!} height={large ? 180 : 140} ariaLabel="Average bills per day for each hour" />
+      <EChart option={heatOption!} height={large ? 320 : 250} ariaLabel="Heatmap of average bills per day by weekday and hour" />
     </div>
   );
 }

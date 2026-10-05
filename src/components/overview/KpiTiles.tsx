@@ -6,6 +6,7 @@ import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { KpisResponse, Resource } from '@/lib/overview';
 import { Delta } from './Card';
+import { useOptionalDrill } from './drill/DrillContext';
 
 type Key = keyof KpisResponse['kpis'];
 
@@ -26,6 +27,7 @@ const METRICS: {
 /** Period summary: Sales, Nett sales, Bills, Avg ticket (no cards, see StatStrip). */
 export default function KpiTiles({ resource }: { resource: Resource<KpisResponse> }) {
   const { data, error, retry } = resource;
+  const drill = useOptionalDrill();
   const days = data?.filters.days;
   const hasPrev = data?.filters.previous.complete;
   return (
@@ -33,9 +35,10 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
       {METRICS.map((m, i) => {
         const k = data?.kpis[m.key];
         const Icon = m.icon;
-        return (
+        const tile = (
           <Stat
             key={m.key}
+            className={drill ? 'h-full transition-colors group-hover:bg-white' : ''}
             label={m.label}
             icon={<Icon size={13} strokeWidth={2} aria-hidden />}
             value={k ? m.format(k.value) : error ? '—' : <StatSkeleton />}
@@ -57,6 +60,15 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
               <button type="button" onClick={retry} className="text-xs font-medium text-slate-500 underline">Try again</button>
             )}
           </Stat>
+        );
+        if (!drill || !k) return tile;
+        return (
+          <button key={m.key} type="button" onClick={() => drill.open({ kind: 'kpi', metric: m.key })}
+            className="group relative text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            title={`${m.label}: open details per day, weekday and the previous period`}>
+            {tile}
+            <span className="absolute right-3 top-3 text-[10px] font-medium text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">Details ›</span>
+          </button>
         );
       })}
     </StatStrip>

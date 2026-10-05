@@ -10,6 +10,7 @@ import {
   bucketLabel, channelColor, channelKey, channelOrder, ChannelRow, ChannelsResponse, compactRupiah, Resource, shortDate,
 } from '@/lib/overview';
 import { Card, Delta, Segmented } from './Card';
+import { to, useDrill } from './drill/DrillContext';
 
 /** Fold channels outside the fixed palette into "Other" (never a generated colour). */
 function foldChannels(rows: ChannelRow[]): ChannelRow[] {
@@ -35,12 +36,14 @@ function foldChannels(rows: ChannelRow[]): ChannelRow[] {
 
 export default function ChannelMixCard({ resource }: { resource: Resource<ChannelsResponse> }) {
   const [view, setView] = useState<'share' | 'daily'>('share');
+  const drill = useDrill();
   return (
     <Card
       title="Channel mix"
-      subtitle="Sales and share per channel"
+      subtitle="Sales and share per channel · click a channel for its details"
       resource={resource}
       minHeight={360}
+      onOpen={() => drill.open({ kind: 'channels' })}
       actions={<Segmented label="View" value={view} options={[{ value: 'share', label: 'Share' }, { value: 'daily', label: 'Over time' }]} onChange={setView} />}
     >
       {data => <ChannelBody data={data} view={view} />}
@@ -50,6 +53,13 @@ export default function ChannelMixCard({ resource }: { resource: Resource<Channe
 
 function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | 'daily' }) {
   const channels = useMemo(() => foldChannels(data.channels), [data]);
+  const drill = useDrill();
+  // "Other" folds several source channels: open the first one (or the list when there are more)
+  const openChannel = (name: string) => {
+    const sources = data.channels.filter(c => channelKey(c.channel) === name).map(c => c.channel);
+    if (sources.length === 1) drill.open(to.channel(sources[0]));
+    else drill.open({ kind: 'channels' });
+  };
   const g = data.granularity;
 
   const shareOption = useMemo<ChartOption>(() => {
@@ -129,7 +139,8 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
   return (
     <div className="space-y-3">
       {view === 'share' ? (
-        <EChart option={shareOption} height={Math.max(150, channels.length * 36)} ariaLabel="Sales per channel with share" />
+        <EChart option={shareOption} height={Math.max(150, channels.length * 36)} ariaLabel="Sales per channel with share"
+          onClick={p => { const rows = [...channels].sort((a, b) => a.subtotal - b.subtotal); if (rows[p.dataIndex]) openChannel(rows[p.dataIndex].channel); }} />
       ) : (
         <>
           <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
@@ -156,7 +167,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
         </thead>
         <tbody className="divide-y divide-slate-100">
           {channels.map(c => (
-            <tr key={c.channel}>
+            <tr key={c.channel} onClick={() => openChannel(c.channel)} className="cursor-pointer hover:bg-blue-50/50">
               <td className="py-1.5"><span className="flex items-center gap-2"><SeriesKey color={channelColor(c.channel)} /><ChannelLogo channel={c.channel} height={14} /></span></td>
               <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{formatNumber(c.bills)}</td>
               <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{c.avgTicket === null ? '-' : formatNumber(Math.round(c.avgTicket))}</td>

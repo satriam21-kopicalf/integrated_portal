@@ -5,12 +5,14 @@ import ChannelLogo from '@/components/ChannelLogo';
 import { formatNumber } from '@/lib/format';
 import { Basket, BasketResponse, channelColor, channelOrder, Resource } from '@/lib/overview';
 import { Card, Delta } from './Card';
+import { to, useDrill } from './drill/DrillContext';
 
 const change = (cur: number | null, prev: number | null) => (cur !== null && prev ? ((cur - prev) / prev) * 100 : null);
 
 export default function BasketCard({ resource }: { resource: Resource<BasketResponse> }) {
+  const drill = useDrill();
   return (
-    <Card title="Basket" subtitle="What a bill contains" resource={resource} minHeight={360}>
+    <Card title="Basket" subtitle="What a bill contains" resource={resource} minHeight={360} onOpen={() => drill.open({ kind: 'basket' })}>
       {data => {
         const t = data.totals;
         const p: Basket | null = data.filters.previous.complete ? data.previous : null;
@@ -47,7 +49,7 @@ export default function BasketCard({ resource }: { resource: Resource<BasketResp
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {channels.map(c => (
-                  <tr key={c.channel}>
+                  <tr key={c.channel} onClick={() => drill.open(to.channel(c.channel))} className="cursor-pointer hover:bg-blue-50/50">
                     <td className="py-1.5">
                       <span className="flex items-center gap-2"><SeriesKey color={channelColor(c.channel)} /><ChannelLogo channel={c.channel} height={14} /></span>
                     </td>
