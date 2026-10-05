@@ -24,26 +24,37 @@ Browser ── portal.kopicalf.co.id (Vercel) ───────────�
 | `/` | Redirect ke `/overview` |
 | `/overview` | Dashboard analitik: strip *Latest sales*, ringkasan KPI, panel *Today*, tren, channel, cabang, jam sibuk, menu, pembayaran, basket, pengurangan, pertumbuhan bulanan |
 | `/sales` | Daftar transaksi (detail per item), ringkasan Sales/Nett/Gross/Deductions, filter, export Excel |
+| `/cost-control` | **Cost Control** (superadmin & user): COGS ratio, usage ratio, selisih stok, waste, estimasi belanja 1/2/4 minggu per outlet |
 | `/users` | **User Accounts** (khusus superadmin): CRUD akun login, role, status, foto profil, profil user |
 
 Semua halaman selain `/login` wajib login. Role **user** hanya melihat Overview & Sales Transactions (menu *Platforms* dan *User Accounts* disembunyikan, API `/api/users` ditolak); **superadmin** akses penuh.
 
 ### Overview (`src/app/overview/page.tsx`)
 
-- **Filter**: periode (default 30 hari lengkap s/d kemarin), cabang, channel (multi). Tersimpan di URL (`?from=&to=&branch=&channel=`) sehingga tampilan bisa dibagikan. **Semua analitik mengikuti ketiga filter**; *Live sales* & ticker selalu menampilkan **hari ini** dan mengikuti filter cabang & channel.
-- Urutan: strip *Latest sales* → periode & **KPI strip** (Sales, Nett sales, Bills, Avg ticket; tanpa card, **angka penuh** tanpa B/M, Δ% vs periode sebelumnya + sparkline) → panel **Today** → Sales trend + Channel mix → Branch leaderboard → Busy hours + Menus → Payments, Basket, Deductions → Monthly growth.
+- **Filter**: periode (default 30 hari lengkap s/d kemarin), cabang (**bisa beberapa**: centang lalu *Apply*), channel (multi). Tersimpan di URL (`?from=&to=&branch=CCI01,CCI04&channel=`) sehingga tampilan bisa dibagikan. **Semua analitik mengikuti ketiga filter**; *Live sales* & ticker selalu menampilkan **hari ini** dan mengikuti filter cabang & channel.
+- Urutan: strip *Latest sales* → periode & **KPI strip** (Sales, Nett sales, Bills, Avg ticket; tanpa card, **angka penuh** tanpa B/M, Δ% vs periode sebelumnya + sparkline) → panel **Today** → Sales trend + Channel mix → **Cost control** → Branch leaderboard → Busy hours + Menus → Payments, Basket, Deductions → Monthly growth.
 - **Today** (`components/overview/LiveSalesCard.tsx`): penjualan hari ini (angka beranimasi) vs kemarin di jam yang sama, progres terhadap total kemarin, Bills/Avg ticket/Nett dengan Δ%, penjualan per jam hari ini vs kemarin, komposisi channel hari ini, dan daftar transaksi terbaru (transaksi baru masuk satu per satu dengan animasi + label *New*).
 - **Strip Latest sales** (`components/overview/LiveTicker.tsx`): hanya data transaksi terbaru yang bergerak (jam, outlet, logo channel, jumlah item, nilai), warna biru dengan aksen merah; berhenti saat disorot. Status *Live* hanya ditampilkan di header halaman.
 - **Logo channel** (`components/ChannelLogo.tsx`, file di `public/assets/`): GoFood, GrabFood, ShopeeFood memakai wordmark (menggantikan teks); Dine In & Takeaway memakai ikon + nama. Dipakai di Channel mix (termasuk label sumbu chart), Basket, panel Today, strip Latest sales dan filter channel.
 - Setiap widget memuat datanya sendiri (skeleton saat pertama; data lama tetap tampil saat memuat ulang; *Try again* bila gagal).
 - **Definisi metrik**: *Sales* = subtotal transaksi berstatus Finished dengan nomor bill (sama dengan laporan Sales Recapitulation); *Nett sales* = setelah diskon item & bill; *Bills* = jumlah transaksi; *Avg ticket* = Sales ÷ Bills. Periode pembanding = jumlah hari yang sama tepat sebelum periode; sebelum 1 Agu 2025 (roll-out belum lengkap) tidak dibandingkan. Hanya field yang selalu terisi yang dipakai; baris menu yang dibatalkan (*Print Cancelled*) tidak dihitung.
+- **Cost control** (`components/overview/CostControlCard.tsx`): COGS aktual & teoretis, usage ratio, selisih stok, pembelian, estimasi belanja 7 hari, distribusi status outlet dan 5 outlet dengan COGS tertinggi; mengikuti periode & cabang Overview, basis Net sales/Subtotal, tautan ke halaman Cost Control.
 - **Monthly growth** menampilkan bulan-bulan di dalam periode terpilih (hanya hari terpilih yang dihitung); MoM/YoY/same-store membandingkan rata-rata per hari kalender.
 
 ### Sales Transactions (`src/app/sales/page.tsx`)
 
 - **Default periode: kemarin** (hari lengkap terakhir). *Clear* pada filter tanggal kembali ke kemarin. Rentang berapa pun (> 65 hari, 1 tahun, …) bisa dipilih: daftar memakai *cursor pagination*, ringkasan dihitung backend dari agregat harian (1 tahun < 1 detik).
 - **Ringkasan tanpa card**: Sales subtotal, Nett sales (diskon & %), Gross subtotal (bar komposisi Sales / Void / Other cost / Open), Deductions (rincian Void & cancelled, Other cost, Open bills).
-- Tab tipe: Sales, Void & Cancelled, Other Cost, All. Pencarian nomor sales/bill/cabang, filter cabang, export Excel (detail / daily recap).
+- Tab tipe: Sales, Void & Cancelled, Other Cost, All. Pencarian nomor sales/bill/cabang, filter cabang (**bisa beberapa**, chip per cabang), export Excel (detail / daily recap) untuk cabang terpilih.
+
+### Cost Control (`src/app/cost-control/page.tsx`, `components/cost/`)
+
+- **Akses**: superadmin & user (menu sidebar *Cost Control*); tombol *Settings* (ambang status & parameter forecast) khusus superadmin.
+- **Filter**: periode (preset This/Last month, 3/6 bulan, This year), cabang (multi), basis rasio **Net sales** (standar) atau **Subtotal**. Data per periode opname: tgl 1–7, 8–14, 15–21, 22–akhir bulan.
+- **Ringkasan**: penjualan, COGS aktual (Rp + % + status), COGS teoretis (menu terjual × resep), usage ratio (+ selisih poin vs resep), selisih stok (termasuk opname belum diposting) & pemakaian lain (waste). Median outlet sebagai pembanding.
+- **Status** (dapat diubah di Settings): COGS ≤ 35% Good · ≤ 40% Watch · ≤ 45% High · > 45% Critical (% net sales); usage ratio ±2/5/10%; selisih aktual−teoretis 1/2/3 poin; waste 1/2/3%. Selalu ikon + label, bukan warna saja.
+- **COGS trend** (bulan / periode opname, chart atau tabel), **Purchase forecast** (estimasi 1 minggu / 2 minggu / 1 bulan per outlet vs rata-rata pembelian), **tabel outlet** (urut, cari, filter status) → **drawer outlet**: angka utama, tren outlet, item (teoretis vs aktual, usage ratio, selisih Rp, waste) dan kebutuhan belanja per item.
+- Cara hitung ditampilkan di bagian *How the figures are calculated*.
 
 ## Login & akun
 
@@ -118,10 +129,13 @@ src/
 | `GET /api/overview/{meta,kpis,trend,channels,branches,hourly,menus,deductions,monthly,payments,basket}` | Overview |
 | `GET /api/live` | Live sales, ticker |
 | `GET /api/transactions`, `/api/transactions/{sales_num}`, `/api/summary`, `/api/branches` | Sales |
+| `GET /api/cost-control/{meta,summary,trend,items,forecast}`, `PUT /api/cost-control/settings` | Cost Control, kartu Cost control di Overview |
 | `POST /api/exports`, `GET /api/exports/{id}`, `/api/exports/{id}/download` | Export Excel |
 | `wss://…/ws`, `GET /api/realtime/version` | Realtime |
 | `/api/auth/*` (login, logout, me, password, me/avatar) | Login, profil sidebar |
 | `/api/users/*`, `/api/avatars/{id}` | User Accounts, foto profil |
+
+Parameter `branch` di semua endpoint menerima satu kode atau beberapa dipisah koma (`CCI01,CCI04`).
 
 Detail parameter & respons: dokumentasi backend (`integrated_portal_be/docs/README.md`) dan Swagger `https://api.kopicalf.co.id/docs`.
 
