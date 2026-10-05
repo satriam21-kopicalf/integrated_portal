@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import TransactionDetail from '@/components/TransactionDetail';
 import ExportButton from '@/components/ExportButton';
 import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
-import BranchFilter, { Branch } from '@/components/BranchFilter';
+import BranchFilter, { Branch, branchesLabel, splitBranches } from '@/components/BranchFilter';
 import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Search, Tag, Wallet, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate } from '@/lib/format';
@@ -91,7 +91,7 @@ export default function SalesPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [branch, setBranch] = useState(''); // branch_code
+  const [branch, setBranch] = useState(''); // branch codes separated by commas, '' = all
   const [txType, setTxType] = useState<TxType>('sales');
   const [summary, setSummary] = useState<SalesSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
@@ -237,7 +237,7 @@ export default function SalesPage() {
   const periodLabel = summary
     ? `${formatDate(summary.dateRange.from)} – ${formatDate(summary.dateRange.to)}`
     : dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : 'Yesterday';
-  const branchLabel = branch ? branchName(branch) : 'All branches';
+  const branchLabel = branchesLabel(branch, branches);
 
   const typeCounts: Record<TxType, number | undefined> = {
     sales: summary?.totals.sales.transactions,
@@ -343,7 +343,10 @@ export default function SalesPage() {
             {hasChips && (
               <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 sm:px-4">
                 {!defaultDates && <Chip label={`Date: ${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}`} onRemove={() => handleDateChange('', '')} />}
-                {branch && <Chip label={`Branch: ${branchName(branch)}`} onRemove={() => setBranch('')} />}
+                {splitBranches(branch).map(code => (
+                  <Chip key={code} label={`Branch: ${branchName(code)}`}
+                    onRemove={() => setBranch(splitBranches(branch).filter(c => c !== code).join(','))} />
+                ))}
                 {txType !== 'sales' && <Chip label={`Type: ${typeInfo.label}`} onRemove={() => setTxType('sales')} />}
                 {debouncedSearch && <Chip label={`Search: “${debouncedSearch}”`} onRemove={clearSearch} />}
                 <button type="button" onClick={clearFilters} className="text-xs font-medium text-slate-500 hover:text-slate-900">

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Calculator, Info, RotateCw, SlidersHorizontal } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import BranchFilter, { Branch, branchesLabel } from '@/components/BranchFilter';
 import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { Segmented } from '@/components/overview/Card';
@@ -34,17 +35,18 @@ function presets(): DatePreset[] {
   ];
 }
 
-interface Filters { from: string; to: string; basis: Basis }
+interface Filters { from: string; to: string; branch: string; basis: Basis }
 
 function readUrl(): Filters {
   const p = new URLSearchParams(window.location.search);
-  return { from: p.get('from') ?? '', to: p.get('to') ?? '', basis: p.get('basis') === 'subtotal' ? 'subtotal' : 'net' };
+  return { from: p.get('from') ?? '', to: p.get('to') ?? '', branch: p.get('branch') ?? '', basis: p.get('basis') === 'subtotal' ? 'subtotal' : 'net' };
 }
 
 function writeUrl(f: Filters) {
   const p = new URLSearchParams();
   if (f.from) p.set('from', f.from);
   if (f.to) p.set('to', f.to);
+  if (f.branch) p.set('branch', f.branch);
   if (f.basis !== 'net') p.set('basis', f.basis);
   const qs = p.toString();
   window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
@@ -57,23 +59,34 @@ export default function CostControlPage() {
   const [editing, setEditing] = useState(false);
   const [settingsOverride, setSettingsOverride] = useState<CostSettings | null>(null);
   const meta = useCostControl<MetaResponse>('meta', '');
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [branchesLoading, setBranchesLoading] = useState(true);
 
   useEffect(() => setFilters(readUrl()), []);
+  useEffect(() => {
+    fetch('/api/branches')
+      .then(res => (res.ok ? res.json() : []))
+      .then(setBranches)
+      .catch(error => console.error('Error fetching branches:', error))
+      .finally(() => setBranchesLoading(false));
+  }, []);
 
   const update = (patch: Partial<Filters>) => setFilters(f => {
-    const next = { ...(f ?? { from: '', to: '', basis: 'net' as Basis }), ...patch };
+    const next = { ...(f ?? { from: '', to: '', branch: '', basis: 'net' as Basis }), ...patch };
     writeUrl(next);
     return next;
   });
 
   const from = filters?.from ?? '';
   const to = filters?.to ?? '';
+  const branch = filters?.branch ?? '';
   const query = useMemo(() => {
     const p = new URLSearchParams();
     if (from) p.set('dateFrom', from);
     if (to) p.set('dateTo', to);
+    if (branch) p.set('branch', branch);
     return p.toString();
-  }, [from, to]);
+  }, [from, to, branch]);
 
   const summary = useCostControl<SummaryResponse>('summary', query, filters !== null);
   const settings = settingsOverride ?? summary.data?.settings ?? meta.data?.settings;
@@ -93,6 +106,7 @@ export default function CostControlPage() {
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <Segmented label="Ratio basis" value={basis} options={[{ value: 'net', label: 'Net sales' }, { value: 'subtotal', label: 'Subtotal' }]} onChange={b => update({ basis: b })} />
               <DateRangePicker dateFrom={filters?.from ?? ''} dateTo={filters?.to ?? ''} onChange={(from, to) => update({ from, to })} presets={presets} defaultLabel="this month" />
+              <BranchFilter branches={branches} loading={branchesLoading} value={branch} onChange={b => update({ branch: b })} />
               {user?.role === 'superadmin' && settings && (
                 <button type="button" onClick={() => setEditing(true)} title="Thresholds & forecast settings"
                   className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
@@ -108,7 +122,7 @@ export default function CostControlPage() {
             {summary.data ? (
               <>
                 <span className="font-medium text-slate-900">{formatDate(summary.data.filters.dateFrom)} – {formatDate(summary.data.filters.dateTo)}</span>
-                {' '}· {summary.data.periods.length} opname period(s) · ratios on {basis === 'net' ? 'net sales' : 'subtotal'}
+                {' '}· {branchesLabel(branch, branches)} · {summary.data.periods.length} opname period(s) · ratios on {basis === 'net' ? 'net sales' : 'subtotal'}
                 {fresh?.refreshedAt && <> · updated {formatDateTime(fresh.refreshedAt)}</>}
               </>
             ) : <span className="inline-block h-4 w-72 animate-pulse rounded bg-slate-200 align-middle" />}
@@ -128,7 +142,7 @@ export default function CostControlPage() {
 
           <div className="grid gap-4 xl:grid-cols-12">
             <div className="min-w-0 xl:col-span-7"><CostTrendCard query={query} basis={basis} settings={settings} /></div>
-            <div className="min-w-0 xl:col-span-5"><ForecastCard onSelect={setSelected} /></div>
+            <div className="min-w-0 xl:col-span-5"><ForecastCard branch={branch} onSelect={setSelected} /></div>
           </div>
 
           <section className="space-y-3">

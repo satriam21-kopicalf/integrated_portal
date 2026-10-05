@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
-import BranchFilter, { Branch } from '@/components/BranchFilter';
+import BranchFilter, { Branch, branchesLabel } from '@/components/BranchFilter';
 import ChannelFilter from '@/components/overview/ChannelFilter';
 import KpiTiles from '@/components/overview/KpiTiles';
 import TrendCard from '@/components/overview/TrendCard';
@@ -15,6 +15,7 @@ import DeductionsCard from '@/components/overview/DeductionsCard';
 import MonthlyCard from '@/components/overview/MonthlyCard';
 import PaymentsCard from '@/components/overview/PaymentsCard';
 import BasketCard from '@/components/overview/BasketCard';
+import CostControlCard from '@/components/overview/CostControlCard';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
 import LiveTicker from '@/components/overview/LiveTicker';
 import { useLive } from '@/lib/live';
@@ -28,7 +29,7 @@ import {
 interface Filters {
   from: string; // '' = default period (last 30 complete days)
   to: string;
-  branch: string; // branch_code, '' = all
+  branch: string; // branch codes separated by commas, '' = all
   channels: string[]; // [] = all
 }
 
@@ -163,7 +164,7 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
   const live = useLive(liveQuery);
 
   const f = kpis.data?.filters;
-  const branchName = filters.branch ? branches.find(b => b.branch_code === filters.branch)?.branch_name ?? filters.branch : 'All branches';
+  const branchName = branchesLabel(filters.branch, branches);
   const channelText = filters.channels.length ? filters.channels.map(channelLabel).join(', ') : 'All channels';
 
   return (
@@ -190,6 +191,10 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
         <div className="min-w-0 xl:col-span-8"><TrendCard query={query} /></div>
         <div className="min-w-0 xl:col-span-4"><ChannelMixCard resource={channels} /></div>
       </div>
+
+      <Section title="Cost control">
+        <CostControlCard dateFrom={f?.from} dateTo={f?.to} branch={filters.branch} />
+      </Section>
 
       <Section title="Branches">
         <BranchLeaderboard resource={branchBoard} />

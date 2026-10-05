@@ -10,8 +10,8 @@ import { useClickOutside } from '@/lib/useClickOutside';
 interface ExportButtonProps {
   dateFrom?: string;
   dateTo?: string;
-  branch?: string; // branch_code
-  branchLabel?: string; // display name of the selected branch
+  branch?: string; // branch codes separated by commas
+  branchLabel?: string; // display name of the selected branch(es)
   txType?: string; // sales (ESB report) | void | other_cost | all
   typeLabel?: string;
 }

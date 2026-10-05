@@ -10,8 +10,8 @@ type Horizon = '7' | '14' | '30';
 const HORIZON_LABEL: Record<Horizon, string> = { '7': '1 week', '14': '2 weeks', '30': '1 month' };
 
 /** Estimated purchases per outlet for the next 1 / 2 / 4 weeks vs what the outlet bought so far. */
-export default function ForecastCard({ onSelect }: { onSelect: (branchCode: string) => void }) {
-  const resource = useCostControl<ForecastResponse>('forecast', '');
+export default function ForecastCard({ branch = '', onSelect }: { branch?: string; onSelect: (branchCode: string) => void }) {
+  const resource = useCostControl<ForecastResponse>('forecast', branch ? `branch=${encodeURIComponent(branch)}` : '');
   const [horizon, setHorizon] = useState<Horizon>('7');
   const [desc, setDesc] = useState(true);
 
