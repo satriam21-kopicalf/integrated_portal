@@ -436,3 +436,57 @@ export function withParams(query: string, changes: Record<string, string | null 
 }
 
 export const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
+
+// ---------------------------------------------------------------- sales growth
+
+export type GrowthBasis = 'previous' | 'lastYear' | 'sequential';
+
+export interface GrowthPoint {
+  date: string;
+  days: number;
+  subtotal: number;
+  bills: number;
+  compareSubtotal: number | null;
+  compareBills: number | null;
+  compareDays: number | null;
+  compareFrom: string | null;
+  avgPerDay: number;
+  compareAvgPerDay: number | null;
+  growthPct: number | null;
+  /** previous / lastYear: Rp difference of the bucket; sequential: Rp difference per day */
+  growthAbs: number | null;
+}
+
+export interface GrowthSplit {
+  key: string;
+  label: string;
+  subtotal: number;
+  compareSubtotal: number | null;
+  bills: number;
+  compareBills: number | null;
+  growthAbs: number | null;
+  growthPct: number | null;
+  /** percentage points of the total growth explained by this row */
+  contributionPp: number | null;
+  status: 'new' | 'lost' | 'growing' | 'declining' | 'flat' | null;
+}
+
+export interface GrowthResponse {
+  filters: OverviewFilters;
+  granularity: Granularity;
+  compare: { basis: GrowthBasis; from: string; to: string; complete: boolean };
+  totals: {
+    subtotal: number; bills: number; avgTicket: number | null;
+    compareSubtotal: number | null; compareBills: number | null; compareAvgTicket: number | null;
+    growthAbs: number | null; growthPct: number | null; billsGrowthPct: number | null; avgTicketGrowthPct: number | null;
+    bucketsUp: number; bucketsDown: number;
+  };
+  series: GrowthPoint[];
+  branches: GrowthSplit[];
+  channels: GrowthSplit[];
+}
+
+/** Diverging pair (dataviz reference): growth blue, decline red, grey = no change. */
+export const GROWTH_UP = '#2a78d6';
+export const GROWTH_DOWN = '#e34948';
+export const GROWTH_RAMP = ['#e34948', '#ef8a89', '#f6c3c2', '#f0efec', '#b7d3f6', '#6da7ec', '#2a78d6'];

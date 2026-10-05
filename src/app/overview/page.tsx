@@ -16,6 +16,7 @@ import MonthlyCard from '@/components/overview/MonthlyCard';
 import PaymentsCard from '@/components/overview/PaymentsCard';
 import BasketCard from '@/components/overview/BasketCard';
 import CostControlCard from '@/components/overview/CostControlCard';
+import SalesGrowthCard from '@/components/overview/SalesGrowth';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
 import LiveTicker from '@/components/overview/LiveTicker';
 import { useFilterLog } from '@/lib/activity';
@@ -204,6 +205,8 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
         <div className="min-w-0 xl:col-span-8"><TrendCard query={query} /></div>
         <div className="min-w-0 xl:col-span-4"><ChannelMixCard resource={channels} /></div>
       </div>
+
+      <SalesGrowthCard query={query} />
 
       {/* Cost Control is superadmin only (the API refuses role "user") */}
       {superadmin && (

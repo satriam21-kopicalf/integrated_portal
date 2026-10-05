@@ -7,7 +7,7 @@
 
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import type { Branch } from '@/components/BranchFilter';
-import { withParams } from '@/lib/overview';
+import { GrowthBasis, withParams } from '@/lib/overview';
 
 export type KpiKey = 'sales' | 'nettSales' | 'bills' | 'avgTicket';
 
@@ -17,6 +17,7 @@ export type Overrides = Record<string, string>;
 export type DrillTarget = { overrides?: Overrides } & (
   | { kind: 'kpi'; metric: KpiKey }
   | { kind: 'trend' }
+  | { kind: 'growth'; basis: GrowthBasis }
   | { kind: 'channels' }
   | { kind: 'branches' }
   | { kind: 'hours' }
