@@ -2,14 +2,15 @@
 
 import { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
-import { AlertTriangle, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { AlertTriangle, FileSpreadsheet, Loader2, Sheet } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
-import { REPORTS, ReportKind, useExports } from '@/lib/exports';
+import { ExportFormat, GSHEET_MAX_CELLS, REPORTS, ReportKind, useExports } from '@/lib/exports';
 import { formatDate, formatNumber } from '@/lib/format';
 import { useClickOutside } from '@/lib/useClickOutside';
 
 // The export runs on the server and is followed by ExportsProvider (src/lib/exports.tsx),
-// so it keeps going - and downloads when ready - while the user moves to other pages.
+// so it keeps going - and downloads (Excel) or links the sheet (Google Sheets) when ready -
+// while the user moves to other pages.
 
 interface ExportButtonProps {
   dateFrom?: string;
@@ -23,6 +24,13 @@ interface ExportButtonProps {
 const DEFAULT_DAYS = 65; // backend default when no dates are selected
 const LARGE_RANGE_DAYS = 31;
 const ROWS_PER_DAY_ESTIMATE = 65000;
+const DETAIL_COLUMNS = 46;
+const FORMAT_KEY = 'portal.exportFormat';
+
+const FORMATS: { value: ExportFormat; label: string }[] = [
+  { value: 'xlsx', label: 'Excel (.xlsx)' },
+  { value: 'gsheet', label: 'Google Sheets' },
+];
 
 function rangeDays(dateFrom?: string, dateTo?: string): number {
   if (!dateFrom) return DEFAULT_DAYS + 1;
@@ -36,7 +44,23 @@ export default function ExportButton({
 }: ExportButtonProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmReport, setConfirmReport] = useState<ReportKind | null>(null);
-  const { busy: running, start } = useExports();
+  const [chosenFormat, setChosenFormat] = useState<ExportFormat>(() => {
+    try {
+      return window.localStorage.getItem(FORMAT_KEY) === 'gsheet' ? 'gsheet' : 'xlsx';
+    } catch {
+      return 'xlsx';
+    }
+  });
+  const { busy: running, googleSheets, start } = useExports();
+  const format: ExportFormat = googleSheets ? chosenFormat : 'xlsx';
+  const chooseFormat = (f: ExportFormat) => {
+    setChosenFormat(f);
+    try {
+      window.localStorage.setItem(FORMAT_KEY, f);
+    } catch {
+      /* remembered for this visit only */
+    }
+  };
   const menuRef = useRef<HTMLDivElement>(null);
 
   const closeMenu = useCallback(() => {
@@ -47,11 +71,11 @@ export default function ExportButton({
 
   const runExport = (report: ReportKind) => {
     closeMenu();
-    start({ dateFrom, dateTo, branch, txType, report, branchLabel, typeLabel });
+    start({ dateFrom, dateTo, branch, txType, report, format, branchLabel, typeLabel });
   };
 
   const requestExport = (report: ReportKind) => {
-    if (report === 'detail' && rangeDays(dateFrom, dateTo) > LARGE_RANGE_DAYS) {
+    if (report === 'detail' && (rangeDays(dateFrom, dateTo) > LARGE_RANGE_DAYS || tooBigForSheets)) {
       setConfirmReport(report);
       return;
     }
@@ -59,6 +83,9 @@ export default function ExportButton({
   };
 
   const days = rangeDays(dateFrom, dateTo);
+  // rough: only all-branch exports can be estimated (about 65k item rows per day)
+  const tooBigForSheets = format === 'gsheet' && !branch && days * ROWS_PER_DAY_ESTIMATE * DETAIL_COLUMNS > GSHEET_MAX_CELLS;
+  const destination = format === 'gsheet' ? 'Google Sheets' : 'Excel';
 
   return (
     <>
@@ -68,8 +95,8 @@ export default function ExportButton({
           onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
           disabled={running}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white transition-colors hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
-          title={running ? 'Export in progress' : 'Export to Excel'}
-          aria-label="Export to Excel"
+          title={running ? 'Export in progress' : googleSheets ? 'Export to Excel or Google Sheets' : 'Export to Excel'}
+          aria-label="Export"
         >
           {running ? (
             <Loader2 size={18} className="animate-spin text-slate-600" />
@@ -87,10 +114,13 @@ export default function ExportButton({
                 <div className="flex gap-3">
                   <AlertTriangle size={20} className="mt-0.5 flex-shrink-0 text-amber-500" />
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">Large export</p>
+                    <p className="text-sm font-semibold text-slate-900">{tooBigForSheets ? 'Likely too large for Google Sheets' : 'Large export'}</p>
                     <p className="mt-1 text-xs leading-relaxed text-slate-500">
                       {days} days{!dateFrom && ' (no date filter, last 65 days)'}
-                      {!branch && ` · approx. ${formatNumber(days * ROWS_PER_DAY_ESTIMATE)} rows`}. This can take several minutes; the file is split into multiple sheets above 1,048,575 rows.
+                      {!branch && ` · approx. ${formatNumber(days * ROWS_PER_DAY_ESTIMATE)} rows`}.{' '}
+                      {tooBigForSheets
+                        ? `Google Sheets holds at most 10 million cells (about ${formatNumber(Math.floor(GSHEET_MAX_CELLS / DETAIL_COLUMNS))} rows of this report); the export stops with an error when it is exceeded. Narrow the dates or branches, or export to Excel.`
+                        : 'This can take several minutes; the file is split into multiple sheets above 1,048,575 rows.'}
                     </p>
                   </div>
                 </div>
@@ -105,7 +135,25 @@ export default function ExportButton({
               </div>
             ) : (
               <div className="p-1.5">
-                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Export to Excel</p>
+                {googleSheets && (
+                  <div role="radiogroup" aria-label="Export format" className="mb-1.5 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                    {FORMATS.map(f => (
+                      <button
+                        key={f.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={format === f.value}
+                        onClick={() => chooseFormat(f.value)}
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+                          format === f.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                      >
+                        {f.value === 'gsheet' ? <Sheet size={14} className="text-emerald-600" /> : <FileSpreadsheet size={14} className="text-emerald-700" />}
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Export to {destination}</p>
                 {REPORTS.map(r => (
                   <button
                     key={r.value}
@@ -122,6 +170,7 @@ export default function ExportButton({
                 ))}
                 <p className="border-t border-slate-100 px-2.5 pb-1 pt-2 text-[11px] text-slate-400">
                   {typeLabel} · {branchLabel} · {dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : 'Last 65 days'}
+                  {format === 'gsheet' && <span className="block pt-0.5">The sheet is shared with your account e-mail.</span>}
                 </p>
               </div>
             )}

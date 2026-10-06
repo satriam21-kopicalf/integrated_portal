@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Loader2, RotateCcw, X, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Download, ExternalLink, FileSpreadsheet, Loader2, RotateCcw, Sheet, X, XCircle } from 'lucide-react';
 import { formatBytes, formatDate, formatDuration, formatNumber } from '@/lib/format';
 import { REPORTS, TrackedExport, useExports } from '@/lib/exports';
 
@@ -38,12 +38,16 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
 }) {
   const { job, error, params } = item;
   const report = params.report;
+  const gsheet = (job?.format ?? params.format) === 'gsheet';
+  const uploading = job?.phase === 'upload';
   const reportLabel = REPORTS.find(r => r.value === report)?.label ?? 'Export';
   const typeLabel = TYPE_LABELS[params.typeLabel] ?? params.typeLabel;
   const failed = Boolean(error || job?.status === 'error');
   const done = !failed && job?.status === 'done';
   const empty = done && !job?.rows;
-  const percent = job ? Math.round((job.daysDone / Math.max(job.totalDays, 1)) * 100) : 0;
+  // building the file is the first 85% of a Google Sheets export, the upload the rest
+  const buildPct = job ? (job.daysDone / Math.max(job.totalDays, 1)) * 100 : 0;
+  const percent = Math.round(gsheet ? buildPct * 0.85 + (uploading ? (job?.uploadPct ?? 0) * 0.15 : 0) : buildPct);
   const elapsed = Math.max(0, (now - item.startedAt) / 1000);
   const remaining = job && job.daysDone > 0 && !done ? (elapsed / job.daysDone) * (job.totalDays - job.daysDone) : null;
 
@@ -52,6 +56,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
   else if (empty) statusText = 'No data for this selection';
   else if (done) statusText = 'Export complete';
   else if (job?.status === 'queued') statusText = 'Waiting in queue…';
+  else if (uploading) statusText = 'Uploading to Google Sheets…';
   else if (job?.status === 'running') {
     statusText = job.currentDate
       ? `Processed ${formatDate(job.currentDate)} · day ${job.daysDone} of ${job.totalDays}`
@@ -65,10 +70,10 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
     <div role="status" aria-live="polite" className="rounded-2xl border border-slate-200 bg-white shadow-2xl">
       <div className="flex items-start gap-3 p-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100">
-          <FileSpreadsheet size={20} className="text-slate-700" />
+          {gsheet ? <Sheet size={20} className="text-emerald-600" /> : <FileSpreadsheet size={20} className="text-slate-700" />}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-slate-900">{reportLabel}</p>
+          <p className="truncate text-sm font-semibold text-slate-900">{reportLabel}{gsheet && <span className="font-normal text-slate-500"> · Google Sheets</span>}</p>
           <p className="truncate text-xs text-slate-500">
             {typeLabel} · {params.branchLabel}
             {job ? ` · ${formatDate(job.dateFrom)} – ${formatDate(job.dateTo)}` : ''}
@@ -95,7 +100,11 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
                 style={job && job.status !== 'queued' ? { width: `${Math.max(percent, 3)}%` } : undefined}
               />
             </div>
-            <p className="mt-2 text-[11px] text-slate-400">You can keep using other pages — the file downloads automatically when ready.</p>
+            <p className="mt-2 text-[11px] text-slate-400">
+              {gsheet
+                ? 'You can keep using other pages — a link to the sheet appears here when ready.'
+                : 'You can keep using other pages — the file downloads automatically when ready.'}
+            </p>
           </>
         )}
 
@@ -115,13 +124,21 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
             ) : (
               <>
                 <Stat label="Elapsed" value={formatDuration(elapsed)} />
-                <Stat label="Remaining" value={remaining === null ? 'Estimating…' : `~${formatDuration(remaining)}`} />
+                {uploading
+                  ? <Stat label="Uploaded" value={`${job.uploadPct ?? 0}%`} />
+                  : <Stat label="Remaining" value={remaining === null ? 'Estimating…' : `~${formatDuration(remaining)}`} />}
               </>
             )}
           </dl>
         )}
 
         {empty && <p className="mt-2 text-xs text-slate-500">Try a different date range, branch or transaction type.</p>}
+
+        {done && gsheet && job?.sheetUrl && (
+          <p className="mt-2 text-[11px] text-slate-500">
+            {job.sheetSharedWith ? `Shared with ${job.sheetSharedWith}.` : 'Saved in the portal\'s Google Drive folder (not shared with your e-mail).'}
+          </p>
+        )}
 
         {(done || failed) && (
           <div className="mt-3 flex justify-end gap-2">
@@ -137,9 +154,22 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
               <a
                 href={job.downloadUrl}
                 download={job.fileName}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800"
+                className={gsheet
+                  ? 'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100'
+                  : 'inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800'}
+                title={gsheet ? 'The same data as an Excel file' : undefined}
               >
-                <Download size={14} /> Download again
+                <Download size={14} /> {gsheet ? '.xlsx' : 'Download again'}
+              </a>
+            )}
+            {done && !empty && gsheet && job?.sheetUrl && (
+              <a
+                href={job.sheetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+              >
+                <ExternalLink size={14} /> Open sheet
               </a>
             )}
           </div>

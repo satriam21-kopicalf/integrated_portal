@@ -1,17 +1,21 @@
 'use client';
 
-// Excel exports that keep going while the user moves between pages.
+// Excel / Google Sheets exports that keep going while the user moves between pages.
 //
 // The export itself runs on the server (its own process, independent of the
 // browser). This provider sits above every page (src/app/providers.tsx), so its
 // polling and the progress card survive navigation; the jobs being followed are
-// kept in localStorage per user, so even a reload picks them up again. When a job
-// finishes the file downloads automatically (once, also with several tabs open).
+// kept in localStorage per user, so even a reload picks them up again. When an Excel job
+// finishes the file downloads automatically (once, also with several tabs open); a Google
+// Sheets job shows a link to the sheet (opening a tab without a click is blocked by browsers).
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 
 export type ReportKind = 'detail' | 'daily';
+export type ExportFormat = 'xlsx' | 'gsheet';
+/** Google Sheets holds at most 10 million cells per spreadsheet */
+export const GSHEET_MAX_CELLS = 10_000_000;
 export const REPORTS: { value: ReportKind; label: string; description: string }[] = [
   { value: 'detail', label: 'Sales Recapitulation Detail', description: 'One row per menu item · 46 columns' },
   { value: 'daily', label: 'Daily Sales Recapitulation', description: 'One row per date and branch' },
@@ -22,6 +26,13 @@ export interface ExportJob {
   id: string;
   status: 'queued' | 'running' | 'done' | 'error';
   report?: ReportKind;
+  format?: ExportFormat;
+  /** "upload" while the file is uploaded to Google Sheets */
+  phase?: 'upload' | null;
+  uploadPct?: number | null;
+  sheetUrl?: string | null;
+  /** e-mail the Google Sheet was shared with (null: only the Drive folder has access) */
+  sheetSharedWith?: string | null;
   type?: string;
   branch?: string | null;
   dateFrom: string;
@@ -45,6 +56,7 @@ export interface ExportParams {
   branch?: string;
   txType: string;
   report: ReportKind;
+  format?: ExportFormat; // xlsx when missing (exports stored before Google Sheets)
   branchLabel: string;
   typeLabel: string;
 }
@@ -63,13 +75,15 @@ interface ExportsState {
   exports: TrackedExport[];
   /** an export is queued or running */
   busy: boolean;
+  /** Google Sheets export is configured on the server */
+  googleSheets: boolean;
   start: (params: ExportParams) => void;
   retry: (key: string) => void;
   dismiss: (key: string) => void;
 }
 
 const ExportsContext = createContext<ExportsState>({
-  exports: [], busy: false, start: () => {}, retry: () => {}, dismiss: () => {},
+  exports: [], busy: false, googleSheets: false, start: () => {}, retry: () => {}, dismiss: () => {},
 });
 
 const POLL_INTERVAL_MS = 2000;
@@ -114,6 +128,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
   const [list, setList] = useState<TrackedExport[]>([]);
+  const [googleSheets, setGoogleSheets] = useState(false);
   const listRef = useRef(list);
   const loaded = useRef(false);
 
@@ -132,8 +147,9 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     fetch('/api/exports', { cache: 'no-store' })
       .then(res => (res.ok ? res.json() : { jobs: [] }))
-      .then(({ jobs }: { jobs: ExportJob[] }) => {
+      .then(({ jobs, googleSheets: sheets }: { jobs: ExportJob[]; googleSheets?: boolean }) => {
         if (cancelled) return;
+        setGoogleSheets(Boolean(sheets));
         const running = jobs.filter(j => j.status === 'queued' || j.status === 'running');
         setList(prev => [
           ...prev,
@@ -141,7 +157,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
             key: j.id,
             params: {
               dateFrom: j.dateFrom, dateTo: j.dateTo, branch: j.branch ?? undefined, txType: j.type ?? 'sales',
-              report: j.report ?? 'detail', branchLabel: j.branch ? j.branch.split(',').join(', ') : 'All branches',
+              report: j.report ?? 'detail', format: j.format ?? 'xlsx', branchLabel: j.branch ? j.branch.split(',').join(', ') : 'All branches',
               typeLabel: j.type ?? 'sales',
             },
             startedAt: j.createdAt ? Date.parse(j.createdAt) : Date.now(),
@@ -173,7 +189,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
           if (!res.ok) continue; // transient: try again on the next tick
           const job: ExportJob = await res.json();
           update(t.key, { job });
-          if (job.status === 'done' && job.rows && job.downloadUrl && job.fileName && !t.downloaded) {
+          if (job.status === 'done' && job.format !== 'gsheet' && job.rows && job.downloadUrl && job.fileName && !t.downloaded) {
             // another tab may already have downloaded it
             const already = readStored(userId).find(s => s.key === t.key)?.downloaded;
             update(t.key, { downloaded: true });
@@ -197,7 +213,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         dateFrom: params.dateFrom || null, dateTo: params.dateTo || null, branch: params.branch || null,
-        type: params.txType, report: params.report,
+        type: params.txType, report: params.report, format: params.format ?? 'xlsx',
       }),
     })
       .then(async res => {
@@ -217,7 +233,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
   }, [dismiss, start]);
 
   const busy = list.some(isActive);
-  const value = useMemo(() => ({ exports: list, busy, start, retry, dismiss }), [list, busy, start, retry, dismiss]);
+  const value = useMemo(() => ({ exports: list, busy, googleSheets, start, retry, dismiss }), [list, busy, googleSheets, start, retry, dismiss]);
   return <ExportsContext.Provider value={value}>{children}</ExportsContext.Provider>;
 }
 
