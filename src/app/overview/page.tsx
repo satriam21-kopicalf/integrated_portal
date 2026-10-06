@@ -209,6 +209,9 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
   return (
     <DrillProvider baseQuery={query} filters={filters} branches={branches}>
     <div className="space-y-5 p-4 sm:p-6">
+      {/* Today first: live, independent of the date and comparison filters (only branch & channel apply) */}
+      <LiveSalesCard key={liveQuery} data={live.data} error={live.error} />
+
       <div className="space-y-0">
         <p className="pb-2 text-xs text-slate-500 sm:text-sm">
           {f ? (
@@ -232,8 +235,6 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
         </p>
         <KpiTiles resource={kpis} />
       </div>
-
-      <LiveSalesCard key={liveQuery} data={live.data} error={live.error} />
 
       <div className="grid gap-4 xl:grid-cols-12">
         <div className="min-w-0 xl:col-span-8"><TrendCard query={query} /></div>
