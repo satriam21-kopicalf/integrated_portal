@@ -91,10 +91,10 @@ export default function LoginPage() {
         <div className="w-full max-w-[400px]">
           <div className="mb-8 flex flex-col items-center text-center">
             {/* served from the site itself (same origin): the first thing on screen, no external round trip */}
-            <Image src="/assets/calf-logo.png" alt="Kopi Calf" width={136} height={72} priority unoptimized
-              className="h-[72px] w-auto object-contain" />
-            <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900">Sign in to Portal</h1>
-            <p className="mt-1.5 text-sm text-slate-500">Kopi Calf Integration Platform</p>
+            <Image src="/assets/calf-logo.png" alt="Kopi Calf" width={170} height={90} priority unoptimized
+              className="h-[90px] w-auto object-contain" />
+            {/* logo only on screen; the heading stays for screen readers */}
+            <h1 className="sr-only">Sign in to Kopi Calf Portal</h1>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)] sm:p-8">
