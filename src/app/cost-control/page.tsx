@@ -175,10 +175,17 @@ export default function CostControlPage() {
   );
 }
 
+/**
+ * Full rupiah figures, never cut: 2 columns on tablets, 3 on laptops (1024-1535 px, next to the
+ * sidebar), 5 from 1536 px; one line, the size follows the column width.
+ */
+const GRID = 'sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5';
+const FULL = 'whitespace-nowrap text-xl sm:text-2xl lg:text-xl xl:text-2xl 2xl:text-xl min-[1800px]:text-2xl';
+
 function Headline({ data, basis }: { data: SummaryResponse | null; basis: Basis }) {
   if (!data) {
     return (
-      <StatStrip label="Cost summary" columns={5}>
+      <StatStrip label="Cost summary" columns={5} gridClassName={GRID}>
         {Array.from({ length: 5 }).map((_, i) => <Stat key={i} label="…" value={<StatSkeleton />} />)}
       </StatStrip>
     );
@@ -187,24 +194,24 @@ function Headline({ data, basis }: { data: SummaryResponse | null; basis: Basis 
   const med = basis === 'net' ? data.medians.actualPctNet : data.medians.actualPctSubtotal;
   const gap = basis === 'net' ? t.gapPpNet : t.gapPpSubtotal;
   return (
-    <StatStrip label="Cost summary" columns={5}>
-      <Stat label={basis === 'net' ? 'Net sales' : 'Subtotal'} value={formatCurrency(Math.round(sales(t, basis)))}>
+    <StatStrip label="Cost summary" columns={5} gridClassName={GRID}>
+      <Stat label={basis === 'net' ? 'Net sales' : 'Subtotal'} value={formatCurrency(Math.round(sales(t, basis)))} valueClassName={FULL}>
         <p>{formatNumber(t.bills)} bills · {data.outlets.filter(o => sales(o, basis) > 0).length} outlets</p>
       </Stat>
-      <Stat label="Actual COGS" value={formatCurrency(Math.round(t.actualCogs))} emphasis>
+      <Stat label="Actual COGS" value={formatCurrency(Math.round(t.actualCogs))} emphasis valueClassName={FULL}>
         <p className="flex flex-wrap items-center gap-1.5"><StatusBadge status={cogsStatus(t, basis)} value={pctText(cogsPct(t, basis, 'actual'))} /> of sales</p>
         <p>Outlet median {pctText(med)}</p>
       </Stat>
-      <Stat label="Theoretical COGS" value={formatCurrency(Math.round(t.theoreticalCogs))}>
+      <Stat label="Theoretical COGS" value={formatCurrency(Math.round(t.theoreticalCogs))} valueClassName={FULL}>
         <p>{pctText(cogsPct(t, basis, 'theoretical'))} of sales · sold menus × recipes</p>
       </Stat>
-      <Stat label="Usage ratio" value={t.hasOpname ? pctText(t.usageRatio) : '–'}>
+      <Stat label="Usage ratio" value={t.hasOpname ? pctText(t.usageRatio) : '–'} valueClassName={FULL}>
         <p className="flex flex-wrap items-center gap-1.5">
           <StatusBadge status={t.status.gapNet} value={gap === null ? '–' : `${gap > 0 ? '+' : ''}${gap.toFixed(1)} pp`} /> vs recipes
         </p>
         <p>Outlet median {pctText(data.medians.usageRatio)}</p>
       </Stat>
-      <Stat label="Stock variance" value={formatCurrency(Math.round(t.variance))}>
+      <Stat label="Stock variance" value={formatCurrency(Math.round(t.variance))} valueClassName={FULL} className="lg:col-span-2 2xl:col-span-1">
         <p>{t.pendingVariance ? `incl. ${formatCurrency(Math.round(t.pendingVariance))} not posted · ` : ''}{t.opnameCount} opname(s)</p>
         {t.excludedPendingLines > 0 && (
           <p className="text-red-700" title="Implausible lines of unposted opnames, see Data quality">

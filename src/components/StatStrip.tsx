@@ -7,17 +7,21 @@ import { ReactNode } from 'react';
  * separated by hairlines (1px gaps over a slate backdrop). Values are shown in
  * full (no B/M), so: 1 column on phones, 2 on tablets, `columns` from xl up.
  */
-export function StatStrip({ children, columns = 4, label }: { children: ReactNode; columns?: 3 | 4 | 5; label: string }) {
-  const xl = { 3: 'xl:grid-cols-3', 4: 'xl:grid-cols-4', 5: 'xl:grid-cols-5' }[columns];
+export function StatStrip({ children, columns = 4, label, gridClassName }: {
+  children: ReactNode; columns?: 3 | 4 | 5; label: string;
+  /** replaces the column classes above the phone layout (e.g. wider cells for full rupiah figures) */
+  gridClassName?: string;
+}) {
+  const xl = gridClassName ?? `sm:grid-cols-2 ${{ 3: 'xl:grid-cols-3', 4: 'xl:grid-cols-4', 5: 'xl:grid-cols-5' }[columns]}`;
   return (
-    <section aria-label={label} className={`grid grid-cols-1 gap-px border-y border-slate-200 bg-slate-200 sm:grid-cols-2 ${xl}`}>
+    <section aria-label={label} className={`grid grid-cols-1 gap-px border-y border-slate-200 bg-slate-200 ${xl}`}>
       {children}
     </section>
   );
 }
 
 export function Stat({
-  label, icon, value, title, children, emphasis = false, className = '',
+  label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-2xl',
 }: {
   label: string;
   icon?: ReactNode;
@@ -27,6 +31,8 @@ export function Stat({
   children?: ReactNode;
   emphasis?: boolean;
   className?: string;
+  /** size / overflow of the value (default: text-2xl, truncated) */
+  valueClassName?: string;
 }) {
   return (
     <div className={`relative min-w-0 bg-slate-50 px-4 py-4 sm:px-5 ${className}`}>
@@ -35,7 +41,7 @@ export function Stat({
         {icon}
         {label}
       </p>
-      <div className="mt-1.5 truncate text-2xl font-semibold tracking-tight text-slate-900 tabular-nums" title={title}>
+      <div className={`mt-1.5 font-semibold tracking-tight text-slate-900 tabular-nums ${valueClassName}`} title={title}>
         {value}
       </div>
       {children && <div className="mt-1.5 space-y-1 text-xs text-slate-500">{children}</div>}
