@@ -36,7 +36,7 @@ export function compareRange(value: CompareValue, period: { from: string; to: st
 
 const OPTIONS: { mode: CompareMode; label: string; hint: string }[] = [
   { mode: 'auto', label: 'Previous period', hint: 'The same number of days just before the selected period' },
-  { mode: 'month', label: 'Same dates last month', hint: 'e.g. 1–10 Sep vs 1–10 Aug' },
+  { mode: 'month', label: 'Same dates last month', hint: 'e.g. 1–10 Sep vs 1–10 Aug · month to date vs last month to date' },
   { mode: 'year', label: 'Same dates last year', hint: 'e.g. 1–10 Sep 2026 vs 1–10 Sep 2025' },
   { mode: 'custom', label: 'Custom period', hint: 'Any period, also of another length' },
 ];

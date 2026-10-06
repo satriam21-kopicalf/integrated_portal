@@ -39,8 +39,10 @@ function defaultPresets(): DatePreset[] {
     { label: 'Yesterday', from: d(-1), to: d(-1) },
     { label: 'Last 7 days', from: d(-6), to: d(0) },
     { label: 'Last 30 days', from: d(-29), to: d(0) },
-    { label: 'This month', from: toIsoDate(firstOfMonth), to: d(0) },
+    { label: 'Month to date', from: toIsoDate(firstOfMonth), to: today.getDate() === 1 ? d(0) : d(-1) },
+    { label: 'This month (incl. today)', from: toIsoDate(firstOfMonth), to: d(0) },
     { label: 'Last month', from: toIsoDate(firstOfLastMonth), to: toIsoDate(lastOfLastMonth) },
+    { label: 'Year to date', from: toIsoDate(new Date(today.getFullYear(), 0, 1)), to: d(0) },
   ];
 }
 
