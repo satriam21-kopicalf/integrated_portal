@@ -17,7 +17,8 @@ export default function DataIssues({ query }: { query: string }) {
   if (!d) return <div className="h-32 animate-pulse rounded-xl bg-slate-100" />;
   const byStatus = d.pendingOpnames.reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.status]: (acc[p.status] ?? 0) + 1 }), {});
   const dates = [...new Set(d.pendingOpnames.map(p => p.docDate))].sort();
-  const clean = !d.pendingOpnames.length && !d.suspectLines.length && !d.withoutSales.length;
+  const clean = !d.pendingOpnames.length && !d.suspectLines.length && !d.withoutSales.length && !d.hppAnomalies.length && !d.usageSpikes.length;
+  const month = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 
   if (clean) {
     return (
@@ -53,6 +54,28 @@ export default function DataIssues({ query }: { query: string }) {
             short(l.branchName), <span key="d" className="font-mono">{l.docNum}</span>, l.productName,
             formatNumber(l.physicalQty), <b key="s" className="text-red-700">{formatNumber(l.systemQty)}</b>, formatCurrency(Math.round(l.hpp)),
             <b key="v" className="text-red-700">{formatCurrency(Math.round(l.variance))}</b>, formatCurrency(Math.round(l.periodTheoreticalCogs)),
+          ])} />
+        </Issue>
+      )}
+
+      {d.usageSpikes.length > 0 && (
+        <Issue tone="red" icon={<PackageX size={16} />} title={`${formatNumber(d.usageSpikes.length)} item usage spike(s) in the ESB valuation`}
+          text={<>An item&apos;s theoretical usage per rupiah of sales in a month is more than 3× its usual level — usually a wrong <b>recipe (BOM) quantity</b> in ESB
+            for that time. Theoretical and actual COGS of those months are inflated (the later opname then shows a large “gain”); read those months with care
+            and correct the BOM in ESB.</>}>
+          <Table head={['Month', 'Item', 'Theoretical usage', 'Value', '× usual']} rows={d.usageSpikes.map(u => [
+            month(u.month), u.productName, `${formatNumber(Math.round(u.qty))} ${u.unit ?? ''}`, <b key="v" className="text-red-700">{formatCurrency(Math.round(u.value))}</b>, `${u.factor}×`,
+          ])} />
+        </Issue>
+      )}
+
+      {d.hppAnomalies.length > 0 && (
+        <Issue tone="red" icon={<PackageX size={16} />} title={`${formatNumber(d.hppAnomalies.length)} HPP anomaly(ies) in the ESB valuation`}
+          text={<>The outlet&apos;s HPP (cost per unit) of an item is more than 3× the network median for the same period — usually a mis-entered
+            purchase / receipt price in ESB. The outlet&apos;s COGS of that period is overstated by about the impact shown.</>}>
+          <Table head={['Outlet', 'Period from', 'Item', 'HPP', 'Network median', 'Qty used', 'Impact']} rows={d.hppAnomalies.map(h => [
+            short(h.branchName), formatDate(h.periodStart), h.productName, <b key="h" className="text-red-700">{formatCurrency(h.hpp)}</b>,
+            formatCurrency(h.medianHpp), `${formatNumber(Math.round(h.qty))} ${h.unit ?? ''}`, <b key="i" className="text-red-700">{formatCurrency(Math.round(h.impact))}</b>,
           ])} />
         </Issue>
       )}

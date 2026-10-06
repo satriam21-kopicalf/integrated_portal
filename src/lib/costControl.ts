@@ -104,6 +104,13 @@ export interface IssuesResponse {
   }[];
   pendingOpnames: { branchCode: string; branchName: string; docNum: string; docDate: string; status: string; lines: number }[];
   withoutSales: { branchCode: string; branchName: string; actualCogs: number }[];
+  /** outlet HPP of an item > 3x the network median in the period (ESB valuation) */
+  hppAnomalies: {
+    branchCode: string; branchName: string; periodStart: string; productId: string; productName: string; unit: string | null;
+    qty: number; hpp: number; medianHpp: number; impact: number;
+  }[];
+  /** item usage per Rp of sales in a month > 3x its median month (recipe / BOM) */
+  usageSpikes: { month: string; productId: string; productName: string; unit: string | null; qty: number; value: number; factor: number }[];
 }
 
 export interface TrendResponse {
