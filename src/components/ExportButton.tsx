@@ -95,7 +95,7 @@ export default function ExportButton({
           onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
           disabled={running}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white transition-colors hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
-          title={running ? 'Export in progress' : googleSheets ? 'Export to Excel or Google Sheets' : 'Export to Excel'}
+          title={running ? 'Export in progress' : 'Export to Excel or Google Sheets'}
           aria-label="Export"
         >
           {running ? (
@@ -135,23 +135,29 @@ export default function ExportButton({
               </div>
             ) : (
               <div className="p-1.5">
-                {googleSheets && (
-                  <div role="radiogroup" aria-label="Export format" className="mb-1.5 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
-                    {FORMATS.map(f => (
+                <div role="radiogroup" aria-label="Export format" className="mb-1.5 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                  {FORMATS.map(f => {
+                    const unavailable = f.value === 'gsheet' && !googleSheets;
+                    return (
                       <button
                         key={f.value}
                         type="button"
                         role="radio"
                         aria-checked={format === f.value}
+                        disabled={unavailable}
                         onClick={() => chooseFormat(f.value)}
-                        className={`inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                          format === f.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                        title={unavailable ? 'Google Sheets is not set up on the server yet' : undefined}
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                          format === f.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800 disabled:hover:text-slate-500'}`}
                       >
                         {f.value === 'gsheet' ? <Sheet size={14} className="text-emerald-600" /> : <FileSpreadsheet size={14} className="text-emerald-700" />}
                         {f.label}
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
+                </div>
+                {!googleSheets && (
+                  <p className="px-2.5 pb-1 text-[11px] leading-snug text-slate-400">Google Sheets becomes available once it is set up on the server.</p>
                 )}
                 <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Export to {destination}</p>
                 {REPORTS.map(r => (
