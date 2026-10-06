@@ -48,6 +48,7 @@ export default function DeductionsCard({ resource }: { resource: Resource<Deduct
   return (
     <Card
       title="Deductions"
+      info="deductions"
       subtitle="Void, cancelled and other-cost bills, excluded from sales"
       resource={resource}
       minHeight={380}

@@ -24,7 +24,6 @@ export const TREND_CHARTS: { value: TrendChartType; label: string; hint: string 
   { value: 'bar', label: 'Bars', hint: 'Side-by-side bars: this period and the previous period per bucket' },
   { value: 'cumulative', label: 'Cumulative', hint: 'Running total: are we ahead of or behind the previous period?' },
   { value: 'average', label: 'Moving average', hint: '7-bucket moving average smooths out weekday swings' },
-  { value: 'channels', label: 'By channel', hint: 'Stacked per channel (avg ticket: one line per channel)' },
 ];
 
 export function metricOf(p: { subtotal: number; bills: number; nettSales?: number }, m: TrendMetric): number | null {
@@ -252,7 +251,7 @@ export default function TrendChart({
       <Legend items={legend} />
       <EChart option={option} height={height} ariaLabel={`${label} per ${g}, ${chart} chart`}
         onClick={onSelect ? (p: ChartClick) => { if (s[p.dataIndex]) onSelect(s[p.dataIndex]); } : undefined} />
-      {!hasPrev && chart !== 'channels' && <p className="text-xs text-slate-400">No comparison: the previous period starts before complete history (Aug 2025).</p>}
+      {!hasPrev && chart !== 'channels' && <p className="text-xs text-slate-400">No comparison: the comparison period starts before complete history (Aug 2025).</p>}
     </div>
   );
 }

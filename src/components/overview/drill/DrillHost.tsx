@@ -7,6 +7,8 @@ import {
 import { branchesLabel } from '@/components/BranchFilter';
 import { buttonSecondary } from '@/components/ui/Dialog';
 import Drawer from '@/components/ui/Drawer';
+import InfoTip from '@/components/ui/InfoTip';
+import type { InfoKey } from '@/lib/metricInfo';
 import { channelLabel } from '@/lib/overview';
 import { DrillTarget, targetQuery, useDrill } from './DrillContext';
 import {
@@ -59,6 +61,17 @@ function body(t: DrillTarget, q: string): ReactNode {
   }
 }
 
+function infoOf(t: DrillTarget): InfoKey {
+  switch (t.kind) {
+    case 'kpi': return t.metric;
+    case 'trend': case 'growth': case 'channels': case 'branches': case 'hours': case 'menus':
+    case 'payments': case 'basket': case 'deductions': case 'monthly': return t.kind;
+    case 'menu': return 'menus';
+    case 'payment': return 'payments';
+    default: return 'sales';
+  }
+}
+
 /** The drill-down drawer of the Overview (one at a time, with history). */
 export default function DrillHost() {
   const { stack, baseQuery, filters, branches, back, close } = useDrill();
@@ -79,7 +92,7 @@ export default function DrillHost() {
   const trail = stack.length > 1 ? stack.slice(0, -1).map(s => head(s).title).join(' › ') : null;
 
   return (
-    <Drawer open onClose={close} size="xl" icon={icon} title={title} onBack={stack.length > 1 ? back : undefined}
+    <Drawer open onClose={close} size="xl" icon={icon} title={title} onBack={stack.length > 1 ? back : undefined} titleExtra={<InfoTip info={infoOf(t)} />}
       description={(
         <>
           {trail && <span className="block text-[11px] text-slate-400">{trail} ›</span>}

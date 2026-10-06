@@ -32,7 +32,8 @@ export default function BranchLeaderboard({ resource }: { resource: Resource<Bra
   return (
     <Card
       title="Branch leaderboard"
-      subtitle="Sales per branch with change vs the previous period · click a branch for its full profile"
+      info="branches"
+      subtitle="Sales per branch with change vs the comparison period · click a branch for its full profile"
       resource={resource}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'branches' })}

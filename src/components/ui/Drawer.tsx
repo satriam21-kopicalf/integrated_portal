@@ -8,7 +8,7 @@ import { ArrowLeft, X } from 'lucide-react';
  * Dialog. Escape / backdrop close unless `locked`.
  */
 export default function Drawer({
-  open, title, description, onClose, children, footer, size = 'md', locked = false, icon, onBack,
+  open, title, description, onClose, children, footer, size = 'md', locked = false, icon, onBack, titleExtra,
 }: {
   open: boolean;
   title: string;
@@ -19,6 +19,8 @@ export default function Drawer({
   size?: 'sm' | 'md' | 'lg' | 'xl';
   /** shows a back arrow before the title (drill-down history) */
   onBack?: () => void;
+  /** next to the title, e.g. an ⓘ */
+  titleExtra?: ReactNode;
   /** cannot be dismissed (e.g. a required password change) */
   locked?: boolean;
   icon?: ReactNode;
@@ -76,7 +78,7 @@ export default function Drawer({
             )}
             {icon && <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">{icon}</span>}
             <div className="min-w-0">
-              <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+              <h2 className="flex items-center gap-1.5 text-base font-semibold text-slate-900">{title}{titleExtra}</h2>
               {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
             </div>
           </div>

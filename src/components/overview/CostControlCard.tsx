@@ -31,6 +31,7 @@ export default function CostControlCard({ dateFrom, dateTo, branch }: { dateFrom
   return (
     <Card
       title="Cost control"
+      info="cost"
       subtitle={summary.data?.periods.length
         ? `COGS & usage · opname periods ${periodLabel(summary.data.periods[0].start, summary.data.periods[summary.data.periods.length - 1].end)}`
         : 'COGS & usage per stock-opname period'}

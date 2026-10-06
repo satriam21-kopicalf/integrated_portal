@@ -13,13 +13,11 @@ import BranchLeaderboard from '@/components/overview/BranchLeaderboard';
 import BusyHoursCard from '@/components/overview/BusyHoursCard';
 import MenusCard from '@/components/overview/MenusCard';
 import DeductionsCard from '@/components/overview/DeductionsCard';
-import MonthlyCard from '@/components/overview/MonthlyCard';
 import PaymentsCard from '@/components/overview/PaymentsCard';
 import BasketCard from '@/components/overview/BasketCard';
 import CostControlCard from '@/components/overview/CostControlCard';
 import SalesGrowthCard from '@/components/overview/SalesGrowth';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
-import LiveTicker from '@/components/overview/LiveTicker';
 import { useFilterLog } from '@/lib/activity';
 import { DrillProvider } from '@/components/overview/drill/DrillContext';
 import DrillHost from '@/components/overview/drill/DrillHost';
@@ -29,7 +27,7 @@ import { formatDate, toIsoDate } from '@/lib/format';
 import { RealtimeIndicator } from '@/lib/realtime';
 import {
   BasketResponse, BranchesResponse, ChannelsResponse, DeductionsResponse, HourlyResponse, KpisResponse, MetaResponse,
-  MonthlyResponse, PaymentsResponse, channelLabel, useOverview,
+  PaymentsResponse, channelLabel, useOverview,
 } from '@/lib/overview';
 
 interface Filters {
@@ -191,7 +189,6 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
   const branchBoard = useOverview<BranchesResponse>('branches', query);
   const hourly = useOverview<HourlyResponse>('hourly', query);
   const deductions = useOverview<DeductionsResponse>('deductions', query);
-  const monthly = useOverview<MonthlyResponse>('monthly', query);
   const payments = useOverview<PaymentsResponse>('payments', query);
   const basket = useOverview<BasketResponse>('basket', query);
 
@@ -211,8 +208,6 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
   return (
     <DrillProvider baseQuery={query} filters={filters} branches={branches}>
     <div className="space-y-5 p-4 sm:p-6">
-      <LiveTicker data={live.data} />
-
       <div className="space-y-0">
         <p className="pb-2 text-xs text-slate-500 sm:text-sm">
           {f ? (
@@ -272,9 +267,6 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
         </div>
       </Section>
 
-      <Section title="Growth">
-        <MonthlyCard resource={monthly} />
-      </Section>
     </div>
     <DrillHost />
     </DrillProvider>

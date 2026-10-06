@@ -11,7 +11,7 @@ const TOP = 7;
 export default function PaymentsCard({ resource }: { resource: Resource<PaymentsResponse> }) {
   const drill = useDrill();
   return (
-    <Card title="Payment methods" subtitle="Share of sales by the bill's payment method · click a method for its details" resource={resource} minHeight={330}
+    <Card title="Payment methods" info="payments" subtitle="Share of sales by the bill's payment method · click a method for its details" resource={resource} minHeight={330}
       onOpen={() => drill.open({ kind: 'payments' })}>
       {data => {
         const top = data.methods.slice(0, TOP);

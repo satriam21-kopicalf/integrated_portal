@@ -5,6 +5,7 @@ import Sparkline from '@/components/charts/Sparkline';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { KpisResponse, Resource } from '@/lib/overview';
+import { infoLine } from '@/lib/metricInfo';
 import { Delta } from './Card';
 import { useOptionalDrill } from './drill/DrillContext';
 
@@ -43,7 +44,7 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
             label={m.label}
             icon={<Icon size={13} strokeWidth={2} aria-hidden />}
             value={k ? m.format(k.value) : error ? '—' : <StatSkeleton />}
-            title={k ? `${m.label}: ${m.full(k.value)} · ${m.hint}` : m.hint}
+            title={`${k ? `${m.label}: ${m.full(k.value)}\n\n` : ''}${infoLine(m.key)}`}
             emphasis={i === 0}
           >
             {k && (

@@ -1,5 +1,6 @@
 'use client';
 
+import InfoTip from '@/components/ui/InfoTip';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarClock, Clock3, Receipt, ShoppingBag, Tag } from 'lucide-react';
 import ChannelLogo from '@/components/ChannelLogo';
@@ -125,7 +126,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <CalendarClock size={15} className="text-blue-600" aria-hidden /> Today
+            <CalendarClock size={15} className="text-blue-600" aria-hidden /> Today <InfoTip info="today" />
           </h2>
           <p className="mt-0.5 text-xs text-slate-500">
             {dateLabel || 'Today'} · follows the branch and channel filters

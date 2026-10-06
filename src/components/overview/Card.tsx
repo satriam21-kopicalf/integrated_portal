@@ -2,14 +2,16 @@
 
 import { ReactNode } from 'react';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Maximize2, Minus, RotateCw } from 'lucide-react';
+import type { InfoKey } from '@/lib/metricInfo';
 import { Resource } from '@/lib/overview';
+import InfoTip from '@/components/ui/InfoTip';
 
 /**
  * Widget frame. First load shows a skeleton; a refetch keeps the previous render
  * at reduced opacity (no layout jump); errors offer "Try again".
  */
 export function Card<T>({
-  title, subtitle, actions, resource, children, className = '', minHeight = 240, onOpen,
+  title, subtitle, actions, resource, children, className = '', minHeight = 240, onOpen, info,
 }: {
   title: string;
   subtitle?: ReactNode;
@@ -20,17 +22,22 @@ export function Card<T>({
   minHeight?: number;
   /** opens the detail drawer of this analytic (title and "Details" button) */
   onOpen?: () => void;
+  /** ⓘ: source, definition and formulas (lib/metricInfo.ts) */
+  info?: InfoKey;
 }) {
   const { data, loading, error, retry } = resource;
   return (
     <section className={`group/card flex h-full min-w-0 flex-col rounded-xl border border-slate-200 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-slate-200/70' : ''} ${className}`}>
       <header className="flex flex-wrap items-start justify-between gap-2 px-4 pb-2 pt-4 sm:px-5">
         <div className="min-w-0">
-          {onOpen ? (
-            <button type="button" onClick={onOpen} className="text-left text-sm font-semibold text-slate-900 hover:text-blue-700">{title}</button>
-          ) : (
-            <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-          )}
+          <div className="flex items-center gap-1">
+            {onOpen ? (
+              <button type="button" onClick={onOpen} className="text-left text-sm font-semibold text-slate-900 hover:text-blue-700">{title}</button>
+            ) : (
+              <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+            )}
+            {info && <InfoTip info={info} />}
+          </div>
           {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -91,7 +98,7 @@ export function Delta({
 }) {
   if (value === null || value === undefined) {
     return (
-      <span className={`inline-flex items-center gap-0.5 text-xs text-slate-400 ${className}`} title="No comparable previous period">
+      <span className={`inline-flex items-center gap-0.5 text-xs text-slate-400 ${className}`} title="No comparable comparison period">
         <Minus size={12} /> n/a
       </span>
     );

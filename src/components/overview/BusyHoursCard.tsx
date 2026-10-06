@@ -13,7 +13,7 @@ import HoursCompare from './HoursCompare';
 const SEQUENTIAL = ['#e8f1fd', '#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b'];
 const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
-type Mode = 'pattern' | 'period' | 'branches';
+type Mode = 'pattern' | 'branches';
 
 export default function BusyHoursCard({ resource, query }: { resource: Resource<HourlyResponse>; query: string }) {
   const [view, setView] = useState<'chart' | 'table'>('chart');
@@ -22,16 +22,16 @@ export default function BusyHoursCard({ resource, query }: { resource: Resource<
   return (
     <Card
       title="Busy hours"
+      info="hours"
       subtitle={mode === 'pattern' ? 'Average bills per day, by hour of order (outlet time)'
-        : mode === 'period' ? 'This period against another period, per hour'
-          : 'Branches side by side, per hour'}
+        : 'Branches side by side, per hour · per-hour growth vs the comparison period: Sales growth › By hour'}
       resource={resource}
       minHeight={420}
       onOpen={() => drill.open({ kind: 'hours' })}
       actions={
         <>
           <Segmented label="Busy hours view" value={mode} onChange={setMode} options={[
-            { value: 'pattern', label: 'Pattern' }, { value: 'period', label: 'Compare periods' }, { value: 'branches', label: 'Compare branches' },
+            { value: 'pattern', label: 'Pattern' }, { value: 'branches', label: 'Compare branches' },
           ]} />
           {mode === 'pattern' && <Segmented label="View" value={view} options={[{ value: 'chart', label: 'Chart' }, { value: 'table', label: 'Table' }]} onChange={setView} />}
         </>

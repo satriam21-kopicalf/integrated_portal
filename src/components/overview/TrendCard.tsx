@@ -19,7 +19,8 @@ export default function TrendCard({ query }: { query: string }) {
   return (
     <Card
       title="Sales trend"
-      subtitle="This period compared with the previous period of the same length · click a point for that day / week / month"
+      info="trend"
+      subtitle="This period compared with the comparison period (dashed) · click a point for that day / week / month"
       resource={resource}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'trend' })}

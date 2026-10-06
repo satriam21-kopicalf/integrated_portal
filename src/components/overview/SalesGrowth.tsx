@@ -8,10 +8,11 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { base, categoryAxis, changeHtml, INK, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import {
   bucketLabel, compactRupiah, DOW_LABELS, Granularity, GROWTH_DOWN, GROWTH_RAMP, GROWTH_UP, GrowthBasis, GrowthPoint, GrowthResponse,
-  hourLabel, HourlyCompareResponse, HoursProfile, shortDate, useOverview, withParams,
+  hourLabel, HourlyCompareResponse, HoursProfile, MonthlyResponse, Resource, shortDate, useOverview, withParams,
 } from '@/lib/overview';
 import { Card, Delta, Segmented } from './Card';
 import { to, useDrill } from './drill/DrillContext';
+import { MonthlyBody } from './MonthlyCard';
 import { bucketRange, DetailTable, rp } from './drill/parts';
 
 export const BASES: { value: GrowthBasis; label: string }[] = [
@@ -233,22 +234,28 @@ export function HourMovers({ rows }: { rows: HourGrowthRow[] }) {
 export default function SalesGrowthCard({ query }: { query: string }) {
   const [basis, setBasis] = useState<GrowthBasis>('previous');
   const [granularity, setGranularity] = useState<Granularity | 'auto'>('auto');
-  const [view, setView] = useState<'time' | 'hour'>('time');
+  const [view, setView] = useState<'time' | 'hour' | 'month'>('time');
   const drill = useDrill();
   const resource = useOverview<GrowthResponse>('growth', withParams(query, { basis, granularity: granularity === 'auto' ? null : granularity }));
+  // "Monthly": average per day of each month with MoM, YoY and same-store growth (formerly its own card)
+  const monthly = useOverview<MonthlyResponse>('monthly', query);
   const hours = useHourGrowth(query, view === 'hour' ? resource.data : null);
+  const shown = (view === 'month' ? monthly : resource) as Resource<GrowthResponse | MonthlyResponse>;
 
   return (
     <Card
       title="Sales growth"
-      subtitle={resource.data ? `Subtotal (gross sales) vs ${basisText(resource.data)}` : 'Subtotal (gross sales) growth'}
-      resource={resource}
+      info={view === 'month' ? 'monthly' : 'growth'}
+      subtitle={view === 'month' ? 'Subtotal (gross sales) per month: average per day, month on month, year on year and same-store'
+        : resource.data ? `Subtotal (gross sales) vs ${basisText(resource.data)}` : 'Subtotal (gross sales) growth'}
+      resource={shown}
       minHeight={360}
-      onOpen={() => drill.open({ kind: 'growth', basis })}
+      onOpen={() => drill.open(view === 'month' ? { kind: 'monthly' } : { kind: 'growth', basis })}
       actions={
         <>
-          <Segmented label="Compare with" value={basis} options={BASES} onChange={setBasis} />
-          <Segmented label="Growth view" value={view} options={[{ value: 'time', label: 'Over time' }, { value: 'hour', label: 'By hour' }]} onChange={setView} />
+          {view !== 'month' && <Segmented label="Compare with" value={basis} options={BASES} onChange={setBasis} />}
+          <Segmented label="Growth view" value={view} onChange={setView}
+            options={[{ value: 'time', label: 'Over time' }, { value: 'hour', label: 'By hour' }, { value: 'month', label: 'Monthly' }]} />
           {view === 'time' && (
             <Segmented label="Granularity" value={granularity === 'auto' ? resource.data?.granularity ?? 'day' : granularity} onChange={setGranularity}
               options={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }]} />
@@ -256,7 +263,9 @@ export default function SalesGrowthCard({ query }: { query: string }) {
         </>
       }
     >
-      {d => (
+      {raw => view === 'month' ? <MonthlyBody data={raw as MonthlyResponse} /> : (() => {
+        const d = raw as GrowthResponse;
+        return (
         <div className="space-y-3">
           <GrowthSummary data={d} />
           {view === 'time' ? (
@@ -274,14 +283,15 @@ export default function SalesGrowthCard({ query }: { query: string }) {
           ) : (
             <>
               <p className="text-[11px] text-slate-500">
-                Sales per day in each hour (outlet time){basis === 'sequential' ? ' · by hour compares with the previous period' : ''}
+                Sales per day in each hour (outlet time){basis === 'sequential' ? ' · by hour compares with the comparison period' : ''}
               </p>
               <HourGrowthChart rows={hours.rows} />
               <HourMovers rows={hours.rows} />
             </>
           )}
         </div>
-      )}
+        );
+      })()}
     </Card>
   );
 }

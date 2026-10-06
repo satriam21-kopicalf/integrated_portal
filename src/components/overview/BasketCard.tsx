@@ -12,7 +12,7 @@ const change = (cur: number | null, prev: number | null) => (cur !== null && pre
 export default function BasketCard({ resource }: { resource: Resource<BasketResponse> }) {
   const drill = useDrill();
   return (
-    <Card title="Basket" subtitle="What a bill contains" resource={resource} minHeight={360} onOpen={() => drill.open({ kind: 'basket' })}>
+    <Card title="Basket" info="basket" subtitle="What a bill contains" resource={resource} minHeight={360} onOpen={() => drill.open({ kind: 'basket' })}>
       {data => {
         const t = data.totals;
         const p: Basket | null = data.filters.previous.complete ? data.previous : null;

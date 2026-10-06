@@ -21,6 +21,7 @@ export default function MenusCard({ query }: { query: string }) {
   return (
     <Card
       title="Menus"
+      info="menus"
       subtitle="What sells: ordered menus (add-ons counted separately) · click a menu for its details"
       resource={resource}
       minHeight={420}

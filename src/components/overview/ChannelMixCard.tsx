@@ -40,6 +40,7 @@ export default function ChannelMixCard({ resource }: { resource: Resource<Channe
   return (
     <Card
       title="Channel mix"
+      info="channels"
       subtitle="Sales and share per channel · click a channel for its details"
       resource={resource}
       minHeight={360}
