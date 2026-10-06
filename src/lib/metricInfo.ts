@@ -129,7 +129,7 @@ export const INFO = {
   cost: {
     title: 'Cost control',
     source: ['ESB inventory valuation per outlet location × product × opname period (days 1–7, 8–14, 15–21, 22–end), ESB stock opname documents, and Sales from the aggregates.'],
-    definition: ['Theoretical usage = POS sales × BOM; other usage = item journals; variance = stock opname differences (posted, plus pending opnames not authorized yet).'],
+    definition: ['Theoretical usage = POS sales × BOM; other usage = item journals; variance = stock opname differences (posted, plus pending opnames not authorized yet = provisional).', 'A pending opname line with a variance above max(Rp 50 M, 50% of the outlet theoretical COGS of the period) is implausible (wrong system stock in ESB) and left out; listed under Data quality.', 'Network totals only include locations with POS sales (bulk-order stock locations are listed apart).'],
     formula: ['Actual COGS = theoretical + other usage + manufacturing net − posted variance − pending variance', 'COGS ratio = actual COGS ÷ Net sales (or Subtotal) × 100', 'Usage ratio = actual usage ÷ theoretical usage × 100'],
   },
 } satisfies Record<string, MetricInfo>;

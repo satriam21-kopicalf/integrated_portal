@@ -51,6 +51,9 @@ export interface CostMetrics {
   opnameCount: number;
   pendingOpnameCount: number;
   lastOpnameDate: string | null;
+  /** implausible lines of unposted opnames, left out of actual COGS (see /issues) */
+  excludedPendingVariance: number;
+  excludedPendingLines: number;
   hasOpname: boolean;
   theoreticalPctNet: number | null;
   actualPctNet: number | null;
@@ -87,7 +90,20 @@ export interface SummaryResponse {
   medians: Record<'actualPctNet' | 'actualPctSubtotal' | 'theoreticalPctNet' | 'theoreticalPctSubtotal' | 'usageRatio' | 'wastePctNet', number | null>;
   statusCounts: Partial<Record<Status | 'none', number>>;
   outlets: OutletCost[];
+  /** stock locations with usage but no POS sales: not in the network totals */
+  withoutSales: { branchCode: string; branchName: string; actualCogs: number; theoreticalCogs: number }[];
   freshness: Freshness;
+}
+
+export interface IssuesResponse {
+  filters: { dateFrom: string; dateTo: string; branch: string | null };
+  rule: { floor: number; share: number };
+  suspectLines: {
+    branchCode: string; branchName: string; docNum: string; docDate: string; status: string; productId: string; productName: string;
+    physicalQty: number; systemQty: number; hpp: number; variance: number; periodTheoreticalCogs: number;
+  }[];
+  pendingOpnames: { branchCode: string; branchName: string; docNum: string; docDate: string; status: string; lines: number }[];
+  withoutSales: { branchCode: string; branchName: string; actualCogs: number }[];
 }
 
 export interface TrendResponse {

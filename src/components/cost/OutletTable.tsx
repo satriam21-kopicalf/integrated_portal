@@ -132,7 +132,8 @@ export default function OutletTable({ outlets, basis, onSelect }: {
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-600">{formatCurrency(Math.round(o.purchases))}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right text-xs text-slate-500">
                     {o.opnameCount ? <>{o.opnameCount}× · {formatDate(o.lastOpnameDate)}</> : '–'}
-                    {o.pendingOpnameCount > 0 && <span className="block text-amber-700">{o.pendingOpnameCount} pending</span>}
+                    {o.pendingOpnameCount > 0 && <span className="block text-amber-700" title="Opname not posted in ESB yet: provisional">{o.pendingOpnameCount} pending</span>}
+                    {o.excludedPendingLines > 0 && <span className="block text-red-700" title="Implausible opname line(s) left out of actual COGS, see Data quality">{o.excludedPendingLines} line(s) excluded</span>}
                   </td>
                 </tr>
               );

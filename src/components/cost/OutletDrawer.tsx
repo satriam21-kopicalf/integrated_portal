@@ -63,6 +63,18 @@ export default function OutletDrawer({ outlet, basis, query, settings, onClose }
           </Figure>
         </dl>
 
+        {(outlet.pendingOpnameCount > 0 || outlet.excludedPendingLines > 0) && (
+          <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-xs text-amber-900">
+            {outlet.pendingOpnameCount > 0 && (
+              <p><b>Provisional:</b> {outlet.pendingOpnameCount} stock opname(s) not posted in ESB yet — the variance is counted as pending until it is authorized.</p>
+            )}
+            {outlet.excludedPendingLines > 0 && (
+              <p className="text-red-800"><b>{outlet.excludedPendingLines} implausible opname line(s) left out</b> of actual COGS ({formatCurrency(Math.round(outlet.excludedPendingVariance))}),
+                usually a wrong system stock in ESB — see Data quality on the Cost Control page.</p>
+            )}
+          </div>
+        )}
+
         <CostTrendCard query={query} basis={basis} settings={settings} branch={outlet.branchCode} />
 
         <DrawerSection title="Items" description="Usage vs recipes and stock variance per item, or the purchase need for the coming weeks.">

@@ -1,5 +1,6 @@
 'use client';
 
+import DataIssues from '@/components/cost/DataIssues';
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Calculator, Info, RotateCw, SlidersHorizontal } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -154,6 +155,13 @@ export default function CostControlPage() {
             ) : <div className="h-64 animate-pulse rounded-xl bg-slate-100" />}
           </section>
 
+          <section className="space-y-3">
+            <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Data quality<span className="h-px flex-1 bg-slate-200" aria-hidden />
+            </h2>
+            <DataIssues query={query} />
+          </section>
+
           <HowToRead />
         </div>
       </div>
@@ -198,6 +206,12 @@ function Headline({ data, basis }: { data: SummaryResponse | null; basis: Basis 
       </Stat>
       <Stat label="Stock variance" value={formatCurrency(Math.round(t.variance))}>
         <p>{t.pendingVariance ? `incl. ${formatCurrency(Math.round(t.pendingVariance))} not posted · ` : ''}{t.opnameCount} opname(s)</p>
+        {t.excludedPendingLines > 0 && (
+          <p className="text-red-700" title="Implausible lines of unposted opnames, see Data quality">
+            {t.excludedPendingLines} implausible line(s) ({formatCurrency(Math.round(t.excludedPendingVariance))}) left out
+          </p>
+        )}
+        {data.withoutSales.length > 0 && <p title="Bulk-order / stock locations without POS sales, see Data quality">{data.withoutSales.length} location(s) without POS sales not counted</p>}
         <p>Other usage {formatCurrency(Math.round(t.otherUsage))} ({pctText(basis === 'net' ? t.wastePctNet : t.wastePctSubtotal)})</p>
       </Stat>
     </StatStrip>
@@ -241,7 +255,8 @@ function HowToRead() {
       <ul className="mt-3 list-disc space-y-1.5 pl-5 text-xs leading-relaxed">
         <li><b>Theoretical COGS</b>: every sold menu × its recipe (ESB BOM) at the outlet&apos;s HPP — what the outlet should have used.</li>
         <li><b>Actual COGS</b>: theoretical + other usage (item journal: waste, R&amp;D, marketing) − stock variance found at the stock opname.</li>
-        <li><b>Stock variance</b>: physical minus system stock at opname, valued at HPP; negative is a loss. Opnames not yet posted in ESB (Draft/New) are counted as <i>pending</i>.</li>
+        <li><b>Stock variance</b>: physical minus system stock at opname, valued at HPP; negative is a loss. Opnames not yet posted in ESB (Draft/New) are counted as <i>pending</i> and make the period <i>provisional</i>; a pending line whose variance is above max(Rp 50 M, 50% of the outlet&apos;s theoretical COGS of the period) is implausible and left out (see Data quality).</li>
+        <li><b>Network totals</b> only include locations with POS sales; bulk-order / stock locations without POS sales are listed under Data quality.</li>
         <li><b>Usage ratio</b>: actual ÷ theoretical usage; 100% means exactly as the recipes say. Only meaningful when an opname was taken in the period.</li>
         <li><b>Periods</b> follow the opname rhythm (1–7, 8–14, 15–21, 22–end of month); a date range covers every period starting in it. Weekly figures swing with the opname timing — compare months for a stable view.</li>
         <li><b>Ratio basis</b>: net sales (after discounts) is the standard; subtotal (before discounts) shows the effect of promotions.</li>
