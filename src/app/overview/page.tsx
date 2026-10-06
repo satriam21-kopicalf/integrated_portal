@@ -59,11 +59,10 @@ function overviewPresets(): DatePreset[] {
     { label: 'Last 7 days', from: d(-7), to: d(-1) },
     { label: 'Last 30 days', from: d(-30), to: d(-1) },
     { label: 'Last 90 days', from: d(-90), to: d(-1) },
-    // to date = from the 1st up to yesterday (the last complete day); on the 1st itself: today
-    { label: 'Month to date', from: toIsoDate(new Date(y, m, 1)), to: now.getDate() === 1 ? d(0) : d(-1) },
-    { label: 'This month (incl. today)', from: toIsoDate(new Date(y, m, 1)), to: d(0) },
+    // running period: from the 1st (of the month / year) up to and including today
+    { label: 'Month to date', from: toIsoDate(new Date(y, m, 1)), to: d(0) },
     { label: 'Last month', from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
-    { label: 'Year to date', from: toIsoDate(new Date(y, 0, 1)), to: now.getMonth() === 0 && now.getDate() === 1 ? d(0) : d(-1) },
+    { label: 'Year to date', from: toIsoDate(new Date(y, 0, 1)), to: d(0) },
   ];
 }
 
