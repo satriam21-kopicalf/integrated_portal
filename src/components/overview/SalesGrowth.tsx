@@ -15,7 +15,7 @@ import { to, useDrill } from './drill/DrillContext';
 import { bucketRange, DetailTable, rp } from './drill/parts';
 
 export const BASES: { value: GrowthBasis; label: string }[] = [
-  { value: 'previous', label: 'Previous period' },
+  { value: 'previous', label: 'Comparison period' },
   { value: 'lastYear', label: 'Last year' },
   { value: 'sequential', label: 'Sequential' },
 ];
@@ -24,7 +24,7 @@ export function basisText(d: GrowthResponse): string {
   const range = `${formatDate(d.compare.from)} – ${formatDate(d.compare.to)}`;
   if (d.compare.basis === 'lastYear') return `same weekdays a year earlier (${range})`;
   if (d.compare.basis === 'sequential') return `each ${d.granularity} vs the ${d.granularity} before, per day · total vs ${range}`;
-  return `previous period (${range})`;
+  return `comparison period (${range})`;
 }
 
 /** "+Rp 12.3M" / "−Rp 4.1M" */

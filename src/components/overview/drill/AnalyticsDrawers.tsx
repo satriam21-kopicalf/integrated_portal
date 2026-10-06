@@ -10,11 +10,12 @@ import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, INK, rupiahAxis, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import {
   BasketResponse, BranchesResponse, bucketLabel, channelColor, channelKey, channelLabel, channelOrder, ChannelsResponse,
-  compactNumber, compactRupiah, DeductionsResponse, DOW_LABELS, Granularity, hourLabel, HourlyResponse, KpisResponse, longDate,
+  compactNumber, compactRupiah, DeductionsResponse, DOW_LABELS, GROUP_COLORS, GROUP_LABELS, Granularity, hourLabel, HourlyResponse, KpisResponse, longDate,
   MenusResponse, MonthlyResponse, paymentLabel, PaymentsResponse, shortDate, TrendResponse, useOverview, withParams,
 } from '@/lib/overview';
 import { BusyBody } from '../BusyHoursCard';
-import { Segmented } from '../Card';
+import { ChannelGroups } from '../DeductionsCard';
+import { Delta, Segmented } from '../Card';
 import HoursCompare from '../HoursCompare';
 import { monthLabel, MonthlyChart } from '../MonthlyCard';
 import TrendChart, { ChartTypeSelect, metricOf, pct, TREND_METRICS, TrendChartType, TrendMetric } from '../TrendChart';
@@ -653,6 +654,46 @@ export function DeductionsDrawer({ q }: { q: string }) {
               { label: 'Open bills', value: compactRupiah(t.open.subtotal), sub: `${num(t.open.bills)} bills` },
               { label: 'Branches to review', value: num(flagged.length), sub: d.threshold === null ? 'too few branches for P90' : `void rate above ${pctText(d.threshold, 2)}` },
             ]} />
+            <Block title="Offline vs online" subtitle="Offline = Dine In, Takeaway · Online = GoFood, GrabFood, ShopeeFood, Online Order · change in percentage points vs the comparison period">
+              <div className="space-y-4">
+                <ChannelGroups data={d} />
+                {d.dailyGroups.length > 1 && (
+                  <>
+                    <p className="text-xs font-medium text-slate-500">Void rate per day · click a day for its profile</p>
+                    <GroupVoidChart data={d} onSelect={date => drill.drill(to.period(date, date, longDate(date)))} />
+                  </>
+                )}
+                <DetailTable caption="Deductions per channel" csvName="deductions-per-channel" rows={d.channels} rowKey={c => c.channel}
+                  initialSort={{ key: 'group', desc: false }} onRowClick={c => drill.drill(to.channel(c.channel))}
+                  columns={[
+                    { key: 'group', label: 'Group', value: c => c.group, render: c => <span className="flex items-center gap-1.5"><SeriesKey color={GROUP_COLORS[c.group]} />{GROUP_LABELS[c.group]}</span> },
+                    { key: 'channel', label: 'Channel', value: c => c.channel, render: c => <ChannelLogo channel={c.channel} height={14} /> },
+                    { key: 'bills', label: 'All bills', align: 'right', value: c => c.bills },
+                    { key: 'void', label: 'Void bills', align: 'right', value: c => c.voidBills },
+                    { key: 'voidRp', label: 'Void value', align: 'right', value: c => c.voidSubtotal, render: c => rp(c.voidSubtotal) },
+                    { key: 'rate', label: 'Void rate', align: 'right', value: c => c.voidRate, render: c => pctText(c.voidRate, 2) },
+                    { key: 'prev', label: 'Comparison', align: 'right', value: c => c.previousVoidRate ?? null, render: c => pctText(c.previousVoidRate ?? null, 2) },
+                    { key: 'chg', label: 'Change', align: 'right', value: c => voidChange(c),
+                      render: c => <Delta value={voidChange(c)} upIsGood={false} unit=" pp" /> },
+                    { key: 'share', label: 'Share of voids', align: 'right', value: c => c.voidShare ?? null, render: c => pctText(c.voidShare ?? null) },
+                    { key: 'oc', label: 'Other cost', align: 'right', value: c => c.otherCostSubtotal, render: c => (c.otherCostBills ? `${num(c.otherCostBills)} · ${compactRupiah(c.otherCostSubtotal)}` : '-') },
+                    { key: 'open', label: 'Open bills', align: 'right', value: c => c.openBills },
+                  ]} />
+                <DetailTable caption="Offline and online deductions per branch" csvName="deductions-offline-online-per-branch" rows={d.branchGroups} rowKey={b => b.branchCode}
+                  search={b => `${b.branchName} ${b.branchCode}`} initialSort={{ key: 'offRate', desc: true }}
+                  onRowClick={b => drill.drill(to.branch(b.branchCode, b.branchName))}
+                  columns={[
+                    { key: 'branch', label: 'Branch', value: b => b.branchName, render: b => short(b.branchName) },
+                    { key: 'offRate', label: 'Offline void rate', align: 'right', value: b => b.offline.voidRate, render: b => pctText(b.offline.voidRate, 2) },
+                    { key: 'offVoid', label: 'Offline voids', align: 'right', value: b => b.offline.voidBills, render: b => `${num(b.offline.voidBills)} / ${num(b.offline.bills)}` },
+                    { key: 'onRate', label: 'Online void rate', align: 'right', value: b => b.online.voidRate, render: b => pctText(b.online.voidRate, 2) },
+                    { key: 'onVoid', label: 'Online voids', align: 'right', value: b => b.online.voidBills, render: b => `${num(b.online.voidBills)} / ${num(b.online.bills)}` },
+                    { key: 'voidRp', label: 'Void value', align: 'right', value: b => b.offline.voidSubtotal + b.online.voidSubtotal, render: b => rp(b.offline.voidSubtotal + b.online.voidSubtotal) },
+                    { key: 'offOc', label: 'Offline other cost', align: 'right', value: b => b.offline.otherCostSubtotal, render: b => rp(b.offline.otherCostSubtotal) },
+                    { key: 'onOc', label: 'Online other cost', align: 'right', value: b => b.online.otherCostSubtotal, render: b => rp(b.online.otherCostSubtotal) },
+                  ]} />
+              </div>
+            </Block>
             {d.daily.length > 1 && (
               <Block title="Void rate per day" subtitle="Click a day for everything that happened that day">
                 <VoidChart data={d} onSelect={date => drill.drill(to.period(date, date, longDate(date)))} />
@@ -699,6 +740,39 @@ export function DeductionsDrawer({ q }: { q: string }) {
         );
       }}
     </Loaded>
+  );
+}
+
+const voidChange = (c: { voidRate: number; previousVoidRate?: number | null }) =>
+  c.previousVoidRate === null || c.previousVoidRate === undefined ? null : c.voidRate - c.previousVoidRate;
+
+const GROUPS = ['offline', 'online'] as const;
+
+function GroupVoidChart({ data, onSelect }: { data: DeductionsResponse; onSelect: (date: string) => void }) {
+  const option = useMemo<ChartOption>(() => ({
+    ...base,
+    grid: { left: 4, right: 12, top: 14, bottom: 4, containLabel: true },
+    tooltip: tooltip({
+      trigger: 'axis', axisPointer: { type: 'line', lineStyle: { color: INK.axis } },
+      formatter: (items: { dataIndex: number }[]) => {
+        const x = data.dailyGroups[items[0]?.dataIndex ?? 0];
+        return tipTitle(longDate(x.date)) + GROUPS.map(g => tipRow(GROUP_COLORS[g], `${x[g].voidRate.toFixed(2)}%`,
+          `${GROUP_LABELS[g]} · ${formatNumber(x[g].voidBills)} of ${formatNumber(x[g].bills)} · ${compactRupiah(x[g].voidSubtotal)}`, 'line')).join('');
+      },
+    }),
+    xAxis: categoryAxis(data.dailyGroups.map(x => shortDate(x.date)), { boundaryGap: false }),
+    yAxis: valueAxis((v: number) => `${v}%`, { splitNumber: 3 }),
+    series: GROUPS.map(g => ({
+      name: GROUP_LABELS[g], type: 'line', data: data.dailyGroups.map(x => x[g].voidRate), symbol: 'circle', symbolSize: 6,
+      showSymbol: data.dailyGroups.length <= 31, lineStyle: { color: GROUP_COLORS[g], width: 2 },
+      itemStyle: { color: GROUP_COLORS[g], borderColor: '#fff', borderWidth: 2 },
+    })),
+  }), [data]);
+  return (
+    <div className="space-y-1">
+      <Legend items={GROUPS.map(g => ({ key: g, label: GROUP_LABELS[g], color: GROUP_COLORS[g], shape: 'line' as const }))} />
+      <EChart option={option} height={220} ariaLabel="Void rate per day, offline and online" onClick={p => { const x = data.dailyGroups[p.dataIndex]; if (x) onSelect(x.date); }} />
+    </div>
   );
 }
 

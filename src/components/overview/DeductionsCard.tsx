@@ -5,8 +5,8 @@ import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, INK, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
-import { compactRupiah, DeductionsResponse, longDate, Resource, shortDate } from '@/lib/overview';
-import { Card } from './Card';
+import { compactRupiah, DeductionsResponse, GROUP_COLORS, GROUP_LABELS, longDate, Resource, shortDate } from '@/lib/overview';
+import { Card, Delta } from './Card';
 import { to, useDrill } from './drill/DrillContext';
 
 function VoidRateChart({ data }: { data: DeductionsResponse }) {
@@ -70,6 +70,8 @@ export default function DeductionsCard({ resource }: { resource: Resource<Deduct
               <Stat label="Open bills" value={compactRupiah(t.open.subtotal)} detail={`${formatNumber(t.open.bills)} bills`} title={formatCurrency(t.open.subtotal)} />
             </dl>
 
+            <ChannelGroups data={data} />
+
             {data.daily.length > 1 && (
               <div>
                 <p className="mb-1 text-xs font-medium text-slate-500">Void rate per day</p>
@@ -116,6 +118,39 @@ function Stat({ label, value, detail, title }: { label: string; value: string; d
       <dt className="truncate text-[11px] text-slate-500">{label}</dt>
       <dd className="mt-0.5 truncate text-sm font-semibold text-slate-900 sm:text-base">{value}</dd>
       <dd className="truncate text-[11px] text-slate-500" title={detail}>{detail}</dd>
+    </div>
+  );
+}
+
+/** Offline (Dine In, Takeaway) next to online (delivery apps, online order). */
+export function ChannelGroups({ data }: { data: DeductionsResponse }) {
+  const groups = (data.groups ?? []).filter(g => g.group !== 'other');
+  if (!groups.length) return null;
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {groups.map(g => {
+        const deltaPp = g.previousVoidRate === null || g.previousVoidRate === undefined ? null : g.voidRate - g.previousVoidRate;
+        return (
+          <div key={g.group} className="min-w-0 rounded-lg border border-slate-200 px-3 py-2.5">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: GROUP_COLORS[g.group] }} />
+              {GROUP_LABELS[g.group]}
+              <span className="font-normal normal-case tracking-normal text-slate-400">{g.group === 'offline' ? 'Dine In, Takeaway' : 'GoFood, GrabFood, ShopeeFood'}</span>
+            </p>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-lg font-semibold tabular-nums text-slate-900" title="Void & cancelled bills ÷ all bills">{g.voidRate.toFixed(2)}%</span>
+              <span className="text-[11px] text-slate-500">void rate</span>
+              <Delta value={deltaPp} upIsGood={false} unit=" pp" />
+            </div>
+            <dl className="mt-1 grid grid-cols-2 gap-x-3 text-[11px] text-slate-500">
+              <div><dt className="inline">Void </dt><dd className="inline font-medium tabular-nums text-slate-700">{formatNumber(g.voidBills)} · {compactRupiah(g.voidSubtotal)}</dd></div>
+              <div><dt className="inline">Share of voids </dt><dd className="inline font-medium tabular-nums text-slate-700">{(g.voidShare ?? 0).toFixed(1)}%</dd></div>
+              <div><dt className="inline">Other cost </dt><dd className="inline font-medium tabular-nums text-slate-700">{formatNumber(g.otherCostBills)} · {compactRupiah(g.otherCostSubtotal)}</dd></div>
+              <div><dt className="inline">Open </dt><dd className="inline font-medium tabular-nums text-slate-700">{formatNumber(g.openBills)}</dd></div>
+            </dl>
+          </div>
+        );
+      })}
     </div>
   );
 }

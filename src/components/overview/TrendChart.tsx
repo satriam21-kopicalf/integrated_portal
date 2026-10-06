@@ -84,7 +84,9 @@ export default function TrendChart({
     const grid = { left: 4, right: 24, top: 30, bottom: s.length > 62 ? 52 : 8, containLabel: true };
     const prevDate = (i: number) => {
       const d = new Date(`${s[i].date}T00:00:00`);
-      d.setDate(d.getDate() - data.filters.days);
+      // the comparison may be any period: move by its actual offset
+      const shift = Math.round((new Date(`${data.filters.from}T00:00:00`).getTime() - new Date(`${data.filters.previous.from}T00:00:00`).getTime()) / 86_400_000);
+      d.setDate(d.getDate() - shift);
       return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     };
 

@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import BranchFilter, { Branch, branchesLabel } from '@/components/BranchFilter';
 import ChannelFilter from '@/components/overview/ChannelFilter';
+import CompareFilter, { CompareMode, compareRange } from '@/components/overview/CompareFilter';
 import KpiTiles from '@/components/overview/KpiTiles';
 import TrendCard from '@/components/overview/TrendCard';
 import ChannelMixCard from '@/components/overview/ChannelMixCard';
@@ -36,9 +37,13 @@ interface Filters {
   to: string;
   branch: string; // branch codes separated by commas, '' = all
   channels: string[]; // [] = all
+  cmp: CompareMode; // comparison period: auto (previous period) | month | year | custom
+  cmpFrom: string; // custom only
+  cmpTo: string;
 }
 
-const EMPTY: Filters = { from: '', to: '', branch: '', channels: [] };
+const EMPTY: Filters = { from: '', to: '', branch: '', channels: [], cmp: 'auto', cmpFrom: '', cmpTo: '' };
+const CMP_MODES: CompareMode[] = ['auto', 'month', 'year', 'custom'];
 
 /** Complete days end yesterday; "Today" is still being synced. */
 function overviewPresets(): DatePreset[] {
@@ -69,6 +74,9 @@ function readUrl(): Filters {
     to: p.get('to') ?? '',
     branch: p.get('branch') ?? '',
     channels: (p.get('channel') ?? '').split(',').map(c => c.trim()).filter(Boolean),
+    cmp: (CMP_MODES as string[]).includes(p.get('cmp') ?? '') ? (p.get('cmp') as CompareMode) : 'auto',
+    cmpFrom: p.get('cmpFrom') ?? '',
+    cmpTo: p.get('cmpTo') ?? '',
   };
 }
 
@@ -78,6 +86,11 @@ function writeUrl(f: Filters) {
   if (f.to) p.set('to', f.to);
   if (f.branch) p.set('branch', f.branch);
   if (f.channels.length) p.set('channel', f.channels.join(','));
+  if (f.cmp !== 'auto') p.set('cmp', f.cmp);
+  if (f.cmp === 'custom' && f.cmpFrom) {
+    p.set('cmpFrom', f.cmpFrom);
+    p.set('cmpTo', f.cmpTo || f.cmpFrom);
+  }
   const qs = p.toString();
   window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
 }
@@ -103,7 +116,8 @@ export default function OverviewPage() {
 
   useFilterLog(
     '/overview',
-    filters ? { dateFrom: filters.from || null, dateTo: filters.to || null, branches: filters.branch ? filters.branch.split(',') : [], channels: filters.channels } : null,
+    filters ? { dateFrom: filters.from || null, dateTo: filters.to || null, branches: filters.branch ? filters.branch.split(',') : [], channels: filters.channels,
+      compare: filters.cmp, compareFrom: filters.cmpFrom || null, compareTo: filters.cmpTo || null } : null,
     `Filter Overview: ${filters?.from ? `${formatDate(filters.from)} – ${formatDate(filters.to || filters.from)}` : 'default'} · ${branchesLabel(filters?.branch ?? '', branches)}`
       + (filters?.channels.length ? ` · ${filters.channels.join(', ')}` : ''),
   );
@@ -136,18 +150,25 @@ export default function OverviewPage() {
               />
               <BranchFilter branches={branches} loading={branchesLoading} value={filters?.branch ?? ''} onChange={branch => update({ branch })} />
               <ChannelFilter channels={meta.data?.channels ?? []} value={filters?.channels ?? []} onChange={channels => update({ channels })} />
+              <CompareFilter
+                value={{ mode: filters?.cmp ?? 'auto', from: filters?.cmpFrom ?? '', to: filters?.cmpTo ?? '' }}
+                period={filters?.from ? { from: filters.from, to: filters.to || filters.from } : meta.data?.defaultPeriod ?? null}
+                onChange={v => update({ cmp: v.mode, cmpFrom: v.from, cmpTo: v.to })}
+              />
               <RealtimeIndicator className="h-10" />
             </div>
           </div>
         </header>
 
-        {filters && <OverviewContent filters={filters} branches={branches} />}
+        {filters && <OverviewContent filters={filters} branches={branches} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
       </div>
     </DashboardLayout>
   );
 }
 
-function OverviewContent({ filters, branches }: { filters: Filters; branches: Branch[] }) {
+function OverviewContent({ filters, branches, defaultPeriod }: {
+  filters: Filters; branches: Branch[]; defaultPeriod: { from: string; to: string } | null;
+}) {
   const superadmin = useAuth().user?.role === 'superadmin';
   const query = useMemo(() => {
     const p = new URLSearchParams();
@@ -155,8 +176,15 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
     if (filters.to) p.set('dateTo', filters.to || filters.from);
     if (filters.branch) p.set('branch', filters.branch);
     if (filters.channels.length) p.set('channel', filters.channels.join(','));
+    // comparison period: every "vs previous" figure of every endpoint follows it
+    const cmp = compareRange({ mode: filters.cmp, from: filters.cmpFrom, to: filters.cmpTo },
+      filters.from ? { from: filters.from, to: filters.to || filters.from } : defaultPeriod);
+    if (cmp) {
+      p.set('compareFrom', cmp.from);
+      p.set('compareTo', cmp.to);
+    }
     return p.toString();
-  }, [filters]);
+  }, [filters, defaultPeriod]);
 
   const kpis = useOverview<KpisResponse>('kpis', query);
   const channels = useOverview<ChannelsResponse>('channels', query);
@@ -190,7 +218,17 @@ function OverviewContent({ filters, branches }: { filters: Filters; branches: Br
           {f ? (
             <>
               <span className="font-medium text-slate-900">{formatDate(f.from)} – {formatDate(f.to)}</span> · {branchName} · {channelText}
-              {f.previous.complete ? <> · vs {formatDate(f.previous.from)} – {formatDate(f.previous.to)}</> : <> · no comparison before Aug 2025</>}
+              {f.previous.complete ? (
+                <>
+                  {' · vs '}
+                  <span className={f.previous.custom ? 'rounded bg-slate-900 px-1.5 py-0.5 font-medium text-white' : ''}>
+                    {formatDate(f.previous.from)} – {formatDate(f.previous.to)}
+                  </span>
+                  {f.previous.days !== undefined && f.previous.days !== f.days && (
+                    <span className="ml-1.5 text-amber-700">({f.previous.days} vs {f.days} days: totals are not like for like, compare per-day figures)</span>
+                  )}
+                </>
+              ) : <> · no comparison before Aug 2025</>}
             </>
           ) : (
             <span className="inline-block h-4 w-72 animate-pulse rounded bg-slate-200 align-middle" />

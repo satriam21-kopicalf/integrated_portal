@@ -28,7 +28,8 @@ const METRICS: {
 export default function KpiTiles({ resource }: { resource: Resource<KpisResponse> }) {
   const { data, error, retry } = resource;
   const drill = useOptionalDrill();
-  const days = data?.filters.days;
+  const days = data?.filters.previous.days ?? data?.filters.days;
+  const custom = data?.filters.previous.custom;
   const hasPrev = data?.filters.previous.complete;
   return (
     <StatStrip label="Key figures for the selected period">
@@ -50,7 +51,7 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <Delta value={k.deltaPct} />
                   <span className="truncate">
-                    {hasPrev ? <>vs <span className="tabular-nums text-slate-600">{m.format(k.previous)}</span> · prev. {days} {days === 1 ? 'day' : 'days'}</> : 'no comparison'}
+                    {hasPrev ? <>vs <span className="tabular-nums text-slate-600">{m.format(k.previous)}</span> · {custom ? 'comparison' : 'prev.'} {days} {days === 1 ? 'day' : 'days'}</> : 'no comparison'}
                   </span>
                 </div>
                 <Sparkline className="mt-2" values={data!.daily.map(m.series)} height={30} label={`${m.label} per day`} />

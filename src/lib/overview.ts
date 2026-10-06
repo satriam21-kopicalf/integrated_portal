@@ -10,7 +10,8 @@ export interface OverviewFilters {
   from: string;
   to: string;
   days: number;
-  previous: { from: string; to: string; complete: boolean };
+  /** comparison period: the same length just before, or the one chosen with compareFrom/compareTo (custom) */
+  previous: { from: string; to: string; complete: boolean; custom?: boolean; days?: number };
   branch: string | null;
   channels: string[];
 }
@@ -159,7 +160,40 @@ export interface DeductionsResponse {
   otherCostByMethod: { method: string; bills: number; subtotal: number }[];
   branches: DeductionBranch[];
   daily: { date: string; bills: number; voidBills: number; voidSubtotal: number; otherCostSubtotal: number; voidRate: number }[];
+  /** offline (Dine In, Takeaway) vs online (delivery apps, online order) */
+  groups: (DeductionSplit & { group: ChannelGroup; label: string })[];
+  channels: (DeductionSplit & { channel: string; group: ChannelGroup })[];
+  dailyGroups: ({ date: string } & Record<'offline' | 'online', DeductionSplit>)[];
+  branchGroups: ({ branchCode: string; branchName: string } & Record<'offline' | 'online', DeductionSplit>)[];
 }
+
+export type ChannelGroup = 'offline' | 'online' | 'other';
+
+export interface DeductionSplit {
+  bills: number;
+  subtotal: number;
+  salesBills: number;
+  salesSubtotal: number;
+  voidBills: number;
+  voidSubtotal: number;
+  otherCostBills: number;
+  otherCostSubtotal: number;
+  openBills: number;
+  openSubtotal: number;
+  /** void bills / all bills, % */
+  voidRate: number;
+  otherCostRate: number;
+  /** void value / (sales + void value), % */
+  voidValueRate: number;
+  previousVoidRate?: number | null;
+  previousVoidBills?: number | null;
+  /** share of all void bills, % */
+  voidShare?: number;
+}
+
+/** Offline / online in the categorical order (slots 1 and 2). */
+export const GROUP_COLORS: Record<ChannelGroup, string> = { offline: '#2a78d6', online: '#eb6834', other: '#a8a29e' };
+export const GROUP_LABELS: Record<ChannelGroup, string> = { offline: 'Offline', online: 'Online', other: 'Other' };
 
 export interface MonthRow {
   month: string;

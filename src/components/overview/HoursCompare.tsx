@@ -68,7 +68,7 @@ export default function HoursCompare({ query, mode, period, size = 'card' }: {
       {mode === 'period' ? (
         <>
           <Segmented label="Compare with" value={against} onChange={setAgainst} options={[
-            { value: 'previous', label: 'Previous period' }, { value: 'lastYear', label: 'Last year' }, { value: 'custom', label: 'Custom' },
+            { value: 'previous', label: 'Comparison period' }, { value: 'lastYear', label: 'Last year' }, { value: 'custom', label: 'Custom' },
           ]} />
           {against === 'custom' && (
             <DateRangePicker dateFrom={custom.from} dateTo={custom.to} defaultLabel="pick a period"
