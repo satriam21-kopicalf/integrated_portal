@@ -85,6 +85,9 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 
 ## Realtime (WebSocket)
 
+> Data hari ini (panel Today, KPI, MTD) tertinggal **maksimal ~15 menit** pada jam operasional 06:00–24:00 WIB: sinkron ESB di menit :05 (hari ini + kemarin) dan :20/:35/:50 (hari ini), aggregate Overview dibangun ulang di :20/:25/:40/:55; malam hari tetap per jam.
+
+
 `src/lib/realtime.tsx` — `RealtimeProvider` dipasang sekali di `src/app/providers.tsx` (root layout) **setelah login**, sehingga satu koneksi dipakai di semua halaman.
 
 - Server hanya mengirim **versi data**, bukan datanya:

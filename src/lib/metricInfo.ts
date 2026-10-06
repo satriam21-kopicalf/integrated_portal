@@ -11,8 +11,8 @@ export interface MetricInfo {
   formula?: string[];
 }
 
-const POS = 'ESB POS transactions (integration_esb.transactions_pos_sales), synced from ESB every hour at :05 WIB and re-synced for the last 7 days every night at 02:15 WIB.';
-const AGG = 'Pre-aggregated per day × branch × channel × payment method × type (integration_portal.agg_sales_daily), refreshed every hour at :20 WIB and nightly at 02:50 WIB.';
+const POS = 'ESB POS transactions (integration_esb.transactions_pos_sales), synced from ESB every 15 minutes during trading hours (:05 today + yesterday, :20 / :35 / :50 today, 06:00–24:00 WIB; hourly at night) and re-synced for the last 7 days every night at 02:15 WIB.';
+const AGG = 'Pre-aggregated per day × branch × channel × payment method × type (integration_portal.agg_sales_daily), refreshed after every sync (:20, :25, :40, :55 WIB during trading hours, hourly at :20 at night) and for the last 8 days nightly at 02:50 WIB.';
 const SALES_RULE = 'Sales = transactions with status "Finished" and a bill number, the same rule as the ESB "Sales Recapitulation" report. Void/Cancelled, Other Cost (Finished without bill number: CUPPING, WASTE…) and open bills are excluded; menu lines cancelled on the bill (Print Cancelled) are not counted.';
 const FILTERS = 'Follows the date, branch, channel and comparison filters. Comparison = the chosen comparison period (default: the same number of days just before; nothing before 1 Aug 2025).';
 const CHANGE = 'Change % = (this period − comparison) ÷ comparison × 100';
@@ -44,7 +44,7 @@ export const INFO = {
   },
   today: {
     title: 'Today',
-    source: ['ESB POS transactions of today, read directly (not the aggregates); updated after every hourly sync (:05 WIB) and pushed to the page in real time.'],
+    source: ['ESB POS transactions of today, read directly (not the aggregates); updated after every sync — every 15 minutes during trading hours (06:00–24:00 WIB) — and pushed to the page in real time within ~15 seconds.'],
     definition: [SALES_RULE, 'Compared with yesterday up to the same time of day (outlet clock, salesDateIn). Follows the branch and channel filters, not the date filter.'],
     formula: ['vs yesterday % = (today − yesterday until the same time) ÷ yesterday until the same time × 100', 'Progress = today ÷ yesterday\'s full day × 100'],
   },
