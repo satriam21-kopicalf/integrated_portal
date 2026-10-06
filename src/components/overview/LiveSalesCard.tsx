@@ -258,7 +258,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
             {data && !rows.length && <li className="py-8 text-center text-sm text-slate-400">No sales yet today</li>}
           </ol>
           <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400 sm:px-5">
-            Outlet local time · updates automatically after every POS sync (hourly at :05)
+            Outlet local time · updates automatically after every POS sync (every 15 min, 06:00–24:00 WIB)
           </p>
         </div>
       </div>
