@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { GitCompareArrows, SlidersHorizontal } from 'lucide-react';
+import { CalendarRange, GitCompareArrows, SlidersHorizontal, Store, Waypoints, X } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Branch, branchesLabel } from '@/components/BranchFilter';
 import { CompareMode, compareRange } from '@/components/overview/CompareFilter';
-import OverviewFilterDrawer, { isDayVsDay } from '@/components/overview/OverviewFilterDrawer';
+import OverviewFilterDrawer, { effectiveCompare, isDayVsDay } from '@/components/overview/OverviewFilterDrawer';
 import HealthCard from '@/components/overview/HealthCard';
 import KpiTiles from '@/components/overview/KpiTiles';
 import TrendCard from '@/components/overview/TrendCard';
@@ -107,16 +107,25 @@ export default function OverviewPage() {
   const f = filters ?? EMPTY;
   const dayVsDay = isDayVsDay(f);
   const period = f.from ? { from: f.from, to: f.to || f.from } : meta.data?.defaultPeriod ?? null;
-  const cmp = compareRange({ mode: f.cmp, from: f.cmpFrom, to: f.cmpTo }, period);
+  const cmp = effectiveCompare(f.cmp, f.cmpFrom, f.cmpTo, period);
   const activeCount = (f.from ? 1 : 0) + (f.cmp !== 'auto' ? 1 : 0) + (f.branch ? 1 : 0) + (f.channels.length ? 1 : 0);
   const weekday = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-  const chips: string[] = [
-    dayVsDay ? `${weekday(f.from)} vs ${weekday(f.cmpFrom)}`
-      : period ? `${formatDate(period.from)} – ${formatDate(period.to)}${f.from ? '' : ' (last 30 days)'}` : 'Last 30 days',
-    ...(!dayVsDay ? [cmp ? `vs ${formatDate(cmp.from)} – ${formatDate(cmp.to)}` : 'vs previous period'] : []),
-    branchesLabel(f.branch, branches),
-    f.channels.length ? f.channels.map(channelLabel).join(', ') : 'All channels',
+  const range = (r: { from: string; to: string }) => r.from === r.to ? formatDate(r.from) : `${formatDate(r.from)} – ${formatDate(r.to)}`;
+  // what is applied, one chip per filter; a chip that is not the default can be cleared on its own
+  const chips: { key: string; icon: React.ReactNode; label: string; value: string; clear?: () => void }[] = dayVsDay ? [
+    { key: 'day', icon: <GitCompareArrows size={13} />, label: 'Days', value: `${weekday(f.from)} vs ${weekday(f.cmpFrom)}`,
+      clear: () => update({ from: '', to: '', cmp: 'auto', cmpFrom: '', cmpTo: '' }) },
+  ] : [
+    { key: 'date', icon: <CalendarRange size={13} />, label: 'Dates', value: period ? `${range(period)}${f.from ? '' : ' (last 30 days)'}` : 'Last 30 days',
+      clear: f.from ? () => update({ from: '', to: '' }) : undefined },
+    { key: 'cmp', icon: <GitCompareArrows size={13} />, label: 'vs', value: cmp ? range(cmp) : 'previous period',
+      clear: f.cmp !== 'auto' ? () => update({ cmp: 'auto', cmpFrom: '', cmpTo: '' }) : undefined },
   ];
+  chips.push(
+    { key: 'branch', icon: <Store size={13} />, label: 'Branch', value: branchesLabel(f.branch, branches), clear: f.branch ? () => update({ branch: '' }) : undefined },
+    { key: 'channel', icon: <Waypoints size={13} />, label: 'Channel', value: f.channels.length ? f.channels.map(channelLabel).join(', ') : 'All channels',
+      clear: f.channels.length ? () => update({ channels: [] }) : undefined },
+  );
 
   return (
     <DashboardLayout>
@@ -128,22 +137,38 @@ export default function OverviewPage() {
               <p className="text-xs text-slate-500 sm:text-sm">Sales Analytics</p>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <button type="button" onClick={() => setFiltersOpen(true)} aria-label="Filters"
-                className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors ${
-                  activeCount ? 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}>
+              <button type="button" onClick={() => setFiltersOpen(true)}
+                className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium transition-colors ${
+                  activeCount ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}>
                 <SlidersHorizontal size={16} /> Filters
-                {activeCount > 0 && <span className="rounded-full bg-white/20 px-1.5 text-xs tabular-nums">{activeCount}</span>}
+                {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
               </button>
               <RealtimeIndicator className="h-10" />
             </div>
           </div>
-          {/* what is applied: one line, opens the filters */}
-          <button type="button" onClick={() => setFiltersOpen(true)} className="mt-3 flex w-full flex-wrap items-center gap-1.5 text-left" title="Change filters">
-            {dayVsDay && <span className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white"><GitCompareArrows size={12} /> Day vs day</span>}
-            {chips.map((c, i) => (
-              <span key={i} className={`max-w-full truncate rounded-full px-2.5 py-1 text-xs font-medium ${i === 0 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{c}</span>
+          {/* what is applied: click a chip to change it, × to clear that filter */}
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {chips.map(c => (
+              <span key={c.key} className={`inline-flex max-w-full items-center rounded-lg border text-xs ${
+                c.clear ? 'border-blue-200 bg-blue-50 text-blue-800' : 'border-slate-200 bg-white text-slate-700'}`}>
+                <button type="button" onClick={() => setFiltersOpen(true)} title="Change filters"
+                  className={`inline-flex min-w-0 items-center gap-1.5 py-1 pl-2.5 ${c.clear ? 'pr-1' : 'pr-2.5'}`}>
+                  <span className={c.clear ? 'text-blue-600' : 'text-slate-400'}>{c.icon}</span>
+                  <span className={c.clear ? 'text-blue-600' : 'text-slate-500'}>{c.label}</span>
+                  <span className="truncate font-medium">{c.value}</span>
+                </button>
+                {c.clear && (
+                  <button type="button" onClick={c.clear} aria-label={`Clear ${c.label.toLowerCase()} filter`}
+                    className="mr-1 rounded p-0.5 text-blue-500 hover:bg-blue-100 hover:text-blue-800"><X size={12} /></button>
+                )}
+              </span>
             ))}
-          </button>
+            {activeCount > 0 && (
+              <button type="button" onClick={() => update(EMPTY)} className="ml-1 text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline">
+                Clear all
+              </button>
+            )}
+          </div>
         </header>
 
         {filters && <OverviewContent filters={filters} branches={branches} defaultPeriod={meta.data?.defaultPeriod ?? null} />}

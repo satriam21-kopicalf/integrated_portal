@@ -8,7 +8,7 @@ import { ArrowLeft, X } from 'lucide-react';
  * Dialog. Escape / backdrop close unless `locked`.
  */
 export default function Drawer({
-  open, title, description, onClose, children, footer, size = 'md', locked = false, icon, onBack, titleExtra,
+  open, title, description, onClose, children, footer, size = 'md', locked = false, icon, onBack, titleExtra, focusFirstField = true,
 }: {
   open: boolean;
   title: string;
@@ -24,6 +24,8 @@ export default function Drawer({
   /** cannot be dismissed (e.g. a required password change) */
   locked?: boolean;
   icon?: ReactNode;
+  /** false: focus the panel itself on open (e.g. when the first field is a date picker) */
+  focusFirstField?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   // latest handler / lock state without re-running the effects (callers pass a
@@ -52,8 +54,9 @@ export default function Drawer({
   // focus the first field once, when the drawer opens
   useEffect(() => {
     if (!open) return;
-    const first = panel.current?.querySelector<HTMLElement>('input:not([type=hidden]):not([type=file]), select, textarea');
+    const first = focusFirstField ? panel.current?.querySelector<HTMLElement>('input:not([type=hidden]):not([type=file]), select, textarea') : null;
     (first ?? panel.current)?.focus({ preventScroll: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per opening
   }, [open]);
 
   if (!open) return null;

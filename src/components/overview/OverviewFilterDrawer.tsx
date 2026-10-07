@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { CalendarDays, Check, GitCompareArrows, Search, SlidersHorizontal, Store, Waypoints } from 'lucide-react';
-import Drawer, { DrawerSection } from '@/components/ui/Drawer';
+import { ReactNode, useMemo, useState } from 'react';
+import { AlertTriangle, CalendarDays, CalendarRange, Check, GitCompareArrows, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
+import Drawer from '@/components/ui/Drawer';
 import { buttonPrimary, buttonSecondary, inputClass } from '@/components/ui/Dialog';
 import { Branch } from '@/components/BranchFilter';
 import { compareRange, CompareMode } from '@/components/overview/CompareFilter';
 import { channelLabel } from '@/lib/overview';
-import { formatDate, toIsoDate } from '@/lib/format';
+import { formatDate, formatNumber, toIsoDate } from '@/lib/format';
 
 export interface OverviewFilterValue {
   from: string; // '' = default period
@@ -19,18 +19,27 @@ export interface OverviewFilterValue {
   cmpTo: string;
 }
 
-type Analysis = 'period' | 'day';
+type View = 'period' | 'day';
 
-const shift = (iso: string, days: number) => {
+export const shiftDay = (iso: string, days: number) => {
   const d = new Date(`${iso}T00:00:00`);
   d.setDate(d.getDate() + days);
   return toIsoDate(d);
 };
-const longDay = (iso: string) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '—');
+const dayCount = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00`) - Date.parse(`${from}T00:00:00`)) / 864e5) + 1;
+const weekdayDate = (iso: string) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 
 /** A day-vs-day view = one day compared with one other day. */
 export function isDayVsDay(v: OverviewFilterValue): boolean {
   return Boolean(v.from && v.from === (v.to || v.from) && v.cmp === 'custom' && v.cmpFrom && v.cmpFrom === (v.cmpTo || v.cmpFrom));
+}
+
+/** The comparison actually used, also for "previous period" (the same number of days just before). */
+export function effectiveCompare(mode: CompareMode, cmpFrom: string, cmpTo: string, period: { from: string; to: string } | null) {
+  const r = compareRange({ mode, from: cmpFrom, to: cmpTo }, period);
+  if (r || !period || mode !== 'auto') return r;
+  const n = dayCount(period.from, period.to);
+  return { from: shiftDay(period.from, -n), to: shiftDay(period.from, -1) };
 }
 
 function presets(): { label: string; from: string; to: string }[] {
@@ -40,24 +49,30 @@ function presets(): { label: string; from: string; to: string }[] {
   const m = now.getMonth();
   return [
     { label: 'Today', from: today, to: today },
-    { label: 'Yesterday', from: shift(today, -1), to: shift(today, -1) },
-    { label: 'Last 7 days', from: shift(today, -7), to: shift(today, -1) },
-    { label: 'Last 30 days', from: shift(today, -30), to: shift(today, -1) },
-    { label: 'Last 90 days', from: shift(today, -90), to: shift(today, -1) },
-    { label: 'Month to date', from: toIsoDate(new Date(y, m, 1)), to: today },
+    { label: 'Yesterday', from: shiftDay(today, -1), to: shiftDay(today, -1) },
+    { label: 'Last 7 days', from: shiftDay(today, -7), to: shiftDay(today, -1) },
+    { label: 'Last 30 days', from: shiftDay(today, -30), to: shiftDay(today, -1) },
+    { label: 'Last 90 days', from: shiftDay(today, -90), to: shiftDay(today, -1) },
+    { label: 'This month', from: toIsoDate(new Date(y, m, 1)), to: today },
     { label: 'Last month', from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
-    { label: 'Year to date', from: toIsoDate(new Date(y, 0, 1)), to: today },
+    { label: 'This year', from: toIsoDate(new Date(y, 0, 1)), to: today },
   ];
 }
 
-const COMPARE: { mode: CompareMode; label: string; hint: string }[] = [
-  { mode: 'auto', label: 'Previous period', hint: 'The same number of days just before' },
-  { mode: 'month', label: 'Same dates last month', hint: 'e.g. 1–10 Sep vs 1–10 Aug' },
-  { mode: 'year', label: 'Same dates last year', hint: 'e.g. Sep 2026 vs Sep 2025' },
-  { mode: 'custom', label: 'Custom period', hint: 'Any period, also of another length' },
+const COMPARE: { mode: CompareMode; label: string }[] = [
+  { mode: 'auto', label: 'Previous period' },
+  { mode: 'month', label: 'Same dates last month' },
+  { mode: 'year', label: 'Same dates last year' },
+  { mode: 'custom', label: 'Custom dates' },
 ];
 
-/** All Overview filters in one drawer: analysis (period or day vs day) with its comparison, branches, channels. */
+const DAY_PICKS: [string, number][] = [['Last week', -7], ['4 weeks ago', -28], ['Day before', -1], ['Last year', -364]];
+
+const choice = (on: boolean) =>
+  `inline-flex items-center justify-center gap-1.5 rounded-lg border text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/30 ${
+    on ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'}`;
+
+/** All Overview filters in one drawer: date range (or two days), comparison, branches, channels. */
 export default function OverviewFilterDrawer({ value, branches, channels, defaultPeriod, onApply, onClose }: {
   value: OverviewFilterValue;
   branches: Branch[];
@@ -66,199 +81,242 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
   onApply: (v: OverviewFilterValue) => void;
   onClose: () => void;
 }) {
-  const yesterday = shift(toIsoDate(new Date()), -1);
+  const today = toIsoDate(new Date());
+  const yesterday = shiftDay(today, -1);
   const [draft, setDraft] = useState<OverviewFilterValue>(value);
-  const [analysis, setAnalysis] = useState<Analysis>(isDayVsDay(value) ? 'day' : 'period');
+  const [view, setView] = useState<View>(isDayVsDay(value) ? 'day' : 'period');
   const [dayA, setDayA] = useState(isDayVsDay(value) ? value.from : yesterday);
-  const [dayB, setDayB] = useState(isDayVsDay(value) ? value.cmpFrom : shift(yesterday, -7));
+  const [dayB, setDayB] = useState(isDayVsDay(value) ? value.cmpFrom : shiftDay(yesterday, -7));
   const [branchQuery, setBranchQuery] = useState('');
   const set = (patch: Partial<OverviewFilterValue>) => setDraft(d => ({ ...d, ...patch }));
 
-  const period = draft.from ? { from: draft.from, to: draft.to || draft.from } : defaultPeriod;
-  const cmp = compareRange({ mode: draft.cmp, from: draft.cmpFrom, to: draft.cmpTo }, period);
+  // leaving day-vs-day: its single-day custom comparison is not a period choice
+  const periodCmp = isDayVsDay(value) && draft.cmp === 'custom' && draft.cmpFrom === value.cmpFrom
+    ? { cmp: 'auto' as CompareMode, cmpFrom: '', cmpTo: '' } : {};
+  const pd = { ...draft, ...periodCmp };
+  const period = pd.from ? { from: pd.from, to: pd.to || pd.from } : defaultPeriod;
+  const cmp = effectiveCompare(pd.cmp, pd.cmpFrom, pd.cmpTo, period);
+  const activePreset = period ? presets().find(p => p.from === period.from && p.to === period.to)?.label : undefined;
+
   const codes = draft.branch ? draft.branch.split(',').filter(Boolean) : [];
   const shown = useMemo(() => {
     const q = branchQuery.trim().toLowerCase();
     return branches.filter(b => !q || b.branch_name.toLowerCase().includes(q) || b.branch_code.toLowerCase().includes(q));
   }, [branches, branchQuery]);
+  const nameOf = (code: string) => branches.find(b => b.branch_code === code)?.branch_name ?? code;
   const toggleBranch = (code: string) => set({ branch: (codes.includes(code) ? codes.filter(c => c !== code) : [...codes, code]).join(',') });
+  const selectShown = () => set({ branch: [...new Set([...codes, ...shown.map(b => b.branch_code)])].join(',') });
   const toggleChannel = (ch: string) => set({ channels: draft.channels.includes(ch) ? draft.channels.filter(c => c !== ch) : [...draft.channels, ch] });
-  const weekdayA = dayA ? new Date(`${dayA}T00:00:00`).getDay() : null;
-  const weekdayB = dayB ? new Date(`${dayB}T00:00:00`).getDay() : null;
+
+  const sameWeekday = dayA && dayB && new Date(`${dayA}T00:00:00`).getDay() === new Date(`${dayB}T00:00:00`).getDay();
+  const invalid = view === 'day' ? !dayA || !dayB : pd.cmp === 'custom' && !pd.cmpFrom;
 
   const apply = () => {
-    if (analysis === 'day') {
-      onApply({ ...draft, from: dayA, to: dayA, cmp: 'custom', cmpFrom: dayB, cmpTo: dayB });
-    } else {
-      // leaving day-vs-day: its single-day custom comparison is not a period choice
-      const wasDay = isDayVsDay(value) && draft.cmp === 'custom' && draft.cmpFrom === value.cmpFrom;
-      onApply(wasDay ? { ...draft, cmp: 'auto', cmpFrom: '', cmpTo: '' } : draft);
-    }
+    if (view === 'day') onApply({ ...draft, from: dayA, to: dayA, cmp: 'custom', cmpFrom: dayB, cmpTo: dayB });
+    else onApply(pd);
+  };
+  const reset = () => {
+    setDraft({ from: '', to: '', branch: '', channels: [], cmp: 'auto', cmpFrom: '', cmpTo: '' });
+    setView('period');
+    setBranchQuery('');
   };
 
-  const activePreset = presets().find(p => p.from === draft.from && p.to === (draft.to || draft.from))?.label ?? (draft.from ? 'Custom' : 'Default');
-
   return (
-    <Drawer open onClose={onClose} size="md" icon={<SlidersHorizontal size={18} />} title="Filters"
-      description="Every analytic on the Overview follows these filters, including the comparison."
+    <Drawer open onClose={onClose} size="md" focusFirstField={false} icon={<SlidersHorizontal size={18} />} title="Filters"
+      description="Applies to every chart on this page."
       footer={
         <>
-          <button type="button" className={`${buttonSecondary} mr-auto`}
-            onClick={() => { setDraft({ from: '', to: '', branch: '', channels: [], cmp: 'auto', cmpFrom: '', cmpTo: '' }); setAnalysis('period'); }}>
-            Reset all
+          <button type="button" onClick={reset}
+            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900">
+            <RotateCcw size={14} /> Reset
           </button>
           <button type="button" className={buttonSecondary} onClick={onClose}>Cancel</button>
-          <button type="button" className={buttonPrimary} onClick={apply} disabled={analysis === 'day' && (!dayA || !dayB)}>Apply filters</button>
+          <button type="button" className={buttonPrimary} onClick={apply} disabled={invalid}>Apply</button>
         </>
       }>
-      <div className="space-y-2">
-        <DrawerSection title="Analysis">
-          <div role="radiogroup" aria-label="Analysis" className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
-            {([['period', 'Period', CalendarDays], ['day', 'Day vs day', GitCompareArrows]] as const).map(([v, l, Icon]) => (
-              <button key={v} type="button" role="radio" aria-checked={analysis === v} onClick={() => setAnalysis(v)}
-                className={`inline-flex items-center justify-center gap-1.5 rounded-md py-2 text-sm font-medium ${analysis === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+      <div className="space-y-7">
+        {/* ---------------------------------------------------------------- dates */}
+        <Group title="Dates">
+          <div role="radiogroup" aria-label="Date view" className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+            {([['period', 'Date range', CalendarRange], ['day', 'Compare two days', GitCompareArrows]] as const).map(([v, l, Icon]) => (
+              <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
+                className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
+                  view === v ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>
                 <Icon size={15} />{l}
               </button>
             ))}
           </div>
 
-          {analysis === 'period' ? (
+          {view === 'period' ? (
             <div className="space-y-5">
-              <div>
-                <p className="mb-2 text-xs font-medium text-slate-500">Period · <span className="text-slate-800">{activePreset}</span></p>
-                <div className="flex flex-wrap gap-1.5">
-                  {presets().map(p => {
-                    const on = p.from === draft.from && p.to === (draft.to || draft.from);
-                    return (
-                      <button key={p.label} type="button" onClick={() => set({ from: p.from, to: p.to })}
-                        className={`rounded-full border px-3 py-1 text-xs font-medium ${on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
-                        {p.label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <label className="text-xs text-slate-500">From
-                    <input type="date" value={draft.from} max={draft.to || undefined} onChange={e => set({ from: e.target.value, to: draft.to && draft.to >= e.target.value ? draft.to : e.target.value })} className={`${inputClass} mt-1`} />
-                  </label>
-                  <label className="text-xs text-slate-500">To
-                    <input type="date" value={draft.to || draft.from} min={draft.from || undefined} onChange={e => set({ to: e.target.value, from: draft.from || e.target.value })} className={`${inputClass} mt-1`} />
-                  </label>
-                </div>
-                {!draft.from && defaultPeriod && <p className="mt-1.5 text-[11px] text-slate-400">Default: {formatDate(defaultPeriod.from)} – {formatDate(defaultPeriod.to)} (last 30 complete days)</p>}
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                {presets().map(p => (
+                  <button key={p.label} type="button" onClick={() => set({ from: p.from, to: p.to })}
+                    aria-pressed={activePreset === p.label} className={`${choice(activePreset === p.label)} h-9 px-2 text-xs`}>
+                    {p.label}
+                  </button>
+                ))}
               </div>
 
               <div>
-                <p className="mb-2 text-xs font-medium text-slate-500">Compare with</p>
-                <div className="space-y-1">
-                  {COMPARE.map(o => {
-                    const on = draft.cmp === o.mode;
-                    const r = o.mode === 'month' || o.mode === 'year' ? compareRange({ mode: o.mode, from: '', to: '' }, period) : null;
-                    return (
-                      <button key={o.mode} type="button" onClick={() => set({ cmp: o.mode, ...(o.mode === 'custom' ? {} : { cmpFrom: '', cmpTo: '' }) })}
-                        className={`flex w-full items-start gap-2.5 rounded-lg border px-3 py-2 text-left ${on ? 'border-slate-900 bg-slate-900/[0.03]' : 'border-slate-200 hover:bg-slate-50'}`}>
-                        <span className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300'}`}>{on && <Check size={10} strokeWidth={3} />}</span>
-                        <span>
-                          <span className="block text-sm font-medium text-slate-800">{o.label}</span>
-                          <span className="block text-xs text-slate-500">{r ? `${formatDate(r.from)} – ${formatDate(r.to)}` : o.hint}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
+                <Label>Custom range</Label>
+                <div className="flex items-center gap-2">
+                  <input type="date" aria-label="From" value={period?.from ?? ''} max={period?.to || today}
+                    onChange={e => e.target.value && set({ from: e.target.value, to: period && period.to >= e.target.value ? period.to : e.target.value })} className={inputClass} />
+                  <span className="text-slate-400">–</span>
+                  <input type="date" aria-label="To" value={period?.to ?? ''} min={period?.from || undefined} max={today}
+                    onChange={e => e.target.value && set({ to: e.target.value, from: period && period.from <= e.target.value ? period.from : e.target.value })} className={inputClass} />
                 </div>
-                {draft.cmp === 'custom' && (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <label className="text-xs text-slate-500">Compare from
-                      <input type="date" value={draft.cmpFrom} onChange={e => set({ cmpFrom: e.target.value, cmpTo: draft.cmpTo && draft.cmpTo >= e.target.value ? draft.cmpTo : e.target.value })} className={`${inputClass} mt-1`} />
-                    </label>
-                    <label className="text-xs text-slate-500">to
-                      <input type="date" value={draft.cmpTo || draft.cmpFrom} min={draft.cmpFrom || undefined} onChange={e => set({ cmpTo: e.target.value })} className={`${inputClass} mt-1`} />
-                    </label>
+              </div>
+
+              <div>
+                <Label htmlFor="compare">Compare with</Label>
+                <select id="compare" value={pd.cmp} className={inputClass}
+                  onChange={e => { const mode = e.target.value as CompareMode; set({ cmp: mode, ...(mode === 'custom' ? {} : { cmpFrom: '', cmpTo: '' }) }); }}>
+                  {COMPARE.map(o => <option key={o.mode} value={o.mode}>{o.label}</option>)}
+                </select>
+                {pd.cmp === 'custom' && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <input type="date" aria-label="Compare from" value={pd.cmpFrom} max={today}
+                      onChange={e => set({ cmpFrom: e.target.value, cmpTo: pd.cmpTo && pd.cmpTo >= e.target.value ? pd.cmpTo : e.target.value })} className={inputClass} />
+                    <span className="text-slate-400">–</span>
+                    <input type="date" aria-label="Compare to" value={pd.cmpTo || pd.cmpFrom} min={pd.cmpFrom || undefined} max={today}
+                      onChange={e => set({ cmpTo: e.target.value })} className={inputClass} />
                   </div>
                 )}
-                {cmp && <p className="mt-2 text-[11px] text-slate-500">Comparing {period ? `${formatDate(period.from)} – ${formatDate(period.to)}` : 'the period'} with {formatDate(cmp.from)} – {formatDate(cmp.to)}</p>}
               </div>
+
+              {/* what will be shown, in plain dates */}
+              <dl className="grid gap-x-4 gap-y-0.5 rounded-lg bg-slate-50 px-3.5 py-3 text-sm sm:grid-cols-[auto_1fr] sm:gap-y-1.5">
+                <dt className="text-slate-500">Showing</dt>
+                <dd className="mb-1.5 font-medium text-slate-900 sm:mb-0 sm:text-right">
+                  {period ? <>{formatDate(period.from)} – {formatDate(period.to)} <span className="font-normal text-slate-500">· {formatNumber(dayCount(period.from, period.to))} days</span></> : 'Last 30 days'}
+                </dd>
+                <dt className="text-slate-500">Compared with</dt>
+                <dd className="font-medium text-slate-900 sm:text-right">
+                  {cmp ? <>{formatDate(cmp.from)} – {formatDate(cmp.to)} <span className="font-normal text-slate-500">· {formatNumber(dayCount(cmp.from, cmp.to))} days</span></> : 'Pick the dates'}
+                </dd>
+              </dl>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-xs font-medium text-slate-500">Day
-                  <input type="date" value={dayA} max={toIsoDate(new Date())} onChange={e => setDayA(e.target.value)} className={`${inputClass} mt-1`} />
-                  <span className="mt-1 block font-normal text-slate-700">{longDay(dayA)}</span>
-                </label>
-                <label className="text-xs font-medium text-slate-500">Compared with
-                  <input type="date" value={dayB} max={toIsoDate(new Date())} onChange={e => setDayB(e.target.value)} className={`${inputClass} mt-1`} />
-                  <span className="mt-1 block font-normal text-slate-700">{longDay(dayB)}</span>
-                </label>
+              <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2">
+                <DayField id="dayA" label="Day" value={dayA} max={today} onChange={setDayA} />
+                <span className="mt-8 text-xs font-semibold text-slate-400">vs</span>
+                <DayField id="dayB" label="Compared with" value={dayB} max={today} onChange={setDayB} />
               </div>
-              <div>
-                <p className="mb-1.5 text-xs font-medium text-slate-500">Quick pick for {longDay(dayA)}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {([['Same weekday last week', -7], ['Same weekday 4 weeks ago', -28], ['Day before', -1], ['Same weekday last year', -364]] as const).map(([label, d]) => (
-                    <button key={label} type="button" onClick={() => setDayB(shift(dayA, d))}
-                      className={`rounded-full border px-3 py-1 text-xs font-medium ${dayB === shift(dayA, d) ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                {DAY_PICKS.map(([label, d]) => {
+                  const on = !!dayA && dayB === shiftDay(dayA, d);
+                  return (
+                    <button key={label} type="button" disabled={!dayA} onClick={() => setDayB(shiftDay(dayA, d))}
+                      aria-pressed={on} className={`${choice(on)} h-9 px-2 text-xs`}>{label}</button>
+                  );
+                })}
               </div>
-              {weekdayA !== null && weekdayB !== null && weekdayA !== weekdayB && (
-                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                  Different weekdays: sales differ by weekday by nature (weekends are busier). Compare the same weekday for a fair view.
+              {dayA && dayB && !sameWeekday && (
+                <p className="flex items-start gap-2 text-xs text-amber-800">
+                  <AlertTriangle size={14} className="mt-px flex-shrink-0" /> Different weekdays. Pick the same weekday for a fair comparison.
                 </p>
               )}
-              <p className="text-xs leading-relaxed text-slate-500">
-                Every analytic shows {longDay(dayA)} against {longDay(dayB)}: key figures with the difference in rupiah and %, the sales trend per hour,
-                channels, growth, branches, busy hours, menus, payment methods, basket and deductions.
-              </p>
             </div>
           )}
-        </DrawerSection>
+        </Group>
 
-        <DrawerSection title={`Branches${codes.length ? ` · ${codes.length} selected` : ' · all'}`}>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={branchQuery} onChange={e => setBranchQuery(e.target.value)} placeholder="Search branch or code" className={`${inputClass} pl-9`} aria-label="Search branch" />
+        {/* ---------------------------------------------------------------- branches */}
+        <Group title="Branches" status={codes.length ? `${codes.length} selected` : 'All branches'}
+          action={codes.length > 0 && <TextButton onClick={() => set({ branch: '' })}>Clear</TextButton>}>
+          {codes.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {codes.map(c => (
+                <span key={c} className="inline-flex max-w-full items-center gap-1 rounded-md bg-blue-50 py-1 pl-2 pr-1 text-xs font-medium text-blue-800">
+                  <span className="truncate">{nameOf(c)}</span>
+                  <button type="button" onClick={() => toggleBranch(c)} aria-label={`Remove ${nameOf(c)}`} className="rounded p-0.5 hover:bg-blue-100"><X size={12} /></button>
+                </span>
+              ))}
             </div>
-            {codes.length > 0 && <button type="button" className={buttonSecondary} onClick={() => set({ branch: '' })}>All</button>}
+          )}
+          <div className="relative">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={branchQuery} onChange={e => setBranchQuery(e.target.value)} placeholder="Search branch name or code"
+              className={`${inputClass} pl-9`} aria-label="Search branch" />
           </div>
-          <ul className="custom-scrollbar max-h-60 divide-y divide-slate-100 overflow-auto rounded-lg border border-slate-200">
-            {shown.map(b => {
-              const on = codes.includes(b.branch_code);
-              return (
-                <li key={b.branch_code}>
-                  <label className={`flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm ${on ? 'bg-blue-50/60' : 'hover:bg-slate-50'}`}>
-                    <input type="checkbox" checked={on} onChange={() => toggleBranch(b.branch_code)} className="accent-slate-900" />
-                    <Store size={14} className="text-slate-400" />
-                    <span className="min-w-0 flex-1 truncate text-slate-800">{b.branch_name}</span>
-                    <span className="text-[11px] text-slate-400">{b.branch_code}</span>
-                  </label>
-                </li>
-              );
-            })}
-            {!shown.length && <li className="px-3 py-4 text-center text-sm text-slate-400">No branch matches</li>}
-          </ul>
-        </DrawerSection>
+          <div className="overflow-hidden rounded-lg border border-slate-200">
+            {branchQuery.trim() && shown.length > 0 && (
+              <button type="button" onClick={selectShown}
+                className="flex w-full items-center justify-between border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-50">
+                Select all {formatNumber(shown.length)} results <Check size={13} />
+              </button>
+            )}
+            <ul className="custom-scrollbar max-h-64 divide-y divide-slate-100 overflow-auto">
+              {shown.map(b => {
+                const on = codes.includes(b.branch_code);
+                return (
+                  <li key={b.branch_code}>
+                    <label className={`flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm ${on ? 'bg-blue-50/60' : 'hover:bg-slate-50'}`}>
+                      <input type="checkbox" checked={on} onChange={() => toggleBranch(b.branch_code)} className="h-4 w-4 accent-blue-700" />
+                      <span className={`min-w-0 flex-1 truncate ${on ? 'font-medium text-slate-900' : 'text-slate-700'}`}>{b.branch_name}</span>
+                      <span className="font-mono text-[11px] text-slate-400">{b.branch_code}</span>
+                    </label>
+                  </li>
+                );
+              })}
+              {!shown.length && <li className="px-3 py-6 text-center text-sm text-slate-400">No branch matches “{branchQuery}”</li>}
+            </ul>
+          </div>
+        </Group>
 
-        <DrawerSection title={`Channels${draft.channels.length ? ` · ${draft.channels.length} selected` : ' · all'}`}>
-          <div className="flex flex-wrap gap-1.5">
-            <button type="button" onClick={() => set({ channels: [] })}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${!draft.channels.length ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
-              <Waypoints size={12} /> All channels
-            </button>
+        {/* ---------------------------------------------------------------- channels */}
+        <Group title="Channels" status={draft.channels.length ? `${draft.channels.length} selected` : 'All channels'}
+          action={draft.channels.length > 0 && <TextButton onClick={() => set({ channels: [] })}>Clear</TextButton>}>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
             {channels.map(ch => {
               const on = draft.channels.includes(ch);
               return (
-                <button key={ch} type="button" onClick={() => toggleChannel(ch)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium ${on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
-                  {channelLabel(ch)}
+                <button key={ch} type="button" onClick={() => toggleChannel(ch)} aria-pressed={on} className={`${choice(on)} h-9 justify-start px-3`}>
+                  <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${on ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300'}`}>
+                    {on && <Check size={11} strokeWidth={3} />}
+                  </span>
+                  <span className="truncate">{channelLabel(ch)}</span>
                 </button>
               );
             })}
           </div>
-        </DrawerSection>
+          {!draft.channels.length && <p className="text-xs text-slate-500">No channel ticked = all channels.</p>}
+        </Group>
       </div>
     </Drawer>
+  );
+}
+
+function Group({ title, status, action, children }: { title: string; status?: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-sm font-semibold text-slate-900">
+          {title}{status && <span className="ml-2 font-normal text-slate-500">{status}</span>}
+        </h3>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Label({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) {
+  return <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium text-slate-600">{children}</label>;
+}
+
+function TextButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="text-xs font-medium text-blue-700 hover:text-blue-800 hover:underline">{children}</button>;
+}
+
+function DayField({ id, label, value, max, onChange }: { id: string; label: string; value: string; max: string; onChange: (v: string) => void }) {
+  return (
+    <div className="min-w-0">
+      <Label htmlFor={id}>{label}</Label>
+      <input id={id} type="date" value={value} max={max} onChange={e => onChange(e.target.value)} className={inputClass} />
+      <p className="mt-1.5 flex items-center gap-1 truncate text-xs text-slate-600"><CalendarDays size={12} className="flex-shrink-0 text-slate-400" />{weekdayDate(value)}</p>
+    </div>
   );
 }
