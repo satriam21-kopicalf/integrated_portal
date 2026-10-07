@@ -71,6 +71,10 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
   const sales = useCountUp(t?.subtotal ?? 0);
   const bills = useCountUp(t?.bills ?? 0);
   const ofYesterday = t && data?.yesterday.subtotal ? (t.subtotal / data.yesterday.subtotal) * 100 : null;
+  // the same moment yesterday, for the − / + differences
+  const ys = t?.yesterdaySameTime;
+  const ysAvg = ys && ys.bills ? ys.subtotal / ys.bills : null;
+  const avgDeltaPct = t && ysAvg ? ((t.avgTicket - ysAvg) / ysAvg) * 100 : null;
 
   const hourOption = useMemo<ChartOption | null>(() => {
     if (!data) return null;
@@ -150,9 +154,10 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                 <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 tabular-nums" title={formatCurrency(t.subtotal)}>
                   {formatCurrency(Math.round(sales))}
                 </p>
-                <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
                   <Delta value={t.deltaPct} />
-                  vs yesterday at this time ({formatCurrency(t.yesterdaySameTime.subtotal)})
+                  <Diff value={t.subtotal - t.yesterdaySameTime.subtotal} rupiah />
+                  <span>vs yesterday at this time ({formatCurrency(t.yesterdaySameTime.subtotal)})</span>
                 </p>
               </>
             ) : (
@@ -169,15 +174,25 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
               <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full bg-blue-600 transition-[width] duration-700" style={{ width: `${Math.min(100, ofYesterday)}%` }} />
               </div>
-              <p className="mt-1 text-[11px] text-slate-400">Yesterday: {formatCurrency(data!.yesterday.subtotal)}</p>
+              <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[11px]">
+                <span className="text-slate-400">Yesterday full day: {formatCurrency(data!.yesterday.subtotal)}</span>
+                <span className="flex items-baseline gap-1">
+                  <Diff value={t.subtotal - data!.yesterday.subtotal} rupiah />
+                  <span className="text-slate-400">{t.subtotal >= data!.yesterday.subtotal ? 'above yesterday' : 'to reach yesterday'}</span>
+                </span>
+              </div>
             </div>
           )}
 
           <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
-            <MiniStat icon={<Receipt size={13} />} label="Bills" value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct} />
-            <MiniStat icon={<ShoppingBag size={13} />} label="Avg ticket" value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} />
-            <MiniStat icon={<Tag size={13} />} label="Nett sales" value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct} />
+            <MiniStat icon={<Receipt size={13} />} label="Bills" value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct}
+              diff={t && ys ? <Diff value={t.bills - ys.bills} /> : null} />
+            <MiniStat icon={<ShoppingBag size={13} />} label="Avg ticket" value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} delta={t ? avgDeltaPct : undefined}
+              diff={t && ysAvg ? <Diff value={Math.round(t.avgTicket - ysAvg)} rupiah /> : null} />
+            <MiniStat icon={<Tag size={13} />} label="Nett sales" value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct}
+              diff={t && ys ? <Diff value={t.nettSales - ys.nettSales} rupiah /> : null} />
           </dl>
+          {t && <p className="-mt-2 text-[11px] text-slate-400">− / + vs yesterday at this time</p>}
         </div>
 
         {/* Hourly and channels */}
@@ -266,12 +281,27 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
   );
 }
 
-function MiniStat({ icon, label, value, delta }: { icon: ReactNode; label: string; value: string; delta?: number | null }) {
+function MiniStat({ icon, label, value, delta, diff }: { icon: ReactNode; label: string; value: string; delta?: number | null; diff?: ReactNode }) {
   return (
     <div className="flex items-center gap-3 px-3 py-2">
       <dt className="flex flex-1 items-center gap-1.5 text-xs text-slate-500">{icon}{label}</dt>
-      <dd className="text-sm font-semibold tabular-nums text-slate-900">{value}</dd>
-      {delta !== undefined && <dd className="w-16 text-right"><Delta value={delta ?? null} /></dd>}
+      <dd className="text-right">
+        <span className="block text-sm font-semibold tabular-nums text-slate-900">{value}</span>
+        {diff && <span className="block text-[11px] leading-tight">{diff}</span>}
+      </dd>
+      {delta !== undefined && <dd className="w-16 self-start pt-0.5 text-right"><Delta value={delta ?? null} /></dd>}
     </div>
+  );
+}
+
+/** A signed difference: "+Rp 12.500" / "−Rp 3.000" (or a count), green above, red below. */
+function Diff({ value, rupiah = false }: { value: number; rupiah?: boolean }) {
+  const v = Math.round(value);
+  const sign = v > 0 ? '+' : v < 0 ? '−' : '±';
+  const text = rupiah ? formatCurrency(Math.abs(v)) : formatNumber(Math.abs(v));
+  return (
+    <span className={`font-semibold tabular-nums ${v > 0 ? 'text-emerald-700' : v < 0 ? 'text-red-700' : 'text-slate-500'}`}>
+      {sign}{text}
+    </span>
   );
 }
