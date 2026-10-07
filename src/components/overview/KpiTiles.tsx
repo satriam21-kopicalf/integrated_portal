@@ -51,6 +51,14 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
               <>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <Delta value={k.deltaPct} />
+                  {hasPrev && (
+                    <span className={`font-semibold tabular-nums ${k.value - k.previous > 0 ? 'text-emerald-700' : k.value - k.previous < 0 ? 'text-red-700' : 'text-slate-500'}`}
+                      title="Difference with the comparison period">
+                      {k.value - k.previous > 0 ? '+' : k.value - k.previous < 0 ? '−' : '±'}{m.format(Math.abs(Math.round(k.value - k.previous)))}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="truncate">
                     {hasPrev ? <>vs <span className="tabular-nums text-slate-600">{m.format(k.previous)}</span> · {custom ? 'comparison' : 'prev.'} {days} {days === 1 ? 'day' : 'days'}</> : 'no comparison'}
                   </span>

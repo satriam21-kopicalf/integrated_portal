@@ -26,7 +26,7 @@ export const TREND_CHARTS: { value: TrendChartType; label: string; hint: string 
   { value: 'average', label: 'Moving average', hint: '7-bucket moving average smooths out weekday swings' },
 ];
 
-export function metricOf(p: { subtotal: number; bills: number; nettSales?: number }, m: TrendMetric): number | null {
+export function metricOf(p: { subtotal: number; bills: number; nettSales?: number | null }, m: TrendMetric): number | null {
   if (m === 'avgTicket') return p.bills ? p.subtotal / p.bills : null;
   if (m === 'nettSales') return p.nettSales ?? null;
   return p[m];
@@ -78,7 +78,8 @@ export default function TrendChart({
   }, [s]);
 
   const option = useMemo<ChartOption>(() => {
-    const xAxis = categoryAxis(s.map(p => shortDate(p.date, g)), { boundaryGap: chart === 'bar' || chart === 'channels' });
+    const hh = (h?: number) => `${String(h ?? 0).padStart(2, '0')}:00`;
+    const xAxis = categoryAxis(s.map(p => (g === 'hour' ? hh(p.hour) : shortDate(p.date, g))), { boundaryGap: chart === 'bar' || chart === 'channels' });
     const zoom = s.length > 62 ? [{ type: 'inside' }, { type: 'slider', height: 18, bottom: 8, borderColor: INK.grid }] : [];
     const grid = { left: 4, right: 24, top: 30, bottom: s.length > 62 ? 52 : 8, containLabel: true };
     const prevDate = (i: number) => {
@@ -156,7 +157,9 @@ export default function TrendChart({
     const avg = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
     const asBars = chart === 'bar';
     const area = chart === 'area';
-    const titleOf = (i: number) => (cumulative ? `${bucketLabel(s[0].date, g)} – ${bucketLabel(s[i].date, g)}` : bucketLabel(s[i].date, g));
+    const titleOf = (i: number) => (g === 'hour'
+      ? `${hh(s[i].hour)}–${String(s[i].hour ?? 0).padStart(2, '0')}:59${cumulative ? ' (running total from the first hour)' : ''} · ${bucketLabel(s[i].date, g)}`
+      : cumulative ? `${bucketLabel(s[0].date, g)} – ${bucketLabel(s[i].date, g)}` : bucketLabel(s[i].date, g));
 
     return {
       ...base,
@@ -172,7 +175,9 @@ export default function TrendChart({
           if (chart === 'average' && current[i] !== null) html += tipRow('#9ec5f4', fmt(current[i]!), 'Actual', 'square');
           if (hasPrev) {
             html += tipRow(INK.previous, prev[i] === null || prev[i] === undefined ? '-' : fmt(prev[i]!),
-              g === 'day' && !cumulative ? `Previous (${prevDate(i)})` : 'Previous period', asBars ? 'square' : 'line');
+              g === 'day' && !cumulative ? `Previous (${prevDate(i)})`
+                : g === 'hour' ? `Comparison (${new Date(`${data.filters.previous.from}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} ${hh(s[i].hour)})`
+                : 'Previous period', asBars ? 'square' : 'line');
             html += tipFooter(`${cumulative ? 'Ahead / behind' : 'Change'} ${changeHtml(pct(cur[i], prev[i] ?? null))}`);
           }
           return html;
@@ -240,7 +245,7 @@ export default function TrendChart({
     : [
       ...(chart === 'average' ? [{ key: 'act', label: 'Actual', color: '#cde2fb', shape: 'square' as const }] : []),
       { key: 'cur', label: `${label} · ${chart === 'cumulative' ? 'running total' : chart === 'average' ? '7-bucket average' : 'this period'}`, color: INK.accent, shape: chart === 'bar' ? 'square' as const : 'line' as const },
-      ...(hasPrev ? [{ key: 'prev', label: 'Previous period', color: INK.previous, shape: chart === 'bar' ? 'square' as const : 'line' as const }] : []),
+      ...(hasPrev ? [{ key: 'prev', label: g === 'hour' ? 'Comparison day' : 'Previous period', color: INK.previous, shape: chart === 'bar' ? 'square' as const : 'line' as const }] : []),
     ];
 
   if (chart === 'channels' && !channels.length) {

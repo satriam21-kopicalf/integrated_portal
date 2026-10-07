@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, AtSign, Clock, Eye, EyeOff, Info, Loader2, Lock, User } from 'lucide-react';
+import { AlertCircle, AtSign, BarChart3, Clock, Eye, EyeOff, FileSpreadsheet, Info, Loader2, Lock, ShieldCheck, User } from 'lucide-react';
 import { DAY_PART_ICONS } from '@/components/WelcomeNotice';
 import { safeNext, useAuth } from '@/lib/auth';
 import { Farewell, markSignedIn, takeFarewell } from '@/lib/greetings';
@@ -86,8 +86,16 @@ export default function LoginPage() {
   const IdentIcon = method === 'email' ? AtSign : User;
 
   return (
-    <main className="flex min-h-dvh flex-col bg-white">
-      <div className="flex flex-1 items-center justify-center px-4 py-12">
+    <main className="flex min-h-dvh bg-white">
+      <AnalyticsPanel />
+      <div className="flex min-h-dvh flex-1 flex-col">
+      {/* phones and tablets: a slim brand band instead of the panel */}
+      <div className="relative h-28 overflow-hidden bg-[#0b1530] lg:hidden" aria-hidden>
+        <GridPattern />
+        <div className="absolute -right-10 -top-16 h-48 w-48 rounded-full bg-blue-600/40 blur-3xl" />
+        <MiniChart className="absolute bottom-0 left-0 h-20 w-full" />
+      </div>
+      <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8">
         <div className="w-full max-w-[400px]">
           <div className="mb-8 flex flex-col items-center text-center">
             {/* served from the site itself (same origin): the first thing on screen, no external round trip */}
@@ -199,13 +207,137 @@ export default function LoginPage() {
           <p className="mt-6 text-center text-sm text-slate-500">
             Forgot your password? <span className="font-medium text-slate-700">Contact your administrator.</span>
           </p>
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+            <ShieldCheck size={13} /> Secure sign-in · activity is logged
+          </p>
         </div>
       </div>
 
       <footer className="pb-6 text-center text-xs text-slate-400">
         © {new Date().getFullYear()} Kopi Calf · PT Yuda Prawira Group
       </footer>
+      </div>
     </main>
+  );
+}
+
+/* ------------------------------------------------------------------ brand panel */
+
+/** Large screens: a data-analytics panel next to the form (illustration only: no real figures). */
+function AnalyticsPanel() {
+  return (
+    <aside className="relative hidden w-[46%] max-w-[760px] flex-col justify-between overflow-hidden bg-[#0b1530] p-10 text-white lg:flex xl:p-14">
+      <GridPattern />
+      <div className="pointer-events-none absolute -left-24 top-1/3 h-80 w-80 rounded-full bg-blue-600/30 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -right-20 -top-24 h-96 w-96 rounded-full bg-indigo-500/25 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" aria-hidden />
+
+      <div className="relative">
+        <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-blue-100 backdrop-blur">
+          <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" /></span>
+          Live data from every outlet
+        </p>
+        <h2 className="mt-6 max-w-md text-3xl font-semibold leading-tight tracking-tight xl:text-4xl">
+          Sales, costs and operations — <span className="bg-gradient-to-r from-sky-300 to-indigo-300 bg-clip-text text-transparent">one view</span>.
+        </h2>
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-blue-100/80">
+          Every outlet&apos;s transactions synced from ESB, turned into analytics the team can act on.
+        </p>
+      </div>
+
+      <DashboardIllustration />
+
+      <ul className="relative grid gap-3 text-sm text-blue-50/90 xl:grid-cols-3">
+        {([
+          [BarChart3, 'Sales analytics', 'Trends, channels, branches, hours'],
+          [ShieldCheck, 'Cost control', 'COGS, usage and data quality'],
+          [FileSpreadsheet, 'Exports', 'Excel and Google Sheets'],
+        ] as const).map(([Icon, title, text]) => (
+          <li key={title} className="flex items-start gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur">
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/10"><Icon size={16} className="text-sky-200" /></span>
+            <span><span className="block font-medium text-white">{title}</span><span className="block text-xs text-blue-100/70">{text}</span></span>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+
+function GridPattern() {
+  return (
+    <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.07]" aria-hidden>
+      <defs>
+        <pattern id="login-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+          <path d="M32 0H0V32" fill="none" stroke="white" strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#login-grid)" />
+    </svg>
+  );
+}
+
+/** A stylised dashboard: KPI tiles, a trend, bars and a donut. Decorative, no numbers. */
+function DashboardIllustration() {
+  return (
+    <div className="relative my-10 rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-2xl shadow-black/30 backdrop-blur-md" aria-hidden>
+      <div className="mb-3 flex items-center gap-1.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-white/20" /><span className="h-2.5 w-2.5 rounded-full bg-white/20" /><span className="h-2.5 w-2.5 rounded-full bg-white/20" />
+        <span className="ml-3 h-2 w-24 rounded-full bg-white/15" />
+      </div>
+      <div className="grid grid-cols-4 gap-2.5">
+        {['from-sky-400 to-blue-500', 'from-indigo-400 to-violet-500', 'from-emerald-400 to-teal-500', 'from-amber-300 to-orange-400'].map((g, i) => (
+          <div key={g} className="rounded-xl bg-white/[0.07] p-2.5">
+            <span className="block h-1.5 w-10 rounded-full bg-white/25" />
+            <span className={`mt-2 block h-3 rounded-full bg-gradient-to-r ${g}`} style={{ width: `${62 + i * 9}%` }} />
+            <svg viewBox="0 0 60 16" className="mt-2 h-4 w-full"><polyline fill="none" stroke="rgba(255,255,255,.45)" strokeWidth="1.5"
+              points={['0,12 10,10 20,11 30,7 40,8 50,4 60,5', '0,9 10,11 20,8 30,9 40,5 50,6 60,3', '0,13 10,12 20,9 30,10 40,7 50,7 60,4', '0,8 10,9 20,6 30,8 40,6 50,3 60,4'][i]} /></svg>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2.5 grid grid-cols-5 gap-2.5">
+        <div className="col-span-3 rounded-xl bg-white/[0.07] p-3">
+          <span className="block h-1.5 w-16 rounded-full bg-white/25" />
+          <svg viewBox="0 0 300 110" className="mt-2 h-28 w-full">
+            <defs>
+              <linearGradient id="login-area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#38bdf8" stopOpacity=".45" /><stop offset="1" stopColor="#38bdf8" stopOpacity="0" /></linearGradient>
+            </defs>
+            {[22, 50, 78].map(y => <line key={y} x1="0" x2="300" y1={y} y2={y} stroke="rgba(255,255,255,.08)" />)}
+            <path d="M0,88 C30,80 45,62 75,66 S120,40 150,46 S200,24 225,30 S270,12 300,16 L300,110 L0,110 Z" fill="url(#login-area)" />
+            <path d="M0,88 C30,80 45,62 75,66 S120,40 150,46 S200,24 225,30 S270,12 300,16" fill="none" stroke="#7dd3fc" strokeWidth="2.5" />
+            <path d="M0,94 C35,90 50,80 80,82 S125,66 155,70 S205,54 230,58 S270,44 300,46" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="2" strokeDasharray="5 5" />
+            <circle cx="225" cy="30" r="4.5" fill="#0b1530" stroke="#7dd3fc" strokeWidth="2.5" />
+          </svg>
+        </div>
+        <div className="col-span-2 flex flex-col gap-2.5">
+          <div className="flex flex-1 items-center gap-3 rounded-xl bg-white/[0.07] p-3">
+            <svg viewBox="0 0 36 36" className="h-14 w-14 -rotate-90">
+              <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="5" />
+              <circle cx="18" cy="18" r="14" fill="none" stroke="#818cf8" strokeWidth="5" strokeDasharray="44 88" />
+              <circle cx="18" cy="18" r="14" fill="none" stroke="#38bdf8" strokeWidth="5" strokeDasharray="26 88" strokeDashoffset="-44" />
+              <circle cx="18" cy="18" r="14" fill="none" stroke="#fbbf24" strokeWidth="5" strokeDasharray="12 88" strokeDashoffset="-70" />
+            </svg>
+            <span className="flex-1 space-y-1.5">
+              <span className="block h-1.5 w-full rounded-full bg-white/20" /><span className="block h-1.5 w-3/4 rounded-full bg-white/15" /><span className="block h-1.5 w-1/2 rounded-full bg-white/10" />
+            </span>
+          </div>
+          <div className="flex flex-1 items-end gap-1.5 rounded-xl bg-white/[0.07] p-3">
+            {[40, 65, 50, 80, 58, 92, 70].map((h, i) => (
+              <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-sky-300' : 'bg-white/25'}`} style={{ height: `${h * 0.42}px` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniChart({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 400 80" preserveAspectRatio="none" className={className} aria-hidden>
+      <defs><linearGradient id="login-mini" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#38bdf8" stopOpacity=".35" /><stop offset="1" stopColor="#38bdf8" stopOpacity="0" /></linearGradient></defs>
+      <path d="M0,62 C40,58 60,40 100,44 S160,26 200,32 S270,12 310,18 S370,6 400,8 L400,80 L0,80 Z" fill="url(#login-mini)" />
+      <path d="M0,62 C40,58 60,40 100,44 S160,26 200,32 S270,12 310,18 S370,6 400,8" fill="none" stroke="#7dd3fc" strokeWidth="2" />
+    </svg>
   );
 }
 

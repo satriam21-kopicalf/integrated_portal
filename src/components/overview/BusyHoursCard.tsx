@@ -38,7 +38,7 @@ export default function BusyHoursCard({ resource, query }: { resource: Resource<
       }
     >
       {data => mode === 'pattern'
-        ? <BusyBody data={data} view={view} />
+        ? <><HoursVs data={data} /><BusyBody data={data} view={view} /></>
         : <HoursCompare query={query} mode={mode} period={{ from: data.filters.from, to: data.filters.to }} />}
     </Card>
   );
@@ -176,5 +176,26 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
       <EChart option={barOption!} height={large ? 180 : 140} ariaLabel="Average bills per day for each hour" />
       <EChart option={heatOption!} height={large ? 320 : 250} ariaLabel="Heatmap of average bills per day by weekday and hour" />
     </div>
+  );
+}
+
+/** One line: this period's peak and bills per day against the comparison period's. */
+function HoursVs({ data }: { data: HourlyResponse }) {
+  const prev = data.previous;
+  if (!prev) return null;
+  const days = Object.values(data.daysPerDow).reduce((a, b) => a + b, 0) || 1;
+  const bills = data.cells.reduce((a, c) => a + c.bills, 0);
+  const perDay = bills / days;
+  const byHour = new Map<number, number>();
+  for (const c of data.cells) byHour.set(c.hour, (byHour.get(c.hour) ?? 0) + c.bills);
+  const peak = [...byHour.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const delta = prev.avgBillsPerDay ? ((perDay - prev.avgBillsPerDay) / prev.avgBillsPerDay) * 100 : null;
+  return (
+    <p className="mb-2 flex flex-wrap gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+      <span>Peak <b className="text-slate-900">{peak !== undefined ? hourLabel(peak) : '–'}</b> vs {prev.peakHour !== null ? hourLabel(prev.peakHour) : '–'}</span>
+      <span>Bills per day <b className="tabular-nums text-slate-900">{formatNumber(Math.round(perDay))}</b> vs {formatNumber(Math.round(prev.avgBillsPerDay))}
+        {delta !== null && <b className={delta >= 0 ? ' text-emerald-700' : ' text-red-700'}> {delta >= 0 ? '+' : '−'}{Math.abs(delta).toFixed(1)}%</b>}</span>
+      <span className="text-slate-400">comparison {prev.from === prev.to ? prev.from : `${prev.from} – ${prev.to}`}</span>
+    </p>
   );
 }

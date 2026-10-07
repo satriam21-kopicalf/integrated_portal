@@ -2,7 +2,7 @@
 
 import HBarChart from '@/components/charts/HBarChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
-import { compactRupiah, paymentLabel, PaymentsResponse, Resource } from '@/lib/overview';
+import { compactRupiah, deltaText, paymentLabel, PaymentsResponse, Resource } from '@/lib/overview';
 import { Card } from './Card';
 import { useDrill } from './drill/DrillContext';
 
@@ -22,6 +22,7 @@ export default function PaymentsCard({ resource }: { resource: Resource<Payments
               {data.types.map(t => (
                 <span key={t.type} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
                   {t.type} <span className="text-slate-900">{t.share === null ? '-' : `${t.share.toFixed(1)}%`}</span>
+                  {t.deltaPct !== undefined && t.deltaPct !== null && <span className={t.deltaPct >= 0 ? ' text-emerald-700' : ' text-red-700'}> {deltaText(t.deltaPct)}</span>}
                 </span>
               ))}
             </div>
@@ -33,8 +34,12 @@ export default function PaymentsCard({ resource }: { resource: Resource<Payments
                 key: `${m.type}-${m.method}`,
                 label: paymentLabel(m.method),
                 value: m.share ?? 0,
-                display: `${m.share?.toFixed(1) ?? '-'}% · ${compactRupiah(m.subtotal)}`,
-                tip: { rows: [[formatCurrency(m.subtotal), 'sales'], [formatNumber(m.bills), 'bills']], footer: m.type },
+                display: `${m.share?.toFixed(1) ?? '-'}% · ${compactRupiah(m.subtotal)}${m.previousSubtotal !== undefined ? ` · ${deltaText(m.deltaPct) || 'new'}` : ''}`,
+                tip: {
+                  rows: [[formatCurrency(m.subtotal), 'sales'], [formatNumber(m.bills), 'bills'],
+                    ...(m.previousSubtotal !== undefined ? [[formatCurrency(m.previousSubtotal), `comparison period (${m.previousShare?.toFixed(1) ?? '-'}%)`] as [string, string]] : [])],
+                  footer: m.type,
+                },
               }))}
               onSelect={key => {
                 const m = top.find(x => `${x.type}-${x.method}` === key);

@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { GitCompareArrows, SlidersHorizontal } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
-import BranchFilter, { Branch, branchesLabel } from '@/components/BranchFilter';
-import ChannelFilter from '@/components/overview/ChannelFilter';
-import CompareFilter, { CompareMode, compareRange } from '@/components/overview/CompareFilter';
+import { Branch, branchesLabel } from '@/components/BranchFilter';
+import { CompareMode, compareRange } from '@/components/overview/CompareFilter';
+import OverviewFilterDrawer, { isDayVsDay } from '@/components/overview/OverviewFilterDrawer';
+import HealthCard from '@/components/overview/HealthCard';
 import KpiTiles from '@/components/overview/KpiTiles';
 import TrendCard from '@/components/overview/TrendCard';
 import ChannelMixCard from '@/components/overview/ChannelMixCard';
@@ -15,15 +16,13 @@ import MenusCard from '@/components/overview/MenusCard';
 import DeductionsCard from '@/components/overview/DeductionsCard';
 import PaymentsCard from '@/components/overview/PaymentsCard';
 import BasketCard from '@/components/overview/BasketCard';
-import CostControlCard from '@/components/overview/CostControlCard';
 import SalesGrowthCard from '@/components/overview/SalesGrowth';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
 import { useFilterLog } from '@/lib/activity';
 import { DrillProvider } from '@/components/overview/drill/DrillContext';
 import DrillHost from '@/components/overview/drill/DrillHost';
-import { useAuth } from '@/lib/auth';
 import { useLive } from '@/lib/live';
-import { formatDate, toIsoDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { RealtimeIndicator } from '@/lib/realtime';
 import {
   BasketResponse, BranchesResponse, ChannelsResponse, DeductionsResponse, HourlyResponse, KpisResponse, MetaResponse,
@@ -42,29 +41,6 @@ interface Filters {
 
 const EMPTY: Filters = { from: '', to: '', branch: '', channels: [], cmp: 'auto', cmpFrom: '', cmpTo: '' };
 const CMP_MODES: CompareMode[] = ['auto', 'month', 'year', 'custom'];
-
-/** Complete days end yesterday; "Today" is still being synced. */
-function overviewPresets(): DatePreset[] {
-  const now = new Date();
-  const d = (offset: number) => {
-    const x = new Date(now);
-    x.setDate(x.getDate() + offset);
-    return toIsoDate(x);
-  };
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  return [
-    { label: 'Today', from: d(0), to: d(0) },
-    { label: 'Yesterday', from: d(-1), to: d(-1) },
-    { label: 'Last 7 days', from: d(-7), to: d(-1) },
-    { label: 'Last 30 days', from: d(-30), to: d(-1) },
-    { label: 'Last 90 days', from: d(-90), to: d(-1) },
-    // running period: from the 1st (of the month / year) up to and including today
-    { label: 'Month to date', from: toIsoDate(new Date(y, m, 1)), to: d(0) },
-    { label: 'Last month', from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
-    { label: 'Year to date', from: toIsoDate(new Date(y, 0, 1)), to: d(0) },
-  ];
-}
 
 function readUrl(): Filters {
   const p = new URLSearchParams(window.location.search);
@@ -97,7 +73,7 @@ function writeUrl(f: Filters) {
 export default function OverviewPage() {
   const [filters, setFilters] = useState<Filters | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [branchesLoading, setBranchesLoading] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const meta = useOverview<MetaResponse>('meta', '');
 
   // filters live in the URL so a view can be shared
@@ -109,8 +85,7 @@ export default function OverviewPage() {
     fetch('/api/branches')
       .then(res => (res.ok ? res.json() : []))
       .then(setBranches)
-      .catch(error => console.error('Error fetching branches:', error))
-      .finally(() => setBranchesLoading(false));
+      .catch(error => console.error('Error fetching branches:', error));
   }, []);
 
   useFilterLog(
@@ -129,6 +104,20 @@ export default function OverviewPage() {
     });
   };
 
+  const f = filters ?? EMPTY;
+  const dayVsDay = isDayVsDay(f);
+  const period = f.from ? { from: f.from, to: f.to || f.from } : meta.data?.defaultPeriod ?? null;
+  const cmp = compareRange({ mode: f.cmp, from: f.cmpFrom, to: f.cmpTo }, period);
+  const activeCount = (f.from ? 1 : 0) + (f.cmp !== 'auto' ? 1 : 0) + (f.branch ? 1 : 0) + (f.channels.length ? 1 : 0);
+  const weekday = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const chips: string[] = [
+    dayVsDay ? `${weekday(f.from)} vs ${weekday(f.cmpFrom)}`
+      : period ? `${formatDate(period.from)} – ${formatDate(period.to)}${f.from ? '' : ' (last 30 days)'}` : 'Last 30 days',
+    ...(!dayVsDay ? [cmp ? `vs ${formatDate(cmp.from)} – ${formatDate(cmp.to)}` : 'vs previous period'] : []),
+    branchesLabel(f.branch, branches),
+    f.channels.length ? f.channels.map(channelLabel).join(', ') : 'All channels',
+  ];
+
   return (
     <DashboardLayout>
       <div className="min-h-full bg-slate-50">
@@ -138,29 +127,32 @@ export default function OverviewPage() {
               <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Overview</h1>
               <p className="text-xs text-slate-500 sm:text-sm">Sales Analytics</p>
             </div>
-            {/* stays right-aligned when wrapped: the popovers open towards the left */}
             <div className="ml-auto flex items-center gap-2">
-              <DateRangePicker
-                dateFrom={filters?.from ?? ''}
-                dateTo={filters?.to ?? ''}
-                onChange={(from, to) => update({ from, to })}
-                presets={overviewPresets}
-                defaultLabel="last 30 days to yesterday"
-              />
-              <BranchFilter branches={branches} loading={branchesLoading} value={filters?.branch ?? ''} onChange={branch => update({ branch })} />
-              <ChannelFilter channels={meta.data?.channels ?? []} value={filters?.channels ?? []} onChange={channels => update({ channels })} />
-              <CompareFilter
-                value={{ mode: filters?.cmp ?? 'auto', from: filters?.cmpFrom ?? '', to: filters?.cmpTo ?? '' }}
-                period={filters?.from ? { from: filters.from, to: filters.to || filters.from } : meta.data?.defaultPeriod ?? null}
-                onChange={v => update({ cmp: v.mode, cmpFrom: v.from, cmpTo: v.to })}
-              />
+              <button type="button" onClick={() => setFiltersOpen(true)} aria-label="Filters"
+                className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors ${
+                  activeCount ? 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}>
+                <SlidersHorizontal size={16} /> Filters
+                {activeCount > 0 && <span className="rounded-full bg-white/20 px-1.5 text-xs tabular-nums">{activeCount}</span>}
+              </button>
               <RealtimeIndicator className="h-10" />
             </div>
           </div>
+          {/* what is applied: one line, opens the filters */}
+          <button type="button" onClick={() => setFiltersOpen(true)} className="mt-3 flex w-full flex-wrap items-center gap-1.5 text-left" title="Change filters">
+            {dayVsDay && <span className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white"><GitCompareArrows size={12} /> Day vs day</span>}
+            {chips.map((c, i) => (
+              <span key={i} className={`max-w-full truncate rounded-full px-2.5 py-1 text-xs font-medium ${i === 0 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{c}</span>
+            ))}
+          </button>
         </header>
 
         {filters && <OverviewContent filters={filters} branches={branches} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
       </div>
+      {filtersOpen && (
+        <OverviewFilterDrawer value={f} branches={branches} channels={(meta.data?.channels ?? []).map(c => c.channel)}
+          defaultPeriod={meta.data?.defaultPeriod ?? null} onClose={() => setFiltersOpen(false)}
+          onApply={v => { update(v); setFiltersOpen(false); }} />
+      )}
     </DashboardLayout>
   );
 }
@@ -168,7 +160,6 @@ export default function OverviewPage() {
 function OverviewContent({ filters, branches, defaultPeriod }: {
   filters: Filters; branches: Branch[]; defaultPeriod: { from: string; to: string } | null;
 }) {
-  const superadmin = useAuth().user?.role === 'superadmin';
   const query = useMemo(() => {
     const p = new URLSearchParams();
     if (filters.from) p.set('dateFrom', filters.from);
@@ -212,6 +203,9 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
       {/* Today first: live, independent of the date and comparison filters (only branch & channel apply) */}
       <LiveSalesCard key={liveQuery} data={live.data} error={live.error} />
 
+      {/* the whole history, network level: independent of the filters */}
+      <HealthCard />
+
       <div className="space-y-0">
         <p className="pb-2 text-xs text-slate-500 sm:text-sm">
           {f ? (
@@ -243,12 +237,7 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
 
       <SalesGrowthCard query={query} />
 
-      {/* Cost Control is superadmin only (the API refuses role "user") */}
-      {superadmin && (
-        <Section title="Cost control">
-          <CostControlCard dateFrom={f?.from} dateTo={f?.to} branch={filters.branch} />
-        </Section>
-      )}
+      {/* Cost Control is left off the Overview until its figures are final (see the Cost Control page) */}
 
       <Section title="Branches">
         <BranchLeaderboard resource={branchBoard} />

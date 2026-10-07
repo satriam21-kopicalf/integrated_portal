@@ -2,9 +2,11 @@
 
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertCircle, ChevronRight, Download, Eye, FileSpreadsheet, Filter, History, KeyRound, Loader2, LogIn, LogOut, Monitor,
-  Search, ShieldAlert, SlidersHorizontal, UserCog, UserRound, X,
+  AlertCircle, CheckCircle2, ChevronRight, Database, Download, Eye, FileSpreadsheet, Filter, History, KeyRound, List, Loader2, LogIn,
+  LogOut, Monitor, Rows3, Search, ShieldAlert, SlidersHorizontal, Trash2, UserCog, UserRound, X,
 } from 'lucide-react';
+import ActivityInsights, { ActivityInsightsData } from '@/components/activity/ActivityInsights';
+import ResetLogsDrawer, { LogStorage } from '@/components/activity/ResetLogsDrawer';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import DateRangePicker from '@/components/DateRangePicker';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
@@ -33,10 +35,12 @@ interface Entry {
   userAgent: string | null;
 }
 
-interface Summary {
+interface Summary extends ActivityInsightsData {
   totals: { total: number; users: number; exports: number; downloads: number; failedLogins: number; denied: number };
   byCategory: Record<string, number>;
   topUsers: { id: string; username: string; role: Role; count: number; exports: number; lastAt: string }[];
+  storage?: LogStorage;
+  retentionDays?: number;
 }
 
 interface Filters {
@@ -58,6 +62,7 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: 'transaction', label: 'Transactions' },
   { value: 'user,profile', label: 'Accounts' },
   { value: 'access', label: 'Access denied' },
+  { value: 'system', label: 'System' },
 ];
 
 /** label = title in the detail panel, verb = how the timeline sentence reads */
@@ -79,6 +84,7 @@ const ACTIONS: Record<string, { label: string; verb: string; icon: ReactNode }> 
   'user.delete': { label: 'Deleted user', verb: 'deleted a user', icon: <UserCog size={15} /> },
   'user.unlock': { label: 'Unlocked user', verb: 'unlocked a user', icon: <UserCog size={15} /> },
   'access.denied': { label: 'Access denied', verb: 'was denied access', icon: <ShieldAlert size={15} /> },
+  'system.logs_reset': { label: 'Reset activity logs', verb: 'reset the activity logs', icon: <Trash2 size={15} /> },
 };
 
 const PAGES: Record<string, string> = {
@@ -95,6 +101,7 @@ const TONES: Record<string, { tile: string; bar: string; label: string }> = {
   user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', label: 'User accounts' },
   profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', label: 'Own profile' },
   access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', label: 'Access denied' },
+  system: { tile: 'bg-slate-900 text-white', bar: 'bg-slate-700', label: 'System' },
 };
 
 const REPORT_LABELS: Record<string, string> = { detail: 'Sales Recapitulation Detail', daily: 'Daily Sales Recapitulation' };
@@ -159,6 +166,10 @@ export default function ActivityPage() {
   const [live, setLive] = useState<{ ok: boolean; at: number | null }>({ ok: true, at: null });
   const [fresh, setFresh] = useState<Set<number>>(new Set());
   const [selected, setSelected] = useState<Entry | null>(null);
+  const [view, setView] = useState<'timeline' | 'table'>('timeline');
+  const [resetting, setResetting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const entriesRef = useRef<Entry[]>([]);
   useEffect(() => { entriesRef.current = entries; }, [entries]);
@@ -222,7 +233,7 @@ export default function ActivityPage() {
       .finally(() => { if (!cancelled) setLoading(false); });
     fetchSummary();
     return () => { cancelled = true; };
-  }, [listUrl, fetchSummary]);
+  }, [listUrl, fetchSummary, reload]);
 
   // live: newest entries every POLL_MS and when the tab is shown again
   useEffect(() => {
@@ -325,9 +336,20 @@ export default function ActivityPage() {
                   setDateTo(to || from || d.to);
                 }} />
               <LiveBadge ok={live.ok} at={live.at} />
+              <button type="button" onClick={() => setResetting(true)} title="Remove log entries now"
+                className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-700 hover:bg-red-50">
+                <Trash2 size={16} /><span className="hidden sm:inline">Reset logs</span>
+              </button>
             </div>
           </div>
         </header>
+
+        {notice && (
+          <div className="mx-4 mt-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800 sm:mx-6">
+            <CheckCircle2 size={16} /> {notice}
+            <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label="Dismiss"><X size={14} /></button>
+          </div>
+        )}
 
         <StatStrip label="Activity summary" columns={5}>
           <Stat label="Activities" value={t ? formatNumber(t.total) : <StatSkeleton />}>
@@ -342,6 +364,10 @@ export default function ActivityPage() {
             {t && <p>pages or data outside the user&apos;s access</p>}
           </Stat>
         </StatStrip>
+
+        <div className="px-4 pt-4 sm:px-6 sm:pt-6">
+          <ActivityInsights data={summary} onPickDay={day => { setDateFrom(day); setDateTo(day); }} />
+        </div>
 
         <div className="grid gap-4 p-4 sm:p-6 xl:grid-cols-12">
           <section className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm xl:col-span-8 2xl:col-span-9">
@@ -358,6 +384,16 @@ export default function ActivityPage() {
                   )}
                 </div>
                 <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
+                <div className="hidden rounded-lg bg-slate-100 p-1 sm:flex" role="radiogroup" aria-label="View">
+                  {([['timeline', 'Timeline', <List key="i" size={14} />], ['table', 'Table', <Rows3 key="i" size={14} />]] as const).map(([v, l, icon]) => (
+                    <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
+                      className={`inline-flex items-center gap-1.5 rounded-md px-2.5 text-xs font-medium ${view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+                      {icon}{l}
+                    </button>
+                  ))}
+                </div>
+                <button type="button" onClick={() => downloadCsv(entries, dateFrom, dateTo)} disabled={!entries.length} title="Download the activities shown as CSV"
+                  className={`${buttonSecondary} hidden h-10 sm:inline-flex`}><Download size={16} /> CSV</button>
               </div>
               <div className="-mx-1 flex gap-1 overflow-x-auto px-1" role="tablist" aria-label="Category">
                 {CATEGORIES.map(c => {
@@ -390,6 +426,9 @@ export default function ActivityPage() {
                 <p className="mt-1 text-xs text-slate-400">New activity appears here automatically.</p>
               </div>
             ) : (
+              view === 'table' ? (
+                <ActivityTable entries={entries} fresh={fresh} loading={loading} onOpen={setSelected} />
+              ) : (
               <div className={loading ? 'opacity-60 transition-opacity' : ''}>
                 {days.map(day => (
                   <section key={day.key} aria-label={day.label}>
@@ -403,6 +442,7 @@ export default function ActivityPage() {
                   </section>
                 ))}
               </div>
+              )
             )}
 
             <div className="flex flex-col items-center justify-between gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50/60 px-4 py-3 text-xs text-slate-500 sm:flex-row">
@@ -449,6 +489,18 @@ export default function ActivityPage() {
             </section>
 
             <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900"><Database size={15} className="text-slate-400" /> Log storage</h2>
+              <dl className="space-y-1.5 text-xs">
+                <div className="flex justify-between gap-2"><dt className="text-slate-500">Entries stored</dt><dd className="font-semibold tabular-nums text-slate-800">{summary?.storage ? formatNumber(summary.storage.entries) : '…'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-slate-500">Oldest entry</dt><dd className="text-slate-800">{summary?.storage?.oldest ? formatDateTime(summary.storage.oldest) : '—'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-slate-500">Auto clean-up</dt><dd className="text-slate-800">{summary?.retentionDays ? `older than ${summary.retentionDays} days, daily 03:30` : 'off'}</dd></div>
+              </dl>
+              <button type="button" onClick={() => setResetting(true)} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50">
+                <Trash2 size={13} /> Reset logs now
+              </button>
+            </section>
+
+            <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               <h2 className="mb-3 text-sm font-semibold text-slate-900">By type</h2>
               {!summary ? (
                 <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 animate-pulse rounded bg-slate-100" />)}</div>
@@ -476,6 +528,14 @@ export default function ActivityPage() {
 
       {filtersOpen && <ActivityFiltersDrawer value={filters} users={users} onApply={f => { setFilters(f); setFiltersOpen(false); }} onClose={() => setFiltersOpen(false)} />}
       {selected && <EntryDrawer entry={selected} onClose={() => setSelected(null)} />}
+      {resetting && (
+        <ResetLogsDrawer storage={summary?.storage ?? null} retentionDays={summary?.retentionDays ?? null} onClose={() => setResetting(false)}
+          onDone={removed => {
+            setResetting(false);
+            setNotice(`${formatNumber(removed)} log entries removed. The reset is recorded as a new entry.`);
+            setReload(r => r + 1);
+          }} />
+      )}
     </DashboardLayout>
   );
 }
@@ -656,4 +716,57 @@ function EntryDrawer({ entry, onClose }: { entry: Entry; onClose: () => void }) 
       </DrawerSection>
     </Drawer>
   );
+}
+
+/* ------------------------------------------------------------------ table view */
+
+function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; fresh: Set<number>; loading: boolean; onOpen: (e: Entry) => void }) {
+  return (
+    <div className={`custom-scrollbar max-h-[70vh] overflow-auto ${loading ? 'opacity-60' : ''}`}>
+      <table className="w-full text-sm">
+        <thead className="sticky top-0 z-[1] bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <tr>
+            {['Time', 'User', 'Activity', 'Details', 'Page', 'Result', 'Device · IP'].map(h => <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5">{h}</th>)}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {entries.map(e => {
+            const action = ACTIONS[e.action];
+            const tone = TONES[e.category] ?? TONES.page;
+            return (
+              <tr key={e.id} onClick={() => onOpen(e)} className={`cursor-pointer align-top hover:bg-slate-50 ${fresh.has(e.id) ? 'bg-blue-50/70' : ''}`}>
+                <td className="whitespace-nowrap px-3 py-2 text-xs tabular-nums text-slate-500">{formatDate(toIsoDate(new Date(e.at)))}<span className="block text-slate-700">{clock(e.at)}</span></td>
+                <td className="max-w-[11rem] px-3 py-2"><span className="block truncate font-medium text-slate-900">{displayName(e)}</span><span className="block truncate text-[11px] text-slate-400">{e.user.username ?? '—'}</span></td>
+                <td className="whitespace-nowrap px-3 py-2">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700"><span className={`flex h-6 w-6 items-center justify-center rounded-md ${tone.tile}`}>{action?.icon ?? <History size={13} />}</span>{action?.label ?? e.action}</span>
+                </td>
+                <td className="max-w-[22rem] px-3 py-2 text-xs text-slate-600"><span className="line-clamp-2">{e.summary ?? '—'}</span></td>
+                <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600">{pageLabel(e.page)}</td>
+                <td className="whitespace-nowrap px-3 py-2">{e.status === 'ok' ? <span className="text-xs text-emerald-700">Succeeded</span> : <StatusBadge status={e.status} />}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-[11px] text-slate-400">{device(e.userAgent)}<span className="block">{e.ip ?? ''}</span></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function downloadCsv(entries: Entry[], from: string, to: string) {
+  const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const head = ['Time (WIB)', 'Username', 'Name', 'Role', 'Category', 'Activity', 'Result', 'Page', 'Summary', 'IP', 'Device'];
+  const rows = entries.map(e => [
+    new Date(e.at).toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' }), e.user.username, e.user.fullName, e.user.role, e.category,
+    ACTIONS[e.action]?.label ?? e.action, e.status, pageLabel(e.page), e.summary, e.ip, device(e.userAgent),
+  ]);
+  const csv = [head, ...rows].map(r => r.map(cell).join(',')).join('\r\n');
+  const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `activity-logs_${from}_to_${to}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

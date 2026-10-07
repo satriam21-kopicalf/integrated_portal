@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import HBarChart from '@/components/charts/HBarChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
-import { compactRupiah, MenusResponse, useOverview } from '@/lib/overview';
+import { compactRupiah, deltaText, MenusResponse, useOverview } from '@/lib/overview';
 import { Card, Segmented } from './Card';
 import { useDrill } from './drill/DrillContext';
 
@@ -51,7 +51,8 @@ export default function MenusCard({ query }: { query: string }) {
                       {c.category}
                     </p>
                     <p className="text-base font-semibold text-slate-900">{c.share === null ? '-' : `${c.share.toFixed(1)}%`}</p>
-                    <p className="text-[11px] text-slate-500">{compactRupiah(c.subtotal)}</p>
+                    <p className="text-[11px] text-slate-500">{compactRupiah(c.subtotal)}
+                      {c.deltaPct !== undefined && c.deltaPct !== null && <span className={c.deltaPct >= 0 ? ' text-emerald-700' : ' text-red-700'}> {deltaText(c.deltaPct)}</span>}</p>
                   </div>
                 ))}
               </div>
@@ -104,6 +105,10 @@ export default function MenusCard({ query }: { query: string }) {
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs text-slate-500">
                 {compactRupiah(data.totals.subtotal)} · {formatNumber(data.totals.qty)} pcs ordered
+                {data.totals.previousSubtotal !== undefined && (
+                  <> · vs {compactRupiah(data.totals.previousSubtotal)}{' '}
+                    <span className={(data.totals.deltaPct ?? 0) >= 0 ? 'font-medium text-emerald-700' : 'font-medium text-red-700'}>{deltaText(data.totals.deltaPct)}</span></>
+                )}
               </p>
               <Segmented label="Rank by" value={sort} options={[{ value: 'subtotal', label: 'Sales' }, { value: 'qty', label: 'Qty' }]} onChange={setSort} />
             </div>
@@ -113,9 +118,12 @@ export default function MenusCard({ query }: { query: string }) {
                 key: m.menuId,
                 label: `${i + 1}. ${m.name}`,
                 value: sort === 'qty' ? m.qty : m.subtotal,
-                display: sort === 'qty' ? `${formatNumber(m.qty)} pcs` : `${compactRupiah(m.subtotal)} · ${m.share?.toFixed(1) ?? '-'}%`,
+                display: (sort === 'qty' ? `${formatNumber(m.qty)} pcs` : `${compactRupiah(m.subtotal)} · ${m.share?.toFixed(1) ?? '-'}%`)
+                  + (m.deltaPct !== undefined ? ` · ${deltaText(sort === 'qty' ? m.qtyDeltaPct : m.deltaPct) || 'new'}` : ''),
                 tip: {
-                  rows: [[formatCurrency(m.subtotal), 'sales'], [`${formatNumber(m.qty)} pcs`, 'ordered'], [formatNumber(m.bills), 'bills']],
+                  rows: [[formatCurrency(m.subtotal), 'sales'], [`${formatNumber(m.qty)} pcs`, 'ordered'], [formatNumber(m.bills), 'bills'],
+                    ...(m.previousSubtotal !== undefined ? [[formatCurrency(m.previousSubtotal), 'comparison period'] as [string, string],
+                      [`${formatNumber(m.previousQty ?? 0)} pcs`, 'comparison period'] as [string, string]] : [])],
                   footer: `${m.category} · ${m.categoryDetail}`,
                 },
               }))}

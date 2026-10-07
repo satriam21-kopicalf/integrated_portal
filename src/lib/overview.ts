@@ -36,16 +36,19 @@ export interface KpisResponse {
   freshness: Freshness;
 }
 
-export type Granularity = 'day' | 'week' | 'month';
+export type Granularity = 'hour' | 'day' | 'week' | 'month';
 
 export interface TrendPoint {
   date: string;
+  /** granularity "hour": hour of the day (one day, e.g. day vs day) */
+  hour?: number;
   days: number;
   subtotal: number;
-  nettSales: number;
+  /** not kept per hour (null for granularity "hour") */
+  nettSales: number | null;
   bills: number;
   discountPct: number | null;
-  previous: { subtotal: number; nettSales: number; bills: number };
+  previous: { subtotal: number; nettSales: number | null; bills: number };
   /** this period per channel (the "By channel" chart) */
   channels: Record<string, { subtotal: number; bills: number }>;
 }
@@ -113,6 +116,9 @@ export interface HourlyResponse {
   daysPerDow: Record<string, number>;
   cells: HourCell[];
   peak: HourCell | null;
+  /** the comparison period per hour, averaged per day */
+  previous?: { from: string; to: string; days: number; bills: number; subtotal: number; avgBillsPerDay: number;
+    hours: { hour: number; bills: number; subtotal: number; avgBills: number; avgSubtotal: number }[]; peakHour: number | null } | null;
 }
 
 export interface MenuRow {
@@ -125,13 +131,18 @@ export interface MenuRow {
   subtotal: number;
   discount: number;
   share: number | null;
+  previousQty?: number;
+  previousSubtotal?: number;
+  deltaPct?: number | null;
+  qtyDeltaPct?: number | null;
 }
 
 export interface MenusResponse {
   filters: OverviewFilters;
-  totals: { subtotal: number; qty: number };
+  totals: { subtotal: number; qty: number; previousSubtotal?: number; previousQty?: number; deltaPct?: number | null };
   top: MenuRow[];
-  categories: { category: string; qty: number; subtotal: number; share: number | null; details: { name: string; qty: number; subtotal: number }[] }[];
+  categories: { category: string; qty: number; subtotal: number; share: number | null; previousSubtotal?: number; deltaPct?: number | null;
+    details: { name: string; qty: number; subtotal: number }[] }[];
   addons: { group: string; qty: number; subtotal: number; options: { menuId: string; name: string; qty: number; subtotal: number; share: number | null }[] }[];
 }
 
@@ -216,8 +227,10 @@ export interface MonthlyResponse {
 
 export interface PaymentsResponse {
   filters: OverviewFilters;
-  methods: { type: string; method: string; bills: number; subtotal: number; share: number | null; billShare: number | null }[];
-  types: { type: string; bills: number; subtotal: number; share: number | null }[];
+  methods: { type: string; method: string; bills: number; subtotal: number; share: number | null; billShare: number | null;
+    previousSubtotal?: number; previousBills?: number; previousShare?: number | null; deltaPct?: number | null }[];
+  types: { type: string; bills: number; subtotal: number; share: number | null; previousSubtotal?: number; deltaPct?: number | null }[];
+  previous?: { subtotal: number; bills: number } | null;
 }
 
 export interface Basket {
@@ -363,7 +376,14 @@ export function longDate(value: string): string {
   });
 }
 
+/** "+12.3%" / "−4.0%" for compact displays (null: nothing). */
+export function deltaText(pct: number | null | undefined): string {
+  if (pct === null || pct === undefined) return '';
+  return `${pct > 0 ? '▲ +' : pct < 0 ? '▼ −' : ''}${Math.abs(pct).toFixed(1)}%`;
+}
+
 export function bucketLabel(value: string, granularity: Granularity): string {
+  if (granularity === 'hour') return longDate(value);
   if (granularity === 'week') return `Week of ${shortDate(value)}`;
   if (granularity === 'month') {
     return new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });

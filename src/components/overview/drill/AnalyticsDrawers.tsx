@@ -106,7 +106,7 @@ function WeekdayBars({ data, metric }: { data: TrendResponse; metric: TrendMetri
       const i = (new Date(`${p.date}T00:00:00`).getDay() + 6) % 7;
       acc[i].sub += p.subtotal;
       acc[i].bills += p.bills;
-      acc[i].nett += p.nettSales;
+      acc[i].nett += p.nettSales ?? 0;
       acc[i].days += 1;
     }
     const vals = acc.map(a => (metric === 'avgTicket' ? (a.bills ? a.sub / a.bills : 0)

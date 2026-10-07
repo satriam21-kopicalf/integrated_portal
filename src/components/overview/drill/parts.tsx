@@ -227,7 +227,7 @@ export function ShareBar({ value, color = '#2a78d6' }: { value: number | null; c
 
 /** Start/end of a trend bucket, clipped to the period. */
 export function bucketRange(date: string, g: Granularity, from: string, to: string): [string, string] {
-  if (g === 'day') return [date, date];
+  if (g === 'day' || g === 'hour') return [date, date];
   const start = new Date(`${date}T00:00:00`);
   const end = new Date(start);
   if (g === 'week') end.setDate(end.getDate() + 6);
