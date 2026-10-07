@@ -240,11 +240,8 @@ function BrandPanel() {
       <div className="relative flex flex-1 items-center justify-center py-10">
         <DashboardIllustration />
       </div>
-
-      <div className="relative">
-        <h2 className="text-2xl font-semibold tracking-tight xl:text-3xl">All outlets, one dashboard.</h2>
-        <p className="mt-2 text-sm text-blue-100">Sales, cost and operations data from ESB.</p>
-      </div>
+      {/* balances the logo so the illustration sits in the middle */}
+      <div className="h-14" aria-hidden />
     </aside>
   );
 }
