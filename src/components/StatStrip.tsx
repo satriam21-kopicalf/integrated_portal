@@ -55,8 +55,8 @@ export function Stat({
 export function StatSkeleton() {
   return (
     <div className="space-y-2">
-      <div className="h-8 w-3/4 animate-pulse rounded bg-slate-200/70" />
-      <div className="h-3 w-1/2 animate-pulse rounded bg-slate-200/70" />
+      <div className="skeleton h-8 w-3/4 rounded" />
+      <div className="skeleton h-3 w-1/2 rounded" />
     </div>
   );
 }

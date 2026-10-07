@@ -1,5 +1,6 @@
 'use client';
 
+import LoadingState from '@/components/ui/LoadingState';
 import { useMemo, useState } from 'react';
 import ChannelLogo from '@/components/ChannelLogo';
 import EChart, { ChartOption } from '@/components/charts/EChart';
@@ -93,7 +94,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
         {hours.res.error ? (
           <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{hours.res.error}</p>
         ) : !hours.data ? (
-          <div className="h-60 animate-pulse rounded-lg bg-slate-100" />
+          <LoadingState height={240} label="sales growth" />
         ) : (
           <div className="space-y-3">
             <HourGrowthChart rows={hours.rows} height={260} />

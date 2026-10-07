@@ -156,7 +156,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                 </p>
               </>
             ) : (
-              <div className="mt-2 h-9 w-2/3 animate-pulse rounded bg-slate-100" />
+              <div className="skeleton mt-2 h-9 w-2/3 rounded" />
             )}
           </div>
 

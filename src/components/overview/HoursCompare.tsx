@@ -1,5 +1,6 @@
 'use client';
 
+import LoadingState from '@/components/ui/LoadingState';
 import { useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import BranchFilter, { splitBranches } from '@/components/BranchFilter';
@@ -90,7 +91,7 @@ export default function HoursCompare({ query, mode, period, size = 'card' }: {
       {res.error && !res.loading ? (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{res.error}</p>
       ) : !data ? (
-        <div className="h-64 animate-pulse rounded-lg bg-slate-100" />
+        <LoadingState height={256} label="busy hours" />
       ) : (
         <div className={`transition-opacity ${res.loading ? 'opacity-50' : ''}`}>
           {data.mode === 'period'

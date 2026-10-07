@@ -1,5 +1,6 @@
 'use client';
 
+import LoadingState from '@/components/ui/LoadingState';
 import { useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
@@ -279,7 +280,7 @@ export default function SalesGrowthCard({ query }: { query: string }) {
           ) : hours.res.error ? (
             <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{hours.res.error}</p>
           ) : !hours.data ? (
-            <div className="h-60 animate-pulse rounded-lg bg-slate-100" />
+            <LoadingState height={240} label="sales growth" />
           ) : (
             <>
               <p className="text-[11px] text-slate-500">

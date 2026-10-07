@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowDownRight, ArrowUpRight, Maximize2, Minus, RotateCw
 import type { InfoKey } from '@/lib/metricInfo';
 import { Resource } from '@/lib/overview';
 import InfoTip from '@/components/ui/InfoTip';
+import LoadingState, { RefreshBar } from '@/components/ui/LoadingState';
 
 /**
  * Widget frame. First load shows a skeleton; a refetch keeps the previous render
@@ -27,7 +28,8 @@ export function Card<T>({
 }) {
   const { data, loading, error, retry } = resource;
   return (
-    <section className={`group/card flex h-full min-w-0 flex-col rounded-xl border border-slate-200 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-slate-200/70' : ''} ${className}`}>
+    <section className={`group/card relative flex h-full min-w-0 flex-col rounded-xl border border-slate-200 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-slate-200/70' : ''} ${className}`}>
+      {loading && data && <RefreshBar />}
       <header className="flex flex-wrap items-start justify-between gap-2 px-4 pb-2 pt-4 sm:px-5">
         <div className="min-w-0">
           <div className="flex items-center gap-1">
@@ -60,7 +62,7 @@ export function Card<T>({
             {children(data)}
           </div>
         ) : (
-          <Skeleton height={minHeight - 16} />
+          <Skeleton height={minHeight - 16} label={title.toLowerCase()} />
         )}
       </div>
     </section>
@@ -77,13 +79,9 @@ export function DetailsButton({ onClick, label = 'Details' }: { onClick: () => v
   );
 }
 
-export function Skeleton({ height = 200 }: { height?: number }) {
-  return (
-    <div className="space-y-3" style={{ height }} aria-label="Loading">
-      <div className="h-4 w-1/3 animate-pulse rounded bg-slate-100" />
-      <div className="h-[calc(100%-2rem)] animate-pulse rounded-lg bg-slate-100" />
-    </div>
-  );
+/** The shared loading state (components/ui/LoadingState.tsx). */
+export function Skeleton({ height = 200, label }: { height?: number; label?: string }) {
+  return <LoadingState height={height} label={label} />;
 }
 
 /** Signed change with an arrow icon + text, colour by direction x whether up is good. */

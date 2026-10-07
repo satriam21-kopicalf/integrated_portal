@@ -224,7 +224,7 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
               ) : <> · no comparison before Aug 2025</>}
             </>
           ) : (
-            <span className="inline-block h-4 w-72 animate-pulse rounded bg-slate-200 align-middle" />
+            <span className="skeleton inline-block h-4 w-72 rounded align-middle" />
           )}
         </p>
         <KpiTiles resource={kpis} />

@@ -210,18 +210,6 @@ export const INFO = {
     definition: ['Theoretical usage = POS sales × BOM; other usage = item journals; variance = stock opname differences (posted, plus pending opnames not authorized yet = provisional).', 'A pending opname line with a variance above max(Rp 50 M, 50% of the outlet theoretical COGS of the period) is implausible (wrong system stock in ESB) and left out; listed under Data quality.', 'Network totals only include locations with POS sales (bulk-order stock locations are listed apart).'],
     formula: ['Actual COGS = theoretical + other usage + manufacturing net − posted variance − pending variance', 'COGS ratio = actual COGS ÷ Net sales (or Subtotal) × 100', 'Usage ratio = actual usage ÷ theoretical usage × 100'],
   },
-  health: {
-    title: 'Company health',
-    source: ['The Overview aggregates of all ESB POS sales since the roll-out (Aug 2025): per day, hour and menu, every outlet.'],
-    definition: [
-      'Network level, not affected by the filters: the last 28 complete days (to yesterday) against the same 28 weekdays a year earlier (364 days back) and the 28 days before.',
-      'Same-store = outlets with sales on at least 25 of the 28 days in both years, so new stores do not inflate growth.',
-      'Targets are rules of thumb of coffee and quick-service chains (growth above inflation, discounts ≤ 8%, voids ≤ 1%, food on ≥ 20% of beverage bills, ≤ 10% of stores below half the median, online ≤ 40%). Context indicators have no common target and are not scored.',
-      'Cost of goods is left out until the Cost Control figures are final.',
-    ],
-    formula: ['Score = average of the scored indicators (good 100, watch 50, at risk 0)', 'SSSG = (same-store sales − same stores last year) ÷ same stores last year × 100',
-      'Discount rate = (subtotal − nett sales) ÷ subtotal × 100', 'Food attach = bills with beverage and food ÷ bills with beverage × 100'],
-  },
   ...COST_INFO,
 } satisfies Record<string, MetricInfo>;
 
