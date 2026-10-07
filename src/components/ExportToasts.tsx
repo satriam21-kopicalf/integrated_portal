@@ -122,12 +122,14 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
             {done ? (
               <>
                 {job.fileSize ? <Stat label="File size" value={formatBytes(job.fileSize)} /> : <Stat label="Google Sheets" value={formatNumber(parts.length || 1)} />}
-                <Stat label={parts.length > 1 ? 'Parts' : 'Sheets'} value={formatNumber(job.sheets)} />
+                {parts.length > 1 ? <Stat label="Days" value={formatNumber(job.totalDays)} /> : <Stat label="Sheets" value={formatNumber(job.sheets)} />}
               </>
             ) : (
               <>
                 <Stat label="Elapsed" value={formatDuration(elapsed)} />
-                {uploading
+                {inParts
+                  ? <Stat label="Sheets ready" value={formatNumber(parts.length)} />
+                  : uploading
                   ? <Stat label="Uploaded" value={`${job.uploadPct ?? 0}%`} />
                   : <Stat label="Remaining" value={remaining === null ? 'Estimating…' : `~${formatDuration(remaining)}`} />}
               </>
