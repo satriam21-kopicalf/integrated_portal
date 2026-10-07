@@ -40,6 +40,9 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
   const report = params.report;
   const gsheet = (job?.format ?? params.format) === 'gsheet';
   const uploading = job?.phase === 'upload';
+  // a detail report to Google Sheets is written and uploaded part by part
+  const inParts = gsheet && report !== 'daily';
+  const parts = job?.sheetParts ?? [];
   const reportLabel = REPORTS.find(r => r.value === report)?.label ?? 'Export';
   const typeLabel = TYPE_LABELS[params.typeLabel] ?? params.typeLabel;
   const failed = Boolean(error || job?.status === 'error');
@@ -47,7 +50,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
   const empty = done && !job?.rows;
   // building the file is the first 85% of a Google Sheets export, the upload the rest
   const buildPct = job ? (job.daysDone / Math.max(job.totalDays, 1)) * 100 : 0;
-  const percent = Math.round(gsheet ? buildPct * 0.85 + (uploading ? (job?.uploadPct ?? 0) * 0.15 : 0) : buildPct);
+  const percent = Math.round(inParts ? buildPct * 0.97 : gsheet ? buildPct * 0.85 + (uploading ? (job?.uploadPct ?? 0) * 0.15 : 0) : buildPct);
   const elapsed = Math.max(0, (now - item.startedAt) / 1000);
   const remaining = job && job.daysDone > 0 && !done ? (elapsed / job.daysDone) * (job.totalDays - job.daysDone) : null;
 
@@ -56,7 +59,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
   else if (empty) statusText = 'No data for this selection';
   else if (done) statusText = 'Export complete';
   else if (job?.status === 'queued') statusText = 'Waiting in queue…';
-  else if (uploading) statusText = 'Uploading to Google Sheets…';
+  else if (uploading) statusText = job?.uploadPart ? `Uploading sheet ${job.uploadPart} to Google Sheets…` : 'Uploading to Google Sheets…';
   else if (job?.status === 'running') {
     statusText = job.currentDate
       ? `Processed ${formatDate(job.currentDate)} · day ${job.daysDone} of ${job.totalDays}`
@@ -102,7 +105,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
             </div>
             <p className="mt-2 text-[11px] text-slate-400">
               {gsheet
-                ? 'You can keep using other pages — a link to the sheet appears here when ready.'
+                ? (parts.length ? `${parts.length} sheet(s) ready so far — you can keep using other pages.` : 'You can keep using other pages — a link to the sheet appears here when ready.')
                 : 'You can keep using other pages — the file downloads automatically when ready.'}
             </p>
           </>
@@ -118,8 +121,8 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
             <Stat label={report === 'daily' ? 'Bills' : 'Transactions'} value={formatNumber(job.headers)} />
             {done ? (
               <>
-                <Stat label="File size" value={formatBytes(job.fileSize)} />
-                <Stat label="Sheets" value={formatNumber(job.sheets)} />
+                {job.fileSize ? <Stat label="File size" value={formatBytes(job.fileSize)} /> : <Stat label="Google Sheets" value={formatNumber(parts.length || 1)} />}
+                <Stat label={parts.length > 1 ? 'Parts' : 'Sheets'} value={formatNumber(job.sheets)} />
               </>
             ) : (
               <>
@@ -134,9 +137,25 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
 
         {empty && <p className="mt-2 text-xs text-slate-500">Try a different date range, branch or transaction type.</p>}
 
+        {done && gsheet && parts.length > 1 && (
+          <ul className="custom-scrollbar mt-2 max-h-32 space-y-1 overflow-auto rounded-lg border border-slate-100 px-2.5 py-2 text-xs">
+            {parts.map(p => (
+              <li key={p.part}>
+                <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-700 hover:underline">
+                  <Sheet size={12} className="flex-shrink-0 text-emerald-600" />
+                  <span className="truncate">Part {p.part} · {formatDate(p.dateFrom)}{p.dateTo !== p.dateFrom ? ` – ${formatDate(p.dateTo)}` : ''}</span>
+                  <span className="ml-auto flex-shrink-0 tabular-nums text-slate-400">{formatNumber(p.rows)} rows</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+
         {done && gsheet && job?.sheetUrl && (
           <p className="mt-2 text-[11px] text-slate-500">
-            {job.sheetSharedWith ? `Shared with ${job.sheetSharedWith}.` : 'Saved in the portal\'s Google Drive folder (not shared with your e-mail).'}
+            {job.sheetLinkAccess === 'view' || job.sheetLinkAccess === 'edit'
+              ? `Anyone with the link can ${job.sheetLinkAccess === 'edit' ? 'edit' : 'open'} ${parts.length > 1 ? 'the folder and its sheets' : 'it'} — no access request needed.`
+              : job.sheetSharedWith ? `Shared with ${job.sheetSharedWith}.` : 'Saved in the portal\'s Google Drive folder (not shared with your e-mail).'}
           </p>
         )}
 
@@ -169,7 +188,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
               >
-                <ExternalLink size={14} /> Open sheet
+                <ExternalLink size={14} /> {parts.length > 1 ? 'Open folder' : 'Open sheet'}
               </a>
             )}
           </div>

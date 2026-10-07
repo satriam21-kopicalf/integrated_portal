@@ -33,6 +33,13 @@ export interface ExportJob {
   sheetUrl?: string | null;
   /** e-mail the Google Sheet was shared with (null: only the Drive folder has access) */
   sheetSharedWith?: string | null;
+  /** anyone with the link can open the sheet(s): view | edit; none/absent = only who it is shared with */
+  sheetLinkAccess?: 'view' | 'edit' | 'none' | null;
+  /** a detail report too big for one Google Sheet: one sheet per part, all in sheetFolderUrl */
+  sheetParts?: { part: number; dateFrom: string; dateTo: string; rows: number; url: string }[];
+  sheetFolderUrl?: string | null;
+  /** part being uploaded */
+  uploadPart?: number | null;
   type?: string;
   branch?: string | null;
   dateFrom: string;

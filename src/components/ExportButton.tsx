@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { AlertTriangle, FileSpreadsheet, Loader2, Sheet } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
 import { ExportFormat, GSHEET_MAX_CELLS, REPORTS, ReportKind, useExports } from '@/lib/exports';
+// rows of the detail report that fit in one Google Sheet: larger exports are split into parts
+const ROWS_PER_SHEET = Math.floor(GSHEET_MAX_CELLS / 46);
 import { formatDate, formatNumber } from '@/lib/format';
 import { useClickOutside } from '@/lib/useClickOutside';
 
@@ -24,7 +26,6 @@ interface ExportButtonProps {
 const DEFAULT_DAYS = 65; // backend default when no dates are selected
 const LARGE_RANGE_DAYS = 31;
 const ROWS_PER_DAY_ESTIMATE = 65000;
-const DETAIL_COLUMNS = 46;
 const FORMAT_KEY = 'portal.exportFormat';
 
 const FORMATS: { value: ExportFormat; label: string }[] = [
@@ -75,7 +76,7 @@ export default function ExportButton({
   };
 
   const requestExport = (report: ReportKind) => {
-    if (report === 'detail' && (rangeDays(dateFrom, dateTo) > LARGE_RANGE_DAYS || tooBigForSheets)) {
+    if (report === 'detail' && (rangeDays(dateFrom, dateTo) > LARGE_RANGE_DAYS || splitInParts)) {
       setConfirmReport(report);
       return;
     }
@@ -84,7 +85,8 @@ export default function ExportButton({
 
   const days = rangeDays(dateFrom, dateTo);
   // rough: only all-branch exports can be estimated (about 65k item rows per day)
-  const tooBigForSheets = format === 'gsheet' && !branch && days * ROWS_PER_DAY_ESTIMATE * DETAIL_COLUMNS > GSHEET_MAX_CELLS;
+  const splitInParts = format === 'gsheet' && !branch && days * ROWS_PER_DAY_ESTIMATE > ROWS_PER_SHEET;
+  const parts = Math.max(1, Math.ceil((days * ROWS_PER_DAY_ESTIMATE) / 150000));
   const destination = format === 'gsheet' ? 'Google Sheets' : 'Excel';
 
   return (
@@ -114,12 +116,12 @@ export default function ExportButton({
                 <div className="flex gap-3">
                   <AlertTriangle size={20} className="mt-0.5 flex-shrink-0 text-amber-500" />
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{tooBigForSheets ? 'Likely too large for Google Sheets' : 'Large export'}</p>
+                    <p className="text-sm font-semibold text-slate-900">{splitInParts ? 'Split into several Google Sheets' : 'Large export'}</p>
                     <p className="mt-1 text-xs leading-relaxed text-slate-500">
                       {days} days{!dateFrom && ' (no date filter, last 65 days)'}
                       {!branch && ` · approx. ${formatNumber(days * ROWS_PER_DAY_ESTIMATE)} rows`}.{' '}
-                      {tooBigForSheets
-                        ? `Google Sheets holds at most 10 million cells (about ${formatNumber(Math.floor(GSHEET_MAX_CELLS / DETAIL_COLUMNS))} rows of this report); the export stops with an error when it is exceeded. Narrow the dates or branches, or export to Excel.`
+                      {splitInParts
+                        ? `One Google Sheet holds at most 10 million cells (about ${formatNumber(ROWS_PER_SHEET)} rows of this report), so this export is split into about ${parts} sheets of ~3 days each, together in one Google Drive folder. Each sheet appears as soon as it is ready; anyone with the link can open them. For one single file, export to Excel.`
                         : 'This can take several minutes; the file is split into multiple sheets above 1,048,575 rows.'}
                     </p>
                   </div>
