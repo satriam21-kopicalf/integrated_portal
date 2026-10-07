@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { Store } from 'lucide-react';
 import CostTrendCard from '@/components/cost/CostTrendCard';
 import StatusBadge from '@/components/cost/StatusBadge';
+import { ReliabilityPill } from '@/components/cost/ReliabilityBanner';
+import InfoTip from '@/components/ui/InfoTip';
 import { Segmented } from '@/components/overview/Card';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import {
@@ -11,71 +13,82 @@ import {
 } from '@/lib/costControl';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
 import { Resource } from '@/lib/overview';
+import { OutletReliability, RELIABILITY } from '@/lib/costReliability';
+import type { InfoKey } from '@/lib/metricInfo';
 
 const qty = (v: number) => formatNumber(Math.round(v * 100) / 100);
 
 /** One outlet: headline figures, trend, item usage & variance, purchase forecast per item. */
-export default function OutletDrawer({ outlet, basis, query, settings, onClose }: {
+export default function OutletDrawer({ outlet, basis, query, settings, reliability, defaultGrain, onClose }: {
   outlet: OutletCost;
   basis: Basis;
   query: string;
   settings: CostSettings | undefined;
+  reliability?: OutletReliability;
+  defaultGrain?: 'period' | 'month';
   onClose: () => void;
 }) {
   const [tab, setTab] = useState<'items' | 'forecast'>('items');
   const branchQ = `${query}&branch=${encodeURIComponent(outlet.branchCode)}&limit=500`;
   const items = useCostControl<ItemsResponse>('items', branchQ);
   const forecast = useCostControl<ForecastResponse>('forecast', `branch=${encodeURIComponent(outlet.branchCode)}`, tab === 'forecast');
-  const gap = basis === 'net' ? outlet.gapPpNet : outlet.gapPpSubtotal;
+  const excess = outlet.actualCogs - outlet.theoreticalCogs;
+  const s = sales(outlet, basis);
 
   return (
     <Drawer open onClose={onClose} size="lg" icon={<Store size={18} />} title={outlet.branchName}
-      description={`${outlet.branchCode} · ${outlet.periods} opname period(s)`}>
+      description={`${outlet.branchCode} · ${outlet.periods} opname period(s)`}
+      titleExtra={reliability ? <ReliabilityPill level={reliability.level} /> : undefined}>
       <div className="space-y-6">
+        {reliability && reliability.reasons.length > 0 && (
+          <div className={`rounded-lg border px-3 py-2.5 text-xs ${reliability.level === 'check' ? 'border-red-200 bg-red-50/60 text-red-900' : 'border-amber-200 bg-amber-50/70 text-amber-900'}`}>
+            <p className="flex items-center gap-1.5 font-semibold">
+              {reliability.level === 'check' ? 'Check these figures — data errors in ESB' : 'Provisional figures'}
+              <InfoTip info="costReliability" />
+            </p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-4">
+              {reliability.reasons.map(r => <li key={r.text} className={r.level === 'check' ? RELIABILITY.check.text : ''}>{r.text}</li>)}
+            </ul>
+          </div>
+        )}
+
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-3">
-          <Figure label={basis === 'net' ? 'Net sales' : 'Subtotal'} value={formatCurrency(Math.round(sales(outlet, basis)))} />
-          <Figure label="Actual COGS" value={formatCurrency(Math.round(outlet.actualCogs))}>
+          <Figure label={basis === 'net' ? 'Net sales' : 'Subtotal'} info="costSales" value={formatCurrency(Math.round(s))}>
+            <span className="text-xs text-slate-500">{formatNumber(outlet.bills)} bills</span>
+          </Figure>
+          <Figure label="Actual COGS" info="costActual" value={formatCurrency(Math.round(outlet.actualCogs))}>
             <StatusBadge status={cogsStatus(outlet, basis)} value={pctText(cogsPct(outlet, basis, 'actual'))} />
           </Figure>
-          <Figure label="Theoretical COGS" value={formatCurrency(Math.round(outlet.theoreticalCogs))}>
+          <Figure label="Recipes (theoretical)" info="costTheoretical" value={formatCurrency(Math.round(outlet.theoreticalCogs))}>
             <span className="text-xs text-slate-500">{pctText(cogsPct(outlet, basis, 'theoretical'))} of sales</span>
           </Figure>
-          <Figure label="Usage ratio" value={outlet.hasOpname ? pctText(outlet.usageRatio) : 'no opname'}>
-            <StatusBadge status={outlet.status.usage} value={gap === null ? '–' : `${gap > 0 ? '+' : ''}${gap.toFixed(1)} pp vs recipes`} />
+          <Figure label="Excess vs recipes" info="costExcess" value={outlet.hasOpname ? `${excess > 0 ? '+' : ''}${formatCurrency(Math.round(excess))}` : 'no opname'}
+            tone={!outlet.hasOpname ? undefined : excess > 0.5 ? 'bad' : 'good'}>
+            {outlet.hasOpname && <StatusBadge status={outlet.status.usage} value={`usage ${pctText(outlet.usageRatio)}`} />}
           </Figure>
-          <Figure label="Stock variance" value={formatCurrency(Math.round(outlet.variance))}>
+          <Figure label="Stock variance" info="costVariance" value={formatCurrency(Math.round(outlet.variance))} tone={outlet.variance < -0.5 ? 'bad' : undefined}>
             <span className="text-xs text-slate-500">
               posted {formatCurrency(Math.round(outlet.postedVariance))}{outlet.pendingVariance ? ` · pending ${formatCurrency(Math.round(outlet.pendingVariance))}` : ''}
             </span>
           </Figure>
-          <Figure label="Other usage" value={formatCurrency(Math.round(outlet.otherUsage))}>
+          <Figure label="Other usage" info="costOther" value={formatCurrency(Math.round(outlet.otherUsage))}>
             <StatusBadge status={outlet.status.waste} value={pctText(basis === 'net' ? outlet.wastePctNet : outlet.wastePctSubtotal)} />
           </Figure>
-          <Figure label="Purchases" value={formatCurrency(Math.round(outlet.purchases))} />
+          <Figure label="Purchases" info="costPurchases" value={formatCurrency(Math.round(outlet.purchases))}>
+            <span className="text-xs text-slate-500">{pctText(s ? (outlet.purchases / s) * 100 : null)} of sales</span>
+          </Figure>
           <Figure label="Stock (book)" value={formatCurrency(Math.round(outlet.endValue))}>
             <span className="text-xs text-slate-500">from {formatCurrency(Math.round(outlet.beginValue))}</span>
           </Figure>
           <Figure label="Stock opname" value={outlet.opnameCount ? `${outlet.opnameCount}×` : 'none'}>
             <span className="text-xs text-slate-500">
-              {outlet.lastOpnameDate ? `last ${formatDate(outlet.lastOpnameDate)}` : 'no count in this period'}
+              {outlet.lastOpnameDate ? `last ${formatDate(outlet.lastOpnameDate)}` : 'no count in this range'}
               {outlet.pendingOpnameCount ? ` · ${outlet.pendingOpnameCount} not posted` : ''}
             </span>
           </Figure>
         </dl>
 
-        {(outlet.pendingOpnameCount > 0 || outlet.excludedPendingLines > 0) && (
-          <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-xs text-amber-900">
-            {outlet.pendingOpnameCount > 0 && (
-              <p><b>Provisional:</b> {outlet.pendingOpnameCount} stock opname(s) not posted in ESB yet — the variance is counted as pending until it is authorized.</p>
-            )}
-            {outlet.excludedPendingLines > 0 && (
-              <p className="text-red-800"><b>{outlet.excludedPendingLines} implausible opname line(s) left out</b> of actual COGS ({formatCurrency(Math.round(outlet.excludedPendingVariance))}),
-                usually a wrong system stock in ESB — see Data quality on the Cost Control page.</p>
-            )}
-          </div>
-        )}
-
-        <CostTrendCard query={query} basis={basis} settings={settings} branch={outlet.branchCode} />
+        <CostTrendCard query={query} basis={basis} settings={settings} branch={outlet.branchCode} defaultGrain={defaultGrain} />
 
         <DrawerSection title="Items" description="Usage vs recipes and stock variance per item, or the purchase need for the coming weeks.">
           <Segmented label="Item view" value={tab} options={[{ value: 'items', label: 'Usage & variance' }, { value: 'forecast', label: 'Purchase forecast' }]} onChange={setTab} />
@@ -86,11 +99,13 @@ export default function OutletDrawer({ outlet, basis, query, settings, onClose }
   );
 }
 
-function Figure({ label, value, children }: { label: string; value: string; children?: React.ReactNode }) {
+function Figure({ label, value, children, info, tone }: {
+  label: string; value: string; children?: React.ReactNode; info?: InfoKey; tone?: 'good' | 'bad';
+}) {
   return (
     <div className="min-w-0 bg-white px-3 py-3">
-      <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</dt>
-      <dd className="mt-1 truncate text-base font-semibold tabular-nums text-slate-900" title={value}>{value}</dd>
+      <dt className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}{info && <InfoTip info={info} />}</dt>
+      <dd className={`mt-1 truncate text-base font-semibold tabular-nums ${tone === 'bad' ? 'text-red-700' : tone === 'good' ? 'text-emerald-700' : 'text-slate-900'}`} title={value}>{value}</dd>
       {children && <dd className="mt-1">{children}</dd>}
     </div>
   );

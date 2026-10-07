@@ -2,7 +2,8 @@
 
 import { AlertTriangle, CheckCircle2, ClipboardList, PackageX, Scale, Warehouse } from 'lucide-react';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
-import { IssuesResponse, useCostControl } from '@/lib/costControl';
+import { IssuesResponse } from '@/lib/costControl';
+import { Resource } from '@/lib/overview';
 
 const short = (n: string) => n.replace(/^Kopi Calf (To Go )?/, '');
 const MODULES: Record<string, string> = {
@@ -17,17 +18,25 @@ const qtyText = (q: number) => formatNumber(Math.round(q * 1000) / 1000);
  * periods), implausible opname lines left out of actual COGS, and stock locations with usage
  * but no POS sales (kept out of the network totals).
  */
-export default function DataIssues({ query }: { query: string }) {
-  const res = useCostControl<IssuesResponse>('issues', query);
+export default function DataIssues({ resource: res }: { resource: Resource<IssuesResponse> }) {
   const d = res.data;
-  if (!d) return <div className="h-32 animate-pulse rounded-xl bg-slate-100" />;
+  if (res.error && !d) {
+    return (
+      <p className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+        <AlertTriangle size={16} className="text-amber-500" /> Data quality checks could not be loaded ({res.error}).
+        <button type="button" onClick={res.retry} className="ml-auto rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium hover:bg-slate-50">Try again</button>
+      </p>
+    );
+  }
+  if (!d) return <div className="h-32 animate-pulse rounded-xl bg-slate-100" aria-label="Running data quality checks" />;
   const byStatus = d.pendingOpnames.reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.status]: (acc[p.status] ?? 0) + 1 }), {});
   const dates = [...new Set(d.pendingOpnames.map(p => p.docDate))].sort();
   const qtyErrors = d.quantityErrors ?? [];
   const spikes = d.stockSpikes ?? [];
+  const negative = d.bookStock?.items ?? [];
   const openSpikes = spikes.filter(s => s.open).length;
   const clean = !d.pendingOpnames.length && !d.suspectLines.length && !d.withoutSales.length && !d.hppAnomalies.length && !d.usageSpikes.length
-    && !qtyErrors.length && !spikes.length;
+    && !qtyErrors.length && !spikes.length && !negative.length;
   const month = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 
   if (clean) {
@@ -85,14 +94,28 @@ export default function DataIssues({ query }: { query: string }) {
       {spikes.length > 0 && (
         <Issue tone="red" icon={<Scale size={16} />}
           title={`${formatNumber(spikes.length)} period(s) with phantom stock in the ESB valuation${openSpikes ? ` · ${openSpikes} still in stock` : ''}`}
-          text={<>Stock of an item coming in at a location was more than 200× its usual weekly inflow there (from the quantity errors above).
-            In those periods the item&apos;s HPP collapses, so COGS is understated; an opname later removes the phantom stock.
-            Rows marked <b>still in stock</b> have not been removed yet — the next opname will show a large loss unless the document is corrected first.</>}>
-          <Table head={['Period', 'Location', 'Item', 'Came in', 'Usual / week', '×', 'Removed by opname', 'Stock now']} rows={spikes.map(s => [
+          text={<>Stock of an item coming in (or going out other than by sales: production material, transfer, item journal) at a location was
+            more than 200× its usual weekly flow there — from the quantity errors above. In those periods the item&apos;s HPP and COGS are distorted.
+            Rows marked <b>still in the books</b> have not been corrected: phantom stock coming in will show as a large loss at the next opname,
+            phantom stock going out leaves a large negative balance. Correct the document in ESB.</>}>
+          <Table head={['Period', 'Location', 'Item', 'Flow', 'Qty', 'Usual / week', '×', 'Removed by opname', 'Book stock now']} rows={spikes.map(s => [
             `${formatDate(s.periodStart)} – ${formatDate(s.periodEnd)}`, short(s.locationName), s.productName,
+            s.direction === 'out' ? 'Out' : 'In',
             <b key="i" className="text-red-700">{qtyText(s.inQty)}</b>, qtyText(s.usualInQty), `${formatNumber(s.factor)}×`,
             s.opnameQty ? qtyText(s.opnameQty) : '–',
-            s.open ? <b key="o" className="text-red-700">{qtyText(s.latestEndQty)} · still in stock</b> : qtyText(s.latestEndQty),
+            s.open ? <b key="o" className="text-red-700">{qtyText(s.latestEndQty)} · still in the books</b> : qtyText(s.latestEndQty),
+          ])} />
+        </Issue>
+      )}
+
+      {negative.length > 0 && d.bookStock && (
+        <Issue tone="red" icon={<Scale size={16} />}
+          title={`Negative book stock ${formatCurrency(Math.round(d.bookStock.negative))} at the end of the range`}
+          text={<>ESB recorded more of these items going out than coming in, so the book stock is below zero (positive stock: {formatCurrency(Math.round(d.bookStock.positive))}).
+            Usually a receipt or production not entered/authorized yet, or a wrong quantity going out (see phantom stock). Balances below
+            {' '}{formatCurrency(10000000)} are listed; correct the source document in ESB.</>}>
+          <Table head={['Location', 'Item', 'Book stock', 'Value']} rows={negative.map(n => [
+            short(n.locationName), n.productName, qtyText(n.qty), <b key="v" className="text-red-700">{formatCurrency(Math.round(n.value))}</b>,
           ])} />
         </Issue>
       )}

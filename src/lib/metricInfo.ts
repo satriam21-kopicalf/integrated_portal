@@ -17,6 +17,84 @@ const SALES_RULE = 'Sales = transactions with status "Finished" and a bill numbe
 const FILTERS = 'Follows the date, branch, channel and comparison filters. Comparison = the chosen comparison period (default: the same number of days just before; nothing before 1 Aug 2025).';
 const CHANGE = 'Change % = (this period − comparison) ÷ comparison × 100';
 
+// Cost Control (the ⓘ on the Cost Control page, its table and drawers)
+const VALUATION = 'ESB inventory valuation per outlet location × item × opname period (1–7, 8–14, 15–21, 22–end of month): opening stock, purchases/transfers, recipe usage of POS sales (sales HPP), item journals, opname differences, closing stock — at ESB HPP (moving average cost). Synced nightly at 04:15 WIB; Cost Control recalculated at 05:10 WIB (last 10 days) and every Sunday 06:00 WIB (last 40 days).';
+const OPNAME = 'ESB stock opname documents: posted (Authorized/Finished) differences are final; Draft/New ones are counted as pending (the period is provisional until they are posted in ESB).';
+const COST_SALES = 'Sales of the same outlets and days from the POS aggregates (ESB "Sales" rule: Finished with a bill number).';
+const COST_SCOPE = 'Follows the date range (every opname period starting in it) and the branch filter. Network totals only include locations with POS sales; bulk-order / stock locations are listed under Data quality.';
+const COST_INFO = {
+  costSales: {
+    title: 'Sales (ratio basis)',
+    source: [COST_SALES],
+    definition: ['Net sales = subtotal after all discounts (bill, menu, promotion, voucher) = ESB Nett Sales. Subtotal = before discounts = "Sub Total (Gross Sales)" in the cost control workbook.', 'Switch the ratio basis at the top: net sales (standard) or subtotal (shows the effect of promotions).', COST_SCOPE],
+    formula: ['Every ratio on this page = cost ÷ sales of the chosen basis × 100'],
+  },
+  costActual: {
+    title: 'Actual COGS',
+    source: [VALUATION, OPNAME],
+    definition: ['What the outlets really used: recipe usage of what was sold, plus item journals (waste, R&D, marketing…), plus or minus what the stock opname found missing or extra.', 'A pending opname line with an impossible variance (> max(Rp 50 M, 50% of the outlet\'s recipe cost of the period)) is left out — see Data quality.', 'Same as the workbook "Usage Ratio": opening stock + purchases − closing stock, as a % of sales.', COST_SCOPE],
+    formula: ['Actual COGS = theoretical COGS + other usage + manufacturing net − posted variance − pending variance', 'Actual COGS % = actual COGS ÷ sales × 100'],
+  },
+  costTheoretical: {
+    title: 'Theoretical COGS (recipes)',
+    source: [VALUATION, 'Recipes = ESB BOM of every menu sold.'],
+    definition: ['What the outlets should have used: every menu sold × its recipe (BOM) × the item\'s HPP. Depends on menu mix, recipes and purchase prices — not on how well the outlet is run.', COST_SCOPE],
+    formula: ['Theoretical COGS = Σ (menu qty sold × recipe qty × HPP)', 'Theoretical % = theoretical COGS ÷ sales × 100'],
+  },
+  costExcess: {
+    title: 'Excess vs recipes',
+    source: [VALUATION, OPNAME],
+    definition: ['The controllable loss: how much more (or less) the outlets used than the recipes allow — waste, over-portioning, unrecorded usage or stock loss.', 'Negative = used less than the recipes say (recipe too heavy, unrecorded production/receipts, or an opname still to come).', 'Only meaningful when a stock opname was taken in the period.'],
+    formula: ['Excess = actual COGS − theoretical COGS', 'Usage ratio = actual ÷ theoretical × 100 (100% = exactly as the recipes)', 'Status: |usage ratio − 100| against the usage thresholds in Settings'],
+  },
+  costVariance: {
+    title: 'Stock variance',
+    source: [OPNAME, VALUATION],
+    definition: ['Physical count minus system stock at the stock opname, valued at HPP. Negative = stock missing (loss), positive = more stock than recorded.', 'Pending = opnames still Draft/New in ESB (not posted yet).'],
+    formula: ['Stock variance = Σ (physical qty − system qty) × HPP', 'Variance = posted + pending'],
+  },
+  costOther: {
+    title: 'Other usage',
+    source: [VALUATION, 'ESB item journals (Item Usage): waste, R&D, marketing, QC, staff meals…'],
+    definition: ['Stock taken out with an item journal instead of being sold. Part of actual COGS.'],
+    formula: ['Other usage % = other usage ÷ sales × 100'],
+  },
+  costPurchases: {
+    title: 'Purchases',
+    source: [VALUATION, 'ESB purchases and transfers into the outlet (from Warehouse, CK Espresso, CK Food) at transfer price.'],
+    definition: ['What the outlets received in the period. Same as the workbook "COGS Value" (Pembelian BB + Espresso + Dimsum); its "COGS Ratio" = purchases ÷ sales.', 'Purchases differ from usage by the change in stock: buying ahead raises purchases, not COGS.'],
+    formula: ['Purchases % = purchases ÷ sales × 100', 'Actual COGS ≈ opening stock + purchases − closing stock'],
+  },
+  costStatus: {
+    title: 'Outlet status',
+    source: ['Thresholds set by a superadmin in Settings (Cost Control).'],
+    definition: ['Usage vs recipes (default): how far each outlet\'s actual usage is from its recipes — the part an outlet controls.', 'Actual COGS %: against the COGS target. When the recipes alone cost more than the target, every outlet shows above target whatever it does — fix recipes/prices or the target.', 'Outlets without a stock opname in the period have no usage status.'],
+    formula: ['Usage status = |usage ratio − 100| vs usage thresholds', 'COGS status = actual COGS % vs COGS thresholds'],
+  },
+  costTrend: {
+    title: 'COGS trend',
+    source: [VALUATION, COST_SALES],
+    definition: ['Actual and theoretical COGS as % of sales per opname period or month. The gap between the two lines is the excess vs recipes.', 'Weekly figures swing with opname timing (an opname books the variance of several weeks at once); months are steadier.'],
+    formula: ['Actual % = actual COGS ÷ sales × 100', 'Theoretical % = theoretical COGS ÷ sales × 100'],
+  },
+  costForecast: {
+    title: 'Purchase forecast',
+    source: [VALUATION, COST_SALES],
+    definition: ['Estimated purchases for the next 1 / 2 / 4 weeks per outlet, to plan budgets and orders.', 'Daily usage = actual usage of the lookback window when an opname was taken, else recipe usage; scaled by the sales trend (last 14 days vs the 14 before, capped).'],
+    formula: ['Need = daily usage × days × (1 + sales trend) + safety days × daily usage − current stock (not below 0)', 'Spend = need × HPP'],
+  },
+  costReliability: {
+    title: 'Data reliability',
+    source: [OPNAME, VALUATION, 'Data quality checks on ESB documents (see Data quality).'],
+    definition: ['Final: every opname in the range is posted and no open data issue touches it.', 'Provisional: some opnames are still Draft/New — their variance can still change.', 'Check data: an issue distorts the figures (implausible opname line left out, phantom stock from a wrong quantity, HPP anomaly, …) — fix it in ESB; the portal updates after the nightly sync.'],
+  },
+  costIssues: {
+    title: 'Data quality',
+    source: ['ESB stock opname, production, receipt, purchase, transfer and item journal documents; ESB inventory valuation.'],
+    definition: ['What to correct in ESB so the figures are final and accurate. Every check names the document to fix.', 'Wrong quantity: > 200× the usual quantity of the item in the same unit and document type (e.g. grams typed into a KG field).', 'Phantom stock: stock coming in > 200× the usual weekly inflow; "still in stock" = not removed yet.'],
+  },
+} satisfies Record<string, MetricInfo>;
+
 export const INFO = {
   sales: {
     title: 'Sales (subtotal)',
@@ -132,6 +210,7 @@ export const INFO = {
     definition: ['Theoretical usage = POS sales × BOM; other usage = item journals; variance = stock opname differences (posted, plus pending opnames not authorized yet = provisional).', 'A pending opname line with a variance above max(Rp 50 M, 50% of the outlet theoretical COGS of the period) is implausible (wrong system stock in ESB) and left out; listed under Data quality.', 'Network totals only include locations with POS sales (bulk-order stock locations are listed apart).'],
     formula: ['Actual COGS = theoretical + other usage + manufacturing net − posted variance − pending variance', 'COGS ratio = actual COGS ÷ Net sales (or Subtotal) × 100', 'Usage ratio = actual usage ÷ theoretical usage × 100'],
   },
+  ...COST_INFO,
 } satisfies Record<string, MetricInfo>;
 
 export type InfoKey = keyof typeof INFO;

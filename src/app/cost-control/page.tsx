@@ -1,25 +1,30 @@
 'use client';
 
-import DataIssues from '@/components/cost/DataIssues';
-import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Calculator, Info, RotateCw, SlidersHorizontal } from 'lucide-react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, ArrowRight, BookOpen, RotateCw, SlidersHorizontal } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import BranchFilter, { Branch, branchesLabel } from '@/components/BranchFilter';
 import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { Segmented } from '@/components/overview/Card';
+import CostGuide from '@/components/cost/CostGuide';
 import CostTrendCard from '@/components/cost/CostTrendCard';
+import DataIssues from '@/components/cost/DataIssues';
 import ForecastCard from '@/components/cost/ForecastCard';
 import OutletDrawer from '@/components/cost/OutletDrawer';
-import OutletTable from '@/components/cost/OutletTable';
+import OutletTable, { outletStatus, StatusMetric } from '@/components/cost/OutletTable';
+import ReliabilityBanner from '@/components/cost/ReliabilityBanner';
 import SettingsDrawer from '@/components/cost/SettingsDrawer';
 import StatusBadge from '@/components/cost/StatusBadge';
+import InfoTip from '@/components/ui/InfoTip';
 import { useAuth } from '@/lib/auth';
 import {
-  Basis, bandText, cogsPct, cogsStatus, CostSettings, MetaResponse, OutletCost, pctText, sales, STATUS,
-  STATUS_ORDER, SummaryResponse, useCostControl,
+  Basis, bandText, Bands, cogsPct, cogsStatus, CostSettings, IssuesResponse, MetaResponse, OutletCost, pctText, sales, Status,
+  STATUS, STATUS_ORDER, SummaryResponse, useCostControl,
 } from '@/lib/costControl';
-import { formatCurrency, formatDate, formatDateTime, formatNumber, toIsoDate } from '@/lib/format';
+import { networkReliability } from '@/lib/costReliability';
+import { formatCurrency, formatDate, formatNumber, toIsoDate } from '@/lib/format';
+import type { InfoKey } from '@/lib/metricInfo';
 
 function presets(): DatePreset[] {
   const now = new Date();
@@ -53,15 +58,22 @@ function writeUrl(f: Filters) {
   window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
 }
 
+const days = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000) + 1;
+
 export default function CostControlPage() {
   const { user } = useAuth();
   const [filters, setFilters] = useState<Filters | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [guide, setGuide] = useState(false);
+  const [metric, setMetric] = useState<StatusMetric>('usage');
+  const [status, setStatus] = useState<Status | ''>('');
   const [settingsOverride, setSettingsOverride] = useState<CostSettings | null>(null);
   const meta = useCostControl<MetaResponse>('meta', '');
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
+  const issuesRef = useRef<HTMLElement>(null);
+  const outletsRef = useRef<HTMLElement>(null);
 
   useEffect(() => setFilters(readUrl()), []);
   useEffect(() => {
@@ -90,10 +102,16 @@ export default function CostControlPage() {
   }, [from, to, branch]);
 
   const summary = useCostControl<SummaryResponse>('summary', query, filters !== null);
+  const issues = useCostControl<IssuesResponse>('issues', query, filters !== null);
   const settings = settingsOverride ?? summary.data?.settings ?? meta.data?.settings;
   const basis = filters?.basis ?? 'net';
   const outlet = selected ? summary.data?.outlets.find(o => o.branchCode === selected) ?? null : null;
   const fresh = meta.data?.freshness;
+  const network = useMemo(() => (summary.data ? networkReliability(summary.data.outlets, issues.data) : null), [summary.data, issues.data]);
+  const range = summary.data?.filters;
+  // months are one or two points on short ranges: show opname periods there
+  const grain: 'period' | 'month' = range && days(range.dateFrom, range.dateTo) > 70 ? 'month' : 'period';
+  const scrollTo = (el: HTMLElement | null) => el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
     <DashboardLayout>
@@ -101,13 +119,17 @@ export default function CostControlPage() {
         <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl"><Calculator size={20} className="text-blue-700" /> Cost Control</h1>
-              <p className="text-xs text-slate-500 sm:text-sm">COGS, usage &amp; purchase planning per outlet</p>
+              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Cost Control</h1>
+              <p className="text-xs text-slate-500 sm:text-sm">COGS, usage vs recipes &amp; purchase planning per outlet</p>
             </div>
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <Segmented label="Ratio basis" value={basis} options={[{ value: 'net', label: 'Net sales' }, { value: 'subtotal', label: 'Subtotal' }]} onChange={b => update({ basis: b })} />
-              <DateRangePicker dateFrom={filters?.from ?? ''} dateTo={filters?.to ?? ''} onChange={(from, to) => update({ from, to })} presets={presets} defaultLabel="this month" />
+              <DateRangePicker dateFrom={from} dateTo={to} onChange={(f, t) => update({ from: f, to: t })} presets={presets} defaultLabel="this month" />
               <BranchFilter branches={branches} loading={branchesLoading} value={branch} onChange={b => update({ branch: b })} />
+              <button type="button" onClick={() => setGuide(true)} title="Terms, formulas and how reliable the figures are"
+                className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <BookOpen size={16} /><span className="hidden sm:inline">Guide</span>
+              </button>
               {user?.role === 'superadmin' && settings && (
                 <button type="button" onClick={() => setEditing(true)} title="Thresholds & forecast settings"
                   className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
@@ -118,13 +140,12 @@ export default function CostControlPage() {
           </div>
         </header>
 
-        <div className="space-y-5 p-4 sm:p-6">
+        <div className="space-y-6 p-4 sm:p-6">
           <p className="text-xs text-slate-500 sm:text-sm">
             {summary.data ? (
               <>
                 <span className="font-medium text-slate-900">{formatDate(summary.data.filters.dateFrom)} – {formatDate(summary.data.filters.dateTo)}</span>
                 {' '}· {branchesLabel(branch, branches)} · {summary.data.periods.length} opname period(s) · ratios on {basis === 'net' ? 'net sales' : 'subtotal'}
-                {fresh?.refreshedAt && <> · updated {formatDateTime(fresh.refreshedAt)}</>}
               </>
             ) : <span className="inline-block h-4 w-72 animate-pulse rounded bg-slate-200 align-middle" />}
           </p>
@@ -136,42 +157,89 @@ export default function CostControlPage() {
               <button type="button" onClick={summary.retry} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"><RotateCw size={13} /> Try again</button>
             </div>
           ) : (
-            <Headline data={summary.data} basis={basis} />
+            <>
+              {summary.data && network ? (
+                <ReliabilityBanner summary={summary.data} issues={issues.data} network={network} freshness={fresh}
+                  onShowIssues={() => scrollTo(issuesRef.current)} onShowGuide={() => setGuide(true)} />
+              ) : <div className="h-36 animate-pulse rounded-xl bg-slate-100" />}
+              {summary.data && issues.loading && !issues.data && (
+                <p className="-mt-3 text-[11px] text-slate-400">Running the data quality checks… the data status may still change.</p>
+              )}
+
+              <section className="space-y-3" aria-label="Summary">
+                <SectionTitle title="Summary" description="Where the money goes: what the recipes allow, what was really used, and the difference." />
+                <Headline data={summary.data} basis={basis} />
+                {summary.data && <Secondary data={summary.data} basis={basis} issues={issues.data} onShowIssues={() => scrollTo(issuesRef.current)} />}
+              </section>
+            </>
           )}
 
-          {settings && summary.data && <StatusScale data={summary.data} settings={settings} basis={basis} />}
+          {settings && summary.data && (
+            <section className="space-y-3" aria-label="Outlet status">
+              <SectionTitle title="How the outlets are doing" info="costStatus"
+                description={metric === 'usage' ? 'Usage vs recipes: the part each outlet controls. Click a status to list those outlets.' : 'Actual COGS % against the target in Settings. Click a status to list those outlets.'} />
+              <StatusScale data={summary.data} settings={settings} basis={basis} metric={metric} onMetric={m => { setMetric(m); setStatus(''); }}
+                onPick={s => { setStatus(s); scrollTo(outletsRef.current); }} />
+            </section>
+          )}
 
-          <div className="grid gap-4 xl:grid-cols-12">
-            <div className="min-w-0 xl:col-span-7"><CostTrendCard query={query} basis={basis} settings={settings} /></div>
-            <div className="min-w-0 xl:col-span-5"><ForecastCard branch={branch} onSelect={setSelected} /></div>
-          </div>
+          <section className="space-y-3" aria-label="Trend and purchase forecast">
+            <SectionTitle title="Trend & purchase plan" />
+            <div className="grid gap-4 xl:grid-cols-12">
+              <div className="min-w-0 xl:col-span-7"><CostTrendCard key={grain} query={query} basis={basis} settings={settings} defaultGrain={grain} /></div>
+              <div className="min-w-0 xl:col-span-5"><ForecastCard branch={branch} onSelect={setSelected} /></div>
+            </div>
+          </section>
 
-          <section className="space-y-3">
-            <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Outlets<span className="h-px flex-1 bg-slate-200" aria-hidden />
-            </h2>
-            {summary.data ? (
-              <OutletTable outlets={summary.data.outlets} basis={basis} onSelect={(o: OutletCost) => setSelected(o.branchCode)} />
+          <section ref={outletsRef} className="scroll-mt-4 space-y-3" aria-label="Outlets">
+            <SectionTitle title="Outlets" description="Biggest excess vs recipes first. Status follows the measure chosen above; data status shows whether the figures are final." />
+            {summary.data && network ? (
+              <OutletTable outlets={summary.data.outlets} basis={basis} metric={metric} status={status} onStatus={setStatus}
+                reliability={network.byOutlet} onSelect={(o: OutletCost) => setSelected(o.branchCode)} />
             ) : <div className="h-64 animate-pulse rounded-xl bg-slate-100" />}
           </section>
 
-          <section className="space-y-3">
-            <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Data quality<span className="h-px flex-1 bg-slate-200" aria-hidden />
-            </h2>
-            <DataIssues query={query} />
+          <section ref={issuesRef} className="scroll-mt-4 space-y-3" aria-label="Data quality">
+            <SectionTitle title="Data quality — what to fix in ESB" info="costIssues"
+              description="Each item names the ESB document to correct. After the nightly sync the figures update automatically." />
+            <DataIssues resource={issues} />
           </section>
 
-          <HowToRead />
+          <button type="button" onClick={() => setGuide(true)}
+            className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left hover:border-blue-200 hover:bg-blue-50/40 sm:px-5">
+            <span className="flex items-center gap-3">
+              <BookOpen size={18} className="text-blue-700" />
+              <span>
+                <span className="block text-sm font-medium text-slate-900">How the figures are calculated</span>
+                <span className="block text-xs text-slate-500">Terms with examples, formulas, thresholds, data reliability and the cost control workbook terms</span>
+              </span>
+            </span>
+            <ArrowRight size={16} className="text-slate-400" />
+          </button>
         </div>
       </div>
 
-      {outlet && <OutletDrawer outlet={outlet} basis={basis} query={query} settings={settings} onClose={() => setSelected(null)} />}
+      {outlet && (
+        <OutletDrawer outlet={outlet} basis={basis} query={query} settings={settings} reliability={network?.byOutlet.get(outlet.branchCode)}
+          defaultGrain={grain} onClose={() => setSelected(null)} />
+      )}
+      {guide && <CostGuide summary={summary.data} settings={settings} basis={basis} onClose={() => setGuide(false)} />}
       {editing && settings && (
         <SettingsDrawer settings={settings} onClose={() => setEditing(false)}
           onSaved={s => { setSettingsOverride(s); setEditing(false); summary.retry(); }} />
       )}
     </DashboardLayout>
+  );
+}
+
+function SectionTitle({ title, description, info }: { title: string; description?: string; info?: InfoKey }) {
+  return (
+    <div>
+      <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        {title}{info && <InfoTip info={info} />}<span className="h-px flex-1 bg-slate-200" aria-hidden />
+      </h2>
+      {description && <p className="mt-1 text-xs text-slate-500">{description}</p>}
+    </div>
   );
 }
 
@@ -181,6 +249,7 @@ export default function CostControlPage() {
  */
 const GRID = 'sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5';
 const FULL = 'whitespace-nowrap text-xl sm:text-2xl lg:text-xl xl:text-2xl 2xl:text-xl min-[1800px]:text-2xl';
+const per100 = (v: number, s: number) => (s ? `Rp ${(v / s * 100).toFixed(1).replace('.', ',')}` : '–');
 
 function Headline({ data, basis }: { data: SummaryResponse | null; basis: Basis }) {
   if (!data) {
@@ -191,85 +260,136 @@ function Headline({ data, basis }: { data: SummaryResponse | null; basis: Basis 
     );
   }
   const t = data.total;
+  const s = sales(t, basis);
   const med = basis === 'net' ? data.medians.actualPctNet : data.medians.actualPctSubtotal;
-  const gap = basis === 'net' ? t.gapPpNet : t.gapPpSubtotal;
+  const excess = t.actualCogs - t.theoreticalCogs;
+  const posted = t.opnameCount - t.pendingOpnameCount;
   return (
     <StatStrip label="Cost summary" columns={5} gridClassName={GRID}>
-      <Stat label={basis === 'net' ? 'Net sales' : 'Subtotal'} value={formatCurrency(Math.round(sales(t, basis)))} valueClassName={FULL}>
+      <Stat label={basis === 'net' ? 'Net sales' : 'Subtotal'} info={<InfoTip info="costSales" />} value={formatCurrency(Math.round(s))} valueClassName={FULL}>
         <p>{formatNumber(t.bills)} bills · {data.outlets.filter(o => sales(o, basis) > 0).length} outlets</p>
+        <p>Every % on this page is of this amount</p>
       </Stat>
-      <Stat label="Actual COGS" value={formatCurrency(Math.round(t.actualCogs))} emphasis valueClassName={FULL}>
-        <p className="flex flex-wrap items-center gap-1.5"><StatusBadge status={cogsStatus(t, basis)} value={pctText(cogsPct(t, basis, 'actual'))} /> of sales</p>
-        <p>Outlet median {pctText(med)}</p>
+      <Stat label="Recipes (theoretical)" info={<InfoTip info="costTheoretical" />} value={formatCurrency(Math.round(t.theoreticalCogs))} valueClassName={FULL}>
+        <p className="font-medium text-slate-700">{pctText(cogsPct(t, basis, 'theoretical'))} of sales</p>
+        <p>What the recipes allow: {per100(t.theoreticalCogs, s)} of every Rp 100</p>
       </Stat>
-      <Stat label="Theoretical COGS" value={formatCurrency(Math.round(t.theoreticalCogs))} valueClassName={FULL}>
-        <p>{pctText(cogsPct(t, basis, 'theoretical'))} of sales · sold menus × recipes</p>
+      <Stat label="Actual COGS" info={<InfoTip info="costActual" />} value={formatCurrency(Math.round(t.actualCogs))} emphasis valueClassName={FULL}>
+        <p className="flex flex-wrap items-center gap-1.5"><StatusBadge status={cogsStatus(t, basis)} value={pctText(cogsPct(t, basis, 'actual'))} /> of sales · outlet median {pctText(med)}</p>
+        <p>Really used: {per100(t.actualCogs, s)} of every Rp 100</p>
       </Stat>
-      <Stat label="Usage ratio" value={t.hasOpname ? pctText(t.usageRatio) : '–'} valueClassName={FULL}>
-        <p className="flex flex-wrap items-center gap-1.5">
-          <StatusBadge status={t.status.gapNet} value={gap === null ? '–' : `${gap > 0 ? '+' : ''}${gap.toFixed(1)} pp`} /> vs recipes
-        </p>
-        <p>Outlet median {pctText(data.medians.usageRatio)}</p>
+      <Stat label="Excess vs recipes" info={<InfoTip info="costExcess" />}
+        value={t.hasOpname ? <span className={excess > 0.5 ? 'text-red-700' : 'text-emerald-700'}>{excess > 0 ? '+' : ''}{formatCurrency(Math.round(excess))}</span> : '–'} valueClassName={FULL}>
+        {t.hasOpname ? (
+          <>
+            <p className="flex flex-wrap items-center gap-1.5"><StatusBadge status={t.status.usage} value={`usage ${pctText(t.usageRatio)}`} /> outlet median {pctText(data.medians.usageRatio)}</p>
+            <p>{excess >= 0 ? `Used ${pctText((t.usageRatio ?? 100) - 100)} more than the recipes` : `Used ${pctText(100 - (t.usageRatio ?? 100))} less than the recipes`}</p>
+          </>
+        ) : <p>Needs a stock opname in the range</p>}
       </Stat>
-      <Stat label="Stock variance" value={formatCurrency(Math.round(t.variance))} valueClassName={FULL} className="lg:col-span-2 2xl:col-span-1">
-        <p>{t.pendingVariance ? `incl. ${formatCurrency(Math.round(t.pendingVariance))} not posted · ` : ''}{t.opnameCount} opname(s)</p>
-        {t.excludedPendingLines > 0 && (
-          <p className="text-red-700" title="Implausible lines of unposted opnames, see Data quality">
-            {t.excludedPendingLines} implausible line(s) ({formatCurrency(Math.round(t.excludedPendingVariance))}) left out
-          </p>
-        )}
-        {data.withoutSales.length > 0 && <p title="Bulk-order / stock locations without POS sales, see Data quality">{data.withoutSales.length} location(s) without POS sales not counted</p>}
-        <p>Other usage {formatCurrency(Math.round(t.otherUsage))} ({pctText(basis === 'net' ? t.wastePctNet : t.wastePctSubtotal)})</p>
+      <Stat label="Stock variance" info={<InfoTip info="costVariance" />}
+        value={<span className={t.variance < -0.5 ? 'text-red-700' : ''}>{formatCurrency(Math.round(t.variance))}</span>} valueClassName={FULL} className="lg:col-span-2 2xl:col-span-1">
+        <p>posted {formatCurrency(Math.round(t.postedVariance))}{t.pendingVariance ? <> · <span className="text-amber-700">pending {formatCurrency(Math.round(t.pendingVariance))}</span></> : null}</p>
+        <p>{formatNumber(t.opnameCount)} opname(s): {formatNumber(posted)} posted, {formatNumber(t.pendingOpnameCount)} not posted yet</p>
       </Stat>
     </StatStrip>
   );
 }
 
-function StatusScale({ data, settings, basis }: { data: SummaryResponse; settings: CostSettings; basis: Basis }) {
-  const counts: Record<string, number> = {};
-  for (const o of data.outlets) {
-    const s = cogsStatus(o, basis);
-    if (s && sales(o, basis) > 0) counts[s] = (counts[s] ?? 0) + 1;
-  }
-  const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
-  const ranges = bandText(settings.cogs_bands);
+/** Also in this range: other usage, purchases (the workbook's "COGS Ratio"), book stock. */
+function Secondary({ data, basis, issues, onShowIssues }: {
+  data: SummaryResponse; basis: Basis; issues: IssuesResponse | null; onShowIssues: () => void;
+}) {
+  const t = data.total;
+  const s = sales(t, basis);
+  const book = issues?.bookStock;
+  const items: { label: string; info?: InfoKey; value: ReactNode; note: ReactNode }[] = [
+    {
+      label: 'Other usage', info: 'costOther', value: formatCurrency(Math.round(t.otherUsage)),
+      note: <span className="inline-flex items-center gap-1.5"><StatusBadge status={t.status.waste} value={pctText(basis === 'net' ? t.wastePctNet : t.wastePctSubtotal)} /> waste, R&amp;D, marketing (item journals)</span>,
+    },
+    {
+      label: 'Purchases', info: 'costPurchases', value: formatCurrency(Math.round(t.purchases)),
+      note: <>{pctText(s ? (t.purchases / s) * 100 : null)} of sales — the workbook&apos;s &quot;COGS Ratio&quot;</>,
+    },
+    {
+      label: 'Book stock', value: <span className={t.endValue < 0 ? 'text-red-700' : ''}>{formatCurrency(Math.round(t.endValue))}</span>,
+      note: book && book.negative < -0.5 ? (
+        <>
+          {formatCurrency(Math.round(book.positive))} in stock · {formatCurrency(Math.round(book.negative))} negative balances
+          {book.items[0] && <> (largest {book.items[0].productName} {formatCurrency(Math.round(book.items[0].value))})</>} ·{' '}
+          <button type="button" onClick={onShowIssues} className="font-medium text-blue-700 hover:underline">see Data quality</button>
+        </>
+      ) : <>from {formatCurrency(Math.round(t.beginValue))} at the start · ESB system stock at HPP</>,
+    },
+  ];
   return (
-    <section className="rounded-xl border border-slate-200 bg-white px-4 py-3 sm:px-5" aria-label="Outlets by COGS status">
+    <dl className="grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-3">
+      {items.map(i => (
+        <div key={i.label} className="min-w-0 bg-white px-4 py-3">
+          <dt className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{i.label}{i.info && <InfoTip info={i.info} />}</dt>
+          <dd className="mt-1 whitespace-nowrap text-base font-semibold tabular-nums text-slate-900">{i.value}</dd>
+          <dd className="mt-0.5 text-xs text-slate-500">{i.note}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function usageText(b: Bands): string[] {
+  return [`within ±${b.good}%`, `±${b.good}–${b.warning}%`, `±${b.warning}–${b.serious}%`, `beyond ±${b.serious}%`];
+}
+
+function StatusScale({ data, settings, basis, metric, onMetric, onPick }: {
+  data: SummaryResponse; settings: CostSettings; basis: Basis; metric: StatusMetric;
+  onMetric: (m: StatusMetric) => void; onPick: (s: Status) => void;
+}) {
+  const selling = data.outlets.filter(o => sales(o, basis) > 0);
+  const counts: Partial<Record<Status, number>> = {};
+  let none = 0;
+  for (const o of selling) {
+    const s = outletStatus(o, basis, metric);
+    if (s) counts[s] = (counts[s] ?? 0) + 1;
+    else none += 1;
+  }
+  const total = Object.values(counts).reduce((a, b) => a + (b ?? 0), 0) || 1;
+  const ranges = metric === 'usage' ? usageText(settings.usage_bands) : bandText(settings.cogs_bands);
+  const theo = cogsPct(data.total, basis, 'theoretical') ?? 0;
+  const targetBelowRecipes = metric === 'cogs' && theo > settings.cogs_bands.good;
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3.5 sm:px-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-slate-900">Outlets by actual COGS</h2>
-        <p className="text-xs text-slate-500">% of {basis === 'net' ? 'net sales' : 'subtotal'} · thresholds editable in Settings</p>
+        <Segmented label="Status measure" value={metric}
+          options={[{ value: 'usage', label: 'Usage vs recipes' }, { value: 'cogs', label: 'Actual COGS %' }]} onChange={onMetric} />
+        <p className="text-xs text-slate-500">
+          {metric === 'usage' ? 'Actual ÷ recipe usage, distance from 100%' : `% of ${basis === 'net' ? 'net sales' : 'subtotal'}`} · thresholds in Settings
+        </p>
       </div>
-      <div className="mt-2.5 flex h-3 overflow-hidden rounded-full bg-slate-100" aria-hidden>
-        {STATUS_ORDER.map(s => counts[s] ? <div key={s} style={{ width: `${(counts[s] / total) * 100}%`, background: STATUS[s].dot }} className="border-r-2 border-white last:border-r-0" /> : null)}
+      <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-slate-100" aria-hidden>
+        {STATUS_ORDER.map(s => counts[s] ? <div key={s} style={{ width: `${(counts[s]! / total) * 100}%`, background: STATUS[s].dot }} className="border-r-2 border-white last:border-r-0" /> : null)}
       </div>
-      <ul className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-4">
+      <ul className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2 xl:grid-cols-4">
         {STATUS_ORDER.map((s, i) => (
-          <li key={s} className="flex items-center gap-2">
-            <StatusBadge status={s} />
-            <span className="tabular-nums text-slate-700">{counts[s] ?? 0} outlets</span>
-            <span className="text-slate-400">{ranges[i]}</span>
+          <li key={s}>
+            <button type="button" onClick={() => onPick(s)} disabled={!counts[s]}
+              className="flex w-full items-center gap-2 rounded-lg border border-slate-100 px-2.5 py-2 text-left hover:border-slate-300 hover:bg-slate-50 disabled:cursor-default disabled:opacity-60 disabled:hover:border-slate-100 disabled:hover:bg-transparent">
+              <StatusBadge status={s} />
+              <span className="font-semibold tabular-nums text-slate-800">{counts[s] ?? 0}</span>
+              <span className="text-slate-500">outlets</span>
+              <span className="ml-auto text-slate-400">{ranges[i]}</span>
+            </button>
           </li>
         ))}
       </ul>
-    </section>
+      {metric === 'usage' && none > 0 && (
+        <p className="mt-2 text-xs text-slate-500">{none} outlet(s) without a stock opname in this range have no usage status.</p>
+      )}
+      {targetBelowRecipes && (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs leading-relaxed text-amber-900">
+          The recipes alone cost {pctText(theo)} of sales — above the COGS target of ≤ {settings.cogs_bands.good}%. Outlets cannot reach the target by running
+          better; it needs recipe or price changes, or a target that fits the menu. Use <b>Usage vs recipes</b> to find the outlets that lose money.
+        </p>
+      )}
+    </div>
   );
 }
-
-function HowToRead() {
-  return (
-    <details className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 sm:px-5">
-      <summary className="flex cursor-pointer items-center gap-2 font-medium text-slate-900"><Info size={16} className="text-blue-700" /> How the figures are calculated</summary>
-      <ul className="mt-3 list-disc space-y-1.5 pl-5 text-xs leading-relaxed">
-        <li><b>Theoretical COGS</b>: every sold menu × its recipe (ESB BOM) at the outlet&apos;s HPP — what the outlet should have used.</li>
-        <li><b>Actual COGS</b>: theoretical + other usage (item journal: waste, R&amp;D, marketing) − stock variance found at the stock opname.</li>
-        <li><b>Stock variance</b>: physical minus system stock at opname, valued at HPP; negative is a loss. Opnames not yet posted in ESB (Draft/New) are counted as <i>pending</i> and make the period <i>provisional</i>; a pending line whose variance is above max(Rp 50 M, 50% of the outlet&apos;s theoretical COGS of the period) is implausible and left out (see Data quality).</li>
-        <li><b>Network totals</b> only include locations with POS sales; bulk-order / stock locations without POS sales are listed under Data quality.</li>
-        <li><b>Usage ratio</b>: actual ÷ theoretical usage; 100% means exactly as the recipes say. Only meaningful when an opname was taken in the period.</li>
-        <li><b>Periods</b> follow the opname rhythm (1–7, 8–14, 15–21, 22–end of month); a date range covers every period starting in it. Weekly figures swing with the opname timing — compare months for a stable view.</li>
-        <li><b>Ratio basis</b>: net sales (after discounts) is the standard; subtotal (before discounts) shows the effect of promotions.</li>
-        <li>Data comes from ESB (inventory valuation, stock opname, POS sales) and is refreshed every night.</li>
-      </ul>
-    </details>
-  );
-}
-

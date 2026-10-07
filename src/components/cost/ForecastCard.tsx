@@ -18,7 +18,8 @@ export default function ForecastCard({ branch = '', onSelect }: { branch?: strin
   return (
     <Card
       title="Purchase forecast"
-      subtitle="Estimated purchases per outlet from recent usage, sales trend and current stock"
+      subtitle="What each outlet will likely need to buy, from recent usage, sales trend and current stock"
+      info="costForecast"
       resource={resource}
       minHeight={300}
       actions={<Segmented label="Horizon" value={horizon} options={(['7', '14', '30'] as Horizon[]).map(h => ({ value: h, label: HORIZON_LABEL[h] }))} onChange={setHorizon} />}

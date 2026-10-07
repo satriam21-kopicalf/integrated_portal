@@ -110,11 +110,17 @@ export interface IssuesResponse {
     createdBy: string | null; lineType: string; productCode: string | null; productName: string;
     qty: number; unit: string; baseQty: number; usualQty: number; factor: number;
   }[];
-  /** valuation periods with phantom stock coming in (distorted HPP/COGS until an opname removes it) */
+  /** valuation periods with phantom stock coming in or going out (distorted HPP/COGS until corrected); inQty = the flow */
   stockSpikes: {
     branchCode: string | null; locationName: string; periodStart: string; periodEnd: string; productId: string; productName: string;
+    direction?: 'in' | 'out';
     inQty: number; usualInQty: number; factor: number; opnameQty: number; endQty: number; latestEndQty: number; open: boolean;
   }[];
+  /** closing book stock at the end of the range; negative balances above Rp 10 M listed */
+  bookStock?: {
+    periodStart: string | null; positive: number; negative: number;
+    items: { branchCode: string | null; locationName: string; productId: string; productName: string; qty: number; value: number }[];
+  };
   /** outlet HPP of an item > 3x the network median in the period (ESB valuation) */
   hppAnomalies: {
     branchCode: string; branchName: string; periodStart: string; productId: string; productName: string; unit: string | null;

@@ -11,13 +11,16 @@ import { formatCurrency } from '@/lib/format';
 const ACTUAL = '#2a78d6';
 const THEORETICAL = '#a8a29e';
 
-export default function CostTrendCard({ query, basis, settings, branch }: {
+export default function CostTrendCard({ query, basis, settings, branch, defaultGrain = 'month' }: {
   query: string;
   basis: Basis;
   settings: CostSettings | undefined;
   branch?: string;
+  /** "period" for short ranges, where months would be one or two points */
+  defaultGrain?: 'period' | 'month';
 }) {
-  const [grain, setGrain] = useState<'period' | 'month'>('month');
+  const [chosen, setGrain] = useState<'period' | 'month' | null>(null);
+  const grain = chosen ?? defaultGrain;
   const [view, setView] = useState<'chart' | 'table'>('chart');
   const q = `${query}&grain=${grain}${branch ? `&branch=${encodeURIComponent(branch)}` : ''}`;
   const resource = useCostControl<TrendResponse>('trend', q);
@@ -25,7 +28,8 @@ export default function CostTrendCard({ query, basis, settings, branch }: {
   return (
     <Card
       title="COGS trend"
-      subtitle={`Actual vs theoretical COGS, % of ${basis === 'net' ? 'net sales' : 'subtotal'}`}
+      subtitle={`Actual vs recipes, % of ${basis === 'net' ? 'net sales' : 'subtotal'} — the gap between the lines is the excess`}
+      info="costTrend"
       resource={resource}
       minHeight={340}
       actions={
@@ -60,7 +64,8 @@ function TrendBody({ data, basis, view, settings }: { data: TrendResponse; basis
         let html = tipTitle(label(i));
         html += tipRow(ACTUAL, pctText(actual[i]), 'Actual COGS', 'line');
         html += tipRow(THEORETICAL, pctText(theoretical[i]), 'Theoretical (recipes)', 'line');
-        html += tipFooter(`${basis === 'net' ? 'Net sales' : 'Subtotal'} ${formatCurrency(Math.round(sales(s[i], basis)))}`);
+        html += tipFooter(`${basis === 'net' ? 'Net sales' : 'Subtotal'} ${formatCurrency(Math.round(sales(s[i], basis)))}`
+          + (s[i].hasOpname ? ` · excess vs recipes ${formatCurrency(Math.round(s[i].actualCogs - s[i].theoreticalCogs))}` : ' · no opname in this period'));
         return html;
       },
     }),

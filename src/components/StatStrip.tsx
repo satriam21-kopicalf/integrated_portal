@@ -21,10 +21,12 @@ export function StatStrip({ children, columns = 4, label, gridClassName }: {
 }
 
 export function Stat({
-  label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-2xl',
+  label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-2xl', info,
 }: {
   label: string;
   icon?: ReactNode;
+  /** after the label, e.g. an ⓘ */
+  info?: ReactNode;
   value: ReactNode;
   /** Full value shown on hover (the visible one may be compact). */
   title?: string;
@@ -40,6 +42,7 @@ export function Stat({
       <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
         {icon}
         {label}
+        {info}
       </p>
       <div className={`mt-1.5 font-semibold tracking-tight text-slate-900 tabular-nums ${valueClassName}`} title={title}>
         {value}
