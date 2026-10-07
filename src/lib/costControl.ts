@@ -104,6 +104,17 @@ export interface IssuesResponse {
   }[];
   pendingOpnames: { branchCode: string; branchName: string; docNum: string; docDate: string; status: string; lines: number }[];
   withoutSales: { branchCode: string; branchName: string; actualCogs: number }[];
+  /** ESB document lines with an implausible quantity (e.g. grams typed into a KG field) */
+  quantityErrors: {
+    module: string; docNum: string; docDate: string; status: string; branchCode: string | null; locationName: string;
+    createdBy: string | null; lineType: string; productCode: string | null; productName: string;
+    qty: number; unit: string; baseQty: number; usualQty: number; factor: number;
+  }[];
+  /** valuation periods with phantom stock coming in (distorted HPP/COGS until an opname removes it) */
+  stockSpikes: {
+    branchCode: string | null; locationName: string; periodStart: string; periodEnd: string; productId: string; productName: string;
+    inQty: number; usualInQty: number; factor: number; opnameQty: number; endQty: number; latestEndQty: number; open: boolean;
+  }[];
   /** outlet HPP of an item > 3x the network median in the period (ESB valuation) */
   hppAnomalies: {
     branchCode: string; branchName: string; periodStart: string; productId: string; productName: string; unit: string | null;

@@ -1,10 +1,16 @@
 'use client';
 
-import { AlertTriangle, CheckCircle2, ClipboardList, PackageX, Warehouse } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, PackageX, Scale, Warehouse } from 'lucide-react';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
 import { IssuesResponse, useCostControl } from '@/lib/costControl';
 
 const short = (n: string) => n.replace(/^Kopi Calf (To Go )?/, '');
+const MODULES: Record<string, string> = {
+  simple_manufacturing: 'Simple Manufacturing', goods_receipt: 'Goods Receipt', goods_delivery: 'Goods Delivery',
+  simple_purchase: 'Simple Purchase', item_journal: 'Item Journal', simple_transfer: 'Simple Transfer',
+  goods_transfer_request: 'Transfer Request',
+};
+const qtyText = (q: number) => formatNumber(Math.round(q * 1000) / 1000);
 
 /**
  * What to fix in ESB before the figures are final: unposted stock opnames (provisional
@@ -17,7 +23,11 @@ export default function DataIssues({ query }: { query: string }) {
   if (!d) return <div className="h-32 animate-pulse rounded-xl bg-slate-100" />;
   const byStatus = d.pendingOpnames.reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.status]: (acc[p.status] ?? 0) + 1 }), {});
   const dates = [...new Set(d.pendingOpnames.map(p => p.docDate))].sort();
-  const clean = !d.pendingOpnames.length && !d.suspectLines.length && !d.withoutSales.length && !d.hppAnomalies.length && !d.usageSpikes.length;
+  const qtyErrors = d.quantityErrors ?? [];
+  const spikes = d.stockSpikes ?? [];
+  const openSpikes = spikes.filter(s => s.open).length;
+  const clean = !d.pendingOpnames.length && !d.suspectLines.length && !d.withoutSales.length && !d.hppAnomalies.length && !d.usageSpikes.length
+    && !qtyErrors.length && !spikes.length;
   const month = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 
   if (clean) {
@@ -54,6 +64,35 @@ export default function DataIssues({ query }: { query: string }) {
             short(l.branchName), <span key="d" className="font-mono">{l.docNum}</span>, l.productName,
             formatNumber(l.physicalQty), <b key="s" className="text-red-700">{formatNumber(l.systemQty)}</b>, formatCurrency(Math.round(l.hpp)),
             <b key="v" className="text-red-700">{formatCurrency(Math.round(l.variance))}</b>, formatCurrency(Math.round(l.periodTheoreticalCogs)),
+          ])} />
+        </Issue>
+      )}
+
+      {qtyErrors.length > 0 && (
+        <Issue tone="red" icon={<Scale size={16} />} title={`${formatNumber(qtyErrors.length)} document line(s) with an implausible quantity in ESB`}
+          text={<>The quantity is more than 200× what is usually entered for that item in the same unit and document type — typically
+            <b> grams typed into a KG field</b> (e.g. 25,163 KG instead of 25.163 KG) or pieces into a pack unit. Once authorized it creates
+            <b> phantom stock</b>: HPP and COGS of the period are distorted and the next opname shows a huge variance. Correct the document in ESB
+            (or have the opname remove the phantom stock before it is posted).</>}>
+          <Table head={['Date', 'Location', 'Document', 'Type', 'Item', 'Entered', 'Usual', '×', 'Status', 'By']} rows={qtyErrors.map(q => [
+            formatDate(q.docDate), short(q.locationName), <span key="d" className="font-mono">{q.docNum}</span>, MODULES[q.module] ?? q.module,
+            q.productName, <b key="q" className="text-red-700">{qtyText(q.qty)} {q.unit}</b>, `${qtyText(q.usualQty)} ${q.unit}`,
+            `${formatNumber(q.factor)}×`, q.status, q.createdBy ?? '–',
+          ])} />
+        </Issue>
+      )}
+
+      {spikes.length > 0 && (
+        <Issue tone="red" icon={<Scale size={16} />}
+          title={`${formatNumber(spikes.length)} period(s) with phantom stock in the ESB valuation${openSpikes ? ` · ${openSpikes} still in stock` : ''}`}
+          text={<>Stock of an item coming in at a location was more than 200× its usual weekly inflow there (from the quantity errors above).
+            In those periods the item&apos;s HPP collapses, so COGS is understated; an opname later removes the phantom stock.
+            Rows marked <b>still in stock</b> have not been removed yet — the next opname will show a large loss unless the document is corrected first.</>}>
+          <Table head={['Period', 'Location', 'Item', 'Came in', 'Usual / week', '×', 'Removed by opname', 'Stock now']} rows={spikes.map(s => [
+            `${formatDate(s.periodStart)} – ${formatDate(s.periodEnd)}`, short(s.locationName), s.productName,
+            <b key="i" className="text-red-700">{qtyText(s.inQty)}</b>, qtyText(s.usualInQty), `${formatNumber(s.factor)}×`,
+            s.opnameQty ? qtyText(s.opnameQty) : '–',
+            s.open ? <b key="o" className="text-red-700">{qtyText(s.latestEndQty)} · still in stock</b> : qtyText(s.latestEndQty),
           ])} />
         </Issue>
       )}
