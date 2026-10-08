@@ -37,7 +37,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
 
   return (
     <>
-      <Block title="Comparison" subtitle={res.data ? `Subtotal (gross sales) vs ${basisText(res.data)}` : undefined}
+      <Block title="Comparison" subtitle={res.data ? `Gross sales vs ${basisText(res.data)}` : undefined}
         actions={
           <>
             <Segmented label="Compare with" value={basis} options={BASES} onChange={setBasis} />
@@ -77,7 +77,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
                 }}
                 columns={[
                   { key: 'date', label: d.granularity === 'day' ? 'Date' : d.granularity === 'week' ? 'Week of' : 'Month', value: p => p.date, render: p => bucketLabel(p.date, d.granularity) },
-                  { key: 'sales', label: 'Sales', align: 'right', value: p => p.subtotal, render: p => rp(p.subtotal) },
+                  { key: 'sales', label: 'Gross sales', align: 'right', value: p => p.subtotal, render: p => rp(p.subtotal) },
                   { key: 'cmpFrom', label: 'Compared with', value: p => p.compareFrom, render: p => (p.compareFrom ? (basis === 'sequential' ? bucketLabel(p.compareFrom, d.granularity) : `from ${formatDate(p.compareFrom)}`) : '-') },
                   { key: 'cmp', label: 'Comparison', align: 'right', value: p => p.compareSubtotal, render: p => rp(p.compareSubtotal) },
                   { key: 'perDay', label: 'Per day', align: 'right', value: p => p.avgPerDay, render: p => rp(p.avgPerDay) },
@@ -90,7 +90,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
         </Loaded>
       </Block>
 
-      <Block title="Growth per hour" subtitle={`Sales per day in each hour (outlet time)${basis === 'sequential' ? ' · compared with the previous period' : ''}`}>
+      <Block title="Growth per hour" subtitle={`Gross sales per day in each hour (outlet time)${basis === 'sequential' ? ' · compared with the previous period' : ''}`}>
         {hours.res.error ? (
           <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{hours.res.error}</p>
         ) : !hours.data ? (
@@ -168,7 +168,7 @@ function SplitTable({ rows, kind, onOpen }: { rows: GrowthSplit[]; kind: 'branch
             ? <span className="flex items-center gap-2"><SeriesKey color={channelColor(r.key)} /><ChannelLogo channel={r.key} height={14} /></span>
             : <span title={r.label}>{short(r.label)}</span>) },
         { key: 'status', label: 'Status', value: r => r.status, render: r => (r.status ? <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span> : '-') },
-        { key: 'sales', label: 'Sales', align: 'right', value: r => r.subtotal, render: r => rp(r.subtotal) },
+        { key: 'sales', label: 'Gross sales', align: 'right', value: r => r.subtotal, render: r => rp(r.subtotal) },
         { key: 'cmp', label: 'Comparison', align: 'right', value: r => r.compareSubtotal, render: r => rp(r.compareSubtotal) },
         { key: 'abs', label: 'Growth', align: 'right', value: r => r.growthAbs, render: r => <GrowthText v={r.growthPct} abs={r.growthAbs} absOnly /> },
         { key: 'pct', label: 'Growth %', align: 'right', value: r => r.growthPct, render: r => <Delta value={r.growthPct} /> },

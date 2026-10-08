@@ -11,7 +11,7 @@ import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receip
 import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate } from '@/lib/format';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
-import { RealtimeIndicator, useRealtime } from '@/lib/realtime';
+import { useRealtime } from '@/lib/realtime';
 
 interface PaginationInfo {
   cursor: string | null;
@@ -281,7 +281,6 @@ export default function SalesPage() {
                 {periodLabel} · {branchLabel}
               </p>
             </div>
-            <RealtimeIndicator />
           </div>
         </header>
 
@@ -468,7 +467,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
   const discount = t ? t.sales.subtotal - t.sales.nettSales : 0;
   const parts = t && t.gross.subtotal
     ? [
-        { key: 'sales', label: 'Sales', value: t.sales.subtotal, color: '#2a78d6' },
+        { key: 'sales', label: 'Gross sales', value: t.sales.subtotal, color: '#2a78d6' },
         { key: 'void', label: 'Void & cancelled', value: t.void.subtotal, color: '#e34948' },
         { key: 'other', label: 'Other cost', value: t.other_cost.subtotal, color: '#eda100' },
         { key: 'open', label: 'Open bills', value: t.open.subtotal, color: '#a8a29e' },
@@ -478,7 +477,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
 
   return (
     <StatStrip label="Sales summary">
-      <Stat label="Sales subtotal" icon={<Wallet size={13} aria-hidden />} emphasis
+      <Stat label="Gross sales" icon={<Wallet size={13} aria-hidden />} emphasis
         value={pending ? <StatSkeleton /> : money(t?.sales.subtotal)} title={formatCurrency(t?.sales.subtotal)}>
         {t && <p>{formatNumber(t.sales.transactions)} transactions · avg {formatCurrency(avg)}</p>}
       </Stat>
@@ -491,11 +490,11 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
           </p>
         )}
       </Stat>
-      <Stat label="Gross subtotal" icon={<Layers size={13} aria-hidden />}
+      <Stat label="All transactions" icon={<Layers size={13} aria-hidden />}
         value={pending ? <StatSkeleton /> : money(t?.gross.subtotal)} title={formatCurrency(t?.gross.subtotal)}>
         {t && (
           <>
-            <p>{formatNumber(t.gross.transactions)} transactions, all statuses</p>
+            <p>{formatNumber(t.gross.transactions)} transactions, all statuses (before deductions)</p>
             {parts.length > 0 && (
               <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-200" role="img"
                 aria-label={parts.map(p => `${p.label} ${((p.value / t.gross.subtotal) * 100).toFixed(1)}%`).join(', ')}>

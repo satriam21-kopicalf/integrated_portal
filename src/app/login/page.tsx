@@ -105,7 +105,7 @@ export default function LoginPage() {
             <div className="mt-8 space-y-6">
               {farewell && <FarewellCard farewell={farewell} />}
               {notice && (
-                <p className="flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-sm text-blue-800" role="status">
+                <p className="flex items-start gap-2 rounded-lg bg-[#eef0fb] px-3 py-2.5 text-sm text-[#080e63]" role="status">
                   <Info size={16} className="mt-0.5 flex-shrink-0" /> {notice}
                 </p>
               )}
@@ -148,7 +148,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0b1385]/40"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -158,11 +158,11 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <label className="flex cursor-pointer select-none items-center gap-2 text-slate-600">
                     <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-600" />
+                      className="h-4 w-4 rounded border-slate-300 text-[#0b1385] focus:ring-[#0b1385]" />
                     Keep me signed in
                   </label>
                   <button type="button" onClick={() => setShowForgot(s => !s)} aria-expanded={showForgot}
-                    className="rounded font-medium text-blue-700 hover:text-blue-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40">
+                    className="rounded font-medium text-[#0b1385] hover:text-[#080e63] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0b1385]/40">
                     Forgot password?
                   </button>
                 </div>
@@ -181,7 +181,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="group flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-700 text-sm font-semibold text-white shadow-sm shadow-blue-700/20 transition-colors hover:bg-blue-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-600/25 disabled:cursor-wait disabled:bg-blue-700/80"
+                  className="group flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#0b1385] text-sm font-semibold text-white shadow-sm shadow-[#0b1385]/20 transition-colors hover:bg-[#080e63] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0b1385]/25 disabled:cursor-wait disabled:bg-[#0b1385]/80"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
                   {submitting ? 'Signing in…' : 'Sign in'}
@@ -206,7 +206,7 @@ function inputClass(invalid: boolean) {
     'focus:outline-none focus:ring-4 ' +
     (invalid
       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
-      : 'border-slate-200 hover:border-slate-300 focus:border-blue-700 focus:ring-blue-600/10')
+      : 'border-slate-200 hover:border-slate-300 focus:border-[#0b1385] focus:ring-[#0b1385]/10')
   );
 }
 
@@ -225,13 +225,13 @@ function Field({ id, label, error, hint, children }: {
 
 /* ------------------------------------------------------------------ brand panel */
 
-/** Large screens: the brand side, one hue (Calf blue) with white; decorative, no real figures. */
+/** Large screens: the brand side, one hue (Calf blue #0b1385) with white; decorative, no real figures. */
 function BrandPanel() {
   return (
-    <aside className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-blue-700 p-10 text-white lg:flex xl:p-14">
+    <aside className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-[#0b1385] p-10 text-white lg:flex xl:p-14">
       <GridPattern />
-      <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-blue-500/40 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-blue-900/50 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-[#2b36b8]/40 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-[#050a4a]/50 blur-3xl" aria-hidden />
 
       {/* the logo in white */}
       <Image src="/assets/calf-logo.png" alt="Kopi Calf" width={150} height={80} priority unoptimized
@@ -264,40 +264,40 @@ function DashboardIllustration() {
   const bars = [38, 56, 46, 70, 60, 84, 66];
   return (
     <div className="relative w-full max-w-[460px]" aria-hidden>
-      <div className="rounded-2xl bg-white p-5 shadow-2xl shadow-blue-950/30">
+      <div className="rounded-2xl bg-white p-5 shadow-2xl shadow-[#050a4a]/30">
         <div className="flex items-center justify-between">
           <span className="space-y-1.5">
             <span className="block h-2 w-20 rounded-full bg-slate-200" />
-            <span className="block h-3 w-32 rounded-full bg-blue-700" />
+            <span className="block h-3 w-32 rounded-full bg-[#0b1385]" />
           </span>
           <span className="flex gap-1.5">
-            <span className="h-6 w-12 rounded-md bg-blue-50" /><span className="h-6 w-12 rounded-md bg-blue-700" />
+            <span className="h-6 w-12 rounded-md bg-[#eef0fb]" /><span className="h-6 w-12 rounded-md bg-[#0b1385]" />
           </span>
         </div>
         <svg viewBox="0 0 300 110" className="mt-4 h-32 w-full">
           <defs>
             <linearGradient id="login-area" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="#1d4ed8" stopOpacity=".18" /><stop offset="1" stopColor="#1d4ed8" stopOpacity="0" />
+              <stop offset="0" stopColor="#0b1385" stopOpacity=".18" /><stop offset="1" stopColor="#0b1385" stopOpacity="0" />
             </linearGradient>
           </defs>
           {[26, 54, 82].map(y => <line key={y} x1="0" x2="300" y1={y} y2={y} stroke="#e2e8f0" />)}
           <path d="M0,92 C30,84 45,66 75,70 S120,44 150,50 S200,28 225,34 S270,16 300,20 L300,110 L0,110 Z" fill="url(#login-area)" />
-          <path d="M0,98 C35,94 50,84 80,86 S125,70 155,74 S205,58 230,62 S270,48 300,50" fill="none" stroke="#93c5fd" strokeWidth="2" strokeDasharray="5 5" />
-          <path d="M0,92 C30,84 45,66 75,70 S120,44 150,50 S200,28 225,34 S270,16 300,20" fill="none" stroke="#1d4ed8" strokeWidth="2.5" />
-          <circle cx="225" cy="34" r="5" fill="#fff" stroke="#1d4ed8" strokeWidth="2.5" />
+          <path d="M0,98 C35,94 50,84 80,86 S125,70 155,74 S205,58 230,62 S270,48 300,50" fill="none" stroke="#9ca3e6" strokeWidth="2" strokeDasharray="5 5" />
+          <path d="M0,92 C30,84 45,66 75,70 S120,44 150,50 S200,28 225,34 S270,16 300,20" fill="none" stroke="#0b1385" strokeWidth="2.5" />
+          <circle cx="225" cy="34" r="5" fill="#fff" stroke="#0b1385" strokeWidth="2.5" />
         </svg>
         <div className="mt-4 flex h-16 items-end gap-2">
           {bars.map((h, i) => (
-            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-blue-700' : 'bg-blue-100'}`} style={{ height: `${h}%` }} />
+            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-[#0b1385]' : 'bg-[#dcdff5]'}`} style={{ height: `${h}%` }} />
           ))}
         </div>
       </div>
       {/* floating KPI chip */}
-      <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-xl bg-white px-3 py-2.5 shadow-xl shadow-blue-950/25">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700"><TrendingUp size={16} /></span>
+      <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-xl bg-white px-3 py-2.5 shadow-xl shadow-[#050a4a]/25">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef0fb] text-[#0b1385]"><TrendingUp size={16} /></span>
         <span className="space-y-1.5">
           <span className="block h-1.5 w-12 rounded-full bg-slate-200" />
-          <span className="block h-2.5 w-16 rounded-full bg-blue-700" />
+          <span className="block h-2.5 w-16 rounded-full bg-[#0b1385]" />
         </span>
       </div>
     </div>
@@ -308,8 +308,8 @@ function DashboardIllustration() {
 function FarewellCard({ farewell }: { farewell: Farewell }) {
   const Icon = DAY_PART_ICONS[farewell.part] ?? Info;
   return (
-    <div className="notice-in flex items-start gap-3 rounded-xl bg-blue-50 px-4 py-3.5" role="status">
-      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-700 text-white">
+    <div className="notice-in flex items-start gap-3 rounded-xl bg-[#eef0fb] px-4 py-3.5" role="status">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#0b1385] text-white">
         <Icon size={18} />
       </span>
       <div className="min-w-0">

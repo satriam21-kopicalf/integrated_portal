@@ -15,13 +15,13 @@ const METRICS: {
   key: Key; label: string; hint: string; icon: typeof Wallet;
   format: (v: number) => string; full: (v: number) => string; series: (d: KpisResponse['daily'][number]) => number;
 }[] = [
-  { key: 'sales', label: 'Sales', hint: 'Subtotal of finished sales with a bill number', icon: Wallet,
+  { key: 'sales', label: 'Gross sales', hint: 'Subtotal of finished bills with a bill number (ESB Sub Total)', icon: Wallet,
     format: formatCurrency, full: formatCurrency, series: d => d.subtotal },
   { key: 'nettSales', label: 'Nett sales', hint: 'After item and bill discounts', icon: Tag,
     format: formatCurrency, full: formatCurrency, series: d => d.nettSales },
   { key: 'bills', label: 'Bills', hint: 'Number of sales transactions', icon: Receipt,
     format: formatNumber, full: formatNumber, series: d => d.bills },
-  { key: 'avgTicket', label: 'Avg ticket', hint: 'Sales ÷ bills', icon: ShoppingBag,
+  { key: 'avgTicket', label: 'Avg ticket', hint: 'Gross sales ÷ bills', icon: ShoppingBag,
     format: formatCurrency, full: formatCurrency, series: d => d.avgTicket ?? 0 },
 ];
 

@@ -145,7 +145,7 @@ export function HourGrowthChart({ rows, height = 240 }: { rows: HourGrowthRow[];
     }],
   }), [rows]);
   if (!rows.length) return <p className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>No sales in these periods</p>;
-  return <EChart option={option} height={height} ariaLabel="Sales growth per hour of the day" />;
+  return <EChart option={option} height={height} ariaLabel="Gross sales growth per hour of the day" />;
 }
 
 /** Weekday x hour growth of sales per day, diverging red - grey - blue. */
@@ -190,7 +190,7 @@ export function HourGrowthHeatmap({ current, compare }: { current: HoursProfile;
       emphasis: { itemStyle: { borderColor: INK.primary, borderWidth: 1 } },
     }],
   }), [model, current, compare]);
-  return <EChart option={option} height={300} ariaLabel="Sales growth by weekday and hour" />;
+  return <EChart option={option} height={300} ariaLabel="Gross sales growth by weekday and hour" />;
 }
 
 export function HourGrowthTable({ rows }: { rows: HourGrowthRow[] }) {
@@ -198,7 +198,7 @@ export function HourGrowthTable({ rows }: { rows: HourGrowthRow[] }) {
     <DetailTable caption="Growth per hour" csvName="sales-growth-per-hour" rows={rows} rowKey={r => String(r.hour)} initialSort={{ key: 'hour', desc: false }}
       columns={[
         { key: 'hour', label: 'Hour', value: r => r.hour, render: r => `${hourLabel(r.hour)}–${hourLabel(r.hour + 1)}` },
-        { key: 'cur', label: 'Sales/day', align: 'right', value: r => r.cur, render: r => rp(r.cur) },
+        { key: 'cur', label: 'Gross sales/day', align: 'right', value: r => r.cur, render: r => rp(r.cur) },
         { key: 'cmp', label: 'Comparison/day', align: 'right', value: r => r.cmp, render: r => rp(r.cmp) },
         { key: 'abs', label: 'Growth/day', align: 'right', value: r => r.growthAbs, render: r => <GrowthText v={r.growthPct} abs={r.growthAbs} absOnly /> },
         { key: 'pct', label: 'Growth', align: 'right', value: r => r.growthPct, render: r => <Delta value={r.growthPct} /> },
@@ -245,10 +245,10 @@ export default function SalesGrowthCard({ query }: { query: string }) {
 
   return (
     <Card
-      title="Sales growth"
+      title="Gross sales growth"
       info={view === 'month' ? 'monthly' : 'growth'}
-      subtitle={view === 'month' ? 'Subtotal (gross sales) per month: average per day, month on month, year on year and same-store'
-        : resource.data ? `Subtotal (gross sales) vs ${basisText(resource.data)}` : 'Subtotal (gross sales) growth'}
+      subtitle={view === 'month' ? 'Gross sales per month: average per day, month on month, year on year and same-store'
+        : resource.data ? `Gross sales vs ${basisText(resource.data)}` : 'Gross sales growth'}
       resource={shown}
       minHeight={360}
       onOpen={() => drill.open(view === 'month' ? { kind: 'monthly' } : { kind: 'growth', basis })}
@@ -284,7 +284,7 @@ export default function SalesGrowthCard({ query }: { query: string }) {
           ) : (
             <>
               <p className="text-[11px] text-slate-500">
-                Sales per day in each hour (outlet time){basis === 'sequential' ? ' · by hour compares with the comparison period' : ''}
+                Gross sales per day in each hour (outlet time){basis === 'sequential' ? ' · by hour compares with the comparison period' : ''}
               </p>
               <HourGrowthChart rows={hours.rows} />
               <HourMovers rows={hours.rows} />

@@ -126,7 +126,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
     : '';
 
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white" aria-label="Sales today">
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white" aria-label="Gross sales today">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
@@ -148,7 +148,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         {/* Today's figures */}
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Sales today</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Gross sales today</p>
             {t ? (
               <>
                 <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 tabular-nums" title={formatCurrency(t.subtotal)}>
@@ -199,13 +199,13 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Sales by hour</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Gross sales by hour</p>
               <span className="flex items-center gap-3 text-[11px] text-slate-500">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#2a78d6]" />Today</span>
                 <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />Yesterday</span>
               </span>
             </div>
-            {hourOption ? <EChart option={hourOption} height={120} ariaLabel="Sales per hour today compared with yesterday" /> : <div className="h-[120px]" />}
+            {hourOption ? <EChart option={hourOption} height={120} ariaLabel="Gross sales per hour today compared with yesterday" /> : <div className="h-[120px]" />}
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Channels today</p>

@@ -41,7 +41,7 @@ export default function ChannelMixCard({ resource }: { resource: Resource<Channe
     <Card
       title="Channel mix"
       info="channels"
-      subtitle="Sales and share per channel · click a channel for its details"
+      subtitle="Gross sales and share per channel · click a channel for its details"
       resource={resource}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'channels' })}
@@ -73,7 +73,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
         formatter: (p: { dataIndex: number }) => {
           const c = rows[p.dataIndex];
           return tipTitle(c.channel)
-            + tipRow(channelColor(c.channel), formatCurrency(c.subtotal), `${c.share?.toFixed(1)}% of sales`)
+            + tipRow(channelColor(c.channel), formatCurrency(c.subtotal), `${c.share?.toFixed(1)}% of gross sales`)
             + tipRow(channelColor(c.channel), formatNumber(c.bills), 'bills')
             + tipFooter(`Avg ticket ${formatCurrency(c.avgTicket)} · discount ${c.discountPct?.toFixed(1) ?? '-'}%`);
         },
@@ -140,7 +140,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
   return (
     <div className="space-y-3">
       {view === 'share' ? (
-        <EChart option={shareOption} height={Math.max(150, channels.length * 36)} ariaLabel="Sales per channel with share"
+        <EChart option={shareOption} height={Math.max(150, channels.length * 36)} ariaLabel="Gross sales per channel with share"
           onClick={p => { const rows = [...channels].sort((a, b) => a.subtotal - b.subtotal); if (rows[p.dataIndex]) openChannel(rows[p.dataIndex].channel); }} />
       ) : (
         <>
@@ -152,11 +152,11 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
               </li>
             ))}
           </ul>
-          <EChart option={dailyOption} height={220} ariaLabel={`Sales per channel per ${g}`} />
+          <EChart option={dailyOption} height={220} ariaLabel={`Gross sales per channel per ${g}`} />
         </>
       )}
       <table className="w-full whitespace-nowrap text-xs">
-        <caption className="sr-only">Sales per channel</caption>
+        <caption className="sr-only">Gross sales per channel</caption>
         <thead className="border-b border-slate-100 text-slate-500">
           <tr>
             <th scope="col" className="py-1.5 text-left font-medium">Channel</th>

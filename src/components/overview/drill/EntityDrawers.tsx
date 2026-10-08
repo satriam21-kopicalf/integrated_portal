@@ -58,7 +58,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
       <Loaded resource={kpis} height={90}>
         {d => (
           <Tiles tiles={[
-            { label: 'Sales', value: rp(d.kpis.sales.value), delta: d.kpis.sales.deltaPct, sub: d.filters.previous.complete ? `prev. ${compactRupiah(d.kpis.sales.previous)}` : 'no comparison' },
+            { label: 'Gross sales', value: rp(d.kpis.sales.value), delta: d.kpis.sales.deltaPct, sub: d.filters.previous.complete ? `prev. ${compactRupiah(d.kpis.sales.previous)}` : 'no comparison' },
             { label: 'Nett sales', value: rp(d.kpis.nettSales.value), delta: d.kpis.nettSales.deltaPct },
             { label: 'Bills', value: num(d.kpis.bills.value), delta: d.kpis.bills.deltaPct },
             { label: 'Avg ticket', value: rp(d.kpis.avgTicket.value), delta: d.kpis.avgTicket.deltaPct },
@@ -67,7 +67,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
       </Loaded>
 
       {singleDay ? (
-        <Block title="Hour by hour" subtitle="Bills and sales per hour of that day">
+        <Block title="Hour by hour" subtitle="Bills and gross sales per hour of that day">
           <Loaded resource={hourly} height={220}>{d => <DayHours data={d} />}</Loaded>
         </Block>
       ) : (
@@ -92,7 +92,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
                 onRowClick={c => drill.drill(to.channel(c.channel))}
                 columns={[
                   { key: 'channel', label: 'Channel', value: c => c.channel, render: c => <span className="flex items-center gap-2"><SeriesKey color={channelColor(c.channel)} /><ChannelLogo channel={c.channel} height={14} /></span> },
-                  { key: 'sales', label: 'Sales', align: 'right', value: c => c.subtotal, render: c => rp(c.subtotal) },
+                  { key: 'sales', label: 'Gross sales', align: 'right', value: c => c.subtotal, render: c => rp(c.subtotal) },
                   { key: 'share', label: 'Share', align: 'right', value: c => c.share, render: c => <ShareBar value={c.share} color={channelColor(c.channel)} /> },
                   { key: 'bills', label: 'Bills', align: 'right', value: c => c.bills },
                   { key: 'avg', label: 'Avg ticket', align: 'right', value: c => c.avgTicket, render: c => rp(c.avgTicket) },
@@ -111,7 +111,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
                 search={b => `${b.branchName} ${b.branchCode}`} onRowClick={b => drill.drill(to.branch(b.branchCode, b.branchName))}
                 columns={[
                   { key: 'branch', label: 'Branch', value: b => b.branchName, render: b => short(b.branchName) },
-                  { key: 'sales', label: 'Sales', align: 'right', value: b => b.subtotal, render: b => rp(b.subtotal) },
+                  { key: 'sales', label: 'Gross sales', align: 'right', value: b => b.subtotal, render: b => rp(b.subtotal) },
                   { key: 'chg', label: 'Change', align: 'right', value: b => b.deltaPct, render: b => delta(b.deltaPct) },
                   { key: 'bills', label: 'Bills', align: 'right', value: b => b.bills },
                   { key: 'avg', label: 'Avg ticket', align: 'right', value: b => b.avgTicket, render: b => rp(b.avgTicket) },
@@ -137,7 +137,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
                 { key: 'name', label: 'Menu', value: m => m.name },
                 { key: 'cat', label: 'Sub-category', value: m => m.categoryDetail },
                 { key: 'qty', label: 'Qty', align: 'right', value: m => m.qty },
-                { key: 'sales', label: 'Sales', align: 'right', value: m => m.subtotal, render: m => rp(m.subtotal) },
+                { key: 'sales', label: 'Gross sales', align: 'right', value: m => m.subtotal, render: m => rp(m.subtotal) },
                 { key: 'share', label: 'Share', align: 'right', value: m => m.share, render: m => pctText(m.share) },
               ]} />
           )}
@@ -153,7 +153,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
                 columns={[
                   { key: 'method', label: 'Method', value: m => paymentLabel(m.method) },
                   { key: 'share', label: 'Share', align: 'right', value: m => m.share, render: m => pctText(m.share) },
-                  { key: 'sales', label: 'Sales', align: 'right', value: m => m.subtotal, render: m => compactRupiah(m.subtotal) },
+                  { key: 'sales', label: 'Gross sales', align: 'right', value: m => m.subtotal, render: m => compactRupiah(m.subtotal) },
                 ]} />
             )}
           </Loaded>
@@ -208,7 +208,7 @@ function DayHours({ data, perDay = false }: { data: HourlyResponse; perDay?: boo
           const h = span[items[0]?.dataIndex ?? 0];
           const x = byHour.get(h);
           return tipTitle(`${hourLabel(h)}–${hourLabel(h + 1)}`) + tipRow(INK.accent, formatNumber(Math.round((x?.bills ?? 0) / days)), perDay ? 'bills per day' : 'bills')
-            + tipRow(INK.accent, formatCurrency(Math.round((x?.subtotal ?? 0) / days)), perDay ? 'sales per day' : 'sales');
+            + tipRow(INK.accent, formatCurrency(Math.round((x?.subtotal ?? 0) / days)), perDay ? 'gross sales per day' : 'gross sales');
         },
       }),
       xAxis: categoryAxis(span.map(h => String(h).padStart(2, '0'))),
@@ -235,12 +235,12 @@ export function MenuDrawer({ q, menuId, menuKind }: { q: string; menuId: string;
             <p className="-mt-1 mb-4 text-xs text-slate-500">{[d.menu.category, d.menu.categoryDetail].filter(Boolean).join(' · ')}{d.menu.kind !== 'menu' ? ` · ${d.menu.kind}` : ''}</p>
             <Tiles columns={5} tiles={[
               { label: 'Qty', value: num(t.qty), delta: t.qtyDeltaPct, sub: t.previousQty !== null ? `prev. ${num(t.previousQty)}` : 'no comparison' },
-              { label: 'Sales', value: compactRupiah(t.subtotal), title: formatCurrency(t.subtotal), sub: t.previousSubtotal !== null ? `prev. ${compactRupiah(t.previousSubtotal)}` : '' },
+              { label: 'Gross sales', value: compactRupiah(t.subtotal), title: formatCurrency(t.subtotal), sub: t.previousSubtotal !== null ? `prev. ${compactRupiah(t.previousSubtotal)}` : '' },
               { label: 'Bills', value: num(t.bills), sub: t.bills ? `${num(t.qty / t.bills, 2)} per bill` : '' },
               { label: 'Avg price', value: rp(t.avgPrice), sub: t.discount ? `${compactRupiah(t.discount)} discount` : 'no discount' },
               { label: 'Share of menus', value: pctText(t.shareOfMenus, 2), sub: 'of menu sales' },
             ]} />
-            <Block title={`Per ${d.granularity}`} actions={<Segmented label="Measure" value={measure} onChange={setMeasure} options={[{ value: 'qty', label: 'Qty' }, { value: 'subtotal', label: 'Sales' }]} />}>
+            <Block title={`Per ${d.granularity}`} actions={<Segmented label="Measure" value={measure} onChange={setMeasure} options={[{ value: 'qty', label: 'Qty' }, { value: 'subtotal', label: 'Gross sales' }]} />}>
               <MenuSeries data={d} measure={measure} onSelect={date => {
                 const [from, until] = bucketRange(date, d.granularity, d.filters.from, d.filters.to);
                 drill.drill(to.period(from, until, bucketLabel(date, d.granularity)));
@@ -253,7 +253,7 @@ export function MenuDrawer({ q, menuId, menuKind }: { q: string; menuId: string;
                   columns={[
                     { key: 'branch', label: 'Branch', value: r => r.label, render: r => short(r.label) },
                     { key: 'qty', label: 'Qty', align: 'right', value: r => r.qty },
-                    { key: 'sales', label: 'Sales', align: 'right', value: r => r.subtotal, render: r => compactRupiah(r.subtotal) },
+                    { key: 'sales', label: 'Gross sales', align: 'right', value: r => r.subtotal, render: r => compactRupiah(r.subtotal) },
                     { key: 'share', label: 'Share', align: 'right', value: r => r.share, render: r => pctText(r.share) },
                   ]} />
               </Block>
@@ -263,7 +263,7 @@ export function MenuDrawer({ q, menuId, menuKind }: { q: string; menuId: string;
                   columns={[
                     { key: 'channel', label: 'Channel', value: r => r.label, render: r => <span className="flex items-center gap-2"><SeriesKey color={channelColor(r.key)} /><ChannelLogo channel={r.key} height={14} /></span> },
                     { key: 'qty', label: 'Qty', align: 'right', value: r => r.qty },
-                    { key: 'sales', label: 'Sales', align: 'right', value: r => r.subtotal, render: r => compactRupiah(r.subtotal) },
+                    { key: 'sales', label: 'Gross sales', align: 'right', value: r => r.subtotal, render: r => compactRupiah(r.subtotal) },
                     { key: 'share', label: 'Share', align: 'right', value: r => r.share, render: r => <ShareBar value={r.share} color={channelColor(r.key)} /> },
                   ]} />
               </Block>
@@ -314,7 +314,7 @@ export function PaymentDrawer({ q, method }: { q: string; method: string }) {
           const all = kpis.data?.kpis.sales.value ?? null;
           return (
             <Tiles tiles={[
-              { label: 'Sales', value: compactRupiah(d.totals.subtotal), title: formatCurrency(d.totals.subtotal), sub: all ? `${pctText((d.totals.subtotal / all) * 100)} of all sales` : '' },
+              { label: 'Gross sales', value: compactRupiah(d.totals.subtotal), title: formatCurrency(d.totals.subtotal), sub: all ? `${pctText((d.totals.subtotal / all) * 100)} of all gross sales` : '' },
               { label: 'Bills', value: num(d.totals.bills), sub: kpis.data ? `${pctText((d.totals.bills / Math.max(1, kpis.data.kpis.bills.value)) * 100)} of bills` : '' },
               { label: 'Avg ticket', value: rp(d.totals.bills ? d.totals.subtotal / d.totals.bills : null) },
               { label: 'Branches', value: num(d.rows.length), sub: d.rows[0] ? `top: ${short(d.rows[0].label)}` : '' },
@@ -335,7 +335,7 @@ export function PaymentDrawer({ q, method }: { q: string; method: string }) {
                 search={r => `${r.label} ${r.key}`} onRowClick={r => drill.drill(to.branch(r.key, r.label))} maxHeight={360}
                 columns={[
                   { key: 'branch', label: 'Branch', value: r => r.label, render: r => short(r.label) },
-                  { key: 'sales', label: 'Sales', align: 'right', value: r => r.subtotal, render: r => compactRupiah(r.subtotal) },
+                  { key: 'sales', label: 'Gross sales', align: 'right', value: r => r.subtotal, render: r => compactRupiah(r.subtotal) },
                   { key: 'bills', label: 'Bills', align: 'right', value: r => r.bills },
                   { key: 'share', label: 'Share', align: 'right', value: r => r.share, render: r => pctText(r.share) },
                   { key: 'chg', label: 'Change', align: 'right', value: r => r.deltaPct, render: r => delta(r.deltaPct) },
@@ -350,7 +350,7 @@ export function PaymentDrawer({ q, method }: { q: string; method: string }) {
                 onRowClick={r => drill.drill(to.channel(r.key))}
                 columns={[
                   { key: 'channel', label: 'Channel', value: r => r.label, render: r => <span className="flex items-center gap-2"><SeriesKey color={channelColor(r.key)} /><ChannelLogo channel={r.key} height={14} /></span> },
-                  { key: 'sales', label: 'Sales', align: 'right', value: r => r.subtotal, render: r => compactRupiah(r.subtotal) },
+                  { key: 'sales', label: 'Gross sales', align: 'right', value: r => r.subtotal, render: r => compactRupiah(r.subtotal) },
                   { key: 'bills', label: 'Bills', align: 'right', value: r => r.bills },
                   { key: 'share', label: 'Share', align: 'right', value: r => r.share, render: r => <ShareBar value={r.share} color={channelColor(r.key)} /> },
                 ]} />
@@ -377,5 +377,5 @@ function BreakdownDays({ data, onSelect }: { data: BreakdownResponse; onSelect: 
     yAxis: valueAxis(rupiahAxis, { splitNumber: 4 }),
     series: [{ type: 'bar', barMaxWidth: 18, data: data.rows.map(r => r.subtotal), itemStyle: { color: INK.accent, borderRadius: [3, 3, 0, 0] } }],
   }), [data]);
-  return <EChart option={option} height={220} ariaLabel="Sales per day for this payment method" onClick={p => { const r = data.rows[p.dataIndex]; if (r) onSelect(r.key); }} />;
+  return <EChart option={option} height={220} ariaLabel="Gross sales per day for this payment method" onClick={p => { const r = data.rows[p.dataIndex]; if (r) onSelect(r.key); }} />;
 }

@@ -24,7 +24,7 @@ export default function BusyHoursCard({ resource, query }: { resource: Resource<
       title="Busy hours"
       info="hours"
       subtitle={mode === 'pattern' ? 'Average bills per day, by hour of order (outlet time)'
-        : 'Branches side by side, per hour · per-hour growth vs the comparison period: Sales growth › By hour'}
+        : 'Branches side by side, per hour · per-hour growth vs the comparison period: Gross sales growth › By hour'}
       resource={resource}
       minHeight={420}
       onOpen={() => drill.open({ kind: 'hours' })}
@@ -80,7 +80,7 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
           const p = model.perHour[items[0]?.dataIndex ?? 0];
           return tipTitle(`${hourLabel(p.hour)}–${hourLabel(p.hour + 1)}, all days`)
             + tipRow(INK.accent, `${formatNumber(Math.round(p.avgBills))} bills`, 'per day')
-            + tipRow(INK.accent, formatCurrency(Math.round(p.avgSubtotal)), 'sales per day');
+            + tipRow(INK.accent, formatCurrency(Math.round(p.avgSubtotal)), 'gross sales per day');
         },
       }),
       xAxis: categoryAxis(model.hours.map(h => String(h).padStart(2, '0'))),
@@ -118,7 +118,7 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
           const c = model.cell(d + 1, model.hours[x]);
           return tipTitle(`${DOW_LABELS[d]} ${hourLabel(model.hours[x])}–${hourLabel(model.hours[x] + 1)}`)
             + tipRow(SEQUENTIAL[5], `${formatNumber(Math.round(c?.avgBills ?? 0))} bills`, 'per day')
-            + tipRow(SEQUENTIAL[5], compactRupiah(c?.avgSubtotal ?? 0), 'sales per day');
+            + tipRow(SEQUENTIAL[5], compactRupiah(c?.avgSubtotal ?? 0), 'gross sales per day');
         },
       }),
       xAxis: categoryAxis(model.hours.map(h => String(h).padStart(2, '0')), { splitArea: { show: false }, axisLine: { show: false } }),

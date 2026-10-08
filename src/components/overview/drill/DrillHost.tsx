@@ -18,13 +18,13 @@ import { MenuDrawer, PaymentDrawer, ProfileDrawer } from './EntityDrawers';
 import { GrowthDrawer } from './GrowthDrawer';
 import { rangeText } from './parts';
 
-const KPI_TITLES = { sales: 'Sales', nettSales: 'Nett sales', bills: 'Bills', avgTicket: 'Average ticket' };
+const KPI_TITLES = { sales: 'Gross sales', nettSales: 'Nett sales', bills: 'Bills', avgTicket: 'Average ticket' };
 
 function head(t: DrillTarget): { title: string; icon: ReactNode } {
   switch (t.kind) {
     case 'kpi': return { title: KPI_TITLES[t.metric], icon: <Gauge size={18} /> };
     case 'trend': return { title: 'Sales trend', icon: <LineChart size={18} /> };
-    case 'growth': return { title: 'Sales growth', icon: <TrendingUp size={18} /> };
+    case 'growth': return { title: 'Gross sales growth', icon: <TrendingUp size={18} /> };
     case 'channels': return { title: 'Channel mix', icon: <BarChart3 size={18} /> };
     case 'branches': return { title: 'Branches', icon: <Store size={18} /> };
     case 'hours': return { title: 'Busy hours', icon: <Clock size={18} /> };

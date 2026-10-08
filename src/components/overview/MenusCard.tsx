@@ -58,7 +58,7 @@ export default function MenusCard({ query }: { query: string }) {
               </div>
               <p className="text-xs font-medium text-slate-500">Top sub-categories</p>
               <HBarChart
-                ariaLabel="Sales per menu sub-category"
+                ariaLabel="Gross sales per menu sub-category"
                 items={details.map(d => ({
                   key: `${d.category}-${d.name}`,
                   label: d.name,
@@ -110,7 +110,7 @@ export default function MenusCard({ query }: { query: string }) {
                     <span className={(data.totals.deltaPct ?? 0) >= 0 ? 'font-medium text-emerald-700' : 'font-medium text-red-700'}>{deltaText(data.totals.deltaPct)}</span></>
                 )}
               </p>
-              <Segmented label="Rank by" value={sort} options={[{ value: 'subtotal', label: 'Sales' }, { value: 'qty', label: 'Qty' }]} onChange={setSort} />
+              <Segmented label="Rank by" value={sort} options={[{ value: 'subtotal', label: 'Gross sales' }, { value: 'qty', label: 'Qty' }]} onChange={setSort} />
             </div>
             <HBarChart
               ariaLabel={`Top 10 menus by ${sort === 'qty' ? 'quantity' : 'sales'}`}

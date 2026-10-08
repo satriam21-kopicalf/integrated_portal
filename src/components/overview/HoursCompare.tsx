@@ -170,7 +170,7 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
             { key: 'd', label: 'Change', align: 'right', value: r => r.d, render: r => <ChangeText v={r.d} /> },
             { key: 'share', label: 'Share of day', align: 'right', value: r => r.cur?.share ?? 0, render: r => pctText(r.cur?.share ?? 0) },
             { key: 'shareCmp', label: 'Share (comp.)', align: 'right', value: r => r.cmp?.share ?? 0, render: r => pctText(r.cmp?.share ?? 0) },
-            { key: 'sales', label: 'Sales/day', align: 'right', value: r => r.cur?.avgSubtotal ?? 0, render: r => compactRupiah(r.cur?.avgSubtotal ?? 0) },
+            { key: 'sales', label: 'Gross sales/day', align: 'right', value: r => r.cur?.avgSubtotal ?? 0, render: r => compactRupiah(r.cur?.avgSubtotal ?? 0) },
           ]}
           maxHeight={360}
         />
@@ -249,7 +249,7 @@ function BranchCompare({ branches, measure, size, picked }: { branches: BranchHo
           { key: 'peak', label: 'Peak hour', align: 'right', value: b => b.peakHour, render: b => (b.peakHour === null ? '-' : hourLabel(b.peakHour)) },
           { key: 'peakShare', label: 'Peak share', align: 'right', value: b => b.hours.find(h => h.hour === b.peakHour)?.share ?? null,
             render: b => pctText(b.hours.find(h => h.hour === b.peakHour)?.share ?? null) },
-          { key: 'sales', label: 'Sales/day', align: 'right', value: b => (b.activeDays ? b.subtotal / b.activeDays : 0),
+          { key: 'sales', label: 'Gross sales/day', align: 'right', value: b => (b.activeDays ? b.subtotal / b.activeDays : 0),
             render: b => <span title={formatCurrency(b.subtotal)}>{compactRupiah(b.activeDays ? b.subtotal / b.activeDays : 0)}</span> },
         ]}
         maxHeight={size === 'card' ? 220 : 320}

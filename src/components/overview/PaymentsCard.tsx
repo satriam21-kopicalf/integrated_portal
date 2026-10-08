@@ -11,7 +11,7 @@ const TOP = 7;
 export default function PaymentsCard({ resource }: { resource: Resource<PaymentsResponse> }) {
   const drill = useDrill();
   return (
-    <Card title="Payment methods" info="payments" subtitle="Share of sales by the bill's payment method · click a method for its details" resource={resource} minHeight={330}
+    <Card title="Payment methods" info="payments" subtitle="Share of gross sales by the bill's payment method · click a method for its details" resource={resource} minHeight={330}
       onOpen={() => drill.open({ kind: 'payments' })}>
       {data => {
         const top = data.methods.slice(0, TOP);
@@ -27,7 +27,7 @@ export default function PaymentsCard({ resource }: { resource: Resource<Payments
               ))}
             </div>
             <HBarChart
-              ariaLabel="Share of sales per payment method"
+              ariaLabel="Share of gross sales per payment method"
               max={Math.max(...top.map(m => m.share ?? 0)) * 1.05}
               labelWidth={150}
               items={top.map(m => ({

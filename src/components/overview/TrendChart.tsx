@@ -13,7 +13,7 @@ export type TrendMetric = 'subtotal' | 'bills' | 'avgTicket' | 'nettSales';
 export type TrendChartType = 'line' | 'area' | 'bar' | 'cumulative' | 'average' | 'channels';
 
 export const TREND_METRICS: { value: TrendMetric; label: string }[] = [
-  { value: 'subtotal', label: 'Sales' },
+  { value: 'subtotal', label: 'Gross sales' },
   { value: 'bills', label: 'Bills' },
   { value: 'avgTicket', label: 'Avg ticket' },
 ];

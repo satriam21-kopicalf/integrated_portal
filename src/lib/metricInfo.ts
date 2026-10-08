@@ -97,10 +97,10 @@ const COST_INFO = {
 
 export const INFO = {
   sales: {
-    title: 'Sales (subtotal)',
+    title: 'Gross sales',
     source: [POS, AGG],
-    definition: [SALES_RULE, 'Subtotal = the bill subtotal before discounts (Σ price × qty of the menu lines). Also called gross sales.', FILTERS],
-    formula: ['Sales = Σ subtotal of sales bills', CHANGE],
+    definition: [SALES_RULE, 'Gross sales = the bill subtotal before discounts (Σ price × qty of the menu lines), the ESB "Sub Total".', FILTERS],
+    formula: ['Gross sales = Σ subtotal of sales bills', CHANGE],
   },
   nettSales: {
     title: 'Nett sales',
@@ -117,8 +117,8 @@ export const INFO = {
   avgTicket: {
     title: 'Average ticket',
     source: [POS, AGG],
-    definition: ['Average sales value of one bill.', SALES_RULE, FILTERS],
-    formula: ['Avg ticket = Sales ÷ Bills', CHANGE],
+    definition: ['Average gross sales of one bill.', SALES_RULE, FILTERS],
+    formula: ['Avg ticket = Gross sales ÷ Bills', CHANGE],
   },
   today: {
     title: 'Today',
@@ -130,21 +130,21 @@ export const INFO = {
     title: 'Sales trend',
     source: [AGG],
     definition: [SALES_RULE, 'Per day, ISO week (Monday start) or month; the comparison period is moved onto the same timeline day by day (dashed line).', FILTERS],
-    formula: ['Avg ticket = Sales ÷ Bills per bucket', 'Discount % = (Sales − Nett sales) ÷ Sales × 100', 'Cumulative = running total from the first bucket', 'Moving average = mean of the last 7 buckets', CHANGE],
+    formula: ['Avg ticket = Gross sales ÷ Bills per bucket', 'Discount % = (Gross sales − Nett sales) ÷ Gross sales × 100', 'Cumulative = running total from the first bucket', 'Moving average = mean of the last 7 buckets', CHANGE],
   },
   growth: {
-    title: 'Sales growth',
+    title: 'Gross sales growth',
     source: [AGG, 'By hour: integration_portal.agg_sales_hourly (hour of salesDateIn, outlet clock).'],
     definition: [
-      'Growth of Sales (subtotal / gross sales).',
+      'Growth of gross sales (subtotal).',
       'Comparison period: the comparison filter of the page; Last year: the same weekdays 52 weeks earlier; Sequential: every day / week / month against the one before it.',
-      'By hour: sales per day in each hour, so periods of different length compare fairly.',
+      'By hour: gross sales per day in each hour, so periods of different length compare fairly.',
       FILTERS,
     ],
     formula: [
-      'Growth % = (Sales − comparison Sales) ÷ comparison Sales × 100',
-      'Sequential growth % = (Sales per day − previous bucket Sales per day) ÷ previous bucket Sales per day × 100',
-      'Contribution (pp) of a branch / channel = (its Sales − its comparison Sales) ÷ total comparison Sales × 100 — contributions add up to the total growth %',
+      'Growth % = (Gross sales − comparison gross sales) ÷ comparison gross sales × 100',
+      'Sequential growth % = (Gross sales per day − previous bucket gross sales per day) ÷ previous bucket gross sales per day × 100',
+      'Contribution (pp) of a branch / channel = (its gross sales − its comparison gross sales) ÷ total comparison gross sales × 100 — contributions add up to the total growth %',
     ],
   },
   monthly: {
@@ -155,19 +155,19 @@ export const INFO = {
       'MoM compares with the whole previous month, YoY with the same month a year earlier; same-store only uses branches that sold on ≥ 90% of the days of both months.',
       SALES_RULE,
     ],
-    formula: ['Per day = month Sales ÷ calendar days counted', 'MoM % = (per day − previous month per day) ÷ previous month per day × 100', 'YoY % = (per day − same month last year per day) ÷ same month last year per day × 100'],
+    formula: ['Per day = month gross sales ÷ calendar days counted', 'MoM % = (per day − previous month per day) ÷ previous month per day × 100', 'YoY % = (per day − same month last year per day) ÷ same month last year per day × 100'],
   },
   channels: {
     title: 'Channel mix',
     source: [AGG],
     definition: ['Channel = the ESB visit purpose of the bill (visitPurposeName): Dine In, Takeaway, GoFood, GrabFood, ShopeeFood, Online Order (Esb Order); others are folded into "Other".', SALES_RULE, FILTERS],
-    formula: ['Share % = channel Sales ÷ all Sales × 100', 'Avg ticket = channel Sales ÷ channel Bills', 'Discount % = (Sales − Nett sales) ÷ Sales × 100', CHANGE],
+    formula: ['Share % = channel gross sales ÷ all gross sales × 100', 'Avg ticket = channel gross sales ÷ channel Bills', 'Discount % = (Gross sales − Nett sales) ÷ Gross sales × 100', CHANGE],
   },
   branches: {
     title: 'Branch leaderboard',
     source: [AGG, 'Branch names: ESB branch master (integration_esb.master_branches).'],
     definition: [SALES_RULE, '"New" = sales in this period but none in the comparison period.', FILTERS],
-    formula: ['Avg ticket = Sales ÷ Bills', 'Sales / day = Sales ÷ days with sales', 'Void rate = Void & Cancelled bills ÷ all bills × 100', CHANGE],
+    formula: ['Avg ticket = Gross sales ÷ Bills', 'Gross sales / day = Gross sales ÷ days with sales', 'Void rate = Void & Cancelled bills ÷ all bills × 100', CHANGE],
   },
   hours: {
     title: 'Busy hours',
@@ -185,7 +185,7 @@ export const INFO = {
     title: 'Payment methods',
     source: [AGG],
     definition: ['Payment method = the first payment of the bill (salesPayments[0] in ESB); split payments count under their first method.', SALES_RULE, FILTERS],
-    formula: ['Share % = method Sales ÷ all Sales × 100', 'Bill share % = method Bills ÷ all Bills × 100', 'Avg ticket = method Sales ÷ method Bills'],
+    formula: ['Share % = method gross sales ÷ all gross sales × 100', 'Bill share % = method Bills ÷ all Bills × 100', 'Avg ticket = method gross sales ÷ method Bills'],
   },
   basket: {
     title: 'Basket',
@@ -202,7 +202,7 @@ export const INFO = {
       '"Review" = branch void rate above the 90th percentile of branches with ≥ 100 bills (and ≥ 3 voids).',
       FILTERS,
     ],
-    formula: ['Void rate = Void & Cancelled bills ÷ all bills × 100', 'Void value rate = void value ÷ (sales + void value) × 100', 'Share of voids = group void bills ÷ all void bills × 100', 'Change (pp) = void rate − comparison void rate'],
+    formula: ['Void rate = Void & Cancelled bills ÷ all bills × 100', 'Void value rate = void value ÷ (gross sales + void value) × 100', 'Share of voids = group void bills ÷ all void bills × 100', 'Change (pp) = void rate − comparison void rate'],
   },
   cost: {
     title: 'Cost control',

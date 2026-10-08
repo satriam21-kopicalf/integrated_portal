@@ -13,11 +13,11 @@ import { to, useDrill } from './drill/DrillContext';
 
 type SortKey = 'subtotal' | 'deltaPct' | 'bills' | 'avgTicket' | 'subtotalPerDay' | 'voidRate';
 const COLUMNS: { key: SortKey; label: string; title: string }[] = [
-  { key: 'subtotal', label: 'Sales', title: 'Sales subtotal in the period' },
+  { key: 'subtotal', label: 'Gross sales', title: 'Gross sales in the period' },
   { key: 'deltaPct', label: 'Change', title: 'vs the previous period' },
   { key: 'bills', label: 'Bills', title: 'Sales transactions' },
-  { key: 'avgTicket', label: 'Avg ticket', title: 'Sales ÷ bills' },
-  { key: 'subtotalPerDay', label: 'Sales / day', title: 'Sales per day with sales' },
+  { key: 'avgTicket', label: 'Avg ticket', title: 'Gross sales ÷ bills' },
+  { key: 'subtotalPerDay', label: 'Gross sales / day', title: 'Gross sales per day with sales' },
   { key: 'voidRate', label: 'Void rate', title: 'Void & cancelled ÷ all transactions' },
 ];
 const PAGE = 10;
@@ -33,7 +33,7 @@ export default function BranchLeaderboard({ resource }: { resource: Resource<Bra
     <Card
       title="Branch leaderboard"
       info="branches"
-      subtitle="Sales per branch with change vs the comparison period · click a branch for its full profile"
+      subtitle="Gross sales per branch with change vs the comparison period · click a branch for its full profile"
       resource={resource}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'branches' })}
@@ -126,7 +126,7 @@ function Board({
                 <td className="py-2 pl-2 text-right tabular-nums text-slate-700">{formatNumber(Math.round(b.avgTicket))}</td>
                 <td className="py-2 pl-2 text-right tabular-nums text-slate-700">{compactRupiah(b.subtotalPerDay)}</td>
                 <td className="py-2 pl-2 text-right tabular-nums text-slate-700">{b.voidRate === null ? '-' : `${b.voidRate.toFixed(2)}%`}</td>
-                <td className="py-2 pl-3"><Sparkline values={b.spark} height={22} label={`${b.branchName} sales trend`} /></td>
+                <td className="py-2 pl-3"><Sparkline values={b.spark} height={22} label={`${b.branchName} gross sales trend`} /></td>
               </tr>
             ))}
           </tbody>
@@ -163,7 +163,7 @@ function Board({
   );
 }
 
-/** Top 10 branches by sales: this period (blue) next to the previous period (grey). */
+/** Top 10 branches by gross sales: this period (blue) next to the previous period (grey). */
 function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -225,7 +225,7 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
         { key: 'cur', label: 'This period', color: INK.accent },
         ...(hasPrev ? [{ key: 'prev', label: 'Previous period', color: INK.previous }] : []),
       ]} />
-      <EChart option={option} height={Math.max(220, rows.length * 34)} ariaLabel="Top 10 branches by sales, this period and previous period"
+      <EChart option={option} height={Math.max(220, rows.length * 34)} ariaLabel="Top 10 branches by gross sales, this period and previous period"
         onClick={p => { const b = rows[p.dataIndex]; if (b) drill.open(to.branch(b.branchCode, b.branchName)); }} />
     </div>
   );
