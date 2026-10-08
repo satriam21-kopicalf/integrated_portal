@@ -15,7 +15,6 @@ import MenusCard from '@/components/overview/MenusCard';
 import DeductionsCard from '@/components/overview/DeductionsCard';
 import PaymentsCard from '@/components/overview/PaymentsCard';
 import BasketCard from '@/components/overview/BasketCard';
-import SalesGrowthCard from '@/components/overview/SalesGrowth';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
 import { useFilterLog } from '@/lib/activity';
 import { DrillProvider } from '@/components/overview/drill/DrillContext';
@@ -210,17 +209,20 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
         <KpiTiles resource={kpis} />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-12">
-        <div className="min-w-0 xl:col-span-8"><TrendCard query={query} /></div>
-        <div className="min-w-0 xl:col-span-4"><ChannelMixCard resource={channels} /></div>
-      </div>
-
-      <SalesGrowthCard query={query} />
+      {/* what happened over time: trend, per day, growth %, monthly (one card, one comparison) */}
+      <TrendCard query={query} />
 
       {/* Cost Control is left off the Overview until its figures are final (see the Cost Control page) */}
 
+      <Section title="How customers buy">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <div className="min-w-0"><ChannelMixCard resource={channels} /></div>
+          <div className="min-w-0"><PaymentsCard resource={payments} /></div>
+        </div>
+      </Section>
+
       <Section title="Branches">
-        <BranchLeaderboard resource={branchBoard} />
+        <BranchLeaderboard resource={branchBoard} query={query} />
       </Section>
 
       <Section title="When & what sells">
@@ -230,11 +232,10 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
         </div>
       </Section>
 
-      <Section title="Payments, basket & deductions">
-        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-          <div className="min-w-0"><PaymentsCard resource={payments} /></div>
+      <Section title="Basket & deductions">
+        <div className="grid gap-4 lg:grid-cols-2">
           <div className="min-w-0"><BasketCard resource={basket} /></div>
-          <div className="min-w-0 lg:col-span-2 2xl:col-span-1"><DeductionsCard resource={deductions} /></div>
+          <div className="min-w-0"><DeductionsCard resource={deductions} /></div>
         </div>
       </Section>
 

@@ -4,16 +4,19 @@ import { useMemo, useState } from 'react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, INK, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
-import { compactNumber, compactRupiah, DOW_LABELS, HourlyResponse, Resource } from '@/lib/overview';
+import LoadingState from '@/components/ui/LoadingState';
+import { formatDate } from '@/lib/format';
+import { compactNumber, compactRupiah, DOW_LABELS, HourlyCompareResponse, HourlyResponse, Resource, useOverview, withParams } from '@/lib/overview';
 import { Card, DataTable, Segmented } from './Card';
 import { useDrill } from './drill/DrillContext';
 import HoursCompare from './HoursCompare';
+import { HourGrowthChart, HourMovers, hourRows } from './SalesGrowth';
 
 /** Sequential single-hue ramp (blue 100 -> 700). */
 const SEQUENTIAL = ['#e8f1fd', '#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b'];
 const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
-type Mode = 'pattern' | 'branches';
+type Mode = 'pattern' | 'growth' | 'branches';
 
 export default function BusyHoursCard({ resource, query }: { resource: Resource<HourlyResponse>; query: string }) {
   const [view, setView] = useState<'chart' | 'table'>('chart');
@@ -24,14 +27,15 @@ export default function BusyHoursCard({ resource, query }: { resource: Resource<
       title="Busy hours"
       info="hours"
       subtitle={mode === 'pattern' ? 'Average bills per day, by hour of order (outlet time)'
-        : 'Branches side by side, per hour · per-hour growth vs the comparison period: Gross sales growth › By hour'}
+        : mode === 'growth' ? 'Growth of gross sales per day in each hour against the comparison period'
+        : 'Branches side by side, per hour'}
       resource={resource}
       minHeight={420}
       onOpen={() => drill.open({ kind: 'hours' })}
       actions={
         <>
           <Segmented label="Busy hours view" value={mode} onChange={setMode} options={[
-            { value: 'pattern', label: 'Pattern' }, { value: 'branches', label: 'Compare branches' },
+            { value: 'pattern', label: 'Pattern' }, { value: 'growth', label: 'vs comparison' }, { value: 'branches', label: 'Compare branches' },
           ]} />
           {mode === 'pattern' && <Segmented label="View" value={view} options={[{ value: 'chart', label: 'Chart' }, { value: 'table', label: 'Table' }]} onChange={setView} />}
         </>
@@ -39,8 +43,27 @@ export default function BusyHoursCard({ resource, query }: { resource: Resource<
     >
       {data => mode === 'pattern'
         ? <><HoursVs data={data} /><BusyBody data={data} view={view} /></>
+        : mode === 'growth' ? <HoursGrowth query={query} />
         : <HoursCompare query={query} mode={mode} period={{ from: data.filters.from, to: data.filters.to }} />}
     </Card>
+  );
+}
+
+/** Per-hour growth against the comparison period of the filters (formerly Sales growth › By hour). */
+function HoursGrowth({ query }: { query: string }) {
+  const res = useOverview<HourlyCompareResponse>('hourly-compare', withParams(query, { mode: 'period' }));
+  const d = res.data && res.data.mode === 'period' ? res.data : null;
+  const rows = useMemo(() => (d ? hourRows(d.current, d.compare) : []), [d]);
+  if (res.error) return <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{res.error}</p>;
+  if (!d) return <LoadingState height={300} label="hourly growth" />;
+  return (
+    <div className="space-y-3">
+      <p className="text-[11px] text-slate-500">
+        Gross sales per day in each hour (outlet time) · vs {formatDate(d.compare.from)} – {formatDate(d.compare.to)}
+      </p>
+      <HourGrowthChart rows={rows} height={280} />
+      <HourMovers rows={rows} />
+    </div>
   );
 }
 

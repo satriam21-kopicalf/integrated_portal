@@ -4,13 +4,16 @@ import { useMemo, useState } from 'react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
 import { base, categoryAxis, changeHtml, INK, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
-import { compactRupiah, GrowthResponse, SERIES_COLORS } from '@/lib/overview';
+import { compactRupiah, GrowthResponse } from '@/lib/overview';
 import { Delta } from './Card';
 import { DetailTable, rp } from './drill/parts';
 
-/** Monday … Sunday, in the categorical order (validated: scripts/validate_palette.js, light surface). */
 export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-export const WEEKDAY_COLORS = SERIES_COLORS.slice(0, 7);
+/** One series in one hue: weekdays in the accent blue, weekends (Sat, Sun) in a darker step of the same ramp.
+ * The categorical hues stay reserved for channels, so a colour never means two things on the page. */
+export const WEEKDAY_BLUE = INK.accent;
+export const WEEKEND_BLUE = '#184f95';
+const barColor = (dow: number) => (dow >= 6 ? WEEKEND_BLUE : WEEKDAY_BLUE);
 
 /** 1 = Monday … 7 = Sunday */
 export const isoWeekday = (iso: string) => ((new Date(`${iso}T00:00:00`).getDay() + 6) % 7) + 1;
@@ -22,9 +25,8 @@ const dayLabel = (iso: string) => {
 /* ------------------------------------------------------------------ daily bars */
 
 /**
- * Gross sales per day, one colour per weekday (the weekday is also in every axis label, so
- * colour is never the only cue). Legend chips highlight one or more weekdays; a dashed line
- * marks the daily average of the period. Click a bar for that day's details.
+ * Gross sales per day in one blue, weekends darker (the weekday is also in every axis label).
+ * Weekday chips highlight one or more weekdays; a dashed line marks the daily average of the period. Click a bar for that day's details.
  */
 export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSelect?: (date: string) => void }) {
   const [focus, setFocus] = useState<number[]>([]);
@@ -59,7 +61,7 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
           const w = byDow.get(dow);
           const wAvg = w && w.n ? w.sum / w.n : null;
           return tipTitle(`${WEEKDAYS[dow - 1]}, ${formatDate(p.date)}`)
-            + tipRow(WEEKDAY_COLORS[dow - 1], formatCurrency(p.subtotal), 'gross sales')
+            + tipRow(barColor(dow), formatCurrency(p.subtotal), 'gross sales')
             + tipRow(INK.muted, formatNumber(p.bills), 'bills')
             + (wAvg !== null ? tipRow(INK.muted, formatCurrency(Math.round(wAvg)), `avg ${WEEKDAYS[dow - 1]} in the period`) : '')
             + tipFooter(p.compareSubtotal !== null
@@ -78,7 +80,7 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
         data: days.map(p => {
           const dow = isoWeekday(p.date);
           const dim = focus.length > 0 && !focus.includes(dow);
-          return { value: p.subtotal, itemStyle: { color: WEEKDAY_COLORS[dow - 1], borderRadius: [4, 4, 0, 0], opacity: dim ? 0.18 : 1 } };
+          return { value: p.subtotal, itemStyle: { color: barColor(dow), borderRadius: [4, 4, 0, 0], opacity: dim ? 0.18 : 1 } };
         }),
         markLine: avg ? {
           symbol: 'none', silent: true,
@@ -96,6 +98,11 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
     <div className="space-y-3">
       <EChart option={option} height={300} ariaLabel="Gross sales per day, coloured by weekday"
         onClick={onSelect ? p => { const d = days[p.dataIndex]; if (d) onSelect(d.date); } : undefined} />
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKDAY_BLUE }} aria-hidden />Mon – Fri</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKEND_BLUE }} aria-hidden />Sat – Sun</span>
+        <span className="flex items-center gap-1.5"><span className="h-0 w-3 border-t border-dashed border-slate-500" aria-hidden />average per day</span>
+      </div>
       <div className="flex flex-wrap items-center justify-center gap-1.5" role="group" aria-label="Highlight weekdays">
         {WEEKDAYS.map((name, i) => {
           const dow = i + 1;
@@ -107,7 +114,6 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
               className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors ${
                 on ? 'border-slate-900 bg-slate-900 text-white'
                   : focus.length ? 'border-slate-200 bg-white text-slate-400 hover:text-slate-700' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}>
-              <span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKDAY_COLORS[i] }} aria-hidden />
               {name}
               {w && <span className={on ? 'text-white/70' : 'text-slate-400'}>{compactRupiah(w.sum / w.n)}</span>}
             </button>
@@ -117,7 +123,7 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
           <button type="button" onClick={() => setFocus([])} className="ml-1 text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline">Show all</button>
         )}
       </div>
-      <p className="text-center text-[11px] text-slate-500">Click a weekday to highlight it · numbers = average gross sales per day of that weekday</p>
+      <p className="text-center text-[11px] text-slate-500">Click a weekday to highlight it · amount = its average gross sales per day</p>
     </div>
   );
 }
@@ -167,7 +173,6 @@ export function AverageSalesBody({ data, weekday, onWeekday }: {
               <button key={w ?? 0} type="button" role="radio" aria-checked={on} onClick={() => onWeekday(w)}
                 className={`inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors ${
                   on ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900'}`}>
-                {w && <span className="h-2 w-2 rounded-sm" style={{ background: WEEKDAY_COLORS[w - 1] }} aria-hidden />}
                 {w ? WEEKDAYS[w - 1].slice(0, 3) : 'All days'}
               </button>
             );

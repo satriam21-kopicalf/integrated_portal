@@ -1,21 +1,19 @@
 'use client';
 
-import LoadingState from '@/components/ui/LoadingState';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
-import { Legend } from '@/components/charts/common';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { base, categoryAxis, changeHtml, INK, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import {
-  bucketLabel, compactRupiah, DOW_LABELS, Granularity, GROWTH_DOWN, GROWTH_RAMP, GROWTH_UP, GrowthBasis, GrowthPoint, GrowthResponse,
-  hourLabel, HourlyCompareResponse, HoursProfile, MonthlyResponse, Resource, shortDate, useOverview, withParams,
+  bucketLabel, compactRupiah, DOW_LABELS, GROWTH_DOWN, GROWTH_RAMP, GROWTH_UP, GrowthBasis, GrowthPoint, GrowthResponse,
+  hourLabel, HourlyCompareResponse, HoursProfile, shortDate, useOverview, withParams,
 } from '@/lib/overview';
-import { Card, Delta, Segmented } from './Card';
-import { to, useDrill } from './drill/DrillContext';
-import { MonthlyBody } from './MonthlyCard';
-import { bucketRange, DetailTable, rp } from './drill/parts';
-import { AverageSalesBody, AverageSalesResponse, DailySalesChart } from './DailySales';
+import { Delta } from './Card';
+import { DetailTable, rp } from './drill/parts';
+
+/* Growth building blocks: the bars and per-hour views used by the Sales trend & growth card,
+   Busy hours (vs comparison) and the growth drawer. */
 
 export const BASES: { value: GrowthBasis; label: string }[] = [
   { value: 'previous', label: 'Comparison period' },
@@ -94,7 +92,7 @@ export interface HourGrowthRow {
   growthAbs: number;
 }
 
-function hourRows(current: HoursProfile, compare: HoursProfile): HourGrowthRow[] {
+export function hourRows(current: HoursProfile, compare: HoursProfile): HourGrowthRow[] {
   const at = (p: HoursProfile, h: number) => p.hours.find(x => x.hour === h)?.avgSubtotal ?? 0;
   const max = Math.max(0, ...current.hours.map(h => h.avgSubtotal), ...compare.hours.map(h => h.avgSubtotal));
   // hours with real trade (>= 0.5% of the busiest hour) in either period, first to last
@@ -232,110 +230,6 @@ export function HourMovers({ rows }: { rows: HourGrowthRow[] }) {
 }
 
 /* ------------------------------------------------------------------ card */
-
-type GrowthView = 'daily' | 'time' | 'hour' | 'month' | 'avg';
-
-const VIEWS: { value: GrowthView; label: string }[] = [
-  { value: 'daily', label: 'Daily sales' },
-  { value: 'time', label: 'Growth' },
-  { value: 'hour', label: 'By hour' },
-  { value: 'month', label: 'Monthly' },
-  { value: 'avg', label: 'Average sales' },
-];
-
-export default function SalesGrowthCard({ query }: { query: string }) {
-  const [basis, setBasis] = useState<GrowthBasis>('previous');
-  const [granularity, setGranularity] = useState<Granularity | 'auto'>('auto');
-  const [view, setView] = useState<GrowthView>('daily');
-  const [weekday, setWeekday] = useState<number | null>(null);
-  const drill = useDrill();
-  const growthOn = view === 'time' || view === 'hour';
-  const resource = useOverview<GrowthResponse>('growth', withParams(query, { basis, granularity: granularity === 'auto' ? null : granularity }));
-  // daily bars: always per day, against the comparison period of the filters
-  const daily = useOverview<GrowthResponse>('growth', withParams(query, { basis: 'previous', granularity: 'day' }));
-  // "Monthly": average per day of each month with MoM, YoY and same-store growth (formerly its own card)
-  const monthly = useOverview<MonthlyResponse>('monthly', query);
-  // "Average sales": gross sales per day per branch, period vs comparison period (all days or one weekday)
-  const average = useOverview<AverageSalesResponse>('average-sales', withParams(query, { weekday: weekday ? String(weekday) : null }));
-  const hours = useHourGrowth(query, view === 'hour' ? resource.data : null);
-  const shown = (view === 'month' ? monthly : view === 'avg' ? average : view === 'daily' ? daily : resource) as
-    Resource<GrowthResponse | MonthlyResponse | AverageSalesResponse>;
-
-  const subtitle = view === 'daily' ? 'Gross sales per day, coloured by weekday · click a bar for that day\'s details'
-    : view === 'avg' ? 'Average gross sales per day per branch, this period vs the comparison period'
-    : view === 'month' ? 'Gross sales per month: average per day, month on month, year on year and same-store'
-    : resource.data ? `Gross sales vs ${basisText(resource.data)}` : 'Gross sales growth';
-
-  return (
-    <Card
-      title="Gross sales growth"
-      info={view === 'month' ? 'monthly' : 'growth'}
-      subtitle={subtitle}
-      resource={shown}
-      minHeight={360}
-      onOpen={view === 'avg' || view === 'daily' ? undefined : () => drill.open(view === 'month' ? { kind: 'monthly' } : { kind: 'growth', basis })}
-      actions={
-        <>
-          {growthOn && <Segmented label="Compare with" value={basis} options={BASES} onChange={setBasis} />}
-          {view === 'time' && (
-            <Segmented label="Granularity" value={granularity === 'auto' ? resource.data?.granularity ?? 'day' : granularity} onChange={setGranularity}
-              options={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }]} />
-          )}
-        </>
-      }
-    >
-      {raw => (
-        <div className="space-y-4">
-          <div className="-mt-1 flex gap-1 overflow-x-auto border-b border-slate-100" role="tablist" aria-label="Sales growth view">
-            {VIEWS.map(v => (
-              <button key={v.value} type="button" role="tab" aria-selected={view === v.value} onClick={() => setView(v.value)}
-                className={`-mb-px whitespace-nowrap border-b-2 px-3 pb-2 pt-1 text-sm font-medium transition-colors ${
-                  view === v.value ? 'border-blue-700 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
-                {v.label}
-              </button>
-            ))}
-          </div>
-          {view === 'month' ? <MonthlyBody data={raw as MonthlyResponse} />
-            : view === 'avg' ? <AverageSalesBody data={raw as AverageSalesResponse} weekday={weekday} onWeekday={setWeekday} />
-            : view === 'daily' ? (
-              <div className="space-y-3">
-                <GrowthSummary data={raw as GrowthResponse} />
-                <DailySalesChart data={raw as GrowthResponse} onSelect={d => drill.open(to.period(d, d, formatDate(d)))} />
-              </div>
-            ) : (() => {
-              const d = raw as GrowthResponse;
-              return (
-                <div className="space-y-3">
-                  <GrowthSummary data={d} />
-                  {view === 'time' ? (
-                    <>
-                      <Legend items={[{ key: 'up', label: 'Growth', color: GROWTH_UP }, { key: 'down', label: 'Decline', color: GROWTH_DOWN }]} />
-                      <GrowthBars data={d} onSelect={p => {
-                        const [from, until] = bucketRange(p.date, d.granularity, d.filters.from, d.filters.to);
-                        drill.open(to.period(from, until, bucketLabel(p.date, d.granularity)));
-                      }} />
-                    </>
-                  ) : hours.res.error ? (
-                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{hours.res.error}</p>
-                  ) : !hours.data ? (
-                    <LoadingState height={240} label="sales growth" />
-                  ) : (
-                    <>
-                      <p className="text-[11px] text-slate-500">
-                        Gross sales per day in each hour (outlet time){basis === 'sequential' ? ' · by hour compares with the comparison period' : ''}
-                      </p>
-                      <HourGrowthChart rows={hours.rows} />
-                      <HourMovers rows={hours.rows} />
-                    </>
-                  )}
-                </div>
-              );
-            })()}
-        </div>
-      )}
-    </Card>
-  );
-}
 
 /** Headline growth figures. */
 export function GrowthSummary({ data }: { data: GrowthResponse }) {

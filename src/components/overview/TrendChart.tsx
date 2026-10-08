@@ -6,11 +6,11 @@ import { Legend } from '@/components/charts/common';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { base, categoryAxis, changeHtml, INK, rupiahAxis, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import {
-  bucketLabel, channelColor, channelKey, channelOrder, compactNumber, compactRupiah, shortDate, TrendPoint, TrendResponse,
+  bucketLabel, compactNumber, compactRupiah, shortDate, TrendPoint, TrendResponse,
 } from '@/lib/overview';
 
 export type TrendMetric = 'subtotal' | 'bills' | 'avgTicket' | 'nettSales';
-export type TrendChartType = 'line' | 'area' | 'bar' | 'cumulative' | 'average' | 'channels';
+export type TrendChartType = 'line' | 'area' | 'bar' | 'cumulative' | 'average';
 
 export const TREND_METRICS: { value: TrendMetric; label: string }[] = [
   { value: 'subtotal', label: 'Gross sales' },
@@ -71,15 +71,9 @@ export default function TrendChart({
   const current = useMemo(() => s.map(p => metricOf(p, metric)), [s, metric]);
   const previous = useMemo(() => s.map(p => (hasPrev ? metricOf(p.previous, metric) : null)), [s, metric, hasPrev]);
 
-  const channels = useMemo(() => {
-    const names = new Set<string>();
-    s.forEach(p => Object.keys(p.channels ?? {}).forEach(c => names.add(channelKey(c))));
-    return [...names].sort((a, b) => channelOrder(a) - channelOrder(b));
-  }, [s]);
-
   const option = useMemo<ChartOption>(() => {
     const hh = (h?: number) => `${String(h ?? 0).padStart(2, '0')}:00`;
-    const xAxis = categoryAxis(s.map(p => (g === 'hour' ? hh(p.hour) : shortDate(p.date, g))), { boundaryGap: chart === 'bar' || chart === 'channels' });
+    const xAxis = categoryAxis(s.map(p => (g === 'hour' ? hh(p.hour) : shortDate(p.date, g))), { boundaryGap: chart === 'bar' });
     const zoom = s.length > 62 ? [{ type: 'inside' }, { type: 'slider', height: 18, bottom: 8, borderColor: INK.grid }] : [];
     const grid = { left: 4, right: 24, top: 30, bottom: s.length > 62 ? 52 : 8, containLabel: true };
     const prevDate = (i: number) => {
@@ -89,54 +83,6 @@ export default function TrendChart({
       d.setDate(d.getDate() - shift);
       return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     };
-
-    if (chart === 'channels') {
-      const valueOf = (p: TrendPoint, ch: string) => {
-        const rows = Object.entries(p.channels ?? {}).filter(([c]) => channelKey(c) === ch).map(([, v]) => v);
-        const sub = rows.reduce((a, v) => a + v.subtotal, 0);
-        const bills = rows.reduce((a, v) => a + v.bills, 0);
-        return metric === 'bills' ? bills : metric === 'avgTicket' ? (bills ? sub / bills : null) : sub;
-      };
-      const stacked = metric !== 'avgTicket';
-      const series = channels.map((ch, k) => ({
-        name: ch,
-        type: stacked ? 'bar' : 'line',
-        stack: stacked ? 'total' : undefined,
-        data: s.map(p => valueOf(p, ch)),
-        barMaxWidth: 26,
-        symbol: 'circle',
-        symbolSize: 6,
-        showSymbol: s.length <= 31,
-        lineStyle: { width: 2, color: channelColor(ch) },
-        itemStyle: {
-          color: channelColor(ch),
-          borderColor: '#fff',
-          borderWidth: stacked ? 1 : 2,
-          borderRadius: stacked && k === channels.length - 1 ? [4, 4, 0, 0] : 0,
-        },
-        emphasis: { focus: 'series' },
-      }));
-      return {
-        ...base,
-        grid,
-        tooltip: tooltip({
-          trigger: 'axis',
-          axisPointer: { type: stacked ? 'shadow' : 'line', shadowStyle: { color: 'rgba(148,163,184,0.12)' }, lineStyle: { color: INK.axis } },
-          formatter: (items: { dataIndex: number }[]) => {
-            const i = items[0]?.dataIndex ?? 0;
-            const vals = channels.map(ch => ({ ch, v: valueOf(s[i], ch) }));
-            const total = stacked ? vals.reduce((a, x) => a + (x.v ?? 0), 0) : null;
-            return tipTitle(`${bucketLabel(s[i].date, g)}${total !== null ? ` · ${compact(total)}` : ''}`)
-              + [...vals].reverse().map(x => tipRow(channelColor(x.ch), x.v === null ? '-' : fmt(x.v),
-                total ? `${x.ch} · ${(((x.v ?? 0) / total) * 100).toFixed(1)}%` : x.ch, stacked ? 'square' : 'line')).join('');
-          },
-        }),
-        xAxis,
-        yAxis: valueAxis(money ? rupiahAxis : compactNumber, { splitNumber: 4 }),
-        dataZoom: zoom,
-        series,
-      };
-    }
 
     const cumulative = chart === 'cumulative';
     const avgTicketCum = (list: TrendPoint[], prev: boolean) => {
@@ -238,25 +184,21 @@ export default function TrendChart({
       ],
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, metric, chart, channels]);
+  }, [data, metric, chart]);
 
-  const legend = chart === 'channels'
-    ? channels.map(c => ({ key: c, label: c, color: channelColor(c), shape: (metric === 'avgTicket' ? 'line' : 'square') as 'line' | 'square' }))
-    : [
+  // channels over time: see Channel mix › Over time
+  const legend = [
       ...(chart === 'average' ? [{ key: 'act', label: 'Actual', color: '#cde2fb', shape: 'square' as const }] : []),
       { key: 'cur', label: `${label} · ${chart === 'cumulative' ? 'running total' : chart === 'average' ? '7-bucket average' : 'this period'}`, color: INK.accent, shape: chart === 'bar' ? 'square' as const : 'line' as const },
       ...(hasPrev ? [{ key: 'prev', label: g === 'hour' ? 'Comparison day' : 'Previous period', color: INK.previous, shape: chart === 'bar' ? 'square' as const : 'line' as const }] : []),
     ];
 
-  if (chart === 'channels' && !channels.length) {
-    return <p className="flex h-40 items-center justify-center text-sm text-slate-400">No channel breakdown for this period</p>;
-  }
   return (
     <div className="space-y-1">
       <Legend items={legend} />
       <EChart option={option} height={height} ariaLabel={`${label} per ${g}, ${chart} chart`}
         onClick={onSelect ? (p: ChartClick) => { if (s[p.dataIndex]) onSelect(s[p.dataIndex]); } : undefined} />
-      {!hasPrev && chart !== 'channels' && <p className="text-xs text-slate-400">No comparison: the comparison period starts before complete history (Aug 2025).</p>}
+      {!hasPrev && <p className="text-xs text-slate-400">No comparison: the comparison period starts before complete history (Aug 2025).</p>}
     </div>
   );
 }

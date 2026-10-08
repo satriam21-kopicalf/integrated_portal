@@ -7,8 +7,9 @@ import { Legend } from '@/components/charts/common';
 import Sparkline from '@/components/charts/Sparkline';
 import { base, changeHtml, INK, tipFooter, tipRow, tipTitle, tooltip } from '@/lib/chartTheme';
 import { formatCurrency, formatNumber } from '@/lib/format';
-import { BranchesResponse, BranchRow, compactRupiah, Resource } from '@/lib/overview';
-import { Card, Delta, Segmented } from './Card';
+import { BranchesResponse, BranchRow, compactRupiah, Resource, useOverview, withParams } from '@/lib/overview';
+import { Card, CardTabs, Delta, Segmented } from './Card';
+import { AverageSalesBody, AverageSalesResponse } from './DailySales';
 import { to, useDrill } from './drill/DrillContext';
 
 type SortKey = 'subtotal' | 'deltaPct' | 'bills' | 'avgTicket' | 'subtotalPerDay' | 'voidRate';
@@ -22,22 +23,36 @@ const COLUMNS: { key: SortKey; label: string; title: string }[] = [
 ];
 const PAGE = 10;
 
-export default function BranchLeaderboard({ resource }: { resource: Resource<BranchesResponse> }) {
+type Tab = 'board' | 'weekday';
+
+/**
+ * Branches: the leaderboard (totals and change) and, in a second tab, gross sales per day per
+ * branch for all days or one weekday (formerly "Average sales" in the growth card).
+ */
+export default function BranchLeaderboard({ resource, query: baseQuery }: { resource: Resource<BranchesResponse>; query: string }) {
+  const [tab, setTab] = useState<Tab>('board');
   const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: 'subtotal', desc: true });
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [view, setView] = useState<'table' | 'chart'>('table');
+  const [weekday, setWeekday] = useState<number | null>(null);
   const drill = useDrill();
+  const average = useOverview<AverageSalesResponse>('average-sales', withParams(baseQuery, { weekday: weekday ? String(weekday) : null }));
+  const shown = (tab === 'board' ? resource : average) as Resource<BranchesResponse | AverageSalesResponse>;
 
   return (
     <Card
-      title="Branch leaderboard"
+      title="Branches"
       info="branches"
-      subtitle="Gross sales per branch with change vs the comparison period · click a branch for its full profile"
-      resource={resource}
+      subtitle={tab === 'board'
+        ? 'Gross sales per branch with change vs the comparison period · click a branch for its full profile'
+        : 'Gross sales per day per branch, this period vs the comparison period · all days or one weekday'}
+      resource={shown}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'branches' })}
-      actions={
+      tabs={<CardTabs label="Branches view" value={tab} onChange={setTab}
+        options={[{ value: 'board', label: 'Leaderboard' }, { value: 'weekday', label: 'Average per weekday' }]} />}
+      actions={tab === 'weekday' ? undefined :
         <>
         <Segmented label="View" value={view} options={[{ value: 'table', label: 'Table' }, { value: 'chart', label: 'Top 10' }]} onChange={setView} />
         <label className="relative">
@@ -53,9 +68,13 @@ export default function BranchLeaderboard({ resource }: { resource: Resource<Bra
         </>
       }
     >
-      {data => view === 'chart'
-        ? <TopChart data={data} query={query} />
-        : <Board data={data} sort={sort} setSort={setSort} query={query} showAll={showAll} setShowAll={setShowAll} />}
+      {raw => {
+        if (tab === 'weekday') return <AverageSalesBody data={raw as AverageSalesResponse} weekday={weekday} onWeekday={setWeekday} />;
+        const data = raw as BranchesResponse;
+        return view === 'chart'
+          ? <TopChart data={data} query={query} />
+          : <Board data={data} sort={sort} setSort={setSort} query={query} showAll={showAll} setShowAll={setShowAll} />;
+      }}
     </Card>
   );
 }

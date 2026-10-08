@@ -12,7 +12,7 @@ import LoadingState, { RefreshBar } from '@/components/ui/LoadingState';
  * at reduced opacity (no layout jump); errors offer "Try again".
  */
 export function Card<T>({
-  title, subtitle, actions, resource, children, className = '', minHeight = 240, onOpen, info,
+  title, subtitle, actions, resource, children, className = '', minHeight = 240, onOpen, info, tabs,
 }: {
   title: string;
   subtitle?: ReactNode;
@@ -25,6 +25,8 @@ export function Card<T>({
   onOpen?: () => void;
   /** ⓘ: source, definition and formulas (lib/metricInfo.ts) */
   info?: InfoKey;
+  /** views of the card (CardTabs), shown under the header also while loading */
+  tabs?: ReactNode;
 }) {
   const { data, loading, error, retry } = resource;
   return (
@@ -47,7 +49,8 @@ export function Card<T>({
           {onOpen && <DetailsButton onClick={onOpen} />}
         </div>
       </header>
-      <div className="relative flex-1 px-4 pb-4 sm:px-5" style={{ minHeight }}>
+      {tabs && <div className="px-4 sm:px-5">{tabs}</div>}
+      <div className={`relative flex-1 px-4 pb-4 sm:px-5 ${tabs ? 'pt-4' : ''}`} style={{ minHeight }}>
         {error && !loading ? (
           <div className="flex h-full min-h-[inherit] flex-col items-center justify-center gap-2 text-center">
             <AlertTriangle size={20} className="text-amber-500" />
@@ -66,6 +69,23 @@ export function Card<T>({
         )}
       </div>
     </section>
+  );
+}
+
+/** Underlined view tabs of a card. */
+export function CardTabs<V extends string>({ value, options, onChange, label }: {
+  value: V; options: { value: V; label: string }[]; onChange: (v: V) => void; label: string;
+}) {
+  return (
+    <div className="flex gap-1 overflow-x-auto border-b border-slate-100" role="tablist" aria-label={label}>
+      {options.map(o => (
+        <button key={o.value} type="button" role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)}
+          className={`-mb-px whitespace-nowrap border-b-2 px-3 pb-2 pt-1 text-sm font-medium transition-colors ${
+            value === o.value ? 'border-blue-700 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+          {o.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
