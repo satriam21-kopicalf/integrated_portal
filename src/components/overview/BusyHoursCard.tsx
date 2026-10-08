@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
-import { formatCurrency, formatNumber } from '@/lib/format';
+import { formatCurrency, formatNumber, fixed } from '@/lib/format';
 import { base, categoryAxis, INK, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import LoadingState from '@/components/ui/LoadingState';
 import { formatDate } from '@/lib/format';
@@ -11,6 +11,7 @@ import { Card, DataTable, Segmented } from './Card';
 import { useDrill } from './drill/DrillContext';
 import HoursCompare from './HoursCompare';
 import { HourGrowthChart, HourMovers, hourRows } from './SalesGrowth';
+import { tr } from '@/lib/i18n';
 
 /** Sequential single-hue ramp (blue 100 -> 700). */
 const SEQUENTIAL = ['#e8f1fd', '#cde2fb', '#9ec5f4', '#6da7ec', '#3987e5', '#256abf', '#184f95', '#0d366b'];
@@ -24,20 +25,20 @@ export default function BusyHoursCard({ resource, query }: { resource: Resource<
   const drill = useDrill();
   return (
     <Card
-      title="Busy hours"
+      title={tr('Busy hours')}
       info="hours"
-      subtitle={mode === 'pattern' ? 'Average bills per day, by hour of order (outlet time)'
-        : mode === 'growth' ? 'Growth of gross sales per day in each hour against the comparison period'
-        : 'Branches side by side, per hour'}
+      subtitle={mode === 'pattern' ? tr('Average bills per day, by hour of order (outlet time)')
+        : mode === 'growth' ? tr('Growth of gross sales per day in each hour against the comparison period')
+        : tr('Branches side by side, per hour')}
       resource={resource}
       minHeight={420}
       onOpen={() => drill.open({ kind: 'hours' })}
       actions={
         <>
-          <Segmented label="Busy hours view" value={mode} onChange={setMode} options={[
-            { value: 'pattern', label: 'Pattern' }, { value: 'growth', label: 'vs comparison' }, { value: 'branches', label: 'Compare branches' },
+          <Segmented label={tr('Busy hours view')} value={mode} onChange={setMode} options={[
+            { value: 'pattern', label: tr('Pattern') }, { value: 'growth', label: tr('vs comparison') }, { value: 'branches', label: tr('Compare branches') },
           ]} />
-          {mode === 'pattern' && <Segmented label="View" value={view} options={[{ value: 'chart', label: 'Chart' }, { value: 'table', label: 'Table' }]} onChange={setView} />}
+          {mode === 'pattern' && <Segmented label={tr('View')} value={view} options={[{ value: 'chart', label: tr('Chart') }, { value: 'table', label: tr('Table') }]} onChange={setView} />}
         </>
       }
     >
@@ -55,11 +56,11 @@ function HoursGrowth({ query }: { query: string }) {
   const d = res.data && res.data.mode === 'period' ? res.data : null;
   const rows = useMemo(() => (d ? hourRows(d.current, d.compare) : []), [d]);
   if (res.error) return <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{res.error}</p>;
-  if (!d) return <LoadingState height={300} label="hourly growth" />;
+  if (!d) return <LoadingState height={300} label={tr('hourly growth')} />;
   return (
     <div className="space-y-3">
       <p className="text-[11px] text-slate-500">
-        Gross sales per day in each hour (outlet time) · vs {formatDate(d.compare.from)} – {formatDate(d.compare.to)}
+        {tr('Gross sales per day in each hour (outlet time) · vs')} {formatDate(d.compare.from)} – {formatDate(d.compare.to)}
       </p>
       <HourGrowthChart rows={rows} height={280} />
       <HourMovers rows={rows} />
@@ -101,8 +102,8 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
         axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(148,163,184,0.12)' } },
         formatter: (items: { dataIndex: number }[]) => {
           const p = model.perHour[items[0]?.dataIndex ?? 0];
-          return tipTitle(`${hourLabel(p.hour)}–${hourLabel(p.hour + 1)}, all days`)
-            + tipRow(INK.accent, `${formatNumber(Math.round(p.avgBills))} bills`, 'per day')
+          return tipTitle(tr('{0}–{1}, all days', hourLabel(p.hour), hourLabel(p.hour + 1)))
+            + tipRow(INK.accent, tr('{0} bills', formatNumber(Math.round(p.avgBills))), 'per day')
             + tipRow(INK.accent, formatCurrency(Math.round(p.avgSubtotal)), 'gross sales per day');
         },
       }),
@@ -120,7 +121,7 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
           position: 'top',
           fontSize: 10,
           color: INK.secondary,
-          formatter: (p: { value: number }) => (p.value === Math.round(max) ? `Peak ${formatNumber(p.value)}` : ''),
+          formatter: (p: { value: number }) => (p.value === Math.round(max) ? tr('Peak {0}', formatNumber(p.value)) : ''),
         },
       }],
     };
@@ -140,7 +141,7 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
           const [x, d] = p.data;
           const c = model.cell(d + 1, model.hours[x]);
           return tipTitle(`${DOW_LABELS[d]} ${hourLabel(model.hours[x])}–${hourLabel(model.hours[x] + 1)}`)
-            + tipRow(SEQUENTIAL[5], `${formatNumber(Math.round(c?.avgBills ?? 0))} bills`, 'per day')
+            + tipRow(SEQUENTIAL[5], tr('{0} bills', formatNumber(Math.round(c?.avgBills ?? 0))), 'per day')
             + tipRow(SEQUENTIAL[5], compactRupiah(c?.avgSubtotal ?? 0), 'gross sales per day');
         },
       }),
@@ -155,7 +156,7 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
         bottom: 0,
         itemWidth: 10,
         itemHeight: 140,
-        text: [`${formatNumber(max)} bills/day`, '0'],
+        text: [tr('{0} bills/day', formatNumber(max)), '0'],
         textStyle: { color: INK.secondary, fontSize: 11 },
         inRange: { color: SEQUENTIAL },
       },
@@ -168,14 +169,14 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
     };
   }, [model]);
 
-  if (!model) return <p className="py-10 text-center text-sm text-slate-400">No sales in this period</p>;
+  if (!model) return <p className="py-10 text-center text-sm text-slate-400">{tr('No sales in this period')}</p>;
   const peak = data.peak;
 
   if (view === 'table') {
     return (
       <DataTable
-        caption="Average bills per day by hour and weekday"
-        columns={[{ key: 'hour', label: 'Hour' }, ...DOW_LABELS.map(d => ({ key: d, label: d, align: 'right' as const })), { key: 'all', label: 'All days', align: 'right' as const }]}
+        caption={tr('Average bills per day by hour and weekday')}
+        columns={[{ key: 'hour', label: tr('Hour') }, ...DOW_LABELS.map(d => ({ key: d, label: d, align: 'right' as const })), { key: 'all', label: tr('All days'), align: 'right' as const }]}
         rows={model.hours.map((h, i) => ({
           key: String(h),
           cells: {
@@ -192,12 +193,12 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
     <div className="space-y-3">
       {peak && (
         <p className="text-xs text-slate-600">
-          Busiest slot: <span className="font-semibold text-slate-900">{DOW_LABELS[peak.dow - 1]} {hourLabel(peak.hour)}</span> ·{' '}
-          {formatNumber(Math.round(peak.avgBills))} bills/day · {compactRupiah(peak.avgSubtotal)}
+          {tr('Busiest slot:')} <span className="font-semibold text-slate-900">{DOW_LABELS[peak.dow - 1]} {hourLabel(peak.hour)}</span> ·{' '}
+          {formatNumber(Math.round(peak.avgBills))} {tr('bills/day ·')} {compactRupiah(peak.avgSubtotal)}
         </p>
       )}
-      <EChart option={barOption!} height={large ? 180 : 140} ariaLabel="Average bills per day for each hour" />
-      <EChart option={heatOption!} height={large ? 320 : 250} ariaLabel="Heatmap of average bills per day by weekday and hour" />
+      <EChart option={barOption!} height={large ? 180 : 140} ariaLabel={tr('Average bills per day for each hour')} />
+      <EChart option={heatOption!} height={large ? 320 : 250} ariaLabel={tr('Heatmap of average bills per day by weekday and hour')} />
     </div>
   );
 }
@@ -215,10 +216,10 @@ function HoursVs({ data }: { data: HourlyResponse }) {
   const delta = prev.avgBillsPerDay ? ((perDay - prev.avgBillsPerDay) / prev.avgBillsPerDay) * 100 : null;
   return (
     <p className="mb-2 flex flex-wrap gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-      <span>Peak <b className="text-slate-900">{peak !== undefined ? hourLabel(peak) : '–'}</b> vs {prev.peakHour !== null ? hourLabel(prev.peakHour) : '–'}</span>
-      <span>Bills per day <b className="tabular-nums text-slate-900">{formatNumber(Math.round(perDay))}</b> vs {formatNumber(Math.round(prev.avgBillsPerDay))}
-        {delta !== null && <b className={delta >= 0 ? ' text-emerald-700' : ' text-red-700'}> {delta >= 0 ? '+' : '−'}{Math.abs(delta).toFixed(1)}%</b>}</span>
-      <span className="text-slate-400">comparison {prev.from === prev.to ? prev.from : `${prev.from} – ${prev.to}`}</span>
+      <span>{tr('Peak')} <b className="text-slate-900">{peak !== undefined ? hourLabel(peak) : '–'}</b> {tr('vs')} {prev.peakHour !== null ? hourLabel(prev.peakHour) : '–'}</span>
+      <span>{tr('Bills per day')} <b className="tabular-nums text-slate-900">{formatNumber(Math.round(perDay))}</b> {tr('vs')} {formatNumber(Math.round(prev.avgBillsPerDay))}
+        {delta !== null && <b className={delta >= 0 ? ' text-emerald-700' : ' text-red-700'}> {delta >= 0 ? '+' : '−'}{fixed(Math.abs(delta), 1)}%</b>}</span>
+      <span className="text-slate-400">{tr('comparison')} {prev.from === prev.to ? prev.from : `${prev.from} – ${prev.to}`}</span>
     </p>
   );
 }

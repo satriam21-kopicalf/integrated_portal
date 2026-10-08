@@ -10,6 +10,7 @@
 // polls GET /api/realtime/version, so pages keep updating either way.
 
 import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { locale, tr } from './i18n';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://api.kopicalf.co.id/ws';
 const FALLBACK_POLL_MS = 60_000;
@@ -163,26 +164,26 @@ export function useRealtime(): RealtimeState {
 export function RealtimeIndicator({ className = '' }: { className?: string }) {
   const { status, salesSyncedAt } = useRealtime();
   const synced = salesSyncedAt
-    ? new Date(salesSyncedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
+    ? new Date(salesSyncedAt).toLocaleString(locale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
     : null;
   const tone = status === 'live'
-    ? { dot: 'bg-emerald-500', ring: 'bg-emerald-400', text: 'text-emerald-700', label: 'Live' }
+    ? { dot: 'bg-emerald-500', ring: 'bg-emerald-400', text: 'text-emerald-700', label: tr('Live') }
     : status === 'connecting'
-    ? { dot: 'bg-amber-400', ring: 'bg-amber-300', text: 'text-amber-700', label: 'Connecting' }
-    : { dot: 'bg-slate-400', ring: '', text: 'text-slate-500', label: 'Reconnecting' };
+    ? { dot: 'bg-amber-400', ring: 'bg-amber-300', text: 'text-amber-700', label: tr('Connecting') }
+    : { dot: 'bg-slate-400', ring: '', text: 'text-slate-500', label: tr('Reconnecting') };
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs ${className}`}
       title={status === 'live'
-        ? 'Connected: data updates automatically after every sync'
-        : 'Realtime connection lost: retrying, data still updates every minute'}
+        ? tr('Connected: data updates automatically after every sync')
+        : tr('Realtime connection lost: retrying, data still updates every minute')}
     >
       <span className="relative flex h-2 w-2">
         {tone.ring && <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${tone.ring}`} />}
         <span className={`relative inline-flex h-2 w-2 rounded-full ${tone.dot}`} />
       </span>
       <span className={`font-semibold ${tone.text}`}>{tone.label}</span>
-      {synced && <span className="hidden text-slate-500 sm:inline">· last data {synced}</span>}
+      {synced && <span className="hidden text-slate-500 sm:inline">{tr('· last data')} {synced}</span>}
     </span>
   );
 }

@@ -11,10 +11,11 @@ import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import {
   Basis, cogsPct, cogsStatus, CostSettings, ForecastResponse, ItemsResponse, OutletCost, pctText, sales, useCostControl,
 } from '@/lib/costControl';
-import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
+import { formatCurrency, formatDate, formatNumber, fixed } from '@/lib/format';
 import { Resource } from '@/lib/overview';
 import { OutletReliability, RELIABILITY } from '@/lib/costReliability';
 import type { InfoKey } from '@/lib/metricInfo';
+import { tr } from '@/lib/i18n';
 
 const qty = (v: number) => formatNumber(Math.round(v * 100) / 100);
 
@@ -37,13 +38,13 @@ export default function OutletDrawer({ outlet, basis, query, settings, reliabili
 
   return (
     <Drawer open onClose={onClose} size="lg" icon={<Store size={18} />} title={outlet.branchName}
-      description={`${outlet.branchCode} · ${outlet.periods} opname period(s)`}
+      description={tr('{0} · {1} opname period(s)', outlet.branchCode, outlet.periods)}
       titleExtra={reliability ? <ReliabilityPill level={reliability.level} /> : undefined}>
       <div className="space-y-6">
         {reliability && reliability.reasons.length > 0 && (
           <div className={`rounded-lg border px-3 py-2.5 text-xs ${reliability.level === 'check' ? 'border-red-200 bg-red-50/60 text-red-900' : 'border-amber-200 bg-amber-50/70 text-amber-900'}`}>
             <p className="flex items-center gap-1.5 font-semibold">
-              {reliability.level === 'check' ? 'Check these figures — data errors in ESB' : 'Provisional figures'}
+              {reliability.level === 'check' ? tr('Check these figures — data errors in ESB') : tr('Provisional figures')}
               <InfoTip info="costReliability" />
             </p>
             <ul className="mt-1.5 list-disc space-y-1 pl-4">
@@ -53,45 +54,45 @@ export default function OutletDrawer({ outlet, basis, query, settings, reliabili
         )}
 
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-3">
-          <Figure label={basis === 'net' ? 'Net sales' : 'Subtotal'} info="costSales" value={formatCurrency(Math.round(s))}>
-            <span className="text-xs text-slate-500">{formatNumber(outlet.bills)} bills</span>
+          <Figure label={basis === 'net' ? tr('Net sales') : tr('Subtotal')} info="costSales" value={formatCurrency(Math.round(s))}>
+            <span className="text-xs text-slate-500">{formatNumber(outlet.bills)} {tr('bills')}</span>
           </Figure>
-          <Figure label="Actual COGS" info="costActual" value={formatCurrency(Math.round(outlet.actualCogs))}>
+          <Figure label={tr('Actual COGS')} info="costActual" value={formatCurrency(Math.round(outlet.actualCogs))}>
             <StatusBadge status={cogsStatus(outlet, basis)} value={pctText(cogsPct(outlet, basis, 'actual'))} />
           </Figure>
-          <Figure label="Recipes (theoretical)" info="costTheoretical" value={formatCurrency(Math.round(outlet.theoreticalCogs))}>
-            <span className="text-xs text-slate-500">{pctText(cogsPct(outlet, basis, 'theoretical'))} of sales</span>
+          <Figure label={tr('Recipes (theoretical)')} info="costTheoretical" value={formatCurrency(Math.round(outlet.theoreticalCogs))}>
+            <span className="text-xs text-slate-500">{pctText(cogsPct(outlet, basis, 'theoretical'))} {tr('of sales')}</span>
           </Figure>
-          <Figure label="Excess vs recipes" info="costExcess" value={outlet.hasOpname ? `${excess > 0 ? '+' : ''}${formatCurrency(Math.round(excess))}` : 'no opname'}
+          <Figure label={tr('Excess vs recipes')} info="costExcess" value={outlet.hasOpname ? `${excess > 0 ? '+' : ''}${formatCurrency(Math.round(excess))}` : 'no opname'}
             tone={!outlet.hasOpname ? undefined : excess > 0.5 ? 'bad' : 'good'}>
-            {outlet.hasOpname && <StatusBadge status={outlet.status.usage} value={`usage ${pctText(outlet.usageRatio)}`} />}
+            {outlet.hasOpname && <StatusBadge status={outlet.status.usage} value={tr('usage {0}', pctText(outlet.usageRatio))} />}
           </Figure>
-          <Figure label="Stock variance" info="costVariance" value={formatCurrency(Math.round(outlet.variance))} tone={outlet.variance < -0.5 ? 'bad' : undefined}>
+          <Figure label={tr('Stock variance')} info="costVariance" value={formatCurrency(Math.round(outlet.variance))} tone={outlet.variance < -0.5 ? 'bad' : undefined}>
             <span className="text-xs text-slate-500">
-              posted {formatCurrency(Math.round(outlet.postedVariance))}{outlet.pendingVariance ? ` · pending ${formatCurrency(Math.round(outlet.pendingVariance))}` : ''}
+              {tr('posted')} {formatCurrency(Math.round(outlet.postedVariance))}{outlet.pendingVariance ? tr(' · pending {0}', formatCurrency(Math.round(outlet.pendingVariance))) : ''}
             </span>
           </Figure>
-          <Figure label="Other usage" info="costOther" value={formatCurrency(Math.round(outlet.otherUsage))}>
+          <Figure label={tr('Other usage')} info="costOther" value={formatCurrency(Math.round(outlet.otherUsage))}>
             <StatusBadge status={outlet.status.waste} value={pctText(basis === 'net' ? outlet.wastePctNet : outlet.wastePctSubtotal)} />
           </Figure>
-          <Figure label="Purchases" info="costPurchases" value={formatCurrency(Math.round(outlet.purchases))}>
-            <span className="text-xs text-slate-500">{pctText(s ? (outlet.purchases / s) * 100 : null)} of sales</span>
+          <Figure label={tr('Purchases')} info="costPurchases" value={formatCurrency(Math.round(outlet.purchases))}>
+            <span className="text-xs text-slate-500">{pctText(s ? (outlet.purchases / s) * 100 : null)} {tr('of sales')}</span>
           </Figure>
-          <Figure label="Stock (book)" value={formatCurrency(Math.round(outlet.endValue))}>
-            <span className="text-xs text-slate-500">from {formatCurrency(Math.round(outlet.beginValue))}</span>
+          <Figure label={tr('Stock (book)')} value={formatCurrency(Math.round(outlet.endValue))}>
+            <span className="text-xs text-slate-500">{tr('from')} {formatCurrency(Math.round(outlet.beginValue))}</span>
           </Figure>
-          <Figure label="Stock opname" value={outlet.opnameCount ? `${outlet.opnameCount}×` : 'none'}>
+          <Figure label={tr('Stock opname')} value={outlet.opnameCount ? `${outlet.opnameCount}×` : 'none'}>
             <span className="text-xs text-slate-500">
-              {outlet.lastOpnameDate ? `last ${formatDate(outlet.lastOpnameDate)}` : 'no count in this range'}
-              {outlet.pendingOpnameCount ? ` · ${outlet.pendingOpnameCount} not posted` : ''}
+              {outlet.lastOpnameDate ? tr('last {0}', formatDate(outlet.lastOpnameDate)) : tr('no count in this range')}
+              {outlet.pendingOpnameCount ? tr(' · {0} not posted', outlet.pendingOpnameCount) : ''}
             </span>
           </Figure>
         </dl>
 
         <CostTrendCard query={query} basis={basis} settings={settings} branch={outlet.branchCode} defaultGrain={defaultGrain} />
 
-        <DrawerSection title="Items" description="Usage vs recipes and stock variance per item, or the purchase need for the coming weeks.">
-          <Segmented label="Item view" value={tab} options={[{ value: 'items', label: 'Usage & variance' }, { value: 'forecast', label: 'Purchase forecast' }]} onChange={setTab} />
+        <DrawerSection title={tr('Items')} description={tr('Usage vs recipes and stock variance per item, or the purchase need for the coming weeks.')}>
+          <Segmented label={tr('Item view')} value={tab} options={[{ value: 'items', label: tr('Usage & variance') }, { value: 'forecast', label: tr('Purchase forecast') }]} onChange={setTab} />
           {tab === 'items' ? <ItemsTable resource={items} /> : <ForecastItems resource={forecast} />}
         </DrawerSection>
       </div>
@@ -121,18 +122,18 @@ function ItemsTable({ resource }: { resource: Resource<ItemsResponse> }) {
   if (!resource.data) return <div className="h-40 animate-pulse rounded-lg bg-slate-100" />;
   return (
     <div className="space-y-2">
-      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search item"
-        className="h-9 w-full rounded-lg border border-slate-200 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" aria-label="Search item" />
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr('Search item')}
+        className="h-9 w-full rounded-lg border border-slate-200 px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" aria-label={tr('Search item')} />
       <div className="custom-scrollbar max-h-[420px] overflow-auto rounded-lg border border-slate-100">
         <table className="w-full text-xs">
           <thead className="sticky top-0 bg-slate-50 text-slate-500">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">Item</th>
-              <th className="px-3 py-2 text-right font-medium" title="Recipe usage from sold menus">Theoretical</th>
-              <th className="px-3 py-2 text-right font-medium">Actual</th>
-              <th className="px-3 py-2 text-right font-medium">Usage</th>
-              <th className="px-3 py-2 text-right font-medium" title="Physical minus system stock; negative = loss">Variance</th>
-              <th className="px-3 py-2 text-right font-medium">Other usage</th>
+              <th className="px-3 py-2 text-left font-medium">{tr('Item')}</th>
+              <th className="px-3 py-2 text-right font-medium" title={tr('Recipe usage from sold menus')}>{tr('Theoretical')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Actual')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Usage')}</th>
+              <th className="px-3 py-2 text-right font-medium" title={tr('Physical minus system stock; negative = loss')}>{tr('Variance')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Other usage')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -151,11 +152,11 @@ function ItemsTable({ resource }: { resource: Resource<ItemsResponse> }) {
                 <td className="whitespace-nowrap px-3 py-1.5 text-right tabular-nums text-slate-600">{formatCurrency(Math.round(i.otherValue))}</td>
               </tr>
             ))}
-            {!rows.length && <tr><td colSpan={6} className="px-3 py-8 text-center text-slate-400">No items</td></tr>}
+            {!rows.length && <tr><td colSpan={6} className="px-3 py-8 text-center text-slate-400">{tr('No items')}</td></tr>}
           </tbody>
         </table>
       </div>
-      <p className="text-[11px] text-slate-400">Sorted by largest loss first. Quantities in the item&apos;s base unit; values at ESB HPP.</p>
+      <p className="text-[11px] text-slate-400">{tr('Sorted by largest loss first. Quantities in the item\'s base unit; values at ESB HPP.')}</p>
     </div>
   );
 }
@@ -165,7 +166,7 @@ function ForecastItems({ resource }: { resource: Resource<ForecastResponse> }) {
   if (!resource.data) return <div className="h-40 animate-pulse rounded-lg bg-slate-100" />;
   const d = resource.data;
   const o = d.outlets[0];
-  if (!d.items.length) return <p className="py-8 text-center text-sm text-slate-400">No usage in the last {d.settings.lookback_days} days to plan from yet</p>;
+  if (!d.items.length) return <p className="py-8 text-center text-sm text-slate-400">{tr('No usage in the last')} {d.settings.lookback_days} {tr('days to plan from yet')}</p>;
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200">
@@ -178,21 +179,20 @@ function ForecastItems({ resource }: { resource: Resource<ForecastResponse> }) {
       </div>
       {o && (
         <p className="text-[11px] text-slate-500">
-          Usage of the last {o.lookbackDays} days × sales trend {((o.trendFactor - 1) * 100).toFixed(1)}% + {d.settings.safety_days} days safety stock − current stock.
-          Average purchases so far: {formatCurrency(Math.round(o.avgWeeklyPurchases))} per week.
+          {tr('Usage of the last')} {o.lookbackDays} {tr('days × sales trend')} {fixed(((o.trendFactor - 1) * 100), 1)}% + {d.settings.safety_days} {tr('days safety stock − current stock. Average purchases so far:')} {formatCurrency(Math.round(o.avgWeeklyPurchases))} {tr('per week.')}
         </p>
       )}
       <div className="custom-scrollbar max-h-[420px] overflow-auto rounded-lg border border-slate-100">
         <table className="w-full text-xs">
           <thead className="sticky top-0 bg-slate-50 text-slate-500">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">Item</th>
-              <th className="px-3 py-2 text-right font-medium">Per day</th>
-              <th className="px-3 py-2 text-right font-medium">Stock</th>
-              <th className="px-3 py-2 text-right font-medium">Need 1 wk</th>
-              <th className="px-3 py-2 text-right font-medium">Need 2 wk</th>
-              <th className="px-3 py-2 text-right font-medium">Need 1 mo</th>
-              <th className="px-3 py-2 text-right font-medium">Spend 1 mo</th>
+              <th className="px-3 py-2 text-left font-medium">{tr('Item')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Per day')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Stock')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Need 1 wk')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Need 2 wk')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Need 1 mo')}</th>
+              <th className="px-3 py-2 text-right font-medium">{tr('Spend 1 mo')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -200,7 +200,7 @@ function ForecastItems({ resource }: { resource: Resource<ForecastResponse> }) {
               <tr key={i.productId} className="hover:bg-slate-50/60">
                 <td className="max-w-[13rem] px-3 py-1.5">
                   <span className="block truncate font-medium text-slate-800" title={i.productName}>{i.productName}</span>
-                  <span className="text-[11px] text-slate-400">{i.basedOn === 'actual' ? 'actual usage' : 'recipe usage'} · {formatCurrency(Math.round(i.unitCost * 100) / 100)}/{i.unit ?? 'unit'}</span>
+                  <span className="text-[11px] text-slate-400">{i.basedOn === 'actual' ? tr('actual usage') : tr('recipe usage')} · {formatCurrency(Math.round(i.unitCost * 100) / 100)}/{i.unit ?? tr('unit')}</span>
                 </td>
                 <td className="whitespace-nowrap px-3 py-1.5 text-right tabular-nums">{qty(i.dailyUsage)}</td>
                 <td className="whitespace-nowrap px-3 py-1.5 text-right tabular-nums">{qty(i.stock)}</td>

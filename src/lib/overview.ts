@@ -5,6 +5,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRealtime } from './realtime';
+import { locale, lang, tr, trList, serverMsg } from './i18n';
+import { fixed } from './format';
 
 export interface OverviewFilters {
   from: string;
@@ -204,7 +206,7 @@ export interface DeductionSplit {
 
 /** Offline / online in the categorical order (slots 1 and 2). */
 export const GROUP_COLORS: Record<ChannelGroup, string> = { offline: '#2a78d6', online: '#eb6834', other: '#a8a29e' };
-export const GROUP_LABELS: Record<ChannelGroup, string> = { offline: 'Offline', online: 'Online', other: 'Other' };
+export const GROUP_LABELS: Record<ChannelGroup, string> = { get offline() { return tr('Offline'); }, get online() { return tr('Online'); }, get other() { return tr('Other'); } };
 
 export interface MonthRow {
   month: string;
@@ -291,7 +293,7 @@ export function useOverview<T>(path: string, query: string): Resource<T> {
     fetch(`/api/overview/${path}${params ? `?${params}` : ''}`, { signal: controller.signal })
       .then(async res => {
         const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+        if (!res.ok) throw new Error(serverMsg(body.error) || `HTTP ${res.status}`);
         setState({ data: body as T, loading: false, error: null });
       })
       .catch((error: Error) => {
@@ -351,27 +353,31 @@ export function channelOrder(name: string): number {
 
 // ---------------------------------------------------------------- helpers
 
-export const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+export const DOW_LABELS = trList(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
 
 /** "Rp 45.8B" / "1.2M" style. */
-const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+const COMPACT = {
+  en: new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }),
+  id: new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }),
+};
+const compact = { format: (v: number) => COMPACT[lang()].format(v) };
 
 export function compactNumber(value: number | null | undefined): string {
   return value === null || value === undefined ? '-' : compact.format(value);
 }
 
 export function compactRupiah(value: number | null | undefined): string {
-  return value === null || value === undefined ? '-' : `Rp ${compact.format(value)}`; // never wraps
+  return value === null || value === undefined ? '-' : tr('Rp {0}', compact.format(value)); // never wraps
 }
 
 export function shortDate(value: string, granularity: Granularity = 'day'): string {
   const d = new Date(`${value}T00:00:00`);
-  if (granularity === 'month') return d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  if (granularity === 'month') return d.toLocaleDateString(locale(), { month: 'short', year: '2-digit' });
+  return d.toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
 }
 
 export function longDate(value: string): string {
-  return new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', {
+  return new Date(`${value}T00:00:00`).toLocaleDateString(locale(), {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
   });
 }
@@ -379,14 +385,14 @@ export function longDate(value: string): string {
 /** "+12.3%" / "−4.0%" for compact displays (null: nothing). */
 export function deltaText(pct: number | null | undefined): string {
   if (pct === null || pct === undefined) return '';
-  return `${pct > 0 ? '▲ +' : pct < 0 ? '▼ −' : ''}${Math.abs(pct).toFixed(1)}%`;
+  return `${pct > 0 ? '▲ +' : pct < 0 ? '▼ −' : ''}${fixed(Math.abs(pct), 1)}%`;
 }
 
 export function bucketLabel(value: string, granularity: Granularity): string {
   if (granularity === 'hour') return longDate(value);
-  if (granularity === 'week') return `Week of ${shortDate(value)}`;
+  if (granularity === 'week') return tr('Week of {0}', shortDate(value));
   if (granularity === 'month') {
-    return new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    return new Date(`${value}T00:00:00`).toLocaleDateString(locale(), { month: 'long', year: 'numeric' });
   }
   return longDate(value);
 }

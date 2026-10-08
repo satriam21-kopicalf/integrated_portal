@@ -9,9 +9,10 @@ import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import BranchFilter, { Branch, branchesLabel, splitBranches } from '@/components/BranchFilter';
 import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Search, Tag, Wallet, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
-import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate } from '@/lib/format';
+import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate, fixed } from '@/lib/format';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { useRealtime } from '@/lib/realtime';
+import { tr, serverMsg } from '@/lib/i18n';
 
 interface PaginationInfo {
   cursor: string | null;
@@ -23,10 +24,10 @@ interface PaginationInfo {
 // Sales Recapitulation Detail Report.
 type TxType = 'sales' | 'void' | 'other_cost' | 'all';
 const TX_TYPES: { value: TxType; label: string; short: string }[] = [
-  { value: 'sales', label: 'Sales', short: 'Sales' },
-  { value: 'void', label: 'Void & Cancelled', short: 'Void' },
-  { value: 'other_cost', label: 'Other Cost', short: 'Other Cost' },
-  { value: 'all', label: 'All Transactions', short: 'All' },
+  { value: 'sales', get label() { return tr('Sales'); }, get short() { return tr('Sales'); } },
+  { value: 'void', get label() { return tr('Void & Cancelled'); }, get short() { return tr('Void'); } },
+  { value: 'other_cost', get label() { return tr('Other Cost'); }, get short() { return tr('Other Cost'); } },
+  { value: 'all', get label() { return tr('All Transactions'); }, get short() { return tr('All'); } },
 ];
 
 interface SummaryBucket {
@@ -67,15 +68,15 @@ function salesPresets(): DatePreset[] {
   const y = now.getFullYear();
   const m = now.getMonth();
   return [
-    { label: 'Today', from: d(0), to: d(0) },
-    { label: 'Yesterday', from: d(-1), to: d(-1) },
-    { label: 'Last 7 days', from: d(-7), to: d(-1) },
-    { label: 'Last 30 days', from: d(-30), to: d(-1) },
-    { label: 'Last 90 days', from: d(-90), to: d(-1) },
+    { label: tr('Today'), from: d(0), to: d(0) },
+    { label: tr('Yesterday'), from: d(-1), to: d(-1) },
+    { label: tr('Last 7 days'), from: d(-7), to: d(-1) },
+    { label: tr('Last 30 days'), from: d(-30), to: d(-1) },
+    { label: tr('Last 90 days'), from: d(-90), to: d(-1) },
     // running period: from the 1st (of the month / year) up to and including today
-    { label: 'Month to date', from: toIsoDate(new Date(y, m, 1)), to: d(0) },
-    { label: 'Last month', from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
-    { label: 'Year to date', from: toIsoDate(new Date(y, 0, 1)), to: d(0) },
+    { label: tr('Month to date'), from: toIsoDate(new Date(y, m, 1)), to: d(0) },
+    { label: tr('Last month'), from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
+    { label: tr('Year to date'), from: toIsoDate(new Date(y, 0, 1)), to: d(0) },
   ];
 }
 
@@ -144,7 +145,7 @@ export default function SalesPage() {
 
       const res = await fetch(`/api/transactions?${params}`);
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || `HTTP ${res.status}`);
+      if (!res.ok) throw new Error(serverMsg(result.error) || `HTTP ${res.status}`);
 
       if (isMounted.current && requestId === requestIdRef.current) {
         setData(prev => (cursor ? [...prev, ...(result.data || [])] : result.data || []));
@@ -238,7 +239,7 @@ export default function SalesPage() {
   const typeInfo = TX_TYPES.find(t => t.value === txType) ?? TX_TYPES[0];
   const periodLabel = summary
     ? `${formatDate(summary.dateRange.from)} – ${formatDate(summary.dateRange.to)}`
-    : dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : 'Yesterday';
+    : dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Yesterday');
   const branchLabel = branchesLabel(branch, branches);
 
   useFilterLog(
@@ -276,7 +277,7 @@ export default function SalesPage() {
         <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Sales Transactions</h1>
+              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('Sales Transactions')}</h1>
               <p className="truncate text-xs text-slate-500 sm:text-sm">
                 {periodLabel} · {branchLabel}
               </p>
@@ -295,19 +296,19 @@ export default function SalesPage() {
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search sales no., bill no. or branch"
+                  placeholder={tr('Search sales no., bill no. or branch')}
                   value={search}
                   onChange={e => handleSearchChange(e.target.value)}
                   className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/5"
                 />
                 {search && (
-                  <button type="button" onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label="Clear search">
+                  <button type="button" onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label={tr('Clear search')}>
                     <X size={14} />
                   </button>
                 )}
               </div>
               <div className="flex items-center justify-end gap-2">
-                <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel="yesterday" />
+                <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel={tr('yesterday')} />
                 <BranchFilter branches={branches} loading={branchesLoading} value={branch} onChange={setBranch} />
                 <ExportButton
                   dateFrom={dateFrom}
@@ -350,15 +351,15 @@ export default function SalesPage() {
             {/* Active filters */}
             {hasChips && (
               <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 sm:px-4">
-                {!defaultDates && <Chip label={`Date: ${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}`} onRemove={() => handleDateChange('', '')} />}
+                {!defaultDates && <Chip label={tr('Date: {0} – {1}', formatDate(dateFrom), formatDate(dateTo || dateFrom))} onRemove={() => handleDateChange('', '')} />}
                 {splitBranches(branch).map(code => (
-                  <Chip key={code} label={`Branch: ${branchName(code)}`}
+                  <Chip key={code} label={tr('Branch: {0}', branchName(code))}
                     onRemove={() => setBranch(splitBranches(branch).filter(c => c !== code).join(','))} />
                 ))}
-                {txType !== 'sales' && <Chip label={`Type: ${typeInfo.label}`} onRemove={() => setTxType('sales')} />}
-                {debouncedSearch && <Chip label={`Search: “${debouncedSearch}”`} onRemove={clearSearch} />}
+                {txType !== 'sales' && <Chip label={tr('Type: {0}', typeInfo.label)} onRemove={() => setTxType('sales')} />}
+                {debouncedSearch && <Chip label={tr('Search: “{0}”', debouncedSearch)} onRemove={clearSearch} />}
                 <button type="button" onClick={clearFilters} className="text-xs font-medium text-slate-500 hover:text-slate-900">
-                  Clear all
+                  {tr('Clear all')}
                 </button>
               </div>
             )}
@@ -368,19 +369,19 @@ export default function SalesPage() {
                 <Info size={14} className="mt-0.5 flex-shrink-0" />
                 <span>
                   {txType === 'all'
-                    ? 'Showing every transaction, including void, cancelled and other-cost bills that are excluded from sales.'
+                    ? tr('Showing every transaction, including void, cancelled and other-cost bills that are excluded from sales.')
                     : txType === 'void'
-                    ? 'Void and cancelled bills are excluded from sales and shown here as deductions.'
-                    : 'Other-cost bills (e.g. CUPPING, WASTE) have no bill number and are excluded from sales.'}
+                    ? tr('Void and cancelled bills are excluded from sales and shown here as deductions.')
+                    : tr('Other-cost bills (e.g. CUPPING, WASTE) have no bill number and are excluded from sales.')}
                 </span>
               </div>
             )}
 
             {newData && (
               <div className="flex items-center justify-between gap-3 border-b border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800 sm:px-4">
-                <span className="flex items-center gap-1.5"><ArrowUpCircle size={14} /> New transactions were synced.</span>
+                <span className="flex items-center gap-1.5"><ArrowUpCircle size={14} /> {tr('New transactions were synced.')}</span>
                 <button type="button" onClick={() => fetchData(null)} className="rounded-md bg-blue-600 px-2.5 py-1 font-medium text-white hover:bg-blue-700">
-                  Show latest
+                  {tr('Show latest')}
                 </button>
               </div>
             )}
@@ -389,10 +390,10 @@ export default function SalesPage() {
             <div className="relative">
               {loadError && !loading && (
                 <div className="flex flex-col items-center gap-2 px-4 py-16 text-center">
-                  <p className="text-sm font-medium text-slate-800">Couldn’t load transactions</p>
+                  <p className="text-sm font-medium text-slate-800">{tr('Couldn’t load transactions')}</p>
                   <p className="text-xs text-slate-500">{loadError}</p>
                   <button type="button" onClick={() => fetchData(null)} className="mt-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    Try again
+                    {tr('Try again')}
                   </button>
                 </div>
               )}
@@ -402,8 +403,8 @@ export default function SalesPage() {
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
                     <Receipt size={22} className="text-slate-400" />
                   </div>
-                  <p className="text-sm font-medium text-slate-800">No transactions found</p>
-                  <p className="mt-1 text-xs text-slate-500">Try another date range, branch or transaction type.</p>
+                  <p className="text-sm font-medium text-slate-800">{tr('No transactions found')}</p>
+                  <p className="mt-1 text-xs text-slate-500">{tr('Try another date range, branch or transaction type.')}</p>
                 </div>
               )}
 
@@ -418,7 +419,7 @@ export default function SalesPage() {
                 <div className="absolute inset-0 z-10 flex items-start justify-center bg-white/60 pt-24 backdrop-blur-[1px]">
                   <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
                     <Loader2 size={16} className="animate-spin text-slate-500" />
-                    Updating results…
+                    {tr('Updating results…')}
                   </div>
                 </div>
               )}
@@ -428,10 +429,10 @@ export default function SalesPage() {
             {data.length > 0 && (
               <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/60 px-3 py-3 sm:flex-row sm:px-4">
                 <p className="text-xs text-slate-500 sm:text-sm">
-                  Showing <span className="font-semibold text-slate-800">{formatNumber(groups.length)}</span> transactions
+                  {tr('Showing')} <span className="font-semibold text-slate-800">{formatNumber(groups.length)}</span> {tr('transactions')}
                   {' · '}
-                  <span className="font-semibold text-slate-800">{formatNumber(data.length)}</span> item rows
-                  {pagination.hasMore && <span className="text-slate-400"> · more available</span>}
+                  <span className="font-semibold text-slate-800">{formatNumber(data.length)}</span> {tr('item rows')}
+                  {pagination.hasMore && <span className="text-slate-400"> {tr('· more available')}</span>}
                 </p>
                 {pagination.hasMore && (
                   <button
@@ -440,7 +441,7 @@ export default function SalesPage() {
                     disabled={loadingMore}
                     className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-60 sm:w-auto"
                   >
-                    {loadingMore ? <><Loader2 size={15} className="animate-spin" /> Loading…</> : <>Load more <ChevronRight size={15} /></>}
+                    {loadingMore ? <><Loader2 size={15} className="animate-spin" /> {tr('Loading…')}</> : <>{tr('Load more')} <ChevronRight size={15} /></>}
                   </button>
                 )}
               </div>
@@ -467,39 +468,39 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
   const discount = t ? t.sales.subtotal - t.sales.nettSales : 0;
   const parts = t && t.gross.subtotal
     ? [
-        { key: 'sales', label: 'Gross sales', value: t.sales.subtotal, color: '#2a78d6' },
-        { key: 'void', label: 'Void & cancelled', value: t.void.subtotal, color: '#e34948' },
-        { key: 'other', label: 'Other cost', value: t.other_cost.subtotal, color: '#eda100' },
-        { key: 'open', label: 'Open bills', value: t.open.subtotal, color: '#a8a29e' },
+        { key: 'sales', label: tr('Gross sales'), value: t.sales.subtotal, color: '#2a78d6' },
+        { key: 'void', label: tr('Void & cancelled'), value: t.void.subtotal, color: '#e34948' },
+        { key: 'other', label: tr('Other cost'), value: t.other_cost.subtotal, color: '#eda100' },
+        { key: 'open', label: tr('Open bills'), value: t.open.subtotal, color: '#a8a29e' },
       ].filter(p => p.value > 0)
     : [];
   const money = (v: number | undefined) => formatCurrency(v);
 
   return (
-    <StatStrip label="Sales summary">
-      <Stat label="Gross sales" icon={<Wallet size={13} aria-hidden />} emphasis
+    <StatStrip label={tr('Sales summary')}>
+      <Stat label={tr('Gross sales')} icon={<Wallet size={13} aria-hidden />} emphasis
         value={pending ? <StatSkeleton /> : money(t?.sales.subtotal)} title={formatCurrency(t?.sales.subtotal)}>
-        {t && <p>{formatNumber(t.sales.transactions)} transactions · avg {formatCurrency(avg)}</p>}
+        {t && <p>{formatNumber(t.sales.transactions)} {tr('transactions · avg')} {formatCurrency(avg)}</p>}
       </Stat>
-      <Stat label="Nett sales" icon={<Tag size={13} aria-hidden />}
+      <Stat label={tr('Nett sales')} icon={<Tag size={13} aria-hidden />}
         value={pending ? <StatSkeleton /> : money(t?.sales.nettSales)} title={formatCurrency(t?.sales.nettSales)}>
         {t && (
           <p>
-            After discounts · <span className="tabular-nums text-slate-600">{formatCurrency(discount)}</span>
-            {t.sales.subtotal ? ` (${((discount / t.sales.subtotal) * 100).toFixed(1)}%)` : ''}
+            {tr('After discounts ·')} <span className="tabular-nums text-slate-600">{formatCurrency(discount)}</span>
+            {t.sales.subtotal ? ` (${fixed(((discount / t.sales.subtotal) * 100), 1)}%)` : ''}
           </p>
         )}
       </Stat>
-      <Stat label="All transactions" icon={<Layers size={13} aria-hidden />}
+      <Stat label={tr('All transactions')} icon={<Layers size={13} aria-hidden />}
         value={pending ? <StatSkeleton /> : money(t?.gross.subtotal)} title={formatCurrency(t?.gross.subtotal)}>
         {t && (
           <>
-            <p>{formatNumber(t.gross.transactions)} transactions, all statuses (before deductions)</p>
+            <p>{formatNumber(t.gross.transactions)} {tr('transactions, all statuses (before deductions)')}</p>
             {parts.length > 0 && (
               <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-200" role="img"
-                aria-label={parts.map(p => `${p.label} ${((p.value / t.gross.subtotal) * 100).toFixed(1)}%`).join(', ')}>
+                aria-label={parts.map(p => `${p.label} ${fixed(((p.value / t.gross.subtotal) * 100), 1)}%`).join(', ')}>
                 {parts.map(p => (
-                  <span key={p.key} title={`${p.label}: ${formatCurrency(p.value)} (${((p.value / t.gross.subtotal) * 100).toFixed(1)}%)`}
+                  <span key={p.key} title={`${p.label}: ${formatCurrency(p.value)} (${fixed(((p.value / t.gross.subtotal) * 100), 1)}%)`}
                     className="h-full border-r border-slate-50 last:border-r-0"
                     style={{ width: `${Math.max(0.5, (p.value / t.gross.subtotal) * 100)}%`, background: p.color }} />
                 ))}
@@ -508,14 +509,14 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
           </>
         )}
       </Stat>
-      <Stat label="Deductions" icon={<CircleMinus size={13} aria-hidden />}
+      <Stat label={tr('Deductions')} icon={<CircleMinus size={13} aria-hidden />}
         value={pending ? <StatSkeleton /> : <span className="text-rose-600">{deductions !== undefined ? <>−{money(deductions)}</> : '-'}</span>}
         title={deductions !== undefined ? `−${formatCurrency(deductions)}` : undefined}>
         {t && (
           <dl className="space-y-0.5">
-            <DeductionRow label="Void & cancelled" color="#e34948" value={t.void.subtotal} count={t.void.transactions} />
-            <DeductionRow label="Other cost" color="#eda100" value={t.other_cost.subtotal} count={t.other_cost.transactions} hint={methods.join(', ')} />
-            {!!t.open.transactions && <DeductionRow label="Open bills" color="#a8a29e" value={t.open.subtotal} count={t.open.transactions} />}
+            <DeductionRow label={tr('Void & cancelled')} color="#e34948" value={t.void.subtotal} count={t.void.transactions} />
+            <DeductionRow label={tr('Other cost')} color="#eda100" value={t.other_cost.subtotal} count={t.other_cost.transactions} hint={methods.join(', ')} />
+            {!!t.open.transactions && <DeductionRow label={tr('Open bills')} color="#a8a29e" value={t.open.subtotal} count={t.open.transactions} />}
           </dl>
         )}
       </Stat>
@@ -524,7 +525,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
 }
 
 function DeductionRow({ label, color, value, count, hint }: { label: string; color: string; value: number; count: number; hint?: string }) {
-  const title = [hint, `${formatNumber(count)} transactions`].filter(Boolean).join(' · ');
+  const title = [hint, tr('{0} transactions', formatNumber(count))].filter(Boolean).join(' · ');
   return (
     <div className="flex items-baseline justify-between gap-3" title={title}>
       <dt className="flex items-center gap-1.5 whitespace-nowrap">
@@ -560,14 +561,14 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
       <table className="w-full min-w-[900px] border-separate border-spacing-0 2xl:min-w-[1040px]">
         <thead className="sticky top-0 z-[5] bg-slate-50">
           <tr className="[&>th]:border-b [&>th]:border-slate-200">
-            <th className={TH}>Sales / Bill</th>
-            <th className={TH}>Date</th>
-            <th className={TH}>Branch / Payment</th>
-            <th className={`${TH} min-w-[220px]`}>Menu item</th>
-            <th className={`${TH} text-right`}>Qty</th>
-            <th className={`${TH} hidden text-right 2xl:table-cell`}>Price</th>
-            <th className={`${TH} text-right`}>Item total</th>
-            <th className={`${TH} text-right`}>Bill total / Status</th>
+            <th className={TH}>{tr('Sales / Bill')}</th>
+            <th className={TH}>{tr('Date')}</th>
+            <th className={TH}>{tr('Branch / Payment')}</th>
+            <th className={`${TH} min-w-[220px]`}>{tr('Menu item')}</th>
+            <th className={`${TH} text-right`}>{tr('Qty')}</th>
+            <th className={`${TH} hidden text-right 2xl:table-cell`}>{tr('Price')}</th>
+            <th className={`${TH} text-right`}>{tr('Item total')}</th>
+            <th className={`${TH} text-right`}>{tr('Bill total / Status')}</th>
           </tr>
         </thead>
         <tbody>
@@ -597,7 +598,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
                       {first && (
                         <>
                           <p className="font-medium text-slate-900 group-hover:text-blue-700">{tx.sales_num}</p>
-                          <p className="text-xs text-slate-400">{tx.bill_num || 'No bill number'}</p>
+                          <p className="text-xs text-slate-400">{tx.bill_num || tr('No bill number')}</p>
                         </>
                       )}
                     </td>
@@ -686,10 +687,10 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
                       <span className="whitespace-nowrap tabular-nums text-slate-500">{formatCurrency(m.total_item)}</span>
                     </li>
                   ))}
-                  {menus.length > 3 && <li className="text-slate-400">+{menus.length - 3} more items</li>}
+                  {menus.length > 3 && <li className="text-slate-400">+{menus.length - 3} {tr('more items')}</li>}
                 </ul>
               )}
-              <p className="mt-2 truncate text-[11px] text-slate-400">{tx.payment_method || '-'} · {tx.bill_num || 'No bill number'}</p>
+              <p className="mt-2 truncate text-[11px] text-slate-400">{tx.payment_method || '-'} · {tx.bill_num || tr('No bill number')}</p>
             </button>
           </li>
         );
@@ -702,7 +703,7 @@ function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <span className="inline-flex max-w-full items-center gap-1 rounded-md border border-slate-200 bg-white py-0.5 pl-2 pr-1 text-xs font-medium text-slate-700">
       <span className="truncate">{label}</span>
-      <button type="button" onClick={onRemove} className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={`Remove ${label}`}>
+      <button type="button" onClick={onRemove} className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Remove {0}', label)}>
         <X size={12} />
       </button>
     </span>

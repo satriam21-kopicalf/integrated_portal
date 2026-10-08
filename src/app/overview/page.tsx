@@ -26,6 +26,7 @@ import {
   BasketResponse, BranchesResponse, ChannelsResponse, DeductionsResponse, HourlyResponse, KpisResponse, MetaResponse,
   PaymentsResponse, channelLabel, useOverview,
 } from '@/lib/overview';
+import { tr } from '@/lib/i18n';
 
 interface Filters {
   from: string; // '' = default period (last 30 complete days)
@@ -111,14 +112,14 @@ export default function OverviewPage() {
         <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Overview</h1>
-              <p className="text-xs text-slate-500 sm:text-sm">Sales Analytics</p>
+              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('Overview')}</h1>
+              <p className="text-xs text-slate-500 sm:text-sm">{tr('Sales Analytics')}</p>
             </div>
             <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
                 className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium transition-colors ${
                   activeCount ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}>
-                <SlidersHorizontal size={16} /> Filters
+                <SlidersHorizontal size={16} /> {tr('Filters')}
                 {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
               </button>
               <RealtimeIndicator className="h-10" />
@@ -175,7 +176,7 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
 
   const f = kpis.data?.filters;
   const branchName = branchesLabel(filters.branch, branches);
-  const channelText = filters.channels.length ? filters.channels.map(channelLabel).join(', ') : 'All channels';
+  const channelText = filters.channels.length ? filters.channels.map(channelLabel).join(', ') : tr('All channels');
 
   return (
     <DrillProvider baseQuery={query} filters={filters} branches={branches}>
@@ -192,15 +193,15 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
               <span className="font-medium text-slate-900">{formatDate(f.from)} – {formatDate(f.to)}</span> · {branchName} · {channelText}
               {f.previous.complete ? (
                 <>
-                  {' · vs '}
+                  {tr(' · vs ')}
                   <span className={f.previous.custom ? 'rounded bg-slate-900 px-1.5 py-0.5 font-medium text-white' : ''}>
                     {formatDate(f.previous.from)} – {formatDate(f.previous.to)}
                   </span>
                   {f.previous.days !== undefined && f.previous.days !== f.days && (
-                    <span className="ml-1.5 text-amber-700">({f.previous.days} vs {f.days} days: totals are not like for like, compare per-day figures)</span>
+                    <span className="ml-1.5 text-amber-700">({f.previous.days} {tr('vs')} {f.days} {tr('days: totals are not like for like, compare per-day figures)')}</span>
                   )}
                 </>
-              ) : <> · no comparison before Aug 2025</>}
+              ) : <> {tr('· no comparison before Aug 2025')}</>}
             </>
           ) : (
             <span className="skeleton inline-block h-4 w-72 rounded align-middle" />
@@ -214,25 +215,25 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
 
       {/* Cost Control is left off the Overview until its figures are final (see the Cost Control page) */}
 
-      <Section title="How customers buy">
+      <Section title={tr('How customers buy')}>
         <div className="grid gap-4 xl:grid-cols-2">
           <div className="min-w-0"><ChannelMixCard resource={channels} /></div>
           <div className="min-w-0"><PaymentsCard resource={payments} /></div>
         </div>
       </Section>
 
-      <Section title="Branches">
+      <Section title={tr('Branches')}>
         <BranchLeaderboard resource={branchBoard} query={query} />
       </Section>
 
-      <Section title="When & what sells">
+      <Section title={tr('When & what sells')}>
         <div className="grid gap-4 xl:grid-cols-2">
           <div className="min-w-0"><BusyHoursCard resource={hourly} query={query} /></div>
           <div className="min-w-0"><MenusCard query={query} /></div>
         </div>
       </Section>
 
-      <Section title="Basket & deductions">
+      <Section title={tr('Basket & deductions')}>
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="min-w-0"><BasketCard resource={basket} /></div>
           <div className="min-w-0"><DeductionsCard resource={deductions} /></div>

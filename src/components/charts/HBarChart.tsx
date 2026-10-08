@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import EChart, { ChartOption } from './EChart';
 import { base, INK, tipFooter, tipRow, tipTitle, tooltip } from '@/lib/chartTheme';
+import { tr } from '@/lib/i18n';
 
 export interface HBarItem {
   key: string;
@@ -72,7 +73,7 @@ export default function HBarChart({
     };
   }, [signature, color, rowHeight, labelWidth, max]);
 
-  if (!items.length) return <p className="py-6 text-center text-sm text-slate-400">No data</p>;
+  if (!items.length) return <p className="py-6 text-center text-sm text-slate-400">{tr('No data')}</p>;
   const pick = onSelect ? (p: { dataIndex: number; componentType?: string; value?: unknown }) => {
     const rows = [...items].reverse();
     const i = p.componentType === 'yAxis' ? rows.findIndex(r => r.label === p.value) : p.dataIndex;

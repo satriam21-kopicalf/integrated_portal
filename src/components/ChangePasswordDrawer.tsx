@@ -5,10 +5,11 @@ import { Check, Eye, EyeOff, KeyRound, Loader2 } from 'lucide-react';
 import Drawer from '@/components/ui/Drawer';
 import { buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
 import { useAuth } from '@/lib/auth';
+import { tr, serverMsg } from '@/lib/i18n';
 
 const RULES: { label: string; test: (pw: string) => boolean }[] = [
-  { label: 'At least 8 characters', test: pw => pw.length >= 8 },
-  { label: 'Letters and numbers', test: pw => /[A-Za-z]/.test(pw) && /\d/.test(pw) },
+  { get label() { return tr('At least 8 characters'); }, test: pw => pw.length >= 8 },
+  { get label() { return tr('Letters and numbers'); }, test: pw => /[A-Za-z]/.test(pw) && /\d/.test(pw) },
 ];
 
 /** Change your own password; `forced` when the account must change it before continuing. */
@@ -33,7 +34,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (next !== confirm) {
-      setError('Konfirmasi password tidak sama');
+      setError(tr('The password confirmation does not match'));
       return;
     }
     setSaving(true);
@@ -45,7 +46,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
         body: JSON.stringify({ currentPassword: current, newPassword: next }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || 'Gagal mengubah password');
+      if (!res.ok) throw new Error(serverMsg(body.error) || tr('Could not change the password'));
       setDone(true);
       setUser(body.user);
       setTimeout(close, 900);
@@ -64,29 +65,29 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
       locked={forced}
       size="sm"
       icon={<KeyRound size={18} />}
-      title={forced ? 'Set a new password' : 'Change password'}
-      description={forced ? 'Your account requires a new password before you continue.' : 'Other devices will be signed out.'}
+      title={forced ? tr('Set a new password') : tr('Change password')}
+      description={forced ? tr('Your account requires a new password before you continue.') : tr('Other devices will be signed out.')}
       footer={
         <>
           {forced
-            ? <button type="button" className={buttonSecondary} onClick={() => logout()}>Sign out</button>
-            : <button type="button" className={buttonSecondary} onClick={close}>Cancel</button>}
+            ? <button type="button" className={buttonSecondary} onClick={() => logout()}>{tr('Sign out')}</button>
+            : <button type="button" className={buttonSecondary} onClick={close}>{tr('Cancel')}</button>}
           <button type="submit" form="change-password" className={buttonPrimary} disabled={saving || !current || !next || !confirm}>
             {saving ? <Loader2 size={16} className="animate-spin" /> : done ? <Check size={16} /> : null}
-            {done ? 'Saved' : 'Save password'}
+            {done ? tr('Saved') : tr('Save password')}
           </button>
         </>
       }
     >
       <form id="change-password" onSubmit={submit} className="space-y-4">
-        <Field label="Current password" htmlFor="pw-current" required>
+        <Field label={tr('Current password')} htmlFor="pw-current" required>
           <input id="pw-current" type={type} autoComplete="current-password" className={inputClass} value={current} onChange={e => setCurrent(e.target.value)} />
         </Field>
-        <Field label="New password" htmlFor="pw-new" required>
+        <Field label={tr('New password')} htmlFor="pw-new" required>
           <div className="relative">
             <input id="pw-new" type={type} autoComplete="new-password" className={`${inputClass} pr-10`} value={next} onChange={e => setNext(e.target.value)} />
             <button type="button" onClick={() => setShow(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700"
-              aria-label={show ? 'Hide passwords' : 'Show passwords'}>
+              aria-label={show ? tr('Hide passwords') : tr('Show passwords')}>
               {show ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
@@ -98,7 +99,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
             </li>
           ))}
         </ul>
-        <Field label="Confirm new password" htmlFor="pw-confirm" required error={confirm && next !== confirm ? 'Does not match' : null}>
+        <Field label={tr('Confirm new password')} htmlFor="pw-confirm" required error={confirm && next !== confirm ? tr('Does not match') : null}>
           <input id="pw-confirm" type={type} autoComplete="new-password" className={inputClass} value={confirm} onChange={e => setConfirm(e.target.value)} />
         </Field>
         {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}

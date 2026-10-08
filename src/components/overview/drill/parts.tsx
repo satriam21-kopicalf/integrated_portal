@@ -2,9 +2,10 @@
 
 import { ReactNode, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronRight, Download, Search } from 'lucide-react';
-import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
+import { formatCurrency, formatDate, formatNumber, fixed } from '@/lib/format';
 import { Granularity, Resource } from '@/lib/overview';
 import { Delta, Skeleton } from '../Card';
+import { numberLocale, tr } from '@/lib/i18n';
 
 /* ------------------------------------------------------------------ layout */
 
@@ -29,8 +30,8 @@ export function Loaded<T>({ resource, height = 160, children }: { resource: Reso
   if (resource.error && !resource.loading) {
     return (
       <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Could not load: {resource.error}{' '}
-        <button type="button" onClick={resource.retry} className="font-medium underline">Try again</button>
+        {tr('Could not load:')} {resource.error}{' '}
+        <button type="button" onClick={resource.retry} className="font-medium underline">{tr('Try again')}</button>
       </p>
     );
   }
@@ -144,16 +145,16 @@ export function DetailTable<R>({
       <div className="flex flex-wrap items-center gap-2">
         {search && (
           <label className="relative min-w-[10rem] flex-1">
-            <span className="sr-only">Search {caption}</span>
+            <span className="sr-only">{tr('Search')} {caption}</span>
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search"
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr('Search')}
               className="h-8 w-full rounded-lg border border-slate-200 pl-8 pr-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none" />
           </label>
         )}
-        <span className="text-[11px] text-slate-400">{formatNumber(shown.length)}{shown.length !== rows.length ? ` of ${formatNumber(rows.length)}` : ''} rows{onRowClick ? ` · ${rowHint ?? 'click a row for details'}` : ''}</span>
+        <span className="text-[11px] text-slate-400">{formatNumber(shown.length)}{shown.length !== rows.length ? tr(' of {0}', formatNumber(rows.length)) : ''} {tr('rows')}{onRowClick ? ` · ${rowHint ?? tr('click a row for details')}` : ''}</span>
         {csvName !== undefined && (
           <button type="button" onClick={download} className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 text-xs font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-            <Download size={13} /> CSV
+            <Download size={13} /> {tr('CSV')}
           </button>
         )}
       </div>
@@ -191,7 +192,7 @@ export function DetailTable<R>({
               </tr>
             ))}
             {!shown.length && (
-              <tr><td colSpan={columns.length + (onRowClick ? 1 : 0)} className="px-3 py-6 text-center text-slate-400">No rows</td></tr>
+              <tr><td colSpan={columns.length + (onRowClick ? 1 : 0)} className="px-3 py-6 text-center text-slate-400">{tr('No rows')}</td></tr>
             )}
           </tbody>
           {footer}
@@ -210,8 +211,8 @@ function fmtCell(v: number | string | null): ReactNode {
 
 export const rp = (v: number | null | undefined) => (v === null || v === undefined ? '-' : formatCurrency(Math.round(v)));
 export const num = (v: number | null | undefined, digits = 0) =>
-  v === null || v === undefined ? '-' : digits ? v.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits }) : formatNumber(Math.round(v));
-export const pctText = (v: number | null | undefined, digits = 1) => (v === null || v === undefined ? '-' : `${v.toFixed(digits)}%`);
+  v === null || v === undefined ? '-' : digits ? v.toLocaleString(numberLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }) : formatNumber(Math.round(v));
+export const pctText = (v: number | null | undefined, digits = 1) => (v === null || v === undefined ? '-' : `${fixed(v, digits)}%`);
 export const delta = (v: number | null | undefined) => <Delta value={v ?? null} />;
 
 /** A share bar inside a table cell. */

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
 import { base, categoryAxis, INK, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import { formatNumber } from '@/lib/format';
+import { locale, tr } from '@/lib/i18n';
 
 export interface ActivityInsightsData {
   byDay: { day: string; count: number; issues: number; exports: number; users: number }[];
@@ -15,23 +16,23 @@ export interface ActivityInsightsData {
 const OK = '#2a78d6';
 const ISSUE = '#dc2626';
 const PAGES: Record<string, string> = {
-  '/overview': 'Dashboard', '/sales': 'Sales Transactions', '/cost-control': 'Cost Control', '/users': 'User Accounts',
-  '/activity': 'Activity Logs', '/login': 'Sign-in', '/profile': 'Profile', '/': 'Home',
+  get '/overview'() { return tr('Dashboard'); }, get '/sales'() { return tr('Sales Transactions'); }, get '/cost-control'() { return tr('Cost Control'); }, get '/users'() { return tr('User Accounts'); },
+  get '/activity'() { return tr('Activity Logs'); }, get '/login'() { return tr('Sign-in'); }, get '/profile'() { return tr('Profile'); }, get '/'() { return tr('Home'); },
 };
 const pageName = (p: string) => PAGES[p] ?? p;
-const shortDay = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+const shortDay = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' });
 
 /** What the period looks like at a glance: activity per day (failed/denied in red), busiest hours, top pages. */
 export default function ActivityInsights({ data, onPickDay }: { data: ActivityInsightsData | null; onPickDay: (day: string) => void }) {
   return (
-    <section aria-label="Activity insights" className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-12">
-      <Panel title="Activity per day" note="Failed or denied in red · click a day to see only that day" className="lg:col-span-2 2xl:col-span-6">
+    <section aria-label={tr('Activity insights')} className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-12">
+      <Panel title={tr('Activity per day')} note={tr('Failed or denied in red · click a day to see only that day')} className="lg:col-span-2 2xl:col-span-6">
         {data ? <DayChart data={data} onPickDay={onPickDay} /> : <Skeleton />}
       </Panel>
-      <Panel title="Busiest hours" note="All activity in the period, WIB" className="2xl:col-span-3">
+      <Panel title={tr('Busiest hours')} note={tr('All activity in the period, WIB')} className="2xl:col-span-3">
         {data ? <HourChart data={data} /> : <Skeleton />}
       </Panel>
-      <Panel title="Most visited pages" note="Page views and other activity per page" className="2xl:col-span-3">
+      <Panel title={tr('Most visited pages')} note={tr('Page views and other activity per page')} className="2xl:col-span-3">
         {data ? <TopPages data={data} /> : <Skeleton />}
       </Panel>
     </section>
@@ -70,19 +71,19 @@ function DayChart({ data, onPickDay }: { data: ActivityInsightsData; onPickDay: 
     xAxis: categoryAxis(days.map(d => shortDay(d.day))),
     yAxis: valueAxis(v => formatNumber(v), { minInterval: 1 }),
     series: [
-      { name: 'Succeeded', type: 'bar', stack: 'a', data: days.map(d => d.count - d.issues), barMaxWidth: 28,
+      { name: tr('Succeeded'), type: 'bar', stack: 'a', data: days.map(d => d.count - d.issues), barMaxWidth: 28,
         itemStyle: { color: OK, borderRadius: [0, 0, 0, 0], borderColor: '#fff', borderWidth: 1 } },
-      { name: 'Failed or denied', type: 'bar', stack: 'a', data: days.map(d => d.issues), barMaxWidth: 28,
+      { name: tr('Failed or denied'), type: 'bar', stack: 'a', data: days.map(d => d.issues), barMaxWidth: 28,
         itemStyle: { color: ISSUE, borderRadius: [4, 4, 0, 0], borderColor: '#fff', borderWidth: 1 } },
     ],
   }), [days]);
-  if (!days.length) return <p className="py-16 text-center text-sm text-slate-400">No activity in this period</p>;
+  if (!days.length) return <p className="py-16 text-center text-sm text-slate-400">{tr('No activity in this period')}</p>;
   return (
     <>
-      <EChart option={option} height={180} ariaLabel="Activity per day" onClick={p => days[p.dataIndex] && onPickDay(days[p.dataIndex].day)} />
+      <EChart option={option} height={180} ariaLabel={tr('Activity per day')} onClick={p => days[p.dataIndex] && onPickDay(days[p.dataIndex].day)} />
       <div className="mt-1 flex gap-4 text-[11px] text-slate-500">
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: OK }} />Succeeded</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: ISSUE }} />Failed or denied</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: OK }} />{tr('Succeeded')}</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: ISSUE }} />{tr('Failed or denied')}</span>
       </div>
     </>
   );
@@ -108,25 +109,25 @@ function HourChart({ data }: { data: ActivityInsightsData }) {
     yAxis: valueAxis(v => formatNumber(v), { minInterval: 1 }),
     series: [{ type: 'bar', data: counts.map((v, h) => ({ value: v, itemStyle: { color: h === peak && v ? '#1d4ed8' : '#93c5fd', borderRadius: [3, 3, 0, 0] } })), barMaxWidth: 14 }],
   }), [counts, peak]);
-  if (!counts.some(Boolean)) return <p className="py-16 text-center text-sm text-slate-400">No activity</p>;
+  if (!counts.some(Boolean)) return <p className="py-16 text-center text-sm text-slate-400">{tr('No activity')}</p>;
   return (
     <>
-      <EChart option={option} height={180} ariaLabel="Activity per hour of the day" />
-      <p className="mt-1 text-[11px] text-slate-500">Busiest: <b className="text-slate-700">{String(peak).padStart(2, '0')}:00</b> ({formatNumber(counts[peak])} activities)</p>
+      <EChart option={option} height={180} ariaLabel={tr('Activity per hour of the day')} />
+      <p className="mt-1 text-[11px] text-slate-500">{tr('Busiest:')} <b className="text-slate-700">{String(peak).padStart(2, '0')}:00</b> ({formatNumber(counts[peak])} {tr('activities)')}</p>
     </>
   );
 }
 
 function TopPages({ data }: { data: ActivityInsightsData }) {
   const max = Math.max(1, ...data.topPages.map(p => p.count));
-  if (!data.topPages.length) return <p className="py-16 text-center text-sm text-slate-400">No page activity</p>;
+  if (!data.topPages.length) return <p className="py-16 text-center text-sm text-slate-400">{tr('No page activity')}</p>;
   return (
     <ul className="space-y-2.5 pt-1">
       {data.topPages.map(p => (
         <li key={p.page}>
           <div className="flex items-center justify-between gap-2 text-xs">
             <span className="truncate font-medium text-slate-700">{pageName(p.page)}</span>
-            <span className="flex-shrink-0 tabular-nums text-slate-500"><b className="text-slate-800">{formatNumber(p.count)}</b> · {formatNumber(p.users)} users</span>
+            <span className="flex-shrink-0 tabular-nums text-slate-500"><b className="text-slate-800">{formatNumber(p.count)}</b> · {formatNumber(p.users)} {tr('users')}</span>
           </div>
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
             <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.max(3, (p.count / max) * 100)}%` }} />

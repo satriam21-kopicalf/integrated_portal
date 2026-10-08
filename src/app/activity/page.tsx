@@ -16,6 +16,7 @@ import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } 
 import UserAvatar from '@/components/UserAvatar';
 import { AuthUser, ROLE_LABELS, Role } from '@/lib/auth';
 import { formatBytes, formatDate, formatDateTime, formatNumber, toIsoDate } from '@/lib/format';
+import { locale, tr, serverMsg } from '@/lib/i18n';
 
 // Activity log (superadmin only; the page guard and the API both enforce it).
 // Updates by itself: the newest entries are fetched every few seconds (and when the
@@ -55,57 +56,57 @@ const HIGHLIGHT_MS = 6_000;
 const NO_FILTERS: Filters = { user: '', status: '', role: '' };
 
 const CATEGORIES: { value: string; label: string }[] = [
-  { value: '', label: 'All' },
-  { value: 'export', label: 'Exports' },
-  { value: 'auth', label: 'Sign-in' },
-  { value: 'page,filter', label: 'Pages & filters' },
-  { value: 'transaction', label: 'Transactions' },
-  { value: 'user,profile', label: 'Accounts' },
-  { value: 'access', label: 'Access denied' },
-  { value: 'system', label: 'System' },
+  { value: '', get label() { return tr('All'); } },
+  { value: 'export', get label() { return tr('Exports'); } },
+  { value: 'auth', get label() { return tr('Sign-in'); } },
+  { value: 'page,filter', get label() { return tr('Pages & filters'); } },
+  { value: 'transaction', get label() { return tr('Transactions'); } },
+  { value: 'user,profile', get label() { return tr('Accounts'); } },
+  { value: 'access', get label() { return tr('Access denied'); } },
+  { value: 'system', get label() { return tr('System'); } },
 ];
 
 /** label = title in the detail panel, verb = how the timeline sentence reads */
 const ACTIONS: Record<string, { label: string; verb: string; icon: ReactNode }> = {
-  'auth.login': { label: 'Signed in', verb: 'signed in', icon: <LogIn size={15} /> },
-  'auth.login_failed': { label: 'Failed sign-in', verb: 'failed to sign in', icon: <KeyRound size={15} /> },
-  'auth.logout': { label: 'Signed out', verb: 'signed out', icon: <LogOut size={15} /> },
-  'auth.password_change': { label: 'Changed own password', verb: 'changed their password', icon: <KeyRound size={15} /> },
-  'profile.update': { label: 'Updated own profile', verb: 'updated their profile', icon: <UserRound size={15} /> },
-  'page.view': { label: 'Opened page', verb: 'opened', icon: <Monitor size={15} /> },
-  'filter.change': { label: 'Changed filters', verb: 'changed filters', icon: <SlidersHorizontal size={15} /> },
-  'transaction.view': { label: 'Opened transaction', verb: 'opened a transaction', icon: <Eye size={15} /> },
-  'export.create': { label: 'Requested export', verb: 'requested an export', icon: <FileSpreadsheet size={15} /> },
-  'export.done': { label: 'Export finished', verb: "'s export finished", icon: <FileSpreadsheet size={15} /> },
-  'export.failed': { label: 'Export failed', verb: "'s export failed", icon: <FileSpreadsheet size={15} /> },
-  'export.download': { label: 'Downloaded export', verb: 'downloaded an export', icon: <Download size={15} /> },
-  'user.create': { label: 'Created user', verb: 'created a user', icon: <UserCog size={15} /> },
-  'user.update': { label: 'Updated user', verb: 'updated a user', icon: <UserCog size={15} /> },
-  'user.delete': { label: 'Deleted user', verb: 'deleted a user', icon: <UserCog size={15} /> },
-  'user.unlock': { label: 'Unlocked user', verb: 'unlocked a user', icon: <UserCog size={15} /> },
-  'access.denied': { label: 'Access denied', verb: 'was denied access', icon: <ShieldAlert size={15} /> },
-  'system.logs_reset': { label: 'Reset activity logs', verb: 'reset the activity logs', icon: <Trash2 size={15} /> },
+  'auth.login': { get label() { return tr('Signed in'); }, get verb() { return tr('signed in'); }, icon: <LogIn size={15} /> },
+  'auth.login_failed': { get label() { return tr('Failed sign-in'); }, get verb() { return tr('failed to sign in'); }, icon: <KeyRound size={15} /> },
+  'auth.logout': { get label() { return tr('Signed out'); }, get verb() { return tr('signed out'); }, icon: <LogOut size={15} /> },
+  'auth.password_change': { get label() { return tr('Changed own password'); }, get verb() { return tr('changed their password'); }, icon: <KeyRound size={15} /> },
+  'profile.update': { get label() { return tr('Updated own profile'); }, get verb() { return tr('updated their profile'); }, icon: <UserRound size={15} /> },
+  'page.view': { get label() { return tr('Opened page'); }, get verb() { return tr('opened'); }, icon: <Monitor size={15} /> },
+  'filter.change': { get label() { return tr('Changed filters'); }, get verb() { return tr('changed filters'); }, icon: <SlidersHorizontal size={15} /> },
+  'transaction.view': { get label() { return tr('Opened transaction'); }, get verb() { return tr('opened a transaction'); }, icon: <Eye size={15} /> },
+  'export.create': { get label() { return tr('Requested export'); }, get verb() { return tr('requested an export'); }, icon: <FileSpreadsheet size={15} /> },
+  'export.done': { get label() { return tr('Export finished'); }, get verb() { return tr('\'s export finished'); }, icon: <FileSpreadsheet size={15} /> },
+  'export.failed': { get label() { return tr('Export failed'); }, get verb() { return tr('\'s export failed'); }, icon: <FileSpreadsheet size={15} /> },
+  'export.download': { get label() { return tr('Downloaded export'); }, get verb() { return tr('downloaded an export'); }, icon: <Download size={15} /> },
+  'user.create': { get label() { return tr('Created user'); }, get verb() { return tr('created a user'); }, icon: <UserCog size={15} /> },
+  'user.update': { get label() { return tr('Updated user'); }, get verb() { return tr('updated a user'); }, icon: <UserCog size={15} /> },
+  'user.delete': { get label() { return tr('Deleted user'); }, get verb() { return tr('deleted a user'); }, icon: <UserCog size={15} /> },
+  'user.unlock': { get label() { return tr('Unlocked user'); }, get verb() { return tr('unlocked a user'); }, icon: <UserCog size={15} /> },
+  'access.denied': { get label() { return tr('Access denied'); }, get verb() { return tr('was denied access'); }, icon: <ShieldAlert size={15} /> },
+  'system.logs_reset': { get label() { return tr('Reset activity logs'); }, get verb() { return tr('reset the activity logs'); }, icon: <Trash2 size={15} /> },
 };
 
 const PAGES: Record<string, string> = {
-  '/overview': 'Dashboard', '/sales': 'Sales Transactions', '/cost-control': 'Cost Control', '/users': 'User Accounts', '/activity': 'Activity Logs',
+  get '/overview'() { return tr('Dashboard'); }, get '/sales'() { return tr('Sales Transactions'); }, get '/cost-control'() { return tr('Cost Control'); }, get '/users'() { return tr('User Accounts'); }, get '/activity'() { return tr('Activity Logs'); },
 };
 
 /** category -> icon tile + bar colour */
 const TONES: Record<string, { tile: string; bar: string; label: string }> = {
-  export: { tile: 'bg-emerald-50 text-emerald-700', bar: 'bg-emerald-500', label: 'Exports' },
-  auth: { tile: 'bg-blue-50 text-blue-700', bar: 'bg-blue-500', label: 'Sign-in' },
-  page: { tile: 'bg-slate-100 text-slate-600', bar: 'bg-slate-400', label: 'Pages' },
-  filter: { tile: 'bg-slate-100 text-slate-600', bar: 'bg-slate-300', label: 'Filters' },
-  transaction: { tile: 'bg-violet-50 text-violet-700', bar: 'bg-violet-500', label: 'Transactions' },
-  user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', label: 'User accounts' },
-  profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', label: 'Own profile' },
-  access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', label: 'Access denied' },
-  system: { tile: 'bg-slate-900 text-white', bar: 'bg-slate-700', label: 'System' },
+  export: { tile: 'bg-emerald-50 text-emerald-700', bar: 'bg-emerald-500', get label() { return tr('Exports'); } },
+  auth: { tile: 'bg-blue-50 text-blue-700', bar: 'bg-blue-500', get label() { return tr('Sign-in'); } },
+  page: { tile: 'bg-slate-100 text-slate-600', bar: 'bg-slate-400', get label() { return tr('Pages'); } },
+  filter: { tile: 'bg-slate-100 text-slate-600', bar: 'bg-slate-300', get label() { return tr('Filters'); } },
+  transaction: { tile: 'bg-violet-50 text-violet-700', bar: 'bg-violet-500', get label() { return tr('Transactions'); } },
+  user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', get label() { return tr('User accounts'); } },
+  profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', get label() { return tr('Own profile'); } },
+  access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', get label() { return tr('Access denied'); } },
+  system: { tile: 'bg-slate-900 text-white', bar: 'bg-slate-700', get label() { return tr('System'); } },
 };
 
-const REPORT_LABELS: Record<string, string> = { detail: 'Sales Recapitulation Detail', daily: 'Daily Sales Recapitulation' };
-const TYPE_LABELS: Record<string, string> = { sales: 'Sales', void: 'Void & Cancelled', other_cost: 'Other Cost', all: 'All' };
+const REPORT_LABELS: Record<string, string> = { get detail() { return tr('Sales Recapitulation Detail'); }, get daily() { return tr('Daily Sales Recapitulation'); } };
+const TYPE_LABELS: Record<string, string> = { get sales() { return tr('Sales'); }, get void() { return tr('Void & Cancelled'); }, get other_cost() { return tr('Other Cost'); }, get all() { return tr('All'); } };
 
 function lastDays(n: number): { from: string; to: string } {
   const to = new Date();
@@ -118,7 +119,7 @@ function lastDays(n: number): { from: string; to: string } {
 function device(ua: string | null): string {
   if (!ua) return '—';
   const browser = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox'
-    : /Safari\//.test(ua) ? 'Safari' : 'Browser';
+    : /Safari\//.test(ua) ? 'Safari' : tr('Browser');
   const os = /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iOS' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS'
     : /Linux/.test(ua) ? 'Linux' : '';
   return os ? `${browser} · ${os}` : browser;
@@ -129,7 +130,7 @@ function pageLabel(page: string | null): string {
 }
 
 function displayName(e: Entry): string {
-  return e.user.fullName || e.user.username || 'Unknown';
+  return e.user.fullName || e.user.username || tr('Unknown');
 }
 
 /** "Today", "Yesterday" or "Monday, 5 October 2026" (browser time zone = WIB for the team) */
@@ -139,12 +140,12 @@ function dayLabel(iso: string): string {
   const y = new Date();
   y.setDate(y.getDate() - 1);
   const key = toIsoDate(d);
-  const long = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  return key === today ? `Today · ${long}` : key === toIsoDate(y) ? `Yesterday · ${long}` : long;
+  const long = d.toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return key === today ? tr('Today · {0}', long) : key === toIsoDate(y) ? tr('Yesterday · {0}', long) : long;
 }
 
 function clock(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  return new Date(iso).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 }
 
 export default function ActivityPage() {
@@ -218,7 +219,7 @@ export default function ActivityPage() {
     fetch(listUrl(0))
       .then(async r => {
         const body = await r.json();
-        if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+        if (!r.ok) throw new Error(serverMsg(body.error) || `HTTP ${r.status}`);
         return body;
       })
       .then(body => {
@@ -292,12 +293,12 @@ export default function ActivityPage() {
 
   const userName = (id: string) => {
     const u = users.find(x => x.id === id) ?? null;
-    return u ? `${u.displayName} (${u.username})` : summary?.topUsers.find(t => t.id === id)?.username ?? 'Selected user';
+    return u ? `${u.displayName} (${u.username})` : summary?.topUsers.find(t => t.id === id)?.username ?? tr('Selected user');
   };
   const activeFilters: ActiveFilter[] = [
-    ...(filters.user ? [{ key: 'user', label: `User: ${userName(filters.user)}`, onRemove: () => setFilters(f => ({ ...f, user: '' })) }] : []),
-    ...(filters.status ? [{ key: 'status', label: `Result: ${filters.status === 'ok' ? 'Succeeded' : filters.status === 'denied' ? 'Denied' : 'Failed'}`, onRemove: () => setFilters(f => ({ ...f, status: '' })) }] : []),
-    ...(filters.role ? [{ key: 'role', label: `Role: ${ROLE_LABELS[filters.role as Role]}`, onRemove: () => setFilters(f => ({ ...f, role: '' })) }] : []),
+    ...(filters.user ? [{ key: 'user', label: tr('User: {0}', userName(filters.user)), onRemove: () => setFilters(f => ({ ...f, user: '' })) }] : []),
+    ...(filters.status ? [{ key: 'status', label: tr('Result: {0}', filters.status === 'ok' ? tr('Succeeded') : filters.status === 'denied' ? tr('Denied') : tr('Failed')), onRemove: () => setFilters(f => ({ ...f, status: '' })) }] : []),
+    ...(filters.role ? [{ key: 'role', label: tr('Role: {0}', ROLE_LABELS[filters.role as Role]), onRemove: () => setFilters(f => ({ ...f, role: '' })) }] : []),
   ];
 
   // timeline grouped by day
@@ -322,17 +323,17 @@ export default function ActivityPage() {
         <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">Activity Logs</h1>
-              <p className="truncate text-xs text-slate-500 sm:text-sm">{formatDate(dateFrom)} – {formatDate(dateTo)} · sign-ins, pages, filters, transactions and exports</p>
+              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('Activity Logs')}</h1>
+              <p className="truncate text-xs text-slate-500 sm:text-sm">{formatDate(dateFrom)} – {formatDate(dateTo)} {tr('· sign-ins, pages, filters, transactions and exports')}</p>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} defaultLabel="last 7 days"
+              <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} defaultLabel={tr('last 7 days')}
                 onChange={(from, to) => {
                   const d = lastDays(7);
                   setDateFrom(from || to || d.from);
                   setDateTo(to || from || d.to);
                 }} />
-              <button type="button" onClick={() => setResetting(true)} title="Reset logs" aria-label="Reset logs"
+              <button type="button" onClick={() => setResetting(true)} title={tr('Reset logs')} aria-label={tr('Reset logs')}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-700">
                 <Trash2 size={18} strokeWidth={1.75} />
               </button>
@@ -343,21 +344,21 @@ export default function ActivityPage() {
         {notice && (
           <div className="mx-4 mt-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800 sm:mx-6">
             <CheckCircle2 size={16} /> {notice}
-            <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label="Dismiss"><X size={14} /></button>
+            <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label={tr('Dismiss')}><X size={14} /></button>
           </div>
         )}
 
-        <StatStrip label="Activity summary" columns={5}>
-          <Stat label="Activities" value={t ? formatNumber(t.total) : <StatSkeleton />}>
-            {t && <p>{formatNumber(t.users)} active users</p>}
+        <StatStrip label={tr('Activity summary')} columns={5}>
+          <Stat label={tr('Activities')} value={t ? formatNumber(t.total) : <StatSkeleton />}>
+            {t && <p>{formatNumber(t.users)} {tr('active users')}</p>}
           </Stat>
-          <Stat label="Exports" emphasis value={t ? formatNumber(t.exports) : <StatSkeleton />}>
-            {t && <p>{formatNumber(t.downloads)} downloads</p>}
+          <Stat label={tr('Exports')} emphasis value={t ? formatNumber(t.exports) : <StatSkeleton />}>
+            {t && <p>{formatNumber(t.downloads)} {tr('downloads')}</p>}
           </Stat>
-          <Stat label="Transactions opened" value={summary ? formatNumber(summary.byCategory.transaction ?? 0) : <StatSkeleton />} />
-          <Stat label="Failed sign-ins" value={t ? formatNumber(t.failedLogins) : <StatSkeleton />} />
-          <Stat label="Access denied" value={t ? formatNumber(t.denied) : <StatSkeleton />}>
-            {t && <p>pages or data outside the user&apos;s access</p>}
+          <Stat label={tr('Transactions opened')} value={summary ? formatNumber(summary.byCategory.transaction ?? 0) : <StatSkeleton />} />
+          <Stat label={tr('Failed sign-ins')} value={t ? formatNumber(t.failedLogins) : <StatSkeleton />} />
+          <Stat label={tr('Access denied')} value={t ? formatNumber(t.denied) : <StatSkeleton />}>
+            {t && <p>{tr('pages or data outside the user\'s access')}</p>}
           </Stat>
         </StatStrip>
 
@@ -371,27 +372,27 @@ export default function ActivityPage() {
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search user, activity, file name, sales no."
-                    className={`${inputClass} pl-9 pr-9`} aria-label="Search activity" />
+                  <input value={search} onChange={e => onSearch(e.target.value)} placeholder={tr('Search user, activity, file name, sales no.')}
+                    className={`${inputClass} pl-9 pr-9`} aria-label={tr('Search activity')} />
                   {search && (
-                    <button type="button" onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label="Clear search">
+                    <button type="button" onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label={tr('Clear search')}>
                       <X size={14} />
                     </button>
                   )}
                 </div>
                 <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
-                <div className="hidden rounded-lg bg-slate-100 p-1 sm:flex" role="radiogroup" aria-label="View">
-                  {([['timeline', 'Timeline', <List key="i" size={14} />], ['table', 'Table', <Rows3 key="i" size={14} />]] as const).map(([v, l, icon]) => (
+                <div className="hidden rounded-lg bg-slate-100 p-1 sm:flex" role="radiogroup" aria-label={tr('View')}>
+                  {([['timeline', tr('Timeline'), <List key="i" size={14} />], ['table', tr('Table'), <Rows3 key="i" size={14} />]] as const).map(([v, l, icon]) => (
                     <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
                       className={`inline-flex items-center gap-1.5 rounded-md px-2.5 text-xs font-medium ${view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
                       {icon}{l}
                     </button>
                   ))}
                 </div>
-                <button type="button" onClick={() => downloadCsv(entries, dateFrom, dateTo)} disabled={!entries.length} title="Download the activities shown as CSV"
-                  className={`${buttonSecondary} hidden h-10 sm:inline-flex`}><Download size={16} /> CSV</button>
+                <button type="button" onClick={() => downloadCsv(entries, dateFrom, dateTo)} disabled={!entries.length} title={tr('Download the activities shown as CSV')}
+                  className={`${buttonSecondary} hidden h-10 sm:inline-flex`}><Download size={16} /> {tr('CSV')}</button>
               </div>
-              <div className="-mx-1 flex gap-1 overflow-x-auto px-1" role="tablist" aria-label="Category">
+              <div className="-mx-1 flex gap-1 overflow-x-auto px-1" role="tablist" aria-label={tr('Category')}>
                 {CATEGORIES.map(c => {
                   const active = c.value === category;
                   const n = c.value ? c.value.split(',').reduce((s, k) => s + (summary?.byCategory[k] ?? 0), 0) : summary?.totals.total;
@@ -411,15 +412,15 @@ export default function ActivityPage() {
               <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
                 <AlertCircle className="text-red-500" />
                 <p className="text-sm text-slate-700">{error}</p>
-                <p className="text-xs text-slate-400">Retrying automatically…</p>
+                <p className="text-xs text-slate-400">{tr('Retrying automatically…')}</p>
               </div>
             ) : loading && !entries.length ? (
               <div className="space-y-2 p-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />)}</div>
             ) : entries.length === 0 ? (
               <div className="flex flex-col items-center px-4 py-14 text-center">
                 <Filter className="mb-2 text-slate-300" size={28} />
-                <p className="text-sm font-medium text-slate-700">{filtered ? 'No activity matches the search or filters' : 'No activity in this period yet'}</p>
-                <p className="mt-1 text-xs text-slate-400">New activity appears here automatically.</p>
+                <p className="text-sm font-medium text-slate-700">{filtered ? tr('No activity matches the search or filters') : tr('No activity in this period yet')}</p>
+                <p className="mt-1 text-xs text-slate-400">{tr('New activity appears here automatically.')}</p>
               </div>
             ) : (
               view === 'table' ? (
@@ -430,7 +431,7 @@ export default function ActivityPage() {
                   <section key={day.key} aria-label={day.label}>
                     <h2 className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-slate-50/95 px-4 py-2 text-xs font-semibold text-slate-600 backdrop-blur">
                       <span>{day.label}</span>
-                      <span className="font-normal text-slate-400">{formatNumber(day.items.length)} shown</span>
+                      <span className="font-normal text-slate-400">{formatNumber(day.items.length)} {tr('shown')}</span>
                     </h2>
                     <ol className="divide-y divide-slate-100">
                       {day.items.map(e => <TimelineRow key={e.id} entry={e} isNew={fresh.has(e.id)} onOpen={() => setSelected(e)} />)}
@@ -442,10 +443,10 @@ export default function ActivityPage() {
             )}
 
             <div className="flex flex-col items-center justify-between gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50/60 px-4 py-3 text-xs text-slate-500 sm:flex-row">
-              <span>{formatNumber(entries.length)} of {formatNumber(total)} activities{filtered ? ' matching' : ''}</span>
+              <span>{formatNumber(entries.length)} {tr('of')} {formatNumber(total)} {tr('activities')}{filtered ? tr(' matching') : ''}</span>
               {entries.length < total && (
                 <button type="button" onClick={loadMore} disabled={loadingMore} className={`${buttonSecondary} h-8`}>
-                  {loadingMore && <Loader2 size={14} className="animate-spin" />} Load older activity
+                  {loadingMore && <Loader2 size={14} className="animate-spin" />} {tr('Load older activity')}
                 </button>
               )}
             </div>
@@ -453,11 +454,11 @@ export default function ActivityPage() {
 
           <aside className="min-w-0 space-y-4 xl:col-span-4 2xl:col-span-3">
             <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-              <h2 className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">Most active users</h2>
+              <h2 className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">{tr('Most active users')}</h2>
               {!summary ? (
                 <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 animate-pulse rounded bg-slate-100" />)}</div>
               ) : summary.topUsers.length === 0 ? (
-                <p className="px-4 py-6 text-center text-sm text-slate-400">No activity</p>
+                <p className="px-4 py-6 text-center text-sm text-slate-400">{tr('No activity')}</p>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {summary.topUsers.map((u, i) => {
@@ -466,15 +467,15 @@ export default function ActivityPage() {
                       <li key={u.id}>
                         <button type="button" onClick={() => setFilters(f => ({ ...f, user: on ? '' : u.id }))}
                           className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${on ? 'bg-blue-50/70' : 'hover:bg-slate-50'}`}
-                          title={on ? 'Show all users' : `Only ${u.username}`}>
+                          title={on ? tr('Show all users') : tr('Only {0}', u.username)}>
                           <span className="w-4 text-xs tabular-nums text-slate-400">{i + 1}</span>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium text-slate-800">{u.username}</p>
-                            <p className="truncate text-[11px] text-slate-500">{ROLE_LABELS[u.role] ?? u.role} · last {formatDateTime(u.lastAt)}</p>
+                            <p className="truncate text-[11px] text-slate-500">{ROLE_LABELS[u.role] ?? u.role} {tr('· last')} {formatDateTime(u.lastAt)}</p>
                           </div>
                           <div className="text-right text-xs tabular-nums">
                             <p className="font-semibold text-slate-800">{formatNumber(u.count)}</p>
-                            <p className="text-slate-400">{formatNumber(u.exports)} export</p>
+                            <p className="text-slate-400">{formatNumber(u.exports)} {tr('export')}</p>
                           </div>
                         </button>
                       </li>
@@ -485,23 +486,23 @@ export default function ActivityPage() {
             </section>
 
             <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900"><Database size={15} className="text-slate-400" /> Log storage</h2>
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900"><Database size={15} className="text-slate-400" /> {tr('Log storage')}</h2>
               <dl className="space-y-1.5 text-xs">
-                <div className="flex justify-between gap-2"><dt className="text-slate-500">Entries stored</dt><dd className="font-semibold tabular-nums text-slate-800">{summary?.storage ? formatNumber(summary.storage.entries) : '…'}</dd></div>
-                <div className="flex justify-between gap-2"><dt className="text-slate-500">Oldest entry</dt><dd className="text-slate-800">{summary?.storage?.oldest ? formatDateTime(summary.storage.oldest) : '—'}</dd></div>
-                <div className="flex justify-between gap-2"><dt className="text-slate-500">Auto clean-up</dt><dd className="text-slate-800">{summary?.retentionDays ? `older than ${summary.retentionDays} days, daily 03:30` : 'off'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-slate-500">{tr('Entries stored')}</dt><dd className="font-semibold tabular-nums text-slate-800">{summary?.storage ? formatNumber(summary.storage.entries) : '…'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-slate-500">{tr('Oldest entry')}</dt><dd className="text-slate-800">{summary?.storage?.oldest ? formatDateTime(summary.storage.oldest) : '—'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-slate-500">{tr('Auto clean-up')}</dt><dd className="text-slate-800">{summary?.retentionDays ? tr('older than {0} days, daily 03:30', summary.retentionDays) : tr('off')}</dd></div>
               </dl>
               <button type="button" onClick={() => setResetting(true)} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50">
-                <Trash2 size={13} /> Reset logs now
+                <Trash2 size={13} /> {tr('Reset logs now')}
               </button>
             </section>
 
             <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 className="mb-3 text-sm font-semibold text-slate-900">By type</h2>
+              <h2 className="mb-3 text-sm font-semibold text-slate-900">{tr('By type')}</h2>
               {!summary ? (
                 <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 animate-pulse rounded bg-slate-100" />)}</div>
               ) : !categoryTotal ? (
-                <p className="text-sm text-slate-400">No activity</p>
+                <p className="text-sm text-slate-400">{tr('No activity')}</p>
               ) : (
                 <ul className="space-y-2.5">
                   {Object.entries(summary.byCategory).sort((a, b) => b[1] - a[1]).map(([cat, n]) => (
@@ -528,7 +529,7 @@ export default function ActivityPage() {
         <ResetLogsDrawer storage={summary?.storage ?? null} retentionDays={summary?.retentionDays ?? null} onClose={() => setResetting(false)}
           onDone={removed => {
             setResetting(false);
-            setNotice(`${formatNumber(removed)} log entries removed. The reset is recorded as a new entry.`);
+            setNotice(tr('{0} log entries removed. The reset is recorded as a new entry.', formatNumber(removed)));
             setReload(r => r + 1);
           }} />
       )}
@@ -539,7 +540,7 @@ export default function ActivityPage() {
 function StatusBadge({ status }: { status: Entry['status'] }) {
   if (status === 'ok') return null;
   const tone = status === 'denied' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700';
-  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}`}>{status === 'denied' ? 'Denied' : 'Failed'}</span>;
+  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}`}>{status === 'denied' ? tr('Denied') : tr('Failed')}</span>;
 }
 
 /** One line of the timeline: time · type icon · "<who> <did what>" · what exactly · where/from. */
@@ -560,7 +561,7 @@ function TimelineRow({ entry, isNew, onOpen }: { entry: Entry; isNew: boolean; o
             <span className="text-slate-600">{verb.startsWith("'") ? verb.slice(1) : verb}</span>
             {entry.action === 'page.view' && <span className="font-medium text-slate-800">{pageLabel(entry.page)}</span>}
             <StatusBadge status={entry.status} />
-            {isNew && <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">New</span>}
+            {isNew && <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">{tr('New')}</span>}
           </span>
           {entry.summary && entry.action !== 'page.view' && <span className="mt-0.5 block truncate text-sm text-slate-600">{entry.summary}</span>}
           <span className="mt-0.5 block truncate text-[11px] text-slate-400">
@@ -584,23 +585,23 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
     meta: <span className="text-[11px] text-slate-400">{ROLE_LABELS[u.role]}</span>,
   })), [users]);
   return (
-    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title="Filter activity"
-      description="Narrow the log by user, result and role. The type tabs and search stay on the page."
+    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter activity')}
+      description={tr('Narrow the log by user, result and role. The type tabs and search stay on the page.')}
       footer={
         <>
-          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={() => setDraft(NO_FILTERS)}>Reset</button>
-          <button type="button" className={buttonSecondary} onClick={onClose}>Cancel</button>
-          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>Apply filters</button>
+          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={() => setDraft(NO_FILTERS)}>{tr('Reset')}</button>
+          <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Cancel')}</button>
+          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>{tr('Apply filters')}</button>
         </>
       }>
       <div className="space-y-6">
-        <ChoiceGroup label="Result" value={draft.status} onChange={set('status')} choices={[
-          { value: '', label: 'All' }, { value: 'ok', label: 'Succeeded' }, { value: 'failed', label: 'Failed' }, { value: 'denied', label: 'Denied' },
+        <ChoiceGroup label={tr('Result')} value={draft.status} onChange={set('status')} choices={[
+          { value: '', label: tr('All') }, { value: 'ok', label: tr('Succeeded') }, { value: 'failed', label: tr('Failed') }, { value: 'denied', label: tr('Denied') },
         ]} />
-        <ChoiceGroup label="Role" value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: 'All roles' }, { value: 'user', label: 'User' }, { value: 'superadmin', label: 'Super Admin' },
+        <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
+          { value: '', label: tr('All roles') }, { value: 'user', label: tr('User') }, { value: 'superadmin', label: tr('Super Admin') },
         ]} />
-        <SearchChoice label="User" anyLabel="All users" options={options} value={draft.user} onChange={set('user')} placeholder="Search name or username" />
+        <SearchChoice label={tr('User')} anyLabel={tr('All users')} options={options} value={draft.user} onChange={set('user')} placeholder={tr('Search name or username')} />
       </div>
     </Drawer>
   );
@@ -625,29 +626,29 @@ function value(v: unknown): ReactNode {
   if (v === null || v === undefined || v === '') return '—';
   if (Array.isArray(v)) return v.length ? v.join(', ') : '—';
   if (typeof v === 'object') return <pre className="whitespace-pre-wrap break-all font-mono text-xs text-slate-700">{JSON.stringify(v, null, 2)}</pre>;
-  if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+  if (typeof v === 'boolean') return v ? tr('Yes') : tr('No');
   return String(v);
 }
 
 function ExportDetails({ d }: { d: Record<string, unknown> }) {
   const s = (k: string) => (d[k] === null || d[k] === undefined ? null : String(d[k]));
-  const branches = d.branches === 'all' ? 'All branches' : value(d.branches);
+  const branches = d.branches === 'all' ? tr('All branches') : value(d.branches);
   return (
     <Rows rows={[
-      ['Report', REPORT_LABELS[s('report') ?? ''] ?? s('report')],
-      ['Transaction type', TYPE_LABELS[s('type') ?? ''] ?? s('type')],
-      ['Period', d.dateFrom ? `${formatDate(s('dateFrom'))} – ${formatDate(s('dateTo'))} (${value(d.totalDays)} days)` : '—'],
-      ['Branches', branches],
-      ['Requested branch', d.requestedBranch !== undefined ? value(d.requestedBranch) : undefined],
-      ['File', s('fileName')],
-      ['Rows', d.rows !== undefined && d.rows !== null ? formatNumber(Number(d.rows)) : null],
-      ['Transactions', d.headers !== undefined && d.headers !== null ? formatNumber(Number(d.headers)) : null],
-      ['File size', d.fileSize ? formatBytes(Number(d.fileSize)) : null],
-      ['Started', d.createdAt ? formatDateTime(s('createdAt')) : null],
-      ['Finished', d.finishedAt ? formatDateTime(s('finishedAt')) : null],
-      ['Error', d.error ? s('error') : undefined],
-      ['Owner', d.ownerName !== undefined ? value(d.ownerName) : undefined],
-      ['Job id', <span key="id" className="font-mono text-xs">{s('id')}</span>],
+      [tr('Report'), REPORT_LABELS[s('report') ?? ''] ?? s('report')],
+      [tr('Transaction type'), TYPE_LABELS[s('type') ?? ''] ?? s('type')],
+      [tr('Period'), d.dateFrom ? tr('{0} – {1} ({2} days)', formatDate(s('dateFrom')), formatDate(s('dateTo')), String(d.totalDays ?? '—')) : '—'],
+      [tr('Branches'), branches],
+      [tr('Requested branch'), d.requestedBranch !== undefined ? value(d.requestedBranch) : undefined],
+      [tr('File'), s('fileName')],
+      [tr('Rows'), d.rows !== undefined && d.rows !== null ? formatNumber(Number(d.rows)) : null],
+      [tr('Transactions'), d.headers !== undefined && d.headers !== null ? formatNumber(Number(d.headers)) : null],
+      [tr('File size'), d.fileSize ? formatBytes(Number(d.fileSize)) : null],
+      [tr('Started'), d.createdAt ? formatDateTime(s('createdAt')) : null],
+      [tr('Finished'), d.finishedAt ? formatDateTime(s('finishedAt')) : null],
+      [tr('Error'), d.error ? s('error') : undefined],
+      [tr('Owner'), d.ownerName !== undefined ? value(d.ownerName) : undefined],
+      [tr('Job id'), <span key="id" className="font-mono text-xs">{s('id')}</span>],
     ]} />
   );
 }
@@ -659,7 +660,7 @@ function EntryDrawer({ entry, onClose }: { entry: Entry; onClose: () => void }) 
   return (
     <Drawer open onClose={onClose} size="md" icon={<History size={18} />} title={action?.label ?? entry.action}
       description={formatDateTime(entry.at)}
-      footer={<button type="button" className={buttonSecondary} onClick={onClose}><X size={16} /> Close</button>}>
+      footer={<button type="button" className={buttonSecondary} onClick={onClose}><X size={16} /> {tr('Close')}</button>}>
       <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
         <UserAvatar name={name} src={entry.user.avatarUrl} size="lg" />
         <div className="min-w-0">
@@ -671,27 +672,27 @@ function EntryDrawer({ entry, onClose }: { entry: Entry; onClose: () => void }) 
         <div className="ml-auto"><StatusBadge status={entry.status} /></div>
       </div>
 
-      <DrawerSection title="Activity">
+      <DrawerSection title={tr('Activity')}>
         <Rows rows={[
-          ['What', entry.summary],
-          ['Activity', <span key="a" className="font-mono text-xs">{entry.action}</span>],
-          ['Result', entry.status === 'ok' ? 'Succeeded' : entry.status === 'denied' ? 'Denied' : 'Failed'],
-          ['Page', pageLabel(entry.page)],
-          ['Time', formatDateTime(entry.at)],
+          [tr('What'), entry.summary],
+          [tr('Activity'), <span key="a" className="font-mono text-xs">{entry.action}</span>],
+          [tr('Result'), entry.status === 'ok' ? tr('Succeeded') : entry.status === 'denied' ? tr('Denied') : tr('Failed')],
+          [tr('Page'), pageLabel(entry.page)],
+          [tr('Time'), formatDateTime(entry.at)],
         ]} />
       </DrawerSection>
 
       {details.length > 0 && (
-        <DrawerSection title={entry.category === 'export' ? 'Export' : 'Details'}>
+        <DrawerSection title={entry.category === 'export' ? tr('Export') : tr('Details')}>
           {entry.category === 'export' ? <ExportDetails d={entry.details} /> : <Rows rows={details.map(([k, v]) => [k, value(v)])} />}
         </DrawerSection>
       )}
 
-      <DrawerSection title="Device">
+      <DrawerSection title={tr('Device')}>
         <Rows rows={[
-          ['IP address', entry.ip],
-          ['Browser', device(entry.userAgent)],
-          ['User agent', entry.userAgent ? <span key="ua" className="text-xs text-slate-500">{entry.userAgent}</span> : null],
+          [tr('IP address'), entry.ip],
+          [tr('Browser'), device(entry.userAgent)],
+          [tr('User agent'), entry.userAgent ? <span key="ua" className="text-xs text-slate-500">{entry.userAgent}</span> : null],
         ]} />
       </DrawerSection>
     </Drawer>
@@ -706,7 +707,7 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
       <table className="w-full text-sm">
         <thead className="sticky top-0 z-[1] bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
           <tr>
-            {['Time', 'User', 'Activity', 'Details', 'Page', 'Result', 'Device · IP'].map(h => <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5">{h}</th>)}
+            {[tr('Time'), tr('User'), tr('Activity'), tr('Details'), tr('Page'), tr('Result'), tr('Device · IP')].map(h => <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5">{h}</th>)}
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -722,7 +723,7 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
                 </td>
                 <td className="max-w-[22rem] px-3 py-2 text-xs text-slate-600"><span className="line-clamp-2">{e.summary ?? '—'}</span></td>
                 <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600">{pageLabel(e.page)}</td>
-                <td className="whitespace-nowrap px-3 py-2">{e.status === 'ok' ? <span className="text-xs text-emerald-700">Succeeded</span> : <StatusBadge status={e.status} />}</td>
+                <td className="whitespace-nowrap px-3 py-2">{e.status === 'ok' ? <span className="text-xs text-emerald-700">{tr('Succeeded')}</span> : <StatusBadge status={e.status} />}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-[11px] text-slate-400">{device(e.userAgent)}<span className="block">{e.ip ?? ''}</span></td>
               </tr>
             );
@@ -735,7 +736,7 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
 
 function downloadCsv(entries: Entry[], from: string, to: string) {
   const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const head = ['Time (WIB)', 'Username', 'Name', 'Role', 'Category', 'Activity', 'Result', 'Page', 'Summary', 'IP', 'Device'];
+  const head = [tr('Time (WIB)'), tr('Username'), tr('Name'), tr('Role'), tr('Category'), tr('Activity'), tr('Result'), tr('Page'), tr('Summary'), 'IP', tr('Device')];
   const rows = entries.map(e => [
     new Date(e.at).toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' }), e.user.username, e.user.fullName, e.user.role, e.category,
     ACTIONS[e.action]?.label ?? e.action, e.status, pageLabel(e.page), e.summary, e.ip, device(e.userAgent),

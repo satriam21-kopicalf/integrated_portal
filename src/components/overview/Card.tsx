@@ -6,6 +6,8 @@ import type { InfoKey } from '@/lib/metricInfo';
 import { Resource } from '@/lib/overview';
 import InfoTip from '@/components/ui/InfoTip';
 import LoadingState, { RefreshBar } from '@/components/ui/LoadingState';
+import { tr } from '@/lib/i18n';
+import { fixed } from '@/lib/format';
 
 /**
  * Widget frame. First load shows a skeleton; a refetch keeps the previous render
@@ -54,10 +56,10 @@ export function Card<T>({
         {error && !loading ? (
           <div className="flex h-full min-h-[inherit] flex-col items-center justify-center gap-2 text-center">
             <AlertTriangle size={20} className="text-amber-500" />
-            <p className="text-sm text-slate-600">Could not load this widget</p>
+            <p className="text-sm text-slate-600">{tr('Could not load this widget')}</p>
             <p className="max-w-xs text-xs text-slate-400">{error}</p>
             <button type="button" onClick={retry} className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
-              <RotateCw size={13} /> Try again
+              <RotateCw size={13} /> {tr('Try again')}
             </button>
           </div>
         ) : data ? (
@@ -90,9 +92,9 @@ export function CardTabs<V extends string>({ value, options, onChange, label }: 
 }
 
 /** "Details" entry to a card's drawer. */
-export function DetailsButton({ onClick, label = 'Details' }: { onClick: () => void; label?: string }) {
+export function DetailsButton({ onClick, label = tr('Details') }: { onClick: () => void; label?: string }) {
   return (
-    <button type="button" onClick={onClick} title="All data behind this analytic"
+    <button type="button" onClick={onClick} title={tr('All data behind this analytic')}
       className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
       <Maximize2 size={12} /> {label}
     </button>
@@ -116,7 +118,7 @@ export function Delta({
 }) {
   if (value === null || value === undefined) {
     return (
-      <span className={`inline-flex items-center gap-0.5 text-xs text-slate-400 ${className}`} title="No comparable comparison period">
+      <span className={`inline-flex items-center gap-0.5 text-xs text-slate-400 ${className}`} title={tr('No comparable comparison period')}>
         <Minus size={12} /> n/a
       </span>
     );
@@ -131,7 +133,7 @@ export function Delta({
       <Icon size={13} strokeWidth={2.25} aria-hidden />
       <span>
         {up ? '+' : value < 0 ? '−' : ''}
-        {Math.abs(value).toFixed(1)}
+        {fixed(Math.abs(value), 1)}
         {unit}
         {suffix}
       </span>

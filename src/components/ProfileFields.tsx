@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { DrawerSection } from '@/components/ui/Drawer';
 import { Field, inputClass } from '@/components/ui/Dialog';
 import { AuthUser, Gender, GENDER_LABELS } from '@/lib/auth';
+import { tr } from '@/lib/i18n';
 
 /**
  * Identity fields of an account, shared by "My profile" (the user fills them in
@@ -104,53 +105,53 @@ export default function ProfileFields({
 
   return (
     <>
-      <DrawerSection title="Personal information">
+      <DrawerSection title={tr('Personal information')}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Full name" htmlFor={id('name')} required={required('fullName')} error={fieldError('fullName')} className="sm:col-span-2">
+          <Field label={tr('Full name')} htmlFor={id('name')} required={required('fullName')} error={fieldError('fullName')} className="sm:col-span-2">
             <input id={id('name')} className={inputClass} value={values.fullName} onChange={e => onChange('fullName', e.target.value)}
-              maxLength={120} autoComplete="name" placeholder="As on your ID card" />
+              maxLength={120} autoComplete="name" placeholder={tr('As on your ID card')} />
           </Field>
-          <Field label="Gender" htmlFor={id('gender')} error={fieldError('gender')}>
+          <Field label={tr('Gender')} htmlFor={id('gender')} error={fieldError('gender')}>
             <select id={id('gender')} className={inputClass} value={values.gender} onChange={e => onChange('gender', e.target.value as Gender | '')}>
-              <option value="">Not specified</option>
+              <option value="">{tr('Not specified')}</option>
               {(Object.keys(GENDER_LABELS) as Gender[]).map(g => <option key={g} value={g}>{GENDER_LABELS[g]}</option>)}
             </select>
           </Field>
-          <Field label="Date of birth" htmlFor={id('birth')} error={fieldError('birthDate')}>
+          <Field label={tr('Date of birth')} htmlFor={id('birth')} error={fieldError('birthDate')}>
             <input id={id('birth')} type="date" className={inputClass} value={values.birthDate} onChange={e => onChange('birthDate', e.target.value)}
               min="1900-01-01" max={today()} autoComplete="bday" />
           </Field>
-          <Field label="Phone number" htmlFor={id('phone')} required={required('phoneNumber')} error={fieldError('phoneNumber')} className="sm:col-span-2"
-            hint="Digits, spaces, + ( ) and - only">
+          <Field label={tr('Phone number')} htmlFor={id('phone')} required={required('phoneNumber')} error={fieldError('phoneNumber')} className="sm:col-span-2"
+            hint={tr('Digits, spaces, + ( ) and - only')}>
             <input id={id('phone')} type="tel" inputMode="tel" className={inputClass} value={values.phoneNumber} onChange={e => onChange('phoneNumber', e.target.value)}
               maxLength={32} autoComplete="tel" placeholder="0812 3456 7890" />
           </Field>
-          <Field label="Address" htmlFor={id('address')} error={fieldError('address')} className="sm:col-span-2">
+          <Field label={tr('Address')} htmlFor={id('address')} error={fieldError('address')} className="sm:col-span-2">
             <textarea id={id('address')} rows={2} className={`${inputClass} h-auto py-2`} value={values.address} onChange={e => onChange('address', e.target.value)}
               maxLength={300} autoComplete="street-address" />
           </Field>
-          <Field label="City" htmlFor={id('city')} error={fieldError('city')} className="sm:col-span-2">
+          <Field label={tr('City')} htmlFor={id('city')} error={fieldError('city')} className="sm:col-span-2">
             <input id={id('city')} className={inputClass} value={values.city} onChange={e => onChange('city', e.target.value)} maxLength={80} autoComplete="address-level2" />
           </Field>
         </div>
       </DrawerSection>
 
-      <DrawerSection title="Work information">
+      <DrawerSection title={tr('Work information')}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Employee number" htmlFor={id('employee')} error={fieldError('employeeNumber')} hint="Letters, numbers, . / -">
+          <Field label={tr('Employee number')} htmlFor={id('employee')} error={fieldError('employeeNumber')} hint={tr('Letters, numbers, . / -')}>
             <input id={id('employee')} className={inputClass} value={values.employeeNumber} onChange={e => onChange('employeeNumber', e.target.value)}
               maxLength={32} autoCapitalize="characters" spellCheck={false} />
           </Field>
-          <Field label="Job title" htmlFor={id('job')} required={required('jobTitle')} error={fieldError('jobTitle')}>
+          <Field label={tr('Job title')} htmlFor={id('job')} required={required('jobTitle')} error={fieldError('jobTitle')}>
             <input id={id('job')} className={inputClass} value={values.jobTitle} onChange={e => onChange('jobTitle', e.target.value)} maxLength={80}
               autoComplete="organization-title" />
           </Field>
-          <Field label="Department" htmlFor={id('dept')} required={required('department')} error={fieldError('department')}>
+          <Field label={tr('Department')} htmlFor={id('dept')} required={required('department')} error={fieldError('department')}>
             <input id={id('dept')} className={inputClass} value={values.department} onChange={e => onChange('department', e.target.value)} maxLength={80} />
           </Field>
-          <Field label="Work location" htmlFor={id('branch')} error={fieldError('workBranchCode')}>
+          <Field label={tr('Work location')} htmlFor={id('branch')} error={fieldError('workBranchCode')}>
             <select id={id('branch')} className={inputClass} value={values.workBranchCode} onChange={e => onChange('workBranchCode', e.target.value)}>
-              <option value="">Not specified</option>
+              <option value="">{tr('Not specified')}</option>
               {savedBranchMissing && <option value={values.workBranchCode}>{currentBranchName || values.workBranchCode}</option>}
               {branches.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
             </select>

@@ -4,6 +4,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Info } from 'lucide-react';
 import { INFO, InfoKey, MetricInfo } from '@/lib/metricInfo';
+import { tr } from '@/lib/i18n';
 
 const WIDTH = 360;
 
@@ -44,7 +45,7 @@ export default function InfoTip({ info }: { info: InfoKey | MetricInfo }) {
 
   return (
     <>
-      <button ref={btn} type="button" aria-label={`How "${data.title}" is calculated`} aria-expanded={open}
+      <button ref={btn} type="button" aria-label={tr('How "{0}" is calculated', tr(data.title))} aria-expanded={open}
         onClick={e => { e.stopPropagation(); setPinned(p => !p); setOpen(o => !(o && pinned)); }}
         onMouseEnter={() => setOpen(true)} onMouseLeave={() => { if (!pinned) setOpen(false); }}
         className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">
@@ -54,14 +55,14 @@ export default function InfoTip({ info }: { info: InfoKey | MetricInfo }) {
         <div ref={panel} role="tooltip" onMouseEnter={() => setOpen(true)} onMouseLeave={() => { if (!pinned) setOpen(false); }}
           style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999, width: `min(${WIDTH}px, calc(100vw - 16px))` }}
           className="fixed z-[95] rounded-xl border border-slate-200 bg-white p-3.5 text-left text-xs leading-relaxed text-slate-600 shadow-xl">
-          <p className="mb-2 text-sm font-semibold text-slate-900">{data.title}</p>
+          <p className="mb-2 text-sm font-semibold text-slate-900">{tr(data.title)}</p>
           {data.formula && data.formula.length > 0 && (
-            <Part title="Formula">
-              {data.formula.map(f => <li key={f} className="rounded bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-800">{f}</li>)}
+            <Part title={tr('Formula')}>
+              {data.formula.map(f => <li key={f} className="rounded bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-800">{tr(f)}</li>)}
             </Part>
           )}
-          <Part title="What is counted">{data.definition.map(d => <li key={d}>{d}</li>)}</Part>
-          <Part title="Source">{data.source.map(s => <li key={s}>{s}</li>)}</Part>
+          <Part title={tr('What is counted')}>{data.definition.map(d => <li key={d}>{tr(d)}</li>)}</Part>
+          <Part title={tr('Source')}>{data.source.map(s => <li key={s}>{tr(s)}</li>)}</Part>
         </div>,
         document.body,
       )}

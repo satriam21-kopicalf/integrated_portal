@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { channelLabel } from '@/lib/overview';
+import { DARK_LOGOS, useTheme } from '@/lib/theme';
 
 /**
  * Channel logos (public/assets). Platform wordmarks replace the name; the
@@ -35,6 +36,7 @@ export default function ChannelLogo({
   className?: string;
   labelClassName?: string;
 }) {
+  const { dark } = useTheme();
   const logo = channelLogo(channel);
   const label = channelLabel(channel);
   if (!logo) return <span className={`whitespace-nowrap ${labelClassName} ${className}`}>{label}</span>;
@@ -45,7 +47,7 @@ export default function ChannelLogo({
       {/* eager: logos are tiny and sit in moving / scrolled containers where lazy loading never fires */}
       {/* explicit width + no max-width: inside shrink-to-fit parents (ticker chips) a percentage
           max-width (Tailwind preflight) collapses the image to 0 px */}
-      <Image src={logo.src} alt={label} width={Math.round(h * logo.ratio)} height={h} loading="eager"
+      <Image src={dark ? DARK_LOGOS[logo.src] ?? logo.src : logo.src} alt={label} width={Math.round(h * logo.ratio)} height={h} loading="eager"
         className="flex-shrink-0 object-contain" style={{ height: h, width: Math.round(h * logo.ratio), maxWidth: 'none' }} unoptimized />
       {logo.icon && <span className={labelClassName}>{label}</span>}
     </span>

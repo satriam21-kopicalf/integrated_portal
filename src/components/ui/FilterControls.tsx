@@ -3,6 +3,7 @@
 import { ReactNode, useMemo, useState } from 'react';
 import { Check, Search, SlidersHorizontal, X } from 'lucide-react';
 import { inputClass } from '@/components/ui/Dialog';
+import { tr } from '@/lib/i18n';
 
 /** "Filters" toolbar button with the number of active filters. */
 export function FilterButton({ count, onClick }: { count: number; onClick: () => void }) {
@@ -15,7 +16,7 @@ export function FilterButton({ count, onClick }: { count: number; onClick: () =>
       }`}
     >
       <SlidersHorizontal size={16} />
-      Filters
+      {tr('Filters')}
       {count > 0 && <span className="rounded-full bg-white/20 px-1.5 text-xs tabular-nums">{count}</span>}
     </button>
   );
@@ -89,8 +90,8 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
         </div>
         <ul className="max-h-72 overflow-y-auto py-1">
           {!q && row('', anyLabel)}
-          {loading ? <li className="px-3 py-4 text-center text-sm text-slate-400">Loading…</li>
-            : shown.length === 0 ? <li className="px-3 py-4 text-center text-sm text-slate-400">No match for “{q}”</li>
+          {loading ? <li className="px-3 py-4 text-center text-sm text-slate-400">{tr('Loading…')}</li>
+            : shown.length === 0 ? <li className="px-3 py-4 text-center text-sm text-slate-400">{tr('No match for “')}{q}”</li>
             : shown.map(o => row(o.value, o.label, o.meta))}
         </ul>
       </div>
@@ -112,12 +113,12 @@ export function ActiveFilters({ filters, onClear }: { filters: ActiveFilter[]; o
       {filters.map(f => (
         <span key={f.key} className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white py-1 pl-3 pr-1.5 text-xs font-medium text-slate-700">
           {f.label}
-          <button type="button" onClick={f.onRemove} className="rounded-full p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={`Remove ${f.label}`}>
+          <button type="button" onClick={f.onRemove} className="rounded-full p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Remove {0}', f.label)}>
             <X size={12} />
           </button>
         </span>
       ))}
-      <button type="button" onClick={onClear} className="text-xs font-medium text-slate-500 hover:text-slate-900">Clear all</button>
+      <button type="button" onClick={onClear} className="text-xs font-medium text-slate-500 hover:text-slate-900">{tr('Clear all')}</button>
     </div>
   );
 }

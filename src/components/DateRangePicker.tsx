@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate, toIsoDate } from '@/lib/format';
 import { useClickOutside } from '@/lib/useClickOutside';
+import { locale, tr, trList } from '@/lib/i18n';
 
 interface DateRangePickerProps {
   dateFrom: string;
@@ -22,7 +23,7 @@ export interface DatePreset {
   to: string;
 }
 
-const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const WEEK_DAYS = trList(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
 
 function defaultPresets(): DatePreset[] {
   const today = new Date();
@@ -35,13 +36,13 @@ function defaultPresets(): DatePreset[] {
   const firstOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
   const lastOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
   return [
-    { label: 'Today', from: d(0), to: d(0) },
-    { label: 'Yesterday', from: d(-1), to: d(-1) },
-    { label: 'Last 7 days', from: d(-6), to: d(0) },
-    { label: 'Last 30 days', from: d(-29), to: d(0) },
-    { label: 'Month to date', from: toIsoDate(firstOfMonth), to: d(0) },
-    { label: 'Last month', from: toIsoDate(firstOfLastMonth), to: toIsoDate(lastOfLastMonth) },
-    { label: 'Year to date', from: toIsoDate(new Date(today.getFullYear(), 0, 1)), to: d(0) },
+    { label: tr('Today'), from: d(0), to: d(0) },
+    { label: tr('Yesterday'), from: d(-1), to: d(-1) },
+    { label: tr('Last 7 days'), from: d(-6), to: d(0) },
+    { label: tr('Last 30 days'), from: d(-29), to: d(0) },
+    { label: tr('Month to date'), from: toIsoDate(firstOfMonth), to: d(0) },
+    { label: tr('Last month'), from: toIsoDate(firstOfLastMonth), to: toIsoDate(lastOfLastMonth) },
+    { label: tr('Year to date'), from: toIsoDate(new Date(today.getFullYear(), 0, 1)), to: d(0) },
   ];
 }
 
@@ -95,7 +96,7 @@ export default function DateRangePicker({
     close();
   };
 
-  const label = active ? `${formatDate(dateFrom) !== '-' ? formatDate(dateFrom) : '…'} – ${formatDate(dateTo) !== '-' ? formatDate(dateTo) : '…'}` : `Date range: ${defaultLabel}`;
+  const label = active ? `${formatDate(dateFrom) !== '-' ? formatDate(dateFrom) : '…'} – ${formatDate(dateTo) !== '-' ? formatDate(dateTo) : '…'}` : tr('Date range: {0}', defaultLabel);
 
   return (
     <div className="relative" ref={ref}>
@@ -118,9 +119,9 @@ export default function DateRangePicker({
         <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">Date range</p>
+              <p className="text-sm font-semibold text-slate-900">{tr('Date range')}</p>
               <p className="text-xs text-slate-500">
-                {pendingFrom ? `From ${formatDate(pendingFrom)} — select end date` : active ? label : `Default: ${defaultLabel}`}
+                {pendingFrom ? tr('From {0} — select end date', formatDate(pendingFrom)) : active ? label : tr('Default: {0}', defaultLabel)}
               </p>
             </div>
             {active && (
@@ -129,7 +130,7 @@ export default function DateRangePicker({
                 onClick={() => { onChange('', ''); close(); }}
                 className="rounded-md px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               >
-                Clear
+                {tr('Clear')}
               </button>
             )}
           </div>
@@ -161,18 +162,18 @@ export default function DateRangePicker({
                   type="button"
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
                   className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                  aria-label="Previous month"
+                  aria-label={tr('Previous month')}
                 >
                   <ChevronLeft size={16} />
                 </button>
                 <span className="text-sm font-semibold text-slate-900">
-                  {month.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                  {month.toLocaleDateString(locale(), { month: 'long', year: 'numeric' })}
                 </span>
                 <button
                   type="button"
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
                   className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                  aria-label="Next month"
+                  aria-label={tr('Next month')}
                 >
                   <ChevronRight size={16} />
                 </button>

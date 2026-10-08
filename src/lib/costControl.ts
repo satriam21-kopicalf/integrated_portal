@@ -6,6 +6,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRealtime } from './realtime';
 import { Resource } from './overview';
+import { locale, tr, serverMsg } from './i18n';
+import { fixed } from './format';
 
 export type Status = 'good' | 'warning' | 'serious' | 'critical';
 export type Basis = 'net' | 'subtotal';
@@ -224,7 +226,7 @@ export function useCostControl<T>(path: string, query: string, enabled = true): 
     fetch(`/api/cost-control/${path}${params ? `?${params}` : ''}`, { signal: controller.signal })
       .then(async res => {
         const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+        if (!res.ok) throw new Error(serverMsg(body.error) || `HTTP ${res.status}`);
         setState({ data: body as T, loading: false, error: null });
       })
       .catch((error: Error) => {
@@ -240,10 +242,10 @@ export function useCostControl<T>(path: string, query: string, enabled = true): 
 /* ------------------------------------------------------------------ status */
 
 export const STATUS: Record<Status, { label: string; text: string; bg: string; ring: string; dot: string }> = {
-  good: { label: 'Good', text: 'text-emerald-700', bg: 'bg-emerald-50', ring: 'ring-emerald-200', dot: '#16a34a' },
-  warning: { label: 'Watch', text: 'text-amber-700', bg: 'bg-amber-50', ring: 'ring-amber-200', dot: '#d97706' },
-  serious: { label: 'High', text: 'text-orange-700', bg: 'bg-orange-50', ring: 'ring-orange-200', dot: '#ea580c' },
-  critical: { label: 'Critical', text: 'text-red-700', bg: 'bg-red-50', ring: 'ring-red-200', dot: '#dc2626' },
+  good: { get label() { return tr('Good'); }, text: 'text-emerald-700', bg: 'bg-emerald-50', ring: 'ring-emerald-200', dot: '#16a34a' },
+  warning: { get label() { return tr('Watch'); }, text: 'text-amber-700', bg: 'bg-amber-50', ring: 'ring-amber-200', dot: '#d97706' },
+  serious: { get label() { return tr('High'); }, text: 'text-orange-700', bg: 'bg-orange-50', ring: 'ring-orange-200', dot: '#ea580c' },
+  critical: { get label() { return tr('Critical'); }, text: 'text-red-700', bg: 'bg-red-50', ring: 'ring-red-200', dot: '#dc2626' },
 };
 
 export const STATUS_ORDER: Status[] = ['good', 'warning', 'serious', 'critical'];
@@ -261,7 +263,7 @@ export function sales(m: CostMetrics, basis: Basis): number {
   return basis === 'net' ? m.netSales : m.subtotal;
 }
 
-export const pctText = (v: number | null | undefined, digits = 1) => (v === null || v === undefined ? '–' : `${v.toFixed(digits)}%`);
+export const pctText = (v: number | null | undefined, digits = 1) => (v === null || v === undefined ? '–' : `${fixed(v, digits)}%`);
 
 export function bandText(b: Bands, unit = '%'): string[] {
   return [`≤ ${b.good}${unit}`, `${b.good}–${b.warning}${unit}`, `${b.warning}–${b.serious}${unit}`, `> ${b.serious}${unit}`];
@@ -272,6 +274,6 @@ export function periodLabel(start: string, end: string): string {
   const s = new Date(`${start}T00:00:00`);
   const e = new Date(`${end}T00:00:00`);
   const sameMonth = s.getMonth() === e.getMonth();
-  const left = s.toLocaleDateString('en-GB', { day: 'numeric', ...(sameMonth ? {} : { month: 'short' }) });
-  return `${left}–${e.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  const left = s.toLocaleDateString(locale(), { day: 'numeric', ...(sameMonth ? {} : { month: 'short' }) });
+  return `${left}–${e.toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' })}`;
 }

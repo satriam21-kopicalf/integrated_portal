@@ -7,8 +7,9 @@ import { base, categoryAxis, changeHtml, INK, tipFooter, tipRow, tipTitle, toolt
 import { compactRupiah, GrowthResponse } from '@/lib/overview';
 import { Delta } from './Card';
 import { DetailTable, rp } from './drill/parts';
+import { locale, tr, trList } from '@/lib/i18n';
 
-export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+export const WEEKDAYS = trList(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
 /** One series in one hue: weekdays in the accent blue, weekends (Sat, Sun) in a darker step of the same ramp.
  * The categorical hues stay reserved for channels, so a colour never means two things on the page. */
 export const WEEKDAY_BLUE = INK.accent;
@@ -19,7 +20,7 @@ const barColor = (dow: number) => (dow >= 6 ? WEEKEND_BLUE : WEEKDAY_BLUE);
 export const isoWeekday = (iso: string) => ((new Date(`${iso}T00:00:00`).getDay() + 6) % 7) + 1;
 const dayLabel = (iso: string) => {
   const d = new Date(`${iso}T00:00:00`);
-  return `${String(d.getDate()).padStart(2, '0')} ${d.toLocaleDateString('en-GB', { month: 'short' })} (${WEEKDAYS[isoWeekday(iso) - 1].slice(0, 3)})`;
+  return `${String(d.getDate()).padStart(2, '0')} ${d.toLocaleDateString(locale(), { month: 'short' })} (${WEEKDAYS[isoWeekday(iso) - 1].slice(0, 3)})`;
 };
 
 /* ------------------------------------------------------------------ daily bars */
@@ -63,10 +64,10 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
           return tipTitle(`${WEEKDAYS[dow - 1]}, ${formatDate(p.date)}`)
             + tipRow(barColor(dow), formatCurrency(p.subtotal), 'gross sales')
             + tipRow(INK.muted, formatNumber(p.bills), 'bills')
-            + (wAvg !== null ? tipRow(INK.muted, formatCurrency(Math.round(wAvg)), `avg ${WEEKDAYS[dow - 1]} in the period`) : '')
+            + (wAvg !== null ? tipRow(INK.muted, formatCurrency(Math.round(wAvg)), tr('avg {0} in the period', WEEKDAYS[dow - 1])) : '')
             + tipFooter(p.compareSubtotal !== null
-              ? `vs comparison ${p.compareFrom ? formatDate(p.compareFrom) : ''}: ${changeHtml(p.growthPct)}`
-              : 'No comparison day') + (onSelect ? tipFooter('Click for the details of this day') : '');
+              ? tr('vs comparison {0}: {1}', p.compareFrom ? formatDate(p.compareFrom) : '', changeHtml(p.growthPct))
+              : tr('No comparison day')) + (onSelect ? tipFooter(tr('Click for the details of this day')) : '');
         },
       }),
       xAxis: categoryAxis(days.map(p => dayLabel(p.date)), {
@@ -85,7 +86,7 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
         markLine: avg ? {
           symbol: 'none', silent: true,
           lineStyle: { color: INK.secondary, type: 'dashed', width: 1 },
-          label: { formatter: `avg ${compactRupiah(avg)}/day`, color: INK.secondary, fontSize: 10, position: 'insideEndTop' },
+          label: { formatter: tr('avg {0}/day', compactRupiah(avg)), color: INK.secondary, fontSize: 10, position: 'insideEndTop' },
           data: [{ yAxis: avg }],
         } : undefined,
       }],
@@ -96,21 +97,21 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
 
   return (
     <div className="space-y-3">
-      <EChart option={option} height={300} ariaLabel="Gross sales per day, coloured by weekday"
+      <EChart option={option} height={300} ariaLabel={tr('Gross sales per day, coloured by weekday')}
         onClick={onSelect ? p => { const d = days[p.dataIndex]; if (d) onSelect(d.date); } : undefined} />
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKDAY_BLUE }} aria-hidden />Mon – Fri</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKEND_BLUE }} aria-hidden />Sat – Sun</span>
-        <span className="flex items-center gap-1.5"><span className="h-0 w-3 border-t border-dashed border-slate-500" aria-hidden />average per day</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKDAY_BLUE }} aria-hidden />{tr('Mon – Fri')}</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKEND_BLUE }} aria-hidden />{tr('Sat – Sun')}</span>
+        <span className="flex items-center gap-1.5"><span className="h-0 w-3 border-t border-dashed border-slate-500" aria-hidden />{tr('average per day')}</span>
       </div>
-      <div className="flex flex-wrap items-center justify-center gap-1.5" role="group" aria-label="Highlight weekdays">
+      <div className="flex flex-wrap items-center justify-center gap-1.5" role="group" aria-label={tr('Highlight weekdays')}>
         {WEEKDAYS.map((name, i) => {
           const dow = i + 1;
           const on = focus.includes(dow);
           const w = byDow.get(dow);
           return (
             <button key={name} type="button" onClick={() => toggle(dow)} aria-pressed={on}
-              title={w ? `${w.n} ${name}s · avg ${formatCurrency(Math.round(w.sum / w.n))}` : `No ${name} in the period`}
+              title={w ? tr('{0} {1}s · avg {2}', w.n, name, formatCurrency(Math.round(w.sum / w.n))) : tr('No {0} in the period', name)}
               className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors ${
                 on ? 'border-slate-900 bg-slate-900 text-white'
                   : focus.length ? 'border-slate-200 bg-white text-slate-400 hover:text-slate-700' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}>
@@ -120,10 +121,10 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
           );
         })}
         {focus.length > 0 && (
-          <button type="button" onClick={() => setFocus([])} className="ml-1 text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline">Show all</button>
+          <button type="button" onClick={() => setFocus([])} className="ml-1 text-xs font-medium text-slate-500 hover:text-slate-900 hover:underline">{tr('Show all')}</button>
         )}
       </div>
-      <p className="text-center text-[11px] text-slate-500">Click a weekday to highlight it · amount = its average gross sales per day</p>
+      <p className="text-center text-[11px] text-slate-500">{tr('Click a weekday to highlight it · amount = its average gross sales per day')}</p>
     </div>
   );
 }
@@ -154,26 +155,26 @@ export function AverageSalesBody({ data, weekday, onWeekday }: {
 }) {
   const f = data.filters;
   const t = data.totals;
-  const dayName = data.weekdayName ?? 'All days';
+  const dayName = data.weekdayName ?? tr('All days');
   const range = (a: string, b: string) => (a === b ? formatDate(a) : `${formatDate(a)} – ${formatDate(b)}`);
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-slate-500">
           <span className="font-medium text-slate-900">{range(f.from, f.to)}</span>
-          {' '}({formatNumber(data.days)} {data.weekdayName ? `${data.weekdayName}${data.days === 1 ? '' : 's'}` : data.days === 1 ? 'day' : 'days'})
+          {' '}({formatNumber(data.days)} {data.weekdayName ? `${data.weekdayName}${data.days === 1 ? '' : 's'}` : data.days === 1 ? tr('day') : tr('days')})
           {f.previous.complete
-            ? <> vs {range(f.previous.from, f.previous.to)} ({formatNumber(data.compareDays)})</>
-            : <> · no comparison before Aug 2025</>}
+            ? <> {tr('vs')} {range(f.previous.from, f.previous.to)} ({formatNumber(data.compareDays)})</>
+            : <> {tr('· no comparison before Aug 2025')}</>}
         </p>
-        <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Day of week">
+        <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={tr('Day of week')}>
           {[null, 1, 2, 3, 4, 5, 6, 7].map(w => {
             const on = weekday === w;
             return (
               <button key={w ?? 0} type="button" role="radio" aria-checked={on} onClick={() => onWeekday(w)}
                 className={`inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors ${
                   on ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900'}`}>
-                {w ? WEEKDAYS[w - 1].slice(0, 3) : 'All days'}
+                {w ? WEEKDAYS[w - 1].slice(0, 3) : tr('All days')}
               </button>
             );
           })}
@@ -181,26 +182,26 @@ export function AverageSalesBody({ data, weekday, onWeekday }: {
       </div>
 
       <DetailTable<AverageSalesRow>
-        caption="Average sales" csvName={`average-sales-${f.from}-${f.to}${data.weekday ? `-${dayName.toLowerCase()}` : ''}`}
+        caption={tr('Average sales')} csvName={`average-sales-${f.from}-${f.to}${data.weekday ? `-${dayName.toLowerCase()}` : ''}`}
         rows={data.rows} rowKey={r => r.key} search={r => `${r.label} ${r.key}`} initialSort={{ key: 'branch', desc: false }} maxHeight={460}
         columns={[
-          { key: 'branch', label: 'Branch', value: r => r.label, render: r => <span className="font-medium text-slate-900">{r.label}</span> },
-          { key: 'dow', label: 'Day of week', value: () => dayName },
-          { key: 'avg', label: 'Average sales', align: 'right', value: r => r.averageSales,
-            title: 'Gross sales per day in the period (days the branch sold)', render: r => (r.averageSales === null ? '-' : rp(r.averageSales)) },
-          { key: 'cmp', label: 'Comparison avg', align: 'right', value: r => r.compareAverage,
-            title: 'Gross sales per day in the comparison period', render: r => (r.compareAverage === null ? '-' : rp(r.compareAverage)) },
-          { key: 'pending', label: 'Pending sales', align: 'right', value: r => r.pendingSales, title: 'Open bills (not finished yet)', render: r => rp(r.pendingSales) },
-          { key: 'sales', label: 'Gross sales', align: 'right', value: r => r.sales, title: 'Total gross sales in the period', render: r => rp(r.sales) },
-          { key: 'total', label: 'Total sales', align: 'right', value: r => r.totalSales, title: 'Gross sales + pending',
+          { key: 'branch', label: tr('Branch'), value: r => r.label, render: r => <span className="font-medium text-slate-900">{r.label}</span> },
+          { key: 'dow', label: tr('Day of week'), value: () => dayName },
+          { key: 'avg', label: tr('Average sales'), align: 'right', value: r => r.averageSales,
+            title: tr('Gross sales per day in the period (days the branch sold)'), render: r => (r.averageSales === null ? '-' : rp(r.averageSales)) },
+          { key: 'cmp', label: tr('Comparison avg'), align: 'right', value: r => r.compareAverage,
+            title: tr('Gross sales per day in the comparison period'), render: r => (r.compareAverage === null ? '-' : rp(r.compareAverage)) },
+          { key: 'pending', label: tr('Pending sales'), align: 'right', value: r => r.pendingSales, title: tr('Open bills (not finished yet)'), render: r => rp(r.pendingSales) },
+          { key: 'sales', label: tr('Gross sales'), align: 'right', value: r => r.sales, title: tr('Total gross sales in the period'), render: r => rp(r.sales) },
+          { key: 'total', label: tr('Total sales'), align: 'right', value: r => r.totalSales, title: tr('Gross sales + pending'),
             render: r => <span className="font-semibold text-slate-900">{rp(r.totalSales)}</span> },
-          { key: 'var', label: 'Variance', align: 'right', value: r => r.variancePct,
-            title: '(Average sales − comparison avg) ÷ comparison avg × 100', render: r => <Delta value={r.variancePct} /> },
+          { key: 'var', label: tr('Variance'), align: 'right', value: r => r.variancePct,
+            title: tr('(Average sales − comparison avg) ÷ comparison avg × 100'), render: r => <Delta value={r.variancePct} /> },
         ]}
         footer={
           <tfoot className="sticky bottom-0 bg-slate-50 text-xs font-semibold text-slate-900">
             <tr className="border-t border-slate-200">
-              <td className="px-3 py-2" colSpan={2}>Total · {formatNumber(data.rows.length)} branches</td>
+              <td className="px-3 py-2" colSpan={2}>{tr('Total ·')} {formatNumber(data.rows.length)} {tr('branches')}</td>
               <td className="px-3 py-2 text-right tabular-nums">{t.averageSales === null ? '-' : rp(t.averageSales)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{t.compareAverage === null ? '-' : rp(t.compareAverage)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{rp(t.pendingSales)}</td>

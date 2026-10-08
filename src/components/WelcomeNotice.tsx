@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { CloudSun, Moon, Sun, Sunrise, Sunset, X } from 'lucide-react';
 import { AuthUser } from '@/lib/auth';
 import { DayPart, Greeting, Mood, MOODS, saveMood, takeWelcome, todaysMood, welcomeGreeting } from '@/lib/greetings';
+import { tr } from '@/lib/i18n';
 
 export const DAY_PART_ICONS: Record<DayPart, typeof Sun> = {
   dawn: Sunrise, morning: Sun, midday: Sun, afternoon: CloudSun, evening: Sunset, night: Moon,
@@ -58,16 +59,16 @@ export default function WelcomeNotice({ user }: { user: AuthUser }) {
             <p className="text-sm font-semibold text-slate-900">{greeting.title}</p>
             <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{greeting.message}</p>
           </div>
-          <button type="button" onClick={close} className="-mr-1 -mt-1 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Dismiss">
+          <button type="button" onClick={close} className="-mr-1 -mt-1 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Dismiss')}>
             <X size={16} />
           </button>
         </div>
 
         <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-3">
           <p className="mb-2 text-xs font-medium text-slate-500">
-            {answered ? 'Thanks for sharing — you can change it any time today.' : mood ? 'Your mood today' : 'How are you feeling today?'}
+            {answered ? tr('Thanks for sharing — you can change it any time today.') : mood ? tr('Your mood today') : tr('How are you feeling today?')}
           </p>
-          <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="Your mood today">
+          <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label={tr('Your mood today')}>
             {MOODS.map(m => (
               <button key={m.key} type="button" role="radio" aria-checked={mood === m.key} onClick={() => choose(m.key)}
                 className={`flex flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5 text-[11px] font-medium transition-colors ${

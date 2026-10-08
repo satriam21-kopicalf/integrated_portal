@@ -16,6 +16,7 @@ import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { buttonPrimary, buttonSecondary } from '@/components/ui/Dialog';
 import { AuthUser, ROLE_LABELS, useAuth } from '@/lib/auth';
 import { formatDateTime } from '@/lib/format';
+import { tr, serverMsg } from '@/lib/i18n';
 
 interface AccountDrawers {
   openProfile: () => void;
@@ -78,7 +79,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form.fullName.trim()) {
-      setError({ text: 'Full name is required', field: 'fullName' });
+      setError({ text: tr('Full name is required'), field: 'fullName' });
       return;
     }
     setSaving(true);
@@ -88,7 +89,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
       for (const k of PROFILE_KEYS) body[k] = form[k].trim();
       const res = await fetch('/api/auth/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw Object.assign(new Error(data.error || 'Gagal menyimpan profil'), { field: data.field });
+      if (!res.ok) throw Object.assign(new Error(serverMsg(data.error) || tr('Could not save the profile')), { field: data.field });
       const next = profileValues(data.user as AuthUser);
       setSaved(next);
       setForm(next);
@@ -105,32 +106,32 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
   const role = ROLE_LABELS[user.role] ?? user.role;
 
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<UserRoundPen size={18} />} title="My profile"
-      description="Your identity on the portal. Fields marked * complete your profile."
+    <Drawer open onClose={onClose} size="lg" icon={<UserRoundPen size={18} />} title={tr('My profile')}
+      description={tr('Your identity on the portal. Fields marked * complete your profile.')}
       footer={
         <>
-          {done && !dirty && <span className="mr-auto flex items-center gap-1.5 text-sm font-medium text-emerald-700"><Check size={16} /> Profile saved</span>}
-          <button type="button" className={buttonSecondary} onClick={onClose}>{done && !dirty ? 'Close' : 'Cancel'}</button>
+          {done && !dirty && <span className="mr-auto flex items-center gap-1.5 text-sm font-medium text-emerald-700"><Check size={16} /> {tr('Profile saved')}</span>}
+          <button type="button" className={buttonSecondary} onClick={onClose}>{done && !dirty ? tr('Close') : tr('Cancel')}</button>
           <button type="submit" form="my-profile" className={buttonPrimary} disabled={saving || !dirty}>
-            {saving && <Loader2 size={16} className="animate-spin" />} Save profile
+            {saving && <Loader2 size={16} className="animate-spin" />} {tr('Save profile')}
           </button>
         </>
       }
     >
       <form id="my-profile" onSubmit={submit} className="space-y-0" noValidate>
-        <DrawerSection title="Profile photo" description="Shown in the sidebar and in User Accounts. Saved right away.">
+        <DrawerSection title={tr('Profile photo')} description={tr('Shown in the sidebar and in User Accounts. Saved right away.')}>
           <AvatarEditor name={form.fullName || user.username} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser} />
         </DrawerSection>
 
         {!user.profileComplete && (
           <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50/70 px-3.5 py-3 text-sm text-amber-900">
-            <p className="font-medium">Complete your profile</p>
-            <p className="mt-0.5 text-amber-800/90">Your administrator only set up your sign-in. Please add your own details below.</p>
+            <p className="font-medium">{tr('Complete your profile')}</p>
+            <p className="mt-0.5 text-amber-800/90">{tr('Your administrator only set up your sign-in. Please add your own details below.')}</p>
             <div className="mt-2.5 flex items-center gap-2">
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-amber-100">
                 <div className="h-full rounded-full bg-amber-500 transition-[width]" style={{ width: `${(filled / REQUIRED_PROFILE_KEYS.length) * 100}%` }} />
               </div>
-              <span className="text-xs font-medium tabular-nums">{filled} of {REQUIRED_PROFILE_KEYS.length} required</span>
+              <span className="text-xs font-medium tabular-nums">{filled} {tr('of')} {REQUIRED_PROFILE_KEYS.length} {tr('required')}</span>
             </div>
           </div>
         )}
@@ -141,13 +142,13 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
 
         <ProfileFields values={form} onChange={set} fieldError={fieldError} idPrefix="me" currentBranchName={user.workBranchName} />
 
-        <DrawerSection title="Sign-in & access" description="Managed by an administrator.">
+        <DrawerSection title={tr('Sign-in & access')} description={tr('Managed by an administrator.')}>
           <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100 text-sm">
             {([
-              ['Username', user.username],
-              ['Email', user.email],
-              ['Role', <span key="r" className="inline-flex items-center gap-1">{user.role === 'superadmin' && <ShieldCheck size={13} className="text-red-600" />}{role}</span>],
-              ['Password changed', user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
+              [tr('Username'), user.username],
+              [tr('Email'), user.email],
+              [tr('Role'), <span key="r" className="inline-flex items-center gap-1">{user.role === 'superadmin' && <ShieldCheck size={13} className="text-red-600" />}{role}</span>],
+              [tr('Password changed'), user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
             ] as [string, ReactNode][]).map(([k, v]) => (
               <div key={k} className="grid grid-cols-[9rem_1fr] gap-3 px-3 py-2">
                 <dt className="text-slate-500">{k}</dt>
@@ -155,7 +156,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
               </div>
             ))}
           </dl>
-          <button type="button" className={buttonSecondary} onClick={onChangePassword}><KeyRound size={16} /> Change password</button>
+          <button type="button" className={buttonSecondary} onClick={onChangePassword}><KeyRound size={16} /> {tr('Change password')}</button>
         </DrawerSection>
       </form>
     </Drawer>
@@ -195,14 +196,14 @@ function ProfileNudge({ user, onOpen }: { user: AuthUser; onOpen: () => void }) 
         <div className="flex items-start gap-3">
           <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><CircleUserRound size={20} /></span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-900">Complete your profile</p>
-            <p className="mt-0.5 text-sm text-slate-500">Add your full name, phone number, job title and department.</p>
+            <p className="text-sm font-semibold text-slate-900">{tr('Complete your profile')}</p>
+            <p className="mt-0.5 text-sm text-slate-500">{tr('Add your full name, phone number, job title and department.')}</p>
             <div className="mt-3 flex gap-2">
-              <button type="button" className={`${buttonPrimary} h-9 px-3`} onClick={onOpen}>Complete profile</button>
-              <button type="button" className={`${buttonSecondary} h-9 px-3`} onClick={dismiss}>Later</button>
+              <button type="button" className={`${buttonPrimary} h-9 px-3`} onClick={onOpen}>{tr('Complete profile')}</button>
+              <button type="button" className={`${buttonSecondary} h-9 px-3`} onClick={dismiss}>{tr('Later')}</button>
             </div>
           </div>
-          <button type="button" onClick={dismiss} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Dismiss"><X size={16} /></button>
+          <button type="button" onClick={dismiss} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Dismiss')}><X size={16} /></button>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import InfoTip from '@/components/ui/InfoTip';
 import { Freshness, IssuesResponse, SummaryResponse } from '@/lib/costControl';
 import { NetworkReliability, Reliability, RELIABILITY, RELIABILITY_ORDER } from '@/lib/costReliability';
 import { formatCurrency, formatDateTime, formatNumber } from '@/lib/format';
+import { tr } from '@/lib/i18n';
 
 const ICON: Record<Reliability, typeof CheckCircle2> = { final: CheckCircle2, provisional: Clock, check: AlertTriangle };
 
@@ -37,51 +38,52 @@ export default function ReliabilityBanner({ summary, issues, network, freshness,
   const noOpname = summary.outlets.filter(o => !o.hasOpname && (o.netSales > 0 || o.subtotal > 0)).length;
   const spikesOpen = issues?.stockSpikes.filter(s => s.open).length ?? 0;
   const headline = {
-    final: 'Figures are final',
-    provisional: 'Figures are provisional',
-    check: 'Some figures need a data check',
+    final: tr('Figures are final'),
+    provisional: tr('Figures are provisional'),
+    check: tr('Some figures need a data check'),
   }[level];
   const sentence = {
-    final: 'Every stock opname in this range is posted in ESB and no data issue touches these outlets.',
-    provisional: `${formatNumber(pendingOutlets)} outlet(s) still have stock opnames that are not posted in ESB. Their stock variance — and so actual COGS — can still change.`,
-    check: `${formatNumber(counts.check)} outlet(s) have data errors in ESB that distort their figures${counts.provisional ? `, ${formatNumber(counts.provisional)} more are provisional` : ''}. Fix them in ESB; the portal updates after the nightly sync.`,
+    final: tr('Every stock opname in this range is posted in ESB and no data issue touches these outlets.'),
+    provisional: tr('{0} outlet(s) still have stock opnames that are not posted in ESB. Their stock variance — and so actual COGS — can still change.', formatNumber(pendingOutlets)),
+    check: tr('{0} outlet(s) have data errors in ESB that distort their figures{1}. Fix them in ESB; the portal updates after the nightly sync.', formatNumber(counts.check),
+      counts.provisional ? tr(', {0} more are provisional', formatNumber(counts.provisional)) : ''),
   }[level];
 
   const items: { tone: 'red' | 'amber' | 'slate'; text: string }[] = [];
   if (t.excludedPendingLines > 0) {
-    items.push({ tone: 'red', text: `${formatNumber(t.excludedPendingLines)} impossible opname line(s) left out of actual COGS (${formatCurrency(Math.round(t.excludedPendingVariance))})` });
+    items.push({ tone: 'red', text: tr('{0} impossible opname line(s) left out of actual COGS ({1})', formatNumber(t.excludedPendingLines), formatCurrency(Math.round(t.excludedPendingVariance))) });
   }
   if (issues?.quantityErrors.length) {
-    items.push({ tone: 'red', text: `${formatNumber(issues.quantityErrors.length)} ESB document line(s) with an impossible quantity (e.g. grams typed into KG)` });
+    items.push({ tone: 'red', text: tr('{0} ESB document line(s) with an impossible quantity (e.g. grams typed into KG)', formatNumber(issues.quantityErrors.length)) });
   }
   if (issues?.stockSpikes.length) {
-    items.push({ tone: 'red', text: `${formatNumber(issues.stockSpikes.length)} period(s) with phantom stock${spikesOpen ? ` — ${spikesOpen} still in stock` : ''}` });
+    items.push({ tone: 'red', text: tr('{0} period(s) with phantom stock{1}', formatNumber(issues.stockSpikes.length), spikesOpen ? tr(' — {0} still in stock', spikesOpen) : '') });
   }
   const neg = issues?.bookStock;
   if (neg && neg.negative < -0.5) {
     const top = neg.items[0];
-    items.push({ tone: 'red', text: `Negative book stock ${formatCurrency(Math.round(neg.negative))}${top ? ` — largest: ${top.productName} at ${top.locationName.replace(/^Kopi Calf (To Go )?/, '')} ${formatCurrency(Math.round(top.value))}` : ''}` });
+    items.push({ tone: 'red', text: tr('Negative book stock {0}{1}', formatCurrency(Math.round(neg.negative)), top ? tr(' — largest: {0} at {1} {2}', top.productName, top.locationName.replace(/^Kopi Calf (To Go )?/, ''), formatCurrency(Math.round(top.value))) : '') });
   }
   if (issues?.hppAnomalies.length) {
-    items.push({ tone: 'red', text: `${formatNumber(issues.hppAnomalies.length)} HPP anomaly(ies) in the ESB valuation` });
+    items.push({ tone: 'red', text: tr('{0} HPP anomaly(ies) in the ESB valuation', formatNumber(issues.hppAnomalies.length)) });
   }
   if (issues?.usageSpikes.length) {
-    items.push({ tone: 'amber', text: `${formatNumber(issues.usageSpikes.length)} recipe (BOM) usage spike(s)` });
+    items.push({ tone: 'amber', text: tr('{0} recipe (BOM) usage spike(s)', formatNumber(issues.usageSpikes.length)) });
   }
   if (t.pendingOpnameCount > 0) {
-    items.push({ tone: 'amber', text: `${formatNumber(t.pendingOpnameCount)} stock opname(s) still Draft/New in ESB (pending variance ${formatCurrency(Math.round(t.pendingVariance))})` });
+    items.push({ tone: 'amber', text: tr('{0} stock opname(s) still Draft/New in ESB (pending variance {1})', formatNumber(t.pendingOpnameCount), formatCurrency(Math.round(t.pendingVariance))) });
   }
   if (noOpname > 0) {
-    items.push({ tone: 'amber', text: `${formatNumber(noOpname)} outlet(s) without a stock opname in this range — usage vs recipes not measurable` });
+    items.push({ tone: 'amber', text: tr('{0} outlet(s) without a stock opname in this range — usage vs recipes not measurable', formatNumber(noOpname)) });
   }
   if (summary.withoutSales.length) {
-    items.push({ tone: 'slate', text: `${formatNumber(summary.withoutSales.length)} bulk-order / stock location(s) without POS sales are kept out of the totals` });
+    items.push({ tone: 'slate', text: tr('{0} bulk-order / stock location(s) without POS sales are kept out of the totals', formatNumber(summary.withoutSales.length)) });
   }
 
   const r = RELIABILITY[level];
   const Icon = ICON[level];
   return (
-    <section aria-label="Data reliability" className={`rounded-xl border bg-white ${level === 'final' ? 'border-emerald-200' : level === 'provisional' ? 'border-amber-200' : 'border-red-200'}`}>
+    <section aria-label={tr('Data reliability')} className={`rounded-xl border bg-white ${level === 'final' ? 'border-emerald-200' : level === 'provisional' ? 'border-amber-200' : 'border-red-200'}`}>
       <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-start lg:gap-6">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -96,7 +98,7 @@ export default function ReliabilityBanner({ summary, issues, network, freshness,
                 <li key={i.text} className="flex gap-2">
                   <span className={`mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full ${i.tone === 'red' ? 'bg-red-500' : i.tone === 'amber' ? 'bg-amber-500' : 'bg-slate-400'}`} aria-hidden />
                   {/* a typographic minus: browsers may break a line after "-" */}
-                  <span>{i.text.replace(/-Rp/g, '\u2212Rp').replace(/Rp (?=\d)/g, 'Rp\u00a0')}</span>
+                  <span>{i.text.replace(/-Rp/g, '\u2212Rp').replace(/Rp (?=\d)/g, tr('Rp '))}</span>
                 </li>
               ))}
             </ul>
@@ -104,7 +106,7 @@ export default function ReliabilityBanner({ summary, issues, network, freshness,
         </div>
 
         <div className="w-full flex-shrink-0 lg:w-80">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Outlets by data status</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Outlets by data status')}</p>
           <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-slate-100" aria-hidden>
             {RELIABILITY_ORDER.map(l => counts[l] ? (
               <div key={l} style={{ width: `${(counts[l] / Math.max(outlets, 1)) * 100}%`, background: RELIABILITY[l].dot }} className="border-r-2 border-white last:border-r-0" />
@@ -114,7 +116,7 @@ export default function ReliabilityBanner({ summary, issues, network, freshness,
             {RELIABILITY_ORDER.map(l => (
               <li key={l} className="flex items-center justify-between gap-2">
                 <ReliabilityPill level={l} />
-                <span className="tabular-nums text-slate-700">{formatNumber(counts[l])} of {formatNumber(outlets)}</span>
+                <span className="tabular-nums text-slate-700">{formatNumber(counts[l])} {tr('of')} {formatNumber(outlets)}</span>
               </li>
             ))}
           </ul>
@@ -122,16 +124,16 @@ export default function ReliabilityBanner({ summary, issues, network, freshness,
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-[11px] text-slate-500 sm:px-5">
         <span>
-          ESB valuation synced {freshness?.valuationSyncedAt ? formatDateTime(freshness.valuationSyncedAt) : '–'}
-          {' '}· recalculated {freshness?.refreshedAt ? formatDateTime(freshness.refreshedAt) : '–'} · updates nightly (05:10 WIB)
+          {tr('ESB valuation synced')} {freshness?.valuationSyncedAt ? formatDateTime(freshness.valuationSyncedAt) : '–'}
+          {' '}{tr('· recalculated')} {freshness?.refreshedAt ? formatDateTime(freshness.refreshedAt) : '–'} {tr('· updates nightly (05:10 WIB)')}
         </span>
         <span className="flex flex-wrap gap-1.5">
           <button type="button" onClick={onShowGuide} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 font-medium text-slate-600 hover:bg-slate-50">
-            <BookOpen size={12} /> How to read this page
+            <BookOpen size={12} /> {tr('How to read this page')}
           </button>
           {level !== 'final' && (
             <button type="button" onClick={onShowIssues} className="inline-flex h-7 items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 font-medium text-white hover:bg-slate-800">
-              What to fix in ESB <ArrowRight size={12} />
+              {tr('What to fix in ESB')} <ArrowRight size={12} />
             </button>
           )}
         </span>

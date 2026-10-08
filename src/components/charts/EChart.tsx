@@ -11,6 +11,7 @@ import {
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import type { EChartsCoreOption } from 'echarts/core';
+import { darkOption, useTheme } from '@/lib/theme';
 
 echarts.use([
   BarChart, HeatmapChart, LineChart, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent,
@@ -75,9 +76,11 @@ export default function EChart({
     };
   }, []);
 
+  // dark theme: the same option with its ink, chrome and ramps recoloured (lib/theme.tsx)
+  const { dark } = useTheme();
   useEffect(() => {
-    chart.current?.setOption(option, { notMerge: true });
-  }, [option]);
+    chart.current?.setOption(dark ? darkOption(option) : option, { notMerge: true });
+  }, [option, dark]);
 
   return <div ref={ref} role="img" aria-label={ariaLabel} className={`w-full ${onClick ? 'cursor-pointer' : ''} ${className}`} style={{ height }} />;
 }

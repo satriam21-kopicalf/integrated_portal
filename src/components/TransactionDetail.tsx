@@ -5,6 +5,7 @@ import { MapPin, Receipt, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatDateTime, formatNumber, parseLocalDate } from '@/lib/format';
 import { channelLabel } from '@/lib/overview';
+import { tr } from '@/lib/i18n';
 
 interface Props {
   transaction: TransactionCombined;
@@ -72,7 +73,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
   return (
     <>
       <div
-        className={`fixed inset-0 z-[80] bg-slate-900/40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed inset-0 z-[80] bg-slate-900/40 dark:bg-black/70 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={handleClose}
       />
       <aside
@@ -81,7 +82,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
         }`}
         role="dialog"
         aria-modal="true"
-        aria-label="Transaction detail"
+        aria-label={tr('Transaction detail')}
       >
         {/* Header */}
         <div className="flex items-start gap-3 border-b border-slate-200 px-5 py-4">
@@ -89,10 +90,10 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
             <Receipt size={20} className="text-slate-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Transaction</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{tr('Transaction')}</p>
             <p className="truncate font-mono text-sm font-semibold text-slate-900">{tx.sales_num}</p>
           </div>
-          <button type="button" onClick={handleClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Close">
+          <button type="button" onClick={handleClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close')}>
             <X size={18} />
           </button>
         </div>
@@ -102,41 +103,41 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
           <div className="border-b border-slate-100 px-5 py-4">
             <div className="flex items-center justify-between gap-3">
               <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyle(tx.status)}`}>
-                {tx.status || 'Unknown'}
+                {tx.status || tr('Unknown')}
               </span>
               <span className="flex min-w-0 items-center gap-1 text-xs text-slate-500">
                 <MapPin size={12} className="flex-shrink-0" />
                 <span className="truncate">{tx.branch_name || '-'}</span>
               </span>
             </div>
-            <p className="mt-3 text-xs text-slate-500">Grand total</p>
+            <p className="mt-3 text-xs text-slate-500">{tr('Grand total')}</p>
             <p className="text-3xl font-semibold tabular-nums text-slate-900">{formatCurrency(tx.total_amount)}</p>
           </div>
 
           {/* Information */}
-          <Section title="Information">
+          <Section title={tr('Information')}>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-              <Field label="Bill number" value={tx.bill_num || 'No bill number'} />
-              <Field label="Sales date" value={formatDate(tx.sales_date)} />
-              <Field label="Payment method" value={tx.payment_method || '-'} />
-              <Field label="Visit purpose" value={tx.visit_purpose ? channelLabel(tx.visit_purpose) : '-'} />
-              <Field label="Customer" value={tx.customer_name && tx.customer_name !== '-' ? tx.customer_name : 'Walk-in'} />
-              <Field label="Cashier" value={tx.cashier_id || '-'} />
-              <Field label="Time in" value={formatDateTime(tx.sales_date_in)} />
-              <Field label="Time out" value={formatDateTime(tx.sales_date_out)} />
-              <Field label="Duration" value={duration(tx.sales_date_in, tx.sales_date_out)} />
-              <Field label="Pax" value={formatNumber(tx.pax_total)} />
+              <Field label={tr('Bill number')} value={tx.bill_num || 'No bill number'} />
+              <Field label={tr('Sales date')} value={formatDate(tx.sales_date)} />
+              <Field label={tr('Payment method')} value={tx.payment_method || '-'} />
+              <Field label={tr('Visit purpose')} value={tx.visit_purpose ? channelLabel(tx.visit_purpose) : '-'} />
+              <Field label={tr('Customer')} value={tx.customer_name && tx.customer_name !== '-' ? tx.customer_name : 'Walk-in'} />
+              <Field label={tr('Cashier')} value={tx.cashier_id || '-'} />
+              <Field label={tr('Time in')} value={formatDateTime(tx.sales_date_in)} />
+              <Field label={tr('Time out')} value={formatDateTime(tx.sales_date_out)} />
+              <Field label={tr('Duration')} value={duration(tx.sales_date_in, tx.sales_date_out)} />
+              <Field label={tr('Pax')} value={formatNumber(tx.pax_total)} />
             </dl>
           </Section>
 
           {/* Items */}
-          <Section title={`Items${rows.length ? ` (${rows.filter(r => !r.menu_name?.endsWith(')')).length})` : ''}`}>
+          <Section title={tr('Items{0}', rows.length ? ` (${rows.filter(r => !r.menu_name?.endsWith(')')).length})` : '')}>
             {loading ? (
               <div className="space-y-2">
                 {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-9 animate-pulse rounded bg-slate-100" />)}
               </div>
             ) : rows.length === 0 ? (
-              <p className="text-sm text-slate-500">No items recorded for this transaction.</p>
+              <p className="text-sm text-slate-500">{tr('No items recorded for this transaction.')}</p>
             ) : (
               <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
                 {rows.map((r, i) => {
@@ -147,7 +148,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
                         <p className={`truncate text-sm ${addon ? 'pl-3 text-slate-500' : 'font-medium text-slate-800'}`}>{r.menu_name}</p>
                         <p className={`text-xs text-slate-400 ${addon ? 'pl-3' : ''}`}>
                           {formatNumber(r.quantity)} × {formatCurrency(r.unit_price)}
-                          {Number(r.discount_item) ? ` · disc. ${formatCurrency(r.discount_item)}` : ''}
+                          {Number(r.discount_item) ? tr(' · disc. {0}', formatCurrency(r.discount_item)) : ''}
                         </p>
                       </div>
                       <p className="whitespace-nowrap text-sm tabular-nums text-slate-800">{formatCurrency(r.total_item)}</p>
@@ -159,24 +160,24 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
           </Section>
 
           {/* Payment summary */}
-          <Section title="Payment summary">
+          <Section title={tr('Payment summary')}>
             <dl className="space-y-1.5 text-sm">
-              <Row label="Subtotal" value={formatCurrency(tx.subtotal)} />
-              {discount > 0 && <Row label="Discount" value={`−${formatCurrency(discount)}`} tone="text-rose-600" />}
-              {Number(tx.tax_amount) > 0 && <Row label="Tax" value={formatCurrency(tx.tax_amount)} />}
+              <Row label={tr('Subtotal')} value={formatCurrency(tx.subtotal)} />
+              {discount > 0 && <Row label={tr('Discount')} value={`−${formatCurrency(discount)}`} tone="text-rose-600" />}
+              {Number(tx.tax_amount) > 0 && <Row label={tr('Tax')} value={formatCurrency(tx.tax_amount)} />}
               <div className="my-2 border-t border-slate-200" />
-              <Row label="Grand total" value={formatCurrency(tx.total_amount)} strong />
-              {tx.nett_sales !== undefined && <Row label="Nett sales" value={formatCurrency(tx.nett_sales)} />}
+              <Row label={tr('Grand total')} value={formatCurrency(tx.total_amount)} strong />
+              {tx.nett_sales !== undefined && <Row label={tr('Nett sales')} value={formatCurrency(tx.nett_sales)} />}
             </dl>
           </Section>
 
           {(tx.brand || tx.city) && (
-            <Section title="Branch">
+            <Section title={tr('Branch')}>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <Field label="Branch" value={tx.branch_name || '-'} />
-                <Field label="Code" value={tx.branch_code || '-'} />
-                {tx.brand && <Field label="Brand" value={tx.brand} />}
-                {tx.city && <Field label="City" value={tx.city} />}
+                <Field label={tr('Branch')} value={tx.branch_name || '-'} />
+                <Field label={tr('Code')} value={tx.branch_code || '-'} />
+                {tx.brand && <Field label={tr('Brand')} value={tx.brand} />}
+                {tx.city && <Field label={tr('City')} value={tx.city} />}
               </dl>
             </Section>
           )}

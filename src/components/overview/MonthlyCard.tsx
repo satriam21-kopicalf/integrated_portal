@@ -8,9 +8,10 @@ import { compactRupiah, MonthlyResponse, MonthRow } from '@/lib/overview';
 import { Delta } from './Card';
 import { to, useDrill } from './drill/DrillContext';
 import { bucketRange } from './drill/parts';
+import { locale, tr } from '@/lib/i18n';
 
 export const monthLabel = (m: string, style: 'short' | 'long' = 'short') =>
-  new Date(`${m}T00:00:00`).toLocaleDateString('en-GB', { month: style, year: style === 'short' ? '2-digit' : 'numeric' });
+  new Date(`${m}T00:00:00`).toLocaleDateString(locale(), { month: style, year: style === 'short' ? '2-digit' : 'numeric' });
 
 export function MonthlyChart({ months, onSelect, height = 240 }: { months: MonthRow[]; onSelect?: (m: MonthRow) => void; height?: number }) {
   const option = useMemo<ChartOption>(() => ({
@@ -23,8 +24,8 @@ export function MonthlyChart({ months, onSelect, height = 240 }: { months: Month
         const m = months[items[0]?.dataIndex ?? 0];
         return tipTitle(`${monthLabel(m.month, 'long')}${m.partial ? ` (first ${m.days} days)` : ''}`)
           + tipRow(INK.accent, formatCurrency(Math.round(m.avgDaily ?? 0)), 'average per day')
-          + tipRow(INK.accent, compactRupiah(m.subtotal), `month total · ${m.branches} branches`)
-          + tipFooter(`MoM ${changeHtml(m.momPct)} · YoY ${changeHtml(m.yoyPct)}<br/>Same-store ${changeHtml(m.sameStore.growthPct)} (${m.sameStore.branches} branches)`);
+          + tipRow(INK.accent, compactRupiah(m.subtotal), tr('month total · {0} branches', m.branches))
+          + tipFooter(tr('MoM {0} · YoY {1}<br/>Same-store {2} ({3} branches)', changeHtml(m.momPct), changeHtml(m.yoyPct), changeHtml(m.sameStore.growthPct), m.sameStore.branches));
       },
     }),
     xAxis: categoryAxis(months.map(m => monthLabel(m.month))),
@@ -41,11 +42,11 @@ export function MonthlyChart({ months, onSelect, height = 240 }: { months: Month
         position: 'top',
         fontSize: 10,
         color: INK.secondary,
-        formatter: (p: { dataIndex: number; value: number }) => compactRupiah(p.value).replace('Rp ', ''),
+        formatter: (p: { dataIndex: number; value: number }) => compactRupiah(p.value).replace(tr('Rp '), ''),
       },
     }],
   }), [months]);
-  return <EChart option={option} height={height} ariaLabel="Average gross sales per day for each month" onClick={onSelect ? p => { if (months[p.dataIndex]) onSelect(months[p.dataIndex]); } : undefined} />;
+  return <EChart option={option} height={height} ariaLabel={tr('Average gross sales per day for each month')} onClick={onSelect ? p => { if (months[p.dataIndex]) onSelect(months[p.dataIndex]); } : undefined} />;
 }
 
 /** Months of the period: average sales per calendar day with MoM, YoY and same-store growth. */
@@ -58,21 +59,21 @@ export function MonthlyBody({ data }: { data: MonthlyResponse }) {
   };
   return (
     <div className="space-y-2">
-      <p className="text-[11px] text-slate-500">Average gross sales per calendar day, so partial and 30/31-day months compare fairly · lighter bar = month in progress · click a month for its profile</p>
+      <p className="text-[11px] text-slate-500">{tr('Average gross sales per calendar day, so partial and 30/31-day months compare fairly · lighter bar = month in progress · click a month for its profile')}</p>
       <div className="grid gap-4 xl:grid-cols-5">
         <div className="min-w-0 xl:col-span-3">
           <MonthlyChart months={months} onSelect={openMonth} />
         </div>
         <div className="custom-scrollbar min-w-0 overflow-auto xl:col-span-2" style={{ maxHeight: 260 }}>
           <table className="w-full min-w-[22rem] whitespace-nowrap text-xs">
-            <caption className="sr-only">Monthly gross sales and growth</caption>
+            <caption className="sr-only">{tr('Monthly gross sales and growth')}</caption>
             <thead className="sticky top-0 bg-white text-slate-500">
               <tr>
-                <th scope="col" className="py-1.5 pr-2 text-left font-medium">Month</th>
-                <th scope="col" className="px-2 py-1.5 text-right font-medium">Gross sales</th>
-                <th scope="col" className="px-2 py-1.5 text-right font-medium" title="vs previous month, per day">MoM</th>
-                <th scope="col" className="px-2 py-1.5 text-right font-medium" title="vs same month last year, per day">YoY</th>
-                <th scope="col" className="py-1.5 pl-2 text-right font-medium" title="Branches open ≥90% of the days in both months">Same-store</th>
+                <th scope="col" className="py-1.5 pr-2 text-left font-medium">{tr('Month')}</th>
+                <th scope="col" className="px-2 py-1.5 text-right font-medium">{tr('Gross sales')}</th>
+                <th scope="col" className="px-2 py-1.5 text-right font-medium" title={tr('vs previous month, per day')}>{tr('MoM')}</th>
+                <th scope="col" className="px-2 py-1.5 text-right font-medium" title={tr('vs same month last year, per day')}>{tr('YoY')}</th>
+                <th scope="col" className="py-1.5 pl-2 text-right font-medium" title={tr('Branches open ≥90% of the days in both months')}>{tr('Same-store')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -85,7 +86,7 @@ export function MonthlyBody({ data }: { data: MonthlyResponse }) {
                   <td className="px-2 py-1.5 text-right tabular-nums text-slate-900" title={formatCurrency(m.subtotal)}>{compactRupiah(m.subtotal)}</td>
                   <td className="px-2 py-1.5 text-right"><Delta value={m.momPct} /></td>
                   <td className="px-2 py-1.5 text-right"><Delta value={m.yoyPct} /></td>
-                  <td className="py-1.5 pl-2 text-right" title={`${m.sameStore.branches} branches`}><Delta value={m.sameStore.growthPct} /></td>
+                  <td className="py-1.5 pl-2 text-right" title={tr('{0} branches', m.sameStore.branches)}><Delta value={m.sameStore.growthPct} /></td>
                 </tr>
               ))}
             </tbody>

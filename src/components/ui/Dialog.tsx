@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { tr } from '@/lib/i18n';
 
 /** Centered modal (bottom sheet on phones). Escape / backdrop close unless `locked`. */
 export default function Dialog({
@@ -53,7 +54,7 @@ export default function Dialog({
   const width = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl' }[size];
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4" role="presentation">
-      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px]" onClick={locked ? undefined : onClose} aria-hidden />
+      <div className="absolute inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-[1px]" onClick={locked ? undefined : onClose} aria-hidden />
       <div
         ref={panel}
         role="dialog"
@@ -68,7 +69,7 @@ export default function Dialog({
             {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
           </div>
           {!locked && (
-            <button type="button" data-close onClick={onClose} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Close">
+            <button type="button" data-close onClick={onClose} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close')}>
               <X size={18} />
             </button>
           )}

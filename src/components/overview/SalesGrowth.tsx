@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatCurrency, formatDate, fixed } from '@/lib/format';
 import { base, categoryAxis, changeHtml, INK, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import {
   bucketLabel, compactRupiah, DOW_LABELS, GROWTH_DOWN, GROWTH_RAMP, GROWTH_UP, GrowthBasis, GrowthPoint, GrowthResponse,
@@ -11,28 +11,29 @@ import {
 } from '@/lib/overview';
 import { Delta } from './Card';
 import { DetailTable, rp } from './drill/parts';
+import { tr } from '@/lib/i18n';
 
 /* Growth building blocks: the bars and per-hour views used by the Sales trend & growth card,
    Busy hours (vs comparison) and the growth drawer. */
 
 export const BASES: { value: GrowthBasis; label: string }[] = [
-  { value: 'previous', label: 'Comparison period' },
-  { value: 'lastYear', label: 'Last year' },
-  { value: 'sequential', label: 'Sequential' },
+  { value: 'previous', get label() { return tr('Comparison period'); } },
+  { value: 'lastYear', get label() { return tr('Last year'); } },
+  { value: 'sequential', get label() { return tr('Sequential'); } },
 ];
 
 export function basisText(d: GrowthResponse): string {
   const range = `${formatDate(d.compare.from)} – ${formatDate(d.compare.to)}`;
-  if (d.compare.basis === 'lastYear') return `same weekdays a year earlier (${range})`;
-  if (d.compare.basis === 'sequential') return `each ${d.granularity} vs the ${d.granularity} before, per day · total vs ${range}`;
-  return `comparison period (${range})`;
+  if (d.compare.basis === 'lastYear') return tr('same weekdays a year earlier ({0})', range);
+  if (d.compare.basis === 'sequential') return tr('each {0} vs the {1} before, per day · total vs {2}', tr(d.granularity), tr(d.granularity), range);
+  return tr('comparison period ({0})', range);
 }
 
 /** "+Rp 12.3M" / "−Rp 4.1M" */
 export const signedRp = (v: number | null | undefined) =>
   v === null || v === undefined ? '-' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${compactRupiah(Math.abs(v))}`;
 
-const pctLabel = (v: number | null) => (v === null ? '' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}%`);
+const pctLabel = (v: number | null) => (v === null ? '' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${fixed(Math.abs(v), Math.abs(v) >= 100 ? 0 : 1)}%`);
 
 /* ------------------------------------------------------------------ over time */
 
@@ -49,11 +50,11 @@ export function GrowthBars({ data, height = 260, onSelect }: { data: GrowthRespo
       axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(148,163,184,0.12)' } },
       formatter: (items: { dataIndex: number }[]) => {
         const p = s[items[0]?.dataIndex ?? 0];
-        const cmpLabel = seq ? `${bucketLabel(p.compareFrom ?? p.date, g)} (per day)` : p.compareFrom ? `from ${formatDate(p.compareFrom)}` : '';
+        const cmpLabel = seq ? tr('{0} (per day)', bucketLabel(p.compareFrom ?? p.date, g)) : p.compareFrom ? tr('from {0}', formatDate(p.compareFrom)) : '';
         return tipTitle(bucketLabel(p.date, g))
-          + tipRow(INK.accent, seq ? `${compactRupiah(p.avgPerDay)} / day` : formatCurrency(p.subtotal), 'this period')
-          + tipRow(INK.previous, p.compareSubtotal === null ? '-' : seq ? `${compactRupiah(p.compareAvgPerDay)} / day` : formatCurrency(p.compareSubtotal), `comparison ${cmpLabel}`)
-          + tipFooter(`Growth ${changeHtml(p.growthPct)} · ${signedRp(p.growthAbs)}${seq ? ' per day' : ''}`);
+          + tipRow(INK.accent, seq ? tr('{0} / day', compactRupiah(p.avgPerDay)) : formatCurrency(p.subtotal), 'this period')
+          + tipRow(INK.previous, p.compareSubtotal === null ? '-' : seq ? tr('{0} / day', compactRupiah(p.compareAvgPerDay)) : formatCurrency(p.compareSubtotal), tr('comparison {0}', cmpLabel))
+          + tipFooter(tr('Growth {0} · {1}{2}', changeHtml(p.growthPct), signedRp(p.growthAbs), seq ? tr(' per day') : ''));
       },
     }),
     xAxis: categoryAxis(s.map(p => shortDate(p.date, g))),
@@ -77,9 +78,9 @@ export function GrowthBars({ data, height = 260, onSelect }: { data: GrowthRespo
     }],
   }), [s, seq, g]);
   if (!s.some(p => p.growthPct !== null)) {
-    return <p className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>No comparison: the comparison period starts before complete history (Aug 2025).</p>;
+    return <p className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>{tr('No comparison: the comparison period starts before complete history (Aug 2025).')}</p>;
   }
-  return <EChart option={option} height={height} ariaLabel={`Sales growth per ${g}`} onClick={onSelect ? p => { if (s[p.dataIndex]) onSelect(s[p.dataIndex]); } : undefined} />;
+  return <EChart option={option} height={height} ariaLabel={tr('Sales growth per {0}', tr(g))} onClick={onSelect ? p => { if (s[p.dataIndex]) onSelect(s[p.dataIndex]); } : undefined} />;
 }
 
 /* ------------------------------------------------------------------ by hour */
@@ -124,10 +125,10 @@ export function HourGrowthChart({ rows, height = 240 }: { rows: HourGrowthRow[];
       axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(148,163,184,0.12)' } },
       formatter: (items: { dataIndex: number }[]) => {
         const r = rows[items[0]?.dataIndex ?? 0];
-        return tipTitle(`${hourLabel(r.hour)}–${hourLabel(r.hour + 1)} · sales per day`)
+        return tipTitle(tr('{0}–{1} · sales per day', hourLabel(r.hour), hourLabel(r.hour + 1)))
           + tipRow(INK.accent, formatCurrency(Math.round(r.cur)), 'this period')
           + tipRow(INK.previous, formatCurrency(Math.round(r.cmp)), 'comparison')
-          + tipFooter(`Growth ${changeHtml(r.growthPct)} · ${signedRp(r.growthAbs)} per day`);
+          + tipFooter(tr('Growth {0} · {1} per day', changeHtml(r.growthPct), signedRp(r.growthAbs)));
       },
     }),
     xAxis: categoryAxis(rows.map(r => String(r.hour).padStart(2, '0'))),
@@ -143,8 +144,8 @@ export function HourGrowthChart({ rows, height = 240 }: { rows: HourGrowthRow[];
       markLine: { symbol: 'none', silent: true, lineStyle: { color: INK.axis, type: 'solid' }, label: { show: false }, data: [{ yAxis: 0 }] },
     }],
   }), [rows]);
-  if (!rows.length) return <p className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>No sales in these periods</p>;
-  return <EChart option={option} height={height} ariaLabel="Gross sales growth per hour of the day" />;
+  if (!rows.length) return <p className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>{tr('No sales in these periods')}</p>;
+  return <EChart option={option} height={height} ariaLabel={tr('Gross sales growth per hour of the day')} />;
 }
 
 /** Weekday x hour growth of sales per day, diverging red - grey - blue. */
@@ -170,17 +171,17 @@ export function HourGrowthHeatmap({ current, compare }: { current: HoursProfile;
       formatter: (p: { data: [number, number, number | null] }) => {
         const [x, d, v] = p.data;
         const h = model.hours[x];
-        return tipTitle(`${DOW_LABELS[d]} ${hourLabel(h)}–${hourLabel(h + 1)} · sales per day`)
+        return tipTitle(tr('{0} {1}–{2} · sales per day', DOW_LABELS[d], hourLabel(h), hourLabel(h + 1)))
           + tipRow(INK.accent, formatCurrency(Math.round(model.cell(current, d + 1, h))), 'this period')
           + tipRow(INK.previous, formatCurrency(Math.round(model.cell(compare, d + 1, h))), 'comparison')
-          + tipFooter(`Growth ${changeHtml(v)}`);
+          + tipFooter(tr('Growth {0}', changeHtml(v)));
       },
     }),
     xAxis: categoryAxis(model.hours.map(h => String(h).padStart(2, '0')), { splitArea: { show: false }, axisLine: { show: false } }),
     yAxis: { type: 'category', data: DOW_LABELS, inverse: true, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: INK.secondary, fontSize: 11 } },
     visualMap: {
       min: -50, max: 50, calculable: false, orient: 'horizontal', left: 'center', bottom: 0, itemWidth: 10, itemHeight: 160,
-      text: ['+50% or more', '−50% or less'], textStyle: { color: INK.secondary, fontSize: 11 }, inRange: { color: GROWTH_RAMP },
+      text: [tr('+50% or more'), tr('−50% or less')], textStyle: { color: INK.secondary, fontSize: 11 }, inRange: { color: GROWTH_RAMP },
     },
     series: [{
       type: 'heatmap',
@@ -189,18 +190,18 @@ export function HourGrowthHeatmap({ current, compare }: { current: HoursProfile;
       emphasis: { itemStyle: { borderColor: INK.primary, borderWidth: 1 } },
     }],
   }), [model, current, compare]);
-  return <EChart option={option} height={300} ariaLabel="Gross sales growth by weekday and hour" />;
+  return <EChart option={option} height={300} ariaLabel={tr('Gross sales growth by weekday and hour')} />;
 }
 
 export function HourGrowthTable({ rows }: { rows: HourGrowthRow[] }) {
   return (
-    <DetailTable caption="Growth per hour" csvName="sales-growth-per-hour" rows={rows} rowKey={r => String(r.hour)} initialSort={{ key: 'hour', desc: false }}
+    <DetailTable caption={tr('Growth per hour')} csvName="sales-growth-per-hour" rows={rows} rowKey={r => String(r.hour)} initialSort={{ key: 'hour', desc: false }}
       columns={[
-        { key: 'hour', label: 'Hour', value: r => r.hour, render: r => `${hourLabel(r.hour)}–${hourLabel(r.hour + 1)}` },
-        { key: 'cur', label: 'Gross sales/day', align: 'right', value: r => r.cur, render: r => rp(r.cur) },
-        { key: 'cmp', label: 'Comparison/day', align: 'right', value: r => r.cmp, render: r => rp(r.cmp) },
-        { key: 'abs', label: 'Growth/day', align: 'right', value: r => r.growthAbs, render: r => <GrowthText v={r.growthPct} abs={r.growthAbs} absOnly /> },
-        { key: 'pct', label: 'Growth', align: 'right', value: r => r.growthPct, render: r => <Delta value={r.growthPct} /> },
+        { key: 'hour', label: tr('Hour'), value: r => r.hour, render: r => `${hourLabel(r.hour)}–${hourLabel(r.hour + 1)}` },
+        { key: 'cur', label: tr('Gross sales/day'), align: 'right', value: r => r.cur, render: r => rp(r.cur) },
+        { key: 'cmp', label: tr('Comparison/day'), align: 'right', value: r => r.cmp, render: r => rp(r.cmp) },
+        { key: 'abs', label: tr('Growth/day'), align: 'right', value: r => r.growthAbs, render: r => <GrowthText v={r.growthPct} abs={r.growthAbs} absOnly /> },
+        { key: 'pct', label: tr('Growth'), align: 'right', value: r => r.growthPct, render: r => <Delta value={r.growthPct} /> },
       ]} />
   );
 }
@@ -218,13 +219,13 @@ export function HourMovers({ rows }: { rows: HourGrowthRow[] }) {
   if (!up.length && !down.length) return null;
   const chip = (r: HourGrowthRow) => (
     <span key={r.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${r.growthAbs >= 0 ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
-      {r.growthAbs >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{hourLabel(r.hour)} {signedRp(r.growthAbs)}/day
+      {r.growthAbs >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{hourLabel(r.hour)} {signedRp(r.growthAbs)}{tr('/day')}
     </span>
   );
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
-      {up.length > 0 && <>Growing most: {up.map(chip)}</>}
-      {down.length > 0 && <span className="ml-1 inline-flex flex-wrap items-center gap-1.5">Declining most: {down.map(chip)}</span>}
+      {up.length > 0 && <>{tr('Growing most:')} {up.map(chip)}</>}
+      {down.length > 0 && <span className="ml-1 inline-flex flex-wrap items-center gap-1.5">{tr('Declining most:')} {down.map(chip)}</span>}
     </div>
   );
 }
@@ -238,17 +239,17 @@ export function GrowthSummary({ data }: { data: GrowthResponse }) {
   return (
     <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Growth</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr('Growth')}</p>
         <p className={`text-2xl font-semibold tabular-nums ${t.growthPct === null ? 'text-slate-400' : up ? 'text-blue-700' : 'text-red-600'}`}>
           {t.growthPct === null ? 'n/a' : pctLabel(t.growthPct)}
         </p>
       </div>
-      <Figure label="Change" value={signedRp(t.growthAbs)} />
-      <Figure label="This period" value={compactRupiah(t.subtotal)} title={formatCurrency(t.subtotal)} />
-      <Figure label="Comparison" value={t.compareSubtotal === null ? '-' : compactRupiah(t.compareSubtotal)} title={t.compareSubtotal === null ? undefined : formatCurrency(t.compareSubtotal)} />
-      <Figure label="Bills" value={pctLabel(t.billsGrowthPct) || '-'} />
-      <Figure label="Avg ticket" value={pctLabel(t.avgTicketGrowthPct) || '-'} />
-      <Figure label={`${data.granularity}s up / down`} value={`${t.bucketsUp} / ${t.bucketsDown}`} />
+      <Figure label={tr('Change')} value={signedRp(t.growthAbs)} />
+      <Figure label={tr('This period')} value={compactRupiah(t.subtotal)} title={formatCurrency(t.subtotal)} />
+      <Figure label={tr('Comparison')} value={t.compareSubtotal === null ? '-' : compactRupiah(t.compareSubtotal)} title={t.compareSubtotal === null ? undefined : formatCurrency(t.compareSubtotal)} />
+      <Figure label={tr('Bills')} value={pctLabel(t.billsGrowthPct) || '-'} />
+      <Figure label={tr('Avg ticket')} value={pctLabel(t.avgTicketGrowthPct) || '-'} />
+      <Figure label={tr('{0} up / down', tr(`${data.granularity}s`))} value={`${t.bucketsUp} / ${t.bucketsDown}`} />
     </div>
   );
 }

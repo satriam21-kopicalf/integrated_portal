@@ -18,6 +18,7 @@ import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } 
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
 import { AuthUser, GENDER_LABELS, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
 import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
+import { locale, tr, serverMsg } from '@/lib/i18n';
 
 const PAGE_SIZE = 20;
 
@@ -50,7 +51,7 @@ class ApiError extends Error {
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) } });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(body.error || `HTTP ${res.status}`, body.field);
+  if (!res.ok) throw new ApiError(serverMsg(body.error) || `HTTP ${res.status}`, body.field);
   return body as T;
 }
 
@@ -161,7 +162,7 @@ export default function UsersPage() {
     setEditing(null);
     if (password) setIssued({ user: u, password, created });
     if (u.id === me?.id) setMe(u);
-    setToast({ tone: 'ok', text: created ? `User ${u.username} created` : `User ${u.username} updated` });
+    setToast({ tone: 'ok', text: created ? tr('User {0} created', u.username) : tr('User {0} updated', u.username) });
     if (viewing?.id === u.id) setViewing(u);
     load();
   };
@@ -169,7 +170,7 @@ export default function UsersPage() {
   const unlock = async (u: AuthUser) => {
     try {
       const body = await api<{ user: AuthUser }>(`/api/users/${u.id}/unlock`, { method: 'POST' });
-      setToast({ tone: 'ok', text: `${u.username} unlocked` });
+      setToast({ tone: 'ok', text: tr('{0} unlocked', u.username) });
       if (viewing?.id === u.id) setViewing(body.user);
       load();
     } catch (err) {
@@ -180,22 +181,22 @@ export default function UsersPage() {
   const actionsFor = (u: AuthUser): ActionItem[] => {
     const isMe = u.id === me?.id;
     return [
-      { label: 'View details', icon: <Eye size={16} />, onSelect: () => setViewing(u) },
-      { label: 'Edit', icon: <Pencil size={16} />, onSelect: () => setEditing(u) },
-      ...(u.isLocked ? [{ label: 'Unlock', icon: <Unlock size={16} />, onSelect: () => unlock(u) }] : []),
-      { label: 'Activity log', icon: <History size={16} />, onSelect: () => router.push(`/activity?user=${u.id}`) },
+      { label: tr('View details'), icon: <Eye size={16} />, onSelect: () => setViewing(u) },
+      { label: tr('Edit'), icon: <Pencil size={16} />, onSelect: () => setEditing(u) },
+      ...(u.isLocked ? [{ label: tr('Unlock'), icon: <Unlock size={16} />, onSelect: () => unlock(u) }] : []),
+      { label: tr('Activity log'), icon: <History size={16} />, onSelect: () => router.push(`/activity?user=${u.id}`) },
       {
-        label: 'Delete', icon: <Trash2 size={16} />, onSelect: () => setDeleting(u), danger: true, separated: true,
-        disabled: isMe, hint: isMe ? 'You cannot delete your own account' : undefined,
+        label: tr('Delete'), icon: <Trash2 size={16} />, onSelect: () => setDeleting(u), danger: true, separated: true,
+        disabled: isMe, hint: isMe ? tr('You cannot delete your own account') : undefined,
       },
     ];
   };
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const activeFilters: ActiveFilter[] = [
-    ...(filters.role ? [{ key: 'role', label: `Role: ${ROLE_LABELS[filters.role as Role]}`, onRemove: () => applyFilters({ ...filters, role: '' }) }] : []),
-    ...(filters.status ? [{ key: 'status', label: `Status: ${STATUS_LABELS[filters.status]}`, onRemove: () => applyFilters({ ...filters, status: '' }) }] : []),
-    ...(filters.branch ? [{ key: 'branch', label: `Branch: ${branchName(filters.branch)}`, onRemove: () => applyFilters({ ...filters, branch: '' }) }] : []),
+    ...(filters.role ? [{ key: 'role', label: tr('Role: {0}', ROLE_LABELS[filters.role as Role]), onRemove: () => applyFilters({ ...filters, role: '' }) }] : []),
+    ...(filters.status ? [{ key: 'status', label: tr('Status: {0}', STATUS_LABELS[filters.status]), onRemove: () => applyFilters({ ...filters, status: '' }) }] : []),
+    ...(filters.branch ? [{ key: 'branch', label: tr('Branch: {0}', branchName(filters.branch)), onRemove: () => applyFilters({ ...filters, branch: '' }) }] : []),
   ];
   const filtersActive = Boolean(query || activeFilters.length);
 
@@ -214,30 +215,30 @@ export default function UsersPage() {
         <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">User Accounts</h1>
-              <p className="truncate text-xs text-slate-500 sm:text-sm">Sign-in, role and branch access of every dashboard user</p>
+              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('User Accounts')}</h1>
+              <p className="truncate text-xs text-slate-500 sm:text-sm">{tr('Sign-in, role and branch access of every dashboard user')}</p>
             </div>
             <button type="button" className={buttonPrimary} onClick={() => setEditing('new')}>
-              <Plus size={16} /> New user
+              <Plus size={16} /> {tr('New user')}
             </button>
           </div>
         </header>
 
-        <StatStrip label="User summary" columns={5}>
-          <Stat label="Users" value={s ? formatNumber(s.total) : <StatSkeleton />}>
-            {s && <p>{formatNumber(s.superadmins)} super admin · {formatNumber(s.users)} user</p>}
+        <StatStrip label={tr('User summary')} columns={5}>
+          <Stat label={tr('Users')} value={s ? formatNumber(s.total) : <StatSkeleton />}>
+            {s && <p>{formatNumber(s.superadmins)} {tr('super admin ·')} {formatNumber(s.users)} {tr('user')}</p>}
           </Stat>
-          <Stat label="Active" emphasis value={s ? formatNumber(s.active) : <StatSkeleton />}>
-            {s && <p>{formatNumber(s.inactive)} inactive · {formatNumber(s.locked)} locked</p>}
+          <Stat label={tr('Active')} emphasis value={s ? formatNumber(s.active) : <StatSkeleton />}>
+            {s && <p>{formatNumber(s.inactive)} {tr('inactive ·')} {formatNumber(s.locked)} {tr('locked')}</p>}
           </Stat>
-          <Stat label="Signed in, 7 days" value={s ? formatNumber(s.active7d) : <StatSkeleton />}>
-            {s && <p>{formatNumber(s.neverSignedIn)} never signed in</p>}
+          <Stat label={tr('Signed in, 7 days')} value={s ? formatNumber(s.active7d) : <StatSkeleton />}>
+            {s && <p>{formatNumber(s.neverSignedIn)} {tr('never signed in')}</p>}
           </Stat>
-          <Stat label="Branches covered" value={s ? formatNumber(s.branchesCovered) : <StatSkeleton />}>
-            {s && <p>of {formatNumber(branches.filter(b => b.count > 0).length)} branches with recent sales</p>}
+          <Stat label={tr('Branches covered')} value={s ? formatNumber(s.branchesCovered) : <StatSkeleton />}>
+            {s && <p>{tr('of')} {formatNumber(branches.filter(b => b.count > 0).length)} {tr('branches with recent sales')}</p>}
           </Stat>
-          <Stat label="Without branch" value={s ? formatNumber(s.withoutBranch) : <StatSkeleton />}>
-            {s && <p>{s.withoutBranch ? 'role User sees no data until assigned' : 'every User has a branch'}</p>}
+          <Stat label={tr('Without branch')} value={s ? formatNumber(s.withoutBranch) : <StatSkeleton />}>
+            {s && <p>{s.withoutBranch ? tr('role User sees no data until assigned') : tr('every User has a branch')}</p>}
           </Stat>
         </StatStrip>
 
@@ -247,10 +248,10 @@ export default function UsersPage() {
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search name, username, email, phone or job title"
-                    className={`${inputClass} pl-9 pr-9`} aria-label="Search users" />
+                  <input value={search} onChange={e => onSearch(e.target.value)} placeholder={tr('Search name, username, email, phone or job title')}
+                    className={`${inputClass} pl-9 pr-9`} aria-label={tr('Search users')} />
                   {search && (
-                    <button type="button" onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label="Clear search">
+                    <button type="button" onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label={tr('Clear search')}>
                       <X size={14} />
                     </button>
                   )}
@@ -264,12 +265,12 @@ export default function UsersPage() {
               <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
                 <AlertCircle className="text-red-500" />
                 <p className="text-sm text-slate-700">{error}</p>
-                <button type="button" className={buttonSecondary} onClick={load}>Try again</button>
+                <button type="button" className={buttonSecondary} onClick={load}>{tr('Try again')}</button>
               </div>
             ) : !loading && rows.length === 0 ? (
               <div className="flex flex-col items-center px-4 py-14 text-center">
                 <UserRound className="mb-2 text-slate-300" size={28} />
-                <p className="text-sm font-medium text-slate-700">{filtersActive ? 'No users match the search or filters' : 'No users yet'}</p>
+                <p className="text-sm font-medium text-slate-700">{filtersActive ? tr('No users match the search or filters') : tr('No users yet')}</p>
               </div>
             ) : (
               <div className={loading && rows.length ? 'opacity-60' : ''}>
@@ -277,13 +278,13 @@ export default function UsersPage() {
                   <table className="w-full min-w-[760px] text-sm">
                     <thead className="border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                       <tr>
-                        <th scope="col" className="px-4 py-2.5">User</th>
-                        <th scope="col" className="hidden px-4 py-2.5 lg:table-cell">Contact</th>
-                        <th scope="col" className="px-4 py-2.5">Role</th>
-                        <th scope="col" className="px-4 py-2.5">Branch access</th>
-                        <th scope="col" className="px-4 py-2.5">Status</th>
-                        <th scope="col" className="hidden px-4 py-2.5 xl:table-cell">Last sign-in</th>
-                        <th scope="col" className="w-14 px-3 py-2.5"><span className="sr-only">Actions</span></th>
+                        <th scope="col" className="px-4 py-2.5">{tr('User')}</th>
+                        <th scope="col" className="hidden px-4 py-2.5 lg:table-cell">{tr('Contact')}</th>
+                        <th scope="col" className="px-4 py-2.5">{tr('Role')}</th>
+                        <th scope="col" className="px-4 py-2.5">{tr('Branch access')}</th>
+                        <th scope="col" className="px-4 py-2.5">{tr('Status')}</th>
+                        <th scope="col" className="hidden px-4 py-2.5 xl:table-cell">{tr('Last sign-in')}</th>
+                        <th scope="col" className="w-14 px-3 py-2.5"><span className="sr-only">{tr('Actions')}</span></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -301,11 +302,11 @@ export default function UsersPage() {
                     <li key={u.id} className="flex items-start gap-3 px-4 py-3">
                       <Avatar user={u} />
                       <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setViewing(u)}>
-                        <p className="truncate text-sm font-medium text-slate-900">{u.displayName}{u.id === me?.id && <span className="ml-1.5 text-xs font-normal text-slate-400">(you)</span>}</p>
+                        <p className="truncate text-sm font-medium text-slate-900">{u.displayName}{u.id === me?.id && <span className="ml-1.5 text-xs font-normal text-slate-400">{tr('(you)')}</span>}</p>
                         <p className="truncate text-xs text-slate-500">{u.username} · {u.email}</p>
                         <div className="mt-1.5 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><BranchesBadge user={u} branchName={branchName} /><StatusBadge user={u} /></div>
                       </button>
-                      <ActionMenu items={actionsFor(u)} label={`Actions for ${u.username}`} />
+                      <ActionMenu items={actionsFor(u)} label={tr('Actions for {0}', u.username)} />
                     </li>
                   ))}
                 </ul>
@@ -313,11 +314,11 @@ export default function UsersPage() {
             )}
 
             <div className="flex flex-col items-center justify-between gap-2 border-t border-slate-200 bg-slate-50/60 px-4 py-3 text-xs text-slate-500 sm:flex-row">
-              <span>{formatNumber(total)} {total === 1 ? 'user' : 'users'}{filtersActive ? ' match' : ''}</span>
+              <span>{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
               <div className="flex items-center gap-2">
-                <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label="Previous page"><ChevronLeft size={16} /></button>
-                <span>Page {page} of {pages}</span>
-                <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label="Next page"><ChevronRight size={16} /></button>
+                <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous page')}><ChevronLeft size={16} /></button>
+                <span>{tr('Page')} {page} {tr('of')} {pages}</span>
+                <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next page')}><ChevronRight size={16} /></button>
               </div>
             </div>
           </section>
@@ -332,7 +333,7 @@ export default function UsersPage() {
       {viewing && <UserDetailDrawer user={viewing} isMe={viewing.id === me?.id} branchName={branchName} onClose={() => setViewing(null)}
         onEdit={() => { setEditing(viewing); setViewing(null); }} onDelete={() => { setDeleting(viewing); setViewing(null); }} onUnlock={() => unlock(viewing)} />}
       {deleting && <DeleteDialog user={deleting} onClose={() => setDeleting(null)}
-        onDeleted={() => { setToast({ tone: 'ok', text: `User ${deleting.username} deleted` }); setDeleting(null); load(); }}
+        onDeleted={() => { setToast({ tone: 'ok', text: tr('User {0} deleted', deleting.username) }); setDeleting(null); load(); }}
         onError={text => setToast({ tone: 'error', text })} />}
       {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
@@ -340,7 +341,7 @@ export default function UsersPage() {
         <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-slate-900' : 'bg-red-600'}`} role="status">
           {toast.tone === 'ok' ? <CheckCircle2 size={16} className="text-emerald-400" /> : <AlertCircle size={16} />}
           {toast.text}
-          <button type="button" onClick={() => setToast(null)} className="ml-1 rounded p-0.5 opacity-70 hover:opacity-100" aria-label="Dismiss"><X size={14} /></button>
+          <button type="button" onClick={() => setToast(null)} className="ml-1 rounded p-0.5 opacity-70 hover:opacity-100" aria-label={tr('Dismiss')}><X size={14} /></button>
         </div>
       )}
     </DashboardLayout>
@@ -356,7 +357,7 @@ interface UserFilters {
 }
 
 const NO_FILTERS: UserFilters = { role: '', status: '', branch: '' };
-const STATUS_LABELS: Record<string, string> = { active: 'Active', inactive: 'Inactive', locked: 'Locked' };
+const STATUS_LABELS: Record<string, string> = { get active() { return tr('Active'); }, get inactive() { return tr('Inactive'); }, get locked() { return tr('Locked'); } };
 
 /** Role, status and branch in one drawer; applied together. */
 function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose }: {
@@ -368,26 +369,26 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
     value: b.branch_code, label: b.branch_name, meta: <span className="font-mono text-[11px] text-slate-400">{b.branch_code}</span>,
   })), [branches]);
   return (
-    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title="Filter users"
-      description="Combine role, status and branch."
+    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter users')}
+      description={tr('Combine role, status and branch.')}
       footer={
         <>
-          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={() => setDraft(NO_FILTERS)}>Reset</button>
-          <button type="button" className={buttonSecondary} onClick={onClose}>Cancel</button>
-          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>Apply filters</button>
+          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={() => setDraft(NO_FILTERS)}>{tr('Reset')}</button>
+          <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Cancel')}</button>
+          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>{tr('Apply filters')}</button>
         </>
       }>
       <div className="space-y-6">
-        <ChoiceGroup label="Role" value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: 'All roles' }, { value: 'superadmin', label: 'Super Admin' }, { value: 'user', label: 'User' },
+        <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
+          { value: '', label: tr('All roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'user', label: tr('User') },
         ]} />
-        <ChoiceGroup label="Status" value={draft.status} onChange={set('status')} choices={[
-          { value: '', label: 'All' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' },
-          { value: 'locked', label: 'Locked', hint: 'Too many failed sign-ins' },
+        <ChoiceGroup label={tr('Status')} value={draft.status} onChange={set('status')} choices={[
+          { value: '', label: tr('All') }, { value: 'active', label: tr('Active') }, { value: 'inactive', label: tr('Inactive') },
+          { value: 'locked', label: tr('Locked'), hint: tr('Too many failed sign-ins') },
         ]} />
-        <SearchChoice label="Branch" anyLabel="All branches" options={options} value={draft.branch} onChange={set('branch')}
-          placeholder="Search outlet name or code" loading={branchesLoading} />
-        <p className="text-xs text-slate-500">A branch shows the users assigned to it; super admins see every branch and are always included.</p>
+        <SearchChoice label={tr('Branch')} anyLabel={tr('All branches')} options={options} value={draft.branch} onChange={set('branch')}
+          placeholder={tr('Search outlet name or code')} loading={branchesLoading} />
+        <p className="text-xs text-slate-500">{tr('A branch shows the users assigned to it; super admins see every branch and are always included.')}</p>
       </div>
     </Drawer>
   );
@@ -409,20 +410,20 @@ function RoleBadge({ role }: { role: Role }) {
 }
 
 function StatusBadge({ user }: { user: AuthUser }) {
-  if (user.isLocked) return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700"><Lock size={11} /> Locked</span>;
+  if (user.isLocked) return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700"><Lock size={11} /> {tr('Locked')}</span>;
   return user.isActive
-    ? <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Active</span>
-    : <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Inactive</span>;
+    ? <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{tr('Active')}</span>
+    : <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />{tr('Inactive')}</span>;
 }
 
 /** Branches the account may see: superadmins every branch; a user without branches sees no data. */
 function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code: string) => string }) {
-  if (user.role === 'superadmin') return <span className="whitespace-nowrap text-xs text-slate-500">All branches</span>;
+  if (user.role === 'superadmin') return <span className="whitespace-nowrap text-xs text-slate-500">{tr('All branches')}</span>;
   const codes = user.branches ?? [];
   if (!codes.length) {
-    return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700" title="This user sees no data until branches are assigned"><CircleAlert size={11} /> No branch</span>;
+    return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700" title={tr('This user sees no data until branches are assigned')}><CircleAlert size={11} /> {tr('No branch')}</span>;
   }
-  const label = codes.length === 1 ? branchName(codes[0]) : `${codes.length} branches`;
+  const label = codes.length === 1 ? branchName(codes[0]) : tr('{0} branches', codes.length);
   return (
     <span className="inline-flex max-w-[14rem] items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700" title={codes.map(branchName).join('\n')}>
       <Store size={11} className="flex-shrink-0" /><span className="truncate">{label}</span>
@@ -433,8 +434,8 @@ function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code
 /** the user has not filled in their own profile yet */
 function ProfileBadge() {
   return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700" title="Full name, phone number, job title or department is missing">
-      <CircleAlert size={11} /> Profile incomplete
+    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700" title={tr('Full name, phone number, job title or department is missing')}>
+      <CircleAlert size={11} /> {tr('Profile incomplete')}
     </span>
   );
 }
@@ -449,7 +450,7 @@ function UserRow({ user, isMe, branchName, onView, actions }: {
           <Avatar user={user} />
           <span className="min-w-0">
             <span className="block truncate font-medium text-slate-900 group-hover:text-blue-700">
-              {user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-slate-400">(you)</span>}
+              {user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-slate-400">{tr('(you)')}</span>}
             </span>
             {user.profileComplete
               ? <span className="block truncate text-xs text-slate-500">@{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
@@ -464,8 +465,8 @@ function UserRow({ user, isMe, branchName, onView, actions }: {
       <td className="px-4 py-3"><RoleBadge role={user.role} /></td>
       <td className="px-4 py-3"><BranchesBadge user={user} branchName={branchName} /></td>
       <td className="px-4 py-3"><StatusBadge user={user} /></td>
-      <td className="hidden whitespace-nowrap px-4 py-3 text-xs text-slate-500 xl:table-cell">{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Never'}</td>
-      <td className="px-3 py-3 text-right"><ActionMenu items={actions} label={`Actions for ${user.username}`} /></td>
+      <td className="hidden whitespace-nowrap px-4 py-3 text-xs text-slate-500 xl:table-cell">{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('Never')}</td>
+      <td className="px-3 py-3 text-right"><ActionMenu items={actions} label={tr('Actions for {0}', user.username)} /></td>
     </tr>
   );
 }
@@ -547,13 +548,13 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
   return (
     <Drawer open onClose={onClose} size={creating ? 'md' : 'lg'}
       icon={creating ? <UserPlus size={18} /> : <UserRoundPen size={18} />}
-      title={creating ? 'New user' : `Edit ${user!.username}`}
-      description={creating ? 'Identity, sign-in, role and branches. The user completes the rest of the profile after signing in.' : 'Leave the password empty to keep the current one.'}
+      title={creating ? tr('New user') : tr('Edit {0}', user!.username)}
+      description={creating ? tr('Identity, sign-in, role and branches. The user completes the rest of the profile after signing in.') : tr('Leave the password empty to keep the current one.')}
       footer={
         <>
-          <button type="button" className={buttonSecondary} onClick={onClose}>Cancel</button>
+          <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Cancel')}</button>
           <button type="submit" form="user-form" className={buttonPrimary} disabled={saving}>
-            {saving && <Loader2 size={16} className="animate-spin" />}{creating ? 'Create user' : 'Save changes'}
+            {saving && <Loader2 size={16} className="animate-spin" />}{creating ? tr('Create user') : tr('Save changes')}
           </button>
         </>
       }
@@ -564,7 +565,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
         )}
 
         {!creating && (
-          <DrawerSection title="Profile photo">
+          <DrawerSection title={tr('Profile photo')}>
             <AvatarEditor name={user!.displayName} src={user!.avatarUrl} endpoint={`/api/users/${user!.id}/avatar`}
               onSaved={u => { if (u.id === me?.id) setMe(u); }} />
             {error?.field === 'avatar' && <p className="text-xs text-red-600">{error.text}</p>}
@@ -572,107 +573,106 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
         )}
 
         {creating && (
-          <DrawerSection title="Identity" description="Optional — filled in now, the profile is complete at the first sign-in (the user can still change it).">
+          <DrawerSection title={tr('Identity')} description={tr('Optional — filled in now, the profile is complete at the first sign-in (the user can still change it).')}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Full name" htmlFor="f-fullName" error={fieldError('fullName')}>
+              <Field label={tr('Full name')} htmlFor="f-fullName" error={fieldError('fullName')}>
                 <input id="f-fullName" className={inputClass} value={profile.fullName} maxLength={120} autoComplete="off"
                   onChange={e => {
                     setProfileField('fullName', e.target.value);
                     if (!usernameTouched) set('username', suggestUsername(e.target.value));
                   }} />
               </Field>
-              <Field label="Phone number" htmlFor="f-phoneNumber" error={fieldError('phoneNumber')} hint="e.g. 0812-3456-7890">
+              <Field label={tr('Phone number')} htmlFor="f-phoneNumber" error={fieldError('phoneNumber')} hint="e.g. 0812-3456-7890">
                 <input id="f-phoneNumber" type="tel" className={inputClass} value={profile.phoneNumber} maxLength={32} autoComplete="off"
                   onChange={e => setProfileField('phoneNumber', e.target.value)} />
               </Field>
-              <Field label="Job title" htmlFor="f-jobTitle" error={fieldError('jobTitle')}>
+              <Field label={tr('Job title')} htmlFor="f-jobTitle" error={fieldError('jobTitle')}>
                 <input id="f-jobTitle" list="job-titles" className={inputClass} value={profile.jobTitle} maxLength={80} autoComplete="off"
-                  onChange={e => setProfileField('jobTitle', e.target.value)} placeholder="PIC Outlet" />
+                  onChange={e => setProfileField('jobTitle', e.target.value)} placeholder={tr('PIC Outlet')} />
                 <datalist id="job-titles">{JOB_TITLES.map(t => <option key={t} value={t} />)}</datalist>
               </Field>
-              <Field label="Department" htmlFor="f-department" error={fieldError('department')}>
+              <Field label={tr('Department')} htmlFor="f-department" error={fieldError('department')}>
                 <input id="f-department" list="departments" className={inputClass} value={profile.department} maxLength={80} autoComplete="off"
-                  onChange={e => setProfileField('department', e.target.value)} placeholder="Operations" />
+                  onChange={e => setProfileField('department', e.target.value)} placeholder={tr('Operations')} />
                 <datalist id="departments">{DEPARTMENTS.map(t => <option key={t} value={t} />)}</datalist>
               </Field>
             </div>
           </DrawerSection>
         )}
 
-        <DrawerSection title="Sign-in" description="The user signs in with the username or the email address.">
+        <DrawerSection title={tr('Sign-in')} description={tr('The user signs in with the username or the email address.')}>
           <div className="grid gap-4">
-            <Field label="Username" htmlFor="f-username" required error={fieldError('username')} hint="3–32: lowercase letters, numbers, . _ -">
+            <Field label={tr('Username')} htmlFor="f-username" required error={fieldError('username')} hint={tr('3–32: lowercase letters, numbers, . _ -')}>
               <input id="f-username" className={inputClass} value={form.username} onChange={e => { setUsernameTouched(true); set('username', e.target.value.toLowerCase()); }}
                 autoCapitalize="none" spellCheck={false} maxLength={32} required autoComplete="off" />
             </Field>
-            <Field label="Email" htmlFor="f-email" required error={fieldError('email')}>
+            <Field label={tr('Email')} htmlFor="f-email" required error={fieldError('email')}>
               <input id="f-email" type="email" className={inputClass} value={form.email} onChange={e => set('email', e.target.value)} maxLength={254} required autoComplete="off" />
             </Field>
-            <Field label={creating ? 'Password' : 'New password'} htmlFor="f-password" required={creating} error={fieldError('password')}
-              hint={creating ? 'Generated for you — share it with the user privately. At least 8 characters with letters and numbers.' : 'At least 8 characters with letters and numbers'}>
+            <Field label={creating ? tr('Password') : tr('New password')} htmlFor="f-password" required={creating} error={fieldError('password')}
+              hint={creating ? tr('Generated for you — share it with the user privately. At least 8 characters with letters and numbers.') : tr('At least 8 characters with letters and numbers')}>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <input id="f-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" className={`${inputClass} pr-10 font-mono`}
                     value={form.password} onChange={e => set('password', e.target.value)} maxLength={128} required={creating}
-                    placeholder={creating ? '' : 'Keep current password'} />
+                    placeholder={creating ? '' : tr('Keep current password')} />
                   <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                    aria-label={showPassword ? tr('Hide password') : tr('Show password')}>
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <button type="button" className={buttonSecondary} onClick={() => { set('password', generatePassword()); setShowPassword(true); }} title="Generate a strong password">
-                  <Wand2 size={16} /><span className="hidden sm:inline">Generate</span>
+                <button type="button" className={buttonSecondary} onClick={() => { set('password', generatePassword()); setShowPassword(true); }} title={tr('Generate a strong password')}>
+                  <Wand2 size={16} /><span className="hidden sm:inline">{tr('Generate')}</span>
                 </button>
               </div>
             </Field>
             <label className="flex items-center gap-2 text-sm text-slate-600">
               <input type="checkbox" checked={form.mustChangePassword} onChange={e => set('mustChangePassword', e.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 text-blue-700" />
-              Must change password at next sign-in
+              {tr('Must change password at next sign-in')}
             </label>
           </div>
         </DrawerSection>
 
-        <DrawerSection title="Access">
+        <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Role" htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? 'Full access incl. platforms and user accounts' : 'Dashboards only (Overview, Sales Transactions)'}>
+            <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : tr('Dashboards only (Overview, Sales Transactions)')}>
               <select id="f-role" className={inputClass} value={form.role} onChange={e => set('role', e.target.value as Role)}>
-                <option value="user">User</option>
-                <option value="superadmin">Super Admin</option>
+                <option value="user">{tr('User')}</option>
+                <option value="superadmin">{tr('Super Admin')}</option>
               </select>
             </Field>
-            <Field label="Status" htmlFor="f-active" error={fieldError('isActive')} hint={isMe ? 'You cannot deactivate your own account' : 'Inactive users cannot sign in'}>
+            <Field label={tr('Status')} htmlFor="f-active" error={fieldError('isActive')} hint={isMe ? tr('You cannot deactivate your own account') : tr('Inactive users cannot sign in')}>
               <select id="f-active" className={inputClass} value={form.isActive ? '1' : '0'} disabled={isMe} onChange={e => set('isActive', e.target.value === '1')}>
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
+                <option value="1">{tr('Active')}</option>
+                <option value="0">{tr('Inactive')}</option>
               </select>
             </Field>
           </div>
         </DrawerSection>
 
         {form.role === 'user' ? (
-          <DrawerSection title="Branch access" description="Overview and Sales Transactions only show the data of these branches (also exports). Required for role User.">
+          <DrawerSection title={tr('Branch access')} description={tr('Overview and Sales Transactions only show the data of these branches (also exports). Required for role User.')}>
             <BranchAssign branches={branches} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
         ) : (
           <p className="mt-6 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
-            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> Super admins see every branch.
+            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {tr('Super admins see every branch.')}
           </p>
         )}
 
         {creating ? (
           <>
-            <DrawerSection title="Administrator notes" description="Only visible to super admins, e.g. area or outlet group.">
-              <Field label="Notes" htmlFor="f-notes" error={fieldError('notes')}>
+            <DrawerSection title={tr('Administrator notes')} description={tr('Only visible to super admins, e.g. area or outlet group.')}>
+              <Field label={tr('Notes')} htmlFor="f-notes" error={fieldError('notes')}>
                 <textarea id="f-notes" rows={2} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
               </Field>
             </DrawerSection>
             <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/60 px-3.5 py-3 text-sm text-blue-900">
               <Info size={16} className="mt-0.5 flex-shrink-0 text-blue-700" />
               <p>
-                After saving you get the login details to share with the user. At the first sign-in the user sets a new password and
-                completes <span className="font-medium">My profile</span> (gender, date of birth, address, work location…).
+                {tr('After saving you get the login details to share with the user. At the first sign-in the user sets a new password and completes')} <span className="font-medium">{tr('My profile')}</span> {tr('(gender, date of birth, address, work location…).')}
               </p>
             </div>
           </>
@@ -680,13 +680,13 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
           <>
             {!user!.profileComplete && (
               <p className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-sm text-amber-900">
-                <CircleAlert size={16} className="mt-0.5 flex-shrink-0" /> The user has not completed their profile yet. They can fill it in themself under My profile.
+                <CircleAlert size={16} className="mt-0.5 flex-shrink-0" /> {tr('The user has not completed their profile yet. They can fill it in themself under My profile.')}
               </p>
             )}
             <ProfileFields values={profile} onChange={setProfileField} fieldError={fieldError} idPrefix="f" markRequired={false}
               currentBranchName={user!.workBranchName} />
-            <DrawerSection title="Administrator notes" description="Only visible to super admins.">
-              <Field label="Notes" htmlFor="f-notes" error={fieldError('notes')}>
+            <DrawerSection title={tr('Administrator notes')} description={tr('Only visible to super admins.')}>
+              <Field label={tr('Notes')} htmlFor="f-notes" error={fieldError('notes')}>
                 <textarea id="f-notes" rows={3} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
               </Field>
             </DrawerSection>
@@ -731,18 +731,18 @@ function birthDateLabel(value: string | null): string | null {
   const d = parseLocalDate(value);
   const now = new Date();
   const age = now.getFullYear() - d.getFullYear() - (now < new Date(now.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
-  return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} (${age} years)`;
+  return tr('{0} ({1} years)', d.toLocaleDateString(locale(), { day: 'numeric', month: 'long', year: 'numeric' }), age);
 }
 
 /** "3 hours ago", "yesterday", "12 days ago" */
 function ago(value: string | null): string {
-  if (!value) return 'Never';
+  if (!value) return tr('Never');
   const s = (Date.now() - new Date(value).getTime()) / 1000;
-  if (s < 60) return 'Just now';
-  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
-  if (s < 86_400) return `${Math.floor(s / 3600)} h ago`;
+  if (s < 60) return tr('Just now');
+  if (s < 3600) return tr('{0} min ago', Math.floor(s / 60));
+  if (s < 86_400) return tr('{0} h ago', Math.floor(s / 3600));
   const d = Math.floor(s / 86_400);
-  return d === 1 ? 'Yesterday' : d < 31 ? `${d} days ago` : formatDateTime(value);
+  return d === 1 ? tr('Yesterday') : d < 31 ? tr('{0} days ago', d) : formatDateTime(value);
 }
 
 /** WhatsApp link for an Indonesian number ("0812…" -> "62812…"). */
@@ -761,7 +761,7 @@ interface RecentActivity {
 }
 
 const PROFILE_REQUIRED: { key: keyof AuthUser; label: string }[] = [
-  { key: 'fullName', label: 'Full name' }, { key: 'phoneNumber', label: 'Phone' }, { key: 'jobTitle', label: 'Job title' }, { key: 'department', label: 'Department' },
+  { key: 'fullName', get label() { return tr('Full name'); } }, { key: 'phoneNumber', get label() { return tr('Phone'); } }, { key: 'jobTitle', get label() { return tr('Job title'); } }, { key: 'department', get label() { return tr('Department'); } },
 ];
 
 function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, onUnlock }: {
@@ -793,14 +793,14 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
   const branchCodes = user.branches ?? [];
 
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<UserRound size={18} />} title="User details" description={isMe ? 'This is your account' : `@${user.username}`}
+    <Drawer open onClose={onClose} size="lg" icon={<UserRound size={18} />} title={tr('User details')} description={isMe ? tr('This is your account') : `@${user.username}`}
       footer={
         <>
-          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={onDelete} disabled={isMe} title={isMe ? 'You cannot delete your own account' : undefined}>
-            <Trash2 size={16} /> Delete
+          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={onDelete} disabled={isMe} title={isMe ? tr('You cannot delete your own account') : undefined}>
+            <Trash2 size={16} /> {tr('Delete')}
           </button>
-          {user.isLocked && <button type="button" className={buttonSecondary} onClick={onUnlock}><Unlock size={16} /> Unlock</button>}
-          <button type="button" className={buttonPrimary} onClick={onEdit}><Pencil size={16} /> Edit</button>
+          {user.isLocked && <button type="button" className={buttonSecondary} onClick={onUnlock}><Unlock size={16} /> {tr('Unlock')}</button>}
+          <button type="button" className={buttonPrimary} onClick={onEdit}><Pencil size={16} /> {tr('Edit')}</button>
         </>
       }
     >
@@ -810,7 +810,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
         <div className="min-w-0 flex-1">
           <p className="truncate text-xl font-semibold text-slate-900">{user.displayName}</p>
           <p className="truncate text-sm text-slate-500">
-            {[user.jobTitle, user.department].filter(Boolean).join(' · ') || 'Job title not filled in yet'}
+            {[user.jobTitle, user.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{!user.profileComplete && <ProfileBadge />}</div>
         </div>
@@ -818,18 +818,18 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       {/* at a glance */}
       <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-4">
-        <Glance label="Last sign-in" value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'has not signed in'} />
-        <Glance label="Branch access" value={user.role === 'superadmin' ? 'All' : formatNumber(branchCodes.length)}
-          sub={user.role === 'superadmin' ? 'super admin' : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : 'branches') : 'sees no data'}
+        <Glance label={tr('Last sign-in')} value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('has not signed in')} />
+        <Glance label={tr('Branch access')} value={user.role === 'superadmin' ? 'All' : formatNumber(branchCodes.length)}
+          sub={user.role === 'superadmin' ? tr('super admin') : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}
           tone={user.role === 'user' && !branchCodes.length ? 'bad' : undefined} />
-        <Glance label="Profile" value={`${filled}/${PROFILE_REQUIRED.length}`} sub={missing.length ? `missing: ${missing.join(', ')}` : 'complete'}
+        <Glance label={tr('Profile')} value={`${filled}/${PROFILE_REQUIRED.length}`} sub={missing.length ? tr('missing: {0}', missing.join(', ')) : tr('complete')}
           tone={missing.length ? 'warn' : 'good'} />
-        <Glance label="Activity, 30 days" value={counts ? formatNumber(counts.total) : '…'} sub={counts ? `${formatNumber(counts.exports)} exports` : ''} />
+        <Glance label={tr('Activity, 30 days')} value={counts ? formatNumber(counts.total) : '…'} sub={counts ? tr('{0} exports', formatNumber(counts.exports)) : ''} />
       </div>
 
-      <DrawerSection title="Branch access" description={user.role === 'superadmin' ? 'Super admins see every branch' : 'Overview, Sales Transactions and exports are limited to these branches'}>
+      <DrawerSection title={tr('Branch access')} description={user.role === 'superadmin' ? tr('Super admins see every branch') : tr('Overview, Sales Transactions and exports are limited to these branches')}>
         {user.role === 'superadmin' ? (
-          <p className="flex items-center gap-2 text-sm text-slate-600"><ShieldCheck size={16} className="text-red-700" /> All branches</p>
+          <p className="flex items-center gap-2 text-sm text-slate-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All branches')}</p>
         ) : branchCodes.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {branchCodes.map(code => (
@@ -841,56 +841,56 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
             ))}
           </ul>
         ) : (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> No branch assigned — this user sees no data.</p>
+          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> {tr('No branch assigned — this user sees no data.')}</p>
         )}
       </DrawerSection>
 
-      <DrawerSection title="Contact">
+      <DrawerSection title={tr('Contact')}>
         <InfoGrid items={[
-          ['Email', <a key="e" href={`mailto:${user.email}`} className="text-blue-700 hover:underline">{user.email}</a>],
-          ['Phone', user.phoneNumber ? (
+          [tr('Email'), <a key="e" href={`mailto:${user.email}`} className="text-blue-700 hover:underline">{user.email}</a>],
+          [tr('Phone'), user.phoneNumber ? (
             <span key="p" className="flex flex-wrap items-center gap-2">
               <a href={`tel:${user.phoneNumber}`} className="text-blue-700 hover:underline">{user.phoneNumber}</a>
-              <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100">WhatsApp</a>
+              <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100">{tr('WhatsApp')}</a>
             </span>
           ) : null],
-          ['Address', user.address],
-          ['City', user.city],
+          [tr('Address'), user.address],
+          [tr('City'), user.city],
         ]} />
       </DrawerSection>
 
-      <DrawerSection title="Work">
+      <DrawerSection title={tr('Work')}>
         <InfoGrid items={[
-          ['Job title', user.jobTitle],
-          ['Department', user.department],
-          ['Employee number', user.employeeNumber],
-          ['Work location', user.workBranchName || user.workBranchCode],
+          [tr('Job title'), user.jobTitle],
+          [tr('Department'), user.department],
+          [tr('Employee number'), user.employeeNumber],
+          [tr('Work location'), user.workBranchName || user.workBranchCode],
         ]} />
       </DrawerSection>
 
-      <DrawerSection title="Personal" description={user.profileUpdatedAt ? `Last updated by the user ${formatDateTime(user.profileUpdatedAt)}` : 'Not yet filled in by the user'}>
+      <DrawerSection title={tr('Personal')} description={user.profileUpdatedAt ? tr('Last updated by the user {0}', formatDateTime(user.profileUpdatedAt)) : tr('Not yet filled in by the user')}>
         <InfoGrid items={[
-          ['Gender', user.gender ? GENDER_LABELS[user.gender] : null],
-          ['Date of birth', birthDateLabel(user.birthDate)],
+          [tr('Gender'), user.gender ? GENDER_LABELS[user.gender] : null],
+          [tr('Date of birth'), birthDateLabel(user.birthDate)],
         ]} />
       </DrawerSection>
 
-      <DrawerSection title="Security">
+      <DrawerSection title={tr('Security')}>
         <InfoGrid items={[
-          ['Username', <span key="u" className="font-mono">{user.username}</span>],
-          ['Last sign-in', user.lastLoginAt ? `${formatDateTime(user.lastLoginAt)}${user.lastLoginIp ? ` · ${user.lastLoginIp}` : ''}` : 'Never'],
-          ['Password changed', user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : null],
-          ['Must change password', user.mustChangePassword ? 'Yes, at the next sign-in' : 'No'],
-          ['Failed sign-in attempts', formatNumber(user.failedLoginAttempts)],
-          ['Locked until', user.isLocked && user.lockedUntil ? formatDateTime(user.lockedUntil) : 'Not locked'],
+          [tr('Username'), <span key="u" className="font-mono">{user.username}</span>],
+          [tr('Last sign-in'), user.lastLoginAt ? `${formatDateTime(user.lastLoginAt)}${user.lastLoginIp ? ` · ${user.lastLoginIp}` : ''}` : tr('Never')],
+          [tr('Password changed'), user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : null],
+          [tr('Must change password'), user.mustChangePassword ? tr('Yes, at the next sign-in') : tr('No')],
+          [tr('Failed sign-in attempts'), formatNumber(user.failedLoginAttempts)],
+          [tr('Locked until'), user.isLocked && user.lockedUntil ? formatDateTime(user.lockedUntil) : tr('Not locked')],
         ]} />
       </DrawerSection>
 
-      <DrawerSection title="Recent activity" description="Last 30 days">
+      <DrawerSection title={tr('Recent activity')} description={tr('Last 30 days')}>
         {recent === null ? (
           <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100" />)}</div>
         ) : recent.length === 0 ? (
-          <p className="text-sm text-slate-400">No activity in the last 30 days.</p>
+          <p className="text-sm text-slate-400">{tr('No activity in the last 30 days.')}</p>
         ) : (
           <ol className="relative space-y-3 border-l border-slate-200 pl-4">
             {recent.map(a => (
@@ -903,15 +903,15 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           </ol>
         )}
         <button type="button" onClick={() => router.push(`/activity?user=${user.id}`)} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline">
-          <History size={14} /> Open in Activity Logs
+          <History size={14} /> {tr('Open in Activity Logs')}
         </button>
       </DrawerSection>
 
-      <DrawerSection title="Record">
+      <DrawerSection title={tr('Record')}>
         <InfoGrid items={[
-          ['Created', `${user.createdAt ? formatDateTime(user.createdAt) : '—'}${user.createdBy ? ` by ${user.createdBy}` : ''}`],
-          ['Updated', `${user.updatedAt ? formatDateTime(user.updatedAt) : '—'}${user.updatedBy ? ` by ${user.updatedBy}` : ''}`],
-          ['Administrator notes', user.notes],
+          [tr('Created'), `${user.createdAt ? formatDateTime(user.createdAt) : '—'}${user.createdBy ? ` by ${user.createdBy}` : ''}`],
+          [tr('Updated'), `${user.updatedAt ? formatDateTime(user.updatedAt) : '—'}${user.updatedBy ? ` by ${user.updatedBy}` : ''}`],
+          [tr('Administrator notes'), user.notes],
         ]} />
       </DrawerSection>
     </Drawer>
@@ -955,13 +955,13 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
   };
   return (
     <Drawer open onClose={onClose} size="md" icon={<KeyRound size={18} />}
-      title={created ? `User ${user.username} created` : `New password for ${user.username}`}
-      description="Share these details with the user privately. The password is shown only now."
+      title={created ? tr('User {0} created', user.username) : tr('New password for {0}', user.username)}
+      description={tr('Share these details with the user privately. The password is shown only now.')}
       footer={
         <>
-          <button type="button" className={buttonSecondary} onClick={onClose}>Done</button>
+          <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Done')}</button>
           <button type="button" className={buttonPrimary} onClick={copy}>
-            {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}{copied ? 'Copied' : 'Copy login details'}
+            {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}{copied ? tr('Copied') : tr('Copy login details')}
           </button>
         </>
       }>
@@ -972,20 +972,20 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
           <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><BranchesBadge user={user} branchName={branchName} /></div>
         </div>
       </div>
-      <DrawerSection title="Login details">
+      <DrawerSection title={tr('Login details')}>
         <DetailList rows={[
-          ['Username', <span key="u" className="font-mono">{user.username}</span>],
-          ['Email', user.email],
-          ['Password', (
+          [tr('Username'), <span key="u" className="font-mono">{user.username}</span>],
+          [tr('Email'), user.email],
+          [tr('Password'), (
             <span key="p" className="flex items-center gap-2">
               <span className="font-mono">{show ? password : '•'.repeat(Math.min(password.length, 14))}</span>
-              <button type="button" onClick={() => setShow(s => !s)} className="rounded p-1 text-slate-400 hover:text-slate-700" aria-label={show ? 'Hide password' : 'Show password'}>
+              <button type="button" onClick={() => setShow(s => !s)} className="rounded p-1 text-slate-400 hover:text-slate-700" aria-label={show ? tr('Hide password') : tr('Show password')}>
                 {show ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </span>
           )],
-          ['Branch access', branches],
-          ['First sign-in', user.mustChangePassword ? 'Must change the password' : 'Password can be kept'],
+          [tr('Branch access'), branches],
+          [tr('First sign-in'), user.mustChangePassword ? tr('Must change the password') : tr('Password can be kept')],
         ]} />
       </DrawerSection>
     </Drawer>
@@ -1008,13 +1008,13 @@ function DeleteDialog({ user, onClose, onDeleted, onError }: { user: AuthUser; o
     }
   };
   return (
-    <Dialog open onClose={onClose} size="sm" title="Delete user?"
-      description="The account is removed permanently and the user is signed out everywhere."
+    <Dialog open onClose={onClose} size="sm" title={tr('Delete user?')}
+      description={tr('The account is removed permanently and the user is signed out everywhere.')}
       footer={
         <>
-          <button type="button" className={buttonSecondary} onClick={onClose}>Cancel</button>
+          <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Cancel')}</button>
           <button type="button" className={buttonDanger} onClick={remove} disabled={busy}>
-            {busy ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />} Delete
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />} {tr('Delete')}
           </button>
         </>
       }

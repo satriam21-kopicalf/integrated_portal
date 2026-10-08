@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Legend } from '@/components/charts/common';
-import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
+import { formatCurrency, formatDate, formatNumber, fixed } from '@/lib/format';
 import {
   bucketLabel, Granularity, GROWTH_DOWN, GROWTH_UP, GrowthResponse, MonthlyResponse, Resource, TrendResponse, useOverview, withParams,
 } from '@/lib/overview';
@@ -13,14 +13,15 @@ import { bucketRange } from './drill/parts';
 import { MonthlyBody } from './MonthlyCard';
 import { GrowthBars } from './SalesGrowth';
 import TrendChart, { ChartTypeSelect, metricOf, pct, TREND_METRICS, TrendChartType, TrendMetric } from './TrendChart';
+import { tr } from '@/lib/i18n';
 
 type View = 'trend' | 'daily' | 'growth' | 'monthly';
 
 const VIEWS: { value: View; label: string }[] = [
-  { value: 'trend', label: 'Trend' },
-  { value: 'daily', label: 'Per day' },
-  { value: 'growth', label: 'Growth %' },
-  { value: 'monthly', label: 'Monthly' },
+  { value: 'trend', get label() { return tr('Trend'); } },
+  { value: 'daily', get label() { return tr('Per day'); } },
+  { value: 'growth', get label() { return tr('Growth %'); } },
+  { value: 'monthly', get label() { return tr('Monthly'); } },
 ];
 
 /**
@@ -55,44 +56,44 @@ export default function TrendCard({ query }: { query: string }) {
 
   const subtitle = view === 'trend'
     ? g === 'hour'
-      ? `Per hour of the day vs the comparison day (dashed)${metric === 'nettSales' ? ' · nett sales are not kept per hour: showing gross sales' : ''}`
-      : 'This period vs the comparison period (dashed) · click a point for that day / week / month'
-    : view === 'daily' ? 'Gross sales per day; weekends in the darker blue · click a bar for that day'
-    : view === 'growth' ? (sequential ? `Growth of every ${growthGran} against the ${growthGran} before it, per day`
-      : 'Growth of gross sales against the comparison period · click a bar for its profile')
-    : 'Average gross sales per day of each month: month on month, year on year and same-store';
+      ? tr('Per hour of the day vs the comparison day (dashed){0}', metric === 'nettSales' ? tr(' · nett sales are not kept per hour: showing gross sales') : '')
+      : tr('This period vs the comparison period (dashed) · click a point for that day / week / month')
+    : view === 'daily' ? tr('Gross sales per day; weekends in the darker blue · click a bar for that day')
+    : view === 'growth' ? (sequential ? tr('Growth of every {0} against the {1} before it, per day', tr(growthGran), tr(growthGran))
+      : tr('Growth of gross sales against the comparison period · click a bar for its profile'))
+    : tr('Average gross sales per day of each month: month on month, year on year and same-store');
 
   const open = () => drill.open(view === 'monthly' ? { kind: 'monthly' } : view === 'trend' ? { kind: 'trend' } : { kind: 'growth', basis: sequential ? 'sequential' : 'previous' });
 
   return (
     <Card
-      title="Sales trend & growth"
+      title={tr('Sales trend & growth')}
       info={view === 'trend' ? 'trend' : view === 'monthly' ? 'monthly' : 'growth'}
       subtitle={subtitle}
       resource={shown}
       minHeight={380}
       onOpen={open}
-      tabs={<CardTabs label="Sales trend view" value={view} options={VIEWS} onChange={setView} />}
+      tabs={<CardTabs label={tr('Sales trend view')} value={view} options={VIEWS} onChange={setView} />}
       actions={
         <>
-          {view === 'trend' && <Segmented label="Metric" value={metric} options={TREND_METRICS} onChange={setMetric} />}
+          {view === 'trend' && <Segmented label={tr('Metric')} value={metric} options={TREND_METRICS} onChange={setMetric} />}
           {(view === 'trend' || view === 'growth') && (
             <Segmented
-              label="Granularity"
+              label={tr('Granularity')}
               value={view === 'trend' ? (granularity === 'auto' ? g ?? 'day' : granularity) : growthGran}
-              options={[...(view === 'trend' && (oneDay || g === 'hour') ? [{ value: 'hour' as const, label: 'Hour' }] : []),
-                { value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }]}
+              options={[...(view === 'trend' && (oneDay || g === 'hour') ? [{ value: 'hour' as const, label: tr('Hour') }] : []),
+                { value: 'day', label: tr('Day') }, { value: 'week', label: tr('Week') }, { value: 'month', label: tr('Month') }]}
               onChange={setGranularity}
             />
           )}
           {view === 'trend' && !table && <ChartTypeSelect value={chart} onChange={setChart} />}
           {view === 'trend' && (
-            <Segmented label="Show as" value={table ? 'table' : 'chart'} options={[{ value: 'chart', label: 'Chart' }, { value: 'table', label: 'Table' }]}
+            <Segmented label={tr('Show as')} value={table ? 'table' : 'chart'} options={[{ value: 'chart', label: tr('Chart') }, { value: 'table', label: tr('Table') }]}
               onChange={v => setTable(v === 'table')} />
           )}
           {view === 'growth' && (
-            <Segmented label="Growth against" value={sequential ? 'seq' : 'cmp'} onChange={v => setSequential(v === 'seq')}
-              options={[{ value: 'cmp', label: 'Comparison period' }, { value: 'seq', label: `Previous ${growthGran}` }]} />
+            <Segmented label={tr('Growth against')} value={sequential ? 'seq' : 'cmp'} onChange={v => setSequential(v === 'seq')}
+              options={[{ value: 'cmp', label: tr('Comparison period') }, { value: 'seq', label: tr('Previous {0}', tr(growthGran)) }]} />
           )}
         </>
       }
@@ -108,11 +109,11 @@ export default function TrendCard({ query }: { query: string }) {
           return (
             <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <Legend items={[{ key: 'up', label: 'Growth', color: GROWTH_UP }, { key: 'down', label: 'Decline', color: GROWTH_DOWN }]} />
+                <Legend items={[{ key: 'up', label: tr('Growth'), color: GROWTH_UP }, { key: 'down', label: tr('Decline'), color: GROWTH_DOWN }]} />
                 <p className="text-xs text-slate-500">
-                  <span className="font-semibold text-slate-900">{t.bucketsUp}</span> {d.granularity}s up ·{' '}
-                  <span className="font-semibold text-slate-900">{t.bucketsDown}</span> down
-                  {!sequential && d.compare.complete && <> · vs {formatDate(d.compare.from)} – {formatDate(d.compare.to)}</>}
+                  <span className="font-semibold text-slate-900">{t.bucketsUp}</span> {tr(`${d.granularity}s`)} {tr('up')} ·{' '}
+                  <span className="font-semibold text-slate-900">{t.bucketsDown}</span> {tr('down')}
+                  {!sequential && d.compare.complete && <> {tr('· vs')} {formatDate(d.compare.from)} – {formatDate(d.compare.to)}</>}
                 </p>
               </div>
               <GrowthBars data={d} height={300} onSelect={p => {
@@ -141,16 +142,16 @@ export function TrendTable({ data, metric, maxHeight = 340 }: { data: TrendRespo
   const hasPrev = data.filters.previous.complete;
   const money = metric !== 'bills';
   const fmt = (v: number) => (money ? formatCurrency(Math.round(v)) : formatNumber(Math.round(v)));
-  const label = TREND_METRICS.find(m => m.value === metric)?.label ?? 'Value';
+  const label = TREND_METRICS.find(m => m.value === metric)?.label ?? tr('Value');
   return (
     <DataTable
-      caption={`${label} per ${g}`}
+      caption={tr('{0} per {1}', label, tr(g))}
       columns={[
-        { key: 'date', label: g === 'hour' ? 'Hour' : g === 'day' ? 'Date' : g === 'week' ? 'Week of' : 'Month' },
-        { key: 'cur', label: 'This period', align: 'right' },
-        { key: 'prev', label: 'Previous', align: 'right' },
-        { key: 'delta', label: 'Change', align: 'right' },
-        { key: 'disc', label: 'Discount', align: 'right' },
+        { key: 'date', label: g === 'hour' ? tr('Hour') : g === 'day' ? tr('Date') : g === 'week' ? tr('Week of') : tr('Month') },
+        { key: 'cur', label: tr('This period'), align: 'right' },
+        { key: 'prev', label: tr('Previous'), align: 'right' },
+        { key: 'delta', label: tr('Change'), align: 'right' },
+        { key: 'disc', label: tr('Discount'), align: 'right' },
       ]}
       rows={data.series.map(p => {
         const c = metricOf(p, metric);
@@ -162,7 +163,7 @@ export function TrendTable({ data, metric, maxHeight = 340 }: { data: TrendRespo
             cur: c === null ? '-' : fmt(c),
             prev: pr === null ? '-' : fmt(pr),
             delta: <Delta value={pct(c, pr)} />,
-            disc: p.discountPct === null ? '-' : `${p.discountPct.toFixed(1)}%`,
+            disc: p.discountPct === null ? '-' : `${fixed(p.discountPct, 1)}%`,
           },
         };
       })}

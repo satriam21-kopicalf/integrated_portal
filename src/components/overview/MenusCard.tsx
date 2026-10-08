@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import HBarChart from '@/components/charts/HBarChart';
-import { formatCurrency, formatNumber } from '@/lib/format';
+import { formatCurrency, formatNumber, fixed } from '@/lib/format';
 import { compactRupiah, deltaText, MenusResponse, useOverview } from '@/lib/overview';
 import { Card, Segmented } from './Card';
 import { useDrill } from './drill/DrillContext';
+import { tr } from '@/lib/i18n';
 
 type Tab = 'top' | 'categories' | 'addons';
 
@@ -20,17 +21,17 @@ export default function MenusCard({ query }: { query: string }) {
 
   return (
     <Card
-      title="Menus"
+      title={tr('Menus')}
       info="menus"
-      subtitle="What sells: ordered menus (add-ons counted separately) · click a menu for its details"
+      subtitle={tr('What sells: ordered menus (add-ons counted separately) · click a menu for its details')}
       resource={resource}
       minHeight={420}
       onOpen={() => drill.open({ kind: 'menus' })}
       actions={
         <Segmented
-          label="Menu view"
+          label={tr('Menu view')}
           value={tab}
-          options={[{ value: 'top', label: 'Top 10' }, { value: 'categories', label: 'Categories' }, { value: 'addons', label: 'Add-ons' }]}
+          options={[{ value: 'top', label: tr('Top 10') }, { value: 'categories', label: tr('Categories') }, { value: 'addons', label: tr('Add-ons') }]}
           onChange={setTab}
         />
       }
@@ -50,22 +51,22 @@ export default function MenusCard({ query }: { query: string }) {
                       <span className="h-2 w-2 rounded-sm" style={{ background: CATEGORY_COLORS[c.category] ?? '#a8a29e' }} />
                       {c.category}
                     </p>
-                    <p className="text-base font-semibold text-slate-900">{c.share === null ? '-' : `${c.share.toFixed(1)}%`}</p>
+                    <p className="text-base font-semibold text-slate-900">{c.share === null ? '-' : `${fixed(c.share, 1)}%`}</p>
                     <p className="text-[11px] text-slate-500">{compactRupiah(c.subtotal)}
                       {c.deltaPct !== undefined && c.deltaPct !== null && <span className={c.deltaPct >= 0 ? ' text-emerald-700' : ' text-red-700'}> {deltaText(c.deltaPct)}</span>}</p>
                   </div>
                 ))}
               </div>
-              <p className="text-xs font-medium text-slate-500">Top sub-categories</p>
+              <p className="text-xs font-medium text-slate-500">{tr('Top sub-categories')}</p>
               <HBarChart
-                ariaLabel="Gross sales per menu sub-category"
+                ariaLabel={tr('Gross sales per menu sub-category')}
                 items={details.map(d => ({
                   key: `${d.category}-${d.name}`,
                   label: d.name,
                   value: d.subtotal,
                   display: compactRupiah(d.subtotal),
                   color: CATEGORY_COLORS[d.category] ?? '#a8a29e',
-                  tip: { rows: [[formatCurrency(d.subtotal), 'sales'], [`${formatNumber(d.qty)} pcs`, d.category]] },
+                  tip: { rows: [[formatCurrency(d.subtotal), 'sales'], [tr('{0} pcs', formatNumber(d.qty)), d.category]] },
                 }))}
                 rowHeight={26}
               />
@@ -73,17 +74,17 @@ export default function MenusCard({ query }: { query: string }) {
           );
         }
         if (tab === 'addons') {
-          if (!data.addons.length) return <p className="py-6 text-center text-sm text-slate-400">No add-ons in this period</p>;
+          if (!data.addons.length) return <p className="py-6 text-center text-sm text-slate-400">{tr('No add-ons in this period')}</p>;
           return (
             <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
               {data.addons.slice(0, 4).map(g => (
                 <div key={g.group} className="min-w-0">
                   <div className="mb-1 flex items-baseline justify-between text-xs">
                     <span className="font-semibold uppercase tracking-wide text-slate-500">{g.group}</span>
-                    <span className="tabular-nums text-slate-400">{formatNumber(g.qty)} pcs</span>
+                    <span className="tabular-nums text-slate-400">{formatNumber(g.qty)} {tr('pcs')}</span>
                   </div>
                   <HBarChart
-                    ariaLabel={`${g.group} choices`}
+                    ariaLabel={tr('{0} choices', g.group)}
                     max={100}
                     labelWidth={110}
                     rowHeight={26}
@@ -91,8 +92,8 @@ export default function MenusCard({ query }: { query: string }) {
                       key: `${g.group}-${o.menuId}`,
                       label: o.name,
                       value: o.share ?? 0,
-                      display: o.share === null ? '-' : `${o.share.toFixed(1)}%`,
-                      tip: { rows: [[`${formatNumber(o.qty)} pcs`, 'ordered'], ...(o.subtotal ? [[formatCurrency(o.subtotal), 'sales'] as [string, string]] : [])] },
+                      display: o.share === null ? '-' : `${fixed(o.share, 1)}%`,
+                      tip: { rows: [[tr('{0} pcs', formatNumber(o.qty)), 'ordered'], ...(o.subtotal ? [[formatCurrency(o.subtotal), 'sales'] as [string, string]] : [])] },
                     }))}
                   />
                 </div>
@@ -104,26 +105,26 @@ export default function MenusCard({ query }: { query: string }) {
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs text-slate-500">
-                {compactRupiah(data.totals.subtotal)} · {formatNumber(data.totals.qty)} pcs ordered
+                {compactRupiah(data.totals.subtotal)} · {formatNumber(data.totals.qty)} {tr('pcs ordered')}
                 {data.totals.previousSubtotal !== undefined && (
-                  <> · vs {compactRupiah(data.totals.previousSubtotal)}{' '}
+                  <> {tr('· vs')} {compactRupiah(data.totals.previousSubtotal)}{' '}
                     <span className={(data.totals.deltaPct ?? 0) >= 0 ? 'font-medium text-emerald-700' : 'font-medium text-red-700'}>{deltaText(data.totals.deltaPct)}</span></>
                 )}
               </p>
-              <Segmented label="Rank by" value={sort} options={[{ value: 'subtotal', label: 'Gross sales' }, { value: 'qty', label: 'Qty' }]} onChange={setSort} />
+              <Segmented label={tr('Rank by')} value={sort} options={[{ value: 'subtotal', label: tr('Gross sales') }, { value: 'qty', label: tr('Qty') }]} onChange={setSort} />
             </div>
             <HBarChart
-              ariaLabel={`Top 10 menus by ${sort === 'qty' ? 'quantity' : 'sales'}`}
+              ariaLabel={tr('Top 10 menus by {0}', sort === 'qty' ? tr('quantity') : tr('sales'))}
               items={data.top.map((m, i) => ({
                 key: m.menuId,
                 label: `${i + 1}. ${m.name}`,
                 value: sort === 'qty' ? m.qty : m.subtotal,
-                display: (sort === 'qty' ? `${formatNumber(m.qty)} pcs` : `${compactRupiah(m.subtotal)} · ${m.share?.toFixed(1) ?? '-'}%`)
-                  + (m.deltaPct !== undefined ? ` · ${deltaText(sort === 'qty' ? m.qtyDeltaPct : m.deltaPct) || 'new'}` : ''),
+                display: (sort === 'qty' ? tr('{0} pcs', formatNumber(m.qty)) : `${compactRupiah(m.subtotal)} · ${fixed(m.share, 1) ?? '-'}%`)
+                  + (m.deltaPct !== undefined ? ` · ${deltaText(sort === 'qty' ? m.qtyDeltaPct : m.deltaPct) || tr('new')}` : ''),
                 tip: {
-                  rows: [[formatCurrency(m.subtotal), 'sales'], [`${formatNumber(m.qty)} pcs`, 'ordered'], [formatNumber(m.bills), 'bills'],
+                  rows: [[formatCurrency(m.subtotal), 'sales'], [tr('{0} pcs', formatNumber(m.qty)), 'ordered'], [formatNumber(m.bills), 'bills'],
                     ...(m.previousSubtotal !== undefined ? [[formatCurrency(m.previousSubtotal), 'comparison period'] as [string, string],
-                      [`${formatNumber(m.previousQty ?? 0)} pcs`, 'comparison period'] as [string, string]] : [])],
+                      [tr('{0} pcs', formatNumber(m.previousQty ?? 0)), 'comparison period'] as [string, string]] : [])],
                   footer: `${m.category} · ${m.categoryDetail}`,
                 },
               }))}

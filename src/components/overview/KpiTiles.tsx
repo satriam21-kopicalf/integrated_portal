@@ -8,6 +8,7 @@ import { KpisResponse, Resource } from '@/lib/overview';
 import { infoLine } from '@/lib/metricInfo';
 import { Delta } from './Card';
 import { useOptionalDrill } from './drill/DrillContext';
+import { tr } from '@/lib/i18n';
 
 type Key = keyof KpisResponse['kpis'];
 
@@ -15,13 +16,13 @@ const METRICS: {
   key: Key; label: string; hint: string; icon: typeof Wallet;
   format: (v: number) => string; full: (v: number) => string; series: (d: KpisResponse['daily'][number]) => number;
 }[] = [
-  { key: 'sales', label: 'Gross sales', hint: 'Subtotal of finished bills with a bill number (ESB Sub Total)', icon: Wallet,
+  { key: 'sales', get label() { return tr('Gross sales'); }, get hint() { return tr('Subtotal of finished bills with a bill number (ESB Sub Total)'); }, icon: Wallet,
     format: formatCurrency, full: formatCurrency, series: d => d.subtotal },
-  { key: 'nettSales', label: 'Nett sales', hint: 'After item and bill discounts', icon: Tag,
+  { key: 'nettSales', get label() { return tr('Nett sales'); }, get hint() { return tr('After item and bill discounts'); }, icon: Tag,
     format: formatCurrency, full: formatCurrency, series: d => d.nettSales },
-  { key: 'bills', label: 'Bills', hint: 'Number of sales transactions', icon: Receipt,
+  { key: 'bills', get label() { return tr('Bills'); }, get hint() { return tr('Number of sales transactions'); }, icon: Receipt,
     format: formatNumber, full: formatNumber, series: d => d.bills },
-  { key: 'avgTicket', label: 'Avg ticket', hint: 'Gross sales ÷ bills', icon: ShoppingBag,
+  { key: 'avgTicket', get label() { return tr('Avg ticket'); }, get hint() { return tr('Gross sales ÷ bills'); }, icon: ShoppingBag,
     format: formatCurrency, full: formatCurrency, series: d => d.avgTicket ?? 0 },
 ];
 
@@ -33,7 +34,7 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
   const custom = data?.filters.previous.custom;
   const hasPrev = data?.filters.previous.complete;
   return (
-    <StatStrip label="Key figures for the selected period">
+    <StatStrip label={tr('Key figures for the selected period')}>
       {METRICS.map((m, i) => {
         const k = data?.kpis[m.key];
         const Icon = m.icon;
@@ -53,21 +54,21 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
                   <Delta value={k.deltaPct} />
                   {hasPrev && (
                     <span className={`font-semibold tabular-nums ${k.value - k.previous > 0 ? 'text-emerald-700' : k.value - k.previous < 0 ? 'text-red-700' : 'text-slate-500'}`}
-                      title="Difference with the comparison period">
+                      title={tr('Difference with the comparison period')}>
                       {k.value - k.previous > 0 ? '+' : k.value - k.previous < 0 ? '−' : '±'}{m.format(Math.abs(Math.round(k.value - k.previous)))}
                     </span>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="truncate">
-                    {hasPrev ? <>vs <span className="tabular-nums text-slate-600">{m.format(k.previous)}</span> · {custom ? 'comparison' : 'prev.'} {days} {days === 1 ? 'day' : 'days'}</> : 'no comparison'}
+                    {hasPrev ? <>{tr('vs')} <span className="tabular-nums text-slate-600">{m.format(k.previous)}</span> · {custom ? tr('comparison') : tr('prev.')} {days} {days === 1 ? tr('day') : tr('days')}</> : tr('no comparison')}
                   </span>
                 </div>
-                <Sparkline className="mt-2" values={data!.daily.map(m.series)} height={30} label={`${m.label} per day`} />
+                <Sparkline className="mt-2" values={data!.daily.map(m.series)} height={30} label={tr('{0} per day', m.label)} />
               </>
             )}
             {error && !k && (
-              <button type="button" onClick={retry} className="text-xs font-medium text-slate-500 underline">Try again</button>
+              <button type="button" onClick={retry} className="text-xs font-medium text-slate-500 underline">{tr('Try again')}</button>
             )}
           </Stat>
         );
@@ -75,9 +76,9 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
         return (
           <button key={m.key} type="button" onClick={() => drill.open({ kind: 'kpi', metric: m.key })}
             className="group relative text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            title={`${m.label}: open details per day, weekday and the previous period`}>
+            title={tr('{0}: open details per day, weekday and the previous period', m.label)}>
             {tile}
-            <span className="absolute right-3 top-3 text-[10px] font-medium text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">Details ›</span>
+            <span className="absolute right-3 top-3 text-[10px] font-medium text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">{tr('Details ›')}</span>
           </button>
         );
       })}

@@ -11,21 +11,22 @@ import {
 import { OutletReliability, Reliability, RELIABILITY, RELIABILITY_ORDER } from '@/lib/costReliability';
 import { formatCurrency, formatDate } from '@/lib/format';
 import type { InfoKey } from '@/lib/metricInfo';
+import { tr } from '@/lib/i18n';
 
 export type StatusMetric = 'usage' | 'cogs';
 type SortKey = 'name' | 'sales' | 'actual' | 'theoretical' | 'usage' | 'excess' | 'variance' | 'waste' | 'purchases' | 'data';
 
 const COLUMNS: { key: SortKey; label: string; info?: InfoKey }[] = [
-  { key: 'name', label: 'Outlet' },
-  { key: 'sales', label: 'Sales', info: 'costSales' },
-  { key: 'actual', label: 'Actual COGS', info: 'costActual' },
-  { key: 'theoretical', label: 'Recipes', info: 'costTheoretical' },
-  { key: 'usage', label: 'Usage vs recipes', info: 'costExcess' },
-  { key: 'excess', label: 'Excess (Rp)', info: 'costExcess' },
-  { key: 'variance', label: 'Stock variance', info: 'costVariance' },
-  { key: 'waste', label: 'Other usage', info: 'costOther' },
-  { key: 'purchases', label: 'Purchases', info: 'costPurchases' },
-  { key: 'data', label: 'Data', info: 'costReliability' },
+  { key: 'name', get label() { return tr('Outlet'); } },
+  { key: 'sales', get label() { return tr('Sales'); }, info: 'costSales' },
+  { key: 'actual', get label() { return tr('Actual COGS'); }, info: 'costActual' },
+  { key: 'theoretical', get label() { return tr('Recipes'); }, info: 'costTheoretical' },
+  { key: 'usage', get label() { return tr('Usage vs recipes'); }, info: 'costExcess' },
+  { key: 'excess', get label() { return tr('Excess (Rp)'); }, info: 'costExcess' },
+  { key: 'variance', get label() { return tr('Stock variance'); }, info: 'costVariance' },
+  { key: 'waste', get label() { return tr('Other usage'); }, info: 'costOther' },
+  { key: 'purchases', get label() { return tr('Purchases'); }, info: 'costPurchases' },
+  { key: 'data', get label() { return tr('Data'); }, info: 'costReliability' },
 ];
 
 const LEVEL_RANK: Record<Reliability, number> = { final: 0, provisional: 1, check: 2 };
@@ -103,12 +104,12 @@ export default function OutletTable({ outlets, basis, metric, status, onStatus, 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search outlet or code"
-              className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" aria-label="Search outlet" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tr('Search outlet or code')}
+              className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" aria-label={tr('Search outlet')} />
           </div>
-          <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={metric === 'usage' ? 'Filter by usage status' : 'Filter by COGS status'}>
-            <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{metric === 'usage' ? 'Usage' : 'COGS'}</span>
-            <FilterChip active={!status} onClick={() => onStatus('')}>All {selling.length}</FilterChip>
+          <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={metric === 'usage' ? tr('Filter by usage status') : tr('Filter by COGS status')}>
+            <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{metric === 'usage' ? tr('Usage') : tr('COGS')}</span>
+            <FilterChip active={!status} onClick={() => onStatus('')}>{tr('All')} {selling.length}</FilterChip>
             {STATUS_ORDER.map(s => (
               <FilterChip key={s} active={status === s} onClick={() => onStatus(status === s ? '' : s)} dot={STATUS[s].dot}>
                 {STATUS[s].label} {counts[s] ?? 0}
@@ -116,16 +117,16 @@ export default function OutletTable({ outlets, basis, metric, status, onStatus, 
             ))}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label="Filter by data status">
-          <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Data</span>
-          <FilterChip active={!data} onClick={() => setData('')}>All</FilterChip>
+        <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={tr('Filter by data status')}>
+          <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Data')}</span>
+          <FilterChip active={!data} onClick={() => setData('')}>{tr('All')}</FilterChip>
           {RELIABILITY_ORDER.map(l => (
             <FilterChip key={l} active={data === l} onClick={() => setData(data === l ? '' : l)} dot={RELIABILITY[l].dot}>
               {RELIABILITY[l].label} {dataCounts[l] ?? 0}
             </FilterChip>
           ))}
           <span className="ml-auto text-xs text-slate-500">
-            {rows.length} outlet(s) · excess vs recipes <b className={`tabular-nums ${totalExcess > 0 ? 'text-red-700' : 'text-slate-800'}`}>{formatCurrency(Math.round(totalExcess))}</b>
+            {rows.length} {tr('outlet(s) · excess vs recipes')} <b className={`tabular-nums ${totalExcess > 0 ? 'text-red-700' : 'text-slate-800'}`}>{formatCurrency(Math.round(totalExcess))}</b>
           </span>
         </div>
       </div>
@@ -157,8 +158,8 @@ export default function OutletTable({ outlets, basis, metric, status, onStatus, 
                 <tr key={o.branchCode} onClick={() => onSelect(o)} className="group cursor-pointer hover:bg-slate-50/80">
                   <td className="sticky left-0 max-w-[15rem] bg-white px-3 py-2 group-hover:bg-slate-50">
                     <span className="block truncate font-medium text-slate-900" title={o.branchName}>{o.branchName}</span>
-                    <span className="block whitespace-nowrap text-xs text-slate-400" title={o.lastOpnameDate ? `Last opname ${formatDate(o.lastOpnameDate)}` : undefined}>
-                      {o.branchCode} · {o.opnameCount ? `${o.opnameCount}× opname` : 'no opname'}
+                    <span className="block whitespace-nowrap text-xs text-slate-400" title={o.lastOpnameDate ? tr('Last opname {0}', formatDate(o.lastOpnameDate)) : undefined}>
+                      {o.branchCode} · {o.opnameCount ? tr('{0}× opname', o.opnameCount) : tr('no opname')}
                     </span>
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-700">{formatCurrency(Math.round(sales(o, basis)))}</td>
@@ -174,36 +175,36 @@ export default function OutletTable({ outlets, basis, metric, status, onStatus, 
                       ? (metric === 'usage'
                         ? <StatusBadge status={o.status.usage} value={pctText(o.usageRatio)} />
                         : <span className="tabular-nums text-slate-700">{pctText(o.usageRatio)}</span>)
-                      : <span className="text-xs text-slate-400">no opname</span>}
+                      : <span className="text-xs text-slate-400">{tr('no opname')}</span>}
                   </td>
                   <td className={`whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums ${!o.hasOpname ? 'text-slate-300' : excess > 0.5 ? 'text-red-700' : 'text-emerald-700'}`}>
                     {o.hasOpname ? `${excess > 0 ? '+' : ''}${formatCurrency(Math.round(excess))}` : '–'}
                   </td>
                   <td className={`whitespace-nowrap px-3 py-2 text-right tabular-nums ${o.variance < -0.5 ? 'text-red-700' : 'text-slate-600'}`}>
                     {formatCurrency(Math.round(o.variance))}
-                    {o.pendingVariance !== 0 && <span className="block text-[11px] text-amber-700">{formatCurrency(Math.round(o.pendingVariance))} pending</span>}
+                    {o.pendingVariance !== 0 && <span className="block text-[11px] text-amber-700">{formatCurrency(Math.round(o.pendingVariance))} {tr('pending')}</span>}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-right">
                     <StatusBadge status={o.status.waste} value={pctText(waste)} title={formatCurrency(Math.round(o.otherUsage))} />
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-600">
                     {formatCurrency(Math.round(o.purchases))}
-                    <span className="block text-[11px] text-slate-400">{pctText(sales(o, basis) ? (o.purchases / sales(o, basis)) * 100 : null)} of sales</span>
+                    <span className="block text-[11px] text-slate-400">{pctText(sales(o, basis) ? (o.purchases / sales(o, basis)) * 100 : null)} {tr('of sales')}</span>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2 text-right" title={rel?.reasons.map(r => `• ${r.text}`).join('\n') || 'Final: opnames posted, no data issue'}>
+                  <td className="whitespace-nowrap px-3 py-2 text-right" title={rel?.reasons.map(r => `• ${r.text}`).join('\n') || tr('Final: opnames posted, no data issue')}>
                     {rel && <ReliabilityPill level={rel.level} />}
                   </td>
                 </tr>
               );
             })}
             {!rows.length && (
-              <tr><td colSpan={COLUMNS.length} className="px-3 py-10 text-center text-sm text-slate-400">No outlets match</td></tr>
+              <tr><td colSpan={COLUMNS.length} className="px-3 py-10 text-center text-sm text-slate-400">{tr('No outlets match')}</td></tr>
             )}
           </tbody>
         </table>
       </div>
       <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400">
-        Click an outlet for its items, trend and purchase forecast. Excess = actual − recipes (red: used more than the recipes allow). Hover the data status for the reasons.
+        {tr('Click an outlet for its items, trend and purchase forecast. Excess = actual − recipes (red: used more than the recipes allow). Hover the data status for the reasons.')}
       </p>
     </section>
   );

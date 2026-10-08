@@ -9,6 +9,8 @@ import { usePageViewLog } from '@/lib/activity';
 import { AuthProvider, canAccess, isPublicPath, useAuth } from '@/lib/auth';
 import { ExportsProvider } from '@/lib/exports';
 import { RealtimeProvider } from '@/lib/realtime';
+import { LanguageProvider, tr } from '@/lib/i18n';
+import { ThemeProvider } from '@/lib/theme';
 
 /**
  * Session-wide providers: the signed-in user, then (only once signed in) one
@@ -17,13 +19,18 @@ import { RealtimeProvider } from '@/lib/realtime';
  * AccountDrawersProvider adds "My profile" / "Change password" (incl. the forced
  * password change and the reminder to complete the profile). ExportsProvider follows
  * Excel exports across pages. Role "user" only opens Overview and Sales; every page
- * visit is reported to the activity log.
+ * visit is reported to the activity log. Theme (light / dark) and language (EN / ID) wrap
+ * everything, the login page included.
  */
 export default function Providers({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider>
-      <Gate>{children}</Gate>
-    </AuthProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <Gate>{children}</Gate>
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 
@@ -44,7 +51,7 @@ function Gate({ children }: { children: ReactNode }) {
     return (
       <div className="flex h-dvh items-center justify-center bg-slate-50 text-slate-400" aria-busy="true">
         <Loader2 size={22} className="animate-spin" />
-        <span className="sr-only">Checking your session…</span>
+        <span className="sr-only">{tr('Checking your session…')}</span>
       </div>
     );
   }

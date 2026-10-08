@@ -9,28 +9,30 @@ import {
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
+import { PreferenceControls } from '@/components/ui/Preferences';
 import { assetUrl } from '@/lib/assets';
 import { ROLE_LABELS, useAuth } from '@/lib/auth';
 import { useClickOutside } from '@/lib/useClickOutside';
+import { tr } from '@/lib/i18n';
 
 const navigation = [
-  { name: 'Dashboard', href: '/overview', icon: LayoutDashboard, description: 'Overview & analytics', superadmin: false },
-  { name: 'Sales Transactions', href: '/sales', icon: Receipt, description: 'View & export data', superadmin: false },
-  { name: 'Cost Control', href: '/cost-control', icon: Calculator, description: 'COGS, usage & purchasing', superadmin: true },
+  { get name() { return tr('Dashboard'); }, href: '/overview', icon: LayoutDashboard, get description() { return tr('Overview & analytics'); }, superadmin: false },
+  { get name() { return tr('Sales Transactions'); }, href: '/sales', icon: Receipt, get description() { return tr('View & export data'); }, superadmin: false },
+  { get name() { return tr('Cost Control'); }, href: '/cost-control', icon: Calculator, get description() { return tr('COGS, usage & purchasing'); }, superadmin: true },
 ];
 
 /** "Management" group: superadmin only (the pages and the API check the role too). */
 const management = [
-  { name: 'User Accounts', href: '/users', icon: Users, description: 'Logins, roles & branches' },
-  { name: 'Activity Logs', href: '/activity', icon: History, description: 'Who did what & exports' },
+  { get name() { return tr('User Accounts'); }, href: '/users', icon: Users, get description() { return tr('Logins, roles & branches'); } },
+  { get name() { return tr('Activity Logs'); }, href: '/activity', icon: History, get description() { return tr('Who did what & exports'); } },
 ];
 
 const platforms = [
-  { name: 'Roastery', href: '#', icon: assetUrl('assets/roastery.png') },
-  { name: 'Central Kitchen', href: '#', icon: assetUrl('assets/ck.png') },
-  { name: 'Warehouse Management System', href: '#', icon: assetUrl('assets/warehouse.png') },
-  { name: 'Operational', href: '#', icon: assetUrl('assets/operational.png') },
-  { name: 'Finance', href: '#', icon: assetUrl('assets/finance.png') },
+  { get name() { return tr('Roastery'); }, href: '#', icon: assetUrl('assets/roastery.png') },
+  { get name() { return tr('Central Kitchen'); }, href: '#', icon: assetUrl('assets/ck.png') },
+  { get name() { return tr('Warehouse Management System'); }, href: '#', icon: assetUrl('assets/warehouse.png') },
+  { get name() { return tr('Operational'); }, href: '#', icon: assetUrl('assets/operational.png') },
+  { get name() { return tr('Finance'); }, href: '#', icon: assetUrl('assets/finance.png') },
   { name: 'HRMS', href: '#', icon: assetUrl('assets/hr.png') },
 ];
 
@@ -106,8 +108,8 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
             type="button"
             onClick={toggleCollapsed}
             className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={collapsed ? tr('Expand sidebar') : tr('Collapse sidebar')}
+            title={collapsed ? tr('Expand sidebar') : tr('Collapse sidebar')}
           >
             {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
           </button>
@@ -116,7 +118,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
 
       {/* Mobile drawer */}
       <div
-        className={`fixed inset-0 z-[60] bg-slate-900/50 transition-opacity duration-200 lg:hidden ${
+        className={`fixed inset-0 z-[60] bg-slate-900/50 dark:bg-black/70 transition-opacity duration-200 lg:hidden ${
           mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onMobileClose}
@@ -141,7 +143,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
             type="button"
             onClick={onMobileClose}
             className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Close menu"
+            aria-label={tr('Close menu')}
           >
             <X size={18} />
           </button>
@@ -155,12 +157,12 @@ export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
       <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
-        <Image src={assetUrl('assets/calf-logo.png')} alt="Kopi Calf" fill sizes="36px" className="object-contain p-0.5" />
+        <Image src={assetUrl('assets/calf-logo.png')} alt={tr('Kopi Calf')} fill sizes="36px" className="object-contain p-0.5" />
       </div>
       {!compact && (
         <div className="min-w-0 leading-tight">
-          <p className="text-[15px] font-bold tracking-wide text-slate-900">PORTAL</p>
-          <p className="truncate text-xs text-slate-500">Integration Platform</p>
+          <p className="text-[15px] font-bold tracking-wide text-slate-900">{tr('PORTAL')}</p>
+          <p className="truncate text-xs text-slate-500">{tr('Integration Platform')}</p>
         </div>
       )}
     </div>
@@ -193,7 +195,7 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Main menu</p>}
+        {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Main menu')}</p>}
         <ul className="space-y-0.5">
           {items.map(item => (
             <li key={item.href}><NavItem item={item} active={pathname === item.href} collapsed={collapsed} onNavigate={onNavigate} /></li>
@@ -204,14 +206,14 @@ function SidebarContent({
         {isSuperadmin && (
           <div className="mt-5 border-t border-slate-100 pt-4">
             {collapsed ? (
-              <ul className="space-y-0.5" aria-label="Management">
+              <ul className="space-y-0.5" aria-label={tr('Management')}>
                 {management.map(item => (
                   <li key={item.href}><NavItem item={item} active={pathname === item.href} collapsed onNavigate={onNavigate} /></li>
                 ))}
               </ul>
             ) : (
               <>
-                <GroupToggle label="Management" icon={<UserCog size={13} />} open={managementOpen || managementActive}
+                <GroupToggle label={tr('Management')} icon={<UserCog size={13} />} open={managementOpen || managementActive}
                   onClick={onToggleManagement} />
                 {(managementOpen || managementActive) && (
                   <ul className="ml-[1.15rem] space-y-0.5 border-l border-slate-200 pl-2">
@@ -233,7 +235,7 @@ function SidebarContent({
                 <li key={p.name}>
                   <Link href={p.href} title={p.name} className="flex justify-center rounded-lg py-2 hover:bg-slate-50">
                     <span className="relative h-5 w-5">
-                      <Image src={p.icon} alt={p.name} fill sizes="20px" className="object-contain" />
+                      <Image src={p.icon} alt={p.name} fill sizes="20px" className="object-contain dark:invert" />
                     </span>
                   </Link>
                 </li>
@@ -241,7 +243,7 @@ function SidebarContent({
             </ul>
           ) : (
             <>
-              <GroupToggle label="Platforms" icon={<Blocks size={13} />} open={platformsOpen} onClick={onTogglePlatforms} />
+              <GroupToggle label={tr('Platforms')} icon={<Blocks size={13} />} open={platformsOpen} onClick={onTogglePlatforms} />
               {platformsOpen && (
                 <ul className="ml-[1.15rem] space-y-0.5 border-l border-slate-200 pl-2">
                   {platforms.map(p => (
@@ -252,7 +254,7 @@ function SidebarContent({
                         className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
                       >
                         <span className="relative h-4 w-4 flex-shrink-0">
-                          <Image src={p.icon} alt="" fill sizes="16px" className="object-contain" />
+                          <Image src={p.icon} alt="" fill sizes="16px" className="object-contain dark:invert" />
                         </span>
                         <span className="truncate">{p.name}</span>
                       </Link>
@@ -338,32 +340,33 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
                 </div>
               </div>
               <dl className="mt-2.5 space-y-1 text-xs">
-                <div className="flex justify-between gap-2"><dt className="text-slate-400">Username</dt><dd className="truncate font-medium text-slate-700">{user.username}</dd></div>
-                <div className="flex justify-between gap-2"><dt className="text-slate-400">Email</dt><dd className="truncate font-medium text-slate-700">{user.email}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-slate-400">{tr('Username')}</dt><dd className="truncate font-medium text-slate-700">{user.username}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-slate-400">{tr('Email')}</dt><dd className="truncate font-medium text-slate-700">{user.email}</dd></div>
               </dl>
             </div>
+            <PreferenceControls />
             <div className="p-1.5">
               <button
                 type="button"
                 onClick={() => { setOpen(false); openProfile(); }}
                 className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                <UserRoundPen size={16} /> My profile
-                {!user.profileComplete && <span className="ml-auto rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Incomplete</span>}
+                <UserRoundPen size={16} /> {tr('My profile')}
+                {!user.profileComplete && <span className="ml-auto rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">{tr('Incomplete')}</span>}
               </button>
               <button
                 type="button"
                 onClick={() => { setOpen(false); openPassword(); }}
                 className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                <KeyRound size={16} /> Change password
+                <KeyRound size={16} /> {tr('Change password')}
               </button>
               <button
                 type="button"
                 onClick={() => { setOpen(false); logout(); }}
                 className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
               >
-                <LogOut size={16} /> Sign out
+                <LogOut size={16} /> {tr('Sign out')}
               </button>
             </div>
           </div>
@@ -378,7 +381,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
           <span className="relative flex-shrink-0">
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
             {!user.profileComplete && (
-              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" title="Profile incomplete" />
+              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" title={tr('Profile incomplete')} />
             )}
           </span>
           {!collapsed && (
@@ -392,7 +395,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
           )}
         </button>
       </div>
-      {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">Integration Platform v1.4.0</p>}
+      {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">{tr('Integration Platform v1.4.0')}</p>}
     </div>
   );
 }

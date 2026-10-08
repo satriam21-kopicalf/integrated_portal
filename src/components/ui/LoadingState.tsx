@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
+import { tr } from '@/lib/i18n';
 
 /** A shimmering placeholder line or block (same look everywhere). */
 export function SkeletonBlock({ className = '' }: { className?: string }) {
@@ -13,7 +14,7 @@ export function SkeletonBlock({ className = '' }: { className?: string }) {
  */
 export default function LoadingState({ height = 200, label = 'data' }: { height?: number; label?: string }) {
   return (
-    <div className="relative flex flex-col gap-3" style={{ height }} role="status" aria-live="polite" aria-label={`Loading ${label}`}>
+    <div className="relative flex flex-col gap-3" style={{ height }} role="status" aria-live="polite" aria-label={tr('Loading {0}', label)}>
       <div className="flex gap-2">
         <SkeletonBlock className="h-3 w-28" />
         <SkeletonBlock className="h-3 w-16" />
@@ -25,7 +26,7 @@ export default function LoadingState({ height = 200, label = 'data' }: { height?
       </div>
       <span className="absolute inset-0 flex items-center justify-center">
         <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200">
-          <Loader2 size={13} className="animate-spin text-blue-600" /> Loading {label}…
+          <Loader2 size={13} className="animate-spin text-blue-600" /> {tr('Loading')} {label}…
         </span>
       </span>
     </div>
@@ -34,5 +35,5 @@ export default function LoadingState({ height = 200, label = 'data' }: { height?
 
 /** Thin progress bar for a card that refreshes while showing its previous data (parent: relative). */
 export function RefreshBar() {
-  return <span className="loading-bar" role="progressbar" aria-label="Updating" />;
+  return <span className="loading-bar" role="progressbar" aria-label={tr('Updating')} />;
 }

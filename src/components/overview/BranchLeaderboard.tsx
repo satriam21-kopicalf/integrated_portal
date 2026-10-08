@@ -6,20 +6,21 @@ import EChart, { ChartOption } from '@/components/charts/EChart';
 import { Legend } from '@/components/charts/common';
 import Sparkline from '@/components/charts/Sparkline';
 import { base, changeHtml, INK, tipFooter, tipRow, tipTitle, tooltip } from '@/lib/chartTheme';
-import { formatCurrency, formatNumber } from '@/lib/format';
+import { formatCurrency, formatNumber, fixed } from '@/lib/format';
 import { BranchesResponse, BranchRow, compactRupiah, Resource, useOverview, withParams } from '@/lib/overview';
 import { Card, CardTabs, Delta, Segmented } from './Card';
 import { AverageSalesBody, AverageSalesResponse } from './DailySales';
 import { to, useDrill } from './drill/DrillContext';
+import { tr } from '@/lib/i18n';
 
 type SortKey = 'subtotal' | 'deltaPct' | 'bills' | 'avgTicket' | 'subtotalPerDay' | 'voidRate';
 const COLUMNS: { key: SortKey; label: string; title: string }[] = [
-  { key: 'subtotal', label: 'Gross sales', title: 'Gross sales in the period' },
-  { key: 'deltaPct', label: 'Change', title: 'vs the previous period' },
-  { key: 'bills', label: 'Bills', title: 'Sales transactions' },
-  { key: 'avgTicket', label: 'Avg ticket', title: 'Gross sales ÷ bills' },
-  { key: 'subtotalPerDay', label: 'Gross sales / day', title: 'Gross sales per day with sales' },
-  { key: 'voidRate', label: 'Void rate', title: 'Void & cancelled ÷ all transactions' },
+  { key: 'subtotal', get label() { return tr('Gross sales'); }, get title() { return tr('Gross sales in the period'); } },
+  { key: 'deltaPct', get label() { return tr('Change'); }, get title() { return tr('vs the previous period'); } },
+  { key: 'bills', get label() { return tr('Bills'); }, get title() { return tr('Sales transactions'); } },
+  { key: 'avgTicket', get label() { return tr('Avg ticket'); }, get title() { return tr('Gross sales ÷ bills'); } },
+  { key: 'subtotalPerDay', get label() { return tr('Gross sales / day'); }, get title() { return tr('Gross sales per day with sales'); } },
+  { key: 'voidRate', get label() { return tr('Void rate'); }, get title() { return tr('Void & cancelled ÷ all transactions'); } },
 ];
 const PAGE = 10;
 
@@ -42,26 +43,26 @@ export default function BranchLeaderboard({ resource, query: baseQuery }: { reso
 
   return (
     <Card
-      title="Branches"
+      title={tr('Branches')}
       info="branches"
       subtitle={tab === 'board'
-        ? 'Gross sales per branch with change vs the comparison period · click a branch for its full profile'
-        : 'Gross sales per day per branch, this period vs the comparison period · all days or one weekday'}
+        ? tr('Gross sales per branch with change vs the comparison period · click a branch for its full profile')
+        : tr('Gross sales per day per branch, this period vs the comparison period · all days or one weekday')}
       resource={shown}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'branches' })}
-      tabs={<CardTabs label="Branches view" value={tab} onChange={setTab}
-        options={[{ value: 'board', label: 'Leaderboard' }, { value: 'weekday', label: 'Average per weekday' }]} />}
+      tabs={<CardTabs label={tr('Branches view')} value={tab} onChange={setTab}
+        options={[{ value: 'board', label: tr('Leaderboard') }, { value: 'weekday', label: tr('Average per weekday') }]} />}
       actions={tab === 'weekday' ? undefined :
         <>
-        <Segmented label="View" value={view} options={[{ value: 'table', label: 'Table' }, { value: 'chart', label: 'Top 10' }]} onChange={setView} />
+        <Segmented label={tr('View')} value={view} options={[{ value: 'table', label: tr('Table') }, { value: 'chart', label: tr('Top 10') }]} onChange={setView} />
         <label className="relative">
-          <span className="sr-only">Search branch</span>
+          <span className="sr-only">{tr('Search branch')}</span>
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search branch"
+            placeholder={tr('Search branch')}
             className="h-8 w-40 rounded-lg border border-slate-200 pl-8 pr-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none sm:w-48"
           />
         </label>
@@ -106,17 +107,17 @@ function Board({
   return (
     <div className="space-y-2">
       <p className="text-xs text-slate-500">
-        {formatNumber(data.branches.filter(b => b.subtotal > 0).length)} branches with sales · {compactRupiah(total)} total
+        {formatNumber(data.branches.filter(b => b.subtotal > 0).length)} {tr('branches with sales ·')} {compactRupiah(total)} {tr('total')}
       </p>
 
       {/* Desktop table */}
       <div className="custom-scrollbar hidden overflow-x-auto md:block">
         <table className="w-full whitespace-nowrap text-xs">
-          <caption className="sr-only">Branch leaderboard</caption>
+          <caption className="sr-only">{tr('Branch leaderboard')}</caption>
           <thead className="border-b border-slate-200 text-slate-500">
             <tr>
               <th scope="col" className="w-8 py-2 pr-2 text-left font-medium">#</th>
-              <th scope="col" className="py-2 pr-2 text-left font-medium">Branch</th>
+              <th scope="col" className="py-2 pr-2 text-left font-medium">{tr('Branch')}</th>
               {COLUMNS.map(c => (
                 <th key={c.key} scope="col" className="py-2 pl-2 text-right font-medium" aria-sort={sort.key === c.key ? (sort.desc ? 'descending' : 'ascending') : 'none'}>
                   <button type="button" onClick={() => toggle(c.key)} title={c.title} className={`inline-flex items-center gap-0.5 hover:text-slate-900 ${sort.key === c.key ? 'text-slate-900' : ''}`}>
@@ -125,7 +126,7 @@ function Board({
                   </button>
                 </th>
               ))}
-              <th scope="col" className="w-28 py-2 pl-3 text-left font-medium">Trend</th>
+              <th scope="col" className="w-28 py-2 pl-3 text-left font-medium">{tr('Trend')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -136,7 +137,7 @@ function Board({
                   <p className="truncate font-medium text-slate-800" title={b.branchName}>{b.branchName}</p>
                   <p className="text-[11px] text-slate-400">
                     {b.branchCode}
-                    {b.isNew && <span className="ml-1.5 rounded bg-blue-50 px-1 py-px font-medium text-blue-700">New</span>}
+                    {b.isNew && <span className="ml-1.5 rounded bg-blue-50 px-1 py-px font-medium text-blue-700">{tr('New')}</span>}
                   </p>
                 </td>
                 <td className="py-2 pl-2 text-right tabular-nums font-medium text-slate-900" title={formatCurrency(b.subtotal)}>{compactRupiah(b.subtotal)}</td>
@@ -144,8 +145,8 @@ function Board({
                 <td className="py-2 pl-2 text-right tabular-nums text-slate-700">{formatNumber(b.bills)}</td>
                 <td className="py-2 pl-2 text-right tabular-nums text-slate-700">{formatNumber(Math.round(b.avgTicket))}</td>
                 <td className="py-2 pl-2 text-right tabular-nums text-slate-700">{compactRupiah(b.subtotalPerDay)}</td>
-                <td className="py-2 pl-2 text-right tabular-nums text-slate-700">{b.voidRate === null ? '-' : `${b.voidRate.toFixed(2)}%`}</td>
-                <td className="py-2 pl-3"><Sparkline values={b.spark} height={22} label={`${b.branchName} gross sales trend`} /></td>
+                <td className="py-2 pl-2 text-right tabular-nums text-slate-700">{b.voidRate === null ? '-' : `${fixed(b.voidRate, 2)}%`}</td>
+                <td className="py-2 pl-3"><Sparkline values={b.spark} height={22} label={tr('{0} gross sales trend', b.branchName)} /></td>
               </tr>
             ))}
           </tbody>
@@ -160,7 +161,7 @@ function Board({
               <span className="w-6 flex-shrink-0 text-xs tabular-nums text-slate-400">{b.rank}</span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-slate-800">{b.branchName}</p>
-                <p className="text-[11px] text-slate-400">{b.branchCode} · {formatNumber(b.bills)} bills · void {b.voidRate === null ? '-' : `${b.voidRate.toFixed(2)}%`}</p>
+                <p className="text-[11px] text-slate-400">{b.branchCode} · {formatNumber(b.bills)} {tr('bills · void')} {b.voidRate === null ? '-' : `${fixed(b.voidRate, 2)}%`}</p>
               </div>
               <div className="flex-shrink-0 text-right">
                 <p className="text-sm font-semibold tabular-nums text-slate-900">{compactRupiah(b.subtotal)}</p>
@@ -174,10 +175,10 @@ function Board({
 
       {!query && ranked.length > PAGE && (
         <button type="button" onClick={() => setShowAll(!showAll)} className="w-full rounded-lg py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900">
-          {showAll ? 'Show top 10' : `Show all ${ranked.length} branches`}
+          {showAll ? tr('Show top 10') : tr('Show all {0} branches', ranked.length)}
         </button>
       )}
-      {!visible.length && <p className="py-6 text-center text-sm text-slate-400">No branch matches “{query}”</p>}
+      {!visible.length && <p className="py-6 text-center text-sm text-slate-400">{tr('No branch matches “')}{query}”</p>}
     </div>
   );
 }
@@ -204,9 +205,9 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
       formatter: (items: { dataIndex: number }[]) => {
         const b = rows[items[0]?.dataIndex ?? 0];
         return tipTitle(b.branchName)
-          + tipRow(INK.accent, formatCurrency(b.subtotal), 'This period')
-          + (hasPrev ? tipRow(INK.previous, formatCurrency(b.previousSubtotal), 'Previous period') : '')
-          + tipFooter(`Change ${changeHtml(b.deltaPct)} · ${formatNumber(b.bills)} bills · void ${b.voidRate?.toFixed(2) ?? '-'}%`);
+          + tipRow(INK.accent, formatCurrency(b.subtotal), tr('This period'))
+          + (hasPrev ? tipRow(INK.previous, formatCurrency(b.previousSubtotal), tr('Previous period')) : '')
+          + tipFooter(tr('Change {0} · {1} bills · void {2}%', changeHtml(b.deltaPct), formatNumber(b.bills), fixed(b.voidRate, 2) ?? '-'));
       },
     }),
     xAxis: { type: 'value', show: false },
@@ -219,18 +220,18 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
     },
     series: [
       ...(hasPrev ? [{
-        name: 'Previous period', type: 'bar', data: rows.map(b => b.previousSubtotal), barWidth: 6, barGap: '20%',
+        name: tr('Previous period'), type: 'bar', data: rows.map(b => b.previousSubtotal), barWidth: 6, barGap: '20%',
         itemStyle: { color: INK.previous, borderRadius: [0, 3, 3, 0] }, silent: true,
       }] : []),
       {
-        name: 'This period', type: 'bar', data: rows.map(b => b.subtotal), barWidth: 12,
+        name: tr('This period'), type: 'bar', data: rows.map(b => b.subtotal), barWidth: 12,
         itemStyle: { color: INK.accent, borderRadius: [0, 4, 4, 0] },
         label: {
           show: true, position: 'right', fontSize: 11,
           formatter: (p: { dataIndex: number }) => {
             const b = rows[p.dataIndex];
             const d = b.deltaPct;
-            return `{v|${compactRupiah(b.subtotal)}}${d === null ? '' : `  {${d >= 0 ? 'up' : 'down'}|${d >= 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(1)}%}`}`;
+            return `{v|${compactRupiah(b.subtotal)}}${d === null ? '' : `  {${d >= 0 ? 'up' : 'down'}|${d >= 0 ? '▲' : '▼'} ${fixed(Math.abs(d), 1)}%}`}`;
           },
           rich: { v: { fontWeight: 600, color: INK.primary }, up: { color: '#047857' }, down: { color: '#be123c' } },
         },
@@ -241,10 +242,10 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
   return (
     <div className="space-y-2">
       <Legend items={[
-        { key: 'cur', label: 'This period', color: INK.accent },
-        ...(hasPrev ? [{ key: 'prev', label: 'Previous period', color: INK.previous }] : []),
+        { key: 'cur', label: tr('This period'), color: INK.accent },
+        ...(hasPrev ? [{ key: 'prev', label: tr('Previous period'), color: INK.previous }] : []),
       ]} />
-      <EChart option={option} height={Math.max(220, rows.length * 34)} ariaLabel="Top 10 branches by gross sales, this period and previous period"
+      <EChart option={option} height={Math.max(220, rows.length * 34)} ariaLabel={tr('Top 10 branches by gross sales, this period and previous period')}
         onClick={p => { const b = rows[p.dataIndex]; if (b) drill.open(to.branch(b.branchCode, b.branchName)); }} />
     </div>
   );

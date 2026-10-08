@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRealtime } from './realtime';
+import { tr, serverMsg } from './i18n';
 
 export interface LiveSale {
   salesNum: string;
@@ -67,7 +68,7 @@ export function useLive(query: string): { data: LiveResponse | null; error: stri
     fetch(`/api/live?${query}${v}`, { signal: controller.signal, cache: 'no-store' })
       .then(async res => {
         const body = await res.json();
-        if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+        if (!res.ok) throw new Error(serverMsg(body.error) || `HTTP ${res.status}`);
         setState({ data: body, error: null, fetchedAt: Date.now() });
       })
       .catch((error: Error) => {
@@ -118,7 +119,7 @@ export function minutesAgo(iso: string | null, now: number): string {
   if (!iso) return 'never';
   const m = Math.max(0, Math.round((now - new Date(iso).getTime()) / 60000));
   if (m < 1) return 'just now';
-  if (m < 60) return `${m} min ago`;
+  if (m < 60) return tr('{0} min ago', m);
   const h = Math.floor(m / 60);
-  return `${h} h ${m % 60} min ago`;
+  return tr('{0} h {1} min ago', h, m % 60);
 }

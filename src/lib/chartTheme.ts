@@ -2,6 +2,7 @@
 // part; tooltips list values first. Labels coming from the API are escaped.
 
 import { compactNumber, compactRupiah } from './overview';
+import { fixed } from './format';
 
 export const INK = {
   primary: '#0f172a',
@@ -83,5 +84,5 @@ export function changeHtml(pct: number | null | undefined, upIsGood = true): str
   const good = pct === 0 ? null : (pct > 0) === upIsGood;
   const color = good === null ? INK.secondary : good ? '#047857' : '#be123c';
   const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '■';
-  return `<span style="color:${color};font-weight:600">${arrow} ${pct > 0 ? '+' : pct < 0 ? '−' : ''}${Math.abs(pct).toFixed(1)}%</span>`;
+  return `<span style="color:${color};font-weight:600">${arrow} ${pct > 0 ? '+' : pct < 0 ? '−' : ''}${fixed(Math.abs(pct), 1)}%</span>`;
 }

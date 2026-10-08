@@ -8,7 +8,8 @@ import { Card, Segmented } from '@/components/overview/Card';
 import {
   Basis, cogsPct, cogsStatus, ForecastResponse, pctText, periodLabel, sales, STATUS, STATUS_ORDER, SummaryResponse, useCostControl,
 } from '@/lib/costControl';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, fixed } from '@/lib/format';
+import { tr } from '@/lib/i18n';
 
 /**
  * Cost control at a glance on the Overview: COGS ratio, usage ratio, stock variance,
@@ -30,18 +31,18 @@ export default function CostControlCard({ dateFrom, dateTo, branch }: { dateFrom
 
   return (
     <Card
-      title="Cost control"
+      title={tr('Cost control')}
       info="cost"
       subtitle={summary.data?.periods.length
-        ? `COGS & usage · opname periods ${periodLabel(summary.data.periods[0].start, summary.data.periods[summary.data.periods.length - 1].end)}`
-        : 'COGS & usage per stock-opname period'}
+        ? tr('COGS & usage · opname periods {0}', periodLabel(summary.data.periods[0].start, summary.data.periods[summary.data.periods.length - 1].end))
+        : tr('COGS & usage per stock-opname period')}
       resource={summary}
       minHeight={260}
       actions={
         <>
-          <Segmented label="Ratio basis" value={basis} options={[{ value: 'net', label: 'Net sales' }, { value: 'subtotal', label: 'Subtotal' }]} onChange={setBasis} />
+          <Segmented label={tr('Ratio basis')} value={basis} options={[{ value: 'net', label: tr('Net sales') }, { value: 'subtotal', label: tr('Subtotal') }]} onChange={setBasis} />
           <Link href={link} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50">
-            Open Cost Control <ArrowRight size={13} />
+            {tr('Open Cost Control')} <ArrowRight size={13} />
           </Link>
         </>
       }
@@ -54,27 +55,27 @@ export default function CostControlCard({ dateFrom, dateTo, branch }: { dateFrom
         const attention = [...active]
           .sort((a, b) => (cogsPct(b, basis, 'actual') ?? 0) - (cogsPct(a, basis, 'actual') ?? 0))
           .slice(0, 5);
-        if (!active.length) return <p className="py-12 text-center text-sm text-slate-400">No cost data for this period yet</p>;
+        if (!active.length) return <p className="py-12 text-center text-sm text-slate-400">{tr('No cost data for this period yet')}</p>;
         return (
           <div className="grid gap-4 lg:grid-cols-12">
             <dl className="grid grid-cols-2 gap-px self-start overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-3 lg:col-span-7">
-              <Fig label="Actual COGS" value={formatCurrency(Math.round(t.actualCogs))}>
+              <Fig label={tr('Actual COGS')} value={formatCurrency(Math.round(t.actualCogs))}>
                 <StatusBadge status={cogsStatus(t, basis)} value={pctText(cogsPct(t, basis, 'actual'))} />
               </Fig>
-              <Fig label="Theoretical COGS" value={formatCurrency(Math.round(t.theoreticalCogs))}>
-                <span className="text-xs text-slate-500">{pctText(cogsPct(t, basis, 'theoretical'))} · recipes</span>
+              <Fig label={tr('Theoretical COGS')} value={formatCurrency(Math.round(t.theoreticalCogs))}>
+                <span className="text-xs text-slate-500">{pctText(cogsPct(t, basis, 'theoretical'))} {tr('· recipes')}</span>
               </Fig>
-              <Fig label="Usage ratio" value={t.hasOpname ? pctText(t.usageRatio) : '–'}>
-                <StatusBadge status={t.status.gapNet} value={gap === null ? '–' : `${gap > 0 ? '+' : ''}${gap.toFixed(1)} pp`} />
+              <Fig label={tr('Usage ratio')} value={t.hasOpname ? pctText(t.usageRatio) : '–'}>
+                <StatusBadge status={t.status.gapNet} value={gap === null ? '–' : `${gap > 0 ? '+' : ''}${fixed(gap, 1)} pp`} />
               </Fig>
-              <Fig label="Stock variance" value={formatCurrency(Math.round(t.variance))}>
-                <span className="text-xs text-slate-500">other usage {formatCurrency(Math.round(t.otherUsage))}</span>
+              <Fig label={tr('Stock variance')} value={formatCurrency(Math.round(t.variance))}>
+                <span className="text-xs text-slate-500">{tr('other usage')} {formatCurrency(Math.round(t.otherUsage))}</span>
               </Fig>
-              <Fig label="Purchases" value={formatCurrency(Math.round(t.purchases))}>
-                <span className="text-xs text-slate-500">received in the period</span>
+              <Fig label={tr('Purchases')} value={formatCurrency(Math.round(t.purchases))}>
+                <span className="text-xs text-slate-500">{tr('received in the period')}</span>
               </Fig>
-              <Fig label="Next 7 days (est.)" value={forecast.data ? formatCurrency(Math.round(forecast.data.totals.spend7)) : '…'}>
-                <span className="text-xs text-slate-500">{forecast.data ? `1 month ${formatCurrency(Math.round(forecast.data.totals.spend30))}` : 'purchase forecast'}</span>
+              <Fig label={tr('Next 7 days (est.)')} value={forecast.data ? formatCurrency(Math.round(forecast.data.totals.spend7)) : '…'}>
+                <span className="text-xs text-slate-500">{forecast.data ? tr('1 month {0}', formatCurrency(Math.round(forecast.data.totals.spend30))) : tr('purchase forecast')}</span>
               </Fig>
             </dl>
             <div className="min-w-0 space-y-2 lg:col-span-5">
@@ -88,13 +89,13 @@ export default function CostControlCard({ dateFrom, dateTo, branch }: { dateFrom
                   </span>
                 ))}
               </p>
-              <p className="pt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Highest COGS</p>
+              <p className="pt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Highest COGS')}</p>
               <ul className="divide-y divide-slate-100 rounded-lg border border-slate-100">
                 {attention.map(o => (
                   <li key={o.branchCode} className="flex items-center gap-2 px-3 py-2 text-xs">
                     <span className="min-w-0 flex-1 truncate font-medium text-slate-800" title={o.branchName}>{o.branchName}</span>
                     <StatusBadge status={cogsStatus(o, basis)} value={pctText(cogsPct(o, basis, 'actual'))} />
-                    <StatusBadge status={o.status.usage} value={o.hasOpname ? pctText(o.usageRatio) : 'no opname'} title="Usage ratio" />
+                    <StatusBadge status={o.status.usage} value={o.hasOpname ? pctText(o.usageRatio) : 'no opname'} title={tr('Usage ratio')} />
                   </li>
                 ))}
               </ul>

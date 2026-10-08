@@ -11,14 +11,15 @@
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { tr, serverMsg } from './i18n';
 
 export type ReportKind = 'detail' | 'daily';
 export type ExportFormat = 'xlsx' | 'gsheet';
 /** Google Sheets holds at most 10 million cells per spreadsheet */
 export const GSHEET_MAX_CELLS = 10_000_000;
 export const REPORTS: { value: ReportKind; label: string; description: string }[] = [
-  { value: 'detail', label: 'Sales Recapitulation Detail', description: 'One row per menu item · 46 columns' },
-  { value: 'daily', label: 'Daily Sales Recapitulation', description: 'One row per date and branch' },
+  { value: 'detail', get label() { return tr('Sales Recapitulation Detail'); }, get description() { return tr('One row per menu item · 46 columns'); } },
+  { value: 'daily', get label() { return tr('Daily Sales Recapitulation'); }, get description() { return tr('One row per date and branch'); } },
 ];
 
 // Excel export job state returned by integrated_portal_be (/api/exports)
@@ -164,7 +165,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
             key: j.id,
             params: {
               dateFrom: j.dateFrom, dateTo: j.dateTo, branch: j.branch ?? undefined, txType: j.type ?? 'sales',
-              report: j.report ?? 'detail', format: j.format ?? 'xlsx', branchLabel: j.branch ? j.branch.split(',').join(', ') : 'All branches',
+              report: j.report ?? 'detail', format: j.format ?? 'xlsx', branchLabel: j.branch ? j.branch.split(',').join(', ') : tr('All branches'),
               typeLabel: j.type ?? 'sales',
             },
             startedAt: j.createdAt ? Date.parse(j.createdAt) : Date.now(),
@@ -190,7 +191,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
         try {
           const res = await fetch(`/api/exports/${t.key}`, { cache: 'no-store' });
           if (res.status === 404) {
-            update(t.key, { error: 'Export tidak ditemukan atau sudah kedaluwarsa.' });
+            update(t.key, { error: tr('The export was not found or has expired.') });
             continue;
           }
           if (!res.ok) continue; // transient: try again on the next tick
@@ -225,7 +226,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
     })
       .then(async res => {
         const body = await res.json();
-        if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+        if (!res.ok) throw new Error(serverMsg(body.error) || `HTTP ${res.status}`);
         setList(prev => prev.map(t => (t.key === temp ? { ...t, key: body.id, job: body } : t)));
       })
       .catch(error => update(temp, { error: error instanceof Error ? error.message : 'Unknown error' }));

@@ -5,12 +5,13 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarClock, Clock3, Receipt, ShoppingBag, Tag } from 'lucide-react';
 import ChannelLogo from '@/components/ChannelLogo';
 import EChart, { ChartOption } from '@/components/charts/EChart';
-import { formatCurrency, formatNumber } from '@/lib/format';
+import { formatCurrency, formatNumber, fixed } from '@/lib/format';
 import { base, categoryAxis, INK, tipRow, tipTitle, tooltip } from '@/lib/chartTheme';
 import { clock, LiveResponse, LiveSale, minutesAgo, useCountUp } from '@/lib/live';
 import { channelColor, channelKey, channelOrder, paymentLabel } from '@/lib/overview';
 import { useRealtime } from '@/lib/realtime';
 import { Delta } from './Card';
+import { locale, tr } from '@/lib/i18n';
 
 const MAX_ROWS = 25;
 const STREAM_MS = 450; // gap between newly arrived sales sliding in
@@ -25,7 +26,7 @@ interface Row {
 
 export function itemsLine(sale: LiveSale): string {
   const names = sale.items.map(i => (i.qty > 1 ? `${i.name} ×${i.qty}` : i.name)).join(', ');
-  return sale.moreItems ? `${names} +${sale.moreItems} more` : names;
+  return sale.moreItems ? tr('{0} +{1} more', names, sale.moreItems) : names;
 }
 
 const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
@@ -92,16 +93,16 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         formatter: (items: { dataIndex: number }[]) => {
           const h = hours[items[0]?.dataIndex ?? 0];
           return tipTitle(`${hourLabel(h)}–${hourLabel(h + 1)}`)
-            + tipRow(INK.accent, formatCurrency(today.get(h)?.subtotal ?? 0), `today · ${formatNumber(today.get(h)?.bills ?? 0)} bills`)
+            + tipRow(INK.accent, formatCurrency(today.get(h)?.subtotal ?? 0), tr('today · {0} bills', formatNumber(today.get(h)?.bills ?? 0)))
             + tipRow(INK.previous, formatCurrency(yday.get(h)?.subtotal ?? 0), 'yesterday', 'line');
         },
       }),
       xAxis: categoryAxis(hours.map(h => String(h).padStart(2, '0')), { axisLabel: { color: INK.muted, fontSize: 10, interval: 2 } }),
       yAxis: { type: 'value', show: false },
       series: [
-        { name: 'Today', type: 'bar', barMaxWidth: 12, data: hours.map(h => today.get(h)?.subtotal ?? 0),
+        { name: tr('Today'), type: 'bar', barMaxWidth: 12, data: hours.map(h => today.get(h)?.subtotal ?? 0),
           itemStyle: { color: INK.accent, borderRadius: [3, 3, 0, 0] } },
-        { name: 'Yesterday', type: 'line', symbol: 'none', data: hours.map(h => yday.get(h)?.subtotal ?? 0),
+        { name: tr('Yesterday'), type: 'line', symbol: 'none', data: hours.map(h => yday.get(h)?.subtotal ?? 0),
           lineStyle: { color: INK.previous, width: 1.5, type: 'dashed' } },
       ],
     };
@@ -122,25 +123,25 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
 
   const batch = data?.lastBatch;
   const dateLabel = t
-    ? new Date(`${t.date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+    ? new Date(`${t.date}T00:00:00`).toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' })
     : '';
 
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white" aria-label="Gross sales today">
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white" aria-label={tr('Gross sales today')}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <CalendarClock size={15} className="text-blue-600" aria-hidden /> Today <InfoTip info="today" />
+            <CalendarClock size={15} className="text-blue-600" aria-hidden /> {tr('Today')} <InfoTip info="today" />
           </h2>
           <p className="mt-0.5 text-xs text-slate-500">
-            {dateLabel || 'Today'} · follows the branch and channel filters
+            {dateLabel || tr('Today')} {tr('· follows the branch and channel filters')}
           </p>
         </div>
         <p className="flex items-center gap-1.5 text-xs text-slate-500">
           <Clock3 size={13} aria-hidden />
           {data && (data.lastSyncedAt || salesSyncedAt)
-            ? <>Last new data {minutesAgo(data.lastSyncedAt ?? salesSyncedAt, now)}</>
-            : error ? 'Could not load live sales' : 'Connecting…'}
+            ? <>{tr('Last new data')} {minutesAgo(data.lastSyncedAt ?? salesSyncedAt, now)}</>
+            : error ? tr('Could not load live sales') : tr('Connecting…')}
         </p>
       </header>
 
@@ -148,7 +149,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         {/* Today's figures */}
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Gross sales today</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Gross sales today')}</p>
             {t ? (
               <>
                 <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 tabular-nums" title={formatCurrency(t.subtotal)}>
@@ -157,7 +158,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                 <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
                   <Delta value={t.deltaPct} />
                   <Diff value={t.subtotal - t.yesterdaySameTime.subtotal} rupiah />
-                  <span>vs yesterday at this time ({formatCurrency(t.yesterdaySameTime.subtotal)})</span>
+                  <span>{tr('vs yesterday at this time (')}{formatCurrency(t.yesterdaySameTime.subtotal)})</span>
                 </p>
               </>
             ) : (
@@ -168,50 +169,50 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
           {t && ofYesterday !== null && (
             <div>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="text-slate-500">Progress vs yesterday&apos;s full day</span>
-                <span className="font-semibold tabular-nums text-slate-900">{ofYesterday.toFixed(0)}%</span>
+                <span className="text-slate-500">{tr('Progress vs yesterday\'s full day')}</span>
+                <span className="font-semibold tabular-nums text-slate-900">{fixed(ofYesterday, 0)}%</span>
               </div>
               <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full bg-blue-600 transition-[width] duration-700" style={{ width: `${Math.min(100, ofYesterday)}%` }} />
               </div>
               <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[11px]">
-                <span className="text-slate-400">Yesterday full day: {formatCurrency(data!.yesterday.subtotal)}</span>
+                <span className="text-slate-400">{tr('Yesterday full day:')} {formatCurrency(data!.yesterday.subtotal)}</span>
                 <span className="flex items-baseline gap-1">
                   <Diff value={t.subtotal - data!.yesterday.subtotal} rupiah />
-                  <span className="text-slate-400">{t.subtotal >= data!.yesterday.subtotal ? 'above yesterday' : 'to reach yesterday'}</span>
+                  <span className="text-slate-400">{t.subtotal >= data!.yesterday.subtotal ? tr('above yesterday') : tr('to reach yesterday')}</span>
                 </span>
               </div>
             </div>
           )}
 
           <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
-            <MiniStat icon={<Receipt size={13} />} label="Bills" value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct}
+            <MiniStat icon={<Receipt size={13} />} label={tr('Bills')} value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct}
               diff={t && ys ? <Diff value={t.bills - ys.bills} /> : null} />
-            <MiniStat icon={<ShoppingBag size={13} />} label="Avg ticket" value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} delta={t ? avgDeltaPct : undefined}
+            <MiniStat icon={<ShoppingBag size={13} />} label={tr('Avg ticket')} value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} delta={t ? avgDeltaPct : undefined}
               diff={t && ysAvg ? <Diff value={Math.round(t.avgTicket - ysAvg)} rupiah /> : null} />
-            <MiniStat icon={<Tag size={13} />} label="Nett sales" value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct}
+            <MiniStat icon={<Tag size={13} />} label={tr('Nett sales')} value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct}
               diff={t && ys ? <Diff value={t.nettSales - ys.nettSales} rupiah /> : null} />
           </dl>
-          {t && <p className="-mt-2 text-[11px] text-slate-400">− / + vs yesterday at this time</p>}
+          {t && <p className="-mt-2 text-[11px] text-slate-400">{tr('− / + vs yesterday at this time')}</p>}
         </div>
 
         {/* Hourly and channels */}
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Gross sales by hour</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Gross sales by hour')}</p>
               <span className="flex items-center gap-3 text-[11px] text-slate-500">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#2a78d6]" />Today</span>
-                <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />Yesterday</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#2a78d6]" />{tr('Today')}</span>
+                <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />{tr('Yesterday')}</span>
               </span>
             </div>
-            {hourOption ? <EChart option={hourOption} height={120} ariaLabel="Gross sales per hour today compared with yesterday" /> : <div className="h-[120px]" />}
+            {hourOption ? <EChart option={hourOption} height={120} ariaLabel={tr('Gross sales per hour today compared with yesterday')} /> : <div className="h-[120px]" />}
           </div>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Channels today</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Channels today')}</p>
             {channels.length > 0 && t ? (
               <>
-                <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label="Share of today's sales per channel">
+                <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={tr('Share of today\'s sales per channel')}>
                   {channels.map(c => (
                     <span key={c.channel} className="h-full border-r-2 border-white last:border-r-0"
                       style={{ width: `${(c.subtotal / t.subtotal) * 100}%`, background: channelColor(c.channel) }} />
@@ -224,13 +225,13 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                         <span className="h-2 w-2 flex-shrink-0 rounded-sm" style={{ background: channelColor(c.channel) }} />
                         <ChannelLogo channel={c.channel} height={13} labelClassName="text-slate-600" />
                       </span>
-                      <span className="tabular-nums text-slate-900">{((c.subtotal / t.subtotal) * 100).toFixed(0)}%</span>
+                      <span className="tabular-nums text-slate-900">{fixed(((c.subtotal / t.subtotal) * 100), 0)}%</span>
                     </li>
                   ))}
                 </ul>
               </>
             ) : (
-              <p className="mt-2 text-xs text-slate-400">No sales yet today</p>
+              <p className="mt-2 text-xs text-slate-400">{tr('No sales yet today')}</p>
             )}
           </div>
         </div>
@@ -238,14 +239,14 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         {/* Latest sales feed */}
         <div className="flex min-w-0 flex-col xl:col-span-4">
           <div className="flex items-center justify-between px-4 pt-4 sm:px-5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Latest sales</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Latest sales')}</p>
             {batch && batch.bills > 0 && (
-              <span className="text-[11px] text-slate-500" title="Sales that arrived with the most recent sync">
-                +{formatNumber(batch.bills)} at last sync · {formatCurrency(batch.subtotal)}
+              <span className="text-[11px] text-slate-500" title={tr('Sales that arrived with the most recent sync')}>
+                +{formatNumber(batch.bills)} {tr('at last sync ·')} {formatCurrency(batch.subtotal)}
               </span>
             )}
           </div>
-          <ol className="custom-scrollbar mt-2 max-h-[19rem] flex-1 overflow-y-auto px-2 pb-2 sm:px-3" aria-live="polite" aria-label="Latest sales">
+          <ol className="custom-scrollbar mt-2 max-h-[19rem] flex-1 overflow-y-auto px-2 pb-2 sm:px-3" aria-live="polite" aria-label={tr('Latest sales')}>
             {rows.map(({ sale, mode, delay, arrived }) => {
               const isNew = mode === 'fresh' && now - arrived < FRESH_MS;
               return (
@@ -257,7 +258,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                   <span className="pt-0.5 font-mono text-[11px] tabular-nums text-slate-400">{clock(sale.orderTime)}</span>
                   <div className="min-w-0">
                     <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-slate-800" title={sale.branchName}>
-                      {isNew && <span className="rounded bg-blue-600 px-1 text-[9px] font-bold uppercase tracking-wide text-white">New</span>}
+                      {isNew && <span className="rounded bg-blue-600 px-1 text-[9px] font-bold uppercase tracking-wide text-white">{tr('New')}</span>}
                       <span className="truncate">{sale.branchName.replace(/^Kopi Calf /, '')}</span>
                     </p>
                     <p className="truncate text-[11px] text-slate-500" title={itemsLine(sale)}>{itemsLine(sale)}</p>
@@ -270,10 +271,10 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                 </li>
               );
             })}
-            {data && !rows.length && <li className="py-8 text-center text-sm text-slate-400">No sales yet today</li>}
+            {data && !rows.length && <li className="py-8 text-center text-sm text-slate-400">{tr('No sales yet today')}</li>}
           </ol>
           <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400 sm:px-5">
-            Outlet local time · updates automatically after every POS sync (every 15 min, 06:00–24:00 WIB)
+            {tr('Outlet local time · updates automatically after every POS sync (every 15 min, 06:00–24:00 WIB)')}
           </p>
         </div>
       </div>

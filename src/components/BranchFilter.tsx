@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { Check, Search, Store } from 'lucide-react';
 import { formatNumber } from '@/lib/format';
 import { useClickOutside } from '@/lib/useClickOutside';
+import { tr } from '@/lib/i18n';
 
 export interface Branch {
   branch_code: string;
@@ -27,9 +28,9 @@ export function splitBranches(value: string | null | undefined): string[] {
 /** Text for the selected branches: "All branches", the name of one, or "3 branches". */
 export function branchesLabel(value: string, branches: Branch[]): string {
   const codes = splitBranches(value);
-  if (!codes.length) return 'All branches';
+  if (!codes.length) return tr('All branches');
   if (codes.length === 1) return branches.find(b => b.branch_code === codes[0])?.branch_name ?? codes[0];
-  return `${codes.length} branches`;
+  return tr('{0} branches', codes.length);
 }
 
 /**
@@ -54,7 +55,7 @@ export default function BranchFilter({ branches, loading, value, onChange }: Bra
     setIsOpen(true);
   };
 
-  const label = `Branch: ${branchesLabel(value, branches)}`;
+  const label = tr('Branch: {0}', branchesLabel(value, branches));
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -107,44 +108,44 @@ export default function BranchFilter({ branches, loading, value, onChange }: Bra
                 autoFocus
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Search branch or code…"
+                placeholder={tr('Search branch or code…')}
                 className="h-9 w-full rounded-md border border-slate-200 pl-8 pr-2 text-sm placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
               />
             </div>
             <div className="mt-2 flex items-center justify-between gap-2 px-0.5 text-xs">
-              <span className="text-slate-500">{draft.size ? `${draft.size} selected` : 'All branches'}</span>
+              <span className="text-slate-500">{draft.size ? tr('{0} selected', draft.size) : tr('All branches')}</span>
               <span className="flex gap-3">
                 <button type="button" className="font-medium text-blue-700 hover:underline disabled:text-slate-300 disabled:no-underline"
                   disabled={!filtered.length} onClick={() => setDraft(d => new Set([...d, ...filtered.map(b => b.branch_code)]))}>
-                  Select {query ? 'shown' : 'all'}
+                  {tr('Select')} {query ? tr('shown') : tr('all')}
                 </button>
                 <button type="button" className="font-medium text-slate-600 hover:underline disabled:text-slate-300 disabled:no-underline"
                   disabled={!draft.size} onClick={() => setDraft(new Set())}>
-                  Clear
+                  {tr('Clear')}
                 </button>
               </span>
             </div>
           </div>
-          <div className="max-h-80 overflow-y-auto p-1" role="listbox" aria-multiselectable="true" aria-label="Branches">
-            {loading && <p className="px-3 py-6 text-center text-sm text-slate-400">Loading branches…</p>}
+          <div className="max-h-80 overflow-y-auto p-1" role="listbox" aria-multiselectable="true" aria-label={tr('Branches')}>
+            {loading && <p className="px-3 py-6 text-center text-sm text-slate-400">{tr('Loading branches…')}</p>}
             {!loading && filtered.length === 0 && (
-              <p className="px-3 py-6 text-center text-sm text-slate-400">No branch matches “{query}”</p>
+              <p className="px-3 py-6 text-center text-sm text-slate-400">{tr('No branch matches “')}{query}”</p>
             )}
             {filtered.map(b => (
               <BranchOption
                 key={b.branch_code}
                 label={b.branch_name}
-                hint={`${b.branch_code} · ${formatNumber(b.count)} sales (65 days)`}
+                hint={tr('{0} · {1} sales (65 days)', b.branch_code, formatNumber(b.count))}
                 checked={draft.has(b.branch_code)}
                 onClick={() => toggle(b.branch_code)}
               />
             ))}
           </div>
           <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 p-2">
-            <button type="button" onClick={close} className="h-8 rounded-md px-3 text-sm font-medium text-slate-600 hover:bg-slate-100">Cancel</button>
+            <button type="button" onClick={close} className="h-8 rounded-md px-3 text-sm font-medium text-slate-600 hover:bg-slate-100">{tr('Cancel')}</button>
             <button type="button" onClick={() => apply(draft)}
               className="h-8 rounded-md bg-slate-900 px-3 text-sm font-semibold text-white hover:bg-slate-800">
-              {draft.size ? `Apply (${draft.size})` : 'Show all branches'}
+              {draft.size ? tr('Apply ({0})', draft.size) : tr('Show all branches')}
             </button>
           </div>
         </div>

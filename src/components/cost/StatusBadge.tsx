@@ -2,6 +2,7 @@
 
 import { AlertTriangle, CheckCircle2, CircleAlert, OctagonAlert } from 'lucide-react';
 import { STATUS, Status } from '@/lib/costControl';
+import { tr } from '@/lib/i18n';
 
 const ICONS = { good: CheckCircle2, warning: CircleAlert, serious: AlertTriangle, critical: OctagonAlert };
 
@@ -12,7 +13,7 @@ export default function StatusBadge({ status, value, title, compact = false }: {
   title?: string;
   compact?: boolean;
 }) {
-  if (!status) return <span className="text-xs text-slate-400" title={title ?? 'Not enough data'}>{value ?? '–'}</span>;
+  if (!status) return <span className="text-xs text-slate-400" title={title ?? tr('Not enough data')}>{value ?? '–'}</span>;
   const s = STATUS[status];
   const Icon = ICONS[status];
   return (

@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, ClipboardList, PackageX, Scale, Warehouse 
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
 import { IssuesResponse } from '@/lib/costControl';
 import { Resource } from '@/lib/overview';
+import { locale, tr } from '@/lib/i18n';
 
 const short = (n: string) => n.replace(/^Kopi Calf (To Go )?/, '');
 const MODULES: Record<string, string> = {
@@ -23,12 +24,12 @@ export default function DataIssues({ resource: res }: { resource: Resource<Issue
   if (res.error && !d) {
     return (
       <p className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-        <AlertTriangle size={16} className="text-amber-500" /> Data quality checks could not be loaded ({res.error}).
-        <button type="button" onClick={res.retry} className="ml-auto rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium hover:bg-slate-50">Try again</button>
+        <AlertTriangle size={16} className="text-amber-500" /> {tr('Data quality checks could not be loaded (')}{res.error}).
+        <button type="button" onClick={res.retry} className="ml-auto rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium hover:bg-slate-50">{tr('Try again')}</button>
       </p>
     );
   }
-  if (!d) return <div className="h-32 animate-pulse rounded-xl bg-slate-100" aria-label="Running data quality checks" />;
+  if (!d) return <div className="h-32 animate-pulse rounded-xl bg-slate-100" aria-label={tr('Running data quality checks')} />;
   const byStatus = d.pendingOpnames.reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.status]: (acc[p.status] ?? 0) + 1 }), {});
   const dates = [...new Set(d.pendingOpnames.map(p => p.docDate))].sort();
   const qtyErrors = d.quantityErrors ?? [];
@@ -37,12 +38,12 @@ export default function DataIssues({ resource: res }: { resource: Resource<Issue
   const openSpikes = spikes.filter(s => s.open).length;
   const clean = !d.pendingOpnames.length && !d.suspectLines.length && !d.withoutSales.length && !d.hppAnomalies.length && !d.usageSpikes.length
     && !qtyErrors.length && !spikes.length && !negative.length;
-  const month = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  const month = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(locale(), { month: 'long', year: 'numeric' });
 
   if (clean) {
     return (
       <p className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-        <CheckCircle2 size={16} /> No data issues in this range: every stock opname is posted in ESB and every stock location has POS sales.
+        <CheckCircle2 size={16} /> {tr('No data issues in this range: every stock opname is posted in ESB and every stock location has POS sales.')}
       </p>
     );
   }
@@ -50,26 +51,22 @@ export default function DataIssues({ resource: res }: { resource: Resource<Issue
   return (
     <div className="space-y-3">
       {d.pendingOpnames.length > 0 && (
-        <Issue tone="amber" icon={<ClipboardList size={16} />} title={`${formatNumber(d.pendingOpnames.length)} stock opname(s) not posted in ESB yet`}
+        <Issue tone="amber" icon={<ClipboardList size={16} />} title={tr('{0} stock opname(s) not posted in ESB yet', formatNumber(d.pendingOpnames.length))}
           text={<>
-            {Object.entries(byStatus).map(([s, n]) => `${n} ${s}`).join(' · ')} · opname date {dates.map(formatDate).join(', ')}.
-            Their variance is counted as <b>pending</b>: the figures of these periods are <b>provisional</b> until the opnames are authorized in ESB
-            (then the nightly valuation sync updates them automatically).
+            {Object.entries(byStatus).map(([s, n]) => `${n} ${s}`).join(' · ')} {tr('· opname date')} {dates.map(formatDate).join(', ')}{tr('. Their variance is counted as')} <b>{tr('pending')}</b>{tr(': the figures of these periods are')} <b>{tr('provisional')}</b> {tr('until the opnames are authorized in ESB (then the nightly valuation sync updates them automatically).')}
           </>}>
-          <Table head={['Outlet', 'Document', 'Date', 'Status', 'Lines']} rows={d.pendingOpnames.slice(0, 200).map(p => [
+          <Table head={[tr('Outlet'), tr('Document'), tr('Date'), tr('Status'), tr('Lines')]} rows={d.pendingOpnames.slice(0, 200).map(p => [
             short(p.branchName), <span key="d" className="font-mono">{p.docNum}</span>, formatDate(p.docDate), p.status, formatNumber(p.lines),
           ])} />
         </Issue>
       )}
 
       {d.suspectLines.length > 0 && (
-        <Issue tone="red" icon={<PackageX size={16} />} title={`${formatNumber(d.suspectLines.length)} implausible opname line(s) left out of actual COGS`}
+        <Issue tone="red" icon={<PackageX size={16} />} title={tr('{0} implausible opname line(s) left out of actual COGS', formatNumber(d.suspectLines.length))}
           text={<>
-            Lines of unposted opnames whose variance is above {formatCurrency(d.rule.floor)} and above {Math.round(d.rule.share * 100)}% of the outlet&apos;s
-            theoretical COGS in the period — usually a wrong <b>system stock</b> in ESB (e.g. a mis-entered receipt or transfer). Fix the stock in ESB before
-            posting the opname, otherwise the loss is booked as shown.
+            {tr('Lines of unposted opnames whose variance is above')} {formatCurrency(d.rule.floor)} {tr('and above')} {Math.round(d.rule.share * 100)}{tr('% of the outlet\'s theoretical COGS in the period — usually a wrong')} <b>{tr('system stock')}</b> {tr('in ESB (e.g. a mis-entered receipt or transfer). Fix the stock in ESB before posting the opname, otherwise the loss is booked as shown.')}
           </>}>
-          <Table head={['Outlet', 'Document', 'Product', 'Physical', 'System (ESB)', 'HPP', 'Variance', 'Period theor. COGS']} rows={d.suspectLines.map(l => [
+          <Table head={[tr('Outlet'), tr('Document'), tr('Product'), tr('Physical'), tr('System (ESB)'), 'HPP', tr('Variance'), tr('Period theor. COGS')]} rows={d.suspectLines.map(l => [
             short(l.branchName), <span key="d" className="font-mono">{l.docNum}</span>, l.productName,
             formatNumber(l.physicalQty), <b key="s" className="text-red-700">{formatNumber(l.systemQty)}</b>, formatCurrency(Math.round(l.hpp)),
             <b key="v" className="text-red-700">{formatCurrency(Math.round(l.variance))}</b>, formatCurrency(Math.round(l.periodTheoreticalCogs)),
@@ -78,12 +75,11 @@ export default function DataIssues({ resource: res }: { resource: Resource<Issue
       )}
 
       {qtyErrors.length > 0 && (
-        <Issue tone="red" icon={<Scale size={16} />} title={`${formatNumber(qtyErrors.length)} document line(s) with an implausible quantity in ESB`}
-          text={<>The quantity is more than 200× what is usually entered for that item in the same unit and document type — typically
-            <b> grams typed into a KG field</b> (e.g. 25,163 KG instead of 25.163 KG) or pieces into a pack unit. Once authorized it creates
-            <b> phantom stock</b>: HPP and COGS of the period are distorted and the next opname shows a huge variance. Correct the document in ESB
-            (or have the opname remove the phantom stock before it is posted).</>}>
-          <Table head={['Date', 'Location', 'Document', 'Type', 'Item', 'Entered', 'Usual', '×', 'Status', 'By']} rows={qtyErrors.map(q => [
+        <Issue tone="red" icon={<Scale size={16} />} title={tr('{0} document line(s) with an implausible quantity in ESB', formatNumber(qtyErrors.length))}
+          text={<>{tr('The quantity is more than 200× what is usually entered for that item in the same unit and document type — typically')}
+            <b> {tr('grams typed into a KG field')}</b> {tr('(e.g. 25,163 KG instead of 25.163 KG) or pieces into a pack unit. Once authorized it creates')}
+            <b> {tr('phantom stock')}</b>{tr(': HPP and COGS of the period are distorted and the next opname shows a huge variance. Correct the document in ESB (or have the opname remove the phantom stock before it is posted).')}</>}>
+          <Table head={[tr('Date'), tr('Location'), tr('Document'), tr('Type'), tr('Item'), tr('Entered'), tr('Usual'), '×', tr('Status'), tr('By')]} rows={qtyErrors.map(q => [
             formatDate(q.docDate), short(q.locationName), <span key="d" className="font-mono">{q.docNum}</span>, MODULES[q.module] ?? q.module,
             q.productName, <b key="q" className="text-red-700">{qtyText(q.qty)} {q.unit}</b>, `${qtyText(q.usualQty)} ${q.unit}`,
             `${formatNumber(q.factor)}×`, q.status, q.createdBy ?? '–',
@@ -93,49 +89,42 @@ export default function DataIssues({ resource: res }: { resource: Resource<Issue
 
       {spikes.length > 0 && (
         <Issue tone="red" icon={<Scale size={16} />}
-          title={`${formatNumber(spikes.length)} period(s) with phantom stock in the ESB valuation${openSpikes ? ` · ${openSpikes} still in stock` : ''}`}
-          text={<>Stock of an item coming in (or going out other than by sales: production material, transfer, item journal) at a location was
-            more than 200× its usual weekly flow there — from the quantity errors above. In those periods the item&apos;s HPP and COGS are distorted.
-            Rows marked <b>still in the books</b> have not been corrected: phantom stock coming in will show as a large loss at the next opname,
-            phantom stock going out leaves a large negative balance. Correct the document in ESB.</>}>
-          <Table head={['Period', 'Location', 'Item', 'Flow', 'Qty', 'Usual / week', '×', 'Removed by opname', 'Book stock now']} rows={spikes.map(s => [
+          title={tr('{0} period(s) with phantom stock in the ESB valuation{1}', formatNumber(spikes.length), openSpikes ? tr(' · {0} still in stock', openSpikes) : '')}
+          text={<>{tr('Stock of an item coming in (or going out other than by sales: production material, transfer, item journal) at a location was more than 200× its usual weekly flow there — from the quantity errors above. In those periods the item\'s HPP and COGS are distorted. Rows marked')} <b>{tr('still in the books')}</b> {tr('have not been corrected: phantom stock coming in will show as a large loss at the next opname, phantom stock going out leaves a large negative balance. Correct the document in ESB.')}</>}>
+          <Table head={[tr('Period'), tr('Location'), tr('Item'), tr('Flow'), tr('Qty'), tr('Usual / week'), '×', tr('Removed by opname'), tr('Book stock now')]} rows={spikes.map(s => [
             `${formatDate(s.periodStart)} – ${formatDate(s.periodEnd)}`, short(s.locationName), s.productName,
-            s.direction === 'out' ? 'Out' : 'In',
+            s.direction === 'out' ? tr('Out') : tr('In'),
             <b key="i" className="text-red-700">{qtyText(s.inQty)}</b>, qtyText(s.usualInQty), `${formatNumber(s.factor)}×`,
             s.opnameQty ? qtyText(s.opnameQty) : '–',
-            s.open ? <b key="o" className="text-red-700">{qtyText(s.latestEndQty)} · still in the books</b> : qtyText(s.latestEndQty),
+            s.open ? <b key="o" className="text-red-700">{qtyText(s.latestEndQty)} {tr('· still in the books')}</b> : qtyText(s.latestEndQty),
           ])} />
         </Issue>
       )}
 
       {negative.length > 0 && d.bookStock && (
         <Issue tone="red" icon={<Scale size={16} />}
-          title={`Negative book stock ${formatCurrency(Math.round(d.bookStock.negative))} at the end of the range`}
-          text={<>ESB recorded more of these items going out than coming in, so the book stock is below zero (positive stock: {formatCurrency(Math.round(d.bookStock.positive))}).
-            Usually a receipt or production not entered/authorized yet, or a wrong quantity going out (see phantom stock). Balances below
-            {' '}{formatCurrency(10000000)} are listed; correct the source document in ESB.</>}>
-          <Table head={['Location', 'Item', 'Book stock', 'Value']} rows={negative.map(n => [
+          title={tr('Negative book stock {0} at the end of the range', formatCurrency(Math.round(d.bookStock.negative)))}
+          text={<>{tr('ESB recorded more of these items going out than coming in, so the book stock is below zero (positive stock:')} {formatCurrency(Math.round(d.bookStock.positive))}{tr('). Usually a receipt or production not entered/authorized yet, or a wrong quantity going out (see phantom stock). Balances below')}
+            {' '}{formatCurrency(10000000)} {tr('are listed; correct the source document in ESB.')}</>}>
+          <Table head={[tr('Location'), tr('Item'), tr('Book stock'), tr('Value')]} rows={negative.map(n => [
             short(n.locationName), n.productName, qtyText(n.qty), <b key="v" className="text-red-700">{formatCurrency(Math.round(n.value))}</b>,
           ])} />
         </Issue>
       )}
 
       {d.usageSpikes.length > 0 && (
-        <Issue tone="red" icon={<PackageX size={16} />} title={`${formatNumber(d.usageSpikes.length)} item usage spike(s) in the ESB valuation`}
-          text={<>An item&apos;s theoretical usage per rupiah of sales in a month is more than 3× its usual level — usually a wrong <b>recipe (BOM) quantity</b> in ESB
-            for that time. Theoretical and actual COGS of those months are inflated (the later opname then shows a large “gain”); read those months with care
-            and correct the BOM in ESB.</>}>
-          <Table head={['Month', 'Item', 'Theoretical usage', 'Value', '× usual']} rows={d.usageSpikes.map(u => [
+        <Issue tone="red" icon={<PackageX size={16} />} title={tr('{0} item usage spike(s) in the ESB valuation', formatNumber(d.usageSpikes.length))}
+          text={<>{tr('An item\'s theoretical usage per rupiah of sales in a month is more than 3× its usual level — usually a wrong')} <b>{tr('recipe (BOM) quantity')}</b> {tr('in ESB for that time. Theoretical and actual COGS of those months are inflated (the later opname then shows a large “gain”); read those months with care and correct the BOM in ESB.')}</>}>
+          <Table head={[tr('Month'), tr('Item'), tr('Theoretical usage'), tr('Value'), tr('× usual')]} rows={d.usageSpikes.map(u => [
             month(u.month), u.productName, `${formatNumber(Math.round(u.qty))} ${u.unit ?? ''}`, <b key="v" className="text-red-700">{formatCurrency(Math.round(u.value))}</b>, `${u.factor}×`,
           ])} />
         </Issue>
       )}
 
       {d.hppAnomalies.length > 0 && (
-        <Issue tone="red" icon={<PackageX size={16} />} title={`${formatNumber(d.hppAnomalies.length)} HPP anomaly(ies) in the ESB valuation`}
-          text={<>The outlet&apos;s HPP (cost per unit) of an item is more than 3× the network median for the same period — usually a mis-entered
-            purchase / receipt price in ESB. The outlet&apos;s COGS of that period is overstated by about the impact shown.</>}>
-          <Table head={['Outlet', 'Period from', 'Item', 'HPP', 'Network median', 'Qty used', 'Impact']} rows={d.hppAnomalies.map(h => [
+        <Issue tone="red" icon={<PackageX size={16} />} title={tr('{0} HPP anomaly(ies) in the ESB valuation', formatNumber(d.hppAnomalies.length))}
+          text={<>{tr('The outlet\'s HPP (cost per unit) of an item is more than 3× the network median for the same period — usually a mis-entered purchase / receipt price in ESB. The outlet\'s COGS of that period is overstated by about the impact shown.')}</>}>
+          <Table head={[tr('Outlet'), tr('Period from'), tr('Item'), 'HPP', tr('Network median'), tr('Qty used'), tr('Impact')]} rows={d.hppAnomalies.map(h => [
             short(h.branchName), formatDate(h.periodStart), h.productName, <b key="h" className="text-red-700">{formatCurrency(h.hpp)}</b>,
             formatCurrency(h.medianHpp), `${formatNumber(Math.round(h.qty))} ${h.unit ?? ''}`, <b key="i" className="text-red-700">{formatCurrency(Math.round(h.impact))}</b>,
           ])} />
@@ -143,10 +132,9 @@ export default function DataIssues({ resource: res }: { resource: Resource<Issue
       )}
 
       {d.withoutSales.length > 0 && (
-        <Issue tone="slate" icon={<Warehouse size={16} />} title={`${formatNumber(d.withoutSales.length)} stock location(s) with usage but no POS sales`}
-          text={<>Bulk-order and other stock locations: their stock usage has no POS sales to compare with, so they are <b>left out of the network
-            totals, medians and status counts</b> (their revenue is not in the POS).</>}>
-          <Table head={['Location', 'Actual COGS (usage)']} rows={d.withoutSales.map(w => [w.branchName, formatCurrency(Math.round(w.actualCogs))])} />
+        <Issue tone="slate" icon={<Warehouse size={16} />} title={tr('{0} stock location(s) with usage but no POS sales', formatNumber(d.withoutSales.length))}
+          text={<>{tr('Bulk-order and other stock locations: their stock usage has no POS sales to compare with, so they are')} <b>{tr('left out of the network totals, medians and status counts')}</b> {tr('(their revenue is not in the POS).')}</>}>
+          <Table head={[tr('Location'), tr('Actual COGS (usage)')]} rows={d.withoutSales.map(w => [w.branchName, formatCurrency(Math.round(w.actualCogs))])} />
         </Issue>
       )}
     </div>

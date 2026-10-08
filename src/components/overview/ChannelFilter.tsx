@@ -7,6 +7,7 @@ import ChannelLogo from '@/components/ChannelLogo';
 import { formatNumber } from '@/lib/format';
 import { channelColor, channelLabel, channelOrder } from '@/lib/overview';
 import { useClickOutside } from '@/lib/useClickOutside';
+import { tr } from '@/lib/i18n';
 
 interface ChannelFilterProps {
   channels: { channel: string; bills: number | null }[]; // bills: null for role "user"
@@ -22,7 +23,7 @@ export default function ChannelFilter({ channels, value, onChange }: ChannelFilt
   useClickOutside(ref, close, isOpen);
 
   const options = [...channels].sort((a, b) => channelOrder(a.channel) - channelOrder(b.channel) || (b.bills ?? 0) - (a.bills ?? 0));
-  const label = value.length ? `Channel: ${value.map(channelLabel).join(', ')}` : 'Channel: all channels';
+  const label = value.length ? tr('Channel: {0}', value.map(channelLabel).join(', ')) : tr('Channel: all channels');
   const toggle = (name: string) => {
     const next = value.includes(name) ? value.filter(v => v !== name) : [...value, name];
     onChange(next.length === options.length ? [] : next);
@@ -54,12 +55,12 @@ export default function ChannelFilter({ channels, value, onChange }: ChannelFilt
         <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">Channels</p>
-              <p className="text-xs text-slate-500">{value.length ? `${value.length} selected` : 'All channels'}</p>
+              <p className="text-sm font-semibold text-slate-900">{tr('Channels')}</p>
+              <p className="text-xs text-slate-500">{value.length ? tr('{0} selected', value.length) : tr('All channels')}</p>
             </div>
             {value.length > 0 && (
               <button type="button" onClick={() => onChange([])} className="rounded-md px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900">
-                Clear
+                {tr('Clear')}
               </button>
             )}
           </div>

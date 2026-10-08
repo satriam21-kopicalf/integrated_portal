@@ -3,6 +3,7 @@
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MoreHorizontal } from 'lucide-react';
+import { tr } from '@/lib/i18n';
 
 export interface ActionItem {
   label: string;
@@ -24,7 +25,7 @@ const MENU_WIDTH = 192;
  * below the button (above when there is no room) and closes on outside click,
  * Escape, scroll or resize.
  */
-export default function ActionMenu({ items, label = 'Actions' }: { items: ActionItem[]; label?: string }) {
+export default function ActionMenu({ items, label = tr('Actions') }: { items: ActionItem[]; label?: string }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const button = useRef<HTMLButtonElement>(null);

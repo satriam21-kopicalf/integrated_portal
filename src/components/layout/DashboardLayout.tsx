@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import Sidebar, { Brand } from './Sidebar';
+import { tr } from '@/lib/i18n';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -43,7 +44,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             type="button"
             onClick={() => setMobileOpen(true)}
             className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-            aria-label="Open menu"
+            aria-label={tr('Open menu')}
           >
             <Menu size={20} />
           </button>

@@ -1,3 +1,4 @@
+import { tr } from './i18n';
 // Welcome (after sign-in) and farewell (after sign-out) messages.
 // Lines depend on the time of day, the day of the week and the mood the user
 // picked today; the last few shown lines are skipped so every sign-in reads
@@ -8,11 +9,11 @@ export type Mood = 'great' | 'good' | 'okay' | 'tired' | 'stressed';
 export type DayPart = 'dawn' | 'morning' | 'midday' | 'afternoon' | 'evening' | 'night';
 
 export const MOODS: { key: Mood; emoji: string; label: string }[] = [
-  { key: 'great', emoji: '🤩', label: 'Great' },
-  { key: 'good', emoji: '🙂', label: 'Good' },
-  { key: 'okay', emoji: '😐', label: 'Okay' },
-  { key: 'tired', emoji: '😴', label: 'Tired' },
-  { key: 'stressed', emoji: '😣', label: 'Stressed' },
+  { key: 'great', emoji: '🤩', get label() { return tr('Great'); } },
+  { key: 'good', emoji: '🙂', get label() { return tr('Good'); } },
+  { key: 'okay', emoji: '😐', get label() { return tr('Okay'); } },
+  { key: 'tired', emoji: '😴', get label() { return tr('Tired'); } },
+  { key: 'stressed', emoji: '😣', get label() { return tr('Stressed'); } },
 ];
 
 interface Line {
@@ -190,12 +191,12 @@ export function saveMood(userId: string, mood: Mood, now = new Date()) {
 /* ------------------------------------------------------------------ welcome */
 
 const WELCOME_HEADLINE: Record<DayPart, string> = {
-  dawn: 'Up early, {name}!',
-  morning: 'Good morning, {name}',
-  midday: 'Good afternoon, {name}',
-  afternoon: 'Good afternoon, {name}',
-  evening: 'Good evening, {name}',
-  night: 'Working late, {name}?',
+  get dawn() { return tr('Up early, {name}!'); },
+  get morning() { return tr('Good morning, {name}'); },
+  get midday() { return tr('Good afternoon, {name}'); },
+  get afternoon() { return tr('Good afternoon, {name}'); },
+  get evening() { return tr('Good evening, {name}'); },
+  get night() { return tr('Working late, {name}?'); },
 };
 
 export interface Greeting {
@@ -209,7 +210,7 @@ export function welcomeGreeting(displayName: string, mood: Mood | null, now = ne
   const candidates = mood
     ? WELCOME_BY_MOOD[mood]
     : [...WELCOME_BY_PART[part], ...WELCOME_BY_PART[part], ...(WELCOME_BY_DAY[now.getDay()] ?? []), ...WELCOME_GENERAL];
-  return { part, title: WELCOME_HEADLINE[part].replace('{name}', firstName(displayName)), message: pick(candidates) };
+  return { part, title: WELCOME_HEADLINE[part].replace('{name}', firstName(displayName)), message: tr(pick(candidates)) };
 }
 
 /** Called right after a successful sign-in: the dashboard then shows the welcome once. */
@@ -249,11 +250,11 @@ export function rememberFarewell(userId: string, displayName: string, now = new 
     ? FAREWELL_HARD_DAY
     : weekendAhead ? FAREWELL_WEEKEND : late ? FAREWELL_EVENING : FAREWELL_DAY;
   const name = firstName(displayName);
-  const title = late ? `Good night, ${name}` : part === 'dawn' || part === 'morning' ? `See you soon, ${name}` : `See you later, ${name}`;
+  const title = late ? tr('Good night, {0}', name) : part === 'dawn' || part === 'morning' ? tr('See you soon, {0}', name) : tr('See you later, {0}', name);
   const startedAt = read<number>('local', SIGNED_IN_KEY);
   const elapsed = startedAt ? now.getTime() - startedAt : -1;
   const farewell: Farewell = {
-    part, title, message: pick(candidates), duration: elapsed > 0 && elapsed < 24 * 3600 * 1000 ? formatDuration(elapsed) : null,
+    part, title, message: tr(pick(candidates)), duration: elapsed > 0 && elapsed < 24 * 3600 * 1000 ? formatDuration(elapsed) : null,
   };
   write('session', FAREWELL_KEY, farewell);
   write('local', SIGNED_IN_KEY, null);

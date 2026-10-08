@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useRef } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
+import { tr } from '@/lib/i18n';
 
 /**
  * Side panel sliding in from the right (full width on phones). Same props as
@@ -63,7 +64,7 @@ export default function Drawer({
   const width = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl', xl: 'sm:max-w-5xl' }[size];
   return (
     <div className="fixed inset-0 z-[80] flex justify-end" role="presentation">
-      <div className="drawer-backdrop absolute inset-0 bg-slate-900/40" onClick={locked ? undefined : onClose} aria-hidden />
+      <div className="drawer-backdrop absolute inset-0 bg-slate-900/40 dark:bg-black/70" onClick={locked ? undefined : onClose} aria-hidden />
       <div
         ref={panel}
         role="dialog"
@@ -75,7 +76,7 @@ export default function Drawer({
         <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
           <div className="flex min-w-0 items-start gap-3">
             {onBack && (
-              <button type="button" onClick={onBack} className="mt-1 rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900" aria-label="Back">
+              <button type="button" onClick={onBack} className="mt-1 rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900" aria-label={tr('Back')}>
                 <ArrowLeft size={18} />
               </button>
             )}
@@ -86,7 +87,7 @@ export default function Drawer({
             </div>
           </div>
           {!locked && (
-            <button type="button" onClick={onClose} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Close">
+            <button type="button" onClick={onClose} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close')}>
               <X size={18} />
             </button>
           )}

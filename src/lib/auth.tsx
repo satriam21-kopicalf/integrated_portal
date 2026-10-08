@@ -9,6 +9,7 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { rememberFarewell } from '@/lib/greetings';
+import { tr } from './i18n';
 
 export type Role = 'superadmin' | 'user';
 export type Gender = 'male' | 'female';
@@ -71,8 +72,8 @@ const AuthContext = createContext<AuthState>({
 });
 
 export const PUBLIC_PATHS = ['/login'];
-export const ROLE_LABELS: Record<Role, string> = { superadmin: 'Super Admin', user: 'User' };
-export const GENDER_LABELS: Record<Gender, string> = { male: 'Male', female: 'Female' };
+export const ROLE_LABELS: Record<Role, string> = { get superadmin() { return tr('Super Admin'); }, get user() { return tr('User'); } };
+export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('Male'); }, get female() { return tr('Female'); } };
 
 /** Pages role "user" may open; superadmins open everything. The backend enforces the same. */
 export const USER_PAGES = ['/overview', '/sales'];

@@ -5,12 +5,14 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, ArrowRight, Clock, Eye, EyeOff, Info, Loader2, Lock, TrendingUp, User } from 'lucide-react';
 import { DAY_PART_ICONS } from '@/components/WelcomeNotice';
+import { PreferenceSwitches } from '@/components/ui/Preferences';
 import { safeNext, useAuth } from '@/lib/auth';
 import { Farewell, markSignedIn, takeFarewell } from '@/lib/greetings';
+import { tr, serverMsg } from '@/lib/i18n';
 
 const NOTICES: Record<string, string> = {
-  expired: 'Your session has ended. Please sign in again.',
-  'signed-out': 'You have been signed out.',
+  get expired() { return tr('Your session has ended. Please sign in again.'); },
+  get 'signed-out'() { return tr('You have been signed out.'); },
 };
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -57,9 +59,9 @@ export default function LoginPage() {
     // usernames never contain "@", so one field serves both ways of signing in
     const method = ident.includes('@') ? 'email' : 'username';
     const problems: FieldErrors = {};
-    if (!ident) problems.identifier = 'Enter your username or email';
-    else if (method === 'email' && !EMAIL_RE.test(ident)) problems.identifier = 'Enter a valid email address';
-    if (!password) problems.password = 'Enter your password';
+    if (!ident) problems.identifier = tr('Enter your username or email');
+    else if (method === 'email' && !EMAIL_RE.test(ident)) problems.identifier = tr('Enter a valid email address');
+    if (!password) problems.password = tr('Enter your password');
     setFields(problems);
     if (problems.identifier || problems.password) {
       document.getElementById(problems.identifier ? 'identifier' : 'password')?.focus();
@@ -73,7 +75,7 @@ export default function LoginPage() {
         body: JSON.stringify({ identifier: ident, password, method, remember }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || 'Sign-in failed, please try again');
+      if (!res.ok) throw new Error(serverMsg(body.error) || tr('Sign-in failed, please try again'));
       markSignedIn(); // the dashboard greets the user once
       setUser(body.user);
       router.replace(next);
@@ -92,26 +94,27 @@ export default function LoginPage() {
     <main className="flex min-h-dvh bg-white">
       <BrandPanel />
 
-      <div className="flex min-h-dvh flex-1 flex-col">
+      <div className="relative flex min-h-dvh flex-1 flex-col">
+        <PreferenceSwitches className="absolute right-4 top-4 sm:right-6 sm:top-6" />
         <div className="flex flex-1 items-center justify-center px-5 py-12 sm:px-8">
           <div className="w-full max-w-[380px]">
             {/* phones and tablets: the logo sits above the form (the brand panel is hidden) */}
-            <Image src="/assets/calf-logo.png" alt="Kopi Calf" width={150} height={80} priority unoptimized
+            <Image src="/assets/calf-logo.png" alt={tr('Kopi Calf')} width={150} height={80} priority unoptimized
               className="mb-10 h-16 w-auto object-contain lg:hidden" />
 
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Sign in</h1>
-            <p className="mt-1.5 text-sm text-slate-500">Kopi Calf Integration Platform</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{tr('Sign in')}</h1>
+            <p className="mt-1.5 text-sm text-slate-500">{tr('Kopi Calf Integration Platform')}</p>
 
             <div className="mt-8 space-y-6">
               {farewell && <FarewellCard farewell={farewell} />}
               {notice && (
-                <p className="flex items-start gap-2 rounded-lg bg-[#eef0fb] px-3 py-2.5 text-sm text-[#080e63]" role="status">
+                <p className="flex items-start gap-2 rounded-lg bg-[#eef0fb] dark:bg-[#161c52] px-3 py-2.5 text-sm text-[#080e63]" role="status">
                   <Info size={16} className="mt-0.5 flex-shrink-0" /> {notice}
                 </p>
               )}
 
               <form onSubmit={submit} className="space-y-5" noValidate>
-                <Field id="identifier" label="Username or email" error={fields.identifier}>
+                <Field id="identifier" label={tr('Username or email')} error={fields.identifier}>
                   <User size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     id="identifier"
@@ -129,8 +132,8 @@ export default function LoginPage() {
                   />
                 </Field>
 
-                <Field id="password" label="Password" error={fields.password}
-                  hint={capsLock && !fields.password ? 'Caps Lock is on' : undefined}>
+                <Field id="password" label={tr('Password')} error={fields.password}
+                  hint={capsLock && !fields.password ? tr('Caps Lock is on') : undefined}>
                   <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     id="password"
@@ -149,7 +152,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0b1385]/40"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? tr('Hide password') : tr('Show password')}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -158,17 +161,17 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <label className="flex cursor-pointer select-none items-center gap-2 text-slate-600">
                     <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-[#0b1385] focus:ring-[#0b1385]" />
-                    Keep me signed in
+                      className="h-4 w-4 rounded border-slate-300 text-[#0b1385] dark:text-[#a5abf0] focus:ring-[#0b1385]" />
+                    {tr('Keep me signed in')}
                   </label>
                   <button type="button" onClick={() => setShowForgot(s => !s)} aria-expanded={showForgot}
-                    className="rounded font-medium text-[#0b1385] hover:text-[#080e63] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0b1385]/40">
-                    Forgot password?
+                    className="rounded font-medium text-[#0b1385] dark:text-[#a5abf0] hover:text-[#080e63] dark:hover:text-white hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0b1385]/40">
+                    {tr('Forgot password?')}
                   </button>
                 </div>
                 {showForgot && (
                   <p className="-mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600" role="status">
-                    Ask your administrator to reset it.
+                    {tr('Ask your administrator to reset it.')}
                   </p>
                 )}
 
@@ -184,7 +187,7 @@ export default function LoginPage() {
                   className="group flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#0b1385] text-sm font-semibold text-white shadow-sm shadow-[#0b1385]/20 transition-colors hover:bg-[#080e63] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0b1385]/25 disabled:cursor-wait disabled:bg-[#0b1385]/80"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
-                  {submitting ? 'Signing in…' : 'Sign in'}
+                  {submitting ? tr('Signing in…') : tr('Sign in')}
                   {!submitting && <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />}
                 </button>
               </form>
@@ -193,7 +196,7 @@ export default function LoginPage() {
         </div>
 
         <footer className="pb-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} Kopi Calf · PT Yuda Prawira Group
+          © {new Date().getFullYear()} {tr('Kopi Calf · PT Yuda Prawira Group')}
         </footer>
       </div>
     </main>
@@ -234,7 +237,7 @@ function BrandPanel() {
       <div className="pointer-events-none absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-[#050a4a]/50 blur-3xl" aria-hidden />
 
       {/* the logo in white */}
-      <Image src="/assets/calf-logo.png" alt="Kopi Calf" width={150} height={80} priority unoptimized
+      <Image src="/assets/calf-logo.png" alt={tr('Kopi Calf')} width={150} height={80} priority unoptimized
         className="relative h-14 w-auto self-start object-contain brightness-0 invert" />
 
       <div className="relative flex flex-1 items-center justify-center py-10">
@@ -271,7 +274,7 @@ function DashboardIllustration() {
             <span className="block h-3 w-32 rounded-full bg-[#0b1385]" />
           </span>
           <span className="flex gap-1.5">
-            <span className="h-6 w-12 rounded-md bg-[#eef0fb]" /><span className="h-6 w-12 rounded-md bg-[#0b1385]" />
+            <span className="h-6 w-12 rounded-md bg-[#eef0fb] dark:bg-[#161c52]" /><span className="h-6 w-12 rounded-md bg-[#0b1385]" />
           </span>
         </div>
         <svg viewBox="0 0 300 110" className="mt-4 h-32 w-full">
@@ -288,13 +291,13 @@ function DashboardIllustration() {
         </svg>
         <div className="mt-4 flex h-16 items-end gap-2">
           {bars.map((h, i) => (
-            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-[#0b1385]' : 'bg-[#dcdff5]'}`} style={{ height: `${h}%` }} />
+            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-[#0b1385]' : 'bg-[#dcdff5] dark:bg-[#232a6b]'}`} style={{ height: `${h}%` }} />
           ))}
         </div>
       </div>
       {/* floating KPI chip */}
       <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-xl bg-white px-3 py-2.5 shadow-xl shadow-[#050a4a]/25">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef0fb] text-[#0b1385]"><TrendingUp size={16} /></span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef0fb] dark:bg-[#161c52] text-[#0b1385] dark:text-[#a5abf0]"><TrendingUp size={16} /></span>
         <span className="space-y-1.5">
           <span className="block h-1.5 w-12 rounded-full bg-slate-200" />
           <span className="block h-2.5 w-16 rounded-full bg-[#0b1385]" />
@@ -308,7 +311,7 @@ function DashboardIllustration() {
 function FarewellCard({ farewell }: { farewell: Farewell }) {
   const Icon = DAY_PART_ICONS[farewell.part] ?? Info;
   return (
-    <div className="notice-in flex items-start gap-3 rounded-xl bg-[#eef0fb] px-4 py-3.5" role="status">
+    <div className="notice-in flex items-start gap-3 rounded-xl bg-[#eef0fb] dark:bg-[#161c52] px-4 py-3.5" role="status">
       <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#0b1385] text-white">
         <Icon size={18} />
       </span>
@@ -316,7 +319,7 @@ function FarewellCard({ farewell }: { farewell: Farewell }) {
         <p className="text-sm font-semibold text-slate-900">{farewell.title}</p>
         <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{farewell.message}</p>
         <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-500">
-          <Clock size={12} /> Signed out{farewell.duration ? ` · session ${farewell.duration}` : ''}
+          <Clock size={12} /> {tr('Signed out')}{farewell.duration ? tr(' · session {0}', farewell.duration) : ''}
         </p>
       </div>
     </div>

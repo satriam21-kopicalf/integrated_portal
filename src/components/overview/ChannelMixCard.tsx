@@ -4,13 +4,14 @@ import { useMemo, useState } from 'react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
 import { SeriesKey } from '@/components/charts/common';
 import ChannelLogo, { channelRichLabel } from '@/components/ChannelLogo';
-import { formatCurrency, formatNumber } from '@/lib/format';
+import { formatCurrency, formatNumber, fixed } from '@/lib/format';
 import { base, categoryAxis, INK, rupiahAxis, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import {
   bucketLabel, channelColor, channelKey, channelOrder, ChannelRow, ChannelsResponse, compactRupiah, Resource, shortDate,
 } from '@/lib/overview';
 import { Card, Delta, Segmented } from './Card';
 import { to, useDrill } from './drill/DrillContext';
+import { tr } from '@/lib/i18n';
 
 /** Fold channels outside the fixed palette into "Other" (never a generated colour). */
 function foldChannels(rows: ChannelRow[]): ChannelRow[] {
@@ -39,13 +40,13 @@ export default function ChannelMixCard({ resource }: { resource: Resource<Channe
   const drill = useDrill();
   return (
     <Card
-      title="Channel mix"
+      title={tr('Channel mix')}
       info="channels"
-      subtitle="Gross sales and share per channel · click a channel for its details"
+      subtitle={tr('Gross sales and share per channel · click a channel for its details')}
       resource={resource}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'channels' })}
-      actions={<Segmented label="View" value={view} options={[{ value: 'share', label: 'Share' }, { value: 'daily', label: 'Over time' }]} onChange={setView} />}
+      actions={<Segmented label={tr('View')} value={view} options={[{ value: 'share', label: tr('Share') }, { value: 'daily', label: tr('Over time') }]} onChange={setView} />}
     >
       {data => <ChannelBody data={data} view={view} />}
     </Card>
@@ -73,9 +74,9 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
         formatter: (p: { dataIndex: number }) => {
           const c = rows[p.dataIndex];
           return tipTitle(c.channel)
-            + tipRow(channelColor(c.channel), formatCurrency(c.subtotal), `${c.share?.toFixed(1)}% of gross sales`)
+            + tipRow(channelColor(c.channel), formatCurrency(c.subtotal), tr('{0}% of gross sales', fixed(c.share, 1)))
             + tipRow(channelColor(c.channel), formatNumber(c.bills), 'bills')
-            + tipFooter(`Avg ticket ${formatCurrency(c.avgTicket)} · discount ${c.discountPct?.toFixed(1) ?? '-'}%`);
+            + tipFooter(tr('Avg ticket {0} · discount {1}%', formatCurrency(c.avgTicket), fixed(c.discountPct, 1) ?? '-'));
         },
       }),
       xAxis: { type: 'value', show: false, max: (v: { max: number }) => v.max * 1.02 },
@@ -97,7 +98,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
           position: 'right',
           color: INK.primary,
           fontSize: 12,
-          formatter: (p: { dataIndex: number }) => `{b|${compactRupiah(rows[p.dataIndex].subtotal)}}  {m|${rows[p.dataIndex].share?.toFixed(1)}%}`,
+          formatter: (p: { dataIndex: number }) => `{b|${compactRupiah(rows[p.dataIndex].subtotal)}}  {m|${fixed(rows[p.dataIndex].share, 1)}%}`,
           rich: { b: { fontWeight: 600, color: INK.primary }, m: { color: INK.secondary } },
         },
       }],
@@ -120,7 +121,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
           const i = items[0]?.dataIndex ?? 0;
           return tipTitle(`${bucketLabel(data.series[i].date, g)} · ${compactRupiah(totals[i])}`)
             + [...stacks].reverse().map(st => tipRow(channelColor(st.name), compactRupiah(st.values[i]),
-              `${st.name} · ${totals[i] ? ((st.values[i] / totals[i]) * 100).toFixed(1) : '0.0'}%`)).join('');
+              `${st.name} · ${totals[i] ? fixed(((st.values[i] / totals[i]) * 100), 1) : '0.0'}%`)).join('');
         },
       }),
       xAxis: categoryAxis(data.series.map(b => shortDate(b.date, g))),
@@ -140,7 +141,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
   return (
     <div className="space-y-3">
       {view === 'share' ? (
-        <EChart option={shareOption} height={Math.max(150, channels.length * 36)} ariaLabel="Gross sales per channel with share"
+        <EChart option={shareOption} height={Math.max(150, channels.length * 36)} ariaLabel={tr('Gross sales per channel with share')}
           onClick={p => { const rows = [...channels].sort((a, b) => a.subtotal - b.subtotal); if (rows[p.dataIndex]) openChannel(rows[p.dataIndex].channel); }} />
       ) : (
         <>
@@ -152,18 +153,18 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
               </li>
             ))}
           </ul>
-          <EChart option={dailyOption} height={220} ariaLabel={`Gross sales per channel per ${g}`} />
+          <EChart option={dailyOption} height={220} ariaLabel={tr('Gross sales per channel per {0}', tr(g))} />
         </>
       )}
       <table className="w-full whitespace-nowrap text-xs">
-        <caption className="sr-only">Gross sales per channel</caption>
+        <caption className="sr-only">{tr('Gross sales per channel')}</caption>
         <thead className="border-b border-slate-100 text-slate-500">
           <tr>
-            <th scope="col" className="py-1.5 text-left font-medium">Channel</th>
-            <th scope="col" className="py-1.5 pl-3 text-right font-medium">Bills</th>
-            <th scope="col" className="py-1.5 pl-3 text-right font-medium">Avg ticket</th>
-            <th scope="col" className="py-1.5 pl-3 text-right font-medium">Disc.</th>
-            <th scope="col" className="py-1.5 pl-3 text-right font-medium">Change</th>
+            <th scope="col" className="py-1.5 text-left font-medium">{tr('Channel')}</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Bills')}</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Avg ticket')}</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Disc.')}</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Change')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -172,7 +173,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
               <td className="py-1.5"><span className="flex items-center gap-2"><SeriesKey color={channelColor(c.channel)} /><ChannelLogo channel={c.channel} height={14} /></span></td>
               <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{formatNumber(c.bills)}</td>
               <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{c.avgTicket === null ? '-' : formatNumber(Math.round(c.avgTicket))}</td>
-              <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{c.discountPct === null ? '-' : `${c.discountPct.toFixed(1)}%`}</td>
+              <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{c.discountPct === null ? '-' : `${fixed(c.discountPct, 1)}%`}</td>
               <td className="py-1.5 pl-3 text-right"><Delta value={c.deltaPct} /></td>
             </tr>
           ))}

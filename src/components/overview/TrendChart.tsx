@@ -8,22 +8,23 @@ import { base, categoryAxis, changeHtml, INK, rupiahAxis, tipFooter, tipRow, tip
 import {
   bucketLabel, compactNumber, compactRupiah, shortDate, TrendPoint, TrendResponse,
 } from '@/lib/overview';
+import { locale, tr } from '@/lib/i18n';
 
 export type TrendMetric = 'subtotal' | 'bills' | 'avgTicket' | 'nettSales';
 export type TrendChartType = 'line' | 'area' | 'bar' | 'cumulative' | 'average';
 
 export const TREND_METRICS: { value: TrendMetric; label: string }[] = [
-  { value: 'subtotal', label: 'Gross sales' },
-  { value: 'bills', label: 'Bills' },
-  { value: 'avgTicket', label: 'Avg ticket' },
+  { value: 'subtotal', get label() { return tr('Gross sales'); } },
+  { value: 'bills', get label() { return tr('Bills'); } },
+  { value: 'avgTicket', get label() { return tr('Avg ticket'); } },
 ];
 
 export const TREND_CHARTS: { value: TrendChartType; label: string; hint: string }[] = [
-  { value: 'line', label: 'Line', hint: 'This period vs the previous period, with high, low and average' },
-  { value: 'area', label: 'Area', hint: 'Volume over time from zero, previous period as a dashed line' },
-  { value: 'bar', label: 'Bars', hint: 'Side-by-side bars: this period and the previous period per bucket' },
-  { value: 'cumulative', label: 'Cumulative', hint: 'Running total: are we ahead of or behind the previous period?' },
-  { value: 'average', label: 'Moving average', hint: '7-bucket moving average smooths out weekday swings' },
+  { value: 'line', get label() { return tr('Line'); }, get hint() { return tr('This period vs the previous period, with high, low and average'); } },
+  { value: 'area', get label() { return tr('Area'); }, get hint() { return tr('Volume over time from zero, previous period as a dashed line'); } },
+  { value: 'bar', get label() { return tr('Bars'); }, get hint() { return tr('Side-by-side bars: this period and the previous period per bucket'); } },
+  { value: 'cumulative', get label() { return tr('Cumulative'); }, get hint() { return tr('Running total: are we ahead of or behind the previous period?'); } },
+  { value: 'average', get label() { return tr('Moving average'); }, get hint() { return tr('7-bucket moving average smooths out weekday swings'); } },
 ];
 
 export function metricOf(p: { subtotal: number; bills: number; nettSales?: number | null }, m: TrendMetric): number | null {
@@ -63,7 +64,7 @@ export default function TrendChart({
   const s = data.series;
   const hasPrev = data.filters.previous.complete;
   const money = metric !== 'bills';
-  const label = TREND_METRICS.find(m => m.value === metric)?.label ?? 'Nett sales';
+  const label = TREND_METRICS.find(m => m.value === metric)?.label ?? tr('Nett sales');
   const fmt = (v: number) => (money ? formatCurrency(Math.round(v)) : formatNumber(Math.round(v)));
   const compact = (v: number) => (money ? compactRupiah(v) : compactNumber(v));
 
@@ -81,7 +82,7 @@ export default function TrendChart({
       // the comparison may be any period: move by its actual offset
       const shift = Math.round((new Date(`${data.filters.from}T00:00:00`).getTime() - new Date(`${data.filters.previous.from}T00:00:00`).getTime()) / 86_400_000);
       d.setDate(d.getDate() - shift);
-      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      return d.toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
     };
 
     const cumulative = chart === 'cumulative';
@@ -104,7 +105,7 @@ export default function TrendChart({
     const asBars = chart === 'bar';
     const area = chart === 'area';
     const titleOf = (i: number) => (g === 'hour'
-      ? `${hh(s[i].hour)}–${String(s[i].hour ?? 0).padStart(2, '0')}:59${cumulative ? ' (running total from the first hour)' : ''} · ${bucketLabel(s[i].date, g)}`
+      ? `${hh(s[i].hour)}–${String(s[i].hour ?? 0).padStart(2, '0')}:59${cumulative ? tr(' (running total from the first hour)') : ''} · ${bucketLabel(s[i].date, g)}`
       : cumulative ? `${bucketLabel(s[0].date, g)} – ${bucketLabel(s[i].date, g)}` : bucketLabel(s[i].date, g));
 
     return {
@@ -117,14 +118,14 @@ export default function TrendChart({
           const i = items[0]?.dataIndex ?? 0;
           const what = cumulative ? 'running total' : chart === 'average' ? '7-bucket average' : '';
           let html = tipTitle(titleOf(i));
-          html += tipRow(INK.accent, cur[i] === null ? '-' : fmt(cur[i]!), `This period${what ? ` · ${what}` : ''}`, asBars ? 'square' : 'line');
-          if (chart === 'average' && current[i] !== null) html += tipRow('#9ec5f4', fmt(current[i]!), 'Actual', 'square');
+          html += tipRow(INK.accent, cur[i] === null ? '-' : fmt(cur[i]!), tr('This period{0}', what ? ` · ${what}` : ''), asBars ? 'square' : 'line');
+          if (chart === 'average' && current[i] !== null) html += tipRow('#9ec5f4', fmt(current[i]!), tr('Actual'), 'square');
           if (hasPrev) {
             html += tipRow(INK.previous, prev[i] === null || prev[i] === undefined ? '-' : fmt(prev[i]!),
-              g === 'day' && !cumulative ? `Previous (${prevDate(i)})`
-                : g === 'hour' ? `Comparison (${new Date(`${data.filters.previous.from}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} ${hh(s[i].hour)})`
-                : 'Previous period', asBars ? 'square' : 'line');
-            html += tipFooter(`${cumulative ? 'Ahead / behind' : 'Change'} ${changeHtml(pct(cur[i], prev[i] ?? null))}`);
+              g === 'day' && !cumulative ? tr('Previous ({0})', prevDate(i))
+                : g === 'hour' ? tr('Comparison ({0} {1})', new Date(`${data.filters.previous.from}T00:00:00`).toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' }), hh(s[i].hour))
+                : tr('Previous period'), asBars ? 'square' : 'line');
+            html += tipFooter(`${cumulative ? tr('Ahead / behind') : tr('Change')} ${changeHtml(pct(cur[i], prev[i] ?? null))}`);
           }
           return html;
         },
@@ -135,11 +136,11 @@ export default function TrendChart({
       dataZoom: zoom,
       series: [
         ...(chart === 'average' ? [{
-          name: 'Actual', type: 'bar', data: current, barMaxWidth: 14, silent: true, z: 0,
+          name: tr('Actual'), type: 'bar', data: current, barMaxWidth: 14, silent: true, z: 0,
           itemStyle: { color: '#e8f1fd', borderRadius: [3, 3, 0, 0] },
         }] : []),
         ...(hasPrev ? [{
-          name: 'Previous period',
+          name: tr('Previous period'),
           type: asBars ? 'bar' : 'line',
           data: prev,
           symbol: 'none',
@@ -150,7 +151,7 @@ export default function TrendChart({
           z: 1,
         }] : []),
         {
-          name: 'This period',
+          name: tr('This period'),
           type: asBars ? 'bar' : 'line',
           data: cur,
           barMaxWidth: 14,
@@ -166,7 +167,7 @@ export default function TrendChart({
             symbol: 'none',
             silent: true,
             lineStyle: { color: '#64748b', type: 'dotted', width: 1 },
-            label: { formatter: `Avg ${compact(avg)}`, color: INK.secondary, fontSize: 11, position: 'insideStartTop' },
+            label: { formatter: tr('Avg {0}', compact(avg)), color: INK.secondary, fontSize: 11, position: 'insideStartTop' },
             data: [{ yAxis: avg }],
           } : undefined,
           markPoint: (chart === 'line' || area) && valid.length > 2 ? {
@@ -177,7 +178,7 @@ export default function TrendChart({
               borderColor: '#cbd5e1', borderWidth: 1, borderRadius: 6, padding: [3, 6], offset: [0, -14],
               formatter: (p: { name: string; value: number }) => `${p.name} ${compact(p.value)}`,
             },
-            data: [{ type: 'max', name: 'High' }, { type: 'min', name: 'Low' }],
+            data: [{ type: 'max', name: tr('High') }, { type: 'min', name: tr('Low') }],
           } : undefined,
           z: 2,
         },
@@ -188,17 +189,17 @@ export default function TrendChart({
 
   // channels over time: see Channel mix › Over time
   const legend = [
-      ...(chart === 'average' ? [{ key: 'act', label: 'Actual', color: '#cde2fb', shape: 'square' as const }] : []),
-      { key: 'cur', label: `${label} · ${chart === 'cumulative' ? 'running total' : chart === 'average' ? '7-bucket average' : 'this period'}`, color: INK.accent, shape: chart === 'bar' ? 'square' as const : 'line' as const },
-      ...(hasPrev ? [{ key: 'prev', label: g === 'hour' ? 'Comparison day' : 'Previous period', color: INK.previous, shape: chart === 'bar' ? 'square' as const : 'line' as const }] : []),
+      ...(chart === 'average' ? [{ key: 'act', label: tr('Actual'), color: '#cde2fb', shape: 'square' as const }] : []),
+      { key: 'cur', label: `${label} · ${chart === 'cumulative' ? tr('running total') : chart === 'average' ? tr('7-bucket average') : tr('this period')}`, color: INK.accent, shape: chart === 'bar' ? 'square' as const : 'line' as const },
+      ...(hasPrev ? [{ key: 'prev', label: g === 'hour' ? tr('Comparison day') : tr('Previous period'), color: INK.previous, shape: chart === 'bar' ? 'square' as const : 'line' as const }] : []),
     ];
 
   return (
     <div className="space-y-1">
       <Legend items={legend} />
-      <EChart option={option} height={height} ariaLabel={`${label} per ${g}, ${chart} chart`}
+      <EChart option={option} height={height} ariaLabel={tr('{0} per {1}, {2} chart', label, tr(g), tr(chart))}
         onClick={onSelect ? (p: ChartClick) => { if (s[p.dataIndex]) onSelect(s[p.dataIndex]); } : undefined} />
-      {!hasPrev && <p className="text-xs text-slate-400">No comparison: the comparison period starts before complete history (Aug 2025).</p>}
+      {!hasPrev && <p className="text-xs text-slate-400">{tr('No comparison: the comparison period starts before complete history (Aug 2025).')}</p>}
     </div>
   );
 }
@@ -207,7 +208,7 @@ export default function TrendChart({
 export function ChartTypeSelect({ value, onChange }: { value: TrendChartType; onChange: (v: TrendChartType) => void }) {
   return (
     <label className="relative inline-flex items-center">
-      <span className="sr-only">Chart type</span>
+      <span className="sr-only">{tr('Chart type')}</span>
       <select value={value} onChange={e => onChange(e.target.value as TrendChartType)}
         title={TREND_CHARTS.find(c => c.value === value)?.hint}
         className="h-7 rounded-lg border border-slate-200 bg-white pl-2 pr-7 text-xs font-medium text-slate-700 hover:border-slate-300 focus:border-slate-400 focus:outline-none">

@@ -1,5 +1,8 @@
 // Where every Overview analytic comes from and how it is calculated (the ⓘ next to each title).
-// One place, so cards, drawers and tiles explain the same thing the same way.
+// One place, so cards, drawers and tiles explain the same thing the same way. Texts are English;
+// InfoTip / infoLine translate them when shown (lib/i18n-id.ts).
+
+import { tr } from './i18n';
 
 export interface MetricInfo {
   title: string;
@@ -220,5 +223,5 @@ export type InfoKey = keyof typeof INFO;
 /** One line for native title tooltips (KPI tiles). */
 export function infoLine(key: InfoKey): string {
   const i: MetricInfo = INFO[key];
-  return `${i.title}\n${(i.formula ?? []).join('\n')}\nSource: ${i.source[0]}`;
+  return `${tr(i.title)}\n${(i.formula ?? []).map(f => tr(f)).join('\n')}\n${tr('Source')}: ${tr(i.source[0])}`;
 }
