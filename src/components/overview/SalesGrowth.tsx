@@ -247,7 +247,7 @@ export default function SalesGrowthCard({ query }: { query: string }) {
   const [basis, setBasis] = useState<GrowthBasis>('previous');
   const [granularity, setGranularity] = useState<Granularity | 'auto'>('auto');
   const [view, setView] = useState<GrowthView>('daily');
-  const [avgDate, setAvgDate] = useState('');
+  const [weekday, setWeekday] = useState<number | null>(null);
   const drill = useDrill();
   const growthOn = view === 'time' || view === 'hour';
   const resource = useOverview<GrowthResponse>('growth', withParams(query, { basis, granularity: granularity === 'auto' ? null : granularity }));
@@ -255,14 +255,14 @@ export default function SalesGrowthCard({ query }: { query: string }) {
   const daily = useOverview<GrowthResponse>('growth', withParams(query, { basis: 'previous', granularity: 'day' }));
   // "Monthly": average per day of each month with MoM, YoY and same-store growth (formerly its own card)
   const monthly = useOverview<MonthlyResponse>('monthly', query);
-  // "Average sales": one day per branch vs the same weekday average of the period (default: the last day of the period)
-  const average = useOverview<AverageSalesResponse>('average-sales', withParams(query, { date: avgDate || null }));
+  // "Average sales": gross sales per day per branch, period vs comparison period (all days or one weekday)
+  const average = useOverview<AverageSalesResponse>('average-sales', withParams(query, { weekday: weekday ? String(weekday) : null }));
   const hours = useHourGrowth(query, view === 'hour' ? resource.data : null);
   const shown = (view === 'month' ? monthly : view === 'avg' ? average : view === 'daily' ? daily : resource) as
     Resource<GrowthResponse | MonthlyResponse | AverageSalesResponse>;
 
-  const subtitle = view === 'daily' ? 'Gross sales per day, coloured by weekday · click a bar to see that day per branch'
-    : view === 'avg' ? 'One day per branch against the average of the same weekday in the period'
+  const subtitle = view === 'daily' ? 'Gross sales per day, coloured by weekday · click a bar for that day\'s details'
+    : view === 'avg' ? 'Average gross sales per day per branch, this period vs the comparison period'
     : view === 'month' ? 'Gross sales per month: average per day, month on month, year on year and same-store'
     : resource.data ? `Gross sales vs ${basisText(resource.data)}` : 'Gross sales growth';
 
@@ -296,11 +296,11 @@ export default function SalesGrowthCard({ query }: { query: string }) {
             ))}
           </div>
           {view === 'month' ? <MonthlyBody data={raw as MonthlyResponse} />
-            : view === 'avg' ? <AverageSalesBody data={raw as AverageSalesResponse} date={avgDate} onDate={setAvgDate} />
+            : view === 'avg' ? <AverageSalesBody data={raw as AverageSalesResponse} weekday={weekday} onWeekday={setWeekday} />
             : view === 'daily' ? (
               <div className="space-y-3">
                 <GrowthSummary data={raw as GrowthResponse} />
-                <DailySalesChart data={raw as GrowthResponse} onSelect={d => { setAvgDate(d); setView('avg'); }} />
+                <DailySalesChart data={raw as GrowthResponse} onSelect={d => drill.open(to.period(d, d, formatDate(d)))} />
               </div>
             ) : (() => {
               const d = raw as GrowthResponse;

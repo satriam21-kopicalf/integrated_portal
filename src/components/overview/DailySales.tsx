@@ -1,10 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CalendarDays } from 'lucide-react';
 import EChart, { ChartOption } from '@/components/charts/EChart';
-import { inputClass } from '@/components/ui/Dialog';
-import { formatCurrency, formatDate, formatNumber, toIsoDate } from '@/lib/format';
+import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
 import { base, categoryAxis, changeHtml, INK, tipFooter, tipRow, tipTitle, tooltip, valueAxis } from '@/lib/chartTheme';
 import { compactRupiah, GrowthResponse, SERIES_COLORS } from '@/lib/overview';
 import { Delta } from './Card';
@@ -26,7 +24,7 @@ const dayLabel = (iso: string) => {
 /**
  * Gross sales per day, one colour per weekday (the weekday is also in every axis label, so
  * colour is never the only cue). Legend chips highlight one or more weekdays; a dashed line
- * marks the daily average of the period. Click a bar to see that day per branch.
+ * marks the daily average of the period. Click a bar for that day's details.
  */
 export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSelect?: (date: string) => void }) {
   const [focus, setFocus] = useState<number[]>([]);
@@ -66,7 +64,7 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
             + (wAvg !== null ? tipRow(INK.muted, formatCurrency(Math.round(wAvg)), `avg ${WEEKDAYS[dow - 1]} in the period`) : '')
             + tipFooter(p.compareSubtotal !== null
               ? `vs comparison ${p.compareFrom ? formatDate(p.compareFrom) : ''}: ${changeHtml(p.growthPct)}`
-              : 'No comparison day') + (onSelect ? tipFooter('Click: this day per branch') : '');
+              : 'No comparison day') + (onSelect ? tipFooter('Click for the details of this day') : '');
         },
       }),
       xAxis: categoryAxis(days.map(p => dayLabel(p.date)), {
@@ -127,67 +125,79 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
 /* ------------------------------------------------------------------ average sales */
 
 export interface AverageSalesRow {
-  key: string; label: string; averageSales: number | null; averageDays: number;
+  key: string; label: string; days: number; averageSales: number | null; compareAverage: number | null;
   pendingSales: number; sales: number; bills: number; totalSales: number; variancePct: number | null;
 }
 
 export interface AverageSalesResponse {
-  filters: { from: string; to: string };
-  date: string;
-  weekday: number;
-  averageDates: string[];
-  totals: { averageSales: number | null; pendingSales: number; sales: number; totalSales: number; variancePct: number | null };
+  filters: { from: string; to: string; previous: { from: string; to: string; complete: boolean } };
+  weekday: number | null;
+  weekdayName: string | null;
+  days: number;
+  compareDays: number;
+  totals: { averageSales: number | null; compareAverage: number | null; pendingSales: number; sales: number; totalSales: number; variancePct: number | null };
   rows: AverageSalesRow[];
 }
 
-/** One day per branch against the average of the same weekday in the period (as the ESB "Average Sales" report). */
-export function AverageSalesBody({ data, date, onDate }: { data: AverageSalesResponse; date: string; onDate: (iso: string) => void }) {
-  const today = toIsoDate(new Date());
-  const weekday = WEEKDAYS[data.weekday - 1];
+/**
+ * Average gross sales per day per branch for the filter period against the comparison period
+ * (like the other analytics); optionally one weekday only.
+ */
+export function AverageSalesBody({ data, weekday, onWeekday }: {
+  data: AverageSalesResponse; weekday: number | null; onWeekday: (w: number | null) => void;
+}) {
+  const f = data.filters;
   const t = data.totals;
-  const short = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const dayName = data.weekdayName ?? 'All days';
+  const range = (a: string, b: string) => (a === b ? formatDate(a) : `${formatDate(a)} – ${formatDate(b)}`);
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <p className="max-w-2xl text-xs text-slate-500">
-          <span className="font-medium text-slate-900">{weekday}, {formatDate(data.date)}</span> vs the average of{' '}
-          {data.averageDates.length
-            ? <>{data.averageDates.length} {weekday}{data.averageDates.length > 1 ? 's' : ''} in the period ({data.averageDates.map(short).join(', ')})</>
-            : <>other {weekday}s in the period: none, widen the period</>}
-          {data.date === today && <span className="text-amber-700"> · today is still in progress</span>}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-slate-500">
+          <span className="font-medium text-slate-900">{range(f.from, f.to)}</span>
+          {' '}({formatNumber(data.days)} {data.weekdayName ? `${data.weekdayName}${data.days === 1 ? '' : 's'}` : data.days === 1 ? 'day' : 'days'})
+          {f.previous.complete
+            ? <> vs {range(f.previous.from, f.previous.to)} ({formatNumber(data.compareDays)})</>
+            : <> · no comparison before Aug 2025</>}
         </p>
-        <div className="flex items-center gap-2">
-          <label className="relative">
-            <span className="sr-only">Day</span>
-            <CalendarDays size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="date" value={date || data.date} max={today} onChange={e => e.target.value && onDate(e.target.value)}
-              className={`${inputClass} h-8 w-40 pl-8 text-xs`} />
-          </label>
-          <button type="button" onClick={() => onDate(today)} disabled={data.date === today}
-            className="inline-flex h-8 items-center rounded-lg border border-slate-200 px-2.5 text-xs font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900 disabled:opacity-50">
-            Today
-          </button>
+        <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Day of week">
+          {[null, 1, 2, 3, 4, 5, 6, 7].map(w => {
+            const on = weekday === w;
+            return (
+              <button key={w ?? 0} type="button" role="radio" aria-checked={on} onClick={() => onWeekday(w)}
+                className={`inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors ${
+                  on ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900'}`}>
+                {w && <span className="h-2 w-2 rounded-sm" style={{ background: WEEKDAY_COLORS[w - 1] }} aria-hidden />}
+                {w ? WEEKDAYS[w - 1].slice(0, 3) : 'All days'}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <DetailTable<AverageSalesRow>
-        caption={`Average sales ${data.date}`} csvName={`average-sales-${data.date}`} rows={data.rows} rowKey={r => r.key}
-        search={r => `${r.label} ${r.key}`} initialSort={{ key: 'branch', desc: false }} maxHeight={460}
+        caption="Average sales" csvName={`average-sales-${f.from}-${f.to}${data.weekday ? `-${dayName.toLowerCase()}` : ''}`}
+        rows={data.rows} rowKey={r => r.key} search={r => `${r.label} ${r.key}`} initialSort={{ key: 'branch', desc: false }} maxHeight={460}
         columns={[
           { key: 'branch', label: 'Branch', value: r => r.label, render: r => <span className="font-medium text-slate-900">{r.label}</span> },
-          { key: 'dow', label: 'Day of week', value: () => weekday },
-          { key: 'avg', label: 'Average sales', align: 'right', value: r => r.averageSales, title: `Average gross sales of the other ${weekday}s in the period (days the branch sold)`,
-            render: r => (r.averageSales === null ? '-' : rp(r.averageSales)) },
-          { key: 'pending', label: 'Pending sales', align: 'right', value: r => r.pendingSales, title: 'Open bills of the day (not finished yet)', render: r => rp(r.pendingSales) },
-          { key: 'sales', label: 'Gross sales', align: 'right', value: r => r.sales, render: r => rp(r.sales) },
-          { key: 'total', label: 'Total sales', align: 'right', value: r => r.totalSales, title: 'Gross sales + pending', render: r => <span className="font-semibold text-slate-900">{rp(r.totalSales)}</span> },
-          { key: 'var', label: 'Variance', align: 'right', value: r => r.variancePct, title: '(Total sales − average) ÷ average × 100', render: r => <Delta value={r.variancePct} /> },
+          { key: 'dow', label: 'Day of week', value: () => dayName },
+          { key: 'avg', label: 'Average sales', align: 'right', value: r => r.averageSales,
+            title: 'Gross sales per day in the period (days the branch sold)', render: r => (r.averageSales === null ? '-' : rp(r.averageSales)) },
+          { key: 'cmp', label: 'Comparison avg', align: 'right', value: r => r.compareAverage,
+            title: 'Gross sales per day in the comparison period', render: r => (r.compareAverage === null ? '-' : rp(r.compareAverage)) },
+          { key: 'pending', label: 'Pending sales', align: 'right', value: r => r.pendingSales, title: 'Open bills (not finished yet)', render: r => rp(r.pendingSales) },
+          { key: 'sales', label: 'Gross sales', align: 'right', value: r => r.sales, title: 'Total gross sales in the period', render: r => rp(r.sales) },
+          { key: 'total', label: 'Total sales', align: 'right', value: r => r.totalSales, title: 'Gross sales + pending',
+            render: r => <span className="font-semibold text-slate-900">{rp(r.totalSales)}</span> },
+          { key: 'var', label: 'Variance', align: 'right', value: r => r.variancePct,
+            title: '(Average sales − comparison avg) ÷ comparison avg × 100', render: r => <Delta value={r.variancePct} /> },
         ]}
         footer={
           <tfoot className="sticky bottom-0 bg-slate-50 text-xs font-semibold text-slate-900">
             <tr className="border-t border-slate-200">
               <td className="px-3 py-2" colSpan={2}>Total · {formatNumber(data.rows.length)} branches</td>
               <td className="px-3 py-2 text-right tabular-nums">{t.averageSales === null ? '-' : rp(t.averageSales)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{t.compareAverage === null ? '-' : rp(t.compareAverage)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{rp(t.pendingSales)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{rp(t.sales)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{rp(t.totalSales)}</td>

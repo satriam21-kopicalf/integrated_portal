@@ -59,7 +59,10 @@ export default function EChart({
       const opt = instance.getOption() as { xAxis?: { type?: string; data?: unknown[] }[] };
       const axis = opt.xAxis?.[0];
       if (axis?.type !== 'category' || !instance.containPixel('grid', [e.offsetX, e.offsetY])) return;
-      const [x] = instance.convertFromPixel({ xAxisIndex: 0 }, [e.offsetX, e.offsetY]) as unknown as number[];
+      // grid finder: [x, y] in data space (an axis finder returns a bare number, or NaN outside it)
+      const v = instance.convertFromPixel({ gridIndex: 0 }, [e.offsetX, e.offsetY]) as unknown as number[] | number;
+      const x = Array.isArray(v) ? v[0] : v;
+      if (!Number.isFinite(x)) return;
       const i = Math.round(x);
       if (i >= 0 && i < (axis.data?.length ?? 0)) clickRef.current({ dataIndex: i, componentType: 'axis' });
     });
