@@ -163,7 +163,6 @@ export default function ActivityPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [live, setLive] = useState<{ ok: boolean; at: number | null }>({ ok: true, at: null });
   const [fresh, setFresh] = useState<Set<number>>(new Set());
   const [selected, setSelected] = useState<Entry | null>(null);
   const [view, setView] = useState<'timeline' | 'table'>('timeline');
@@ -227,7 +226,6 @@ export default function ActivityPage() {
         setEntries(body.data);
         setTotal(body.total);
         setFresh(new Set());
-        setLive({ ok: true, at: Date.now() });
       })
       .catch(err => { if (!cancelled) setError((err as Error).message); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -255,9 +253,8 @@ export default function ActivityPage() {
           fetchSummary();
         }
         setTotal(body.total);
-        setLive({ ok: true, at: Date.now() });
       } catch {
-        if (!stopped) setLive(l => ({ ...l, ok: false }));
+        /* tried again on the next tick */
       }
     };
     const timer = setInterval(tick, POLL_MS);
@@ -335,10 +332,9 @@ export default function ActivityPage() {
                   setDateFrom(from || to || d.from);
                   setDateTo(to || from || d.to);
                 }} />
-              <LiveBadge ok={live.ok} at={live.at} />
-              <button type="button" onClick={() => setResetting(true)} title="Remove log entries now"
-                className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-sm font-medium text-red-700 hover:bg-red-50">
-                <Trash2 size={16} /><span className="hidden sm:inline">Reset logs</span>
+              <button type="button" onClick={() => setResetting(true)} title="Reset logs" aria-label="Reset logs"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-700">
+                <Trash2 size={18} strokeWidth={1.75} />
               </button>
             </div>
           </div>
@@ -537,22 +533,6 @@ export default function ActivityPage() {
           }} />
       )}
     </DashboardLayout>
-  );
-}
-
-/** Updates arrive by themselves; shows when the list was last checked. */
-function LiveBadge({ ok, at }: { ok: boolean; at: number | null }) {
-  const time = at ? new Date(at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : null;
-  return (
-    <span className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-xs"
-      title={ok ? 'New activity appears automatically (checked every 10 seconds)' : 'Connection problem — retrying automatically'}>
-      <span className="relative flex h-2 w-2">
-        {ok && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />}
-        <span className={`relative inline-flex h-2 w-2 rounded-full ${ok ? 'bg-emerald-500' : 'bg-amber-400'}`} />
-      </span>
-      <span className={`font-semibold ${ok ? 'text-emerald-700' : 'text-amber-700'}`}>{ok ? 'Live' : 'Reconnecting'}</span>
-      {time && <span className="hidden text-slate-500 sm:inline">· updated {time}</span>}
-    </span>
   );
 }
 
