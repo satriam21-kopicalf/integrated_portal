@@ -137,12 +137,15 @@ export const INFO = {
     source: [AGG, 'By hour: integration_portal.agg_sales_hourly (hour of salesDateIn, outlet clock).'],
     definition: [
       'Growth of gross sales (subtotal).',
+      'Daily sales: gross sales per day, one colour per weekday; the dashed line is the average per day of the period. Click a bar for that day per branch.',
+      'Average sales: one day per branch against the average of the same weekday in the period (that day left out; only days the branch sold count). Pending = open bills of the day; total = gross sales + pending.',
       'Comparison period: the comparison filter of the page; Last year: the same weekdays 52 weeks earlier; Sequential: every day / week / month against the one before it.',
       'By hour: gross sales per day in each hour, so periods of different length compare fairly.',
       FILTERS,
     ],
     formula: [
       'Growth % = (Gross sales − comparison gross sales) ÷ comparison gross sales × 100',
+      'Average sales = Σ gross sales on that weekday ÷ days with sales · Variance % = (total sales − average sales) ÷ average sales × 100',
       'Sequential growth % = (Gross sales per day − previous bucket gross sales per day) ÷ previous bucket gross sales per day × 100',
       'Contribution (pp) of a branch / channel = (its gross sales − its comparison gross sales) ÷ total comparison gross sales × 100 — contributions add up to the total growth %',
     ],
