@@ -1,0 +1,247 @@
+"use client";
+
+// Count lists per branch (06.9 §3): every facility type has a default list per count type; a branch can have its own
+// list (built from its ESB stock opname documents or edited here) which replaces the default. A list counts its own
+// items plus the items of its item groups.
+
+import { Boxes, Building2, ListChecks, Plus, RotateCcw, Save } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ItemsEditor, { type EditorItem, toPayload } from "@/so/features/settings/ItemsEditor";
+import { Badge, Button, Empty, ErrorState, Page, Panel, SearchBox, cx, fmtDate, useToast } from "@/so/ui";
+import { ConfirmDialog } from "@/so/ui/Dialog";
+import Drawer, { DrawerSection } from "@/so/ui/Drawer";
+import { api, errorText } from "@/so/lib/api";
+import { countTypeLabel } from "@/so/lib/counts";
+import { tr } from "@/lib/i18n";
+
+type Facility = { id: string; code: string; name: string; facility_type: string; legal_entity_code: string; own_lists: number };
+type ListRow = {
+  id: string; facility_type: string; count_type: string; name: string; is_active: boolean; facility_id: string | null;
+  facility_code: string | null; facility_name: string | null; source: string; source_ref: string | null; updated_at: string; items: number;
+};
+type ListDetail = ListRow & { items: EditorItem[]; groups: { id: string; code: string; name: string; items: number }[]; effective_items: number };
+type Group = { id: string; code: string; name: string; items: number; is_active: boolean };
+const COUNT_TYPES = ["DAILY_PACKAGING", "WEEKLY_RAW", "MONTHLY_RAW", "ADHOC"];
+const SOURCE: Record<string, () => string> = { ESB_SO: () => tr("From ESB stock opname"), MANUAL: () => tr("Edited by Cost Control"), IMPORT: () => tr("Imported") };
+
+export default function ListsPage() {
+  const toast = useToast();
+  const [facilities, setFacilities] = useState<Facility[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [type, setType] = useState("OUTLET");
+  const [selected, setSelected] = useState<Facility | null>(null);
+  const [lists, setLists] = useState<ListRow[] | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const [resetting, setResetting] = useState<ListRow | null>(null);
+  const [busy, setBusy] = useState(false);
+  const detailRef = useRef<HTMLDivElement>(null);
+
+  const loadFacilities = useCallback(async () => {
+    setError(null);
+    try {
+      setFacilities(await api<Facility[]>("/api/so/count-settings/facilities"));
+    } catch (e) {
+      setError(errorText(e));
+    }
+  }, []);
+  useEffect(() => { void loadFacilities(); }, [loadFacilities]);
+  const loadLists = useCallback(async (f: Facility) => {
+    setLists(null);
+    setLists(await api<ListRow[]>(`/api/so/count-settings/lists?facility_id=${f.id}`));
+  }, []);
+  useEffect(() => { if (selected) void loadLists(selected).catch((e) => toast(errorText(e), "error")); }, [selected, loadLists, toast]);
+
+  const types = useMemo(() => Array.from(new Set((facilities ?? []).map((f) => f.facility_type))), [facilities]);
+  const shown = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return (facilities ?? []).filter((f) => (!type || f.facility_type === type) && (!s || f.name.toLowerCase().includes(s) || f.code.toLowerCase().includes(s)));
+  }, [facilities, q, type]);
+
+  /** a branch's own list starts as a copy of its type's default (items and groups) */
+  const createOwn = async (countType: string) => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const def = lists?.find((l) => !l.facility_id && l.count_type === countType);
+      const own = await api<ListDetail>("/api/so/count-settings/lists", { method: "PUT", json: { facility_id: selected.id, count_type: countType } });
+      if (def) {
+        const d = await api<ListDetail>(`/api/so/count-settings/lists/${def.id}`);
+        await api(`/api/so/count-settings/lists/${own.id}/items`, { method: "PUT", json: { items: toPayload(d.items) } });
+        if (d.groups.length) await api(`/api/so/count-settings/lists/${own.id}/groups`, { method: "PUT", json: { group_ids: d.groups.map((g) => g.id) } });
+      }
+      await loadLists(selected);
+      void loadFacilities();
+      setOpen(own.id);
+    } catch (e) {
+      toast(errorText(e), "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const reset = async () => {
+    if (!resetting || !selected) return;
+    setBusy(true);
+    try {
+      await api(`/api/so/count-settings/lists/${resetting.id}`, { method: "DELETE" });
+      toast(tr("{0} uses the default list again", selected.name));
+      setResetting(null);
+      await loadLists(selected);
+      void loadFacilities();
+    } catch (e) {
+      toast(errorText(e), "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Page title={tr("Count lists")} subtitle={tr("Items each branch counts per count type")}>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(280px,360px)_1fr]">
+        <Panel toolbar={
+          <>
+            <SearchBox value={q} onChange={setQ} placeholder={tr("Search branch")} />
+            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+              {["", ...types].map((t) => (
+                <button key={t || "all"} type="button" onClick={() => setType(t)} aria-pressed={type === t}
+                  className={cx("whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium", type === t ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-600")}>
+                  {t || tr("All")}
+                </button>
+              ))}
+            </div>
+          </>
+        }>
+          {error ? <ErrorState message={error} onRetry={loadFacilities} /> : (
+            <ul className="max-h-[32rem] divide-y divide-slate-100 overflow-y-auto lg:max-h-[calc(100dvh-16rem)]">
+              {facilities === null ? [0, 1, 2, 3].map((i) => <li key={i} className="p-3"><div className="skeleton h-9 rounded" /></li>) : shown.map((f) => (
+                <li key={f.id}>
+                  <button type="button" onClick={() => {
+                    setSelected(f);
+                    // phones: the branch detail sits under the list
+                    if (window.innerWidth < 1024) setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                  }}
+                    className={cx("flex w-full items-center gap-3 px-4 py-2.5 text-left", selected?.id === f.id ? "bg-blue-50" : "hover:bg-slate-50")}>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-slate-900">{f.name}</span>
+                      <span className="block truncate text-[11px] text-slate-400">{f.code} · {f.facility_type}</span></span>
+                    {f.own_lists > 0 ? <Badge tone="blue">{tr("{0} own", f.own_lists)}</Badge> : <Badge>{tr("Default")}</Badge>}
+                  </button>
+                </li>
+              ))}
+              {facilities && shown.length === 0 && <li className="px-4 py-8 text-center text-sm text-slate-400">{tr("No branch matches")}</li>}
+            </ul>
+          )}
+        </Panel>
+
+        <div ref={detailRef} className="scroll-mt-4">
+        {!selected ? (
+          <Panel><Empty icon={<Building2 size={28} />} title={tr("Choose a branch")}>{tr("Its count lists per count type are shown here.")}</Empty></Panel>
+        ) : (
+          <Panel title={selected.name} description={`${selected.code} · ${selected.facility_type} · ${selected.legal_entity_code}`}>
+            {lists === null ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-14 rounded-lg" />)}</div> : (
+              <ul className="divide-y divide-slate-100">
+                {COUNT_TYPES.map((ct) => {
+                  const own = lists.find((l) => l.facility_id === selected.id && l.count_type === ct);
+                  const def = lists.find((l) => !l.facility_id && l.count_type === ct);
+                  const used = own ?? def;
+                  return (
+                    <li key={ct} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700"><ListChecks size={16} /></span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-900">{countTypeLabel(ct)}</p>
+                        <p className="text-xs text-slate-500">
+                          {own ? tr("Own list · {0} items · {1}", own.items, SOURCE[own.source]?.() ?? own.source)
+                            : def ? tr("Uses the {0} default · {1} items", selected.facility_type, def.items) : tr("No list: not counted here")}
+                        </p>
+                        {used && <p className="text-[11px] text-slate-400">{tr("Updated {0}", fmtDate(used.updated_at))}{used.source_ref ? ` · ${used.source_ref}` : ""}</p>}
+                      </div>
+                      <div className="flex w-full gap-2 sm:w-auto">
+                        {own && <Button variant="ghost" size="sm" onClick={() => setResetting(own)}><RotateCcw size={14} /> {tr("Use default")}</Button>}
+                        {own ? <Button size="sm" onClick={() => setOpen(own.id)}>{tr("Edit")}</Button>
+                          : <>
+                            {def && <Button variant="secondary" size="sm" onClick={() => setOpen(def.id)}>{tr("View default")}</Button>}
+                            <Button size="sm" loading={busy} onClick={() => createOwn(ct)}><Plus size={14} /> {tr("Own list")}</Button>
+                          </>}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Panel>
+        )}
+        </div>
+      </div>
+      {open && <ListDrawer listId={open} onClose={() => setOpen(null)} onChanged={() => selected && void loadLists(selected)} />}
+      <ConfirmDialog open={!!resetting} busy={busy} onClose={() => setResetting(null)} onConfirm={reset}
+        title={tr("Remove the own list?")} description={tr("The branch counts its type's default list again. The own list and its items are deleted.")} confirmLabel={tr("Use default")} danger />
+    </Page>
+  );
+}
+
+function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: () => void; onChanged: () => void }) {
+  const toast = useToast();
+  const [d, setD] = useState<ListDetail | null>(null);
+  const [items, setItems] = useState<EditorItem[]>([]);
+  const [groupIds, setGroupIds] = useState<string[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    const x = await api<ListDetail>(`/api/so/count-settings/lists/${listId}`);
+    setD(x);
+    setItems(x.items);
+    setGroupIds(x.groups.map((g) => g.id));
+    setDirty(false);
+  }, [listId]);
+  useEffect(() => {
+    void load().catch((e) => toast(errorText(e), "error"));
+    void api<Group[]>("/api/so/count-settings/groups").then(setGroups).catch(() => {});
+  }, [load, toast]);
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      await api(`/api/so/count-settings/lists/${listId}/items`, { method: "PUT", json: { items: toPayload(items) } });
+      await api(`/api/so/count-settings/lists/${listId}/groups`, { method: "PUT", json: { group_ids: groupIds } });
+      toast(tr("Count list saved"));
+      await load();
+      onChanged();
+    } catch (e) {
+      toast(errorText(e), "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const toggleGroup = (id: string) => { setGroupIds((g) => (g.includes(id) ? g.filter((x) => x !== id) : [...g, id])); setDirty(true); };
+
+  return (
+    <Drawer open onClose={onClose} size="xl" icon={<ListChecks size={18} />}
+      title={d ? `${d.facility_name ?? `${d.facility_type} (${tr("default")})`} · ${countTypeLabel(d.count_type)}` : tr("Count list")}
+      description={d ? tr("{0} own items + groups = {1} items counted", d.items.length, d.effective_items) : undefined}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button><Button loading={busy} disabled={!dirty} onClick={save}><Save size={16} /> {tr("Save")}</Button></>}>
+      {!d ? <div className="skeleton h-64 rounded-lg" /> : (
+        <div className="space-y-6">
+          <DrawerSection title={tr("Item groups")} description={tr("The items of these groups are counted too; this list's own settings win for the same item.")}>
+            {groups.length === 0 ? <p className="text-sm text-slate-500">{tr("No item groups yet. Create them under Item groups.")}</p> : (
+              <div className="flex flex-wrap gap-2">
+                {groups.map((g) => {
+                  const on = groupIds.includes(g.id);
+                  return (
+                    <button key={g.id} type="button" onClick={() => toggleGroup(g.id)} aria-pressed={on}
+                      className={cx("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm", on ? "border-blue-600 bg-blue-50 text-blue-800" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
+                      <Boxes size={14} /> {g.name} <span className="text-xs text-slate-400">{g.items}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </DrawerSection>
+          <DrawerSection title={tr("Own items")} description={d.source_ref ? `${SOURCE[d.source]?.() ?? d.source} · ${d.source_ref}` : undefined}>
+            <ItemsEditor items={items} onChange={(v) => { setItems(v); setDirty(true); }} />
+          </DrawerSection>
+        </div>
+      )}
+    </Drawer>
+  );
+}

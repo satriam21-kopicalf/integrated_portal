@@ -11,7 +11,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { rememberFarewell } from '@/lib/greetings';
 import { tr } from './i18n';
 
-export type Role = 'superadmin' | 'user';
+export type Role = 'superadmin' | 'cost_control' | 'user';
 export type Gender = 'male' | 'female';
 
 export interface AuthUser {
@@ -72,14 +72,20 @@ const AuthContext = createContext<AuthState>({
 });
 
 export const PUBLIC_PATHS = ['/login'];
-export const ROLE_LABELS: Record<Role, string> = { get superadmin() { return tr('Super Admin'); }, get user() { return tr('User'); } };
+export const ROLE_LABELS: Record<Role, string> = {
+  get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User'); },
+};
 export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('Male'); }, get female() { return tr('Female'); } };
 
-/** Pages role "user" may open; superadmins open everything. The backend enforces the same. */
-export const USER_PAGES = ['/overview', '/sales'];
+/** Pages role "user" may open (its branches only); Cost Control adds the Cost Control menu (stock opname monitor,
+ * review, settings, ESB export, COGS); superadmins open everything. The backend enforces the same. */
+export const USER_PAGES = ['/overview', '/sales', '/stock-opname'];
+export const COST_CONTROL_PAGES = [...USER_PAGES, '/cost-control'];
 
 export function canAccess(role: Role, pathname: string): boolean {
-  return role === 'superadmin' || USER_PAGES.some(p => pathname === p || pathname.startsWith(`${p}/`));
+  if (role === 'superadmin') return true;
+  const pages = role === 'cost_control' ? COST_CONTROL_PAGES : USER_PAGES;
+  return pages.some(p => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export function isPublicPath(pathname: string): boolean {

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Blocks, Calculator, ChevronDown, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
+  Activity, Blocks, Boxes, Calculator, ChevronDown, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -18,8 +18,22 @@ import { tr } from '@/lib/i18n';
 const navigation = [
   { get name() { return tr('Dashboard'); }, href: '/overview', icon: LayoutDashboard, get description() { return tr('Overview & analytics'); }, superadmin: false },
   { get name() { return tr('Sales Transactions'); }, href: '/sales', icon: Receipt, get description() { return tr('View & export data'); }, superadmin: false },
-  { get name() { return tr('Cost Control'); }, href: '/cost-control', icon: Calculator, get description() { return tr('COGS, usage & purchasing'); }, superadmin: true },
+  { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); }, superadmin: false },
 ];
+
+/** "Cost Control" group: role cost_control and superadmins (stock opname of every branch, COGS). */
+const costControl = [
+  { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Counts of every branch today'); } },
+  { get name() { return tr('Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); } },
+  { get name() { return tr('ESB export'); }, href: '/cost-control/esb-export', icon: FileSpreadsheet, get description() { return tr('Stock opname file for ESB'); } },
+  { get name() { return tr('ESB comparison'); }, href: '/cost-control/esb-compare', icon: GitCompareArrows, get description() { return tr('Count vs ESB stock'); } },
+  { get name() { return tr('Count lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
+  { get name() { return tr('Item groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Reusable sets of items'); } },
+  { get name() { return tr('Count types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Schedules & windows'); } },
+  { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('COGS, usage & purchasing'); } },
+];
+
+const under = (pathname: string, href: string) => pathname === href || (href !== '/cost-control' && pathname.startsWith(`${href}/`));
 
 /** "Management" group: superadmin only (the pages and the API check the role too). */
 const management = [
@@ -184,6 +198,7 @@ function SidebarContent({
   const { user } = useAuth();
   const isSuperadmin = user?.role === 'superadmin';
   const items = navigation.filter(item => !item.superadmin || isSuperadmin);
+  const showCostControl = isSuperadmin || user?.role === 'cost_control';
   // the group stays open while one of its pages is shown
   const managementActive = management.some(m => pathname === m.href);
   return (
@@ -198,9 +213,21 @@ function SidebarContent({
         {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Main menu')}</p>}
         <ul className="space-y-0.5">
           {items.map(item => (
-            <li key={item.href}><NavItem item={item} active={pathname === item.href} collapsed={collapsed} onNavigate={onNavigate} /></li>
+            <li key={item.href}><NavItem item={item} active={under(pathname, item.href)} collapsed={collapsed} onNavigate={onNavigate} /></li>
           ))}
         </ul>
+
+        {/* Cost Control: stock opname of every branch + COGS (role cost_control and superadmins) */}
+        {showCostControl && (
+          <div className="mt-5 border-t border-slate-100 pt-4">
+            {!collapsed && <p className="mb-2 flex items-center gap-1.5 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400"><Calculator size={13} /> {tr('Cost Control')}</p>}
+            <ul className={collapsed ? 'space-y-0.5' : 'ml-[1.15rem] space-y-0.5 border-l border-slate-200 pl-2'} aria-label={tr('Cost Control')}>
+              {costControl.map(item => (
+                <li key={item.href}><NavItem item={item} active={under(pathname, item.href)} collapsed={collapsed} onNavigate={onNavigate} sub={!collapsed} /></li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* management: superadmin only */}
         {isSuperadmin && (

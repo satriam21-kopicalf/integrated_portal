@@ -24,7 +24,9 @@ Browser ── portal.kopicalf.co.id (Vercel) ───────────�
 | `/` | Redirect ke `/overview` |
 | `/overview` | Dashboard analitik: strip *Latest sales*, ringkasan KPI, panel *Today*, tren, channel, cabang, jam sibuk, menu, pembayaran, basket, pengurangan, pertumbuhan bulanan |
 | `/sales` | Daftar transaksi (detail per item), ringkasan Sales/Nett/Gross/Deductions, filter, export Excel |
-| `/cost-control` | **Cost Control** (khusus superadmin): COGS ratio, usage ratio, selisih stok, waste, estimasi belanja 1/2/4 minggu per outlet |
+| `/stock-opname`, `/stock-opname/[id]` | **Stock Opname** (semua role): SO hari ini di cabang user (outlet, HUB WH, HUB CK) sesuai jadwal Cost Control, isi hitungan, foto bukti, submit. Data lewat `/api/so/*` → gateway kopicalf-platform (D-51); komponen di `src/so/` (diport dari aplikasi WMS/Outlet kopicalf) |
+| `/cost-control/{monitor,reviews,esb-export,esb-compare,lists,groups,types}` | **Cost Control · Stock opname** (role `cost_control` & superadmin): monitor semua cabang, review (setujui / hitung ulang), ekspor & pembanding ESB, daftar hitung per cabang, grup item, jenis SO & jadwal |
+| `/cost-control` | **Cost Control · COGS** (role `cost_control` & superadmin): COGS ratio, usage ratio, selisih stok, waste, estimasi belanja 1/2/4 minggu per outlet |
 | `/users` | **User Accounts** (khusus superadmin): CRUD akun login, role, **akses cabang**, status, foto profil, profil user |
 | `/activity` | **Activity Logs** (khusus superadmin): timeline per hari (jam · ikon jenis · "siapa melakukan apa" · detail · halaman/perangkat/IP), **update otomatis** tiap 10 detik & saat tab aktif kembali (entri baru muncul di atas dengan tanda *New*, indikator *Live · updated*), tab jenis + pencarian, filter (user, hasil, role) dalam drawer, *Load older activity*, panel user paling aktif & distribusi jenis; `?user=<id>` dari User Accounts |
 
