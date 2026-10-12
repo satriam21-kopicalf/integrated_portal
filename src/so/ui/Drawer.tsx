@@ -100,13 +100,15 @@ export default function Drawer({
 }
 
 /** Titled group of fields inside a drawer. */
-export function DrawerSection({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+export function DrawerSection({ title, description, children }: { title?: string; description?: string; children: ReactNode }) {
   return (
     <section className="space-y-4 border-b border-slate-100 pb-6 last:border-b-0 last:pb-0 [&:not(:first-child)]:pt-6">
-      <div>
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-        {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
-      </div>
+      {(title || description) && (
+        <div>
+          {title && <h3 className="text-sm font-semibold text-slate-900">{title}</h3>}
+          {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
+        </div>
+      )}
       {children}
     </section>
   );

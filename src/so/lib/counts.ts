@@ -109,7 +109,19 @@ export const COUNT_TYPE_LABEL: Record<string, () => string> = {
   MONTHLY_RAW: () => tr("Monthly raw material"),
   ADHOC: () => tr("Ad hoc count"),
 };
-export const countTypeLabel = (code: string, fallback?: string) => COUNT_TYPE_LABEL[code]?.() ?? fallback ?? code;
+/** Names given by Cost Control (Count types page), loaded once by the stock-opname layouts (CountTypeNames). */
+const NAMES: Record<string, string> = {};
+/** Names the count types were created with: still shown translated until Cost Control renames them. */
+const SEED_NAMES = new Set(["Daily packaging count", "Weekly raw material count", "Monthly raw material count", "Ad hoc count (audit, handover)"]);
+
+export function setCountTypeNames(types: { code: string; name: string }[]) {
+  for (const t of types) {
+    if (SEED_NAMES.has(t.name)) delete NAMES[t.code];
+    else NAMES[t.code] = t.name;
+  }
+}
+
+export const countTypeLabel = (code: string, fallback?: string) => NAMES[code] ?? COUNT_TYPE_LABEL[code]?.() ?? fallback ?? code;
 
 /** Current position for the evidence (null when not allowed or not available within 8 s). */
 export function getPosition(): Promise<{ lat: number; lng: number } | null> {

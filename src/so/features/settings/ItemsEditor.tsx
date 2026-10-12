@@ -23,6 +23,7 @@ export type EditorItem = {
 };
 
 type Found = { item_id: string; item_code: string; item_name: string; base_uom: string; category_name: string | null; units: string[] };
+type Category = { id: string; name: string; parent_name: string | null; items: number };
 
 export function toPayload(items: EditorItem[]) {
   return items.map((i, n) => ({ item_id: i.item_id, area: i.area, sort: n + 1, pack_uom: i.pack_uom, esb_uom: i.esb_uom, photo_required: i.photo_required }));
@@ -33,6 +34,14 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
   const [filter, setFilter] = useState("");
   const [found, setFound] = useState<Found[]>([]);
   const [searching, setSearching] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [note, setNote] = useState("");
+
+  useEffect(() => {
+    if (readOnly) return;
+    void api<Category[]>("/api/so/count-settings/item-categories").then(setCategories).catch(() => setCategories([]));
+  }, [readOnly]);
 
   useEffect(() => {
     const s = q.trim();
@@ -48,10 +57,25 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
   }, [q]);
 
   const ids = useMemo(() => new Set(items.map((i) => i.item_id)), [items]);
+  const toItem = (f: Found): EditorItem => ({ ...f, area: (f.category_name ?? "GENERAL").toUpperCase(), pack_uom: null, esb_uom: null, photo_required: false });
   const add = (f: Found) => {
     if (ids.has(f.item_id)) return;
-    const area = (f.category_name ?? "GENERAL").toUpperCase();
-    onChange([...items, { ...f, area, pack_uom: null, esb_uom: null, photo_required: false }]);
+    onChange([...items, toItem(f)]);
+  };
+  const addCategory = async (id: string) => {
+    if (!id) return;
+    setAdding(true);
+    setNote("");
+    try {
+      const all = await api<Found[]>(`/api/so/count-settings/items?category_id=${encodeURIComponent(id)}&limit=500`);
+      const fresh = all.filter((f) => !ids.has(f.item_id));
+      onChange([...items, ...fresh.map(toItem)]);
+      setNote(fresh.length ? tr("{0} items added", fresh.length) : tr("All items of this category are already in"));
+    } catch {
+      setNote(tr("Could not load the items of this category"));
+    } finally {
+      setAdding(false);
+    }
   };
   const set = (id: string, patch: Partial<EditorItem>) => onChange(items.map((i) => (i.item_id === id ? { ...i, ...patch } : i)));
   const shown = useMemo(() => {
@@ -61,6 +85,23 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
 
   return (
     <div className="space-y-3">
+      {!readOnly && categories.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <select value="" disabled={adding} onChange={(e) => void addCategory(e.target.value)} aria-label={tr("Add a whole category")}
+            className={`${inputClass} h-9 max-w-xs flex-1 text-sm`}>
+            <option value="">{adding ? tr("Adding…") : tr("+ Add a whole category")}</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.parent_name ? `${c.parent_name} › ${c.name}` : c.name} ({c.items})</option>
+            ))}
+          </select>
+          {adding && <Loader2 size={14} className="animate-spin text-slate-400" />}
+          {note && <span className="text-xs text-slate-500">{note}</span>}
+          {items.length > 0 && (
+            <button type="button" className="ml-auto text-xs font-medium text-red-600 hover:underline"
+              onClick={() => { if (window.confirm(tr("Remove all {0} items?", items.length))) onChange([]); }}>{tr("Remove all")}</button>
+          )}
+        </div>
+      )}
       {!readOnly && (
         <div className="relative">
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />

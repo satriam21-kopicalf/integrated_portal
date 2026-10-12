@@ -1,11 +1,12 @@
 'use client';
 
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, Blocks, Boxes, Calculator, ChevronDown, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
+  Activity, Blocks, Boxes, Calculator, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -21,16 +22,24 @@ const navigation = [
   { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); }, superadmin: false },
 ];
 
-/** "Cost Control" group: role cost_control and superadmins (stock opname of every branch, COGS). */
+/** "Cost Control" menu: role cost_control and superadmins (stock opname of every branch, COGS); opens as a pop-up list. */
 const costControl = [
-  { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Counts of every branch today'); } },
-  { get name() { return tr('Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); } },
-  { get name() { return tr('ESB export'); }, href: '/cost-control/esb-export', icon: FileSpreadsheet, get description() { return tr('Stock opname file for ESB'); } },
-  { get name() { return tr('ESB comparison'); }, href: '/cost-control/esb-compare', icon: GitCompareArrows, get description() { return tr('Count vs ESB stock'); } },
-  { get name() { return tr('Count lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
-  { get name() { return tr('Item groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Reusable sets of items'); } },
-  { get name() { return tr('Count types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Schedules & windows'); } },
-  { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('COGS, usage & purchasing'); } },
+  { get title() { return tr('Stock opname'); }, items: [
+    { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Counts of every branch today'); } },
+    { get name() { return tr('Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); } },
+  ] },
+  { get title() { return tr('ESB'); }, items: [
+    { get name() { return tr('ESB export'); }, href: '/cost-control/esb-export', icon: FileSpreadsheet, get description() { return tr('Stock opname file for ESB'); } },
+    { get name() { return tr('ESB comparison'); }, href: '/cost-control/esb-compare', icon: GitCompareArrows, get description() { return tr('Count vs ESB stock'); } },
+  ] },
+  { get title() { return tr('Stock opname settings'); }, items: [
+    { get name() { return tr('Count lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
+    { get name() { return tr('Item groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Reusable sets of items'); } },
+    { get name() { return tr('Count types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
+  ] },
+  { get title() { return tr('Analytics'); }, items: [
+    { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('COGS, usage & purchasing'); } },
+  ] },
 ];
 
 const under = (pathname: string, href: string) => pathname === href || (href !== '/cost-control' && pathname.startsWith(`${href}/`));
@@ -217,15 +226,11 @@ function SidebarContent({
           ))}
         </ul>
 
-        {/* Cost Control: stock opname of every branch + COGS (role cost_control and superadmins) */}
+        {/* Cost Control: stock opname of every branch + COGS (role cost_control and superadmins), a pop-up menu */}
         {showCostControl && (
           <div className="mt-5 border-t border-slate-100 pt-4">
-            {!collapsed && <p className="mb-2 flex items-center gap-1.5 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400"><Calculator size={13} /> {tr('Cost Control')}</p>}
-            <ul className={collapsed ? 'space-y-0.5' : 'ml-[1.15rem] space-y-0.5 border-l border-slate-200 pl-2'} aria-label={tr('Cost Control')}>
-              {costControl.map(item => (
-                <li key={item.href}><NavItem item={item} active={under(pathname, item.href)} collapsed={collapsed} onNavigate={onNavigate} sub={!collapsed} /></li>
-              ))}
-            </ul>
+            {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Cost Control')}</p>}
+            <CostControlMenu pathname={pathname} collapsed={collapsed} onNavigate={onNavigate} />
           </div>
         )}
 
@@ -300,6 +305,110 @@ function SidebarContent({
 }
 
 type NavEntry = { name: string; href: string; icon: typeof Users; description: string };
+
+/** One sidebar entry that opens the Cost Control pages as a pop-up list (beside the sidebar; centred on small screens). */
+function CostControlMenu({ pathname, collapsed, onNavigate }: { pathname: string; collapsed: boolean; onNavigate?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const current = costControl.flatMap(s => s.items).find(i => under(pathname, i.href));
+  const active = !!current;
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const r = button.current?.getBoundingClientRect();
+      const h = panel.current?.offsetHeight ?? 420;
+      if (!r || window.innerWidth < 1024) { setPos(null); return; }
+      setPos({ left: r.right + 10, top: Math.max(12, Math.min(r.top - 12, window.innerHeight - h - 12)) });
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); button.current?.focus(); } };
+    const down = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!panel.current?.contains(t) && !button.current?.contains(t)) setOpen(false);
+    };
+    document.addEventListener('keydown', key);
+    document.addEventListener('mousedown', down);
+    return () => { document.removeEventListener('keydown', key); document.removeEventListener('mousedown', down); };
+  }, [open]);
+  useEffect(() => { if (open) panel.current?.querySelector<HTMLElement>('a[aria-current="page"], a')?.focus(); }, [open]);
+
+  const go = () => { setOpen(false); onNavigate?.(); };
+  const menu = (
+    <div ref={panel} role="menu" aria-label={tr('Cost Control')}
+      className={`fixed z-[80] w-[min(36rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ${
+        pos ? '' : 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2 overflow-y-auto'}`}
+      style={pos ? { left: pos.left, top: pos.top } : undefined}>
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+        <p className="flex items-center gap-2 text-sm font-semibold text-slate-900"><Calculator size={16} className="text-slate-500" /> {tr('Cost Control')}</p>
+        <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close menu')}><X size={16} /></button>
+      </div>
+      <div className="grid gap-x-2 gap-y-3 p-3 sm:grid-cols-2">
+        {costControl.map(section => (
+          <div key={section.title}>
+            <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{section.title}</p>
+            <ul>
+              {section.items.map(item => {
+                const Icon = item.icon;
+                const on = under(pathname, item.href);
+                return (
+                  <li key={item.href}>
+                    <Link href={item.href} onClick={go} role="menuitem" aria-current={on ? 'page' : undefined}
+                      className={`flex items-start gap-3 rounded-lg px-2 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                        on ? 'bg-slate-100' : 'hover:bg-slate-50'}`}>
+                      <span className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg ${on ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        <Icon size={15} strokeWidth={1.9} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className={`block truncate text-sm ${on ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>{item.name}</span>
+                        <span className="block truncate text-xs text-slate-400">{item.description}</span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <button ref={button} type="button" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open}
+        title={collapsed ? tr('Cost Control') : undefined}
+        className={`relative flex w-full items-center gap-3 rounded-lg py-2 text-left text-sm transition-colors ${collapsed ? 'justify-center px-0' : 'px-2.5'} ${
+          active || open ? 'bg-slate-100 font-semibold text-slate-900' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+        {active && <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-slate-900" />}
+        <Calculator size={18} strokeWidth={1.75} className={active ? 'text-slate-900' : 'text-slate-400'} />
+        {!collapsed && (
+          <>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate">{current ? current.name : tr('Cost Control')}</span>
+              <span className="block truncate text-xs font-normal text-slate-400">{current ? tr('Cost Control') : tr('Stock opname, ESB & COGS')}</span>
+            </span>
+            <ChevronRight size={15} className="text-slate-400" />
+          </>
+        )}
+      </button>
+      {open && createPortal(
+        <>
+          {!pos && <div className="fixed inset-0 z-[75] bg-slate-900/40 dark:bg-black/60" aria-hidden="true" />}
+          {menu}
+        </>,
+        document.body,
+      )}
+    </>
+  );
+}
 
 function NavItem({ item, active, collapsed, onNavigate, sub = false }: {
   item: NavEntry; active: boolean; collapsed: boolean; onNavigate?: () => void; sub?: boolean;
