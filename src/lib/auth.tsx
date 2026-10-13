@@ -86,6 +86,7 @@ export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('M
  * and Activity Logs are superadmin-only. The backend enforces the same. */
 export function canAccess(user: Pick<AuthUser, 'role' | 'pages'>, pathname: string): boolean {
   if (user.role === 'superadmin') return true;
+  if (pathname === '/guide' || pathname.startsWith('/guide/')) return true; // the user guide is for everyone
   const page = pageOf(pathname);
   return page !== null && page !== 'superadmin' && pagesOf(user).includes(page);
 }

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, Blocks, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, Blocks, BookOpen, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -20,6 +20,7 @@ const navigation = [
   { get name() { return tr('Dashboard'); }, href: '/overview', icon: LayoutDashboard, get description() { return tr('Overview & analytics'); } },
   { get name() { return tr('Sales Transactions'); }, href: '/sales', icon: Receipt, get description() { return tr('View & export data'); } },
   { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); } },
+  { get name() { return tr('Guide'); }, href: '/guide', icon: BookOpen, get description() { return tr('How to use stock opname & Cost Control'); } },
 ];
 
 /** "Cost Control" menu: role cost_control and superadmins (stock opname of every branch, COGS); opens as a pop-up list. */

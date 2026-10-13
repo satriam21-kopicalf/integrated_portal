@@ -11,6 +11,7 @@ import Drawer, { DrawerSection } from "@/so/ui/Drawer";
 import { api, errorText } from "@/so/lib/api";
 import { fmtDate } from "@/so/ui";
 import { tr } from "@/lib/i18n";
+import ComponentSources, { PickedComponent } from "./ComponentSources";
 import { num, RecipeDetail, RecipeLine, Unit, unitGrams, Version } from "./types";
 
 const FACILITY_TYPES = ["OUTLET", "HUB_WH", "HUB_CK", "CK_ESPRESSO", "CK_FOOD", "VIRTUAL"];
@@ -197,6 +198,15 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
             {draft && (
               <button type="button" onClick={() => setDraft(d => d && ({ ...d, lines: [...d.lines, { item_id: null, item_code: null, item_name: null, component_name: "", qty_base: "", is_stock: true }] }))}
                 className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline"><Plus size={13} /> {tr("Add component")}</button>
+            )}
+            {draft && (
+              <div>
+                <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Take components from the data we have")}</p>
+                <ComponentSources have={new Set(draft.lines.map(l => l.item_id).filter(Boolean) as string[])}
+                  onAdd={(cs: PickedComponent[]) => setDraft(d => d && ({ ...d, lines: [...d.lines, ...cs.map(c => ({
+                    item_id: c.item_id, item_code: c.item_code, item_name: c.item_name, component_name: c.component_name,
+                    qty_base: c.qty_base ? String(c.qty_base) : "", is_stock: c.is_stock }))] }))} />
+              </div>
             )}
             {issues.length > 0 && (
               <ul className="space-y-1">
