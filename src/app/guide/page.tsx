@@ -203,6 +203,13 @@ const CC: Part = {
             <>Langkah 3 <b>Cabang</b>: pilih jenis SO (boleh lebih dari satu), saring tipe & kota, centang cabang atau <b>pilih semua</b>. Buat & pasang.</>,
             <>Grup yang ada: tab <b>Item</b>, <b>Cabang</b> (tambah/hapus pemasangan; tanda centang = sudah terpasang) dan <b>Detail</b> (nama, nonaktif).</>,
           ]} />
+          <p className="text-sm font-semibold text-slate-900">Dari template Cost Control</p>
+          <Steps items={[
+            <><Menu>Impor template</Menu> → pilih file <i>TEMPLATE SO PER CATEGORY</i> → <Menu>Periksa</Menu> (belum menyimpan) → <Menu>Impor</Menu>. Setiap sheet menjadi grup “Template SO …”, belum dipasang ke cabang. Impor ulang mengganti item grup itu; pemasangan cabang tetap.</>,
+            <>Produk yang belum ada di master item muncul di grup sebagai <b>Belum ada di master item</b>. Klik <Menu>Buat item</Menu> (kode, nama, kategori & satuan sudah terisi dari template), periksa lalu simpan: item langsung masuk ke grup itu dan grup lain yang mencantumkannya.</>,
+            <>Item yang belum punya satuan kemasan dari template: pada kolom kemasan pilih <Menu>+ Tambah satuan…</Menu> (mis. PACK@100PCS = 100 PCS). Di pencarian item juga ada <Menu>Item baru</Menu> untuk produk yang belum ada.</>,
+            <>Pasang grup ke cabang lewat tab <b>Cabang</b> di grup tersebut.</>,
+          ]} />
         </>
       ),
     },
