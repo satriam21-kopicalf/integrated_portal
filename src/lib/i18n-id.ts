@@ -2295,4 +2295,5 @@ export const ID: Record<string, string> = {
   "not in the item master": "belum ada di item master",
   "output": "output",
   "{0} recipes": "{0} resep",
+  "Recipe type": "Jenis resep",
 };

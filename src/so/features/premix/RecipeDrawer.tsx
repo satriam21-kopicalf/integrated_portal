@@ -129,7 +129,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
           <DrawerSection title={tr("Recipe")}>
             <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
               <Field label={tr("Name")} required><Input value={head.name} onChange={e => setHead({ ...head, name: e.target.value })} placeholder={tr("e.g. Premix Premium")} /></Field>
-              <Field label={tr("Type")}><Select value={head.recipe_type} onChange={e => setHead({ ...head, recipe_type: e.target.value })}>{TYPES.map(t => <option key={t}>{t}</option>)}</Select></Field>
+              <Field label={tr("Recipe type")}><Select value={head.recipe_type} onChange={e => setHead({ ...head, recipe_type: e.target.value })}>{TYPES.map(t => <option key={t}>{t}</option>)}</Select></Field>
             </div>
             <div>
               <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Counted at")} <span className="font-normal text-slate-400">({tr("none ticked = every facility type")})</span></p>

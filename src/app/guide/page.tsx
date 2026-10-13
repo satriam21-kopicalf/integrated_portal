@@ -343,7 +343,7 @@ export default function GuidePage() {
               ))}
             </div>
           </nav>
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <p className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">{part.intro}</p>
             {part.sections.map((s, i) => (
               <section key={s.id} id={s.id} className="scroll-mt-4 space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
