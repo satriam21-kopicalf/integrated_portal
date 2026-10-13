@@ -1,16 +1,18 @@
 "use client";
 
-// Evidence photos of a count (06.9 §5): taken with the camera, compressed in the browser, uploaded with the position.
-// Shown as thumbnails; the person who took a photo can remove it while the count is open.
+// Evidence photos of a count (06.9 §5): taken with the live camera only (no gallery or file, user decision 2026-10-13),
+// stamped with branch, count, subject, WIB time and position, uploaded with the position. Shown as thumbnails; the
+// person who took a photo can remove it while the count is open.
 
 import { Camera, Loader2, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { cx, useToast } from "@/so/ui";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, type CountPhoto, getPosition } from "@/so/lib/counts";
+import { type Count, type CountPhoto } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
-import { compressPhoto, photoUrl } from "@/so/lib/photos";
+import { photoUrl } from "@/so/lib/photos";
+import CameraCapture, { type Shot } from "./CameraCapture";
 
 export default function PhotoStrip({ count, subject, required, open, onChange, compact = false }: {
   count: Count;
@@ -22,24 +24,24 @@ export default function PhotoStrip({ count, subject, required, open, onChange, c
 }) {
   const toast = useToast();
   const { me } = useMe();
-  const input = useRef<HTMLInputElement>(null);
+  const [camera, setCamera] = useState(false);
   const [busy, setBusy] = useState(false);
   const photos = count.photos.filter((p) => p.subject === subject);
   const missing = required && photos.length === 0;
 
-  const pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  const [kind, ref] = [subject.split(":")[0], subject.slice(subject.indexOf(":") + 1)];
+  const title = kind === "AREA" ? tr("Area {0}", ref) : count.lines.find((l) => l.item_id === ref)?.item_name ?? tr("Item");
+
+  const upload = async (shot: Shot) => {
     setBusy(true);
     try {
-      const [image, pos] = await Promise.all([compressPhoto(file), getPosition()]);
       onChange(await api<Count>(`/api/so/counts/${count.id}/photos`, {
         method: "POST",
-        json: { image, subject, lat: pos?.lat ?? null, lng: pos?.lng ?? null, taken_at: new Date(file.lastModified || Date.now()).toISOString() },
+        json: { image: shot.image, subject, lat: shot.lat, lng: shot.lng, taken_at: shot.taken_at },
       }));
     } catch (err) {
       toast(errorText(err), "error");
+      throw err;
     } finally {
       setBusy(false);
     }
@@ -68,14 +70,15 @@ export default function PhotoStrip({ count, subject, required, open, onChange, c
         </span>
       ))}
       {open && (
-        <button type="button" onClick={() => input.current?.click()} disabled={busy}
+        <button type="button" onClick={() => setCamera(true)} disabled={busy}
           className={cx("inline-flex h-14 items-center gap-1.5 rounded-lg border border-dashed px-3 text-xs font-medium",
             missing ? "border-amber-400 bg-amber-50 text-amber-800" : "border-slate-300 text-slate-500 hover:border-slate-400")}>
           {busy ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
           {missing ? tr("Photo needed") : tr("Add photo")}
         </button>
       )}
-      <input ref={input} type="file" accept="image/*" capture="environment" className="hidden" onChange={pick} />
+      <CameraCapture open={camera} title={title} branch={count.facility_name} countNumber={count.number}
+        onClose={() => setCamera(false)} onShot={upload} />
     </div>
   );
 }

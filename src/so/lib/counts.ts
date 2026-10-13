@@ -66,6 +66,9 @@ export type Count = {
   reviewed_by_name: string | null;
   review_note: string | null;
   note: string | null;
+  /** CREW = counted by the branch; COST_CONTROL = entered by Cost Control on the form; IMPORT = from a file (D-56) */
+  entry_source?: "CREW" | "COST_CONTROL" | "IMPORT";
+  source_ref?: string | null;
   lines: CountLine[];
   photos: CountPhoto[];
   photo_todo: { areas: string[]; items: string[] };
@@ -104,6 +107,12 @@ export const STATUS: Record<string, { tone: "slate" | "blue" | "amber" | "green"
   APPROVED: { tone: "green", label: () => tr("Approved") },
   CANCELLED: { tone: "slate", label: () => tr("Cancelled") },
   EXPORTED: { tone: "green", label: () => tr("Exported") },
+};
+
+export const ENTRY_SOURCE: Record<string, () => string> = {
+  CREW: () => tr("Counted by the branch"),
+  COST_CONTROL: () => tr("Entered by Cost Control"),
+  IMPORT: () => tr("Imported by Cost Control"),
 };
 
 export const COUNT_TYPE_LABEL: Record<string, () => string> = {

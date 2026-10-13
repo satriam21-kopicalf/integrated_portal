@@ -8,12 +8,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtDay, theadClass } from "@/so/ui";
 import { ChoiceGroup } from "@/so/ui/FilterControls";
 import { api, errorText } from "@/so/lib/api";
-import { STATUS, countTypeLabel } from "@/so/lib/counts";
+import { STATUS, countTypeLabel, ENTRY_SOURCE } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 
 type Row = {
   id: string; number: string; facility_code: string; facility_name: string; facility_type: string; count_type: string; business_date: string;
-  status: string; is_late: boolean; outside_radius: boolean; submitted_at: string | null; started_by_name: string | null; lines: number;
+  status: string; entry_source?: string; is_late: boolean; outside_radius: boolean; submitted_at: string | null; started_by_name: string | null; lines: number;
   counted: number; flagged: number;
 };
 
@@ -103,6 +103,7 @@ export default function ReviewsPage() {
                       <td className="px-4 py-3 text-right tabular-nums text-slate-700">{r.counted}/{r.lines}
                         {r.flagged > 0 && <span className="block text-xs text-amber-700">{tr("{0} to check", r.flagged)}</span>}</td>
                       <td className="px-4 py-3"><div className="flex flex-wrap gap-1">
+                        {r.entry_source && r.entry_source !== "CREW" && <Badge tone="violet">{ENTRY_SOURCE[r.entry_source]?.()}</Badge>}
                         {r.is_late && <Badge tone="amber">{tr("Late")}</Badge>}{r.outside_radius && <Badge tone="amber">{tr("Outside radius")}</Badge>}
                       </div></td>
                       <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{r.submitted_at ? fmtDate(r.submitted_at) : "—"}

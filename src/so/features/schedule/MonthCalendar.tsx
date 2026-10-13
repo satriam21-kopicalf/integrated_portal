@@ -24,7 +24,7 @@ export function gridStart(month: Date): Date {
 
 export const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, highlight, compact = false }: {
+export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, highlight, onPick, compact = false }: {
   month: Date;
   /** server days from gridStart(month), 42 entries */
   days?: CalendarDay[];
@@ -33,6 +33,8 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
   onMonth?: (m: Date) => void;
   /** dates to mark (live preview of an unsaved schedule) */
   highlight?: Set<string>;
+  /** makes today and later days clickable (picking the dates of a count type) */
+  onPick?: (date: string) => void;
   compact?: boolean;
 }) {
   const start = gridStart(month);
@@ -62,8 +64,13 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
           const inMonth = d.getMonth() === month.getMonth();
           const counts = byDate.get(key) ?? [];
           const marked = highlight?.has(key);
+          const pickable = !!onPick && key >= today;
           return (
-            <div key={key} className={cx("bg-white px-1 py-1", compact ? "min-h-9" : "min-h-12 sm:min-h-[5.5rem]", !inMonth && "bg-slate-50/70", marked && "bg-blue-50")}>
+            <div key={key} role={pickable ? "button" : undefined} tabIndex={pickable ? 0 : undefined} aria-pressed={pickable ? !!marked : undefined}
+              onClick={pickable ? () => onPick(key) : undefined}
+              onKeyDown={pickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(key); } } : undefined}
+              className={cx("bg-white px-1 py-1", compact ? "min-h-9" : "min-h-12 sm:min-h-[5.5rem]", !inMonth && "bg-slate-50/70", marked && "bg-blue-50",
+                pickable && "cursor-pointer hover:bg-blue-50/60", onPick && !pickable && "opacity-50")}>
               <span className={cx("mb-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] tabular-nums",
                 key === today ? "bg-slate-900 font-semibold text-white" : inMonth ? "text-slate-700" : "text-slate-300",
                 marked && key !== today && "bg-blue-600 font-semibold text-white")}>{d.getDate()}</span>

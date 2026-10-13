@@ -7,10 +7,10 @@
 import { AlertTriangle, ArrowLeft, Check, CheckCircle2, CloudUpload, Loader2, MapPin, RotateCcw, Search, Send, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Button, ErrorState, cx, fmtDate, inputClass, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, cx, fmtDate, fmtDay, inputClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, type CountLine, STATUS, countTypeLabel, fmtQty, getPosition, parseQty } from "@/so/lib/counts";
+import { type Count, type CountLine, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, parseQty } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import PhotoStrip from "./Photos";
 import WipSection from "./WipSection";
@@ -112,6 +112,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   const photosMissing = count.photo_todo.areas.length + count.photo_todo.items.length;
   const pct = count.progress.lines ? Math.round((count.progress.counted / count.progress.lines) * 100) : 0;
   const busy = saving.size > 0;
+  // Cost Control entering a branch's count (D-56): no photos or location needed
+  const crew = (count.entry_source ?? "CREW") === "CREW";
 
   return (
     <div className="flex min-h-full flex-col bg-slate-50">
@@ -123,6 +125,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
             <p className="truncate text-xs text-slate-500">{count.facility_name} · {count.number}</p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               <Badge tone={st.tone} dot>{st.label()}</Badge>
+              {!crew && <Badge tone="violet">{ENTRY_SOURCE[count.entry_source ?? "CREW"]?.()}</Badge>}
+              <Badge>{fmtDay(count.business_date)}</Badge>
               {count.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
               {count.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside the facility radius")}</Badge>}
               {count.progress.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} lines to check", count.progress.flagged)}</Badge>}
@@ -181,7 +185,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           <section key={a} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 bg-slate-50 px-4 py-2">
               <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{a}</h2>
-              <PhotoStrip count={count} subject={`AREA:${a}`} required open={open} onChange={setCount} compact />
+              {crew && <PhotoStrip count={count} subject={`AREA:${a}`} required open={open} onChange={setCount} compact />}
             </div>
             <ul className="divide-y divide-slate-100">
               {shown.filter((l) => l.area === a).map((l) => {
@@ -230,7 +234,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                       <p className="mt-1 text-xs text-violet-700 md:text-right">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                     )}
                     {bad && <p className="mt-1 text-xs text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
-                    {(l.photo_required || l.flags.includes("SPIKE") || count.photos.some((p) => p.subject === `ITEM:${l.item_id}`)) && (
+                    {((crew && (l.photo_required || l.flags.includes("SPIKE"))) || count.photos.some((p) => p.subject === `ITEM:${l.item_id}`)) && (
                       <PhotoStrip count={count} subject={`ITEM:${l.item_id}`} required={l.photo_required || l.flags.includes("SPIKE")}
                         open={editableLine(count, l) || (open && l.is_current)} onChange={setCount} compact />
                     )}
@@ -257,7 +261,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         </div>
       )}
       <ConfirmDialog open={confirming} busy={submitting} onClose={() => setConfirming(false)} onConfirm={submit}
-        title={tr("Submit the count?")} description={tr("After submitting, the quantities are locked and sent to Cost Control for review. Your location is recorded.")}
+        title={tr("Submit the count?")} description={crew ? tr("After submitting, the quantities are locked and sent to Cost Control for review. Your location is recorded.")
+          : tr("After submitting, the quantities are locked and go to Review. Another Cost Control member approves them.")}
         confirmLabel={tr("Submit")} />
     </div>
   );

@@ -1,8 +1,9 @@
 "use client";
 
-// WIP of the count (premix, creams, sauces counted in pail / teko / gram, D-34): the crew enters what is there, the
-// grams of every ingredient follow from the active recipe (kept as a snapshot) and are added to the ingredient lines
-// (rounded up per ingredient, as the Cost Control calculator). Saved as a whole with "Save WIP".
+// WIP of the count (premix, creams, sauces, D-34): the crew weighs what is there and enters grams (user decision
+// 2026-10-13: grams, not pail or teko); the grams of every ingredient follow from the active recipe (kept as a
+// snapshot) and are added to the ingredient lines (rounded up per ingredient, as the Cost Control calculator), so the
+// result has the ingredients in their units like the Stock Opname Report. Saved as a whole with "Save WIP".
 
 import { ChevronDown, FlaskConical, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +14,7 @@ import { tr } from "@/lib/i18n";
 
 const fmtG = (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 });
 const keyOf = (recipeId: string, uom: string) => `${recipeId}|${uom}`;
+const gramUnit = (units: { uom: string }[]) => units.find((u) => u.uom.toLowerCase() === "gram")?.uom ?? "Gram";
 
 export default function WipSection({ count, open, onSaved, onDirty }: {
   count: Count; open: boolean; onSaved: (c: Count) => void; onDirty: (dirty: boolean) => void;
@@ -73,7 +75,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
         <FlaskConical size={18} className="flex-shrink-0 text-violet-700" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-semibold text-slate-900">{tr("WIP / premix")}</span>
-          <span className="block text-xs text-slate-500">{tr("Pails, teko and grams of premix, creams and sauces; the ingredients are added to the count")}</span>
+          <span className="block text-xs text-slate-500">{tr("Weigh each premix and enter the grams; the ingredients are calculated and added to the count")}</span>
         </span>
         {entered > 0 && <Badge tone="violet">{tr("{0} entered", entered)}</Badge>}
         {dirty && <Badge tone="amber">{tr("Not saved")}</Badge>}
@@ -84,24 +86,24 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
           {open ? (
             recipes.length === 0 ? <p className="text-sm text-slate-500">{tr("No WIP recipe is active for this location.")}</p> : (
               <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
-                {recipes.map(r => (
-                  <li key={r.id} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center">
-                    <span className="min-w-0 flex-1 text-sm font-medium text-slate-900">{r.name}</span>
-                    <span className="flex flex-wrap gap-2">
-                      {r.units.map(u => {
-                        const k = keyOf(r.id, u.uom);
-                        return (
-                          <label key={u.uom} className="flex items-center gap-1.5 text-xs text-slate-600" title={`1 ${u.uom} = ${fmtG(u.grams)} g`}>
-                            <input inputMode="decimal" value={values[k] ?? ""} placeholder="0" aria-label={`${r.name} ${u.uom}`}
-                              onChange={e => setValues(v => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "") }))}
-                              className={cx("h-10 w-20 rounded-lg border px-2 text-right text-base tabular-nums", Number(values[k]) > 0 ? "border-violet-400 bg-violet-50/50" : "border-slate-200")} />
-                            {u.uom}
-                          </label>
-                        );
-                      })}
-                    </span>
-                  </li>
-                ))}
+                {recipes.map(r => {
+                  const k = keyOf(r.id, gramUnit(r.units));
+                  const older = r.units.filter((u) => u.uom !== gramUnit(r.units) && Number(values[keyOf(r.id, u.uom)]) > 0);
+                  return (
+                    <li key={r.id} className="flex items-center gap-3 px-3 py-2.5">
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium text-slate-900">{r.name}</span>
+                        {older.map((u) => <span key={u.uom} className="block text-[11px] text-slate-500">{tr("Entered earlier: {0} {1}", values[keyOf(r.id, u.uom)], u.uom)}</span>)}
+                      </span>
+                      <label className="flex items-center gap-1.5 text-sm text-slate-600">
+                        <input inputMode="decimal" value={values[k] ?? ""} placeholder="0" aria-label={`${r.name} gram`}
+                          onChange={e => setValues(v => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "") }))}
+                          className={cx("h-11 w-28 rounded-lg border px-2 text-right text-base tabular-nums", Number(values[k]) > 0 ? "border-violet-400 bg-violet-50/50" : "border-slate-200")} />
+                        g
+                      </label>
+                    </li>
+                  );
+                })}
               </ul>
             )
           ) : entered === 0 ? <p className="text-sm text-slate-500">{tr("No WIP was entered.")}</p> : (

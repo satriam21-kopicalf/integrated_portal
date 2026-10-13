@@ -86,7 +86,6 @@ export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('M
  * and Activity Logs are superadmin-only. The backend enforces the same. */
 export function canAccess(user: Pick<AuthUser, 'role' | 'pages'>, pathname: string): boolean {
   if (user.role === 'superadmin') return true;
-  if (pathname === '/guide' || pathname.startsWith('/guide/')) return true; // the user guide is for everyone
   const page = pageOf(pathname);
   return page !== null && page !== 'superadmin' && pagesOf(user).includes(page);
 }
@@ -98,7 +97,7 @@ export function hasPage(user: Pick<AuthUser, 'role' | 'pages'> | null | undefine
 /** The user's pages; a backend without page access (before migration 012) answers without them: role defaults. */
 function pagesOf(user: Pick<AuthUser, 'role' | 'pages'>): PageKey[] {
   if (user.pages) return user.pages;
-  const base: PageKey[] = ['overview', 'sales', 'stock-opname'];
+  const base: PageKey[] = ['overview', 'sales', 'stock-opname', 'guide'];
   return user.role === 'cost_control' ? [...base, ...CC_PAGES] : base;
 }
 

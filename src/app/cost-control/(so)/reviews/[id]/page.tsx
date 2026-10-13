@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Panel, SearchBox, cx, fmtDate, fmtDay, theadClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, STATUS, countTypeLabel, fmtQty } from "@/so/lib/counts";
+import { type Count, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
@@ -79,6 +79,7 @@ export default function ReviewDetailPage() {
             <p className="text-xs text-slate-500 sm:text-sm">{countTypeLabel(count.count_type, count.count_type_name)} · {fmtDay(count.business_date)} · <span className="font-mono">{count.number}</span></p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <Badge tone={st.tone} dot>{st.label()}</Badge>
+              {count.entry_source && count.entry_source !== "CREW" && <Badge tone="violet">{ENTRY_SOURCE[count.entry_source]?.()}</Badge>}
               {count.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
               {count.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside radius")}</Badge>}
               {count.progress.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} lines to check", count.progress.flagged)}</Badge>}

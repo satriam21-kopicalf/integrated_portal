@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, Blocks, BookOpen, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, Download, FileUp, Blocks, BookOpen, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -28,6 +28,8 @@ const costControl = [
   { get title() { return tr('Stock opname'); }, items: [
     { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Counts of every branch today'); } },
     { get name() { return tr('Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); } },
+    { get name() { return tr('Enter / import SO'); }, href: '/cost-control/entry', icon: FileUp, get description() { return tr('Fill in or import counts for branches'); } },
+    { get name() { return tr('SO report (xlsx)'); }, href: '/cost-control/reports', icon: Download, get description() { return tr('Download reviewed stock opname'); } },
   ] },
   { get title() { return tr('ESB'); }, items: [
     { get name() { return tr('ESB export'); }, href: '/cost-control/esb-export', icon: FileSpreadsheet, get description() { return tr('Stock opname file for ESB'); } },

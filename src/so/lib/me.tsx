@@ -12,6 +12,8 @@ const CREW = ["inventory.count.read", "inventory.count.create", "inventory.count
 const BY_PAGE: [PageKey, string[]][] = [
   ["cc.monitor", ["inventory.count.read"]],
   ["cc.reviews", ["inventory.count.read", "inventory.count.review"]],
+  ["cc.entry", ["inventory.count.read", "inventory.count.enter", "recipe.wip.read"]],
+  ["cc.reports", ["inventory.count.read"]],
   ["cc.esb-export", ["inventory.count.read", "inventory.count.export"]],
   ["cc.esb-compare", ["inventory.count.read", "inventory.count.export"]],
   ["cc.lists", ["inventory.count.settings", "master.item.read"]],

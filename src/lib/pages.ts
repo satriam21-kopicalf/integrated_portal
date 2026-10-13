@@ -5,8 +5,8 @@
 import { tr } from './i18n';
 
 export type PageKey =
-  | 'overview' | 'sales' | 'stock-opname'
-  | 'cc.monitor' | 'cc.reviews' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
+  | 'overview' | 'sales' | 'stock-opname' | 'guide'
+  | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.ratio' | 'cc.cogs';
 
 export interface PageInfo { key: PageKey; href: string; label: string; group: string }
@@ -15,8 +15,11 @@ export const PAGES: PageInfo[] = [
   { key: 'overview', href: '/overview', get label() { return tr('Dashboard'); }, get group() { return tr('Main menu'); } },
   { key: 'sales', href: '/sales', get label() { return tr('Sales Transactions'); }, get group() { return tr('Main menu'); } },
   { key: 'stock-opname', href: '/stock-opname', get label() { return tr('Stock Opname (count)'); }, get group() { return tr('Main menu'); } },
+  { key: 'guide', href: '/guide', get label() { return tr('Guide'); }, get group() { return tr('Main menu'); } },
   { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.reviews', href: '/cost-control/reviews', get label() { return tr('Review'); }, get group() { return tr('Cost Control · Stock opname'); } },
+  { key: 'cc.entry', href: '/cost-control/entry', get label() { return tr('Enter / import SO'); }, get group() { return tr('Cost Control · Stock opname'); } },
+  { key: 'cc.reports', href: '/cost-control/reports', get label() { return tr('SO report (xlsx)'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.esb-export', href: '/cost-control/esb-export', get label() { return tr('ESB export'); }, get group() { return tr('Cost Control · ESB'); } },
   { key: 'cc.esb-compare', href: '/cost-control/esb-compare', get label() { return tr('ESB comparison'); }, get group() { return tr('Cost Control · ESB'); } },
   { key: 'cc.lists', href: '/cost-control/lists', get label() { return tr('Count lists'); }, get group() { return tr('Cost Control · Stock opname settings'); } },

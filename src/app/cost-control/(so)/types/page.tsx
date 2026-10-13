@@ -1,7 +1,8 @@
 "use client";
 
 // Count types (Cost Control): the name each stock opname has, when it is due (daily on chosen days, weekly on a day,
-// monthly on a date or the last day), its count window and validity period, and its ESB purpose. A month calendar
+// monthly on a date or the last day, or on dates picked on the calendar), its count window (WIB) and validity period,
+// and its ESB purpose. Quick setups fill the usual schedules in one tap. A month calendar
 // shows the schedule the server computes from these rules; the editor previews an unsaved schedule live.
 
 import { CalendarClock, CalendarDays, Clock, Plus, Save } from "lucide-react";
@@ -15,11 +16,11 @@ import { countTypeLabel } from "@/so/lib/counts";
 import { locale, tr } from "@/lib/i18n";
 import { wibDate, wibMonthStart, windowText } from "@/so/lib/wib";
 
-type Frequency = "DAILY" | "WEEKLY" | "MONTHLY" | "ADHOC";
+type Frequency = "DAILY" | "WEEKLY" | "MONTHLY" | "DATES" | "ADHOC";
 type CountType = {
   code: string; name: string; frequency: Frequency; weekday: number | null; days_of_week: number[]; month_day: number;
   valid_from: string | null; valid_to: string | null; window_start: string; window_end: string; esb_purpose: string | null; wip_enabled: boolean;
-  sort: number; is_active: boolean; lists: number; overrides: number; next_dates: string[];
+  sort: number; is_active: boolean; lists: number; overrides: number; next_dates: string[]; dates: string[];
 };
 type Draft = Omit<CountType, "lists" | "overrides" | "next_dates">;
 
@@ -27,11 +28,21 @@ const dayName = (d: number, style: "long" | "short" = "long") => new Date(2024, 
 const fmtDate = (v: string) => new Date(`${v}T00:00:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" });
 const FREQUENCIES: { key: Frequency; label: () => string }[] = [
   { key: "DAILY", label: () => tr("Daily") }, { key: "WEEKLY", label: () => tr("Weekly") },
-  { key: "MONTHLY", label: () => tr("Monthly") }, { key: "ADHOC", label: () => tr("When needed") },
+  { key: "MONTHLY", label: () => tr("Monthly") }, { key: "DATES", label: () => tr("On chosen dates") },
+  { key: "ADHOC", label: () => tr("When needed") },
 ];
+/** One-tap schedules Cost Control uses most. */
+const QUICK: { label: () => string; set: Partial<Draft> }[] = [
+  { label: () => tr("Every day"), set: { frequency: "DAILY", days_of_week: [] } },
+  { label: () => tr("Monday to Saturday"), set: { frequency: "DAILY", days_of_week: [1, 2, 3, 4, 5, 6] } },
+  { label: () => tr("Every Monday"), set: { frequency: "WEEKLY", weekday: 1 } },
+  { label: () => tr("Last day of the month"), set: { frequency: "MONTHLY", month_day: 0 } },
+  { label: () => tr("Pick dates on the calendar"), set: { frequency: "DATES" } },
+];
+const WINDOWS: [string, string][] = [["06:00", "08:00"], ["07:00", "09:00"], ["14:00", "16:00"], ["21:00", "23:00"], ["22:00", "23:59"]];
 
 /** "Every day except Sunday, 07:00–08:00" and the like. */
-export function scheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_of_week" | "month_day">): string {
+export function scheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_of_week" | "month_day"> & { dates?: string[] }): string {
   if (t.frequency === "DAILY") {
     const days = t.days_of_week ?? [];
     if (!days.length || days.length === 7) return tr("Every day");
@@ -42,6 +53,7 @@ export function scheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_
   }
   if (t.frequency === "WEEKLY") return t.weekday ? tr("Every {0}", dayName(t.weekday)) : tr("Weekly (no day set)");
   if (t.frequency === "MONTHLY") return t.month_day ? tr("Every month on day {0}", t.month_day) : tr("Last day of every month");
+  if (t.frequency === "DATES") return tr("{0} chosen dates", (t.dates ?? []).length);
   return tr("When needed (no schedule)");
 }
 
@@ -134,7 +146,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   const creating = !type;
   const [d, setD] = useState<Draft>(() => type ? { ...type, name: countTypeLabel(type.code, type.name) } : {
     code: "", name: "", frequency: "WEEKLY", weekday: 1, days_of_week: [], month_day: 0, valid_from: null, valid_to: null,
-    window_start: "07:00", window_end: "08:00", esb_purpose: null, sort: 50, is_active: true, wip_enabled: false,
+    window_start: "07:00", window_end: "08:00", esb_purpose: null, sort: 50, is_active: true, wip_enabled: false, dates: [],
   });
   const [code, setCode] = useState(type?.code ?? "");
   const [codeTouched, setCodeTouched] = useState(false);
@@ -143,22 +155,25 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((o) => ({ ...o, [k]: v }));
-  const month = useMemo(() => wibMonthStart(), []);
+  const [month, setMonth] = useState(() => wibMonthStart());
 
   const rule = useMemo(() => ({
     frequency: d.frequency, weekday: d.frequency === "WEEKLY" ? d.weekday : null, days_of_week: d.days_of_week,
     month_day: d.month_day, valid_from: d.valid_from || null, valid_to: d.valid_to || null,
-  }), [d.frequency, d.weekday, d.days_of_week, d.month_day, d.valid_from, d.valid_to]);
+    dates: d.frequency === "DATES" ? d.dates : null,
+  }), [d.frequency, d.weekday, d.days_of_week, d.month_day, d.valid_from, d.valid_to, d.dates]);
   useEffect(() => {
     if (d.frequency === "ADHOC") { setPreview([]); return; }
+    if (d.frequency === "DATES") { setPreview(d.dates); setPreviewError(""); return; }
     const timer = setTimeout(() => {
       api<string[]>(`/api/so/count-settings/types/preview?start=${iso(gridStart(month))}&days=84`, { method: "POST", json: rule })
         .then((r) => { setPreview(r); setPreviewError(""); })
         .catch((e) => { setPreview(null); setPreviewError(errorText(e)); });
     }, 300);
     return () => clearTimeout(timer);
-  }, [rule, month, d.frequency]);
+  }, [rule, month, d.frequency, d.dates]);
   const marked = useMemo(() => new Set(preview ?? []), [preview]);
+  const pickDate = (day: string) => set("dates", d.dates.includes(day) ? d.dates.filter((x) => x !== day) : [...d.dates, day].sort());
   const upcoming = (preview ?? []).filter((x) => x >= wibDate()).slice(0, 6);
 
   // no days = every day: tapping a day then leaves it out; a schedule keeps at least one day
@@ -208,6 +223,15 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
         </DrawerSection>
 
         <DrawerSection title={tr("Schedule")}>
+          <div>
+            <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Quick setup")}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {QUICK.map((q) => (
+                <button key={q.label()} type="button" onClick={() => setD((o) => ({ ...o, ...q.set }))}
+                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50">{q.label()}</button>
+              ))}
+            </div>
+          </div>
           <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Frequency")}>
             {FREQUENCIES.map((f) => (
               <button key={f.key} type="button" role="radio" aria-checked={d.frequency === f.key} className={chip(d.frequency === f.key)}
@@ -250,8 +274,30 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
               {d.month_day > 28 && <p className="mt-1.5 text-xs text-slate-500">{tr("Months without day {0} use their last day.", d.month_day)}</p>}
             </div>
           )}
+          {d.frequency === "DATES" && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-700">{tr("Tap the dates the count is due (tap again to remove)")}</p>
+              <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-blue-600"} labelOf={(_c, n) => n} highlight={marked} onPick={pickDate} compact />
+              <div className="flex flex-wrap items-center gap-1.5">
+                {d.dates.length === 0 ? <span className="text-xs text-amber-700">{tr("No date chosen yet")}</span> : d.dates.map((x) => (
+                  <button key={x} type="button" onClick={() => pickDate(x)} className="rounded-md bg-blue-50 px-2 py-0.5 text-xs text-blue-800 hover:bg-red-50 hover:text-red-700"
+                    title={tr("Remove")}>{fmtDate(x)} ×</button>
+                ))}
+                {d.dates.length > 0 && <button type="button" className="text-xs font-medium text-slate-500 hover:underline" onClick={() => set("dates", [])}>{tr("Clear all")}</button>}
+              </div>
+            </div>
+          )}
           {d.frequency !== "ADHOC" && (
             <>
+              <div>
+                <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Count window (WIB)")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {WINDOWS.map(([a, b]) => (
+                    <button key={a + b} type="button" className={chip(d.window_start === a && d.window_end === b)}
+                      onClick={() => setD((o) => ({ ...o, window_start: a, window_end: b }))}>{a}–{b}</button>
+                  ))}
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <Field label={tr("Count window opens (WIB)")}><Input type="time" value={d.window_start} onChange={(e) => set("window_start", e.target.value)} /></Field>
                 <Field label={tr("Count window closes (WIB)")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
@@ -268,7 +314,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           </p>
         </DrawerSection>
 
-        {d.frequency !== "ADHOC" && (
+        {d.frequency !== "ADHOC" && d.frequency !== "DATES" && (
           <DrawerSection title={tr("Calendar preview")} description={tr("Highlighted: the dates this schedule produces (not saved yet).")}>
             {previewError ? <p className="text-sm text-red-600">{previewError}</p> : (
               <>
@@ -290,7 +336,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
             <Field label={tr("Order")}><Input inputMode="numeric" value={String(d.sort)} onChange={(e) => set("sort", Number(e.target.value.replace(/\D/g, "")) || 0)} /></Field>
             <div className="flex items-end pb-2"><Checkbox label={tr("Active")} checked={d.is_active} onChange={(e) => set("is_active", e.target.checked)} /></div>
           </div>
-          <Checkbox label={tr("WIP form")} hint={tr("The count also asks for WIP / premix (pail, teko, gram); its ingredients are added to the count")}
+          <Checkbox label={tr("WIP form")} hint={tr("The count also asks for WIP / premix in grams; its ingredients are added to the count")}
             checked={d.wip_enabled} onChange={(e) => set("wip_enabled", e.target.checked)} />
           {!creating && type.lists === 0 && <p className="text-xs text-amber-700">{tr("No count list uses this type yet: add one under Count lists so branches count it.")}</p>}
         </DrawerSection>
