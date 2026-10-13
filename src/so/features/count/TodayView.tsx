@@ -10,11 +10,12 @@ import { Badge, Button, Empty, ErrorState, Page, Panel, cx, fmtDay, useToast } f
 import { api, errorText } from "@/so/lib/api";
 import { type Count, type TodayCount, type TodayFacility, STATUS, countTypeLabel, getPosition } from "@/so/lib/counts";
 import { locale, tr } from "@/lib/i18n";
+import { TZ, windowText, wibClock } from "@/so/lib/wib";
 
 const WINDOW: Record<string, { tone: "slate" | "green" | "amber"; label: (c: TodayCount) => string }> = {
-  UPCOMING: { tone: "slate", label: (c) => tr("Opens at {0}", c.window_start ?? "") },
-  OPEN: { tone: "green", label: (c) => tr("Open now · until {0}", c.window_end ?? "") },
-  LATE: { tone: "amber", label: (c) => tr("Window closed at {0} · still to do", c.window_end ?? "") },
+  UPCOMING: { tone: "slate", label: (c) => tr("Opens at {0}", windowText(c.window_start)) },
+  OPEN: { tone: "green", label: (c) => tr("Open now · until {0}", windowText(c.window_end)) },
+  LATE: { tone: "amber", label: (c) => tr("Window closed at {0} · still to do", windowText(c.window_end)) },
 };
 
 function Clock24() {
@@ -28,7 +29,7 @@ function Clock24() {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold tabular-nums text-slate-700">
       <Clock size={14} className="text-slate-400" />
-      {now.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })}
+      {wibClock(now)}
     </span>
   );
 }
@@ -121,7 +122,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                             )}
                           </div>
                           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-4">
-                            <Info icon={<CalendarClock size={13} />} label={tr("Count window")} value={c.window_start ? `${c.window_start}–${c.window_end}` : "—"} />
+                            <Info icon={<CalendarClock size={13} />} label={tr("Count window")} value={c.window_start ? windowText(c.window_start, c.window_end) : "—"} />
                             <Info icon={<Layers size={13} />} label={tr("Items")} value={c.items !== null && c.items !== undefined ? tr("{0} items · {1} areas", c.items, c.areas.length) : "—"} />
                             <Info icon={<History size={13} />} label={tr("Last count")} value={c.last ? `${fmtDay(c.last.business_date)} · ${(STATUS[c.last.status] ?? STATUS.IN_PROGRESS).label()}` : tr("None yet")} />
                             <Info icon={<ClipboardList size={13} />} label={tr("ESB purpose")} value={c.esb_purpose ?? tr("Not set")} />
@@ -140,8 +141,8 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                     <ul className="flex flex-wrap gap-2">
                       {f.upcoming.map((u) => (
                         <li key={`${u.date}:${u.count_type}`} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs">
-                          <span className="font-semibold text-slate-800">{new Date(`${u.date}T00:00:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" })}</span>
-                          <span className="text-slate-500"> · {countTypeLabel(u.count_type, u.name)} · {u.window_start}</span>
+                          <span className="font-semibold text-slate-800">{new Date(`${u.date}T12:00:00+07:00`).toLocaleDateString(locale(), { timeZone: TZ, weekday: "short", day: "numeric", month: "short" })}</span>
+                          <span className="text-slate-500"> · {countTypeLabel(u.count_type, u.name)} · {windowText(u.window_start)}</span>
                         </li>
                       ))}
                     </ul>

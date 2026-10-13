@@ -6,6 +6,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cx } from "@/so/ui";
 import { locale, tr } from "@/lib/i18n";
+import { TZ_LABEL, wibDate, wibMonthStart } from "@/so/lib/wib";
 
 export type CalendarCount = { code: string; name: string; frequency: string; window_start: string; window_end: string };
 export type CalendarDay = { date: string; counts: CalendarCount[] };
@@ -35,7 +36,7 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
   compact?: boolean;
 }) {
   const start = gridStart(month);
-  const today = iso(new Date());
+  const today = wibDate();
   const byDate = new Map((days ?? []).map((d) => [d.date, d.counts]));
   const weekdays = Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(locale(), { weekday: "short" }));
   const cells = Array.from({ length: 42 }, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
@@ -47,7 +48,7 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => onMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
               className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Previous month")}><ChevronLeft size={16} /></button>
-            <button type="button" onClick={() => onMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
+            <button type="button" onClick={() => onMonth(wibMonthStart())}
               className="rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100">{tr("Today")}</button>
             <button type="button" onClick={() => onMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
               className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Next month")}><ChevronRight size={16} /></button>
@@ -75,7 +76,7 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
                 <ul className="hidden space-y-0.5 sm:block">
                   {counts.slice(0, 3).map((c) => (
                     <li key={c.code} className="flex min-w-0 items-center gap-1 rounded px-1 py-0.5 text-[10.5px] leading-tight text-slate-700 hover:bg-slate-50"
-                      title={`${labelOf(c.code, c.name)} · ${c.window_start}–${c.window_end}`}>
+                      title={`${labelOf(c.code, c.name)} · ${c.window_start}–${c.window_end} ${TZ_LABEL}`}>
                       <span className={cx("h-1.5 w-1.5 flex-shrink-0 rounded-full", colorOf(c.code))} />
                       <span className="truncate"><span className="tabular-nums text-slate-400">{c.window_start}</span> {labelOf(c.code, c.name)}</span>
                     </li>

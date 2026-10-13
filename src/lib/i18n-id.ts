@@ -2329,4 +2329,6 @@ export const ID: Record<string, string> = {
   "replaces the items": "mengganti item",
   "{0} codes not in the item master, {1} units the item does not have.": "{0} kode belum ada di master item, {1} satuan belum ada di item.",
   "{0} item groups imported": "{0} grup item diimpor",
+  "Count window closes (WIB)": "Jendela hitung ditutup (WIB)",
+  "Count window opens (WIB)": "Jendela hitung dibuka (WIB)",
 };

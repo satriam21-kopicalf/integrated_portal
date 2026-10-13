@@ -267,11 +267,12 @@ export const useToast = () => useContext(ToastContext);
 
 /* ------------------------------------------------------------------ formatting */
 
+/** Date and time in WIB (stock opname runs on WIB everywhere, see so/lib/wib.ts). */
 export const fmtDate = (v: string | null | undefined) =>
-  v ? new Date(v).toLocaleString(locale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
+  v ? `${new Date(v).toLocaleString(locale(), { timeZone: "Asia/Jakarta", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} WIB` : "—";
 
 export const fmtDay = (v: string | null | undefined) =>
-  v ? new Date(v).toLocaleDateString(locale(), { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  v ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T12:00:00+07:00` : v).toLocaleDateString(locale(), { timeZone: "Asia/Jakarta", day: "2-digit", month: "short", year: "numeric" }) : "—";
 
 export const fmtNumber = (n: number | string) => Number(n).toLocaleString(locale());
 

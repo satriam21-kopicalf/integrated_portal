@@ -13,6 +13,7 @@ import { reloadCountTypeNames } from "@/so/features/CountTypeNames";
 import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel } from "@/so/lib/counts";
 import { locale, tr } from "@/lib/i18n";
+import { wibDate, wibMonthStart, windowText } from "@/so/lib/wib";
 
 type Frequency = "DAILY" | "WEEKLY" | "MONTHLY" | "ADHOC";
 type CountType = {
@@ -50,7 +51,7 @@ export default function TypesPage() {
   const [rows, setRows] = useState<CountType[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<CountType | "new" | null>(null);
-  const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [month, setMonth] = useState(() => wibMonthStart());
   const [calendar, setCalendar] = useState<CalendarDay[] | undefined>();
 
   const load = useCallback(async () => {
@@ -98,7 +99,7 @@ export default function TypesPage() {
                     </span>
                     <span className="mt-1 flex items-center gap-1.5 text-sm text-slate-700"><CalendarDays size={14} className="text-slate-400" /> {scheduleText(t)}</span>
                     {t.frequency !== "ADHOC" && (
-                      <span className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-700"><Clock size={14} className="text-slate-400" /> {t.window_start}–{t.window_end}</span>
+                      <span className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-700"><Clock size={14} className="text-slate-400" /> {windowText(t.window_start, t.window_end)}</span>
                     )}
                     {(t.valid_from || t.valid_to) && (
                       <span className="mt-0.5 block text-xs text-slate-500">
@@ -142,7 +143,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((o) => ({ ...o, [k]: v }));
-  const month = useMemo(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1), []);
+  const month = useMemo(() => wibMonthStart(), []);
 
   const rule = useMemo(() => ({
     frequency: d.frequency, weekday: d.frequency === "WEEKLY" ? d.weekday : null, days_of_week: d.days_of_week,
@@ -158,7 +159,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
     return () => clearTimeout(timer);
   }, [rule, month, d.frequency]);
   const marked = useMemo(() => new Set(preview ?? []), [preview]);
-  const upcoming = (preview ?? []).filter((x) => x >= iso(new Date())).slice(0, 6);
+  const upcoming = (preview ?? []).filter((x) => x >= wibDate()).slice(0, 6);
 
   // no days = every day: tapping a day then leaves it out; a schedule keeps at least one day
   const toggleDay = (n: number) => {
@@ -252,8 +253,8 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           {d.frequency !== "ADHOC" && (
             <>
               <div className="grid grid-cols-2 gap-3">
-                <Field label={tr("Count window opens")}><Input type="time" value={d.window_start} onChange={(e) => set("window_start", e.target.value)} /></Field>
-                <Field label={tr("Count window closes")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
+                <Field label={tr("Count window opens (WIB)")}><Input type="time" value={d.window_start} onChange={(e) => set("window_start", e.target.value)} /></Field>
+                <Field label={tr("Count window closes (WIB)")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <Field label={tr("Valid from")} hint={tr("Empty = from now")}><Input type="date" value={d.valid_from ?? ""} onChange={(e) => set("valid_from", e.target.value || null)} /></Field>
@@ -263,7 +264,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           )}
           <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
             <span className="font-medium">{scheduleText({ ...d, weekday: d.weekday })}</span>
-            {d.frequency !== "ADHOC" && <span className="text-slate-500"> · {d.window_start}–{d.window_end}</span>}
+            {d.frequency !== "ADHOC" && <span className="text-slate-500"> · {windowText(d.window_start, d.window_end)}</span>}
           </p>
         </DrawerSection>
 

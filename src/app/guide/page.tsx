@@ -65,7 +65,7 @@ const SO: Part = {
             ['SO bulanan (bahan baku)', 'Hari terakhir bulan', 'Bahan baku lengkap, WIP/premix'],
             ['SO insidental', 'Saat diperlukan', 'Audit / serah terima, dibuat atas permintaan'],
           ]} />
-          <p className="text-sm text-slate-700">Jam hitung standar <b>07:00–08:00</b> waktu setempat (sebelum outlet buka). SO yang dikirim lewat jam itu tetap diterima tetapi ditandai <b>Terlambat</b>. Nama dan jadwal persisnya terlihat di halaman <Go href="/stock-opname">Stock Opname</Go>.</p>
+          <p className="text-sm text-slate-700">Jam hitung standar <b>07:00–08:00 WIB</b> (sebelum outlet buka). <b>Semua jadwal SO memakai WIB</b> untuk semua outlet, HUB dan dapur, termasuk di Bali; jam di portal selalu ditampilkan dalam WIB walau jam HP berbeda. SO yang dikirim lewat jam itu tetap diterima tetapi ditandai <b>Terlambat</b>. Nama dan jadwal persisnya terlihat di halaman <Go href="/stock-opname">Stock Opname</Go>.</p>
         </>
       ),
     },
@@ -170,7 +170,7 @@ const CC: Part = {
         <>
           <Steps items={[
             <>Buka <Go href="/cost-control/types">Jenis SO</Go>. Kalender bulanan menunjukkan setiap SO pada tanggal & jamnya, dihitung dengan aturan yang sama dengan jadwal sebenarnya.</>,
-            <>Klik kartu jenis SO untuk mengubah <b>nama</b> (nama ini yang dilihat kru), <b>jadwal</b> (Harian: pilih hari; Mingguan: pilih hari; Bulanan: tanggal 1–31 atau hari terakhir), <b>jam buka/tutup</b>, <b>masa berlaku</b>, <b>purpose ESB</b> dan saklar <b>Form WIP</b>.</>,
+            <>Semua jam yang diatur adalah <b>WIB</b> dan berlaku sama untuk semua cabang. Klik kartu jenis SO untuk mengubah <b>nama</b> (nama ini yang dilihat kru), <b>jadwal</b> (Harian: pilih hari; Mingguan: pilih hari; Bulanan: tanggal 1–31 atau hari terakhir), <b>jam buka/tutup</b>, <b>masa berlaku</b>, <b>purpose ESB</b> dan saklar <b>Form WIP</b>.</>,
             <>Pratinjau kalender di editor berubah sebelum disimpan. Tekan Simpan.</>,
             <>Jenis SO baru: tombol <Menu>Jenis SO baru</Menu> (kode dibuat dari nama). Jenis SO baru perlu daftar hitung agar muncul di cabang.</>,
           ]} />
