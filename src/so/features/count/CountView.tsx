@@ -13,6 +13,7 @@ import { api, errorText } from "@/so/lib/api";
 import { type Count, type CountLine, STATUS, countTypeLabel, fmtQty, getPosition, parseQty } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import PhotoStrip from "./Photos";
+import WipSection from "./WipSection";
 
 type Draft = { pack: string; loose: string };
 
@@ -31,6 +32,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   const [area, setArea] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [wipDirty, setWipDirty] = useState(false);
   const pending = useRef<Record<number, Draft>>({});
 
   const load = useCallback(async () => {
@@ -173,6 +175,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           </p>
         )}
 
+        {count.wip?.enabled && <WipSection count={count} open={open} onSaved={setCount} onDirty={setWipDirty} />}
+
         {areas.filter((a) => shown.some((l) => l.area === a)).map((a) => (
           <section key={a} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 bg-slate-50 px-4 py-2">
@@ -199,6 +203,9 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         {l.flags.includes("SPIKE") && <Badge tone="amber" title={tr("More than 3 times higher or lower than the last approved count")}>{tr("Check")}</Badge>}
                       </div>
                     </div>
+                    {l.source === "WIP_EXPLODED" ? (
+                      <p className="mt-2 text-sm text-violet-700 md:mt-0 md:w-[24rem] md:text-right">{tr("{0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
+                    ) : (
                     <div className="mt-2 flex flex-wrap items-end gap-2 md:mt-0 md:w-[24rem] md:flex-nowrap md:justify-end">
                       {l.pack_uom && (
                         <label className="min-w-[7rem] flex-1 md:w-36 md:flex-none">
@@ -218,6 +225,10 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         <span className="pb-3 text-xs text-slate-500">= {fmtQty(l.qty_base)} {l.base_uom}</span>
                       )}
                     </div>
+                    )}
+                    {l.source !== "WIP_EXPLODED" && Number(l.qty_wip ?? 0) > 0 && (
+                      <p className="mt-1 text-xs text-violet-700 md:text-right">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
+                    )}
                     {bad && <p className="mt-1 text-xs text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
                     {(l.photo_required || l.flags.includes("SPIKE") || count.photos.some((p) => p.subject === `ITEM:${l.item_id}`)) && (
                       <PhotoStrip count={count} subject={`ITEM:${l.item_id}`} required={l.photo_required || l.flags.includes("SPIKE")}
@@ -238,10 +249,10 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
             <div className="min-w-0 flex-1 text-sm">
               <p className="font-semibold text-slate-900">{tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}</p>
               <p className="truncate text-xs text-slate-500">
-                {todo ? tr("Enter 0 for items that are not there") : photosMissing ? tr("{0} photos still needed", photosMissing) : tr("Everything is counted")}
+                {wipDirty ? tr("Save the WIP first") : todo ? tr("Enter 0 for items that are not there") : photosMissing ? tr("{0} photos still needed", photosMissing) : tr("Everything is counted")}
               </p>
             </div>
-            <Button disabled={todo > 0 || photosMissing > 0 || busy} onClick={() => setConfirming(true)}><Send size={16} /> {tr("Submit")}</Button>
+            <Button disabled={todo > 0 || photosMissing > 0 || busy || wipDirty} onClick={() => setConfirming(true)}><Send size={16} /> {tr("Submit")}</Button>
           </div>
         </div>
       )}

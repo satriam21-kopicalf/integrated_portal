@@ -3,12 +3,14 @@
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
+  AlertCircle, Briefcase, CheckCircle2, LayoutGrid, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
   Search, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Wand2, X,
 } from 'lucide-react';
 import BranchAssign from '@/components/BranchAssign';
 import type { Branch } from '@/components/BranchFilter';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import MasterCombobox from '@/components/MasterCombobox';
+import { MastersDrawer, PageAccessEditor, RolePagesDrawer } from '@/components/access/PageAccess';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import ActionMenu, { ActionItem } from '@/components/ui/ActionMenu';
@@ -17,6 +19,7 @@ import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
 import { AuthUser, GENDER_LABELS, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
+import { PAGES } from '@/lib/pages';
 import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
 import { locale, tr, serverMsg } from '@/lib/i18n';
 
@@ -63,8 +66,6 @@ function generatePassword(): string {
   return /[A-Za-z]/.test(pw) && /\d/.test(pw) ? pw : generatePassword();
 }
 
-const JOB_TITLES = ['PIC Outlet', 'Store Leader', 'Area Manager', 'Operation Manager', 'Staff'];
-const DEPARTMENTS = ['Operations', 'Finance', 'Purchasing', 'Marketing', 'Human Resources', 'IT'];
 
 /** "Okta Fajri Ramadhan" -> "okta.fajri" (same rule as the accounts imported from user-accounts.xlsx) */
 function suggestUsername(fullName: string): string {
@@ -94,6 +95,7 @@ export default function UsersPage() {
   const [issued, setIssued] = useState<IssuedLogin | null>(null);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AuthUser | 'new' | null>(null);
+  const [panel, setPanel] = useState<'roles' | 'masters' | null>(null);
   const [viewing, setViewing] = useState<AuthUser | null>(null);
   const [deleting, setDeleting] = useState<AuthUser | null>(null);
   const [toast, setToast] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
@@ -226,9 +228,17 @@ export default function UsersPage() {
               <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('User Accounts')}</h1>
               <p className="truncate text-xs text-slate-500 sm:text-sm">{tr('Sign-in, role and branch access of every dashboard user')}</p>
             </div>
-            <button type="button" className={buttonPrimary} onClick={() => setEditing('new')}>
-              <Plus size={16} /> {tr('New user')}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" className={buttonSecondary} onClick={() => setPanel('roles')}>
+                <LayoutGrid size={16} /> <span className="hidden sm:inline">{tr('Roles & pages')}</span>
+              </button>
+              <button type="button" className={buttonSecondary} onClick={() => setPanel('masters')}>
+                <Briefcase size={16} /> <span className="hidden sm:inline">{tr('Job titles & departments')}</span>
+              </button>
+              <button type="button" className={buttonPrimary} onClick={() => setEditing('new')}>
+                <Plus size={16} /> {tr('New user')}
+              </button>
+            </div>
           </div>
         </header>
 
@@ -343,6 +353,8 @@ export default function UsersPage() {
       {deleting && <DeleteDialog user={deleting} onClose={() => setDeleting(null)}
         onDeleted={() => { setToast({ tone: 'ok', text: tr('User {0} deleted', deleting.username) }); setDeleting(null); load(); }}
         onError={text => setToast({ tone: 'error', text })} />}
+      {panel === 'roles' && <RolePagesDrawer onClose={() => setPanel(null)} />}
+      {panel === 'masters' && <MastersDrawer onClose={() => setPanel(null)} />}
       {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
       {toast && (
@@ -509,6 +521,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
   }));
   const [profile, setProfile] = useState<ProfileValues>(() => profileValues(user));
   const [branchCodes, setBranchCodes] = useState<string[]>(() => user?.branches ?? []);
+  const [pageOverrides, setPageOverrides] = useState<Record<string, boolean>>(() => user?.pageOverrides ?? {});
   const [showPassword, setShowPassword] = useState(creating);
   // the username follows the full name until it is typed by hand
   const [usernameTouched, setUsernameTouched] = useState(!creating);
@@ -532,8 +545,9 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
     }
     if (form.password) body.password = form.password;
     if (form.role === 'user') body.branches = branchCodes;
+    if (form.role !== 'superadmin') body.pageOverrides = pageOverrides;
     return body;
-  }, [form, profile, creating, branchCodes]);
+  }, [form, profile, creating, branchCodes, pageOverrides]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -552,7 +566,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
   };
 
   const fieldError = (name: string) => (error?.field === name ? error.text : null);
-  const knownField = error?.field && (['username', 'email', 'role', 'isActive', 'password', 'notes', 'avatar', 'branches'] as string[]).concat(PROFILE_KEYS).includes(error.field);
+  const knownField = error?.field && (['username', 'email', 'role', 'isActive', 'password', 'notes', 'avatar', 'branches', 'pageOverrides'] as string[]).concat(PROFILE_KEYS).includes(error.field);
 
   return (
     <Drawer open onClose={onClose} size={creating ? 'md' : 'lg'}
@@ -596,14 +610,12 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
                   onChange={e => setProfileField('phoneNumber', e.target.value)} />
               </Field>
               <Field label={tr('Job title')} htmlFor="f-jobTitle" error={fieldError('jobTitle')}>
-                <input id="f-jobTitle" list="job-titles" className={inputClass} value={profile.jobTitle} maxLength={80} autoComplete="off"
-                  onChange={e => setProfileField('jobTitle', e.target.value)} placeholder={tr('PIC Outlet')} />
-                <datalist id="job-titles">{JOB_TITLES.map(t => <option key={t} value={t} />)}</datalist>
+                <MasterCombobox kind="jobTitle" id="f-jobTitle" value={profile.jobTitle} onChange={v => setProfileField('jobTitle', v)}
+                  canAdd placeholder={tr('PIC Outlet')} />
               </Field>
               <Field label={tr('Department')} htmlFor="f-department" error={fieldError('department')}>
-                <input id="f-department" list="departments" className={inputClass} value={profile.department} maxLength={80} autoComplete="off"
-                  onChange={e => setProfileField('department', e.target.value)} placeholder={tr('Operations')} />
-                <datalist id="departments">{DEPARTMENTS.map(t => <option key={t} value={t} />)}</datalist>
+                <MasterCombobox kind="department" id="f-department" value={profile.department} onChange={v => setProfileField('department', v)}
+                  canAdd placeholder={tr('Operations')} />
               </Field>
             </div>
           </DrawerSection>
@@ -645,8 +657,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + Cost Control: stock opname monitor, review, settings, ESB export') : tr('Overview, Sales Transactions and stock opname of the assigned branches')}>
-              <select id="f-role" className={inputClass} value={form.role} onChange={e => set('role', e.target.value as Role)}>
+            <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : tr('Pages of the role, data of the assigned branches')}>
+              <select id="f-role" className={inputClass} value={form.role} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
                 <option value="user">{tr('User')}</option>
                 <option value="cost_control">{tr('Cost Control')}</option>
                 <option value="superadmin">{tr('Super Admin')}</option>
@@ -659,6 +671,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
               </select>
             </Field>
           </div>
+        </DrawerSection>
+
+        <DrawerSection title={tr('Page access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
+          <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} />
+          {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
         </DrawerSection>
 
         {form.role === 'user' ? (
@@ -853,6 +870,23 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
         ) : (
           <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> {tr('No branch assigned — this user sees no data.')}</p>
         )}
+      </DrawerSection>
+
+      <DrawerSection title={tr('Pages')} description={user.role === 'superadmin' ? tr('Super admins open every page') : tr('Pages of the role {0}, plus the exceptions of this user', ROLE_LABELS[user.role])}>
+        <ul className="flex flex-wrap gap-1.5">
+          {PAGES.filter(p => user.role === 'superadmin' || (user.pages ?? []).includes(p.key)).map(p => {
+            const extra = user.pageOverrides?.[p.key] === true;
+            return (
+              <li key={p.key} className={`rounded-full px-2.5 py-1 text-xs ${extra ? 'bg-emerald-50 font-medium text-emerald-800' : 'bg-slate-100 text-slate-700'}`}
+                title={extra ? tr('Added for this user') : p.group}>{p.label}</li>
+            );
+          })}
+          {Object.entries(user.pageOverrides ?? {}).filter(([, on]) => !on).map(([key]) => (
+            <li key={key} className="rounded-full bg-rose-50 px-2.5 py-1 text-xs text-rose-700 line-through" title={tr('Removed for this user')}>
+              {PAGES.find(p => p.key === key)?.label ?? key}
+            </li>
+          ))}
+        </ul>
       </DrawerSection>
 
       <DrawerSection title={tr('Contact')}>

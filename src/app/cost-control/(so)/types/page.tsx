@@ -17,7 +17,7 @@ import { locale, tr } from "@/lib/i18n";
 type Frequency = "DAILY" | "WEEKLY" | "MONTHLY" | "ADHOC";
 type CountType = {
   code: string; name: string; frequency: Frequency; weekday: number | null; days_of_week: number[]; month_day: number;
-  valid_from: string | null; valid_to: string | null; window_start: string; window_end: string; esb_purpose: string | null;
+  valid_from: string | null; valid_to: string | null; window_start: string; window_end: string; esb_purpose: string | null; wip_enabled: boolean;
   sort: number; is_active: boolean; lists: number; overrides: number; next_dates: string[];
 };
 type Draft = Omit<CountType, "lists" | "overrides" | "next_dates">;
@@ -111,7 +111,7 @@ export default function TypesPage() {
                       </span>
                     )}
                     <span className="mt-2 block text-[11px] text-slate-400">
-                      <span className="font-mono">{t.code}</span> · {tr("{0} lists", t.lists)}{t.overrides ? ` · ${tr("{0} branch overrides", t.overrides)}` : ""}{t.esb_purpose ? ` · ${t.esb_purpose}` : ""}
+                      <span className="font-mono">{t.code}</span> · {tr("{0} lists", t.lists)}{t.overrides ? ` · ${tr("{0} branch overrides", t.overrides)}` : ""}{t.esb_purpose ? ` · ${t.esb_purpose}` : ""}{t.wip_enabled ? ` · ${tr("WIP form")}` : ""}
                     </span>
                   </span>
                 </span>
@@ -133,7 +133,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   const creating = !type;
   const [d, setD] = useState<Draft>(() => type ? { ...type, name: countTypeLabel(type.code, type.name) } : {
     code: "", name: "", frequency: "WEEKLY", weekday: 1, days_of_week: [], month_day: 0, valid_from: null, valid_to: null,
-    window_start: "07:00", window_end: "08:00", esb_purpose: null, sort: 50, is_active: true,
+    window_start: "07:00", window_end: "08:00", esb_purpose: null, sort: 50, is_active: true, wip_enabled: false,
   });
   const [code, setCode] = useState(type?.code ?? "");
   const [codeTouched, setCodeTouched] = useState(false);
@@ -174,7 +174,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
       await api(`/api/so/count-settings/types/${target}`, {
         method: "PUT",
         json: { name: d.name.trim(), ...rule, window_start: d.window_start, window_end: d.window_end,
-                esb_purpose: d.esb_purpose || null, sort: Number(d.sort) || 0, is_active: d.is_active },
+                esb_purpose: d.esb_purpose || null, sort: Number(d.sort) || 0, is_active: d.is_active, wip_enabled: d.wip_enabled },
       });
       toast(creating ? tr("Count type created") : tr("Count type saved"));
       onSaved();
@@ -289,6 +289,8 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
             <Field label={tr("Order")}><Input inputMode="numeric" value={String(d.sort)} onChange={(e) => set("sort", Number(e.target.value.replace(/\D/g, "")) || 0)} /></Field>
             <div className="flex items-end pb-2"><Checkbox label={tr("Active")} checked={d.is_active} onChange={(e) => set("is_active", e.target.checked)} /></div>
           </div>
+          <Checkbox label={tr("WIP form")} hint={tr("The count also asks for WIP / premix (pail, teko, gram); its ingredients are added to the count")}
+            checked={d.wip_enabled} onChange={(e) => set("wip_enabled", e.target.checked)} />
           {!creating && type.lists === 0 && <p className="text-xs text-amber-700">{tr("No count list uses this type yet: add one under Count lists so branches count it.")}</p>}
         </DrawerSection>
         {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>}

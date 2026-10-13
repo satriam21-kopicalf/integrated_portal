@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { DrawerSection } from '@/components/ui/Drawer';
 import { Field, inputClass } from '@/components/ui/Dialog';
-import { AuthUser, Gender, GENDER_LABELS } from '@/lib/auth';
+import MasterCombobox from '@/components/MasterCombobox';
+import { AuthUser, Gender, GENDER_LABELS, useAuth } from '@/lib/auth';
 import { tr } from '@/lib/i18n';
 
 /**
@@ -99,6 +100,7 @@ export default function ProfileFields({
   currentBranchName?: string | null;
 }) {
   const branches = useBranches();
+  const { user: me } = useAuth();
   const id = (name: string) => `${idPrefix}-${name}`;
   const required = (key: string) => markRequired && (REQUIRED_PROFILE_KEYS as readonly string[]).includes(key);
   const savedBranchMissing = values.workBranchCode && !branches.some(b => b.code === values.workBranchCode);
@@ -143,11 +145,12 @@ export default function ProfileFields({
               maxLength={32} autoCapitalize="characters" spellCheck={false} />
           </Field>
           <Field label={tr('Job title')} htmlFor={id('job')} required={required('jobTitle')} error={fieldError('jobTitle')}>
-            <input id={id('job')} className={inputClass} value={values.jobTitle} onChange={e => onChange('jobTitle', e.target.value)} maxLength={80}
-              autoComplete="organization-title" />
+            <MasterCombobox kind="jobTitle" id={id('job')} value={values.jobTitle} onChange={v => onChange('jobTitle', v)}
+              canAdd={me?.role === 'superadmin'} />
           </Field>
           <Field label={tr('Department')} htmlFor={id('dept')} required={required('department')} error={fieldError('department')}>
-            <input id={id('dept')} className={inputClass} value={values.department} onChange={e => onChange('department', e.target.value)} maxLength={80} />
+            <MasterCombobox kind="department" id={id('dept')} value={values.department} onChange={v => onChange('department', v)}
+              canAdd={me?.role === 'superadmin'} />
           </Field>
           <Field label={tr('Work location')} htmlFor={id('branch')} error={fieldError('workBranchCode')}>
             <select id={id('branch')} className={inputClass} value={values.workBranchCode} onChange={e => onChange('workBranchCode', e.target.value)}>

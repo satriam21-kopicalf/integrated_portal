@@ -162,6 +162,7 @@ export default function ReviewDetailPage() {
                     <td className="px-3 py-2.5 text-xs text-slate-500">{l.area}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
                       {l.qty_base === null ? <span className="text-slate-300">—</span> : <span>{fmtQty(l.qty_base)} {l.base_uom}</span>}
+                      {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
                     </td>
                     <td className="px-3 py-2.5 text-xs text-slate-500">{l.counted_by_name ?? "—"}{l.counted_at && <span className="block">{fmtDate(l.counted_at)}</span>}</td>

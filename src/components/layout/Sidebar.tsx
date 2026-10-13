@@ -6,20 +6,20 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, Blocks, Boxes, Calculator, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, Blocks, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
 import { PreferenceControls } from '@/components/ui/Preferences';
 import { assetUrl } from '@/lib/assets';
-import { ROLE_LABELS, useAuth } from '@/lib/auth';
+import { canAccess, ROLE_LABELS, useAuth } from '@/lib/auth';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { tr } from '@/lib/i18n';
 
 const navigation = [
-  { get name() { return tr('Dashboard'); }, href: '/overview', icon: LayoutDashboard, get description() { return tr('Overview & analytics'); }, superadmin: false },
-  { get name() { return tr('Sales Transactions'); }, href: '/sales', icon: Receipt, get description() { return tr('View & export data'); }, superadmin: false },
-  { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); }, superadmin: false },
+  { get name() { return tr('Dashboard'); }, href: '/overview', icon: LayoutDashboard, get description() { return tr('Overview & analytics'); } },
+  { get name() { return tr('Sales Transactions'); }, href: '/sales', icon: Receipt, get description() { return tr('View & export data'); } },
+  { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); } },
 ];
 
 /** "Cost Control" menu: role cost_control and superadmins (stock opname of every branch, COGS); opens as a pop-up list. */
@@ -36,8 +36,10 @@ const costControl = [
     { get name() { return tr('Count lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
     { get name() { return tr('Item groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Reusable sets of items'); } },
     { get name() { return tr('Count types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
+    { get name() { return tr('Premix calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
   ] },
   { get title() { return tr('Analytics'); }, items: [
+    { get name() { return tr('Outlet ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
     { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('COGS, usage & purchasing'); } },
   ] },
 ];
@@ -206,8 +208,11 @@ function SidebarContent({
 }) {
   const { user } = useAuth();
   const isSuperadmin = user?.role === 'superadmin';
-  const items = navigation.filter(item => !item.superadmin || isSuperadmin);
-  const showCostControl = isSuperadmin || user?.role === 'cost_control';
+  const items = navigation.filter(item => user && canAccess(user, item.href));
+  // Cost Control pop-up: only the pages this user opens
+  const sections = costControl.map(s => ({ title: s.title, items: s.items.filter(i => user && canAccess(user, i.href)) }))
+    .filter(s => s.items.length);
+  const showCostControl = sections.length > 0;
   // the group stays open while one of its pages is shown
   const managementActive = management.some(m => pathname === m.href);
   return (
@@ -230,7 +235,7 @@ function SidebarContent({
         {showCostControl && (
           <div className="mt-5 border-t border-slate-100 pt-4">
             {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Cost Control')}</p>}
-            <CostControlMenu pathname={pathname} collapsed={collapsed} onNavigate={onNavigate} />
+            <CostControlMenu sections={sections} pathname={pathname} collapsed={collapsed} onNavigate={onNavigate} />
           </div>
         )}
 
@@ -307,12 +312,16 @@ function SidebarContent({
 type NavEntry = { name: string; href: string; icon: typeof Users; description: string };
 
 /** One sidebar entry that opens the Cost Control pages as a pop-up list (beside the sidebar; centred on small screens). */
-function CostControlMenu({ pathname, collapsed, onNavigate }: { pathname: string; collapsed: boolean; onNavigate?: () => void }) {
+type MenuSection = { title: string; items: typeof costControl[number]['items'] };
+
+function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
+  sections: MenuSection[]; pathname: string; collapsed: boolean; onNavigate?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
-  const current = costControl.flatMap(s => s.items).find(i => under(pathname, i.href));
+  const current = sections.flatMap(s => s.items).find(i => under(pathname, i.href));
   const active = !!current;
 
   useLayoutEffect(() => {
@@ -351,7 +360,7 @@ function CostControlMenu({ pathname, collapsed, onNavigate }: { pathname: string
         <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close menu')}><X size={16} /></button>
       </div>
       <div className="grid gap-x-2 gap-y-3 p-3 sm:grid-cols-2">
-        {costControl.map(section => (
+        {sections.map(section => (
           <div key={section.title}>
             <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{section.title}</p>
             <ul>

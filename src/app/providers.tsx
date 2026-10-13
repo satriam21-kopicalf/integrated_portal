@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { AccountDrawersProvider } from '@/components/AccountDrawers';
 import ExportToasts from '@/components/ExportToasts';
 import { usePageViewLog } from '@/lib/activity';
-import { AuthProvider, canAccess, isPublicPath, useAuth } from '@/lib/auth';
+import { AuthProvider, canAccess, homePath, isPublicPath, useAuth } from '@/lib/auth';
 import { ExportsProvider } from '@/lib/exports';
 import { RealtimeProvider } from '@/lib/realtime';
 import { LanguageProvider, tr } from '@/lib/i18n';
@@ -39,10 +39,10 @@ function Gate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { status, user } = useAuth();
   const isPublic = isPublicPath(pathname);
-  const allowed = Boolean(user && canAccess(user.role, pathname));
+  const allowed = Boolean(user && canAccess(user, pathname));
 
   useEffect(() => {
-    if (user && !isPublic && !allowed) router.replace('/overview');
+    if (user && !isPublic && !allowed) router.replace(homePath(user));
   }, [user, isPublic, allowed, router]);
   usePageViewLog(pathname, Boolean(user) && !isPublic && allowed);
 

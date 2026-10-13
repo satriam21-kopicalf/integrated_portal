@@ -20,6 +20,8 @@ export type CountLine = {
   qty_pack: string | null;
   qty_loose: string | null;
   qty_base: string | null;
+  /** grams (base unit) from the WIP counted in this count, added to qty_base in the ESB export */
+  qty_wip?: string;
   source: string;
   counted_at: string | null;
   counted_by_name: string | null;
@@ -68,6 +70,7 @@ export type Count = {
   photos: CountPhoto[];
   photo_todo: { areas: string[]; items: string[] };
   progress: { lines: number; counted: number; flagged: number };
+  wip?: CountWip;
 };
 
 export type TodayCount = {
@@ -144,3 +147,16 @@ export function parseQty(v: string): string | null | undefined {
 
 export const fmtQty = (v: string | number | null | undefined) =>
   v === null || v === undefined || v === "" ? "" : Number(v).toLocaleString("en-US", { maximumFractionDigits: 3 }).replace(/,/g, "");
+
+/** WIP section of a count (premix counted in pail / teko / gram, exploded into the ingredient lines, D-34). */
+export type WipRecipe = {
+  id: string; code: string; name: string; version_id: string; version_no: number; batch: number;
+  units: { uom: string; grams: number }[];
+  components: { item_id: string | null; name: string; is_stock: boolean; per_gram: number }[];
+};
+export type WipLine = {
+  id: number; recipe_id: string; code: string; name: string; version_no: number; uom: string; qty: number; qty_base: number;
+  exploded: { item_id: string | null; name: string; is_stock: boolean; qty_base: string }[];
+  counted_at: string; counted_by_name: string | null;
+};
+export type CountWip = { enabled: boolean; recipes: WipRecipe[]; lines: WipLine[] };

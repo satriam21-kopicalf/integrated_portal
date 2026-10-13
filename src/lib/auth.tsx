@@ -10,6 +10,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { usePathname, useRouter } from 'next/navigation';
 import { rememberFarewell } from '@/lib/greetings';
 import { tr } from './i18n';
+import { CC_PAGES, PageKey, PAGES, pageOf } from './pages';
 
 export type Role = 'superadmin' | 'cost_control' | 'user';
 export type Gender = 'male' | 'female';
@@ -56,6 +57,10 @@ export interface AuthUser {
   createdBy: string | null;
   updatedAt: string | null;
   updatedBy: string | null;
+  /** pages the user opens (role pages ± the user's own exceptions; superadmins: every page) */
+  pages: PageKey[];
+  /** User Accounts only: pages added (true) or removed (false) on top of the role */
+  pageOverrides?: Record<string, boolean>;
 }
 
 type Status = 'loading' | 'authenticated' | 'anonymous';
@@ -77,15 +82,28 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('Male'); }, get female() { return tr('Female'); } };
 
-/** Pages role "user" may open (its branches only); Cost Control adds the Cost Control menu (stock opname monitor,
- * review, settings, ESB export, COGS); superadmins open everything. The backend enforces the same. */
-export const USER_PAGES = ['/overview', '/sales', '/stock-opname'];
-export const COST_CONTROL_PAGES = [...USER_PAGES, '/cost-control'];
+/** May the user open this path? Pages come from the backend (role pages ± exceptions, lib/pages.ts); User Accounts
+ * and Activity Logs are superadmin-only. The backend enforces the same. */
+export function canAccess(user: Pick<AuthUser, 'role' | 'pages'>, pathname: string): boolean {
+  if (user.role === 'superadmin') return true;
+  const page = pageOf(pathname);
+  return page !== null && page !== 'superadmin' && pagesOf(user).includes(page);
+}
 
-export function canAccess(role: Role, pathname: string): boolean {
-  if (role === 'superadmin') return true;
-  const pages = role === 'cost_control' ? COST_CONTROL_PAGES : USER_PAGES;
-  return pages.some(p => pathname === p || pathname.startsWith(`${p}/`));
+export function hasPage(user: Pick<AuthUser, 'role' | 'pages'> | null | undefined, page: PageKey): boolean {
+  return !!user && (user.role === 'superadmin' || pagesOf(user).includes(page));
+}
+
+/** The user's pages; a backend without page access (before migration 012) answers without them: role defaults. */
+function pagesOf(user: Pick<AuthUser, 'role' | 'pages'>): PageKey[] {
+  if (user.pages) return user.pages;
+  const base: PageKey[] = ['overview', 'sales', 'stock-opname'];
+  return user.role === 'cost_control' ? [...base, ...CC_PAGES] : base;
+}
+
+/** Where the user lands: the first page of the menu it may open. */
+export function homePath(user: Pick<AuthUser, 'role' | 'pages'>): string {
+  return PAGES.find(p => hasPage(user, p.key))?.href ?? '/overview';
 }
 
 export function isPublicPath(pathname: string): boolean {
