@@ -1,21 +1,27 @@
 "use client";
 
 // Crew "Today" (06.9 §9): the counts Cost Control scheduled for today at the facilities of the signed-in user, with the
-// count window (opens / open / late), what the list holds, the last count and what is coming in the next days.
+// count window (opens / open / late; a count may stay open several days), what the list holds, the last count and
+// what is coming. While nothing is due, the next scheduled count with a countdown and a preparation checklist.
 
 import { CalendarClock, CalendarDays, ChevronRight, ClipboardList, Clock, History, Layers, Loader2, MapPin, Play, Store } from "lucide-react";
+import NextCount from "./NextCount";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Page, Panel, cx, fmtDay, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Page, Panel, fmtDay, useToast } from "@/so/ui";
 import { api, errorText } from "@/so/lib/api";
 import { type Count, type TodayCount, type TodayFacility, STATUS, countTypeLabel, getPosition } from "@/so/lib/counts";
 import { locale, tr } from "@/lib/i18n";
-import { TZ, windowText, wibClock } from "@/so/lib/wib";
+import { periodText, windowText, wibClock } from "@/so/lib/wib";
 
+// over several days the label names the day the window opens / closes
+const multiDay = (c: TodayCount) => !!c.period_start && !!c.period_end && c.period_start !== c.period_end;
+const opensAt = (c: TodayCount) => multiDay(c) ? periodText(c.period_start!, null, c.window_start) : windowText(c.window_start);
+const closesAt = (c: TodayCount) => multiDay(c) ? periodText(c.period_end!, null, c.window_end) : windowText(c.window_end);
 const WINDOW: Record<string, { tone: "slate" | "green" | "amber"; label: (c: TodayCount) => string }> = {
-  UPCOMING: { tone: "slate", label: (c) => tr("Opens at {0}", windowText(c.window_start)) },
-  OPEN: { tone: "green", label: (c) => tr("Open now · until {0}", windowText(c.window_end)) },
-  LATE: { tone: "amber", label: (c) => tr("Window closed at {0} · still to do", windowText(c.window_end)) },
+  UPCOMING: { tone: "slate", label: (c) => tr("Opens at {0}", opensAt(c)) },
+  OPEN: { tone: "green", label: (c) => tr("Open now · until {0}", closesAt(c)) },
+  LATE: { tone: "amber", label: (c) => tr("Window closed at {0} · still to do", closesAt(c)) },
 };
 
 function Clock24() {
@@ -86,7 +92,10 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
         ) : (
           <>
             {total === 0 && (
-              <Panel><Empty icon={<ClipboardList size={28} />} title={tr("No count is due today")}>{tr("Counts appear here on the day Cost Control scheduled them.")}</Empty></Panel>
+              <p className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+                <ClipboardList size={16} className="mt-0.5 flex-shrink-0 text-slate-400" />
+                {tr("No count is due today. The next stock opname and how to get ready are shown below; the count opens here when its window starts.")}
+              </p>
             )}
             {rows.map((f) => (
               <Panel key={f.facility.id} title={f.facility.name}
@@ -122,7 +131,8 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                             )}
                           </div>
                           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-4">
-                            <Info icon={<CalendarClock size={13} />} label={tr("Count window")} value={c.window_start ? windowText(c.window_start, c.window_end) : "—"} />
+                            <Info icon={<CalendarClock size={13} />} label={tr("Count window")}
+                              value={c.window_start ? periodText(c.period_start ?? f.business_date, c.period_end, c.window_start, c.window_end) : "—"} />
                             <Info icon={<Layers size={13} />} label={tr("Items")} value={c.items !== null && c.items !== undefined ? tr("{0} items · {1} areas", c.items, c.areas.length) : "—"} />
                             <Info icon={<History size={13} />} label={tr("Last count")} value={c.last ? `${fmtDay(c.last.business_date)} · ${(STATUS[c.last.status] ?? STATUS.IN_PROGRESS).label()}` : tr("None yet")} />
                             <Info icon={<ClipboardList size={13} />} label={tr("ESB purpose")} value={c.esb_purpose ?? tr("Not set")} />
@@ -135,14 +145,14 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                     })}
                   </ul>
                 )}
-                {f.upcoming.length > 0 && (
-                  <div className={cx("px-4 py-3 sm:px-5", f.counts.length > 0 && "border-t border-slate-100")}>
-                    <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400"><CalendarDays size={12} /> {tr("Next 7 days")}</p>
+                {f.counts.length === 0 ? <NextCount upcoming={f.upcoming} /> : f.upcoming.length > 0 && (
+                  <div className="border-t border-slate-100 px-4 py-3 sm:px-5">
+                    <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400"><CalendarDays size={12} /> {tr("Next 14 days")}</p>
                     <ul className="flex flex-wrap gap-2">
                       {f.upcoming.map((u) => (
                         <li key={`${u.date}:${u.count_type}`} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs">
-                          <span className="font-semibold text-slate-800">{new Date(`${u.date}T12:00:00+07:00`).toLocaleDateString(locale(), { timeZone: TZ, weekday: "short", day: "numeric", month: "short" })}</span>
-                          <span className="text-slate-500"> · {countTypeLabel(u.count_type, u.name)} · {windowText(u.window_start)}</span>
+                          <span className="font-semibold text-slate-800">{countTypeLabel(u.count_type, u.name)}</span>
+                          <span className="text-slate-500"> · {periodText(u.date, u.period_end, u.window_start, u.window_end)}</span>
                         </li>
                       ))}
                     </ul>

@@ -33,6 +33,24 @@ export function wibDay(v: string | null | undefined): string {
   return v ? new Date(v).toLocaleDateString(locale(), { timeZone: TZ, day: "2-digit", month: "short", year: "numeric" }) : "—";
 }
 
+/** "Wed 14 Oct" of a YYYY-MM-DD day. */
+export function wibDayShort(day: string, withYear = false): string {
+  return new Date(`${day}T12:00:00+07:00`).toLocaleDateString(locale(), {
+    timeZone: TZ, weekday: "short", day: "numeric", month: "short", ...(withYear ? { year: "numeric" } : {}),
+  });
+}
+
+/** The count period: "Wed 14 Oct · 07:00–08:00 WIB" or, over several days, "Wed 14 Oct 07:00 – Thu 15 Oct 22:00 WIB". */
+export function periodText(first: string, last: string | null | undefined, start?: string | null, end?: string | null): string {
+  if (!last || last === first) return `${wibDayShort(first)}${start ? ` · ${windowText(start, end)}` : ""}`;
+  return `${wibDayShort(first)}${start ? ` ${start}` : ""} – ${wibDayShort(last)}${end ? ` ${end}` : ""} ${TZ_LABEL}`;
+}
+
+/** Start of a count window as a Date (YYYY-MM-DD + HH:MM in WIB). */
+export function wibAt(day: string, time: string): Date {
+  return new Date(`${day}T${time}:00+07:00`);
+}
+
 /** A count window "07:00–08:00 WIB". */
 export function windowText(start?: string | null, end?: string | null): string {
   if (!start) return "";

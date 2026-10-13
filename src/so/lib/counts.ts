@@ -84,6 +84,9 @@ export type TodayCount = {
   window_start: string | null;
   window_end: string | null;
   window_state: "UPCOMING" | "OPEN" | "LATE" | null;
+  /** a count may stay open several days: due on period_start, window closes on period_end */
+  period_start?: string;
+  period_end?: string;
   items: number | null;
   areas: string[];
   last: { business_date: string; status: string } | null;
@@ -95,7 +98,7 @@ export type TodayFacility = {
   business_date: string;
   server_time: string;
   counts: TodayCount[];
-  upcoming: { date: string; count_type: string; name: string; window_start: string; window_end: string }[];
+  upcoming: { date: string; period_end?: string; count_type: string; name: string; window_start: string; window_end: string; items?: number; areas?: string[] }[];
 };
 
 export const STATUS: Record<string, { tone: "slate" | "blue" | "amber" | "green" | "red" | "violet"; label: () => string }> = {

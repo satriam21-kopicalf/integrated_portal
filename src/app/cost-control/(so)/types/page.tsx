@@ -21,6 +21,8 @@ type CountType = {
   code: string; name: string; frequency: Frequency; weekday: number | null; days_of_week: number[]; month_day: number;
   valid_from: string | null; valid_to: string | null; window_start: string; window_end: string; esb_purpose: string | null; wip_enabled: boolean;
   sort: number; is_active: boolean; lists: number; overrides: number; next_dates: string[]; dates: string[];
+  /** days a count stays open: 1 = the due day; 2 = the due day and the next (e.g. 14–15 Oct) */
+  period_days: number;
 };
 type Draft = Omit<CountType, "lists" | "overrides" | "next_dates">;
 
@@ -42,7 +44,12 @@ const QUICK: { label: () => string; set: Partial<Draft> }[] = [
 const WINDOWS: [string, string][] = [["06:00", "08:00"], ["07:00", "09:00"], ["14:00", "16:00"], ["21:00", "23:00"], ["22:00", "23:59"]];
 
 /** "Every day except Sunday, 07:00–08:00" and the like. */
-export function scheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_of_week" | "month_day"> & { dates?: string[] }): string {
+export function scheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_of_week" | "month_day"> & { dates?: string[]; period_days?: number }): string {
+  const base = baseScheduleText(t);
+  return t.frequency !== "ADHOC" && (t.period_days ?? 1) > 1 ? `${base} · ${tr("open {0} days", t.period_days ?? 1)}` : base;
+}
+
+function baseScheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_of_week" | "month_day"> & { dates?: string[] }): string {
   if (t.frequency === "DAILY") {
     const days = t.days_of_week ?? [];
     if (!days.length || days.length === 7) return tr("Every day");
@@ -120,7 +127,11 @@ export default function TypesPage() {
                     )}
                     {t.next_dates.length > 0 && (
                       <span className="mt-2 flex flex-wrap gap-1">
-                        {t.next_dates.slice(0, 3).map((d) => <span key={d} className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">{fmtDate(d)}</span>)}
+                        {t.next_dates.slice(0, 3).map((d) => (
+                          <span key={d} className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">
+                            {fmtDate(d)}{t.period_days > 1 ? ` – ${fmtDate(new Date(Date.parse(`${d}T12:00:00Z`) + (t.period_days - 1) * 864e5).toISOString().slice(0, 10))}` : ""}
+                          </span>
+                        ))}
                       </span>
                     )}
                     <span className="mt-2 block text-[11px] text-slate-400">
@@ -147,6 +158,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   const [d, setD] = useState<Draft>(() => type ? { ...type, name: countTypeLabel(type.code, type.name) } : {
     code: "", name: "", frequency: "WEEKLY", weekday: 1, days_of_week: [], month_day: 0, valid_from: null, valid_to: null,
     window_start: "07:00", window_end: "08:00", esb_purpose: null, sort: 50, is_active: true, wip_enabled: false, dates: [],
+    period_days: 1,
   });
   const [code, setCode] = useState(type?.code ?? "");
   const [codeTouched, setCodeTouched] = useState(false);
@@ -160,8 +172,8 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   const rule = useMemo(() => ({
     frequency: d.frequency, weekday: d.frequency === "WEEKLY" ? d.weekday : null, days_of_week: d.days_of_week,
     month_day: d.month_day, valid_from: d.valid_from || null, valid_to: d.valid_to || null,
-    dates: d.frequency === "DATES" ? d.dates : null,
-  }), [d.frequency, d.weekday, d.days_of_week, d.month_day, d.valid_from, d.valid_to, d.dates]);
+    dates: d.frequency === "DATES" ? d.dates : null, period_days: d.period_days || 1,
+  }), [d.frequency, d.weekday, d.days_of_week, d.month_day, d.valid_from, d.valid_to, d.dates, d.period_days]);
   useEffect(() => {
     if (d.frequency === "ADHOC") { setPreview([]); return; }
     if (d.frequency === "DATES") { setPreview(d.dates); setPreviewError(""); return; }
@@ -172,7 +184,18 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
     }, 300);
     return () => clearTimeout(timer);
   }, [rule, month, d.frequency, d.dates]);
-  const marked = useMemo(() => new Set(preview ?? []), [preview]);
+  // every day a count is open (a period of several days marks them all)
+  const marked = useMemo(() => {
+    const out = new Set<string>();
+    for (const x of preview ?? []) {
+      for (let k = 0; k < (d.period_days || 1); k++) {
+        const day = new Date(`${x}T12:00:00Z`);
+        day.setUTCDate(day.getUTCDate() + k);
+        out.add(day.toISOString().slice(0, 10));
+      }
+    }
+    return out;
+  }, [preview, d.period_days]);
   const pickDate = (day: string) => set("dates", d.dates.includes(day) ? d.dates.filter((x) => x !== day) : [...d.dates, day].sort());
   const upcoming = (preview ?? []).filter((x) => x >= wibDate()).slice(0, 6);
 
@@ -191,6 +214,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
         method: "PUT",
         json: { name: d.name.trim(), ...rule, window_start: d.window_start, window_end: d.window_end,
                 esb_purpose: d.esb_purpose || null, sort: Number(d.sort) || 0, is_active: d.is_active, wip_enabled: d.wip_enabled },
+        // period_days is part of the rule
       });
       toast(creating ? tr("Count type created") : tr("Count type saved"));
       onSaved();
@@ -298,9 +322,22 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
                   ))}
                 </div>
               </div>
+              <div>
+                <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("The count stays open")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[1, 2, 3, 7].map((n) => (
+                    <button key={n} type="button" className={chip((d.period_days || 1) === n)} onClick={() => set("period_days", n)}>
+                      {n === 1 ? tr("Same day") : tr("{0} days", n)}
+                    </button>
+                  ))}
+                </div>
+                {(d.period_days || 1) > 1 && (
+                  <p className="mt-1.5 text-xs text-slate-500">{tr("The window opens on the scheduled day and closes on day {0} (e.g. 14–15 Oct). One count per branch for the whole period.", d.period_days)}</p>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3">
-                <Field label={tr("Count window opens (WIB)")}><Input type="time" value={d.window_start} onChange={(e) => set("window_start", e.target.value)} /></Field>
-                <Field label={tr("Count window closes (WIB)")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
+                <Field label={(d.period_days || 1) > 1 ? tr("Opens on the first day (WIB)") : tr("Count window opens (WIB)")}><Input type="time" value={d.window_start} onChange={(e) => set("window_start", e.target.value)} /></Field>
+                <Field label={(d.period_days || 1) > 1 ? tr("Closes on the last day (WIB)") : tr("Count window closes (WIB)")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <Field label={tr("Valid from")} hint={tr("Empty = from now")}><Input type="date" value={d.valid_from ?? ""} onChange={(e) => set("valid_from", e.target.value || null)} /></Field>
