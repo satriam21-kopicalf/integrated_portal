@@ -19,7 +19,7 @@ type ListRow = {
   id: string; facility_type: string; count_type: string; name: string; is_active: boolean; facility_id: string | null;
   facility_code: string | null; facility_name: string | null; source: string; source_ref: string | null; updated_at: string; items: number;
 };
-type ListDetail = ListRow & { items: EditorItem[]; groups: { id: string; code: string; name: string; items: number }[]; effective_items: number };
+type ListDetail = ListRow & { items: EditorItem[]; groups: { id: string; code: string; name: string; items: number }[]; effective_items: number; groups_only?: boolean };
 type Group = { id: string; code: string; name: string; items: number; is_active: boolean };
 const COUNT_TYPES = ["DAILY_PACKAGING", "WEEKLY_RAW", "MONTHLY_RAW", "ADHOC"];
 const SOURCE: Record<string, () => string> = { ESB_SO: () => tr("From ESB stock opname"), MANUAL: () => tr("Edited by Cost Control"), IMPORT: () => tr("Imported") };
@@ -218,11 +218,11 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
   return (
     <Drawer open onClose={onClose} size="xl" icon={<ListChecks size={18} />}
       title={d ? `${d.facility_name ?? `${d.facility_type} (${tr("default")})`} · ${countTypeLabel(d.count_type)}` : tr("Count list")}
-      description={d ? tr("{0} own items + groups = {1} items counted", d.items.length, d.effective_items) : undefined}
+      description={d ? (d.groups_only ? tr("Counts its item groups only: {0} items", d.effective_items) : tr("{0} own items + groups = {1} items counted", d.items.length, d.effective_items)) : undefined}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button><Button loading={busy} disabled={!dirty} onClick={save}><Save size={16} /> {tr("Save")}</Button></>}>
       {!d ? <div className="skeleton h-64 rounded-lg" /> : (
         <div className="space-y-6">
-          <DrawerSection title={tr("Item groups")} description={tr("The items of these groups are counted too; this list's own settings win for the same item.")}>
+          <DrawerSection title={tr("Item groups")} description={tr("When a group is assigned, the count shows the items of the assigned groups only (the branch template). This list's own settings still apply to those items.")}>
             {groups.length === 0 ? <p className="text-sm text-slate-500">{tr("No item groups yet. Create them under Item groups.")}</p> : (
               <div className="flex flex-wrap gap-2">
                 {groups.map((g) => {
@@ -238,6 +238,11 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
             )}
           </DrawerSection>
           <DrawerSection title={tr("Own items")} description={d.source_ref ? `${SOURCE[d.source]?.() ?? d.source} · ${d.source_ref}` : undefined}>
+            {groupIds.length > 0 && (
+              <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                {tr("Groups are assigned: own items that are not in a group are not counted. Remove all groups to count the own items again.")}
+              </p>
+            )}
             <ItemsEditor items={items} onChange={(v) => { setItems(v); setDirty(true); }} />
           </DrawerSection>
         </div>

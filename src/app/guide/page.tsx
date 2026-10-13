@@ -208,8 +208,9 @@ const CC: Part = {
             <><Menu>Impor template</Menu> → pilih file <i>TEMPLATE SO PER CATEGORY</i> → <Menu>Periksa</Menu> (belum menyimpan) → <Menu>Impor</Menu>. Setiap sheet menjadi grup “Template SO …”, belum dipasang ke cabang. Impor ulang mengganti item grup itu; pemasangan cabang tetap.</>,
             <>Produk yang belum ada di master item muncul di grup sebagai <b>Belum ada di master item</b>. Klik <Menu>Buat item</Menu> (kode, nama, kategori & satuan sudah terisi dari template), periksa lalu simpan: item langsung masuk ke grup itu dan grup lain yang mencantumkannya.</>,
             <>Item yang belum punya satuan kemasan dari template: pada kolom kemasan pilih <Menu>+ Tambah satuan…</Menu> (mis. PACK@100PCS = 100 PCS). Di pencarian item juga ada <Menu>Item baru</Menu> untuk produk yang belum ada.</>,
-            <>Pasang grup ke cabang lewat tab <b>Cabang</b> di grup tersebut.</>,
+            <>Pasang grup ke cabang lewat tab <b>Cabang</b> di grup tersebut, untuk setiap jenis SO yang dipakai (mis. Mingguan, Bulanan, Harian).</>,
           ]} />
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">Begitu sebuah cabang punya grup untuk satu jenis SO, form SO cabang itu <b>hanya menampilkan item dari grup</b> (template cabang). Item sendiri di daftar hitung yang tidak ada di grup tidak ikut dihitung. Jenis SO yang belum dipasangi grup tetap memakai daftar hitungnya sendiri. SO yang sedang berjalan langsung menyesuaikan.</p>
         </>
       ),
     },
