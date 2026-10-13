@@ -7,6 +7,7 @@ import { Camera, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, cx, inputClass } from "@/so/ui";
 import { api } from "@/so/lib/api";
+import NewItemDialog, { NewUnitDialog } from "./NewItemDialog";
 import { tr } from "@/lib/i18n";
 
 export type EditorItem = {
@@ -37,6 +38,8 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
   const [categories, setCategories] = useState<Category[]>([]);
   const [adding, setAdding] = useState(false);
   const [note, setNote] = useState("");
+  const [creating, setCreating] = useState<string | null>(null);
+  const [unitFor, setUnitFor] = useState<EditorItem | null>(null);
 
   useEffect(() => {
     if (readOnly) return;
@@ -108,7 +111,7 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Add item: type a name or code")} aria-label={tr("Add item")}
             className={`${inputClass} pl-9`} />
           {searching && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400" />}
-          {found.length > 0 && (
+          {q.trim().length >= 2 && !searching && (
             <ul className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-xl">
               {found.map((f) => (
                 <li key={f.item_id}>
@@ -121,6 +124,13 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
                   </button>
                 </li>
               ))}
+              {found.length === 0 && <li className="px-3 py-2 text-xs text-slate-400">{tr("No item found in the item master")}</li>}
+              <li className="border-t border-slate-100">
+                <button type="button" onClick={() => setCreating(q.trim())}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-blue-700 hover:bg-blue-50">
+                  <Plus size={14} /> {tr("New item \"{0}\" (not in the item master)", q.trim())}
+                </button>
+              </li>
             </ul>
           )}
         </div>
@@ -144,10 +154,12 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <input value={i.area} disabled={readOnly} onChange={(e) => set(i.item_id, { area: e.target.value.toUpperCase() })}
                 className={`${inputClass} h-8 text-xs`} aria-label={tr("Area")} placeholder={tr("Area")} />
-              <select value={i.pack_uom ?? ""} disabled={readOnly} onChange={(e) => set(i.item_id, { pack_uom: e.target.value || null })}
-                className={`${inputClass} h-8 text-xs`} aria-label={tr("Package unit")}>
+              <select value={i.pack_uom ?? ""} disabled={readOnly} aria-label={tr("Package unit")}
+                onChange={(e) => (e.target.value === "__new" ? setUnitFor(i) : set(i.item_id, { pack_uom: e.target.value || null }))}
+                className={`${inputClass} h-8 text-xs`}>
                 <option value="">{tr("No package")}</option>
                 {i.units.filter((u) => u !== i.base_uom).map((u) => <option key={u} value={u}>{u}</option>)}
+                {!readOnly && <option value="__new">{tr("+ Add unit…")}</option>}
               </select>
               <select value={i.esb_uom ?? ""} disabled={readOnly} onChange={(e) => set(i.item_id, { esb_uom: e.target.value || null })}
                 className={`${inputClass} h-8 text-xs`} aria-label={tr("ESB unit")}>
@@ -164,6 +176,18 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
         ))}
         {items.length === 0 && <li className="px-3 py-8 text-center text-sm text-slate-400">{tr("No items yet")}</li>}
       </ul>
+      {creating !== null && (
+        <NewItemDialog draft={/^[A-Z]{2,5}-?\d/i.test(creating) ? { code: creating } : { name: creating }} onClose={() => setCreating(null)}
+          onCreated={(n) => {
+            setCreating(null);
+            setQ("");
+            if (!ids.has(n.item_id)) onChange([...items, { ...n, category_name: null, area: "GENERAL", pack_uom: null, esb_uom: null, photo_required: false }]);
+          }} />
+      )}
+      {unitFor && (
+        <NewUnitDialog item={unitFor} onClose={() => setUnitFor(null)}
+          onAdded={(units, uom) => { onChange(items.map((x) => (x.item_id === unitFor.item_id ? { ...x, units, pack_uom: uom, esb_uom: x.esb_uom ?? uom } : x))); setUnitFor(null); }} />
+      )}
     </div>
   );
 }

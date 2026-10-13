@@ -4,18 +4,21 @@
 // lists of many branches; a change to the group reaches every branch that uses it.
 // New group = a 3-step wizard (details → items → branches); an existing group opens on tabs (items, branches, details).
 
-import { Boxes, Check, ChevronLeft, ChevronRight, MapPin, Plus, Save, Store, X } from "lucide-react";
+import { Boxes, Check, ChevronLeft, ChevronRight, FileSpreadsheet, MapPin, PackagePlus, Plus, Save, Search, Store, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemsEditor, { type EditorItem, toPayload } from "@/so/features/settings/ItemsEditor";
+import NewItemDialog, { type ItemDraft } from "@/so/features/settings/NewItemDialog";
 import { Badge, Button, Checkbox, cx, Empty, ErrorState, Field, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, theadClass, useToast } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
 import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 
-type Group = { id: string; code: string; name: string; description: string | null; is_active: boolean; updated_at: string; items: number; lists: number };
+type Group = { id: string; code: string; name: string; description: string | null; is_active: boolean; updated_at: string; items: number; lists: number;
+  pending: number; source_ref: string | null };
+type Pending = { id: number; code: string; name: string; category: string | null; sub_category: string | null; unit: string | null; area: string | null; suggested_category_id: string | null };
 type UsedBy = { list_id: string; count_type: string; facility_type: string; facility_id: string | null; facility_code: string | null; facility_name: string | null };
-type GroupDetail = Omit<Group, "items"> & { items: EditorItem[]; used_by: UsedBy[] };
+type GroupDetail = Omit<Group, "items"> & { items: EditorItem[]; used_by: UsedBy[]; pending_items: Pending[] };
 type Facility = { id: string; code: string; name: string; facility_type: string; city: string | null; legal_entity_code: string; own_lists: number };
 type CountType = { code: string; name: string; frequency: string; is_active: boolean };
 
@@ -36,6 +39,7 @@ export default function GroupsPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const picker = usePickerData();
 
   const load = useCallback(async () => {
@@ -54,7 +58,8 @@ export default function GroupsPage() {
 
   return (
     <Page title={tr("Item groups")} subtitle={tr("Reusable sets of items to assign to the count lists of many branches")}
-      actions={<Button onClick={() => setCreating(true)}><Plus size={16} /> {tr("New group")}</Button>}>
+      actions={<div className="flex gap-2"><Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import template")}</Button>
+        <Button onClick={() => setCreating(true)}><Plus size={16} /> {tr("New group")}</Button></div>}>
       <Panel toolbar={<SearchBox value={search} onChange={setSearch} placeholder={tr("Search group")} />}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<Boxes size={28} />} title={rows.length ? tr("No group matches the search") : tr("No item groups yet")}>
@@ -72,9 +77,12 @@ export default function GroupsPage() {
                   <tr key={g.id} className="group cursor-pointer hover:bg-slate-50/70" onClick={() => setOpen(g.id)}>
                     <td className="px-4 py-3">
                       <span className="block font-medium text-slate-900 group-hover:text-blue-700">{g.name} {!g.is_active && <Badge>{tr("Inactive")}</Badge>}</span>
-                      <span className="block font-mono text-[11px] text-slate-400">{g.code}</span>
+                      <span className="block font-mono text-[11px] text-slate-400">{g.code}{g.source_ref ? ` · ${g.source_ref}` : ""}</span>
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">{g.items}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {g.items}
+                      {g.pending > 0 && <span className="block text-[11px] font-medium text-amber-700">{tr("+{0} not in the item master", g.pending)}</span>}
+                    </td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {g.lists || <span className="text-xs font-medium text-amber-700">{tr("Not assigned")}</span>}
                     </td>
@@ -88,6 +96,7 @@ export default function GroupsPage() {
       </Panel>
       {creating && <CreateWizard {...picker} onClose={() => setCreating(false)} onCreated={(id) => { setCreating(false); void load(); setOpen(id); }} />}
       {open && <GroupDrawer groupId={open} {...picker} onClose={() => setOpen(null)} onChanged={load} />}
+      {importing && <ImportTemplateDrawer onClose={() => setImporting(false)} onDone={() => void load()} />}
     </Page>
   );
 }
@@ -317,6 +326,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
   const [description, setDescription] = useState("");
   const [countTypes, setCountTypes] = useState<string[]>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [newItem, setNewItem] = useState<ItemDraft | null>(null);
 
   const load = useCallback(async () => {
     const d = await api<GroupDetail>(`/api/so/count-settings/groups/${groupId}`);
@@ -397,6 +407,34 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
               <ItemsEditor items={items} onChange={(v) => { setItems(v); setDirty(true); }} />
             </DrawerSection>
           )}
+          {tab === "items" && g.pending_items.length > 0 && (
+            <DrawerSection title={tr("Not in the item master yet ({0})", g.pending_items.length)}
+              description={tr("Products of the template the item master does not have. Create one and it joins this group (and every other group that lists it).")}>
+              <ul className="divide-y divide-slate-100 rounded-lg border border-amber-200 bg-amber-50/40">
+                {g.pending_items.map((p) => (
+                  <li key={p.id} className="flex items-center gap-3 px-3 py-2">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-slate-900">{p.name}</span>
+                      <span className="block truncate text-[11px] text-slate-500"><span className="font-mono">{p.code}</span>{p.category ? ` · ${p.category}` : ""}{p.unit ? ` · ${p.unit}` : ""}</span>
+                    </span>
+                    <Button variant="secondary" onClick={() => setNewItem({ code: p.code, name: p.name, category_id: p.suggested_category_id, unit: p.unit })}>
+                      <PackagePlus size={15} /> {tr("Create item")}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </DrawerSection>
+          )}
+          {newItem && (
+            <NewItemDialog draft={newItem} onClose={() => setNewItem(null)}
+              onCreated={(n) => {
+                setNewItem(null);
+                toast(tr("Item {0} created", n.item_code));
+                if (dirty) setG((cur) => cur && ({ ...cur, pending_items: cur.pending_items.filter((x) => x.code !== n.item_code) }));
+                else void load();
+                onChanged();
+              }} />
+          )}
           {tab === "branches" && (
             <>
               <DrawerSection title={tr("Used by")}>
@@ -429,6 +467,87 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
           )}
         </div>
       )}
+    </Drawer>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Import of the Cost Control template "TEMPLATE SO PER CATEGORY": one group per sheet, check first
+
+type TemplateReport = {
+  applied: boolean; pending_codes: string[]; unit_gaps: number;
+  sheets: { sheet: string; code: string; rows: number; items: number; status: "NEW" | "UPDATE"; group_id?: string;
+    pending: { code: string; name: string; category: string; unit: string }[]; unit_gaps: { code: string; name: string; unit: string }[] }[];
+};
+
+function ImportTemplateDrawer({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const toast = useToast();
+  const [file, setFile] = useState<{ name: string; data: string } | null>(null);
+  const [report, setReport] = useState<TemplateReport | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const pick = (f: File | undefined) => {
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { setFile({ name: f.name, data: String(r.result).split(",").pop() ?? "" }); setReport(null); };
+    r.readAsDataURL(f);
+  };
+  const run = async (apply: boolean) => {
+    if (!file) return;
+    setBusy(true);
+    setError("");
+    try {
+      const r = await api<TemplateReport>("/api/so/count-settings/groups/import", { method: "POST", json: { file: file.data, file_name: file.name.replace(/\.xlsx$/i, ""), apply } });
+      setReport(r);
+      if (apply) { toast(tr("{0} item groups imported", r.sheets.length)); onDone(); }
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Drawer open onClose={onClose} size="xl" icon={<FileSpreadsheet size={18} />} title={tr("Import template")}
+      description={tr("Each sheet of the template becomes an item group (not assigned to branches yet)")}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button>
+        <Button variant="secondary" loading={busy && !report} disabled={!file} onClick={() => run(false)}><Search size={15} /> {tr("Check")}</Button>
+        <Button loading={busy && !!report} disabled={!report || report.applied} onClick={() => run(true)}>{tr("Import {0} groups", report?.sheets.length ?? 0)}</Button></>}>
+      <div className="space-y-4">
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 px-4 py-3 text-sm hover:border-blue-400 hover:bg-blue-50/40">
+          <Upload size={18} className="text-slate-400" />
+          <span className="min-w-0 flex-1 truncate text-slate-700">{file ? file.name : tr("Choose TEMPLATE SO PER CATEGORY (.xlsx)")}</span>
+          <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+        </label>
+        <p className="text-xs text-slate-500">{tr("Items are matched by product code. Category becomes the area, the template unit the ESB unit (and pack when the item has it). Codes the item master does not have are kept on the group to create later. Importing again replaces the items of these groups; their branches stay.")}</p>
+        {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {report && (
+          <>
+            <p className={cx("rounded-lg px-3 py-2 text-sm", report.applied ? "bg-emerald-50 text-emerald-800" : "bg-slate-50 text-slate-700")}>
+              {report.applied ? tr("Imported.") : tr("Check result, nothing saved yet.")}{" "}
+              {tr("{0} codes not in the item master, {1} units the item does not have.", report.pending_codes.length, report.unit_gaps)}
+            </p>
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <table className="w-full min-w-[620px] text-sm">
+                <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Sheet / group")}</th><th className="px-3 py-2 text-right">{tr("Rows")}</th>
+                  <th className="px-3 py-2 text-right">{tr("Items")}</th><th className="px-3 py-2">{tr("Not in the item master")}</th><th className="px-3 py-2">{tr("Unit missing")}</th></tr></thead>
+                <tbody className="divide-y divide-slate-100">
+                  {report.sheets.map((sh) => (
+                    <tr key={sh.code} className="align-top">
+                      <td className="px-3 py-2"><span className="block font-medium text-slate-900">{sh.sheet}</span>
+                        <span className="block text-[11px] text-slate-400">{sh.code} · {sh.status === "NEW" ? tr("new group") : tr("replaces the items")}</span></td>
+                      <td className="px-3 py-2 text-right tabular-nums">{sh.rows}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{sh.items}</td>
+                      <td className="px-3 py-2 text-xs text-amber-800">{sh.pending.length ? sh.pending.map((x) => x.code).join(", ") : "-"}</td>
+                      <td className="px-3 py-2 text-xs text-slate-600">{sh.unit_gaps.length ? sh.unit_gaps.map((x) => `${x.code} ${x.unit}`).join(", ") : "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {report.applied && <p className="text-xs text-slate-500">{tr("Open a group to create its missing items and to assign it to branches.")}</p>}
+          </>
+        )}
+      </div>
     </Drawer>
   );
 }
