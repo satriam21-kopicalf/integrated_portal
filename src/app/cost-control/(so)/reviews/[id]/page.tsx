@@ -14,6 +14,7 @@ import { type Count, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty } from "@/so/l
 import { tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
+import { EvidenceDownloads } from "@/so/features/count/Evidence";
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -105,8 +106,10 @@ export default function ReviewDetailPage() {
           {count.review_note && <Info label={tr("Review note")} value={count.review_note} />}
         </dl>
 
-        {count.photos.length > 0 && (
-          <Panel title={tr("Evidence photos")} description={tr("{0} photos · time and position recorded by the server; SHA-256 proves the file is unchanged", count.photos.length)}>
+        {(count.photos.length > 0 || count.status === "APPROVED" || count.status === "EXPORTED") && (
+          <Panel title={tr("Evidence photos")} actions={<EvidenceDownloads count={count} />}
+            description={tr("{0} photos · time and position recorded by the server; SHA-256 proves the file is unchanged", count.photos.length)}>
+            {count.photos.length === 0 && <p className="px-4 py-6 text-sm text-slate-500">{tr("No evidence photos were taken.")}</p>}
             <ul className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-6">
               {count.photos.map((ph) => {
                 const item = ph.subject.startsWith("ITEM:") ? count.lines.find((l) => l.item_id === ph.subject.slice(5))?.item_name : null;
@@ -116,12 +119,25 @@ export default function ReviewDetailPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
                       <img src={photoUrl(ph.id)} alt={ph.subject} loading="lazy" className="aspect-square w-full object-cover" />
                     </a>
-                    <p className="mt-1 truncate text-xs font-medium text-slate-700">{item ?? ph.subject.replace("AREA:", "")}</p>
+                    <p className="mt-1 truncate text-xs font-medium text-slate-700">{item ?? (ph.subject === "GENERAL" ? tr("Count photo") : ph.subject.replace("AREA:", ""))}</p>
                     <p className="truncate text-[11px] text-slate-400">{fmtDate(ph.uploaded_at)}{ph.uploaded_by_name ? ` · ${ph.uploaded_by_name}` : ""}</p>
                     <p className="truncate font-mono text-[10px] text-slate-300" title={ph.sha256}>{ph.sha256.slice(0, 16)}…</p>
                   </li>
                 );
               })}
+            </ul>
+          </Panel>
+        )}
+
+        {(count.wip?.lines.length ?? 0) > 0 && (
+          <Panel title={tr("WIP / premix")} description={tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
+            <ul className="divide-y divide-slate-100">
+              {count.wip!.lines.map((w) => (
+                <li key={w.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                  <span className="min-w-0 truncate"><span className="font-medium text-slate-900">{w.name}</span> <span className="font-mono text-[11px] text-slate-400">{w.code}</span></span>
+                  <span className="tabular-nums text-slate-700">{fmtQty(w.qty_base)} g</span>
+                </li>
+              ))}
             </ul>
           </Panel>
         )}
@@ -162,7 +178,12 @@ export default function ReviewDetailPage() {
                     </td>
                     <td className="px-3 py-2.5 text-xs text-slate-500">{l.area}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
-                      {l.qty_base === null ? <span className="text-slate-300">—</span> : <span>{fmtQty(l.qty_base)} {l.base_uom}</span>}
+                      {l.qty_base === null ? <span className="text-slate-300">—</span> : (
+                        <>
+                          <span>{fmtQty(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1))} {l.esb_uom || l.base_uom}</span>
+                          {(Number(l.esb_factor || 1) || 1) !== 1 && <span className="block text-[11px] text-slate-400">= {fmtQty(l.qty_base)} {l.base_uom}</span>}
+                        </>
+                      )}
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
                     </td>

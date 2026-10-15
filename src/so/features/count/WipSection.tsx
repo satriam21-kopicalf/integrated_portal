@@ -1,9 +1,8 @@
 "use client";
 
-// WIP of the count (premix, creams, sauces, D-34): the crew weighs what is there and enters grams (user decision
-// 2026-10-13: grams, not pail or teko); the grams of every ingredient follow from the active recipe (kept as a
-// snapshot) and are added to the ingredient lines (rounded up per ingredient, as the Cost Control calculator), so the
-// result has the ingredients in their units like the Stock Opname Report. Saved as a whole with "Save WIP".
+// WIP / premix of the count (D-34): the crew weighs each premix, cream or sauce and enters its grams only (user
+// decision 2026-10-15). The grams are kept for Cost Control; they are not turned into ingredient quantities and do not
+// go to the ESB export. Saved as a whole with "Save WIP".
 
 import { ChevronDown, FlaskConical, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -31,24 +30,6 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
   const dirty = clean(values) !== clean(saved);
   useEffect(() => onDirty(dirty), [dirty, onDirty]);
 
-  // grams per ingredient of what is typed (preview; the server rounds the totals per ingredient up)
-  const preview = useMemo(() => {
-    const out = new Map<string, { name: string; grams: number; stock: boolean }>();
-    for (const r of wip.recipes) {
-      for (const u of r.units) {
-        const q = Number(values[keyOf(r.id, u.uom)] || 0);
-        if (!(q > 0)) continue;
-        for (const c of r.components) {
-          const k = c.item_id ?? `n:${c.name}`;
-          const cur = out.get(k) ?? { name: c.name, grams: 0, stock: c.is_stock };
-          cur.grams += q * u.grams * c.per_gram;
-          out.set(k, cur);
-        }
-      }
-    }
-    return [...out.values()].sort((a, b) => Number(b.stock) - Number(a.stock) || a.name.localeCompare(b.name));
-  }, [values, wip.recipes]);
-
   const save = async () => {
     setBusy(true);
     try {
@@ -75,7 +56,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
         <FlaskConical size={18} className="flex-shrink-0 text-violet-700" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-semibold text-slate-900">{tr("WIP / premix")}</span>
-          <span className="block text-xs text-slate-500">{tr("Weigh each premix and enter the grams; the ingredients are calculated and added to the count")}</span>
+          <span className="block text-xs text-slate-500">{tr("Weigh each premix, cream or sauce and enter the grams")}</span>
         </span>
         {entered > 0 && <Badge tone="violet">{tr("{0} entered", entered)}</Badge>}
         {dirty && <Badge tone="amber">{tr("Not saved")}</Badge>}
@@ -110,18 +91,6 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
             <ul className="space-y-1 text-sm">
               {wip.lines.map(l => <li key={l.id} className="flex justify-between gap-2"><span>{l.name} <span className="text-slate-400">v{l.version_no}</span></span><span className="tabular-nums">{l.qty} {l.uom} · {fmtG(l.qty_base)} g</span></li>)}
             </ul>
-          )}
-          {preview.length > 0 && (
-            <div className="rounded-lg bg-slate-50 px-3 py-2">
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">{tr("Ingredients from the WIP")}</p>
-              <ul className="grid gap-x-4 gap-y-0.5 text-xs sm:grid-cols-2">
-                {preview.map(p => (
-                  <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-slate-400")}>
-                    <span className="truncate">{p.name}{!p.stock && ` (${tr("not stock")})`}</span><span className="tabular-nums">{fmtG(Math.ceil(p.grams - 0.001))} g</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
           )}
           {open && recipes.length > 0 && (
             <div className="flex justify-end">

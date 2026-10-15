@@ -1,7 +1,8 @@
 "use client";
 
-// Count screen (06.9 §4, §9): items grouped by area, packages + loose quantity, every line saved when it is left,
-// blind count (no system quantity), submit with the location. After submit it is read-only; in a recount only the
+// Count screen (06.9 §4, §9): items grouped by area, one quantity per item in its unit of the SO template (GR, PCS,
+// PACK@100PCS, ROLL@1000PCS …, 2026-10-15), every line saved when it is left, blind count (no system quantity), up to
+// 15 optional evidence photos at the end, submit with the location. After submit it is read-only; in a recount only the
 // lines marked by the reviewer can be changed (the old value stays in the history).
 
 import { AlertTriangle, ArrowLeft, Check, CheckCircle2, CloudUpload, Loader2, MapPin, RotateCcw, Search, Send, X } from "lucide-react";
@@ -12,10 +13,15 @@ import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
 import { type Count, type CountLine, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, parseQty } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
-import PhotoStrip from "./Photos";
+import Evidence from "./Evidence";
 import WipSection from "./WipSection";
 
-type Draft = { pack: string; loose: string };
+type Draft = { qty: string };
+
+/** The unit the crew counts the line in (the template / ESB unit) and the quantity in that unit. */
+const unitOf = (l: CountLine) => l.esb_uom || l.base_uom;
+const factorOf = (l: CountLine) => Number(l.esb_factor || 1) || 1;
+const draftOf = (l: CountLine): Draft => ({ qty: l.qty_base === null ? "" : fmtQty(Number(l.qty_base) / factorOf(l)) });
 
 const editableLine = (c: Count, l: CountLine) =>
   c.status === "IN_PROGRESS" || (c.status === "RECOUNT_REQUESTED" && l.flags.includes("RECOUNT"));
@@ -40,7 +46,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
     try {
       const c = await api<Count>(`/api/so/counts/${countId}`);
       setCount(c);
-      setDrafts(Object.fromEntries(c.lines.map((l) => [l.id, { pack: fmtQty(l.qty_pack), loose: fmtQty(l.qty_loose) }])));
+      setDrafts(Object.fromEntries(c.lines.map((l) => [l.id, draftOf(l)])));
     } catch (e) {
       setError(errorText(e));
     }
@@ -50,23 +56,22 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   const save = async (line: CountLine) => {
     const d = pending.current[line.id] ?? drafts[line.id];
     if (!d) return;
-    const pack = parseQty(d.pack);
-    const loose = parseQty(d.loose);
-    const bad = pack === undefined || loose === undefined;
+    const qty = parseQty(d.qty);
+    const bad = qty === undefined;
     setInvalid((s) => { const n = new Set(s); if (bad) n.add(line.id); else n.delete(line.id); return n; });
     if (bad) return;
-    if (pack === (line.qty_pack === null ? null : String(Number(line.qty_pack))) && loose === (line.qty_loose === null ? null : String(Number(line.qty_loose)))) return;
+    if (qty === (draftOf(line).qty === "" ? null : String(Number(draftOf(line).qty)))) return;
     setSaving((s) => new Set(s).add(line.id));
     try {
       const c = await api<Count>(`/api/so/counts/${countId}/lines`, {
         method: "PUT",
-        json: { lines: [{ line_id: line.id, qty_pack: line.pack_uom ? pack : null, qty_loose: loose }] },
+        json: { lines: [{ line_id: line.id, qty_unit: qty }] },
       });
       delete pending.current[line.id];
       setCount(c);
       // a recount replaces the line: carry the typed values to the new line id
       const replaced = c.lines.find((l) => l.recount_of === line.id);
-      if (replaced) setDrafts((ds) => ({ ...ds, [replaced.id]: { pack: fmtQty(replaced.qty_pack), loose: fmtQty(replaced.qty_loose) } }));
+      if (replaced) setDrafts((ds) => ({ ...ds, [replaced.id]: draftOf(replaced) }));
     } catch (e) {
       toast(errorText(e), "error");
     } finally {
@@ -76,7 +81,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
 
   const setDraft = (id: number, patch: Partial<Draft>) =>
     setDrafts((ds) => {
-      const next = { ...(ds[id] ?? { pack: "", loose: "" }), ...patch };
+      const next = { ...(ds[id] ?? { qty: "" }), ...patch };
       pending.current[id] = next;
       return { ...ds, [id]: next };
     });
@@ -109,7 +114,6 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   const st = STATUS[count.status];
   const open = count.status === "IN_PROGRESS" || count.status === "RECOUNT_REQUESTED";
   const todo = count.lines.filter((l) => l.qty_base === null || l.flags.includes("RECOUNT")).length;
-  const photosMissing = count.photo_todo.areas.length + count.photo_todo.items.length;
   const pct = count.progress.lines ? Math.round((count.progress.counted / count.progress.lines) * 100) : 0;
   const busy = saving.size > 0;
   // Cost Control entering a branch's count (D-56): no photos or location needed
@@ -185,11 +189,10 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           <section key={a} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 bg-slate-50 px-4 py-2">
               <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{a}</h2>
-              {crew && <PhotoStrip count={count} subject={`AREA:${a}`} required open={open} onChange={setCount} compact />}
             </div>
             <ul className="divide-y divide-slate-100">
               {shown.filter((l) => l.area === a).map((l) => {
-                const d = drafts[l.id] ?? { pack: "", loose: "" };
+                const d = drafts[l.id] ?? { qty: "" };
                 const edit = editableLine(count, l);
                 const bad = invalid.has(l.id);
                 return (
@@ -203,29 +206,20 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         {saving.has(l.id) ? <Loader2 size={14} className="animate-spin text-blue-600" />
                           : l.qty_base !== null && !l.flags.includes("RECOUNT") ? <CheckCircle2 size={16} className="text-emerald-500" /> : null}
                         {l.flags.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
-                        {l.flags.includes("SAMPLE") && <Badge tone="blue" title={tr("Chosen at random for a photo check")}>{tr("Sample")}</Badge>}
                         {l.flags.includes("SPIKE") && <Badge tone="amber" title={tr("More than 3 times higher or lower than the last approved count")}>{tr("Check")}</Badge>}
                       </div>
                     </div>
                     {l.source === "WIP_EXPLODED" ? (
                       <p className="mt-2 text-sm text-violet-700 md:mt-0 md:w-[24rem] md:text-right">{tr("{0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                     ) : (
-                    <div className="mt-2 flex flex-wrap items-end gap-2 md:mt-0 md:w-[24rem] md:flex-nowrap md:justify-end">
-                      {l.pack_uom && (
-                        <label className="min-w-[7rem] flex-1 md:w-36 md:flex-none">
-                          <span className="mb-0.5 block text-[11px] text-slate-500">{l.pack_uom}</span>
-                          <input inputMode="decimal" disabled={!edit} value={d.pack} placeholder="0"
-                            onChange={(e) => setDraft(l.id, { pack: e.target.value })} onBlur={() => save(l)}
-                            className={cx(inputClass, "h-11 text-base tabular-nums", bad && "border-red-400")} aria-label={`${l.item_name} ${l.pack_uom}`} />
-                        </label>
-                      )}
-                      <label className="min-w-[7rem] flex-1 md:w-36 md:flex-none">
-                        <span className="mb-0.5 block text-[11px] text-slate-500">{l.pack_uom ? tr("Loose ({0})", l.base_uom) : l.base_uom}</span>
-                        <input inputMode="decimal" disabled={!edit} value={d.loose} placeholder="0"
-                          onChange={(e) => setDraft(l.id, { loose: e.target.value })} onBlur={() => save(l)}
-                          className={cx(inputClass, "h-11 text-base tabular-nums", bad && "border-red-400")} aria-label={`${l.item_name} ${l.base_uom}`} />
+                    <div className="mt-2 flex items-end gap-2 md:mt-0 md:w-[24rem] md:justify-end">
+                      <label className="min-w-[8rem] flex-1 md:w-44 md:flex-none">
+                        <span className="mb-0.5 block text-[11px] font-medium text-slate-600">{unitOf(l)}</span>
+                        <input inputMode="decimal" disabled={!edit} value={d.qty} placeholder="0"
+                          onChange={(e) => setDraft(l.id, { qty: e.target.value })} onBlur={() => save(l)}
+                          className={cx(inputClass, "h-11 text-base tabular-nums", bad && "border-red-400")} aria-label={`${l.item_name} ${unitOf(l)}`} />
                       </label>
-                      {l.pack_uom && l.qty_base !== null && (
+                      {factorOf(l) !== 1 && l.qty_base !== null && (
                         <span className="pb-3 text-xs text-slate-500">= {fmtQty(l.qty_base)} {l.base_uom}</span>
                       )}
                     </div>
@@ -234,10 +228,6 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                       <p className="mt-1 text-xs text-violet-700 md:text-right">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                     )}
                     {bad && <p className="mt-1 text-xs text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
-                    {((crew && (l.photo_required || l.flags.includes("SPIKE"))) || count.photos.some((p) => p.subject === `ITEM:${l.item_id}`)) && (
-                      <PhotoStrip count={count} subject={`ITEM:${l.item_id}`} required={l.photo_required || l.flags.includes("SPIKE")}
-                        open={editableLine(count, l) || (open && l.is_current)} onChange={setCount} compact />
-                    )}
                   </li>
                 );
               })}
@@ -245,6 +235,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           </section>
         ))}
         {shown.length === 0 && <p className="py-10 text-center text-sm text-slate-500">{tr("No item matches the search or filters")}</p>}
+        {(crew || count.photos.length > 0) && <Evidence count={count} open={open} onChange={setCount} />}
       </div>
 
       {open && (
@@ -253,10 +244,10 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
             <div className="min-w-0 flex-1 text-sm">
               <p className="font-semibold text-slate-900">{tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}</p>
               <p className="truncate text-xs text-slate-500">
-                {wipDirty ? tr("Save the WIP first") : todo ? tr("Enter 0 for items that are not there") : photosMissing ? tr("{0} photos still needed", photosMissing) : tr("Everything is counted")}
+                {wipDirty ? tr("Save the WIP first") : todo ? tr("Enter 0 for items that are not there") : tr("Everything is counted")}
               </p>
             </div>
-            <Button disabled={todo > 0 || photosMissing > 0 || busy || wipDirty} onClick={() => setConfirming(true)}><Send size={16} /> {tr("Submit")}</Button>
+            <Button disabled={todo > 0 || busy || wipDirty} onClick={() => setConfirming(true)}><Send size={16} /> {tr("Submit")}</Button>
           </div>
         </div>
       )}

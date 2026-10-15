@@ -46,12 +46,12 @@ export const SO: Part = {
         <>
           <Steps items={[
             <>Items are grouped by <b>area</b> (Bar, Chiller, Kitchen, Packaging, …). Pick an area at the top or search an item.</>,
-            <>For an item with a pack, enter the <b>number of packs</b> (e.g. 3 packs) and the <b>loose</b> quantity in the base unit (e.g. 120 g). The total is calculated for you (3 × 500 + 120 = 1,620 g).</>,
+            <>Every item takes <b>one number in the unit shown above its field</b>, as in the TEMPLATE SO PER CATEGORY: GR, PCS, PACK@100PCS, ROLL@1000PCS, etc. Example: straws in PACK@100PCS are 2.5 when there are two and a half packs; milk in GR is 1620.</>,
             <>An item that is not there <b>must be entered as 0</b>. An empty line keeps the count from being submitted.</>,
             <>Each line is saved automatically when you move to the next field (<b>Saved</b> at the top right). The <Menu>To do</Menu> button shows the items still empty.</>,
           ]} />
           <Note>Blind count: the system stock is deliberately not shown. Enter what is really there.</Note>
-          <Note tone="warn">A quantity more than 3 times or less than a third of the previous count is marked <b>Check</b> and needs a photo. Check it again before submitting.</Note>
+          <Note tone="warn">A quantity more than 3 times or less than a third of the previous count is marked <b>Check</b>. Check it again before submitting.</Note>
         </>
       ),
     },
@@ -62,10 +62,9 @@ export const SO: Part = {
           <Steps items={[
             <>Open the <Menu>WIP / premix</Menu> section above the item list.</>,
             <><b>Weigh</b> every premix, cream or sauce that is there and enter its weight in <b>grams</b> (not pails or teko). Example: Premix Premium 2,350 g.</>,
-            <>The <b>Ingredients from the WIP</b> box shows the grams of every ingredient (fresh milk, espresso, creamer, …) from the active recipe right away.</>,
-            <>Tap <Menu>Save WIP</Menu>. The grams are added to the same ingredient lines (shown as “+ … from the WIP”). Ingredients that are not on the list appear in the <b>WIP</b> area.</>,
+            <>Tap <Menu>Save WIP</Menu>. The premix grams are all that is needed; its ingredients are not counted.</>,
           ]} />
-          <Note>Do not count ingredients already mixed into a premix on their own lines; enter the premix grams in the WIP section only. The result lists the raw materials in their units (e.g. GR) like the Stock Opname Report. Cost Control maintains the recipes.</Note>
+          <Note>Do not count ingredients already mixed into a premix on their own lines; enter the premix grams in the WIP section only. The premix grams are kept for Cost Control and are not part of the ESB export.</Note>
         </>
       ),
     },
@@ -73,9 +72,10 @@ export const SO: Part = {
       id: 'so-foto', title: 'Evidence photos',
       body: (
         <>
-          <Table head={['Photo', 'When it is required']} rows={[
-            ['Area photo', 'One photo for every area (camera button in the area title)'],
-            ['Item photo', 'Items marked photo required, items marked Check (spike) and 3 random sample items (Sample)'],
+          <Steps items={[
+            <>The <Menu>Evidence photos</Menu> section is <b>at the end of the count form</b>, after all items. Photos are <b>optional</b>, at most <b>15 photos</b> per count (not per item or area).</>,
+            <>Tap <Menu>Take photo</Menu>, point the camera, tap the round button, then <Menu>Use photo</Menu>. A wrong photo can be removed (× icon) until the count is submitted.</>,
+            <>Once the count is submitted and <b>approved</b>, the evidence downloads in two formats: <Menu>Evidence PDF</Menu> (summary page + photos) and <Menu>Photos (ZIP)</Menu> (image files).</>,
           ]} />
           <Note tone="warn">Photos <b>must be taken with the camera</b> (phone or laptop); pictures from the gallery or files cannot be used. Allow the camera when the browser asks. Every photo is stamped with the <b>branch, count number, area/item, date & time (WIB) and location</b>.</Note>
         </>
@@ -86,7 +86,7 @@ export const SO: Part = {
       body: (
         <>
           <Steps items={[
-            <>When every line is filled, the photos are complete and the WIP is saved, tap <Menu>Submit</Menu> and confirm. The location is recorded again.</>,
+            <>When every line is filled and the WIP is saved, tap <Menu>Submit</Menu> and confirm. The location is recorded again.</>,
             <>After submitting, the count is <b>locked</b> and goes to Cost Control for review.</>,
             <>If the reviewer asks for a <b>recount</b>, the count opens again with the reviewer’s message. Only the lines marked <b>Recount</b> can be changed; the old values are kept for the audit. Submit again when done.</>,
           ]} />
@@ -102,7 +102,7 @@ export const SO: Part = {
       body: (
         <Table head={['Problem', 'Solution']} rows={[
           ['Today’s count does not show', 'It is not due yet or the branch is not assigned to your account: contact Cost Control / the admin'],
-          ['Submit is disabled', 'There are empty lines (enter 0), missing photos, or unsaved WIP (see the text under the button)'],
+          ['Submit is disabled', 'There are empty lines (enter 0) or unsaved WIP (see the text under the button)'],
           ['Location not found', 'Allow location in the browser; the count can still be submitted but is flagged'],
           ['Camera does not open', 'Allow the camera for this site in the browser settings (padlock in the address bar), then tap Try again. Use Chrome/Safari'],
           ['An item is missing from the list', 'Tell Cost Control so it is added to the count list or item group'],
@@ -175,7 +175,7 @@ export const CC: Part = {
           <Steps items={[
             <><Menu>Import template</Menu> → choose the <i>TEMPLATE SO PER CATEGORY</i> file → <Menu>Check</Menu> (nothing saved yet) → <Menu>Import</Menu>. Every sheet becomes a group “Template SO …”, not assigned to branches. Importing again replaces the group’s items; branch assignments stay.</>,
             <>Products not in the item master show in the group as <b>Not in the item master</b>. Click <Menu>Create item</Menu> (code, name, category & unit come from the template), check and save: the item joins that group and every other group that lists it.</>,
-            <>Items without a pack unit from the template: in the pack column choose <Menu>+ Add unit…</Menu> (e.g. PACK@100PCS = 100 PCS). The item search also has <Menu>New item</Menu> for products that do not exist yet.</>,
+            <>The template unit (GR, PCS, PACK@100PCS, ROLL@1000PCS, …) is <b>the unit the crew enters</b> during the count. Items without that unit: in the pack column choose <Menu>+ Add unit…</Menu> (e.g. PACK@100PCS = 100 PCS). The item search also has <Menu>New item</Menu> for products that do not exist yet.</>,
             <>Assign the group to branches in its <b>Branches</b> tab, for every count type used (e.g. weekly, monthly, daily).</>,
           ]} />
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">As soon as a branch has a group for a count type, that branch’s count form <b>shows the group’s items only</b> (the branch template). Own items of the count list that are not in the group are not counted. Count types without a group keep using their own count list. A count in progress follows at once.</p>
@@ -205,7 +205,8 @@ export const CC: Part = {
         <>
           <Steps items={[
             <><Go href="/cost-control/monitor">Monitor</Go>: today’s status of every branch (not started, in progress, submitted, late, missed).</>,
-            <><Go href="/cost-control/reviews">Review</Go>: open a submitted count. Check the flagged lines (spike, sample), photos, location & lateness, and the grams from the WIP.</>,
+            <><Go href="/cost-control/reviews">Review</Go>: open a submitted count. Check the flagged lines (spike), evidence photos, location & lateness, and the premix grams (WIP). Once approved, <Menu>Evidence PDF</Menu> and <Menu>Photos (ZIP)</Menu> are available.</>,
+            <><Menu>Download all branches (xlsx)</Menu> in Review downloads the approved/exported counts of the chosen period for every branch in one file.</>,
             <>Choose <Menu>Approve</Menu>, <Menu>Request recount</Menu> (pick lines & give a reason; the crew recounts only those lines) or <Menu>Cancel count</Menu> (the count can be started again).</>,
           ]} />
           <Note>The approver cannot be someone who counted that stock opname.</Note>
@@ -231,7 +232,7 @@ export const CC: Part = {
       body: (
         <Steps items={[
           <><Go href="/cost-control/reports">SO report (xlsx)</Go>: pick the period (at most 93 days), count type, branch and status (Approved + exported) → <Menu>Download .xlsx</Menu>.</>,
-          <>Sheet <b>Stock Opname</b> has the layout of the Stock Opname Report (Date, Branch, Purpose, Product, Category, Unit, Actual Opname Qty, Price, Total Value) with filters & a total; sheet <b>Summary</b> has one row per count (counted by, reviewed by, WIB times, items, value).</>,
+          <>Sheet <b>Stock Opname</b> has the layout of the Stock Opname Report (Date, Branch, Purpose, Product, Category, Unit, Actual Opname Qty, Price, Total Value) for every branch with filters & a total; sheet <b>Summary</b> one row per count (counted by, reviewed by, WIB times, items, value); sheet <b>WIP premix</b> the premix grams; and <b>one sheet per branch</b> (can be switched off). Dates read 14/09/2026.</>,
           <>Downloading the report does not change the status of the counts (unlike the ESB export).</>,
         ]} />
       ),

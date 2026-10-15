@@ -1,11 +1,12 @@
 "use client";
 
-// Counts to review (PPIC / Cost Control Supervisor, D-36): submitted counts first, any status on demand.
+// Counts to review (PPIC / Cost Control Supervisor, D-36): submitted counts first, any status on demand. The approved
+// counts of the period download as one xlsx for every branch (2026-10-15).
 
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, Download } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Empty, ErrorState, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtDay, theadClass } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtDay, theadClass, useToast } from "@/so/ui";
 import { ChoiceGroup } from "@/so/ui/FilterControls";
 import { api, errorText } from "@/so/lib/api";
 import { STATUS, countTypeLabel, ENTRY_SOURCE } from "@/so/lib/counts";
@@ -26,6 +27,27 @@ export default function ReviewsPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [downloading, setDownloading] = useState(false);
+  const toast = useToast();
+
+  // every branch of the period in one file: approved and exported counts, one sheet per branch
+  const downloadAll = async () => {
+    setDownloading(true);
+    try {
+      const res = await fetch(`/api/so/count-reports/file?date_from=${from}&date_to=${to}&status=REVIEWED&per_branch=true`, { credentials: "same-origin" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded"));
+      }
+      const href = URL.createObjectURL(await res.blob());
+      Object.assign(document.createElement("a"), { href, download: `Stock Opname Report ${from} - ${to}.xlsx` }).click();
+      URL.revokeObjectURL(href);
+    } catch (e) {
+      toast(errorText(e), "error");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setError(null);
@@ -44,7 +66,8 @@ export default function ReviewsPage() {
   }, [rows, search]);
 
   return (
-    <Page title={tr("Review stock opname")} subtitle={tr("Approve submitted counts or ask for a recount")}>
+    <Page title={tr("Review stock opname")} subtitle={tr("Approve submitted counts or ask for a recount")}
+      actions={<Button variant="secondary" loading={downloading} onClick={downloadAll}><Download size={16} /> {tr("Download all branches (xlsx)")}</Button>}>
       <Panel toolbar={
         <>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -56,7 +79,7 @@ export default function ReviewsPage() {
           </div>
           <ChoiceGroup label={tr("Status")} value={status} onChange={setStatus}
             choices={[{ value: "SUBMITTED", label: STATUS.SUBMITTED.label() }, { value: "RECOUNT_REQUESTED", label: STATUS.RECOUNT_REQUESTED.label() },
-              { value: "IN_PROGRESS", label: STATUS.IN_PROGRESS.label() }, { value: "APPROVED", label: STATUS.APPROVED.label() }, { value: "", label: tr("All") }]} />
+              { value: "IN_PROGRESS", label: STATUS.IN_PROGRESS.label() }, { value: "APPROVED", label: STATUS.APPROVED.label() }, { value: "EXPORTED", label: STATUS.EXPORTED.label() }, { value: "", label: tr("All") }]} />
         </>
       }>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (

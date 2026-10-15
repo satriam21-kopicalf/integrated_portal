@@ -46,12 +46,12 @@ export const SO: Part = {
         <>
           <Steps items={[
             <>Item dikelompokkan per <b>area</b> (Bar, Chiller, Kitchen, Packaging, dst.). Pilih area di atas atau cari nama item.</>,
-            <>Untuk item yang punya kemasan, isi <b>jumlah kemasan</b> (mis. 3 pack) dan <b>sisa</b> dalam satuan dasar (mis. 120 gr). Sistem menjumlahkan sendiri (3 × 500 + 120 = 1.620 gr).</>,
+            <>Setiap item diisi <b>satu angka dalam satuan yang tertulis di atas kolom</b>, sesuai TEMPLATE SO PER CATEGORY: GR, PCS, PACK@100PCS, ROLL@1000PCS, dst. Contoh: sedotan PACK@100PCS diisi 2,5 bila ada 2 pack lebih setengah; susu GR diisi 1.620.</>,
             <>Item yang tidak ada di tempat <b>wajib diisi 0</b>. Baris kosong membuat SO belum bisa dikirim.</>,
             <>Setiap baris tersimpan otomatis saat Anda pindah ke isian berikutnya (tanda <b>Tersimpan</b> di kanan atas). Tombol <Menu>Tugas</Menu> menampilkan item yang belum diisi.</>,
           ]} />
           <Note>Hitung buta: angka stok sistem sengaja tidak ditampilkan. Isi sesuai yang benar-benar ada.</Note>
-          <Note tone="warn">Bila angka lebih dari 3 kali atau kurang dari sepertiga hitungan sebelumnya, baris diberi tanda <b>Cek</b> dan wajib difoto. Periksa ulang sebelum mengirim.</Note>
+          <Note tone="warn">Bila angka lebih dari 3 kali atau kurang dari sepertiga hitungan sebelumnya, baris diberi tanda <b>Cek</b>. Periksa ulang sebelum mengirim.</Note>
         </>
       ),
     },
@@ -62,10 +62,9 @@ export const SO: Part = {
           <Steps items={[
             <>Buka bagian <Menu>WIP / premix</Menu> di atas daftar item.</>,
             <><b>Timbang</b> setiap premix, cream atau saus yang ada lalu isi beratnya dalam <b>gram</b> (bukan pail/teko). Contoh: Premix Premium 2.350 g.</>,
-            <>Bagian <b>Bahan dari WIP</b> langsung menunjukkan gram setiap bahan (fresh milk, espresso, creamer, …) sesuai resep yang berlaku.</>,
-            <>Tekan <Menu>Simpan WIP</Menu>. Gram bahan ditambahkan ke baris bahan yang sama (tertulis “+ … dari WIP”). Bahan yang tidak ada di daftar muncul di area <b>WIP</b>.</>,
+            <>Tekan <Menu>Simpan WIP</Menu>. Cukup gram premix saja; tidak perlu menghitung bahan bakunya.</>,
           ]} />
-          <Note>Jangan menghitung bahan yang sudah tercampur di premix pada baris bahannya; cukup isi gram premix di bagian WIP. Hasil SO berisi bahan baku dalam satuannya (mis. GR) seperti Stock Opname Report. Resep diatur tim Cost Control.</Note>
+          <Note>Jangan menghitung bahan yang sudah tercampur di premix pada baris bahannya; cukup isi gram premix di bagian WIP. Gram premix dicatat untuk tim Cost Control dan tidak masuk ekspor ESB.</Note>
         </>
       ),
     },
@@ -73,9 +72,10 @@ export const SO: Part = {
       id: 'so-foto', title: 'Foto bukti',
       body: (
         <>
-          <Table head={['Foto', 'Kapan wajib']} rows={[
-            ['Foto area', '1 foto untuk setiap area (tombol kamera di judul area)'],
-            ['Foto item', 'Item bertanda wajib foto, item bertanda Cek (lonjakan), dan 3 item sampel acak (tanda Sampel)'],
+          <Steps items={[
+            <>Bagian <Menu>Foto bukti</Menu> ada <b>di akhir form SO</b>, setelah semua item. Foto bersifat <b>opsional</b>, maksimal <b>15 foto</b> per SO (tidak per item/area).</>,
+            <>Tekan <Menu>Ambil foto</Menu>, arahkan kamera, ketuk tombol bulat, lalu <Menu>Pakai foto</Menu>. Foto yang salah bisa dihapus (ikon ×) selama SO belum dikirim.</>,
+            <>Setelah SO dikirim dan <b>disetujui</b>, bukti bisa diunduh dalam dua format: <Menu>Bukti PDF</Menu> (halaman ringkasan + foto) dan <Menu>Foto (ZIP)</Menu> (file gambar).</>,
           ]} />
           <Note tone="warn">Foto <b>wajib langsung dari kamera</b> (HP maupun laptop); foto dari galeri atau file tidak bisa dipakai. Izinkan akses kamera saat diminta browser. Setiap foto otomatis diberi cap <b>nama cabang, nomor SO, area/item, tanggal & jam (WIB) dan lokasi</b>.</Note>
         </>
@@ -86,7 +86,7 @@ export const SO: Part = {
       body: (
         <>
           <Steps items={[
-            <>Bila semua baris terisi, foto lengkap dan WIP tersimpan, tekan <Menu>Kirim</Menu> lalu konfirmasi. Lokasi dicatat lagi.</>,
+            <>Bila semua baris terisi dan WIP tersimpan, tekan <Menu>Kirim</Menu> lalu konfirmasi. Lokasi dicatat lagi.</>,
             <>Setelah dikirim, SO <b>terkunci</b> dan masuk ke review tim Cost Control.</>,
             <>Bila reviewer meminta <b>hitung ulang</b>, SO terbuka lagi dengan pesan dari reviewer. Hanya baris bertanda <b>Hitung ulang</b> yang bisa diubah; angka lama tetap tersimpan untuk audit. Kirim kembali setelah selesai.</>,
           ]} />
@@ -102,7 +102,7 @@ export const SO: Part = {
       body: (
         <Table head={['Masalah', 'Solusi']} rows={[
           ['SO hari ini tidak muncul', 'Jadwal belum jatuh tempo atau cabang belum ditugaskan ke akun Anda: hubungi tim Cost Control / admin'],
-          ['Tombol Kirim tidak aktif', 'Masih ada baris kosong (isi 0), foto yang kurang, atau WIP belum disimpan (lihat keterangan di bawah tombol)'],
+          ['Tombol Kirim tidak aktif', 'Masih ada baris kosong (isi 0) atau WIP belum disimpan (lihat keterangan di bawah tombol)'],
           ['Lokasi tidak terbaca', 'Izinkan akses lokasi di browser; SO tetap bisa dikirim tetapi diberi tanda'],
           ['Kamera tidak terbuka', 'Izinkan kamera untuk situs ini di pengaturan browser (ikon gembok di alamat), lalu tekan Coba lagi. Gunakan Chrome/Safari'],
           ['Item tidak ada di daftar', 'Laporkan ke tim Cost Control agar ditambahkan ke daftar hitung atau grup item'],
@@ -175,7 +175,7 @@ export const CC: Part = {
           <Steps items={[
             <><Menu>Impor template</Menu> → pilih file <i>TEMPLATE SO PER CATEGORY</i> → <Menu>Periksa</Menu> (belum menyimpan) → <Menu>Impor</Menu>. Setiap sheet menjadi grup “Template SO …”, belum dipasang ke cabang. Impor ulang mengganti item grup itu; pemasangan cabang tetap.</>,
             <>Produk yang belum ada di master item muncul di grup sebagai <b>Belum ada di master item</b>. Klik <Menu>Buat item</Menu> (kode, nama, kategori & satuan sudah terisi dari template), periksa lalu simpan: item langsung masuk ke grup itu dan grup lain yang mencantumkannya.</>,
-            <>Item yang belum punya satuan kemasan dari template: pada kolom kemasan pilih <Menu>+ Tambah satuan…</Menu> (mis. PACK@100PCS = 100 PCS). Di pencarian item juga ada <Menu>Item baru</Menu> untuk produk yang belum ada.</>,
+            <>Satuan template (GR, PCS, PACK@100PCS, ROLL@1000PCS, …) menjadi <b>satuan yang diisi kru</b> saat SO. Item yang belum punya satuan itu: pada kolom kemasan pilih <Menu>+ Tambah satuan…</Menu> (mis. PACK@100PCS = 100 PCS). Di pencarian item juga ada <Menu>Item baru</Menu> untuk produk yang belum ada.</>,
             <>Pasang grup ke cabang lewat tab <b>Cabang</b> di grup tersebut, untuk setiap jenis SO yang dipakai (mis. Mingguan, Bulanan, Harian).</>,
           ]} />
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">Begitu sebuah cabang punya grup untuk satu jenis SO, form SO cabang itu <b>hanya menampilkan item dari grup</b> (template cabang). Item sendiri di daftar hitung yang tidak ada di grup tidak ikut dihitung. Jenis SO yang belum dipasangi grup tetap memakai daftar hitungnya sendiri. SO yang sedang berjalan langsung menyesuaikan.</p>
@@ -205,7 +205,8 @@ export const CC: Part = {
         <>
           <Steps items={[
             <><Go href="/cost-control/monitor">Monitor</Go>: status setiap cabang hari ini (belum mulai, berjalan, terkirim, terlambat, terlewat).</>,
-            <><Go href="/cost-control/reviews">Tinjau</Go>: buka SO terkirim. Periksa baris bertanda (lonjakan, sampel), foto, lokasi & keterlambatan, serta gram dari WIP.</>,
+            <><Go href="/cost-control/reviews">Tinjau</Go>: buka SO terkirim. Periksa baris bertanda (lonjakan), foto bukti, lokasi & keterlambatan, serta gram premix (WIP). Setelah disetujui tersedia <Menu>Bukti PDF</Menu> dan <Menu>Foto (ZIP)</Menu>.</>,
+            <>Tombol <Menu>Unduh semua cabang (xlsx)</Menu> di Tinjau mengunduh SO yang disetujui/diekspor pada periode yang dipilih untuk seluruh cabang dalam satu file.</>,
             <>Pilih <Menu>Setujui</Menu>, <Menu>Minta hitung ulang</Menu> (pilih baris & tulis alasan; kru menghitung ulang baris itu saja) atau <Menu>Batalkan SO</Menu> (SO bisa dimulai lagi).</>,
           ]} />
           <Note>Penyetuju tidak boleh orang yang menghitung SO tersebut.</Note>
@@ -231,7 +232,7 @@ export const CC: Part = {
       body: (
         <Steps items={[
           <><Go href="/cost-control/reports">Laporan SO (xlsx)</Go>: pilih periode (maks. 93 hari), jenis SO, cabang dan status (Disetujui + diekspor) → <Menu>Unduh .xlsx</Menu>.</>,
-          <>Sheet <b>Stock Opname</b> berformat sama dengan Stock Opname Report (Date, Branch, Purpose, Product, Category, Unit, Actual Opname Qty, Price, Total Value) dengan filter & total; sheet <b>Summary</b> berisi satu baris per SO (penghitung, peninjau, jam WIB, jumlah item, nilai).</>,
+          <>Sheet <b>Stock Opname</b> berformat sama dengan Stock Opname Report (Date, Branch, Purpose, Product, Category, Unit, Actual Opname Qty, Price, Total Value) untuk semua cabang dengan filter & total; sheet <b>Summary</b> satu baris per SO (penghitung, peninjau, jam WIB, jumlah item, nilai); sheet <b>WIP premix</b> gram premix; dan <b>satu sheet per cabang</b> (bisa dimatikan). Tanggal ditulis 14/09/2026.</>,
           <>Mengunduh laporan tidak mengubah status SO (berbeda dengan Ekspor ESB).</>,
         ]} />
       ),
