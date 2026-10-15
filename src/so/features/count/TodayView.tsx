@@ -121,7 +121,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                             </div>
                             {!s ? (
                               <Button className="w-full sm:w-auto" loading={starting === key} disabled={!!starting} onClick={() => start(f.facility.id, c.count_type)}>
-                                {starting === key ? null : <Play size={16} />} {tr("Start count")}
+                                {starting === key ? null : <Play size={16} />} {tr("Start Stock Opname")} <span className="sr-only">{countTypeLabel(c.count_type, c.name)}</span>
                               </Button>
                             ) : (
                               <Button variant={s.status === "IN_PROGRESS" || s.status === "RECOUNT_REQUESTED" ? "primary" : "secondary"} className="w-full sm:w-auto"
