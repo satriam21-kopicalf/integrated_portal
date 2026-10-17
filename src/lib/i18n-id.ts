@@ -2570,4 +2570,10 @@ export const ID: Record<string, string> = {
   "count days on the calendar": "hari SO di kalender",
   "{0} branch schedule overrides": "{0} jadwal khusus cabang",
   "Search count type": "Cari jenis SO",
+  "Install the app": "Pasang aplikasi",
+  "Install Kopi Calf Portal": "Pasang Portal Kopi Calf",
+  "Open the portal from the home screen, full screen like an app.": "Buka portal dari layar utama, layar penuh seperti aplikasi.",
+  "Tap Share in the browser bar": "Ketuk Bagikan di bilah browser",
+  "Choose Add to Home Screen, then Add": "Pilih Tambah ke Layar Utama, lalu Tambah",
+  "Install": "Pasang",
 };

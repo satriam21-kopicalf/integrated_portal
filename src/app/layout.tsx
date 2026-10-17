@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./theme-colors.css";
 import "./globals.css";
@@ -13,6 +13,23 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Integrated Portal - Kopi Calf",
   description: "Kopi Calf sales dashboard",
+  applicationName: "Kopi Calf",
+  // iOS: "Add to Home Screen" opens the portal as a standalone app with this name and icon
+  appleWebApp: { capable: true, title: "Kopi Calf", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
+  // older iOS (before 17) only opens Home Screen apps full screen with the legacy tag
+  other: { "apple-mobile-web-app-capable": "yes" },
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
 };
 
 export default function RootLayout({

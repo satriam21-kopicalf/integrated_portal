@@ -85,6 +85,16 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 - **Sapaan login & logout** (`src/lib/greetings.ts`, `components/WelcomeNotice.tsx`): setelah login muncul notifikasi kanan atas (sekali per login) — salam sesuai waktu (*Up early / Good morning / Good afternoon / Good evening / Working late*), nama depan, dan kalimat motivasi yang menyesuaikan waktu & hari (Senin, Jumat, akhir pekan); pertanyaan *How are you feeling today?* (Great / Good / Okay / Tired / Stressed) langsung mengganti kalimat sesuai mood dan diingat untuk hari itu. Kalimat yang baru tampil tidak diulang (rotasi 12 terakhir). Tertutup sendiri (12–20 detik, berhenti saat di-hover). Setelah logout, halaman login menampilkan salam perpisahan sesuai waktu/mood + lama sesi. Semua disimpan di browser (localStorage/sessionStorage), tidak dikirim ke server.
 - Akun pertama dibuat di backend dengan CLI (`python -m app.accounts create …`, lihat dokumentasi backend).
 
+## Aplikasi terpasang (PWA)
+
+Portal dapat dipasang sebagai aplikasi di **iPhone/iPad dan Android** (serta Chrome/Edge desktop), terbuka layar penuh dari layar utama.
+
+- `src/app/manifest.ts` → `/manifest.webmanifest` (nama *Kopi Calf*, `display: standalone`, `start_url: /`); ikon di `public/icons/` (192, 512, maskable 512, `apple-touch-icon` 180) dirender dari `src/app/icon.svg`.
+- `src/app/layout.tsx`: metadata `appleWebApp` (judul, status bar), `apple-mobile-web-app-capable` untuk iOS lama, `apple-touch-icon`, `theme-color` terang/gelap. iOS tidak punya prompt instal; Safari (dan Chrome/Edge/Firefox iOS ≥ 16.4) memakai **Bagikan → Tambah ke Layar Utama**.
+- `public/sw.js` (didaftarkan di semua halaman lewat `useServiceWorker`): hanya menyimpan `public/offline.html`; navigasi tetap ke jaringan dan menampilkan halaman *Tidak ada koneksi* saat offline. Data, `/api` dan aset Next.js tidak di-cache (data selalu live, deploy baru langsung terpakai).
+- `components/InstallApp.tsx` (hanya setelah login, tidak menutupi form login): iPhone/iPad → kartu langkah *Bagikan → Tambah ke Layar Utama*; Android/desktop → tombol **Pasang** yang memanggil prompt browser (`beforeinstallprompt`). Tidak tampil bila sudah berjalan sebagai aplikasi; *Nanti*/tutup menyembunyikannya 14 hari (`portal.install.later`); menunggu pengingat profil (`[data-bottom-notice]`) ditutup agar tidak bertumpuk.
+- Catatan iOS: aplikasi di layar utama punya penyimpanan cookie sendiri, jadi user login sekali lagi di dalam aplikasi (pilih *Keep me signed in* agar 30 hari).
+
 ## Realtime (WebSocket)
 
 > Data hari ini (panel Today, KPI, MTD) tertinggal **maksimal ~15 menit** pada jam operasional 06:00–24:00 WIB: sinkron ESB di menit :05 (hari ini + kemarin) dan :20/:35/:50 (hari ini), aggregate Overview dibangun ulang di :20/:25/:40/:55; malam hari tetap per jam.

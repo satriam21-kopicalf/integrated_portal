@@ -191,7 +191,7 @@ function ProfileNudge({ user, onOpen }: { user: AuthUser; onOpen: () => void }) 
 
   if (!visible) return null;
   return (
-    <div className="fixed inset-x-4 bottom-4 z-[70] sm:left-auto sm:w-[360px]" role="status">
+    <div className="fixed inset-x-4 bottom-4 z-[70] sm:left-auto sm:w-[360px]" role="status" data-bottom-notice>
       <div className="drawer-backdrop rounded-xl border border-slate-200 bg-white p-4 shadow-xl">
         <div className="flex items-start gap-3">
           <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><CircleUserRound size={20} /></span>

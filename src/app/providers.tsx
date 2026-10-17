@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { AccountDrawersProvider } from '@/components/AccountDrawers';
 import ExportToasts from '@/components/ExportToasts';
+import InstallApp, { useServiceWorker } from '@/components/InstallApp';
 import { usePageViewLog } from '@/lib/activity';
 import { AuthProvider, canAccess, homePath, isPublicPath, useAuth } from '@/lib/auth';
 import { ExportsProvider } from '@/lib/exports';
@@ -23,6 +24,7 @@ import { ThemeProvider } from '@/lib/theme';
  * everything, the login page included.
  */
 export default function Providers({ children }: { children: ReactNode }) {
+  useServiceWorker();
   return (
     <ThemeProvider>
       <LanguageProvider>
@@ -60,6 +62,7 @@ function Gate({ children }: { children: ReactNode }) {
       <ExportsProvider>
         <AccountDrawersProvider>{children}</AccountDrawersProvider>
         <ExportToasts />
+        <InstallApp />
       </ExportsProvider>
     </RealtimeProvider>
   );
