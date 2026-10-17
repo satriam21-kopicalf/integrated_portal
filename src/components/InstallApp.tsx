@@ -5,10 +5,12 @@
 // - Android / desktop Chrome & Edge: the browser's own prompt (beforeinstallprompt) behind an "Install" button;
 // - iPhone / iPad: iOS has no install prompt, so the banner shows the steps Share → Add to Home Screen
 //   (Safari, and since iOS 16.4 Chrome / Edge / Firefox on iOS too).
-// Hidden when the portal already runs installed; "Later" hides it for 14 days.
+// Shown once, right after signing in (not again when moving between pages); hidden when the portal already runs
+// installed; "Later" hides it for 14 days.
 
 import { Download, PlusSquare, Share, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { installOfferPending, installOfferShown } from '@/lib/greetings';
 import { tr } from '@/lib/i18n';
 
 type PromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> };
@@ -49,14 +51,14 @@ export default function InstallApp() {
   const [prompt, setPrompt] = useState<PromptEvent | null>(null);
 
   useEffect(() => {
-    if (standalone() || postponed()) return;
+    if (standalone() || postponed() || !installOfferPending()) return;
     // shown once no other bottom notice (the profile reminder) is on screen, so the two never stack
     let timer: ReturnType<typeof setTimeout>;
     const showWhenFree = (m: 'ios' | 'prompt', delay: number) => {
       clearTimeout(timer);
       timer = setTimeout(() => {
         if (document.querySelector('[data-bottom-notice]')) showWhenFree(m, 3000);
-        else setMode(m);
+        else if (installOfferPending()) { installOfferShown(); setMode(m); }
       }, delay);
     };
     if (isIOS()) {

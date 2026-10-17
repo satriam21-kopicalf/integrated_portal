@@ -165,6 +165,7 @@ const RECENT_KEY = 'portal.greeting.recent';
 const MOOD_KEY = 'portal.mood';
 const SIGNED_IN_KEY = 'portal.signedInAt';
 const WELCOME_KEY = 'portal.welcome.pending';
+const INSTALL_KEY = 'portal.install.pending';
 const FAREWELL_KEY = 'portal.farewell';
 
 /** A line not shown recently (falls back to any line when all were). */
@@ -216,6 +217,7 @@ export function welcomeGreeting(displayName: string, mood: Mood | null, now = ne
 /** Called right after a successful sign-in: the dashboard then shows the welcome once. */
 export function markSignedIn() {
   write('session', WELCOME_KEY, true);
+  write('session', INSTALL_KEY, true);
   write('local', SIGNED_IN_KEY, Date.now());
 }
 
@@ -224,6 +226,16 @@ export function takeWelcome(): boolean {
   const pending = read<boolean>('session', WELCOME_KEY);
   if (pending) write('session', WELCOME_KEY, null);
   return Boolean(pending);
+}
+
+/** True once per sign-in: the offer to install the app (components/InstallApp.tsx) is shown right after signing in
+ * only, not again on every page. */
+export function installOfferPending(): boolean {
+  return Boolean(read<boolean>('session', INSTALL_KEY));
+}
+
+export function installOfferShown() {
+  write('session', INSTALL_KEY, null);
 }
 
 /* ------------------------------------------------------------------ farewell */
