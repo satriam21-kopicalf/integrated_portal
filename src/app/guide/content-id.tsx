@@ -115,7 +115,7 @@ export const SO: Part = {
 
 export const CC: Part = {
   key: 'cc', label: 'Cost Control', icon: <Calculator size={16} />,
-  intro: 'Untuk tim Cost Control: menyiapkan pengaturan SO, memantau dan me-review hasil hitung, mengirim ke ESB, serta membaca rasio outlet. Semua halaman ada di sidebar → Kontrol Biaya.',
+  intro: 'Untuk tim Cost Control: menyiapkan pengaturan SO, memantau dan me-review hasil hitung, mengunduh laporan SO, serta membaca rasio outlet. Semua halaman ada di sidebar → Kontrol Biaya.',
   sections: [
     {
       id: 'cc-alur', title: 'Alur kerja ringkas',
@@ -124,11 +124,8 @@ export const CC: Part = {
           ['Sekali / saat ada perubahan', 'Atur jenis SO & jadwal, daftar hitung, grup item, resep WIP', 'Jenis SO, Daftar hitung, Grup item, Kalkulator Premix'],
           ['Setiap pagi (setelah 08:00)', 'Cek cabang yang belum/terlambat SO', 'Monitor'],
           ['Setelah SO dikirim', 'Setujui atau minta hitung ulang', 'Tinjau'],
-          ['Bila perlu (opsional)', 'Isi atau impor SO untuk cabang (hasil masuk Tinjau)', 'Input / impor SO'],
-          ['Setelah disetujui', 'Unduh laporan SO (xlsx) yang rapi', 'Laporan SO (xlsx)'],
-          ['Setelah disetujui', 'Buat file impor SO ESB, unggah ke ESB', 'Ekspor ESB'],
-          ['Setelah ESB memproses', 'Bandingkan hitungan dengan dokumen SO ESB', 'Pembanding ESB'],
-          ['Mingguan / bulanan', 'Baca rasio COGS, BB, espresso & usage per outlet', 'Rasio Outlet, COGS & pemakaian'],
+          ['Setelah disetujui', 'Unduh laporan SO (Excel) yang rapi', 'Laporan SO'],
+          ['Mingguan / bulanan', 'Baca rasio COGS, BB, espresso & usage per outlet', 'Rasio Outlet'],
         ]} />
       ),
     },
@@ -215,36 +212,12 @@ export const CC: Part = {
       ),
     },
     {
-      id: 'cc-input', title: 'Input / impor SO untuk cabang (opsional)',
-      body: (
-        <>
-          <p className="text-sm text-slate-700">Bila diperlukan, Cost Control dapat mengisi hasil SO sebuah cabang atau mengimpor hasil SO banyak cabang dari file. Ini <b>opsional</b>: cabang tetap bisa melakukan SO sendiri.</p>
-          <Steps items={[
-            <><Go href="/cost-control/entry">Input / impor SO</Go> → <Menu>Isi formulir</Menu>: pilih cabang, jenis SO dan tanggal (hari ini atau sebelumnya) → <Menu>Buka form</Menu>. Form sama dengan form kru (item, satuan, premix dalam gram) tanpa foto & lokasi. Isi semua baris lalu <Menu>Kirim</Menu>.</>,
-            <><Menu>Impor file</Menu>: pilih file berformat <i>Stock Opname Report</i> (kolom Branch, Product Code, Unit, Actual Opname Qty), jenis SO dan tanggal → <Menu>Periksa file</Menu> (belum menyimpan; terlihat cabang/item/satuan yang tidak dikenal) → <Menu>Impor</Menu>.</>,
-            <>Hasil isi/impor berstatus <b>Terkirim</b> dan masuk <Go href="/cost-control/reviews">Tinjau</Go> dengan tanda “Diisi/Diimpor oleh Cost Control”. Anggota Cost Control <b>lain</b> yang menyetujui.</>,
-          ]} />
-          <Note>Cabang yang sudah punya SO untuk jenis & tanggal yang sama dilewati saat impor (tidak ditimpa).</Note>
-        </>
-      ),
-    },
-    {
-      id: 'cc-laporan', title: 'Laporan SO (xlsx)',
+      id: 'cc-laporan', title: 'Laporan SO',
       body: (
         <Steps items={[
-          <><Go href="/cost-control/reports">Laporan SO (xlsx)</Go>: pilih periode (maks. 93 hari), jenis SO, cabang dan status (Disetujui + diekspor) → <Menu>Unduh .xlsx</Menu>.</>,
+          <><Go href="/cost-control/reports">Laporan SO</Go>: pilih periode (maks. 93 hari), jenis SO, cabang dan status (Disetujui + diekspor) → <Menu>Unduh .xlsx</Menu>.</>,
           <>Sheet <b>Stock Opname</b> berformat sama dengan Stock Opname Report (Date, Branch, Purpose, Product, Category, Unit, Actual Opname Qty, Price, Total Value) untuk semua cabang dengan filter & total; sheet <b>Summary</b> satu baris per SO (penghitung, peninjau, jam WIB, jumlah item, nilai); sheet <b>WIP premix</b> gram premix; dan <b>satu sheet per cabang</b> (bisa dimatikan). Tanggal ditulis 14/09/2026.</>,
-          <>Mengunduh laporan tidak mengubah status SO (berbeda dengan Ekspor ESB).</>,
-        ]} />
-      ),
-    },
-    {
-      id: 'cc-esb', title: 'Ekspor ke ESB & pembanding',
-      body: (
-        <Steps items={[
-          <><Go href="/cost-control/esb-export">Ekspor ESB</Go>: pilih tanggal & jenis SO → file template impor SO ESB (sheet Worksheet) berisi SO yang disetujui; qty dalam satuan ESB, termasuk gram dari WIP. SO menjadi “Diekspor”; file bisa diunduh ulang dengan isi sama.</>,
-          <>Unggah file ke ESB (modul Stock Opname) seperti biasa.</>,
-          <><Go href="/cost-control/esb-compare">Pembanding ESB</Go>: setelah ESB memproses, cek per item qty platform vs aktual ESB (harus sama) dan sistem ESB vs aktual (selisih qty & nilai).</>,
+          <>Mengunduh laporan tidak mengubah status SO.</>,
         ]} />
       ),
     },

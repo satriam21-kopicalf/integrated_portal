@@ -5,9 +5,11 @@
 // COGS & usage ratios with the stock opname of the day before and the last day. SO values and the MDR of a month can
 // be corrected here (with the reason), as the team does in the workbook.
 
-import { ArrowDown, ArrowUp, Download, Pencil, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, BarChart3, Download, Pencil, Store } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, Field, Input, Page, Panel, SkeletonRows, theadClass, useToast } from "@/so/ui";
+import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import Dialog from "@/so/ui/Dialog";
 import { serverMsg, tr } from "@/lib/i18n";
 
@@ -79,6 +81,9 @@ export default function RatioPage() {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: "cogsRatioGross", desc: true });
+  const [sheet, setSheet] = useState(false);
+  // outlets to look at: COGS ratio (gross) above a threshold, outlets without both stock opname values
+  const [watch, setWatch] = useState<{ cogs: string; so: string }>({ cogs: "", so: "" });
   const [editSo, setEditSo] = useState<{ row: Row; which: "soStart" | "soEnd" } | null>(null);
 
   const query = `dateFrom=${range.from}&dateTo=${range.to}`;
@@ -96,14 +101,16 @@ export default function RatioPage() {
   const rows = useMemo(() => {
     const s = q.trim().toLowerCase();
     const val = (r: Row) => { const v = r[sort.key]; return typeof v === "object" && v ? (v as So).value : (v as number | string | null); };
-    return (data?.outlets ?? []).filter(r => !s || r.branchName.toLowerCase().includes(s) || r.branchCode.toLowerCase().includes(s))
+    return (data?.outlets ?? []).filter(r => (!s || r.branchName.toLowerCase().includes(s) || r.branchCode.toLowerCase().includes(s))
+      && (!watch.cogs || (r.cogsRatioGross ?? 0) > Number(watch.cogs) / 100)
+      && (!watch.so || (watch.so === "missing" ? r.soStart.value === null || r.soEnd.value === null : r.soStart.value !== null && r.soEnd.value !== null)))
       .sort((a, b) => {
         const x = val(a), y = val(b);
         if (x === null || x === undefined) return 1;
         if (y === null || y === undefined) return -1;
         return (x < y ? -1 : x > y ? 1 : 0) * (sort.desc ? -1 : 1);
       });
-  }, [data, q, sort]);
+  }, [data, q, sort, watch]);
 
   const saveMdr = async (row: Row, value: string) => {
     const pct = value.trim() === "" ? null : Number(value.replace(",", "."));
@@ -117,43 +124,39 @@ export default function RatioPage() {
 
   const t = data?.total;
   const monthLabel = month.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  const isDefaultRange = range.key === "M" && iso(month).slice(0, 7) === iso(new Date()).slice(0, 7);
+  const chips: ActiveFilter[] = [
+    ...(!isDefaultRange ? [{ key: "p", label: `${monthLabel} · ${range.label}`, onRemove: () => { const d = new Date(new Date().getFullYear(), new Date().getMonth(), 1); setMonth(d); setRange(presets(d).at(-1)!); } }] : []),
+    ...(watch.cogs ? [{ key: "c", label: tr("COGS gross > {0}%", watch.cogs), onRemove: () => setWatch({ ...watch, cogs: "" }) }] : []),
+    ...(watch.so ? [{ key: "s", label: watch.so === "missing" ? tr("Stock opname missing") : tr("Both stock opname values"), onRemove: () => setWatch({ ...watch, so: "" }) }] : []),
+  ];
   return (
-    <Page title={tr("Outlet ratio")} subtitle={tr("COGS, BB, espresso and usage ratio per outlet, as the Cost Control workbook, from ESB data")}
-      actions={<a href={`/api/cost-control/ratio/export?${query}`} className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 hover:bg-slate-50"><Download size={16} /> Excel</a>}>
-      <Panel>
-        <div className="flex flex-wrap items-center gap-2 p-3 sm:p-4">
-          <input type="month" value={iso(month).slice(0, 7)} aria-label={tr("Month")}
-            onChange={e => { if (!e.target.value) return; const [y, m] = e.target.value.split("-").map(Number); const d = new Date(y, m - 1, 1); setMonth(d); setRange(presets(d).at(-1)!); }}
-            className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm" />
-          {presets(month).map(p => (
-            <button key={p.key} type="button" onClick={() => setRange(p)} aria-pressed={range.key === p.key && range.from === p.from}
-              className={cx("h-9 rounded-lg border px-3 text-xs font-medium", range.key === p.key && range.from === p.from ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300")}>
-              {p.label}
-            </button>
-          ))}
-          <div className="relative ml-auto w-full sm:w-64">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Search outlet")} aria-label={tr("Search outlet")}
-              className="h-9 w-full rounded-lg border border-slate-200 pl-8 pr-3 text-sm" />
-          </div>
-        </div>
-        <p className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-          {monthLabel} · {dmy(range.from)} – {dmy(range.to)} · {data ? tr("SO awal {0}, SO akhir {1}", dmy(data.period.soStart), dmy(data.period.soEnd)) : ""}
-          {" · "}{tr("Net = Pendapatan (gross × (1 − MDR)) when the MDR is filled in, otherwise ESB nett sales")}
-        </p>
-      </Panel>
-
+    <Page title={tr("Outlet ratio")} subtitle={`${monthLabel} · ${dmy(range.from)} – ${dmy(range.to)} · ${tr("COGS, BB, espresso and usage ratio per outlet, from ESB data")}`}
+      actions={<a href={`/api/cost-control/ratio/export?${query}`} className="inline-flex h-10 items-center gap-2 rounded-lg bg-slate-900 px-3.5 text-sm font-medium text-white hover:bg-slate-800"><Download size={16} /> {tr("Download Excel")}</a>}
+      stats={error ? undefined : (
+        <StatStrip label={tr("Summary")} columns={5} gridClassName="sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <Stat label={tr("Gross sales")} icon={<Store size={13} />} value={t ? rp(t.gross) : <StatSkeleton />}>
+            {t && <p>{tr("{0} outlets", t.outlets)}</p>}
+          </Stat>
+          <Stat label={tr("COGS value")} value={t ? rp(t.cogs) : <StatSkeleton />}>
+            {t && <p className="truncate">BB {rp(t.bb)} · Esp {rp(t.espresso)}</p>}
+          </Stat>
+          <Stat label={tr("COGS ratio gross")} emphasis icon={<BarChart3 size={13} />} value={t ? pc(t.cogsRatioGross) : <StatSkeleton />}>
+            {t && <p>{tr("net {0} · BB {1}", pc(t.cogsRatioNet), pc(t.bbRatio))}</p>}
+          </Stat>
+          <Stat label={tr("Usage ratio gross")} value={t ? pc(t.usageRatioGross) : <StatSkeleton />}>
+            {t && <p>{tr("net {0} · {1} outlets with SO", pc(t.usageRatioNet), t.outletsWithSo)}</p>}
+          </Stat>
+          <Stat label={tr("Non sales · item journal")} value={t ? rp(t.nonSales + t.itemJournal) : <StatSkeleton />}>
+            {t && <p>{pc(t.nonSalesPct)} · {pc(t.itemJournalPct)}</p>}
+          </Stat>
+        </StatStrip>
+      )}>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <>
-          <div className="my-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-            <Tile label={tr("Gross sales")} value={rp(t?.gross)} sub={t ? tr("{0} outlets", t.outlets) : ""} />
-            <Tile label={tr("COGS value")} value={rp(t?.cogs)} sub={t ? `BB ${rp(t.bb)} · Esp ${rp(t.espresso)}` : ""} />
-            <Tile label={tr("COGS ratio gross")} value={pc(t?.cogsRatioGross)} sub={t ? tr("net {0}", pc(t.cogsRatioNet)) : ""} strong />
-            <Tile label={tr("Usage ratio gross")} value={pc(t?.usageRatioGross)} sub={t ? tr("net {0} · {1} outlets with SO", pc(t.usageRatioNet), t.outletsWithSo) : ""} />
-            <Tile label={tr("BB ratio")} value={pc(t?.bbRatio)} sub={t ? tr("espresso {0}", pc(t.espressoRatio)) : ""} />
-            <Tile label={tr("Non sales · item journal")} value={rp(t ? t.nonSales + t.itemJournal : null)} sub={t ? `${pc(t.nonSalesPct)} · ${pc(t.itemJournalPct)}` : ""} />
-          </div>
-          <Panel>
+          <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)}
+            onClear={() => { const d = new Date(new Date().getFullYear(), new Date().getMonth(), 1); setMonth(d); setRange(presets(d).at(-1)!); setWatch({ cogs: "", so: "" }); }} />}
+            footer={<span>{data ? tr("SO awal {0}, SO akhir {1}", dmy(data.period.soStart), dmy(data.period.soEnd)) : ""}{" · "}{tr("Net = Pendapatan (gross × (1 − MDR)) when the MDR is filled in, otherwise ESB nett sales")}{data ? ` · ${tr("{0} of {1} shown", rows.length, data.outlets.length)}` : ""}</span>}>
             <div className="max-h-[70vh] overflow-auto">
               <table className="w-full min-w-[1600px] text-xs">
                 <thead className={cx(theadClass, "sticky top-0 z-10")}>
@@ -196,18 +199,42 @@ export default function RatioPage() {
           </Panel>
         </>
       )}
+      {sheet && <RatioFilters month={month} range={range} watch={watch} onClose={() => setSheet(false)}
+        onApply={(m, r, w) => { setMonth(m); setRange(r); setWatch(w); setSheet(false); }} />}
       {editSo && data && <SoDialog row={editSo.row} which={editSo.which} onClose={() => setEditSo(null)} onSaved={() => { setEditSo(null); void load(); }} />}
     </Page>
   );
 }
 
-function Tile({ label, value, sub, strong }: { label: string; value: string; sub: string; strong?: boolean }) {
+type Range = ReturnType<typeof presets>[number];
+
+function RatioFilters({ month, range, watch, onApply, onClose }: {
+  month: Date; range: Range; watch: { cogs: string; so: string }; onApply: (m: Date, r: Range, w: { cogs: string; so: string }) => void; onClose: () => void;
+}) {
+  const [m, setM] = useState(month);
+  const [r, setR] = useState(range);
+  const [w, setW] = useState(watch);
+  const list = presets(m);
   return (
-    <div className={cx("rounded-xl border bg-white p-3 shadow-sm", strong ? "border-slate-900" : "border-slate-200")}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{value}</p>
-      <p className="truncate text-[11px] text-slate-500">{sub}</p>
-    </div>
+    <FilterSheet onClose={onClose} onApply={() => onApply(m, r, w)}
+      onReset={() => { const d = new Date(new Date().getFullYear(), new Date().getMonth(), 1); setM(d); setR(presets(d).at(-1)!); setW({ cogs: "", so: "" }); }}>
+      <FilterSection title={tr("Month")}>
+        <input type="month" value={iso(m).slice(0, 7)} aria-label={tr("Month")} max={iso(new Date()).slice(0, 7)}
+          onChange={e => { if (!e.target.value) return; const [y, mm] = e.target.value.split("-").map(Number); const d = new Date(y, mm - 1, 1); setM(d); setR(presets(d).at(-1)!); }}
+          className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" />
+      </FilterSection>
+      <FilterSection title={tr("Period")} hint={tr("Cumulative from the 1st, as the workbook (W1 1–7 … W4 1–28)")}>
+        <ChoiceGroup label="" value={r.key} onChange={k => setR(list.find(p => p.key === k) ?? list.at(-1)!)} choices={list.map(p => ({ value: p.key, label: p.label }))} />
+      </FilterSection>
+      <FilterSection title={tr("COGS ratio gross above")}>
+        <ChoiceGroup label="" value={w.cogs} onChange={v => setW({ ...w, cogs: v })}
+          choices={[{ value: "", label: tr("Any") }, ...["30", "35", "40", "45"].map(v => ({ value: v, label: `> ${v}%` }))]} />
+      </FilterSection>
+      <FilterSection title={tr("Stock opname")}>
+        <ChoiceGroup label="" value={w.so} onChange={v => setW({ ...w, so: v })}
+          choices={[{ value: "", label: tr("All") }, { value: "missing", label: tr("SO awal or akhir missing") }, { value: "complete", label: tr("Both values") }]} />
+      </FilterSection>
+    </FilterSheet>
   );
 }
 

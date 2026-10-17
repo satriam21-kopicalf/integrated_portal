@@ -11,13 +11,13 @@ export function FilterButton({ count, onClick }: { count: number; onClick: () =>
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors ${
-        count ? 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+      className={`inline-flex h-10 flex-shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
+        count ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
       }`}
     >
       <SlidersHorizontal size={16} />
       {tr('Filters')}
-      {count > 0 && <span className="rounded-full bg-white/20 px-1.5 text-xs tabular-nums">{count}</span>}
+      {count > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{count}</span>}
     </button>
   );
 }
@@ -32,7 +32,7 @@ export interface Choice {
 export function ChoiceGroup({ label, choices, value, onChange }: { label: string; choices: Choice[]; value: string; onChange: (v: string) => void }) {
   return (
     <fieldset>
-      <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</legend>
+      {label && <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</legend>}
       <div className="flex flex-wrap gap-2">
         {choices.map(c => {
           const on = c.value === value;
@@ -82,7 +82,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
   };
   return (
     <fieldset>
-      <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</legend>
+      {label && <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</legend>}
       <div className="overflow-hidden rounded-lg border border-slate-200">
         <div className="relative border-b border-slate-100 p-2">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />

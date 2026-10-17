@@ -19,7 +19,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.reviews', href: '/cost-control/reviews', get label() { return tr('Review'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.entry', href: '/cost-control/entry', get label() { return tr('Enter / import SO'); }, get group() { return tr('Cost Control · Stock opname'); } },
-  { key: 'cc.reports', href: '/cost-control/reports', get label() { return tr('SO report (xlsx)'); }, get group() { return tr('Cost Control · Stock opname'); } },
+  { key: 'cc.reports', href: '/cost-control/reports', get label() { return tr('SO report'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.esb-export', href: '/cost-control/esb-export', get label() { return tr('ESB export'); }, get group() { return tr('Cost Control · ESB'); } },
   { key: 'cc.esb-compare', href: '/cost-control/esb-compare', get label() { return tr('ESB comparison'); }, get group() { return tr('Cost Control · ESB'); } },
   { key: 'cc.lists', href: '/cost-control/lists', get label() { return tr('Count lists'); }, get group() { return tr('Cost Control · Stock opname settings'); } },

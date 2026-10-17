@@ -115,7 +115,7 @@ export const SO: Part = {
 
 export const CC: Part = {
   key: 'cc', label: 'Cost Control', icon: <Calculator size={16} />,
-  intro: 'For the Cost Control team: setting up stock opname, monitoring and reviewing counts, sending them to ESB and reading the outlet ratios. All pages are in the sidebar → Cost Control.',
+  intro: 'For the Cost Control team: setting up stock opname, monitoring and reviewing counts, downloading the SO report and reading the outlet ratios. All pages are in the sidebar → Cost Control.',
   sections: [
     {
       id: 'cc-alur', title: 'Workflow at a glance',
@@ -124,11 +124,8 @@ export const CC: Part = {
           ['Once / when something changes', 'Set count types & schedules, count lists, item groups, WIP recipes', 'Count types, Count lists, Item groups, Premix calculator'],
           ['Every morning (after 08:00)', 'Check branches that have not counted or are late', 'Monitor'],
           ['After a count is submitted', 'Approve or request a recount', 'Review'],
-          ['When needed (optional)', 'Fill in or import counts for branches (they go to Review)', 'Enter / import SO'],
-          ['After approval', 'Download the tidy SO report (xlsx)', 'SO report (xlsx)'],
-          ['After approval', 'Make the ESB stock opname import file and upload it to ESB', 'ESB export'],
-          ['After ESB processed it', 'Compare the counts with the ESB stock opname document', 'ESB comparison'],
-          ['Weekly / monthly', 'Read COGS, raw material, espresso & usage ratios per outlet', 'Outlet ratio, COGS & usage'],
+          ['After approval', 'Download the tidy SO report (Excel)', 'SO report'],
+          ['Weekly / monthly', 'Read COGS, raw material, espresso & usage ratios per outlet', 'Outlet ratio'],
         ]} />
       ),
     },
@@ -215,36 +212,12 @@ export const CC: Part = {
       ),
     },
     {
-      id: 'cc-input', title: 'Enter / import counts for branches (optional)',
-      body: (
-        <>
-          <p className="text-sm text-slate-700">When needed, Cost Control can fill in a branch’s count or import the counts of many branches from a file. This is <b>optional</b>: branches can still count themselves.</p>
-          <Steps items={[
-            <><Go href="/cost-control/entry">Enter / import SO</Go> → <Menu>Fill in a form</Menu>: pick the branch, count type and day (today or earlier) → <Menu>Open the form</Menu>. It is the crew’s form (items, units, premix in grams) without photos or location. Fill every line, then <Menu>Submit</Menu>.</>,
-            <><Menu>Import a file</Menu>: choose a file in the <i>Stock Opname Report</i> layout (columns Branch, Product Code, Unit, Actual Opname Qty), the count type and day → <Menu>Check the file</Menu> (nothing saved yet; unknown branches/items/units are listed) → <Menu>Import</Menu>.</>,
-            <>Entered or imported counts are <b>Submitted</b> and go to <Go href="/cost-control/reviews">Review</Go> marked “Entered/Imported by Cost Control”. <b>Another</b> Cost Control member approves them.</>,
-          ]} />
-          <Note>Branches that already have a count of the same type and day are skipped by the import (never overwritten).</Note>
-        </>
-      ),
-    },
-    {
-      id: 'cc-laporan', title: 'SO report (xlsx)',
+      id: 'cc-laporan', title: 'SO report',
       body: (
         <Steps items={[
-          <><Go href="/cost-control/reports">SO report (xlsx)</Go>: pick the period (at most 93 days), count type, branch and status (Approved + exported) → <Menu>Download .xlsx</Menu>.</>,
+          <><Go href="/cost-control/reports">SO report</Go>: pick the period (at most 93 days), count type, branch and status (Approved + exported) → <Menu>Download .xlsx</Menu>.</>,
           <>Sheet <b>Stock Opname</b> has the layout of the Stock Opname Report (Date, Branch, Purpose, Product, Category, Unit, Actual Opname Qty, Price, Total Value) for every branch with filters & a total; sheet <b>Summary</b> one row per count (counted by, reviewed by, WIB times, items, value); sheet <b>WIP premix</b> the premix grams; and <b>one sheet per branch</b> (can be switched off). Dates read 14/09/2026.</>,
-          <>Downloading the report does not change the status of the counts (unlike the ESB export).</>,
-        ]} />
-      ),
-    },
-    {
-      id: 'cc-esb', title: 'ESB export & comparison',
-      body: (
-        <Steps items={[
-          <><Go href="/cost-control/esb-export">ESB export</Go>: pick the day & count type → the ESB stock opname import file (sheet Worksheet) with the approved counts; quantities in ESB units, WIP grams included. The counts become “Exported”; the file can be downloaded again with the same content.</>,
-          <>Upload the file to ESB (Stock Opname module) as usual.</>,
-          <><Go href="/cost-control/esb-compare">ESB comparison</Go>: after ESB processed it, check per item the platform qty vs the ESB actual (must match) and the ESB system vs actual (difference in qty & value).</>,
+          <>Downloading the report does not change the status of the counts.</>,
         ]} />
       ),
     },

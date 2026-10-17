@@ -8,8 +8,10 @@ import { Boxes, Check, ChevronLeft, ChevronRight, FileSpreadsheet, MapPin, Packa
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemsEditor, { type EditorItem, toPayload } from "@/so/features/settings/ItemsEditor";
 import NewItemDialog, { type ItemDraft } from "@/so/features/settings/NewItemDialog";
-import { Badge, Button, Checkbox, cx, Empty, ErrorState, Field, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, Checkbox, cx, Empty, ErrorState, Field, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
+import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
@@ -33,10 +35,15 @@ function usePickerData() {
   return { facilities, types };
 }
 
+type GF = { status: string; assigned: string; pending: string; source: string };
+const GF_EMPTY: GF = { status: "", assigned: "", pending: "", source: "" };
+
 export default function GroupsPage() {
   const [rows, setRows] = useState<Group[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [gf, setGf] = useState<GF>(GF_EMPTY);
+  const [sheet, setSheet] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -53,16 +60,46 @@ export default function GroupsPage() {
   useEffect(() => { void load(); }, [load]);
   const shown = useMemo(() => {
     const s = search.trim().toLowerCase();
-    return (rows ?? []).filter((g) => !s || g.name.toLowerCase().includes(s) || g.code.toLowerCase().includes(s));
-  }, [rows, search]);
+    return (rows ?? []).filter((g) => (!s || g.name.toLowerCase().includes(s) || g.code.toLowerCase().includes(s))
+      && (!gf.status || (gf.status === "active") === g.is_active)
+      && (!gf.assigned || (gf.assigned === "yes") === g.lists > 0)
+      && (!gf.pending || (gf.pending === "yes") === g.pending > 0)
+      && (!gf.source || (gf.source === "template") === Boolean(g.source_ref)));
+  }, [rows, search, gf]);
+  const all = rows ?? [];
+  const label: Record<string, Record<string, () => string>> = {
+    status: { active: () => tr("Active"), inactive: () => tr("Inactive") },
+    assigned: { yes: () => tr("Assigned to branches"), no: () => tr("Not assigned") },
+    pending: { yes: () => tr("Items not in the item master"), no: () => tr("All items in the item master") },
+    source: { template: () => tr("From the template"), manual: () => tr("Made by hand") },
+  };
+  const chips: ActiveFilter[] = (Object.keys(gf) as (keyof GF)[]).filter((k) => gf[k])
+    .map((k) => ({ key: k, label: label[k][gf[k]](), onRemove: () => setGf({ ...gf, [k]: "" }) }));
 
   return (
     <Page title={tr("Item groups")} subtitle={tr("Reusable sets of items to assign to the count lists of many branches")}
-      actions={<div className="flex gap-2"><Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import template")}</Button>
-        <Button onClick={() => setCreating(true)}><Plus size={16} /> {tr("New group")}</Button></div>}>
-      <Panel toolbar={<SearchBox value={search} onChange={setSearch} placeholder={tr("Search group")} />}>
+      actions={<div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import template")}</Button>
+        <Button onClick={() => setCreating(true)}><Plus size={16} /> {tr("New group")}</Button></div>}
+      stats={
+        <StatStrip label={tr("Summary")} columns={4}>
+          <Stat label={tr("Groups")} icon={<Boxes size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
+            {rows && <p>{tr("{0} from the template", fmtNumber(all.filter((g) => g.source_ref).length))}</p>}
+          </Stat>
+          <Stat label={tr("Assigned to branches")} emphasis value={rows ? fmtNumber(all.filter((g) => g.lists > 0).length) : <StatSkeleton />}>
+            {rows && <p>{tr("{0} count lists use a group", fmtNumber(all.reduce((a, g) => a + g.lists, 0)))}</p>}
+          </Stat>
+          <Stat label={tr("Items in groups")} value={rows ? fmtNumber(all.reduce((a, g) => a + g.items, 0)) : <StatSkeleton />}>
+            {rows && <p>{tr("over every group")}</p>}
+          </Stat>
+          <Stat label={tr("Not in the item master")} value={rows ? fmtNumber(all.reduce((a, g) => a + g.pending, 0)) : <StatSkeleton />}>
+            {rows && <p>{tr("create them from the group")}</p>}
+          </Stat>
+        </StatStrip>
+      }>
+      <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search group")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setGf(GF_EMPTY)} />}
+        footer={rows ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
-          <Empty icon={<Boxes size={28} />} title={rows.length ? tr("No group matches the search") : tr("No item groups yet")}>
+          <Empty icon={<Boxes size={28} />} title={rows.length ? tr("Nothing matches the search or filters") : tr("No item groups yet")}>
             {!rows.length && tr("Create a group, add its items, then assign it to branches.")}
           </Empty>
         ) : (
@@ -97,7 +134,28 @@ export default function GroupsPage() {
       {creating && <CreateWizard {...picker} onClose={() => setCreating(false)} onCreated={(id) => { setCreating(false); void load(); setOpen(id); }} />}
       {open && <GroupDrawer groupId={open} {...picker} onClose={() => setOpen(null)} onChanged={load} />}
       {importing && <ImportTemplateDrawer onClose={() => setImporting(false)} onDone={() => void load()} />}
+      {sheet && <GroupFilters value={gf} labels={label} onClose={() => setSheet(false)} onApply={(v) => { setGf(v); setSheet(false); }} />}
     </Page>
+  );
+}
+
+function GroupFilters({ value, labels, onApply, onClose }: {
+  value: GF; labels: Record<string, Record<string, () => string>>; onApply: (v: GF) => void; onClose: () => void;
+}) {
+  const [d, setD] = useState(value);
+  const group = (k: keyof GF, title: string) => (
+    <FilterSection title={title}>
+      <ChoiceGroup label="" value={d[k]} onChange={(v) => setD({ ...d, [k]: v })}
+        choices={[{ value: "", label: tr("All") }, ...Object.entries(labels[k]).map(([v, l]) => ({ value: v, label: l() }))]} />
+    </FilterSection>
+  );
+  return (
+    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(GF_EMPTY)}>
+      {group("status", tr("Status"))}
+      {group("assigned", tr("Branches"))}
+      {group("pending", tr("Item master"))}
+      {group("source", tr("Source"))}
+    </FilterSheet>
   );
 }
 

@@ -7,8 +7,10 @@
 
 import { CalendarClock, CalendarDays, Clock, Plus, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Checkbox, cx, ErrorState, Field, Input, Page, Panel, useToast } from "@/so/ui";
+import { Badge, Button, Checkbox, cx, ErrorState, Field, Input, Page, Panel, fmtNumber, useToast } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
+import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import MonthCalendar, { CalendarDay, gridStart, iso, TYPE_COLORS } from "@/so/features/schedule/MonthCalendar";
 import { reloadCountTypeNames } from "@/so/features/CountTypeNames";
 import { api, errorText } from "@/so/lib/api";
@@ -72,6 +74,9 @@ export default function TypesPage() {
   const [open, setOpen] = useState<CountType | "new" | null>(null);
   const [month, setMonth] = useState(() => wibMonthStart());
   const [calendar, setCalendar] = useState<CalendarDay[] | undefined>();
+  const [q, setQ] = useState("");
+  const [tf, setTf] = useState<{ status: string; frequency: string }>({ status: "", frequency: "" });
+  const [sheet, setSheet] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -91,10 +96,36 @@ export default function TypesPage() {
   const colors = useMemo(() => new Map((rows ?? []).map((t, i) => [t.code, TYPE_COLORS[i % TYPE_COLORS.length]])), [rows]);
   const colorOf = (code: string) => colors.get(code) ?? "bg-slate-400";
   const labelOf = (code: string, name: string) => countTypeLabel(code, name);
+  const all = rows ?? [];
+  const shownTypes = all.filter((t) => (!q.trim() || `${countTypeLabel(t.code, t.name)} ${t.code}`.toLowerCase().includes(q.trim().toLowerCase()))
+    && (!tf.status || (tf.status === "active") === t.is_active) && (!tf.frequency || t.frequency === tf.frequency));
+  const next = all.filter((t) => t.is_active && t.next_dates.length).map((t) => ({ t, d: t.next_dates[0] })).sort((a, b) => a.d.localeCompare(b.d))[0];
+  const monthKey = wibDate().slice(0, 7);
+  const thisMonth = (calendar ?? []).filter((d) => d.date.startsWith(monthKey)).reduce((a, d) => a + d.counts.length, 0);
+  const chips: ActiveFilter[] = [
+    ...(tf.status ? [{ key: "s", label: tf.status === "active" ? tr("Active") : tr("Inactive"), onRemove: () => setTf({ ...tf, status: "" }) }] : []),
+    ...(tf.frequency ? [{ key: "f", label: FREQUENCIES.find((x) => x.key === tf.frequency)?.label() ?? tf.frequency, onRemove: () => setTf({ ...tf, frequency: "" }) }] : []),
+  ];
 
   return (
     <Page title={tr("Count types")} subtitle={tr("Name, schedule and count window of each stock opname; the calendar follows automatically")}
-      actions={<Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New count type")}</Button>}>
+      actions={<Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New count type")}</Button>}
+      stats={
+        <StatStrip label={tr("Summary")} columns={4}>
+          <Stat label={tr("Active count types")} icon={<CalendarDays size={13} />} value={rows ? fmtNumber(all.filter((t) => t.is_active).length) : <StatSkeleton />}>
+            {rows && <p>{tr("{0} in total", fmtNumber(all.length))}</p>}
+          </Stat>
+          <Stat label={tr("Next stock opname")} emphasis value={rows ? (next ? fmtDate(next.d) : "—") : <StatSkeleton />} valueClassName="truncate text-lg sm:text-xl">
+            {rows && <p className="truncate">{next ? `${countTypeLabel(next.t.code, next.t.name)} · ${windowText(next.t.window_start)}` : tr("Nothing scheduled")}</p>}
+          </Stat>
+          <Stat label={tr("This month")} icon={<CalendarClock size={13} />} value={calendar ? fmtNumber(thisMonth) : <StatSkeleton />}>
+            {calendar && <p>{tr("count days on the calendar")}</p>}
+          </Stat>
+          <Stat label={tr("Count lists")} value={rows ? fmtNumber(all.reduce((a, t) => a + t.lists, 0)) : <StatSkeleton />}>
+            {rows && <p>{tr("{0} branch schedule overrides", fmtNumber(all.reduce((a, t) => a + t.overrides, 0)))}</p>}
+          </Stat>
+        </StatStrip>
+      }>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <div className="space-y-5">
           <Panel>
@@ -104,8 +135,10 @@ export default function TypesPage() {
                 {tr("Dates and windows follow the count types; a branch can have its own day or window (count lists).")}</p>
             </div>
           </Panel>
+          <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setTf({ status: "", frequency: "" })} />
+          {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">{tr("Nothing matches the search or filters")}</p>}
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-28 rounded-xl" />) : rows.map((t) => (
+            {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-28 rounded-xl" />) : shownTypes.map((t) => (
               <button key={t.code} type="button" onClick={() => setOpen(t)}
                 className={cx("block w-full rounded-xl border bg-white p-4 text-left shadow-sm transition hover:border-blue-300 hover:shadow",
                   t.is_active ? "border-slate-200" : "border-dashed border-slate-300 opacity-70")}>
@@ -144,11 +177,30 @@ export default function TypesPage() {
           </div>
         </div>
       )}
+      {sheet && <TypeFilters value={tf} onClose={() => setSheet(false)} onApply={(v) => { setTf(v); setSheet(false); }} />}
       {open && (
         <TypeDrawer type={open === "new" ? null : open} onClose={() => setOpen(null)}
           onSaved={() => { setOpen(null); void load(); void loadCalendar(); void reloadCountTypeNames(); }} />
       )}
     </Page>
+  );
+}
+
+function TypeFilters({ value, onApply, onClose }: {
+  value: { status: string; frequency: string }; onApply: (v: { status: string; frequency: string }) => void; onClose: () => void;
+}) {
+  const [d, setD] = useState(value);
+  return (
+    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ status: "", frequency: "" })}>
+      <FilterSection title={tr("Status")}>
+        <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
+          choices={[{ value: "", label: tr("All") }, { value: "active", label: tr("Active") }, { value: "inactive", label: tr("Inactive") }]} />
+      </FilterSection>
+      <FilterSection title={tr("Frequency")}>
+        <ChoiceGroup label="" value={d.frequency} onChange={(v) => setD({ ...d, frequency: v })}
+          choices={[{ value: "", label: tr("All") }, ...FREQUENCIES.map((f) => ({ value: f.key, label: f.label() }))]} />
+      </FilterSection>
+    </FilterSheet>
   );
 }
 

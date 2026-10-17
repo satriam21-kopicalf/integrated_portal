@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, Download, FileUp, Blocks, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, FileSpreadsheet, GitCompareArrows, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, BookOpen, Download, Blocks, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -22,27 +22,25 @@ const navigation = [
   { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); } },
 ];
 
-/** "Cost Control" menu: role cost_control and superadmins (stock opname of every branch, COGS); opens as a pop-up list. */
-const costControl = [
-  { get title() { return tr('Stock opname'); }, items: [
-    { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Counts of every branch today'); } },
-    { get name() { return tr('Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); } },
-    { get name() { return tr('Enter / import SO'); }, href: '/cost-control/entry', icon: FileUp, get description() { return tr('Fill in or import counts for branches'); } },
-    { get name() { return tr('SO report (xlsx)'); }, href: '/cost-control/reports', icon: Download, get description() { return tr('Download reviewed stock opname'); } },
+/** "Cost Control" menu: role cost_control and superadmins (stock opname of every branch, settings, analytics); opens as a
+ *  pop-up list. Enter / import SO, ESB export and ESB comparison are left out for now (user decision 2026-10-17; the
+ *  pages stay). */
+type CcItem = { name: string; href: string; icon: typeof Users; description: string; soon?: boolean; badge?: 'review' };
+const costControl: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Stock opname'); }, get hint() { return tr('Follow and close the counts of every branch'); }, icon: ClipboardCheck, items: [
+    { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Progress of every branch per day'); } },
+    { get name() { return tr('Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); }, badge: 'review' },
+    { get name() { return tr('SO report'); }, href: '/cost-control/reports', icon: Download, get description() { return tr('Download reviewed stock opname'); } },
   ] },
-  { get title() { return tr('ESB'); }, items: [
-    { get name() { return tr('ESB export'); }, href: '/cost-control/esb-export', icon: FileSpreadsheet, get description() { return tr('Stock opname file for ESB'); } },
-    { get name() { return tr('ESB comparison'); }, href: '/cost-control/esb-compare', icon: GitCompareArrows, get description() { return tr('Count vs ESB stock'); } },
-  ] },
-  { get title() { return tr('Stock opname settings'); }, items: [
+  { get title() { return tr('Stock opname settings'); }, get hint() { return tr('What, when and how the branches count'); }, icon: SlidersHorizontal, items: [
     { get name() { return tr('Count lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
-    { get name() { return tr('Item groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Reusable sets of items'); } },
+    { get name() { return tr('Item groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Templates assigned to branches'); } },
     { get name() { return tr('Count types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
     { get name() { return tr('Premix calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
   ] },
-  { get title() { return tr('Analytics'); }, items: [
+  { get title() { return tr('Analytics'); }, get hint() { return tr('Cost ratios per outlet from ESB data'); }, icon: BarChart3, items: [
     { get name() { return tr('Outlet ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
-    { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('COGS, usage & purchasing'); } },
+    { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Follows Outlet ratio'); }, soon: true },
   ] },
 ];
 
@@ -212,7 +210,7 @@ function SidebarContent({
   const isSuperadmin = user?.role === 'superadmin';
   const items = navigation.filter(item => user && canAccess(user, item.href));
   // Cost Control pop-up: only the pages this user opens
-  const sections = costControl.map(s => ({ title: s.title, items: s.items.filter(i => user && canAccess(user, i.href)) }))
+  const sections = costControl.map(s => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter(i => user && canAccess(user, i.href)) }))
     .filter(s => s.items.length);
   const showCostControl = sections.length > 0;
   // the group stays open while one of its pages is shown
@@ -314,7 +312,7 @@ function SidebarContent({
 type NavEntry = { name: string; href: string; icon: typeof Users; description: string };
 
 /** One sidebar entry that opens the Cost Control pages as a pop-up list (beside the sidebar; centred on small screens). */
-type MenuSection = { title: string; items: typeof costControl[number]['items'] };
+type MenuSection = { title: string; hint: string; icon: typeof Users; items: CcItem[] };
 
 function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
   sections: MenuSection[]; pathname: string; collapsed: boolean; onNavigate?: () => void;
@@ -351,36 +349,69 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
   }, [open]);
   useEffect(() => { if (open) panel.current?.querySelector<HTMLElement>('a[aria-current="page"], a')?.focus(); }, [open]);
 
+  // counts waiting for a decision, shown on Review (only for those who open Review)
+  const [waiting, setWaiting] = useState<number | null>(null);
+  const canReview = sections.some(sec => sec.items.some(i => i.badge === 'review'));
+  useEffect(() => {
+    if (!open || !canReview) return;
+    const from = new Date(Date.now() + 7 * 3600e3 - 30 * 864e5).toISOString().slice(0, 10);
+    fetch(`/api/so/counts?status=SUBMITTED&date_from=${from}`, { credentials: 'same-origin' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(b => setWaiting(Array.isArray(b?.data) ? b.data.length : null))
+      .catch(() => setWaiting(null));
+  }, [open, canReview]);
+
   const go = () => { setOpen(false); onNavigate?.(); };
   const menu = (
     <div ref={panel} role="menu" aria-label={tr('Cost Control')}
-      className={`fixed z-[80] w-[min(36rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ${
+      className={`fixed z-[80] w-[min(44rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ${
         pos ? '' : 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2 overflow-y-auto'}`}
       style={pos ? { left: pos.left, top: pos.top } : undefined}>
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-        <p className="flex items-center gap-2 text-sm font-semibold text-slate-900"><Calculator size={16} className="text-slate-500" /> {tr('Cost Control')}</p>
-        <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close menu')}><X size={16} /></button>
+      <div className="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white"><Calculator size={19} /></span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-slate-900">{tr('Cost Control')}</p>
+          <p className="truncate text-xs text-slate-500">{tr('Stock opname of every branch, its settings and the cost ratios')}</p>
+        </div>
+        {waiting !== null && waiting > 0 && (
+          <Link href="/cost-control/reviews" onClick={go} className="hidden flex-shrink-0 items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 sm:inline-flex">
+            {tr('{0} waiting for review', waiting)}
+          </Link>
+        )}
+        <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close menu')}><X size={16} /></button>
       </div>
-      <div className="grid gap-x-2 gap-y-3 p-3 sm:grid-cols-2">
+      <div className="grid gap-x-3 gap-y-4 p-4 sm:grid-cols-2">
         {sections.map(section => (
-          <div key={section.title}>
-            <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{section.title}</p>
-            <ul>
+          <div key={section.title} className={section.items.length > 3 ? 'sm:row-span-2' : ''}>
+            <div className="mb-1.5 flex items-center gap-2 px-2">
+              <section.icon size={13} className="text-slate-400" />
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{section.title}</p>
+            </div>
+            <p className="mb-1 px-2 text-[11px] text-slate-400">{section.hint}</p>
+            <ul className="space-y-0.5">
               {section.items.map(item => {
                 const Icon = item.icon;
                 const on = under(pathname, item.href);
                 return (
                   <li key={item.href}>
                     <Link href={item.href} onClick={go} role="menuitem" aria-current={on ? 'page' : undefined}
-                      className={`flex items-start gap-3 rounded-lg px-2 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                        on ? 'bg-slate-100' : 'hover:bg-slate-50'}`}>
-                      <span className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg ${on ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                      className={`group flex items-center gap-3 rounded-xl px-2 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                        on ? 'bg-blue-50' : 'hover:bg-slate-50'}`}>
+                      <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors ${
+                        on ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-slate-700 group-hover:ring-1 group-hover:ring-slate-200'}`}>
                         <Icon size={15} strokeWidth={1.9} />
                       </span>
-                      <span className="min-w-0">
-                        <span className={`block truncate text-sm ${on ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>{item.name}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className={`flex items-center gap-1.5 text-sm ${on ? 'font-semibold text-blue-800' : 'font-medium text-slate-800'}`}>
+                          <span className="truncate">{item.name}</span>
+                          {item.soon && <span className="rounded bg-slate-100 px-1.5 py-px text-[10px] font-semibold uppercase text-slate-500">{tr('Soon')}</span>}
+                        </span>
                         <span className="block truncate text-xs text-slate-400">{item.description}</span>
                       </span>
+                      {item.badge === 'review' && waiting !== null && waiting > 0 && (
+                        <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-violet-600 px-1.5 text-[11px] font-semibold tabular-nums text-white">{waiting}</span>
+                      )}
+                      <ChevronRight size={14} className={`flex-shrink-0 ${on ? 'text-blue-400' : 'text-slate-300 group-hover:text-slate-400'}`} />
                     </Link>
                   </li>
                 );
@@ -388,6 +419,10 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
             </ul>
           </div>
         ))}
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-2.5 text-xs text-slate-500">
+        <span className="truncate">{tr('All times in WIB · data from ESB and the stock opname of the branches')}</span>
+        <Link href="/guide" onClick={go} className="inline-flex flex-shrink-0 items-center gap-1 font-medium text-blue-700 hover:underline"><BookOpen size={13} /> {tr('Guide')}</Link>
       </div>
     </div>
   );
@@ -404,7 +439,7 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
           <>
             <span className="min-w-0 flex-1">
               <span className="block truncate">{current ? current.name : tr('Cost Control')}</span>
-              <span className="block truncate text-xs font-normal text-slate-400">{current ? tr('Cost Control') : tr('Stock opname, ESB & COGS')}</span>
+              <span className="block truncate text-xs font-normal text-slate-400">{current ? tr('Cost Control') : tr('Stock opname, settings & ratios')}</span>
             </span>
             <ChevronRight size={15} className="text-slate-400" />
           </>

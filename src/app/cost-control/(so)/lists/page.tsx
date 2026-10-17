@@ -7,14 +7,17 @@
 import { Boxes, Building2, ListChecks, Plus, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ItemsEditor, { type EditorItem, toPayload } from "@/so/features/settings/ItemsEditor";
-import { Badge, Button, Empty, ErrorState, Page, Panel, SearchBox, cx, fmtDate, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Page, Panel, cx, fmtDate, fmtNumber, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
+import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, SearchChoice } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 
-type Facility = { id: string; code: string; name: string; facility_type: string; legal_entity_code: string; own_lists: number };
+type Facility = { id: string; code: string; name: string; facility_type: string; legal_entity_code: string; own_lists: number; city?: string | null };
+type LF = { type: string; lists: string; city: string };
 type ListRow = {
   id: string; facility_type: string; count_type: string; name: string; is_active: boolean; facility_id: string | null;
   facility_code: string | null; facility_name: string | null; source: string; source_ref: string | null; updated_at: string; items: number;
@@ -29,7 +32,8 @@ export default function ListsPage() {
   const [facilities, setFacilities] = useState<Facility[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [type, setType] = useState("OUTLET");
+  const [lf, setLf] = useState<LF>({ type: "OUTLET", lists: "", city: "" });
+  const [sheet, setSheet] = useState(false);
   const [selected, setSelected] = useState<Facility | null>(null);
   const [lists, setLists] = useState<ListRow[] | null>(null);
   const [open, setOpen] = useState<string | null>(null);
@@ -55,8 +59,17 @@ export default function ListsPage() {
   const types = useMemo(() => Array.from(new Set((facilities ?? []).map((f) => f.facility_type))), [facilities]);
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return (facilities ?? []).filter((f) => (!type || f.facility_type === type) && (!s || f.name.toLowerCase().includes(s) || f.code.toLowerCase().includes(s)));
-  }, [facilities, q, type]);
+    return (facilities ?? []).filter((f) => (!lf.type || f.facility_type === lf.type) && (!lf.city || f.city === lf.city)
+      && (!lf.lists || (lf.lists === "own") === f.own_lists > 0)
+      && (!s || f.name.toLowerCase().includes(s) || f.code.toLowerCase().includes(s)));
+  }, [facilities, q, lf]);
+  const cities = useMemo(() => Array.from(new Set((facilities ?? []).map((f) => f.city).filter(Boolean) as string[])).sort(), [facilities]);
+  const scope = (facilities ?? []).filter((f) => !lf.type || f.facility_type === lf.type);
+  const chips: ActiveFilter[] = [
+    ...(lf.type ? [{ key: "t", label: lf.type, onRemove: () => setLf({ ...lf, type: "" }) }] : []),
+    ...(lf.lists ? [{ key: "l", label: lf.lists === "own" ? tr("Own lists") : tr("Default list"), onRemove: () => setLf({ ...lf, lists: "" }) }] : []),
+    ...(lf.city ? [{ key: "c", label: lf.city, onRemove: () => setLf({ ...lf, city: "" }) }] : []),
+  ];
 
   /** a branch's own list starts as a copy of its type's default (items and groups) */
   const createOwn = async (countType: string) => {
@@ -96,21 +109,27 @@ export default function ListsPage() {
   };
 
   return (
-    <Page title={tr("Count lists")} subtitle={tr("Items each branch counts per count type")}>
+    <Page title={tr("Count lists")} subtitle={tr("Items each branch counts per count type")}
+      stats={
+        <StatStrip label={tr("Summary")} columns={4}>
+          <Stat label={lf.type ? tr("Branches · {0}", lf.type) : tr("Branches")} icon={<Building2 size={13} />} value={facilities ? fmtNumber(scope.length) : <StatSkeleton />}>
+            {facilities && <p>{tr("{0} facility types", fmtNumber(types.length))}</p>}
+          </Stat>
+          <Stat label={tr("With own lists")} emphasis value={facilities ? fmtNumber(scope.filter((f) => f.own_lists > 0).length) : <StatSkeleton />}>
+            {facilities && <p>{tr("a list or item group of their own")}</p>}
+          </Stat>
+          <Stat label={tr("Using the default")} value={facilities ? fmtNumber(scope.filter((f) => !f.own_lists).length) : <StatSkeleton />}>
+            {facilities && <p>{tr("the list of their facility type")}</p>}
+          </Stat>
+          <Stat label={tr("Own lists")} value={facilities ? fmtNumber(scope.reduce((a, f) => a + f.own_lists, 0)) : <StatSkeleton />}>
+            {facilities && <p>{tr("over every count type")}</p>}
+          </Stat>
+        </StatStrip>
+      }>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(280px,360px)_1fr]">
-        <Panel toolbar={
-          <>
-            <SearchBox value={q} onChange={setQ} placeholder={tr("Search branch")} />
-            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-              {["", ...types].map((t) => (
-                <button key={t || "all"} type="button" onClick={() => setType(t)} aria-pressed={type === t}
-                  className={cx("whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium", type === t ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-600")}>
-                  {t || tr("All")}
-                </button>
-              ))}
-            </div>
-          </>
-        }>
+        <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search branch")} filters={chips} onOpen={() => setSheet(true)}
+          onClear={() => setLf({ type: "", lists: "", city: "" })} />}
+          footer={facilities ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(facilities.length))}</span> : undefined}>
           {error ? <ErrorState message={error} onRetry={loadFacilities} /> : (
             <ul className="max-h-[32rem] divide-y divide-slate-100 overflow-y-auto lg:max-h-[calc(100dvh-16rem)]">
               {facilities === null ? [0, 1, 2, 3].map((i) => <li key={i} className="p-3"><div className="skeleton h-9 rounded" /></li>) : shown.map((f) => (
@@ -171,6 +190,7 @@ export default function ListsPage() {
         )}
         </div>
       </div>
+      {sheet && <ListFilters value={lf} types={types} cities={cities} onClose={() => setSheet(false)} onApply={(v) => { setLf(v); setSheet(false); }} />}
       {open && <ListDrawer listId={open} onClose={() => setOpen(null)} onChanged={() => selected && void loadLists(selected)} />}
       <ConfirmDialog open={!!resetting} busy={busy} onClose={() => setResetting(null)} onConfirm={reset}
         title={tr("Remove the own list?")} description={tr("The branch counts its type's default list again. The own list and its items are deleted.")} confirmLabel={tr("Use default")} danger />
@@ -248,5 +268,28 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
         </div>
       )}
     </Drawer>
+  );
+}
+
+function ListFilters({ value, types, cities, onApply, onClose }: {
+  value: LF; types: string[]; cities: string[]; onApply: (v: LF) => void; onClose: () => void;
+}) {
+  const [d, setD] = useState(value);
+  return (
+    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ type: "", lists: "", city: "" })}>
+      <FilterSection title={tr("Facility type")}>
+        <ChoiceGroup label="" value={d.type} onChange={(v) => setD({ ...d, type: v })} choices={[{ value: "", label: tr("All") }, ...types.map((t) => ({ value: t, label: t }))]} />
+      </FilterSection>
+      <FilterSection title={tr("Count list")}>
+        <ChoiceGroup label="" value={d.lists} onChange={(v) => setD({ ...d, lists: v })}
+          choices={[{ value: "", label: tr("All") }, { value: "own", label: tr("Own lists") }, { value: "default", label: tr("Default list") }]} />
+      </FilterSection>
+      {cities.length > 0 && (
+        <FilterSection title={tr("City")}>
+          <SearchChoice label="" anyLabel={tr("All cities")} value={d.city} onChange={(v) => setD({ ...d, city: v })} placeholder={tr("Search city")}
+            options={cities.map((c) => ({ value: c, label: c }))} />
+        </FilterSection>
+      )}
+    </FilterSheet>
   );
 }

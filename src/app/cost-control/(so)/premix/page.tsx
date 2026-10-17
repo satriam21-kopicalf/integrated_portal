@@ -6,7 +6,9 @@
 
 import { Calculator, Download, FileSpreadsheet, FlaskConical, Plus, RotateCcw, Search, Upload } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, SkeletonRows, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, SkeletonRows, fmtNumber, theadClass, useToast } from "@/so/ui";
+import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import RecipeDrawer from "@/so/features/premix/RecipeDrawer";
 import { CalcResult, ImportReport, num, Recipe } from "@/so/features/premix/types";
 import { api, errorText } from "@/so/lib/api";
@@ -40,9 +42,29 @@ export default function PremixPage() {
     ...(manage ? [{ key: "import" as Tab, label: tr("Import workbook"), icon: <FileSpreadsheet size={15} /> }] : []),
   ];
 
+  const all = rows ?? [];
+  const active = all.filter(r => r.is_active && r.active).length;
+  const toFix = all.filter(r => (r.active?.issues ?? []).some(i => i.level === "error")).length;
+  const drafts = all.filter(r => r.drafts > 0).length;
   return (
     <Page title={tr("Premix calculator")} subtitle={tr("WIP / premix recipes of Cost Control: grams of every ingredient, and the WIP form of the stock opname")}
-      actions={manage && tab === "recipes" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New recipe")}</Button> : undefined}>
+      actions={manage && tab === "recipes" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New recipe")}</Button> : undefined}
+      stats={
+        <StatStrip label={tr("Summary")} columns={4}>
+          <Stat label={tr("WIP recipes")} icon={<FlaskConical size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
+            {rows && <p>{tr("{0} inactive", fmtNumber(all.filter(r => !r.is_active).length))}</p>}
+          </Stat>
+          <Stat label={tr("Active in the count")} emphasis value={rows ? fmtNumber(active) : <StatSkeleton />}>
+            {rows && <p>{tr("offered in the WIP form of the stock opname")}</p>}
+          </Stat>
+          <Stat label={tr("To fix")} value={rows ? fmtNumber(toFix) : <StatSkeleton />}>
+            {rows && <p>{toFix ? tr("ingredients without a stock item") : tr("every ingredient is mapped")}</p>}
+          </Stat>
+          <Stat label={tr("Drafts")} value={rows ? fmtNumber(drafts) : <StatSkeleton />}>
+            {rows && <p>{tr("versions waiting to be activated")}</p>}
+          </Stat>
+        </StatStrip>
+      }>
       <div role="tablist" className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200">
         {tabs.map(t => (
           <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
@@ -166,13 +188,35 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 
 // ------------------------------------------------------------------------------------------------- recipes
 
+type RF = { status: string; type: string; facility: string };
+const RF_EMPTY: RF = { status: "", type: "", facility: "" };
+const recipeStatus = (r: Recipe) => !r.is_active ? "INACTIVE" : (r.active?.issues ?? []).some(i => i.level === "error") ? "FIX" : !r.active ? "NO_VERSION" : r.drafts ? "DRAFT" : "ACTIVE";
+const RSTATUS: Record<string, () => string> = {
+  ACTIVE: () => tr("Active"), DRAFT: () => tr("Has a draft"), FIX: () => tr("To fix"), NO_VERSION: () => tr("No active version"), INACTIVE: () => tr("Inactive"),
+};
+
 function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id: string) => void }) {
   const [q, setQ] = useState("");
-  const shown = (recipes ?? []).filter(r => !q.trim() || `${r.name} ${r.code}`.toLowerCase().includes(q.trim().toLowerCase()));
+  const [f, setF] = useState<RF>(RF_EMPTY);
+  const [sheet, setSheet] = useState(false);
+  const all = recipes ?? [];
+  const types = Array.from(new Set(all.map(r => r.recipe_type)));
+  const facilities = Array.from(new Set(all.flatMap(r => r.facility_types)));
+  const shown = all.filter(r => (!q.trim() || `${r.name} ${r.code}`.toLowerCase().includes(q.trim().toLowerCase()))
+    && (!f.status || recipeStatus(r) === f.status) && (!f.type || r.recipe_type === f.type) && (!f.facility || r.facility_types.includes(f.facility)));
+  const chips: ActiveFilter[] = [
+    ...(f.status ? [{ key: "s", label: RSTATUS[f.status](), onRemove: () => setF({ ...f, status: "" }) }] : []),
+    ...(f.type ? [{ key: "t", label: f.type, onRemove: () => setF({ ...f, type: "" }) }] : []),
+    ...(f.facility ? [{ key: "f", label: f.facility, onRemove: () => setF({ ...f, facility: "" }) }] : []),
+  ];
   return (
-    <Panel toolbar={<SearchBox value={q} onChange={setQ} placeholder={tr("Search recipe")} />}>
+    <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search recipe")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(RF_EMPTY)} />}
+      footer={recipes ? <span>{tr("{0} of {1} shown", shown.length, all.length)}</span> : undefined}>
+      {sheet && <RecipeFilters value={f} types={types} facilities={facilities} onClose={() => setSheet(false)} onApply={v => { setF(v); setSheet(false); }} />}
       {recipes && !recipes.length ? (
         <Empty icon={<FlaskConical size={28} />} title={tr("No WIP recipes yet")}>{tr("Import the calculator workbook to start.")}</Empty>
+      ) : recipes && !shown.length ? (
+        <Empty icon={<Search size={28} />} title={tr("Nothing matches the search or filters")} />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
@@ -209,6 +253,28 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
         </div>
       )}
     </Panel>
+  );
+}
+
+function RecipeFilters({ value, types, facilities, onApply, onClose }: {
+  value: RF; types: string[]; facilities: string[]; onApply: (v: RF) => void; onClose: () => void;
+}) {
+  const [d, setD] = useState(value);
+  return (
+    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(RF_EMPTY)}>
+      <FilterSection title={tr("Status")}>
+        <ChoiceGroup label="" value={d.status} onChange={v => setD({ ...d, status: v })}
+          choices={[{ value: "", label: tr("All") }, ...Object.keys(RSTATUS).map(k => ({ value: k, label: RSTATUS[k]() }))]} />
+      </FilterSection>
+      <FilterSection title={tr("Recipe type")}>
+        <ChoiceGroup label="" value={d.type} onChange={v => setD({ ...d, type: v })} choices={[{ value: "", label: tr("All") }, ...types.map(t => ({ value: t, label: t }))]} />
+      </FilterSection>
+      {facilities.length > 0 && (
+        <FilterSection title={tr("Facility type")}>
+          <ChoiceGroup label="" value={d.facility} onChange={v => setD({ ...d, facility: v })} choices={[{ value: "", label: tr("All") }, ...facilities.map(t => ({ value: t, label: t }))]} />
+        </FilterSection>
+      )}
+    </FilterSheet>
   );
 }
 
