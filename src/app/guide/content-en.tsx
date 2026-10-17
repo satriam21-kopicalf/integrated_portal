@@ -62,9 +62,10 @@ export const SO: Part = {
           <Steps items={[
             <>Open the <Menu>WIP / premix</Menu> section above the item list.</>,
             <><b>Weigh</b> every premix, cream or sauce that is there and enter its weight in <b>grams</b> (not pails or teko). Example: Premix Premium 2,350 g.</>,
-            <>Tap <Menu>Save WIP</Menu>. The premix grams are all that is needed; its ingredients are not counted.</>,
+            <>The <b>Filled into the items automatically</b> box shows the grams of every ingredient (fresh milk, espresso, creamer, …) from the premix recipe Cost Control set up. Example: Premix 950 g → the grams of each ingredient.</>,
+            <>Tap <Menu>Save WIP</Menu>. The ingredient grams are filled into the same item lines (shown as “+ … from the WIP”) and those items count as entered, so they need no manual entry. Only the items the premix recipes use are filled; ingredients not on the list appear in the <b>WIP</b> area.</>,
           ]} />
-          <Note>Do not count ingredients already mixed into a premix on their own lines; enter the premix grams in the WIP section only. The premix grams are kept for Cost Control and are not part of the ESB export.</Note>
+          <Note>Do not count ingredients already mixed into a premix on their own lines; enter the premix grams in the WIP section only. Separate stock of an ingredient (e.g. unopened milk in the chiller) goes on its item line; the premix grams are added on top. The result goes to the SO report and the ESB export.</Note>
         </>
       ),
     },
@@ -294,7 +295,7 @@ export const ADMIN: Part = {
       body: (
         <Steps items={[
           <><Menu>Roles & pages</Menu>: the matrix of pages per role. Changes apply to every user of the role within a minute.</>,
-          <>The <b>Guide</b> is a page too: untick it for a role (or a single user) to hide it from the menu.</>,
+          <>The <b>Guide</b> (book icon in the header, top right) is a page too: untick it for a role (or a single user) to hide the icon.</>,
           <><Menu>Job titles & departments</Menu>: add, rename (accounts follow) or hide names.</>,
           <>User Accounts and Activity Logs are always for super admins only.</>,
         ]} />

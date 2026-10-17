@@ -21,6 +21,8 @@ type Draft = { qty: string };
 /** The unit the crew counts the line in (the template / ESB unit) and the quantity in that unit. */
 const unitOf = (l: CountLine) => l.esb_uom || l.base_uom;
 const factorOf = (l: CountLine) => Number(l.esb_factor || 1) || 1;
+/** A line the premix filled (grams from the WIP): it needs no manual entry (2026-10-16). */
+const fromWip = (l: CountLine) => Number(l.qty_wip ?? 0) > 0;
 const draftOf = (l: CountLine): Draft => ({ qty: l.qty_base === null ? "" : fmtQty(Number(l.qty_base) / factorOf(l)) });
 
 const editableLine = (c: Count, l: CountLine) =>
@@ -104,7 +106,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   const areas = useMemo(() => Array.from(new Set((count?.lines ?? []).map((l) => l.area))), [count]);
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return (count?.lines ?? []).filter((l) => (!area || l.area === area) && (!onlyOpen || l.qty_base === null || l.flags.includes("RECOUNT")) &&
+    return (count?.lines ?? []).filter((l) => (!area || l.area === area) && (!onlyOpen || (l.qty_base === null && !fromWip(l)) || l.flags.includes("RECOUNT")) &&
       (!s || l.item_name.toLowerCase().includes(s) || l.item_code.toLowerCase().includes(s)));
   }, [count, q, area, onlyOpen]);
 
@@ -113,7 +115,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
 
   const st = STATUS[count.status];
   const open = count.status === "IN_PROGRESS" || count.status === "RECOUNT_REQUESTED";
-  const todo = count.lines.filter((l) => l.qty_base === null || l.flags.includes("RECOUNT")).length;
+  const todo = count.lines.filter((l) => (l.qty_base === null && !fromWip(l)) || l.flags.includes("RECOUNT")).length;
   const pct = count.progress.lines ? Math.round((count.progress.counted / count.progress.lines) * 100) : 0;
   const busy = saving.size > 0;
   // Cost Control entering a branch's count (D-56): no photos or location needed
@@ -204,7 +206,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                       </div>
                       <div className="flex flex-shrink-0 flex-col items-end gap-1">
                         {saving.has(l.id) ? <Loader2 size={14} className="animate-spin text-blue-600" />
-                          : l.qty_base !== null && !l.flags.includes("RECOUNT") ? <CheckCircle2 size={16} className="text-emerald-500" /> : null}
+                          : (l.qty_base !== null || fromWip(l)) && !l.flags.includes("RECOUNT") ? <CheckCircle2 size={16} className="text-emerald-500" /> : null}
                         {l.flags.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
                         {l.flags.includes("SPIKE") && <Badge tone="amber" title={tr("More than 3 times higher or lower than the last approved count")}>{tr("Check")}</Badge>}
                       </div>

@@ -62,9 +62,10 @@ export const SO: Part = {
           <Steps items={[
             <>Buka bagian <Menu>WIP / premix</Menu> di atas daftar item.</>,
             <><b>Timbang</b> setiap premix, cream atau saus yang ada lalu isi beratnya dalam <b>gram</b> (bukan pail/teko). Contoh: Premix Premium 2.350 g.</>,
-            <>Tekan <Menu>Simpan WIP</Menu>. Cukup gram premix saja; tidak perlu menghitung bahan bakunya.</>,
+            <>Bagian <b>Terisi otomatis ke item</b> langsung menunjukkan gram setiap bahan (fresh milk, espresso, creamer, …) sesuai resep premix yang diatur tim Cost Control. Contoh: Premix 950 g → gram setiap bahannya.</>,
+            <>Tekan <Menu>Simpan WIP</Menu>. Gram bahan otomatis terisi ke baris item yang sama (tertulis “+ … dari WIP”) dan item itu dianggap sudah terisi, jadi tidak perlu diisi manual. Yang terisi hanya item yang dipakai resep premix; bahan yang tidak ada di daftar muncul di area <b>WIP</b>.</>,
           ]} />
-          <Note>Jangan menghitung bahan yang sudah tercampur di premix pada baris bahannya; cukup isi gram premix di bagian WIP. Gram premix dicatat untuk tim Cost Control dan tidak masuk ekspor ESB.</Note>
+          <Note>Jangan menghitung bahan yang sudah tercampur di premix pada baris bahannya; cukup isi gram premix di bagian WIP. Bila ada stok bahan yang terpisah (mis. susu utuh di chiller), isi di baris itemnya; gram dari premix ditambahkan di atasnya. Hasilnya ikut laporan SO dan ekspor ESB.</Note>
         </>
       ),
     },
@@ -294,7 +295,7 @@ export const ADMIN: Part = {
       body: (
         <Steps items={[
           <><Menu>Role & halaman</Menu>: matriks halaman per role. Perubahan berlaku untuk semua user role itu dalam satu menit.</>,
-          <><b>Panduan</b> juga sebuah halaman: hapus centangnya untuk sebuah role (atau satu user) agar tidak tampil di menu.</>,
+          <><b>Panduan</b> (ikon buku di header kanan atas) juga sebuah halaman: hapus centangnya untuk sebuah role (atau satu user) agar ikonnya tidak tampil.</>,
           <><Menu>Jabatan & departemen</Menu>: tambah, ganti nama (akun ikut berubah) atau sembunyikan nama.</>,
           <>User Accounts dan Activity Logs selalu khusus super admin.</>,
         ]} />

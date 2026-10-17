@@ -2440,4 +2440,7 @@ export const ID: Record<string, string> = {
   "Count photo": "Foto SO",
   "Grams entered by the branch; for Cost Control only, not in the ESB export": "Gram yang diisi cabang; hanya untuk Cost Control, tidak masuk ekspor ESB",
   "Start Stock Opname": "Mulai Stock Opname",
+  "Weigh each premix and enter the grams; the ingredients are calculated and filled into the items": "Timbang setiap premix lalu isi gramnya; bahan baku dihitung dan terisi otomatis ke item",
+  "Filled into the items automatically": "Terisi otomatis ke item",
+  "Save the WIP to fill these grams into the item lines.": "Simpan WIP agar gram ini terisi ke baris item.",
 };
