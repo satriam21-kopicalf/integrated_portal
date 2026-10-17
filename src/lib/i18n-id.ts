@@ -2589,4 +2589,6 @@ export const ID: Record<string, string> = {
   "ESB nett sales (no MDR for this month)": "Nett sales ESB (MDR bulan ini belum diisi)",
   "Download SO report": "Unduh laporan SO",
   "Download all branches": "Unduh semua cabang",
+  "A new version of the portal is available.": "Versi baru portal sudah tersedia.",
+  "Reload": "Muat ulang",
 };

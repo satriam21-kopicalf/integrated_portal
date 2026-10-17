@@ -4,6 +4,7 @@ import { ReactNode, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { AccountDrawersProvider } from '@/components/AccountDrawers';
+import AppUpdate from '@/components/AppUpdate';
 import ExportToasts from '@/components/ExportToasts';
 import InstallApp, { useServiceWorker } from '@/components/InstallApp';
 import { usePageViewLog } from '@/lib/activity';
@@ -31,6 +32,7 @@ export default function Providers({ children }: { children: ReactNode }) {
         <AuthProvider>
           <Gate>{children}</Gate>
         </AuthProvider>
+        <AppUpdate />
       </LanguageProvider>
     </ThemeProvider>
   );
