@@ -16,7 +16,7 @@ export type TrendChartType = 'line' | 'area' | 'bar' | 'cumulative' | 'average';
 export const TREND_METRICS: { value: TrendMetric; label: string }[] = [
   { value: 'subtotal', get label() { return tr('Gross sales'); } },
   { value: 'bills', get label() { return tr('Bills'); } },
-  { value: 'avgTicket', get label() { return tr('Avg ticket'); } },
+  { value: 'avgTicket', get label() { return tr('Average Order Value'); } },
 ];
 
 export const TREND_CHARTS: { value: TrendChartType; label: string; hint: string }[] = [

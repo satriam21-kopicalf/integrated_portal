@@ -35,19 +35,22 @@ export function isDayVsDay(v: OverviewFilterValue): boolean {
   return Boolean(v.from && v.from === (v.to || v.from) && v.cmp === 'custom' && v.cmpFrom && v.cmpFrom === (v.cmpTo || v.cmpFrom));
 }
 
-/** The comparison actually used, also for "previous period" (the same number of days just before). */
+/** Today in WIB (the dashboard's business day, whatever the device time zone). */
+export const wibToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+
+/** The comparison actually used. The default keeps the weekdays: the period moved back by whole weeks (today vs the
+ *  same weekday last week, 7 days vs the 7 days before, 30 days vs 35 days earlier), as the API does. */
 export function effectiveCompare(mode: CompareMode, cmpFrom: string, cmpTo: string, period: { from: string; to: string } | null) {
   const r = compareRange({ mode, from: cmpFrom, to: cmpTo }, period);
   if (r || !period || mode !== 'auto') return r;
-  const n = dayCount(period.from, period.to);
-  return { from: shiftDay(period.from, -n), to: shiftDay(period.from, -1) };
+  const shift = 7 * Math.ceil(dayCount(period.from, period.to) / 7);
+  return { from: shiftDay(period.from, -shift), to: shiftDay(period.to, -shift) };
 }
 
 function presets(): { label: string; from: string; to: string }[] {
-  const today = toIsoDate(new Date());
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
+  const today = wibToday();
+  const [y, m1] = today.split('-').map(Number);
+  const m = m1 - 1;
   return [
     { label: tr('Today'), from: today, to: today },
     { label: tr('Yesterday'), from: shiftDay(today, -1), to: shiftDay(today, -1) },
@@ -61,7 +64,7 @@ function presets(): { label: string; from: string; to: string }[] {
 }
 
 const COMPARE: { mode: CompareMode; label: string }[] = [
-  { mode: 'auto', get label() { return tr('Previous period'); } },
+  { mode: 'auto', get label() { return tr('Same weekday last week'); } },
   { mode: 'month', get label() { return tr('Same dates last month'); } },
   { mode: 'year', get label() { return tr('Same dates last year'); } },
   { mode: 'custom', get label() { return tr('Custom dates'); } },
@@ -82,12 +85,11 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
   onApply: (v: OverviewFilterValue) => void;
   onClose: () => void;
 }) {
-  const today = toIsoDate(new Date());
-  const yesterday = shiftDay(today, -1);
+  const today = wibToday();
   const [draft, setDraft] = useState<OverviewFilterValue>(value);
   const [view, setView] = useState<View>(isDayVsDay(value) ? 'day' : 'period');
-  const [dayA, setDayA] = useState(isDayVsDay(value) ? value.from : yesterday);
-  const [dayB, setDayB] = useState(isDayVsDay(value) ? value.cmpFrom : shiftDay(yesterday, -7));
+  const [dayA, setDayA] = useState(isDayVsDay(value) ? value.from : today);
+  const [dayB, setDayB] = useState(isDayVsDay(value) ? value.cmpFrom : shiftDay(today, -7));
   const [branchQuery, setBranchQuery] = useState('');
   const set = (patch: Partial<OverviewFilterValue>) => setDraft(d => ({ ...d, ...patch }));
 
@@ -191,7 +193,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
               <dl className="grid gap-x-4 gap-y-0.5 rounded-lg bg-slate-50 px-3.5 py-3 text-sm sm:grid-cols-[auto_1fr] sm:gap-y-1.5">
                 <dt className="text-slate-500">{tr('Showing')}</dt>
                 <dd className="mb-1.5 font-medium text-slate-900 sm:mb-0 sm:text-right">
-                  {period ? <>{formatDate(period.from)} – {formatDate(period.to)} <span className="font-normal text-slate-500">· {formatNumber(dayCount(period.from, period.to))} {tr('days')}</span></> : tr('Last 30 days')}
+                  {period ? <>{formatDate(period.from)} – {formatDate(period.to)} <span className="font-normal text-slate-500">· {formatNumber(dayCount(period.from, period.to))} {tr('days')}</span></> : tr('Today')}
                 </dd>
                 <dt className="text-slate-500">{tr('Compared with')}</dt>
                 <dd className="font-medium text-slate-900 sm:text-right">

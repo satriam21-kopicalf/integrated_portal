@@ -62,7 +62,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
             { label: tr('Gross sales'), value: rp(d.kpis.sales.value), delta: d.kpis.sales.deltaPct, sub: d.filters.previous.complete ? tr('prev. {0}', compactRupiah(d.kpis.sales.previous)) : tr('no comparison') },
             { label: tr('Nett sales'), value: rp(d.kpis.nettSales.value), delta: d.kpis.nettSales.deltaPct },
             { label: tr('Bills'), value: num(d.kpis.bills.value), delta: d.kpis.bills.deltaPct },
-            { label: tr('Avg ticket'), value: rp(d.kpis.avgTicket.value), delta: d.kpis.avgTicket.deltaPct },
+            { label: tr('Average Order Value'), value: rp(d.kpis.avgTicket.value), delta: d.kpis.avgTicket.deltaPct },
           ]} />
         )}
       </Loaded>
@@ -96,7 +96,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
                   { key: 'sales', label: tr('Gross sales'), align: 'right', value: c => c.subtotal, render: c => rp(c.subtotal) },
                   { key: 'share', label: tr('Share'), align: 'right', value: c => c.share, render: c => <ShareBar value={c.share} color={channelColor(c.channel)} /> },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: c => c.bills },
-                  { key: 'avg', label: tr('Avg ticket'), align: 'right', value: c => c.avgTicket, render: c => rp(c.avgTicket) },
+                  { key: 'avg', label: tr('Average Order Value'), align: 'right', value: c => c.avgTicket, render: c => rp(c.avgTicket) },
                   { key: 'chg', label: tr('Change'), align: 'right', value: c => c.deltaPct, render: c => delta(c.deltaPct) },
                 ]} />
             )}
@@ -115,7 +115,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
                   { key: 'sales', label: tr('Gross sales'), align: 'right', value: b => b.subtotal, render: b => rp(b.subtotal) },
                   { key: 'chg', label: tr('Change'), align: 'right', value: b => b.deltaPct, render: b => delta(b.deltaPct) },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: b => b.bills },
-                  { key: 'avg', label: tr('Avg ticket'), align: 'right', value: b => b.avgTicket, render: b => rp(b.avgTicket) },
+                  { key: 'avg', label: tr('Average Order Value'), align: 'right', value: b => b.avgTicket, render: b => rp(b.avgTicket) },
                   { key: 'void', label: tr('Void rate'), align: 'right', value: b => b.voidRate, render: b => pctText(b.voidRate, 2) },
                 ]} />
             )}
@@ -317,7 +317,7 @@ export function PaymentDrawer({ q, method }: { q: string; method: string }) {
             <Tiles tiles={[
               { label: tr('Gross sales'), value: compactRupiah(d.totals.subtotal), title: formatCurrency(d.totals.subtotal), sub: all ? tr('{0} of all gross sales', pctText((d.totals.subtotal / all) * 100)) : '' },
               { label: tr('Bills'), value: num(d.totals.bills), sub: kpis.data ? tr('{0} of bills', pctText((d.totals.bills / Math.max(1, kpis.data.kpis.bills.value)) * 100)) : '' },
-              { label: tr('Avg ticket'), value: rp(d.totals.bills ? d.totals.subtotal / d.totals.bills : null) },
+              { label: tr('Average Order Value'), value: rp(d.totals.bills ? d.totals.subtotal / d.totals.bills : null) },
               { label: tr('Branches'), value: num(d.rows.length), sub: d.rows[0] ? tr('top: {0}', short(d.rows[0].label)) : '' },
             ]} />
           );

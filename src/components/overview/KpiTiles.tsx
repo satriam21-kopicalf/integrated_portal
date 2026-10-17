@@ -22,11 +22,11 @@ const METRICS: {
     format: formatCurrency, full: formatCurrency, series: d => d.nettSales },
   { key: 'bills', get label() { return tr('Bills'); }, get hint() { return tr('Number of sales transactions'); }, icon: Receipt,
     format: formatNumber, full: formatNumber, series: d => d.bills },
-  { key: 'avgTicket', get label() { return tr('Avg ticket'); }, get hint() { return tr('Gross sales ÷ bills'); }, icon: ShoppingBag,
+  { key: 'avgTicket', get label() { return tr('Average Order Value'); }, get hint() { return tr('Gross sales ÷ bills'); }, icon: ShoppingBag,
     format: formatCurrency, full: formatCurrency, series: d => d.avgTicket ?? 0 },
 ];
 
-/** Period summary: Sales, Nett sales, Bills, Avg ticket (no cards, see StatStrip). */
+/** Period summary: Sales, Nett sales, Bills, Average Order Value (no cards, see StatStrip). */
 export default function KpiTiles({ resource }: { resource: Resource<KpisResponse> }) {
   const { data, error, retry } = resource;
   const drill = useOptionalDrill();

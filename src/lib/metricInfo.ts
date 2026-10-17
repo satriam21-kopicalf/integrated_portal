@@ -126,8 +126,8 @@ export const INFO = {
   today: {
     title: 'Today',
     source: ['ESB POS transactions of today, read directly (not the aggregates); updated after every sync — every 15 minutes during trading hours (06:00–24:00 WIB) — and pushed to the page in real time within ~15 seconds.'],
-    definition: [SALES_RULE, 'Compared with yesterday up to the same time of day (outlet clock, salesDateIn). Follows the branch and channel filters, not the date filter.'],
-    formula: ['vs yesterday % = (today − yesterday until the same time) ÷ yesterday until the same time × 100', 'Progress = today ÷ yesterday\'s full day × 100'],
+    definition: [SALES_RULE, 'Compared with the same weekday last week up to the same time of day (outlet clock, salesDateIn). Follows the branch and channel filters, not the date filter.'],
+    formula: ['vs last week % = (today − the same weekday last week until the same time) ÷ that day until the same time × 100', 'Progress = today ÷ the same weekday last week, full day × 100'],
   },
   trend: {
     title: 'Sales trend & growth',

@@ -51,11 +51,9 @@ interface SaleGroup {
 
 const DEFAULT_LIMIT = 100;
 
-/** The page opens on yesterday: the last complete day. */
-function yesterday(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return toIsoDate(d);
+/** The page opens on today (WIB), the day that is running (user decision 2026-10-17). */
+function defaultDay(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
 
 function salesPresets(): DatePreset[] {
@@ -98,7 +96,7 @@ export default function SalesPage() {
   const [txType, setTxType] = useState<TxType>('sales');
   const [summary, setSummary] = useState<SalesSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
-  // dates are set on mount (yesterday in the browser's timezone), fetching waits for that
+  // dates are set on mount (today in WIB), fetching waits for that
   const [datesReady, setDatesReady] = useState(false);
   const [pagesLoaded, setPagesLoaded] = useState(0);
   const [newData, setNewData] = useState(false);
@@ -114,7 +112,7 @@ export default function SalesPage() {
   const requestIdRef = useRef(0);
 
   useEffect(() => {
-    const day = yesterday();
+    const day = defaultDay();
     setDateFrom(day);
     setDateTo(day);
     setDatesReady(true);
@@ -223,14 +221,14 @@ export default function SalesPage() {
 
   // an empty range ("Clear") goes back to the default day
   const handleDateChange = (from: string, to: string) => {
-    setDateFrom(from || to || yesterday());
-    setDateTo(to || from || yesterday());
+    setDateFrom(from || to || defaultDay());
+    setDateTo(to || from || defaultDay());
   };
 
   const clearFilters = () => {
     clearSearch();
-    setDateFrom(yesterday());
-    setDateTo(yesterday());
+    setDateFrom(defaultDay());
+    setDateTo(defaultDay());
     setBranch('');
     setTxType('sales');
   };
@@ -239,7 +237,7 @@ export default function SalesPage() {
   const typeInfo = TX_TYPES.find(t => t.value === txType) ?? TX_TYPES[0];
   const periodLabel = summary
     ? `${formatDate(summary.dateRange.from)} – ${formatDate(summary.dateRange.to)}`
-    : dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Yesterday');
+    : dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Today');
   const branchLabel = branchesLabel(branch, branches);
 
   useFilterLog(
@@ -266,7 +264,7 @@ export default function SalesPage() {
     return out;
   }, [data]);
 
-  const defaultDates = dateFrom === yesterday() && dateTo === yesterday();
+  const defaultDates = dateFrom === defaultDay() && dateTo === defaultDay();
   const hasChips = Boolean(!defaultDates || branch || txType !== 'sales' || debouncedSearch);
   const initialLoading = loading && data.length === 0;
   const refreshing = loading && data.length > 0;
@@ -308,7 +306,7 @@ export default function SalesPage() {
                 )}
               </div>
               <div className="flex items-center justify-end gap-2">
-                <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel={tr('yesterday')} />
+                <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel={tr('today')} />
                 <BranchFilter branches={branches} loading={branchesLoading} value={branch} onChange={setBranch} />
                 <ExportButton
                   dateFrom={dateFrom}

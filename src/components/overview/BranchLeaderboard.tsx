@@ -18,7 +18,7 @@ const COLUMNS: { key: SortKey; label: string; title: string }[] = [
   { key: 'subtotal', get label() { return tr('Gross sales'); }, get title() { return tr('Gross sales in the period'); } },
   { key: 'deltaPct', get label() { return tr('Change'); }, get title() { return tr('vs the previous period'); } },
   { key: 'bills', get label() { return tr('Bills'); }, get title() { return tr('Sales transactions'); } },
-  { key: 'avgTicket', get label() { return tr('Avg ticket'); }, get title() { return tr('Gross sales ÷ bills'); } },
+  { key: 'avgTicket', get label() { return tr('Average Order Value'); }, get title() { return tr('Gross sales ÷ bills'); } },
   { key: 'subtotalPerDay', get label() { return tr('Gross sales / day'); }, get title() { return tr('Gross sales per day with sales'); } },
   { key: 'voidRate', get label() { return tr('Void rate'); }, get title() { return tr('Void & cancelled ÷ all transactions'); } },
 ];

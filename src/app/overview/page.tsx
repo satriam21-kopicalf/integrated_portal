@@ -26,7 +26,7 @@ import {
   BasketResponse, BranchesResponse, ChannelsResponse, DeductionsResponse, HourlyResponse, KpisResponse, MetaResponse,
   PaymentsResponse, channelLabel, useOverview,
 } from '@/lib/overview';
-import { tr } from '@/lib/i18n';
+import { locale, tr } from '@/lib/i18n';
 
 interface Filters {
   from: string; // '' = default period (last 30 complete days)
@@ -117,8 +117,8 @@ export default function OverviewPage() {
             </div>
             <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
-                className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium transition-colors ${
-                  activeCount ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}>
+                className={`inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
+                  activeCount ? 'text-blue-700 hover:bg-blue-50' : 'text-slate-700 hover:bg-slate-100'}`}>
                 <SlidersHorizontal size={16} /> {tr('Filters')}
                 {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
               </button>
@@ -190,12 +190,12 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
         <p className="pb-2 text-xs text-slate-500 sm:text-sm">
           {f ? (
             <>
-              <span className="font-medium text-slate-900">{formatDate(f.from)} – {formatDate(f.to)}</span> · {branchName} · {channelText}
+              <span className="font-medium text-slate-900">{periodText(f.from, f.to)}</span> · {branchName} · {channelText}
               {f.previous.complete ? (
                 <>
                   {tr(' · vs ')}
                   <span className={f.previous.custom ? 'rounded bg-slate-900 px-1.5 py-0.5 font-medium text-white' : ''}>
-                    {formatDate(f.previous.from)} – {formatDate(f.previous.to)}
+                    {periodText(f.previous.from, f.previous.to)}{f.previous.until ? ` ${tr('until {0} WIB', f.previous.until)}` : ''}
                   </span>
                   {f.previous.days !== undefined && f.previous.days !== f.days && (
                     <span className="ml-1.5 text-amber-700">({f.previous.days} {tr('vs')} {f.days} {tr('days: totals are not like for like, compare per-day figures)')}</span>
@@ -244,6 +244,14 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
     <DrillHost />
     </DrillProvider>
   );
+}
+
+/** "Today · Fri, 17 Oct 2026" for one day (the weekday matters: Friday vs Friday), else "1 Oct – 17 Oct 2026". */
+function periodText(from: string, to: string): string {
+  if (from !== to) return `${formatDate(from)} – ${formatDate(to)}`;
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const day = new Date(`${from}T12:00:00+07:00`).toLocaleDateString(locale(), { timeZone: 'Asia/Jakarta', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  return from === today ? `${tr('Today')} · ${day}` : day;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

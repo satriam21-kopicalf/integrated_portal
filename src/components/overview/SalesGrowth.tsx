@@ -248,7 +248,7 @@ export function GrowthSummary({ data }: { data: GrowthResponse }) {
       <Figure label={tr('This period')} value={compactRupiah(t.subtotal)} title={formatCurrency(t.subtotal)} />
       <Figure label={tr('Comparison')} value={t.compareSubtotal === null ? '-' : compactRupiah(t.compareSubtotal)} title={t.compareSubtotal === null ? undefined : formatCurrency(t.compareSubtotal)} />
       <Figure label={tr('Bills')} value={pctLabel(t.billsGrowthPct) || '-'} />
-      <Figure label={tr('Avg ticket')} value={pctLabel(t.avgTicketGrowthPct) || '-'} />
+      <Figure label={tr('Average Order Value')} value={pctLabel(t.avgTicketGrowthPct) || '-'} />
       <Figure label={tr('{0} up / down', tr(`${data.granularity}s`))} value={`${t.bucketsUp} / ${t.bucketsDown}`} />
     </div>
   );

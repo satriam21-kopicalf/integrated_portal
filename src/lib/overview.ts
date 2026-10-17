@@ -13,7 +13,8 @@ export interface OverviewFilters {
   to: string;
   days: number;
   /** comparison period: the same length just before, or the one chosen with compareFrom/compareTo (custom) */
-  previous: { from: string; to: string; complete: boolean; custom?: boolean; days?: number };
+  /** `until`: today's comparison day is cut at this time (HH:MM, WIB) so a running day compares like for like */
+  previous: { from: string; to: string; complete: boolean; custom?: boolean; days?: number; until?: string | null };
   branch: string | null;
   channels: string[];
 }

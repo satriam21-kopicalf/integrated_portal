@@ -54,7 +54,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
                 { label: tr('This period'), value: rp(d.totals.subtotal), sub: tr('{0} bills', num(d.totals.bills)) },
                 { label: tr('Comparison'), value: rp(d.totals.compareSubtotal), sub: d.compare.complete ? `${formatDate(d.compare.from)} – ${formatDate(d.compare.to)}` : tr('before complete history') },
                 { label: tr('Growth'), value: signedRp(d.totals.growthAbs), delta: d.totals.growthPct },
-                { label: tr('Avg ticket'), value: rp(d.totals.avgTicket), delta: d.totals.avgTicketGrowthPct, sub: tr('bills {0}', d.totals.billsGrowthPct === null ? '-' : `${d.totals.billsGrowthPct >= 0 ? '+' : '−'}${fixed(Math.abs(d.totals.billsGrowthPct), 1)}%`) },
+                { label: tr('Average Order Value'), value: rp(d.totals.avgTicket), delta: d.totals.avgTicketGrowthPct, sub: tr('bills {0}', d.totals.billsGrowthPct === null ? '-' : `${d.totals.billsGrowthPct >= 0 ? '+' : '−'}${fixed(Math.abs(d.totals.billsGrowthPct), 1)}%`) },
               ]} />
             </div>
           )}

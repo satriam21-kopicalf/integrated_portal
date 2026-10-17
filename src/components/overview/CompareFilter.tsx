@@ -27,7 +27,7 @@ function shiftMonths(iso: string, months: number): string {
   return toIsoDate(target);
 }
 
-/** The comparison period to send (null = the API default: the period of the same length just before). */
+/** The comparison period to send (null = the API default: the same weekdays, whole weeks earlier). */
 export function compareRange(value: CompareValue, period: { from: string; to: string } | null): { from: string; to: string } | null {
   if (value.mode === 'custom' && value.from) return { from: value.from, to: value.to || value.from };
   if (!period || (value.mode !== 'month' && value.mode !== 'year')) return null;
@@ -36,7 +36,7 @@ export function compareRange(value: CompareValue, period: { from: string; to: st
 }
 
 const OPTIONS: { mode: CompareMode; label: string; hint: string }[] = [
-  { mode: 'auto', get label() { return tr('Previous period'); }, get hint() { return tr('The same number of days just before the selected period'); } },
+  { mode: 'auto', get label() { return tr('Same weekday last week'); }, get hint() { return tr('Today vs the same weekday last week; a period vs the same weekdays whole weeks earlier'); } },
   { mode: 'month', get label() { return tr('Same dates last month'); }, get hint() { return tr('e.g. 1–10 Sep vs 1–10 Aug · month to date vs last month to date'); } },
   { mode: 'year', get label() { return tr('Same dates last year'); }, get hint() { return tr('e.g. 1–10 Sep 2026 vs 1–10 Sep 2025'); } },
   { mode: 'custom', get label() { return tr('Custom period'); }, get hint() { return tr('Any period, also of another length'); } },
@@ -57,7 +57,7 @@ export default function CompareFilter({ value, period, onChange }: {
   const close = useCallback(() => setOpen(false), []);
   useClickOutside(ref, close, open);
   const range = compareRange(value, period);
-  const label = value.mode === 'auto' || !range ? 'vs previous period' : tr('vs {0} – {1}', formatDate(range.from), formatDate(range.to));
+  const label = value.mode === 'auto' || !range ? tr('vs the same weekday last week') : tr('vs {0} – {1}', formatDate(range.from), formatDate(range.to));
   const active = value.mode !== 'auto';
 
   return (

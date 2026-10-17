@@ -24,7 +24,7 @@ import { Block, bucketRange, DetailTable, Loaded, num, pctText, rp, ShareBar, Ti
 import { tr } from '@/lib/i18n';
 
 const KPI_METRIC: Record<KpiKey, TrendMetric> = { sales: 'subtotal', nettSales: 'nettSales', bills: 'bills', avgTicket: 'avgTicket' };
-const KPI_LABEL: Record<KpiKey, string> = { get sales() { return tr('Gross sales'); }, get nettSales() { return tr('Nett sales'); }, get bills() { return tr('Bills'); }, get avgTicket() { return tr('Avg ticket'); } };
+const KPI_LABEL: Record<KpiKey, string> = { get sales() { return tr('Gross sales'); }, get nettSales() { return tr('Nett sales'); }, get bills() { return tr('Bills'); }, get avgTicket() { return tr('Average Order Value'); } };
 const short = (name: string) => name.replace(/^Kopi Calf (To Go )?/, '');
 
 /* ------------------------------------------------------------------ KPI */
@@ -87,7 +87,7 @@ export function KpiDrawer({ q, metric: initial }: { q: string; metric: KpiKey })
                 { key: 'sales', label: tr('Gross sales'), align: 'right', value: p => p.subtotal, render: p => rp(p.subtotal) },
                 { key: 'nett', label: tr('Nett sales'), align: 'right', value: p => p.nettSales, render: p => rp(p.nettSales) },
                 { key: 'bills', label: tr('Bills'), align: 'right', value: p => p.bills },
-                { key: 'avg', label: tr('Avg ticket'), align: 'right', value: p => metricOf(p, 'avgTicket'), render: p => rp(metricOf(p, 'avgTicket')) },
+                { key: 'avg', label: tr('Average Order Value'), align: 'right', value: p => metricOf(p, 'avgTicket'), render: p => rp(metricOf(p, 'avgTicket')) },
                 { key: 'disc', label: tr('Discount'), align: 'right', value: p => p.discountPct, render: p => pctText(p.discountPct) },
                 { key: 'prev', label: tr('Previous {0}', KPI_LABEL[key].toLowerCase()), align: 'right', value: p => (d.filters.previous.complete ? metricOf(p.previous, metric) : null), render: p => fmt(d.filters.previous.complete ? metricOf(p.previous, metric) : null) },
                 { key: 'chg', label: tr('Change'), align: 'right', value: p => pct(metricOf(p, metric), d.filters.previous.complete ? metricOf(p.previous, metric) : null), render: p => delta(pct(metricOf(p, metric), d.filters.previous.complete ? metricOf(p.previous, metric) : null)) },
@@ -121,7 +121,7 @@ function WeekdayBars({ data, metric }: { data: TrendResponse; metric: TrendMetri
         trigger: 'axis', axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(148,163,184,0.12)' } },
         formatter: (items: { dataIndex: number }[]) => {
           const i = items[0]?.dataIndex ?? 0;
-          return tipTitle(tr('{0} · {1} days', DOW_LABELS[i], acc[i].days)) + tipRow(INK.accent, money ? formatCurrency(Math.round(vals[i])) : formatNumber(Math.round(vals[i])), metric === 'avgTicket' ? 'avg ticket' : 'average per day');
+          return tipTitle(tr('{0} · {1} days', DOW_LABELS[i], acc[i].days)) + tipRow(INK.accent, money ? formatCurrency(Math.round(vals[i])) : formatNumber(Math.round(vals[i])), metric === 'avgTicket' ? tr('average order value') : tr('average per day'));
         },
       }),
       xAxis: categoryAxis(DOW_LABELS),
@@ -154,7 +154,7 @@ export function TrendDrawer({ q }: { q: string }) {
             { label: tr('Gross sales'), value: rp(d.kpis.sales.value), delta: d.kpis.sales.deltaPct, sub: tr('prev. {0}', compactRupiah(d.kpis.sales.previous)) },
             { label: tr('Nett sales'), value: rp(d.kpis.nettSales.value), delta: d.kpis.nettSales.deltaPct },
             { label: tr('Bills'), value: num(d.kpis.bills.value), delta: d.kpis.bills.deltaPct },
-            { label: tr('Avg ticket'), value: rp(d.kpis.avgTicket.value), delta: d.kpis.avgTicket.deltaPct },
+            { label: tr('Average Order Value'), value: rp(d.kpis.avgTicket.value), delta: d.kpis.avgTicket.deltaPct },
           ]} />
         )}
       </Loaded>
@@ -196,7 +196,7 @@ export function TrendDrawer({ q }: { q: string }) {
                   { key: 'chg', label: tr('Change'), align: 'right', value: p => (prevOk ? pct(p.subtotal, p.previous.subtotal) : null), render: p => delta(prevOk ? pct(p.subtotal, p.previous.subtotal) : null) },
                   { key: 'nett', label: tr('Nett'), align: 'right', value: p => p.nettSales, render: p => rp(p.nettSales) },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: p => p.bills },
-                  { key: 'avg', label: tr('Avg ticket'), align: 'right', value: p => metricOf(p, 'avgTicket'), render: p => rp(metricOf(p, 'avgTicket')) },
+                  { key: 'avg', label: tr('Average Order Value'), align: 'right', value: p => metricOf(p, 'avgTicket'), render: p => rp(metricOf(p, 'avgTicket')) },
                   { key: 'disc', label: tr('Discount'), align: 'right', value: p => p.discountPct, render: p => pctText(p.discountPct) },
                   { key: 'top', label: tr('Top channel'), value: p => topChannel(p), render: p => channelLabel(topChannel(p)) },
                 ]}
@@ -241,7 +241,7 @@ export function ChannelsDrawer({ q }: { q: string }) {
                   { key: 'sales', label: tr('Gross sales'), align: 'right', value: c => c.subtotal, render: c => rp(c.subtotal) },
                   { key: 'share', label: tr('Share'), align: 'right', value: c => c.share, render: c => <ShareBar value={c.share} color={channelColor(c.channel)} /> },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: c => c.bills },
-                  { key: 'avg', label: tr('Avg ticket'), align: 'right', value: c => c.avgTicket, render: c => rp(c.avgTicket) },
+                  { key: 'avg', label: tr('Average Order Value'), align: 'right', value: c => c.avgTicket, render: c => rp(c.avgTicket) },
                   { key: 'nett', label: tr('Nett'), align: 'right', value: c => c.nettSales, render: c => rp(c.nettSales) },
                   { key: 'disc', label: tr('Discount'), align: 'right', value: c => c.discountPct, render: c => pctText(c.discountPct) },
                   { key: 'prev', label: tr('Previous'), align: 'right', value: c => c.previousSubtotal, render: c => rp(c.previousSubtotal) },
@@ -332,7 +332,7 @@ export function BranchesDrawer({ q }: { q: string }) {
                   { key: 'prev', label: tr('Previous'), align: 'right', value: b => b.previousSubtotal, render: b => rp(b.previousSubtotal) },
                   { key: 'nett', label: tr('Nett'), align: 'right', value: b => b.nettSales, render: b => rp(b.nettSales) },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: b => b.bills },
-                  { key: 'avg', label: tr('Avg ticket'), align: 'right', value: b => b.avgTicket, render: b => rp(b.avgTicket) },
+                  { key: 'avg', label: tr('Average Order Value'), align: 'right', value: b => b.avgTicket, render: b => rp(b.avgTicket) },
                   { key: 'perDay', label: tr('Gross sales/day'), align: 'right', value: b => b.subtotalPerDay, render: b => rp(b.subtotalPerDay) },
                   { key: 'days', label: tr('Days open'), align: 'right', value: b => b.activeDays },
                   { key: 'void', label: tr('Void bills'), align: 'right', value: b => b.voidBills },
@@ -544,7 +544,7 @@ export function PaymentsDrawer({ q }: { q: string }) {
                   { key: 'billShare', label: tr('Bill share'), align: 'right', value: m => m.billShare, render: m => pctText(m.billShare) },
                   { key: 'sales', label: tr('Gross sales'), align: 'right', value: m => m.subtotal, render: m => rp(m.subtotal) },
                   { key: 'share', label: tr('Share'), align: 'right', value: m => m.share, render: m => <ShareBar value={m.share} /> },
-                  { key: 'avg', label: tr('Avg ticket'), align: 'right', value: m => (m.bills ? m.subtotal / m.bills : null), render: m => rp(m.bills ? m.subtotal / m.bills : null) },
+                  { key: 'avg', label: tr('Average Order Value'), align: 'right', value: m => (m.bills ? m.subtotal / m.bills : null), render: m => rp(m.bills ? m.subtotal / m.bills : null) },
                 ]} />
             </Block>
           </>

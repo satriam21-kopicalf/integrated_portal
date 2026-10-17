@@ -72,7 +72,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
   const sales = useCountUp(t?.subtotal ?? 0);
   const bills = useCountUp(t?.bills ?? 0);
   const ofYesterday = t && data?.yesterday.subtotal ? (t.subtotal / data.yesterday.subtotal) * 100 : null;
-  // the same moment yesterday, for the − / + differences
+  // the same moment on the same weekday last week, for the − / + differences
   const ys = t?.yesterdaySameTime;
   const ysAvg = ys && ys.bills ? ys.subtotal / ys.bills : null;
   const avgDeltaPct = t && ysAvg ? ((t.avgTicket - ysAvg) / ysAvg) * 100 : null;
@@ -94,7 +94,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
           const h = hours[items[0]?.dataIndex ?? 0];
           return tipTitle(`${hourLabel(h)}–${hourLabel(h + 1)}`)
             + tipRow(INK.accent, formatCurrency(today.get(h)?.subtotal ?? 0), tr('today · {0} bills', formatNumber(today.get(h)?.bills ?? 0)))
-            + tipRow(INK.previous, formatCurrency(yday.get(h)?.subtotal ?? 0), 'yesterday', 'line');
+            + tipRow(INK.previous, formatCurrency(yday.get(h)?.subtotal ?? 0), tr('same day last week'), 'line');
         },
       }),
       xAxis: categoryAxis(hours.map(h => String(h).padStart(2, '0')), { axisLabel: { color: INK.muted, fontSize: 10, interval: 2 } }),
@@ -102,7 +102,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
       series: [
         { name: tr('Today'), type: 'bar', barMaxWidth: 12, data: hours.map(h => today.get(h)?.subtotal ?? 0),
           itemStyle: { color: INK.accent, borderRadius: [3, 3, 0, 0] } },
-        { name: tr('Yesterday'), type: 'line', symbol: 'none', data: hours.map(h => yday.get(h)?.subtotal ?? 0),
+        { name: tr('Same day last week'), type: 'line', symbol: 'none', data: hours.map(h => yday.get(h)?.subtotal ?? 0),
           lineStyle: { color: INK.previous, width: 1.5, type: 'dashed' } },
       ],
     };
@@ -158,7 +158,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                 <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
                   <Delta value={t.deltaPct} />
                   <Diff value={t.subtotal - t.yesterdaySameTime.subtotal} rupiah />
-                  <span>{tr('vs yesterday at this time (')}{formatCurrency(t.yesterdaySameTime.subtotal)})</span>
+                  <span>{tr('vs the same day last week at this time (')}{formatCurrency(t.yesterdaySameTime.subtotal)})</span>
                 </p>
               </>
             ) : (
@@ -169,17 +169,17 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
           {t && ofYesterday !== null && (
             <div>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="text-slate-500">{tr('Progress vs yesterday\'s full day')}</span>
+                <span className="text-slate-500">{tr('Progress vs the same day last week (full day)')}</span>
                 <span className="font-semibold tabular-nums text-slate-900">{fixed(ofYesterday, 0)}%</span>
               </div>
               <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full bg-blue-600 transition-[width] duration-700" style={{ width: `${Math.min(100, ofYesterday)}%` }} />
               </div>
               <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[11px]">
-                <span className="text-slate-400">{tr('Yesterday full day:')} {formatCurrency(data!.yesterday.subtotal)}</span>
+                <span className="text-slate-400">{tr('Same day last week, full day:')} {formatCurrency(data!.yesterday.subtotal)}</span>
                 <span className="flex items-baseline gap-1">
                   <Diff value={t.subtotal - data!.yesterday.subtotal} rupiah />
-                  <span className="text-slate-400">{t.subtotal >= data!.yesterday.subtotal ? tr('above yesterday') : tr('to reach yesterday')}</span>
+                  <span className="text-slate-400">{t.subtotal >= data!.yesterday.subtotal ? tr('above last week') : tr('to reach last week')}</span>
                 </span>
               </div>
             </div>
@@ -188,12 +188,12 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
           <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
             <MiniStat icon={<Receipt size={13} />} label={tr('Bills')} value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct}
               diff={t && ys ? <Diff value={t.bills - ys.bills} /> : null} />
-            <MiniStat icon={<ShoppingBag size={13} />} label={tr('Avg ticket')} value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} delta={t ? avgDeltaPct : undefined}
+            <MiniStat icon={<ShoppingBag size={13} />} label={tr('Average Order Value')} value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} delta={t ? avgDeltaPct : undefined}
               diff={t && ysAvg ? <Diff value={Math.round(t.avgTicket - ysAvg)} rupiah /> : null} />
             <MiniStat icon={<Tag size={13} />} label={tr('Nett sales')} value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct}
               diff={t && ys ? <Diff value={t.nettSales - ys.nettSales} rupiah /> : null} />
           </dl>
-          {t && <p className="-mt-2 text-[11px] text-slate-400">{tr('− / + vs yesterday at this time')}</p>}
+          {t && <p className="-mt-2 text-[11px] text-slate-400">{tr('− / + vs the same day last week at this time')}</p>}
         </div>
 
         {/* Hourly and channels */}
@@ -203,10 +203,10 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Gross sales by hour')}</p>
               <span className="flex items-center gap-3 text-[11px] text-slate-500">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#2a78d6]" />{tr('Today')}</span>
-                <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />{tr('Yesterday')}</span>
+                <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />{tr('Same day last week')}</span>
               </span>
             </div>
-            {hourOption ? <EChart option={hourOption} height={120} ariaLabel={tr('Gross sales per hour today compared with yesterday')} /> : <div className="h-[120px]" />}
+            {hourOption ? <EChart option={hourOption} height={120} ariaLabel={tr('Gross sales per hour today compared with the same day last week')} /> : <div className="h-[120px]" />}
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Channels today')}</p>

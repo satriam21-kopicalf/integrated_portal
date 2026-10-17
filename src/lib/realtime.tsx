@@ -164,7 +164,7 @@ export function useRealtime(): RealtimeState {
 export function RealtimeIndicator({ className = '' }: { className?: string }) {
   const { status, salesSyncedAt } = useRealtime();
   const synced = salesSyncedAt
-    ? new Date(salesSyncedAt).toLocaleString(locale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
+    ? `${new Date(salesSyncedAt).toLocaleString(locale(), { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })} WIB`
     : null;
   const tone = status === 'live'
     ? { dot: 'bg-emerald-500', ring: 'bg-emerald-400', text: 'text-emerald-700', label: tr('Live') }
@@ -173,7 +173,7 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
     : { dot: 'bg-slate-400', ring: '', text: 'text-slate-500', label: tr('Reconnecting') };
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs ${className}`}
+      className={`inline-flex items-center gap-2 px-1 text-xs ${className}`}
       title={status === 'live'
         ? tr('Connected: data updates automatically after every sync')
         : tr('Realtime connection lost: retrying, data still updates every minute')}

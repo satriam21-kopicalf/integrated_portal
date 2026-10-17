@@ -76,7 +76,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
           return tipTitle(c.channel)
             + tipRow(channelColor(c.channel), formatCurrency(c.subtotal), tr('{0}% of gross sales', fixed(c.share, 1)))
             + tipRow(channelColor(c.channel), formatNumber(c.bills), 'bills')
-            + tipFooter(tr('Avg ticket {0} · discount {1}%', formatCurrency(c.avgTicket), fixed(c.discountPct, 1) ?? '-'));
+            + tipFooter(tr('Average Order Value {0} · discount {1}%', formatCurrency(c.avgTicket), fixed(c.discountPct, 1) ?? '-'));
         },
       }),
       xAxis: { type: 'value', show: false, max: (v: { max: number }) => v.max * 1.02 },
@@ -162,7 +162,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
           <tr>
             <th scope="col" className="py-1.5 text-left font-medium">{tr('Channel')}</th>
             <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Bills')}</th>
-            <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Avg ticket')}</th>
+            <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Average Order Value')}</th>
             <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Disc.')}</th>
             <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Change')}</th>
           </tr>
