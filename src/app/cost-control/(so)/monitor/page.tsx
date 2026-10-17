@@ -6,7 +6,7 @@
 import { AlertTriangle, CalendarDays, ChevronRight, Gauge, MapPin, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Page, Panel, SkeletonRows, fmtNumber, theadClass } from "@/so/ui";
+import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtNumber, theadClass } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, DayField, FilterSection, FilterSheet, FilterToolbar, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
@@ -79,7 +79,10 @@ export default function MonitorPage() {
 
   return (
     <Page title={tr("Stock opname monitor")} subtitle={`${isToday ? `${tr("Today")} · ` : ""}${weekday(f.day)} · ${tr("every outlet and hub with a count due")}`}
-      actions={<Button variant="secondary" onClick={() => void load()}><RefreshCw size={15} /> {tr("Refresh")}</Button>}
+      actions={<button type="button" onClick={() => void load()} disabled={rows === null} title={tr("Refresh")} aria-label={tr("Refresh")}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:cursor-wait">
+        <RefreshCw size={18} className={rows === null ? "animate-spin" : ""} />
+      </button>}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Due")} icon={<CalendarDays size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>

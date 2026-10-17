@@ -5,9 +5,10 @@
 // qty, price, value), "Summary" with one row per count, "WIP premix" and one sheet per branch. Every filter sits in
 // one drawer; the figures show what the file will hold.
 
-import { Building2, Download, FileSpreadsheet, Layers, ListChecks } from "lucide-react";
+import { Building2, FileSpreadsheet, Layers, ListChecks } from "lucide-react";
+import ExcelIconButton from "@/components/ExcelIconButton";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Checkbox, Empty, Page, Panel, SkeletonRows, fmtNumber, theadClass, useToast } from "@/so/ui";
+import { Badge, Checkbox, Empty, Page, Panel, SkeletonRows, fmtNumber, theadClass, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
@@ -89,7 +90,7 @@ export default function ReportsPage() {
 
   return (
     <Page title={tr("SO report")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("reviewed stock opname in the layout of the Stock Opname Report")}`}
-      actions={<Button loading={busy} disabled={!rows?.length} onClick={download}><Download size={16} /> {tr("Download .xlsx")}</Button>}
+      actions={<ExcelIconButton label={tr("Download SO report")} loading={busy} disabled={!rows?.length} onClick={download} />}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Counts")} emphasis icon={<ListChecks size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>

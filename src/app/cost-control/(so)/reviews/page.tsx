@@ -4,10 +4,11 @@
 // figures of the period and every filter in one drawer. The approved counts of the period download as one xlsx for
 // every branch (2026-10-15).
 
-import { AlertTriangle, ChevronRight, ClipboardCheck, Download, RotateCcw } from "lucide-react";
+import { AlertTriangle, ChevronRight, ClipboardCheck, RotateCcw } from "lucide-react";
+import ExcelIconButton from "@/components/ExcelIconButton";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast } from "@/so/ui";
+import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, PeriodField, Period, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
@@ -86,7 +87,7 @@ export default function ReviewsPage() {
 
   return (
     <Page title={tr("Review stock opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("approve submitted counts or ask for a recount")}`}
-      actions={<Button variant="secondary" loading={downloading} onClick={downloadAll}><Download size={16} /> {tr("Download all branches (xlsx)")}</Button>}
+      actions={<ExcelIconButton label={tr("Download all branches")} loading={downloading} onClick={downloadAll} />}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Waiting for review")} emphasis value={rows ? fmtNumber(n("SUBMITTED")) : <StatSkeleton />}>

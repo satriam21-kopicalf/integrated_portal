@@ -12,7 +12,7 @@ export function FilterButton({ count, onClick }: { count: number; onClick: () =>
       type="button"
       onClick={onClick}
       className={`inline-flex h-10 flex-shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
-        count ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        count ? 'text-blue-700 hover:bg-blue-50' : 'text-slate-700 hover:bg-slate-100'
       }`}
     >
       <SlidersHorizontal size={16} />
