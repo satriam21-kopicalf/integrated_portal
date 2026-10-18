@@ -1,15 +1,15 @@
 "use client";
 
 // Waste monitor (Cost Control, page cc.waste-monitor): which branches entered their waste, totals per branch and
-// reason. Skeleton for now (so/features/waste/WasteSkeleton.tsx).
+// reason. Skeleton for now (components/FeatureSkeleton.tsx).
 
 import { Activity } from "lucide-react";
-import WasteSkeleton from "@/so/features/waste/WasteSkeleton";
+import FeatureSkeleton from "@/components/FeatureSkeleton";
 import { tr } from "@/lib/i18n";
 
 export default function WasteMonitorPage() {
   return (
-    <WasteSkeleton title={tr("Waste monitor")} subtitle={tr("Waste entered by every branch")} endpoint="/api/waste/monitor"
+    <FeatureSkeleton title={tr("Waste monitor")} subtitle={tr("Waste entered by every branch")} endpoint="/api/waste/monitor"
       icon={<Activity size={22} />}
       steps={[
         tr("See which branches entered their waste today"),

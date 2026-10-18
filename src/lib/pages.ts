@@ -6,6 +6,8 @@ import { tr } from './i18n';
 
 export type PageKey =
   | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
+  | 'form.pic-check-in' | 'form.outlet' | 'form.product' | 'form.tools'
+  | 'mon.pic-check-in' | 'mon.outlet' | 'mon.product' | 'mon.tools'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs';
 
@@ -17,6 +19,10 @@ export const PAGES: PageInfo[] = [
   { key: 'stock-opname', href: '/stock-opname', get label() { return tr('Stock Opname (count)'); }, get group() { return tr('Main menu'); } },
   { key: 'waste', href: '/waste', get label() { return tr('Waste (input)'); }, get group() { return tr('Main menu'); } },
   { key: 'guide', href: '/guide', get label() { return tr('Guide'); }, get group() { return tr('Main menu'); } },
+  { key: 'form.pic-check-in', href: '/forms/pic-check-in', get label() { return tr('PIC Check In (form)'); }, get group() { return tr('Form'); } },
+  { key: 'form.outlet', href: '/forms/outlet', get label() { return tr('Monitoring Outlet (form)'); }, get group() { return tr('Form'); } },
+  { key: 'form.product', href: '/forms/product', get label() { return tr('Monitoring Product (form)'); }, get group() { return tr('Form'); } },
+  { key: 'form.tools', href: '/forms/tools', get label() { return tr('Tools & Heavy Tools (form)'); }, get group() { return tr('Form'); } },
   { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.reviews', href: '/cost-control/reviews', get label() { return tr('Review'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.entry', href: '/cost-control/entry', get label() { return tr('Enter / import SO'); }, get group() { return tr('Cost Control · Stock opname'); } },
@@ -31,6 +37,10 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste review'); }, get group() { return tr('Cost Control · Waste'); } },
   { key: 'cc.ratio', href: '/cost-control/ratio', get label() { return tr('Outlet ratio'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.cogs', href: '/cost-control', get label() { return tr('COGS & usage'); }, get group() { return tr('Cost Control · Analytics'); } },
+  { key: 'mon.pic-check-in', href: '/monitoring/pic-check-in', get label() { return tr('PIC Check In'); }, get group() { return tr('Monitoring'); } },
+  { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return tr('Monitoring Outlet'); }, get group() { return tr('Monitoring'); } },
+  { key: 'mon.product', href: '/monitoring/product', get label() { return tr('Monitoring Product'); }, get group() { return tr('Monitoring'); } },
+  { key: 'mon.tools', href: '/monitoring/tools', get label() { return tr('Tools & Heavy Tools'); }, get group() { return tr('Monitoring'); } },
 ];
 
 /** The page a path belongs to ('superadmin' for User Accounts & Activity Logs, null for an unknown path). */

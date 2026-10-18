@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPinCheck, Package, Store, Wrench, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -48,6 +48,55 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Follows Outlet ratio'); }, soon: true },
   ] },
 ];
+
+/** "Form" menu: the forms outlets / PICs fill in (pages form.*, off for every role until ticked in Roles & pages). */
+const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Visit'); }, get hint() { return tr('Check in at the outlet you visit'); }, icon: MapPinCheck, items: [
+    { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
+  ] },
+  { get title() { return tr('Outlet & product'); }, get hint() { return tr('Condition of the outlet and the products'); }, icon: Store, items: [
+    { get name() { return tr('Monitoring Outlet'); }, href: '/forms/outlet', icon: Store, get description() { return tr('Fill in the outlet checklist'); } },
+    { get name() { return tr('Monitoring Product'); }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
+  ] },
+  { get title() { return tr('Equipment'); }, get hint() { return tr('Tools and heavy tools of the outlet'); }, icon: Wrench, items: [
+    { get name() { return tr('Tools & Heavy Tools'); }, href: '/forms/tools', icon: Wrench, get description() { return tr('Report the condition of the tools'); } },
+  ] },
+];
+
+/** "Monitoring" menu: what the outlets / PICs filled in, for the teams that follow them (pages mon.*). */
+const monitoring: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Visit'); }, get hint() { return tr('Who checked in where and when'); }, icon: MapPinCheck, items: [
+    { get name() { return tr('PIC Check In'); }, href: '/monitoring/pic-check-in', icon: MapPinCheck, get description() { return tr('Check-ins of every PIC'); } },
+  ] },
+  { get title() { return tr('Outlet & product'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
+    { get name() { return tr('Monitoring Outlet'); }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
+    { get name() { return tr('Monitoring Product'); }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },
+  ] },
+  { get title() { return tr('Equipment'); }, get hint() { return tr('Tools and heavy tools of every outlet'); }, icon: Wrench, items: [
+    { get name() { return tr('Tools & Heavy Tools'); }, href: '/monitoring/tools', icon: Wrench, get description() { return tr('Condition & repairs per outlet'); } },
+  ] },
+];
+
+/** The pop-up menus of the sidebar (same design): which pages, header and footer. */
+type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
+const POPUPS: Record<'forms' | 'costControl' | 'monitoring', PopupConfig & { sections: typeof costControl }> = {
+  forms: {
+    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, outlet, product & tools'); }, get title() { return tr('Form'); },
+    get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
+    icon: ClipboardPen, sections: forms,
+  },
+  costControl: {
+    get label() { return tr('Cost Control'); }, get idle() { return tr('Stock opname, waste, settings & ratios'); }, get title() { return tr('Cost Control'); },
+    get subtitle() { return tr('Stock opname and waste of every branch, settings and cost ratios'); },
+    get footer() { return tr('All times in WIB · data from ESB and the stock opname of the branches'); },
+    icon: Calculator, sections: costControl, review: true,
+  },
+  monitoring: {
+    get label() { return tr('Monitoring'); }, get idle() { return tr('Check ins, outlets, products & tools'); }, get title() { return tr('Monitoring'); },
+    get subtitle() { return tr('What the outlets and PICs filled in'); }, get footer() { return tr('All times in WIB · from the forms of the outlets'); },
+    icon: Gauge, sections: monitoring,
+  },
+};
 
 const under = (pathname: string, href: string) => pathname === href || (href !== '/cost-control' && pathname.startsWith(`${href}/`));
 
@@ -192,10 +241,13 @@ function SidebarContent({
   const { user } = useAuth();
   const isSuperadmin = user?.role === 'superadmin';
   const items = navigation.filter(item => user && canAccess(user, item.href));
-  // Cost Control pop-up: only the pages this user opens
-  const sections = costControl.map(s => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter(i => user && canAccess(user, i.href)) }))
+  // pop-up menus: only the pages this user opens
+  const visible = (list: typeof costControl) => list
+    .map(s => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter(i => user && canAccess(user, i.href)) }))
     .filter(s => s.items.length);
-  const showCostControl = sections.length > 0;
+  const popups = (['forms', 'costControl', 'monitoring'] as const)
+    .map(key => ({ key, config: POPUPS[key], sections: visible(POPUPS[key].sections) }))
+    .filter(p => p.sections.length);
   // the group stays open while one of its pages is shown
   const managementActive = management.some(m => pathname === m.href);
   return (
@@ -214,13 +266,13 @@ function SidebarContent({
           ))}
         </ul>
 
-        {/* Cost Control: stock opname of every branch + COGS (role cost_control and superadmins), a pop-up menu */}
-        {showCostControl && (
-          <div className="mt-5 border-t border-slate-100 pt-4">
-            {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Cost Control')}</p>}
-            <CostControlMenu sections={sections} pathname={pathname} collapsed={collapsed} onNavigate={onNavigate} />
+        {/* Form (outlets / PICs), Cost Control, Monitoring: one pop-up menu each, with the pages the user opens */}
+        {popups.map(p => (
+          <div key={p.key} className="mt-5 border-t border-slate-100 pt-4">
+            {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{p.config.label}</p>}
+            <PopupMenu config={p.config} sections={p.sections} pathname={pathname} collapsed={collapsed} onNavigate={onNavigate} />
           </div>
-        )}
+        ))}
 
         {/* management: superadmin only */}
         {isSuperadmin && (
@@ -255,12 +307,14 @@ function SidebarContent({
 
 type NavEntry = { name: string; href: string; icon: typeof Users; description: string };
 
-/** One sidebar entry that opens the Cost Control pages as a pop-up list (beside the sidebar; centred on small screens). */
+/** One sidebar entry that opens its pages as a pop-up list (beside the sidebar; centred on small screens): Form, Cost
+ *  Control and Monitoring share the design. */
 type MenuSection = { title: string; hint: string; icon: typeof Users; items: CcItem[] };
 
-function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
-  sections: MenuSection[]; pathname: string; collapsed: boolean; onNavigate?: () => void;
+function PopupMenu({ config, sections, pathname, collapsed, onNavigate }: {
+  config: PopupConfig; sections: MenuSection[]; pathname: string; collapsed: boolean; onNavigate?: () => void;
 }) {
+  const Icon = config.icon;
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -295,7 +349,7 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
 
   // counts waiting for a decision, shown on Review (only for those who open Review)
   const [waiting, setWaiting] = useState<number | null>(null);
-  const canReview = sections.some(sec => sec.items.some(i => i.badge === 'review'));
+  const canReview = !!config.review && sections.some(sec => sec.items.some(i => i.badge === 'review'));
   useEffect(() => {
     if (!open || !canReview) return;
     const from = new Date(Date.now() + 7 * 3600e3 - 30 * 864e5).toISOString().slice(0, 10);
@@ -307,15 +361,15 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
 
   const go = () => { setOpen(false); onNavigate?.(); };
   const menu = (
-    <div ref={panel} role="menu" aria-label={tr('Cost Control')}
+    <div ref={panel} role="menu" aria-label={config.title}
       className={`fixed z-[80] w-[min(44rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ${
         pos ? '' : 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2 overflow-y-auto'}`}
       style={pos ? { left: pos.left, top: pos.top } : undefined}>
       <div className="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
-        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white"><Calculator size={19} /></span>
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white"><Icon size={19} /></span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-slate-900">{tr('Cost Control')}</p>
-          <p className="truncate text-xs text-slate-500">{tr('Stock opname and waste of every branch, settings and cost ratios')}</p>
+          <p className="text-sm font-semibold text-slate-900">{config.title}</p>
+          <p className="truncate text-xs text-slate-500">{config.subtitle}</p>
         </div>
         {waiting !== null && waiting > 0 && (
           <Link href="/cost-control/reviews" onClick={go} className="hidden flex-shrink-0 items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 sm:inline-flex">
@@ -365,7 +419,7 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
         ))}
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-2.5 text-xs text-slate-500">
-        <span className="truncate">{tr('All times in WIB · data from ESB and the stock opname of the branches')}</span>
+        <span className="truncate">{config.footer}</span>
         <Link href="/guide" onClick={go} className="inline-flex flex-shrink-0 items-center gap-1 font-medium text-blue-700 hover:underline"><BookOpen size={13} /> {tr('Guide')}</Link>
       </div>
     </div>
@@ -374,16 +428,16 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
   return (
     <>
       <button ref={button} type="button" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open}
-        title={collapsed ? tr('Cost Control') : undefined}
+        title={collapsed ? config.label : undefined}
         className={`relative flex w-full items-center gap-3 rounded-lg py-2 text-left text-sm transition-colors ${collapsed ? 'justify-center px-0' : 'px-2.5'} ${
           active || open ? 'bg-slate-100 font-semibold text-slate-900' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
         {active && <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-slate-900" />}
-        <Calculator size={18} strokeWidth={1.75} className={active ? 'text-slate-900' : 'text-slate-400'} />
+        <Icon size={18} strokeWidth={1.75} className={active ? 'text-slate-900' : 'text-slate-400'} />
         {!collapsed && (
           <>
             <span className="min-w-0 flex-1">
-              <span className="block truncate">{current ? current.name : tr('Cost Control')}</span>
-              <span className="block truncate text-xs font-normal text-slate-400">{current ? tr('Cost Control') : tr('Stock opname, waste, settings & ratios')}</span>
+              <span className="block truncate">{current ? current.name : config.label}</span>
+              <span className="block truncate text-xs font-normal text-slate-400">{current ? config.label : config.idle}</span>
             </span>
             <ChevronRight size={15} className="text-slate-400" />
           </>

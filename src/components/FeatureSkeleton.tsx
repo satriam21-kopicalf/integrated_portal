@@ -1,15 +1,15 @@
 'use client';
 
-// Waste pages while the feature is being built (2026-10-18): the menu entries and the access rules are final (pages
-// waste, cc.waste-monitor, cc.waste-review, lib/pages.ts and integrated_portal_be app/access.py); the screens show the
-// planned flow and check the API answers for this user (GET /api/waste/...).
+// Pages of a feature being built (Waste, Form, Monitoring — 2026-10-18): the menu entries and the access rules are final (pages
+// waste, cc.waste-*, form.*, mon.* in lib/pages.ts and integrated_portal_be app/access.py); the screens show the
+// planned flow and check the API answers for this user (GET /api/waste/..., /api/forms/..., /api/monitoring/...).
 
 import { CheckCircle2, Construction, ShieldAlert } from 'lucide-react';
 import { ReactNode, useEffect, useState } from 'react';
 import { Page, Panel } from '@/so/ui';
 import { tr } from '@/lib/i18n';
 
-export default function WasteSkeleton({ title, subtitle, endpoint, steps, icon }: {
+export default function FeatureSkeleton({ title, subtitle, endpoint, steps, icon }: {
   title: string; subtitle: string; endpoint: string; steps: string[]; icon: ReactNode;
 }) {
   const [access, setAccess] = useState<'checking' | 'ok' | 'denied'>('checking');

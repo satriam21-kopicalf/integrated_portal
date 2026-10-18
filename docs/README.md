@@ -69,6 +69,13 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 - Saat ini baru **RBAC + kerangka**: ketiga halaman ada di katalog (`src/lib/pages.ts` = backend `app/access.py`) sehingga bisa diatur per role / per user di User Accounts → *Role & halaman*; migrasi backend 017 memberi role `cost_control` ketiganya, role `user` belum (dicentang saat input siap). API `/api/waste/entries|monitor|reviews` dijaga halaman masing-masing (role user hanya cabangnya); layar menampilkan alur yang direncanakan (`so/features/waste/WasteSkeleton.tsx`).
 - Sidebar: grup *Platforms* (Roastery, CK, WMS, Operational, Finance, HRMS) dihapus (belum dibutuhkan).
 
+### Form & Monitoring (kerangka, 18 Okt 2026)
+
+- **Form** (pop-up di sidebar, desain sama dengan Cost Control): form yang diisi outlet / PIC — *PIC Check In* `/forms/pic-check-in`, *Monitoring Outlet* `/forms/outlet`, *Monitoring Product* `/forms/product`, *Tools & Heavy Tools* `/forms/tools` (halaman akses `form.*`).
+- **Monitoring** (pop-up): hasil isian yang sama untuk tim yang memantau — `/monitoring/pic-check-in|outlet|product|tools` (halaman akses `mon.*`).
+- Satu komponen pop-up untuk Form, Cost Control dan Monitoring (`PopupMenu` di `components/layout/Sidebar.tsx`); daftar & alur yang direncanakan di `so/features/monitoring/forms.tsx`, layar kerangka `components/FeatureSkeleton.tsx` (juga dipakai Waste).
+- **Akses**: kedelapan halaman ada di *Role & halaman* tetapi **belum dibuka untuk role mana pun** (hanya super admin) sampai dicentang; API `/api/forms/{form}` dan `/api/monitoring/{form}` dijaga halaman masing-masing (role user hanya cabangnya). Isian form & penyimpanan menyusul setelah field disepakati.
+
 ### Cost Control (`src/app/cost-control/page.tsx`, `components/cost/`)
 
 - **Akses**: khusus superadmin (menu sidebar *Cost Control*; kartu Cost control di Overview juga hanya untuk superadmin).
