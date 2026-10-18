@@ -36,6 +36,7 @@ type Check = "idle" | "busy" | "ok" | "fail";
 function DeviceCheck() {
   const [camera, setCamera] = useState<Check>("idle");
   const [location, setLocation] = useState<Check>("idle");
+  const [accuracy, setAccuracy] = useState<number | null>(null);
   const run = async () => {
     setCamera("busy");
     setLocation("busy");
@@ -46,14 +47,16 @@ function DeviceCheck() {
     } catch {
       setCamera("fail");
     }
-    setLocation((await getPosition()) ? "ok" : "fail");
+    const pos = await getPosition();
+    setAccuracy(pos ? Math.round(pos.accuracy) : null);
+    setLocation(pos ? "ok" : "fail");
   };
   const mark = (c: Check) => c === "ok" ? <CheckCircle2 size={15} className="text-emerald-600" /> : c === "fail" ? <XCircle size={15} className="text-red-600" /> : null;
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Button variant="secondary" size="sm" loading={camera === "busy"} onClick={run}><Camera size={14} /> {tr("Check camera & location")}</Button>
       {camera !== "idle" && camera !== "busy" && <span className="inline-flex items-center gap-1 text-xs text-slate-600">{mark(camera)} {tr("Camera")}</span>}
-      {location !== "idle" && location !== "busy" && <span className="inline-flex items-center gap-1 text-xs text-slate-600">{mark(location)} {tr("Location")}</span>}
+      {location !== "idle" && location !== "busy" && <span className="inline-flex items-center gap-1 text-xs text-slate-600">{mark(location)} {tr("Location")}{location === "ok" && accuracy !== null ? ` ±${accuracy} m` : ""}</span>}
       {(camera === "fail" || location === "fail") && (
         <span className="w-full text-xs text-red-700">{tr("Allow the camera and location for this site in the browser settings (padlock in the address bar), then check again.")}</span>
       )}

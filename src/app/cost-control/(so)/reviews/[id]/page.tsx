@@ -10,8 +10,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Panel, SearchBox, cx, fmtDate, fmtDay, theadClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty } from "@/so/lib/counts";
-import { tr } from "@/lib/i18n";
+import { type Count, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, mapsUrl } from "@/so/lib/counts";
+import { locale, tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
 import { EvidenceDownloads } from "@/so/features/count/Evidence";
@@ -99,9 +99,14 @@ export default function ReviewDetailPage() {
       <div className="space-y-4 p-4 sm:p-6">
         <dl className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm lg:grid-cols-4">
           <Info label={tr("Started")} value={`${fmtDate(count.started_at)}${count.started_by_name ? ` · ${count.started_by_name}` : ""}`} />
-          <Info label={tr("Distance at start")} value={count.start_distance_m !== null ? `${count.start_distance_m} m` : tr("No location")} />
+          <Position label={tr("Location at start")} lat={count.start_lat} lng={count.start_lng} distance={count.start_distance_m}
+            accuracy={count.start_accuracy_m} at={count.start_located_at} none={count.entry_source && count.entry_source !== "CREW" ? "—" : tr("No location")} />
           <Info label={tr("Submitted")} value={count.submitted_at ? fmtDate(count.submitted_at) : "—"} />
-          <Info label={tr("Distance at submit")} value={count.submit_distance_m !== null ? `${count.submit_distance_m} m` : count.submitted_at ? tr("No location") : "—"} />
+          <Position label={tr("Location at submit")} lat={count.submit_lat} lng={count.submit_lng} distance={count.submit_distance_m}
+            accuracy={count.submit_accuracy_m} at={count.submit_located_at} none={count.submitted_at && count.entry_source === "CREW" ? tr("No location") : "—"} />
+          <Info label={tr("Outlet location")} value={count.facility_lat != null
+            ? `${Number(count.facility_lat).toFixed(5)}, ${Number(count.facility_lng).toFixed(5)} · ${tr("radius {0} m", count.facility_radius_m ?? "")}`
+            : tr("No coordinates yet")} href={count.facility_lat != null ? mapsUrl(count.facility_lat, count.facility_lng ?? 0) : "/cost-control/locations"} />
           {count.reviewed_at && <Info label={tr("Reviewed")} value={`${fmtDate(count.reviewed_at)} · ${count.reviewed_by_name ?? ""}`} />}
           {count.review_note && <Info label={tr("Review note")} value={count.review_note} />}
         </dl>
@@ -210,11 +215,23 @@ export default function ReviewDetailPage() {
   );
 }
 
-function Info({ label, value }: { label: string; value: string }) {
+function Info({ label, value, href }: { label: string; value: string; href?: string }) {
   return (
     <div className="min-w-0">
       <dt className="text-xs text-slate-400">{label}</dt>
-      <dd className="truncate font-medium text-slate-700" title={value}>{value}</dd>
+      <dd className="truncate font-medium text-slate-700" title={value}>
+        {href ? <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="text-blue-700 hover:underline">{value}</a> : value}
+      </dd>
     </div>
   );
+}
+
+/** Where the counter was: distance to the outlet ± GPS accuracy, the device's time, a map link (06.9 §12.15). */
+function Position({ label, lat, lng, distance, accuracy, at, none }: {
+  label: string; lat?: number | null; lng?: number | null; distance: number | null; accuracy?: number | string | null; at?: string | null; none: string;
+}) {
+  if (lat == null || lng == null) return <Info label={label} value={none} />;
+  const parts = [distance != null ? `${distance} m` : tr("distance unknown"), accuracy != null ? `±${Math.round(Number(accuracy))} m` : null,
+    at ? new Date(at).toLocaleTimeString(locale(), { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit" }) + " WIB" : null].filter(Boolean);
+  return <Info label={label} value={parts.join(" · ")} href={mapsUrl(lat, lng)} />;
 }

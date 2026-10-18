@@ -4,6 +4,7 @@
 // figures of the period and every filter in one drawer. The approved counts of the period download as one xlsx for
 // every branch (2026-10-15).
 
+import LocationBadges from "@/so/features/count/LocationBadges";
 import { AlertTriangle, ChevronRight, ClipboardCheck, RotateCcw } from "lucide-react";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import Link from "next/link";
@@ -18,6 +19,7 @@ import { tr } from "@/lib/i18n";
 type Row = {
   id: string; number: string; facility_code: string; facility_name: string; facility_type: string; count_type: string; business_date: string;
   status: string; entry_source?: string; is_late: boolean; outside_radius: boolean; submitted_at: string | null; started_by_name: string | null; lines: number;
+  low_accuracy?: boolean; facility_located?: boolean; start_distance_m?: number | null; start_accuracy_m?: number | string | null;
   counted: number; flagged: number;
 };
 type F = { period: Period; status: string; type: string; facilityType: string; source: string };
@@ -169,7 +171,7 @@ export default function ReviewsPage() {
                           {r.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} to check", r.flagged)}</Badge>}
                           {r.entry_source && r.entry_source !== "CREW" && <Badge tone="violet">{ENTRY_SOURCE[r.entry_source]?.()}</Badge>}
                           {r.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
-                          {r.outside_radius && <Badge tone="amber">{tr("Outside radius")}</Badge>}
+                          <LocationBadges s={r} />
                         </div></td>
                         <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{r.submitted_at ? fmtDate(r.submitted_at) : "—"}
                           {r.started_by_name && <span className="block">{r.started_by_name}</span>}</td>

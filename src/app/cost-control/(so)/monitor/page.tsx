@@ -11,6 +11,7 @@ import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, DayField, FilterSection, FilterSheet, FilterToolbar, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
 import { STATUS, countTypeLabel } from "@/so/lib/counts";
+import LocationBadges from "@/so/features/count/LocationBadges";
 import { locale, tr } from "@/lib/i18n";
 
 type Row = {
@@ -18,11 +19,21 @@ type Row = {
   facility_code: string;
   facility_name: string;
   facility_type: string;
+  facility_located?: boolean;
+  facility_radius_m?: number;
   count_type: string;
   status: string;
-  session: { id: string; status: string; is_late: boolean; outside_radius: boolean; submitted_at: string | null } | null;
+  session: { id: string; status: string; is_late: boolean; outside_radius: boolean; submitted_at: string | null;
+    start_distance_m?: number | null; start_accuracy_m?: number | string | null; low_accuracy?: boolean; entry_source?: string } | null;
 };
-type F = { day: string; status: string; type: string; facilityType: string };
+/** loc: "" | outside (outside the radius) | low (weak GPS fix) | unlocated (facility without coordinates) */
+type F = { day: string; status: string; type: string; facilityType: string; loc: string };
+const NO_F: () => F = () => ({ day: wibDay(0), status: "", type: "", facilityType: "", loc: "" });
+const LOC: Record<string, () => string> = {
+  outside: () => tr("Outside radius"), low: () => tr("Low GPS accuracy"), unlocated: () => tr("Outlet has no coordinates"),
+};
+const locMatch = (r: Row, loc: string) => !loc || (loc === "outside" ? !!r.session?.outside_radius
+  : loc === "low" ? !!r.session?.low_accuracy : r.facility_located === false);
 
 const DONE = ["SUBMITTED", "APPROVED", "RECOUNT_REQUESTED", "EXPORTED"];
 const STATUSES = ["NOT_STARTED", "IN_PROGRESS", "SUBMITTED", "RECOUNT_REQUESTED", "APPROVED", "MISSED"];
@@ -30,7 +41,7 @@ const weekday = (iso: string) => new Date(`${iso}T12:00:00+07:00`).toLocaleDateS
 const timeOf = (v: string | null) => (v ? new Date(v).toLocaleTimeString(locale(), { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit" }) : "");
 
 export default function MonitorPage() {
-  const [f, setF] = useState<F>({ day: wibDay(0), status: "", type: "", facilityType: "" });
+  const [f, setF] = useState<F>(NO_F);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -50,13 +61,15 @@ export default function MonitorPage() {
   const all = useMemo(() => rows ?? [], [rows]);
   const shown = useMemo(() => {
     const s = search.trim().toLowerCase();
-    return all.filter((r) => (!f.status || r.status === f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType) &&
+    return all.filter((r) => (!f.status || r.status === f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType) && locMatch(r, f.loc) &&
       (!s || r.facility_name.toLowerCase().includes(s) || r.facility_code.toLowerCase().includes(s)));
   }, [all, search, f]);
   const n = (st: string) => all.filter((r) => r.status === st).length;
   const done = DONE.reduce((a, s) => a + n(s), 0);
   const late = all.filter((r) => r.session?.is_late).length;
   const outside = all.filter((r) => r.session?.outside_radius).length;
+  const weak = all.filter((r) => r.session?.low_accuracy).length;
+  const unlocated = new Set(all.filter((r) => r.facility_located === false).map((r) => r.facility_id)).size;
   const pct = all.length ? Math.round((done / all.length) * 100) : 0;
   const byType = useMemo(() => {
     const m = new Map<string, { due: number; done: number }>();
@@ -75,6 +88,7 @@ export default function MonitorPage() {
     ...(f.status ? [{ key: "s", label: tr("Status: {0}", STATUS[f.status]?.label() ?? f.status), onRemove: () => setF({ ...f, status: "" }) }] : []),
     ...(f.type ? [{ key: "t", label: countTypeLabel(f.type), onRemove: () => setF({ ...f, type: "" }) }] : []),
     ...(f.facilityType ? [{ key: "f", label: f.facilityType, onRemove: () => setF({ ...f, facilityType: "" }) }] : []),
+    ...(f.loc ? [{ key: "l", label: LOC[f.loc](), onRemove: () => setF({ ...f, loc: "" }) }] : []),
   ];
 
   return (
@@ -116,10 +130,12 @@ export default function MonitorPage() {
                 { label: STATUS.NOT_STARTED.label(), value: n("NOT_STARTED"), color: "bg-slate-300" },
                 { label: STATUS.MISSED.label(), value: n("MISSED"), color: "bg-red-500" },
               ]} />
-              {(late > 0 || outside > 0) && (
+              {(late > 0 || outside > 0 || weak > 0 || unlocated > 0) && (
                 <p className="mt-3 flex flex-wrap gap-3 text-xs text-amber-800">
                   {late > 0 && <span className="inline-flex items-center gap-1"><AlertTriangle size={13} /> {tr("{0} submitted late", late)}</span>}
                   {outside > 0 && <span className="inline-flex items-center gap-1"><MapPin size={13} /> {tr("{0} outside the facility radius", outside)}</span>}
+                  {weak > 0 && <span className="inline-flex items-center gap-1 text-slate-600">{tr("{0} with low GPS accuracy", weak)}</span>}
+                  {unlocated > 0 && <Link href="/cost-control/locations" className="inline-flex items-center gap-1 text-slate-600 underline-offset-2 hover:underline">{tr("{0} facilities without coordinates", unlocated)}</Link>}
                 </p>
               )}
             </div>
@@ -144,7 +160,7 @@ export default function MonitorPage() {
       )}
 
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or hub")} filters={chips}
-        onOpen={() => setSheet(true)} onClear={() => setF({ day: wibDay(0), status: "", type: "", facilityType: "" })} />}
+        onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
         footer={rows ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<Gauge size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No count is due on this day")}>
@@ -182,8 +198,10 @@ export default function MonitorPage() {
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
                             {r.session?.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
-                            {r.session?.outside_radius && <Badge tone="amber">{tr("Outside radius")}</Badge>}
-                            {r.session && !r.session.is_late && !r.session.outside_radius && <span className="text-xs text-slate-400">—</span>}
+                            {r.session && <LocationBadges s={{ ...r.session, facility_located: r.facility_located }} />}
+                            {!r.session && r.facility_located === false && <LocationBadges s={{ facility_located: false }} />}
+                            {r.session && !r.session.is_late && !r.session.outside_radius && !r.session.low_accuracy && r.session.start_distance_m == null
+                              && r.facility_located !== false && <span className="text-xs text-slate-400">—</span>}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right">
@@ -217,10 +235,10 @@ function MobileRow({ r }: { r: Row }) {
       <div className="min-w-0">
         <p className="truncate text-sm font-medium text-slate-900">{r.facility_name}</p>
         <p className="truncate text-xs text-slate-500">{countTypeLabel(r.count_type)} · {r.facility_code}</p>
-        {(r.session?.is_late || r.session?.outside_radius) && (
-          <p className="mt-1 flex flex-wrap gap-1">
+        {(r.session || r.facility_located === false) && (
+          <p className="mt-1 flex flex-wrap items-center gap-1">
             {r.session?.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
-            {r.session?.outside_radius && <Badge tone="amber">{tr("Outside radius")}</Badge>}
+            <LocationBadges s={{ ...(r.session ?? {}), facility_located: r.facility_located }} />
           </p>
         )}
       </div>
@@ -235,7 +253,7 @@ function MonitorFilters({ value, types, facilityTypes, onApply, onClose }: {
 }) {
   const [d, setD] = useState(value);
   return (
-    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ day: wibDay(0), status: "", type: "", facilityType: "" })}>
+    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_F())}>
       <FilterSection title={tr("Day")}><DayField value={d.day} onChange={(day) => setD({ ...d, day })} /></FilterSection>
       <FilterSection title={tr("Status")}>
         <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
@@ -248,6 +266,10 @@ function MonitorFilters({ value, types, facilityTypes, onApply, onClose }: {
       <FilterSection title={tr("Facility type")}>
         <ChoiceGroup label="" value={d.facilityType} onChange={(v) => setD({ ...d, facilityType: v })}
           choices={[{ value: "", label: tr("All") }, ...facilityTypes.map((t) => ({ value: t, label: t }))]} />
+      </FilterSection>
+      <FilterSection title={tr("Location")}>
+        <ChoiceGroup label="" value={d.loc} onChange={(v) => setD({ ...d, loc: v })}
+          choices={[{ value: "", label: tr("All") }, ...Object.keys(LOC).map((k) => ({ value: k, label: LOC[k]() }))]} />
       </FilterSection>
     </FilterSheet>
   );

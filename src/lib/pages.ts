@@ -9,7 +9,7 @@ export type PageKey =
   | 'form.pic-check-in' | 'form.outlet' | 'form.product' | 'form.tools'
   | 'mon.pic-check-in' | 'mon.outlet' | 'mon.product' | 'mon.tools'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
-  | 'cc.premix' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs';
+  | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs';
 
 /** How the page shows in the menu: 'header' = icon in the header (not the sidebar), 'hidden' = no menu entry for now
  * (opened by URL; user decision 2026-10-17), 'soon' = menu entry marked Soon, 'building' = skeleton screen only. */
@@ -37,6 +37,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.groups', href: '/cost-control/groups', get label() { return tr('Item groups'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.types', href: '/cost-control/types', get label() { return tr('Count types'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.premix', href: '/cost-control/premix', get label() { return tr('Premix calculator'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
+  { key: 'cc.locations', href: '/cost-control/locations', get label() { return tr('Outlet locations'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.waste-monitor', href: '/cost-control/waste/monitor', get label() { return tr('Waste monitor'); }, get group() { return tr('Cost Control · Waste'); }, state: 'building' },
   { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste review'); }, get group() { return tr('Cost Control · Waste'); }, state: 'building' },
   { key: 'cc.ratio', href: '/cost-control/ratio', get label() { return tr('Outlet ratio'); }, get group() { return tr('Cost Control · Analytics'); } },

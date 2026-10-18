@@ -10,7 +10,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Page, Panel, fmtDay, useToast } from "@/so/ui";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, type TodayCount, type TodayFacility, STATUS, countTypeLabel, getPosition } from "@/so/lib/counts";
+import { type Count, type Fix, type TodayCount, type TodayFacility, STATUS, countTypeLabel } from "@/so/lib/counts";
+import LocateDialog from "@/so/features/count/LocateDialog";
 import { locale, tr } from "@/lib/i18n";
 import { periodText, windowText, wibClock } from "@/so/lib/wib";
 
@@ -46,6 +47,8 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
   const [rows, setRows] = useState<TodayFacility[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState<string | null>(null);
+  // the count being started waits for the position (06.9 §12.15)
+  const [locating, setLocating] = useState<{ facilityId: string; countType: string } | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -61,15 +64,17 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
     return () => clearInterval(t);
   }, [load]);
 
-  const start = async (facilityId: string, countType: string) => {
-    const key = `${facilityId}:${countType}`;
-    setStarting(key);
+  const start = (facilityId: string, countType: string) => {
+    setStarting(`${facilityId}:${countType}`);
+    setLocating({ facilityId, countType });
+  };
+  const startAt = async (facilityId: string, countType: string, fix: Fix) => {
+    setLocating(null);
     try {
-      const pos = await getPosition();
-      if (!pos) toast(tr("Location is not available; the count is marked for review"), "error");
       const c = await api<Count>("/api/so/counts", {
         method: "POST",
-        json: { facility_id: facilityId, count_type: countType, lat: pos?.lat ?? null, lng: pos?.lng ?? null, device: navigator.userAgent.slice(0, 300) },
+        json: { facility_id: facilityId, count_type: countType, lat: fix.lat, lng: fix.lng, accuracy_m: fix.accuracy,
+          located_at: fix.at, device: navigator.userAgent.slice(0, 300) },
       });
       router.push(`${basePath}/stock-opname/${c.id}`);
     } catch (e) {
@@ -167,6 +172,11 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
           </>
         )}
       {starting && <span className="sr-only"><Loader2 className="animate-spin" /></span>}
+      {locating && (
+        <LocateDialog title={tr("Location for the stock opname")}
+          onCancel={() => { setLocating(null); setStarting(null); }}
+          onDone={(fix) => void startAt(locating.facilityId, locating.countType, fix)} />
+      )}
     </Page>
   );
 }

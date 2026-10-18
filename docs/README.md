@@ -64,6 +64,12 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 - Export **Sales Recapitulation per Menu** (18 Okt 2026): satu sheet saja, header di baris 1 (siap pivot/filter). Satu baris per tanggal × cabang × channel × metode bayar × menu (paket tetap baris sendiri, *Item Type* = Package); kolom: Sales Date, Day, Branch, City, Channel, Channel Group, Payment Method, Menu Category (+Detail), Menu, Item Type, Bills, Qty, Subtotal, Discount, Tax, Total, Bill Discount, Total After Bill Discount, Nett Sales. Nominal = jumlah report Detail (Sep 2026 semua cabang: 414.722 baris, 33,8 MB, subtotal sama dengan Daily Sales Recapitulation). Maksimal 62 hari ke Excel, 31 hari ke Google Sheets (backend `app/menu_report.py`).
 - Tab tipe: Sales, Void & Cancelled, Other Cost, All. Pencarian nomor sales/bill/cabang, filter cabang (**bisa beberapa**, chip per cabang), export Excel (detail / daily recap) untuk cabang terpilih.
 
+### Lokasi stock opname (19 Okt 2026, kopicalf 06.9 §12.15)
+
+- **Mulai SO wajib lokasi**: `so/features/count/LocateDialog.tsx` mengambil posisi GPS segar (`locate()` di `so/lib/counts.ts`: `watchPosition`, `maximumAge: 0`, sampai ±30 m atau 20 detik) dan menampilkan akurasi; izin diblokir → panduan Android/iPhone; akurasi > 100 m → peringatan (coba lagi / tetap mulai, ditandai "akurasi GPS rendah"). Posisi, akurasi & waktu perangkat dikirim saat mulai dan kirim SO.
+- **Pantauan Cost Control**: badge `so/features/count/LocationBadges.tsx` (Di luar radius, Akurasi GPS rendah, Outlet belum punya koordinat, jarak ±akurasi) di Monitor (plus filter *Lokasi* dan jumlah fasilitas tanpa koordinat) dan Review; detail Review menampilkan lokasi saat mulai & kirim (jarak, ±akurasi, jam, tautan Google Maps) dan lokasi outlet.
+- **Lokasi Outlet** (`/cost-control/locations`, halaman akses `cc.locations`): koordinat & radius setiap outlet/hub — tempel dari Google Maps (angka atau link), pakai posisi awal SO terakhir (setelah dicek di peta) atau posisi perangkat di lokasi; radius standar 100 m. Tersimpan di core kopicalf (diaudit).
+
 ### Waste (kerangka, 18 Okt 2026)
 
 - Outlet menginput waste cabangnya (menu **Waste** di bawah Stock Opname, `/waste`, halaman akses `waste`); Cost Control memantau dan mereview (pop-up Cost Control → **Waste**: *Monitor waste* `/cost-control/waste/monitor` = `cc.waste-monitor`, *Review waste* `/cost-control/waste/reviews` = `cc.waste-review`).

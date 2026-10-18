@@ -60,6 +60,20 @@ export type Count = {
   start_distance_m: number | null;
   submitted_at: string | null;
   submit_distance_m: number | null;
+  /** positions of the counter (06.9 §12.15): GPS accuracy in m and when the device took them */
+  start_lat?: number | null;
+  start_lng?: number | null;
+  start_accuracy_m?: number | string | null;
+  start_located_at?: string | null;
+  submit_lat?: number | null;
+  submit_lng?: number | null;
+  submit_accuracy_m?: number | string | null;
+  submit_located_at?: string | null;
+  /** start position less precise than 100 m (weak GPS) */
+  low_accuracy?: boolean;
+  facility_lat?: number | string | null;
+  facility_lng?: number | string | null;
+  facility_radius_m?: number | null;
   is_late: boolean;
   outside_radius: boolean;
   reviewed_at: string | null;
@@ -138,17 +152,57 @@ export function setCountTypeNames(types: { code: string; name: string }[]) {
 
 export const countTypeLabel = (code: string, fallback?: string) => NAMES[code] ?? COUNT_TYPE_LABEL[code]?.() ?? fallback ?? code;
 
-/** Current position for the evidence (null when not allowed or not available within 8 s). */
-export function getPosition(): Promise<{ lat: number; lng: number } | null> {
+/** A GPS position: accuracy in metres (68% radius reported by the device) and when the device took it. */
+export type Fix = { lat: number; lng: number; accuracy: number; at: string };
+export type LocateError = "denied" | "unavailable" | "timeout";
+
+const toFix = (p: GeolocationPosition): Fix => ({
+  lat: Number(p.coords.latitude.toFixed(6)), lng: Number(p.coords.longitude.toFixed(6)),
+  accuracy: Math.round(p.coords.accuracy * 10) / 10, at: new Date(p.timestamp).toISOString(),
+});
+
+/** A fresh, precise position for the start / submit of a count (06.9 §12.15): never the device's cached position;
+ * keeps listening until the accuracy is within `goodM` or `waitMs` has passed, then takes the best fix it got.
+ * `onFix` reports every improvement (the screen shows "±12 m"). */
+export function locate(onFix?: (f: Fix) => void, goodM = 30, waitMs = 20_000): Promise<{ fix: Fix | null; error: LocateError | null }> {
   return new Promise((resolve) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
-    navigator.geolocation.getCurrentPosition(
-      (p) => resolve({ lat: Number(p.coords.latitude.toFixed(6)), lng: Number(p.coords.longitude.toFixed(6)) }),
-      () => resolve(null),
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve({ fix: null, error: "unavailable" });
+    let best: Fix | null = null;
+    let done = false;
+    const finish = (error: LocateError | null) => {
+      if (done) return;
+      done = true;
+      navigator.geolocation.clearWatch(watch);
+      clearTimeout(timer);
+      resolve({ fix: best, error: best ? null : error });
+    };
+    const watch = navigator.geolocation.watchPosition(
+      (p) => {
+        const f = toFix(p);
+        if (!best || f.accuracy < best.accuracy) {
+          best = f;
+          onFix?.(f);
+        }
+        if (f.accuracy <= goodM) finish(null);
+      },
+      (e) => finish(e.code === e.PERMISSION_DENIED ? "denied" : e.code === e.TIMEOUT ? "timeout" : "unavailable"),
+      { enableHighAccuracy: true, timeout: waitMs, maximumAge: 0 },
     );
+    const timer = setTimeout(() => finish("timeout"), waitMs);
   });
 }
+
+/** Quick current position (photo stamp, device check): null when not allowed or not available within 8 s. */
+export function getPosition(): Promise<Fix | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition((p) => resolve(toFix(p)), () => resolve(null),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10_000 });
+  });
+}
+
+/** Google Maps link of a position. */
+export const mapsUrl = (lat: number | string, lng: number | string) => `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
 /** "1.5" / "1,5" / "" -> number string or null; NaN -> undefined (invalid). */
 export function parseQty(v: string): string | null | undefined {

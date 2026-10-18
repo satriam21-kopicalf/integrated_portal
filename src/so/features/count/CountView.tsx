@@ -92,7 +92,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
     setSubmitting(true);
     try {
       const pos = await getPosition();
-      const c = await api<Count>(`/api/so/counts/${countId}/submit`, { method: "POST", json: { lat: pos?.lat ?? null, lng: pos?.lng ?? null } });
+      const c = await api<Count>(`/api/so/counts/${countId}/submit`, { method: "POST",
+        json: { lat: pos?.lat ?? null, lng: pos?.lng ?? null, accuracy_m: pos?.accuracy ?? null, located_at: pos?.at ?? null } });
       setCount(c);
       setConfirming(false);
       toast(tr("Count submitted"));
