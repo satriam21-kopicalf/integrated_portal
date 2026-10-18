@@ -5,7 +5,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Integrated Portal - Kopi Calf",
+    name: "Operations - Kopi Calf",
     short_name: "Kopi Calf",
     description: "Kopi Calf sales dashboard, stock opname and cost control",
     start_url: "/",

@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Integrated Portal - Kopi Calf",
+  title: "Operations - Kopi Calf",
   description: "Kopi Calf sales dashboard",
   applicationName: "Kopi Calf",
   // iOS: "Add to Home Screen" opens the portal as a standalone app with this name and icon

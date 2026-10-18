@@ -171,8 +171,8 @@ export function Brand({ compact = false }: { compact?: boolean }) {
       </div>
       {!compact && (
         <div className="min-w-0 leading-tight">
-          <p className="text-[15px] font-bold tracking-wide text-slate-900">{tr('PORTAL')}</p>
-          <p className="truncate text-xs text-slate-500">{tr('Integration Platform')}</p>
+          <p className="text-[15px] font-bold tracking-wide text-slate-900">{tr('OPERATION')}</p>
+          <p className="truncate text-xs text-slate-500">{tr('Integrated Platform')}</p>
         </div>
       )}
     </div>
@@ -521,7 +521,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
           )}
         </button>
       </div>
-      {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">{tr('Integration Platform v1.4.0')}</p>}
+      {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">{tr('Integrated Platform v1.0.0')}</p>}
     </div>
   );
 }
