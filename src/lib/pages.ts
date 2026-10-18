@@ -5,9 +5,9 @@
 import { tr } from './i18n';
 
 export type PageKey =
-  | 'overview' | 'sales' | 'stock-opname' | 'guide'
+  | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
-  | 'cc.premix' | 'cc.ratio' | 'cc.cogs';
+  | 'cc.premix' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs';
 
 export interface PageInfo { key: PageKey; href: string; label: string; group: string }
 
@@ -15,6 +15,7 @@ export const PAGES: PageInfo[] = [
   { key: 'overview', href: '/overview', get label() { return tr('Dashboard'); }, get group() { return tr('Main menu'); } },
   { key: 'sales', href: '/sales', get label() { return tr('Sales Transactions'); }, get group() { return tr('Main menu'); } },
   { key: 'stock-opname', href: '/stock-opname', get label() { return tr('Stock Opname (count)'); }, get group() { return tr('Main menu'); } },
+  { key: 'waste', href: '/waste', get label() { return tr('Waste (input)'); }, get group() { return tr('Main menu'); } },
   { key: 'guide', href: '/guide', get label() { return tr('Guide'); }, get group() { return tr('Main menu'); } },
   { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.reviews', href: '/cost-control/reviews', get label() { return tr('Review'); }, get group() { return tr('Cost Control · Stock opname'); } },
@@ -26,6 +27,8 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.groups', href: '/cost-control/groups', get label() { return tr('Item groups'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.types', href: '/cost-control/types', get label() { return tr('Count types'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.premix', href: '/cost-control/premix', get label() { return tr('Premix calculator'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
+  { key: 'cc.waste-monitor', href: '/cost-control/waste/monitor', get label() { return tr('Waste monitor'); }, get group() { return tr('Cost Control · Waste'); } },
+  { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste review'); }, get group() { return tr('Cost Control · Waste'); } },
   { key: 'cc.ratio', href: '/cost-control/ratio', get label() { return tr('Outlet ratio'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.cogs', href: '/cost-control', get label() { return tr('COGS & usage'); }, get group() { return tr('Cost Control · Analytics'); } },
 ];

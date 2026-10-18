@@ -63,6 +63,12 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 - **Ringkasan tanpa card**: Sales subtotal, Nett sales (diskon & %), Gross subtotal (bar komposisi Sales / Void / Other cost / Open), Deductions (rincian Void & cancelled, Other cost, Open bills).
 - Tab tipe: Sales, Void & Cancelled, Other Cost, All. Pencarian nomor sales/bill/cabang, filter cabang (**bisa beberapa**, chip per cabang), export Excel (detail / daily recap) untuk cabang terpilih.
 
+### Waste (kerangka, 18 Okt 2026)
+
+- Outlet menginput waste cabangnya (menu **Waste** di bawah Stock Opname, `/waste`, halaman akses `waste`); Cost Control memantau dan mereview (pop-up Cost Control → **Waste**: *Monitor waste* `/cost-control/waste/monitor` = `cc.waste-monitor`, *Review waste* `/cost-control/waste/reviews` = `cc.waste-review`).
+- Saat ini baru **RBAC + kerangka**: ketiga halaman ada di katalog (`src/lib/pages.ts` = backend `app/access.py`) sehingga bisa diatur per role / per user di User Accounts → *Role & halaman*; migrasi backend 017 memberi role `cost_control` ketiganya, role `user` belum (dicentang saat input siap). API `/api/waste/entries|monitor|reviews` dijaga halaman masing-masing (role user hanya cabangnya); layar menampilkan alur yang direncanakan (`so/features/waste/WasteSkeleton.tsx`).
+- Sidebar: grup *Platforms* (Roastery, CK, WMS, Operational, Finance, HRMS) dihapus (belum dibutuhkan).
+
 ### Cost Control (`src/app/cost-control/page.tsx`, `components/cost/`)
 
 - **Akses**: khusus superadmin (menu sidebar *Cost Control*; kartu Cost control di Overview juga hanya untuk superadmin).

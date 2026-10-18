@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, BookOpen, Download, Blocks, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, FlaskConical, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -20,6 +20,7 @@ const navigation = [
   { get name() { return tr('Dashboard'); }, href: '/overview', icon: LayoutDashboard, get description() { return tr('Overview & analytics'); } },
   { get name() { return tr('Sales Transactions'); }, href: '/sales', icon: Receipt, get description() { return tr('View & export data'); } },
   { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); } },
+  { get name() { return tr('Waste'); }, href: '/waste', icon: Trash2, get description() { return tr('Enter the waste of your branch'); } },
 ];
 
 /** "Cost Control" menu: role cost_control and superadmins (stock opname of every branch, settings, analytics); opens as a
@@ -38,6 +39,10 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('Count types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
     { get name() { return tr('Premix calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
   ] },
+  { get title() { return tr('Waste'); }, get hint() { return tr('Follow and review the waste of every branch'); }, icon: Trash2, items: [
+    { get name() { return tr('Waste monitor'); }, href: '/cost-control/waste/monitor', icon: Activity, get description() { return tr('Waste entered by every branch'); } },
+    { get name() { return tr('Waste review'); }, href: '/cost-control/waste/reviews', icon: ClipboardList, get description() { return tr('Approve or send back'); } },
+  ] },
   { get title() { return tr('Analytics'); }, get hint() { return tr('Cost ratios per outlet from ESB data'); }, icon: BarChart3, items: [
     { get name() { return tr('Outlet ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
     { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Follows Outlet ratio'); }, soon: true },
@@ -52,17 +57,7 @@ const management = [
   { get name() { return tr('Activity Logs'); }, href: '/activity', icon: History, get description() { return tr('Who did what & exports'); } },
 ];
 
-const platforms = [
-  { get name() { return tr('Roastery'); }, href: '#', icon: assetUrl('assets/roastery.png') },
-  { get name() { return tr('Central Kitchen'); }, href: '#', icon: assetUrl('assets/ck.png') },
-  { get name() { return tr('Warehouse Management System'); }, href: '#', icon: assetUrl('assets/warehouse.png') },
-  { get name() { return tr('Operational'); }, href: '#', icon: assetUrl('assets/operational.png') },
-  { get name() { return tr('Finance'); }, href: '#', icon: assetUrl('assets/finance.png') },
-  { name: 'HRMS', href: '#', icon: assetUrl('assets/hr.png') },
-];
-
 const COLLAPSED_KEY = 'portal.sidebar.collapsed';
-const PLATFORMS_KEY = 'portal.sidebar.platforms';
 const MANAGEMENT_KEY = 'portal.sidebar.management';
 
 function readFlag(key: string, fallback: boolean): boolean {
@@ -90,13 +85,11 @@ interface SidebarProps {
 export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [platformsOpen, setPlatformsOpen] = useState(true);
   const [managementOpen, setManagementOpen] = useState(true);
 
   // restore preferences after mount (avoids hydration mismatches)
   useEffect(() => {
     setCollapsed(readFlag(COLLAPSED_KEY, false));
-    setPlatformsOpen(readFlag(PLATFORMS_KEY, true));
     setManagementOpen(readFlag(MANAGEMENT_KEY, true));
   }, []);
 
@@ -112,12 +105,6 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       return !o;
     });
   };
-  const togglePlatforms = () => {
-    setPlatformsOpen(o => {
-      writeFlag(PLATFORMS_KEY, !o);
-      return !o;
-    });
-  };
 
   return (
     <>
@@ -127,7 +114,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           collapsed ? 'w-[72px]' : 'w-64'
         }`}
       >
-        <SidebarContent collapsed={collapsed} pathname={pathname} platformsOpen={platformsOpen} onTogglePlatforms={togglePlatforms}
+        <SidebarContent collapsed={collapsed} pathname={pathname}
           managementOpen={managementOpen} onToggleManagement={toggleManagement}>
           <button
             type="button"
@@ -158,8 +145,6 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         <SidebarContent
           collapsed={false}
           pathname={pathname}
-          platformsOpen={platformsOpen}
-          onTogglePlatforms={togglePlatforms}
           managementOpen={managementOpen}
           onToggleManagement={toggleManagement}
           onNavigate={onMobileClose}
@@ -195,12 +180,10 @@ export function Brand({ compact = false }: { compact?: boolean }) {
 }
 
 function SidebarContent({
-  collapsed, pathname, platformsOpen, onTogglePlatforms, managementOpen, onToggleManagement, onNavigate, children,
+  collapsed, pathname, managementOpen, onToggleManagement, onNavigate, children,
 }: {
   collapsed: boolean;
   pathname: string;
-  platformsOpen: boolean;
-  onTogglePlatforms: () => void;
   managementOpen: boolean;
   onToggleManagement: () => void;
   onNavigate?: () => void;
@@ -263,45 +246,6 @@ function SidebarContent({
             )}
           </div>
         )}
-
-        {/* platforms: superadmin only */}
-        {isSuperadmin && <div className="mt-5 border-t border-slate-100 pt-4">
-          {collapsed ? (
-            <ul className="space-y-1">
-              {platforms.map(p => (
-                <li key={p.name}>
-                  <Link href={p.href} title={p.name} className="flex justify-center rounded-lg py-2 hover:bg-slate-50">
-                    <span className="relative h-5 w-5">
-                      <Image src={p.icon} alt={p.name} fill sizes="20px" className="object-contain dark:invert" />
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <>
-              <GroupToggle label={tr('Platforms')} icon={<Blocks size={13} />} open={platformsOpen} onClick={onTogglePlatforms} />
-              {platformsOpen && (
-                <ul className="ml-[1.15rem] space-y-0.5 border-l border-slate-200 pl-2">
-                  {platforms.map(p => (
-                    <li key={p.name}>
-                      <Link
-                        href={p.href}
-                        onClick={onNavigate}
-                        className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
-                      >
-                        <span className="relative h-4 w-4 flex-shrink-0">
-                          <Image src={p.icon} alt="" fill sizes="16px" className="object-contain dark:invert" />
-                        </span>
-                        <span className="truncate">{p.name}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </div>}
       </nav>
 
       <UserMenu collapsed={collapsed} />
@@ -371,7 +315,7 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
         <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white"><Calculator size={19} /></span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-slate-900">{tr('Cost Control')}</p>
-          <p className="truncate text-xs text-slate-500">{tr('Stock opname of every branch, its settings and the cost ratios')}</p>
+          <p className="truncate text-xs text-slate-500">{tr('Stock opname and waste of every branch, settings and cost ratios')}</p>
         </div>
         {waiting !== null && waiting > 0 && (
           <Link href="/cost-control/reviews" onClick={go} className="hidden flex-shrink-0 items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100 sm:inline-flex">
@@ -439,7 +383,7 @@ function CostControlMenu({ sections, pathname, collapsed, onNavigate }: {
           <>
             <span className="min-w-0 flex-1">
               <span className="block truncate">{current ? current.name : tr('Cost Control')}</span>
-              <span className="block truncate text-xs font-normal text-slate-400">{current ? tr('Cost Control') : tr('Stock opname, settings & ratios')}</span>
+              <span className="block truncate text-xs font-normal text-slate-400">{current ? tr('Cost Control') : tr('Stock opname, waste, settings & ratios')}</span>
             </span>
             <ChevronRight size={15} className="text-slate-400" />
           </>

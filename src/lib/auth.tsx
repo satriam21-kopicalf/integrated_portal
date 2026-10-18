@@ -98,7 +98,7 @@ export function hasPage(user: Pick<AuthUser, 'role' | 'pages'> | null | undefine
 function pagesOf(user: Pick<AuthUser, 'role' | 'pages'>): PageKey[] {
   if (user.pages) return user.pages;
   const base: PageKey[] = ['overview', 'sales', 'stock-opname', 'guide'];
-  return user.role === 'cost_control' ? [...base, ...CC_PAGES] : base;
+  return user.role === 'cost_control' ? [...base, 'waste', ...CC_PAGES] : base;
 }
 
 /** Where the user lands: the first page of the menu it may open. */
