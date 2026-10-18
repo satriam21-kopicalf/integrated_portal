@@ -315,6 +315,8 @@ function PopupMenu({ config, sections, pathname, collapsed, onNavigate }: {
   config: PopupConfig; sections: MenuSection[]; pathname: string; collapsed: boolean; onNavigate?: () => void;
 }) {
   const Icon = config.icon;
+  const { user } = useAuth();
+  const guide = !!user && canAccess(user, '/guide');
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -420,7 +422,7 @@ function PopupMenu({ config, sections, pathname, collapsed, onNavigate }: {
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-2.5 text-xs text-slate-500">
         <span className="truncate">{config.footer}</span>
-        <Link href="/guide" onClick={go} className="inline-flex flex-shrink-0 items-center gap-1 font-medium text-blue-700 hover:underline"><BookOpen size={13} /> {tr('Guide')}</Link>
+        {guide && <Link href="/guide" onClick={go} className="inline-flex flex-shrink-0 items-center gap-1 font-medium text-blue-700 hover:underline"><BookOpen size={13} /> {tr('Guide')}</Link>}
       </div>
     </div>
   );

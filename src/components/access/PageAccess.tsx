@@ -10,7 +10,7 @@ import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { addMaster, loadMaster, MasterKind, MasterName } from '@/components/MasterCombobox';
 import { Role, ROLE_LABELS } from '@/lib/auth';
 import { serverMsg, tr } from '@/lib/i18n';
-import { PageKey, PAGES } from '@/lib/pages';
+import { PageInfo, PageKey, PAGES, STATE_LABEL } from '@/lib/pages';
 
 type EditableRole = 'cost_control' | 'user';
 type RolePages = Record<EditableRole, PageKey[]>;
@@ -83,7 +83,7 @@ export function PageAccessEditor({ role, overrides, onChange }: {
                   <label className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm transition-colors ${
                     exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-slate-200 hover:bg-slate-50'}`}>
                     <input type="checkbox" checked={on} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-slate-300 text-blue-700" />
-                    <span className="min-w-0 flex-1 truncate text-slate-800">{p.label}</span>
+                    <span className="min-w-0 flex-1 truncate text-slate-800">{p.label} <StateTag page={p} /></span>
                     <span className={`text-[10px] font-semibold uppercase ${exception ? (on ? 'text-emerald-700' : 'text-rose-700') : 'text-slate-400'}`}>
                       {exception ? (on ? tr('Added') : tr('Removed')) : base.has(p.key) ? tr('Role') : ''}
                     </span>
@@ -154,7 +154,7 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
                   <GroupRows key={g.group} group={g.group}>
                     {g.pages.map(p => (
                       <tr key={p.key} className="border-t border-slate-100">
-                        <td className="px-3 py-2 text-slate-800">{p.label}</td>
+                        <td className="px-3 py-2 text-slate-800">{p.label} <StateTag page={p} /></td>
                         <td className="px-3 py-2 text-center"><Check size={15} className="inline text-slate-400" aria-label={tr('Always')} /></td>
                         {EDITABLE.map(r => (
                           <td key={r} className="px-3 py-2 text-center">
@@ -175,11 +175,19 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
             </table>
           </div>
           <p className="text-xs text-slate-500">{tr('Role User keeps seeing only its assigned branches; Cost Control pages show every branch.')}</p>
+          <p className="text-xs text-slate-500">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
           {message && <p role="status" className={`rounded-lg px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
         </div>
       )}
     </Drawer>
   );
+}
+
+/** "Not in the menu", "Being built" … beside a page whose menu entry is special. */
+function StateTag({ page }: { page: PageInfo }) {
+  if (!page.state) return null;
+  const tone = page.state === 'hidden' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500';
+  return <span className={`ml-1 inline-block whitespace-nowrap rounded px-1.5 py-px align-middle text-[10px] font-semibold uppercase ${tone}`}>{STATE_LABEL[page.state]()}</span>;
 }
 
 function GroupRows({ group, children }: { group: string; children: React.ReactNode }) {

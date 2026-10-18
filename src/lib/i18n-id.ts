@@ -2674,4 +2674,7 @@ export const ID: Record<string, string> = {
   "Monitoring Outlet (form)": "Monitoring Outlet (form)",
   "Monitoring Product (form)": "Monitoring Product (form)",
   "Tools & Heavy Tools (form)": "Tools & Heavy Tools (form)",
+  "Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.": "Tidak di menu: halaman hanya bisa dibuka lewat alamatnya. Sedang dibangun: menu menampilkan layar kerangka sampai fiturnya siap.",
+  "Header icon": "Ikon di header",
+  "Not in the menu": "Tidak di menu",
 };
