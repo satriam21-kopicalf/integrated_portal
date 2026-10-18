@@ -61,6 +61,7 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 
 - **Default periode: kemarin** (hari lengkap terakhir). *Clear* pada filter tanggal kembali ke kemarin. Rentang berapa pun (> 65 hari, 1 tahun, …) bisa dipilih: daftar memakai *cursor pagination*, ringkasan dihitung backend dari agregat harian (1 tahun < 1 detik).
 - **Ringkasan tanpa card**: Sales subtotal, Nett sales (diskon & %), Gross subtotal (bar komposisi Sales / Void / Other cost / Open), Deductions (rincian Void & cancelled, Other cost, Open bills).
+- Export **Sales Recapitulation per Menu** (18 Okt 2026): satu sheet saja, header di baris 1 (siap pivot/filter). Satu baris per tanggal × cabang × channel × metode bayar × menu (paket tetap baris sendiri, *Item Type* = Package); kolom: Sales Date, Day, Branch, City, Channel, Channel Group, Payment Method, Menu Category (+Detail), Menu, Item Type, Bills, Qty, Subtotal, Discount, Tax, Total, Bill Discount, Total After Bill Discount, Nett Sales. Nominal = jumlah report Detail (Sep 2026 semua cabang: 414.722 baris, 33,8 MB, subtotal sama dengan Daily Sales Recapitulation). Maksimal 62 hari ke Excel, 31 hari ke Google Sheets (backend `app/menu_report.py`).
 - Tab tipe: Sales, Void & Cancelled, Other Cost, All. Pencarian nomor sales/bill/cabang, filter cabang (**bisa beberapa**, chip per cabang), export Excel (detail / daily recap) untuk cabang terpilih.
 
 ### Waste (kerangka, 18 Okt 2026)

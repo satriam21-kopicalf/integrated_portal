@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
 import { AlertTriangle, FileSpreadsheet, Loader2, Sheet } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
-import { ExportFormat, GSHEET_MAX_CELLS, REPORTS, ReportKind, useExports } from '@/lib/exports';
+import { ExportFormat, GSHEET_MAX_CELLS, MENU_MAX_DAYS, REPORTS, ReportKind, useExports } from '@/lib/exports';
 // rows of the detail report that fit in one Google Sheet: larger exports are split into parts
 const ROWS_PER_SHEET = Math.floor(GSHEET_MAX_CELLS / 46);
 import { formatDate, formatNumber } from '@/lib/format';
@@ -163,20 +163,26 @@ export default function ExportButton({
                   <p className="px-2.5 pb-1 text-[11px] leading-snug text-slate-400">{tr('Google Sheets becomes available once it is set up on the server.')}</p>
                 )}
                 <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr('Export to')} {destination}</p>
-                {REPORTS.map(r => (
-                  <button
-                    key={r.value}
-                    type="button"
-                    onClick={() => requestExport(r.value)}
-                    className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-slate-50"
-                  >
-                    <FileSpreadsheet size={18} className="mt-0.5 flex-shrink-0 text-slate-400" />
-                    <span>
-                      <span className="block text-sm font-medium text-slate-800">{r.label}</span>
-                      <span className="block text-xs text-slate-500">{r.description}</span>
-                    </span>
-                  </button>
-                ))}
+                {REPORTS.map(r => {
+                  // one sheet only: the period is capped (one month of every branch ≈ 450k rows)
+                  const tooLong = r.value === 'menu' && days > MENU_MAX_DAYS[format];
+                  return (
+                    <button
+                      key={r.value}
+                      type="button"
+                      disabled={tooLong}
+                      onClick={() => requestExport(r.value)}
+                      className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
+                    >
+                      <FileSpreadsheet size={18} className="mt-0.5 flex-shrink-0 text-slate-400" />
+                      <span>
+                        <span className="block text-sm font-medium text-slate-800">{r.label}</span>
+                        <span className="block text-xs text-slate-500">{r.description}</span>
+                        {tooLong && <span className="block text-xs text-amber-700">{tr('At most {0} days for {1}: choose a shorter period', MENU_MAX_DAYS[format], destination)}</span>}
+                      </span>
+                    </button>
+                  );
+                })}
                 <p className="border-t border-slate-100 px-2.5 pb-1 pt-2 text-[11px] text-slate-400">
                   {typeLabel} · {branchLabel} · {dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Last 65 days')}
                   {format === 'gsheet' && <span className="block pt-0.5">{tr('The sheet is shared with your account e-mail.')}</span>}

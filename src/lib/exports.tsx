@@ -13,12 +13,15 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { useAuth } from '@/lib/auth';
 import { tr, serverMsg } from './i18n';
 
-export type ReportKind = 'detail' | 'daily';
+export type ReportKind = 'detail' | 'menu' | 'daily';
 export type ExportFormat = 'xlsx' | 'gsheet';
 /** Google Sheets holds at most 10 million cells per spreadsheet */
 export const GSHEET_MAX_CELLS = 10_000_000;
+/** Sales Recapitulation per Menu is one sheet: longest period (integrated_portal_be exports.MENU_MAX_DAYS / _GSHEET) */
+export const MENU_MAX_DAYS: Record<ExportFormat, number> = { xlsx: 62, gsheet: 31 };
 export const REPORTS: { value: ReportKind; label: string; description: string }[] = [
   { value: 'detail', get label() { return tr('Sales Recapitulation Detail'); }, get description() { return tr('One row per menu item · 46 columns'); } },
+  { value: 'menu', get label() { return tr('Sales Recapitulation per Menu'); }, get description() { return tr('One sheet · per date, branch, channel, payment & menu · 20 columns'); } },
   { value: 'daily', get label() { return tr('Daily Sales Recapitulation'); }, get description() { return tr('One row per date and branch'); } },
 ];
 

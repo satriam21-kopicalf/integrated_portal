@@ -2677,4 +2677,7 @@ export const ID: Record<string, string> = {
   "Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.": "Tidak di menu: halaman hanya bisa dibuka lewat alamatnya. Sedang dibangun: menu menampilkan layar kerangka sampai fiturnya siap.",
   "Header icon": "Ikon di header",
   "Not in the menu": "Tidak di menu",
+  "Sales Recapitulation per Menu": "Sales Recapitulation per Menu",
+  "One sheet · per date, branch, channel, payment & menu · 20 columns": "Satu sheet · per tanggal, cabang, channel, pembayaran & menu · 20 kolom",
+  "At most {0} days for {1}: choose a shorter period": "Maksimal {0} hari untuk {1}: pilih periode lebih pendek",
 };
