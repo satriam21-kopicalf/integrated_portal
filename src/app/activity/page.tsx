@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
+import { MapPin,
   AlertCircle, CheckCircle2, ChevronRight, Database, Download, Eye, FileSpreadsheet, Filter, History, KeyRound, List, Loader2, LogIn,
   LogOut, Monitor, Rows3, Search, ShieldAlert, SlidersHorizontal, Trash2, UserCog, UserRound, X,
 } from 'lucide-react';
@@ -63,6 +63,7 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: 'transaction', get label() { return tr('Transactions'); } },
   { value: 'user,profile', get label() { return tr('Accounts'); } },
   { value: 'access', get label() { return tr('Access denied'); } },
+  { value: 'form', get label() { return tr('Forms'); } },
   { value: 'system', get label() { return tr('System'); } },
 ];
 
@@ -85,6 +86,7 @@ const ACTIONS: Record<string, { label: string; verb: string; icon: ReactNode }> 
   'user.delete': { get label() { return tr('Deleted user'); }, get verb() { return tr('deleted a user'); }, icon: <UserCog size={15} /> },
   'user.unlock': { get label() { return tr('Unlocked user'); }, get verb() { return tr('unlocked a user'); }, icon: <UserCog size={15} /> },
   'access.denied': { get label() { return tr('Access denied'); }, get verb() { return tr('was denied access'); }, icon: <ShieldAlert size={15} /> },
+  'form.pic_check_in': { get label() { return tr('PIC check in'); }, get verb() { return tr('checked in at an outlet'); }, icon: <MapPin size={15} /> },
   'system.logs_reset': { get label() { return tr('Reset activity logs'); }, get verb() { return tr('reset the activity logs'); }, icon: <Trash2 size={15} /> },
 };
 
@@ -102,6 +104,7 @@ const TONES: Record<string, { tile: string; bar: string; label: string }> = {
   user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', get label() { return tr('User accounts'); } },
   profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', get label() { return tr('Own profile'); } },
   access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', get label() { return tr('Access denied'); } },
+  form: { tile: 'bg-teal-50 text-teal-700', bar: 'bg-teal-500', get label() { return tr('Forms'); } },
   system: { tile: 'bg-slate-900 text-white', bar: 'bg-slate-700', get label() { return tr('System'); } },
 };
 
