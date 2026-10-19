@@ -24,6 +24,8 @@ import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/f
 import { locale, tr, serverMsg } from '@/lib/i18n';
 
 const PAGE_SIZE = 50;
+/** header actions shown as an icon only, without a border (name in the tooltip) */
+const ICON_BUTTON = 'inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900';
 
 interface UsersSummary {
   total: number;
@@ -229,13 +231,13 @@ export default function UsersPage() {
               <p className="truncate text-xs text-slate-500 sm:text-sm">{tr('Sign-in, role and branch access of every dashboard user')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" className={`${buttonSecondary} w-10 px-0`} onClick={() => setPanel('roles')}
+              <button type="button" className={ICON_BUTTON} onClick={() => setPanel('roles')}
                 title={tr('Roles & pages')} aria-label={tr('Roles & pages')}>
-                <LayoutGrid size={16} />
+                <LayoutGrid size={20} strokeWidth={1.75} />
               </button>
-              <button type="button" className={`${buttonSecondary} w-10 px-0`} onClick={() => setPanel('masters')}
+              <button type="button" className={ICON_BUTTON} onClick={() => setPanel('masters')}
                 title={tr('Job titles & departments')} aria-label={tr('Job titles & departments')}>
-                <Briefcase size={16} />
+                <Briefcase size={20} strokeWidth={1.75} />
               </button>
               <button type="button" className={buttonPrimary} onClick={() => setEditing('new')}>
                 <Plus size={16} /> {tr('New user')}

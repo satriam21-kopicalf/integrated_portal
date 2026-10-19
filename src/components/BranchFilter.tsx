@@ -82,10 +82,10 @@ export default function BranchFilter({ branches, loading, value, onChange }: Bra
       <button
         type="button"
         onClick={() => (isOpen ? close() : open())}
-        className={`relative inline-flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${
+        className={`relative inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
           current.length || isOpen
-            ? 'border-slate-900 bg-slate-900 text-white'
-            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'
+            ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
         }`}
         title={label}
         aria-label={label}

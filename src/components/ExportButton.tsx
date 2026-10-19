@@ -97,15 +97,15 @@ export default function ExportButton({
           type="button"
           onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
           disabled={running}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white transition-colors hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           title={running ? tr('Export in progress') : tr('Export to Excel or Google Sheets')}
           aria-label={tr('Export')}
         >
           {running ? (
             <Loader2 size={18} className="animate-spin text-slate-600" />
           ) : (
-            <span className="relative h-5 w-5">
-              <Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="20px" className="object-contain" />
+            <span className="relative h-6 w-6">
+              <Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="24px" className="object-contain" />
             </span>
           )}
         </button>
