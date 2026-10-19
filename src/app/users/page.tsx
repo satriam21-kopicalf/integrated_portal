@@ -229,11 +229,13 @@ export default function UsersPage() {
               <p className="truncate text-xs text-slate-500 sm:text-sm">{tr('Sign-in, role and branch access of every dashboard user')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" className={buttonSecondary} onClick={() => setPanel('roles')}>
-                <LayoutGrid size={16} /> <span className="hidden sm:inline">{tr('Roles & pages')}</span>
+              <button type="button" className={`${buttonSecondary} w-10 px-0`} onClick={() => setPanel('roles')}
+                title={tr('Roles & pages')} aria-label={tr('Roles & pages')}>
+                <LayoutGrid size={16} />
               </button>
-              <button type="button" className={buttonSecondary} onClick={() => setPanel('masters')}>
-                <Briefcase size={16} /> <span className="hidden sm:inline">{tr('Job titles & departments')}</span>
+              <button type="button" className={`${buttonSecondary} w-10 px-0`} onClick={() => setPanel('masters')}
+                title={tr('Job titles & departments')} aria-label={tr('Job titles & departments')}>
+                <Briefcase size={16} />
               </button>
               <button type="button" className={buttonPrimary} onClick={() => setEditing('new')}>
                 <Plus size={16} /> {tr('New user')}
