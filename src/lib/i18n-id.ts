@@ -2798,4 +2798,7 @@ export const ID: Record<string, string> = {
   "No check in yet": "Belum ada check in",
   "Step {0}": "Langkah {0}",
   "Request failed ({0})": "Permintaan gagal ({0})",
+  "just now": "baru saja",
+  "· last sync": "· sinkron terakhir",
+  "Connected: data updates automatically after every POS sync (every 15 minutes, 06:00-24:00 WIB)": "Terhubung: data diperbarui otomatis setiap sinkron POS (tiap 15 menit, 06:00-24:00 WIB)",
 };

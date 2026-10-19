@@ -163,8 +163,16 @@ export function useRealtime(): RealtimeState {
 /** Status pill shown in page headers instead of a refresh button. */
 export function RealtimeIndicator({ className = '' }: { className?: string }) {
   const { status, salesSyncedAt } = useRealtime();
+  // the time of the latest POS sync (every ~15 min), not the clock: shown with how long ago it was
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+  const ago = salesSyncedAt ? Math.max(0, Math.round((now - Date.parse(salesSyncedAt)) / 60_000)) : null;
   const synced = salesSyncedAt
-    ? `${new Date(salesSyncedAt).toLocaleString(locale(), { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })} WIB`
+    ? `${new Date(salesSyncedAt).toLocaleTimeString(locale(), { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false })} WIB · ${
+      ago! < 1 ? tr('just now') : ago! < 60 ? tr('{0} min ago', ago!) : tr('{0} h ago', Math.floor(ago! / 60))}`
     : null;
   const tone = status === 'live'
     ? { dot: 'bg-emerald-500', ring: 'bg-emerald-400', text: 'text-emerald-700', label: tr('Live') }
@@ -175,7 +183,7 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
     <span
       className={`inline-flex items-center gap-2 px-1 text-xs ${className}`}
       title={status === 'live'
-        ? tr('Connected: data updates automatically after every sync')
+        ? tr('Connected: data updates automatically after every POS sync (every 15 minutes, 06:00-24:00 WIB)')
         : tr('Realtime connection lost: retrying, data still updates every minute')}
     >
       <span className="relative flex h-2 w-2">
@@ -183,7 +191,7 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
         <span className={`relative inline-flex h-2 w-2 rounded-full ${tone.dot}`} />
       </span>
       <span className={`font-semibold ${tone.text}`}>{tone.label}</span>
-      {synced && <span className="hidden text-slate-500 sm:inline">{tr('· last data')} {synced}</span>}
+      {synced && <span className="hidden text-slate-500 sm:inline">{tr('· last sync')} {synced}</span>}
     </span>
   );
 }
