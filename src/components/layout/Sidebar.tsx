@@ -122,7 +122,7 @@ const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'manage
   rating: {
     get label() { return tr('Rating & Review'); }, get idle() { return tr('Google Maps & delivery apps'); }, get title() { return tr('Rating & Review'); },
     get subtitle() { return tr('Ratings and reviews of the outlets on Google Maps and the delivery apps'); },
-    get footer() { return tr('Per outlet · being built'); },
+    get footer() { return tr('Google Maps live · delivery apps being built'); },
     icon: Star, sections: rating,
   },
   management: {

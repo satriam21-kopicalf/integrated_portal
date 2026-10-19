@@ -47,7 +47,7 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return tr('Monitoring Outlet'); }, get group() { return tr('Monitoring'); }, state: 'building' },
   { key: 'mon.product', href: '/monitoring/product', get label() { return tr('Monitoring Product'); }, get group() { return tr('Monitoring'); }, state: 'building' },
   { key: 'mon.tools', href: '/monitoring/tools', get label() { return tr('Tools & Heavy Tools'); }, get group() { return tr('Monitoring'); }, state: 'building' },
-  { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
+  { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Rating & Review'); } },
   { key: 'rating.shopeefood', href: '/rating/shopeefood', get label() { return tr('ShopeeFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
   { key: 'rating.gofood', href: '/rating/gofood', get label() { return tr('GoFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
   { key: 'rating.grabfood', href: '/rating/grabfood', get label() { return tr('GrabFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
