@@ -6,8 +6,10 @@
 // the outlet's coordinates (Cost Control → Lokasi Outlet). Management follows them in Monitoring → PIC Check In.
 // Same look as the other portal pages: page header (live WIB clock), a white band with the PIC and the steps, step
 // cards, a summary with the send button (right column on desktop, a bar at the bottom on phones).
+// Outside the outlet's radius: a red alert and a required reason (the server refuses without one). The GPS readings
+// while the form is open and the device signals go with the check-in (fake GPS detection on the server).
 
-import { Camera, Check, CheckCircle2, Crosshair, ExternalLink, Loader2, MapPinOff, RotateCcw, Send, X, XCircle } from "lucide-react";
+import { AlertTriangle, Camera, Check, CheckCircle2, Crosshair, ExternalLink, Loader2, MapPinOff, RotateCcw, Send, X, XCircle } from "lucide-react";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import UserAvatar from "@/components/UserAvatar";
@@ -15,7 +17,7 @@ import { useAuth } from "@/lib/auth";
 import { type Fix, locate, mapsUrl } from "@/so/lib/counts";
 import { TZ, TZ_LABEL, wibDateTime } from "@/so/lib/wib";
 import SelfieCamera, { type Selfie } from "@/so/features/checkin/SelfieCamera";
-import { type CheckIn, type FormData, call, judge, photoUrl } from "@/so/features/checkin/checkin";
+import { type CheckIn, type FormData, call, deviceSignals, judge, photoUrl, useGpsTrail } from "@/so/features/checkin/checkin";
 import { locale, tr } from "@/lib/i18n";
 
 const FRESH_MS = 3 * 60_000; // a position older than this is taken again when sending
@@ -41,6 +43,7 @@ export default function PicCheckInPage() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState<CheckIn | null>(null);
   const [now, setNow] = useState<Date | null>(null);
+  const trail = useGpsTrail();
 
   useEffect(() => {
     setNow(new Date());
@@ -75,7 +78,10 @@ export default function PicCheckInPage() {
   const where = useMemo(() => (fix ? judge(fix.lat, fix.lng, fix.accuracy, b) : null), [fix, b]);
   const position = fix ? `${fix.lat.toFixed(5)}, ${fix.lng.toFixed(5)} ±${Math.round(fix.accuracy)} m` : "";
   const faceOk = (faces ?? 0) > 0 && !checking;
-  const ready = !!b && !!fix && !!photo && faceOk;
+  const outside = !!where?.outside;
+  const reasonMissing = outside && !note.trim();
+  const ready = !!b && !!fix && !!photo && faceOk && !reasonMissing;
+  const pending = reasonMissing && b && fix && photo && faceOk ? tr("Outside the radius: write the reason first.") : tr("Complete the outlet, the location and the face photo.");
 
   const status: { tone: Tone; text: string } = !fix ? { tone: "muted", text: "—" }
     : !b ? { tone: "muted", text: tr("Choose the outlet") }
@@ -107,7 +113,8 @@ export default function PicCheckInPage() {
       if (!f) throw new Error(tr("A check in cannot be sent without the location."));
       const out = await call<{ id: string }>("/api/forms/pic-check-in", { method: "POST", json: {
         branchCode: b.code, photo: photo.image, latitude: f.lat, longitude: f.lng, accuracyM: f.accuracy, locatedAt: f.at,
-        deviceTime: photo.takenAt, note: note.trim() || null } });
+        deviceTime: photo.takenAt, note: note.trim() || null, sentAt: new Date().toISOString(),
+        samples: trail.current.slice(-30), ...deviceSignals() } });
       const d = await call<FormData>("/api/forms/pic-check-in");
       setData(d);
       setDone(d.recent.find((r) => r.id === out.id) ?? null);
@@ -180,13 +187,14 @@ export default function PicCheckInPage() {
       }>
       <div className="mx-auto max-w-5xl space-y-4">
         {done && (
-          <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+          <div className={cx("flex items-start gap-3 rounded-xl border px-4 py-3 text-sm",
+            done.outsideRadius ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900")}>
+            {done.outsideRadius ? <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-amber-600" /> : <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />}
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{tr("Checked in at {0}", done.branchName)}</p>
-              <p className="text-xs text-emerald-800">{wibDateTime(done.visitedAt)} · {done.distanceM !== null ? tr("{0} m from the outlet", done.distanceM) : tr("Outlet has no coordinates")}{done.outsideRadius ? ` · ${tr("Outside radius")}` : ""}</p>
+              <p className="text-xs opacity-90">{wibDateTime(done.visitedAt)} · {done.distanceM !== null ? tr("{0} m from the outlet", done.distanceM) : tr("Outlet has no coordinates")}{done.outsideRadius ? ` · ${tr("Outside radius: reviewed by management")}` : ""}</p>
             </div>
-            <button type="button" onClick={() => setDone(null)} className="rounded-md p-1 text-emerald-700 hover:bg-emerald-100" aria-label={tr("Close")}><X size={16} /></button>
+            <button type="button" onClick={() => setDone(null)} className="rounded-md p-1 opacity-70 hover:bg-white/60 hover:opacity-100" aria-label={tr("Close")}><X size={16} /></button>
           </div>
         )}
 
@@ -240,6 +248,18 @@ export default function PicCheckInPage() {
                       className="mt-2 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-blue-700">
                       {fix.lat.toFixed(5)}, {fix.lng.toFixed(5)} <ExternalLink size={11} />
                     </a>
+                    {outside && b && (
+                      <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800">
+                        <p className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} className="flex-shrink-0" /> {tr("You are outside the outlet's radius")}</p>
+                        <p className="mt-1 text-xs leading-relaxed">
+                          {tr("{0} m from {1} (radius {2} m). Move closer to the outlet and update the location, or write the reason in the note: the check in is marked outside the radius and reviewed by management.", where?.distance ?? "?", b.name, b.radius_m ?? 100)}
+                        </p>
+                        <button type="button" disabled={locating} onClick={() => void findMe()}
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 ring-1 ring-red-200 hover:bg-red-100 disabled:opacity-50">
+                          {locating ? <Loader2 size={13} className="animate-spin" /> : <Crosshair size={13} />} {tr("Update location")}
+                        </button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-3 text-sm text-red-800">
@@ -283,10 +303,15 @@ export default function PicCheckInPage() {
                 )}
               </Card>
 
-              <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                <label htmlFor="pic-note" className="text-sm font-semibold text-slate-900">{tr("Note")} <span className="font-normal text-slate-400">({tr("optional")})</span></label>
-                <textarea id="pic-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2}
-                  placeholder={tr("e.g. the purpose of the visit")} className={cx(inputClass, "mt-2 py-2")} />
+              <section className={cx("rounded-xl border bg-white p-4 shadow-sm sm:p-5", outside ? "border-red-200" : "border-slate-200")}>
+                <label htmlFor="pic-note" className="text-sm font-semibold text-slate-900">
+                  {outside ? <>{tr("Reason for checking in outside the radius")} <span className="font-normal text-red-600">({tr("required")})</span></>
+                    : <>{tr("Note")} <span className="font-normal text-slate-400">({tr("optional")})</span></>}
+                </label>
+                <textarea id="pic-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={outside ? 3 : 2}
+                  placeholder={outside ? tr("e.g. delivering stock to the warehouse next to the outlet") : tr("e.g. the purpose of the visit")}
+                  aria-invalid={reasonMissing || undefined}
+                  className={cx(inputClass, "mt-2 py-2", reasonMissing && "border-red-300 focus:border-red-500 focus:ring-red-500/20")} />
               </section>
             </div>
 
@@ -300,7 +325,7 @@ export default function PicCheckInPage() {
                   <Row k={tr("Visit time")} v={tr("Server time when sent")} />
                 </dl>
                 <Button loading={sending} disabled={!ready} onClick={() => void send()} className="mt-4 w-full"><Send size={15} /> {tr("Send check in")}</Button>
-                {!ready && <p className="mt-2 text-center text-xs text-slate-400">{tr("Complete the outlet, the location and the face photo.")}</p>}
+                {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-red-600" : "text-slate-400")}>{pending}</p>}
               </section>
 
               <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -331,7 +356,7 @@ export default function PicCheckInPage() {
         <div className="sticky bottom-0 z-10 -mx-4 -mb-4 border-t border-slate-200 bg-white px-4 pt-3 sm:-mx-6 sm:-mb-6 sm:px-6 lg:hidden"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <p className="mb-2 truncate text-xs text-slate-500">
-            {ready ? `${b?.name} · ${status.text}${where?.distance != null ? ` · ${where.distance} m` : ""}` : tr("Complete the outlet, the location and the face photo.")}
+            {ready ? `${b?.name} · ${status.text}${where?.distance != null ? ` · ${where.distance} m` : ""}` : pending}
           </p>
           <Button loading={sending} disabled={!ready} onClick={() => void send()} className="w-full"><Send size={15} /> {tr("Send check in")}</Button>
         </div>

@@ -3,20 +3,24 @@
 // Monitoring → PIC Check In (page mon.pic-check-in): every check-in of a period — who, which outlet, when, the face
 // photo and where the PIC was compared with the outlet. Figures of the period, visits per PIC, one Filters drawer,
 // a detail drawer with the photo and map links.
+// Alerts: check-ins outside the radius and those with signs of a faked position (fake GPS, app/pic_checkin.py assess)
+// stand out (banner, badges, a figure of their own); a manager reviews them (valid / not valid). Refreshes every minute
+// while the period includes today.
 
-import { CalendarDays, ExternalLink, MapPin, MapPinOff, RefreshCw, ScanFace, SignalLow, Store, UsersRound } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, MapPin, MapPinOff, RefreshCw, ScanFace, ShieldAlert, SignalLow, Store, UsersRound, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, inputClass, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
 import { wibDay as dayOf } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
-import { type CheckIn, call, photoUrl } from "@/so/features/checkin/checkin";
+import { type CheckIn, call, photoUrl, suspect } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 
-type Summary = { total: number; pics: number; branches: number; outside: number; low: number; unlocated: number; inside: number };
+type Summary = { total: number; pics: number; branches: number; outside: number; low: number; unlocated: number; inside: number;
+  suspect: number; suspect_high: number; unreviewed: number };
 type Result = { period: { from: string; to: string }; data: CheckIn[]; summary: Summary; pics: { id: string; name: string; n: number }[]; truncated: boolean };
 type BranchOpt = { branch_code: string; branch_name: string };
 type Detail = "checkins" | "pics" | "outlets" | "outside";
@@ -24,16 +28,32 @@ type F = { period: Period; branch: string; user: string; location: string };
 
 const NO_F = (): F => ({ period: { from: wibDay(-6), to: wibDay(0) }, branch: "", user: "", location: "" });
 const LOC: Record<string, () => string> = {
-  outside: () => tr("Outside radius"), low: () => tr("Low GPS accuracy"), unlocated: () => tr("Outlet has no coordinates"),
+  unreviewed: () => tr("Needs review"), alert: () => tr("Outside radius or suspicious location"),
+  suspect: () => tr("Suspicious location"), outside: () => tr("Outside radius"), low: () => tr("Low GPS accuracy"),
+  unlocated: () => tr("Outlet has no coordinates"),
 };
+const REFRESH_MS = 60_000;
+
+function RiskTags({ c }: { c: CheckIn }) {
+  return (
+    <>
+      {suspect(c) && <Badge tone={c.riskLevel === "high" ? "red" : "amber"} icon={<ShieldAlert size={11} />}
+        title={(c.riskSignals ?? []).map((x) => x.text).join("\n")}>{tr("Suspicious location")}</Badge>}
+      {c.review && (c.review.status === "valid"
+        ? <Badge tone="green" icon={<CheckCircle2 size={11} />}>{tr("Reviewed: valid")}</Badge>
+        : <Badge tone="red" icon={<XCircle size={11} />}>{tr("Reviewed: not valid")}</Badge>)}
+    </>
+  );
+}
 
 function LocationTags({ c, distance = true }: { c: CheckIn; distance?: boolean }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-1">
       {!c.outletLocated ? <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet has no coordinates")}</Badge>
-        : c.outsideRadius ? <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside radius")}</Badge>
+        : c.outsideRadius ? <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside radius")}</Badge>
         : <Badge tone="green">{tr("At the outlet")}</Badge>}
       {c.lowAccuracy && <Badge tone="slate" icon={<SignalLow size={11} />}>{tr("Low GPS accuracy")}</Badge>}
+      <RiskTags c={c} />
       {distance && c.distanceM !== null && <span className="text-[11px] tabular-nums text-slate-500">{c.distanceM} m{c.accuracyM !== null ? ` ±${Math.round(c.accuracyM)}` : ""}</span>}
     </span>
   );
@@ -50,9 +70,9 @@ export default function PicCheckInMonitorPage() {
   // a summary figure opened: its details in a drawer
   const [detail, setDetail] = useState<Detail | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (quiet = false) => {
     setError(null);
-    setRes(null);
+    if (!quiet) setRes(null);
     const q = new URLSearchParams({ dateFrom: f.period.from, dateTo: f.period.to, ...(f.branch ? { branch: f.branch } : {}),
       ...(f.user ? { userId: f.user } : {}), ...(f.location ? { location: f.location } : {}) });
     try {
@@ -62,6 +82,12 @@ export default function PicCheckInMonitorPage() {
     }
   }, [f]);
   useEffect(() => { void load(); }, [load]);
+  // while the period includes today: new check-ins (and their alerts) appear without reloading
+  useEffect(() => {
+    if (f.period.to < wibDay(0)) return;
+    const t = setInterval(() => { if (!document.hidden) void load(true); }, REFRESH_MS);
+    return () => clearInterval(t);
+  }, [load, f.period.to]);
   useEffect(() => { void call<BranchOpt[]>("/api/branches").then(setBranches).catch(() => setBranches([])); }, []);
 
   const rows = useMemo(() => {
@@ -86,7 +112,7 @@ export default function PicCheckInMonitorPage() {
         <RefreshCw size={18} className={!res && !error ? "animate-spin" : ""} />
       </button>}
       stats={
-        <StatStrip label={tr("Summary")} columns={4}>
+        <StatStrip label={tr("Summary")} columns={5}>
           <Stat label={tr("Check-ins")} emphasis icon={<CalendarDays size={13} />} onClick={s ? () => setDetail("checkins") : undefined} active={detail === "checkins"} value={s ? fmtNumber(s.total) : <StatSkeleton />}>
             {s && <p>{tr("{0} days", Math.round((Date.parse(f.period.to) - Date.parse(f.period.from)) / 864e5) + 1)}</p>}
           </Stat>
@@ -99,13 +125,29 @@ export default function PicCheckInMonitorPage() {
           <Stat label={tr("Outside radius")} icon={<MapPin size={13} />} onClick={s ? () => setDetail("outside") : undefined} active={detail === "outside"} value={s ? fmtNumber(s.outside) : <StatSkeleton />}>
             {s && <p>{tr("{0} low GPS accuracy · {1} outlet without coordinates", fmtNumber(s.low), fmtNumber(s.unlocated))}</p>}
           </Stat>
+          <Stat label={tr("Suspicious location")} icon={<ShieldAlert size={13} />} active={f.location === "suspect"}
+            onClick={s ? () => setF({ ...f, location: f.location === "suspect" ? "" : "suspect" }) : undefined}
+            value={s ? <span className={s.suspect ? "text-red-600" : undefined}>{fmtNumber(s.suspect)}</span> : <StatSkeleton />}>
+            {s && <p>{tr("{0} high risk · signs of fake GPS", fmtNumber(s.suspect_high))}</p>}
+          </Stat>
         </StatStrip>
       }>
+
+      {s && s.unreviewed > 0 && f.location !== "unreviewed" && (
+        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:flex-row sm:items-center">
+          <AlertTriangle size={18} className="hidden flex-shrink-0 text-red-600 sm:block" />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">{tr("{0} check-ins need review", fmtNumber(s.unreviewed))}</p>
+            <p className="text-xs">{tr("{0} outside the radius · {1} with signs of a faked location (fake GPS)", fmtNumber(s.outside), fmtNumber(s.suspect))}</p>
+          </div>
+          <Button size="sm" variant="danger" onClick={() => setF({ ...f, location: "unreviewed" })}>{tr("Show them")}</Button>
+        </div>
+      )}
 
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search PIC or outlet")} filters={chips}
         onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
         footer={res ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span><PageNav paged={paged} /></> : undefined}>
-        {error ? <ErrorState message={error} onRetry={load} /> : res && rows.length === 0 ? (
+        {error ? <ErrorState message={error} onRetry={() => void load()} /> : res && rows.length === 0 ? (
           <Empty icon={<ScanFace size={28} />} title={res.data.length ? tr("Nothing matches the search or filters") : tr("No check in in this period")}>
             {!res.data.length && tr("Check-ins appear here as soon as the PICs send them from Form → PIC Check In.")}
           </Empty>
@@ -139,7 +181,7 @@ export default function PicCheckInMonitorPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {!res ? <SkeletonRows cols={5} /> : paged.rows.map((c) => (
-                    <tr key={c.id} onClick={() => setOpen(c)} className="cursor-pointer hover:bg-slate-50/70">
+                    <tr key={c.id} onClick={() => setOpen(c)} className={cx("cursor-pointer", (c.outsideRadius || suspect(c)) && !c.review ? "bg-red-50/50 hover:bg-red-50" : "hover:bg-slate-50/70")}>
                       <td className="px-4 py-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
                         <img src={photoUrl(c.id)} alt={tr("Face photo")} loading="lazy" className="h-11 w-11 rounded-lg bg-slate-100 object-cover" />
@@ -158,7 +200,7 @@ export default function PicCheckInMonitorPage() {
       </Panel>
 
       {sheet && <CheckInFilters value={f} branches={branches} pics={pics} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
-      {open && <CheckInDrawer c={open} onClose={() => setOpen(null)} />}
+      {open && <CheckInDrawer c={res?.data.find((x) => x.id === open.id) ?? open} onClose={() => setOpen(null)} onReviewed={() => void load(true)} />}
       {detail && res && <DetailDrawer kind={detail} data={res.data} summary={res.summary} truncated={res.truncated} onClose={() => setDetail(null)}
         onPic={(id) => { setF({ ...f, user: id }); setDetail(null); }} onOutlet={(code) => { setF({ ...f, branch: code }); setDetail(null); }}
         onOpen={(c) => setOpen(c)} />}
@@ -190,7 +232,7 @@ function CheckInFilters({ value, branches, pics, onApply, onClose }: {
   );
 }
 
-function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
+function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => void; onReviewed: () => void }) {
   const skew = c.deviceTime ? Math.round((Date.parse(c.deviceTime) - Date.parse(c.visitedAt)) / 60_000) : null;
   const rows: [string, React.ReactNode][] = [
     [tr("PIC"), `${c.name} · @${c.username}`],
@@ -213,6 +255,22 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
         <img src={photoUrl(c.id)} alt={tr("Face photo")} className="w-full rounded-xl bg-slate-100 object-contain" />
         <LocationTags c={c} />
+        {(c.riskSignals ?? []).length > 0 && (
+          <section className={cx("rounded-xl border p-3", suspect(c) ? "border-red-200 bg-red-50" : "border-slate-200 bg-slate-50")}>
+            <p className={cx("flex items-center gap-1.5 text-sm font-semibold", suspect(c) ? "text-red-800" : "text-slate-700")}>
+              <ShieldAlert size={15} /> {tr("Location check")} · {RISK_LABEL[c.riskLevel ?? "none"]()}
+            </p>
+            <ul className="mt-2 space-y-1 text-xs">
+              {(c.riskSignals ?? []).map((x) => (
+                <li key={x.code} className="flex gap-2">
+                  <span className={cx("mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full", x.level === "high" ? "bg-red-500" : x.level === "medium" ? "bg-amber-500" : "bg-slate-400")} />
+                  <span className="text-slate-700">{x.text}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {(c.outsideRadius || suspect(c) || c.review) && <ReviewBox c={c} onReviewed={onReviewed} />}
         <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
           {rows.map(([k, v]) => (
             <div key={k} className="grid grid-cols-[8.5rem_1fr] gap-3 px-3 py-2">
@@ -313,5 +371,48 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
         {truncated && <p className="text-xs text-slate-400">{tr("From the latest 1,000 check-ins of the period")}</p>}
       </div>
     </Drawer>
+  );
+}
+
+const RISK_LABEL: Record<string, () => string> = {
+  none: () => tr("no sign"), low: () => tr("low risk"), medium: () => tr("medium risk"), high: () => tr("high risk"),
+};
+
+/** A manager's verdict on a check-in outside the radius or with a suspicious location. */
+function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
+  const toast = useToast();
+  const [note, setNote] = useState(c.review?.note ?? "");
+  const [busy, setBusy] = useState<string | null>(null);
+  const save = async (status: "valid" | "invalid") => {
+    setBusy(status);
+    try {
+      await call(`/api/monitoring/pic-check-in/${c.id}/review`, { method: "POST", json: { status, note: note.trim() || null } });
+      toast(status === "valid" ? tr("Marked as valid") : tr("Marked as not valid"));
+      onReviewed();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <section className="rounded-xl border border-slate-200 p-3">
+      <p className="text-sm font-semibold text-slate-900">{tr("Review")}</p>
+      {c.review ? (
+        <p className="mt-1 text-xs text-slate-600">
+          {c.review.status === "valid" ? tr("Valid") : tr("Not valid")} · {c.review.by ?? "—"}{c.review.at ? ` · ${wibDateTime(c.review.at)}` : ""}
+        </p>
+      ) : <p className="mt-1 text-xs text-slate-500">{tr("Check the photo, the note and the location, then decide.")}</p>}
+      <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder={tr("Review note (optional)")}
+        className={cx(inputClass, "mt-2 h-auto py-2")} />
+      <div className="mt-2 flex gap-2">
+        <Button size="sm" variant="secondary" loading={busy === "valid"} disabled={!!busy} onClick={() => void save("valid")}>
+          <CheckCircle2 size={14} className="text-emerald-600" /> {tr("Valid")}
+        </Button>
+        <Button size="sm" variant="secondary" loading={busy === "invalid"} disabled={!!busy} onClick={() => void save("invalid")}>
+          <XCircle size={14} className="text-red-600" /> {tr("Not valid")}
+        </Button>
+      </div>
+    </section>
   );
 }
