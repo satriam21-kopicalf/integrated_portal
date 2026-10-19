@@ -107,7 +107,7 @@ export function Badge({ tone = "slate", dot, icon, title, wrap, children }: {
 
 /** Page header band (white, under the app bar) like the portal pages; `stats` sits right under it. */
 export function Page({ title, subtitle, actions, stats, children }: {
-  title: string; subtitle?: string; actions?: ReactNode; stats?: ReactNode; children: ReactNode;
+  /** text, or e.g. a brand logo (with its alt text) */ title: ReactNode; subtitle?: string; actions?: ReactNode; stats?: ReactNode; children: ReactNode;
 }) {
   return (
     <div className="min-h-full bg-slate-50">

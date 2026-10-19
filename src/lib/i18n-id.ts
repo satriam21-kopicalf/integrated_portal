@@ -2890,7 +2890,7 @@ export const ID: Record<string, string> = {
   "Last sync failed": "Sinkron terakhir gagal",
   "Opening hours": "Jam buka",
   "Latest reviews": "Ulasan terbaru",
-  "Google gives at most 5 reviews per outlet through the Places API; the rating and the number of reviews cover all of them.": "Google memberi maksimal 5 ulasan per outlet lewat Places API; rating dan jumlah ulasan mencakup seluruh ulasan.",
+  "Newest first. Google picks at most 5 reviews per outlet in the Places API (not always the newest ones); the rating and the number of reviews cover all of them.": "Diurutkan dari yang terbaru. Google memilih maksimal 5 ulasan per outlet lewat Places API (tidak selalu yang paling baru); rating dan jumlah ulasan mencakup seluruh ulasan.",
   "No review yet": "Belum ada ulasan",
   "Google user": "Pengguna Google",
   "fetched {0}": "diambil {0}",

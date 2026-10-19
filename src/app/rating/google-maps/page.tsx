@@ -11,7 +11,7 @@ import { Badge, Button, Empty, ErrorState, Input, Page, PageNav, Panel, Skeleton
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
-import { wibDateTime } from "@/so/lib/wib";
+import { wibDateTime, wibDay } from "@/so/lib/wib";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 
@@ -149,7 +149,8 @@ export default function GoogleMapsRatingPage() {
   const iconBtn = "inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:cursor-wait";
 
   return (
-    <Page title={tr("Google Maps")}
+    // eslint-disable-next-line @next/next/no-img-element -- brand logo from public/assets
+    <Page title={<img src={LOGO} alt="Google Maps" width={262} height={48} className="h-6 w-auto sm:h-7" />}
       subtitle={`${tr("Rating, reviews and opening hours of the outlets on Google Maps")}${sum.last ? ` · ${tr("last sync {0}", wibDateTime(sum.last))}` : ""}`}
       actions={<>
         {res?.canEdit && res.ready && (
@@ -325,7 +326,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
 
         <section>
           <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{tr("Latest reviews")}</h3>
-          <p className="mb-2 text-xs text-slate-400">{tr("Google gives at most 5 reviews per outlet through the Places API; the rating and the number of reviews cover all of them.")}</p>
+          <p className="mb-2 text-xs text-slate-400">{tr("Newest first. Google picks at most 5 reviews per outlet in the Places API (not always the newest ones); the rating and the number of reviews cover all of them.")}</p>
           {o.reviews.length === 0 ? <p className="rounded-xl border border-dashed border-slate-200 px-3 py-6 text-center text-sm text-slate-400">{tr("No review yet")}</p> : (
             <ul className="space-y-2">
               {o.reviews.map((r, i) => (
@@ -338,7 +339,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
                     <span className="min-w-0 flex-1">
                       {r.authorUri ? <a href={r.authorUri} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-slate-900 hover:underline">{r.author}</a>
                         : <span className="block truncate text-sm font-medium text-slate-900">{r.author ?? tr("Google user")}</span>}
-                      <span className="text-xs text-slate-400">{r.when ?? (r.publishedAt ? wibDateTime(r.publishedAt) : "")}</span>
+                      <span className="text-xs text-slate-400">{[r.publishedAt ? wibDay(r.publishedAt) : null, r.when].filter(Boolean).join(" · ")}</span>
                     </span>
                     <Stars value={r.rating} size={11} />
                   </div>
