@@ -8,6 +8,7 @@ export type PageKey =
   | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
   | 'form.pic-check-in' | 'form.outlet' | 'form.product' | 'form.tools'
   | 'mon.pic-check-in' | 'mon.outlet' | 'mon.product' | 'mon.tools'
+  | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs';
 
@@ -46,6 +47,10 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return tr('Monitoring Outlet'); }, get group() { return tr('Monitoring'); }, state: 'building' },
   { key: 'mon.product', href: '/monitoring/product', get label() { return tr('Monitoring Product'); }, get group() { return tr('Monitoring'); }, state: 'building' },
   { key: 'mon.tools', href: '/monitoring/tools', get label() { return tr('Tools & Heavy Tools'); }, get group() { return tr('Monitoring'); }, state: 'building' },
+  { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
+  { key: 'rating.shopeefood', href: '/rating/shopeefood', get label() { return tr('ShopeeFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
+  { key: 'rating.gofood', href: '/rating/gofood', get label() { return tr('GoFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
+  { key: 'rating.grabfood', href: '/rating/grabfood', get label() { return tr('GrabFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
 ];
 
 /** The page a path belongs to ('superadmin' for User Accounts & Activity Logs, null for an unknown path). */

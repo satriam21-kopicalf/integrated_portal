@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, Package, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -26,7 +26,7 @@ const navigation = [
 /** "Cost Control" menu: role cost_control and superadmins (stock opname of every branch, settings, analytics); opens as a
  *  pop-up list. Enter / import SO, ESB export and ESB comparison are left out for now (user decision 2026-10-17; the
  *  pages stay). */
-type CcItem = { name: string; href: string; icon: typeof Users; description: string; soon?: boolean; badge?: 'review' };
+type CcItem = { name: string; href: string; icon: typeof Users; description: string; soon?: boolean; badge?: 'review'; /** brand logo (public/assets) shown instead of the icon */ logo?: string };
 const costControl: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Stock opname'); }, get hint() { return tr('Follow and close the counts of every branch'); }, icon: ClipboardCheck, items: [
     { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Progress of every branch per day'); } },
@@ -88,9 +88,21 @@ const management: { title: string; hint: string; icon: typeof Users; items: CcIt
   ] },
 ];
 
+/** "Rating & Review" menu: ratings and reviews of the outlets per platform (pages rating.*, being built). */
+const rating: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Maps'); }, get hint() { return tr('What guests say about the outlets'); }, icon: MapPin, items: [
+    { get name() { return tr('Google Maps'); }, href: '/rating/google-maps', icon: MapPin, logo: '/assets/googlemaps.png', get description() { return tr('Rating & reviews per outlet'); } },
+  ] },
+  { get title() { return tr('Online delivery'); }, get hint() { return tr('Ratings on the delivery apps'); }, icon: MessageSquareText, items: [
+    { get name() { return tr('ShopeeFood'); }, href: '/rating/shopeefood', icon: Star, logo: '/assets/shopeefood.png', get description() { return tr('Rating & reviews per outlet'); } },
+    { get name() { return tr('GoFood'); }, href: '/rating/gofood', icon: Star, logo: '/assets/gofood.png', get description() { return tr('Rating & reviews per outlet'); } },
+    { get name() { return tr('GrabFood'); }, href: '/rating/grabfood', icon: Star, logo: '/assets/grabfood.svg', get description() { return tr('Rating & reviews per outlet'); } },
+  ] },
+];
+
 /** The pop-up menus of the sidebar (same design): which pages, header and footer. */
 type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
-const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'management', PopupConfig & { sections: typeof costControl }> = {
+const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'management', PopupConfig & { sections: typeof costControl }> = {
   forms: {
     get label() { return tr('Form'); }, get idle() { return tr('PIC check in, outlet, product & tools'); }, get title() { return tr('Form'); },
     get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
@@ -106,6 +118,12 @@ const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'management', Popu
     get label() { return tr('Monitoring'); }, get idle() { return tr('Check ins, outlets, products & tools'); }, get title() { return tr('Monitoring'); },
     get subtitle() { return tr('What the outlets and PICs filled in'); }, get footer() { return tr('All times in WIB · from the forms of the outlets'); },
     icon: Gauge, sections: monitoring,
+  },
+  rating: {
+    get label() { return tr('Rating & Review'); }, get idle() { return tr('Google Maps & delivery apps'); }, get title() { return tr('Rating & Review'); },
+    get subtitle() { return tr('Ratings and reviews of the outlets on Google Maps and the delivery apps'); },
+    get footer() { return tr('Per outlet · being built'); },
+    icon: Star, sections: rating,
   },
   management: {
     get label() { return tr('Management'); }, get idle() { return tr('User accounts & activity logs'); }, get title() { return tr('Management'); },
@@ -241,7 +259,7 @@ function SidebarContent({
   const visible = (list: typeof costControl) => list
     .map(s => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter(i => user && canAccess(user, i.href)) }))
     .filter(s => s.items.length);
-  const popups = (['forms', 'costControl', 'monitoring', 'management'] as const)
+  const popups = (['forms', 'costControl', 'monitoring', 'rating', 'management'] as const)
     .map(key => ({ key, config: POPUPS[key], sections: visible(POPUPS[key].sections) }))
     .filter(p => p.sections.length);
   return (
@@ -366,10 +384,18 @@ function PopupMenu({ config, sections, pathname, collapsed, onNavigate }: {
                     <Link href={item.href} onClick={go} role="menuitem" aria-current={on ? 'page' : undefined}
                       className={`group flex items-center gap-3 rounded-xl px-2 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
                         on ? 'bg-blue-50' : 'hover:bg-slate-50'}`}>
-                      <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors ${
-                        on ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-slate-700 group-hover:ring-1 group-hover:ring-slate-200'}`}>
-                        <Icon size={15} strokeWidth={1.9} />
-                      </span>
+                      {item.logo ? (
+                        <span className={`flex h-8 w-24 flex-shrink-0 items-center justify-center rounded-lg bg-white px-2 ring-1 transition-colors ${
+                          on ? 'ring-blue-300' : 'ring-slate-200 group-hover:ring-slate-300'}`}>
+                          {/* eslint-disable-next-line @next/next/no-img-element -- small brand logo from public/assets */}
+                          <img src={item.logo} alt="" className="max-h-4 max-w-full object-contain" />
+                        </span>
+                      ) : (
+                        <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors ${
+                          on ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-slate-700 group-hover:ring-1 group-hover:ring-slate-200'}`}>
+                          <Icon size={15} strokeWidth={1.9} />
+                        </span>
+                      )}
                       <span className="min-w-0 flex-1">
                         <span className={`flex items-center gap-1.5 text-sm ${on ? 'font-semibold text-blue-800' : 'font-medium text-slate-800'}`}>
                           <span className="truncate">{item.name}</span>
