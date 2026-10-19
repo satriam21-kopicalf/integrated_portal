@@ -6,10 +6,11 @@
 
 import { CalendarDays, ExternalLink, MapPin, MapPinOff, RefreshCw, ScanFace, SignalLow, Store, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtNumber, theadClass } from "@/so/ui";
+import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
+import { wibDay as dayOf } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
 import { type CheckIn, call, photoUrl } from "@/so/features/checkin/checkin";
@@ -18,6 +19,7 @@ import { tr } from "@/lib/i18n";
 type Summary = { total: number; pics: number; branches: number; outside: number; low: number; unlocated: number; inside: number };
 type Result = { period: { from: string; to: string }; data: CheckIn[]; summary: Summary; pics: { id: string; name: string; n: number }[]; truncated: boolean };
 type BranchOpt = { branch_code: string; branch_name: string };
+type Detail = "checkins" | "pics" | "outlets" | "outside";
 type F = { period: Period; branch: string; user: string; location: string };
 
 const NO_F = (): F => ({ period: { from: wibDay(-6), to: wibDay(0) }, branch: "", user: "", location: "" });
@@ -45,6 +47,8 @@ export default function PicCheckInMonitorPage() {
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
   const [open, setOpen] = useState<CheckIn | null>(null);
+  // a summary figure opened: its details in a drawer
+  const [detail, setDetail] = useState<Detail | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -64,9 +68,9 @@ export default function PicCheckInMonitorPage() {
     const s = search.trim().toLowerCase();
     return (res?.data ?? []).filter((c) => !s || c.name.toLowerCase().includes(s) || c.username.toLowerCase().includes(s) || c.branchName.toLowerCase().includes(s));
   }, [res, search]);
+  const paged = usePaged(rows, rows.length + search + JSON.stringify(f));
   const s = res?.summary;
   const pics = res?.pics ?? [];
-  const maxPic = Math.max(1, ...pics.map((p) => p.n));
   const def = NO_F();
   const chips: ActiveFilter[] = [
     ...(f.period.from !== def.period.from || f.period.to !== def.period.to ? [{ key: "p", label: `${dmy(f.period.from)} – ${dmy(f.period.to)}`, onRemove: () => setF({ ...f, period: def.period }) }] : []),
@@ -83,52 +87,24 @@ export default function PicCheckInMonitorPage() {
       </button>}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
-          <Stat label={tr("Check-ins")} emphasis icon={<CalendarDays size={13} />} value={s ? fmtNumber(s.total) : <StatSkeleton />}>
+          <Stat label={tr("Check-ins")} emphasis icon={<CalendarDays size={13} />} onClick={s ? () => setDetail("checkins") : undefined} active={detail === "checkins"} value={s ? fmtNumber(s.total) : <StatSkeleton />}>
             {s && <p>{tr("{0} days", Math.round((Date.parse(f.period.to) - Date.parse(f.period.from)) / 864e5) + 1)}</p>}
           </Stat>
-          <Stat label={tr("PICs")} icon={<UsersRound size={13} />} value={s ? fmtNumber(s.pics) : <StatSkeleton />}>
+          <Stat label={tr("PICs")} icon={<UsersRound size={13} />} onClick={s ? () => setDetail("pics") : undefined} active={detail === "pics"} value={s ? fmtNumber(s.pics) : <StatSkeleton />}>
             {s && <p>{tr("who checked in")}</p>}
           </Stat>
-          <Stat label={tr("Outlets visited")} icon={<Store size={13} />} value={s ? fmtNumber(s.branches) : <StatSkeleton />}>
+          <Stat label={tr("Outlets visited")} icon={<Store size={13} />} onClick={s ? () => setDetail("outlets") : undefined} active={detail === "outlets"} value={s ? fmtNumber(s.branches) : <StatSkeleton />}>
             {s && <p>{tr("different outlets")}</p>}
           </Stat>
-          <Stat label={tr("Outside radius")} icon={<MapPin size={13} />} value={s ? fmtNumber(s.outside) : <StatSkeleton />}>
+          <Stat label={tr("Outside radius")} icon={<MapPin size={13} />} onClick={s ? () => setDetail("outside") : undefined} active={detail === "outside"} value={s ? fmtNumber(s.outside) : <StatSkeleton />}>
             {s && <p>{tr("{0} low GPS accuracy · {1} outlet without coordinates", fmtNumber(s.low), fmtNumber(s.unlocated))}</p>}
           </Stat>
         </StatStrip>
       }>
-      {s && s.total > 0 && (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-          <Panel title={tr("Location of the check-ins")}>
-            <div className="p-4 sm:p-5">
-              <SegmentBar parts={[
-                { label: tr("At the outlet"), value: s.inside, color: "bg-emerald-500" },
-                { label: tr("Outside radius"), value: s.outside, color: "bg-amber-500" },
-                { label: tr("Outlet has no coordinates"), value: s.unlocated, color: "bg-slate-300" },
-              ]} />
-            </div>
-          </Panel>
-          <Panel title={tr("Visits per PIC")}>
-            <ul className="max-h-56 divide-y divide-slate-100 overflow-y-auto">
-              {pics.map((p) => (
-                <li key={p.id}>
-                  <button type="button" onClick={() => setF({ ...f, user: f.user === p.id ? "" : p.id })} className="block w-full px-4 py-2 text-left hover:bg-slate-50 sm:px-5">
-                    <span className="flex items-center justify-between gap-3 text-sm">
-                      <span className="truncate font-medium text-slate-800">{p.name}</span>
-                      <span className="tabular-nums font-semibold text-slate-900">{p.n}</span>
-                    </span>
-                    <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-blue-600" style={{ width: `${(p.n / maxPic) * 100}%` }} /></span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-        </div>
-      )}
 
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search PIC or outlet")} filters={chips}
         onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
-        footer={res ? <span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span> : undefined}>
+        footer={res ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : res && rows.length === 0 ? (
           <Empty icon={<ScanFace size={28} />} title={res.data.length ? tr("Nothing matches the search or filters") : tr("No check in in this period")}>
             {!res.data.length && tr("Check-ins appear here as soon as the PICs send them from Form → PIC Check In.")}
@@ -136,7 +112,7 @@ export default function PicCheckInMonitorPage() {
         ) : (
           <>
             <ul className="divide-y divide-slate-100 md:hidden">
-              {rows.map((c) => (
+              {paged.rows.map((c) => (
                 <li key={c.id}>
                   <button type="button" onClick={() => setOpen(c)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-slate-50">
                     {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
@@ -162,7 +138,7 @@ export default function PicCheckInMonitorPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {!res ? <SkeletonRows cols={5} /> : rows.map((c) => (
+                  {!res ? <SkeletonRows cols={5} /> : paged.rows.map((c) => (
                     <tr key={c.id} onClick={() => setOpen(c)} className="cursor-pointer hover:bg-slate-50/70">
                       <td className="px-4 py-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
@@ -183,6 +159,9 @@ export default function PicCheckInMonitorPage() {
 
       {sheet && <CheckInFilters value={f} branches={branches} pics={pics} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
       {open && <CheckInDrawer c={open} onClose={() => setOpen(null)} />}
+      {detail && res && <DetailDrawer kind={detail} data={res.data} summary={res.summary} truncated={res.truncated} onClose={() => setDetail(null)}
+        onPic={(id) => { setF({ ...f, user: id }); setDetail(null); }} onOutlet={(code) => { setF({ ...f, branch: code }); setDetail(null); }}
+        onOpen={(c) => setOpen(c)} />}
     </Page>
   );
 }
@@ -242,6 +221,96 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
             </div>
           ))}
         </dl>
+      </div>
+    </Drawer>
+  );
+}
+
+/** Details of a summary figure, from the check-ins of the period (the latest 1,000). */
+function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet, onOpen }: {
+  kind: Detail; data: CheckIn[]; summary: Summary; truncated: boolean; onClose: () => void;
+  onPic: (id: string) => void; onOutlet: (code: string) => void; onOpen: (c: CheckIn) => void;
+}) {
+  const title = { checkins: tr("Check-ins"), pics: tr("PICs"), outlets: tr("Outlets visited"), outside: tr("Outside radius") }[kind];
+  const groups = useMemo(() => {
+    const key = (c: CheckIn) => kind === "checkins" ? dayOf(c.visitedAt) : kind === "pics" ? c.userId : c.branchCode;
+    const m = new Map<string, { key: string; label: string; sub: string; n: number; outside: number; people: Set<string>; places: Set<string>; last: string }>();
+    for (const c of data) {
+      const k = key(c);
+      const g = m.get(k) ?? { key: k, label: kind === "checkins" ? dayOf(c.visitedAt) : kind === "pics" ? c.name : c.branchName,
+        sub: kind === "pics" ? `@${c.username}` : kind === "outlets" ? c.branchCode : "", n: 0, outside: 0, people: new Set(), places: new Set(), last: c.visitedAt };
+      g.n += 1;
+      if (c.outsideRadius) g.outside += 1;
+      g.people.add(c.userId);
+      g.places.add(c.branchCode);
+      if (c.visitedAt > g.last) g.last = c.visitedAt;
+      m.set(k, g);
+    }
+    return [...m.values()].sort((a, b) => kind === "checkins" ? b.last.localeCompare(a.last) : b.n - a.n || a.label.localeCompare(b.label));
+  }, [data, kind]);
+  const outside = useMemo(() => data.filter((c) => c.outsideRadius), [data]);
+
+  return (
+    <Drawer open onClose={onClose} size="md" title={title}
+      description={kind === "checkins" ? tr("Check-ins per day") : kind === "pics" ? tr("Visits per PIC · click to filter the list")
+        : kind === "outlets" ? tr("Visits per outlet · click to filter the list") : tr("Where the PICs were when checking in")}>
+      <div className="space-y-4">
+        {kind === "outside" && (
+          <>
+            <SegmentBar parts={[
+              { label: tr("At the outlet"), value: summary.inside, color: "bg-emerald-500" },
+              { label: tr("Outside radius"), value: summary.outside, color: "bg-amber-500" },
+              { label: tr("Outlet has no coordinates"), value: summary.unlocated, color: "bg-slate-300" },
+            ]} />
+            {summary.low > 0 && <p className="text-xs text-slate-500">{tr("{0} with low GPS accuracy", fmtNumber(summary.low))}</p>}
+          </>
+        )}
+        <div className="overflow-hidden rounded-xl border border-slate-200">
+          {kind === "outside" ? (
+            outside.length === 0 ? <p className="px-4 py-8 text-center text-sm text-slate-400">{tr("No check in outside the radius")}</p> : (
+              <ul className="divide-y divide-slate-100">
+                {outside.map((c) => (
+                  <li key={c.id}>
+                    <button type="button" onClick={() => onOpen(c)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
+                      <img src={photoUrl(c.id)} alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-full bg-slate-100 object-cover" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-slate-900">{c.name} · {c.branchName}</span>
+                        <span className="block text-xs text-slate-500">{wibDateTime(c.visitedAt)}</span>
+                      </span>
+                      <span className="text-xs font-semibold tabular-nums text-amber-700">{c.distanceM} m</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : (
+            <table className="w-full text-sm">
+              <thead className={theadClass}>
+                <tr>
+                  <th className="px-3 py-2">{kind === "checkins" ? tr("Day") : kind === "pics" ? tr("PIC") : tr("Outlet")}</th>
+                  <th className="px-3 py-2 text-right">{tr("Check-ins")}</th>
+                  <th className="px-3 py-2 text-right">{kind === "pics" ? tr("Outlets") : tr("PICs")}</th>
+                  <th className="px-3 py-2 text-right">{tr("Outside")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {groups.map((g) => {
+                  const click = kind === "pics" ? () => onPic(g.key) : kind === "outlets" ? () => onOutlet(g.key) : undefined;
+                  return (
+                    <tr key={g.key} onClick={click} className={click ? "cursor-pointer hover:bg-slate-50" : ""}>
+                      <td className="px-3 py-2"><span className="block font-medium text-slate-900">{g.label}</span>{g.sub && <span className="text-xs text-slate-400">{g.sub}</span>}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-slate-900">{fmtNumber(g.n)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-slate-600">{fmtNumber(kind === "pics" ? g.places.size : g.people.size)}</td>
+                      <td className={`px-3 py-2 text-right tabular-nums ${g.outside ? "font-semibold text-amber-700" : "text-slate-400"}`}>{fmtNumber(g.outside)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+        {truncated && <p className="text-xs text-slate-400">{tr("From the latest 1,000 check-ins of the period")}</p>}
       </div>
     </Drawer>
   );

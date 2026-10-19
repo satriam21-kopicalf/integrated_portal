@@ -4,7 +4,7 @@
 // states, toasts). Drawers, menus, stat strips and filters live next to this file.
 
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Inbox, Loader2, Search, X } from "lucide-react";
-import { createContext, ReactNode, useCallback, useContext, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { locale, tr } from "@/lib/i18n";
 
 export function cx(...c: (string | false | null | undefined)[]) {
@@ -120,8 +120,8 @@ export function Page({ title, subtitle, actions, stats, children }: {
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
       </header>
-      {stats}
-      <div className="space-y-4 p-4 sm:p-6">{children}</div>
+      {/* the summary sits in the content, with its margins, like Sales Transactions */}
+      <div className="space-y-4 p-4 sm:p-6">{stats}{children}</div>
     </div>
   );
 }
@@ -227,6 +227,39 @@ export function Pager({ total, page, pageSize, onPage, noun }: {
         </Button>
       </div>
     </>
+  );
+}
+
+/* ------------------------------------------------------------------ pages of 50 rows (client side) */
+
+export const PAGE_SIZE = 50;
+
+/** The rows of the current page; back to page 1 whenever `reset` changes (search, filters, sort). */
+export function usePaged<T>(rows: T[], reset: unknown, size = PAGE_SIZE) {
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [reset]);
+  const pages = Math.max(1, Math.ceil(rows.length / size));
+  const current = Math.min(page, pages);
+  const pageRows = useMemo(() => rows.slice((current - 1) * size, current * size), [rows, current, size]);
+  return { page: current, pages, setPage, rows: pageRows, total: rows.length, size };
+}
+
+/** "51–100 of 312 ‹ 2 / 7 ›" in a panel footer; nothing when everything fits on one page. */
+export function PageNav({ paged }: { paged: { page: number; pages: number; total: number; size: number; setPage: (p: number) => void } }) {
+  const { page, pages, total, size, setPage } = paged;
+  if (pages <= 1) return null;
+  const first = (page - 1) * size + 1;
+  return (
+    <div className="flex items-center gap-2">
+      <span className="tabular-nums">{tr("{0}–{1} of {2}", fmtNumber(first), fmtNumber(Math.min(page * size, total)), fmtNumber(total))}</span>
+      <Button variant="secondary" size="sm" className="px-2" disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label={tr("Previous page")}>
+        <ChevronLeft size={16} />
+      </Button>
+      <span className="tabular-nums">{page} / {pages}</span>
+      <Button variant="secondary" size="sm" className="px-2" disabled={page >= pages} onClick={() => setPage(page + 1)} aria-label={tr("Next page")}>
+        <ChevronRight size={16} />
+      </Button>
+    </div>
   );
 }
 

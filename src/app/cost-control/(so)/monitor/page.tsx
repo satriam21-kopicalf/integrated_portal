@@ -6,7 +6,7 @@
 import { AlertTriangle, CalendarDays, ChevronRight, Gauge, MapPin, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtNumber, theadClass } from "@/so/ui";
+import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtNumber, theadClass, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, DayField, FilterSection, FilterSheet, FilterToolbar, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
@@ -64,6 +64,7 @@ export default function MonitorPage() {
     return all.filter((r) => (!f.status || r.status === f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType) && locMatch(r, f.loc) &&
       (!s || r.facility_name.toLowerCase().includes(s) || r.facility_code.toLowerCase().includes(s)));
   }, [all, search, f]);
+  const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
   const n = (st: string) => all.filter((r) => r.status === st).length;
   const done = DONE.reduce((a, s) => a + n(s), 0);
   const late = all.filter((r) => r.session?.is_late).length;
@@ -161,7 +162,7 @@ export default function MonitorPage() {
 
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or hub")} filters={chips}
         onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
-        footer={rows ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span> : undefined}>
+        footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<Gauge size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No count is due on this day")}>
             {!all.length && tr("Counts appear here on the days the count types schedule them.")}
@@ -169,7 +170,7 @@ export default function MonitorPage() {
         ) : (
           <>
             <ul className="divide-y divide-slate-100 md:hidden">
-              {shown.map((r) => <MobileRow key={`${r.facility_id}:${r.count_type}`} r={r} />)}
+              {paged.rows.map((r) => <MobileRow key={`${r.facility_id}:${r.count_type}`} r={r} />)}
             </ul>
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[760px] text-sm">
@@ -184,7 +185,7 @@ export default function MonitorPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {rows === null ? <SkeletonRows cols={6} /> : shown.map((r) => {
+                  {rows === null ? <SkeletonRows cols={6} /> : paged.rows.map((r) => {
                     const st = STATUS[r.status] ?? STATUS.NOT_STARTED;
                     return (
                       <tr key={`${r.facility_id}:${r.count_type}`} className="hover:bg-slate-50/70">

@@ -1,12 +1,12 @@
 'use client';
 
-import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, Package, Store, Wrench, ChevronDown, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, Package, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -78,9 +78,19 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
   ] },
 ];
 
+/** "Management" menu: super admins only (the pages and the API check the role too). */
+const management: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Accounts & access'); }, get hint() { return tr('Who signs in and what they open'); }, icon: Users, items: [
+    { get name() { return tr('User Accounts'); }, href: '/users', icon: Users, get description() { return tr('Logins, roles & branches'); } },
+  ] },
+  { get title() { return tr('Audit'); }, get hint() { return tr('Everything done in the portal'); }, icon: History, items: [
+    { get name() { return tr('Activity Logs'); }, href: '/activity', icon: History, get description() { return tr('Who did what & exports'); } },
+  ] },
+];
+
 /** The pop-up menus of the sidebar (same design): which pages, header and footer. */
 type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
-const POPUPS: Record<'forms' | 'costControl' | 'monitoring', PopupConfig & { sections: typeof costControl }> = {
+const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'management', PopupConfig & { sections: typeof costControl }> = {
   forms: {
     get label() { return tr('Form'); }, get idle() { return tr('PIC check in, outlet, product & tools'); }, get title() { return tr('Form'); },
     get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
@@ -97,18 +107,17 @@ const POPUPS: Record<'forms' | 'costControl' | 'monitoring', PopupConfig & { sec
     get subtitle() { return tr('What the outlets and PICs filled in'); }, get footer() { return tr('All times in WIB · from the forms of the outlets'); },
     icon: Gauge, sections: monitoring,
   },
+  management: {
+    get label() { return tr('Management'); }, get idle() { return tr('User accounts & activity logs'); }, get title() { return tr('Management'); },
+    get subtitle() { return tr('Accounts, roles & pages, and the activity of every user'); }, get footer() { return tr('Super admins only'); },
+    icon: UserCog, sections: management,
+  },
 };
 
 const under = (pathname: string, href: string) => pathname === href || (href !== '/cost-control' && pathname.startsWith(`${href}/`));
 
-/** "Management" group: superadmin only (the pages and the API check the role too). */
-const management = [
-  { get name() { return tr('User Accounts'); }, href: '/users', icon: Users, get description() { return tr('Logins, roles & branches'); } },
-  { get name() { return tr('Activity Logs'); }, href: '/activity', icon: History, get description() { return tr('Who did what & exports'); } },
-];
 
 const COLLAPSED_KEY = 'portal.sidebar.collapsed';
-const MANAGEMENT_KEY = 'portal.sidebar.management';
 
 function readFlag(key: string, fallback: boolean): boolean {
   try {
@@ -135,24 +144,16 @@ interface SidebarProps {
 export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [managementOpen, setManagementOpen] = useState(true);
 
   // restore preferences after mount (avoids hydration mismatches)
   useEffect(() => {
     setCollapsed(readFlag(COLLAPSED_KEY, false));
-    setManagementOpen(readFlag(MANAGEMENT_KEY, true));
   }, []);
 
   const toggleCollapsed = () => {
     setCollapsed(c => {
       writeFlag(COLLAPSED_KEY, !c);
       return !c;
-    });
-  };
-  const toggleManagement = () => {
-    setManagementOpen(o => {
-      writeFlag(MANAGEMENT_KEY, !o);
-      return !o;
     });
   };
 
@@ -164,8 +165,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           collapsed ? 'w-[72px]' : 'w-64'
         }`}
       >
-        <SidebarContent collapsed={collapsed} pathname={pathname}
-          managementOpen={managementOpen} onToggleManagement={toggleManagement}>
+        <SidebarContent collapsed={collapsed} pathname={pathname}>
           <button
             type="button"
             onClick={toggleCollapsed}
@@ -195,8 +195,6 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         <SidebarContent
           collapsed={false}
           pathname={pathname}
-          managementOpen={managementOpen}
-          onToggleManagement={toggleManagement}
           onNavigate={onMobileClose}
         >
           <button
@@ -230,27 +228,22 @@ export function Brand({ compact = false }: { compact?: boolean }) {
 }
 
 function SidebarContent({
-  collapsed, pathname, managementOpen, onToggleManagement, onNavigate, children,
+  collapsed, pathname, onNavigate, children,
 }: {
   collapsed: boolean;
   pathname: string;
-  managementOpen: boolean;
-  onToggleManagement: () => void;
   onNavigate?: () => void;
   children: React.ReactNode; // header action (collapse / close)
 }) {
   const { user } = useAuth();
-  const isSuperadmin = user?.role === 'superadmin';
   const items = navigation.filter(item => user && canAccess(user, item.href));
   // pop-up menus: only the pages this user opens
   const visible = (list: typeof costControl) => list
     .map(s => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter(i => user && canAccess(user, i.href)) }))
     .filter(s => s.items.length);
-  const popups = (['forms', 'costControl', 'monitoring'] as const)
+  const popups = (['forms', 'costControl', 'monitoring', 'management'] as const)
     .map(key => ({ key, config: POPUPS[key], sections: visible(POPUPS[key].sections) }))
     .filter(p => p.sections.length);
-  // the group stays open while one of its pages is shown
-  const managementActive = management.some(m => pathname === m.href);
   return (
     <div className="flex h-full w-full flex-col">
       {/* Header */}
@@ -267,38 +260,13 @@ function SidebarContent({
           ))}
         </ul>
 
-        {/* Form (outlets / PICs), Cost Control, Monitoring: one pop-up menu each, with the pages the user opens */}
+        {/* Form (outlets / PICs), Cost Control, Monitoring, Management: one pop-up menu each, with the pages the user opens */}
         {popups.map(p => (
           <div key={p.key} className="mt-5 border-t border-slate-100 pt-4">
             {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{p.config.label}</p>}
             <PopupMenu config={p.config} sections={p.sections} pathname={pathname} collapsed={collapsed} onNavigate={onNavigate} />
           </div>
         ))}
-
-        {/* management: superadmin only */}
-        {isSuperadmin && (
-          <div className="mt-5 border-t border-slate-100 pt-4">
-            {collapsed ? (
-              <ul className="space-y-0.5" aria-label={tr('Management')}>
-                {management.map(item => (
-                  <li key={item.href}><NavItem item={item} active={pathname === item.href} collapsed onNavigate={onNavigate} /></li>
-                ))}
-              </ul>
-            ) : (
-              <>
-                <GroupToggle label={tr('Management')} icon={<UserCog size={13} />} open={managementOpen || managementActive}
-                  onClick={onToggleManagement} />
-                {(managementOpen || managementActive) && (
-                  <ul className="ml-[1.15rem] space-y-0.5 border-l border-slate-200 pl-2">
-                    {management.map(item => (
-                      <li key={item.href}><NavItem item={item} active={pathname === item.href} collapsed={false} onNavigate={onNavigate} sub /></li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
-          </div>
-        )}
       </nav>
 
       <UserMenu collapsed={collapsed} />
@@ -483,20 +451,6 @@ function NavItem({ item, active, collapsed, onNavigate, sub = false }: {
   );
 }
 
-/** Heading of a sidebar group that folds its items away. */
-function GroupToggle({ label, icon, open, onClick }: { label: string; icon?: ReactNode; open: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="mb-1 flex w-full items-center justify-between rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600"
-      aria-expanded={open}
-    >
-      <span className="flex items-center gap-1.5">{icon}{label}</span>
-      <ChevronDown size={14} className={`transition-transform ${open ? '' : '-rotate-90'}`} />
-    </button>
-  );
-}
 
 function UserMenu({ collapsed }: { collapsed: boolean }) {
   const { user, logout } = useAuth();

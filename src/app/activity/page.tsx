@@ -2,7 +2,7 @@
 
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapPin,
-  AlertCircle, CheckCircle2, ChevronRight, Database, Download, Eye, FileSpreadsheet, Filter, History, KeyRound, List, Loader2, LogIn,
+  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Database, Download, Eye, FileSpreadsheet, Filter, History, KeyRound, List, LogIn,
   LogOut, Monitor, Rows3, Search, ShieldAlert, SlidersHorizontal, Trash2, UserCog, UserRound, X,
 } from 'lucide-react';
 import ActivityInsights, { ActivityInsightsData } from '@/components/activity/ActivityInsights';
@@ -165,7 +165,8 @@ export default function ActivityPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  // pages of PAGE_SIZE, newest first; the live update follows page 1
+  const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<Set<number>>(new Set());
   const [selected, setSelected] = useState<Entry | null>(null);
@@ -214,12 +215,15 @@ export default function ActivityPage() {
       .catch(() => {});
   }, [base]);
 
-  // first page whenever the filters change
+  // back to the first page whenever the filters change
+  useEffect(() => { setPage(1); }, [listUrl]);
+
+  // the page shown (again when the filters change)
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetch(listUrl(0))
+    fetch(listUrl((page - 1) * PAGE_SIZE))
       .then(async r => {
         const body = await r.json();
         if (!r.ok) throw new Error(serverMsg(body.error) || `HTTP ${r.status}`);
@@ -235,13 +239,13 @@ export default function ActivityPage() {
       .finally(() => { if (!cancelled) setLoading(false); });
     fetchSummary();
     return () => { cancelled = true; };
-  }, [listUrl, fetchSummary, reload]);
+  }, [listUrl, fetchSummary, reload, page]);
 
   // live: newest entries every POLL_MS and when the tab is shown again
   useEffect(() => {
     let stopped = false;
     const tick = async () => {
-      if (document.hidden) return;
+      if (document.hidden || page !== 1) return;
       try {
         const r = await fetch(listUrl(0), { cache: 'no-store' });
         if (!r.ok) throw new Error(String(r.status));
@@ -251,7 +255,7 @@ export default function ActivityPage() {
         const added = body.data.filter(e => e.id > top);
         if (added.length) {
           // a full page of news: there may be a gap, start over from the newest
-          setEntries(prev => (added.length >= PAGE_SIZE ? body.data : [...added, ...prev]));
+          setEntries(body.data);
           setFresh(new Set(added.map(e => e.id)));
           setTimeout(() => setFresh(new Set()), HIGHLIGHT_MS);
           fetchSummary();
@@ -269,24 +273,9 @@ export default function ActivityPage() {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [listUrl, fetchSummary]);
+  }, [listUrl, fetchSummary, page]);
 
-  const loadMore = async () => {
-    setLoadingMore(true);
-    try {
-      const r = await fetch(listUrl(entries.length));
-      const body = await r.json();
-      if (r.ok) {
-        setEntries(prev => {
-          const seen = new Set(prev.map(e => e.id));
-          return [...prev, ...(body.data as Entry[]).filter(e => !seen.has(e.id))];
-        });
-        setTotal(body.total);
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  };
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const onSearch = (value: string) => {
     setSearch(value);
@@ -344,32 +333,31 @@ export default function ActivityPage() {
           </div>
         </header>
 
-        {notice && (
-          <div className="mx-4 mt-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800 sm:mx-6">
-            <CheckCircle2 size={16} /> {notice}
-            <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label={tr('Dismiss')}><X size={14} /></button>
-          </div>
-        )}
+        <div className="space-y-4 p-4 sm:p-6">
+          {notice && (
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
+              <CheckCircle2 size={16} /> {notice}
+              <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label={tr('Dismiss')}><X size={14} /></button>
+            </div>
+          )}
 
-        <StatStrip label={tr('Activity summary')} columns={5}>
-          <Stat label={tr('Activities')} value={t ? formatNumber(t.total) : <StatSkeleton />}>
-            {t && <p>{formatNumber(t.users)} {tr('active users')}</p>}
-          </Stat>
-          <Stat label={tr('Exports')} emphasis value={t ? formatNumber(t.exports) : <StatSkeleton />}>
-            {t && <p>{formatNumber(t.downloads)} {tr('downloads')}</p>}
-          </Stat>
-          <Stat label={tr('Transactions opened')} value={summary ? formatNumber(summary.byCategory.transaction ?? 0) : <StatSkeleton />} />
-          <Stat label={tr('Failed sign-ins')} value={t ? formatNumber(t.failedLogins) : <StatSkeleton />} />
-          <Stat label={tr('Access denied')} value={t ? formatNumber(t.denied) : <StatSkeleton />}>
-            {t && <p>{tr('pages or data outside the user\'s access')}</p>}
-          </Stat>
-        </StatStrip>
+          <StatStrip label={tr('Activity summary')} columns={5}>
+            <Stat label={tr('Activities')} value={t ? formatNumber(t.total) : <StatSkeleton />}>
+              {t && <p>{formatNumber(t.users)} {tr('active users')}</p>}
+            </Stat>
+            <Stat label={tr('Exports')} emphasis value={t ? formatNumber(t.exports) : <StatSkeleton />}>
+              {t && <p>{formatNumber(t.downloads)} {tr('downloads')}</p>}
+            </Stat>
+            <Stat label={tr('Transactions opened')} value={summary ? formatNumber(summary.byCategory.transaction ?? 0) : <StatSkeleton />} />
+            <Stat label={tr('Failed sign-ins')} value={t ? formatNumber(t.failedLogins) : <StatSkeleton />} />
+            <Stat label={tr('Access denied')} value={t ? formatNumber(t.denied) : <StatSkeleton />}>
+              {t && <p>{tr('pages or data outside the user\'s access')}</p>}
+            </Stat>
+          </StatStrip>
 
-        <div className="px-4 pt-4 sm:px-6 sm:pt-6">
           <ActivityInsights data={summary} onPickDay={day => { setDateFrom(day); setDateTo(day); }} />
-        </div>
 
-        <div className="grid gap-4 p-4 sm:p-6 xl:grid-cols-12">
+          <div className="grid gap-4 xl:grid-cols-12">
           <section className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm xl:col-span-8 2xl:col-span-9">
             <div className="space-y-3 border-b border-slate-200 p-3 sm:p-4">
               <div className="flex gap-2">
@@ -446,11 +434,13 @@ export default function ActivityPage() {
             )}
 
             <div className="flex flex-col items-center justify-between gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50/60 px-4 py-3 text-xs text-slate-500 sm:flex-row">
-              <span>{formatNumber(entries.length)} {tr('of')} {formatNumber(total)} {tr('activities')}{filtered ? tr(' matching') : ''}</span>
-              {entries.length < total && (
-                <button type="button" onClick={loadMore} disabled={loadingMore} className={`${buttonSecondary} h-8`}>
-                  {loadingMore && <Loader2 size={14} className="animate-spin" />} {tr('Load older activity')}
-                </button>
+              <span>{formatNumber(total ? (page - 1) * PAGE_SIZE + 1 : 0)}–{formatNumber((page - 1) * PAGE_SIZE + entries.length)} {tr('of')} {formatNumber(total)} {tr('activities')}{filtered ? tr(' matching') : ''}</span>
+              {pages > 1 && (
+                <div className="flex items-center gap-2">
+                  <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous page')}><ChevronLeft size={16} /></button>
+                  <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
+                  <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page >= pages || loading} onClick={() => setPage(p => p + 1)} aria-label={tr('Next page')}><ChevronRight size={16} /></button>
+                </div>
               )}
             </div>
           </section>
@@ -523,6 +513,7 @@ export default function ActivityPage() {
               )}
             </section>
           </aside>
+        </div>
         </div>
       </div>
 

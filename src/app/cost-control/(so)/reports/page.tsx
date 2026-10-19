@@ -8,7 +8,7 @@
 import { Building2, FileSpreadsheet, Layers, ListChecks } from "lucide-react";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Checkbox, Empty, Page, Panel, SkeletonRows, fmtNumber, theadClass, useToast } from "@/so/ui";
+import { Badge, Checkbox, Empty, Page, Panel, SkeletonRows, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
@@ -53,6 +53,7 @@ export default function ReportsPage() {
     const s = search.trim().toLowerCase();
     return all.filter((r) => !s || r.facility_name.toLowerCase().includes(s) || r.number.toLowerCase().includes(s));
   }, [all, search]);
+  const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
   const branches = new Set(all.map((r) => r.facility_id)).size;
   const lines = all.reduce((a, r) => a + r.lines, 0);
   const typesIn = new Set(all.map((r) => r.count_type));
@@ -109,7 +110,7 @@ export default function ReportsPage() {
       }>
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search branch or count number")} filters={chips}
         onOpen={() => setSheet(true)} onClear={() => setF(DEFAULT())} />}
-        footer={<span className="flex items-center gap-1.5"><FileSpreadsheet size={13} /> {tr("Sheets: Stock Opname · Summary · WIP premix{0} · dates as 14/09/2026 · qty with two decimals", f.perBranch ? ` · ${tr("one per branch")}` : "")}</span>}>
+        footer={<><span className="flex items-center gap-1.5"><FileSpreadsheet size={13} /> {tr("Sheets: Stock Opname · Summary · WIP premix{0} · dates as 14/09/2026 · qty with two decimals", f.perBranch ? ` · ${tr("one per branch")}` : "")}</span><PageNav paged={paged} /></>}>
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[600px] text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Date")}</th><th className="px-4 py-2.5">{tr("Branch")}</th>
@@ -117,7 +118,7 @@ export default function ReportsPage() {
             <tbody className="divide-y divide-slate-100">
               {rows === null ? <SkeletonRows cols={5} rows={4} /> : shown.length === 0 ? (
                 <tr><td colSpan={5}><Empty icon={<FileSpreadsheet size={28} />} title={tr("No reviewed stock opname in this period")}>{tr("Change the period or the filters.")}</Empty></td></tr>
-              ) : shown.map((r) => (
+              ) : paged.rows.map((r) => (
                 <tr key={r.id} className="hover:bg-slate-50/70">
                   <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{dmy(r.business_date)}</td>
                   <td className="px-4 py-2.5"><span className="block font-medium text-slate-900">{r.facility_name}</span><span className="font-mono text-[11px] text-slate-400">{r.number}</span></td>

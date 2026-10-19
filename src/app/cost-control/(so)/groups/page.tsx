@@ -8,7 +8,7 @@ import { Boxes, Check, ChevronLeft, ChevronRight, FileSpreadsheet, MapPin, Packa
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemsEditor, { type EditorItem, toPayload } from "@/so/features/settings/ItemsEditor";
 import NewItemDialog, { type ItemDraft } from "@/so/features/settings/NewItemDialog";
-import { Badge, Button, Checkbox, cx, Empty, ErrorState, Field, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, Checkbox, cx, Empty, ErrorState, Field, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
@@ -66,6 +66,7 @@ export default function GroupsPage() {
       && (!gf.pending || (gf.pending === "yes") === g.pending > 0)
       && (!gf.source || (gf.source === "template") === Boolean(g.source_ref)));
   }, [rows, search, gf]);
+  const paged = usePaged(shown, shown.length + search);
   const all = rows ?? [];
   const label: Record<string, Record<string, () => string>> = {
     status: { active: () => tr("Active"), inactive: () => tr("Inactive") },
@@ -97,7 +98,7 @@ export default function GroupsPage() {
         </StatStrip>
       }>
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search group")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setGf(GF_EMPTY)} />}
-        footer={rows ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span> : undefined}>
+        footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<Boxes size={28} />} title={rows.length ? tr("Nothing matches the search or filters") : tr("No item groups yet")}>
             {!rows.length && tr("Create a group, add its items, then assign it to branches.")}
@@ -110,7 +111,7 @@ export default function GroupsPage() {
                   <th className="px-4 py-2.5 text-right">{tr("Used by lists")}</th><th className="px-4 py-2.5">{tr("Updated")}</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows === null ? <SkeletonRows cols={4} /> : shown.map((g) => (
+                {rows === null ? <SkeletonRows cols={4} /> : paged.rows.map((g) => (
                   <tr key={g.id} className="group cursor-pointer hover:bg-slate-50/70" onClick={() => setOpen(g.id)}>
                     <td className="px-4 py-3">
                       <span className="block font-medium text-slate-900 group-hover:text-blue-700">{g.name} {!g.is_active && <Badge>{tr("Inactive")}</Badge>}</span>

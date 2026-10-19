@@ -9,7 +9,7 @@ import { AlertTriangle, ChevronRight, ClipboardCheck, RotateCcw } from "lucide-r
 import ExcelIconButton from "@/components/ExcelIconButton";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast } from "@/so/ui";
+import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, PeriodField, Period, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
@@ -55,6 +55,7 @@ export default function ReviewsPage() {
       && (!f.source || (r.entry_source ?? "CREW") === f.source)
       && (!s || [r.facility_name, r.facility_code, r.number].some((v) => v.toLowerCase().includes(s))));
   }, [all, search, f]);
+  const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
   const n = (st: string) => all.filter((r) => r.status === st).length;
   const flaggedCounts = all.filter((r) => r.status === "SUBMITTED" && r.flagged > 0).length;
 
@@ -108,7 +109,7 @@ export default function ReviewsPage() {
       }>
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search facility or count number")} filters={chips}
         onOpen={() => setSheet(true)} onClear={() => setF({ ...DEFAULT(), status: "" })} />}
-        footer={rows ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span> : undefined}>
+        footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<ClipboardCheck size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No counts in this period")}>
             {f.status === "SUBMITTED" && all.length > 0 && tr("Nothing is waiting for review. Change the status filter to see the other counts.")}
@@ -116,7 +117,7 @@ export default function ReviewsPage() {
         ) : (
           <>
             <ul className="divide-y divide-slate-100 md:hidden">
-              {shown.map((r) => {
+              {paged.rows.map((r) => {
                 const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
                 return (
                   <li key={r.id}>
@@ -150,7 +151,7 @@ export default function ReviewsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {rows === null ? <SkeletonRows cols={7} /> : shown.map((r) => {
+                  {rows === null ? <SkeletonRows cols={7} /> : paged.rows.map((r) => {
                     const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
                     const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                     return (

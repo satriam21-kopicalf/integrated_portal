@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { ChevronRight } from 'lucide-react';
 
 /**
  * Headline figures without cards: one band on the page background, metrics
@@ -21,7 +22,7 @@ export function StatStrip({ children, columns = 4, label, gridClassName }: {
 }
 
 export function Stat({
-  label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-2xl', info,
+  label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-2xl', info, onClick, active = false,
 }: {
   label: string;
   icon?: ReactNode;
@@ -35,21 +36,35 @@ export function Stat({
   className?: string;
   /** size / overflow of the value (default: text-2xl, truncated) */
   valueClassName?: string;
+  /** the figure opens its details (a drawer); the cell becomes a button */
+  onClick?: () => void;
+  /** its details are open */
+  active?: boolean;
 }) {
-  return (
-    <div className={`relative min-w-0 bg-slate-50 px-4 py-4 sm:px-5 ${className}`}>
+  const body = (
+    <>
       {emphasis && <span className="absolute inset-y-4 left-0 w-0.5 rounded-full bg-blue-600" aria-hidden />}
       <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
         {icon}
         {label}
         {info}
+        {onClick && <ChevronRight size={13} className="ml-auto text-slate-300 transition-colors group-hover:text-blue-600" aria-hidden />}
       </p>
       <div className={`mt-1.5 font-semibold tracking-tight text-slate-900 tabular-nums ${valueClassName}`} title={title}>
         {value}
       </div>
       {children && <div className="mt-1.5 space-y-1 text-xs text-slate-500">{children}</div>}
-    </div>
+    </>
   );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} aria-expanded={active}
+        className={`group relative min-w-0 px-4 py-4 text-left transition-colors sm:px-5 ${active ? 'bg-white' : 'bg-slate-50 hover:bg-white'} ${className}`}>
+        {body}
+      </button>
+    );
+  }
+  return <div className={`relative min-w-0 bg-slate-50 px-4 py-4 sm:px-5 ${className}`}>{body}</div>;
 }
 
 export function StatSkeleton() {

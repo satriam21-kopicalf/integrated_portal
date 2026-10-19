@@ -7,7 +7,7 @@
 
 import { CalendarClock, CalendarDays, Clock, Plus, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Checkbox, cx, ErrorState, Field, Input, Page, Panel, fmtNumber, useToast } from "@/so/ui";
+import { Badge, Button, Checkbox, cx, ErrorState, Field, Input, Page, Panel, fmtNumber, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
@@ -99,6 +99,7 @@ export default function TypesPage() {
   const all = rows ?? [];
   const shownTypes = all.filter((t) => (!q.trim() || `${countTypeLabel(t.code, t.name)} ${t.code}`.toLowerCase().includes(q.trim().toLowerCase()))
     && (!tf.status || (tf.status === "active") === t.is_active) && (!tf.frequency || t.frequency === tf.frequency));
+  const paged = usePaged(shownTypes, shownTypes.length + q);
   const next = all.filter((t) => t.is_active && t.next_dates.length).map((t) => ({ t, d: t.next_dates[0] })).sort((a, b) => a.d.localeCompare(b.d))[0];
   const monthKey = wibDate().slice(0, 7);
   const thisMonth = (calendar ?? []).filter((d) => d.date.startsWith(monthKey)).reduce((a, d) => a + d.counts.length, 0);
@@ -136,9 +137,10 @@ export default function TypesPage() {
             </div>
           </Panel>
           <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setTf({ status: "", frequency: "" })} />
+          <div className="flex justify-end text-xs text-slate-500 empty:hidden"><PageNav paged={paged} /></div>
           {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">{tr("Nothing matches the search or filters")}</p>}
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-28 rounded-xl" />) : shownTypes.map((t) => (
+            {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-28 rounded-xl" />) : paged.rows.map((t) => (
               <button key={t.code} type="button" onClick={() => setOpen(t)}
                 className={cx("block w-full rounded-xl border bg-white p-4 text-left shadow-sm transition hover:border-blue-300 hover:shadow",
                   t.is_active ? "border-slate-200" : "border-dashed border-slate-300 opacity-70")}>

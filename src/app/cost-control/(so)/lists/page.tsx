@@ -7,7 +7,7 @@
 import { Boxes, Building2, ListChecks, Plus, RotateCcw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ItemsEditor, { type EditorItem, toPayload } from "@/so/features/settings/ItemsEditor";
-import { Badge, Button, Empty, ErrorState, Page, Panel, cx, fmtDate, fmtNumber, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Page, Panel, cx, fmtDate, fmtNumber, useToast, PageNav, usePaged } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
@@ -63,6 +63,7 @@ export default function ListsPage() {
       && (!lf.lists || (lf.lists === "own") === f.own_lists > 0)
       && (!s || f.name.toLowerCase().includes(s) || f.code.toLowerCase().includes(s)));
   }, [facilities, q, lf]);
+  const paged = usePaged(shown, shown.length + q + JSON.stringify(lf));
   const cities = useMemo(() => Array.from(new Set((facilities ?? []).map((f) => f.city).filter(Boolean) as string[])).sort(), [facilities]);
   const scope = (facilities ?? []).filter((f) => !lf.type || f.facility_type === lf.type);
   const chips: ActiveFilter[] = [
@@ -129,10 +130,10 @@ export default function ListsPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(280px,360px)_1fr]">
         <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search branch")} filters={chips} onOpen={() => setSheet(true)}
           onClear={() => setLf({ type: "", lists: "", city: "" })} />}
-          footer={facilities ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(facilities.length))}</span> : undefined}>
+          footer={facilities ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(facilities.length))}</span><PageNav paged={paged} /></> : undefined}>
           {error ? <ErrorState message={error} onRetry={loadFacilities} /> : (
             <ul className="max-h-[32rem] divide-y divide-slate-100 overflow-y-auto lg:max-h-[calc(100dvh-16rem)]">
-              {facilities === null ? [0, 1, 2, 3].map((i) => <li key={i} className="p-3"><div className="skeleton h-9 rounded" /></li>) : shown.map((f) => (
+              {facilities === null ? [0, 1, 2, 3].map((i) => <li key={i} className="p-3"><div className="skeleton h-9 rounded" /></li>) : paged.rows.map((f) => (
                 <li key={f.id}>
                   <button type="button" onClick={() => {
                     setSelected(f);

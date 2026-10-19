@@ -7,7 +7,7 @@
 
 import { Crosshair, ExternalLink, MapPin, MapPinOff, Pencil, Save, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
@@ -67,6 +67,7 @@ export default function LocationsPage() {
       && (!s || r.name.toLowerCase().includes(s) || r.code.toLowerCase().includes(s)))
       .sort((a, b) => Number(located(a)) - Number(located(b)) || a.name.localeCompare(b.name));
   }, [all, search, f]);
+  const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
   const withCoords = all.filter(located).length;
   const pct = all.length ? Math.round((withCoords / all.length) * 100) : 0;
   const fromSo = all.filter((r) => !located(r) && r.last_start).length;
@@ -102,7 +103,7 @@ export default function LocationsPage() {
       }>
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or hub")} filters={chips}
         onOpen={() => setSheet(true)} onClear={() => setF({ state: "", type: "" })} />}
-        footer={rows ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))} · {tr("Every change is recorded in the audit log")}</span> : undefined}>
+        footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))} · {tr("Every change is recorded in the audit log")}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : (
           <div className="overflow-x-auto">
             <table className="m-cards w-full min-w-[820px] text-sm">
@@ -116,7 +117,7 @@ export default function LocationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows === null ? <SkeletonRows cols={5} /> : shown.map((r) => {
+                {rows === null ? <SkeletonRows cols={5} /> : paged.rows.map((r) => {
                   const ls = r.last_start;
                   const off = ls && located(r) ? distance([Number(r.latitude), Number(r.longitude)], [ls.start_lat, ls.start_lng]) : null;
                   return (

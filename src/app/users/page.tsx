@@ -23,7 +23,7 @@ import { PAGES } from '@/lib/pages';
 import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
 import { locale, tr, serverMsg } from '@/lib/i18n';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 50;
 
 interface UsersSummary {
   total: number;
@@ -242,25 +242,25 @@ export default function UsersPage() {
           </div>
         </header>
 
-        <StatStrip label={tr('User summary')} columns={5}>
-          <Stat label={tr('Users')} value={s ? formatNumber(s.total) : <StatSkeleton />}>
-            {s && <p>{formatNumber(s.superadmins)} {tr('super admin ·')} {formatNumber(s.users)} {tr('user')}</p>}
-          </Stat>
-          <Stat label={tr('Active')} emphasis value={s ? formatNumber(s.active) : <StatSkeleton />}>
-            {s && <p>{formatNumber(s.inactive)} {tr('inactive ·')} {formatNumber(s.locked)} {tr('locked')}</p>}
-          </Stat>
-          <Stat label={tr('Signed in, 7 days')} value={s ? formatNumber(s.active7d) : <StatSkeleton />}>
-            {s && <p>{formatNumber(s.neverSignedIn)} {tr('never signed in')}</p>}
-          </Stat>
-          <Stat label={tr('Branches covered')} value={s ? formatNumber(s.branchesCovered) : <StatSkeleton />}>
-            {s && <p>{tr('of')} {formatNumber(branches.filter(b => b.count > 0).length)} {tr('branches with recent sales')}</p>}
-          </Stat>
-          <Stat label={tr('Without branch')} value={s ? formatNumber(s.withoutBranch) : <StatSkeleton />}>
-            {s && <p>{s.withoutBranch ? tr('role User sees no data until assigned') : tr('every User has a branch')}</p>}
-          </Stat>
-        </StatStrip>
 
         <div className="space-y-4 p-4 sm:p-6">
+          <StatStrip label={tr('User summary')} columns={5}>
+            <Stat label={tr('Users')} value={s ? formatNumber(s.total) : <StatSkeleton />}>
+              {s && <p>{formatNumber(s.superadmins)} {tr('super admin ·')} {formatNumber(s.users)} {tr('user')}</p>}
+            </Stat>
+            <Stat label={tr('Active')} emphasis value={s ? formatNumber(s.active) : <StatSkeleton />}>
+              {s && <p>{formatNumber(s.inactive)} {tr('inactive ·')} {formatNumber(s.locked)} {tr('locked')}</p>}
+            </Stat>
+            <Stat label={tr('Signed in, 7 days')} value={s ? formatNumber(s.active7d) : <StatSkeleton />}>
+              {s && <p>{formatNumber(s.neverSignedIn)} {tr('never signed in')}</p>}
+            </Stat>
+            <Stat label={tr('Branches covered')} value={s ? formatNumber(s.branchesCovered) : <StatSkeleton />}>
+              {s && <p>{tr('of')} {formatNumber(branches.filter(b => b.count > 0).length)} {tr('branches with recent sales')}</p>}
+            </Stat>
+            <Stat label={tr('Without branch')} value={s ? formatNumber(s.withoutBranch) : <StatSkeleton />}>
+              {s && <p>{s.withoutBranch ? tr('role User sees no data until assigned') : tr('every User has a branch')}</p>}
+            </Stat>
+          </StatStrip>
           <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="space-y-3 border-b border-slate-200 p-3 sm:p-4">
               <div className="flex gap-2">

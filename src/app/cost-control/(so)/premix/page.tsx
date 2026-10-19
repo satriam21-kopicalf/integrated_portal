@@ -6,7 +6,7 @@
 
 import { Calculator, Download, FileSpreadsheet, FlaskConical, Plus, RotateCcw, Search, Upload } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, SkeletonRows, fmtNumber, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, SkeletonRows, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import RecipeDrawer from "@/so/features/premix/RecipeDrawer";
@@ -204,6 +204,7 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
   const facilities = Array.from(new Set(all.flatMap(r => r.facility_types)));
   const shown = all.filter(r => (!q.trim() || `${r.name} ${r.code}`.toLowerCase().includes(q.trim().toLowerCase()))
     && (!f.status || recipeStatus(r) === f.status) && (!f.type || r.recipe_type === f.type) && (!f.facility || r.facility_types.includes(f.facility)));
+  const paged = usePaged(shown, shown.length + q);
   const chips: ActiveFilter[] = [
     ...(f.status ? [{ key: "s", label: RSTATUS[f.status](), onRemove: () => setF({ ...f, status: "" }) }] : []),
     ...(f.type ? [{ key: "t", label: f.type, onRemove: () => setF({ ...f, type: "" }) }] : []),
@@ -211,7 +212,7 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
   ];
   return (
     <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search recipe")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(RF_EMPTY)} />}
-      footer={recipes ? <span>{tr("{0} of {1} shown", shown.length, all.length)}</span> : undefined}>
+      footer={recipes ? <><span>{tr("{0} of {1} shown", shown.length, all.length)}</span><PageNav paged={paged} /></> : undefined}>
       {sheet && <RecipeFilters value={f} types={types} facilities={facilities} onClose={() => setSheet(false)} onApply={v => { setF(v); setSheet(false); }} />}
       {recipes && !recipes.length ? (
         <Empty icon={<FlaskConical size={28} />} title={tr("No WIP recipes yet")}>{tr("Import the calculator workbook to start.")}</Empty>
@@ -225,7 +226,7 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
                 <th className="px-4 py-2.5 text-right">{tr("Components")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {recipes === null ? <SkeletonRows cols={5} /> : shown.map(r => {
+              {recipes === null ? <SkeletonRows cols={5} /> : paged.rows.map(r => {
                 const errors = r.active?.issues.filter(i => i.level === "error").length ?? 0;
                 const warnings = r.active?.issues.filter(i => i.level === "warning") ?? [];
                 return (

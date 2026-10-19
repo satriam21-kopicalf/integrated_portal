@@ -9,7 +9,7 @@
 import { ArrowDown, ArrowUp, BarChart3, Pencil, Store } from "lucide-react";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, ErrorState, Field, Input, Page, Panel, SkeletonRows, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, cx, ErrorState, Field, Input, Page, Panel, SkeletonRows, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import Dialog from "@/so/ui/Dialog";
@@ -144,6 +144,7 @@ export default function RatioPage() {
         return (x < y ? -1 : x > y ? 1 : 0) * (sort.desc ? -1 : 1);
       });
   }, [data, q, sort, watch, cogsKey]);
+  const paged = usePaged(rows, rows.length + q + JSON.stringify(sort) + JSON.stringify(watch));
 
   const saveMdr = async (row: Row, value: string) => {
     const pct = value.trim() === "" ? null : Number(value.replace(",", "."));
@@ -202,7 +203,7 @@ export default function RatioPage() {
           <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)}
             extra={<BasisSwitch value={basis} onChange={setBasis} />}
             onClear={() => { const d = new Date(new Date().getFullYear(), new Date().getMonth(), 1); setMonth(d); setRange(presets(d).at(-1)!); setWatch({ cogs: "", so: "" }); }} />}
-            footer={<span>{data ? tr("SO awal {0}, SO akhir {1}", dmy(data.period.soStart), dmy(data.period.soEnd)) : ""}{" · "}{basis === "gross" ? tr("Ratios on gross sales (subtotal)") : tr("Ratios on net sales")}{" · "}{tr("Net = Pendapatan (gross × (1 − MDR)) when the MDR is filled in, otherwise ESB nett sales")}{data ? ` · ${tr("{0} of {1} shown", rows.length, data.outlets.length)}` : ""}</span>}>
+            footer={<><span>{data ? tr("SO awal {0}, SO akhir {1}", dmy(data.period.soStart), dmy(data.period.soEnd)) : ""}{" · "}{basis === "gross" ? tr("Ratios on gross sales (subtotal)") : tr("Ratios on net sales")}{" · "}{tr("Net = Pendapatan (gross × (1 − MDR)) when the MDR is filled in, otherwise ESB nett sales")}{data ? ` · ${tr("{0} of {1} shown", rows.length, data.outlets.length)}` : ""}</span><PageNav paged={paged} /></>}>
             <div className="overflow-auto md:max-h-[70vh]">
               <table className="m-cards w-full min-w-[1600px] text-xs">
                 <thead className={cx(theadClass, "sticky top-0 z-10")}>
@@ -219,7 +220,7 @@ export default function RatioPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {!data ? <SkeletonRows cols={COLS.length + 1} /> : rows.map(r => (
+                  {!data ? <SkeletonRows cols={COLS.length + 1} /> : paged.rows.map(r => (
                     <tr key={r.branchCode} className="hover:bg-slate-50/70">
                       <td className="sticky left-0 z-[1] max-w-[15rem] bg-white px-3 py-2">
                         <span className="block truncate font-medium text-slate-900" title={r.branchName}>{r.branchName}</span>
