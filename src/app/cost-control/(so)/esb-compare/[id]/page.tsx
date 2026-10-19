@@ -76,7 +76,7 @@ export default function CompareDetail() {
             </div>
           }>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-sm">
+              <table className="m-cards w-full min-w-[760px] text-sm">
                 <thead className={theadClass}>
                   <tr><th className="px-3 py-2.5">{tr("Item")}</th><th className="px-3 py-2.5">{tr("Unit")}</th><th className="px-3 py-2.5 text-right">{tr("Platform")}</th>
                     <th className="px-3 py-2.5 text-right">{tr("ESB actual")}</th><th className="px-3 py-2.5 text-right">{tr("ESB system")}</th>

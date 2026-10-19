@@ -111,7 +111,7 @@ export default function ReportsPage() {
         onOpen={() => setSheet(true)} onClear={() => setF(DEFAULT())} />}
         footer={<span className="flex items-center gap-1.5"><FileSpreadsheet size={13} /> {tr("Sheets: Stock Opname · Summary · WIP premix{0} · dates as 14/09/2026 · qty with two decimals", f.perBranch ? ` · ${tr("one per branch")}` : "")}</span>}>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px] text-sm">
+          <table className="m-cards w-full min-w-[600px] text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Date")}</th><th className="px-4 py-2.5">{tr("Branch")}</th>
               <th className="px-4 py-2.5">{tr("Count type")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
             <tbody className="divide-y divide-slate-100">

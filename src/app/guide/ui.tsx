@@ -32,7 +32,7 @@ export function Note({ tone = 'info', children }: { tone?: 'info' | 'warn'; chil
 export function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200">
-      <table className="w-full min-w-[520px] text-sm">
+      <table className="m-cards w-full min-w-[520px] text-sm">
         <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
           <tr>{head.map(h => <th key={h} className="px-3 py-2">{h}</th>)}</tr>
         </thead>

@@ -228,7 +228,7 @@ function ComponentTable({ lines, batch, editable, onChange, onRemove }: {
   if (!lines.length) return <p className="rounded-lg border border-dashed border-slate-200 py-6 text-center text-sm text-slate-400">{tr("No components yet")}</p>;
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200">
-      <table className="w-full min-w-[640px] text-sm">
+      <table className="m-cards w-full min-w-[640px] text-sm">
         <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
           <tr><th className="px-3 py-2">{tr("Component")}</th><th className="px-3 py-2">{tr("Stock item")}</th>
             <th className="w-28 px-3 py-2 text-right">{tr("Grams / batch")}</th><th className="w-16 px-3 py-2 text-right">%</th>{editable && <th className="w-10" />}</tr>

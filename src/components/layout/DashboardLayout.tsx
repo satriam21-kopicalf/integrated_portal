@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { BookOpen, Menu } from 'lucide-react';
 import Sidebar, { Brand } from './Sidebar';
+import TableCards from './TableCards';
 import { canAccess, useAuth } from '@/lib/auth';
 import { tr } from '@/lib/i18n';
 
@@ -64,6 +65,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         <main className="min-w-0 flex-1 overflow-auto">{children}</main>
+        <TableCards />
       </div>
     </div>
   );

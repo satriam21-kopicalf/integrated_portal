@@ -105,7 +105,7 @@ export default function LocationsPage() {
         footer={rows ? <span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))} · {tr("Every change is recorded in the audit log")}</span> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
+            <table className="m-cards w-full min-w-[820px] text-sm">
               <thead className={theadClass}>
                 <tr>
                   <th className="px-4 py-2.5">{tr("Facility")}</th>

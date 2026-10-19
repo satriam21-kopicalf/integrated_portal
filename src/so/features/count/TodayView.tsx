@@ -34,7 +34,7 @@ function Clock24() {
   }, []);
   if (!now) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold tabular-nums text-slate-700">
+    <span className="inline-flex items-center gap-1.5 text-lg font-semibold tabular-nums text-slate-900">
       <Clock size={14} className="text-slate-400" />
       {wibClock(now)}
     </span>
@@ -120,7 +120,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                               <p className="text-sm font-semibold text-slate-900">{countTypeLabel(c.count_type, c.name)}</p>
                               <div className="mt-1 flex flex-wrap items-center gap-1.5">
                                 <Badge tone={st.tone} dot>{st.label()}</Badge>
-                                {win && <Badge tone={win.tone} icon={<CalendarClock size={11} />}>{win.label(c)}</Badge>}
+                                {win && <Badge wrap tone={win.tone} icon={<CalendarClock size={11} />}>{win.label(c)}</Badge>}
                                 {s?.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
                               </div>
                             </div>

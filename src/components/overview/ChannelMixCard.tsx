@@ -156,7 +156,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
           <EChart option={dailyOption} height={220} ariaLabel={tr('Gross sales per channel per {0}', tr(g))} />
         </>
       )}
-      <table className="w-full whitespace-nowrap text-xs">
+      <table className="m-cards w-full whitespace-nowrap text-xs">
         <caption className="sr-only">{tr('Gross sales per channel')}</caption>
         <thead className="border-b border-slate-100 text-slate-500">
           <tr>

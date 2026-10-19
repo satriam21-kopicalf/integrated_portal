@@ -158,7 +158,7 @@ export default function ReviewDetailPage() {
         }
           footer={<span>{tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}{reviewable ? ` · ${tr("Tick lines to recount only those")}` : ""}</span>}>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-sm">
+            <table className="m-cards w-full min-w-[680px] text-sm">
               <thead className={theadClass}>
                 <tr>
                   {reviewable && <th className="w-10 px-3 py-2.5" />}

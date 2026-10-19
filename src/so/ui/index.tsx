@@ -93,11 +93,11 @@ const TONES = {
 } as const;
 export type Tone = keyof typeof TONES;
 
-export function Badge({ tone = "slate", dot, icon, title, children }: {
-  tone?: Tone; dot?: boolean; icon?: ReactNode; title?: string; children: ReactNode;
+export function Badge({ tone = "slate", dot, icon, title, wrap, children }: {
+  tone?: Tone; dot?: boolean; icon?: ReactNode; title?: string; /** long text may break onto a second line (phones) */ wrap?: boolean; children: ReactNode;
 }) {
   return (
-    <span title={title} className={cx("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold", TONES[tone])}>
+    <span title={title} className={cx("inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold", wrap ? "whitespace-normal" : "whitespace-nowrap", TONES[tone])}>
       {dot && <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />}
       {icon}
       {children}

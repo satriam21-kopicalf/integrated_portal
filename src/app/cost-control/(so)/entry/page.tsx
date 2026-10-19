@@ -196,7 +196,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
           ) : null}
           {result.branches.length === 0 ? <Empty icon={<FileSpreadsheet size={28} />} title={tr("No branch of the file was recognised")} /> : (
             <div className="overflow-x-auto rounded-lg border border-slate-200">
-              <table className="w-full min-w-[560px] text-sm">
+              <table className="m-cards w-full min-w-[560px] text-sm">
                 <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Rows")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Items with quantity")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">

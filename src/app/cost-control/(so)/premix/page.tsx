@@ -126,7 +126,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
       <Panel toolbar={<div className="flex items-center gap-2"><div className="flex-1"><SearchBox value={q} onChange={setQ} placeholder={tr("Search WIP")} /></div>
         {entries.length > 0 && <Button variant="secondary" onClick={() => setQty({})}><RotateCcw size={15} /> {tr("Clear")}</Button>}</div>}>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
+          <table className="m-cards w-full min-w-[520px] text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("WIP")}</th><th className="px-4 py-2.5">{tr("Quantity per unit")}</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
               {recipes === null ? <SkeletonRows cols={2} /> : shown.map(r => (
@@ -219,7 +219,7 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
         <Empty icon={<Search size={28} />} title={tr("Nothing matches the search or filters")} />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="m-cards w-full min-w-[720px] text-sm">
             <thead className={theadClass}>
               <tr><th className="px-4 py-2.5">{tr("Recipe")}</th><th className="px-4 py-2.5">{tr("Units")}</th><th className="px-4 py-2.5 text-right">{tr("Batch")}</th>
                 <th className="px-4 py-2.5 text-right">{tr("Components")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr>
@@ -345,7 +345,7 @@ function ImportTab({ onDone }: { onDone: () => void }) {
             </div>
           )}
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="m-cards w-full min-w-[640px] text-sm">
               <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Recipe")}</th><th className="px-4 py-2.5">{tr("Result")}</th>
                 <th className="px-4 py-2.5 text-right">{tr("Batch")}</th><th className="px-4 py-2.5">{tr("Notes")}</th></tr></thead>
               <tbody className="divide-y divide-slate-100">

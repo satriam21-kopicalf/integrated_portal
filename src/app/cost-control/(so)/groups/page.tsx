@@ -104,7 +104,7 @@ export default function GroupsPage() {
           </Empty>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
+            <table className="m-cards w-full min-w-[560px] text-sm">
               <thead className={theadClass}>
                 <tr><th className="px-4 py-2.5">{tr("Group")}</th><th className="px-4 py-2.5 text-right">{tr("Items")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Used by lists")}</th><th className="px-4 py-2.5">{tr("Updated")}</th></tr>
@@ -585,7 +585,7 @@ function ImportTemplateDrawer({ onClose, onDone }: { onClose: () => void; onDone
               {tr("{0} codes not in the item master, {1} units the item does not have.", report.pending_codes.length, report.unit_gaps)}
             </p>
             <div className="overflow-x-auto rounded-lg border border-slate-200">
-              <table className="w-full min-w-[620px] text-sm">
+              <table className="m-cards w-full min-w-[620px] text-sm">
                 <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Sheet / group")}</th><th className="px-3 py-2 text-right">{tr("Rows")}</th>
                   <th className="px-3 py-2 text-right">{tr("Items")}</th><th className="px-3 py-2">{tr("Not in the item master")}</th><th className="px-3 py-2">{tr("Unit missing")}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">

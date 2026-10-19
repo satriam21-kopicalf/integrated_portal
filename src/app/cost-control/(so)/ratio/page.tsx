@@ -203,8 +203,8 @@ export default function RatioPage() {
             extra={<BasisSwitch value={basis} onChange={setBasis} />}
             onClear={() => { const d = new Date(new Date().getFullYear(), new Date().getMonth(), 1); setMonth(d); setRange(presets(d).at(-1)!); setWatch({ cogs: "", so: "" }); }} />}
             footer={<span>{data ? tr("SO awal {0}, SO akhir {1}", dmy(data.period.soStart), dmy(data.period.soEnd)) : ""}{" · "}{basis === "gross" ? tr("Ratios on gross sales (subtotal)") : tr("Ratios on net sales")}{" · "}{tr("Net = Pendapatan (gross × (1 − MDR)) when the MDR is filled in, otherwise ESB nett sales")}{data ? ` · ${tr("{0} of {1} shown", rows.length, data.outlets.length)}` : ""}</span>}>
-            <div className="max-h-[70vh] overflow-auto">
-              <table className="w-full min-w-[1600px] text-xs">
+            <div className="overflow-auto md:max-h-[70vh]">
+              <table className="m-cards w-full min-w-[1600px] text-xs">
                 <thead className={cx(theadClass, "sticky top-0 z-10")}>
                   <tr>
                     <th className="sticky left-0 z-20 bg-slate-50 px-3 py-2.5">{tr("Outlet")}</th>

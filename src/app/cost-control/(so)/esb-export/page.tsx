@@ -84,7 +84,7 @@ export default function EsbExportPage() {
           <Empty icon={<FileSpreadsheet size={28} />} title={tr("Nothing waiting for export")}>{tr("Only approved counts of the chosen day and type are exported.")}</Empty>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
+            <table className="m-cards w-full min-w-[560px] text-sm">
               <thead className={theadClass}>
                 <tr>
                   <th className="w-10 px-4 py-2.5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={all} aria-label={tr("Select all shown")}

@@ -73,7 +73,7 @@ export default function ComparePage() {
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[760px] text-sm">
+              <table className="m-cards w-full min-w-[760px] text-sm">
                 <thead className={theadClass}>
                   <tr><th className="px-4 py-2.5">{tr("Facility")}</th><th className="px-4 py-2.5">{tr("Count")}</th><th className="px-4 py-2.5">{tr("ESB document")}</th>
                     <th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5 text-right">{tr("Differences")}</th><th className="px-4 py-2.5 text-right">{tr("Variance value")}</th></tr>

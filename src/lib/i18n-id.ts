@@ -2812,4 +2812,9 @@ export const ID: Record<string, string> = {
   "Your face must be clearly visible; it is checked automatically": "Wajah harus terlihat jelas; diperiksa otomatis",
   "e.g. the purpose of the visit": "mis. tujuan kunjungan",
   "Server time when sent": "Waktu server saat dikirim",
+  "No coordinates": "Belum ada koordinat",
+  "visit time is the server time when sent": "waktu kunjungan = waktu server saat dikirim",
+  "Steps": "Langkah",
+  "Accuracy": "Akurasi",
+  "optional": "opsional",
 };
