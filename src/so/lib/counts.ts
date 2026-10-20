@@ -88,6 +88,8 @@ export type Count = {
   photo_todo: { areas: string[]; items: string[] };
   progress: { lines: number; counted: number; flagged: number };
   wip?: CountWip;
+  /** the crew's signature of the latest submit (06.9 §12.16, D-62; optional) */
+  signature?: { id: string; name: string | null; signed_at: string; signed_by_name: string | null } | null;
 };
 
 export type TodayCount = {

@@ -14,7 +14,7 @@ import { type Count, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, mapsUrl } fro
 import { locale, tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
-import { EvidenceDownloads } from "@/so/features/count/Evidence";
+import { EvidenceDownloads, SignatureCard } from "@/so/features/count/Evidence";
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -133,6 +133,8 @@ export default function ReviewDetailPage() {
             </ul>
           </Panel>
         )}
+
+        <SignatureCard count={count} />
 
         {(count.wip?.lines.length ?? 0) > 0 && (
           <Panel title={tr("WIP / premix")} description={tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>

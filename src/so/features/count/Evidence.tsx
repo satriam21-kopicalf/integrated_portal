@@ -3,7 +3,7 @@
 // Evidence of a count (2026-10-15): up to 15 photos of the count as a whole, taken with the camera at the end of the
 // count (optional), and once the count is approved the evidence as image files (ZIP) or one PDF.
 
-import { Camera, Download, FileText, Images, Loader2, X } from "lucide-react";
+import { Camera, Download, FileText, Images, Loader2, PenLine, X } from "lucide-react";
 import { useState } from "react";
 import { Button, cx, useToast } from "@/so/ui";
 import { api, errorText } from "@/so/lib/api";
@@ -25,6 +25,28 @@ async function download(url: string, name: string) {
   const href = URL.createObjectURL(await res.blob());
   Object.assign(document.createElement("a"), { href, download: name }).click();
   URL.revokeObjectURL(href);
+}
+
+/** The crew's signature of a submitted count (06.9 §12.16, D-62), when they signed. */
+export function SignatureCard({ count }: { count: Count }) {
+  const sig = count.signature;
+  if (!sig) return null;
+  return (
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
+        <PenLine size={18} className="text-slate-500" />
+        <h2 className="text-sm font-semibold text-slate-900">{tr("Signature")}</h2>
+      </div>
+      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
+        {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
+        <img src={photoUrl(sig.id)} alt={tr("Signature")} className="h-28 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-slate-200" />
+        <div className="text-sm">
+          <p className="font-semibold text-slate-900">{sig.name ?? sig.signed_by_name ?? "—"}</p>
+          <p className="text-xs text-slate-500">{wibDateTime(sig.signed_at)}{sig.signed_by_name && sig.signed_by_name !== sig.name ? ` · ${tr("account {0}", sig.signed_by_name)}` : ""}</p>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 /** ZIP / PDF buttons for an approved count. */

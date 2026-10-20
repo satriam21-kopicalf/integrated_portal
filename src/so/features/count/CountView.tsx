@@ -2,8 +2,9 @@
 
 // Count screen (06.9 §4, §9): items grouped by area, one quantity per item in its unit of the SO template (GR, PCS,
 // PACK@100PCS, ROLL@1000PCS …, 2026-10-15), every line saved when it is left, blind count (no system quantity), up to
-// 15 optional evidence photos at the end, submit with the location. After submit it is read-only; in a recount only the
-// lines marked by the reviewer can be changed (the old value stays in the history).
+// 15 optional evidence photos at the end, then a preview of everything entered with an optional signature (06.9 §12.16,
+// D-62) and submit with the location. After submit it is read-only (with the signature); in a recount only the lines
+// marked by the reviewer can be changed (the old value stays in the history).
 
 import { AlertTriangle, ArrowLeft, Check, CheckCircle2, CloudUpload, Loader2, MapPin, RotateCcw, Search, Send, X } from "lucide-react";
 import Link from "next/link";
@@ -13,7 +14,8 @@ import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
 import { type Count, type CountLine, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, parseQty } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
-import Evidence from "./Evidence";
+import Evidence, { SignatureCard } from "./Evidence";
+import SubmitPreview from "./SubmitPreview";
 import WipSection from "./WipSection";
 
 type Draft = { qty: string };
@@ -88,12 +90,13 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
       return { ...ds, [id]: next };
     });
 
-  const submit = async () => {
+  const submit = async (signature: string | null = null, signedName = "") => {
     setSubmitting(true);
     try {
       const pos = await getPosition();
       const c = await api<Count>(`/api/so/counts/${countId}/submit`, { method: "POST",
-        json: { lat: pos?.lat ?? null, lng: pos?.lng ?? null, accuracy_m: pos?.accuracy ?? null, located_at: pos?.at ?? null } });
+        json: { lat: pos?.lat ?? null, lng: pos?.lng ?? null, accuracy_m: pos?.accuracy ?? null, located_at: pos?.at ?? null,
+          signature, signed_name: signature ? signedName : null } });
       setCount(c);
       setConfirming(false);
       toast(tr("Count submitted"));
@@ -239,6 +242,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         ))}
         {shown.length === 0 && <p className="py-10 text-center text-sm text-slate-500">{tr("No item matches the search or filters")}</p>}
         {(crew || count.photos.length > 0) && <Evidence count={count} open={open} onChange={setCount} />}
+        {!open && <SignatureCard count={count} />}
       </div>
 
       {open && (
@@ -250,14 +254,18 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                 {wipDirty ? tr("Save the WIP first") : todo ? tr("Enter 0 for items that are not there") : tr("Everything is counted")}
               </p>
             </div>
-            <Button disabled={todo > 0 || busy || wipDirty} onClick={() => setConfirming(true)}><Send size={16} /> {tr("Submit")}</Button>
+            <Button disabled={todo > 0 || busy || wipDirty} onClick={() => setConfirming(true)}><Send size={16} /> {crew ? tr("Review & submit") : tr("Submit")}</Button>
           </div>
         </div>
       )}
-      <ConfirmDialog open={confirming} busy={submitting} onClose={() => setConfirming(false)} onConfirm={submit}
-        title={tr("Submit the count?")} description={crew ? tr("After submitting, the quantities are locked and sent to Cost Control for review. Your location is recorded.")
-          : tr("After submitting, the quantities are locked and go to Review. Another Cost Control member approves them.")}
-        confirmLabel={tr("Submit")} />
+      {crew ? (
+        confirming && <SubmitPreview count={count} open busy={submitting} onClose={() => setConfirming(false)}
+          onSubmit={(signature, name) => void submit(signature, name)} />
+      ) : (
+        <ConfirmDialog open={confirming} busy={submitting} onClose={() => setConfirming(false)} onConfirm={() => void submit()}
+          title={tr("Submit the count?")} description={tr("After submitting, the quantities are locked and go to Review. Another Cost Control member approves them.")}
+          confirmLabel={tr("Submit")} />
+      )}
     </div>
   );
 }
