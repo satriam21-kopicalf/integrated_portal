@@ -5,7 +5,7 @@
 // and its ESB purpose. Quick setups fill the usual schedules in one tap. A month calendar
 // shows the schedule the server computes from these rules; the editor previews an unsaved schedule live.
 
-import { CalendarClock, CalendarDays, Clock, Plus, Save } from "lucide-react";
+import { CalendarClock, CalendarDays, CalendarRange, ChevronRight, Clock, FlaskConical, ListChecks, Plus, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Checkbox, cx, ErrorState, Field, Input, Page, Panel, fmtNumber, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
@@ -112,7 +112,7 @@ export default function TypesPage() {
     <Page title={tr("Count types")} subtitle={tr("Name, schedule and count window of each stock opname; the calendar follows automatically")}
       actions={<Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New count type")}</Button>}
       stats={
-        <StatStrip label={tr("Summary")} columns={4}>
+        <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Active count types")} icon={<CalendarDays size={13} />} value={rows ? fmtNumber(all.filter((t) => t.is_active).length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} in total", fmtNumber(all.length))}</p>}
           </Stat>
@@ -129,6 +129,14 @@ export default function TypesPage() {
       }>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <div className="space-y-5">
+          <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setTf({ status: "", frequency: "" })} />
+          {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">{tr("Nothing matches the search or filters")}</p>}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-64 rounded-xl" />) : paged.rows.map((t) => (
+              <TypeCard key={t.code} t={t} color={colorOf(t.code)} onOpen={() => setOpen(t)} />
+            ))}
+          </div>
+          <div className="flex justify-end text-xs text-slate-500 empty:hidden"><PageNav paged={paged} /></div>
           <Panel>
             <div className="p-4">
               <MonthCalendar month={month} days={calendar} colorOf={colorOf} labelOf={labelOf} onMonth={setMonth} />
@@ -136,47 +144,6 @@ export default function TypesPage() {
                 {tr("Dates and windows follow the count types; a branch can have its own day or window (count lists).")}</p>
             </div>
           </Panel>
-          <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setTf({ status: "", frequency: "" })} />
-          <div className="flex justify-end text-xs text-slate-500 empty:hidden"><PageNav paged={paged} /></div>
-          {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">{tr("Nothing matches the search or filters")}</p>}
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-28 rounded-xl" />) : paged.rows.map((t) => (
-              <button key={t.code} type="button" onClick={() => setOpen(t)}
-                className={cx("block w-full rounded-xl border bg-white p-4 text-left shadow-sm transition hover:border-blue-300 hover:shadow",
-                  t.is_active ? "border-slate-200" : "border-dashed border-slate-300 opacity-70")}>
-                <span className="flex items-start gap-3">
-                  <span className={cx("mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full", colorOf(t.code))} />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold text-slate-900">{countTypeLabel(t.code, t.name)}</span>
-                      {!t.is_active && <Badge>{tr("Inactive")}</Badge>}
-                    </span>
-                    <span className="mt-1 flex items-center gap-1.5 text-sm text-slate-700"><CalendarDays size={14} className="text-slate-400" /> {scheduleText(t)}</span>
-                    {t.frequency !== "ADHOC" && (
-                      <span className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-700"><Clock size={14} className="text-slate-400" /> {windowText(t.window_start, t.window_end)}</span>
-                    )}
-                    {(t.valid_from || t.valid_to) && (
-                      <span className="mt-0.5 block text-xs text-slate-500">
-                        {t.valid_from ? tr("From {0}", fmtDate(t.valid_from)) : ""}{t.valid_from && t.valid_to ? " · " : ""}{t.valid_to ? tr("until {0}", fmtDate(t.valid_to)) : ""}
-                      </span>
-                    )}
-                    {t.next_dates.length > 0 && (
-                      <span className="mt-2 flex flex-wrap gap-1">
-                        {t.next_dates.slice(0, 3).map((d) => (
-                          <span key={d} className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">
-                            {fmtDate(d)}{t.period_days > 1 ? ` – ${fmtDate(new Date(Date.parse(`${d}T12:00:00Z`) + (t.period_days - 1) * 864e5).toISOString().slice(0, 10))}` : ""}
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                    <span className="mt-2 block text-[11px] text-slate-400">
-                      <span className="font-mono">{t.code}</span> · {tr("{0} lists", t.lists)}{t.overrides ? ` · ${tr("{0} branch overrides", t.overrides)}` : ""}{t.esb_purpose ? ` · ${t.esb_purpose}` : ""}{t.wip_enabled ? ` · ${tr("WIP form")}` : ""}
-                    </span>
-                  </span>
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
       )}
       {sheet && <TypeFilters value={tf} onClose={() => setSheet(false)} onApply={(v) => { setTf(v); setSheet(false); }} />}
@@ -185,6 +152,67 @@ export default function TypesPage() {
           onSaved={() => { setOpen(null); void load(); void loadCalendar(); void reloadCountTypeNames(); }} />
       )}
     </Page>
+  );
+}
+
+const FREQ_TONE: Record<Frequency, string> = {
+  DAILY: "bg-sky-50 text-sky-700", WEEKLY: "bg-emerald-50 text-emerald-700", MONTHLY: "bg-amber-50 text-amber-700",
+  DATES: "bg-violet-50 text-violet-700", ADHOC: "bg-slate-100 text-slate-600",
+};
+
+/** One count type: what it is, when it is due, its window and validity, the next dates, then lists / WIP / ESB. */
+function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: () => void }) {
+  const end = (d: string) => fmtDate(new Date(Date.parse(`${d}T12:00:00Z`) + (t.period_days - 1) * 864e5).toISOString().slice(0, 10));
+  const validity = t.valid_from || t.valid_to
+    ? `${t.valid_from ? fmtDate(t.valid_from) : tr("now")} – ${t.valid_to ? fmtDate(t.valid_to) : tr("no end")}` : tr("Always");
+  return (
+    <button type="button" onClick={onOpen}
+      className={cx("group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:border-blue-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+        t.is_active ? "border-slate-200" : "border-dashed border-slate-300 bg-slate-50/60")}>
+      <span className={cx("h-1 w-full", t.is_active ? color : "bg-slate-300")} aria-hidden />
+      <span className="flex items-start gap-3 px-4 pb-3 pt-3.5">
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-base font-semibold text-slate-900 group-hover:text-blue-700" title={countTypeLabel(t.code, t.name)}>{countTypeLabel(t.code, t.name)}</span>
+          <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className={cx("rounded-full px-2 py-0.5 text-[11px] font-semibold", FREQ_TONE[t.frequency])}>{FREQUENCIES.find((f) => f.key === t.frequency)?.label()}</span>
+            {t.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}
+          </span>
+        </span>
+        <ChevronRight size={18} className="mt-0.5 flex-shrink-0 text-slate-300 transition-colors group-hover:text-blue-600" aria-hidden />
+      </span>
+      <span className="mx-4 block divide-y divide-slate-100 rounded-lg border border-slate-100 text-sm">
+        <Row icon={<CalendarDays size={14} />} k={tr("Schedule")} v={scheduleText(t)} />
+        <Row icon={<Clock size={14} />} k={tr("Count window")} v={t.frequency === "ADHOC" ? tr("Any time") : windowText(t.window_start, t.window_end)} />
+        <Row icon={<CalendarRange size={14} />} k={tr("Valid period")} v={validity} />
+      </span>
+      <span className="block px-4 pt-3">
+        <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Next")}</span>
+        <span className="mt-1.5 flex min-h-[1.5rem] flex-wrap gap-1">
+          {t.next_dates.length === 0 ? <span className="text-xs text-slate-400">{t.frequency === "ADHOC" ? tr("Started when needed") : tr("Nothing scheduled")}</span>
+            : t.next_dates.slice(0, 3).map((d) => (
+              <span key={d} className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">{fmtDate(d)}{t.period_days > 1 ? ` – ${end(d)}` : ""}</span>
+            ))}
+        </span>
+      </span>
+      <span className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[11px] text-slate-500">
+        <span className="inline-flex items-center gap-1" title={t.overrides ? tr("{0} branch overrides", t.overrides) : undefined}><ListChecks size={12} /> {tr("{0} lists", t.lists)}</span>
+        {t.wip_enabled && <span className="inline-flex items-center gap-1 text-violet-700"><FlaskConical size={12} /> {tr("WIP form")}</span>}
+        <span className="ml-auto max-w-full truncate font-mono text-slate-400" title={t.esb_purpose ?? undefined}>{t.code}</span>
+        {t.esb_purpose && <span className="w-full truncate text-slate-400" title={t.esb_purpose}>ESB: {t.esb_purpose}</span>}
+      </span>
+    </button>
+  );
+}
+
+function Row({ icon, k, v }: { icon: React.ReactNode; k: string; v: string }) {
+  return (
+    <span className="flex items-start gap-2 px-3 py-2">
+      <span className="mt-0.5 text-slate-400">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[11px] text-slate-500">{k}</span>
+        <span className="block text-[13px] font-medium leading-snug text-slate-800">{v}</span>
+      </span>
+    </span>
   );
 }
 
