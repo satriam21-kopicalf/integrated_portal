@@ -5,12 +5,12 @@
 // and its ESB purpose. Quick setups fill the usual schedules in one tap. A month calendar
 // shows the schedule the server computes from these rules; the editor previews an unsaved schedule live.
 
-import { CalendarClock, CalendarDays, CalendarRange, ChevronRight, Clock, FlaskConical, ListChecks, Plus, Save } from "lucide-react";
+import { CalendarClock, CalendarDays, CalendarRange, ChevronDown, ChevronRight, Clock, FlaskConical, ListChecks, Plus, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Checkbox, cx, ErrorState, Field, Input, Page, Panel, fmtNumber, useToast, PageNav, usePaged } from "@/so/ui";
-import Drawer, { DrawerSection } from "@/so/ui/Drawer";
+import { Badge, Button, cx, ErrorState, Field, Input, Page, Panel, fmtNumber, useToast, PageNav, usePaged } from "@/so/ui";
+import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
+import { FilterBar, FilterPill, FormCard, Segmented, Switch } from "@/so/ui/Simple";
 import MonthCalendar, { CalendarDay, gridStart, iso, TYPE_COLORS } from "@/so/features/schedule/MonthCalendar";
 import { reloadCountTypeNames } from "@/so/features/CountTypeNames";
 import { api, errorText } from "@/so/lib/api";
@@ -76,7 +76,6 @@ export default function TypesPage() {
   const [calendar, setCalendar] = useState<CalendarDay[] | undefined>();
   const [q, setQ] = useState("");
   const [tf, setTf] = useState<{ status: string; frequency: string }>({ status: "", frequency: "" });
-  const [sheet, setSheet] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -103,10 +102,6 @@ export default function TypesPage() {
   const next = all.filter((t) => t.is_active && t.next_dates.length).map((t) => ({ t, d: t.next_dates[0] })).sort((a, b) => a.d.localeCompare(b.d))[0];
   const monthKey = wibDate().slice(0, 7);
   const thisMonth = (calendar ?? []).filter((d) => d.date.startsWith(monthKey)).reduce((a, d) => a + d.counts.length, 0);
-  const chips: ActiveFilter[] = [
-    ...(tf.status ? [{ key: "s", label: tf.status === "active" ? tr("Active") : tr("Inactive"), onRemove: () => setTf({ ...tf, status: "" }) }] : []),
-    ...(tf.frequency ? [{ key: "f", label: FREQUENCIES.find((x) => x.key === tf.frequency)?.label() ?? tf.frequency, onRemove: () => setTf({ ...tf, frequency: "" }) }] : []),
-  ];
 
   return (
     <Page title={tr("Count types")} subtitle={tr("Name, schedule and count window of each stock opname; the calendar follows automatically")}
@@ -129,7 +124,13 @@ export default function TypesPage() {
       }>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <div className="space-y-5">
-          <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setTf({ status: "", frequency: "" })} />
+          <FilterBar search={q} onSearch={setQ} placeholder={tr("Search count type")} active={!!(tf.status || tf.frequency || q)}
+            onReset={() => { setTf({ status: "", frequency: "" }); setQ(""); }}>
+            <FilterPill label={tr("Status")} value={tf.status} onChange={(v) => setTf({ ...tf, status: v })}
+              options={[{ value: "active", label: tr("Active") }, { value: "inactive", label: tr("Inactive") }]} />
+            <FilterPill label={tr("Frequency")} value={tf.frequency} onChange={(v) => setTf({ ...tf, frequency: v })}
+              options={FREQUENCIES.map((f) => ({ value: f.key, label: f.label() }))} />
+          </FilterBar>
           {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">{tr("Nothing matches the search or filters")}</p>}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-64 rounded-xl" />) : paged.rows.map((t) => (
@@ -146,7 +147,6 @@ export default function TypesPage() {
           </Panel>
         </div>
       )}
-      {sheet && <TypeFilters value={tf} onClose={() => setSheet(false)} onApply={(v) => { setTf(v); setSheet(false); }} />}
       {open && (
         <TypeDrawer type={open === "new" ? null : open} onClose={() => setOpen(null)}
           onSaved={() => { setOpen(null); void load(); void loadCalendar(); void reloadCountTypeNames(); }} />
@@ -216,23 +216,7 @@ function Row({ icon, k, v }: { icon: React.ReactNode; k: string; v: string }) {
   );
 }
 
-function TypeFilters({ value, onApply, onClose }: {
-  value: { status: string; frequency: string }; onApply: (v: { status: string; frequency: string }) => void; onClose: () => void;
-}) {
-  const [d, setD] = useState(value);
-  return (
-    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ status: "", frequency: "" })}>
-      <FilterSection title={tr("Status")}>
-        <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "active", label: tr("Active") }, { value: "inactive", label: tr("Inactive") }]} />
-      </FilterSection>
-      <FilterSection title={tr("Frequency")}>
-        <ChoiceGroup label="" value={d.frequency} onChange={(v) => setD({ ...d, frequency: v })}
-          choices={[{ value: "", label: tr("All") }, ...FREQUENCIES.map((f) => ({ value: f.key, label: f.label() }))]} />
-      </FilterSection>
-    </FilterSheet>
-  );
-}
+const QUICK_KEYS = ["", ...QUICK.map((_, i) => String(i))];
 
 function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
@@ -244,10 +228,12 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   });
   const [code, setCode] = useState(type?.code ?? "");
   const [codeTouched, setCodeTouched] = useState(false);
+  const [editCode, setEditCode] = useState(false);
   const [preview, setPreview] = useState<string[] | null>(null);
   const [previewError, setPreviewError] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [more, setMore] = useState(!!(type && (type.valid_from || type.valid_to)));
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((o) => ({ ...o, [k]: v }));
   const [month, setMonth] = useState(() => wibMonthStart());
 
@@ -279,7 +265,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
     return out;
   }, [preview, d.period_days]);
   const pickDate = (day: string) => set("dates", d.dates.includes(day) ? d.dates.filter((x) => x !== day) : [...d.dates, day].sort());
-  const upcoming = (preview ?? []).filter((x) => x >= wibDate()).slice(0, 6);
+  const upcoming = (preview ?? []).filter((x) => x >= wibDate()).slice(0, 4);
 
   // no days = every day: tapping a day then leaves it out; a schedule keeps at least one day
   const toggleDay = (n: number) => {
@@ -296,7 +282,6 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
         method: "PUT",
         json: { name: d.name.trim(), ...rule, window_start: d.window_start, window_end: d.window_end,
                 esb_purpose: d.esb_purpose || null, sort: Number(d.sort) || 0, is_active: d.is_active, wip_enabled: d.wip_enabled },
-        // period_days is part of the rule
       });
       toast(creating ? tr("Count type created") : tr("Count type saved"));
       onSaved();
@@ -307,82 +292,99 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
     }
   };
 
-  const chip = (on: boolean) => cx("rounded-lg border px-2.5 py-1.5 text-sm font-medium transition-colors",
-    on ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300");
+  const dayBtn = (on: boolean) => cx("h-9 rounded-lg border text-sm font-medium transition-colors",
+    on ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300");
+  const windowPreset = WINDOWS.findIndex(([a, b]) => d.window_start === a && d.window_end === b);
+  const summary = scheduleText({ ...d, weekday: d.weekday });
 
   return (
     <Drawer open onClose={onClose} size="lg" icon={<CalendarDays size={18} />}
-      title={creating ? tr("New count type") : countTypeLabel(type.code, type.name)} description={creating ? tr("Name it, then choose when it is due") : type.code}
-      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
-        <Button loading={busy} disabled={!d.name.trim()} onClick={save}><Save size={16} /> {creating ? tr("Create") : tr("Save")}</Button></>}>
-      <div className="space-y-6">
-        <DrawerSection title={tr("Name")}>
-          <Field label={tr("Name shown to staff and Cost Control")} required>
-            <Input value={d.name} onChange={(e) => { set("name", e.target.value); if (creating && !codeTouched) setCode(slug(e.target.value)); }}
+      title={creating ? tr("New count type") : countTypeLabel(type.code, type.name)}
+      description={creating ? tr("Name it, choose when it is due and its count window") : type.code}
+      footer={<>
+        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-red-600">{error}</p>}
+        <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
+        <Button loading={busy} disabled={!d.name.trim() || (d.frequency === "DATES" && !d.dates.length)} onClick={save}>
+          <Save size={16} /> {creating ? tr("Create count type") : tr("Save changes")}
+        </Button>
+      </>}>
+      <div className="space-y-4">
+        {/* what the staff will see */}
+        <section className="rounded-xl bg-slate-900 p-4 text-white">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Summary")}</p>
+          <p className="mt-1 truncate text-lg font-semibold">{d.name.trim() || tr("Untitled count type")}</p>
+          <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-200">
+            <span className="inline-flex items-center gap-1.5"><CalendarDays size={14} className="text-slate-400" />{summary}</span>
+            {d.frequency !== "ADHOC" && <span className="inline-flex items-center gap-1.5"><Clock size={14} className="text-slate-400" />{windowText(d.window_start, d.window_end)}</span>}
+          </p>
+          {upcoming.length > 0 && (
+            <p className="mt-3 flex flex-wrap gap-1.5">
+              {upcoming.map((x) => <span key={x} className="rounded-md bg-white/10 px-2 py-0.5 text-xs">{fmtDate(x)}</span>)}
+            </p>
+          )}
+          <p className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
+            <span className={cx("rounded-full px-2 py-0.5 font-semibold", d.is_active ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-slate-300")}>{d.is_active ? tr("Active") : tr("Inactive")}</span>
+            {d.wip_enabled && <span className="rounded-full bg-violet-500/20 px-2 py-0.5 font-semibold text-violet-200">{tr("WIP form")}</span>}
+          </p>
+        </section>
+
+        <FormCard n={1} title={tr("Name")} hint={tr("Shown to the staff on the stock opname screen and to Cost Control")}>
+          <Field label={tr("Count type name")} required>
+            <Input value={d.name} autoFocus={creating} onChange={(e) => { set("name", e.target.value); if (creating && !codeTouched) setCode(slug(e.target.value)); }}
               placeholder={tr("e.g. SO Mingguan Bahan Baku")} />
           </Field>
-          {creating && (
-            <Field label={tr("Code")} hint={tr("Made from the name; capital letters, digits and _")}>
+          {creating && (editCode ? (
+            <Field label={tr("Code")} hint={tr("Capital letters, digits and _")}>
               <Input value={code} onChange={(e) => { setCodeTouched(true); setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")); }} className="font-mono" />
             </Field>
-          )}
-        </DrawerSection>
+          ) : (
+            <p className="text-xs text-slate-500">{tr("Code")}: <span className="font-mono text-slate-700">{code || "—"}</span>
+              <button type="button" onClick={() => setEditCode(true)} className="ml-2 font-medium text-blue-700 hover:underline">{tr("Edit code")}</button></p>
+          ))}
+        </FormCard>
 
-        <DrawerSection title={tr("Schedule")}>
-          <div>
-            <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Quick setup")}</p>
-            <div className="flex flex-wrap gap-1.5">
-              {QUICK.map((q) => (
-                <button key={q.label()} type="button" onClick={() => setD((o) => ({ ...o, ...q.set }))}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50">{q.label()}</button>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Frequency")}>
-            {FREQUENCIES.map((f) => (
-              <button key={f.key} type="button" role="radio" aria-checked={d.frequency === f.key} className={chip(d.frequency === f.key)}
-                onClick={() => set("frequency", f.key)}>{f.label()}</button>
-            ))}
-          </div>
+        <FormCard n={2} title={tr("Schedule")} hint={tr("When the branches have to count")}
+          aside={(
+            <select value="" aria-label={tr("Quick setup")} onChange={(e) => { const q = QUICK[Number(e.target.value)]; if (q) setD((o) => ({ ...o, ...q.set })); }}
+              className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600">
+              {QUICK_KEYS.map((k) => <option key={k || "x"} value={k}>{k === "" ? tr("Quick setup…") : QUICK[Number(k)].label()}</option>)}
+            </select>
+          )}>
+          <Segmented label={tr("Frequency")} value={d.frequency} onChange={(v) => set("frequency", v)}
+            options={FREQUENCIES.map((f) => ({ value: f.key, label: f.label() }))} />
           {d.frequency === "DAILY" && (
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("On these days")}</p>
-              <div className="flex flex-wrap gap-1.5">
+              <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("On these days")}</p>
+              <div className="grid grid-cols-7 gap-1.5">
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                  <button key={n} type="button" className={chip(!d.days_of_week.length || d.days_of_week.includes(n))}
-                    onClick={() => toggleDay(n)}>{dayName(n, "short")}</button>
+                  <button key={n} type="button" className={dayBtn(!d.days_of_week.length || d.days_of_week.includes(n))} onClick={() => toggleDay(n)}>{dayName(n, "short")}</button>
                 ))}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-3 text-xs">
-                <button type="button" className="font-medium text-blue-700 hover:underline" onClick={() => set("days_of_week", [])}>{tr("Every day")}</button>
-                <button type="button" className="font-medium text-blue-700 hover:underline" onClick={() => set("days_of_week", [1, 2, 3, 4, 5, 6])}>{tr("Monday to Saturday")}</button>
-                <button type="button" className="font-medium text-blue-700 hover:underline" onClick={() => set("days_of_week", [1, 2, 3, 4, 5])}>{tr("Monday to Friday")}</button>
               </div>
             </div>
           )}
           {d.frequency === "WEEKLY" && (
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Day of the week")}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {[1, 2, 3, 4, 5, 6, 7].map((n) => <button key={n} type="button" className={chip(d.weekday === n)} onClick={() => set("weekday", n)}>{dayName(n)}</button>)}
+              <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("Day of the week")}</p>
+              <div className="grid grid-cols-7 gap-1.5">
+                {[1, 2, 3, 4, 5, 6, 7].map((n) => <button key={n} type="button" className={dayBtn(d.weekday === n)} onClick={() => set("weekday", n)} title={dayName(n)}>{dayName(n, "short")}</button>)}
               </div>
             </div>
           )}
           {d.frequency === "MONTHLY" && (
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Day of the month")}</p>
+              <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("Day of the month")}</p>
               <div className="grid grid-cols-7 gap-1">
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
-                  <button key={n} type="button" className={cx(chip(d.month_day === n), "px-0 tabular-nums")} onClick={() => set("month_day", n)}>{n}</button>
+                  <button key={n} type="button" className={cx(dayBtn(d.month_day === n), "h-8 tabular-nums")} onClick={() => set("month_day", n)}>{n}</button>
                 ))}
-                <button type="button" className={cx(chip(d.month_day === 0), "col-span-4")} onClick={() => set("month_day", 0)}>{tr("Last day")}</button>
+                <button type="button" className={cx(dayBtn(d.month_day === 0), "col-span-4 h-8")} onClick={() => set("month_day", 0)}>{tr("Last day")}</button>
               </div>
               {d.month_day > 28 && <p className="mt-1.5 text-xs text-slate-500">{tr("Months without day {0} use their last day.", d.month_day)}</p>}
             </div>
           )}
           {d.frequency === "DATES" && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-700">{tr("Tap the dates the count is due (tap again to remove)")}</p>
+              <p className="text-xs font-medium text-slate-600">{tr("Tap the dates the count is due (tap again to remove)")}</p>
               <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-blue-600"} labelOf={(_c, n) => n} highlight={marked} onPick={pickDate} compact />
               <div className="flex flex-wrap items-center gap-1.5">
                 {d.dates.length === 0 ? <span className="text-xs text-amber-700">{tr("No date chosen yet")}</span> : d.dates.map((x) => (
@@ -393,73 +395,68 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
               </div>
             </div>
           )}
-          {d.frequency !== "ADHOC" && (
-            <>
-              <div>
-                <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Count window (WIB)")}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {WINDOWS.map(([a, b]) => (
-                    <button key={a + b} type="button" className={chip(d.window_start === a && d.window_end === b)}
-                      onClick={() => setD((o) => ({ ...o, window_start: a, window_end: b }))}>{a}–{b}</button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("The count stays open")}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {[1, 2, 3, 7].map((n) => (
-                    <button key={n} type="button" className={chip((d.period_days || 1) === n)} onClick={() => set("period_days", n)}>
-                      {n === 1 ? tr("Same day") : tr("{0} days", n)}
-                    </button>
-                  ))}
-                </div>
-                {(d.period_days || 1) > 1 && (
-                  <p className="mt-1.5 text-xs text-slate-500">{tr("The window opens on the scheduled day and closes on day {0} (e.g. 14–15 Oct). One count per branch for the whole period.", d.period_days)}</p>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label={(d.period_days || 1) > 1 ? tr("Opens on the first day (WIB)") : tr("Count window opens (WIB)")}><Input type="time" value={d.window_start} onChange={(e) => set("window_start", e.target.value)} /></Field>
-                <Field label={(d.period_days || 1) > 1 ? tr("Closes on the last day (WIB)") : tr("Count window closes (WIB)")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label={tr("Valid from")} hint={tr("Empty = from now")}><Input type="date" value={d.valid_from ?? ""} onChange={(e) => set("valid_from", e.target.value || null)} /></Field>
-                <Field label={tr("Valid until")} hint={tr("Empty = no end")}><Input type="date" value={d.valid_to ?? ""} min={d.valid_from ?? undefined} onChange={(e) => set("valid_to", e.target.value || null)} /></Field>
-              </div>
-            </>
-          )}
-          <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
-            <span className="font-medium">{scheduleText({ ...d, weekday: d.weekday })}</span>
-            {d.frequency !== "ADHOC" && <span className="text-slate-500"> · {windowText(d.window_start, d.window_end)}</span>}
-          </p>
-        </DrawerSection>
+          {d.frequency === "ADHOC" && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">{tr("No schedule: the branch starts this count whenever it is needed.")}</p>}
+        </FormCard>
 
-        {d.frequency !== "ADHOC" && d.frequency !== "DATES" && (
-          <DrawerSection title={tr("Calendar preview")} description={tr("Highlighted: the dates this schedule produces (not saved yet).")}>
-            {previewError ? <p className="text-sm text-red-600">{previewError}</p> : (
-              <>
-                <MonthCalendar month={month} colorOf={() => "bg-blue-600"} labelOf={(_c, n) => n} highlight={marked} compact />
-                <MonthCalendar month={new Date(month.getFullYear(), month.getMonth() + 1, 1)} colorOf={() => "bg-blue-600"} labelOf={(_c, n) => n} highlight={marked} compact />
-                {upcoming.length > 0 && (
-                  <p className="text-xs text-slate-500">{tr("Next")}: {upcoming.map(fmtDate).join(" · ")}</p>
-                )}
-              </>
-            )}
-          </DrawerSection>
+        {d.frequency !== "ADHOC" && (
+          <FormCard n={3} title={tr("Count window")} hint={tr("The hours (WIB) the count can be started, and how long it stays open")}>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={(d.period_days || 1) > 1 ? tr("Opens on the first day") : tr("Opens")}><Input type="time" value={d.window_start} onChange={(e) => set("window_start", e.target.value)} /></Field>
+              <Field label={(d.period_days || 1) > 1 ? tr("Closes on the last day") : tr("Closes")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-slate-500">{tr("Common")}:</span>
+              {WINDOWS.map(([a, b], i) => (
+                <button key={a + b} type="button" onClick={() => setD((o) => ({ ...o, window_start: a, window_end: b }))}
+                  className={cx("rounded-full border px-2.5 py-0.5 text-xs font-medium", windowPreset === i ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{a}–{b}</button>
+              ))}
+            </div>
+            <div>
+              <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("The count stays open")}</p>
+              <Segmented label={tr("The count stays open")} value={String(d.period_days || 1)} onChange={(v) => set("period_days", Number(v))}
+                options={[1, 2, 3, 7].map((n) => ({ value: String(n), label: n === 1 ? tr("Same day") : tr("{0} days", n) }))} />
+              {(d.period_days || 1) > 1 && <p className="mt-1.5 text-xs text-slate-500">{tr("The window opens on the scheduled day and closes on day {0} (e.g. 14–15 Oct). One count per branch for the whole period.", d.period_days)}</p>}
+            </div>
+          </FormCard>
         )}
 
-        <DrawerSection title={tr("ESB & display")}>
-          <Field label={tr("ESB purpose")} hint={tr("Purpose name in the ESB stock opname import file")}>
-            <Input value={d.esb_purpose ?? ""} onChange={(e) => set("esb_purpose", e.target.value)} placeholder="STOCK OPNAME MINGGUAN (OUTLET)" />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label={tr("Order")}><Input inputMode="numeric" value={String(d.sort)} onChange={(e) => set("sort", Number(e.target.value.replace(/\D/g, "")) || 0)} /></Field>
-            <div className="flex items-end pb-2"><Checkbox label={tr("Active")} checked={d.is_active} onChange={(e) => set("is_active", e.target.checked)} /></div>
-          </div>
-          <Checkbox label={tr("WIP form")} hint={tr("The count also asks for WIP / premix in grams; its ingredients are added to the count")}
-            checked={d.wip_enabled} onChange={(e) => set("wip_enabled", e.target.checked)} />
-          {!creating && type.lists === 0 && <p className="text-xs text-amber-700">{tr("No count list uses this type yet: add one under Count lists so branches count it.")}</p>}
-        </DrawerSection>
-        {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>}
+        {d.frequency !== "ADHOC" && d.frequency !== "DATES" && (
+          <FormCard n={4} title={tr("Calendar preview")} hint={tr("Highlighted: the dates this schedule produces (not saved yet).")}>
+            {previewError ? <p className="text-sm text-red-600">{previewError}</p>
+              : <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-blue-600"} labelOf={(_c, n) => n} highlight={marked} compact />}
+          </FormCard>
+        )}
+
+        <section className="rounded-xl border border-slate-200 bg-white">
+          <button type="button" onClick={() => setMore((v) => !v)} aria-expanded={more}
+            className="flex w-full items-center justify-between px-4 py-3 text-left">
+            <span>
+              <span className="block text-sm font-semibold text-slate-900">{tr("More settings")}</span>
+              <span className="block text-xs text-slate-500">{tr("Status, WIP form, validity, ESB purpose and order")}</span>
+            </span>
+            <ChevronDown size={18} className={cx("text-slate-400 transition-transform", more && "rotate-180")} />
+          </button>
+          {more && (
+            <div className="space-y-4 border-t border-slate-100 p-4">
+              <Switch label={tr("Active")} hint={tr("An inactive count type is not offered to the branches")} checked={d.is_active} onChange={(v) => set("is_active", v)} />
+              <Switch label={tr("WIP form")} hint={tr("The count also asks for WIP / premix in grams; its ingredients are added to the count")}
+                checked={d.wip_enabled} onChange={(v) => set("wip_enabled", v)} />
+              {d.frequency !== "ADHOC" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label={tr("Valid from")} hint={tr("Empty = from now")}><Input type="date" value={d.valid_from ?? ""} onChange={(e) => set("valid_from", e.target.value || null)} /></Field>
+                  <Field label={tr("Valid until")} hint={tr("Empty = no end")}><Input type="date" value={d.valid_to ?? ""} min={d.valid_from ?? undefined} onChange={(e) => set("valid_to", e.target.value || null)} /></Field>
+                </div>
+              )}
+              <div className="grid grid-cols-[1fr_6rem] gap-3">
+                <Field label={tr("ESB purpose")} hint={tr("Purpose name in the ESB stock opname import file")}>
+                  <Input value={d.esb_purpose ?? ""} onChange={(e) => set("esb_purpose", e.target.value)} placeholder="STOCK OPNAME MINGGUAN (OUTLET)" />
+                </Field>
+                <Field label={tr("Order")}><Input inputMode="numeric" value={String(d.sort)} onChange={(e) => set("sort", Number(e.target.value.replace(/\D/g, "")) || 0)} /></Field>
+              </div>
+            </div>
+          )}
+        </section>
+        {!creating && type.lists === 0 && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No count list uses this type yet: add one under Count lists so branches count it.")}</p>}
       </div>
     </Drawer>
   );

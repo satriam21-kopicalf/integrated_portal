@@ -8,10 +8,10 @@ import { Boxes, Check, ChevronLeft, ChevronRight, FileSpreadsheet, MapPin, Packa
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemsEditor, { type EditorItem, toPayload } from "@/so/features/settings/ItemsEditor";
 import NewItemDialog, { type ItemDraft } from "@/so/features/settings/NewItemDialog";
-import { Badge, Button, Checkbox, cx, Empty, ErrorState, Field, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, Field, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
+import { FilterBar, FilterPill, FormCard, Switch } from "@/so/ui/Simple";
 import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
@@ -43,7 +43,6 @@ export default function GroupsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [gf, setGf] = useState<GF>(GF_EMPTY);
-  const [sheet, setSheet] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -74,15 +73,17 @@ export default function GroupsPage() {
     pending: { yes: () => tr("Items not in the item master"), no: () => tr("All items in the item master") },
     source: { template: () => tr("From the template"), manual: () => tr("Made by hand") },
   };
-  const chips: ActiveFilter[] = (Object.keys(gf) as (keyof GF)[]).filter((k) => gf[k])
-    .map((k) => ({ key: k, label: label[k][gf[k]](), onRemove: () => setGf({ ...gf, [k]: "" }) }));
+  const pill = (k: keyof GF, title: string) => (
+    <FilterPill label={title} value={gf[k]} onChange={(v) => setGf({ ...gf, [k]: v })}
+      options={Object.entries(label[k]).map(([v, l]) => ({ value: v, label: l() }))} />
+  );
 
   return (
     <Page title={tr("Item groups")} subtitle={tr("Reusable sets of items to assign to the count lists of many branches")}
       actions={<div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import template")}</Button>
         <Button onClick={() => setCreating(true)}><Plus size={16} /> {tr("New group")}</Button></div>}
       stats={
-        <StatStrip label={tr("Summary")} columns={4}>
+        <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Groups")} icon={<Boxes size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} from the template", fmtNumber(all.filter((g) => g.source_ref).length))}</p>}
           </Stat>
@@ -97,7 +98,15 @@ export default function GroupsPage() {
           </Stat>
         </StatStrip>
       }>
-      <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search group")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setGf(GF_EMPTY)} />}
+      <Panel toolbar={
+        <FilterBar search={search} onSearch={setSearch} placeholder={tr("Search group")} active={Object.values(gf).some(Boolean) || !!search}
+          onReset={() => { setGf(GF_EMPTY); setSearch(""); }}>
+          {pill("status", tr("Status"))}
+          {pill("assigned", tr("Branches"))}
+          {pill("pending", tr("Item master"))}
+          {pill("source", tr("Source"))}
+        </FilterBar>
+      }
         footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<Boxes size={28} />} title={rows.length ? tr("Nothing matches the search or filters") : tr("No item groups yet")}>
@@ -135,28 +144,7 @@ export default function GroupsPage() {
       {creating && <CreateWizard {...picker} onClose={() => setCreating(false)} onCreated={(id) => { setCreating(false); void load(); setOpen(id); }} />}
       {open && <GroupDrawer groupId={open} {...picker} onClose={() => setOpen(null)} onChanged={load} />}
       {importing && <ImportTemplateDrawer onClose={() => setImporting(false)} onDone={() => void load()} />}
-      {sheet && <GroupFilters value={gf} labels={label} onClose={() => setSheet(false)} onApply={(v) => { setGf(v); setSheet(false); }} />}
     </Page>
-  );
-}
-
-function GroupFilters({ value, labels, onApply, onClose }: {
-  value: GF; labels: Record<string, Record<string, () => string>>; onApply: (v: GF) => void; onClose: () => void;
-}) {
-  const [d, setD] = useState(value);
-  const group = (k: keyof GF, title: string) => (
-    <FilterSection title={title}>
-      <ChoiceGroup label="" value={d[k]} onChange={(v) => setD({ ...d, [k]: v })}
-        choices={[{ value: "", label: tr("All") }, ...Object.entries(labels[k]).map(([v, l]) => ({ value: v, label: l() }))]} />
-    </FilterSection>
-  );
-  return (
-    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(GF_EMPTY)}>
-      {group("status", tr("Status"))}
-      {group("assigned", tr("Branches"))}
-      {group("pending", tr("Item master"))}
-      {group("source", tr("Source"))}
-    </FilterSheet>
   );
 }
 
@@ -275,21 +263,22 @@ const defaultTypes = (types: CountType[]) => types.filter((t) => t.frequency ===
 // New group wizard
 
 const STEPS = [() => tr("Details"), () => tr("Items"), () => tr("Branches")];
+const STEP_HINTS = [() => tr("Name and purpose"), () => tr("What is counted"), () => tr("Who counts it (optional)")];
 
 function Stepper({ step, onStep, maxStep }: { step: number; onStep: (n: number) => void; maxStep: number }) {
   return (
-    <ol className="flex items-center gap-2">
+    <ol className="grid grid-cols-3 gap-2">
       {STEPS.map((label, i) => (
-        <li key={i} className="flex flex-1 items-center gap-2">
+        <li key={i}>
           <button type="button" disabled={i > maxStep} onClick={() => onStep(i)}
-            className={cx("flex items-center gap-2 text-sm font-medium disabled:cursor-not-allowed", i === step ? "text-blue-700" : i < step ? "text-slate-700" : "text-slate-400")}>
-            <span className={cx("flex h-6 w-6 items-center justify-center rounded-full text-xs",
-              i < step ? "bg-blue-600 text-white" : i === step ? "border-2 border-blue-600 text-blue-700" : "border border-slate-300")}>
-              {i < step ? <Check size={13} /> : i + 1}
+            className={cx("w-full rounded-lg border-t-4 bg-white px-1 pt-2 text-left disabled:cursor-not-allowed",
+              i < step ? "border-blue-600" : i === step ? "border-blue-600" : "border-slate-200")}>
+            <span className={cx("flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide", i <= step ? "text-blue-700" : "text-slate-400")}>
+              {i < step ? <Check size={12} /> : null}{tr("Step {0}", i + 1)}
             </span>
-            {label()}
+            <span className={cx("block text-sm font-semibold", i <= step ? "text-slate-900" : "text-slate-400")}>{label()}</span>
+            <span className="hidden text-xs text-slate-500 sm:block">{STEP_HINTS[i]()}</span>
           </button>
-          {i < STEPS.length - 1 && <span className="h-px flex-1 bg-slate-200" />}
         </li>
       ))}
     </ol>
@@ -330,7 +319,8 @@ function CreateWizard({ facilities, types, onClose, onCreated }: {
   };
 
   return (
-    <Drawer open onClose={onClose} size="xl" icon={<Boxes size={18} />} title={tr("New item group")} description={STEPS[step]()}
+    <Drawer open onClose={onClose} size="xl" icon={<Boxes size={18} />} title={tr("New item group")}
+      description={name.trim() ? `${name.trim()} · ${tr("{0} items", items.length)}` : tr("Build a set of items once and assign it to many branches")}
       footer={
         <>
           {step > 0 && <Button variant="secondary" className="mr-auto" onClick={() => setStep(step - 1)}><ChevronLeft size={16} /> {tr("Back")}</Button>}
@@ -347,20 +337,35 @@ function CreateWizard({ facilities, types, onClose, onCreated }: {
       <div className="space-y-6">
         <Stepper step={step} onStep={setStep} maxStep={maxStep} />
         {step === 0 && (
-          <div className="max-w-lg space-y-4">
-            <Field label={tr("Name")} required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder={tr("e.g. Espresso bar")} /></Field>
-            <Field label={tr("Description")}><Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={tr("What the crew counts with this group")} /></Field>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+            <FormCard title={tr("Group details")} hint={tr("A clear name helps Cost Control find the group when assigning it")}>
+              <Field label={tr("Name")} required><Input value={name} autoFocus onChange={(e) => setName(e.target.value)} placeholder={tr("e.g. Espresso bar")} /></Field>
+              <Field label={tr("Description")} hint={tr("Optional")}>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder={tr("What the crew counts with this group")}
+                  className={cx(inputClass, "h-auto py-2")} />
+              </Field>
+            </FormCard>
+            <aside className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+              <p className="font-semibold text-slate-800">{tr("How a group works")}</p>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-xs">
+                <li>{tr("Add its items once (a whole category or single items).")}</li>
+                <li>{tr("Assign it to the count lists of many branches.")}</li>
+                <li>{tr("A later change to the group reaches every branch that uses it.")}</li>
+              </ol>
+            </aside>
           </div>
         )}
         {step === 1 && (
-          <DrawerSection title={tr("Items")} description={tr("Add a whole category at once or search single items; area groups them on the count screen.")}>
+          <FormCard title={tr("Items")} hint={tr("Add a whole category at once or search single items; area groups them on the count screen.")}
+            aside={<Badge tone={items.length ? "blue" : "slate"}>{tr("{0} items", items.length)}</Badge>}>
             <ItemsEditor items={items} onChange={setItems} />
-          </DrawerSection>
+          </FormCard>
         )}
         {step === 2 && (
-          <DrawerSection title={tr("Branches")} description={tr("Pick the count(s) and the branches that count this group. You can also do this later.")}>
+          <FormCard title={tr("Branches")} hint={tr("Pick the count(s) and the branches that count this group. You can also do this later.")}
+            aside={<Badge tone={picked.size ? "blue" : "slate"}>{tr("{0} selected", picked.size)}</Badge>}>
             <BranchPicker facilities={facilities} types={types} usedBy={[]} countTypes={countTypes} setCountTypes={setCountTypes} picked={picked} setPicked={setPicked} />
-          </DrawerSection>
+          </FormCard>
         )}
       </div>
     </Drawer>
@@ -453,6 +458,11 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
       description={g ? `${g.code} · ${tr("{0} items", items.length)}` : undefined} footer={footer}>
       {!g ? <div className="skeleton h-64 rounded-lg" /> : (
         <div className="space-y-5">
+          <dl className="grid grid-cols-3 divide-x divide-slate-200 rounded-xl border border-slate-200 bg-slate-50 text-center">
+            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Items")}</dt><dd className="text-lg font-semibold tabular-nums text-slate-900">{items.length}</dd></div>
+            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-slate-900" : "text-amber-600")}>{g.used_by.length}</dd></div>
+            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Status")}</dt><dd className="mt-1">{g.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}</dd></div>
+          </dl>
           <div role="tablist" className="flex gap-1 border-b border-slate-200">
             {tabs.map((t) => (
               <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
@@ -518,10 +528,17 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
             </>
           )}
           {tab === "details" && (
-            <div className="max-w-lg space-y-4">
-              <Field label={tr("Name")} required><Input value={name} onChange={(e) => setName(e.target.value)} /></Field>
-              <Field label={tr("Description")}><Input value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
-              <Checkbox label={tr("Active")} hint={tr("An inactive group is ignored by every list that uses it")} checked={g.is_active} disabled={busy} onChange={(e) => setActive(e.target.checked)} />
+            <div className="max-w-xl space-y-4">
+              <FormCard title={tr("Group details")}>
+                <Field label={tr("Name")} required><Input value={name} onChange={(e) => setName(e.target.value)} /></Field>
+                <Field label={tr("Description")} hint={tr("Optional")}>
+                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={cx(inputClass, "h-auto py-2")} />
+                </Field>
+                <p className="text-xs text-slate-400">{tr("Code")}: <span className="font-mono">{g.code}</span>{g.source_ref ? ` · ${g.source_ref}` : ""}</p>
+              </FormCard>
+              <FormCard title={tr("Status")}>
+                <Switch label={tr("Active")} hint={tr("An inactive group is ignored by every list that uses it")} checked={g.is_active} disabled={busy} onChange={setActive} />
+              </FormCard>
             </div>
           )}
         </div>

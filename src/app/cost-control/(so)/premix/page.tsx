@@ -171,7 +171,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
     return <Panel><Empty icon={<FlaskConical size={28} />} title={tr("No active recipes yet")}>{tr("Add a recipe under Recipes and activate it.")}</Empty></Panel>;
   }
   return (
-    <div className="grid gap-5 pb-20 lg:grid-cols-[minmax(0,1fr)_24rem] lg:pb-0 xl:grid-cols-[minmax(0,1fr)_28rem]">
+    <div className="grid gap-5 pb-20 xl:grid-cols-[minmax(0,1fr)_22rem] xl:pb-0 2xl:grid-cols-[minmax(0,1fr)_26rem]">
       {/* recipes and their quantities */}
       <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="space-y-3 border-b border-slate-100 p-4">
@@ -201,17 +201,23 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
               const grams = r.units.reduce((s, u) => s + num(qty[`${r.id}|${u.uom}`]) * gramsOf(u, batch), 0);
               const on = grams > 0;
               return (
-                <li key={r.id} className={cx("relative px-4 py-3 transition-colors md:flex md:items-center md:gap-4", on && "bg-blue-50/40")}>
+                <li key={r.id} className={cx("relative px-4 py-3.5 transition-colors", on && "bg-blue-50/40")}>
                   {on && <span className="absolute inset-y-0 left-0 w-1 bg-blue-600" aria-hidden />}
-                  <div className="min-w-0 md:flex-1">
-                    <p className="text-sm font-medium text-slate-900">{r.name}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-400">
-                      <span className="font-mono">{r.code}</span> · v{r.active!.version_no} · {tr("batch {0} g", fmtG(batch))}
-                      {r.facility_types.length ? ` · ${r.facility_types.join(", ")}` : ""}
-                    </p>
-                    {on && <p className="mt-1 text-xs font-semibold text-blue-700"><Scale size={12} className="mr-1 inline" />{tr("{0} g of WIP", fmtG(grams, 1))}</p>}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900">{r.name}</p>
+                      <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                        <span className="font-mono">{r.code}</span> · v{r.active!.version_no} · {tr("batch {0} g", fmtG(batch))}
+                        {r.facility_types.length ? ` · ${r.facility_types.join(", ")}` : ""}
+                      </p>
+                    </div>
+                    {on && (
+                      <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-blue-600 px-2.5 py-0.5 text-xs font-semibold text-white tabular-nums">
+                        <Scale size={12} />{tr("{0} g of WIP", fmtG(grams, 1))}
+                      </span>
+                    )}
                   </div>
-                  <div className={cx("mt-2 grid gap-2 md:mt-0 md:flex-shrink-0", r.units.length === 1 ? "grid-cols-1 md:w-40" : r.units.length === 2 ? "grid-cols-2 md:w-80" : "grid-cols-3 md:w-[30rem]")}>
+                  <div className={cx("mt-2.5 grid gap-2", r.units.length === 1 ? "max-w-[11rem] grid-cols-1" : r.units.length === 2 ? "max-w-[22rem] grid-cols-2" : "max-w-[33rem] grid-cols-3")}>
                     {r.units.map(u => {
                       const g = gramsOf(u, batch);
                       return (
@@ -228,7 +234,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
       </section>
 
       {/* the result */}
-      <aside id="premix-result" className="min-w-0 lg:sticky lg:top-4 lg:self-start">
+      <aside id="premix-result" className="min-w-0 xl:sticky xl:top-4 xl:self-start">
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-start justify-between gap-3 border-b border-slate-100 p-4">
             <div className="min-w-0">
@@ -337,7 +343,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 
       {/* phones: what is entered and a jump to the result */}
       {entries.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur lg:hidden"
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur xl:hidden"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
