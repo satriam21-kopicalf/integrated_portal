@@ -11,7 +11,7 @@ import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, fmtNumber
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import RecipeDrawer from "@/so/features/premix/RecipeDrawer";
-import { CalcResult, num, Recipe, unitGrams } from "@/so/features/premix/types";
+import { CalcResult, num, Recipe, unitGrams, withGram } from "@/so/features/premix/types";
 import { api, errorText } from "@/so/lib/api";
 import { useMe } from "@/so/lib/me";
 import { tr } from "@/lib/i18n";
@@ -198,7 +198,8 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
           <ul className="divide-y divide-slate-100">
             {shown.map(r => {
               const batch = num(r.active!.output_qty_base);
-              const grams = r.units.reduce((s, u) => s + num(qty[`${r.id}|${u.uom}`]) * gramsOf(u, batch), 0);
+              const units = withGram(r.units);
+              const grams = units.reduce((s, u) => s + num(qty[`${r.id}|${u.uom}`]) * gramsOf(u, batch), 0);
               const on = grams > 0;
               return (
                 <li key={r.id} className={cx("relative px-4 py-3.5 transition-colors", on && "bg-blue-50/40")}>
@@ -209,6 +210,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
                       <p className="mt-0.5 truncate text-[11px] text-slate-400">
                         <span className="font-mono">{r.code}</span> · v{r.active!.version_no} · {tr("batch {0} g", fmtG(batch))}
                         {r.facility_types.length ? ` · ${r.facility_types.join(", ")}` : ""}
+                        {` · ${tr("SO in {0}", r.count_uom || "Gram")}`}
                       </p>
                     </div>
                     {on && (
@@ -217,8 +219,8 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
                       </span>
                     )}
                   </div>
-                  <div className={cx("mt-2.5 grid gap-2", r.units.length === 1 ? "max-w-[11rem] grid-cols-1" : r.units.length === 2 ? "max-w-[22rem] grid-cols-2" : "max-w-[33rem] grid-cols-3")}>
-                    {r.units.map(u => {
+                  <div className={cx("mt-2.5 grid gap-2", units.length === 1 ? "max-w-[11rem] grid-cols-1" : units.length === 2 ? "max-w-[22rem] grid-cols-2" : "max-w-[33rem] grid-cols-3")}>
+                    {units.map(u => {
                       const g = gramsOf(u, batch);
                       return (
                         <Stepper key={u.uom} value={qty[`${r.id}|${u.uom}`] ?? ""} label={`${r.name} · ${u.uom}`} unit={u.uom}

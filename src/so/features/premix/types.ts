@@ -14,6 +14,8 @@ export type Unit = { uom: string; qty_base: number | string | null; per_batch: n
 export type Recipe = {
   id: string; code: string; name: string; recipe_type: string; output_item_id: string | null; facility_types: string[];
   is_active: boolean; units: Unit[]; active: Version | null; versions: number; drafts: number;
+  /** unit the stock opname asks for (one of the units, or Gram); null = Gram (2026-10-21) */
+  count_uom?: string | null;
 };
 export type RecipeDetail = Omit<Recipe, "active" | "versions" | "drafts"> & { versions: Version[] };
 export type CalcComponent = { item_id: string | null; item_code: string | null; name: string; is_stock: boolean; qty_base: number; rounded?: number };
@@ -21,6 +23,8 @@ export type CalcResult = {
   rows: { recipe_id: string; code: string; name: string; uom: string; qty: number; version_no: number; qty_base: number; components: CalcComponent[] }[];
   totals: (CalcComponent & { rounded: number })[];
 };
+/** The units of a recipe plus Gram: every WIP can also be entered weighed. */
+export const withGram = (units: Unit[]): Unit[] => (units.some((u) => u.uom.toLowerCase() === "gram") ? units : [...units, { uom: "Gram", qty_base: 1, per_batch: null }]);
 export const num = (v: number | string | null | undefined) => (v === null || v === undefined || v === "" ? 0 : Number(v));
 
 /** Grams of one unit of a recipe: fixed grams or a share of the batch. */

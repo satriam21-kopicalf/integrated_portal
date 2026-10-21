@@ -1,13 +1,16 @@
 "use client";
 
-// WIP / premix recipe editor (Cost Control): name, type, where it is counted, units (Pail / Teko / Gram), and the
-// versions: a draft is edited (components in grams per batch, mapped to stock items; water is not stock) and then
-// activated; the active version is what the calculator and the count form use.
+// WIP / premix recipe editor (Cost Control), in numbered cards like the other drawers: the recipe (name, type, where it
+// is counted), its units — a share of the batch (Pail = 1 per batch, Teko = 3) or grams per unit (porsi@gram: Base
+// Puding 1 porsi = 115 g; pcs@gram: Tape Roll, Pisang Roll) — with the unit the stock opname asks for, and the versions:
+// a draft is edited (components in grams per batch, mapped to stock items; water is not stock) and then activated;
+// the active version is what the calculator and the count form use.
 
-import { CheckCircle2, CopyPlus, FlaskConical, Loader2, Plus, Save, Search, Trash2 } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, CopyPlus, FlaskConical, Loader2, Plus, Save, Search, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Checkbox, cx, Field, Input, inputClass, Select, useToast } from "@/so/ui";
-import Drawer, { DrawerSection } from "@/so/ui/Drawer";
+import { Badge, Button, cx, Field, Input, inputClass, Select, useToast } from "@/so/ui";
+import Drawer from "@/so/ui/Drawer";
+import { FormCard, Segmented, Switch } from "@/so/ui/Simple";
 import { api, errorText } from "@/so/lib/api";
 import { fmtDate } from "@/so/ui";
 import { tr } from "@/lib/i18n";
@@ -28,7 +31,7 @@ const toDraft = (l: RecipeLine): DraftLine => ({
 export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeId: string | "new"; onClose: () => void; onChanged: () => void }) {
   const toast = useToast();
   const [r, setR] = useState<RecipeDetail | null>(null);
-  const [head, setHead] = useState({ name: "", recipe_type: "WIP", facility_types: [] as string[], is_active: true });
+  const [head, setHead] = useState({ name: "", recipe_type: "WIP", facility_types: [] as string[], is_active: true, count_uom: "" });
   const [units, setUnits] = useState<Unit[]>([{ uom: "Pail", qty_base: null, per_batch: 1 }, { uom: "Teko", qty_base: null, per_batch: 3 }, { uom: "Gram", qty_base: 1, per_batch: null }]);
   const [versionId, setVersionId] = useState<string | null>(null);
   const [draft, setDraft] = useState<{ batch: string; note: string; lines: DraftLine[] } | null>(null);
@@ -39,7 +42,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
   const load = useCallback(async (id: string, keep?: string | null) => {
     const d = await api<RecipeDetail>(`/api/so/recipes/${id}`);
     setR(d);
-    setHead({ name: d.name, recipe_type: d.recipe_type, facility_types: d.facility_types, is_active: d.is_active });
+    setHead({ name: d.name, recipe_type: d.recipe_type, facility_types: d.facility_types, is_active: d.is_active, count_uom: d.count_uom ?? "" });
     setUnits(d.units.length ? d.units : [{ uom: "Gram", qty_base: 1, per_batch: null }]);
     const pick = d.versions.find(v => v.id === keep) ?? d.versions.find(v => v.status === "DRAFT") ?? d.versions.find(v => v.status === "ACTIVE") ?? d.versions[0];
     setVersionId(pick?.id ?? null);
@@ -70,7 +73,10 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
       setBusy(false);
     }
   };
-  const headBody = () => ({ ...head, name: head.name.trim(), units: units.map(u => ({ uom: u.uom, qty_base: u.qty_base === "" ? null : u.qty_base, per_batch: u.per_batch === "" ? null : u.per_batch })) });
+  const headBody = () => ({ ...head, name: head.name.trim(), count_uom: units.some(u => u.uom.trim().toLowerCase() === head.count_uom.toLowerCase()) ? head.count_uom : null,
+    units: units.map(u => ({ uom: u.uom.trim(), qty_base: u.qty_base === "" ? null : u.qty_base, per_batch: u.per_batch === "" ? null : u.per_batch })) });
+  const addUnit = (u: Unit) => setUnits(us => (us.some(x => x.uom.toLowerCase() === u.uom.toLowerCase()) ? us : [...us, u]));
+  const setUnit = (i: number, patch: Partial<Unit>) => setUnits(us => us.map((x, n) => (n === i ? { ...x, ...patch } : x)));
   const versionBody = () => ({
     output_qty_base: num(draft!.batch), note: draft!.note || null,
     lines: draft!.lines.filter(l => num(l.qty_base) > 0).map(l => ({ item_id: l.item_id, component_name: l.component_name || l.item_name, qty_base: num(l.qty_base), is_stock: l.is_stock })),
@@ -125,8 +131,8 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
         {draft && <Button loading={busy} disabled={!head.name.trim() || !draft.lines.length} onClick={() => void activate()}><CheckCircle2 size={16} /> {tr("Save & activate")}</Button>}
       </>}>
       {!creating && !r ? <div className="skeleton h-72 rounded-lg" /> : (
-        <div className="space-y-6">
-          <DrawerSection title={tr("Recipe")}>
+        <div className="space-y-4">
+          <FormCard n={1} title={tr("Recipe")} hint={tr("Name, type and where this WIP is counted")}>
             <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
               <Field label={tr("Name")} required><Input value={head.name} onChange={e => setHead({ ...head, name: e.target.value })} placeholder={tr("e.g. Premix Premium")} /></Field>
               <Field label={tr("Recipe type")}><Select value={head.recipe_type} onChange={e => setHead({ ...head, recipe_type: e.target.value })}>{TYPES.map(t => <option key={t}>{t}</option>)}</Select></Field>
@@ -138,32 +144,67 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
                   const on = head.facility_types.includes(t);
                   return (
                     <button key={t} type="button" aria-pressed={on} onClick={() => setHead({ ...head, facility_types: on ? head.facility_types.filter(x => x !== t) : [...head.facility_types, t] })}
-                      className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{t}</button>
+                      className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{t}</button>
                   );
                 })}
               </div>
             </div>
-            <Checkbox label={tr("Active")} hint={tr("An inactive recipe is not offered in the calculator and the count form")} checked={head.is_active} onChange={e => setHead({ ...head, is_active: e.target.checked })} />
-          </DrawerSection>
+            <Switch checked={head.is_active} onChange={(is_active) => setHead({ ...head, is_active })} label={tr("Active")} hint={tr("An inactive recipe is not offered in the calculator and the count form")} />
+          </FormCard>
 
-          <DrawerSection title={tr("Units")} description={tr("How the crew counts this WIP: a share of the batch (Pail = 1 per batch, Teko = 3 per batch) or fixed grams.")}>
+          <FormCard n={2} title={tr("Units & stock opname")} hint={tr("How this WIP is counted: a share of the batch (Pail, Teko) or grams per unit (porsi@gram, pcs@gram)")}
+            aside={<Badge tone="violet" icon={<ClipboardCheck size={11} />}>{tr("SO: {0}", head.count_uom || "Gram")}</Badge>}>
             <ul className="space-y-2">
-              {units.map((u, i) => (
-                <li key={i} className="grid grid-cols-[1fr_8rem_8rem_auto] items-center gap-2">
-                  <input className={cx(inputClass, "h-9")} value={u.uom} aria-label={tr("Unit")} onChange={e => setUnits(us => us.map((x, n) => (n === i ? { ...x, uom: e.target.value } : x)))} />
-                  <input className={cx(inputClass, "h-9")} inputMode="decimal" aria-label={tr("Per batch")} placeholder={tr("per batch")} value={u.per_batch ?? ""}
-                    onChange={e => setUnits(us => us.map((x, n) => (n === i ? { ...x, per_batch: e.target.value || null, qty_base: e.target.value ? null : x.qty_base } : x)))} />
-                  <input className={cx(inputClass, "h-9")} inputMode="decimal" aria-label={tr("Grams")} placeholder={tr("grams")} value={u.qty_base ?? ""}
-                    onChange={e => setUnits(us => us.map((x, n) => (n === i ? { ...x, qty_base: e.target.value || null, per_batch: e.target.value ? null : x.per_batch } : x)))} />
-                  <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>
-                  {batch > 0 && <span className="col-span-4 -mt-1 text-[11px] text-slate-400">1 {u.uom} = {fmtG(unitGrams(u, batch))} g</span>}
-                </li>
-              ))}
+              {units.map((u, i) => {
+                const share = u.per_batch !== null && u.per_batch !== undefined && u.per_batch !== "";
+                const g = batch > 0 ? unitGrams(u, batch) : 0;
+                const isSo = (head.count_uom || "Gram").toLowerCase() === u.uom.trim().toLowerCase() && !!u.uom.trim();
+                return (
+                  <li key={i} className={cx("rounded-lg border p-3", isSo ? "border-violet-300 bg-violet-50/40" : "border-slate-200")}>
+                    <div className="grid gap-2 sm:grid-cols-[9rem_1fr_9rem_auto] sm:items-center">
+                      <input className={cx(inputClass, "h-9 text-sm")} value={u.uom} placeholder={tr("Unit, e.g. Porsi")} aria-label={tr("Unit")} onChange={e => setUnit(i, { uom: e.target.value })} />
+                      <Segmented label={tr("Unit type")} value={share ? "share" : "grams"}
+                        onChange={(v) => setUnit(i, v === "share" ? { per_batch: u.per_batch || "1", qty_base: null } : { qty_base: u.qty_base || (g ? String(Math.round(g)) : "1"), per_batch: null })}
+                        options={[{ value: "grams", label: tr("Grams per unit") }, { value: "share", label: tr("Share of the batch") }]} />
+                      <span className="flex items-center gap-1.5">
+                        <input className={cx(inputClass, "h-9 text-right text-sm")} inputMode="decimal" aria-label={share ? tr("Units per batch") : tr("Grams per unit")}
+                          value={(share ? u.per_batch : u.qty_base) ?? ""} onChange={e => setUnit(i, share ? { per_batch: e.target.value.replace(",", ".") || null } : { qty_base: e.target.value.replace(",", ".") || null })} />
+                        <span className="whitespace-nowrap text-xs text-slate-500">{share ? tr("per batch") : "g"}</span>
+                      </span>
+                      <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="justify-self-end rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                      <span className="text-slate-500">{g > 0 && u.uom.trim() ? `1 ${u.uom} = ${fmtG(g)} g${!share && batch > 0 && u.uom.toLowerCase() !== "gram" ? ` · ${tr("1 batch = {0} {1}", fmtG(batch / g), u.uom)}` : ""}` : "—"}</span>
+                      <label className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-violet-800">
+                        <input type="radio" name="count-uom" checked={isSo} disabled={!u.uom.trim()} onChange={() => setHead({ ...head, count_uom: u.uom.trim() })} className="h-3.5 w-3.5" />
+                        {tr("Used in stock opname")}
+                      </label>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
-            <button type="button" onClick={() => setUnits(us => [...us, { uom: "", qty_base: 1, per_batch: null }])} className="text-xs font-medium text-blue-700 hover:underline">+ {tr("Add unit")}</button>
-          </DrawerSection>
+            {!units.some(u => u.uom.toLowerCase() === "gram") && (
+              <label className={cx("flex cursor-pointer items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs", !head.count_uom ? "border-violet-300 bg-violet-50/40" : "border-dashed border-slate-200")}>
+                <span className="text-slate-600">{tr("Gram (weighed) — always available in the calculator and the count")}</span>
+                <span className="inline-flex items-center gap-1.5 font-medium text-violet-800">
+                  <input type="radio" name="count-uom" checked={!head.count_uom} onChange={() => setHead({ ...head, count_uom: "" })} className="h-3.5 w-3.5" /> {tr("Used in stock opname")}
+                </span>
+              </label>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              {([["Porsi", { uom: "Porsi", qty_base: "", per_batch: null }], ["Pcs", { uom: "Pcs", qty_base: "", per_batch: null }],
+                ["Pail & Teko", null], ["Gram", { uom: "Gram", qty_base: 1, per_batch: null }]] as [string, Unit | null][]).map(([label, u]) => (
+                <button key={label} type="button" onClick={() => (u ? addUnit(u) : (addUnit({ uom: "Pail", qty_base: null, per_batch: 1 }), addUnit({ uom: "Teko", qty_base: null, per_batch: 3 })))}
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 hover:border-blue-400 hover:text-blue-700">
+                  <Plus size={12} /> {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-500">{tr("Porsi / Pcs: fill in the grams of one portion or piece. The count form asks for the unit marked; another unit or grams can be chosen there.")}</p>
+          </FormCard>
 
-          <DrawerSection title={tr("Components")} description={tr("Grams of every component for one batch. Pick the stock item (ESB code) of each; water is not a stock item.")}>
+          <FormCard n={3} title={tr("Components & versions")} hint={tr("Grams of every component for one batch. Pick the stock item (ESB code) of each; water is not a stock item.")}>
             {r && r.versions.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5">
                 {r.versions.map(v => (
@@ -214,7 +255,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               </ul>
             )}
             {draft && <Field label={tr("Note")}><Input value={draft.note} onChange={e => setDraft(d => d && ({ ...d, note: e.target.value }))} placeholder={tr("What changed")} /></Field>}
-          </DrawerSection>
+          </FormCard>
           {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>}
         </div>
       )}

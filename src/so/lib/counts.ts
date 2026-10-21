@@ -227,6 +227,8 @@ export const fmtQty = (v: string | number | null | undefined) =>
 export type WipRecipe = {
   id: string; code: string; name: string; version_id: string; version_no: number; batch: number;
   units: { uom: string; grams: number }[];
+  /** the unit the count asks for: Porsi, Pcs … or Gram (weighed premix) */
+  count_uom?: string;
   components: { item_id: string | null; name: string; is_stock: boolean; per_gram: number }[];
 };
 export type WipLine = {
