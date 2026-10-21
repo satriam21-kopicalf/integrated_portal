@@ -4,7 +4,7 @@
 // count window (opens / open / late; a count may stay open several days), what the list holds, the last count and
 // what is coming. While nothing is due, the next scheduled count with a countdown and a preparation checklist.
 
-import { CalendarClock, CalendarDays, ChevronRight, ClipboardList, Clock, History, Layers, Loader2, MapPin, Play, Store } from "lucide-react";
+import { CalendarClock, CalendarDays, ChevronRight, ClipboardList, History, Layers, Loader2, MapPin, Play, Store } from "lucide-react";
 import NextCount from "./NextCount";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -13,7 +13,8 @@ import { api, errorText } from "@/so/lib/api";
 import { type Count, type Fix, type TodayCount, type TodayFacility, STATUS, countTypeLabel } from "@/so/lib/counts";
 import LocateDialog from "@/so/features/count/LocateDialog";
 import { locale, tr } from "@/lib/i18n";
-import { periodText, windowText, wibClock } from "@/so/lib/wib";
+import { periodText, windowText } from "@/so/lib/wib";
+import LiveClock from "@/so/ui/LiveClock";
 
 // over several days the label names the day the window opens / closes
 const multiDay = (c: TodayCount) => !!c.period_start && !!c.period_end && c.period_start !== c.period_end;
@@ -25,21 +26,6 @@ const WINDOW: Record<string, { tone: "slate" | "green" | "amber"; label: (c: Tod
   LATE: { tone: "amber", label: (c) => tr("Window closed at {0} · still to do", closesAt(c)) },
 };
 
-function Clock24() {
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    setNow(new Date());
-    const t = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(t);
-  }, []);
-  if (!now) return null;
-  return (
-    <span className="inline-flex items-center gap-1.5 text-lg font-semibold tabular-nums text-slate-900">
-      <Clock size={14} className="text-slate-400" />
-      {wibClock(now)}
-    </span>
-  );
-}
 
 export default function TodayView({ basePath = "" }: { basePath?: string }) {
   const router = useRouter();
@@ -88,7 +74,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
   return (
     <Page title={tr("Stock opname today")}
       subtitle={day ? new Date(`${day}T00:00:00`).toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : tr("Counts due at your facilities")}
-      actions={<Clock24 />}>
+      actions={<LiveClock />}>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel>
         : rows === null ? (
           <div className="space-y-3">{[0, 1].map((i) => <div key={i} className="skeleton h-40 rounded-xl" />)}</div>

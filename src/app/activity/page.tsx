@@ -312,7 +312,7 @@ export default function ActivityPage() {
   return (
     <DashboardLayout>
       <div className="min-h-full bg-slate-50">
-        <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+        <header className="px-4 pt-5 sm:px-6 sm:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('Activity Logs')}</h1>

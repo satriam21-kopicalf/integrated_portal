@@ -14,9 +14,10 @@ import UserAvatar from "@/components/UserAvatar";
 import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
 import { call } from "@/so/features/checkin/checkin";
 import { locate } from "@/so/lib/counts";
-import { TZ, TZ_LABEL, wibDateTime } from "@/so/lib/wib";
+import { TZ, wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
+import LiveClock from "@/so/ui/LiveClock";
 import { type Answer, type FormState, type Item, type Rating, type Visit, type VisitFormKey, type VisitPhoto, RATINGS, RATING_STYLE,
   allItems, missingOf, ratingLabel, scoreTone, visitPhotoUrl } from "./visit";
 
@@ -66,12 +67,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
   };
 
   const title = data?.definition.title ?? (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
-  const clock = now && (
-    <p className="text-right text-xl font-semibold tabular-nums text-slate-900 sm:text-2xl">
-      {now.toLocaleTimeString(locale(), { timeZone: TZ, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
-      <span className="ml-1 text-xs font-medium text-slate-400">{TZ_LABEL}</span>
-    </p>
-  );
+  const clock = <LiveClock />;
   const subtitle = now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "";
 
   if (visit && data) {

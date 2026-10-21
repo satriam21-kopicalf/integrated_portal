@@ -15,10 +15,11 @@ import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/
 import UserAvatar from "@/components/UserAvatar";
 import { useAuth } from "@/lib/auth";
 import { type Fix, locate, mapsUrl } from "@/so/lib/counts";
-import { TZ, TZ_LABEL, wibDateTime } from "@/so/lib/wib";
+import { TZ, wibDateTime } from "@/so/lib/wib";
 import SelfieCamera, { type Selfie } from "@/so/features/checkin/SelfieCamera";
 import { type CheckIn, type FormData, call, deviceSignals, judge, photoUrl, useGpsTrail } from "@/so/features/checkin/checkin";
 import { locale, tr } from "@/lib/i18n";
+import LiveClock from "@/so/ui/LiveClock";
 
 const FRESH_MS = 3 * 60_000; // a position older than this is taken again when sending
 
@@ -137,14 +138,7 @@ export default function PicCheckInPage() {
   ];
   const current = steps.findIndex((s) => !s.ok);
 
-  const clock = now && (
-    <div className="text-right leading-tight">
-      <p className="text-xl font-semibold tabular-nums text-slate-900 sm:text-2xl">
-        {now.toLocaleTimeString(locale(), { timeZone: TZ, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
-        <span className="ml-1 text-xs font-medium text-slate-400">{TZ_LABEL}</span>
-      </p>
-    </div>
-  );
+  const clock = <LiveClock />;
   const subtitle = now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : tr("Check in at the outlet you visit");
 
   if (error || !data) {

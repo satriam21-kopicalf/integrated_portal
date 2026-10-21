@@ -105,13 +105,13 @@ export function Badge({ tone = "slate", dot, icon, title, wrap, children }: {
   );
 }
 
-/** Page header band (white, under the app bar) like the portal pages; `stats` sits right under it. */
+/** Page title (no header band since 2026-10-21: on the page background) like the portal pages; `stats` sits under it. */
 export function Page({ title, subtitle, actions, stats, children }: {
   /** text, or e.g. a brand logo (with its alt text) */ title: ReactNode; subtitle?: string; actions?: ReactNode; stats?: ReactNode; children: ReactNode;
 }) {
   return (
     <div className="min-h-full bg-slate-50">
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+      <header className="px-4 pt-5 sm:px-6 sm:pt-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{title}</h1>

@@ -36,7 +36,7 @@ export default function GuidePage() {
   return (
     <DashboardLayout>
       <div className="min-h-full bg-slate-50">
-        <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+        <header className="px-4 pt-5 sm:px-6 sm:pt-6">
           <h1 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl"><BookOpen size={20} /> {text.PAGE.title}</h1>
           <p className="text-xs text-slate-500 sm:text-sm">{text.PAGE.subtitle}</p>
           {parts.length > 1 && (

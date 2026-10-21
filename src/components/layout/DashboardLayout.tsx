@@ -18,7 +18,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  // the guide (Panduan) sits in the header as an icon, not in the sidebar (2026-10-16); page access still applies
+  // the guide (Panduan): an icon next to the brand of the sidebar, and in the phone row (2026-10-21: no app bar)
   const guide = !!user && canAccess(user, '/guide');
 
   // close the drawer after navigation
@@ -45,27 +45,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Header: menu + brand on phones, the guide icon on every screen */}
-        <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-3 lg:h-11 lg:px-6">
-          <button
-            type="button"
-            onClick={() => setMobileOpen(true)}
-            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 lg:hidden"
-            aria-label={tr('Open menu')}
-          >
-            <Menu size={20} />
-          </button>
-          <div className="lg:hidden"><Brand /></div>
-          {guide && (
-            <Link href="/guide" title={tr('Guide')} aria-label={tr('Guide')}
-              aria-current={pathname === '/guide' ? 'page' : undefined}
-              className={`ml-auto rounded-lg p-2 hover:bg-slate-100 hover:text-slate-900 ${pathname === '/guide' ? 'bg-slate-100 text-slate-900' : 'text-slate-500'}`}>
-              <BookOpen size={19} />
-            </Link>
-          )}
-        </div>
-
-        <main className="min-w-0 flex-1 overflow-auto"><ToastProvider>{children}</ToastProvider></main>
+        {/* no app bar (2026-10-21): on phones the menu and the brand open the page and scroll away with it */}
+        <main className="min-w-0 flex-1 overflow-auto">
+          <div className="flex items-center gap-2 px-3 pt-3 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="rounded-lg p-2 text-slate-600 hover:bg-slate-200/60 hover:text-slate-900"
+              aria-label={tr('Open menu')}
+            >
+              <Menu size={20} />
+            </button>
+            <Brand />
+            {guide && (
+              <Link href="/guide" title={tr('Guide')} aria-label={tr('Guide')}
+                aria-current={pathname === '/guide' ? 'page' : undefined}
+                className={`ml-auto rounded-lg p-2 hover:bg-slate-200/60 hover:text-slate-900 ${pathname === '/guide' ? 'bg-slate-200/60 text-slate-900' : 'text-slate-500'}`}>
+                <BookOpen size={19} />
+              </Link>
+            )}
+          </div>
+          <ToastProvider>{children}</ToastProvider>
+        </main>
         <TableCards />
       </div>
     </div>

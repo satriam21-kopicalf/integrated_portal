@@ -231,7 +231,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex min-w-0 items-center gap-3">
+    <div className="flex min-w-0 items-center gap-2.5">
       <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
         <Image src={assetUrl('assets/calf-logo.png')} alt={tr('Kopi Calf')} fill sizes="36px" className="object-contain p-0.5" />
       </div>
@@ -265,9 +265,18 @@ function SidebarContent({
   return (
     <div className="flex h-full w-full flex-col">
       {/* Header */}
-      <div className={`flex h-16 flex-shrink-0 items-center border-b border-slate-100 ${collapsed ? 'flex-col justify-center gap-1 px-2 py-2 h-auto' : 'justify-between gap-2 px-4'}`}>
+      <div className={`flex h-16 flex-shrink-0 items-center border-b border-slate-100 ${collapsed ? 'flex-col justify-center gap-1 px-2 py-2 h-auto' : 'justify-between gap-1.5 px-3'}`}>
         <Brand compact={collapsed} />
-        {children}
+        <div className={`flex items-center ${collapsed ? 'flex-col gap-1' : 'gap-0.5'}`}>
+          {/* the guide (Panduan), since the app bar is gone (2026-10-21) */}
+          {user && canAccess(user, '/guide') && (
+            <Link href="/guide" onClick={onNavigate} title={tr('Guide')} aria-label={tr('Guide')} aria-current={pathname === '/guide' ? 'page' : undefined}
+              className={`rounded-md p-1.5 transition-colors hover:bg-slate-100 hover:text-slate-700 ${pathname === '/guide' ? 'bg-slate-100 text-slate-900' : 'text-slate-400'}`}>
+              <BookOpen size={18} />
+            </Link>
+          )}
+          {children}
+        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">

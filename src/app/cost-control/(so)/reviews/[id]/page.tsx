@@ -72,7 +72,7 @@ export default function ReviewDetailPage() {
 
   return (
     <div className="min-h-full bg-slate-50">
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+      <header className="px-4 pt-5 sm:px-6 sm:pt-6">
         <div className="flex flex-wrap items-start gap-3">
           <Link href="/cost-control/reviews" className="mt-0.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></Link>
           <div className="min-w-0 flex-1">
