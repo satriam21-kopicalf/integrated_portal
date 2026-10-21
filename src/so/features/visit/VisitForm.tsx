@@ -224,7 +224,10 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
     return c;
   }, [answers, rated]);
   const done = counts.UNDER + counts.MEET + counts.EXCEED;
-  const missing = useMemo(() => missingOf(def, answers, photos), [def, answers, photos]);
+  const todo = useMemo(() => missingOf(def, answers, photos), [def, answers, photos]);
+  // blocking: UNDER without a note or a photo; unrated items may stay (2026-10-21)
+  const missing = todo.filter((m) => m.need === "evidence");
+  const unrated = todo.length - missing.length;
   const pct = rated.length ? Math.round((done / rated.length) * 100) : 0;
   const sectionDone = (key: string) => {
     const s = rated.filter((i) => i.sectionKey === key);
@@ -346,17 +349,18 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
       <div className="sticky bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <div className="mx-auto flex max-w-4xl items-center gap-3">
-          <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setShowMissing((v) => !v)} disabled={!missing.length}>
+          <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setShowMissing((v) => !v)} disabled={!todo.length}>
             <p className="text-sm font-semibold text-slate-900">{tr("{0} of {1} rated", done, rated.length)}</p>
-            <p className={cx("truncate text-xs", missing.length ? "text-amber-700" : "text-emerald-700")}>
-              {missing.length ? tr("{0} items to complete · see which", missing.length) : tr("Everything is complete")}
+            <p className={cx("truncate text-xs", missing.length ? "text-red-600" : unrated ? "text-amber-700" : "text-emerald-700")}>
+              {missing.length ? tr("{0} UNDER need a note and a photo · see which", missing.length)
+                : unrated ? tr("{0} not rated yet (can still be sent) · see which", unrated) : tr("Everything is complete")}
             </p>
           </button>
-          <Button disabled={missing.length > 0 || saving > 0} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>
+          <Button disabled={missing.length > 0 || done === 0 || saving > 0} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>
         </div>
-        {showMissing && missing.length > 0 && (
+        {showMissing && todo.length > 0 && (
           <ul className="mx-auto mt-2 max-h-48 max-w-4xl overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 text-xs">
-            {missing.slice(0, 50).map((m) => (
+            {[...missing, ...todo.filter((m) => m.need === "rating")].slice(0, 80).map((m) => (
               <li key={m.item.key}>
                 <button type="button" className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-amber-100"
                   onClick={() => { setSection(m.item.sectionKey); setShowMissing(false); setTimeout(() => document.getElementById(`item-${m.item.key}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 80); }}>
@@ -375,7 +379,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
           onClose={() => setCamera(null)} onShot={(s) => upload(camera, s)} />
       )}
       {confirm && (
-        <SendSheet title={def.title} visit={visit} counts={counts} total={rated.length} busy={sending}
+        <SendSheet title={def.title} visit={visit} counts={counts} total={rated.length} unrated={unrated} busy={sending}
           under={items.filter((i) => answers[i.key]?.rating === "UNDER").map((i) => ({ item: i, note: answers[i.key]?.note ?? "", photos: photos.filter((p) => p.item === i.key).length }))}
           photos={photos.length} onClose={() => setConfirm(false)} onSend={(sig, name) => void submit(sig, name)} />
       )}
@@ -386,8 +390,8 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
 }
 
 /** Before sending: the visit at a glance, the findings, an optional signature with the signer's name. */
-function SendSheet({ title, visit, counts, total, under, photos, busy, onClose, onSend }: {
-  title: string; visit: Visit; counts: Record<Rating, number>; total: number; busy: boolean; photos: number;
+function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, onClose, onSend }: {
+  title: string; visit: Visit; counts: Record<Rating, number>; total: number; unrated: number; busy: boolean; photos: number;
   under: { item: Item & { section: string }; note: string; photos: number }[]; onClose: () => void; onSend: (signature: string | null, name: string) => void;
 }) {
   const [signature, setSignature] = useState<string | null>(null);
@@ -427,6 +431,11 @@ function SendSheet({ title, visit, counts, total, under, photos, busy, onClose, 
             </div>
           </div>
           <p className="mt-2 text-xs text-slate-500">{tr("{0} of {1} rated", counts.UNDER + counts.MEET + counts.EXCEED, total)}</p>
+          {unrated > 0 && (
+            <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
+              <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {tr("{0} items are not rated: they are sent empty and left out of the score.", unrated)}
+            </p>
+          )}
         </section>
 
         <section>
@@ -484,7 +493,8 @@ function ItemRow({ item, answer, photos, onAnswer, onCamera, onRemovePhoto }: {
           {item.kind === "rating" && (
             <div className="mt-2 grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={item.label}>
               {RATINGS.map((r) => (
-                <button key={r} type="button" role="radio" aria-checked={answer.rating === r} onClick={() => onAnswer({ rating: r }, true)}
+                <button key={r} type="button" role="radio" aria-checked={answer.rating === r} title={answer.rating === r ? tr("Tap again to clear") : undefined}
+                  onClick={() => onAnswer({ rating: answer.rating === r ? null : r }, true)}
                   className={cx("h-10 rounded-lg border text-xs font-bold tracking-wide transition-colors",
                     answer.rating === r ? RATING_STYLE[r].on : "border-slate-200 bg-white text-slate-500 hover:border-slate-300")}>{r}</button>
               ))}

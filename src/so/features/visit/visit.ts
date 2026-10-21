@@ -9,7 +9,8 @@ export type Item = { key: string; no: number; label: string; kind: "rating" | "t
 export type Section = { key: string; title: string; items: Item[] };
 export type Group = { key: string; title: string; subtitle: string; sections: Section[] };
 export type Definition = { title: string; groups: Group[] };
-export type Answer = { rating?: Rating; note?: string };
+/** rating null = cleared (tapping the chosen rating again) */
+export type Answer = { rating?: Rating | null; note?: string };
 export type Counts = { under: number; meet: number; exceed: number; rated: number; total: number; score: number | null };
 export type VisitPhoto = { id: string; item: string; takenAt: string | null; uploadedAt: string; latitude: number | null; longitude: number | null;
   distanceM: number | null; outsideRadius: boolean };
@@ -38,7 +39,8 @@ export const visitPhotoUrl = (id: string) => `/api/visit-photos/${id}`;
 export const visitSignatureUrl = (visitId: string) => `/api/visit-signatures/${visitId}`;
 export const allItems = (d: Definition) => d.groups.flatMap((g) => g.sections.flatMap((s) => s.items.map((i) => ({ ...i, group: g.key, section: s.title, sectionKey: s.key }))));
 
-/** Items that block the submit: unrated, and UNDER without a note or a photo (same rule as the server). */
+/** Items that block the submit: UNDER without a note or a photo (same rule as the server). Unrated items do not block
+ * since 2026-10-21; they are listed (need "rating") so the PIC sees them. */
 export function missingOf(d: Definition, answers: Record<string, Answer>, photos: VisitPhoto[]) {
   const withPhoto = new Set(photos.map((p) => p.item));
   return allItems(d).filter((i) => i.kind === "rating").map((i) => {

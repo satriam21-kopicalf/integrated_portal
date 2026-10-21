@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { ActiveFilter, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, dmy, wibDay } from "@/so/ui/Filters";
+import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, dmy, wibDay } from "@/so/ui/Filters";
 import { Segmented } from "@/so/ui/Simple";
 import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
@@ -25,9 +25,10 @@ type Result = {
   pics: { id: string; name: string; n: number }[]; truncated: boolean;
 };
 type BranchOpt = { branch_code: string; branch_name: string };
-type F = { period: Period; branch: string; user: string; only: "" | "under" | "outside" };
+type F = { period: Period; group: string; branch: string; user: string; only: "" | "under" | "outside" };
+type GroupOpt = { id: string; code: string; name: string };
 
-const NO_F = (): F => ({ period: { from: wibDay(-29), to: wibDay(0) }, branch: "", user: "", only: "" });
+const NO_F = (): F => ({ period: { from: wibDay(-29), to: wibDay(0) }, group: "", branch: "", user: "", only: "" });
 
 function Bar({ c, className }: { c: { under: number; meet: number; exceed: number }; className?: string }) {
   const total = c.under + c.meet + c.exceed;
@@ -45,6 +46,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   const [res, setRes] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [branches, setBranches] = useState<BranchOpt[]>([]);
+  const [groups, setGroups] = useState<GroupOpt[]>([]);
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
@@ -52,15 +54,16 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   const load = useCallback(async () => {
     setError(null);
     setRes(null);
-    const q = new URLSearchParams({ dateFrom: f.period.from, dateTo: f.period.to, ...(f.branch ? { branch: f.branch } : {}), ...(f.user ? { userId: f.user } : {}) });
+    const q = new URLSearchParams({ dateFrom: f.period.from, dateTo: f.period.to, ...(f.group ? { group: f.group } : {}), ...(f.branch ? { branch: f.branch } : {}), ...(f.user ? { userId: f.user } : {}) });
     try {
       setRes(await call<Result>(`/api/monitoring/${form}?${q}`));
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [f.period, f.branch, f.user, form]);
+  }, [f.period, f.group, f.branch, f.user, form]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { void call<BranchOpt[]>("/api/branches").then(setBranches).catch(() => setBranches([])); }, []);
+  useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setGroups(r.groups)).catch(() => setGroups([])); }, []);
 
   const title = res?.definition.title ?? (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
   const rows = useMemo(() => {
@@ -73,6 +76,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   const def = NO_F();
   const chips: ActiveFilter[] = [
     ...(f.period.from !== def.period.from || f.period.to !== def.period.to ? [{ key: "p", label: `${dmy(f.period.from)} – ${dmy(f.period.to)}`, onRemove: () => setF({ ...f, period: def.period }) }] : []),
+    ...(f.group ? [{ key: "g", label: `${tr("Group")} ${groups.find((g) => g.id === f.group)?.code ?? ""}`, onRemove: () => setF({ ...f, group: "" }) }] : []),
     ...(f.branch ? [{ key: "b", label: branches.find((b) => b.branch_code === f.branch)?.branch_name ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
     ...(f.user ? [{ key: "u", label: res?.pics.find((p) => p.id === f.user)?.name ?? tr("PIC"), onRemove: () => setF({ ...f, user: "" }) }] : []),
     ...(f.only ? [{ key: "o", label: f.only === "under" ? tr("With UNDER findings") : tr("Outside radius"), onRemove: () => setF({ ...f, only: "" }) }] : []),
@@ -205,20 +209,26 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
         )}
       </Panel>
 
-      {sheet && <VisitFilters value={f} branches={branches} pics={res?.pics ?? []} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
+      {sheet && <VisitFilters value={f} groups={groups} branches={branches} pics={res?.pics ?? []} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
       {open && <VisitDrawer form={form} id={open} onClose={() => setOpen(null)} />}
     </Page>
   );
 }
 
-function VisitFilters({ value, branches, pics, onApply, onClose }: {
-  value: F; branches: BranchOpt[]; pics: { id: string; name: string }[]; onApply: (v: F) => void; onClose: () => void;
+function VisitFilters({ value, groups, branches, pics, onApply, onClose }: {
+  value: F; groups: GroupOpt[]; branches: BranchOpt[]; pics: { id: string; name: string }[]; onApply: (v: F) => void; onClose: () => void;
 }) {
   const [d, setD] = useState(value);
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_F())} applyDisabled={days > 366}>
       <FilterSection title={tr("Visit day")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={366} /></FilterSection>
+      {groups.length > 0 && (
+        <FilterSection title={tr("Branch group")}>
+          <ChoiceGroup label="" value={d.group} onChange={(v) => setD({ ...d, group: v })}
+            choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a group") }]} />
+        </FilterSection>
+      )}
       <FilterSection title={tr("Outlet")}>
         <SearchChoice label="" anyLabel={tr("All outlets")} value={d.branch} onChange={(v) => setD({ ...d, branch: v })} placeholder={tr("Search outlet")}
           options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name }))} />

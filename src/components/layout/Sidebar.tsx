@@ -55,9 +55,9 @@ const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] 
   { get title() { return tr('Visit'); }, get hint() { return tr('Check in at the outlet you visit'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
   ] },
-  { get title() { return tr('Outlet & product'); }, get hint() { return tr('Condition of the outlet and the products'); }, icon: Store, items: [
-    { get name() { return tr('Monitoring Outlet'); }, href: '/forms/outlet', icon: Store, get description() { return tr('Fill in the outlet checklist'); } },
+  { get title() { return tr('Product & outlet'); }, get hint() { return tr('Condition of the products and the outlet'); }, icon: Store, items: [
     { get name() { return tr('Monitoring Product'); }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
+    { get name() { return tr('Monitoring Outlet'); }, href: '/forms/outlet', icon: Store, get description() { return tr('Fill in the outlet checklist'); } },
   ] },
   { get title() { return tr('Equipment'); }, get hint() { return tr('Tools and heavy tools of the outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Tools & Heavy Tools'); }, href: '/forms/tools', icon: Wrench, get description() { return tr('Report the condition of the tools'); } },
@@ -66,15 +66,21 @@ const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] 
 
 /** "Monitoring" menu: what the outlets / PICs filled in, for the teams that follow them (pages mon.*). */
 const monitoring: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Analysis'); }, get hint() { return tr('Every form together, per branch group'); }, icon: BarChart3, items: [
+    { get name() { return tr('Overview'); }, href: '/monitoring/overview', icon: BarChart3, get description() { return tr('Check-ins, products & outlets per group'); } },
+  ] },
   { get title() { return tr('Visit'); }, get hint() { return tr('Who checked in where and when'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/monitoring/pic-check-in', icon: MapPinCheck, get description() { return tr('Check-ins of every PIC'); } },
   ] },
-  { get title() { return tr('Outlet & product'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
-    { get name() { return tr('Monitoring Outlet'); }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
+  { get title() { return tr('Product & outlet'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
     { get name() { return tr('Monitoring Product'); }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },
+    { get name() { return tr('Monitoring Outlet'); }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
   ] },
   { get title() { return tr('Equipment'); }, get hint() { return tr('Tools and heavy tools of every outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Tools & Heavy Tools'); }, href: '/monitoring/tools', icon: Wrench, get description() { return tr('Condition & repairs per outlet'); } },
+  ] },
+  { get title() { return tr('Settings'); }, get hint() { return tr('How the outlets are grouped'); }, icon: Boxes, items: [
+    { get name() { return tr('Branch groups'); }, href: '/monitoring/branch-groups', icon: Boxes, get description() { return tr('CCI, CTG, CTGP … for the assessment'); } },
   ] },
 ];
 

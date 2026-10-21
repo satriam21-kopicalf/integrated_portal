@@ -24,9 +24,10 @@ type Summary = { total: number; pics: number; branches: number; outside: number;
 type Result = { period: { from: string; to: string }; data: CheckIn[]; summary: Summary; pics: { id: string; name: string; n: number }[]; truncated: boolean };
 type BranchOpt = { branch_code: string; branch_name: string };
 type Detail = "checkins" | "pics" | "outlets" | "outside";
-type F = { period: Period; branch: string; user: string; location: string };
+type F = { period: Period; group: string; branch: string; user: string; location: string };
+type GroupOpt = { id: string; code: string; name: string };
 
-const NO_F = (): F => ({ period: { from: wibDay(-6), to: wibDay(0) }, branch: "", user: "", location: "" });
+const NO_F = (): F => ({ period: { from: wibDay(-6), to: wibDay(0) }, group: "", branch: "", user: "", location: "" });
 const LOC: Record<string, () => string> = {
   unreviewed: () => tr("Needs review"), alert: () => tr("Outside radius or suspicious location"),
   suspect: () => tr("Suspicious location"), outside: () => tr("Outside radius"), low: () => tr("Low GPS accuracy"),
@@ -64,6 +65,7 @@ export default function PicCheckInMonitorPage() {
   const [res, setRes] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [branches, setBranches] = useState<BranchOpt[]>([]);
+  const [groups, setGroups] = useState<GroupOpt[]>([]);
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
   const [open, setOpen] = useState<CheckIn | null>(null);
@@ -73,7 +75,7 @@ export default function PicCheckInMonitorPage() {
   const load = useCallback(async (quiet = false) => {
     setError(null);
     if (!quiet) setRes(null);
-    const q = new URLSearchParams({ dateFrom: f.period.from, dateTo: f.period.to, ...(f.branch ? { branch: f.branch } : {}),
+    const q = new URLSearchParams({ dateFrom: f.period.from, dateTo: f.period.to, ...(f.group ? { group: f.group } : {}), ...(f.branch ? { branch: f.branch } : {}),
       ...(f.user ? { userId: f.user } : {}), ...(f.location ? { location: f.location } : {}) });
     try {
       setRes(await call<Result>(`/api/monitoring/pic-check-in?${q}`));
@@ -89,6 +91,7 @@ export default function PicCheckInMonitorPage() {
     return () => clearInterval(t);
   }, [load, f.period.to]);
   useEffect(() => { void call<BranchOpt[]>("/api/branches").then(setBranches).catch(() => setBranches([])); }, []);
+  useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setGroups(r.groups)).catch(() => setGroups([])); }, []);
 
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -100,6 +103,7 @@ export default function PicCheckInMonitorPage() {
   const def = NO_F();
   const chips: ActiveFilter[] = [
     ...(f.period.from !== def.period.from || f.period.to !== def.period.to ? [{ key: "p", label: `${dmy(f.period.from)} – ${dmy(f.period.to)}`, onRemove: () => setF({ ...f, period: def.period }) }] : []),
+    ...(f.group ? [{ key: "g", label: `${tr("Group")} ${groups.find((g) => g.id === f.group)?.code ?? ""}`, onRemove: () => setF({ ...f, group: "" }) }] : []),
     ...(f.branch ? [{ key: "b", label: branches.find((b) => b.branch_code === f.branch)?.branch_name ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
     ...(f.user ? [{ key: "u", label: pics.find((p) => p.id === f.user)?.name ?? tr("PIC"), onRemove: () => setF({ ...f, user: "" }) }] : []),
     ...(f.location ? [{ key: "l", label: LOC[f.location](), onRemove: () => setF({ ...f, location: "" }) }] : []),
@@ -199,7 +203,7 @@ export default function PicCheckInMonitorPage() {
         )}
       </Panel>
 
-      {sheet && <CheckInFilters value={f} branches={branches} pics={pics} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
+      {sheet && <CheckInFilters value={f} groups={groups} branches={branches} pics={pics} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
       {open && <CheckInDrawer c={res?.data.find((x) => x.id === open.id) ?? open} onClose={() => setOpen(null)} onReviewed={() => void load(true)} />}
       {detail && res && <DetailDrawer kind={detail} data={res.data} summary={res.summary} truncated={res.truncated} onClose={() => setDetail(null)}
         onPic={(id) => { setF({ ...f, user: id }); setDetail(null); }} onOutlet={(code) => { setF({ ...f, branch: code }); setDetail(null); }}
@@ -208,14 +212,20 @@ export default function PicCheckInMonitorPage() {
   );
 }
 
-function CheckInFilters({ value, branches, pics, onApply, onClose }: {
-  value: F; branches: BranchOpt[]; pics: { id: string; name: string }[]; onApply: (v: F) => void; onClose: () => void;
+function CheckInFilters({ value, groups, branches, pics, onApply, onClose }: {
+  value: F; groups: GroupOpt[]; branches: BranchOpt[]; pics: { id: string; name: string }[]; onApply: (v: F) => void; onClose: () => void;
 }) {
   const [d, setD] = useState(value);
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_F())} applyDisabled={days > 93}>
       <FilterSection title={tr("Visit day")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={93} /></FilterSection>
+      {groups.length > 0 && (
+        <FilterSection title={tr("Branch group")}>
+          <ChoiceGroup label="" value={d.group} onChange={(v) => setD({ ...d, group: v })}
+            choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a group") }]} />
+        </FilterSection>
+      )}
       <FilterSection title={tr("Outlet")}>
         <SearchChoice label="" anyLabel={tr("All outlets")} value={d.branch} onChange={(v) => setD({ ...d, branch: v })} placeholder={tr("Search outlet")}
           options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name }))} />
