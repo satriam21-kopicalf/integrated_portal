@@ -18,11 +18,6 @@ export function wibMonthStart(): Date {
   return new Date(y, m - 1, 1);
 }
 
-/** "14:05 WIB" */
-export function wibClock(d: Date = new Date()): string {
-  return `${d.toLocaleTimeString(locale(), { timeZone: TZ, hour: "2-digit", minute: "2-digit" })} ${TZ_LABEL}`;
-}
-
 /** A timestamp with date and time in WIB: "13 Okt 2026, 07.42 WIB". */
 export function wibDateTime(v: string | null | undefined): string {
   return v ? `${new Date(v).toLocaleString(locale(), { timeZone: TZ, day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} ${TZ_LABEL}` : "—";

@@ -16,7 +16,6 @@ export interface CompareValue {
   to: string;
 }
 
-export const NO_COMPARE: CompareValue = { mode: 'auto', from: '', to: '' };
 
 /** Same calendar dates `months` earlier; days past the end of a shorter month land on its last day. */
 function shiftMonths(iso: string, months: number): string {

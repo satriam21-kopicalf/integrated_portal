@@ -18,7 +18,7 @@ export const LANG_KEY = 'portal.lang';
 let current: Lang = 'en';
 
 /** Translation of an English UI text into the current language. */
-export function t(key: string, ...args: (string | number | null | undefined)[]): string {
+function t(key: string, ...args: (string | number | null | undefined)[]): string {
   let s = key;
   if (current === 'id') {
     const hit = ID[key];

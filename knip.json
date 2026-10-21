@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/proxy.ts",
+    "public/sw.js",
+    "scripts/gen-theme.mjs"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignore": [
+    "src/app/guide/content-*.tsx"
+  ]
+}

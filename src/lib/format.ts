@@ -10,10 +10,6 @@ const currencyFormat = new Intl.NumberFormat('id-ID', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
-const COMPACT = {
-  en: new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }),
-  id: new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 2 }),
-};
 
 type Num = number | string | null | undefined;
 
@@ -39,12 +35,6 @@ export function formatNumber(value: Num): string {
 export function formatCurrency(value: Num): string {
   const n = toNumber(value);
   return n === null ? '-' : currencyFormat.format(n);
-}
-
-/** "Rp 1.40B" style for tight spaces (summary cards on mobile). */
-export function formatCompactCurrency(value: Num): string {
-  const n = toNumber(value);
-  return n === null ? '-' : `Rp ${COMPACT[lang()].format(n)}`;
 }
 
 /** Parses "2026-09-10" as a local calendar date (no UTC shift). */

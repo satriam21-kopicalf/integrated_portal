@@ -181,14 +181,6 @@ export function SkeletonRows({ cols, rows = 6 }: { cols: number; rows?: number }
   );
 }
 
-export function Loading({ label }: { label?: string }) {
-  return (
-    <div className="flex items-center justify-center gap-2 py-14 text-sm text-slate-400" role="status">
-      <Loader2 size={18} className="animate-spin text-blue-600" /> {label ?? tr("Loading…")}
-    </div>
-  );
-}
-
 export function Empty({ icon, title, children }: { icon?: ReactNode; title?: string; children?: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-4 py-14 text-center">
@@ -206,27 +198,6 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
       <p className="text-sm text-slate-700">{message}</p>
       {onRetry && <Button variant="secondary" onClick={onRetry}>{tr("Try again")}</Button>}
     </div>
-  );
-}
-
-/** "12 users · Page 1 of 3 ‹ ›" footer of a client-side paged list. */
-export function Pager({ total, page, pageSize, onPage, noun }: {
-  total: number; page: number; pageSize: number; onPage: (p: number) => void; noun: string;
-}) {
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  return (
-    <>
-      <span>{fmtNumber(total)} {noun}</span>
-      <div className="flex items-center gap-2">
-        <Button variant="secondary" size="sm" className="px-2" disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label={tr("Previous page")}>
-          <ChevronLeft size={16} />
-        </Button>
-        <span>{tr("Page {0} of {1}", page, pages)}</span>
-        <Button variant="secondary" size="sm" className="px-2" disabled={page >= pages} onClick={() => onPage(page + 1)} aria-label={tr("Next page")}>
-          <ChevronRight size={16} />
-        </Button>
-      </div>
-    </>
   );
 }
 
@@ -308,7 +279,3 @@ export const fmtDay = (v: string | null | undefined) =>
   v ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T12:00:00+07:00` : v).toLocaleDateString(locale(), { timeZone: "Asia/Jakarta", day: "2-digit", month: "short", year: "numeric" }) : "—";
 
 export const fmtNumber = (n: number | string) => Number(n).toLocaleString(locale());
-
-/** "Okta Fajri" -> "OF" */
-export const initials = (name: string) =>
-  name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";

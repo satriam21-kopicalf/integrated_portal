@@ -21,12 +21,6 @@ export type CalcResult = {
   rows: { recipe_id: string; code: string; name: string; uom: string; qty: number; version_no: number; qty_base: number; components: CalcComponent[] }[];
   totals: (CalcComponent & { rounded: number })[];
 };
-export type ImportReport = {
-  applied: boolean; summary: Record<"NEW" | "CHANGED" | "SAME", number>; only_in_input: string[]; unmapped: string[];
-  recipes: { code: string; name: string; status: "NEW" | "CHANGED" | "SAME"; batch: number; units: string[]; components: number;
-    unmapped: string[]; notes: string[]; version_no?: number; activated?: boolean }[];
-};
-
 export const num = (v: number | string | null | undefined) => (v === null || v === undefined || v === "" ? 0 : Number(v));
 
 /** Grams of one unit of a recipe: fixed grams or a share of the batch. */

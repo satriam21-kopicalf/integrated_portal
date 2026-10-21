@@ -41,11 +41,9 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 - **Filter**: periode (default 30 hari lengkap s/d kemarin), cabang (**bisa beberapa**: centang lalu *Apply*), channel (multi). Tersimpan di URL (`?from=&to=&branch=CCI01,CCI04&channel=`) sehingga tampilan bisa dibagikan. **Semua analitik mengikuti ketiga filter**; *Live sales* & ticker selalu menampilkan **hari ini** dan mengikuti filter cabang & channel.
 - Urutan: panel **Today** (paling atas, tidak terpengaruh filter tanggal/komparasi) → periode & **KPI strip** (Sales, Nett sales, Bills, Avg ticket; tanpa card, **angka penuh** tanpa B/M, Δ% vs periode sebelumnya + sparkline) → panel **Today** → Sales trend + Channel mix → **Cost control** → Branch leaderboard → Busy hours + Menus → Payments, Basket, Deductions → Monthly growth.
 - **Today** (`components/overview/LiveSalesCard.tsx`): penjualan hari ini (angka beranimasi) vs kemarin di jam yang sama, progres terhadap total kemarin, Bills/Avg ticket/Nett dengan Δ%, penjualan per jam hari ini vs kemarin, komposisi channel hari ini, dan daftar transaksi terbaru (transaksi baru masuk satu per satu dengan animasi + label *New*).
-- **Strip Latest sales** (`components/overview/LiveTicker.tsx`): hanya data transaksi terbaru yang bergerak (jam, outlet, logo channel, jumlah item, nilai), warna biru dengan aksen merah; berhenti saat disorot. Status *Live* hanya ditampilkan di header halaman.
 - **Logo channel** (`components/ChannelLogo.tsx`, file di `public/assets/`): GoFood, GrabFood, ShopeeFood memakai wordmark (menggantikan teks); Dine In & Takeaway memakai ikon + nama. Dipakai di Channel mix (termasuk label sumbu chart), Basket, panel Today, strip Latest sales dan filter channel.
 - Setiap widget memuat datanya sendiri (skeleton saat pertama; data lama tetap tampil saat memuat ulang; *Try again* bila gagal).
 - **Definisi metrik**: *Sales* = subtotal transaksi berstatus Finished dengan nomor bill (sama dengan laporan Sales Recapitulation); *Nett sales* = setelah diskon item & bill; *Bills* = jumlah transaksi; *Avg ticket* = Sales ÷ Bills. Periode pembanding = jumlah hari yang sama tepat sebelum periode; sebelum 1 Agu 2025 (roll-out belum lengkap) tidak dibandingkan. Hanya field yang selalu terisi yang dipakai; baris menu yang dibatalkan (*Print Cancelled*) tidak dihitung.
-- **Cost control** (`components/overview/CostControlCard.tsx`): COGS aktual & teoretis, usage ratio, selisih stok, pembelian, estimasi belanja 7 hari, distribusi status outlet dan 5 outlet dengan COGS tertinggi; mengikuti periode & cabang Overview, basis Net sales/Subtotal, tautan ke halaman Cost Control.
 - **Monthly growth** menampilkan bulan-bulan di dalam periode terpilih (hanya hari terpilih yang dihitung); MoM/YoY/same-store membandingkan rata-rata per hari kalender.
 - **Sales trend** (`components/overview/TrendChart.tsx`): pilihan chart **Line** (dengan high/low/rata-rata), **Area**, **Bars** (berdampingan dengan periode sebelumnya), **Cumulative** (total berjalan: unggul/tertinggal dari periode sebelumnya), **Moving average** (rata-rata 7 bucket) dan **By channel** (bertumpuk per channel; Avg ticket = satu garis per channel); metric Sales/Bills/Avg ticket, granularity Day/Week/Month, tampilan Table. Klik titik → profil hari/minggu/bulan tersebut.
 - **Tanpa duplikasi** (audit 6 Okt 2026): *By channel* dihapus dari Sales trend (sudah ada di Channel mix › Over time); kartu *Monthly growth* digabung ke **Sales growth › Monthly** (MoM, YoY, same-store); *Compare periods* dihapus dari kartu Busy hours (per jam vs pembanding = Sales growth › By hour; Busy hours tetap Pattern & Compare branches); strip berjalan *Latest sales* dihapus (daftar transaksi terbaru ada di panel Today). Drawer tetap berisi detail lengkap.
@@ -89,14 +87,9 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 - Satu komponen pop-up untuk Form, Cost Control dan Monitoring (`PopupMenu` di `components/layout/Sidebar.tsx`); daftar & alur yang direncanakan di `so/features/monitoring/forms.tsx`, layar kerangka `components/FeatureSkeleton.tsx` (juga dipakai Waste).
 - **Akses**: kedelapan halaman ada di *Role & halaman* tetapi **belum dibuka untuk role mana pun** (hanya super admin) sampai dicentang; API `/api/forms/{form}` dan `/api/monitoring/{form}` dijaga halaman masing-masing (role user hanya cabangnya). Isian form & penyimpanan menyusul setelah field disepakati.
 
-### Cost Control (`src/app/cost-control/page.tsx`, `components/cost/`)
+### COGS & usage (`src/app/cost-control/page.tsx`)
 
-- **Akses**: khusus superadmin (menu sidebar *Cost Control*; kartu Cost control di Overview juga hanya untuk superadmin).
-- **Filter**: periode (preset This/Last month, 3/6 bulan, This year), cabang (multi), basis rasio **Net sales** (standar) atau **Subtotal**. Data per periode opname: tgl 1–7, 8–14, 15–21, 22–akhir bulan.
-- **Ringkasan**: penjualan, COGS aktual (Rp + % + status), COGS teoretis (menu terjual × resep), usage ratio (+ selisih poin vs resep), selisih stok (termasuk opname belum diposting) & pemakaian lain (waste). Median outlet sebagai pembanding.
-- **Status** (dapat diubah di Settings): COGS ≤ 35% Good · ≤ 40% Watch · ≤ 45% High · > 45% Critical (% net sales); usage ratio ±2/5/10%; selisih aktual−teoretis 1/2/3 poin; waste 1/2/3%. Selalu ikon + label, bukan warna saja.
-- **COGS trend** (bulan / periode opname, chart atau tabel), **Purchase forecast** (estimasi 1 minggu / 2 minggu / 1 bulan per outlet vs rata-rata pembelian), **tabel outlet** (urut, cari, filter status) → **drawer outlet**: angka utama, tren outlet, item (teoretis vs aktual, usage ratio, selisih Rp, waste) dan kebutuhan belanja per item.
-- Cara hitung ditampilkan di bagian *How the figures are calculated*.
+- Halaman *Segera*: sedang dibangun ulang mengikuti angka **Rasio Outlet** (`/cost-control/ratio`). Mesin COGS lama (komponen `components/cost/`, API `/api/cost-control/{meta,summary,…}`, tabel `agg_cost_*`) dihapus pada audit 2026-10-21 dan tetap ada di riwayat git.
 
 ## Login & akun
 
@@ -167,7 +160,7 @@ src/
 │   ├── DateRangePicker.tsx     # preset + kalender (preset & label default per halaman)
 │   ├── BranchFilter.tsx, ExportButton.tsx, TransactionDetail.tsx
 │   ├── charts/                 # EChart (wrapper ECharts), HBarChart, Sparkline, Legend
-│   ├── overview/               # widget Overview (KpiTiles, LiveSalesCard, LiveTicker, TrendCard, …)
+│   ├── overview/               # widget Overview (KpiTiles, LiveSalesCard, TrendCard, …)
 │   └── layout/                 # DashboardLayout, Sidebar
 └── lib/
     ├── auth.tsx                # AuthProvider, useAuth, tipe AuthUser, role
@@ -186,7 +179,6 @@ src/
 | `GET /api/overview/{meta,kpis,trend,channels,branches,hourly,menus,deductions,monthly,payments,basket}` | Overview |
 | `GET /api/live` | Live sales, ticker |
 | `GET /api/transactions`, `/api/transactions/{sales_num}`, `/api/summary`, `/api/branches` | Sales |
-| `GET /api/cost-control/{meta,summary,trend,items,forecast}`, `PUT /api/cost-control/settings` | Cost Control, kartu Cost control di Overview |
 | `POST /api/exports`, `GET /api/exports`, `GET /api/exports/{id}`, `/api/exports/{id}/download` | Export Excel (global, lintas halaman) |
 | `GET /api/activity`, `GET /api/activity/summary`, `POST /api/activity/events` | Activity Logs, pencatatan halaman & filter |
 | `wss://…/ws`, `GET /api/realtime/version` | Realtime |

@@ -1,7 +1,7 @@
 'use client';
 
 import { Languages, Monitor, Moon, Sun } from 'lucide-react';
-import { Lang, t, useLang, tr } from '@/lib/i18n';
+import { Lang, useLang, tr } from '@/lib/i18n';
 import { ThemeMode, useTheme } from '@/lib/theme';
 
 const THEMES: { value: ThemeMode; icon: typeof Sun; label: string }[] = [
@@ -44,12 +44,12 @@ export function PreferenceControls() {
   return (
     <div className="space-y-2.5 border-b border-slate-100 px-3 py-3">
       <div>
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('Appearance')}</p>
-        <Choice label={t('Appearance')} value={mode} onChange={setMode} options={THEMES.map(o => ({ ...o, label: t(o.label) }))} />
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Appearance')}</p>
+        <Choice label={tr('Appearance')} value={mode} onChange={setMode} options={THEMES.map(o => ({ ...o, label: tr(o.label) }))} />
       </div>
       <div>
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('Language')}</p>
-        <Choice label={t('Language')} value={lang} onChange={setLang} options={LANGS.map(o => ({ value: o.value, label: o.label }))} />
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Language')}</p>
+        <Choice label={tr('Language')} value={lang} onChange={setLang} options={LANGS.map(o => ({ value: o.value, label: o.label }))} />
       </div>
     </div>
   );
@@ -64,11 +64,11 @@ export function PreferenceSwitches({ className = '' }: { className?: string }) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <button type="button" onClick={() => setLang(next.value)} className={btn}
-        title={t('Language')} aria-label={`${t('Language')}: ${next.label}`}>
+        title={tr('Language')} aria-label={`${tr('Language')}: ${next.label}`}>
         <Languages size={15} aria-hidden />{LANGS.find(l => l.value === lang)!.short}
       </button>
       <button type="button" onClick={() => setMode(dark ? 'light' : 'dark')} className={`${btn} w-9 px-0`}
-        title={dark ? t('Light') : t('Dark')} aria-label={dark ? t('Switch to light mode') : t('Switch to dark mode')}>
+        title={dark ? tr('Light') : tr('Dark')} aria-label={dark ? tr('Switch to light mode') : tr('Switch to dark mode')}>
         {dark ? <Sun size={15} /> : <Moon size={15} />}
       </button>
     </div>

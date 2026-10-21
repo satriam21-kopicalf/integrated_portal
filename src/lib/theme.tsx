@@ -120,11 +120,6 @@ const darkStr = (s: string) => s.replace(HEX, h => DARK_CHART[h.toLowerCase()] ?
   .replace(LOGO, m => DARK_LOGOS[m] ?? m)
   .replace(/rgba\(15,\s*23,\s*42,\s*\.25\)/g, 'rgba(0,0,0,.6)');
 
-/** Colour for the current theme (for DOM swatches next to a chart). */
-export function themedColor(hex: string, dark: boolean): string {
-  return dark ? DARK_CHART[hex.toLowerCase()] ?? hex : hex;
-}
-
 /** A chart option recoloured for the dark theme (strings, nested objects and formatter output). */
 export function darkOption<T>(value: T): T {
   if (typeof value === 'string') return darkStr(value) as T;
