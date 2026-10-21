@@ -43,7 +43,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste review'); }, get group() { return tr('Cost Control · Waste'); }, state: 'building' },
   { key: 'cc.ratio', href: '/cost-control/ratio', get label() { return tr('Outlet ratio'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.cogs', href: '/cost-control', get label() { return tr('COGS & usage'); }, get group() { return tr('Cost Control · Analytics'); }, state: 'soon' },
-  { key: 'mon.overview', href: '/monitoring/overview', get label() { return tr('Overview'); }, get group() { return tr('Monitoring'); } },
+  { key: 'mon.overview', href: '/monitoring/overview', get label() { return tr('Monitoring overview'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.pic-check-in', href: '/monitoring/pic-check-in', get label() { return tr('PIC Check In'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.product', href: '/monitoring/product', get label() { return tr('Monitoring Product'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return tr('Monitoring Outlet'); }, get group() { return tr('Monitoring'); } },

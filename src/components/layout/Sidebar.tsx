@@ -110,7 +110,7 @@ const rating: { title: string; hint: string; icon: typeof Users; items: CcItem[]
 type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
 const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'management', PopupConfig & { sections: typeof costControl }> = {
   forms: {
-    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, outlet, product & tools'); }, get title() { return tr('Form'); },
+    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet & tools'); }, get title() { return tr('Form'); },
     get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
     icon: ClipboardPen, sections: forms,
   },

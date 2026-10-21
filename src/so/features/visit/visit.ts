@@ -5,12 +5,16 @@ import { tr } from "@/lib/i18n";
 
 export type VisitFormKey = "product" | "outlet";
 export type Rating = "UNDER" | "MEET" | "EXCEED";
-export type Item = { key: string; no: number; label: string; kind: "rating" | "text" };
+/** Rating Outlet items carry the outlet's stars on a platform (2026-10-21): Google automatic, the delivery apps typed */
+export type Platform = "google" | "gofood" | "grabfood" | "shopeefood";
+export type Item = { key: string; no: number; label: string; kind: "rating" | "text"; platform?: Platform };
+/** Google Maps figure of the outlet (Rating & Review → Google Maps) */
+export type AutoStars = { stars: number; reviews: number | null; source: "google"; fetchedAt: string | null; mapsUri?: string | null };
 export type Section = { key: string; title: string; items: Item[] };
 export type Group = { key: string; title: string; subtitle: string; sections: Section[] };
 export type Definition = { title: string; groups: Group[] };
 /** rating null = cleared (tapping the chosen rating again) */
-export type Answer = { rating?: Rating | null; note?: string };
+export type Answer = { rating?: Rating | null; note?: string; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null };
 export type Counts = { under: number; meet: number; exceed: number; rated: number; total: number; score: number | null };
 export type VisitPhoto = { id: string; item: string; takenAt: string | null; uploadedAt: string; latitude: number | null; longitude: number | null;
   distanceM: number | null; outsideRadius: boolean };
@@ -23,7 +27,13 @@ export type Visit = {
   /** optional signature at sending (2026-10-21) */
   signature?: { name: string | null; signedAt: string | null } | null;
   answers?: Record<string, Answer>; photos?: VisitPhoto[]; photoCount?: number;
+  /** draft only: the current Google Maps figure per item (kept in the answers at sending) */
+  auto?: Record<string, AutoStars | null>;
 };
+
+export const PLATFORM_LABEL: Record<Platform, string> = { google: "Google Maps", gofood: "GoFood", grabfood: "GrabFood", shopeefood: "ShopeeFood" };
+/** 4.6 → "4.6" (as the platforms show it) */
+export const fmtStars = (n: number) => n.toFixed(1);
 export type Branch = { code: string; name: string; latitude: number | null; longitude: number | null; radius_m: number | null };
 export type FormState = { definition: Definition; user: { id: string; username: string; name: string }; branches: Branch[]; drafts: Visit[]; recent: Visit[] };
 

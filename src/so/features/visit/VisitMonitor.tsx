@@ -4,7 +4,7 @@
 // period — figures, performance per section (UNDER / MEET / EXCEED), the most frequent findings, the list of visits and
 // one visit in full (every item with its rating, note and photos, the position against the outlet).
 
-import { AlertTriangle, CalendarDays, ClipboardList, ExternalLink, Images, MapPin, PenLine, RefreshCw, UsersRound } from "lucide-react";
+import { AlertTriangle, CalendarDays, ClipboardList, ExternalLink, Images, MapPin, PenLine, RefreshCw, Star, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -15,7 +15,7 @@ import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
-import { type Definition, type Rating, type Visit, type VisitFormKey, RATINGS, RATING_STYLE, ratingLabel, scoreTone, visitPhotoUrl, visitSignatureUrl } from "./visit";
+import { type Definition, type Platform, type Rating, type Visit, type VisitFormKey, PLATFORM_LABEL, RATINGS, RATING_STYLE, fmtStars, ratingLabel, scoreTone, visitPhotoUrl, visitSignatureUrl } from "./visit";
 
 type SectionPerf = { key: string; title: string; group: string; under: number; meet: number; exceed: number };
 type Finding = { key: string; label: string; section: string; count: number; branches: string[] };
@@ -23,6 +23,8 @@ type Result = {
   period: { from: string; to: string }; definition: Definition; data: Visit[]; sections: SectionPerf[]; findings: Finding[];
   summary: { visits: number; branches: number; pics: number; under: number; meet: number; exceed: number; score: number | null; outside: number };
   pics: { id: string; name: string; n: number }[]; truncated: boolean;
+  /** Monitoring Outlet: average stars per platform of the visits that carry one */
+  platforms?: { key: string; platform: Platform; label: string; stars: number | null; visits: number }[];
 };
 type BranchOpt = { branch_code: string; branch_name: string };
 type F = { period: Period; group: string; branch: string; user: string; only: "" | "under" | "outside" };
@@ -144,6 +146,22 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
             )}
           </Panel>
         </div>
+      )}
+
+      {res && res.data.length > 0 && !!res.platforms?.length && (
+        <Panel title={tr("Outlet rating per platform")} description={tr("Average stars of the visits of the period: Google Maps automatic, delivery apps typed by the PIC")}>
+          <ul className="grid grid-cols-2 gap-px bg-slate-100 lg:grid-cols-4">
+            {res.platforms.map((p) => (
+              <li key={p.key} className="bg-white px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{PLATFORM_LABEL[p.platform]}</p>
+                <p className="mt-1 inline-flex items-center gap-1.5 text-xl font-semibold tabular-nums text-slate-900">
+                  <Star size={17} className={p.stars === null ? "text-slate-300" : "fill-amber-400 text-amber-400"} /> {p.stars === null ? "—" : fmtStars(p.stars)}
+                </p>
+                <p className="text-[11px] text-slate-500">{tr("{0} visits", fmtNumber(p.visits))}</p>
+              </li>
+            ))}
+          </ul>
+        </Panel>
       )}
 
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or PIC")} filters={chips}
@@ -297,7 +315,16 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                           <li key={it.key} className={cx("px-3 py-2.5", a.rating === "UNDER" && "bg-red-50/40")}>
                             <div className="flex items-start gap-2">
                               <span className="w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400">{it.no}</span>
-                              <span className="min-w-0 flex-1 text-sm text-slate-800">{it.label}</span>
+                              <span className="min-w-0 flex-1 text-sm text-slate-800">{it.label}
+                                {a.stars != null && (
+                                  <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-amber-50 px-1.5 py-0.5 align-middle text-[11px] font-semibold tabular-nums text-amber-800"
+                                    title={a.source === "google" ? tr("Google Maps, automatic") : tr("Typed by the PIC")}>
+                                    <Star size={11} className="fill-amber-400 text-amber-400" /> {fmtStars(a.stars)}
+                                    {a.reviews != null && <span className="font-normal text-amber-700">· {tr("{0} reviews", fmtNumber(a.reviews))}</span>}
+                                    <span className="font-normal text-amber-700">· {a.source === "google" ? "Google" : tr("manual")}</span>
+                                  </span>
+                                )}
+                              </span>
                               {a.rating ? <span className={cx("rounded-md px-2 py-0.5 text-[11px] font-bold", RATING_STYLE[a.rating as Rating].on)}>{ratingLabel(a.rating as Rating)}</span>
                                 : it.kind === "text" ? null : <span className="text-xs text-slate-400">—</span>}
                             </div>

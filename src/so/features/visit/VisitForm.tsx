@@ -6,7 +6,7 @@
 // EXCEED, a note and up to 3 camera photos stamped with the time, the branch and the position. UNDER needs a note and a
 // photo (user decision 2026-10-20). Mobile first: one item per row, the progress stays on top, send at the bottom.
 
-import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, ClipboardList, CloudUpload, MapPin, MessageSquareText, PenLine, Play, Send, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, ClipboardList, CloudUpload, ExternalLink, MapPin, MessageSquareText, PenLine, Play, Send, Star, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
@@ -22,8 +22,8 @@ import { TZ, wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import LiveClock from "@/so/ui/LiveClock";
-import { type Answer, type FormState, type Item, type Rating, type Visit, type VisitFormKey, type VisitPhoto, RATINGS, RATING_STYLE,
-  allItems, missingOf, ratingLabel, scoreTone, visitPhotoUrl } from "./visit";
+import { type Answer, type AutoStars, type FormState, type Item, type Rating, type Visit, type VisitFormKey, type VisitPhoto, PLATFORM_LABEL, RATINGS, RATING_STYLE,
+  allItems, fmtStars, missingOf, ratingLabel, scoreTone, visitPhotoUrl } from "./visit";
 
 const MAX_PHOTOS = 3;
 
@@ -325,7 +325,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <ul className="divide-y divide-slate-100">
             {current.items.map((it) => (
-              <ItemRow key={it.key} item={it} answer={answers[it.key] ?? {}} photos={photos.filter((p) => p.item === it.key)}
+              <ItemRow key={it.key} item={it} answer={answers[it.key] ?? {}} auto={visit.auto?.[it.key] ?? null} photos={photos.filter((p) => p.item === it.key)}
                 onAnswer={(v, now) => change(it.key, v, now)} onCamera={() => setCamera(it)} onRemovePhoto={(id) => void removePhoto(id)} />
             ))}
           </ul>
@@ -476,8 +476,53 @@ function Info({ k, v }: { k: string; v: string }) {
   );
 }
 
-function ItemRow({ item, answer, photos, onAnswer, onCamera, onRemovePhoto }: {
-  item: Item; answer: Answer; photos: VisitPhoto[]; onAnswer: (v: Answer, now?: boolean) => void; onCamera: () => void; onRemovePhoto: (id: string) => void;
+/** Stars of the outlet on a platform: Google Maps read automatically, the delivery apps typed by the PIC. */
+function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: Answer; auto: AutoStars | null; onAnswer: (v: Answer, now?: boolean) => void }) {
+  const [text, setText] = useState(answer.stars != null ? fmtStars(answer.stars) : "");
+  const [bad, setBad] = useState(false);
+  const name = PLATFORM_LABEL[item.platform!];
+  if (item.platform === "google") {
+    return (
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+        {auto ? (
+          <>
+            <span className="inline-flex items-center gap-1 font-semibold tabular-nums text-slate-900"><Star size={15} className="fill-amber-400 text-amber-400" /> {fmtStars(auto.stars)}</span>
+            {auto.reviews != null && <span className="text-xs text-slate-500">{tr("{0} reviews", auto.reviews.toLocaleString(locale()))}</span>}
+            <span className="text-xs text-slate-400">{tr("Google Maps, automatic")}{auto.fetchedAt ? ` · ${wibDateTime(auto.fetchedAt)}` : ""}</span>
+            {auto.mapsUri && <a href={auto.mapsUri} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline">{tr("View on Maps")} <ExternalLink size={11} /></a>}
+          </>
+        ) : <span className="text-xs text-slate-500">{tr("No Google Maps rating for this outlet yet (Rating & Review → Google Maps)")}</span>}
+      </div>
+    );
+  }
+  const commit = () => {
+    const t = text.trim().replace(",", ".");
+    if (!t) { setBad(false); if (answer.stars != null) onAnswer({ stars: null }, true); return; }
+    const n = Math.round(Number(t) * 10) / 10;
+    if (!Number.isFinite(n) || n < 1 || n > 5) { setBad(true); return; }
+    setBad(false);
+    setText(fmtStars(n));
+    if (n !== answer.stars) onAnswer({ stars: n }, true);
+  };
+  return (
+    <div className="mt-2">
+      <label className="flex items-center gap-2 text-sm">
+        <span className="relative">
+          <Star size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 fill-amber-400 text-amber-400" />
+          <input value={text} onChange={(e) => setText(e.target.value.replace(/[^0-9.,]/g, "").slice(0, 3))} onBlur={commit}
+            onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+            inputMode="decimal" placeholder="4.5" aria-label={tr("{0} stars", name)} aria-invalid={bad || undefined}
+            className={cx(inputClass, "h-10 w-24 pl-8 text-sm font-semibold tabular-nums", bad && "border-red-300")} />
+        </span>
+        <span className="text-xs text-slate-500">{tr("{0} rating, typed from the app (1.0–5.0)", name)}</span>
+      </label>
+      {bad && <p className="mt-1 text-xs text-red-600">{tr("Type a number from 1.0 to 5.0")}</p>}
+    </div>
+  );
+}
+
+function ItemRow({ item, answer, auto, photos, onAnswer, onCamera, onRemovePhoto }: {
+  item: Item; answer: Answer; auto: AutoStars | null; photos: VisitPhoto[]; onAnswer: (v: Answer, now?: boolean) => void; onCamera: () => void; onRemovePhoto: (id: string) => void;
 }) {
   const [noteOpen, setNoteOpen] = useState(!!answer.note);
   const under = answer.rating === "UNDER";
@@ -490,6 +535,7 @@ function ItemRow({ item, answer, photos, onAnswer, onCamera, onRemovePhoto }: {
         <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400">{item.no}</span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium leading-snug text-slate-900">{item.label}</p>
+          {item.platform && <PlatformStars item={item} answer={answer} auto={auto} onAnswer={onAnswer} />}
           {item.kind === "rating" && (
             <div className="mt-2 grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={item.label}>
               {RATINGS.map((r) => (
