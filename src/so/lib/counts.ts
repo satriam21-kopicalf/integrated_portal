@@ -85,11 +85,18 @@ export type Count = {
   source_ref?: string | null;
   lines: CountLine[];
   photos: CountPhoto[];
+  /** evidence documents (PDF, Excel …; 2026-10-21, optional, up to 15) */
+  files?: CountFile[];
   photo_todo: { areas: string[]; items: string[] };
   progress: { lines: number; counted: number; flagged: number };
   wip?: CountWip;
   /** the crew's signature of the latest submit (06.9 §12.16, D-62; optional) */
   signature?: { id: string; name: string | null; signed_at: string; signed_by_name: string | null } | null;
+};
+
+export type CountFile = {
+  id: string; file_name: string; mime: string; bytes: number; sha256: string; uploaded_at: string;
+  uploaded_by: string; uploaded_by_name: string | null;
 };
 
 export type TodayCount = {

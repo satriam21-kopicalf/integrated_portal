@@ -1,10 +1,10 @@
 "use client";
 
 // Preview before submitting a count (06.9 §12.16, D-62): everything the crew entered — the count, every quantity per
-// area, the WIP, the evidence photos — and an optional signature with the signer's name. Nothing is sent until
+// area, the WIP, the evidence photos and files — and an optional signature with the signer's name. Nothing is sent until
 // "Submit"; "Back" returns to the count to change it.
 
-import { CheckCircle2, ClipboardCheck, Images, PenLine, Send } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Images, Paperclip, PenLine, Send } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button, cx, fmtDate, fmtDay, inputClass } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -13,6 +13,7 @@ import { photoUrl } from "@/so/lib/photos";
 import { useMe } from "@/so/lib/me";
 import { tr } from "@/lib/i18n";
 import SignaturePad from "./SignaturePad";
+import { CountFileList } from "./Evidence";
 
 const unitOf = (l: CountLine) => l.esb_uom || l.base_uom;
 const factorOf = (l: CountLine) => Number(l.esb_factor || 1) || 1;
@@ -121,6 +122,13 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
                 </li>
               ))}
             </ul>
+          )}
+        </section>
+
+        <section>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><Paperclip size={16} className="text-slate-500" /> {tr("Evidence files")} <span className="font-normal text-slate-500">({count.files?.length ?? 0})</span></h3>
+          {count.files?.length ? <CountFileList files={count.files} /> : (
+            <p className="rounded-xl border border-dashed border-slate-200 px-3 py-4 text-sm text-slate-500">{tr("No files attached. They are optional; go back to the count to attach some.")}</p>
           )}
         </section>
 

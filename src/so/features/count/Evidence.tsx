@@ -1,16 +1,17 @@
 "use client";
 
 // Evidence of a count (2026-10-15): up to 15 photos of the count as a whole, taken with the camera at the end of the
-// count (optional), and once the count is approved the evidence as image files (ZIP) or one PDF.
+// count (optional), up to 15 documents (PDF, Excel …; 2026-10-21, optional), and once the count is approved the
+// evidence as files (ZIP) or one PDF.
 
-import { Camera, Download, FileText, Images, Loader2, PenLine, X } from "lucide-react";
-import { useState } from "react";
+import { Camera, Download, FileText, Images, Loader2, Paperclip, PenLine, Upload, X } from "lucide-react";
+import { useRef, useState } from "react";
 import { Button, cx, useToast } from "@/so/ui";
 import { api, errorText } from "@/so/lib/api";
-import { type Count } from "@/so/lib/counts";
+import { type Count, type CountFile } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
-import { photoUrl } from "@/so/lib/photos";
+import { FILE_ACCEPT, FILE_EXTENSIONS, MAX_FILES, MAX_FILE_BYTES, fileExt, fileUrl, fmtBytes, photoUrl } from "@/so/lib/photos";
 import { wibDateTime } from "@/so/lib/wib";
 import CameraCapture, { type Shot } from "./CameraCapture";
 
@@ -67,10 +68,116 @@ export function EvidenceDownloads({ count }: { count: Count }) {
   return (
     <div className="flex flex-wrap gap-2">
       <Button variant="secondary" size="sm" loading={busy === "pdf"} disabled={!!busy} onClick={() => get("pdf")}><FileText size={14} /> {tr("Evidence PDF")}</Button>
-      <Button variant="secondary" size="sm" loading={busy === "zip"} disabled={!!busy || count.photos.length === 0} onClick={() => get("zip")}>
-        <Download size={14} /> {tr("Photos (ZIP)")}
+      <Button variant="secondary" size="sm" loading={busy === "zip"} disabled={!!busy || (count.photos.length === 0 && !count.files?.length)} onClick={() => get("zip")}>
+        <Download size={14} /> {count.files?.length ? tr("Photos & files (ZIP)") : tr("Photos (ZIP)")}
       </Button>
     </div>
+  );
+}
+
+const FILE_TONE: Record<string, string> = {
+  pdf: "bg-red-50 text-red-700", xlsx: "bg-emerald-50 text-emerald-700", xls: "bg-emerald-50 text-emerald-700", csv: "bg-emerald-50 text-emerald-700",
+  docx: "bg-blue-50 text-blue-700", doc: "bg-blue-50 text-blue-700", pptx: "bg-orange-50 text-orange-700", ppt: "bg-orange-50 text-orange-700",
+};
+
+/** The attached documents: name, size, who and when; a tap downloads the file. Removable by its uploader while open. */
+export function CountFileList({ files, onRemove, canRemove }: {
+  files: CountFile[]; onRemove?: (id: string) => void; canRemove?: (f: CountFile) => boolean;
+}) {
+  return (
+    <ul className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200">
+      {files.map((f) => {
+        const ext = fileExt(f.file_name);
+        return (
+          <li key={f.id} className="flex items-center gap-3 px-3 py-2.5">
+            <span className={cx("flex h-9 w-11 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-bold uppercase", FILE_TONE[ext] ?? "bg-slate-100 text-slate-600")}>
+              {ext || <FileText size={15} />}
+            </span>
+            <a href={fileUrl(f.id)} download={f.file_name} className="min-w-0 flex-1 hover:text-blue-700" title={`SHA-256 ${f.sha256}`}>
+              <span className="block truncate text-sm font-medium text-slate-900">{f.file_name}</span>
+              <span className="block truncate text-[11px] text-slate-500">{fmtBytes(f.bytes)} · {f.uploaded_by_name ?? "—"} · {wibDateTime(f.uploaded_at)}</span>
+            </a>
+            <a href={fileUrl(f.id)} download={f.file_name} aria-label={tr("Download {0}", f.file_name)} className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Download size={15} /></a>
+            {onRemove && canRemove?.(f) && (
+              <button type="button" onClick={() => onRemove(f.id)} aria-label={tr("Remove {0}", f.file_name)} className="rounded-md p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"><X size={15} /></button>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Evidence documents of a count (2026-10-21): optional, up to 15 PDF / Excel / Word … files of 10 MB at most. */
+export function EvidenceFiles({ count, open, onChange }: { count: Count; open: boolean; onChange: (c: Count) => void }) {
+  const toast = useToast();
+  const { me } = useMe();
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const files = count.files ?? [];
+  const full = files.length >= MAX_FILES;
+
+  const pick = async (list: FileList | null) => {
+    const chosen = Array.from(list ?? []);
+    if (input.current) input.current.value = "";
+    const room = MAX_FILES - files.length;
+    if (chosen.length > room) toast(tr("Only {0} more files can be attached; the rest was skipped.", room), "error");
+    let latest: Count | null = null;
+    for (const file of chosen.slice(0, Math.max(0, room))) {
+      if (!FILE_EXTENSIONS.includes(fileExt(file.name))) { toast(tr("{0}: this file type is not accepted", file.name), "error"); continue; }
+      if (file.size > MAX_FILE_BYTES) { toast(tr("{0}: larger than {1}", file.name, fmtBytes(MAX_FILE_BYTES)), "error"); continue; }
+      if (file.size === 0) { toast(tr("{0}: the file is empty", file.name), "error"); continue; }
+      setBusy(file.name);
+      try {
+        latest = await api<Count>(`/api/so/counts/${count.id}/files?name=${encodeURIComponent(file.name)}`, {
+          method: "POST", body: file, headers: { "content-type": "application/octet-stream" } });
+        onChange(latest);
+      } catch (err) {
+        toast(`${file.name}: ${errorText(err)}`, "error");
+      }
+    }
+    setBusy(null);
+    if (latest) toast(tr("Files attached"));
+  };
+  const remove = async (id: string) => {
+    try {
+      onChange(await api<Count>(`/api/so/counts/${count.id}/files/${id}`, { method: "DELETE" }));
+    } catch (err) {
+      toast(errorText(err), "error");
+    }
+  };
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
+        <Paperclip size={18} className="text-slate-500" />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-sm font-semibold text-slate-900">{tr("Evidence files")} <span className="font-normal text-slate-500">({files.length}/{MAX_FILES})</span></h2>
+          <p className="text-xs text-slate-500">{open ? tr("Optional: PDF, Excel, Word, PowerPoint, CSV or images, up to 10 MB each.") : tr("Files attached to the count.")}</p>
+        </div>
+        {open && (
+          <>
+            <input ref={input} type="file" multiple accept={FILE_ACCEPT} className="hidden" onChange={(e) => void pick(e.target.files)} />
+            <Button variant="secondary" size="sm" disabled={full || !!busy} onClick={() => input.current?.click()}>
+              {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} {tr("Attach files")}
+            </Button>
+          </>
+        )}
+      </div>
+      <div className="space-y-2 p-4">
+        {busy && <p className="flex items-center gap-2 text-xs text-slate-500"><Loader2 size={13} className="animate-spin" /> {tr("Uploading {0}…", busy)}</p>}
+        {files.length === 0 ? (
+          open ? (
+            <button type="button" onClick={() => input.current?.click()} disabled={!!busy}
+              className="flex w-full flex-col items-center gap-1 rounded-lg border-2 border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500 hover:border-blue-400 hover:text-blue-700">
+              <Paperclip size={18} /> {tr("Attach files (optional)")}
+              <span className="text-[11px] text-slate-400">{tr("The count can be submitted without files")}</span>
+            </button>
+          ) : <p className="text-sm text-slate-500">{tr("No files were attached.")}</p>
+        ) : <CountFileList files={files} onRemove={open ? (id) => void remove(id) : undefined} canRemove={(f) => f.uploaded_by === me?.id} />}
+        {open && full && <p className="text-xs text-amber-700">{tr("The maximum of 15 files is reached; remove one to attach another.")}</p>}
+      </div>
+    </section>
   );
 }
 

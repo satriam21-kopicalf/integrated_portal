@@ -14,7 +14,7 @@ import { type Count, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, mapsUrl } fro
 import { locale, tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
-import { EvidenceDownloads, SignatureCard } from "@/so/features/count/Evidence";
+import { CountFileList, EvidenceDownloads, SignatureCard } from "@/so/features/count/Evidence";
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -131,6 +131,12 @@ export default function ReviewDetailPage() {
                 );
               })}
             </ul>
+          </Panel>
+        )}
+
+        {(count.files?.length ?? 0) > 0 && (
+          <Panel title={tr("Evidence files")} description={tr("{0} files attached by the branch · tap to download; also in the ZIP once approved", count.files!.length)}>
+            <div className="p-4"><CountFileList files={count.files!} /></div>
           </Panel>
         )}
 

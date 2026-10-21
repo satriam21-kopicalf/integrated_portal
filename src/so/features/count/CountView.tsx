@@ -16,7 +16,7 @@ import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
 import { type Count, type CountLine, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, parseQty } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
-import Evidence, { SignatureCard } from "./Evidence";
+import Evidence, { EvidenceFiles, SignatureCard } from "./Evidence";
 import SubmitPreview from "./SubmitPreview";
 import WipSection from "./WipSection";
 import SectionPicker from "@/so/ui/SectionPicker";
@@ -274,6 +274,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         ))}
         {shown.length === 0 && <p className="py-10 text-center text-sm text-slate-500">{tr("No item matches the search or filters")}</p>}
         {(crew || count.photos.length > 0) && <Evidence count={count} open={open} onChange={setCount} />}
+        {(crew || (count.files?.length ?? 0) > 0) && <EvidenceFiles count={count} open={open} onChange={setCount} />}
         {!open && <SignatureCard count={count} />}
       </div>
 
