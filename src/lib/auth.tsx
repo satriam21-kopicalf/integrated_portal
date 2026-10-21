@@ -76,7 +76,7 @@ const AuthContext = createContext<AuthState>({
   user: null, status: 'loading', setUser: () => {}, logout: async () => {},
 });
 
-export const PUBLIC_PATHS = ['/login'];
+export const PUBLIC_PATHS = ['/login', '/share'];
 export const ROLE_LABELS: Record<Role, string> = {
   get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User'); },
 };

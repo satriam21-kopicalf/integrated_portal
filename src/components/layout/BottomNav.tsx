@@ -26,7 +26,7 @@ const FORM_LINKS = [
   { href: '/forms/pic-check-in', key: 'form.pic-check-in', label: () => tr('PIC Check In'), hint: () => tr('Check in at the outlet you visit') },
   { href: '/forms/product', key: 'form.product', label: () => tr('Monitoring Product'), hint: () => tr('Fill in the product checklist') },
   { href: '/forms/outlet', key: 'form.outlet', label: () => tr('Monitoring Outlet'), hint: () => tr('Fill in the outlet checklist') },
-  { href: '/forms/tools', key: 'form.tools', label: () => tr('Tools & Heavy Tools'), hint: () => tr('Fill in the tools checklist') },
+  { href: '/forms/damaged-equipment', key: 'form.damaged-equipment', label: () => tr('Damaged Equipment'), hint: () => tr('Repair & procurement requests') },
 ];
 
 export default function BottomNav({ onMenu }: { onMenu: () => void }) {

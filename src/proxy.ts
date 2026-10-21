@@ -14,6 +14,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // pages only: not the login page, the /api proxy, Next.js internals or static files
-  matcher: ['/((?!login|api|_next|assets|icon\\.svg|favicon\\.ico|.*\\..*).*)'],
+  // pages only: not the login page, the public share pages (/share: a document opened from its link), the /api proxy,
+  // Next.js internals or static files
+  matcher: ['/((?!login|share|api|_next|assets|icon\\.svg|favicon\\.ico|.*\\..*).*)'],
 };

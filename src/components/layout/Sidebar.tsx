@@ -59,8 +59,8 @@ const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] 
     { get name() { return tr('Monitoring Product'); }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
     { get name() { return tr('Monitoring Outlet'); }, href: '/forms/outlet', icon: Store, get description() { return tr('Fill in the outlet checklist'); } },
   ] },
-  { get title() { return tr('Equipment'); }, get hint() { return tr('Tools and heavy tools of the outlet'); }, icon: Wrench, items: [
-    { get name() { return tr('Tools & Heavy Tools'); }, href: '/forms/tools', icon: Wrench, get description() { return tr('Report the condition of the tools'); } },
+  { get title() { return tr('Maintenance'); }, get hint() { return tr('Repairs and procurement of the outlet'); }, icon: Wrench, items: [
+    { get name() { return tr('Damaged Equipment'); }, href: '/forms/damaged-equipment', icon: Wrench, get description() { return tr('Repair & procurement requests'); } },
   ] },
 ];
 
@@ -76,8 +76,8 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
     { get name() { return tr('Monitoring Product'); }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },
     { get name() { return tr('Monitoring Outlet'); }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
   ] },
-  { get title() { return tr('Equipment'); }, get hint() { return tr('Tools and heavy tools of every outlet'); }, icon: Wrench, items: [
-    { get name() { return tr('Tools & Heavy Tools'); }, href: '/monitoring/tools', icon: Wrench, get description() { return tr('Condition & repairs per outlet'); } },
+  { get title() { return tr('Maintenance'); }, get hint() { return tr('Requests of every outlet'); }, icon: Wrench, items: [
+    { get name() { return tr('Damaged Equipment'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },
   ] },
   { get title() { return tr('Settings'); }, get hint() { return tr('How the outlets are grouped'); }, icon: Boxes, items: [
     { get name() { return tr('Branch groups'); }, href: '/monitoring/branch-groups', icon: Boxes, get description() { return tr('CCI, CTG, CTGP … for the assessment'); } },
@@ -110,7 +110,7 @@ const rating: { title: string; hint: string; icon: typeof Users; items: CcItem[]
 type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
 const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'management', PopupConfig & { sections: typeof costControl }> = {
   forms: {
-    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet & tools'); }, get title() { return tr('Form'); },
+    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet & maintenance'); }, get title() { return tr('Form'); },
     get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
     icon: ClipboardPen, sections: forms,
   },
@@ -121,7 +121,7 @@ const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'manage
     icon: Calculator, sections: costControl, review: true,
   },
   monitoring: {
-    get label() { return tr('Monitoring'); }, get idle() { return tr('Check ins, outlets, products & tools'); }, get title() { return tr('Monitoring'); },
+    get label() { return tr('Monitoring'); }, get idle() { return tr('Check ins, outlets, products & maintenance'); }, get title() { return tr('Monitoring'); },
     get subtitle() { return tr('What the outlets and PICs filled in'); }, get footer() { return tr('All times in WIB · from the forms of the outlets'); },
     icon: Gauge, sections: monitoring,
   },
