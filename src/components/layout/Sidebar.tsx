@@ -31,12 +31,12 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
   { get title() { return tr('Stock opname'); }, get hint() { return tr('Follow and close the counts of every branch'); }, icon: ClipboardCheck, items: [
     { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Progress of every branch per day'); } },
     { get name() { return tr('Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); }, badge: 'review' },
-    { get name() { return tr('SO report'); }, href: '/cost-control/reports', icon: Download, get description() { return tr('Download reviewed stock opname'); } },
+    { get name() { return tr('Report Stock Opname'); }, href: '/cost-control/reports', icon: Download, get description() { return tr('Download reviewed stock opname'); } },
   ] },
   { get title() { return tr('Stock opname settings'); }, get hint() { return tr('What, when and how the branches count'); }, icon: SlidersHorizontal, items: [
-    { get name() { return tr('Count lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
-    { get name() { return tr('Item groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Templates assigned to branches'); } },
-    { get name() { return tr('Count types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
+    { get name() { return tr('Count Lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
+    { get name() { return tr('Items Groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Templates assigned to branches'); } },
+    { get name() { return tr('Count Types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
     { get name() { return tr('Premix calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
     { get name() { return tr('Outlet locations'); }, href: '/cost-control/locations', icon: MapPin, get description() { return tr('Coordinates & check-in radius'); } },
   ] },

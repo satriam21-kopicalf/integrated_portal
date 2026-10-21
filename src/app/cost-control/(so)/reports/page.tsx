@@ -90,8 +90,8 @@ export default function ReportsPage() {
   ];
 
   return (
-    <Page title={tr("SO report")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("reviewed stock opname in the layout of the Stock Opname Report")}`}
-      actions={<ExcelIconButton label={tr("Download SO report")} loading={busy} disabled={!rows?.length} onClick={download} />}
+    <Page title={tr("Report Stock Opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("reviewed stock opname in the layout of the Stock Opname Report")}`}
+      actions={<ExcelIconButton label={tr("Download Report Stock Opname")} loading={busy} disabled={!rows?.length} onClick={download} />}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Counts")} emphasis icon={<ListChecks size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>

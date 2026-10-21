@@ -1,14 +1,14 @@
 "use client";
 
 // Cost Control monitor (06.9 §9): every outlet and hub in scope x count type due on a day, with its status, how far the
-// day is (completion, status mix, per count type) and every filter in one drawer.
+// day is (completion; status and count type tabs above the table that filter it) and every filter in one drawer.
 
-import { AlertTriangle, CalendarDays, ChevronRight, Gauge, MapPin, RefreshCw } from "lucide-react";
+import { AlertTriangle, CalendarDays, ChevronRight, Clock, Gauge, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtNumber, theadClass, PageNav, usePaged } from "@/so/ui";
+import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, cx, fmtNumber, theadClass, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { ActiveFilter, ChoiceGroup, DayField, FilterSection, FilterSheet, FilterToolbar, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
+import { ActiveFilter, ChoiceGroup, DayField, FilterSection, FilterSheet, FilterToolbar, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
 import { STATUS, countTypeLabel } from "@/so/lib/counts";
 import LocationBadges from "@/so/features/count/LocationBadges";
@@ -26,17 +26,25 @@ type Row = {
   session: { id: string; status: string; is_late: boolean; outside_radius: boolean; submitted_at: string | null;
     start_distance_m?: number | null; start_accuracy_m?: number | string | null; low_accuracy?: boolean; entry_source?: string } | null;
 };
-/** loc: "" | outside (outside the radius) | low (weak GPS fix) | unlocated (facility without coordinates) */
+/** loc: "" | late (submitted after the window) | outside (outside the radius) | low (weak GPS fix) | unlocated (facility without coordinates) */
 type F = { day: string; status: string; type: string; facilityType: string; loc: string };
 const NO_F: () => F = () => ({ day: wibDay(0), status: "", type: "", facilityType: "", loc: "" });
 const LOC: Record<string, () => string> = {
-  outside: () => tr("Outside radius"), low: () => tr("Low GPS accuracy"), unlocated: () => tr("Outlet has no coordinates"),
+  late: () => tr("Submitted late"), outside: () => tr("Outside radius"), low: () => tr("Low GPS accuracy"), unlocated: () => tr("Outlet has no coordinates"),
 };
-const locMatch = (r: Row, loc: string) => !loc || (loc === "outside" ? !!r.session?.outside_radius
+const locMatch = (r: Row, loc: string) => !loc || (loc === "late" ? !!r.session?.is_late : loc === "outside" ? !!r.session?.outside_radius
   : loc === "low" ? !!r.session?.low_accuracy : r.facility_located === false);
 
 const DONE = ["SUBMITTED", "APPROVED", "RECOUNT_REQUESTED", "EXPORTED"];
 const STATUSES = ["NOT_STARTED", "IN_PROGRESS", "SUBMITTED", "RECOUNT_REQUESTED", "APPROVED", "MISSED"];
+/** "Approved" also holds the counts already exported to ESB */
+const statusMatch = (r: Row, st: string) => !st || r.status === st || (st === "APPROVED" && r.status === "EXPORTED");
+/** the status tabs above the table, in the order of the day */
+const TABS: { key: string; color: string }[] = [
+  { key: "APPROVED", color: "bg-emerald-500" }, { key: "SUBMITTED", color: "bg-violet-500" },
+  { key: "RECOUNT_REQUESTED", color: "bg-amber-500" }, { key: "IN_PROGRESS", color: "bg-blue-500" },
+  { key: "NOT_STARTED", color: "bg-slate-300" }, { key: "MISSED", color: "bg-red-500" },
+];
 const weekday = (iso: string) => new Date(`${iso}T12:00:00+07:00`).toLocaleDateString(locale(), { timeZone: "Asia/Jakarta", weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const timeOf = (v: string | null) => (v ? new Date(v).toLocaleTimeString(locale(), { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit" }) : "");
 
@@ -61,11 +69,12 @@ export default function MonitorPage() {
   const all = useMemo(() => rows ?? [], [rows]);
   const shown = useMemo(() => {
     const s = search.trim().toLowerCase();
-    return all.filter((r) => (!f.status || r.status === f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType) && locMatch(r, f.loc) &&
+    return all.filter((r) => statusMatch(r, f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType) && locMatch(r, f.loc) &&
       (!s || r.facility_name.toLowerCase().includes(s) || r.facility_code.toLowerCase().includes(s)));
   }, [all, search, f]);
   const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
   const n = (st: string) => all.filter((r) => r.status === st).length;
+  const tabCount = (st: string) => all.filter((r) => statusMatch(r, st)).length;
   const done = DONE.reduce((a, s) => a + n(s), 0);
   const late = all.filter((r) => r.session?.is_late).length;
   const outside = all.filter((r) => r.session?.outside_radius).length;
@@ -93,13 +102,9 @@ export default function MonitorPage() {
   ];
 
   return (
-    <Page title={tr("Stock opname monitor")} subtitle={`${isToday ? `${tr("Today")} · ` : ""}${weekday(f.day)} · ${tr("every outlet and hub with a count due")}`}
-      actions={<button type="button" onClick={() => void load()} disabled={rows === null} title={tr("Refresh")} aria-label={tr("Refresh")}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:cursor-wait">
-        <RefreshCw size={18} className={rows === null ? "animate-spin" : ""} />
-      </button>}
+    <Page title={tr("Monitoring Stock Opname")} subtitle={`${isToday ? `${tr("Today")} · ` : ""}${weekday(f.day)} · ${tr("every outlet and hub with a count due")}`}
       stats={
-        <StatStrip label={tr("Summary")} columns={4}>
+        <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Due")} icon={<CalendarDays size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} facilities", fmtNumber(new Set(all.map((r) => r.facility_id)).size))}</p>}
           </Stat>
@@ -119,49 +124,15 @@ export default function MonitorPage() {
           </Stat>
         </StatStrip>
       }>
-      {rows && all.length > 0 && (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <Panel title={tr("Status of the day")}>
-            <div className="p-4 sm:p-5">
-              <SegmentBar parts={[
-                { label: STATUS.APPROVED.label(), value: n("APPROVED") + n("EXPORTED"), color: "bg-emerald-500" },
-                { label: STATUS.SUBMITTED.label(), value: n("SUBMITTED"), color: "bg-violet-500" },
-                { label: STATUS.RECOUNT_REQUESTED.label(), value: n("RECOUNT_REQUESTED"), color: "bg-amber-500" },
-                { label: STATUS.IN_PROGRESS.label(), value: n("IN_PROGRESS"), color: "bg-blue-500" },
-                { label: STATUS.NOT_STARTED.label(), value: n("NOT_STARTED"), color: "bg-slate-300" },
-                { label: STATUS.MISSED.label(), value: n("MISSED"), color: "bg-red-500" },
-              ]} />
-              {(late > 0 || outside > 0 || weak > 0 || unlocated > 0) && (
-                <p className="mt-3 flex flex-wrap gap-3 text-xs text-amber-800">
-                  {late > 0 && <span className="inline-flex items-center gap-1"><AlertTriangle size={13} /> {tr("{0} submitted late", late)}</span>}
-                  {outside > 0 && <span className="inline-flex items-center gap-1"><MapPin size={13} /> {tr("{0} outside the facility radius", outside)}</span>}
-                  {weak > 0 && <span className="inline-flex items-center gap-1 text-slate-600">{tr("{0} with low GPS accuracy", weak)}</span>}
-                  {unlocated > 0 && <Link href="/cost-control/locations" className="inline-flex items-center gap-1 text-slate-600 underline-offset-2 hover:underline">{tr("{0} facilities without coordinates", unlocated)}</Link>}
-                </p>
-              )}
-            </div>
-          </Panel>
-          <Panel title={tr("Per count type")}>
-            <ul className="divide-y divide-slate-100">
-              {byType.map(([t, x]) => {
-                const p = x.due ? Math.round((x.done / x.due) * 100) : 0;
-                return (
-                  <li key={t} className="px-4 py-2.5 sm:px-5">
-                    <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className="truncate font-medium text-slate-800">{countTypeLabel(t)}</span>
-                      <span className="tabular-nums text-slate-600">{x.done}/{x.due} · <span className="font-semibold text-slate-900">{p}%</span></span>
-                    </div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${p}%` }} /></div>
-                  </li>
-                );
-              })}
-            </ul>
-          </Panel>
-        </div>
-      )}
-
-      <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or hub")} filters={chips}
-        onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
+      <Panel toolbar={<>
+        {rows && all.length > 0 && (
+          <DayOverview total={all.length} tabCount={tabCount} status={f.status} onStatus={(status) => setF({ ...f, status: f.status === status ? "" : status })}
+            byType={byType} type={f.type} onType={(type) => setF({ ...f, type: f.type === type ? "" : type })}
+            alerts={{ late, outside, low: weak, unlocated }} loc={f.loc} onLoc={(loc) => setF({ ...f, loc: f.loc === loc ? "" : loc })} />
+        )}
+        <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or hub")} filters={chips}
+          onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
+      </>}
         footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<Gauge size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No count is due on this day")}>
@@ -226,6 +197,76 @@ export default function MonitorPage() {
         facilityTypes={Array.from(new Set(all.map((r) => r.facility_type)))} onClose={() => setSheet(false)}
         onApply={(v) => { setF(v); setSheet(false); }} />}
     </Page>
+  );
+}
+
+/** The day above the table: status tabs (with the completion bar), the count types and the location alerts; each one
+ *  filters the table below, tapping it again clears it. */
+function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, alerts, loc, onLoc }: {
+  total: number; tabCount: (st: string) => number; status: string; onStatus: (st: string) => void;
+  byType: [string, { due: number; done: number }][]; type: string; onType: (t: string) => void;
+  alerts: { late: number; outside: number; low: number; unlocated: number }; loc: string; onLoc: (l: string) => void;
+}) {
+  const ALERTS: { key: string; n: number; icon: typeof Clock; label: (n: number) => string }[] = [
+    { key: "late", n: alerts.late, icon: Clock, label: (n) => tr("{0} submitted late", n) },
+    { key: "outside", n: alerts.outside, icon: MapPin, label: (n) => tr("{0} outside the facility radius", n) },
+    { key: "low", n: alerts.low, icon: AlertTriangle, label: (n) => tr("{0} with low GPS accuracy", n) },
+    { key: "unlocated", n: alerts.unlocated, icon: MapPin, label: (n) => tr("{0} facilities without coordinates", n) },
+  ];
+  return (
+    <div className="space-y-3">
+      <div>
+        <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-100" role="img"
+          aria-label={TABS.map((t) => `${STATUS[t.key].label()} ${tabCount(t.key)}`).join(", ")}>
+          {TABS.map((t) => tabCount(t.key) > 0 && <span key={t.key} className={t.color} style={{ width: `${(tabCount(t.key) / total) * 100}%` }} />)}
+        </div>
+        <div className="-mx-1 mt-2 flex gap-1 overflow-x-auto pb-1" role="tablist" aria-label={tr("Status of the day")}>
+          {[{ key: "", color: "bg-slate-900" }, ...TABS].map((t) => {
+            const on = status === t.key;
+            const count = t.key ? tabCount(t.key) : total;
+            return (
+              <button key={t.key || "all"} type="button" role="tab" aria-selected={on} onClick={() => onStatus(t.key)} disabled={!!t.key && !count && !on}
+                className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-40",
+                  on ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100")}>
+                {t.key && <span className={cx("h-2 w-2 rounded-full", t.color)} aria-hidden />}
+                {t.key ? STATUS[t.key].label() : tr("All")}
+                <span className={cx("tabular-nums", on ? "text-white/80" : "font-semibold text-slate-900")}>{fmtNumber(count)}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {byType.length > 1 && (
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label={tr("Per count type")}>
+          {byType.map(([t, x]) => {
+            const p = x.due ? Math.round((x.done / x.due) * 100) : 0;
+            const on = type === t;
+            return (
+              <button key={t} type="button" onClick={() => onType(t)} aria-pressed={on}
+                className={cx("rounded-lg border px-3 py-2 text-left transition-colors",
+                  on ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50")}>
+                <span className="flex items-baseline justify-between gap-2 text-xs">
+                  <span className="truncate font-medium text-slate-800">{countTypeLabel(t)}</span>
+                  <span className="flex-shrink-0 tabular-nums text-slate-500">{x.done}/{x.due} · <span className="font-semibold text-slate-900">{p}%</span></span>
+                </span>
+                <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-blue-600" style={{ width: `${p}%` }} /></span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {ALERTS.some((a) => a.n > 0) && (
+        <div className="flex flex-wrap gap-1.5">
+          {ALERTS.filter((a) => a.n > 0).map((a) => (
+            <button key={a.key} type="button" onClick={() => onLoc(a.key)} aria-pressed={loc === a.key}
+              className={cx("inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                loc === a.key ? "border-amber-600 bg-amber-600 text-white" : "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300")}>
+              <a.icon size={12} /> {a.label(a.n)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -5,7 +5,7 @@
 // Dates are WIB (the business day of every outlet and hub).
 
 import { ReactNode } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { Button, cx, inputClass } from '@/so/ui';
 import Drawer from '@/so/ui/Drawer';
 import { ActiveFilter, ActiveFilters, FilterButton } from '@/so/ui/FilterControls';
@@ -65,7 +65,8 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
   applyDisabled?: boolean;
 }) {
   return (
-    <Drawer open onClose={onClose} size="sm" title={title ?? tr('Filters')} description={description} focusFirstField={false}
+    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={title ?? tr('Filters')}
+      description={description ?? tr('Choose the filters, then apply them to the page')} focusFirstField={false}
       footer={
         <>
           <button type="button" onClick={onReset}
@@ -76,20 +77,20 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
           <Button onClick={onApply} disabled={applyDisabled}>{tr('Apply')}</Button>
         </>
       }>
-      <div className="space-y-7">{children}</div>
+      <div className="space-y-3">{children}</div>
     </Drawer>
   );
 }
 
-/** A titled group inside the filter drawer. */
+/** One filter of the drawer as a card, like the form cards of the edit drawers (Count types, Monitoring). */
 export function FilterSection({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
-    <section className="space-y-2.5">
-      <div>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
-        {hint && <p className="mt-0.5 text-xs text-slate-400">{hint}</p>}
-      </div>
-      {children}
+    <section className="rounded-xl border border-slate-200 bg-white">
+      <header className="border-b border-slate-100 px-4 py-2.5">
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+        {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
+      </header>
+      <div className="p-4">{children}</div>
     </section>
   );
 }

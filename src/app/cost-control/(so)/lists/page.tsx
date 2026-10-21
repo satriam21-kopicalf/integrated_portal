@@ -110,7 +110,7 @@ export default function ListsPage() {
   };
 
   return (
-    <Page title={tr("Count lists")} subtitle={tr("Items each branch counts per count type")}
+    <Page title={tr("Count Lists")} subtitle={tr("Items each branch counts per count type")}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={lf.type ? tr("Branches · {0}", lf.type) : tr("Branches")} icon={<Building2 size={13} />} value={facilities ? fmtNumber(scope.length) : <StatSkeleton />}>
@@ -244,7 +244,7 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
       {!d ? <div className="skeleton h-64 rounded-lg" /> : (
         <div className="space-y-6">
           <DrawerSection title={tr("Item groups")} description={tr("When a group is assigned, the count shows the items of the assigned groups only (the branch template). This list's own settings still apply to those items.")}>
-            {groups.length === 0 ? <p className="text-sm text-slate-500">{tr("No item groups yet. Create them under Item groups.")}</p> : (
+            {groups.length === 0 ? <p className="text-sm text-slate-500">{tr("No item groups yet. Create them under Items Groups.")}</p> : (
               <div className="flex flex-wrap gap-2">
                 {groups.map((g) => {
                   const on = groupIds.includes(g.id);

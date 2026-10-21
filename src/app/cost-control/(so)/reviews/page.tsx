@@ -89,7 +89,7 @@ export default function ReviewsPage() {
   ];
 
   return (
-    <Page title={tr("Review stock opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("approve submitted counts or ask for a recount")}`}
+    <Page title={tr("Review Stock Opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("approve submitted counts or ask for a recount")}`}
       actions={<ExcelIconButton label={tr("Download all branches")} loading={downloading} onClick={downloadAll} />}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>

@@ -10,7 +10,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, Field, Input, Page, Panel, fmtNumber, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { FilterBar, FilterPill, FormCard, Segmented, Switch } from "@/so/ui/Simple";
+import { FormCard, Segmented, Switch } from "@/so/ui/Simple";
+import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import MonthCalendar, { CalendarDay, gridStart, iso, TYPE_COLORS } from "@/so/features/schedule/MonthCalendar";
 import { reloadCountTypeNames } from "@/so/features/CountTypeNames";
 import { api, errorText } from "@/so/lib/api";
@@ -66,6 +67,26 @@ function baseScheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_of_
   return tr("When needed (no schedule)");
 }
 
+type TF = { status: string; frequency: string };
+const TF_EMPTY: TF = { status: "", frequency: "" };
+
+/** Every filter of Count Types in one drawer (same sheet as Monitoring Stock Opname and Items Groups). */
+function TypeFilters({ value, onApply, onClose }: { value: TF; onApply: (v: TF) => void; onClose: () => void }) {
+  const [d, setD] = useState(value);
+  return (
+    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(TF_EMPTY)}>
+      <FilterSection title={tr("Status")} hint={tr("Inactive count types are not scheduled anywhere")}>
+        <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
+          choices={[{ value: "", label: tr("All") }, { value: "active", label: tr("Active") }, { value: "inactive", label: tr("Inactive") }]} />
+      </FilterSection>
+      <FilterSection title={tr("Frequency")} hint={tr("How often the count is due")}>
+        <ChoiceGroup label="" value={d.frequency} onChange={(v) => setD({ ...d, frequency: v })}
+          choices={[{ value: "", label: tr("All") }, ...FREQUENCIES.map((f) => ({ value: f.key, label: f.label() }))]} />
+      </FilterSection>
+    </FilterSheet>
+  );
+}
+
 const slug = (name: string) => name.normalize("NFD").toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, "").replace(/^(\d)/, "SO_$1").slice(0, 40) || "SO_TYPE";
 
 export default function TypesPage() {
@@ -75,7 +96,8 @@ export default function TypesPage() {
   const [month, setMonth] = useState(() => wibMonthStart());
   const [calendar, setCalendar] = useState<CalendarDay[] | undefined>();
   const [q, setQ] = useState("");
-  const [tf, setTf] = useState<{ status: string; frequency: string }>({ status: "", frequency: "" });
+  const [tf, setTf] = useState<TF>(TF_EMPTY);
+  const [sheet, setSheet] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -98,13 +120,17 @@ export default function TypesPage() {
   const all = rows ?? [];
   const shownTypes = all.filter((t) => (!q.trim() || `${countTypeLabel(t.code, t.name)} ${t.code}`.toLowerCase().includes(q.trim().toLowerCase()))
     && (!tf.status || (tf.status === "active") === t.is_active) && (!tf.frequency || t.frequency === tf.frequency));
-  const paged = usePaged(shownTypes, shownTypes.length + q);
+  const paged = usePaged(shownTypes, shownTypes.length + q + JSON.stringify(tf));
+  const chips: ActiveFilter[] = [
+    ...(tf.status ? [{ key: "s", label: tf.status === "active" ? tr("Active") : tr("Inactive"), onRemove: () => setTf({ ...tf, status: "" }) }] : []),
+    ...(tf.frequency ? [{ key: "f", label: FREQUENCIES.find((x) => x.key === tf.frequency)?.label() ?? tf.frequency, onRemove: () => setTf({ ...tf, frequency: "" }) }] : []),
+  ];
   const next = all.filter((t) => t.is_active && t.next_dates.length).map((t) => ({ t, d: t.next_dates[0] })).sort((a, b) => a.d.localeCompare(b.d))[0];
   const monthKey = wibDate().slice(0, 7);
   const thisMonth = (calendar ?? []).filter((d) => d.date.startsWith(monthKey)).reduce((a, d) => a + d.counts.length, 0);
 
   return (
-    <Page title={tr("Count types")} subtitle={tr("Name, schedule and count window of each stock opname; the calendar follows automatically")}
+    <Page title={tr("Count Types")} subtitle={tr("Name, schedule and count window of each stock opname; the calendar follows automatically")}
       actions={<Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New count type")}</Button>}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
@@ -124,13 +150,10 @@ export default function TypesPage() {
       }>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <div className="space-y-5">
-          <FilterBar search={q} onSearch={setQ} placeholder={tr("Search count type")} active={!!(tf.status || tf.frequency || q)}
-            onReset={() => { setTf({ status: "", frequency: "" }); setQ(""); }}>
-            <FilterPill label={tr("Status")} value={tf.status} onChange={(v) => setTf({ ...tf, status: v })}
-              options={[{ value: "active", label: tr("Active") }, { value: "inactive", label: tr("Inactive") }]} />
-            <FilterPill label={tr("Frequency")} value={tf.frequency} onChange={(v) => setTf({ ...tf, frequency: v })}
-              options={FREQUENCIES.map((f) => ({ value: f.key, label: f.label() }))} />
-          </FilterBar>
+          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+            <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips}
+              onOpen={() => setSheet(true)} onClear={() => setTf(TF_EMPTY)} />
+          </div>
           {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">{tr("Nothing matches the search or filters")}</p>}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-64 rounded-xl" />) : paged.rows.map((t) => (
@@ -147,6 +170,7 @@ export default function TypesPage() {
           </Panel>
         </div>
       )}
+      {sheet && <TypeFilters value={tf} onClose={() => setSheet(false)} onApply={(v) => { setTf(v); setSheet(false); }} />}
       {open && (
         <TypeDrawer type={open === "new" ? null : open} onClose={() => setOpen(null)}
           onSaved={() => { setOpen(null); void load(); void loadCalendar(); void reloadCountTypeNames(); }} />
