@@ -19,6 +19,8 @@ import { tr } from "@/lib/i18n";
 import Evidence, { SignatureCard } from "./Evidence";
 import SubmitPreview from "./SubmitPreview";
 import WipSection from "./WipSection";
+import SectionPicker from "@/so/ui/SectionPicker";
+import { useFocusMode } from "@/components/layout/BottomNav";
 
 type Draft = { qty: string };
 
@@ -46,6 +48,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   const [submitting, setSubmitting] = useState(false);
   const [wipDirty, setWipDirty] = useState(false);
   const pending = useRef<Record<number, Draft>>({});
+  // the phone tab bar steps aside while counting
+  useFocusMode();
 
   const load = useCallback(async () => {
     setError(null);
@@ -183,18 +187,9 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           )}
         </div>
         {areas.length > 1 && (
-          <div className="-mx-4 mt-2 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">
-            {["", ...areas].map((a) => (
-              <button key={a || "all"} type="button" onClick={() => setArea(a)} aria-pressed={area === a}
-                className={cx("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium", area === a ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600")}>
-                {a || tr("All areas")}
-                {a && areaDone[a] && (
-                  <span className={cx("tabular-nums", areaDone[a][0] === areaDone[a][1] ? "text-emerald-600" : "text-slate-400")}>
-                    {areaDone[a][0] === areaDone[a][1] ? "✓" : `${areaDone[a][0]}/${areaDone[a][1]}`}
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="mt-2.5">
+            <SectionPicker title={tr("Area")} allLabel={tr("All areas")} value={area} onChange={(a) => { setArea(a); window.scrollTo({ top: 0 }); }}
+              options={areas.map((a) => ({ key: a, label: a, done: areaDone[a]?.[0] ?? 0, total: areaDone[a]?.[1] ?? 0 }))} />
           </div>
         )}
       </header>

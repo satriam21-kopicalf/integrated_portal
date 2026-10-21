@@ -19,6 +19,8 @@ export type Visit = {
   counts: Counts; score: number | null; latitude: number | null; longitude: number | null; accuracyM: number | null;
   outletLatitude: number | null; outletLongitude: number | null; radiusM: number | null; distanceM: number | null;
   outsideRadius: boolean; lowAccuracy: boolean;
+  /** optional signature at sending (2026-10-21) */
+  signature?: { name: string | null; signedAt: string | null } | null;
   answers?: Record<string, Answer>; photos?: VisitPhoto[]; photoCount?: number;
 };
 export type Branch = { code: string; name: string; latitude: number | null; longitude: number | null; radius_m: number | null };
@@ -33,7 +35,8 @@ export const RATING_STYLE: Record<Rating, { on: string; text: string; dot: strin
 export const ratingLabel = (r: Rating) => ({ UNDER: tr("Under"), MEET: tr("Meet"), EXCEED: tr("Exceed") })[r];
 
 export const visitPhotoUrl = (id: string) => `/api/visit-photos/${id}`;
-export const allItems = (d: Definition) => d.groups.flatMap((g) => g.sections.flatMap((s) => s.items.map((i) => ({ ...i, group: g.key, section: s.title }))));
+export const visitSignatureUrl = (visitId: string) => `/api/visit-signatures/${visitId}`;
+export const allItems = (d: Definition) => d.groups.flatMap((g) => g.sections.flatMap((s) => s.items.map((i) => ({ ...i, group: g.key, section: s.title, sectionKey: s.key }))));
 
 /** Items that block the submit: unrated, and UNDER without a note or a photo (same rule as the server). */
 export function missingOf(d: Definition, answers: Record<string, Answer>, photos: VisitPhoto[]) {

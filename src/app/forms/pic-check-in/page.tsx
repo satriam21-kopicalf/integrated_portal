@@ -20,6 +20,7 @@ import SelfieCamera, { type Selfie } from "@/so/features/checkin/SelfieCamera";
 import { type CheckIn, type FormData, call, deviceSignals, judge, photoUrl, useGpsTrail } from "@/so/features/checkin/checkin";
 import { locale, tr } from "@/lib/i18n";
 import LiveClock from "@/so/ui/LiveClock";
+import { useFocusMode } from "@/components/layout/BottomNav";
 
 const FRESH_MS = 3 * 60_000; // a position older than this is taken again when sending
 
@@ -45,6 +46,8 @@ export default function PicCheckInPage() {
   const [done, setDone] = useState<CheckIn | null>(null);
   const [now, setNow] = useState<Date | null>(null);
   const trail = useGpsTrail();
+  // the phone tab bar steps aside for the send bar of the form
+  useFocusMode();
 
   useEffect(() => {
     setNow(new Date());

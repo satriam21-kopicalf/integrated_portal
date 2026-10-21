@@ -4,7 +4,7 @@
 // period — figures, performance per section (UNDER / MEET / EXCEED), the most frequent findings, the list of visits and
 // one visit in full (every item with its rating, note and photos, the position against the outlet).
 
-import { AlertTriangle, CalendarDays, ClipboardList, ExternalLink, Images, MapPin, RefreshCw, UsersRound } from "lucide-react";
+import { AlertTriangle, CalendarDays, ClipboardList, ExternalLink, Images, MapPin, PenLine, RefreshCw, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -15,7 +15,7 @@ import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
-import { type Definition, type Rating, type Visit, type VisitFormKey, RATINGS, RATING_STYLE, ratingLabel, scoreTone, visitPhotoUrl } from "./visit";
+import { type Definition, type Rating, type Visit, type VisitFormKey, RATINGS, RATING_STYLE, ratingLabel, scoreTone, visitPhotoUrl, visitSignatureUrl } from "./visit";
 
 type SectionPerf = { key: string; title: string; group: string; under: number; meet: number; exceed: number };
 type Finding = { key: string; label: string; section: string; count: number; branches: string[] };
@@ -314,6 +314,17 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
             );
           })}
           {show !== "all" && v.counts.under === 0 && show === "under" && <p className="py-6 text-center text-sm text-slate-400">{tr("No UNDER in this visit")}</p>}
+          {v.signature ? (
+            <section className="flex flex-col gap-3 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-end">
+              {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
+              <img src={visitSignatureUrl(v.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-slate-200" />
+              <div className="text-sm">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-slate-500"><PenLine size={13} /> {tr("Signature")}</p>
+                <p className="font-semibold text-slate-900">{v.signature.name ?? v.name}</p>
+                {v.signature.signedAt && <p className="text-xs text-slate-500">{wibDateTime(v.signature.signedAt)}</p>}
+              </div>
+            </section>
+          ) : <p className="text-xs text-slate-400">{tr("Sent without a signature.")}</p>}
           <p className="flex items-center gap-1.5 text-[11px] text-slate-400"><Images size={12} /> {tr("Photos are taken with the camera in the form, stamped with the time, the outlet and the position.")}</p>
         </div>
       )}

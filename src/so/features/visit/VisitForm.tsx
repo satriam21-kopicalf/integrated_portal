@@ -6,10 +6,14 @@
 // EXCEED, a note and up to 3 camera photos stamped with the time, the branch and the position. UNDER needs a note and a
 // photo (user decision 2026-10-20). Mobile first: one item per row, the progress stays on top, send at the bottom.
 
-import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, MapPin, MessageSquareText, Play, Send, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, ClipboardList, CloudUpload, MapPin, MessageSquareText, PenLine, Play, Send, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
+import Drawer from "@/so/ui/Drawer";
+import SectionPicker from "@/so/ui/SectionPicker";
+import SignaturePad from "@/so/features/count/SignaturePad";
+import { useFocusMode } from "@/components/layout/BottomNav";
 import UserAvatar from "@/components/UserAvatar";
 import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
 import { call } from "@/so/features/checkin/checkin";
@@ -176,7 +180,10 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
   const base = `/api/forms/${form}/visits/${visit.id}`;
   const [answers, setAnswers] = useState<Record<string, Answer>>(visit.answers ?? {});
   const [photos, setPhotos] = useState<VisitPhoto[]>(visit.photos ?? []);
-  const [group, setGroup] = useState(def.groups[0].key);
+  // one category (section of the workbook) at a time: short screens on phones
+  const parts = useMemo(() => def.groups.flatMap((g) => g.sections.map((s) => ({ ...s, group: g }))), [def]);
+  const [section, setSection] = useState(parts[0].key);
+  useFocusMode();
   const [saving, setSaving] = useState(0);
   const [camera, setCamera] = useState<Item | null>(null);
   const [confirm, setConfirm] = useState(false);
@@ -219,12 +226,13 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
   const done = counts.UNDER + counts.MEET + counts.EXCEED;
   const missing = useMemo(() => missingOf(def, answers, photos), [def, answers, photos]);
   const pct = rated.length ? Math.round((done / rated.length) * 100) : 0;
-  const groupDone = (key: string) => {
-    const g = rated.filter((i) => i.group === key);
-    return [g.filter((i) => answers[i.key]?.rating).length, g.length];
+  const sectionDone = (key: string) => {
+    const s = rated.filter((i) => i.sectionKey === key);
+    return [s.filter((i) => answers[i.key]?.rating).length, s.length];
   };
-  const current = def.groups.find((g) => g.key === group)!;
-  const gi = def.groups.findIndex((g) => g.key === group);
+  const si = Math.max(0, parts.findIndex((p) => p.key === section));
+  const current = parts[si];
+  const go = (key: string) => { setSection(key); window.scrollTo({ top: 0 }); document.querySelector("main")?.scrollTo({ top: 0 }); };
 
   const upload = async (item: Item, shot: Shot) => {
     try {
@@ -244,13 +252,14 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
     }
   };
 
-  const submit = async () => {
+  const submit = async (signature: string | null, signedName: string) => {
     setSending(true);
     try {
       await flush();
       const pos = await locate(undefined, 50, 12_000);
       const v = await call<Visit>(`${base}/submit`, { method: "POST",
-        json: { latitude: pos.fix?.lat ?? null, longitude: pos.fix?.lng ?? null, accuracyM: pos.fix?.accuracy ?? null } });
+        json: { latitude: pos.fix?.lat ?? null, longitude: pos.fix?.lng ?? null, accuracyM: pos.fix?.accuracy ?? null,
+          signature, signedName: signature ? signedName : null } });
       toast(tr("Visit sent"));
       onSubmitted(v);
     } catch (e) {
@@ -294,47 +303,42 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium">
             {RATINGS.map((r) => <span key={r} className={cx("inline-flex items-center gap-1", RATING_STYLE[r].text)}><span className={cx("h-2 w-2 rounded-full", RATING_STYLE[r].dot)} />{ratingLabel(r)} {counts[r]}</span>)}
           </div>
-          <div className="-mx-4 mt-2.5 flex gap-1.5 overflow-x-auto px-4 pb-0.5 sm:-mx-6 sm:px-6">
-            {def.groups.map((g) => {
-              const [a, b] = groupDone(g.key);
-              return (
-                <button key={g.key} type="button" onClick={() => { setGroup(g.key); window.scrollTo({ top: 0 }); }} aria-pressed={group === g.key}
-                  className={cx("inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium",
-                    group === g.key ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600")}>
-                  {g.title}
-                  <span className={cx("tabular-nums", a === b ? "text-emerald-600" : "text-slate-400")}>{a === b ? "✓" : `${a}/${b}`}</span>
-                </button>
-              );
-            })}
+          <div className="mt-2.5">
+            <SectionPicker title={tr("Category")} value={section} onChange={go}
+              options={parts.map((p) => { const [a, b] = sectionDone(p.key); return { key: p.key, label: p.title, done: a, total: b, hint: p.group.title }; })} />
           </div>
         </div>
       </header>
 
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
         <div className="px-1">
-          <p className="text-lg font-semibold text-slate-900">{current.title}</p>
-          <p className="text-xs text-slate-500">{current.subtitle} · {tr("rate every item; UNDER needs a note and a photo")}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">{current.group.title} · {current.group.subtitle}</p>
+          <div className="mt-0.5 flex items-end justify-between gap-3">
+            <p className="text-lg font-semibold leading-tight text-slate-900">{current.title}</p>
+            <p className="flex-shrink-0 text-xs tabular-nums text-slate-500">{tr("{0} of {1} rated", sectionDone(current.key)[0], sectionDone(current.key)[1])}</p>
+          </div>
+          <p className="mt-0.5 text-xs text-slate-500">{tr("Rate every item; UNDER needs a note and a photo.")}</p>
         </div>
-        {current.sections.map((s) => (
-          <section key={s.key} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <p className="border-b border-slate-100 bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">{s.title}</p>
-            <ul className="divide-y divide-slate-100">
-              {s.items.map((it) => (
-                <ItemRow key={it.key} item={it} answer={answers[it.key] ?? {}} photos={photos.filter((p) => p.item === it.key)}
-                  onAnswer={(v, now) => change(it.key, v, now)} onCamera={() => setCamera(it)} onRemovePhoto={(id) => void removePhoto(id)} />
-              ))}
-            </ul>
-          </section>
-        ))}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <ul className="divide-y divide-slate-100">
+            {current.items.map((it) => (
+              <ItemRow key={it.key} item={it} answer={answers[it.key] ?? {}} photos={photos.filter((p) => p.item === it.key)}
+                onAnswer={(v, now) => change(it.key, v, now)} onCamera={() => setCamera(it)} onRemovePhoto={(id) => void removePhoto(id)} />
+            ))}
+          </ul>
+        </section>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="secondary" disabled={si === 0} onClick={() => go(parts[si - 1].key)} className="justify-start">
+            <ChevronLeft size={15} /> <span className="truncate">{si > 0 ? parts[si - 1].title : tr("Previous")}</span>
+          </Button>
+          <Button variant={si < parts.length - 1 ? "primary" : "secondary"} disabled={si >= parts.length - 1} onClick={() => go(parts[si + 1].key)} className="justify-end">
+            <span className="truncate">{si < parts.length - 1 ? parts[si + 1].title : tr("Last category")}</span> <ChevronRight size={15} />
+          </Button>
+        </div>
+        <div className="flex justify-center pt-1">
           <button type="button" onClick={() => setDiscarding(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-red-600">
             <Trash2 size={13} /> {tr("Delete this draft")}
           </button>
-          {gi < def.groups.length - 1 && (
-            <Button variant="secondary" onClick={() => { setGroup(def.groups[gi + 1].key); window.scrollTo({ top: 0 }); }}>
-              {def.groups[gi + 1].title} <ChevronRight size={15} />
-            </Button>
-          )}
         </div>
       </div>
 
@@ -348,14 +352,14 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
               {missing.length ? tr("{0} items to complete · see which", missing.length) : tr("Everything is complete")}
             </p>
           </button>
-          <Button disabled={missing.length > 0 || saving > 0} onClick={() => setConfirm(true)}><Send size={15} /> {tr("Send")}</Button>
+          <Button disabled={missing.length > 0 || saving > 0} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>
         </div>
         {showMissing && missing.length > 0 && (
           <ul className="mx-auto mt-2 max-h-48 max-w-4xl overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 text-xs">
             {missing.slice(0, 50).map((m) => (
               <li key={m.item.key}>
                 <button type="button" className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-amber-100"
-                  onClick={() => { setGroup(m.item.group); setShowMissing(false); setTimeout(() => document.getElementById(`item-${m.item.key}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 50); }}>
+                  onClick={() => { setSection(m.item.sectionKey); setShowMissing(false); setTimeout(() => document.getElementById(`item-${m.item.key}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 80); }}>
                   <AlertTriangle size={12} className="flex-shrink-0 text-amber-600" />
                   <span className="min-w-0 flex-1 truncate text-slate-800">{m.item.label}</span>
                   <span className="flex-shrink-0 text-amber-800">{m.need === "rating" ? tr("not rated") : tr("UNDER: note + photo")}</span>
@@ -370,11 +374,95 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
         <CameraCapture open title={`${camera.no}. ${camera.label}`} branch={visit.branchName} countNumber={def.title}
           onClose={() => setCamera(null)} onShot={(s) => upload(camera, s)} />
       )}
-      <ConfirmDialog open={confirm} busy={sending} onClose={() => setConfirm(false)} onConfirm={() => void submit()}
-        title={tr("Send the visit?")} confirmLabel={tr("Send")}
-        description={tr("{0} · {1} UNDER, {2} MEET, {3} EXCEED. After sending it cannot be changed; your location is recorded.", visit.branchName, counts.UNDER, counts.MEET, counts.EXCEED)} />
+      {confirm && (
+        <SendSheet title={def.title} visit={visit} counts={counts} total={rated.length} busy={sending}
+          under={items.filter((i) => answers[i.key]?.rating === "UNDER").map((i) => ({ item: i, note: answers[i.key]?.note ?? "", photos: photos.filter((p) => p.item === i.key).length }))}
+          photos={photos.length} onClose={() => setConfirm(false)} onSend={(sig, name) => void submit(sig, name)} />
+      )}
       <ConfirmDialog open={discarding} onClose={() => setDiscarding(false)} onConfirm={() => void discard()} danger
         title={tr("Delete this draft?")} confirmLabel={tr("Delete")} description={tr("Every rating, note and photo of this draft is removed.")} />
+    </div>
+  );
+}
+
+/** Before sending: the visit at a glance, the findings, an optional signature with the signer's name. */
+function SendSheet({ title, visit, counts, total, under, photos, busy, onClose, onSend }: {
+  title: string; visit: Visit; counts: Record<Rating, number>; total: number; busy: boolean; photos: number;
+  under: { item: Item & { section: string }; note: string; photos: number }[]; onClose: () => void; onSend: (signature: string | null, name: string) => void;
+}) {
+  const [signature, setSignature] = useState<string | null>(null);
+  const [name, setName] = useState(visit.name);
+  const nameMissing = !!signature && !name.trim();
+  return (
+    <Drawer open onClose={onClose} size="lg" icon={<ClipboardCheck size={18} />} title={tr("Check before sending")}
+      description={`${title} · ${visit.branchName}`} locked={busy} focusFirstField={false}
+      footer={
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <p className={cx("text-xs sm:mr-auto", nameMissing ? "text-red-600" : "text-slate-500")}>
+            {nameMissing ? tr("Write the signer's name under the signature.") : tr("After sending the visit cannot be changed; your location is recorded.")}
+          </p>
+          <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the form")}</Button>
+          <Button loading={busy} disabled={nameMissing} onClick={() => onSend(signature, name.trim())}>
+            <Send size={15} /> {signature ? tr("Sign & send") : tr("Send")}
+          </Button>
+        </div>
+      }>
+      <div className="space-y-5">
+        <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+            <Info k={tr("Outlet")} v={visit.branchName} />
+            <Info k={tr("PIC")} v={visit.name} />
+            <Info k={tr("Started")} v={wibDateTime(visit.startedAt)} />
+          </div>
+          <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+            {RATINGS.map((r) => (
+              <div key={r} className="rounded-lg bg-white px-1 py-2 ring-1 ring-slate-200">
+                <p className={cx("text-xl font-semibold tabular-nums", RATING_STYLE[r].text)}>{counts[r]}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{r}</p>
+              </div>
+            ))}
+            <div className="rounded-lg bg-white px-1 py-2 ring-1 ring-slate-200">
+              <p className="text-xl font-semibold tabular-nums text-slate-900">{photos}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Photos")}</p>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">{tr("{0} of {1} rated", counts.UNDER + counts.MEET + counts.EXCEED, total)}</p>
+        </section>
+
+        <section>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><AlertTriangle size={15} className="text-red-500" /> {tr("Findings (UNDER)")}</h3>
+          {under.length === 0 ? <p className="rounded-xl border border-dashed border-slate-200 px-3 py-4 text-sm text-slate-500">{tr("No UNDER in this visit.")}</p> : (
+            <ul className="divide-y divide-slate-100 rounded-xl border border-red-100">
+              {under.map((u) => (
+                <li key={u.item.key} className="px-3 py-2.5 text-sm">
+                  <p className="font-medium text-slate-900">{u.item.label}</p>
+                  <p className="text-xs text-slate-500">{u.item.section} · {tr("{0} photos", u.photos)}</p>
+                  {u.note && <p className="mt-1 text-slate-700">{u.note}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-slate-200 p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><PenLine size={16} className="text-slate-500" /> {tr("Signature")} <span className="font-normal text-slate-500">({tr("optional")})</span></h3>
+          <p className="mb-3 mt-0.5 text-xs text-slate-500">{tr("By signing, I confirm the ratings above reflect the visit.")}</p>
+          <SignaturePad onChange={setSignature} />
+          <label className="mt-2 block">
+            <span className="mb-1 block text-xs font-medium text-slate-600">{tr("Signer's name")}</span>
+            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={cx(inputClass, nameMissing && "border-red-400")} />
+          </label>
+        </section>
+      </div>
+    </Drawer>
+  );
+}
+
+function Info({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{k}</p>
+      <p className="truncate font-medium text-slate-800" title={v}>{v}</p>
     </div>
   );
 }

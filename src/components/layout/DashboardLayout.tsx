@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { BookOpen, Menu } from 'lucide-react';
 import Sidebar, { Brand } from './Sidebar';
 import TableCards from './TableCards';
+import BottomNav, { FocusContext } from './BottomNav';
 import { ToastProvider } from '@/so/ui';
 import { canAccess, useAuth } from '@/lib/auth';
 import { tr } from '@/lib/i18n';
@@ -16,6 +17,8 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  // a form being filled hides the phone tab bar (BottomNav.useFocusMode)
+  const [focus, setFocus] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
   // the guide (Panduan): an icon next to the brand of the sidebar, and in the phone row (2026-10-21: no app bar)
@@ -46,7 +49,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* no app bar (2026-10-21): on phones the menu and the brand open the page and scroll away with it */}
-        <main className="min-w-0 flex-1 overflow-auto">
+        <main className={`min-w-0 flex-1 overflow-auto ${focus ? '' : 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0'}`}>
           <div className="flex items-center gap-2 px-3 pt-3 lg:hidden">
             <button
               type="button"
@@ -65,8 +68,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </Link>
             )}
           </div>
-          <ToastProvider>{children}</ToastProvider>
+          <FocusContext.Provider value={setFocus}><ToastProvider>{children}</ToastProvider></FocusContext.Provider>
         </main>
+        {!focus && <BottomNav onMenu={() => setMobileOpen(true)} />}
         <TableCards />
       </div>
     </div>
