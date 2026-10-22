@@ -83,7 +83,7 @@ export default function DeMonitor() {
   const def = NO_F();
   const chips: ActiveFilter[] = [
     ...(f.period.from !== def.period.from || f.period.to !== def.period.to ? [{ key: "p", label: `${dmy(f.period.from)} – ${dmy(f.period.to)}`, onRemove: () => setF({ ...f, period: def.period }) }] : []),
-    ...(f.kind ? [{ key: "k", label: f.kind === "REPAIR" ? tr("Repair") : tr("Procurement"), onRemove: () => setF({ ...f, kind: "" }) }] : []),
+    ...(f.kind ? [{ key: "k", label: f.kind === "REPAIR" ? "Maintenance" : tr("Procurement"), onRemove: () => setF({ ...f, kind: "" }) }] : []),
     ...(f.urgency ? [{ key: "u", label: URGENCY_LABEL[f.urgency as Urgency](), onRemove: () => setF({ ...f, urgency: "" }) }] : []),
     ...(f.group ? [{ key: "g", label: f.group, onRemove: () => setF({ ...f, group: "" }) }] : []),
     ...(f.tech ? [{ key: "t", label: f.tech, onRemove: () => setF({ ...f, tech: "" }) }] : []),
@@ -238,7 +238,7 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
               <tr key={r.id} onClick={() => onOpen(r.id)} className="group cursor-pointer hover:bg-blue-50/40">
                 <td className={cx("whitespace-nowrap border-l-4 py-3 pl-4 pr-3", STRIPE[r.urgency])}>
                   <span className="block font-mono text-xs font-semibold text-slate-800">{r.number}</span>
-                  <span className="mt-0.5 flex items-center gap-1.5"><UrgencyBadge u={r.urgency} /><span className="text-[11px] text-slate-500">{r.kind === "REPAIR" ? tr("Repair") : tr("Procurement")}</span></span>
+                  <span className="mt-0.5 flex items-center gap-1.5"><UrgencyBadge u={r.urgency} /><span className="text-[11px] text-slate-500">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}</span></span>
                 </td>
                 <td className="max-w-[16rem] px-3 py-3">
                   <span className="block truncate font-medium text-slate-900">{items(r)}</span>
@@ -298,7 +298,7 @@ function MonitorFilters({ value, groups, bgroups, branches, pics, technicians, o
       )}
       <FilterSection title={tr("Type")}>
         <ChoiceGroup label="" value={d.kind} onChange={(v) => setD({ ...d, kind: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "REPAIR", label: tr("Repair") }, { value: "PROCUREMENT", label: tr("Procurement") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "REPAIR", label: "Maintenance" }, { value: "PROCUREMENT", label: tr("Procurement") }]} />
       </FilterSection>
       <FilterSection title={tr("Urgency")}>
         <ChoiceGroup label="" value={d.urgency} onChange={(v) => setD({ ...d, urgency: v })}

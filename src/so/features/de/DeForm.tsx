@@ -8,11 +8,10 @@
 // handover (link ?request=<id>) the PIC confirms at the outlet: 1-5 photos, their signature and, for a vendor, the
 // vendor's signature. Once Done the final document (work report / vendor's handover record) is downloadable.
 
-import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Clock, CloudUpload, Copy, Download, FileCheck2, FileText,
-  Hammer, Handshake, Loader2, MessageCircle, PackagePlus, PauseCircle, Plus, Send, Trash2, Video, Wrench, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Copy, Download, FileCheck2, FileText,
+  Hammer, Handshake, Loader2, MessageCircle, PackagePlus, Plus, Send, Trash2, Video, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Button, cx, ErrorState, fmtNumber, inputClass, Page, useToast } from "@/so/ui";
-import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { FormCard, Segmented } from "@/so/ui/Simple";
@@ -23,9 +22,9 @@ import { useFocusMode } from "@/components/layout/BottomNav";
 import UserAvatar from "@/components/UserAvatar";
 import { call } from "@/so/features/checkin/checkin";
 import { locate } from "@/so/lib/counts";
-import { wibDateTime } from "@/so/lib/wib";
+import { TZ, wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
-import { tr } from "@/lib/i18n";
+import { locale, tr } from "@/lib/i18n";
 import RequestView, { StatusBadge, UrgencyBadge } from "./RequestView";
 import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, STEPS, URGENCIES, URGENCY_LABEL,
   alreadyAsked, download, fmtHours, fmtMb } from "./de";
@@ -42,6 +41,13 @@ export default function DeForm() {
   const [opening, setOpening] = useState(false);
   const [view, setView] = useState<string | null>(null);
   const [show, setShow] = useState<"all" | "open" | "done" | "rejected">("all");
+  const [now, setNow] = useState<Date | null>(null);
+  // the header like the other forms: the date as subtitle, the live clock on the right
+  useEffect(() => {
+    setNow(new Date());
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   const load = useCallback(async () => {
     setError(null);
@@ -82,26 +88,10 @@ export default function DeForm() {
   const mine = (data?.requests ?? []).filter((r) => r.status !== "DRAFT");
   const live = mine.filter((r) => OPEN.includes(r.status));
   const done = mine.filter((r) => r.status === "DONE");
-  const avg = done.length ? done.reduce((a, r) => a + (r.tracker?.workHours ?? 0), 0) / done.length : null;
   const shown = mine.filter((r) => show === "all" || (show === "open" ? OPEN.includes(r.status) : show === "done" ? r.status === "DONE" : r.status === "REJECTED"));
   return (
-    <Page title={tr("Damaged Equipment")} subtitle={tr("Repair & procurement requests of your outlet")} actions={<LiveClock />}
-      stats={
-        <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
-          <Stat label={tr("In progress")} emphasis icon={<Wrench size={13} />} value={data ? fmtNumber(live.length) : <StatSkeleton />}>
-            {data && <p>{tr("{0} critical", fmtNumber(live.filter((r) => r.urgency === "CRITICAL").length))}</p>}
-          </Stat>
-          <Stat label={tr("Needs attention")} icon={<PauseCircle size={13} />} value={data ? fmtNumber(live.filter((r) => r.status === "ON_HOLD" || r.tracker?.overdue || (r.status === "HANDOVER" && !r.handover?.at)).length) : <StatSkeleton />}>
-            {data && <p>{tr("handover, on hold or past target")}</p>}
-          </Stat>
-          <Stat label="Done" icon={<CheckCircle2 size={13} />} value={data ? fmtNumber(done.length) : <StatSkeleton />}>
-            {data && <p>{tr("{0} rejected", fmtNumber(mine.filter((r) => r.status === "REJECTED").length))}</p>}
-          </Stat>
-          <Stat label={tr("Average time")} icon={<Clock size={13} />} value={data ? fmtHours(avg) : <StatSkeleton />}>
-            {data && <p>{tr("from sending to done")}</p>}
-          </Stat>
-        </StatStrip>
-      }>
+    <Page title="Damaged Equipment" actions={<LiveClock />}
+      subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
       {error ? <div className="rounded-xl border border-slate-200 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><div className="skeleton h-48 rounded-xl" /><div className="skeleton h-64 rounded-xl" /></div>
       ) : (
@@ -113,7 +103,7 @@ export default function DeForm() {
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-slate-900">{data.user.name}</p>
-                <p className="truncate text-xs text-slate-500">{tr("PIC of the request")}</p>
+                <p className="truncate text-xs text-slate-500">{me?.username ? `@${me.username} · ` : ""}{tr("PIC of the request")}</p>
               </div>
             </div>
             <div className="space-y-4 p-4 sm:p-5">
@@ -162,7 +152,7 @@ export default function DeForm() {
                     <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 sm:px-5">
                       <ClipboardList size={18} className="flex-shrink-0 text-amber-600" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-slate-900">{d.kind === "REPAIR" ? tr("Repair") : tr("Procurement")} · {d.branchName}</span>
+                        <span className="block truncate text-sm font-medium text-slate-900">{d.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {d.branchName}</span>
                         <span className="block text-xs text-slate-500">{tr("saved {0}", wibDateTime(d.updatedAt))}</span>
                       </span>
                       <ChevronRight size={16} className="text-slate-300" />
@@ -210,7 +200,7 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
           {r.tracker?.targetAdjusted && OPEN.includes(r.status) && <Badge tone="violet">{tr("Estimate adjusted")}</Badge>}
           <span className="ml-auto text-[11px] tabular-nums text-slate-400">{wibDateTime(r.submittedAt)}</span>
         </span>
-        <span className="mt-1 block truncate text-sm font-medium text-slate-900">{r.kind === "REPAIR" ? tr("Repair") : tr("Procurement")} · {r.branchName}</span>
+        <span className="mt-1 block truncate text-sm font-medium text-slate-900">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {r.branchName}</span>
         <span className="mt-2 flex items-center gap-1" aria-label={tr("Progress")}>
           {STEPS.map((st, i) => (
             <span key={st} title={st} className={cx("h-1.5 flex-1 rounded-full", r.status === "REJECTED" ? "bg-red-200" : i <= idx ? (r.status === "ON_HOLD" && i === idx ? "bg-amber-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-blue-600") : "bg-slate-100")} />
@@ -670,7 +660,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </div>
       </div>
 
-      <CameraCapture open={camera} title={tr("Damaged Equipment evidence")} branch={r.branchName} countNumber={r.kind === "REPAIR" ? tr("Repair") : tr("Procurement")}
+      <CameraCapture open={camera} title={tr("Damaged Equipment evidence")} branch={r.branchName} countNumber={r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}
         onClose={() => setCamera(false)} onShot={addPhoto} />
       {preview && <SendSheet r={{ ...r, items: items.filter((i) => i.categoryId && i.name.trim()).map((i) => ({ ...i, category: cats.find((c) => c.id === i.categoryId)?.name, group: cats.find((c) => c.id === i.categoryId)?.group })), analysis, cause }}
         onClose={() => setPreview(false)} onSent={onSent} />}

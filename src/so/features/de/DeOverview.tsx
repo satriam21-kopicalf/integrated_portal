@@ -72,7 +72,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
         <>
           <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
             <Stat label={tr("Requests")} emphasis icon={<BarChart3 size={13} />} value={k ? fmtNumber(k.total) : <StatSkeleton />}>
-              {k && <p>{tr("{0} repair · {1} procurement", fmtNumber(k.repair), fmtNumber(k.procurement))}</p>}
+              {k && <p>{tr("{0} maintenance · {1} procurement", fmtNumber(k.repair), fmtNumber(k.procurement))}</p>}
             </Stat>
             <Stat label={tr("Done")} icon={<CheckCircle2 size={13} />} value={k ? fmtNumber(k.done) : <StatSkeleton />}>
               {k && <p>{tr("average {0} · {1} still open", fmtHours(k.avgHours), fmtNumber(k.open))}</p>}

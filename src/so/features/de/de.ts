@@ -50,7 +50,7 @@ export type FormState = { user: { id: string; name: string }; branches: Branch[]
   limits: { photos: number; videoBytes: number; items: number } };
 
 export const KIND_LABEL: Record<Kind, () => string> = {
-  REPAIR: () => tr("Repair (Building & Tools)"), PROCUREMENT: () => tr("Procurement (Decoration & Tools)"),
+  REPAIR: () => "Maintenance", PROCUREMENT: () => tr("Procurement (Decoration & Tools)"),
 };
 export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), PENDING: () => "Pending", VALIDATION: () => tr("Validation"), REVIEW: () => "Review", ON_HOLD: () => "On hold",
