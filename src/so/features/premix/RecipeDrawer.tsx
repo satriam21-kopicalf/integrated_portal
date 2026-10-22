@@ -15,7 +15,7 @@ import { api, errorText } from "@/so/lib/api";
 import { fmtDate } from "@/so/ui";
 import { tr } from "@/lib/i18n";
 import ComponentSources, { PickedComponent } from "./ComponentSources";
-import { num, RecipeDetail, RecipeLine, Unit, unitGrams, Version } from "./types";
+import { num, RecipeDetail, RecipeLine, Unit, unitGrams } from "./types";
 
 const FACILITY_TYPES = ["OUTLET", "HUB_WH", "HUB_CK", "CK_ESPRESSO", "CK_FOOD", "VIRTUAL"];
 const TYPES = ["WIP", "PREMIX", "FOOD"];
@@ -349,4 +349,3 @@ function ItemPicker({ value, onPick, onNotStock }: { value: DraftLine; onPick: (
   );
 }
 
-export type { Version };

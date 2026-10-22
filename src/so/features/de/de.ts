@@ -10,8 +10,8 @@ export type Urgency = "CRITICAL" | "HIGH" | "NORMAL" | "LOW" | "PLANNED";
 export type Category = { id: number; group: string; name: string; defaultUrgency: Urgency; examples: string[]; sort: number; isActive: boolean };
 export type Item = { id?: number; categoryId: number; group?: string; category?: string; name: string; qty: number; location: string | null;
   urgency: Urgency; note: string | null };
-export type Media = { id: string; kind: "PHOTO" | "VIDEO" | "AFTER"; mime: string; bytes: number; fileName: string | null;
-  takenAt: string | null; uploadedAt: string; uploadedBy: string | null };
+export type Media = { id: string; kind: "PHOTO" | "VIDEO" | "AFTER" | "INVOICE"; mime: string; bytes: number; fileName: string | null;
+  takenAt: string | null; uploadedAt: string; uploadedBy: string | null; note?: string | null };
 export type DeEvent = { id: number; at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "ASSIGN" | "RELEASE" | "SWAP" | "COST" | "NOTE" | "DUPLICATE";
   from: Status | null; to: Status | null; note: string | null; details: Record<string, unknown> };
 export type Assignment = { id: number; technicianId: number; name: string; kind: string; company: string | null; phone: string | null;
@@ -30,6 +30,7 @@ export type Request = {
 };
 export type Technician = { id: number; name: string; kind: "INTERNAL" | "VENDOR"; company: string | null; skills: string[]; city: string | null;
   phone: string | null; notes: string | null; isActive: boolean; activeJobs: number; doneJobs: number;
+  wageType: "DAILY" | "MONTHLY"; wageAmount: number | null;
   jobs: { requestId: string; number: string; branchName: string; urgency: Urgency; status: Status; scheduledFor: string | null }[] };
 export type Branch = { code: string; name: string };
 export type FormState = { user: { id: string; name: string }; branches: Branch[]; categories: Category[]; requests: Request[];

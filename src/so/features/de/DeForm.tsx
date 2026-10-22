@@ -6,13 +6,14 @@
 // one video ≤ 10 MB; a preview with the PIC's signature sends it; the PDF and a share link follow, and "My requests"
 // shows the progress and every note of the team.
 
-import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Copy, Download, FileText,
-  Hammer, Loader2, MessageCircle, PackagePlus, Plus, Send, Trash2, Video, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Clock, CloudUpload, Copy, Download, FileText,
+  Hammer, Loader2, MessageCircle, PackagePlus, PauseCircle, Plus, Send, Trash2, Video, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
+import { Badge, Button, cx, ErrorState, fmtNumber, inputClass, Page, useToast } from "@/so/ui";
+import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
-import { FormCard } from "@/so/ui/Simple";
+import { FormCard, Segmented } from "@/so/ui/Simple";
 import LiveClock from "@/so/ui/LiveClock";
 import SignaturePad from "@/so/features/count/SignaturePad";
 import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
@@ -24,8 +25,8 @@ import { wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
 import RequestView, { StatusBadge, UrgencyBadge } from "./RequestView";
-import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, PORTAL_URLS, URGENCIES, URGENCY_LABEL,
-  alreadyAsked, download, fmtMb } from "./de";
+import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, STEPS, URGENCIES, URGENCY_LABEL,
+  alreadyAsked, download, fmtHours, fmtMb } from "./de";
 
 export default function DeForm() {
   const toast = useToast();
@@ -38,6 +39,7 @@ export default function DeForm() {
   const [sent, setSent] = useState<Request | null>(null);
   const [opening, setOpening] = useState(false);
   const [view, setView] = useState<string | null>(null);
+  const [show, setShow] = useState<"all" | "open" | "done" | "rejected">("all");
 
   const load = useCallback(async () => {
     setError(null);
@@ -71,8 +73,28 @@ export default function DeForm() {
 
   const drafts = (data?.requests ?? []).filter((r) => r.status === "DRAFT");
   const mine = (data?.requests ?? []).filter((r) => r.status !== "DRAFT");
+  const live = mine.filter((r) => OPEN.includes(r.status));
+  const done = mine.filter((r) => r.status === "DONE");
+  const avg = done.length ? done.reduce((a, r) => a + (r.tracker?.workHours ?? 0), 0) / done.length : null;
+  const shown = mine.filter((r) => show === "all" || (show === "open" ? OPEN.includes(r.status) : show === "done" ? r.status === "DONE" : r.status === "REJECTED"));
   return (
-    <Page title={tr("Damaged Equipment")} subtitle={tr("Repair & procurement requests of your outlet")} actions={<LiveClock />}>
+    <Page title={tr("Damaged Equipment")} subtitle={tr("Repair & procurement requests of your outlet")} actions={<LiveClock />}
+      stats={
+        <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
+          <Stat label={tr("In progress")} emphasis icon={<Wrench size={13} />} value={data ? fmtNumber(live.length) : <StatSkeleton />}>
+            {data && <p>{tr("{0} critical", fmtNumber(live.filter((r) => r.urgency === "CRITICAL").length))}</p>}
+          </Stat>
+          <Stat label={tr("Needs attention")} icon={<PauseCircle size={13} />} value={data ? fmtNumber(live.filter((r) => r.status === "ON_HOLD" || r.tracker?.overdue).length) : <StatSkeleton />}>
+            {data && <p>{tr("on hold or past target")}</p>}
+          </Stat>
+          <Stat label="Done" icon={<CheckCircle2 size={13} />} value={data ? fmtNumber(done.length) : <StatSkeleton />}>
+            {data && <p>{tr("{0} rejected", fmtNumber(mine.filter((r) => r.status === "REJECTED").length))}</p>}
+          </Stat>
+          <Stat label={tr("Average time")} icon={<Clock size={13} />} value={data ? fmtHours(avg) : <StatSkeleton />}>
+            {data && <p>{tr("from sending to done")}</p>}
+          </Stat>
+        </StatStrip>
+      }>
       {error ? <div className="rounded-xl border border-slate-200 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><div className="skeleton h-48 rounded-xl" /><div className="skeleton h-64 rounded-xl" /></div>
       ) : (
@@ -144,29 +166,19 @@ export default function DeForm() {
             </section>
           )}
 
-          <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <p className="border-b border-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-900 sm:px-5">{tr("My requests")}</p>
-            {mine.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{tr("No request sent yet")}</p> : (
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">{tr("My requests")}</p>
+                <p className="text-xs text-slate-500">{tr("Tap a request to see every step and note of the team")}</p>
+              </div>
+              <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
+                { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In progress")} ${live.length}` },
+                { value: "done", label: `Done ${done.length}` }, { value: "rejected", label: `Reject ${mine.length - live.length - done.length}` }]} />
+            </div>
+            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{mine.length ? tr("No request in this view") : tr("No request sent yet")}</p> : (
               <ul className="divide-y divide-slate-100">
-                {mine.map((r) => (
-                  <li key={r.id}>
-                    <button type="button" onClick={() => setView(r.id)} className="w-full px-4 py-3 text-left hover:bg-slate-50 sm:px-5">
-                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-mono text-xs font-semibold text-slate-500">{r.number}</span>
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900">{r.kind === "REPAIR" ? tr("Repair") : tr("Procurement")} · {r.branchName}</span>
-                        <StatusBadge r={r} />
-                      </span>
-                      <span className="mt-1.5 flex items-center gap-2">
-                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                          <span className={cx("block h-full rounded-full", r.status === "REJECTED" ? "bg-red-500" : r.status === "ON_HOLD" ? "bg-amber-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-blue-600")}
-                            style={{ width: `${r.status === "REJECTED" ? 100 : r.tracker?.progress ?? 0}%` }} />
-                        </span>
-                        <span className="text-[11px] tabular-nums text-slate-500">{wibDateTime(r.submittedAt)}</span>
-                      </span>
-                      {r.lastNote?.note && <span className="mt-1 block truncate text-xs text-slate-600">“{r.lastNote.note}” — {r.lastNote.actor}</span>}
-                    </button>
-                  </li>
-                ))}
+                {shown.map((r) => <MineRow key={r.id} r={r} onOpen={() => setView(r.id)} />)}
               </ul>
             )}
           </section>
@@ -174,6 +186,33 @@ export default function DeForm() {
       )}
       {view && <MyRequest id={view} onClose={() => setView(null)} />}
     </Page>
+  );
+}
+
+/** One of the PIC's requests: number, status and urgency, items, the steps reached and the latest note of the team. */
+function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
+  const at = r.status === "ON_HOLD" ? r.holdFrom : r.status;
+  const idx = r.status === "DONE" ? STEPS.length - 1 : at ? STEPS.indexOf(at) : 0;
+  return (
+    <li>
+      <button type="button" onClick={onOpen} className="w-full px-4 py-3 text-left hover:bg-slate-50 sm:px-5">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="font-mono text-xs font-semibold text-slate-500">{r.number}</span>
+          <StatusBadge r={r} /><UrgencyBadge u={r.urgency} />
+          <span className="ml-auto text-[11px] tabular-nums text-slate-400">{wibDateTime(r.submittedAt)}</span>
+        </span>
+        <span className="mt-1 block truncate text-sm font-medium text-slate-900">{r.kind === "REPAIR" ? tr("Repair") : tr("Procurement")} · {r.branchName}</span>
+        <span className="mt-2 flex items-center gap-1" aria-label={tr("Progress")}>
+          {STEPS.map((st, i) => (
+            <span key={st} title={st} className={cx("h-1.5 flex-1 rounded-full", r.status === "REJECTED" ? "bg-red-200" : i <= idx ? (r.status === "ON_HOLD" && i === idx ? "bg-amber-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-blue-600") : "bg-slate-100")} />
+          ))}
+        </span>
+        <span className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+          <span className="truncate">{r.lastNote?.note ? `“${r.lastNote.note}” — ${r.lastNote.actor}` : tr("No note from the team yet")}</span>
+          <span className="flex-shrink-0 tabular-nums">{fmtHours(r.tracker?.workHours)}</span>
+        </span>
+      </button>
+    </li>
   );
 }
 
@@ -531,30 +570,42 @@ function SendSheet({ r, onClose, onSent }: { r: Request; onClose: () => void; on
         <Button loading={busy} disabled={!signature || !name.trim()} onClick={() => void send()}><Send size={15} /> {tr("Send")}</Button>
       </>}>
       <div className="space-y-4">
-        <section className="rounded-xl border border-slate-200 p-4 text-sm">
-          <p className="font-semibold text-slate-900">{tr("Items ({0})", r.items?.length ?? 0)}</p>
-          <ul className="mt-2 divide-y divide-slate-100">
+        <FormCard n={1} title={tr("Request data")} hint={tr("Filled automatically from your account")}>
+          <dl className="grid grid-cols-2 gap-3 text-sm">
+            <div><dt className="text-[11px] text-slate-400">PIC</dt><dd className="font-medium text-slate-900">{r.picName}</dd></div>
+            <div><dt className="text-[11px] text-slate-400">{tr("Branch")}</dt><dd className="font-medium text-slate-900">{r.branchName}</dd></div>
+            <div><dt className="text-[11px] text-slate-400">{tr("Type of request")}</dt><dd className="text-slate-900">{r.kindLabel}</dd></div>
+            <div><dt className="text-[11px] text-slate-400">{tr("Date & time")}</dt><dd className="text-slate-900"><LiveClock /></dd></div>
+          </dl>
+        </FormCard>
+        <FormCard n={2} title={tr("Items ({0})", r.items?.length ?? 0)} hint={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}>
+          <ul className="divide-y divide-slate-100 text-sm">
             {(r.items ?? []).map((it, i) => (
-              <li key={i} className="flex items-start justify-between gap-3 py-1.5">
+              <li key={i} className="flex items-start justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
                 <span className="min-w-0"><span className="block text-slate-900">{it.name} × {it.qty}</span>
                   <span className="block text-xs text-slate-500">{it.category}{it.location ? ` · ${it.location}` : ""}{it.note ? ` · ${it.note}` : ""}</span></span>
                 <UrgencyBadge u={it.urgency} />
               </li>
             ))}
           </ul>
-          <p className="mt-3 font-semibold text-slate-900">{r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}</p>
-          <p className="mt-1 whitespace-pre-line text-slate-700">{r.analysis}</p>
-          <p className="mt-3 text-xs text-slate-500">{tr("{0} photos", (r.media ?? []).filter((m) => m.kind === "PHOTO").length)}{(r.media ?? []).some((m) => m.kind === "VIDEO") ? ` · ${tr("1 video")}` : ""}</p>
-        </section>
-        <section className="rounded-xl border border-slate-200 p-4">
-          <p className="text-sm font-semibold text-slate-900">{tr("PIC signature")} <span className="font-normal text-red-600">*</span></p>
-          <p className="mb-3 mt-0.5 text-xs text-slate-500">{tr("By signing I confirm this request is true and needed for the outlet.")}</p>
+        </FormCard>
+        <FormCard n={3} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
+          hint={`${tr("{0} photos", (r.media ?? []).filter((m) => m.kind === "PHOTO").length)}${(r.media ?? []).some((m) => m.kind === "VIDEO") ? ` · ${tr("1 video")}` : ""}`}>
+          <p className="whitespace-pre-line text-sm text-slate-700">{r.analysis}</p>
+          <ul className="grid grid-cols-5 gap-1.5">
+            {(r.media ?? []).filter((m) => m.kind === "PHOTO").map((m) => (
+              // eslint-disable-next-line @next/next/no-img-element -- private photo through the API
+              <li key={m.id}><img src={PORTAL_URLS.media(m.id)} alt={tr("Photo")} className="aspect-square w-full rounded-md object-cover ring-1 ring-slate-200" /></li>
+            ))}
+          </ul>
+        </FormCard>
+        <FormCard n={4} title={tr("PIC signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
           <SignaturePad onChange={setSignature} />
-          <label className="mt-2 block">
+          <label className="block">
             <span className="mb-1 block text-xs font-medium text-slate-600">{tr("Signer's name")}</span>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={inputClass} />
           </label>
-        </section>
+        </FormCard>
         <p className="text-xs text-slate-500">{tr("After sending: the status is Pending, the team checks it; you get a PDF and a link to share, and follow every step under My requests.")}</p>
       </div>
     </Drawer>

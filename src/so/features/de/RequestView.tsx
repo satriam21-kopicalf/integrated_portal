@@ -1,13 +1,15 @@
 "use client";
 
 // One Damaged Equipment request as everyone reads it — the PIC (their requests), the team (monitoring drawer) and the
-// share link: progress steps, time per stage, items, analysis, evidence, technicians, the timeline with every note.
+// share link — in numbered cards like the other drawers: status & steps, time per stage, items, analysis, evidence,
+// handling (technicians, cost, invoices, photos of the work done), the timeline with every note and the signature.
 
-import { AlertTriangle, Check, CircleDot, Clock, Hammer, Image as ImageIcon, MapPin, PauseCircle, PenLine, Video, XCircle } from "lucide-react";
+import { AlertTriangle, Check, CircleDot, Download, FileText, MapPin, PauseCircle, Video, XCircle } from "lucide-react";
 import { Badge, cx } from "@/so/ui";
+import { FormCard } from "@/so/ui/Simple";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import { type DeEvent, type MediaUrls, type Request, CAUSES, STATUS_LABEL, STATUS_TONE, STEPS, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
+import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_LABEL, STATUS_TONE, STEPS, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
 
 const EVENT_LABEL: Record<DeEvent["kind"], () => string> = {
   SUBMIT: () => tr("Request sent"), STATUS: () => tr("Status"), ASSIGN: () => tr("Technician assigned"), RELEASE: () => tr("Technician released"),
@@ -54,23 +56,18 @@ export function Steps({ r }: { r: Request }) {
   );
 }
 
-export function TrackerCard({ r }: { r: Request }) {
-  const t = r.tracker;
-  if (!t || t.totalHours === null) return null;
+function Tracker({ r }: { r: Request }) {
+  const t = r.tracker!;
   const max = Math.max(1, ...t.stages.map((s) => s.hours));
   return (
-    <section className="rounded-xl border border-slate-200 bg-white">
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5">
-        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-slate-900"><Clock size={15} className="text-slate-500" /> {tr("Time tracker")}</h3>
-        {t.slaHours !== null && <Badge tone={t.overdue ? "red" : "green"}>{t.overdue ? tr("Past target ({0})", fmtHours(t.slaHours)) : tr("Target {0}", fmtHours(t.slaHours))}</Badge>}
-      </header>
-      <div className="grid grid-cols-3 divide-x divide-slate-100 text-center">
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 divide-x divide-slate-100 rounded-lg border border-slate-100 text-center">
         {[[tr("Total"), t.totalHours], [tr("Handled"), t.workHours], [tr("On hold"), t.holdHours]].map(([k, v]) => (
-          <div key={String(k)} className="px-2 py-2.5"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{k}</p>
+          <div key={String(k)} className="px-2 py-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{k}</p>
             <p className="text-sm font-semibold tabular-nums text-slate-900">{fmtHours(v as number)}</p></div>
         ))}
       </div>
-      <ul className="space-y-1.5 border-t border-slate-100 px-4 py-3">
+      <ul className="space-y-1.5">
         {t.stages.map((s) => (
           <li key={s.status} className="grid grid-cols-[6.5rem_1fr_4.5rem] items-center gap-2 text-xs">
             <span className="truncate text-slate-600">{STATUS_LABEL[s.status]()}</span>
@@ -79,18 +76,7 @@ export function TrackerCard({ r }: { r: Request }) {
           </li>
         ))}
       </ul>
-    </section>
-  );
-}
-
-function Section({ title, icon, children, aside }: { title: string; icon?: React.ReactNode; children: React.ReactNode; aside?: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white">
-      <header className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5">
-        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-slate-900">{icon}{title}</h3>{aside}
-      </header>
-      <div className="p-4">{children}</div>
-    </section>
+    </div>
   );
 }
 
@@ -112,6 +98,28 @@ export function Gallery({ r, urls, kind }: { r: Request; urls: MediaUrls; kind: 
   );
 }
 
+/** Invoices / receipts of the cost (team), each one a download. */
+export function Invoices({ list, urls, onRemove }: { list: Media[]; urls: MediaUrls; onRemove?: (id: string) => void }) {
+  if (!list.length) return <p className="text-sm text-slate-400">{tr("No invoice attached yet")}</p>;
+  return (
+    <ul className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200">
+      {list.map((m) => (
+        <li key={m.id} className="flex items-center gap-3 px-3 py-2">
+          <span className={cx("flex h-8 w-10 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-bold uppercase", m.mime === "application/pdf" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700")}>
+            {m.mime === "application/pdf" ? "PDF" : <FileText size={14} />}
+          </span>
+          <a href={urls.media(m.id)} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:text-blue-700">
+            <span className="block truncate text-sm font-medium text-slate-900">{m.fileName ?? tr("Invoice")}</span>
+            <span className="block truncate text-[11px] text-slate-500">{m.note ? `${m.note} · ` : ""}{fmtMb(m.bytes)} · {m.uploadedBy ?? "—"} · {wibDateTime(m.uploadedAt)}</span>
+          </a>
+          <a href={urls.media(m.id)} download={m.fileName ?? undefined} aria-label={tr("Download {0}", m.fileName ?? tr("Invoice"))} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Download size={15} /></a>
+          {onRemove && <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove {0}", m.fileName ?? tr("Invoice"))} className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"><XCircle size={15} /></button>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function Timeline({ events }: { events: DeEvent[] }) {
   return (
     <ol className="relative space-y-4 border-l border-slate-200 pl-5">
@@ -120,7 +128,7 @@ export function Timeline({ events }: { events: DeEvent[] }) {
         const what = e.kind === "STATUS" ? `${e.from ? STATUS_LABEL[e.from]() : ""} → ${e.to ? STATUS_LABEL[e.to]() : ""}`
           : e.kind === "SWAP" ? `${EVENT_LABEL.SWAP()}: ${tech ?? ""} ${e.details?.to ? tr("to {0}", String(e.details.to)) : e.details?.from ? tr("from {0}", String(e.details.from)) : ""}`
           : e.kind === "DUPLICATE" ? tr("Marked as duplicate of {0}", String(e.details?.of ?? ""))
-          : e.kind === "COST" ? `${EVENT_LABEL.COST()}: ${fmtRp(e.details?.estCost as number)} / ${fmtRp(e.details?.actualCost as number)}`
+          : e.kind === "COST" ? (e.details?.invoice !== undefined ? tr("Invoice attached: {0}", String(e.details.invoice)) : `${EVENT_LABEL.COST()}: ${fmtRp(e.details?.estCost as number)} / ${fmtRp(e.details?.actualCost as number)}`)
           : `${EVENT_LABEL[e.kind]()}${tech ? `: ${tech}` : ""}${e.details?.scheduledFor ? ` · ${tr("scheduled {0}", String(e.details.scheduledFor))}` : ""}`;
         return (
           <li key={e.id} className="relative">
@@ -138,30 +146,40 @@ export function Timeline({ events }: { events: DeEvent[] }) {
   );
 }
 
+/** The whole request in numbered cards; `children` (the team's actions) come right after the status card. */
 export default function RequestView({ r, urls, children }: { r: Request; urls: MediaUrls; children?: React.ReactNode }) {
   const video = (r.media ?? []).find((m) => m.kind === "VIDEO");
+  const photos = (r.media ?? []).filter((m) => m.kind === "PHOTO").length;
+  const invoices = (r.media ?? []).filter((m) => m.kind === "INVOICE");
   const active = (r.assignments ?? []).filter((a) => a.status === "ACTIVE");
+  const handled = active.length > 0 || invoices.length > 0 || (r.media ?? []).some((m) => m.kind === "AFTER") || r.estCost !== null || r.actualCost !== null;
+  let n = 0;
+  const next = () => ++n;
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <StatusBadge r={r} /> <UrgencyBadge u={r.urgency} /> <Badge tone="slate">{r.kind === "REPAIR" ? tr("Repair") : tr("Procurement")}</Badge>
-        </div>
-        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
-          <div><dt className="text-[11px] text-slate-400">{tr("Branch")}</dt><dd className="font-medium text-slate-900">{r.branchName}</dd></div>
+      <FormCard n={next()} title={tr("Status & progress")} hint={`${r.kindLabel} · ${r.branchName}`}
+        aside={<span className="flex flex-wrap justify-end gap-1"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>}>
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
           <div><dt className="text-[11px] text-slate-400">PIC</dt><dd className="font-medium text-slate-900">{r.picName}</dd></div>
           <div><dt className="text-[11px] text-slate-400">{tr("Sent")}</dt><dd className="text-slate-900">{wibDateTime(r.submittedAt)}</dd></div>
           <div><dt className="text-[11px] text-slate-400">{tr("Location when sent")}</dt>
             <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-red-700" : "text-slate-900")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
+          <div><dt className="text-[11px] text-slate-400">{tr("Time tracker")}</dt>
+            <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-slate-900")}>{fmtHours(r.tracker?.workHours)}{r.tracker?.slaHours ? <span className="font-normal text-slate-400"> / {fmtHours(r.tracker.slaHours)}</span> : null}</dd></div>
         </dl>
-        <div className="mt-4"><Steps r={r} /></div>
-      </section>
+        <Steps r={r} />
+      </FormCard>
 
       {children}
 
-      <TrackerCard r={r} />
+      {r.tracker && r.tracker.totalHours !== null && (
+        <FormCard n={next()} title={tr("Time tracker")} hint={tr("Time per stage from sending; on hold counted apart")}
+          aside={r.tracker.slaHours !== null ? <Badge tone={r.tracker.overdue ? "red" : "green"}>{r.tracker.overdue ? tr("Past target ({0})", fmtHours(r.tracker.slaHours)) : tr("Target {0}", fmtHours(r.tracker.slaHours))}</Badge> : undefined}>
+          <Tracker r={r} />
+        </FormCard>
+      )}
 
-      <Section title={tr("Items ({0})", r.items?.length ?? 0)}>
+      <FormCard n={next()} title={tr("Items ({0})", r.items?.length ?? 0)} hint={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}>
         <ul className="divide-y divide-slate-100">
           {(r.items ?? []).map((it, i) => (
             <li key={it.id ?? i} className="flex items-start gap-3 py-2 first:pt-0 last:pb-0">
@@ -175,55 +193,59 @@ export default function RequestView({ r, urls, children }: { r: Request; urls: M
             </li>
           ))}
         </ul>
-      </Section>
+      </FormCard>
 
-      <Section title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}>
+      <FormCard n={next()} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
+        hint={r.kind === "REPAIR" && r.cause ? `${tr("Cause")}: ${CAUSES.find((c) => c.value === r.cause)?.label() ?? r.cause}` : undefined}>
         <p className="whitespace-pre-line text-sm text-slate-700">{r.analysis || "—"}</p>
-        {r.kind === "REPAIR" && r.cause && <p className="mt-2 text-xs text-slate-500">{tr("Cause")}: {CAUSES.find((c) => c.value === r.cause)?.label() ?? r.cause}</p>}
-      </Section>
+      </FormCard>
 
-      <Section title={tr("Evidence")} icon={<ImageIcon size={15} className="text-slate-500" />}>
+      <FormCard n={next()} title={tr("Evidence")} hint={`${tr("{0} photos", photos)}${video ? ` · ${tr("1 video")}` : ""}`}>
         <Gallery r={r} urls={urls} kind="PHOTO" />
         {video && (
-          <div className="mt-3">
+          <div>
             <p className="mb-1 flex items-center gap-1 text-xs text-slate-500"><Video size={13} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</p>
             <video src={urls.media(video.id)} controls preload="metadata" className="max-h-80 w-full rounded-lg bg-black" />
           </div>
         )}
-      </Section>
+      </FormCard>
 
-      {(active.length > 0 || (r.media ?? []).some((m) => m.kind === "AFTER") || r.estCost !== null || r.actualCost !== null) && (
-        <Section title={tr("Handling")} icon={<Hammer size={15} className="text-slate-500" />}>
+      {handled && (
+        <FormCard n={next()} title={tr("Handling")} hint={tr("Technicians, cost, invoices and photos of the work done")}>
           {active.length > 0 && (
-            <ul className="mb-3 space-y-1.5">
+            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
               {active.map((a) => (
-                <li key={a.id} className="flex flex-wrap items-center gap-x-2 text-sm">
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-x-2 px-3 py-2 text-sm">
                   <span className="font-medium text-slate-900">{a.name}</span>
                   <span className="text-xs text-slate-500">{a.kind === "VENDOR" ? a.company ?? tr("Vendor") : tr("Internal")}{a.scheduledFor ? ` · ${tr("scheduled {0}", a.scheduledFor)}` : ""}</span>
                 </li>
               ))}
             </ul>
           )}
-          {(r.estCost !== null || r.actualCost !== null) && (
-            <p className="mb-3 text-xs text-slate-600">{tr("Estimated cost")}: <b>{fmtRp(r.estCost)}</b> · {tr("Actual cost")}: <b>{fmtRp(r.actualCost)}</b>{r.vendor ? ` · ${r.vendor}` : ""}</p>
+          {(r.estCost !== null || r.actualCost !== null || r.vendor) && (
+            <dl className="grid grid-cols-3 gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs">
+              <div><dt className="text-slate-400">{tr("Estimated cost")}</dt><dd className="font-semibold tabular-nums text-slate-900">{fmtRp(r.estCost)}</dd></div>
+              <div><dt className="text-slate-400">{tr("Actual cost")}</dt><dd className="font-semibold tabular-nums text-slate-900">{fmtRp(r.actualCost)}</dd></div>
+              <div><dt className="text-slate-400">{tr("Vendor")}</dt><dd className="truncate font-semibold text-slate-900">{r.vendor ?? "—"}</dd></div>
+            </dl>
           )}
-          <p className="mb-2 text-xs font-semibold text-slate-500">{tr("Photos of the work done")}</p>
-          <Gallery r={r} urls={urls} kind="AFTER" />
-        </Section>
+          {invoices.length > 0 && <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("Invoices / receipts")}</p><Invoices list={invoices} urls={urls} /></div>}
+          <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("Photos of the work done")}</p><Gallery r={r} urls={urls} kind="AFTER" /></div>
+        </FormCard>
       )}
 
-      <Section title={tr("Progress & notes")}>
+      <FormCard n={next()} title={tr("Progress & notes")} hint={tr("Every step of the team, newest first")}>
         <Timeline events={r.events ?? []} />
-      </Section>
+      </FormCard>
 
       {r.signature && (
-        <Section title={tr("PIC signature")} icon={<PenLine size={15} className="text-slate-500" />}>
+        <FormCard n={next()} title={tr("PIC signature")}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
             <img src={urls.signature(r.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-slate-200" />
             <div className="text-sm"><p className="font-semibold text-slate-900">{r.signature.name}</p><p className="text-xs text-slate-500">{wibDateTime(r.signature.signedAt)}</p></div>
           </div>
-        </Section>
+        </FormCard>
       )}
     </div>
   );

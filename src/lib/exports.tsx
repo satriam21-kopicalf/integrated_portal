@@ -10,7 +10,7 @@
 // Sheets job shows a link to the sheet (opening a tab without a click is blocked by browsers).
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { useAuth } from '@/lib/auth';
+import { hasPage, useAuth } from '@/lib/auth';
 import { tr, serverMsg } from './i18n';
 
 export type ReportKind = 'detail' | 'menu' | 'daily';
@@ -138,6 +138,7 @@ const isActive = (t: TrackedExport) => !t.error && t.job?.status !== 'done' && t
 export function ExportsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const sales = hasPage(user, 'sales'); // exports belong to Sales
   const [list, setList] = useState<TrackedExport[]>([]);
   const [googleSheets, setGoogleSheets] = useState(false);
   const listRef = useRef(list);
@@ -150,7 +151,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
 
   // resume what this user was exporting (this tab before a reload, or another tab/device)
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !sales) return;
     const now = Date.now();
     const stored = readStored(userId).filter(s => !s.done || now - s.startedAt < FORGET_FINISHED_AFTER_MS);
     setList(stored.map(s => ({ ...s, job: null, error: null })));
@@ -178,7 +179,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [userId, sales]);
 
   const update = useCallback((key: string, patch: Partial<TrackedExport>) => {
     setList(prev => prev.map(t => (t.key === key ? { ...t, ...patch } : t)));

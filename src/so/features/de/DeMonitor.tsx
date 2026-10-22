@@ -6,7 +6,7 @@
 // time per stage, and the actions (next status with a note, technicians: assign / release / move to a priority request,
 // cost, photos of the work done, notes, duplicate of another request). Technicians and categories are kept here too.
 
-import { AlertTriangle, Boxes, Camera, ChevronDown, ChevronRight, Clock, Hammer, Plus, Save, Shuffle, Tags, Users, Wrench, X } from "lucide-react";
+import { AlertTriangle, Boxes, Camera, ChevronDown, ChevronRight, Clock, Hammer, Paperclip, Plus, Save, Shuffle, Tags, Upload, Users, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -17,13 +17,19 @@ import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import RequestView, { StatusBadge, UrgencyBadge } from "./RequestView";
+import RequestView, { Invoices, StatusBadge, UrgencyBadge } from "./RequestView";
 import { DocActions } from "./DeForm";
-import { type Category, type Request, type Status, type Technician, type Urgency, OPEN, PORTAL_URLS, STATUS_LABEL, URGENCIES, URGENCY_LABEL, fmtHours } from "./de";
+import { type Category, type Request, type Status, type Technician, type Urgency, OPEN, PORTAL_URLS, STATUS_LABEL, URGENCIES, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
 
 type Result = { period: { from: string; to: string }; data: Request[]; categories: Category[]; technicians: Technician[] };
-type F = { period: Period; kind: string; urgency: string; group: string; tech: string; overdue: boolean; by: "none" | "branch" | "pic" };
-const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "", urgency: "", group: "", tech: "", overdue: false, by: "branch" });
+/** group = category group (Utilitas …), bgroup = branch group (CCI, CTG, CTGP: Monitoring → Branch groups) */
+type F = { period: Period; kind: string; urgency: string; group: string; tech: string; overdue: boolean; by: "none" | "branch" | "pic";
+  bgroup: string; branch: string; pic: string };
+const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "", urgency: "", group: "", tech: "", overdue: false, by: "branch",
+  bgroup: "", branch: "", pic: "" });
+type GroupOpt = { id: string; code: string; name: string };
+const BAR: Partial<Record<Status, string>> = { PENDING: "bg-slate-400", VALIDATION: "bg-sky-500", REVIEW: "bg-violet-500", ON_HOLD: "bg-amber-500",
+  ACCEPTED: "bg-blue-500", IN_PROGRESS: "bg-blue-700", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
 const TABS: (Status | "")[] = ["", "PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "DONE", "REJECTED"];
 const OPEN_SET = new Set<Status>(OPEN);
 const urgRank = (u: Urgency) => URGENCIES.indexOf(u);
@@ -37,21 +43,24 @@ export default function DeMonitor() {
   const [sheet, setSheet] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [masters, setMasters] = useState<"tech" | "cat" | null>(null);
+  const [bgroups, setBgroups] = useState<GroupOpt[]>([]);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      setRes(await call<Result>(`/api/de/monitor?dateFrom=${f.period.from}&dateTo=${f.period.to}`));
+      setRes(await call<Result>(`/api/de/monitor?dateFrom=${f.period.from}&dateTo=${f.period.to}${f.bgroup ? `&group=${encodeURIComponent(f.bgroup)}` : ""}`));
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [f.period]);
+  }, [f.period, f.bgroup]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setBgroups(r.groups)).catch(() => setBgroups([])); }, []);
 
   const all = useMemo(() => res?.data ?? [], [res]);
   const base = useMemo(() => {
     const s = search.trim().toLowerCase();
     return all.filter((r) => (!f.kind || r.kind === f.kind) && (!f.urgency || r.urgency === f.urgency) && (!f.overdue || r.tracker?.overdue)
+      && (!f.branch || r.branchCode === f.branch) && (!f.pic || r.username === f.pic)
       && (!f.group || (r.items ?? []).some((i) => i.group === f.group)) && (!f.tech || (r.technicians ?? []).includes(f.tech))
       && (!s || `${r.number} ${r.branchName} ${r.picName} ${(r.items ?? []).map((i) => i.name).join(" ")}`.toLowerCase().includes(s)));
   }, [all, f, search]);
@@ -73,7 +82,13 @@ export default function DeMonitor() {
     ...(f.group ? [{ key: "g", label: f.group, onRemove: () => setF({ ...f, group: "" }) }] : []),
     ...(f.tech ? [{ key: "t", label: f.tech, onRemove: () => setF({ ...f, tech: "" }) }] : []),
     ...(f.overdue ? [{ key: "o", label: tr("Past target"), onRemove: () => setF({ ...f, overdue: false }) }] : []),
+    ...(f.bgroup ? [{ key: "bg", label: `${tr("Group")} ${f.bgroup === "none" ? tr("Without a group") : bgroups.find((g) => g.id === f.bgroup)?.code ?? ""}`, onRemove: () => setF({ ...f, bgroup: "" }) }] : []),
+    ...(f.branch ? [{ key: "b", label: all.find((r) => r.branchCode === f.branch)?.branchName ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
+    ...(f.pic ? [{ key: "pic", label: all.find((r) => r.username === f.pic)?.picName ?? f.pic, onRemove: () => setF({ ...f, pic: "" }) }] : []),
+    ...(f.by !== "branch" ? [{ key: "by", label: f.by === "pic" ? tr("Per PIC") : tr("List"), onRemove: () => setF({ ...f, by: "branch" }) }] : []),
   ];
+  const branchOpts = useMemo(() => [...new Map(all.map((r) => [r.branchCode, r.branchName])).entries()].map(([value, label]) => ({ value, label })), [all]);
+  const picOpts = useMemo(() => [...new Map(all.map((r) => [r.username, r.picName])).entries()].map(([value, label]) => ({ value, label })), [all]);
 
   // grouped per branch / PIC: open requests first, the group with the most urgent request on top
   const grouped = useMemo(() => {
@@ -111,13 +126,19 @@ export default function DeMonitor() {
           </Stat>
         </StatStrip>
       }>
+      {res && all.length > 0 && <Insights open={openRows} techs={res.technicians} f={f} setF={setF} />}
+
       <Panel toolbar={<>
+        <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={tr("Status")}>
+          {(TABS.filter(Boolean) as Status[]).map((t) => count(t) > 0 && <span key={t} className={BAR[t]} style={{ width: `${(count(t) / Math.max(1, count(""))) * 100}%` }} />)}
+        </div>
         <div className="-mx-1 flex gap-1 overflow-x-auto pb-1" role="tablist" aria-label={tr("Status")}>
           {(["OPEN", ...TABS] as (Status | "" | "OPEN")[]).map((t) => {
             const on = status === t;
             return (
               <button key={t || "all"} type="button" role="tab" aria-selected={on} onClick={() => setStatus(t)}
                 className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors", on ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100")}>
+                {t && t !== "OPEN" && <span className={cx("h-2 w-2 rounded-full", BAR[t])} aria-hidden />}
                 {t === "OPEN" ? tr("Open") : t ? STATUS_LABEL[t]() : tr("All")}
                 <span className={cx("tabular-nums", on ? "text-white/80" : "font-semibold text-slate-900")}>{fmtNumber(count(t))}</span>
               </button>
@@ -125,9 +146,7 @@ export default function DeMonitor() {
           })}
         </div>
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search number, outlet, PIC or item")} filters={chips}
-          onOpen={() => setSheet(true)} onClear={() => setF({ ...NO_F(), by: f.by })}
-          extra={<Segmented label={tr("Group")} value={f.by} onChange={(by) => setF({ ...f, by })}
-            options={[{ value: "branch", label: tr("Per branch") }, { value: "pic", label: tr("Per PIC") }, { value: "none", label: tr("List") }]} />} />
+          onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
       </>}
         footer={res && !grouped ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : res && rows.length === 0 ? (
@@ -141,7 +160,8 @@ export default function DeMonitor() {
         ) : <RequestTable rows={paged.rows} onOpen={setOpen} />}
       </Panel>
 
-      {sheet && <MonitorFilters value={f} groups={groups} technicians={(res?.technicians ?? []).map((t) => t.name)} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
+      {sheet && <MonitorFilters value={f} groups={groups} bgroups={bgroups} branches={branchOpts} pics={picOpts} technicians={(res?.technicians ?? []).map((t) => t.name)}
+        onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
       {open && res && <TeamDrawer id={open} technicians={res.technicians} all={all} onOpen={setOpen} onClose={() => setOpen(null)} onChanged={load} />}
       {masters === "tech" && <TechniciansDrawer groups={groups} onClose={() => { setMasters(null); void load(); }} />}
       {masters === "cat" && <CategoriesDrawer onClose={() => { setMasters(null); void load(); }} />}
@@ -217,11 +237,93 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
   );
 }
 
-function MonitorFilters({ value, groups, technicians, onApply, onClose }: { value: F; groups: string[]; technicians: string[]; onApply: (v: F) => void; onClose: () => void }) {
+type Opt = { value: string; label: string };
+
+/** Insights above the table: open requests per urgency and per category group, and the technicians' load; a tap filters. */
+function Insights({ open, techs, f, setF }: { open: Request[]; techs: Technician[]; f: F; setF: (f: F) => void }) {
+  const groups = new Map<string, number>();
+  open.forEach((r) => new Set((r.items ?? []).map((i) => i.group ?? "")).forEach((g) => g && groups.set(g, (groups.get(g) ?? 0) + 1)));
+  const max = Math.max(1, ...groups.values());
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      <Panel title={tr("Open per urgency")} description={tr("Tap to show only that urgency")}>
+        <ul className="grid grid-cols-5 gap-px bg-slate-100">
+          {URGENCIES.map((u) => {
+            const n = open.filter((r) => r.urgency === u).length;
+            const on = f.urgency === u;
+            return (
+              <li key={u} className="bg-white">
+                <button type="button" onClick={() => setF({ ...f, urgency: on ? "" : u })} aria-pressed={on}
+                  className={cx("flex w-full flex-col items-center px-1 py-3 text-center hover:bg-slate-50", on && "bg-slate-50 ring-2 ring-inset ring-slate-900")}>
+                  <span className="text-xl font-semibold tabular-nums text-slate-900">{n}</span>
+                  <Badge tone={URGENCY_TONE[u]}>{URGENCY_LABEL[u]()}</Badge>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </Panel>
+      <Panel title={tr("Open per category group")} description={tr("Requests with an item of the group")}>
+        {groups.size === 0 ? <p className="px-4 py-6 text-center text-sm text-slate-400">—</p> : (
+          <ul className="space-y-1.5 px-4 py-3">
+            {[...groups.entries()].sort((a, b) => b[1] - a[1]).map(([g, n]) => (
+              <li key={g}>
+                <button type="button" onClick={() => setF({ ...f, group: f.group === g ? "" : g })} className="grid w-full grid-cols-[8rem_1fr_2rem] items-center gap-2 text-left text-xs hover:text-blue-700">
+                  <span className={cx("truncate", f.group === g ? "font-semibold text-slate-900" : "text-slate-600")}>{g}</span>
+                  <span className="h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-blue-600" style={{ width: `${(n / max) * 100}%` }} /></span>
+                  <span className="text-right font-semibold tabular-nums text-slate-900">{n}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+      <Panel title={tr("Technicians' load")} description={tr("Active jobs per technician")}>
+        {techs.length === 0 ? <p className="px-4 py-6 text-center text-sm text-slate-400">{tr("No technician yet")}</p> : (
+          <ul className="divide-y divide-slate-100">
+            {[...techs].sort((a, b) => b.activeJobs - a.activeJobs).slice(0, 5).map((t) => (
+              <li key={t.id}>
+                <button type="button" onClick={() => setF({ ...f, tech: f.tech === t.name ? "" : t.name })} className={cx("flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-slate-50", f.tech === t.name && "bg-slate-50")}>
+                  <span className="min-w-0 flex-1 truncate text-slate-800">{t.name}</span>
+                  <span className={cx("rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums", t.activeJobs >= 3 ? "bg-red-50 text-red-700" : t.activeJobs ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500")}>
+                    {tr("{0} active", t.activeJobs)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+    </div>
+  );
+}
+
+function MonitorFilters({ value, groups, bgroups, branches, pics, technicians, onApply, onClose }: {
+  value: F; groups: string[]; bgroups: GroupOpt[]; branches: Opt[]; pics: Opt[]; technicians: string[]; onApply: (v: F) => void; onClose: () => void;
+}) {
   const [d, setD] = useState(value);
   return (
-    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ ...NO_F(), by: d.by })}>
+    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_F())}>
+      <FilterSection title={tr("View")} hint={tr("Group the requests to see at once what one outlet or PIC already asked")}>
+        <Segmented label={tr("View")} value={d.by} onChange={(by) => setD({ ...d, by })}
+          options={[{ value: "branch", label: tr("Per branch") }, { value: "pic", label: tr("Per PIC") }, { value: "none", label: tr("List") }]} />
+      </FilterSection>
       <FilterSection title={tr("Sent in")} hint={tr("Open requests are always shown")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={366} /></FilterSection>
+      {bgroups.length > 0 && (
+        <FilterSection title={tr("Branch group")}>
+          <ChoiceGroup label="" value={d.bgroup} onChange={(v) => setD({ ...d, bgroup: v })}
+            choices={[{ value: "", label: tr("All") }, ...bgroups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a group") }]} />
+        </FilterSection>
+      )}
+      {branches.length > 0 && (
+        <FilterSection title={tr("Branch")}>
+          <SearchChoice label="" anyLabel={tr("All branches")} value={d.branch} onChange={(v) => setD({ ...d, branch: v })} placeholder={tr("Search branch")} options={branches} />
+        </FilterSection>
+      )}
+      {pics.length > 0 && (
+        <FilterSection title="PIC">
+          <SearchChoice label="" anyLabel={tr("All PICs")} value={d.pic} onChange={(v) => setD({ ...d, pic: v })} placeholder={tr("Search PIC")} options={pics} />
+        </FilterSection>
+      )}
       <FilterSection title={tr("Type")}>
         <ChoiceGroup label="" value={d.kind} onChange={(v) => setD({ ...d, kind: v })}
           choices={[{ value: "", label: tr("All") }, { value: "REPAIR", label: tr("Repair") }, { value: "PROCUREMENT", label: tr("Procurement") }]} />
@@ -262,6 +364,8 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const [cost, setCost] = useState({ est: "", actual: "", vendor: "" });
   const [dup, setDup] = useState({ of: "", note: "" });
   const [camera, setCamera] = useState(false);
+  const [invNote, setInvNote] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -302,6 +406,33 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
     }
   };
 
+  const uploadInvoice = async (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { toast(tr("{0}: larger than {1}", file.name, fmtMb(10 * 1024 * 1024)), "error"); return; }
+    setUploading(true);
+    try {
+      const res = await fetch(`/api/de/monitor/${id}/invoices?name=${encodeURIComponent(file.name)}${invNote ? `&note=${encodeURIComponent(invNote)}` : ""}`,
+        { method: "POST", body: file, headers: { "content-type": "application/octet-stream" }, credentials: "same-origin" });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? tr("The file could not be uploaded"));
+      setInvNote("");
+      toast(tr("Invoice attached"));
+      await load();
+      onChanged();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setUploading(false);
+    }
+  };
+  const removeInvoice = async (mid: string) => {
+    try {
+      await call(`/api/de/monitor/${id}/invoices/${mid}`, { method: "DELETE" });
+      await load();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
   const active = (r?.assignments ?? []).filter((a) => a.status === "ACTIVE");
   const targets = all.filter((x) => x.id !== id && ["REVIEW", "ACCEPTED", "IN_PROGRESS", "ON_HOLD"].includes(x.status));
   const closed = r ? !OPEN_SET.has(r.status) : true;
@@ -371,6 +502,20 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
             </div>
             <Button size="sm" variant="secondary" disabled={busy} onClick={() => void act(`/api/de/monitor/${id}/cost`, { estCost: cost.est ? Number(cost.est) : null, actualCost: cost.actual ? Number(cost.actual) : null, vendor: cost.vendor || null }, tr("Cost saved"), "PUT")}>
               <Save size={14} /> {tr("Save cost")}</Button>
+            <div className="border-t border-slate-100 pt-3">
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700"><Paperclip size={13} /> {tr("Invoices / receipts")} <span className="font-normal text-slate-400">({tr("PDF or photo, at most {0} each", "10 MB")})</span></p>
+              <Invoices list={(r.media ?? []).filter((m) => m.kind === "INVOICE")} urls={PORTAL_URLS}
+                onRemove={r.status === "DONE" ? undefined : (mid) => void removeInvoice(mid)} />
+              {r.status !== "REJECTED" && (
+                <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
+                  <input value={invNote} onChange={(e) => setInvNote(e.target.value)} maxLength={200} placeholder={tr("Note, e.g. invoice number or what it pays")} className={cx(inputClass, "h-9 text-sm")} aria-label={tr("Invoice note")} />
+                  <label className={cx("inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50", uploading && "pointer-events-none opacity-60")}>
+                    <Upload size={14} /> {uploading ? tr("Uploading…") : tr("Attach invoice")}
+                    <input type="file" accept="application/pdf,image/*" className="hidden" onChange={(e) => { void uploadInvoice(e.target.files?.[0]); e.target.value = ""; }} />
+                  </label>
+                </div>
+              )}
+            </div>
           </FormCard>
 
           {(r.related ?? []).length > 0 && (
@@ -444,7 +589,8 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; onClose: () 
     if (!edit) return;
     try {
       const body = { name: edit.name ?? "", kind: edit.kind ?? "INTERNAL", company: edit.company ?? null, skills: edit.skills ?? [], city: edit.city ?? null,
-        phone: edit.phone ?? null, notes: edit.notes ?? null, isActive: edit.isActive ?? true };
+        phone: edit.phone ?? null, notes: edit.notes ?? null, isActive: edit.isActive ?? true, wageType: edit.wageType ?? "DAILY",
+        wageAmount: edit.wageAmount === null || edit.wageAmount === undefined || Number.isNaN(edit.wageAmount) ? null : edit.wageAmount };
       await call(edit.id ? `/api/de/technicians/${edit.id}` : "/api/de/technicians", { method: edit.id ? "PATCH" : "POST", json: body });
       toast(tr("Technician saved"));
       setEdit(null);
@@ -456,26 +602,45 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; onClose: () 
   return (
     <Drawer open onClose={onClose} size="lg" icon={<Users size={18} />} title={tr("Technicians")} description={tr("Internal and vendor technicians, their skills and current jobs")}
       footer={edit ? <><Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button disabled={!edit.name?.trim()} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>
-        : <Button onClick={() => setEdit({ kind: "INTERNAL", isActive: true, skills: [] })}><Plus size={15} /> {tr("New technician")}</Button>}>
+        : <Button onClick={() => setEdit({ kind: "INTERNAL", isActive: true, skills: [], wageType: "DAILY", wageAmount: null })}><Plus size={15} /> {tr("New technician")}</Button>}>
       {edit ? (
-        <div className="space-y-3">
-          <Field label={tr("Name")} required><Input value={edit.name ?? ""} onChange={(e) => setEdit({ ...edit, name: e.target.value })} maxLength={120} /></Field>
-          <Segmented label={tr("Type")} value={edit.kind ?? "INTERNAL"} onChange={(kind) => setEdit({ ...edit, kind })}
-            options={[{ value: "INTERNAL", label: tr("Internal") }, { value: "VENDOR", label: tr("Vendor") }]} />
-          {edit.kind === "VENDOR" && <Field label={tr("Company")}><Input value={edit.company ?? ""} onChange={(e) => setEdit({ ...edit, company: e.target.value })} maxLength={120} /></Field>}
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label={tr("Phone")}><Input value={edit.phone ?? ""} onChange={(e) => setEdit({ ...edit, phone: e.target.value })} maxLength={40} inputMode="tel" /></Field>
-            <Field label={tr("City / area")}><Input value={edit.city ?? ""} onChange={(e) => setEdit({ ...edit, city: e.target.value })} maxLength={80} /></Field>
-          </div>
-          <Field label={tr("Skills (category groups)")}>
+        <div className="space-y-4">
+          <FormCard n={1} title={tr("Technician")} hint={tr("Internal staff or a vendor")}>
+            <Field label={tr("Name")} required><Input value={edit.name ?? ""} onChange={(e) => setEdit({ ...edit, name: e.target.value })} maxLength={120} /></Field>
+            <Segmented label={tr("Type")} value={edit.kind ?? "INTERNAL"} onChange={(kind) => setEdit({ ...edit, kind })}
+              options={[{ value: "INTERNAL", label: tr("Internal") }, { value: "VENDOR", label: tr("Vendor") }]} />
+            {edit.kind === "VENDOR" && <Field label={tr("Company")}><Input value={edit.company ?? ""} onChange={(e) => setEdit({ ...edit, company: e.target.value })} maxLength={120} /></Field>}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label={tr("Phone")}><Input value={edit.phone ?? ""} onChange={(e) => setEdit({ ...edit, phone: e.target.value })} maxLength={40} inputMode="tel" /></Field>
+              <Field label={tr("City / area")}><Input value={edit.city ?? ""} onChange={(e) => setEdit({ ...edit, city: e.target.value })} maxLength={80} /></Field>
+            </div>
+          </FormCard>
+          <FormCard n={2} title={tr("Skills")} hint={tr("Category groups the technician handles")}>
             <ChoiceGroupMulti options={groups} value={edit.skills ?? []} onChange={(skills) => setEdit({ ...edit, skills })} />
-          </Field>
-          <Field label={tr("Notes")}><textarea value={edit.notes ?? ""} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} rows={2} maxLength={500} className={cx(inputClass, "h-auto py-2 text-sm")} /></Field>
-          <Switch checked={edit.isActive ?? true} onChange={(isActive) => setEdit({ ...edit, isActive })} label={tr("Active")} hint={tr("Inactive technicians cannot be assigned")} />
+          </FormCard>
+          <FormCard n={3} title={tr("Pay")} hint={tr("Daily or monthly; adjust whenever it changes")}>
+            <Segmented label={tr("Pay")} value={edit.wageType ?? "DAILY"} onChange={(wageType) => setEdit({ ...edit, wageType })}
+              options={[{ value: "DAILY", label: tr("Daily") }, { value: "MONTHLY", label: tr("Monthly") }]} />
+            <Field label={edit.wageType === "MONTHLY" ? tr("Pay per month (Rp)") : tr("Pay per day (Rp)")}>
+              <Input inputMode="numeric" value={edit.wageAmount ?? ""} onChange={(e) => setEdit({ ...edit, wageAmount: e.target.value ? Number(e.target.value.replace(/[^0-9]/g, "")) : null })} />
+            </Field>
+            {edit.wageAmount ? <p className="text-xs text-slate-500">{edit.wageType === "MONTHLY" ? tr("≈ {0} per day (26 working days)", fmtRp(edit.wageAmount / 26)) : tr("≈ {0} per month (26 working days)", fmtRp(edit.wageAmount * 26))}</p> : null}
+          </FormCard>
+          <FormCard n={4} title={tr("Status & notes")}>
+            <Field label={tr("Notes")}><textarea value={edit.notes ?? ""} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} rows={2} maxLength={500} className={cx(inputClass, "h-auto py-2 text-sm")} /></Field>
+            <Switch checked={edit.isActive ?? true} onChange={(isActive) => setEdit({ ...edit, isActive })} label={tr("Active")} hint={tr("Inactive technicians cannot be assigned")} />
+          </FormCard>
         </div>
       ) : !rows ? <div className="skeleton h-48 rounded-xl" /> : rows.length === 0 ? (
         <Empty icon={<Users size={28} />} title={tr("No technician yet")}>{tr("Add the internal and vendor technicians who do the work.")}</Empty>
       ) : (
+        <div className="space-y-3">
+        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 text-center">
+          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Active")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.filter((t) => t.isActive).length}</dd></div>
+          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Jobs in progress")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.reduce((a, t) => a + t.activeJobs, 0)}</dd></div>
+          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Pay per month")}</dt>
+            <dd className="text-sm font-semibold tabular-nums">{fmtRp(rows.filter((t) => t.isActive).reduce((a, t) => a + (t.wageAmount ?? 0) * (t.wageType === "MONTHLY" ? 1 : 26), 0))}</dd></div>
+        </dl>
         <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
           {rows.map((t) => (
             <li key={t.id} className={cx("px-4 py-3", !t.isActive && "bg-slate-50 opacity-70")}>
@@ -485,7 +650,10 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; onClose: () 
                   <span className="block text-xs text-slate-500">{t.kind === "VENDOR" ? `${tr("Vendor")}${t.company ? ` · ${t.company}` : ""}` : tr("Internal")}{t.city ? ` · ${t.city}` : ""}{t.phone ? ` · ${t.phone}` : ""}</span>
                   {t.skills.length > 0 && <span className="mt-1 flex flex-wrap gap-1">{t.skills.map((s) => <Badge key={s}>{s}</Badge>)}</span>}
                 </span>
-                <span className="text-right text-xs"><span className="block font-semibold tabular-nums text-slate-900">{tr("{0} active", t.activeJobs)}</span><span className="text-slate-400">{tr("{0} done", t.doneJobs)}</span></span>
+                <span className="text-right text-xs">
+                  <span className="block font-semibold tabular-nums text-slate-900">{t.wageAmount ? `${fmtRp(t.wageAmount)} / ${t.wageType === "MONTHLY" ? tr("month") : tr("day")}` : tr("Pay not set")}</span>
+                  <span className="text-slate-400">{tr("{0} active", t.activeJobs)} · {tr("{0} done", t.doneJobs)}</span>
+                </span>
                 <Button size="sm" variant="ghost" onClick={() => setEdit(t)}>{tr("Edit")}</Button>
               </div>
               {t.jobs.length > 0 && (
@@ -496,6 +664,7 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; onClose: () 
             </li>
           ))}
         </ul>
+        </div>
       )}
     </Drawer>
   );
@@ -538,7 +707,7 @@ function CategoriesDrawer({ onClose }: { onClose: () => void }) {
       footer={edit ? <><Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button disabled={!edit.name?.trim() || !edit.group?.trim()} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>
         : <Button onClick={() => setEdit({ defaultUrgency: "NORMAL", isActive: true, sort: 90, examplesText: "" })}><Plus size={15} /> {tr("New category")}</Button>}>
       {edit ? (
-        <div className="space-y-3">
+        <FormCard title={edit.id ? tr("Edit category") : tr("New category")} hint={tr("Offered on the form; the default urgency fills in when an item is added")}>
           <Field label={tr("Group")} required>
             <Input value={edit.group ?? ""} onChange={(e) => setEdit({ ...edit, group: e.target.value })} list="de-groups" maxLength={60} />
             <datalist id="de-groups">{groups.map((g) => <option key={g} value={g} />)}</datalist>
@@ -554,7 +723,7 @@ function CategoriesDrawer({ onClose }: { onClose: () => void }) {
           </Field>
           <Field label={tr("Order")}><Input type="number" value={edit.sort ?? 0} onChange={(e) => setEdit({ ...edit, sort: Number(e.target.value) || 0 })} /></Field>
           <Switch checked={edit.isActive ?? true} onChange={(isActive) => setEdit({ ...edit, isActive })} label={tr("Active")} hint={tr("Inactive categories are not offered on the form")} />
-        </div>
+        </FormCard>
       ) : !rows ? <div className="skeleton h-48 rounded-xl" /> : (
         <div className="space-y-3">
           {groups.map((g) => (
