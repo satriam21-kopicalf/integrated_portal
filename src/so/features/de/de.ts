@@ -11,8 +11,8 @@ export type Category = { id: number; group: string; name: string; defaultUrgency
 export type Item = { id?: number; categoryId: number; group?: string; category?: string; name: string; qty: number; location: string | null;
   urgency: Urgency; note: string | null };
 export type Media = { id: string; kind: "PHOTO" | "VIDEO" | "AFTER" | "INVOICE"; mime: string; bytes: number; fileName: string | null;
-  takenAt: string | null; uploadedAt: string; uploadedBy: string | null; note?: string | null };
-export type DeEvent = { id: number; at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "ASSIGN" | "RELEASE" | "SWAP" | "COST" | "NOTE" | "DUPLICATE";
+  takenAt: string | null; uploadedAt: string; uploadedBy: string | null; note?: string | null; byTechnician?: boolean };
+export type DeEvent = { id: number; at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "ASSIGN" | "RELEASE" | "SWAP" | "COST" | "NOTE" | "DUPLICATE" | "WORK";
   from: Status | null; to: Status | null; note: string | null; details: Record<string, unknown> };
 export type Assignment = { id: number; technicianId: number; name: string; kind: string; company: string | null; phone: string | null;
   scheduledFor: string | null; status: "ACTIVE" | "RELEASED" | "DONE"; note: string | null; assignedAt: string; assignedBy: string | null;
@@ -27,7 +27,15 @@ export type Request = {
   duplicateOf: { id: string; number: string | null } | null; createdAt: string; updatedAt: string; submittedAt: string | null; closedAt: string | null;
   items?: Item[]; media?: Media[]; events?: DeEvent[]; assignments?: Assignment[]; tracker?: Tracker; technicians?: string[];
   lastNote?: DeEvent | null; openInBranch?: Request[]; related?: Request[]; allowed?: Status[]; shareUrl?: string | null;
+  workLinks?: WorkLink[];
 };
+/** the photo link of a technician (no sign-in, 1 hour): OPEN, SENT (photos sent), EXPIRED or CLOSED (replaced / work stopped) */
+export type WorkLink = { id: number; token: string; url?: string; technician: string; createdBy: string | null; createdAt: string; expiresAt: string;
+  submittedAt: string | null; note: string | null; photos: number; state: "OPEN" | "SENT" | "EXPIRED" | "CLOSED" };
+/** what the technician sees on the link */
+export type WorkView = { number: string; kind: Kind; kindLabel: string; branchCode: string; branchName: string; analysis: string | null;
+  technician: string; items: Item[]; expiresAt: string; submittedAt: string | null; note: string | null; photos: { id: string; takenAt: string }[]; max: number };
+export const workUrl = (l: WorkLink) => l.url ?? `${typeof window === "undefined" ? "" : window.location.origin}/share/de-work/${l.token}`;
 export type Technician = { id: number; name: string; kind: "INTERNAL" | "VENDOR"; company: string | null; skills: string[]; city: string | null;
   phone: string | null; notes: string | null; isActive: boolean; activeJobs: number; doneJobs: number;
   wageType: "DAILY" | "MONTHLY"; wageAmount: number | null;

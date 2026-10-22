@@ -4,7 +4,7 @@
 // share link — in numbered cards like the other drawers: status & steps, time per stage, items, analysis, evidence,
 // handling (technicians, cost, invoices, photos of the work done), the timeline with every note and the signature.
 
-import { AlertTriangle, Check, CircleDot, Download, FileText, MapPin, PauseCircle, Video, XCircle } from "lucide-react";
+import { AlertTriangle, Calendar, Check, CircleDot, Clock, Download, FileText, MapPin, PauseCircle, User, Video, Wrench, XCircle } from "lucide-react";
 import { Badge, cx } from "@/so/ui";
 import { FormCard } from "@/so/ui/Simple";
 import { wibDateTime } from "@/so/lib/wib";
@@ -14,6 +14,7 @@ import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_
 const EVENT_LABEL: Record<DeEvent["kind"], () => string> = {
   SUBMIT: () => tr("Request sent"), STATUS: () => tr("Status"), ASSIGN: () => tr("Technician assigned"), RELEASE: () => tr("Technician released"),
   SWAP: () => tr("Technician moved"), COST: () => tr("Cost updated"), NOTE: () => tr("Note"), DUPLICATE: () => tr("Marked as duplicate"),
+  WORK: () => tr("Technician photo link"),
 };
 
 export function StatusBadge({ r }: { r: Pick<Request, "status"> }) {
@@ -91,7 +92,7 @@ export function Gallery({ r, urls, kind }: { r: Request; urls: MediaUrls; kind: 
             {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
             <img src={urls.media(m.id)} alt={tr("Photo")} loading="lazy" className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200" />
           </a>
-          <span className="mt-0.5 block truncate text-[10px] text-slate-400">{wibDateTime(m.takenAt ?? m.uploadedAt)}</span>
+          <span className="mt-0.5 block truncate text-[10px] text-slate-400">{m.byTechnician ? `${m.uploadedBy ?? tr("Technician")} · ` : ""}{wibDateTime(m.takenAt ?? m.uploadedAt)}</span>
         </li>
       ))}
     </ul>
@@ -128,12 +129,13 @@ export function Timeline({ events }: { events: DeEvent[] }) {
         const what = e.kind === "STATUS" ? `${e.from ? STATUS_LABEL[e.from]() : ""} → ${e.to ? STATUS_LABEL[e.to]() : ""}`
           : e.kind === "SWAP" ? `${EVENT_LABEL.SWAP()}: ${tech ?? ""} ${e.details?.to ? tr("to {0}", String(e.details.to)) : e.details?.from ? tr("from {0}", String(e.details.from)) : ""}`
           : e.kind === "DUPLICATE" ? tr("Marked as duplicate of {0}", String(e.details?.of ?? ""))
+          : e.kind === "WORK" ? (e.details?.link === "sent" ? tr("Technician sent {0} photo(s) of the work", String(e.details?.photos ?? 0)) : tr("Photo link sent to {0}", String(tech ?? "")))
           : e.kind === "COST" ? (e.details?.invoice !== undefined ? tr("Invoice attached: {0}", String(e.details.invoice)) : `${EVENT_LABEL.COST()}: ${fmtRp(e.details?.estCost as number)} / ${fmtRp(e.details?.actualCost as number)}`)
           : `${EVENT_LABEL[e.kind]()}${tech ? `: ${tech}` : ""}${e.details?.scheduledFor ? ` · ${tr("scheduled {0}", String(e.details.scheduledFor))}` : ""}`;
         return (
           <li key={e.id} className="relative">
             <span className={cx("absolute -left-[1.6rem] top-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-white",
-              e.to === "REJECTED" ? "bg-red-500" : e.to === "ON_HOLD" ? "bg-amber-500" : e.to === "DONE" ? "bg-emerald-500" : "bg-blue-500")}>
+              e.to === "REJECTED" ? "bg-red-500" : e.to === "ON_HOLD" ? "bg-amber-500" : e.to === "DONE" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-emerald-500" : e.kind === "NOTE" ? "bg-slate-400" : "bg-blue-500")}>
               <CircleDot size={10} className="text-white" />
             </span>
             <p className="text-sm font-medium text-slate-900">{what}</p>
@@ -146,71 +148,121 @@ export function Timeline({ events }: { events: DeEvent[] }) {
   );
 }
 
-/** The whole request in numbered cards; `children` (the team's actions) come right after the status card. */
-export default function RequestView({ r, urls, children }: { r: Request; urls: MediaUrls; children?: React.ReactNode }) {
+/** The head of a request: kind and number, status and urgency, the key facts, the steps and the reason of a hold / reject. */
+export function RequestHero({ r, compact = false }: { r: Request; compact?: boolean }) {
+  const why = r.status === "ON_HOLD" || r.status === "REJECTED" ? [...(r.events ?? [])].reverse().find((e) => e.to === r.status && e.note)?.note : null;
+  const techs = (r.assignments ?? []).filter((a) => a.status !== "RELEASED").map((a) => a.name);
+  const facts: [React.ReactNode, string, React.ReactNode][] = [
+    [<User key="u" size={13} />, "PIC", r.picName],
+    [<Calendar key="c" size={13} />, tr("Sent"), wibDateTime(r.submittedAt)],
+    [<Clock key="t" size={13} />, tr("Time handled"), <span key="v" className={r.tracker?.overdue ? "text-red-600" : undefined}>{fmtHours(r.tracker?.workHours)}{r.tracker?.slaHours ? <span className="font-normal text-slate-400"> / {fmtHours(r.tracker.slaHours)}</span> : null}</span>],
+    [<Wrench key="w" size={13} />, tr("Technician"), techs.join(", ") || "—"],
+  ];
+  return (
+    <section className={cx("overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm", compact && "rounded-xl")}>
+      <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-4 sm:px-5">
+        <div className="min-w-0">
+          <p className="font-mono text-xs font-semibold text-blue-700">{r.number}</p>
+          <h2 className={cx("font-semibold text-slate-900", compact ? "text-base" : "text-lg sm:text-xl")}>{r.kindLabel}</h2>
+          <p className="flex items-center gap-1 text-xs text-slate-500"><MapPin size={12} /> {r.branchName} ({r.branchCode})
+            {r.distanceM !== null && <span className={r.outsideRadius ? "text-red-600" : undefined}> · {tr("sent {0} m from the outlet", r.distanceM)}</span>}</p>
+        </div>
+        <span className="flex flex-wrap gap-1.5"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>
+      </div>
+      <dl className="grid grid-cols-2 border-y border-slate-100 bg-slate-50/60 sm:grid-cols-4">
+        {facts.map(([icon, k, v], i) => (
+          <div key={k} className={cx("px-4 py-2.5 sm:px-5", i % 2 === 1 && "border-l border-slate-100", i >= 2 && "border-t border-slate-100 sm:border-t-0", i === 2 && "sm:border-l")}>
+            <dt className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{icon}{k}</dt>
+            <dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="px-4 py-4 sm:px-5">
+        <Steps r={r} />
+        {why && <p className={cx("mt-2 rounded-lg px-3 py-2 text-xs", r.status === "ON_HOLD" ? "bg-amber-50 text-amber-900" : "bg-red-50 text-red-800")}><b>{tr("Reason")}:</b> {why}</p>}
+      </div>
+    </section>
+  );
+}
+
+type Part = "all" | "detail" | "handling" | "history";
+
+/** The request in cards. part: all (the PIC's view: everything in order), detail (items, analysis, evidence, signature),
+ *  handling (technicians, cost, invoices, work photos), history (time per stage and the timeline). `children` (the team's
+ *  actions) come after the status card in "all". */
+export default function RequestView({ r, urls, children, part = "all", numbered = true }: {
+  r: Request; urls: MediaUrls; children?: React.ReactNode; part?: Part; numbered?: boolean;
+}) {
   const video = (r.media ?? []).find((m) => m.kind === "VIDEO");
   const photos = (r.media ?? []).filter((m) => m.kind === "PHOTO").length;
   const invoices = (r.media ?? []).filter((m) => m.kind === "INVOICE");
-  const active = (r.assignments ?? []).filter((a) => a.status === "ACTIVE");
+  const active = (r.assignments ?? []).filter((a) => a.status !== "RELEASED");
   const handled = active.length > 0 || invoices.length > 0 || (r.media ?? []).some((m) => m.kind === "AFTER") || r.estCost !== null || r.actualCost !== null;
+  const show = (p: Part) => part === "all" || part === p;
   let n = 0;
-  const next = () => ++n;
+  const next = () => (numbered ? ++n : undefined);
   return (
     <div className="space-y-4">
-      <FormCard n={next()} title={tr("Status & progress")} hint={`${r.kindLabel} · ${r.branchName}`}
-        aside={<span className="flex flex-wrap justify-end gap-1"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>}>
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
-          <div><dt className="text-[11px] text-slate-400">PIC</dt><dd className="font-medium text-slate-900">{r.picName}</dd></div>
-          <div><dt className="text-[11px] text-slate-400">{tr("Sent")}</dt><dd className="text-slate-900">{wibDateTime(r.submittedAt)}</dd></div>
-          <div><dt className="text-[11px] text-slate-400">{tr("Location when sent")}</dt>
-            <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-red-700" : "text-slate-900")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
-          <div><dt className="text-[11px] text-slate-400">{tr("Time tracker")}</dt>
-            <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-slate-900")}>{fmtHours(r.tracker?.workHours)}{r.tracker?.slaHours ? <span className="font-normal text-slate-400"> / {fmtHours(r.tracker.slaHours)}</span> : null}</dd></div>
-        </dl>
-        <Steps r={r} />
-      </FormCard>
+      {part === "all" && (
+        <FormCard n={next()} title={tr("Status & progress")} hint={`${r.kindLabel} · ${r.branchName}`}
+          aside={<span className="flex flex-wrap justify-end gap-1"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>}>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
+            <div><dt className="text-[11px] text-slate-400">PIC</dt><dd className="font-medium text-slate-900">{r.picName}</dd></div>
+            <div><dt className="text-[11px] text-slate-400">{tr("Sent")}</dt><dd className="text-slate-900">{wibDateTime(r.submittedAt)}</dd></div>
+            <div><dt className="text-[11px] text-slate-400">{tr("Location when sent")}</dt>
+              <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-red-700" : "text-slate-900")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
+            <div><dt className="text-[11px] text-slate-400">{tr("Time tracker")}</dt>
+              <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-slate-900")}>{fmtHours(r.tracker?.workHours)}{r.tracker?.slaHours ? <span className="font-normal text-slate-400"> / {fmtHours(r.tracker.slaHours)}</span> : null}</dd></div>
+          </dl>
+          <Steps r={r} />
+        </FormCard>
+      )}
 
-      {children}
+      {part === "all" && children}
 
-      {r.tracker && r.tracker.totalHours !== null && (
+      {show("history") && r.tracker && r.tracker.totalHours !== null && (
         <FormCard n={next()} title={tr("Time tracker")} hint={tr("Time per stage from sending; on hold counted apart")}
           aside={r.tracker.slaHours !== null ? <Badge tone={r.tracker.overdue ? "red" : "green"}>{r.tracker.overdue ? tr("Past target ({0})", fmtHours(r.tracker.slaHours)) : tr("Target {0}", fmtHours(r.tracker.slaHours))}</Badge> : undefined}>
           <Tracker r={r} />
         </FormCard>
       )}
 
-      <FormCard n={next()} title={tr("Items ({0})", r.items?.length ?? 0)} hint={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}>
-        <ul className="divide-y divide-slate-100">
-          {(r.items ?? []).map((it, i) => (
-            <li key={it.id ?? i} className="flex items-start gap-3 py-2 first:pt-0 last:pb-0">
-              <span className="w-5 flex-shrink-0 text-right text-xs font-semibold text-slate-400">{i + 1}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-slate-900">{it.name} <span className="font-normal text-slate-500">× {it.qty}</span></span>
-                <span className="block text-xs text-slate-500">{it.category} · {it.group}{it.location ? ` · ${it.location}` : ""}</span>
-                {it.note && <span className="mt-0.5 block text-xs text-slate-600">{it.note}</span>}
-              </span>
-              <UrgencyBadge u={it.urgency} />
-            </li>
-          ))}
-        </ul>
-      </FormCard>
+      {show("detail") && (
+        <>
+          <FormCard n={next()} title={tr("Items ({0})", r.items?.length ?? 0)} hint={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}>
+            <ul className="divide-y divide-slate-100">
+              {(r.items ?? []).map((it, i) => (
+                <li key={it.id ?? i} className="flex items-start gap-3 py-2 first:pt-0 last:pb-0">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-500">{i + 1}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium text-slate-900">{it.name} <span className="font-normal text-slate-500">× {it.qty}</span></span>
+                    <span className="block text-xs text-slate-500">{it.category} · {it.group}{it.location ? ` · ${it.location}` : ""}</span>
+                    {it.note && <span className="mt-0.5 block text-xs text-slate-600">{it.note}</span>}
+                  </span>
+                  <UrgencyBadge u={it.urgency} />
+                </li>
+              ))}
+            </ul>
+          </FormCard>
 
-      <FormCard n={next()} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
-        hint={r.kind === "REPAIR" && r.cause ? `${tr("Cause")}: ${CAUSES.find((c) => c.value === r.cause)?.label() ?? r.cause}` : undefined}>
-        <p className="whitespace-pre-line text-sm text-slate-700">{r.analysis || "—"}</p>
-      </FormCard>
+          <FormCard n={next()} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
+            hint={r.kind === "REPAIR" && r.cause ? `${tr("Cause")}: ${CAUSES.find((c) => c.value === r.cause)?.label() ?? r.cause}` : undefined}>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{r.analysis || "—"}</p>
+          </FormCard>
 
-      <FormCard n={next()} title={tr("Evidence")} hint={`${tr("{0} photos", photos)}${video ? ` · ${tr("1 video")}` : ""}`}>
-        <Gallery r={r} urls={urls} kind="PHOTO" />
-        {video && (
-          <div>
-            <p className="mb-1 flex items-center gap-1 text-xs text-slate-500"><Video size={13} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</p>
-            <video src={urls.media(video.id)} controls preload="metadata" className="max-h-80 w-full rounded-lg bg-black" />
-          </div>
-        )}
-      </FormCard>
+          <FormCard n={next()} title={tr("Evidence")} hint={`${tr("{0} photos", photos)}${video ? ` · ${tr("1 video")}` : ""}`}>
+            <Gallery r={r} urls={urls} kind="PHOTO" />
+            {video && (
+              <div>
+                <p className="mb-1 flex items-center gap-1 text-xs text-slate-500"><Video size={13} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</p>
+                <video src={urls.media(video.id)} controls preload="metadata" className="max-h-80 w-full rounded-lg bg-black" />
+              </div>
+            )}
+          </FormCard>
+        </>
+      )}
 
-      {handled && (
+      {(show("handling") && handled) && (
         <FormCard n={next()} title={tr("Handling")} hint={tr("Technicians, cost, invoices and photos of the work done")}>
           {active.length > 0 && (
             <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
@@ -234,12 +286,14 @@ export default function RequestView({ r, urls, children }: { r: Request; urls: M
         </FormCard>
       )}
 
-      <FormCard n={next()} title={tr("Progress & notes")} hint={tr("Every step of the team, newest first")}>
-        <Timeline events={r.events ?? []} />
-      </FormCard>
+      {show("history") && (
+        <FormCard n={next()} title={tr("Progress & notes")} hint={tr("Every step of the team, newest first")}>
+          <Timeline events={r.events ?? []} />
+        </FormCard>
+      )}
 
-      {r.signature && (
-        <FormCard n={next()} title={tr("PIC signature")}>
+      {show("detail") && r.signature && (
+        <FormCard n={next()} title={tr("PIC signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
             <img src={urls.signature(r.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-slate-200" />
