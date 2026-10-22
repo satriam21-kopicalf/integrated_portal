@@ -5,20 +5,24 @@ import { tr } from "@/lib/i18n";
 import type { Tone } from "@/so/ui";
 
 export type Kind = "REPAIR" | "PROCUREMENT";
-export type Status = "DRAFT" | "PENDING" | "VALIDATION" | "REVIEW" | "ON_HOLD" | "ACCEPTED" | "IN_PROGRESS" | "DONE" | "REJECTED";
+export type Status = "DRAFT" | "PENDING" | "VALIDATION" | "REVIEW" | "ON_HOLD" | "ACCEPTED" | "IN_PROGRESS" | "HANDOVER" | "DONE" | "REJECTED";
 export type Urgency = "CRITICAL" | "HIGH" | "NORMAL" | "LOW" | "PLANNED";
 export type Category = { id: number; group: string; name: string; defaultUrgency: Urgency; examples: string[]; sort: number; isActive: boolean };
 export type Item = { id?: number; categoryId: number; group?: string; category?: string; name: string; qty: number; location: string | null;
   urgency: Urgency; note: string | null };
-export type Media = { id: string; kind: "PHOTO" | "VIDEO" | "AFTER" | "INVOICE"; mime: string; bytes: number; fileName: string | null;
+export type Media = { id: string; kind: "PHOTO" | "VIDEO" | "AFTER" | "INVOICE" | "MONITOR" | "HANDOVER"; mime: string; bytes: number; fileName: string | null;
   takenAt: string | null; uploadedAt: string; uploadedBy: string | null; note?: string | null; byTechnician?: boolean };
-export type DeEvent = { id: number; at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "ASSIGN" | "RELEASE" | "SWAP" | "COST" | "NOTE" | "DUPLICATE" | "WORK";
+export type DeEvent = { id: number; at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "ASSIGN" | "RELEASE" | "SWAP" | "COST" | "NOTE" | "DUPLICATE" | "WORK" | "TARGET" | "HANDOVER";
   from: Status | null; to: Status | null; note: string | null; details: Record<string, unknown> };
 export type Assignment = { id: number; technicianId: number; name: string; kind: string; company: string | null; phone: string | null;
   scheduledFor: string | null; status: "ACTIVE" | "RELEASED" | "DONE"; note: string | null; assignedAt: string; assignedBy: string | null;
   releasedAt: string | null; releasedNote: string | null };
 export type Tracker = { stages: { status: Status; label: string; hours: number }[]; totalHours: number | null; holdHours: number;
-  workHours: number | null; slaHours: number | null; overdue: boolean; progress: number };
+  workHours: number | null; slaHours: number | null; overdue: boolean; progress: number;
+  /** due time: the team's adjusted target, else from the urgency */ dueAt?: string | null; targetAdjusted?: boolean; late?: boolean };
+export type Mode = "INTERNAL" | "VENDOR";
+export type Handover = { requestedAt: string | null; at: string | null; note: string | null; distanceM: number | null; outsideRadius: boolean | null;
+  picName: string | null; hasPicSign: boolean | null; vendorName: string | null; hasVendorSign: boolean | null; approvedBy: string | null };
 export type Request = {
   id: string; number: string | null; kind: Kind; kindLabel: string; status: Status; statusLabel: string; holdFrom: Status | null;
   userId?: string; username: string; picName: string; branchCode: string; branchName: string; analysis: string | null; cause: string | null;
@@ -27,7 +31,8 @@ export type Request = {
   duplicateOf: { id: string; number: string | null } | null; createdAt: string; updatedAt: string; submittedAt: string | null; closedAt: string | null;
   items?: Item[]; media?: Media[]; events?: DeEvent[]; assignments?: Assignment[]; tracker?: Tracker; technicians?: string[];
   lastNote?: DeEvent | null; openInBranch?: Request[]; related?: Request[]; allowed?: Status[]; shareUrl?: string | null;
-  workLinks?: WorkLink[];
+  workLinks?: WorkLink[]; mode?: Mode | null; handover?: Handover | null;
+  target?: { at: string; note: string | null; by: string | null; setAt: string | null; changes: number } | null;
 };
 /** the photo link of a technician (no sign-in, 1 hour): OPEN, SENT (photos sent), EXPIRED or CLOSED (replaced / work stopped) */
 export type WorkLink = { id: number; token: string; url?: string; technician: string; createdBy: string | null; createdAt: string; expiresAt: string;
@@ -49,15 +54,15 @@ export const KIND_LABEL: Record<Kind, () => string> = {
 };
 export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), PENDING: () => "Pending", VALIDATION: () => tr("Validation"), REVIEW: () => "Review", ON_HOLD: () => "On hold",
-  ACCEPTED: () => "Accept", IN_PROGRESS: () => tr("In progress"), DONE: () => "Done", REJECTED: () => "Reject",
+  ACCEPTED: () => "Accept", IN_PROGRESS: () => tr("In progress"), HANDOVER: () => tr("Handover"), DONE: () => "Done", REJECTED: () => "Reject",
 };
 export const STATUS_TONE: Record<Status, Tone> = {
   DRAFT: "slate", PENDING: "slate", VALIDATION: "blue", REVIEW: "violet", ON_HOLD: "amber", ACCEPTED: "blue", IN_PROGRESS: "blue",
-  DONE: "green", REJECTED: "red",
+  HANDOVER: "cyan", DONE: "green", REJECTED: "red",
 };
 /** the steps every request goes through (on hold and reject are side ways) */
-export const STEPS: Status[] = ["PENDING", "VALIDATION", "REVIEW", "ACCEPTED", "IN_PROGRESS", "DONE"];
-export const OPEN: Status[] = ["PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS"];
+export const STEPS: Status[] = ["PENDING", "VALIDATION", "REVIEW", "ACCEPTED", "IN_PROGRESS", "HANDOVER", "DONE"];
+export const OPEN: Status[] = ["PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "HANDOVER"];
 export const URGENCIES: Urgency[] = ["CRITICAL", "HIGH", "NORMAL", "LOW", "PLANNED"];
 export const URGENCY_LABEL: Record<Urgency, () => string> = {
   CRITICAL: () => tr("Critical"), HIGH: () => tr("High"), NORMAL: () => "Normal", LOW: () => tr("Low"), PLANNED: () => tr("Planned"),
@@ -80,9 +85,12 @@ export const fmtRp = (v: number | null | undefined) => (v === null || v === unde
 export const fmtMb = (bytes: number) => `${(bytes / 1048576).toFixed(1)} MB`;
 
 /** the files of a request: signed-in (own or team) or through a share token */
-export type MediaUrls = { media: (id: string) => string; signature: (requestId: string) => string; pdf: (requestId: string) => string };
+/** handover: the signatures at the handover (signed-in only; the share link shows the names) */
+export type MediaUrls = { media: (id: string) => string; signature: (requestId: string) => string; pdf: (requestId: string) => string;
+  handover?: (requestId: string, who: "pic" | "vendor") => string; final?: (requestId: string) => string };
 export const PORTAL_URLS: MediaUrls = {
   media: (id) => `/api/de/media/${id}`, signature: (rid) => `/api/de/requests/${rid}/signature`, pdf: (rid) => `/api/de/requests/${rid}/pdf`,
+  handover: (rid, who) => `/api/de/requests/${rid}/handover-signature/${who}`, final: (rid) => `/api/de/requests/${rid}/final`,
 };
 export const shareUrls = (token: string): MediaUrls => ({
   media: (id) => `/api/public/de/${token}/media/${id}`, signature: () => `/api/public/de/${token}/signature`, pdf: () => `/api/public/de/${token}/pdf`,

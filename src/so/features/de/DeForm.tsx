@@ -4,10 +4,12 @@
 // (decoration & tools) for one of their branches. The draft is saved as it is filled; the open requests of the branch
 // are shown (and an item already asked is flagged) so nothing is asked twice; photos come from the camera (stamped),
 // one video ≤ 10 MB; a preview with the PIC's signature sends it; the PDF and a share link follow, and "My requests"
-// shows the progress and every note of the team.
+// shows the progress and every note of the team. While the work runs the PIC can add photos; when the team asks for the
+// handover (link ?request=<id>) the PIC confirms at the outlet: 1-5 photos, their signature and, for a vendor, the
+// vendor's signature. Once Done the final document (work report / vendor's handover record) is downloadable.
 
-import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Clock, CloudUpload, Copy, Download, FileText,
-  Hammer, Loader2, MessageCircle, PackagePlus, PauseCircle, Plus, Send, Trash2, Video, Wrench, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Clock, CloudUpload, Copy, Download, FileCheck2, FileText,
+  Hammer, Handshake, Loader2, MessageCircle, PackagePlus, PauseCircle, Plus, Send, Trash2, Video, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, ErrorState, fmtNumber, inputClass, Page, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
@@ -52,6 +54,11 @@ export default function DeForm() {
     }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  // a link from the team (WhatsApp): /forms/damaged-equipment?request=<id> opens that request
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("request");
+    if (id) setView(id); // read once from the address
+  }, []);
 
   const open = async (id?: string) => {
     setOpening(true);
@@ -84,8 +91,8 @@ export default function DeForm() {
           <Stat label={tr("In progress")} emphasis icon={<Wrench size={13} />} value={data ? fmtNumber(live.length) : <StatSkeleton />}>
             {data && <p>{tr("{0} critical", fmtNumber(live.filter((r) => r.urgency === "CRITICAL").length))}</p>}
           </Stat>
-          <Stat label={tr("Needs attention")} icon={<PauseCircle size={13} />} value={data ? fmtNumber(live.filter((r) => r.status === "ON_HOLD" || r.tracker?.overdue).length) : <StatSkeleton />}>
-            {data && <p>{tr("on hold or past target")}</p>}
+          <Stat label={tr("Needs attention")} icon={<PauseCircle size={13} />} value={data ? fmtNumber(live.filter((r) => r.status === "ON_HOLD" || r.tracker?.overdue || (r.status === "HANDOVER" && !r.handover?.at)).length) : <StatSkeleton />}>
+            {data && <p>{tr("handover, on hold or past target")}</p>}
           </Stat>
           <Stat label="Done" icon={<CheckCircle2 size={13} />} value={data ? fmtNumber(done.length) : <StatSkeleton />}>
             {data && <p>{tr("{0} rejected", fmtNumber(mine.filter((r) => r.status === "REJECTED").length))}</p>}
@@ -199,6 +206,8 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-mono text-xs font-semibold text-slate-500">{r.number}</span>
           <StatusBadge r={r} /><UrgencyBadge u={r.urgency} />
+          {r.status === "HANDOVER" && !r.handover?.at && <Badge tone="red" icon={<Handshake size={11} />}>{tr("Your handover needed")}</Badge>}
+          {r.tracker?.targetAdjusted && OPEN.includes(r.status) && <Badge tone="violet">{tr("Estimate adjusted")}</Badge>}
           <span className="ml-auto text-[11px] tabular-nums text-slate-400">{wibDateTime(r.submittedAt)}</span>
         </span>
         <span className="mt-1 block truncate text-sm font-medium text-slate-900">{r.kind === "REPAIR" ? tr("Repair") : tr("Procurement")} · {r.branchName}</span>
@@ -259,8 +268,21 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
     }
   };
   const text = `${tr("Damaged Equipment request")} ${r.number} · ${r.kindLabel} · ${r.branchName}\n${url ?? ""}`;
+  const final = async () => {
+    setBusy(true);
+    try {
+      await download(PORTAL_URLS.final!(r.id), `${r.number}-${r.mode === "VENDOR" ? "berita-acara-vendor" : "laporan-pekerjaan"}.pdf`);
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div className="flex flex-wrap gap-2">
+      {r.status === "DONE" && (
+        <Button size="sm" loading={busy} onClick={() => void final()}><FileCheck2 size={14} /> {r.mode === "VENDOR" ? tr("Vendor handover record") : tr("Final work report")}</Button>
+      )}
       <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><Download size={14} /> PDF</Button>
       {url && <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy link")}</Button>}
       {url && <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"
@@ -271,14 +293,129 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
 }
 
 function MyRequest({ id, onClose }: { id: string; onClose: () => void }) {
+  const toast = useToast();
   const [r, setR] = useState<Request | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [camera, setCamera] = useState<"MONITOR" | "HANDOVER" | null>(null);
   useEffect(() => { call<Request>(`/api/de/requests/${id}`).then(setR).catch((e) => setError((e as Error).message)); }, [id]);
+  const addPhoto = async (shot: Shot) => {
+    try {
+      setR(await call<Request>(`/api/de/requests/${id}/${camera === "HANDOVER" ? "handover" : "monitor"}-photos`,
+        { method: "POST", json: { photo: shot.image, latitude: shot.lat, longitude: shot.lng, takenAt: shot.taken_at } }));
+    } catch (e) {
+      toast((e as Error).message, "error");
+      throw e;
+    }
+  };
+  const removePhoto = async (mid: string) => {
+    try {
+      setR(await call<Request>(`/api/de/requests/${id}/pic-media/${mid}`, { method: "DELETE" }));
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
+  const handoverDue = r?.status === "HANDOVER" && !r.handover?.at;
+  const working = r && ["IN_PROGRESS", "HANDOVER"].includes(r.status) && !r.handover?.at;
   return (
     <Drawer open onClose={onClose} size="lg" icon={<FileText size={18} />} title={r ? `${r.number} · ${r.branchName}` : tr("Request")}
       description={r ? r.kindLabel : undefined} focusFirstField={false} footer={r ? <DocActions r={r} /> : undefined}>
-      {error ? <ErrorState message={error} /> : !r ? <div className="skeleton h-64 rounded-xl" /> : <RequestView r={r} urls={PORTAL_URLS} />}
+      {error ? <ErrorState message={error} /> : !r ? <div className="skeleton h-64 rounded-xl" /> : (
+        <RequestView r={r} urls={PORTAL_URLS}>
+          {handoverDue && <HandoverCard r={r} onCamera={() => setCamera("HANDOVER")} onRemove={(mid) => void removePhoto(mid)} onSent={(out) => { setR(out); toast(tr("Handover sent to the maintenance team")); }} />}
+          {working && (
+            <FormCard title={tr("Photos while the work runs")} hint={tr("Optional: let the team follow the technician's work at your outlet")}
+              aside={<Badge>{(r.media ?? []).filter((m) => m.kind === "MONITOR").length}/10</Badge>}>
+              <PicPhotos r={r} kind="MONITOR" onRemove={(mid) => void removePhoto(mid)} />
+              <Button size="sm" variant="secondary" className="self-start" onClick={() => setCamera("MONITOR")}><Camera size={14} /> {tr("Take photo")}</Button>
+            </FormCard>
+          )}
+        </RequestView>
+      )}
+      <CameraCapture open={camera !== null} title={camera === "HANDOVER" ? tr("Handover") : tr("Work in progress")} branch={r?.branchName ?? ""}
+        countNumber={r?.number ?? ""} onClose={() => setCamera(null)} onShot={addPhoto} />
     </Drawer>
+  );
+}
+
+function PicPhotos({ r, kind, onRemove }: { r: Request; kind: "MONITOR" | "HANDOVER"; onRemove: (id: string) => void }) {
+  const list = (r.media ?? []).filter((m) => m.kind === kind);
+  if (!list.length) return <p className="text-sm text-slate-400">{tr("No photo yet")}</p>;
+  return (
+    <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+      {list.map((m, i) => (
+        <li key={m.id} className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
+          <img src={PORTAL_URLS.media(m.id)} alt={tr("Photo {0}", i + 1)} className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200" />
+          <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove photo {0}", i + 1)}
+            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-600"><X size={12} /></button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The handover at the outlet: photos of the result (1-5), the vendor's signature (vendor work) and the PIC's. */
+function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera: () => void; onRemove: (id: string) => void; onSent: (r: Request) => void }) {
+  const toast = useToast();
+  const vendor = r.mode === "VENDOR";
+  const photos = (r.media ?? []).filter((m) => m.kind === "HANDOVER").length;
+  const vendorName0 = (r.assignments ?? []).find((a) => a.status === "ACTIVE" && a.kind === "VENDOR")?.company ?? "";
+  const [vendorSign, setVendorSign] = useState<string | null>(null);
+  const [vendorName, setVendorName] = useState("");
+  const [picSign, setPicSign] = useState<string | null>(null);
+  const [picName, setPicName] = useState(r.picName);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const ready = photos > 0 && !!picSign && !!picName.trim() && (!vendor || (!!vendorSign && !!vendorName.trim()));
+  const send = async () => {
+    setBusy(true);
+    try {
+      const pos = await locate(undefined, 50, 12_000);
+      onSent(await call<Request>(`/api/de/requests/${r.id}/handover`, { method: "POST", json: {
+        latitude: pos.fix?.lat ?? null, longitude: pos.fix?.lng ?? null, accuracyM: pos.fix?.accuracy ?? null,
+        picSignature: picSign, picName, vendorSignature: vendor ? vendorSign : null, vendorName: vendor ? vendorName : null, note: note.trim() || null } }));
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+  let n = 0;
+  return (
+    <section className="space-y-3 rounded-2xl border-2 border-cyan-200 bg-cyan-50/40 p-3 sm:p-4">
+      <div className="flex items-start gap-3">
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-cyan-600 text-white"><Handshake size={18} /></span>
+        <div>
+          <p className="font-semibold text-slate-900">{tr("Handover at the outlet")}</p>
+          <p className="text-xs text-slate-600">{vendor ? tr("The maintenance team asks you to check the vendor's work: photos of the result, the vendor's signature and yours.")
+            : tr("The maintenance team asks you to check the work: photos of the result and your signature.")}</p>
+        </div>
+      </div>
+      <FormCard n={++n} title={tr("Photos of the result")} hint={tr("1–5 photos with the camera at the outlet")} aside={<Badge tone={photos ? "green" : "red"}>{photos ? `${photos}/5` : tr("Required")}</Badge>}>
+        <PicPhotos r={r} kind="HANDOVER" onRemove={onRemove} />
+        {photos < 5 && <Button size="sm" variant="secondary" className="self-start" onClick={onCamera}><Camera size={14} /> {tr("Take photo")}</Button>}
+      </FormCard>
+      {vendor && (
+        <FormCard n={++n} title={tr("Vendor's signature")} hint={tr("The vendor's officer signs on this phone")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
+          <SignaturePad onChange={setVendorSign} />
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-600">{tr("Vendor officer's name")}{vendorName0 ? ` · ${vendorName0}` : ""}</span>
+            <input value={vendorName} onChange={(e) => setVendorName(e.target.value)} maxLength={120} className={inputClass} placeholder={tr("Full name")} />
+          </label>
+        </FormCard>
+      )}
+      <FormCard n={++n} title={tr("Your signature (PIC)")} hint={tr("By signing I confirm the work has been done and received at the outlet.")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
+        <SignaturePad onChange={setPicSign} />
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-slate-600">{tr("Signer's name")}</span>
+          <input value={picName} onChange={(e) => setPicName(e.target.value)} maxLength={120} className={inputClass} />
+        </label>
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={1000} placeholder={tr("Note (optional), e.g. anything still to follow up")}
+          className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note")} />
+      </FormCard>
+      <Button className="w-full" loading={busy} disabled={!ready} onClick={() => void send()}><Send size={15} /> {tr("Send the handover")}</Button>
+      {!ready && <p className="text-center text-[11px] text-slate-500">{vendor ? tr("Photos, the vendor's signature and name, and your signature are needed.") : tr("Photos and your signature are needed.")}</p>}
+    </section>
   );
 }
 

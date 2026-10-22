@@ -1,14 +1,13 @@
 "use client";
 
-// Monitoring → Damaged Equipment (page mon.damaged-equipment): every request sent by the PICs for the Maintenance /
-// procurement team. A summary of the open requests (urgency, category groups, technicians' load), then the requests with
-// status tabs and one Filters sheet; the list can be grouped per branch or per PIC so the team sees at once what one
-// outlet / PIC already asked. A request opens in a drawer: its head (status, facts, steps) and three tabs — Handling (next
-// step with a note, technicians, the technician's photo link and the work photos, cost & invoices, duplicates), the
-// request itself and its history. Technicians and categories are kept here too.
+// Monitoring → Damaged Equipment (page mon.damaged-equipment): tabs Requests · Overview · Technicians · Categories.
+// Requests: status tabs and one Filters sheet, grouped per branch / PIC / list. A request opens in a drawer: its head
+// (status, estimated finish, steps) and tabs Handling (next step with what is still missing, estimated finish, technicians
+// — internal or vendor, never both —, work photos via the technician link (internal), the PIC's handover, cost & invoices,
+// duplicates), the request and its history. Overview: the analysis of every request and its handling (DeOverview).
 
-import { AlertTriangle, Boxes, Camera, Check, ChevronDown, ChevronRight, Clock, Copy, Hammer, Link2, MessageCircle, Paperclip, Plus, Save,
-  Shuffle, Tags, Upload, Users, Wrench, X } from "lucide-react";
+import { AlertTriangle, BarChart3, CalendarClock, Camera, Check, ChevronDown, ChevronRight, Clock, Copy, Hammer, Handshake, Link2, ListChecks,
+  MessageCircle, Paperclip, Plus, Save, Shuffle, Tags, Upload, Users, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -20,6 +19,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 import RequestView, { Gallery, Invoices, RequestHero, StatusBadge, UrgencyBadge } from "./RequestView";
+import DeOverview from "./DeOverview";
 import { DocActions } from "./DeForm";
 import { type Category, type Request, type Status, type Technician, type Urgency, type WorkLink, OPEN, PORTAL_URLS, STATUS_LABEL, STEPS, URGENCIES,
   URGENCY_LABEL, fmtHours, fmtMb, fmtRp, workUrl } from "./de";
@@ -34,10 +34,10 @@ type GroupOpt = { id: string; code: string; name: string };
 const DOT: Partial<Record<Status, string>> = { PENDING: "bg-slate-400", VALIDATION: "bg-sky-500", REVIEW: "bg-violet-500", ON_HOLD: "bg-amber-500",
   ACCEPTED: "bg-blue-500", IN_PROGRESS: "bg-blue-700", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
 const STRIPE: Record<Urgency, string> = { CRITICAL: "border-l-red-500", HIGH: "border-l-amber-400", NORMAL: "border-l-blue-400", LOW: "border-l-slate-300", PLANNED: "border-l-violet-400" };
-const URG_BAR: Record<Urgency, string> = { CRITICAL: "bg-red-500", HIGH: "bg-amber-400", NORMAL: "bg-blue-500", LOW: "bg-slate-400", PLANNED: "bg-violet-500" };
 const TABS: (Status | "" | "OPEN")[] = ["OPEN", "", "PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "DONE", "REJECTED"];
 const OPEN_SET = new Set<Status>(OPEN);
 const urgRank = (u: Urgency) => URGENCIES.indexOf(u);
+type PageTab = "requests" | "overview" | "tech" | "cat";
 const stepOf = (r: Request) => (r.status === "DONE" ? STEPS.length : Math.max(0, STEPS.indexOf((r.status === "ON_HOLD" ? r.holdFrom : r.status) ?? "PENDING")) + 1);
 
 export default function DeMonitor() {
@@ -48,7 +48,7 @@ export default function DeMonitor() {
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
-  const [masters, setMasters] = useState<"tech" | "cat" | null>(null);
+  const [tab, setTab] = useState<PageTab>("requests");
   const [bgroups, setBgroups] = useState<GroupOpt[]>([]);
 
   const load = useCallback(async () => {
@@ -111,11 +111,7 @@ export default function DeMonitor() {
 
   return (
     <Page title={tr("Monitoring Damaged Equipment")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("repair & procurement requests of every outlet")}`}
-      actions={<div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={() => setMasters("tech")}><Users size={16} /> {tr("Technicians")}</Button>
-        <Button variant="secondary" onClick={() => setMasters("cat")}><Tags size={16} /> {tr("Categories")}</Button>
-      </div>}
-      stats={
+      stats={tab !== "requests" ? undefined : 
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Open")} emphasis icon={<Wrench size={13} />} value={res ? fmtNumber(openRows.length) : <StatSkeleton />}>
             {res && <p>{tr("{0} pending · {1} in progress", fmtNumber(openRows.filter((r) => r.status === "PENDING").length), fmtNumber(openRows.filter((r) => r.status === "IN_PROGRESS").length))}</p>}
@@ -132,9 +128,22 @@ export default function DeMonitor() {
           </Stat>
         </StatStrip>
       }>
-      {res && all.length > 0 && <Overview open={openRows} techs={res.technicians} f={f} setF={setF} />}
+      <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-slate-200 px-1" role="tablist" aria-label={tr("Sections")}>
+        {([["requests", tr("Requests"), <ListChecks key="r" size={15} />], ["overview", "Overview", <BarChart3 key="o" size={15} />],
+          ["tech", tr("Technicians"), <Users key="t" size={15} />], ["cat", tr("Categories"), <Tags key="c" size={15} />]] as [PageTab, string, React.ReactNode][]).map(([k, label, icon]) => (
+          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+            className={cx("-mb-px inline-flex flex-shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
+              tab === k ? "border-blue-700 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800")}>
+            {icon}{label}{k === "requests" && res ? <span className="rounded-full bg-slate-100 px-1.5 text-[11px] tabular-nums text-slate-600">{fmtNumber(openRows.length)}</span> : null}
+          </button>
+        ))}
+      </div>
 
-      <Panel title={tr("Requests")} description={tr("Most urgent first; tap a request to handle it")}
+      {tab === "overview" && <DeOverview bgroups={bgroups} />}
+      {tab === "tech" && <TechniciansDrawer groups={groups} onClose={() => void load()} />}
+      {tab === "cat" && <CategoriesDrawer onClose={() => void load()} />}
+
+      {tab === "requests" && <Panel title={tr("Requests")} description={tr("Most urgent first; tap a request to handle it")}
         toolbar={<>
           <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="tablist" aria-label={tr("Status")}>
             {TABS.map((t) => {
@@ -162,13 +171,11 @@ export default function DeMonitor() {
             {grouped.map((g) => <Group key={g.key} g={g} onOpen={setOpen} />)}
           </ul>
         ) : <RequestTable rows={paged.rows} onOpen={setOpen} />}
-      </Panel>
+      </Panel>}
 
       {sheet && <MonitorFilters value={f} groups={groups} bgroups={bgroups} branches={branchOpts} pics={picOpts} technicians={(res?.technicians ?? []).map((t) => t.name)}
         onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
       {open && res && <TeamDrawer id={open} technicians={res.technicians} all={all} onOpen={setOpen} onClose={() => setOpen(null)} onChanged={load} />}
-      {masters === "tech" && <TechniciansDrawer groups={groups} onClose={() => { setMasters(null); void load(); }} />}
-      {masters === "cat" && <CategoriesDrawer onClose={() => { setMasters(null); void load(); }} />}
     </Page>
   );
 }
@@ -262,60 +269,6 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
 
 type Opt = { value: string; label: string };
 
-/** One card above the requests: open requests per urgency and per category group, and the technicians' load; a tap filters. */
-function Overview({ open, techs, f, setF }: { open: Request[]; techs: Technician[]; f: F; setF: (f: F) => void }) {
-  const groups = new Map<string, number>();
-  open.forEach((r) => new Set((r.items ?? []).map((i) => i.group ?? "")).forEach((g) => g && groups.set(g, (groups.get(g) ?? 0) + 1)));
-  const urg = URGENCIES.map((u) => [u, open.filter((r) => r.urgency === u).length] as const);
-  const maxU = Math.max(1, ...urg.map(([, n]) => n));
-  const maxG = Math.max(1, ...groups.values());
-  const row = (key: string, label: React.ReactNode, n: number, max: number, bar: string, on: boolean, onClick: () => void) => (
-    <li key={key}>
-      <button type="button" onClick={onClick} aria-pressed={on}
-        className={cx("grid w-full grid-cols-[7.5rem_1fr_2rem] items-center gap-3 rounded-lg px-2 py-1.5 text-left text-xs hover:bg-slate-50", on && "bg-blue-50 ring-1 ring-blue-200")}>
-        <span className="truncate text-slate-700">{label}</span>
-        <span className="h-2 overflow-hidden rounded-full bg-slate-100"><span className={cx("block h-full rounded-full", bar)} style={{ width: `${(n / max) * 100}%` }} /></span>
-        <span className="text-right font-semibold tabular-nums text-slate-900">{n}</span>
-      </button>
-    </li>
-  );
-  const head = (title: string, hint: string) => (
-    <div className="mb-2 px-2"><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p><p className="text-[11px] text-slate-400">{hint}</p></div>
-  );
-  return (
-    <section className="grid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:grid-cols-3 md:divide-x md:divide-slate-100">
-      <div className="p-3 sm:p-4">
-        {head(tr("Open per urgency"), tr("Tap to show only that urgency"))}
-        <ul className="space-y-0.5">{urg.map(([u, n]) => row(u, URGENCY_LABEL[u](), n, maxU, URG_BAR[u], f.urgency === u, () => setF({ ...f, urgency: f.urgency === u ? "" : u })))}</ul>
-      </div>
-      <div className="border-t border-slate-100 p-3 sm:p-4 md:border-t-0">
-        {head(tr("Open per category group"), tr("Requests with an item of the group"))}
-        {groups.size === 0 ? <p className="px-2 py-4 text-sm text-slate-400">—</p> : (
-          <ul className="space-y-0.5">{[...groups.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([g, n]) => row(g, g, n, maxG, "bg-blue-600", f.group === g, () => setF({ ...f, group: f.group === g ? "" : g })))}</ul>
-        )}
-      </div>
-      <div className="border-t border-slate-100 p-3 sm:p-4 md:border-t-0">
-        {head(tr("Technicians' load"), tr("Active jobs per technician"))}
-        {techs.length === 0 ? <p className="px-2 py-4 text-sm text-slate-400">{tr("No technician yet")}</p> : (
-          <ul className="space-y-0.5">
-            {[...techs].sort((a, b) => b.activeJobs - a.activeJobs).slice(0, 6).map((t) => (
-              <li key={t.id}>
-                <button type="button" onClick={() => setF({ ...f, tech: f.tech === t.name ? "" : t.name })} aria-pressed={f.tech === t.name}
-                  className={cx("flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs hover:bg-slate-50", f.tech === t.name && "bg-blue-50 ring-1 ring-blue-200")}>
-                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">{t.name.slice(0, 1).toUpperCase()}</span>
-                  <span className="min-w-0 flex-1 truncate text-slate-700">{t.name}</span>
-                  <span className={cx("rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums", t.activeJobs >= 3 ? "bg-red-50 text-red-700" : t.activeJobs ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500")}>
-                    {tr("{0} active", t.activeJobs)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </section>
-  );
-}
-
 function MonitorFilters({ value, groups, bgroups, branches, pics, technicians, onApply, onClose }: {
   value: F; groups: string[]; bgroups: GroupOpt[]; branches: Opt[]; pics: Opt[]; technicians: string[]; onApply: (v: F) => void; onClose: () => void;
 }) {
@@ -383,25 +336,26 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const [assign, setAssign] = useState({ technicianId: "", scheduledFor: "", note: "" });
   const [swap, setSwap] = useState<{ assignmentId: number; to: string; scheduledFor: string; note: string } | null>(null);
   const [release, setRelease] = useState<{ assignmentId: number; note: string } | null>(null);
-  const [cost, setCost] = useState({ est: "", actual: "", vendor: "" });
+  const [cost, setCost] = useState({ est: "", actual: "" });
   const [dup, setDup] = useState({ of: "", note: "" });
   const [camera, setCamera] = useState(false);
   const [invNote, setInvNote] = useState("");
   const [uploading, setUploading] = useState(false);
   const [linkTech, setLinkTech] = useState("");
+  const [target, setTarget] = useState({ at: "", note: "" });
 
   const load = useCallback(async () => {
     try {
       const out = await call<Request>(`/api/de/monitor/${id}`);
       setR(out);
-      setCost({ est: out.estCost?.toString() ?? "", actual: out.actualCost?.toString() ?? "", vendor: out.vendor ?? "" });
+      setCost({ est: out.estCost?.toString() ?? "", actual: out.actualCost?.toString() ?? "" });
     } catch (e) {
       setError((e as Error).message);
     }
   }, [id]);
   useEffect(() => { void load(); }, [load]);
   // the technician's photos arrive while the drawer is open: refresh while a link is open
-  const waiting = (r?.workLinks ?? []).some((l) => l.state === "OPEN");
+  const waiting = (r?.workLinks ?? []).some((l) => l.state === "OPEN") || (r?.status === "HANDOVER" && !r.handover?.at);
   useEffect(() => {
     if (!waiting) return;
     const t = setInterval(() => void load(), 15000);
@@ -414,6 +368,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
     try {
       const out = await call<Request>(path, { method, json });
       setR(out);
+      setCost({ est: out.estCost?.toString() ?? "", actual: out.actualCost?.toString() ?? "" });
       toast(ok);
       onChanged();
       return true;
@@ -468,6 +423,20 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const closed = r ? !OPEN_SET.has(r.status) : true;
   const noteNeeded = (to: Status) => to === "ON_HOLD" || to === "REJECTED";
   const afterCount = (r?.media ?? []).filter((m) => m.kind === "AFTER").length;
+  const invoiceCount = (r?.media ?? []).filter((m) => m.kind === "INVOICE").length;
+  const vendor = r?.mode === "VENDOR" && active.length > 0;
+  const ho = r?.handover;
+  // what still blocks a step (shown under the buttons, the button disabled)
+  const blocker = (to: Status): string | null => {
+    if (!r) return null;
+    if ((to === "ACCEPTED" || to === "IN_PROGRESS") && vendor && r.estCost === null) return tr("Vendor work: fill in the estimated cost first (Cost & invoices)");
+    if (to === "HANDOVER" && r.mode === "INTERNAL" && afterCount === 0) return tr("Waiting for the technician's photos: send the photo link below");
+    if (to === "DONE" && !ho?.at) return tr("Waiting for the PIC's handover at the outlet");
+    if (to === "DONE" && r.mode === "VENDOR" && (r.actualCost === null || invoiceCount === 0)) return tr("Vendor work: fill in the actual cost and attach an invoice");
+    return null;
+  };
+  const picLink = r ? `${typeof window === "undefined" ? "" : window.location.origin}/forms/damaged-equipment?request=${r.id}` : "";
+  const picMsg = r ? tr("Hello {0}, please do the handover of {1} at the outlet (photos{2} and your signature): {3}", r.picName, r.number ?? "", r.mode === "VENDOR" ? tr(", the vendor's signature") : "", picLink) : "";
   const tabs: [Tab, string, number | null][] = [["handle", tr("Handling"), null], ["detail", tr("Request"), r?.items?.length ?? null], ["history", tr("History"), r?.events?.length ?? null]];
   let n = 0;
   const next = () => ++n;
@@ -496,21 +465,37 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
               <FormCard n={next()} title={tr("Next step")} hint={tr("A note is required to put on hold or reject; the PIC sees every note")}>
                 <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Note / reason for the PIC")}
                   className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note")} />
-                {(r.allowed ?? []).includes("DONE") && afterCount === 0 && (
-                  <p className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800"><Camera size={13} /> {tr("Done needs the photos of the work: send the photo link to the technician below.")}</p>
-                )}
+                {(r.allowed ?? []).map(blocker).filter(Boolean).map((b) => (
+                  <p key={b} className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800"><AlertTriangle size={13} /> {b}</p>
+                ))}
                 <div className="flex flex-wrap gap-2">
                   {(r.allowed ?? []).map((to) => (
-                    <Button key={to} size="sm" variant={to === "REJECTED" ? "danger" : to === "ON_HOLD" ? "secondary" : "primary"}
-                      disabled={busy || (noteNeeded(to) && !note.trim()) || (to === "DONE" && afterCount === 0)}
-                      onClick={() => void go(to)}>{to === "DONE" && <Check size={14} />}{r.status === "ON_HOLD" && to === r.holdFrom ? tr("Resume: {0}", STATUS_LABEL[to]()) : STATUS_LABEL[to]()}</Button>
+                    <Button key={to} size="sm" variant={to === "REJECTED" ? "danger" : to === "ON_HOLD" || (to === "IN_PROGRESS" && r.status === "HANDOVER") ? "secondary" : "primary"}
+                      disabled={busy || (noteNeeded(to) && !note.trim()) || !!blocker(to)}
+                      onClick={() => void go(to)}>{to === "DONE" && <Check size={14} />}{to === "HANDOVER" && <Handshake size={14} />}
+                      {r.status === "ON_HOLD" && to === r.holdFrom ? tr("Resume: {0}", STATUS_LABEL[to]()) : to === "HANDOVER" ? tr("Request handover from the PIC")
+                        : to === "IN_PROGRESS" && r.status === "HANDOVER" ? tr("Back to in progress (redo)") : STATUS_LABEL[to]()}</Button>
                   ))}
                   <Button size="sm" variant="ghost" disabled={busy || !note.trim()} onClick={async () => { if (await act(`/api/de/monitor/${id}/notes`, { note }, tr("Note added"))) setNote(""); }}>{tr("Note only")}</Button>
                 </div>
               </FormCard>
 
+              <FormCard n={next()} title={tr("Estimated finish")} hint={tr("From the urgency; adjust it with a reason — the PIC sees the new time")}
+                aside={r.tracker?.targetAdjusted ? <Badge tone="violet">{tr("Adjusted {0}×", r.target?.changes ?? 1)}</Badge> : <Badge>{tr("From the urgency")}</Badge>}>
+                <p className={cx("flex items-center gap-2 text-sm font-semibold", r.tracker?.overdue ? "text-red-600" : "text-slate-900")}>
+                  <CalendarClock size={15} /> {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : tr("No target (planned)")}{r.tracker?.overdue && <Badge tone="red">{tr("Past target")}</Badge>}</p>
+                {r.target?.note && <p className="text-xs text-slate-500">{tr("Reason")}: {r.target.note} · {r.target.by}</p>}
+                <div className="grid gap-2 rounded-lg bg-slate-50 p-3 sm:grid-cols-[13rem_1fr_auto]">
+                  <input type="datetime-local" value={target.at} onChange={(e) => setTarget({ ...target, at: e.target.value })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("New estimated finish")} />
+                  <input value={target.note} onChange={(e) => setTarget({ ...target, note: e.target.value })} maxLength={500} placeholder={tr("Reason (required), e.g. waiting for parts")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Reason of the adjustment")} />
+                  <Button size="sm" variant="secondary" disabled={busy || !target.at || !target.note.trim()}
+                    onClick={async () => { if (await act(`/api/de/monitor/${id}/target`, { dueAt: `${target.at}:00+07:00`, note: target.note }, tr("Estimated finish adjusted"))) setTarget({ at: "", note: "" }); }}>
+                    <Save size={14} /> {tr("Adjust")}</Button>
+                </div>
+              </FormCard>
+
               <FormCard n={next()} title={tr("Technicians")} hint={tr("Assign after review; move a technician to a request that needs them first, with the reason")}
-                aside={active.length ? <Badge tone="blue">{tr("{0} assigned", active.length)}</Badge> : undefined}>
+                aside={active.length ? <Badge tone={r.mode === "VENDOR" ? "amber" : "blue"}>{r.mode === "VENDOR" ? tr("Vendor") : tr("Internal")} · {tr("{0} assigned", active.length)}</Badge> : undefined}>
                 {active.length > 0 && (
                   <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
                     {active.map((a) => (
@@ -528,7 +513,11 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                   <div className="grid gap-2 rounded-lg bg-slate-50 p-3 sm:grid-cols-[1fr_10rem]">
                     <select value={assign.technicianId} onChange={(e) => setAssign({ ...assign, technicianId: e.target.value })} className={cx(inputClass, "h-10 bg-white text-sm")} aria-label={tr("Technician")}>
                       <option value="">{tr("Choose a technician")}</option>
-                      {technicians.map((t) => <option key={t.id} value={t.id}>{t.name}{t.kind === "VENDOR" && t.company ? ` (${t.company})` : ""} · {tr("{0} active jobs", t.activeJobs)}</option>)}
+                      {(["INTERNAL", "VENDOR"] as const).filter((k) => !active.length || r.mode === k).map((k) => (
+                        <optgroup key={k} label={k === "VENDOR" ? tr("Vendor") : tr("Internal")}>
+                          {technicians.filter((t) => t.kind === k).map((t) => <option key={t.id} value={t.id}>{t.name}{t.kind === "VENDOR" && t.company ? ` (${t.company})` : ""} · {tr("{0} active jobs", t.activeJobs)}</option>)}
+                        </optgroup>
+                      ))}
                     </select>
                     <input type="date" value={assign.scheduledFor} onChange={(e) => setAssign({ ...assign, scheduledFor: e.target.value })} className={cx(inputClass, "h-10 bg-white text-sm")} aria-label={tr("Scheduled for")} />
                     <input value={assign.note} onChange={(e) => setAssign({ ...assign, note: e.target.value })} maxLength={500} placeholder={tr("Note (optional)")} className={cx(inputClass, "h-10 bg-white text-sm sm:col-span-2")} />
@@ -537,28 +526,66 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                       <Plus size={14} /> {tr("Assign")}</Button>
                   </div>
                 ) : <p className="text-xs text-slate-500">{tr("Technicians are assigned once the request is in review.")}</p>}
-                {technicians.length === 0 && <p className="text-xs text-amber-700">{tr("No technician yet: add them with the Technicians button.")}</p>}
+                {active.length > 0 && <p className="text-[11px] text-slate-500">{tr("One request is handled by internal technicians or by a vendor; release them to switch.")}</p>}
+                {technicians.length === 0 && <p className="text-xs text-amber-700">{tr("No technician yet: add them in the Technicians tab.")}</p>}
               </FormCard>
 
-              <FormCard n={next()} title={tr("Photos of the work done")} hint={tr("The technician sends 1–5 photos through a link (no sign-in, valid 1 hour); then process Done")}
-                aside={<Badge tone={afterCount ? "green" : "slate"}>{tr("{0} photos", afterCount)}</Badge>}>
-                <WorkLinks r={r} busy={busy} tech={linkTech} setTech={setLinkTech}
-                  onCreate={() => void act(`/api/de/monitor/${id}/work-links`, { technicianId: linkTech ? Number(linkTech) : null }, tr("Photo link created"))}
-                  onCloseLink={(lid) => void act(`/api/de/monitor/${id}/work-links/${lid}`, undefined, tr("Link closed"), "DELETE")} />
-                <Gallery r={r} urls={PORTAL_URLS} kind="AFTER" />
-                {["ACCEPTED", "IN_PROGRESS"].includes(r.status) && (
-                  <button type="button" onClick={() => setCamera(true)} className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-slate-500 hover:text-slate-800">
-                    <Camera size={13} /> {tr("Or take the photo yourself on site")}</button>
-                )}
-              </FormCard>
+              {r.mode === "VENDOR" ? (
+                <FormCard n={next()} title={tr("Photos of the work")} hint={tr("Vendor work: the PIC photographs the result at the handover; photos the PIC adds while the work runs appear here")}>
+                  <Gallery r={r} urls={PORTAL_URLS} kind="MONITOR" empty={tr("No photo from the PIC yet")} />
+                </FormCard>
+              ) : (
+                <FormCard n={next()} title={tr("Photos of the work done")} hint={tr("The technician sends 1–5 photos through a link (no sign-in, valid 1 hour); then request the handover")}
+                  aside={<Badge tone={afterCount ? "green" : "slate"}>{tr("{0} photos", afterCount)}</Badge>}>
+                  <WorkLinks r={r} busy={busy} tech={linkTech} setTech={setLinkTech}
+                    onCreate={() => void act(`/api/de/monitor/${id}/work-links`, { technicianId: linkTech ? Number(linkTech) : null }, tr("Photo link created"))}
+                    onCloseLink={(lid) => void act(`/api/de/monitor/${id}/work-links/${lid}`, undefined, tr("Link closed"), "DELETE")} />
+                  <Gallery r={r} urls={PORTAL_URLS} kind="AFTER" />
+                  {(r.media ?? []).some((m) => m.kind === "MONITOR") && <><p className="text-xs font-semibold text-slate-500">{tr("PIC photos while the work ran")}</p><Gallery r={r} urls={PORTAL_URLS} kind="MONITOR" /></>}
+                  {["ACCEPTED", "IN_PROGRESS"].includes(r.status) && (
+                    <button type="button" onClick={() => setCamera(true)} className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-slate-500 hover:text-slate-800">
+                      <Camera size={13} /> {tr("Or take the photo yourself on site")}</button>
+                  )}
+                </FormCard>
+              )}
 
-              <FormCard n={next()} title={tr("Cost & invoices")} hint={tr("Estimate, actual and vendor (optional); attach the invoices while the work runs")}>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <Field label={tr("Estimated (Rp)")}><Input inputMode="numeric" value={cost.est} onChange={(e) => setCost({ ...cost, est: e.target.value.replace(/[^0-9]/g, "") })} aria-label={tr("Estimated cost")} /></Field>
-                  <Field label={tr("Actual (Rp)")}><Input inputMode="numeric" value={cost.actual} onChange={(e) => setCost({ ...cost, actual: e.target.value.replace(/[^0-9]/g, "") })} aria-label={tr("Actual cost")} /></Field>
-                  <Field label={tr("Vendor")}><Input value={cost.vendor} onChange={(e) => setCost({ ...cost, vendor: e.target.value })} maxLength={120} aria-label={tr("Vendor")} /></Field>
+              {r.status === "HANDOVER" && (
+                <FormCard n={next()} title={tr("Handover by the PIC")} hint={r.mode === "VENDOR" ? tr("At the outlet: photos, the vendor's signature and the PIC's") : tr("At the outlet: photos and the PIC's signature")}
+                  aside={<Badge tone={ho?.at ? "green" : "amber"}>{ho?.at ? tr("Received") : tr("Waiting for the PIC")}</Badge>}>
+                  {ho?.at ? (
+                    <>
+                      <p className="text-xs text-slate-600">{tr("Sent {0}", wibDateTime(ho.at))}{ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}{ho.outsideRadius ? ` · ${tr("outside the radius")}` : ""}</p>
+                      <Gallery r={r} urls={PORTAL_URLS} kind="HANDOVER" />
+                      {ho.note && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">{ho.note}</p>}
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {ho.vendorName && <div className="rounded-lg border border-slate-200 p-2"><p className="text-[10px] font-semibold uppercase text-slate-400">{tr("Vendor")}</p>
+                          {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
+                          <img src={PORTAL_URLS.handover!(r.id, "vendor")} alt={tr("Signature")} className="h-14 object-contain" /><p className="text-sm font-semibold">{ho.vendorName}</p></div>}
+                        {ho.picName && <div className="rounded-lg border border-slate-200 p-2"><p className="text-[10px] font-semibold uppercase text-slate-400">PIC</p>
+                          {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
+                          <img src={PORTAL_URLS.handover!(r.id, "pic")} alt={tr("Signature")} className="h-14 object-contain" /><p className="text-sm font-semibold">{ho.picName}</p></div>}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-100 bg-amber-50/60 p-3">
+                      <Handshake size={16} className="text-amber-700" />
+                      <span className="min-w-0 flex-1 text-xs text-amber-900">{tr("Send the link to {0}: it opens the request in Form → Damaged Equipment (sign-in) for the handover.", r.picName)}</span>
+                      <Button size="sm" variant="secondary" onClick={async () => { try { await navigator.clipboard.writeText(picLink); toast(tr("Link copied")); } catch { toast(picLink); } }}><Copy size={13} /> {tr("Copy")}</Button>
+                      <a href={`https://wa.me/?text=${encodeURIComponent(picMsg)}`} target="_blank" rel="noreferrer"
+                        className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700"><MessageCircle size={13} /> WhatsApp</a>
+                    </div>
+                  )}
+                </FormCard>
+              )}
+
+              <FormCard n={next()} title={tr("Cost & invoices")} hint={r.mode === "VENDOR" ? tr("Vendor work: the estimate before work starts, the actual cost and an invoice before Done")
+                : tr("Optional for internal work (materials / parts); attach the invoices while the work runs")}
+                aside={r.mode === "VENDOR" ? <Badge tone="red">{tr("Required for vendor")}</Badge> : undefined}>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Field label={tr("Estimated (Rp)")} required={r.mode === "VENDOR"}><Input inputMode="numeric" value={cost.est} onChange={(e) => setCost({ ...cost, est: e.target.value.replace(/[^0-9]/g, "") })} aria-label={tr("Estimated cost")} /></Field>
+                  <Field label={tr("Actual (Rp)")} required={r.mode === "VENDOR"}><Input inputMode="numeric" value={cost.actual} onChange={(e) => setCost({ ...cost, actual: e.target.value.replace(/[^0-9]/g, "") })} aria-label={tr("Actual cost")} /></Field>
                 </div>
-                <Button size="sm" variant="secondary" className="self-start" disabled={busy} onClick={() => void act(`/api/de/monitor/${id}/cost`, { estCost: cost.est ? Number(cost.est) : null, actualCost: cost.actual ? Number(cost.actual) : null, vendor: cost.vendor || null }, tr("Cost saved"), "PUT")}>
+                <Button size="sm" variant="secondary" className="self-start" disabled={busy} onClick={() => void act(`/api/de/monitor/${id}/cost`, { estCost: cost.est ? Number(cost.est) : null, actualCost: cost.actual ? Number(cost.actual) : null, vendor: r.vendor ?? null }, tr("Cost saved"), "PUT")}>
                   <Save size={14} /> {tr("Save cost")}</Button>
                 <div className="border-t border-slate-100 pt-3">
                   <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700"><Paperclip size={13} /> {tr("Invoices / receipts")} <span className="font-normal text-slate-400">({tr("PDF or photo, at most {0} each", "10 MB")})</span></p>
@@ -699,7 +726,7 @@ function WorkLinks({ r, busy, tech, setTech, onCreate, onCloseLink }: {
 
 // ------------------------------------------------------------------------------------------------- masters
 
-function TechniciansDrawer({ groups, onClose }: { groups: string[]; onClose: () => void }) {
+function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a save */ onClose: () => void }) {
   const toast = useToast();
   const [rows, setRows] = useState<Technician[] | null>(null);
   const [edit, setEdit] = useState<Partial<Technician> | null>(null);
@@ -715,14 +742,16 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; onClose: () 
       toast(tr("Technician saved"));
       setEdit(null);
       void load();
+      onClose();
     } catch (e) {
       toast((e as Error).message, "error");
     }
   };
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<Users size={18} />} title={tr("Technicians")} description={tr("Internal and vendor technicians, their skills and current jobs")}
-      footer={edit ? <><Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button disabled={!edit.name?.trim()} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>
+    <Panel title={tr("Technicians")} description={tr("Internal and vendor technicians, their skills, pay and current jobs")}
+      actions={edit ? <><Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button disabled={!edit.name?.trim()} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>
         : <Button onClick={() => setEdit({ kind: "INTERNAL", isActive: true, skills: [], wageType: "DAILY", wageAmount: null })}><Plus size={15} /> {tr("New technician")}</Button>}>
+      <div className="p-4 sm:p-5">
       {edit ? (
         <div className="space-y-4">
           <FormCard n={1} title={tr("Technician")} hint={tr("Internal staff or a vendor")}>
@@ -786,7 +815,8 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; onClose: () 
         </ul>
         </div>
       )}
-    </Drawer>
+    </div>
+    </Panel>
   );
 }
 
@@ -818,14 +848,16 @@ function CategoriesDrawer({ onClose }: { onClose: () => void }) {
       toast(tr("Category saved"));
       setEdit(null);
       void load();
+      onClose();
     } catch (e) {
       toast((e as Error).message, "error");
     }
   };
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<Boxes size={18} />} title={tr("Categories")} description={tr("Groups, categories, default urgency and example items offered on the form")}
-      footer={edit ? <><Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button disabled={!edit.name?.trim() || !edit.group?.trim()} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>
+    <Panel title={tr("Categories")} description={tr("Groups, categories, default urgency and example items offered on the form")}
+      actions={edit ? <><Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button disabled={!edit.name?.trim() || !edit.group?.trim()} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>
         : <Button onClick={() => setEdit({ defaultUrgency: "NORMAL", isActive: true, sort: 90, examplesText: "" })}><Plus size={15} /> {tr("New category")}</Button>}>
+      <div className="p-4 sm:p-5">
       {edit ? (
         <FormCard title={edit.id ? tr("Edit category") : tr("New category")} hint={tr("Offered on the form; the default urgency fills in when an item is added")}>
           <Field label={tr("Group")} required>
@@ -863,7 +895,7 @@ function CategoriesDrawer({ onClose }: { onClose: () => void }) {
           ))}
         </div>
       )}
-    </Drawer>
+    </div>
+    </Panel>
   );
 }
-

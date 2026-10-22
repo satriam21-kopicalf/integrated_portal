@@ -4,7 +4,7 @@
 // share link — in numbered cards like the other drawers: status & steps, time per stage, items, analysis, evidence,
 // handling (technicians, cost, invoices, photos of the work done), the timeline with every note and the signature.
 
-import { AlertTriangle, Calendar, Check, CircleDot, Clock, Download, FileText, MapPin, PauseCircle, User, Video, Wrench, XCircle } from "lucide-react";
+import { AlertTriangle, Calendar, CalendarClock, Check, CircleDot, Download, FileText, Handshake, MapPin, PauseCircle, User, Video, Wrench, XCircle } from "lucide-react";
 import { Badge, cx } from "@/so/ui";
 import { FormCard } from "@/so/ui/Simple";
 import { wibDateTime } from "@/so/lib/wib";
@@ -14,7 +14,7 @@ import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_
 const EVENT_LABEL: Record<DeEvent["kind"], () => string> = {
   SUBMIT: () => tr("Request sent"), STATUS: () => tr("Status"), ASSIGN: () => tr("Technician assigned"), RELEASE: () => tr("Technician released"),
   SWAP: () => tr("Technician moved"), COST: () => tr("Cost updated"), NOTE: () => tr("Note"), DUPLICATE: () => tr("Marked as duplicate"),
-  WORK: () => tr("Technician photo link"),
+  WORK: () => tr("Technician photo link"), TARGET: () => tr("Target adjusted"), HANDOVER: () => tr("Handover from the PIC"),
 };
 
 export function StatusBadge({ r }: { r: Pick<Request, "status"> }) {
@@ -81,9 +81,9 @@ function Tracker({ r }: { r: Request }) {
   );
 }
 
-export function Gallery({ r, urls, kind }: { r: Request; urls: MediaUrls; kind: "PHOTO" | "AFTER" }) {
+export function Gallery({ r, urls, kind, empty }: { r: Request; urls: MediaUrls; kind: Media["kind"]; empty?: string }) {
   const list = (r.media ?? []).filter((m) => m.kind === kind);
-  if (!list.length) return <p className="text-sm text-slate-400">{kind === "AFTER" ? tr("No photo of the work done yet") : tr("No photo")}</p>;
+  if (!list.length) return <p className="text-sm text-slate-400">{empty ?? (kind === "AFTER" ? tr("No photo of the work done yet") : tr("No photo"))}</p>;
   return (
     <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
       {list.map((m) => (
@@ -129,13 +129,15 @@ export function Timeline({ events }: { events: DeEvent[] }) {
         const what = e.kind === "STATUS" ? `${e.from ? STATUS_LABEL[e.from]() : ""} → ${e.to ? STATUS_LABEL[e.to]() : ""}`
           : e.kind === "SWAP" ? `${EVENT_LABEL.SWAP()}: ${tech ?? ""} ${e.details?.to ? tr("to {0}", String(e.details.to)) : e.details?.from ? tr("from {0}", String(e.details.from)) : ""}`
           : e.kind === "DUPLICATE" ? tr("Marked as duplicate of {0}", String(e.details?.of ?? ""))
+          : e.kind === "TARGET" ? tr("Estimated finish adjusted to {0}", wibDateTime(String(e.details?.to ?? "")))
+          : e.kind === "HANDOVER" ? tr("Handover sent by the PIC · {0} photo(s)", String(e.details?.photos ?? 0)) + (e.details?.vendor ? ` · ${tr("signed by the vendor {0}", String(e.details.vendor))}` : "")
           : e.kind === "WORK" ? (e.details?.link === "sent" ? tr("Technician sent {0} photo(s) of the work", String(e.details?.photos ?? 0)) : tr("Photo link sent to {0}", String(tech ?? "")))
           : e.kind === "COST" ? (e.details?.invoice !== undefined ? tr("Invoice attached: {0}", String(e.details.invoice)) : `${EVENT_LABEL.COST()}: ${fmtRp(e.details?.estCost as number)} / ${fmtRp(e.details?.actualCost as number)}`)
           : `${EVENT_LABEL[e.kind]()}${tech ? `: ${tech}` : ""}${e.details?.scheduledFor ? ` · ${tr("scheduled {0}", String(e.details.scheduledFor))}` : ""}`;
         return (
           <li key={e.id} className="relative">
             <span className={cx("absolute -left-[1.6rem] top-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-white",
-              e.to === "REJECTED" ? "bg-red-500" : e.to === "ON_HOLD" ? "bg-amber-500" : e.to === "DONE" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-emerald-500" : e.kind === "NOTE" ? "bg-slate-400" : "bg-blue-500")}>
+              e.to === "REJECTED" ? "bg-red-500" : e.to === "ON_HOLD" ? "bg-amber-500" : e.to === "DONE" || e.kind === "HANDOVER" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-emerald-500" : e.kind === "TARGET" ? "bg-violet-500" : e.kind === "NOTE" ? "bg-slate-400" : "bg-blue-500")}>
               <CircleDot size={10} className="text-white" />
             </span>
             <p className="text-sm font-medium text-slate-900">{what}</p>
@@ -148,6 +150,18 @@ export function Timeline({ events }: { events: DeEvent[] }) {
   );
 }
 
+/** The estimated finish; when the team adjusted it, a note with the new time and the reason (the PIC follows it). */
+export function TargetNote({ r }: { r: Request }) {
+  if (!r.tracker?.targetAdjusted || !r.target || !["PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "HANDOVER"].includes(r.status)) return null;
+  return (
+    <p className="flex items-start gap-2 rounded-lg bg-violet-50 px-3 py-2 text-xs text-violet-900">
+      <CalendarClock size={14} className="mt-px flex-shrink-0" />
+      <span><b>{tr("Estimated finish adjusted by the maintenance team: {0}", wibDateTime(r.target.at))}</b>
+        {r.target.note ? ` — ${r.target.note}` : ""}<span className="text-violet-700/80"> · {r.target.by ?? ""}{r.target.setAt ? `, ${wibDateTime(r.target.setAt)}` : ""}</span></span>
+    </p>
+  );
+}
+
 /** The head of a request: kind and number, status and urgency, the key facts, the steps and the reason of a hold / reject. */
 export function RequestHero({ r, compact = false }: { r: Request; compact?: boolean }) {
   const why = r.status === "ON_HOLD" || r.status === "REJECTED" ? [...(r.events ?? [])].reverse().find((e) => e.to === r.status && e.note)?.note : null;
@@ -155,8 +169,11 @@ export function RequestHero({ r, compact = false }: { r: Request; compact?: bool
   const facts: [React.ReactNode, string, React.ReactNode][] = [
     [<User key="u" size={13} />, "PIC", r.picName],
     [<Calendar key="c" size={13} />, tr("Sent"), wibDateTime(r.submittedAt)],
-    [<Clock key="t" size={13} />, tr("Time handled"), <span key="v" className={r.tracker?.overdue ? "text-red-600" : undefined}>{fmtHours(r.tracker?.workHours)}{r.tracker?.slaHours ? <span className="font-normal text-slate-400"> / {fmtHours(r.tracker.slaHours)}</span> : null}</span>],
-    [<Wrench key="w" size={13} />, tr("Technician"), techs.join(", ") || "—"],
+    [<CalendarClock key="t" size={13} />, tr("Estimated finish"), <span key="v" className={r.tracker?.overdue || r.tracker?.late ? "text-red-600" : undefined}>
+      {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}{r.tracker?.targetAdjusted ? <span className="ml-1 rounded bg-violet-100 px-1 text-[10px] font-semibold text-violet-700">{tr("adjusted")}</span> : null}
+      <span className="block text-[11px] font-normal text-slate-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></span>],
+    [<Wrench key="w" size={13} />, r.mode === "VENDOR" ? tr("Vendor") : tr("Technician"), <span key="w">{techs.join(", ") || "—"}
+      {r.mode && <span className="block text-[11px] font-normal text-slate-400">{r.mode === "VENDOR" ? tr("Vendor work") : tr("Internal technician")}</span>}</span>],
   ];
   return (
     <section className={cx("overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm", compact && "rounded-xl")}>
@@ -179,9 +196,21 @@ export function RequestHero({ r, compact = false }: { r: Request; compact?: bool
       </dl>
       <div className="px-4 py-4 sm:px-5">
         <Steps r={r} />
+        <div className="mt-2"><TargetNote r={r} /></div>
         {why && <p className={cx("mt-2 rounded-lg px-3 py-2 text-xs", r.status === "ON_HOLD" ? "bg-amber-50 text-amber-900" : "bg-red-50 text-red-800")}><b>{tr("Reason")}:</b> {why}</p>}
       </div>
     </section>
+  );
+}
+
+function SignBox({ title, name, src }: { title: string; name: string; src?: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{title}</p>
+      {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
+      {src ? <img src={src} alt={tr("Signature")} className="my-1 h-16 w-auto max-w-full object-contain" /> : <div className="my-1 h-4" />}
+      <p className="text-sm font-semibold text-slate-900">{name}</p>
+    </div>
   );
 }
 
@@ -197,7 +226,8 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
   const photos = (r.media ?? []).filter((m) => m.kind === "PHOTO").length;
   const invoices = (r.media ?? []).filter((m) => m.kind === "INVOICE");
   const active = (r.assignments ?? []).filter((a) => a.status !== "RELEASED");
-  const handled = active.length > 0 || invoices.length > 0 || (r.media ?? []).some((m) => m.kind === "AFTER") || r.estCost !== null || r.actualCost !== null;
+  const handled = active.length > 0 || invoices.length > 0 || (r.media ?? []).some((m) => m.kind === "AFTER" || m.kind === "MONITOR") || r.estCost !== null || r.actualCost !== null;
+  const ho = r.handover;
   const show = (p: Part) => part === "all" || part === p;
   let n = 0;
   const next = () => (numbered ? ++n : undefined);
@@ -211,10 +241,12 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
             <div><dt className="text-[11px] text-slate-400">{tr("Sent")}</dt><dd className="text-slate-900">{wibDateTime(r.submittedAt)}</dd></div>
             <div><dt className="text-[11px] text-slate-400">{tr("Location when sent")}</dt>
               <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-red-700" : "text-slate-900")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
-            <div><dt className="text-[11px] text-slate-400">{tr("Time tracker")}</dt>
-              <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-slate-900")}>{fmtHours(r.tracker?.workHours)}{r.tracker?.slaHours ? <span className="font-normal text-slate-400"> / {fmtHours(r.tracker.slaHours)}</span> : null}</dd></div>
+            <div><dt className="text-[11px] text-slate-400">{tr("Estimated finish")}</dt>
+              <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-slate-900")}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}
+                <span className="block text-[11px] font-normal text-slate-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></dd></div>
           </dl>
           <Steps r={r} />
+          <TargetNote r={r} />
         </FormCard>
       )}
 
@@ -263,7 +295,8 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
       )}
 
       {(show("handling") && handled) && (
-        <FormCard n={next()} title={tr("Handling")} hint={tr("Technicians, cost, invoices and photos of the work done")}>
+        <FormCard n={next()} title={tr("Handling")} hint={tr("Technicians, cost, invoices and photos of the work done")}
+          aside={r.mode ? <Badge tone={r.mode === "VENDOR" ? "amber" : "blue"}>{r.mode === "VENDOR" ? tr("Vendor") : tr("Internal")}</Badge> : undefined}>
           {active.length > 0 && (
             <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
               {active.map((a) => (
@@ -282,7 +315,21 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
             </dl>
           )}
           {invoices.length > 0 && <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("Invoices / receipts")}</p><Invoices list={invoices} urls={urls} /></div>}
-          <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("Photos of the work done")}</p><Gallery r={r} urls={urls} kind="AFTER" /></div>
+          {r.mode !== "VENDOR" && <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("Photos of the work done")}</p><Gallery r={r} urls={urls} kind="AFTER" /></div>}
+          {(r.media ?? []).some((m) => m.kind === "MONITOR") && <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("PIC photos while the work ran")}</p><Gallery r={r} urls={urls} kind="MONITOR" /></div>}
+        </FormCard>
+      )}
+
+      {show("handling") && ho?.at && (
+        <FormCard n={next()} title={tr("Handover at the outlet")} hint={`${wibDateTime(ho.at)}${ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}`}
+          aside={<Badge tone="green" icon={<Handshake size={11} />}>{tr("Received")}</Badge>}>
+          <Gallery r={r} urls={urls} kind="HANDOVER" />
+          {ho.note && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">{ho.note}</p>}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {ho.vendorName && <SignBox title={tr("Vendor")} name={ho.vendorName} src={urls.handover?.(r.id, "vendor")} />}
+            {ho.picName && <SignBox title={tr("PIC outlet")} name={ho.picName} src={urls.handover?.(r.id, "pic")} />}
+          </div>
+          {ho.approvedBy && <p className="text-xs text-slate-500">{tr("Approved Done by {0}", ho.approvedBy)}</p>}
         </FormCard>
       )}
 

@@ -90,6 +90,7 @@ const TONES = {
   red: "bg-red-50 text-red-700",
   blue: "bg-blue-50 text-blue-700",
   violet: "bg-violet-50 text-violet-700",
+  cyan: "bg-cyan-50 text-cyan-700",
 } as const;
 export type Tone = keyof typeof TONES;
 
