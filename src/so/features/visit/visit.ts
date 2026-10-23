@@ -35,7 +35,8 @@ export const PLATFORM_LABEL: Record<Platform, string> = { google: "Google Maps",
 /** 4.6 → "4.6" (as the platforms show it) */
 export const fmtStars = (n: number) => n.toFixed(1);
 export type Branch = { code: string; name: string; latitude: number | null; longitude: number | null; radius_m: number | null };
-export type FormState = { definition: Definition; user: { id: string; username: string; name: string }; branches: Branch[]; drafts: Visit[]; recent: Visit[] };
+export type FormState = { definition: Definition; user: { id: string; username: string; name: string }; branches: Branch[]; drafts: Visit[]; recent: Visit[];
+  /** branches already sent today: one visit per branch per day, the next one tomorrow */ today: Record<string, { id: string; submittedAt: string }> };
 
 export const RATINGS: Rating[] = ["UNDER", "MEET", "EXCEED"];
 export const RATING_STYLE: Record<Rating, { on: string; text: string; dot: string; bar: string }> = {
@@ -56,7 +57,8 @@ export function missingOf(d: Definition, answers: Record<string, Answer>, photos
   return allItems(d).filter((i) => i.kind === "rating").map((i) => {
     const a = answers[i.key] ?? {};
     if (!a.rating) return { item: i, need: "rating" as const };
-    if (a.rating === "UNDER" && (!a.note || !withPhoto.has(i.key))) return { item: i, need: "evidence" as const };
+    // every rated item needs a note and a photo — material for the analysis (2026-10-23); the platform stars excepted
+    if (!i.platform && (!a.note || !withPhoto.has(i.key))) return { item: i, need: "evidence" as const };
     return null;
   }).filter((x): x is NonNullable<typeof x> => !!x);
 }

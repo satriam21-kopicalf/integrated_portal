@@ -7,7 +7,7 @@
 // stand out (banner, badges, a figure of their own); a manager reviews them (valid / not valid). Refreshes every minute
 // while the period includes today.
 
-import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, MapPin, MapPinOff, RefreshCw, ScanFace, ShieldAlert, SignalLow, Store, UsersRound, XCircle } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, MapPin, MapPinOff, ScanFace, ShieldAlert, SignalLow, Store, UsersRound, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, inputClass, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -111,10 +111,6 @@ export default function PicCheckInMonitorPage() {
 
   return (
     <Page title={tr("PIC Check In")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("visits of the PICs to the outlets")}`}
-      actions={<button type="button" onClick={() => void load()} disabled={!res && !error} title={tr("Refresh")} aria-label={tr("Refresh")}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:cursor-wait">
-        <RefreshCw size={18} className={!res && !error ? "animate-spin" : ""} />
-      </button>}
       stats={
         <StatStrip label={tr("Summary")} columns={5}>
           <Stat label={tr("Check-ins")} emphasis icon={<CalendarDays size={13} />} onClick={s ? () => setDetail("checkins") : undefined} active={detail === "checkins"} value={s ? fmtNumber(s.total) : <StatSkeleton />}>

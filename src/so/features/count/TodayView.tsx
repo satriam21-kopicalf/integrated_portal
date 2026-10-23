@@ -4,7 +4,7 @@
 // count window (opens / open / late; a count may stay open several days), what the list holds, the last count and
 // what is coming. While nothing is due, the next scheduled count with a countdown and a preparation checklist.
 
-import { CalendarClock, CalendarDays, ChevronRight, ClipboardList, History, Layers, Loader2, MapPin, Play, Store } from "lucide-react";
+import { CalendarClock, CalendarDays, ChevronRight, ClipboardList, History, Layers, Loader2, MapPin, Store } from "lucide-react";
 import NextCount from "./NextCount";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -112,7 +112,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                             </div>
                             {!s ? (
                               <Button className="w-full sm:w-auto" loading={starting === key} disabled={!!starting} onClick={() => start(f.facility.id, c.count_type)}>
-                                {starting === key ? null : <Play size={16} />} {tr("Start Stock Opname")} <span className="sr-only">{countTypeLabel(c.count_type, c.name)}</span>
+                                {tr("Start Stock Opname")} <span className="sr-only">{countTypeLabel(c.count_type, c.name)}</span>
                               </Button>
                             ) : (
                               <Button variant={s.status === "IN_PROGRESS" || s.status === "RECOUNT_REQUESTED" ? "primary" : "secondary"} className="w-full sm:w-auto"

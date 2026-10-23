@@ -3,10 +3,11 @@
 // Form → Monitoring Product / Monitoring Outlet (pages form.product, form.outlet; workbook "Form Visit"). The PIC is the
 // signed-in account; one visit per outlet (a PIC with several branches picks one, then the next). The visit is a draft
 // saved as it is filled (it can be continued later), then submitted with the position. Each item: UNDER / MEET /
-// EXCEED, a note and up to 3 camera photos stamped with the time, the branch and the position. UNDER needs a note and a
+// EXCEED, a note and up to 3 camera photos stamped with the time, the branch and the position. Every rated item needs a
+// note and a photo (material for the analysis, 2026-10-23); one visit per branch per day, the next one tomorrow. Was: UNDER needs a note and a
 // photo (user decision 2026-10-20). Mobile first: one item per row, the progress stays on top, send at the bottom.
 
-import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, ClipboardList, CloudUpload, ExternalLink, MapPin, MessageSquareText, PenLine, Play, Send, Star, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, ClipboardList, CloudUpload, ExternalLink, MapPin, MessageSquareText, PenLine, Send, Star, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
@@ -115,12 +116,18 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
               ) : (
                 <select value={branch} onChange={(e) => setBranch(e.target.value)} className={cx(inputClass, "h-11")} aria-label={tr("Outlet visited")}>
                   <option value="">{tr("Choose the outlet you are visiting")}</option>
-                  {data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}{draftOf(b.code) ? ` · ${tr("draft")}` : ""}</option>)}
+                  {data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}{data.today?.[b.code] ? ` · ${tr("sent today")}` : draftOf(b.code) ? ` · ${tr("draft")}` : ""}</option>)}
                 </select>
               )}
-              <p className="text-xs text-slate-500">{tr("Time of the visit = server time when sent. One visit per outlet; with several outlets, fill them one after the other.")}</p>
-              <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open(branch)}>
-                <Play size={15} /> {branch && draftOf(branch) ? tr("Continue the draft") : tr("Start the visit")}
+              <p className="text-xs text-slate-500">{tr("One visit per outlet per day (server time when sent); a day without a visit counts as a day off. With several outlets, fill them one after the other.")}</p>
+              {branch && data.today?.[branch] && (
+                <p className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
+                  <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+                  <span>{tr("Already sent today for this outlet ({0}). The next one can be filled in tomorrow.", wibDateTime(data.today[branch].submittedAt))}</span>
+                </p>
+              )}
+              <Button className="w-full sm:w-auto" disabled={!branch || !!data.today?.[branch]} loading={opening} onClick={() => void open(branch)}>
+                {branch && draftOf(branch) ? tr("Continue the draft") : tr("Start")}
               </Button>
             </div>
           </section>
@@ -320,8 +327,11 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
             <p className="text-lg font-semibold leading-tight text-slate-900">{current.title}</p>
             <p className="flex-shrink-0 text-xs tabular-nums text-slate-500">{tr("{0} of {1} rated", sectionDone(current.key)[0], sectionDone(current.key)[1])}</p>
           </div>
-          <p className="mt-0.5 text-xs text-slate-500">{tr("Rate every item; UNDER needs a note and a photo.")}</p>
         </div>
+        <p className="flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2.5 text-xs leading-relaxed text-blue-900">
+          <ClipboardCheck size={15} className="mt-px flex-shrink-0 text-blue-700" />
+          <span><b>{tr("Photo and note are required for every item you rate")}</b> — {tr("they are the material for the analysis. Write what you see and take a clear photo of it.")}</span>
+        </p>
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <ul className="divide-y divide-slate-100">
             {current.items.map((it) => (
@@ -352,7 +362,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
           <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setShowMissing((v) => !v)} disabled={!todo.length}>
             <p className="text-sm font-semibold text-slate-900">{tr("{0} of {1} rated", done, rated.length)}</p>
             <p className={cx("truncate text-xs", missing.length ? "text-red-600" : unrated ? "text-amber-700" : "text-emerald-700")}>
-              {missing.length ? tr("{0} UNDER need a note and a photo · see which", missing.length)
+              {missing.length ? tr("{0} rated items need a note and a photo · see which", missing.length)
                 : unrated ? tr("{0} not rated yet (can still be sent) · see which", unrated) : tr("Everything is complete")}
             </p>
           </button>
@@ -366,7 +376,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
                   onClick={() => { setSection(m.item.sectionKey); setShowMissing(false); setTimeout(() => document.getElementById(`item-${m.item.key}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 80); }}>
                   <AlertTriangle size={12} className="flex-shrink-0 text-amber-600" />
                   <span className="min-w-0 flex-1 truncate text-slate-800">{m.item.label}</span>
-                  <span className="flex-shrink-0 text-amber-800">{m.need === "rating" ? tr("not rated") : tr("UNDER: note + photo")}</span>
+                  <span className="flex-shrink-0 text-amber-800">{m.need === "rating" ? tr("not rated") : tr("note + photo")}</span>
                 </button>
               </li>
             ))}
@@ -526,11 +536,12 @@ function ItemRow({ item, answer, auto, photos, onAnswer, onCamera, onRemovePhoto
 }) {
   const [noteOpen, setNoteOpen] = useState(!!answer.note);
   const under = answer.rating === "UNDER";
-  const showNote = item.kind === "text" || noteOpen || under || !!answer.note;
-  const needNote = under && !answer.note;
-  const needPhoto = under && photos.length === 0;
+  const ratedNeeds = !!answer.rating && !item.platform; // every rated item: a note and a photo (2026-10-23)
+  const showNote = item.kind === "text" || noteOpen || ratedNeeds || !!answer.note;
+  const needNote = ratedNeeds && !answer.note;
+  const needPhoto = ratedNeeds && photos.length === 0;
   return (
-    <li id={`item-${item.key}`} className={cx("px-4 py-3", under && "bg-red-50/40")}>
+    <li id={`item-${item.key}`} className={cx("px-4 py-3.5", under && "bg-red-50/40")}>
       <div className="flex items-start gap-2.5">
         <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400">{item.no}</span>
         <div className="min-w-0 flex-1">
@@ -548,7 +559,7 @@ function ItemRow({ item, answer, auto, photos, onAnswer, onCamera, onRemovePhoto
           )}
           {showNote && (
             <textarea value={answer.note ?? ""} onChange={(e) => onAnswer({ note: e.target.value })} rows={2} maxLength={1000}
-              placeholder={item.kind === "text" ? tr("Names, separated by commas") : under ? tr("What was found (required for UNDER)") : tr("Note")}
+              placeholder={item.kind === "text" ? tr("Names, separated by commas") : ratedNeeds ? tr("What you see (required)") : tr("Note")}
               aria-invalid={needNote || undefined}
               className={cx(inputClass, "mt-2 h-auto py-2 text-sm", needNote && "border-red-300")} />
           )}

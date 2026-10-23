@@ -7,7 +7,8 @@ import type { Tone } from "@/so/ui";
 export type Kind = "REPAIR" | "PROCUREMENT";
 export type Status = "DRAFT" | "PENDING" | "VALIDATION" | "REVIEW" | "ON_HOLD" | "ACCEPTED" | "IN_PROGRESS" | "HANDOVER" | "DONE" | "REJECTED";
 export type Urgency = "CRITICAL" | "HIGH" | "NORMAL" | "LOW" | "PLANNED";
-export type Category = { id: number; group: string; name: string; defaultUrgency: Urgency; examples: string[]; sort: number; isActive: boolean };
+export type Category = { id: number; group: string; name: string; defaultUrgency: Urgency; examples: string[]; sort: number; isActive: boolean;
+  /** branch groups (ids) the category is offered to; [] = every branch */ branchGroups: string[] };
 export type Item = { id?: number; categoryId: number; group?: string; category?: string; name: string; qty: number; location: string | null;
   urgency: Urgency; note: string | null };
 export type Media = { id: string; kind: "PHOTO" | "VIDEO" | "AFTER" | "INVOICE" | "MONITOR" | "HANDOVER"; mime: string; bytes: number; fileName: string | null;
@@ -31,7 +32,7 @@ export type Request = {
   duplicateOf: { id: string; number: string | null } | null; createdAt: string; updatedAt: string; submittedAt: string | null; closedAt: string | null;
   items?: Item[]; media?: Media[]; events?: DeEvent[]; assignments?: Assignment[]; tracker?: Tracker; technicians?: string[];
   lastNote?: DeEvent | null; openInBranch?: Request[]; related?: Request[]; allowed?: Status[]; shareUrl?: string | null;
-  workLinks?: WorkLink[]; mode?: Mode | null; handover?: Handover | null;
+  workLinks?: WorkLink[]; mode?: Mode | null; handover?: Handover | null; costItems?: CostItem[]; labor?: Labor[];
   target?: { at: string; note: string | null; by: string | null; setAt: string | null; changes: number } | null;
 };
 /** the photo link of a technician (no sign-in, 1 hour): OPEN, SENT (photos sent), EXPIRED or CLOSED (replaced / work stopped) */
@@ -43,10 +44,31 @@ export type WorkView = { number: string; kind: Kind; kindLabel: string; branchCo
 export const workUrl = (l: WorkLink) => l.url ?? `${typeof window === "undefined" ? "" : window.location.origin}/share/de-work/${l.token}`;
 export type Technician = { id: number; name: string; kind: "INTERNAL" | "VENDOR"; company: string | null; skills: string[]; city: string | null;
   phone: string | null; notes: string | null; isActive: boolean; activeJobs: number; doneJobs: number;
-  wageType: "DAILY" | "MONTHLY"; wageAmount: number | null;
+  wageType: WageType; wageAmount: number | null;
   jobs: { requestId: string; number: string; branchName: string; urgency: Urgency; status: Status; scheduledFor: string | null }[] };
 export type Branch = { code: string; name: string };
+export type WageType = "HOURLY" | "DAILY" | "WEEKLY" | "MONTHLY" | "PER_JOB";
+export const WAGE_TYPES: WageType[] = ["HOURLY", "DAILY", "WEEKLY", "MONTHLY", "PER_JOB"];
+export const WAGE_LABEL: Record<WageType, () => string> = {
+  HOURLY: () => tr("Hourly"), DAILY: () => tr("Daily"), WEEKLY: () => tr("Weekly"), MONTHLY: () => tr("Monthly"), PER_JOB: () => tr("Per job"),
+};
+/** "/ hour", "/ day" … after an amount */
+export const WAGE_PER: Record<WageType, () => string> = {
+  HOURLY: () => tr("hour"), DAILY: () => tr("day"), WEEKLY: () => tr("week"), MONTHLY: () => tr("month"), PER_JOB: () => tr("job"),
+};
+/** pay of a month: 8 h × 26 days, 26 days, 52/12 weeks; per job has none */
+export const monthlyPay = (t: { wageType: WageType; wageAmount: number | null }) =>
+  !t.wageAmount ? 0 : ({ HOURLY: t.wageAmount * 8 * 26, DAILY: t.wageAmount * 26, WEEKLY: (t.wageAmount * 52) / 12, MONTHLY: t.wageAmount, PER_JOB: 0 })[t.wageType];
+export type CostKind = "MATERIAL" | "SERVICE" | "TRANSPORT" | "OTHER";
+export const COST_KIND_LABEL: Record<CostKind, () => string> = {
+  MATERIAL: () => tr("Material / parts"), SERVICE: () => tr("Service"), TRANSPORT: () => tr("Transport"), OTHER: () => tr("Other"),
+};
+export type CostItem = { id: number; kind: CostKind; description: string; qty: number; estAmount: number | null; actualAmount: number | null; by: string | null; at: string };
+/** the labour of a technician: rate × units from the time worked, or the team's adjustment */
+export type Labor = { assignmentId: number; technician: string; kind: "INTERNAL" | "VENDOR"; company: string | null; status: string; wageType: WageType;
+  rate: number; hours: number; units: number; unit: string; computed: number; adjust: number | null; note: string | null; amount: number };
 export type FormState = { user: { id: string; name: string }; branches: Branch[]; categories: Category[]; requests: Request[];
+  /** the branch group of each branch (categories can be limited to groups) */ branchGroups: Record<string, string | null>;
   limits: { photos: number; videoBytes: number; items: number } };
 
 export const KIND_LABEL: Record<Kind, () => string> = {

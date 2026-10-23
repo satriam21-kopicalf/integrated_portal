@@ -4,7 +4,7 @@
 // share link — in numbered cards like the other drawers: status & steps, time per stage, items, analysis, evidence,
 // handling (technicians, cost, invoices, photos of the work done), the timeline with every note and the signature.
 
-import { AlertTriangle, Calendar, CalendarClock, Check, CircleDot, Download, FileText, Handshake, MapPin, PauseCircle, User, Video, Wrench, XCircle } from "lucide-react";
+import { AlertTriangle, Calendar, CalendarClock, Camera, Check, CircleDot, Download, FileText, Handshake, MapPin, PauseCircle, User, Video, Wrench, XCircle } from "lucide-react";
 import { Badge, cx } from "@/so/ui";
 import { FormCard } from "@/so/ui/Simple";
 import { wibDateTime } from "@/so/lib/wib";
@@ -81,22 +81,50 @@ function Tracker({ r }: { r: Request }) {
   );
 }
 
-export function Gallery({ r, urls, kind, empty }: { r: Request; urls: MediaUrls; kind: Media["kind"]; empty?: string }) {
-  const list = (r.media ?? []).filter((m) => m.kind === kind);
-  if (!list.length) return <p className="text-sm text-slate-400">{empty ?? (kind === "AFTER" ? tr("No photo of the work done yet") : tr("No photo"))}</p>;
+/** Photos as even 4:3 tiles with their number, time and who took them on the picture; optional remove and an add tile. */
+export function EvidenceGrid({ list, urls, onRemove, add, empty, by = false }: {
+  list: Media[]; urls: MediaUrls; onRemove?: (id: string) => void; add?: React.ReactNode; empty?: string; by?: boolean;
+}) {
+  if (!list.length && !add) return <p className="rounded-xl border border-dashed border-slate-200 px-3 py-5 text-center text-sm text-slate-400">{empty ?? tr("No photo")}</p>;
   return (
-    <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-      {list.map((m) => (
+    <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+      {list.map((m, i) => (
         <li key={m.id}>
-          <a href={urls.media(m.id)} target="_blank" rel="noreferrer" title={wibDateTime(m.takenAt ?? m.uploadedAt)}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
-            <img src={urls.media(m.id)} alt={tr("Photo")} loading="lazy" className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200" />
-          </a>
-          <span className="mt-0.5 block truncate text-[10px] text-slate-400">{m.byTechnician ? `${m.uploadedBy ?? tr("Technician")} · ` : ""}{wibDateTime(m.takenAt ?? m.uploadedAt)}</span>
+          <figure className="group relative overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200">
+            <a href={urls.media(m.id)} target="_blank" rel="noreferrer" title={wibDateTime(m.takenAt ?? m.uploadedAt)}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
+              <img src={urls.media(m.id)} alt={tr("Photo {0}", i + 1)} loading="lazy" className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-[1.02]" />
+            </a>
+            <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-2.5 pb-1.5 pt-6 text-white">
+              <span className="block text-[11px] font-semibold">#{i + 1}{by && m.uploadedBy ? ` · ${m.uploadedBy}` : ""}</span>
+              <span className="block truncate text-[10px] text-white/80">{wibDateTime(m.takenAt ?? m.uploadedAt)}</span>
+            </figcaption>
+            {onRemove && (
+              <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove photo {0}", i + 1)}
+                className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur hover:bg-red-600"><XCircle size={15} /></button>
+            )}
+          </figure>
         </li>
       ))}
+      {add && <li>{add}</li>}
     </ul>
   );
+}
+
+/** The add tile of an evidence grid (camera). */
+export function AddPhotoTile({ onClick, label, tone = "slate" }: { onClick: () => void; label: string; tone?: "slate" | "blue" }) {
+  return (
+    <button type="button" onClick={onClick}
+      className={cx("flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed text-xs font-medium transition-colors",
+        tone === "blue" ? "border-blue-300 bg-blue-50/50 text-blue-700 hover:bg-blue-50" : "border-slate-300 bg-slate-50/60 text-slate-500 hover:border-blue-400 hover:text-blue-700")}>
+      <Camera size={20} />{label}
+    </button>
+  );
+}
+
+export function Gallery({ r, urls, kind, empty }: { r: Request; urls: MediaUrls; kind: Media["kind"]; empty?: string }) {
+  const list = (r.media ?? []).filter((m) => m.kind === kind);
+  return <EvidenceGrid list={list} urls={urls} by={kind !== "PHOTO"} empty={empty ?? (kind === "AFTER" ? tr("No photo of the work done yet") : tr("No photo"))} />;
 }
 
 /** Invoices / receipts of the cost (team), each one a download. */

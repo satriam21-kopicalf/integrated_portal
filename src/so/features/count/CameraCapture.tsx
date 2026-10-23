@@ -4,7 +4,7 @@
 // browser on phones and laptops alike, never picked from the gallery or a file. The branch, the count, what the photo
 // is of, the WIB time and the position are burned into the image before it is uploaded.
 
-import { Camera, Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
+import { Camera, Loader2, RefreshCw, RotateCcw, SwitchCamera, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/so/ui";
 import { TZ, TZ_LABEL } from "@/so/lib/wib";
@@ -146,7 +146,7 @@ export default function CameraCapture({ open, title, branch, countNumber, onClos
         ) : (
           <>
             <button type="button" onClick={() => setFacing((f) => (f === "environment" ? "user" : "environment"))} disabled={!!error}
-              className="rounded-full p-3 text-white hover:bg-white/10 disabled:opacity-40" aria-label={tr("Switch camera")}><RefreshCw size={22} /></button>
+              className="rounded-full p-3 text-white hover:bg-white/10 disabled:opacity-40" aria-label={tr("Switch camera")}><SwitchCamera size={22} /></button>
             <button type="button" onClick={capture} disabled={!ready || busy} aria-label={tr("Take the photo")}
               className="h-16 w-16 rounded-full border-4 border-white bg-white/20 transition active:scale-95 disabled:opacity-40" />
             <span className="w-12" />

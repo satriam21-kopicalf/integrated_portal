@@ -10,14 +10,15 @@ export type CheckIn = {
   visitedAt: string; deviceTime: string | null; latitude: number; longitude: number; accuracyM: number | null;
   outletLatitude: number | null; outletLongitude: number | null; radiusM: number | null; distanceM: number | null;
   outsideRadius: boolean; lowAccuracy: boolean; outletLocated: boolean; faces: number; note: string | null;
-  /** Monitoring only (the PIC's own list has none): signs of a faked position and the manager's review */
+  /** signs of a faked position (Monitoring only) and the manager's review (also shown to the PIC on their own list) */
   riskLevel?: RiskLevel; riskSignals?: RiskSignal[]; review?: Review | null;
 };
 export type RiskLevel = "none" | "low" | "medium" | "high";
 export type RiskSignal = { code: string; level: RiskLevel; text: string };
 export type Review = { status: "valid" | "invalid"; note: string | null; by: string | null; at: string | null };
 export const suspect = (c: CheckIn) => c.riskLevel === "high" || c.riskLevel === "medium";
-export type FormData = { user: { id: string; username: string; name: string }; branches: Branch[]; recent: CheckIn[] };
+export type FormData = { user: { id: string; username: string; name: string }; branches: Branch[]; recent: CheckIn[];
+  /** branches already checked in today (one check in per branch per day) */ today: Record<string, { id: string; visitedAt: string }> };
 
 export async function call<T>(path: string, init?: RequestInit & { json?: unknown }): Promise<T> {
   const { json, ...rest } = init ?? {};

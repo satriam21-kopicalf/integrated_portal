@@ -1,8 +1,9 @@
 "use client";
 
 // Selfie for the PIC Check In: the front camera only (never the gallery or a file), an oval to place the face in, the
-// PIC, the branch, the WIB date & time and the position burned into the photo before it is sent. The preview is
-// not mirrored, like the photo itself (what the PIC sees is what is saved). The server checks there is a face (app/face.py).
+// PIC, the branch, the WIB date & time and the position burned into the photo before it is sent. Never mirrored: the
+// preview and the saved photo are the true picture (text and signs read the right way, left is left) — no CSS flip on
+// the video, the frame drawn as it comes from the camera. The server checks there is a face (app/face.py).
 
 import { Camera, Loader2, RefreshCw, RotateCcw, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -107,7 +108,7 @@ export default function SelfieCamera({ pic, branch, position, onClose, onShot }:
           </div>
         ) : (
           <>
-            <video ref={video} playsInline muted className="max-h-full max-w-full object-contain" />
+            <video ref={video} playsInline muted className="max-h-full max-w-full object-contain" style={{ transform: "none" }} />
             {/* where the face goes */}
             <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[58%] max-h-[26rem] aspect-[3/4] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-[3px] border-dashed border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
             {!ready && <Loader2 className="absolute animate-spin text-white" size={28} />}

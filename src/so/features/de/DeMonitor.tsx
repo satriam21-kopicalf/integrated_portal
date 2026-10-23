@@ -7,7 +7,7 @@
 // duplicates), the request and its history. Overview: the analysis of every request and its handling (DeOverview).
 
 import { AlertTriangle, BarChart3, CalendarClock, Camera, Check, ChevronDown, ChevronRight, Clock, Copy, Hammer, Handshake, Link2, ListChecks,
-  MessageCircle, Paperclip, Plus, Save, Shuffle, Tags, Upload, Users, Wrench, X } from "lucide-react";
+  MessageCircle, Paperclip, PenLine, Plus, Save, Shuffle, Tags, Trash2, Upload, Users, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -21,8 +21,8 @@ import { tr } from "@/lib/i18n";
 import RequestView, { Gallery, Invoices, RequestHero, StatusBadge, UrgencyBadge } from "./RequestView";
 import DeOverview from "./DeOverview";
 import { DocActions } from "./DeForm";
-import { type Category, type Request, type Status, type Technician, type Urgency, type WorkLink, OPEN, PORTAL_URLS, STATUS_LABEL, STEPS, URGENCIES,
-  URGENCY_LABEL, fmtHours, fmtMb, fmtRp, workUrl } from "./de";
+import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, OPEN, PORTAL_URLS,
+  STATUS_LABEL, STEPS, URGENCIES, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, workUrl } from "./de";
 
 type Result = { period: { from: string; to: string }; data: Request[]; categories: Category[]; technicians: Technician[] };
 /** group = category group (Utilitas …), bgroup = branch group (CCI, CTG, CTGP: Monitoring → Branch groups) */
@@ -141,7 +141,7 @@ export default function DeMonitor() {
 
       {tab === "overview" && <DeOverview bgroups={bgroups} />}
       {tab === "tech" && <TechniciansDrawer groups={groups} onClose={() => void load()} />}
-      {tab === "cat" && <CategoriesDrawer onClose={() => void load()} />}
+      {tab === "cat" && <CategoriesDrawer bgroups={bgroups} onClose={() => void load()} />}
 
       {tab === "requests" && <Panel title={tr("Requests")} description={tr("Most urgent first; tap a request to handle it")}
         toolbar={<>
@@ -336,7 +336,6 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const [assign, setAssign] = useState({ technicianId: "", scheduledFor: "", note: "" });
   const [swap, setSwap] = useState<{ assignmentId: number; to: string; scheduledFor: string; note: string } | null>(null);
   const [release, setRelease] = useState<{ assignmentId: number; note: string } | null>(null);
-  const [cost, setCost] = useState({ est: "", actual: "" });
   const [dup, setDup] = useState({ of: "", note: "" });
   const [camera, setCamera] = useState(false);
   const [invNote, setInvNote] = useState("");
@@ -348,7 +347,6 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
     try {
       const out = await call<Request>(`/api/de/monitor/${id}`);
       setR(out);
-      setCost({ est: out.estCost?.toString() ?? "", actual: out.actualCost?.toString() ?? "" });
     } catch (e) {
       setError((e as Error).message);
     }
@@ -368,7 +366,6 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
     try {
       const out = await call<Request>(path, { method, json });
       setR(out);
-      setCost({ est: out.estCost?.toString() ?? "", actual: out.actualCost?.toString() ?? "" });
       toast(ok);
       onChanged();
       return true;
@@ -578,15 +575,10 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 </FormCard>
               )}
 
-              <FormCard n={next()} title={tr("Cost & invoices")} hint={r.mode === "VENDOR" ? tr("Vendor work: the estimate before work starts, the actual cost and an invoice before Done")
-                : tr("Optional for internal work (materials / parts); attach the invoices while the work runs")}
+              <FormCard n={next()} title={tr("Cost & invoices")} hint={r.mode === "VENDOR" ? tr("Vendor work: an estimate before work starts, the actual cost and an invoice before Done")
+                : tr("Cost lines with a description (materials, service, transport) and the labour of the technicians; attach the invoices")}
                 aside={r.mode === "VENDOR" ? <Badge tone="red">{tr("Required for vendor")}</Badge> : undefined}>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Field label={tr("Estimated (Rp)")} required={r.mode === "VENDOR"}><Input inputMode="numeric" value={cost.est} onChange={(e) => setCost({ ...cost, est: e.target.value.replace(/[^0-9]/g, "") })} aria-label={tr("Estimated cost")} /></Field>
-                  <Field label={tr("Actual (Rp)")} required={r.mode === "VENDOR"}><Input inputMode="numeric" value={cost.actual} onChange={(e) => setCost({ ...cost, actual: e.target.value.replace(/[^0-9]/g, "") })} aria-label={tr("Actual cost")} /></Field>
-                </div>
-                <Button size="sm" variant="secondary" className="self-start" disabled={busy} onClick={() => void act(`/api/de/monitor/${id}/cost`, { estCost: cost.est ? Number(cost.est) : null, actualCost: cost.actual ? Number(cost.actual) : null, vendor: r.vendor ?? null }, tr("Cost saved"), "PUT")}>
-                  <Save size={14} /> {tr("Save cost")}</Button>
+                <CostLines r={r} busy={busy} act={act} />
                 <div className="border-t border-slate-100 pt-3">
                   <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700"><Paperclip size={13} /> {tr("Invoices / receipts")} <span className="font-normal text-slate-400">({tr("PDF or photo, at most {0} each", "10 MB")})</span></p>
                   <Invoices list={(r.media ?? []).filter((m) => m.kind === "INVOICE")} urls={PORTAL_URLS} onRemove={(mid) => void removeInvoice(mid)} />
@@ -767,13 +759,18 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
           <FormCard n={2} title={tr("Skills")} hint={tr("Category groups the technician handles")}>
             <ChoiceGroupMulti options={groups} value={edit.skills ?? []} onChange={(skills) => setEdit({ ...edit, skills })} />
           </FormCard>
-          <FormCard n={3} title={tr("Pay")} hint={tr("Daily or monthly; adjust whenever it changes")}>
+          <FormCard n={3} title={tr("Pay")} hint={tr("Per hour, day, week, month or per job; the labour of a request is counted from the time worked")}>
             <Segmented label={tr("Pay")} value={edit.wageType ?? "DAILY"} onChange={(wageType) => setEdit({ ...edit, wageType })}
-              options={[{ value: "DAILY", label: tr("Daily") }, { value: "MONTHLY", label: tr("Monthly") }]} />
-            <Field label={edit.wageType === "MONTHLY" ? tr("Pay per month (Rp)") : tr("Pay per day (Rp)")}>
+              options={WAGE_TYPES.map((w) => ({ value: w, label: WAGE_LABEL[w]() }))} />
+            <Field label={tr("Rate (Rp) per {0}", WAGE_PER[edit.wageType ?? "DAILY"]())}>
               <Input inputMode="numeric" value={edit.wageAmount ?? ""} onChange={(e) => setEdit({ ...edit, wageAmount: e.target.value ? Number(e.target.value.replace(/[^0-9]/g, "")) : null })} />
             </Field>
-            {edit.wageAmount ? <p className="text-xs text-slate-500">{edit.wageType === "MONTHLY" ? tr("≈ {0} per day (26 working days)", fmtRp(edit.wageAmount / 26)) : tr("≈ {0} per month (26 working days)", fmtRp(edit.wageAmount * 26))}</p> : null}
+            <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">
+              {(edit.wageType ?? "DAILY") === "PER_JOB" ? tr("Paid once per request (borongan), whatever the time worked.")
+                : (edit.wageType ?? "DAILY") === "MONTHLY" ? tr("Counted per working day of the job: monthly ÷ 26 × days.")
+                : tr("Counted from In progress to the handover, rounded up to the next {0}.", WAGE_PER[edit.wageType ?? "DAILY"]())}
+              {edit.wageAmount && edit.wageType !== "PER_JOB" ? <span className="block font-medium text-slate-800">{tr("≈ {0} per month", fmtRp(monthlyPay({ wageType: edit.wageType ?? "DAILY", wageAmount: edit.wageAmount })))}</span> : null}
+            </p>
           </FormCard>
           <FormCard n={4} title={tr("Status & notes")}>
             <Field label={tr("Notes")}><textarea value={edit.notes ?? ""} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} rows={2} maxLength={500} className={cx(inputClass, "h-auto py-2 text-sm")} /></Field>
@@ -788,7 +785,7 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
           <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Active")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.filter((t) => t.isActive).length}</dd></div>
           <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Jobs in progress")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.reduce((a, t) => a + t.activeJobs, 0)}</dd></div>
           <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Pay per month")}</dt>
-            <dd className="text-sm font-semibold tabular-nums">{fmtRp(rows.filter((t) => t.isActive).reduce((a, t) => a + (t.wageAmount ?? 0) * (t.wageType === "MONTHLY" ? 1 : 26), 0))}</dd></div>
+            <dd className="text-sm font-semibold tabular-nums">{fmtRp(rows.filter((t) => t.isActive).reduce((a, t) => a + monthlyPay(t), 0))}</dd></div>
         </dl>
         <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
           {rows.map((t) => (
@@ -800,7 +797,7 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
                   {t.skills.length > 0 && <span className="mt-1 flex flex-wrap gap-1">{t.skills.map((s) => <Badge key={s}>{s}</Badge>)}</span>}
                 </span>
                 <span className="text-right text-xs">
-                  <span className="block font-semibold tabular-nums text-slate-900">{t.wageAmount ? `${fmtRp(t.wageAmount)} / ${t.wageType === "MONTHLY" ? tr("month") : tr("day")}` : tr("Pay not set")}</span>
+                  <span className="block font-semibold tabular-nums text-slate-900">{t.wageAmount ? `${fmtRp(t.wageAmount)} / ${WAGE_PER[t.wageType]()}` : tr("Pay not set")}</span>
                   <span className="text-slate-400">{tr("{0} active", t.activeJobs)} · {tr("{0} done", t.doneJobs)}</span>
                 </span>
                 <Button size="sm" variant="ghost" onClick={() => setEdit(t)}>{tr("Edit")}</Button>
@@ -832,7 +829,7 @@ function ChoiceGroupMulti({ options, value, onChange }: { options: string[]; val
   );
 }
 
-function CategoriesDrawer({ onClose }: { onClose: () => void }) {
+function CategoriesDrawer({ bgroups, onClose }: { bgroups: GroupOpt[]; /** after a save */ onClose: () => void }) {
   const toast = useToast();
   const [rows, setRows] = useState<Category[] | null>(null);
   const [edit, setEdit] = useState<Partial<Category> & { examplesText?: string } | null>(null);
@@ -843,7 +840,8 @@ function CategoriesDrawer({ onClose }: { onClose: () => void }) {
     if (!edit) return;
     try {
       const body = { group: edit.group ?? "", name: edit.name ?? "", defaultUrgency: edit.defaultUrgency ?? "NORMAL",
-        examples: (edit.examplesText ?? "").split(",").map((x) => x.trim()).filter(Boolean), sort: edit.sort ?? 0, isActive: edit.isActive ?? true };
+        examples: (edit.examplesText ?? "").split(",").map((x) => x.trim()).filter(Boolean), sort: edit.sort ?? 0, isActive: edit.isActive ?? true,
+        branchGroups: edit.branchGroups ?? [] };
       await call(edit.id ? `/api/de/categories/${edit.id}` : "/api/de/categories", { method: edit.id ? "PATCH" : "POST", json: body });
       toast(tr("Category saved"));
       setEdit(null);
@@ -870,6 +868,16 @@ function CategoriesDrawer({ onClose }: { onClose: () => void }) {
               {URGENCIES.map((u) => <option key={u} value={u}>{URGENCY_LABEL[u]()}</option>)}
             </select>
           </Field>
+          <Field label={tr("Branch groups")} hint={tr("Only the outlets of these groups see the category on the form; none = every outlet")}>
+            <div className="flex flex-wrap gap-1.5">
+              {bgroups.map((g) => {
+                const on = (edit.branchGroups ?? []).includes(g.id);
+                return <button key={g.id} type="button" aria-pressed={on} onClick={() => setEdit({ ...edit, branchGroups: on ? (edit.branchGroups ?? []).filter((x) => x !== g.id) : [...(edit.branchGroups ?? []), g.id] })}
+                  className={cx("rounded-full border px-3 py-1 text-xs font-semibold", on ? "border-blue-700 bg-blue-700 text-white" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{g.code}</button>;
+              })}
+              {!(edit.branchGroups ?? []).length && <span className="self-center text-xs text-slate-500">· {tr("every outlet")}</span>}
+            </div>
+          </Field>
           <Field label={tr("Example items")} hint={tr("Separated by commas; offered while typing the item name")}>
             <textarea value={edit.examplesText ?? ""} onChange={(e) => setEdit({ ...edit, examplesText: e.target.value })} rows={2} className={cx(inputClass, "h-auto py-2 text-sm")} />
           </Field>
@@ -886,6 +894,8 @@ function CategoriesDrawer({ onClose }: { onClose: () => void }) {
                   <li key={c.id} className={cx("flex items-center gap-3 px-4 py-2.5", !c.isActive && "opacity-60")}>
                     <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-slate-900">{c.name} {!c.isActive && <Badge>{tr("Inactive")}</Badge>}</span>
                       <span className="block truncate text-xs text-slate-500">{c.examples.join(", ") || "—"}</span></span>
+                    <span className="hidden flex-wrap justify-end gap-1 sm:flex">{c.branchGroups?.length ? c.branchGroups.map((id) => <Badge key={id} tone="blue">{bgroups.find((g) => g.id === id)?.code ?? "?"}</Badge>)
+                      : <Badge>{tr("All outlets")}</Badge>}</span>
                     <UrgencyBadge u={c.defaultUrgency} />
                     <Button size="sm" variant="ghost" onClick={() => setEdit({ ...c, examplesText: c.examples.join(", ") })}>{tr("Edit")}</Button>
                   </li>
@@ -897,5 +907,126 @@ function CategoriesDrawer({ onClose }: { onClose: () => void }) {
       )}
     </div>
     </Panel>
+  );
+}
+
+// ------------------------------------------------------------------------------------------------- cost lines & labour
+
+type Act = (path: string, json: unknown, ok: string, method?: string) => Promise<boolean>;
+type LineDraft = { id?: number; kind: CostKind; description: string; qty: string; est: string; actual: string };
+const blankLine = (): LineDraft => ({ kind: "MATERIAL", description: "", qty: "1", est: "", actual: "" });
+const digits = (v: string) => v.replace(/[^0-9]/g, "");
+
+/** The cost of a request: lines (kind, description, qty, estimate, actual) and the labour of every technician (rate × time
+ *  worked, or adjusted with a note); the totals are the request's estimated and actual cost. */
+function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
+  const [line, setLine] = useState<LineDraft | null>(null);
+  const [labor, setLabor] = useState<{ id: number; amount: string; note: string } | null>(null);
+  const items = r.costItems ?? [];
+  const work = r.labor ?? [];
+  const base = `/api/de/monitor/${r.id}`;
+  const save = async () => {
+    if (!line) return;
+    const body = { kind: line.kind, description: line.description, qty: Number(line.qty) || 1,
+      estAmount: line.est ? Number(line.est) : null, actualAmount: line.actual ? Number(line.actual) : null };
+    if (await act(line.id ? `${base}/cost-items/${line.id}` : `${base}/cost-items`, body, line.id ? tr("Cost line saved") : tr("Cost line added"), line.id ? "PATCH" : "POST")) setLine(null);
+  };
+  const edit = (i: CostItem) => setLine({ id: i.id, kind: i.kind, description: i.description, qty: String(i.qty), est: i.estAmount?.toString() ?? "", actual: i.actualAmount?.toString() ?? "" });
+  const laborTotal = work.reduce((a, x) => a + (x.amount ?? 0), 0);
+  const diff = r.estCost !== null && r.actualCost !== null ? r.actualCost - r.estCost : null;
+  const form = line && (
+    <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/40 p-3">
+      <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_5rem]">
+        <select value={line.kind} onChange={(e) => setLine({ ...line, kind: e.target.value as CostKind })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Kind of cost")}>
+          {(Object.keys(COST_KIND_LABEL) as CostKind[]).map((k) => <option key={k} value={k}>{COST_KIND_LABEL[k]()}</option>)}
+        </select>
+        <input value={line.description} onChange={(e) => setLine({ ...line, description: e.target.value })} maxLength={200} autoFocus
+          placeholder={tr("Description, e.g. burr grinder 64 mm")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Description")} />
+        <input value={line.qty} onChange={(e) => setLine({ ...line, qty: e.target.value.replace(/[^0-9.]/g, "") })} inputMode="decimal" className={cx(inputClass, "h-9 bg-white text-right text-sm")} aria-label="Qty" />
+      </div>
+      <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">{tr("Estimate")}</span>
+          <input value={line.est} onChange={(e) => setLine({ ...line, est: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white pl-20 text-right text-sm tabular-nums")} aria-label={tr("Estimated (Rp)")} /></label>
+        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">{tr("Actual")}</span>
+          <input value={line.actual} onChange={(e) => setLine({ ...line, actual: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white pl-20 text-right text-sm tabular-nums")} aria-label={tr("Actual (Rp)")} /></label>
+        <span className="flex gap-2">
+          <Button size="sm" variant="secondary" onClick={() => setLine(null)}>{tr("Cancel")}</Button>
+          <Button size="sm" disabled={busy || !line.description.trim()} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button>
+        </span>
+      </div>
+    </div>
+  );
+  return (
+    <div className="space-y-3">
+      <div className="overflow-hidden rounded-xl border border-slate-200">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <tr><th className="px-3 py-2">{tr("Description")}</th><th className="hidden px-2 py-2 text-right sm:table-cell">Qty</th>
+              <th className="px-2 py-2 text-right">{tr("Estimate")}</th><th className="px-2 py-2 text-right">{tr("Actual")}</th><th className="w-16" /></tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {items.length === 0 && work.length === 0 && <tr><td colSpan={5} className="px-3 py-5 text-center text-sm text-slate-400">{tr("No cost yet")}</td></tr>}
+            {items.map((i) => (
+              <tr key={i.id} className={cx(line?.id === i.id && "bg-blue-50/50")}>
+                <td className="px-3 py-2"><span className="block font-medium text-slate-900">{i.description}</span>
+                  <span className="text-[11px] text-slate-500">{COST_KIND_LABEL[i.kind]()}<span className="sm:hidden"> · {i.qty} ×</span></span></td>
+                <td className="hidden px-2 py-2 text-right tabular-nums text-slate-600 sm:table-cell">{i.qty}</td>
+                <td className="px-2 py-2 text-right tabular-nums text-slate-700">{fmtRp(i.estAmount)}</td>
+                <td className="px-2 py-2 text-right font-semibold tabular-nums text-slate-900">{fmtRp(i.actualAmount)}</td>
+                <td className="px-2 py-2 text-right">
+                  <span className="inline-flex gap-0.5">
+                    <button type="button" onClick={() => edit(i)} aria-label={tr("Edit {0}", i.description)} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><PenLine size={14} /></button>
+                    <button type="button" disabled={busy} onClick={() => void act(`${base}/cost-items/${i.id}`, undefined, tr("Cost line removed"), "DELETE")} aria-label={tr("Remove {0}", i.description)}
+                      className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button>
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {work.map((x) => (
+              <tr key={`l${x.assignmentId}`} className="bg-slate-50/50">
+                <td className="px-3 py-2" colSpan={2}>
+                  <span className="flex items-center gap-1.5 font-medium text-slate-900"><Users size={13} className="text-slate-400" />{tr("Labour")} · {x.technician}</span>
+                  <span className="text-[11px] text-slate-500">{x.adjust !== null ? `${tr("adjusted")}: ${x.note ?? ""}`
+                    : x.wageType === "PER_JOB" ? tr("per job · {0}", fmtRp(x.rate)) : `${x.units} ${x.unit} × ${fmtRp(x.rate)}${x.wageType === "MONTHLY" ? " ÷ 26" : ""} · ${tr("{0} worked", fmtHours(x.hours))}`}</span>
+                </td>
+                <td className="px-2 py-2 text-right text-slate-400">—</td>
+                <td className="px-2 py-2 text-right font-semibold tabular-nums text-slate-900">{fmtRp(x.amount)}
+                  {x.adjust !== null && <span className="block text-[10px] font-normal text-slate-400 line-through">{fmtRp(x.computed)}</span>}</td>
+                <td className="px-2 py-2 text-right">
+                  <button type="button" onClick={() => setLabor({ id: x.assignmentId, amount: (x.adjust ?? x.computed).toString(), note: x.note ?? "" })} aria-label={tr("Adjust the labour of {0}", x.technician)}
+                    className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><PenLine size={14} /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          {(items.length > 0 || work.length > 0) && (
+            <tfoot className="border-t-2 border-slate-200 bg-slate-50 text-sm">
+              <tr><td className="px-3 py-2 font-semibold text-slate-900" colSpan={2}>{tr("Total")}{laborTotal ? <span className="block text-[11px] font-normal text-slate-500">{tr("incl. labour {0}", fmtRp(laborTotal))}</span> : null}</td>
+                <td className="px-2 py-2 text-right font-semibold tabular-nums text-slate-900">{fmtRp(r.estCost)}</td>
+                <td className="px-2 py-2 text-right font-bold tabular-nums text-slate-900">{fmtRp(r.actualCost)}
+                  {diff !== null && <span className={cx("block text-[10px] font-semibold", diff > 0 ? "text-red-600" : "text-emerald-600")}>{diff > 0 ? "+" : ""}{fmtRp(diff)}</span>}</td><td /></tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+      {labor && (
+        <div className="space-y-2 rounded-xl border border-violet-200 bg-violet-50/40 p-3">
+          <p className="text-xs font-semibold text-violet-900">{tr("Adjust the labour")} · {work.find((x) => x.assignmentId === labor.id)?.technician}</p>
+          <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_auto]">
+            <input value={labor.amount} onChange={(e) => setLabor({ ...labor, amount: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white text-right text-sm tabular-nums")} aria-label={tr("Labour (Rp)")} />
+            <input value={labor.note} onChange={(e) => setLabor({ ...labor, note: e.target.value })} maxLength={300} placeholder={tr("Reason (required), e.g. 2 days only")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Reason of the labour adjustment")} />
+            <span className="flex gap-2">
+              <Button size="sm" variant="secondary" onClick={() => setLabor(null)}>{tr("Cancel")}</Button>
+              <Button size="sm" disabled={busy || !labor.amount || !labor.note.trim()} onClick={async () => { if (await act(`${base}/labor/${labor.id}`, { adjust: Number(labor.amount), note: labor.note }, tr("Labour adjusted"), "PUT")) setLabor(null); }}><Save size={14} /> {tr("Save")}</Button>
+            </span>
+          </div>
+          {work.find((x) => x.assignmentId === labor.id)?.adjust !== null && (
+            <button type="button" className="text-xs font-medium text-violet-700 hover:underline" onClick={async () => { if (await act(`${base}/labor/${labor.id}`, { adjust: null, note: null }, tr("Labour counted automatically again"), "PUT")) setLabor(null); }}>
+              {tr("Back to the automatic labour")}</button>
+          )}
+        </div>
+      )}
+      {form ?? <Button size="sm" variant="secondary" className="self-start" onClick={() => setLine(blankLine())}><Plus size={14} /> {tr("Add cost line")}</Button>}
+    </div>
   );
 }

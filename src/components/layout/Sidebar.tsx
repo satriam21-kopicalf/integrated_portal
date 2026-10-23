@@ -56,8 +56,8 @@ const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] 
     { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
   ] },
   { get title() { return tr('Product & outlet'); }, get hint() { return tr('Condition of the products and the outlet'); }, icon: Store, items: [
-    { get name() { return tr('Monitoring Product'); }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
-    { get name() { return tr('Monitoring Outlet'); }, href: '/forms/outlet', icon: Store, get description() { return tr('Fill in the outlet checklist'); } },
+    { get name() { return 'Product'; }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
+    { get name() { return 'Outlet'; }, href: '/forms/outlet', icon: Store, get description() { return tr('Fill in the outlet checklist'); } },
   ] },
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Repairs and procurement of the outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Damaged Equipment'); }, href: '/forms/damaged-equipment', icon: Wrench, get description() { return tr('Repair & procurement requests'); } },

@@ -5,7 +5,7 @@
 // today's hours, the latest reviews Google gives (at most 5 per outlet). Super admins and Cost Control link an outlet to
 // its place when the automatic match needs checking.
 
-import { AlertTriangle, CloudDownload, ExternalLink, MapPin, MessageSquareText, RefreshCw, Search, Star, Store } from "lucide-react";
+import { AlertTriangle, CloudDownload, ExternalLink, MapPin, MessageSquareText, Search, Star, Store } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Input, Page, PageNav, Panel, SkeletonRows, type Tone, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -159,9 +159,6 @@ export default function GoogleMapsRatingPage() {
             <CloudDownload size={19} className={res.syncing ? "animate-pulse text-blue-600" : ""} />
           </button>
         )}
-        <button type="button" onClick={() => void load()} disabled={!res && !error} title={tr("Refresh")} aria-label={tr("Refresh")} className={iconBtn}>
-          <RefreshCw size={18} className={!res && !error ? "animate-spin" : ""} />
-        </button>
       </>}
       stats={
         <StatStrip label={tr("Summary")} columns={5}>

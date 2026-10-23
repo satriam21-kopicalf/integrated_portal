@@ -8,7 +8,7 @@
 // handover (link ?request=<id>) the PIC confirms at the outlet: 1-5 photos, their signature and, for a vendor, the
 // vendor's signature. Once Done the final document (work report / vendor's handover record) is downloadable.
 
-import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Copy, Download, FileCheck2, FileText,
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Copy, Download, FileCheck2, FileText,
   Hammer, Handshake, Loader2, MessageCircle, PackagePlus, Plus, Send, Trash2, Video, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
@@ -25,7 +25,7 @@ import { locate } from "@/so/lib/counts";
 import { TZ, wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
-import RequestView, { StatusBadge, UrgencyBadge } from "./RequestView";
+import RequestView, { AddPhotoTile, EvidenceGrid, StatusBadge, UrgencyBadge } from "./RequestView";
 import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, STEPS, URGENCIES, URGENCY_LABEL,
   alreadyAsked, download, fmtHours, fmtMb } from "./de";
 
@@ -315,8 +315,8 @@ function MyRequest({ id, onClose }: { id: string; onClose: () => void }) {
           {working && (
             <FormCard title={tr("Photos while the work runs")} hint={tr("Optional: let the team follow the technician's work at your outlet")}
               aside={<Badge>{(r.media ?? []).filter((m) => m.kind === "MONITOR").length}/10</Badge>}>
-              <PicPhotos r={r} kind="MONITOR" onRemove={(mid) => void removePhoto(mid)} />
-              <Button size="sm" variant="secondary" className="self-start" onClick={() => setCamera("MONITOR")}><Camera size={14} /> {tr("Take photo")}</Button>
+              <PicPhotos r={r} kind="MONITOR" onRemove={(mid) => void removePhoto(mid)}
+                add={(r.media ?? []).filter((m) => m.kind === "MONITOR").length < 10 ? <AddPhotoTile onClick={() => setCamera("MONITOR")} label={tr("Take photo")} /> : undefined} />
             </FormCard>
           )}
         </RequestView>
@@ -327,21 +327,8 @@ function MyRequest({ id, onClose }: { id: string; onClose: () => void }) {
   );
 }
 
-function PicPhotos({ r, kind, onRemove }: { r: Request; kind: "MONITOR" | "HANDOVER"; onRemove: (id: string) => void }) {
-  const list = (r.media ?? []).filter((m) => m.kind === kind);
-  if (!list.length) return <p className="text-sm text-slate-400">{tr("No photo yet")}</p>;
-  return (
-    <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-      {list.map((m, i) => (
-        <li key={m.id} className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
-          <img src={PORTAL_URLS.media(m.id)} alt={tr("Photo {0}", i + 1)} className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200" />
-          <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove photo {0}", i + 1)}
-            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-600"><X size={12} /></button>
-        </li>
-      ))}
-    </ul>
-  );
+function PicPhotos({ r, kind, onRemove, add }: { r: Request; kind: "MONITOR" | "HANDOVER"; onRemove: (id: string) => void; add?: React.ReactNode }) {
+  return <EvidenceGrid list={(r.media ?? []).filter((m) => m.kind === kind)} urls={PORTAL_URLS} onRemove={onRemove} add={add} empty={tr("No photo yet")} />;
 }
 
 /** The handover at the outlet: photos of the result (1-5), the vendor's signature (vendor work) and the PIC's. */
@@ -382,8 +369,7 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
         </div>
       </div>
       <FormCard n={++n} title={tr("Photos of the result")} hint={tr("1–5 photos with the camera at the outlet")} aside={<Badge tone={photos ? "green" : "red"}>{photos ? `${photos}/5` : tr("Required")}</Badge>}>
-        <PicPhotos r={r} kind="HANDOVER" onRemove={onRemove} />
-        {photos < 5 && <Button size="sm" variant="secondary" className="self-start" onClick={onCamera}><Camera size={14} /> {tr("Take photo")}</Button>}
+        <PicPhotos r={r} kind="HANDOVER" onRemove={onRemove} add={photos < 5 ? <AddPhotoTile onClick={onCamera} label={tr("Take photo")} tone={photos ? "slate" : "blue"} /> : undefined} />
       </FormCard>
       {vendor && (
         <FormCard n={++n} title={tr("Vendor's signature")} hint={tr("The vendor's officer signs on this phone")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
@@ -430,7 +416,9 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef<Record<string, unknown>>({});
   const base = `/api/de/requests/${r.id}`;
-  const cats = data.categories;
+  // the categories offered to the branch's group (a category without groups goes to every branch)
+  const cats = useMemo(() => data.categories.filter((c) => !c.branchGroups?.length || c.branchGroups.includes(data.branchGroups?.[r.branchCode] ?? "")),
+    [data.categories, data.branchGroups, r.branchCode]);
   const groups = useMemo(() => [...new Set(cats.map((c) => c.group))], [cats]);
   const photos = (r.media ?? []).filter((m) => m.kind === "PHOTO");
   const video = (r.media ?? []).find((m) => m.kind === "VIDEO");
@@ -615,19 +603,8 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         <FormCard n={4} title={r.kind === "REPAIR" ? tr("Evidence") : tr("Evidence of the space in the outlet")}
           hint={tr("Photos with the camera (at most {0}) and one video of at most {1}", data.limits.photos, fmtMb(data.limits.videoBytes))}
           aside={<Badge tone={photos.length ? "blue" : "slate"}>{photos.length}/{data.limits.photos}</Badge>}>
-          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {photos.map((p) => (
-              <li key={p.id} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
-                <img src={PORTAL_URLS.media(p.id)} alt={tr("Photo")} className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200" />
-                <button type="button" onClick={() => void removeMedia(p.id)} aria-label={tr("Remove photo")} className="absolute -right-1.5 -top-1.5 rounded-full bg-slate-900 p-1 text-white shadow"><X size={12} /></button>
-              </li>
-            ))}
-            {photos.length < data.limits.photos && (
-              <li><button type="button" onClick={() => setCamera(true)} className="flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-300 text-xs font-medium text-slate-500 hover:border-blue-400 hover:text-blue-700">
-                <Camera size={18} /> {tr("Take photo")}</button></li>
-            )}
-          </ul>
+          <EvidenceGrid list={photos} urls={PORTAL_URLS} onRemove={(id) => void removeMedia(id)}
+            add={photos.length < data.limits.photos ? <AddPhotoTile onClick={() => setCamera(true)} label={photos.length ? tr("Add photo") : tr("Take photo")} tone={photos.length ? "slate" : "blue"} /> : undefined} />
           <div className="rounded-lg border border-slate-200 p-3">
             {video ? (
               <div className="space-y-2">
