@@ -3182,4 +3182,9 @@ export const ID: Record<string, string> = {
   "The overview is the final result of the data filled in by the PICs. It is shown once the SWAT team has audited the PIC Check In, Monitoring Product and Monitoring Outlet data.": "Overview merupakan hasil final dari data yang diisi oleh PIC. Ditampilkan setelah tim SWAT mengaudit data PIC Check In, Monitoring Product dan Monitoring Outlet.",
   "Waiting for the audit of the SWAT team": "Menunggu audit tim SWAT",
   "The data per form stays available in these monitoring pages.": "Data per form tetap tersedia di halaman monitoring berikut.",
+  "Search outlet, code or count type": "Cari outlet, kode atau jenis SO",
+  "{0} of {1} facilities": "{0} dari {1} lokasi",
+  "{0} facilities · {1} counts today": "{0} lokasi · {1} SO hari ini",
+  "No facility matches the search": "Tidak ada lokasi yang cocok",
+  "Search by the outlet name, its code or the count type.": "Cari berdasarkan nama outlet, kodenya, atau jenis stock opname.",
 };

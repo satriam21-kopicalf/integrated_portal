@@ -2,13 +2,14 @@
 
 // Crew "Today" (06.9 §9): the counts Cost Control scheduled for today at the facilities of the signed-in user, with the
 // count window (opens / open / late; a count may stay open several days), what the list holds, the last count and
-// what is coming. While nothing is due, the next scheduled count with a countdown and a preparation checklist.
+// what is coming. While nothing is due, the next scheduled count with a countdown and a preparation checklist. A search
+// under the header narrows the facilities (name, code or count type) for users with many outlets.
 
-import { CalendarClock, CalendarDays, ChevronRight, ClipboardList, History, Layers, Loader2, MapPin, Store } from "lucide-react";
+import { CalendarClock, CalendarDays, ChevronRight, ClipboardList, History, Layers, Loader2, MapPin, Search, Store, X } from "lucide-react";
 import NextCount from "./NextCount";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Page, Panel, fmtDay, useToast } from "@/so/ui";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Badge, Button, Empty, ErrorState, Page, Panel, fmtDay, inputClass, useToast } from "@/so/ui";
 import { api, errorText } from "@/so/lib/api";
 import { type Count, type Fix, type TodayCount, type TodayFacility, STATUS, countTypeLabel } from "@/so/lib/counts";
 import LocateDialog from "@/so/features/count/LocateDialog";
@@ -35,6 +36,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
   const [starting, setStarting] = useState<string | null>(null);
   // the count being started waits for the position (06.9 §12.15)
   const [locating, setLocating] = useState<{ facilityId: string; countType: string } | null>(null);
+  const [q, setQ] = useState("");
 
   const load = useCallback(async () => {
     setError(null);
@@ -71,6 +73,12 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
 
   const day = rows?.[0]?.business_date;
   const total = (rows ?? []).reduce((n, f) => n + f.counts.length, 0);
+  const shown = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return rows ?? [];
+    return (rows ?? []).filter((f) => `${f.facility.name} ${f.facility.code} ${f.facility.facility_type} ${f.counts.map((c) => countTypeLabel(c.count_type, c.name)).join(" ")}`
+      .toLowerCase().includes(s));
+  }, [rows, q]);
   return (
     <Page title={tr("Stock opname today")}
       subtitle={day ? new Date(`${day}T00:00:00`).toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : tr("Counts due at your facilities")}
@@ -82,13 +90,23 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
           <Panel><Empty icon={<Store size={28} />} title={tr("No facility assigned to you")}>{tr("Ask your administrator to assign your outlet or hub in Access Center.")}</Empty></Panel>
         ) : (
           <>
-            {total === 0 && (
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+              <label className="relative block w-full sm:max-w-md">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet, code or count type")} aria-label={tr("Search outlet, code or count type")}
+                  className={`${inputClass} h-11 bg-white pl-9 pr-9`} enterKeyHint="search" />
+                {q && <button type="button" onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr("Clear search")}><X size={15} /></button>}
+              </label>
+              <p className="text-xs text-slate-500">{q ? tr("{0} of {1} facilities", shown.length, rows.length) : tr("{0} facilities · {1} counts today", rows.length, total)}</p>
+            </div>
+            {q && shown.length === 0 && <Panel><Empty icon={<Search size={28} />} title={tr("No facility matches the search")}>{tr("Search by the outlet name, its code or the count type.")}</Empty></Panel>}
+            {total === 0 && !q && (
               <p className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
                 <ClipboardList size={16} className="mt-0.5 flex-shrink-0 text-slate-400" />
                 {tr("No count is due today. The next stock opname and how to get ready are shown below; the count opens here when its window starts.")}
               </p>
             )}
-            {rows.map((f) => (
+            {shown.map((f) => (
               <Panel key={f.facility.id} title={f.facility.name}
                 description={`${f.facility.code} · ${f.facility.facility_type}${f.facility.latitude ? "" : ` · ${tr("no location set")}`}`}>
                 {f.counts.length > 0 && (
