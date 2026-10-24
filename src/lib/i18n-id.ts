@@ -3187,4 +3187,6 @@ export const ID: Record<string, string> = {
   "{0} facilities · {1} counts today": "{0} lokasi · {1} SO hari ini",
   "No facility matches the search": "Tidak ada lokasi yang cocok",
   "Search by the outlet name, its code or the count type.": "Cari berdasarkan nama outlet, kodenya, atau jenis stock opname.",
+  "Roasted date": "Roasted date",
+  "Expired date": "Expired date",
 };

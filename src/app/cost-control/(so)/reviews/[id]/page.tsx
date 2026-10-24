@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Panel, SearchBox, cx, fmtDate, fmtDay, theadClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, mapsUrl } from "@/so/lib/counts";
+import { type Count, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, mapsUrl } from "@/so/lib/counts";
 import { locale, tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
@@ -173,6 +173,7 @@ export default function ReviewDetailPage() {
                   <th className="px-3 py-2.5">{tr("Item")}</th>
                   <th className="px-3 py-2.5">{tr("Area")}</th>
                   <th className="px-3 py-2.5 text-right">{tr("Counted")}</th>
+                  {count.date_field && <th className="px-3 py-2.5">{DATE_FIELD_LABEL[count.date_field]()}</th>}
                   <th className="px-3 py-2.5">{tr("Counted by")}</th>
                   <th className="px-3 py-2.5">{tr("Check")}</th>
                 </tr>
@@ -200,6 +201,7 @@ export default function ReviewDetailPage() {
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
                     </td>
+                    {count.date_field && <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-slate-700">{l[count.date_field] ? fmtDay(l[count.date_field]!) : <span className="text-slate-300">—</span>}</td>}
                     <td className="px-3 py-2.5 text-xs text-slate-500">{l.counted_by_name ?? "—"}{l.counted_at && <span className="block">{fmtDate(l.counted_at)}</span>}</td>
                     <td className="px-3 py-2.5"><div className="flex flex-wrap gap-1">
                       {l.flags.includes("SPIKE") && <Badge tone="amber">{tr("×3 vs last count")}</Badge>}

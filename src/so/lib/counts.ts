@@ -29,7 +29,12 @@ export type CountLine = {
   recount_of: number | null;
   is_current: boolean;
   note: string | null;
+  /** roasted date (HUB CK counts) / expired date (HUB WH counts), YYYY-MM-DD */
+  roasted_date?: string | null;
+  expired_date?: string | null;
 };
+export type DateField = "roasted_date" | "expired_date";
+export const DATE_FIELD_LABEL: Record<DateField, () => string> = { roasted_date: () => tr("Roasted date"), expired_date: () => tr("Expired date") };
 
 export type CountPhoto = {
   id: string;
@@ -45,6 +50,8 @@ export type CountPhoto = {
 };
 
 export type Count = {
+  /** the date asked per item: HUB CK → roasted date, HUB WH → expired date, other facilities none */
+  date_field?: DateField | null;
   id: string;
   number: string;
   facility_id: string;
