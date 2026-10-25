@@ -29,7 +29,7 @@ export default function MonitoringOverviewPage() {
           <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-slate-500"><ShieldCheck size={14} className="text-emerald-600" /> {tr("Waiting for the audit of the SWAT team")}</p>
           <div className="mt-8 grid w-full max-w-xl gap-2 sm:grid-cols-3">
             {SOURCES.map((s) => (
-              <Link key={s.href} href={s.href} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:border-blue-300 hover:text-blue-700">
+              <Link key={s.href} href={s.href} className="flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:border-blue-300 hover:text-blue-700">
                 <s.icon size={16} className="flex-shrink-0 text-slate-400" /><span className="truncate">{s.label}</span>
               </Link>
             ))}

@@ -5,7 +5,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Operations - Kopi Calf",
+    name: "Portal - Kopi Calf",
     short_name: "Kopi Calf",
     description: "Kopi Calf sales dashboard, stock opname and cost control",
     start_url: "/",
@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     orientation: "any",
     background_color: "#ffffff",
-    theme_color: "#ffffff",
+    theme_color: "#f8fafc",
     lang: "id",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

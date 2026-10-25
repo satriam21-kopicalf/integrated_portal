@@ -32,7 +32,7 @@ export function Card<T>({
 }) {
   const { data, loading, error, retry } = resource;
   return (
-    <section className={`group/card relative flex h-full min-w-0 flex-col rounded-xl border border-slate-200 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-slate-200/70' : ''} ${className}`}>
+    <section className={`group/card relative flex h-full min-w-0 flex-col rounded-2xl border border-slate-200/80 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-slate-200/70' : ''} ${className}`}>
       {loading && data && <RefreshBar />}
       <header className="flex flex-wrap items-start justify-between gap-2 px-4 pb-2 pt-4 sm:px-5">
         <div className="min-w-0">

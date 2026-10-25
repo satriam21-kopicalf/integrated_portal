@@ -116,7 +116,7 @@ export default function DateRangePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div>
               <p className="text-sm font-semibold text-slate-900">{tr('Date range')}</p>

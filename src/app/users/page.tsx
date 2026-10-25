@@ -265,7 +265,7 @@ export default function UsersPage() {
               {s && <p>{s.withoutBranch ? tr('role User sees no data until assigned') : tr('every User has a branch')}</p>}
             </Stat>
           </StatStrip>
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div className="space-y-3 border-b border-slate-200 p-3 sm:p-4">
               <div className="flex gap-2">
                 <div className="relative flex-1">

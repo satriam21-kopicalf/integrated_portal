@@ -46,7 +46,7 @@ export default function BranchGroupsPage() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {data.groups.map((g) => (
               <button key={g.id} type="button" onClick={() => canEdit && setOpen(g)} disabled={!canEdit}
-                className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-blue-300 hover:shadow disabled:cursor-default">
+                className="group flex flex-col rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-sm transition hover:border-blue-300 hover:shadow disabled:cursor-default">
                 <span className="flex items-start justify-between gap-3">
                   <span className="min-w-0">
                     <span className="block text-lg font-semibold text-slate-900 group-hover:text-blue-700">{g.code}</span>

@@ -11,6 +11,11 @@ npm run dev                  # http://localhost:3002
 
 Dokumentasi lengkap: [docs/README.md](docs/README.md).
 
+Tampilan HP / tablet (PWA) sama dengan Kopi Calf Operations (fe-operations): app bar di atas (PORTAL, Panduan, akun),
+bottom nav mengambang (menu terpilih naik sebagai gelembung biru: Dashboard, Sales, Opname, Form, Menu), sheet Form,
+kartu membulat, field 16px. Palet: putih, biru logo `#0E46C7` (`blue-600`) dan merah tua `maroon-700` sebagai aksen
+(`scripts/gen-theme.mjs`, lalu `node scripts/gen-theme.mjs`). Login: header biru dengan watermark logo Calf.
+
 ## Deploy (Vercel, project `integrated-portal`)
 
 Production (portal.kopicalf.co.id) dibangun dari branch **`dev-portal`**; push ke `main` atau branch lain hanya

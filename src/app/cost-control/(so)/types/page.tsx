@@ -150,7 +150,7 @@ export default function TypesPage() {
       }>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <div className="space-y-5">
-          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4">
             <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips}
               onOpen={() => setSheet(true)} onClear={() => setTf(TF_EMPTY)} />
           </div>
@@ -451,7 +451,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           </FormCard>
         )}
 
-        <section className="rounded-xl border border-slate-200 bg-white">
+        <section className="rounded-2xl border border-slate-200/80 bg-white">
           <button type="button" onClick={() => setMore((v) => !v)} aria-expanded={more}
             className="flex w-full items-center justify-between px-4 py-3 text-left">
             <span>

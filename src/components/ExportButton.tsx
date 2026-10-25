@@ -111,7 +111,7 @@ export default function ExportButton({
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+          <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl">
             {confirmReport ? (
               <div className="p-4">
                 <div className="flex gap-3">

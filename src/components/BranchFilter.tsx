@@ -100,7 +100,7 @@ export default function BranchFilter({ branches, loading, value, onChange }: Bra
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-2 flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl">
           <div className="border-b border-slate-100 p-2">
             <div className="relative">
               <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />

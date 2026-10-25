@@ -40,7 +40,7 @@ export default function SectionPicker({ options, value, onChange, allLabel, titl
     <>
       {/* phones & tablets: one button */}
       <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog"
-        className="flex h-11 w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 text-left shadow-sm active:bg-slate-50 lg:hidden">
+        className="flex h-11 w-full items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-3.5 text-left shadow-sm active:bg-slate-50 lg:hidden">
         <span className="min-w-0 flex-1">
           <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
             {title}{index >= 0 ? ` · ${index + 1}/${options.length}` : ""}

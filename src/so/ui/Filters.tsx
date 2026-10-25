@@ -85,7 +85,7 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
 /** One filter of the drawer as a card, like the form cards of the edit drawers (Count types, Monitoring). */
 export function FilterSection({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white">
+    <section className="rounded-2xl border border-slate-200/80 bg-white">
       <header className="border-b border-slate-100 px-4 py-2.5">
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
         {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}

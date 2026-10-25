@@ -3189,4 +3189,6 @@ export const ID: Record<string, string> = {
   "Search by the outlet name, its code or the count type.": "Cari berdasarkan nama outlet, kodenya, atau jenis stock opname.",
   "Roasted date": "Roasted date",
   "Expired date": "Expired date",
+  "Choose the form to fill in": "Pilih form yang akan diisi",
+  "Sales, stock, cost control and monitoring of every outlet in one place": "Penjualan, stok, cost control dan monitoring seluruh outlet dalam satu tempat",
 };

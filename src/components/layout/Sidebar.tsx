@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
+import { BRAND_LINE } from '@/components/BrandWatermark';
 import { PreferenceControls } from '@/components/ui/Preferences';
 import { assetUrl } from '@/lib/assets';
 import { canAccess, ROLE_LABELS, useAuth } from '@/lib/auth';
@@ -238,13 +239,13 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
-        <Image src={assetUrl('assets/calf-logo.png')} alt={tr('Kopi Calf')} fill sizes="36px" className="object-contain p-0.5" />
+      <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+        <Image src={assetUrl('assets/calf-logo.png')} alt={tr('Kopi Calf')} fill sizes="36px" className="object-contain p-1" />
       </div>
       {!compact && (
         <div className="min-w-0 leading-tight">
-          <p className="text-[15px] font-bold tracking-wide text-slate-900">{tr('OPERATION')}</p>
-          <p className="truncate text-xs text-slate-500">{tr('Integrated Platform')}</p>
+          <p className="text-[14px] font-extrabold tracking-[0.14em] text-blue-700">PORTAL</p>
+          <p className="truncate text-[11px] text-slate-500">{BRAND_LINE}</p>
         </div>
       )}
     </div>
@@ -286,7 +287,7 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Main menu')}</p>}
+        {!collapsed && <p className="mb-2 flex items-center gap-2 px-2 text-[11px] font-bold uppercase tracking-wider text-slate-400"><span className="h-3 w-1 rounded-full bg-maroon-700" aria-hidden />{tr('Main menu')}</p>}
         <ul className="space-y-0.5">
           {items.map(item => (
             <li key={item.href}><NavItem item={item} active={under(pathname, item.href)} collapsed={collapsed} onNavigate={onNavigate} /></li>
@@ -296,7 +297,7 @@ function SidebarContent({
         {/* Form (outlets / PICs), Cost Control, Monitoring, Management: one pop-up menu each, with the pages the user opens */}
         {popups.map(p => (
           <div key={p.key} className="mt-5 border-t border-slate-100 pt-4">
-            {!collapsed && <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{p.config.label}</p>}
+            {!collapsed && <p className="mb-2 flex items-center gap-2 px-2 text-[11px] font-bold uppercase tracking-wider text-slate-400"><span className="h-3 w-1 rounded-full bg-maroon-700" aria-hidden />{p.config.label}</p>}
             <PopupMenu config={p.config} sections={p.sections} pathname={pathname} collapsed={collapsed} onNavigate={onNavigate} />
           </div>
         ))}
@@ -476,12 +477,12 @@ function NavItem({ item, active, collapsed, onNavigate, sub = false }: {
       onClick={onNavigate}
       title={collapsed ? item.name : undefined}
       aria-current={active ? 'page' : undefined}
-      className={`relative flex items-center gap-3 rounded-lg py-2 text-sm transition-colors ${
+      className={`relative flex items-center gap-3 rounded-xl py-2 text-sm transition-colors ${
         collapsed ? 'justify-center px-0' : 'px-2.5'
-      } ${active ? 'bg-slate-100 font-semibold text-slate-900' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+      } ${active ? 'bg-blue-50 font-semibold text-blue-800' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
     >
-      {active && <span className={`absolute top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-slate-900 ${sub ? '-left-[9px]' : 'left-0'}`} />}
-      <Icon size={sub ? 16 : 18} strokeWidth={1.75} className={active ? 'text-slate-900' : 'text-slate-400'} />
+      {active && <span className={`absolute top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-blue-600 ${sub ? '-left-[9px]' : '-left-3'}`} />}
+      <Icon size={sub ? 16 : 18} strokeWidth={1.9} className={active ? 'text-blue-600' : 'text-slate-400'} />
       {!collapsed && (
         <span className="min-w-0">
           <span className="block truncate">{item.name}</span>
@@ -508,7 +509,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
     <div className="flex-shrink-0 border-t border-slate-100 p-3" ref={ref}>
       <div className="relative">
         {open && (
-          <div className={`absolute bottom-full z-10 mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl ${collapsed ? 'left-0 w-64' : 'inset-x-0'}`}>
+          <div className={`absolute bottom-full z-10 mb-2 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl ${collapsed ? 'left-0 w-64' : 'inset-x-0'}`}>
             <div className="border-b border-slate-100 px-3 py-3">
               <div className="flex items-center gap-2.5">
                 <UserAvatar name={user.displayName} src={user.avatarUrl} size="lg" />
@@ -573,7 +574,7 @@ function UserMenu({ collapsed }: { collapsed: boolean }) {
           )}
         </button>
       </div>
-      {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">{tr('Integrated Platform v1.0.0')}</p>}
+      {!collapsed && <p className="mt-2 text-center text-[11px] text-slate-400">Kopi Calf Portal</p>}
     </div>
   );
 }

@@ -90,7 +90,7 @@ export default function MasterCombobox({ kind, id, value, onChange, canAdd, plac
           } else if (e.key === 'Escape') setOpen(false);
         }} />
       {open && options > 0 && (
-        <ul id={listId} role="listbox" className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-xl">
+        <ul id={listId} role="listbox" className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white py-1 shadow-xl">
           {shown.map((n, i) => (
             <li key={n.id} role="option" aria-selected={i === active}>
               <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => pick(n.name)} onMouseEnter={() => setActive(i)}

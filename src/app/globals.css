@@ -376,8 +376,20 @@
   }
   .drawer-panel { animation: drawer-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
   .drawer-backdrop { animation: drawer-fade 0.2s ease-out both; }
+  /* bottom sheets of the phone app (Form sheet): slide up */
+  @keyframes sheet-in {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .sheet-panel { animation: sheet-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  /* cards of a page come in one after the other (Home) */
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+  .rise-in { animation: rise-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
   @media (prefers-reduced-motion: reduce) {
-    .drawer-panel, .drawer-backdrop { animation: none; }
+    .drawer-panel, .drawer-backdrop, .sheet-panel, .rise-in { animation: none; }
   }
 }
 
@@ -440,6 +452,15 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .skeleton::after, .loading-bar::after { animation: none; }
+  }
+}
+
+/* Send bars at the bottom of the forms: on phones / tablets a raised panel with rounded top corners */
+@media (max-width: 1023.98px) {
+  .action-bar {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    box-shadow: 0 -12px 32px -16px rgb(15 23 42 / 0.28);
   }
 }
 

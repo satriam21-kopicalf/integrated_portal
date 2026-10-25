@@ -14,11 +14,19 @@ import { createRequire } from 'node:module';
 import { writeFileSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
-const colors = require('tailwindcss/colors');
+// Kopi Calf Operations palette (2026-10-25): white, the blue of the logo (#0E46C7 = blue-600, the primary colour) and a dark
+// red accent (maroon, 700 = #7E2226). Status colours (red, amber, emerald) stay the stock Tailwind ones.
+const tailwind = require('tailwindcss/colors');
+const BRAND = {
+  blue: { 50: '#eef3ff', 100: '#dce6fe', 200: '#bfd1fc', 300: '#93b2f8', 400: '#5f8bf0', 500: '#3366e3', 600: '#0e46c7',
+    700: '#0b3aa6', 800: '#0e3286', 900: '#112c6b', 950: '#0c1b44' },
+  maroon: { 50: '#fbf3f3', 100: '#f6e3e3', 200: '#eecbcb', 300: '#e0a3a4', 400: '#cb6e70', 500: '#b14548', 600: '#962d31',
+    700: '#7e2226', 800: '#691e22', 900: '#591d20', 950: '#310c0e' },
+};
 
 const STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
 const NEUTRALS = ['slate', 'gray', 'zinc', 'neutral', 'stone'];
-const HUES = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'];
+const HUES = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'maroon'];
 const SURFACE = '#0f172a';
 
 const rgb = hex => {
@@ -52,7 +60,7 @@ for (const role of ['b', 't', 'l']) {
   dark.push(`  --${role}-white: ${triplet(DARK_NEUTRAL[role].white)};`, `  --${role}-black: ${role === 't' ? '241 245 249' : '0 0 0'};`);
 }
 for (const fam of [...NEUTRALS, ...HUES]) {
-  const p = colors[fam];
+  const p = BRAND[fam] ?? tailwind[fam];
   const d = NEUTRALS.includes(fam) ? DARK_NEUTRAL : darkHue(p);
   for (const role of ['b', 't', 'l']) {
     for (const s of STEPS) {

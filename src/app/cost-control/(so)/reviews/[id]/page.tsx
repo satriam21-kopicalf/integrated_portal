@@ -97,7 +97,7 @@ export default function ReviewDetailPage() {
       </header>
 
       <div className="space-y-4 p-4 sm:p-6">
-        <dl className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm lg:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-sm lg:grid-cols-4">
           <Info label={tr("Started")} value={`${fmtDate(count.started_at)}${count.started_by_name ? ` · ${count.started_by_name}` : ""}`} />
           <Position label={tr("Location at start")} lat={count.start_lat} lng={count.start_lng} distance={count.start_distance_m}
             accuracy={count.start_accuracy_m} at={count.start_located_at} none={count.entry_source && count.entry_source !== "CREW" ? "—" : tr("No location")} />

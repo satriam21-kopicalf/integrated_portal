@@ -155,7 +155,7 @@ export default function PicCheckInPage() {
   if (error || !data) {
     return (
       <Page title={tr("PIC Check In")} subtitle={subtitle} actions={clock}>
-        {error ? <div className="rounded-xl border border-slate-200 bg-white"><ErrorState message={error} onRetry={load} /></div>
+        {error ? <div className="rounded-2xl border border-slate-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div>
           : <div className="mx-auto max-w-5xl space-y-4"><div className="skeleton h-24 rounded-xl" /><div className="skeleton h-72 rounded-xl" /></div>}
       </Page>
     );
@@ -164,8 +164,8 @@ export default function PicCheckInPage() {
   return (
     <Page title={tr("PIC Check In")} subtitle={subtitle} actions={clock}
       stats={
-        <div className="border-b border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto max-w-5xl rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 md:flex-row md:items-center md:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0">
@@ -203,7 +203,7 @@ export default function PicCheckInPage() {
         )}
 
         {data.branches.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-500">
+          <div className="rounded-2xl border border-slate-200/80 bg-white px-6 py-12 text-center text-sm text-slate-500">
             {tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}
           </div>
         ) : (
@@ -326,7 +326,7 @@ export default function PicCheckInPage() {
             </div>
 
             <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-              <section className="hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:block">
+              <section className="hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm lg:block">
                 <p className="text-sm font-semibold text-slate-900">{tr("Summary")}</p>
                 <dl className="mt-3 divide-y divide-slate-100 text-sm">
                   <Row k={tr("Outlet")} v={b?.name ?? "—"} />
@@ -338,7 +338,7 @@ export default function PicCheckInPage() {
                 {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-red-600" : "text-slate-400")}>{pending}</p>}
               </section>
 
-              <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+              <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
                 <p className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 sm:px-5">{tr("My latest check-ins")}</p>
                 {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{tr("No check in yet")}</p> : (
                   <ul className="divide-y divide-slate-100">
@@ -366,7 +366,7 @@ export default function PicCheckInPage() {
 
       {/* phones & tablets: what is ready and the send button, at the bottom */}
       {data.branches.length > 0 && (
-        <div className="sticky bottom-0 z-10 -mx-4 -mb-4 border-t border-slate-200 bg-white px-4 pt-3 sm:-mx-6 sm:-mb-6 sm:px-6 lg:hidden"
+        <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-4 border-t border-slate-200/70 bg-white/95 px-4 backdrop-blur pt-3 sm:-mx-6 sm:-mb-6 sm:px-6 lg:hidden"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <p className="mb-2 truncate text-xs text-slate-500">
             {ready ? `${b?.name} · ${status.text}${where?.distance != null ? ` · ${where.distance} m` : ""}` : pending}
@@ -408,7 +408,7 @@ function SuccessScreen({ c, onClose, onDetail }: { c: CheckIn; onClose: () => vo
           <p className="mt-1 text-sm text-slate-600">{c.branchName}</p>
           {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
           <img src={photoUrl(c.id)} alt={tr("Face photo")} className="mt-6 h-36 w-28 rounded-2xl object-cover shadow-md ring-4 ring-white" />
-          <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-slate-100 rounded-xl border border-slate-200 bg-white text-left">
+          <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-slate-100 rounded-2xl border border-slate-200/80 bg-white text-left">
             <div className="px-3 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Time")}</dt>
               <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-slate-900"><Clock size={13} className="text-slate-400" />{wibTime(c.visitedAt)} WIB</dd></div>
             <div className="px-3 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Location")}</dt>
@@ -468,7 +468,7 @@ function Card({ n, ok, active, title, hint, action, children }: {
   n: number; ok: boolean; active: boolean; title: string; hint: string; action?: ReactNode; children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       <header className="flex items-start gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
         <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
           ok ? "bg-emerald-500 text-white" : active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500")}>

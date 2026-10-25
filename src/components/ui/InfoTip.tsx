@@ -54,7 +54,7 @@ export default function InfoTip({ info }: { info: InfoKey | MetricInfo }) {
       {open && typeof document !== 'undefined' && createPortal(
         <div ref={panel} role="tooltip" onMouseEnter={() => setOpen(true)} onMouseLeave={() => { if (!pinned) setOpen(false); }}
           style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999, width: `min(${WIDTH}px, calc(100vw - 16px))` }}
-          className="fixed z-[95] rounded-xl border border-slate-200 bg-white p-3.5 text-left text-xs leading-relaxed text-slate-600 shadow-xl">
+          className="fixed z-[95] rounded-2xl border border-slate-200/80 bg-white p-3.5 text-left text-xs leading-relaxed text-slate-600 shadow-xl">
           <p className="mb-2 text-sm font-semibold text-slate-900">{tr(data.title)}</p>
           {data.formula && data.formula.length > 0 && (
             <Part title={tr('Formula')}>

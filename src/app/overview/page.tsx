@@ -109,10 +109,10 @@ export default function OverviewPage() {
   return (
     <DashboardLayout>
       <div className="min-h-full bg-slate-50">
-        <header className="px-4 pt-5 sm:px-6 sm:pt-6">
+        <header className="px-4 pt-1 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('Overview')}</h1>
+              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Dashboard')}</h1>
               <p className="text-xs text-slate-500 sm:text-sm">{tr('Sales Analytics')}</p>
             </div>
             <div className="ml-auto flex items-center gap-2">

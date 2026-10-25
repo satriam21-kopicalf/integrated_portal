@@ -217,7 +217,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           </p>
         )}
         {!open && (
-          <p className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          <p className="flex items-start gap-2 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-600">
             <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
             {count.submitted_at ? tr("Submitted {0}. The count is locked.", fmtDate(count.submitted_at)) : tr("The count is locked.")}
           </p>
@@ -226,7 +226,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         {count.wip?.enabled && <WipSection count={count} open={open} onSaved={setCount} onDirty={setWipDirty} />}
 
         {areas.filter((a) => shown.some((l) => l.area === a)).map((a) => (
-          <section key={a} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section key={a} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2">
               <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{a}</h2>
               {areaDone[a] && <span className="text-[11px] tabular-nums text-slate-400">{areaDone[a][0]}/{areaDone[a][1]}</span>}
@@ -305,7 +305,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
       </div>
 
       {open && (
-        <div className="sticky bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+        <div className="action-bar sticky bottom-0 z-30 border-t border-slate-200/70 bg-white/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-5xl items-center gap-3">
             <div className="min-w-0 flex-1 text-sm">
               <p className="font-semibold text-slate-900">{tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}</p>

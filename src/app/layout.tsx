@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Operations - Kopi Calf",
+  title: "Portal - Kopi Calf",
   description: "Kopi Calf sales dashboard",
   applicationName: "Kopi Calf",
   // iOS: "Add to Home Screen" opens the portal as a standalone app with this name and icon
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
     { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
   ],
 };

@@ -394,7 +394,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
       description={v ? `${v.definition.title} · ${wibDateTime(v.submittedAt)}` : undefined} focusFirstField={false}>
       {error ? <ErrorState message={error} /> : !v ? <div className="skeleton h-64 rounded-xl" /> : (
         <div className="space-y-4">
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div className="flex flex-wrap items-center gap-4 px-4 py-4 sm:px-5">
               <ScorePill score={v.score} large />
               <div className="min-w-0 flex-1">
@@ -430,7 +430,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
               <section key={g.key} className="space-y-2">
                 <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700">{g.title} <span className="font-normal normal-case text-slate-400">· {g.subtitle}</span></p>
                 {sections.map((sec) => (
-                  <div key={sec.key} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <div key={sec.key} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
                     <p className="border-b border-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-900">{sec.title}</p>
                     <ul className="divide-y divide-slate-100">
                       {sec.items.map((it) => {
@@ -481,7 +481,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
           })}
           {show === "under" && v.counts.under === 0 && <p className="py-6 text-center text-sm text-slate-400">{tr("No UNDER in this visit")}</p>}
           {v.signature ? (
-            <section className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
+            <section className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
               {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
               <img src={visitSignatureUrl(v.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-slate-200" />
               <div className="text-sm">

@@ -28,7 +28,7 @@ export function Switch({ checked, onChange, label, hint, disabled }: {
 /** A numbered step of a form in a drawer. */
 export function FormCard({ n, title, hint, children, aside }: { n?: number; title: string; hint?: string; children: ReactNode; aside?: ReactNode }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white">
+    <section className="rounded-2xl border border-slate-200/80 bg-white">
       <header className="flex items-start gap-3 border-b border-slate-100 px-4 py-3">
         {n !== undefined && <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-white">{n}</span>}
         <span className="min-w-0 flex-1">

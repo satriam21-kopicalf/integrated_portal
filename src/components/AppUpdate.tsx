@@ -51,7 +51,7 @@ export default function AppUpdate() {
 
   if (!ready || hidden) return null;
   return (
-    <div role="status" className="fixed left-1/2 top-3 z-[80] flex w-[min(24rem,calc(100vw-1.5rem))] -translate-x-1/2 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xl">
+    <div role="status" className="fixed left-1/2 top-3 z-[80] flex w-[min(24rem,calc(100vw-1.5rem))] -translate-x-1/2 items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-xl">
       <RefreshCw size={18} className="flex-shrink-0 text-blue-600" />
       <p className="min-w-0 flex-1 text-sm text-slate-700">{tr('A new version of the portal is available.')}</p>
       <button type="button" onClick={() => window.location.reload()}

@@ -84,7 +84,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
   const draftOf = (code: string) => data?.drafts.find((d) => d.branchCode === code);
   return (
     <Page title={title} subtitle={subtitle} actions={clock}>
-      {error ? <div className="rounded-xl border border-slate-200 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-2xl border border-slate-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><div className="skeleton h-40 rounded-xl" /><div className="skeleton h-56 rounded-xl" /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
@@ -99,7 +99,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
             </div>
           )}
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
@@ -152,7 +152,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
             </section>
           )}
 
-          <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <p className="border-b border-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-900 sm:px-5">{tr("My latest visits")}</p>
             {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{tr("No visit sent yet")}</p> : (
               <ul className="divide-y divide-slate-100">
@@ -356,7 +356,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
       </div>
 
       {/* send */}
-      <div className="sticky bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur"
+      <div className="action-bar sticky bottom-0 z-30 border-t border-slate-200/70 bg-white/95 px-4 pt-3 backdrop-blur"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setShowMissing((v) => !v)} disabled={!todo.length}>

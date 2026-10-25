@@ -33,7 +33,7 @@ export function SignatureCard({ count }: { count: Count }) {
   const sig = count.signature;
   if (!sig) return null;
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
         <PenLine size={18} className="text-slate-500" />
         <h2 className="text-sm font-semibold text-slate-900">{tr("Signature")}</h2>
@@ -148,7 +148,7 @@ export function EvidenceFiles({ count, open, onChange }: { count: Count; open: b
   };
 
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
         <Paperclip size={18} className="text-slate-500" />
         <div className="min-w-0 flex-1">
@@ -212,7 +212,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
   };
 
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
         <Images size={18} className="text-slate-500" />
         <div className="min-w-0 flex-1">

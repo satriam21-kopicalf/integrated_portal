@@ -101,7 +101,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
             </div>
             {q && shown.length === 0 && <Panel><Empty icon={<Search size={28} />} title={tr("No facility matches the search")}>{tr("Search by the outlet name, its code or the count type.")}</Empty></Panel>}
             {total === 0 && !q && (
-              <p className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+              <p className="flex items-start gap-2 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-600">
                 <ClipboardList size={16} className="mt-0.5 flex-shrink-0 text-slate-400" />
                 {tr("No count is due today. The next stock opname and how to get ready are shown below; the count opens here when its window starts.")}
               </p>

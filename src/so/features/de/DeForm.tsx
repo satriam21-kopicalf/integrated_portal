@@ -92,13 +92,13 @@ export default function DeForm() {
   return (
     <Page title="Damaged Equipment" actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
-      {error ? <div className="rounded-xl border border-slate-200 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-2xl border border-slate-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><div className="skeleton h-48 rounded-xl" /><div className="skeleton h-64 rounded-xl" /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && <SentCard r={sent} onClose={() => setSent(null)} onOpen={() => setView(sent.id)} />}
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
@@ -163,7 +163,7 @@ export default function DeForm() {
             </section>
           )}
 
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
               <div>
                 <p className="text-sm font-semibold text-slate-900">{tr("My requests")}</p>
@@ -630,7 +630,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </div>
       </div>
 
-      <div className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+      <div className="action-bar sticky bottom-0 z-20 border-t border-slate-200/70 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <p className="min-w-0 flex-1 text-xs text-slate-600">{todo.length ? <span className="text-amber-700">{todo.join(" · ")}</span> : tr("Everything is ready.")}</p>
           <Button disabled={todo.length > 0 || saving > 0} onClick={() => { void flush(); setPreview(true); }}><Send size={15} /> {tr("Preview & send")}</Button>

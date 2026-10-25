@@ -173,7 +173,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
   return (
     <div className="grid gap-5 pb-20 xl:grid-cols-[minmax(0,1fr)_22rem] xl:pb-0 2xl:grid-cols-[minmax(0,1fr)_26rem]">
       {/* recipes and their quantities */}
-      <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div className="space-y-3 border-b border-slate-100 p-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-900">{tr("1. Enter the WIP quantities")}</h2>
@@ -237,7 +237,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 
       {/* the result */}
       <aside id="premix-result" className="min-w-0 xl:sticky xl:top-4 xl:self-start">
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
           <div className="flex items-start justify-between gap-3 border-b border-slate-100 p-4">
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-slate-900">{tr("2. Ingredients to prepare")}</h2>

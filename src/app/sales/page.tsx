@@ -272,10 +272,10 @@ export default function SalesPage() {
   return (
     <DashboardLayout>
       <div className="min-h-full bg-slate-50">
-        <header className="px-4 pt-5 sm:px-6 sm:pt-6">
+        <header className="px-4 pt-1 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('Sales Transactions')}</h1>
+              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Sales Transactions')}</h1>
               <p className="truncate text-xs text-slate-500 sm:text-sm">
                 {periodLabel} · {branchLabel}
               </p>
@@ -287,7 +287,7 @@ export default function SalesPage() {
           <SummaryStrip summary={summary} loading={summaryLoading} />
 
           {/* Transactions card */}
-          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             {/* Toolbar */}
             <div className="flex flex-col gap-3 border-b border-slate-200 p-3 sm:flex-row sm:items-center sm:p-4">
               <div className="relative flex-1">

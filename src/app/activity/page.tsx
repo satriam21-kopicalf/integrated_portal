@@ -358,7 +358,7 @@ export default function ActivityPage() {
           <ActivityInsights data={summary} onPickDay={day => { setDateFrom(day); setDateTo(day); }} />
 
           <div className="grid gap-4 xl:grid-cols-12">
-          <section className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm xl:col-span-8 2xl:col-span-9">
+          <section className="min-w-0 rounded-2xl border border-slate-200/80 bg-white shadow-sm xl:col-span-8 2xl:col-span-9">
             <div className="space-y-3 border-b border-slate-200 p-3 sm:p-4">
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -446,7 +446,7 @@ export default function ActivityPage() {
           </section>
 
           <aside className="min-w-0 space-y-4 xl:col-span-4 2xl:col-span-3">
-            <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
               <h2 className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">{tr('Most active users')}</h2>
               {!summary ? (
                 <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 animate-pulse rounded bg-slate-100" />)}</div>
@@ -478,7 +478,7 @@ export default function ActivityPage() {
               )}
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900"><Database size={15} className="text-slate-400" /> {tr('Log storage')}</h2>
               <dl className="space-y-1.5 text-xs">
                 <div className="flex justify-between gap-2"><dt className="text-slate-500">{tr('Entries stored')}</dt><dd className="font-semibold tabular-nums text-slate-800">{summary?.storage ? formatNumber(summary.storage.entries) : '…'}</dd></div>
@@ -490,7 +490,7 @@ export default function ActivityPage() {
               </button>
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
               <h2 className="mb-3 text-sm font-semibold text-slate-900">{tr('By type')}</h2>
               {!summary ? (
                 <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 animate-pulse rounded bg-slate-100" />)}</div>

@@ -11,12 +11,13 @@ export function cx(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(" ");
 }
 
+// 16px text on phones: iOS zooms into a field with smaller text
 export const inputClass =
-  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 " +
+  "h-11 w-full rounded-2xl border border-slate-200/80 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 lg:h-10 lg:rounded-lg lg:text-sm " +
   "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50 disabled:text-slate-500";
 
 const BUTTON = {
-  primary: "bg-blue-700 font-semibold text-white hover:bg-blue-800",
+  primary: "bg-blue-600 font-semibold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 active:bg-blue-800 disabled:shadow-none",
   secondary: "border border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50",
   danger: "bg-red-600 font-semibold text-white hover:bg-red-700",
   ghost: "font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900",
@@ -36,8 +37,8 @@ export function Button({
       {...p}
       disabled={p.disabled || loading}
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-lg text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-        size === "sm" ? "h-8 px-3 text-xs" : "h-10 px-4",
+        "inline-flex items-center justify-center gap-2 rounded-xl text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 lg:rounded-lg",
+        size === "sm" ? "h-9 px-3 text-xs lg:h-8" : "h-11 px-4 lg:h-10",
         BUTTON[variant],
         className,
       )}
@@ -112,11 +113,12 @@ export function Page({ title, subtitle, actions, stats, children }: {
 }) {
   return (
     <div className="min-h-full bg-slate-50">
-      <header className="px-4 pt-5 sm:px-6 sm:pt-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* phones / tablets: a large title under the app bar (the bar shows it once the page scrolls) */}
+      <header className="px-4 pt-1 sm:px-6 lg:pt-6">
+        <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{title}</h1>
-            {subtitle && <p className="mt-0.5 text-xs text-slate-500 sm:truncate sm:text-sm">{subtitle}</p>}
+            <h1 className="text-[22px] font-bold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-xl lg:font-semibold">{title}</h1>
+            {subtitle && <p className="mt-1 text-[13px] text-slate-500 sm:truncate sm:text-sm">{subtitle}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
@@ -132,7 +134,7 @@ export function Panel({ title, description, actions, toolbar, footer, children, 
   title?: string; description?: string; actions?: ReactNode; toolbar?: ReactNode; footer?: ReactNode; children: ReactNode; className?: string;
 }) {
   return (
-    <section className={cx("overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm", className)}>
+    <section className={cx("overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm", className)}>
       {(title || actions) && (
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
           <div className="min-w-0">
