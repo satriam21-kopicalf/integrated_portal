@@ -26,7 +26,19 @@ type CountType = {
   sort: number; is_active: boolean; lists: number; overrides: number; next_dates: string[]; dates: string[];
   /** days a count stays open: 1 = the due day; 2 = the due day and the next (e.g. 14–15 Oct) */
   period_days: number;
+  /** which date the count asks per item: null = the facility-type default, "NONE" = no date, or a specific date field */
+  date_field: "NONE" | "roasted_date" | "expired_date" | null;
 };
+
+/** The "date per item" choices in the editor; null = keep the facility-type default (CK = roasted, WH = expired). */
+const DATE_FIELD_OPTIONS: { value: string; label: () => string }[] = [
+  { value: "", label: () => tr("Facility default") },
+  { value: "NONE", label: () => tr("No date") },
+  { value: "roasted_date", label: () => tr("Roasted date") },
+  { value: "expired_date", label: () => tr("Expired date") },
+];
+const dateFieldLabel = (v: CountType["date_field"]) =>
+  (DATE_FIELD_OPTIONS.find((o) => o.value === (v ?? "")) ?? DATE_FIELD_OPTIONS[0]).label();
 type Draft = Omit<CountType, "lists" | "overrides" | "next_dates">;
 
 const dayName = (d: number, style: "long" | "short" = "long") => new Date(2024, 0, d).toLocaleDateString(locale(), { weekday: style }); // 2024-01-01 = Monday
@@ -221,6 +233,7 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
       <span className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[11px] text-slate-500">
         <span className="inline-flex items-center gap-1" title={t.overrides ? tr("{0} branch overrides", t.overrides) : undefined}><ListChecks size={12} /> {tr("{0} lists", t.lists)}</span>
         {t.wip_enabled && <span className="inline-flex items-center gap-1 text-violet-700"><FlaskConical size={12} /> {tr("WIP form")}</span>}
+        {t.date_field && <span className="inline-flex items-center gap-1 text-slate-500" title={tr("Date asked per item")}><CalendarRange size={12} /> {dateFieldLabel(t.date_field)}</span>}
         <span className="ml-auto max-w-full truncate font-mono text-slate-400" title={t.esb_purpose ?? undefined}>{t.code}</span>
         {t.esb_purpose && <span className="w-full truncate text-slate-400" title={t.esb_purpose}>ESB: {t.esb_purpose}</span>}
       </span>
@@ -248,7 +261,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   const [d, setD] = useState<Draft>(() => type ? { ...type, name: countTypeLabel(type.code, type.name) } : {
     code: "", name: "", frequency: "WEEKLY", weekday: 1, days_of_week: [], month_day: 0, valid_from: null, valid_to: null,
     window_start: "07:00", window_end: "08:00", esb_purpose: null, sort: 50, is_active: true, wip_enabled: false, dates: [],
-    period_days: 1,
+    period_days: 1, date_field: null,
   });
   const [code, setCode] = useState(type?.code ?? "");
   const [codeTouched, setCodeTouched] = useState(false);
@@ -305,7 +318,8 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
       await api(`/api/so/count-settings/types/${target}`, {
         method: "PUT",
         json: { name: d.name.trim(), ...rule, window_start: d.window_start, window_end: d.window_end,
-                esb_purpose: d.esb_purpose || null, sort: Number(d.sort) || 0, is_active: d.is_active, wip_enabled: d.wip_enabled },
+                esb_purpose: d.esb_purpose || null, sort: Number(d.sort) || 0, is_active: d.is_active, wip_enabled: d.wip_enabled,
+                date_field: d.date_field },
       });
       toast(creating ? tr("Count type created") : tr("Count type saved"));
       onSaved();
@@ -349,6 +363,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           <p className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
             <span className={cx("rounded-full px-2 py-0.5 font-semibold", d.is_active ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-slate-300")}>{d.is_active ? tr("Active") : tr("Inactive")}</span>
             {d.wip_enabled && <span className="rounded-full bg-violet-500/20 px-2 py-0.5 font-semibold text-violet-200">{tr("WIP form")}</span>}
+            {d.date_field && <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-slate-200">{dateFieldLabel(d.date_field)}</span>}
           </p>
         </section>
 
@@ -465,6 +480,14 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
               <Switch label={tr("Active")} hint={tr("An inactive count type is not offered to the branches")} checked={d.is_active} onChange={(v) => set("is_active", v)} />
               <Switch label={tr("WIP form")} hint={tr("The count also asks for WIP / premix in grams; its ingredients are added to the count")}
                 checked={d.wip_enabled} onChange={(v) => set("wip_enabled", v)} />
+              <div>
+                <Segmented label={tr("Date asked per item")} value={d.date_field ?? ""}
+                  onChange={(v) => set("date_field", (v || null) as Draft["date_field"])}
+                  options={DATE_FIELD_OPTIONS.map((o) => ({ value: o.value, label: o.label() }))} />
+                <p className="mt-1.5 text-xs text-slate-500">
+                  {tr("Optional on the line either way. \"Facility default\" asks the roasted date at a Central Kitchen and the expired date at a Warehouse; \"No date\" asks none.")}
+                </p>
+              </div>
               {d.frequency !== "ADHOC" && (
                 <div className="grid grid-cols-2 gap-3">
                   <Field label={tr("Valid from")} hint={tr("Empty = from now")}><Input type="date" value={d.valid_from ?? ""} onChange={(e) => set("valid_from", e.target.value || null)} /></Field>
