@@ -9,6 +9,7 @@
 // finishes the file downloads automatically (once, also with several tabs open); a Google
 // Sheets job shows a link to the sheet (opening a tab without a click is blocked by browsers).
 
+import { currentCompany, withCompany } from '@/lib/company';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { hasPage, useAuth } from '@/lib/auth';
 import { tr, serverMsg } from './i18n';
@@ -157,7 +158,8 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
     setList(stored.map(s => ({ ...s, job: null, error: null })));
     loaded.current = true;
     let cancelled = false;
-    fetch('/api/exports', { cache: 'no-store' })
+    // the brand of the Sales page (lib/company.tsx): the export holds its transactions only
+    fetch(withCompany('/api/exports', currentCompany()), { cache: 'no-store' })
       .then(res => (res.ok ? res.json() : { jobs: [] }))
       .then(({ jobs, googleSheets: sheets }: { jobs: ExportJob[]; googleSheets?: boolean }) => {
         if (cancelled) return;
@@ -220,7 +222,8 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
   const start = useCallback((params: ExportParams) => {
     const temp = `new_${Date.now()}`;
     setList(prev => [...prev, { key: temp, params, startedAt: Date.now(), job: null, error: null, downloaded: false }]);
-    fetch('/api/exports', {
+    // the brand of the Sales page (lib/company.tsx): the export holds its transactions only
+    fetch(withCompany('/api/exports', currentCompany()), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

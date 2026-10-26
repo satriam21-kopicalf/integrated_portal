@@ -62,7 +62,7 @@ let branchesRequest: Promise<Branch[]> | null = null;
 export function useBranches(): Branch[] {
   const [branches, setBranches] = useState<Branch[]>([]);
   useEffect(() => {
-    branchesRequest ??= fetch('/api/branches')
+    branchesRequest ??= fetch('/api/branches?company=all')
       .then(res => (res.ok ? res.json() : []))
       .then((rows: { branch_code: string; branch_name: string | null }[]) => {
         const byCode = new Map<string, Branch>();

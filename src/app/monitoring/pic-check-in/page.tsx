@@ -90,7 +90,7 @@ export default function PicCheckInMonitorPage() {
     const t = setInterval(() => { if (!document.hidden) void load(true); }, REFRESH_MS);
     return () => clearInterval(t);
   }, [load, f.period.to]);
-  useEffect(() => { void call<BranchOpt[]>("/api/branches").then(setBranches).catch(() => setBranches([])); }, []);
+  useEffect(() => { void call<BranchOpt[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
   useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setGroups(r.groups)).catch(() => setGroups([])); }, []);
 
   const rows = useMemo(() => {

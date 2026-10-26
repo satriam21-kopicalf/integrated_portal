@@ -108,10 +108,11 @@ export default function UsersPage() {
   const allowed = me?.role === 'superadmin';
   useEffect(() => {
     if (!allowed) return;
-    // ESB branches + sites without an ESB code (HUB WH / HUB CK, outlets outside ESB like Wasgee Tea Lab ...), assignable to role User
+    // ESB branches of every brand (Kopi Calf, Wasgee Tea from its own ESB company) + sites without an ESB branch
+    // (HUB WH / HUB CK, outlets not in ESB yet), assignable to role User
     const type = (t: string) => ({ HUB_WH: 'HUB WH', HUB_CK: 'HUB CK', OUTLET: 'Outlet' } as Record<string, string>)[t] ?? t.replace(/_/g, ' ');
     Promise.all([
-      fetch('/api/branches').then(res => (res.ok ? res.json() : [])),
+      fetch('/api/branches?company=all').then(res => (res.ok ? res.json() : [])),
       fetch('/api/so-sites').then(res => (res.ok ? res.json() : [])).catch(() => []),
     ])
       .then(([esb, sites]: [Branch[], { branch_code: string; branch_name: string; facility_type: string }[]]) => setBranches([

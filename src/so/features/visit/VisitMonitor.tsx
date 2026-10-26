@@ -75,7 +75,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
     }
   }, [f.period, f.group, f.branch, f.user, form]);
   useEffect(() => { void load(); }, [load]);
-  useEffect(() => { void call<BranchOpt[]>("/api/branches").then(setBranches).catch(() => setBranches([])); }, []);
+  useEffect(() => { void call<BranchOpt[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
   useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setGroups(r.groups)).catch(() => setGroups([])); }, []);
 
   const title = res?.definition.title ?? (form === "product" ? "Monitoring Product" : "Monitoring Outlet");

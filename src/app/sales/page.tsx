@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
 import TransactionDetail from '@/components/TransactionDetail';
 import ExportButton from '@/components/ExportButton';
 import { useFilterLog } from '@/lib/activity';
@@ -105,6 +106,14 @@ export default function SalesPage() {
   const version = salesSyncedAt ? `&v=${encodeURIComponent(salesSyncedAt)}` : '';
 
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionCombined | null>(null);
+  // the brand of the page (Kopi Calf | Wasgee Tea): its transactions and branches only (lib/company.tsx)
+  const { company } = useCompany();
+  const shownCompany = useRef(company);
+  useEffect(() => {
+    if (shownCompany.current === company) return;
+    shownCompany.current = company;
+    setBranch('');
+  }, [company]);
 
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMounted = useRef(true);
@@ -119,12 +128,12 @@ export default function SalesPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/branches')
+    fetch(withCompany('/api/branches', company))
       .then(res => (res.ok ? res.json() : []))
       .then(setBranches)
       .catch(error => console.error('Error fetching branches:', error))
       .finally(() => setBranchesLoading(false));
-  }, []);
+  }, [company]);
 
   const fetchData = useCallback(async (cursor: string | null = null, silent = false) => {
     if (!isMounted.current) return;
@@ -134,7 +143,7 @@ export default function SalesPage() {
     setLoadError(null);
 
     try {
-      const params = new URLSearchParams({ limit: String(DEFAULT_LIMIT), cache: 'false', type: txType });
+      const params = new URLSearchParams({ limit: String(DEFAULT_LIMIT), cache: 'false', type: txType, company });
       if (cursor) params.append('cursor', cursor);
       if (debouncedSearch) params.append('search', debouncedSearch);
       if (dateFrom) params.append('dateFrom', dateFrom);
@@ -162,7 +171,7 @@ export default function SalesPage() {
         setLoadingMore(false);
       }
     }
-  }, [debouncedSearch, dateFrom, dateTo, branch, txType]);
+  }, [debouncedSearch, dateFrom, dateTo, branch, txType, company]);
 
   useEffect(() => {
     isMounted.current = true;
@@ -194,7 +203,7 @@ export default function SalesPage() {
   useEffect(() => {
     if (!datesReady || !realtimeReady) return;
     let cancelled = false;
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({ company });
     if (dateFrom) params.append('dateFrom', dateFrom);
     if (dateTo) params.append('dateTo', dateTo);
     if (branch) params.append('branch', branch);
@@ -205,7 +214,7 @@ export default function SalesPage() {
       .catch(error => console.error('Error fetching summary:', error))
       .finally(() => { if (!cancelled) setSummaryLoading(false); });
     return () => { cancelled = true; };
-  }, [dateFrom, dateTo, branch, version, datesReady, realtimeReady]);
+  }, [dateFrom, dateTo, branch, version, datesReady, realtimeReady, company]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -280,6 +289,7 @@ export default function SalesPage() {
                 {periodLabel} · {branchLabel}
               </p>
             </div>
+            <CompanySwitch className="w-full sm:w-auto" />
           </div>
         </header>
 

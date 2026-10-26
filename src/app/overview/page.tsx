@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
 import { Branch, branchesLabel } from '@/components/BranchFilter';
 import { CompareMode, compareRange } from '@/components/overview/CompareFilter';
 import OverviewFilterDrawer from '@/components/overview/OverviewFilterDrawer';
@@ -73,7 +74,9 @@ export default function OverviewPage() {
   const [filters, setFilters] = useState<Filters | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const meta = useOverview<MetaResponse>('meta', '');
+  // the brand of the view (Kopi Calf | Wasgee Tea): every figure of the page is of that brand only (lib/company.tsx)
+  const { company } = useCompany();
+  const meta = useOverview<MetaResponse>('meta', `company=${company}`);
 
   // filters live in the URL so a view can be shared
   useEffect(() => {
@@ -81,11 +84,24 @@ export default function OverviewPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/branches')
+    fetch(withCompany('/api/branches', company))
       .then(res => (res.ok ? res.json() : []))
       .then(setBranches)
       .catch(error => console.error('Error fetching branches:', error));
-  }, []);
+  }, [company]);
+
+  // another brand: its own branches, the chosen branches of the previous brand no longer apply
+  const shownCompany = useRef(company);
+  useEffect(() => {
+    if (shownCompany.current === company) return;
+    shownCompany.current = company;
+    setFilters(f => {
+      if (!f || !f.branch) return f;
+      const next = { ...f, branch: '' };
+      writeUrl(next);
+      return next;
+    });
+  }, [company]);
 
   useFilterLog(
     '/overview',
@@ -115,6 +131,7 @@ export default function OverviewPage() {
               <h1 className="text-[22px] font-bold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Dashboard')}</h1>
               <p className="text-xs text-slate-500 sm:text-sm">{tr('Sales Analytics')}</p>
             </div>
+            <CompanySwitch className="order-last w-full sm:order-none sm:w-auto" />
             <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
                 className={`inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
@@ -127,7 +144,7 @@ export default function OverviewPage() {
           </div>
         </header>
 
-        {filters && <OverviewContent filters={filters} branches={branches} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
+        {filters && <OverviewContent filters={filters} branches={branches} company={company} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
       </div>
       {filtersOpen && (
         <OverviewFilterDrawer value={f} branches={branches} channels={(meta.data?.channels ?? []).map(c => c.channel)}
@@ -138,11 +155,11 @@ export default function OverviewPage() {
   );
 }
 
-function OverviewContent({ filters, branches, defaultPeriod }: {
-  filters: Filters; branches: Branch[]; defaultPeriod: { from: string; to: string } | null;
+function OverviewContent({ filters, branches, company, defaultPeriod }: {
+  filters: Filters; branches: Branch[]; company: string; defaultPeriod: { from: string; to: string } | null;
 }) {
   const query = useMemo(() => {
-    const p = new URLSearchParams();
+    const p = new URLSearchParams({ company });
     if (filters.from) p.set('dateFrom', filters.from);
     if (filters.to) p.set('dateTo', filters.to || filters.from);
     if (filters.branch) p.set('branch', filters.branch);
@@ -155,7 +172,7 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
       p.set('compareTo', cmp.to);
     }
     return p.toString();
-  }, [filters, defaultPeriod]);
+  }, [filters, defaultPeriod, company]);
 
   const kpis = useOverview<KpisResponse>('kpis', query);
   const channels = useOverview<ChannelsResponse>('channels', query);
@@ -167,11 +184,11 @@ function OverviewContent({ filters, branches, defaultPeriod }: {
 
   // live feed: always today, follows the branch / channel filters
   const liveQuery = useMemo(() => {
-    const p = new URLSearchParams({ limit: '30' });
+    const p = new URLSearchParams({ limit: '30', company });
     if (filters.branch) p.set('branch', filters.branch);
     if (filters.channels.length) p.set('channel', filters.channels.join(','));
     return p.toString();
-  }, [filters.branch, filters.channels]);
+  }, [filters.branch, filters.channels, company]);
   const live = useLive(liveQuery);
 
   const f = kpis.data?.filters;

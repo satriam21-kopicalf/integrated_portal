@@ -9,6 +9,7 @@ import ExportToasts from '@/components/ExportToasts';
 import InstallApp, { useServiceWorker } from '@/components/InstallApp';
 import { usePageViewLog } from '@/lib/activity';
 import { AuthProvider, canAccess, homePath, isPublicPath, useAuth } from '@/lib/auth';
+import { CompanyProvider } from '@/lib/company';
 import { ExportsProvider } from '@/lib/exports';
 import { RealtimeProvider } from '@/lib/realtime';
 import { LanguageProvider, tr } from '@/lib/i18n';
@@ -61,11 +62,13 @@ function Gate({ children }: { children: ReactNode }) {
   }
   return (
     <RealtimeProvider>
-      <ExportsProvider>
-        <AccountDrawersProvider>{children}</AccountDrawersProvider>
-        <ExportToasts />
-        <InstallApp />
-      </ExportsProvider>
+      <CompanyProvider>
+        <ExportsProvider>
+          <AccountDrawersProvider>{children}</AccountDrawersProvider>
+          <ExportToasts />
+          <InstallApp />
+        </ExportsProvider>
+      </CompanyProvider>
     </RealtimeProvider>
   );
 }

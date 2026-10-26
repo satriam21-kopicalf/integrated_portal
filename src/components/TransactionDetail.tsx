@@ -1,5 +1,6 @@
 'use client';
 
+import { currentCompany, withCompany } from '@/lib/company';
 import { useCallback, useEffect, useState } from 'react';
 import { MapPin, Receipt, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
@@ -58,7 +59,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/transactions/${encodeURIComponent(transaction.sales_num)}`)
+    fetch(withCompany(`/api/transactions/${encodeURIComponent(transaction.sales_num)}`, currentCompany()))
       .then(res => (res.ok ? res.json() : null))
       .then(body => { if (!cancelled) setDetail(body); })
       .catch(error => console.error('Error fetching transaction:', error))
