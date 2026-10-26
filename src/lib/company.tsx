@@ -14,6 +14,8 @@ export type Company = { code: string; name: string; branches: number };
 
 export const MAIN_COMPANY = 'CALF';
 const KEY = 'portal.company';
+// the look of a brand: Wasgee Tea in white + dark orange (app/theme-colors.css html.brand-wasgee); Kopi Calf the default
+const BRAND_CLASS: Record<string, string> = { CALF7: 'brand-wasgee' };
 
 /** `url` with `company=` (the chosen brand; "all" = every brand). */
 export function withCompany(url: string, company: string): string {
@@ -60,6 +62,14 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     setState(code);
     try { window.localStorage.setItem(KEY, code); } catch { /* not remembered */ }
   }, []);
+
+  // the colours follow the chosen brand (signed out: the default look)
+  useEffect(() => {
+    const el = document.documentElement;
+    Object.values(BRAND_CLASS).forEach(c => el.classList.remove(c));
+    const cls = user ? BRAND_CLASS[company] : undefined;
+    if (cls) el.classList.add(cls);
+  }, [company, user]);
 
   if (user && !loaded) {
     return (
