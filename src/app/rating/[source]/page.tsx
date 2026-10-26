@@ -5,6 +5,7 @@
 
 import { notFound, useParams } from "next/navigation";
 import FeatureSkeleton from "@/components/FeatureSkeleton";
+import GrabFood from "./GrabFood";
 import { tr } from "@/lib/i18n";
 
 const SOURCES: Record<string, { name: string; logo: string }> = {
@@ -18,6 +19,7 @@ export default function RatingPage() {
   const { source } = useParams<{ source: string }>();
   const s = SOURCES[source];
   if (!s) notFound();
+  if (source === "grabfood") return <GrabFood />;
   return (
     <FeatureSkeleton title={tr("Rating & Review · {0}", s.name)} subtitle={tr("Ratings and reviews of the outlets on {0}", s.name)}
       endpoint={`/api/rating/${source}`} logo
