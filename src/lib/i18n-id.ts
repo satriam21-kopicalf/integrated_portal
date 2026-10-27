@@ -3381,4 +3381,16 @@ export const ID: Record<string, string> = {
   "until the outlet switches it on": "sampai diaktifkan outlet",
   "{0} and up": "{0} ke atas",
   "{0} ≤2★ in 30 days": "{0} ≤2★ dalam 30 hari",
+  // GrabFood (2026-10-27)
+  "Items marked Required must be rated, with the note and photo they ask for": "Butir bertanda Wajib harus dinilai, beserta catatan dan foto yang diminta",
+  "optional items may be skipped. Write what you see and take a clear photo of it: they are the material for the analysis.": "butir opsional boleh dilewati. Tulis apa yang Anda lihat dan ambil foto yang jelas: itu bahan analisis.",
+  "Note required · photo optional": "Catatan wajib · foto opsional",
+  "Photo required · note optional": "Foto wajib · catatan opsional",
+  "note": "catatan",
+  "photo": "foto",
+  "required, not rated": "wajib, belum dinilai",
+  "{0} optional items are not rated: they are sent empty and left out of the score.": "{0} butir opsional tidak dinilai: dikirim kosong dan tidak dihitung dalam skor.",
+  "{0} optional items not rated (can still be sent) · see which": "{0} butir opsional belum dinilai (tetap bisa dikirim) · lihat",
+  "{0} rated items still need a note or a photo · see which": "{0} butir yang dinilai masih perlu catatan atau foto · lihat",
+  "{0} required items not rated yet · see which": "{0} butir wajib belum dinilai · lihat",
 };

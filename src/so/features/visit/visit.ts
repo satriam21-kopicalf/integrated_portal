@@ -1,18 +1,39 @@
 // Monitoring Product / Monitoring Outlet (integrated_portal_be app/visit_forms.py): types, labels and helpers shared by
 // the form (PIC) and the monitoring pages (management).
 
-import { tr } from "@/lib/i18n";
+import { lang, tr } from "@/lib/i18n";
 
 export type VisitFormKey = "product" | "outlet";
 export type Rating = "UNDER" | "MEET" | "EXCEED";
 /** Rating Outlet items carry the outlet's stars on a platform (2026-10-21): Google automatic, the delivery apps typed */
 export type Platform = "google" | "gofood" | "grabfood" | "shopeefood";
-export type Item = { key: string; no: number; label: string; kind: "rating" | "text"; platform?: Platform };
+/** One item (2026-10-27): required = it must be rated before sending (requiredFor: only at the outlets of these branch
+ * groups, e.g. Beans Specialty at CTGP and CCI); note / photo = what a rated required item needs. An optional item may be
+ * skipped and needs neither. labelEn = the English text (the UI shows the one of its language). */
+export type Evidence = "required" | "optional";
+export type Item = { key: string; no: number; label: string; labelEn?: string; kind: "rating" | "text"; platform?: Platform;
+  required?: boolean; requiredFor?: string[]; note?: Evidence; photo?: Evidence };
 /** Google Maps figure of the outlet (Rating & Review → Google Maps) */
 export type AutoStars = { stars: number; reviews: number | null; source: "google"; fetchedAt: string | null; mapsUri?: string | null };
-export type Section = { key: string; title: string; items: Item[] };
-export type Group = { key: string; title: string; subtitle: string; sections: Section[] };
-export type Definition = { title: string; groups: Group[] };
+export type Section = { key: string; title: string; titleEn?: string; items: Item[] };
+export type Group = { key: string; title: string; titleEn?: string; subtitle: string; subtitleEn?: string; sections: Section[] };
+export type Definition = { title: string; titleEn?: string; groups: Group[] };
+
+/** A label / title / subtitle of the form in the UI language: the English text (…En) or the Indonesian one. */
+export function tl(o: object, field: "label" | "title" | "subtitle" | "section" = "label"): string {
+  const r = o as Record<string, unknown>;
+  const id = typeof r[field] === "string" ? (r[field] as string) : "";
+  const en = r[`${field}En`];
+  return lang() === "id" ? id : (typeof en === "string" && en) || id;
+}
+
+/** Must the item be rated before sending, at an outlet of this branch group (CCI, CTG, CTGP …)? */
+export const isRequired = (i: Item, group?: string | null) => (i.required ?? true) || (!!group && (i.requiredFor ?? []).includes(group));
+/** What a rated item needs at this outlet: a required item its note / photo (both unless the item says otherwise). */
+export const evidenceOf = (i: Item, group?: string | null) => {
+  const req = isRequired(i, group) && !i.platform;
+  return { note: req && (i.note ?? "required") === "required", photo: req && (i.photo ?? "required") === "required" };
+};
 /** rating null = cleared (tapping the chosen rating again) */
 export type Answer = { rating?: Rating | null; note?: string; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null };
 export type Counts = { under: number; meet: number; exceed: number; rated: number; total: number; score: number | null };
@@ -29,6 +50,8 @@ export type Visit = {
   answers?: Record<string, Answer>; photos?: VisitPhoto[]; photoCount?: number;
   /** draft only: the current Google Maps figure per item (kept in the answers at sending) */
   auto?: Record<string, AutoStars | null>;
+  /** the outlet's branch group: which items are required (2026-10-27) */
+  branchGroup?: string | null;
 };
 
 export const PLATFORM_LABEL: Record<Platform, string> = { google: "Google Maps", gofood: "GoFood", grabfood: "GrabFood", shopeefood: "ShopeeFood" };
@@ -48,18 +71,19 @@ export const ratingLabel = (r: Rating) => ({ UNDER: tr("Under"), MEET: tr("Meet"
 
 export const visitPhotoUrl = (id: string) => `/api/visit-photos/${id}`;
 export const visitSignatureUrl = (visitId: string) => `/api/visit-signatures/${visitId}`;
-export const allItems = (d: Definition) => d.groups.flatMap((g) => g.sections.flatMap((s) => s.items.map((i) => ({ ...i, group: g.key, section: s.title, sectionKey: s.key }))));
+export const allItems = (d: Definition) => d.groups.flatMap((g) => g.sections.flatMap((s) => s.items.map((i) => ({ ...i, group: g.key, section: s.title, sectionEn: s.titleEn, sectionKey: s.key }))));
 
-/** Items that block the submit: UNDER without a note or a photo (same rule as the server). Unrated items do not block
- * since 2026-10-21; they are listed (need "rating") so the PIC sees them. */
-export function missingOf(d: Definition, answers: Record<string, Answer>, photos: VisitPhoto[]) {
+/** What the PIC still has to do (same rules as the server, 2026-10-27). need "rating": a required item not rated (blocks);
+ * "evidence": a rated required item without its note / photo (blocks; `what` says which); "optional": an optional item
+ * not rated (does not block, listed so the PIC sees it). */
+export function missingOf(d: Definition, answers: Record<string, Answer>, photos: VisitPhoto[], group?: string | null) {
   const withPhoto = new Set(photos.map((p) => p.item));
   return allItems(d).filter((i) => i.kind === "rating").map((i) => {
     const a = answers[i.key] ?? {};
-    if (!a.rating) return { item: i, need: "rating" as const };
-    // every rated item needs a note and a photo — material for the analysis (2026-10-23); the platform stars excepted
-    if (!i.platform && (!a.note || !withPhoto.has(i.key))) return { item: i, need: "evidence" as const };
-    return null;
+    if (!a.rating) return { item: i, need: (isRequired(i, group) ? "rating" : "optional") as "rating" | "optional", what: "" };
+    const ev = evidenceOf(i, group);
+    const what = [ev.note && !a.note ? "note" : "", ev.photo && !withPhoto.has(i.key) ? "photo" : ""].filter(Boolean).join("+");
+    return what ? { item: i, need: "evidence" as const, what } : null;
   }).filter((x): x is NonNullable<typeof x> => !!x);
 }
 

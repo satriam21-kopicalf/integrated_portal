@@ -17,10 +17,10 @@ import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
 import { call } from "@/so/features/checkin/checkin";
 import { locale, tr } from "@/lib/i18n";
-import { type Definition, type Platform, type Rating, type Visit, type VisitFormKey, PLATFORM_LABEL, RATINGS, RATING_STYLE, fmtStars, ratingLabel, scoreTone, visitPhotoUrl, visitSignatureUrl } from "./visit";
+import { type Definition, type Platform, type Rating, type Visit, type VisitFormKey, PLATFORM_LABEL, RATINGS, RATING_STYLE, fmtStars, ratingLabel, scoreTone, tl, visitPhotoUrl, visitSignatureUrl } from "./visit";
 
-type SectionPerf = { key: string; title: string; group: string; under: number; meet: number; exceed: number };
-type Finding = { key: string; label: string; section: string; count: number; branches: string[] };
+type SectionPerf = { key: string; title: string; titleEn?: string; group: string; under: number; meet: number; exceed: number };
+type Finding = { key: string; label: string; labelEn?: string; section: string; sectionEn?: string; count: number; branches: string[] };
 type Attendance = { days: string[]; today: string; since: string; pics: { id: string; username: string; name: string; branches: number; active: number; off: number; visits: number; days: Record<string, number> }[] };
 type Result = {
   period: { from: string; to: string }; definition: Definition; data: Visit[]; sections: SectionPerf[]; findings: Finding[];
@@ -78,7 +78,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   useEffect(() => { void call<BranchOpt[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
   useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setGroups(r.groups)).catch(() => setGroups([])); }, []);
 
-  const title = res?.definition.title ?? (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
+  const title = res ? tl(res.definition, "title") : (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
     return (res?.data ?? []).filter((v) => (!s || v.branchName.toLowerCase().includes(s) || v.name.toLowerCase().includes(s))
@@ -157,7 +157,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                   const pct = total ? Math.round(((sec.meet + sec.exceed) / total) * 1000) / 10 : null;
                   return (
                     <li key={sec.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 py-2.5">
-                      <span className="min-w-0 truncate text-sm font-medium text-slate-800">{sec.title}</span>
+                      <span className="min-w-0 truncate text-sm font-medium text-slate-800">{tl(sec, "title")}</span>
                       <span className={cx("row-span-2 text-sm font-semibold tabular-nums", scoreTone(pct))}>{pct === null ? "—" : `${pct}%`}</span>
                       <span className="flex items-center gap-2"><Bar c={sec} className="flex-1" /><span className="w-24 text-right text-[11px] tabular-nums text-slate-500">{sec.under}/{sec.meet}/{sec.exceed}</span></span>
                     </li>
@@ -172,8 +172,8 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                     <li key={x.key} className="flex items-start gap-3 px-4 py-2.5">
                       <span className="mt-0.5 w-4 text-right text-xs font-semibold tabular-nums text-slate-400">{i + 1}</span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium text-slate-900">{x.label}</span>
-                        <span className="block truncate text-[11px] text-slate-500" title={x.branches.join(", ")}>{x.section} · {tr("{0} outlets", x.branches.length)}</span>
+                        <span className="block text-sm font-medium text-slate-900">{tl(x)}</span>
+                        <span className="block truncate text-[11px] text-slate-500" title={x.branches.join(", ")}>{tl(x, "section")} · {tr("{0} outlets", x.branches.length)}</span>
                       </span>
                       <Badge tone="red">{x.count}×</Badge>
                     </li>
@@ -391,7 +391,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
 
   return (
     <Drawer open onClose={onClose} size="xl" icon={<ClipboardList size={18} />} title={v ? v.branchName : tr("Visit")}
-      description={v ? `${v.definition.title} · ${wibDateTime(v.submittedAt)}` : undefined} focusFirstField={false}>
+      description={v ? `${tl(v.definition, "title")} · ${wibDateTime(v.submittedAt)}` : undefined} focusFirstField={false}>
       {error ? <ErrorState message={error} /> : !v ? <div className="skeleton h-64 rounded-xl" /> : (
         <div className="space-y-4">
           <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
@@ -428,10 +428,10 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
             if (!sections.length) return null;
             return (
               <section key={g.key} className="space-y-2">
-                <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700">{g.title} <span className="font-normal normal-case text-slate-400">· {g.subtitle}</span></p>
+                <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700">{tl(g, "title")} <span className="font-normal normal-case text-slate-400">· {tl(g, "subtitle")}</span></p>
                 {sections.map((sec) => (
                   <div key={sec.key} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-                    <p className="border-b border-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-900">{sec.title}</p>
+                    <p className="border-b border-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-900">{tl(sec, "title")}</p>
                     <ul className="divide-y divide-slate-100">
                       {sec.items.map((it) => {
                         const a = v.answers?.[it.key] ?? {};
@@ -440,7 +440,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                           <li key={it.key} className={cx("px-4 py-3", a.rating === "UNDER" && "bg-red-50/40")}>
                             <div className="flex items-start gap-2.5">
                               <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400">{it.no}</span>
-                              <span className="min-w-0 flex-1 text-sm font-medium text-slate-800">{it.label}
+                              <span className="min-w-0 flex-1 text-sm font-medium text-slate-800">{tl(it)}
                                 {a.stars != null && (
                                   <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-amber-50 px-1.5 py-0.5 align-middle text-[11px] font-semibold tabular-nums text-amber-800"
                                     title={a.source === "google" ? tr("Google Maps, automatic") : tr("Typed by the PIC")}>
@@ -461,7 +461,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                                     {ph.map((p) => (
                                       <a key={p.id} href={visitPhotoUrl(p.id)} target="_blank" rel="noreferrer" className="group block w-24" title={p.takenAt ? wibDateTime(p.takenAt) : undefined}>
                                         {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
-                                        <img src={visitPhotoUrl(p.id)} alt={it.label} loading="lazy" className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200 group-hover:ring-2 group-hover:ring-blue-400" />
+                                        <img src={visitPhotoUrl(p.id)} alt={tl(it)} loading="lazy" className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200 group-hover:ring-2 group-hover:ring-blue-400" />
                                         <span className={cx("mt-0.5 block truncate text-[10px]", p.outsideRadius ? "font-semibold text-red-600" : "text-slate-400")}>
                                           {p.distanceM !== null ? tr("{0} m from the outlet", p.distanceM) : wibDateTime(p.takenAt ?? p.uploadedAt)}</span>
                                       </a>

@@ -3,9 +3,10 @@
 // Form → Monitoring Product / Monitoring Outlet (pages form.product, form.outlet; workbook "Form Visit"). The PIC is the
 // signed-in account; one visit per outlet (a PIC with several branches picks one, then the next). The visit is a draft
 // saved as it is filled (it can be continued later), then submitted with the position. Each item: UNDER / MEET /
-// EXCEED, a note and up to 3 camera photos stamped with the time, the branch and the position. Every rated item needs a
-// note and a photo (material for the analysis, 2026-10-23); one visit per branch per day, the next one tomorrow. Was: UNDER needs a note and a
-// photo (user decision 2026-10-20). Mobile first: one item per row, the progress stays on top, send at the bottom.
+// EXCEED, a note and up to 3 camera photos stamped with the time, the branch and the position. Required / optional per
+// item (2026-10-27, per branch group: some items only at CTGP / CCI): a required item must be rated, with the note and
+// photo it asks for; an optional item may be skipped. One visit per branch per day, the next one tomorrow. Labels in the
+// UI language (Indonesian or English). Mobile first: one item per row, the progress stays on top, send at the bottom.
 
 import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, ClipboardList, CloudUpload, ExternalLink, MapPin, MessageSquareText, PenLine, Send, Star, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -24,7 +25,7 @@ import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import LiveClock from "@/so/ui/LiveClock";
 import { type Answer, type AutoStars, type FormState, type Item, type Rating, type Visit, type VisitFormKey, type VisitPhoto, PLATFORM_LABEL, RATINGS, RATING_STYLE,
-  allItems, fmtStars, missingOf, ratingLabel, scoreTone, visitPhotoUrl } from "./visit";
+  allItems, evidenceOf, fmtStars, isRequired, missingOf, ratingLabel, scoreTone, tl, visitPhotoUrl } from "./visit";
 
 const MAX_PHOTOS = 3;
 
@@ -71,7 +72,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
     }
   };
 
-  const title = data?.definition.title ?? (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
+  const title = data ? tl(data.definition, "title") : (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
   const clock = <LiveClock />;
   const subtitle = now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "";
 
@@ -231,10 +232,13 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
     return c;
   }, [answers, rated]);
   const done = counts.UNDER + counts.MEET + counts.EXCEED;
-  const todo = useMemo(() => missingOf(def, answers, photos), [def, answers, photos]);
-  // blocking: UNDER without a note or a photo; unrated items may stay (2026-10-21)
+  const group = visit.branchGroup ?? null;
+  const todo = useMemo(() => missingOf(def, answers, photos, group), [def, answers, photos, group]);
+  // blocking (2026-10-27): a required item not rated, or a rated required item without its note / photo; optional items may stay
   const missing = todo.filter((m) => m.need === "evidence");
-  const unrated = todo.length - missing.length;
+  const requiredLeft = todo.filter((m) => m.need === "rating");
+  const unrated = todo.filter((m) => m.need === "optional").length;
+  const blocking = missing.length + requiredLeft.length;
   const pct = rated.length ? Math.round((done / rated.length) * 100) : 0;
   const sectionDone = (key: string) => {
     const s = rated.filter((i) => i.sectionKey === key);
@@ -297,7 +301,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
           <div className="flex items-start gap-2">
             <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-base font-semibold text-slate-900 sm:text-lg">{def.title} · {visit.branchName}</h1>
+              <h1 className="truncate text-base font-semibold text-slate-900 sm:text-lg">{tl(def, "title")} · {visit.branchName}</h1>
               <p className="truncate text-xs text-slate-500">{visit.name} · {tr("started {0}", wibDateTime(visit.startedAt))}</p>
             </div>
             <span className="flex-shrink-0 pt-1 text-xs text-slate-400" aria-live="polite">
@@ -315,37 +319,37 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
           </div>
           <div className="mt-2.5">
             <SectionPicker title={tr("Category")} value={section} onChange={go}
-              options={parts.map((p) => { const [a, b] = sectionDone(p.key); return { key: p.key, label: p.title, done: a, total: b, hint: p.group.title }; })} />
+              options={parts.map((p) => { const [a, b] = sectionDone(p.key); return { key: p.key, label: tl(p, "title"), done: a, total: b, hint: tl(p.group, "title") }; })} />
           </div>
         </div>
       </header>
 
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
         <div className="px-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">{current.group.title} · {current.group.subtitle}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">{tl(current.group, "title")} · {tl(current.group, "subtitle")}</p>
           <div className="mt-0.5 flex items-end justify-between gap-3">
-            <p className="text-lg font-semibold leading-tight text-slate-900">{current.title}</p>
+            <p className="text-lg font-semibold leading-tight text-slate-900">{tl(current, "title")}</p>
             <p className="flex-shrink-0 text-xs tabular-nums text-slate-500">{tr("{0} of {1} rated", sectionDone(current.key)[0], sectionDone(current.key)[1])}</p>
           </div>
         </div>
         <p className="flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2.5 text-xs leading-relaxed text-blue-900">
           <ClipboardCheck size={15} className="mt-px flex-shrink-0 text-blue-700" />
-          <span><b>{tr("Photo and note are required for every item you rate")}</b> — {tr("they are the material for the analysis. Write what you see and take a clear photo of it.")}</span>
+          <span><b>{tr("Items marked Required must be rated, with the note and photo they ask for")}</b> — {tr("optional items may be skipped. Write what you see and take a clear photo of it: they are the material for the analysis.")}</span>
         </p>
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <ul className="divide-y divide-slate-100">
             {current.items.map((it) => (
-              <ItemRow key={it.key} item={it} answer={answers[it.key] ?? {}} auto={visit.auto?.[it.key] ?? null} photos={photos.filter((p) => p.item === it.key)}
+              <ItemRow key={it.key} item={it} group={group} answer={answers[it.key] ?? {}} auto={visit.auto?.[it.key] ?? null} photos={photos.filter((p) => p.item === it.key)}
                 onAnswer={(v, now) => change(it.key, v, now)} onCamera={() => setCamera(it)} onRemovePhoto={(id) => void removePhoto(id)} />
             ))}
           </ul>
         </section>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary" disabled={si === 0} onClick={() => go(parts[si - 1].key)} className="justify-start">
-            <ChevronLeft size={15} /> <span className="truncate">{si > 0 ? parts[si - 1].title : tr("Previous")}</span>
+            <ChevronLeft size={15} /> <span className="truncate">{si > 0 ? tl(parts[si - 1], "title") : tr("Previous")}</span>
           </Button>
           <Button variant={si < parts.length - 1 ? "primary" : "secondary"} disabled={si >= parts.length - 1} onClick={() => go(parts[si + 1].key)} className="justify-end">
-            <span className="truncate">{si < parts.length - 1 ? parts[si + 1].title : tr("Last category")}</span> <ChevronRight size={15} />
+            <span className="truncate">{si < parts.length - 1 ? tl(parts[si + 1], "title") : tr("Last category")}</span> <ChevronRight size={15} />
           </Button>
         </div>
         <div className="flex justify-center pt-1">
@@ -361,22 +365,25 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setShowMissing((v) => !v)} disabled={!todo.length}>
             <p className="text-sm font-semibold text-slate-900">{tr("{0} of {1} rated", done, rated.length)}</p>
-            <p className={cx("truncate text-xs", missing.length ? "text-red-600" : unrated ? "text-amber-700" : "text-emerald-700")}>
-              {missing.length ? tr("{0} rated items need a note and a photo · see which", missing.length)
-                : unrated ? tr("{0} not rated yet (can still be sent) · see which", unrated) : tr("Everything is complete")}
+            <p className={cx("truncate text-xs", blocking ? "text-red-600" : unrated ? "text-amber-700" : "text-emerald-700")}>
+              {requiredLeft.length ? tr("{0} required items not rated yet · see which", requiredLeft.length)
+                : missing.length ? tr("{0} rated items still need a note or a photo · see which", missing.length)
+                : unrated ? tr("{0} optional items not rated (can still be sent) · see which", unrated) : tr("Everything is complete")}
             </p>
           </button>
-          <Button disabled={missing.length > 0 || done === 0 || saving > 0} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>
+          <Button disabled={blocking > 0 || done === 0 || saving > 0} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>
         </div>
         {showMissing && todo.length > 0 && (
           <ul className="mx-auto mt-2 max-h-48 max-w-4xl overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 text-xs">
-            {[...missing, ...todo.filter((m) => m.need === "rating")].slice(0, 80).map((m) => (
+            {[...requiredLeft, ...missing, ...todo.filter((m) => m.need === "optional")].slice(0, 120).map((m) => (
               <li key={m.item.key}>
                 <button type="button" className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-amber-100"
                   onClick={() => { setSection(m.item.sectionKey); setShowMissing(false); setTimeout(() => document.getElementById(`item-${m.item.key}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 80); }}>
-                  <AlertTriangle size={12} className="flex-shrink-0 text-amber-600" />
-                  <span className="min-w-0 flex-1 truncate text-slate-800">{m.item.label}</span>
-                  <span className="flex-shrink-0 text-amber-800">{m.need === "rating" ? tr("not rated") : tr("note + photo")}</span>
+                  <AlertTriangle size={12} className={cx("flex-shrink-0", m.need === "optional" ? "text-slate-400" : "text-red-500")} />
+                  <span className="min-w-0 flex-1 truncate text-slate-800">{tl(m.item)}</span>
+                  <span className={cx("flex-shrink-0", m.need === "optional" ? "text-slate-500" : "text-red-700")}>
+                    {m.need === "rating" ? tr("required, not rated") : m.need === "optional" ? tr("optional") : m.what === "note" ? tr("note") : m.what === "photo" ? tr("photo") : tr("note + photo")}
+                  </span>
                 </button>
               </li>
             ))}
@@ -385,11 +392,11 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
       </div>
 
       {camera && (
-        <CameraCapture open title={`${camera.no}. ${camera.label}`} branch={visit.branchName} countNumber={def.title}
+        <CameraCapture open title={`${camera.no}. ${tl(camera)}`} branch={visit.branchName} countNumber={tl(def, "title")}
           onClose={() => setCamera(null)} onShot={(s) => upload(camera, s)} />
       )}
       {confirm && (
-        <SendSheet title={def.title} visit={visit} counts={counts} total={rated.length} unrated={unrated} busy={sending}
+        <SendSheet title={tl(def, "title")} visit={visit} counts={counts} total={rated.length} unrated={unrated} busy={sending}
           under={items.filter((i) => answers[i.key]?.rating === "UNDER").map((i) => ({ item: i, note: answers[i.key]?.note ?? "", photos: photos.filter((p) => p.item === i.key).length }))}
           photos={photos.length} onClose={() => setConfirm(false)} onSend={(sig, name) => void submit(sig, name)} />
       )}
@@ -402,7 +409,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
 /** Before sending: the visit at a glance, the findings, an optional signature with the signer's name. */
 function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, onClose, onSend }: {
   title: string; visit: Visit; counts: Record<Rating, number>; total: number; unrated: number; busy: boolean; photos: number;
-  under: { item: Item & { section: string }; note: string; photos: number }[]; onClose: () => void; onSend: (signature: string | null, name: string) => void;
+  under: { item: Item & { section: string; sectionEn?: string }; note: string; photos: number }[]; onClose: () => void; onSend: (signature: string | null, name: string) => void;
 }) {
   const [signature, setSignature] = useState<string | null>(null);
   const [name, setName] = useState(visit.name);
@@ -443,7 +450,7 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
           <p className="mt-2 text-xs text-slate-500">{tr("{0} of {1} rated", counts.UNDER + counts.MEET + counts.EXCEED, total)}</p>
           {unrated > 0 && (
             <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
-              <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {tr("{0} items are not rated: they are sent empty and left out of the score.", unrated)}
+              <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {tr("{0} optional items are not rated: they are sent empty and left out of the score.", unrated)}
             </p>
           )}
         </section>
@@ -454,8 +461,8 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
             <ul className="divide-y divide-slate-100 rounded-xl border border-red-100">
               {under.map((u) => (
                 <li key={u.item.key} className="px-3 py-2.5 text-sm">
-                  <p className="font-medium text-slate-900">{u.item.label}</p>
-                  <p className="text-xs text-slate-500">{u.item.section} · {tr("{0} photos", u.photos)}</p>
+                  <p className="font-medium text-slate-900">{tl(u.item)}</p>
+                  <p className="text-xs text-slate-500">{tl(u.item, "section")} · {tr("{0} photos", u.photos)}</p>
                   {u.note && <p className="mt-1 text-slate-700">{u.note}</p>}
                 </li>
               ))}
@@ -531,24 +538,32 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
   );
 }
 
-function ItemRow({ item, answer, auto, photos, onAnswer, onCamera, onRemovePhoto }: {
-  item: Item; answer: Answer; auto: AutoStars | null; photos: VisitPhoto[]; onAnswer: (v: Answer, now?: boolean) => void; onCamera: () => void; onRemovePhoto: (id: string) => void;
+function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemovePhoto }: {
+  item: Item; group: string | null; answer: Answer; auto: AutoStars | null; photos: VisitPhoto[]; onAnswer: (v: Answer, now?: boolean) => void; onCamera: () => void; onRemovePhoto: (id: string) => void;
 }) {
   const [noteOpen, setNoteOpen] = useState(!!answer.note);
   const under = answer.rating === "UNDER";
-  const ratedNeeds = !!answer.rating && !item.platform; // every rated item: a note and a photo (2026-10-23)
-  const showNote = item.kind === "text" || noteOpen || ratedNeeds || !!answer.note;
-  const needNote = ratedNeeds && !answer.note;
-  const needPhoto = ratedNeeds && photos.length === 0;
+  const required = item.kind === "rating" && isRequired(item, group);
+  const ev = evidenceOf(item, group); // a rated required item: its note / photo (2026-10-27)
+  const rated = !!answer.rating;
+  const showNote = item.kind === "text" || noteOpen || (rated && ev.note) || !!answer.note;
+  const needNote = rated && ev.note && !answer.note;
+  const needPhoto = rated && ev.photo && photos.length === 0;
+  const hint = required && !item.platform && ev.note !== ev.photo ? (ev.note ? tr("Note required · photo optional") : tr("Photo required · note optional")) : null;
   return (
     <li id={`item-${item.key}`} className={cx("px-4 py-3.5", under && "bg-red-50/40")}>
       <div className="flex items-start gap-2.5">
         <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400">{item.no}</span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-snug text-slate-900">{item.label}</p>
+          <p className="text-sm font-medium leading-snug text-slate-900">
+            {tl(item)}
+            <span className={cx("ml-1.5 inline-block rounded px-1.5 py-px align-middle text-[10px] font-semibold uppercase tracking-wide",
+              required ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-500")}>{required ? tr("Required") : tr("Optional")}</span>
+          </p>
+          {hint && <p className="mt-0.5 text-[11px] text-slate-500">{hint}</p>}
           {item.platform && <PlatformStars item={item} answer={answer} auto={auto} onAnswer={onAnswer} />}
           {item.kind === "rating" && (
-            <div className="mt-2 grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={item.label}>
+            <div className="mt-2 grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={tl(item)}>
               {RATINGS.map((r) => (
                 <button key={r} type="button" role="radio" aria-checked={answer.rating === r} title={answer.rating === r ? tr("Tap again to clear") : undefined}
                   onClick={() => onAnswer({ rating: answer.rating === r ? null : r }, true)}
@@ -559,7 +574,7 @@ function ItemRow({ item, answer, auto, photos, onAnswer, onCamera, onRemovePhoto
           )}
           {showNote && (
             <textarea value={answer.note ?? ""} onChange={(e) => onAnswer({ note: e.target.value })} rows={2} maxLength={1000}
-              placeholder={item.kind === "text" ? tr("Names, separated by commas") : ratedNeeds ? tr("What you see (required)") : tr("Note")}
+              placeholder={item.kind === "text" ? tr("Names, separated by commas") : rated && ev.note ? tr("What you see (required)") : tr("Note (optional)")}
               aria-invalid={needNote || undefined}
               className={cx(inputClass, "mt-2 h-auto py-2 text-sm", needNote && "border-red-300")} />
           )}
