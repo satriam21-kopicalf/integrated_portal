@@ -14,7 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, ErrorState, cx, fmtDate, fmtDay, inputClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, type CountLine, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, parseQty } from "@/so/lib/counts";
+import { type Count, type CountLine, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, lineDateField, parseQty } from "@/so/lib/counts";
 import { wibDay } from "@/so/ui/Filters";
 import { tr } from "@/lib/i18n";
 import Evidence, { EvidenceFiles, SignatureCard } from "./Evidence";
@@ -90,9 +90,9 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
     }
   };
 
-  /** the roasted / expired date of a line (HUB CK / HUB WH), saved as soon as it is picked */
+  /** the roasted / expired date of a line (item group / count type / facility default), saved as soon as it is picked */
   const saveDate = async (line: CountLine, value: string | null) => {
-    const field = count?.date_field;
+    const field = count ? lineDateField(line, count) : null;
     if (!field) return;
     setSaving((s) => new Set(s).add(line.id));
     try {
@@ -256,17 +256,17 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         <p className="mt-0.5 text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                       )}
                       {bad && <p className="mt-0.5 text-[11px] text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
-                      {count.date_field && l.source !== "WIP_EXPLODED" && (
+                      {(() => { const df = lineDateField(l, count); return df && l.source !== "WIP_EXPLODED" && (
                         <label className="mt-1.5 block max-w-[12rem]">
-                          <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[count.date_field]()}</span>
-                          <input type="date" disabled={!edit} value={l[count.date_field] ?? ""}
-                            max={count.date_field === "roasted_date" ? wibDay(0) : undefined}
+                          <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[df]()}</span>
+                          <input type="date" disabled={!edit} value={l[df] ?? ""}
+                            max={df === "roasted_date" ? wibDay(0) : undefined}
                             onChange={(e) => void saveDate(l, e.target.value || null)}
                             className={cx("mt-0.5 h-9 w-full rounded-lg border px-2 text-sm font-semibold tabular-nums text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50 disabled:text-slate-500",
-                              l[count.date_field] ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-white")}
-                            aria-label={`${DATE_FIELD_LABEL[count.date_field]()} ${l.item_name}`} />
+                              l[df] ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-white")}
+                            aria-label={`${DATE_FIELD_LABEL[df]()} ${l.item_name}`} />
                         </label>
-                      )}
+                      ); })()}
                     </div>
                     {l.source === "WIP_EXPLODED" ? (
                       <p className="flex-shrink-0 text-right text-xs font-medium text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom}<span className="block text-[10px] font-normal">{tr("from the WIP")}</span></p>

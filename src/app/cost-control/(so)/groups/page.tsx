@@ -11,19 +11,26 @@ import NewItemDialog, { type ItemDraft } from "@/so/features/settings/NewItemDia
 import { Badge, Button, cx, Empty, ErrorState, Field, Input, Page, Panel, SearchBox, SkeletonRows, fmtDate, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer, { DrawerSection } from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { FormCard, Switch } from "@/so/ui/Simple";
+import { FormCard, Segmented, Switch } from "@/so/ui/Simple";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 
-type Group = { id: string; code: string; name: string; description: string | null; is_active: boolean; updated_at: string; items: number; lists: number;
+type Group = { id: string; code: string; name: string; description: string | null; is_active: boolean; updated_at: string;
+  /** date asked for this group's items: null = follow the count type, "NONE" = no date */
+  date_field: "NONE" | "roasted_date" | "expired_date" | null; items: number; lists: number;
   pending: number; source_ref: string | null };
 type Pending = { id: number; code: string; name: string; category: string | null; sub_category: string | null; unit: string | null; area: string | null; suggested_category_id: string | null };
 type UsedBy = { list_id: string; count_type: string; facility_type: string; facility_id: string | null; facility_code: string | null; facility_name: string | null };
 type GroupDetail = Omit<Group, "items"> & { items: EditorItem[]; used_by: UsedBy[]; pending_items: Pending[] };
 type Facility = { id: string; code: string; name: string; facility_type: string; city: string | null; legal_entity_code: string; own_lists: number };
 type CountType = { code: string; name: string; frequency: string; is_active: boolean };
+/** the date asked for a group's items (count_item_group.date_field); "" = follow the count type */
+const GROUP_DATE_OPTIONS: { value: string; label: () => string }[] = [
+  { value: "", label: () => tr("Follow count type") }, { value: "NONE", label: () => tr("No date") },
+  { value: "roasted_date", label: () => tr("Roasted date") }, { value: "expired_date", label: () => tr("Expired date") },
+];
 
 /** Branches and count types for the branch picker (loaded once per page). */
 function usePickerData() {
@@ -116,7 +123,8 @@ export default function GroupsPage() {
                 {rows === null ? <SkeletonRows cols={4} /> : paged.rows.map((g) => (
                   <tr key={g.id} className="group cursor-pointer hover:bg-slate-50/70" onClick={() => setOpen(g.id)}>
                     <td className="px-4 py-3">
-                      <span className="block font-medium text-slate-900 group-hover:text-blue-700">{g.name} {!g.is_active && <Badge>{tr("Inactive")}</Badge>}</span>
+                      <span className="block font-medium text-slate-900 group-hover:text-blue-700">{g.name} {!g.is_active && <Badge>{tr("Inactive")}</Badge>}
+                        {g.date_field && <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">{GROUP_DATE_OPTIONS.find((x) => x.value === g.date_field)?.label()}</span>}</span>
                       <span className="block font-mono text-[11px] text-slate-400">{g.code}{g.source_ref ? ` · ${g.source_ref}` : ""}</span>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
@@ -444,6 +452,10 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
   const setActive = (active: boolean) => run(async () => {
     await api(`/api/so/count-settings/groups/${groupId}`, { method: "PATCH", json: { is_active: active } });
   });
+  const setDateField = (v: string) => run(async () => {
+    await api(`/api/so/count-settings/groups/${groupId}`, { method: "PATCH", json: { date_field: v || null } });
+    toast(tr("Group saved"));
+  });
   const applyBranches = (remove: boolean) => run(async () => {
     const n = await assign(groupId, countTypes, Array.from(picked), remove);
     toast(remove ? tr("Removed from {0} lists", n) : tr("Added to {0} lists", n));
@@ -556,6 +568,10 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
               </FormCard>
               <FormCard title={tr("Status")}>
                 <Switch label={tr("Active")} hint={tr("An inactive group is ignored by every list that uses it")} checked={g.is_active} disabled={busy} onChange={setActive} />
+              </FormCard>
+              <FormCard title={tr("Date asked per item")} hint={tr("For the items of this group, whatever the count type asks. Always optional on the count form.")}>
+                <Segmented label={tr("Date asked per item")} value={g.date_field ?? ""} onChange={(v) => { if (!busy) setDateField(v); }}
+                  options={GROUP_DATE_OPTIONS.map((x) => ({ value: x.value, label: x.label() }))} />
               </FormCard>
             </div>
           )}

@@ -3192,6 +3192,8 @@ export const ID: Record<string, string> = {
   "Date asked per item": "Tanggal yang diminta per item",
   "Facility default": "Default fasilitas",
   "No date": "Tanpa tanggal",
+  "Follow count type": "Ikuti jenis SO",
+  "For the items of this group, whatever the count type asks. Always optional on the count form.": "Untuk item di grup ini, apa pun pengaturan jenis SO-nya. Selalu opsional di form SO.",
   "Optional on the line either way. \"Facility default\" asks the roasted date at a Central Kitchen and the expired date at a Warehouse; \"No date\" asks none.": "Tetap opsional pada baris. \"Default fasilitas\" meminta tanggal sangrai di Central Kitchen dan tanggal kedaluwarsa di Warehouse; \"Tanpa tanggal\" tidak meminta tanggal.",
   "Choose the form to fill in": "Pilih form yang akan diisi",
   "Sales, stock, cost control and monitoring of every outlet in one place": "Penjualan, stok, cost control dan monitoring seluruh outlet dalam satu tempat",
