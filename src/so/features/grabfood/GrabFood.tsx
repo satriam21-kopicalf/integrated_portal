@@ -33,7 +33,11 @@ type Outlet = {
   reviews30d: { count: number; avg: number | null; low: number; unreplied: number; lastAt: string | null };
   reviewsAll: { count: number; withPhoto: number };
   menu: { outOfStock: number; off: number; syncedAt: string | null };
+  /** weekly opening hours on Grab (Sunday first), today's, and the minutes closed during them today */
+  hours: { week: Range[][]; today: Range[]; shouldBeOpen: boolean | null; closedInHours: boolean; closedMinutesToday: number | null;
+    closePeriodStart: string | null; closePeriodEnd: string | null };
 };
+type Range = { start: string; end: string };
 type Session = { present: boolean; valid: boolean; updatedAt?: string | null; updatedBy?: string | null; note?: string | null } | null;
 type Result = { canEdit: boolean; session: Session; data: Outlet[] };
 type Aspect = { aspectName: string; rating: number; reason?: string };
@@ -44,7 +48,8 @@ type Review = {
 };
 type ReviewPage = { data: Review[]; total: number; page: number; size: number; counts: { withPhoto: number; unreplied: number; low: number; avg: number | null } };
 type MenuItem = { merchantId: string; branchName: string; itemId: string; kind: "item" | "modifier"; name: string; category: string | null;
-  itemCode: string | null; price: number | null; imageUrl: string | null; status: "AVAILABLE" | "OUT_OF_STOCK" | "OFF"; availableAt: string | null };
+  itemCode: string | null; price: number | null; imageUrl: string | null; status: "AVAILABLE" | "OUT_OF_STOCK" | "OFF"; availableAt: string | null;
+  /** the price most outlets of the same city ask (at least 3 outlets) */ refPrice: number | null; refOutlets: number | null };
 type View = "outlets" | "reviews" | "menu";
 
 const LOGO = "/assets/grabfood.svg";
@@ -78,6 +83,9 @@ const timeAgo = (iso?: string | null) => {
 /** No ratings yet: Grab reports 0, shown as "—". */
 const scoreOf = (o: Outlet) => (o.rating.count && o.rating.score ? o.rating.score : null);
 const unavailable = (o: Outlet) => o.menu.outOfStock + o.menu.off;
+const rangesText = (r: Range[]) => (r.length ? r.map((x) => `${x.start}–${x.end}`).join(", ") : tr("Closed all day"));
+const fmtDuration = (m: number) => (m >= 60 ? tr("{0} h {1} min", Math.floor(m / 60), m % 60) : tr("{0} min", m));
+const dayName = (i: number) => new Date(2024, 0, 7 + i).toLocaleDateString("id-ID", { weekday: "long" }); // 2024-01-07 = Sunday
 /** "Kopi Calf To Go Pasar Lama" and "Kopi Calf - Pasar Lama" sort under P (the location), not under the brand. */
 const place = (name: string) => name.replace(/^kopi\s*calf(\s+to\s+go)?[\s-]*/i, "").trim();
 const byName = (a: string, b: string) => place(a).localeCompare(place(b), "id");
@@ -96,11 +104,12 @@ function Stars({ value, size = 13 }: { value: number | null; size?: number }) {
   );
 }
 
-function StatusBadge({ s }: { s: Status }) {
+function StatusBadge({ s, inHours }: { s: Status; inHours?: boolean }) {
   if (s.isOpen === null) return <span className="text-xs text-slate-400">—</span>;
   if (!s.isOpen) {
     const paused = (s.label || "").toLowerCase().includes("pause");
-    return <Badge tone={paused ? "amber" : "slate"} dot>{paused ? tr("Paused") : tr("Closed")}{s.pauseUntil ? ` · ${tr("until {0}", fmtTime(s.pauseUntil))}` : ""}</Badge>;
+    // closed or paused while its opening hours say open: red; outside its hours a closed outlet is normal
+    return <Badge tone={inHours ? "red" : paused ? "amber" : "slate"} dot>{paused ? tr("Paused") : tr("Closed")}{s.pauseUntil ? ` · ${tr("until {0}", fmtTime(s.pauseUntil))}` : ""}</Badge>;
   }
   if (s.isBusy) return <Badge tone="amber" dot>{tr("Busy")}</Badge>;
   return <Badge tone="green" dot>{tr("Open")}</Badge>;
@@ -151,6 +160,8 @@ export default function GrabFood() {
     const weight = rated.reduce((a, o) => a + (o.rating.count ?? 0), 0);
     return {
       outlets: all.length, open: all.filter((o) => o.status.isOpen === true).length, notOpen: all.filter((o) => o.status.isOpen === false).length,
+      inHours: all.filter((o) => o.hours.closedInHours).length,
+      closedMinutes: all.reduce((a, o) => a + (o.hours.closedMinutesToday ?? 0), 0),
       rating: weight ? rated.reduce((a, o) => a + (scoreOf(o) ?? 0) * (o.rating.count ?? 0), 0) / weight : null,
       ratings: weight, reviews: all.reduce((a, o) => a + o.reviewsAll.count, 0), photos: all.reduce((a, o) => a + o.reviewsAll.withPhoto, 0),
       outOfStock: all.reduce((a, o) => a + o.menu.outOfStock, 0), off: all.reduce((a, o) => a + o.menu.off, 0),
@@ -176,9 +187,9 @@ export default function GrabFood() {
             onClick={res ? () => go("outlets") : undefined} active={view === "outlets" && !outletView}>
             {res && <p>{tr("outlets on GrabFood")}</p>}
           </Stat>
-          <Stat label={tr("Paused / closed")} valueClassName={VALUE} icon={<AlertTriangle size={13} />} value={res ? fmtNumber(sum.notOpen) : <StatSkeleton />}
-            onClick={res ? () => go("outlets", "closed") : undefined} active={view === "outlets" && outletView === "closed"}>
-            {res && <p>{tr("outlets · click to show them")}</p>}
+          <Stat label={tr("Closed in opening hours")} icon={<AlertTriangle size={13} />} valueClassName={VALUE} value={res ? fmtNumber(sum.inHours) : <StatSkeleton />}
+            onClick={res ? () => go("outlets", "inHours") : undefined} active={view === "outlets" && outletView === "inHours"}>
+            {res && <p>{tr("{0} paused / closed now · {1} today", fmtNumber(sum.notOpen), fmtDuration(sum.closedMinutes))}</p>}
           </Stat>
           <Stat label={tr("Average rating")} valueClassName={VALUE} icon={<Star size={13} />} value={res ? (sum.rating === null ? "—" : sum.rating.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : <StatSkeleton />}>
             {res && <p>{tr("{0} ratings, weighted", fmtNumber(sum.ratings))}</p>}
@@ -243,6 +254,8 @@ function ViewSwitch({ view, onView, counts }: { view: View; onView: (v: View) =>
 /* ---------------------------------------------------------------- outlets */
 
 const OUTLET_VIEWS: Record<string, { label: () => string; test: (o: Outlet) => boolean }> = {
+  inHours: { label: () => tr("Closed in opening hours"), test: (o) => o.hours.closedInHours },
+  downtime: { label: () => tr("Closed in opening hours today"), test: (o) => (o.hours.closedMinutesToday ?? 0) > 0 },
   closed: { label: () => tr("Paused / closed"), test: (o) => o.status.isOpen === false },
   busy: { label: () => tr("Busy"), test: (o) => !!o.status.isBusy },
   low: { label: () => tr("Rating below {0}", LOW.toLocaleString()), test: (o) => scoreOf(o) !== null && scoreOf(o)! < LOW },
@@ -254,6 +267,7 @@ const OUTLET_SORTS: Record<string, { label: () => string; cmp: (a: Outlet, b: Ou
   name: { label: () => tr("Outlet name"), cmp: (a, b) => byName(a.branchName, b.branchName) },
   low: { label: () => tr("Lowest rating"), cmp: (a, b) => (scoreOf(a) ?? 9) - (scoreOf(b) ?? 9) || byName(a.branchName, b.branchName) },
   high: { label: () => tr("Highest rating"), cmp: (a, b) => (scoreOf(b) ?? -1) - (scoreOf(a) ?? -1) || byName(a.branchName, b.branchName) },
+  downtime: { label: () => tr("Longest closed in opening hours"), cmp: (a, b) => (b.hours.closedMinutesToday ?? 0) - (a.hours.closedMinutesToday ?? 0) || byName(a.branchName, b.branchName) },
   menu: { label: () => tr("Most menu unavailable"), cmp: (a, b) => unavailable(b) - unavailable(a) || byName(a.branchName, b.branchName) },
   reviews: { label: () => tr("Most reviews"), cmp: (a, b) => b.reviewsAll.count - a.reviewsAll.count },
 };
@@ -299,10 +313,12 @@ function OutletsPanel({ res, view, setView, onOpen }: { res: Result | null; view
                     <span className="min-w-0 flex-1 space-y-1">
                       <span className="flex items-start justify-between gap-2">
                         <span className="min-w-0 truncate text-sm font-medium text-slate-900">{o.branchName}</span>
-                        <StatusBadge s={o.status} />
+                        <StatusBadge s={o.status} inHours={o.hours.closedInHours} />
                       </span>
                       <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                         <Stars value={scoreOf(o)} size={12} />
+                        {o.hours.week.length > 0 && <span className="tabular-nums">{rangesText(o.hours.today)}</span>}
+                        {(o.hours.closedMinutesToday ?? 0) > 0 && <span className="text-red-600">{tr("closed {0} in hours", fmtDuration(o.hours.closedMinutesToday!))}</span>}
                         <span>{tr("{0} reviews", fmtNumber(o.reviewsAll.count))}</span>
                         {unavailable(o) > 0 && <span className="text-amber-700">{tr("{0} menu unavailable", fmtNumber(unavailable(o)))}</span>}
                       </span>
@@ -312,11 +328,13 @@ function OutletsPanel({ res, view, setView, onOpen }: { res: Result | null; view
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[920px] text-sm">
+              <table className="w-full min-w-[1080px] text-sm">
                 <thead className={theadClass}>
                   <tr>
                     <th className="px-4 py-2.5">{tr("Outlet")}</th>
                     <th className="px-4 py-2.5">{tr("Now")}</th>
+                    <th className="px-4 py-2.5">{tr("Hours today")}</th>
+                    <th className="px-4 py-2.5 text-right">{tr("Closed in hours")}</th>
                     <th className="px-4 py-2.5">{tr("Rating")}</th>
                     <th className="px-4 py-2.5 text-right">{tr("Ratings")}</th>
                     <th className="px-4 py-2.5 text-right">{tr("Reviews")}</th>
@@ -325,7 +343,7 @@ function OutletsPanel({ res, view, setView, onOpen }: { res: Result | null; view
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {!res ? <SkeletonRows cols={7} /> : paged.rows.map((o) => (
+                  {!res ? <SkeletonRows cols={9} /> : paged.rows.map((o) => (
                     <tr key={o.merchantId} onClick={() => onOpen(o.merchantId)} className="cursor-pointer hover:bg-slate-50/70">
                       <td className="max-w-[22rem] px-4 py-2.5">
                         <span className="flex items-center gap-3">
@@ -336,7 +354,10 @@ function OutletsPanel({ res, view, setView, onOpen }: { res: Result | null; view
                           </span>
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-2.5"><StatusBadge s={o.status} /></td>
+                      <td className="whitespace-nowrap px-4 py-2.5"><StatusBadge s={o.status} inHours={o.hours.closedInHours} /></td>
+                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-slate-600">{o.hours.week.length ? rangesText(o.hours.today) : "—"}</td>
+                      <td className={cx("whitespace-nowrap px-4 py-2.5 text-right tabular-nums", o.hours.closedMinutesToday ? "font-semibold text-red-600" : "text-slate-400")}>
+                        {o.hours.closedMinutesToday ? fmtDuration(o.hours.closedMinutesToday) : "—"}</td>
                       <td className="whitespace-nowrap px-4 py-2.5"><Stars value={scoreOf(o)} /></td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{o.rating.count ? fmtNumber(o.rating.count) : "—"}</td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{fmtNumber(o.reviewsAll.count)}</td>
@@ -386,6 +407,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
   }, [o.merchantId]);
   const dist = [...(o.rating.distribution ?? [])].sort((a, b) => b.score - a.score);
   const score = scoreOf(o);
+  const [now] = useState(() => Date.now()); // the moment the drawer opened: today's row and a closure still running
 
   return (
     <Drawer open onClose={onClose} size="lg" icon={<Store size={18} />} title={o.branchName}
@@ -396,11 +418,38 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2"><Stars value={score} size={16} />
               {o.rating.count ? <span className="text-sm text-slate-500">{tr("{0} ratings", fmtNumber(o.rating.count))}</span> : null}</div>
-            <div className="flex flex-wrap items-center gap-2"><StatusBadge s={o.status} />
+            <div className="flex flex-wrap items-center gap-2"><StatusBadge s={o.status} inHours={o.hours.closedInHours} />
               <span className="text-xs text-slate-400">{o.status.isOpen && o.status.openUntil ? `${tr("open until {0}", fmtTime(o.status.openUntil))} · ` : ""}{tr("checked {0}", timeAgo(o.status.checkedAt))}</span></div>
           </div>
         </div>
         {o.address && <p className="flex items-start gap-1.5 rounded-xl border border-slate-200 p-3 text-sm text-slate-700"><MapPin size={15} className="mt-0.5 flex-shrink-0 text-slate-400" />{o.address}</p>}
+
+        {(o.hours.closedInHours || (o.hours.closedMinutesToday ?? 0) > 0) && (
+          <p className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-800">
+            <AlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
+            <span>{o.hours.closedInHours ? tr("Not open now although its opening hours say open.") : ""} {(o.hours.closedMinutesToday ?? 0) > 0 ? tr("Closed {0} during its opening hours today.", fmtDuration(o.hours.closedMinutesToday!)) : ""}</span>
+          </p>
+        )}
+
+        {o.hours.week.length > 0 && (
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{tr("Opening hours on GrabFood")}</h3>
+            <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
+              {o.hours.week.map((r, i) => {
+                const today = i === new Date(now + 7 * 3600e3).getUTCDay();
+                return (
+                  <div key={i} className={cx("flex justify-between gap-3 px-3 py-1.5", today && "bg-blue-50/60 font-medium")}>
+                    <dt className={today ? "text-slate-900" : "text-slate-500"}>{dayName(i)}</dt>
+                    <dd className="tabular-nums text-slate-800">{rangesText(r)}</dd>
+                  </div>
+                );
+              })}
+            </dl>
+            {o.hours.closePeriodEnd && new Date(o.hours.closePeriodEnd).getTime() > now && (
+              <p className="mt-1.5 text-xs text-amber-700">{tr("Temporarily closed until {0}", fmtDateTime(o.hours.closePeriodEnd))}</p>
+            )}
+          </section>
+        )}
 
         {dist.length > 0 && (
           <section>
@@ -770,7 +819,7 @@ function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merc
   const paged = usePaged(rows, rows.length + search + JSON.stringify(f));
   const outletName = (id: string) => outlets.find((o) => o.merchantId === id)?.branchName ?? id;
   const apply = (v: MF) => { setF(v); setMerchant(v.merchant); };
-  const statusLabel = (s: string) => (s === "unavailable" ? tr("Unavailable") : s === "all" ? tr("Whole menu") : menuLabel(s as MenuItem["status"]));
+  const statusLabel = (s: string) => (s === "unavailable" ? tr("Unavailable") : s === "all" ? tr("Whole menu") : s === "price" ? tr("Different price") : menuLabel(s as MenuItem["status"]));
   const chips: ActiveFilter[] = [
     ...(f.merchant ? [{ key: "m", label: outletName(f.merchant), onRemove: () => apply({ ...f, merchant: "", status: f.status === "all" ? "unavailable" : f.status }) }] : []),
     ...(f.status !== "unavailable" ? [{ key: "s", label: statusLabel(f.status), onRemove: () => setF({ ...f, status: "unavailable" }) }] : []),
@@ -787,7 +836,7 @@ function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merc
           <PageNav paged={paged} />
         </> : undefined}>
         {err ? <ErrorState message={err} /> : items && rows.length === 0 ? (
-          <Empty icon={<PackageX size={28} />} title={search || chips.length ? tr("Nothing matches the search or filters") : tr("Nothing is out of stock or switched off")} />
+          <Empty icon={<PackageX size={28} />} title={f.status === "price" && !search ? tr("Every outlet asks the usual price of its city") : search || chips.length ? tr("Nothing matches the search or filters") : tr("Nothing is out of stock or switched off")} />
         ) : (
           <>
             <ul className="divide-y divide-slate-100 md:hidden">
@@ -797,6 +846,7 @@ function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merc
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-slate-900">{i.name}</span>
                     <span className="block truncate text-xs text-slate-500">{[!f.merchant ? i.branchName : null, i.kind === "modifier" ? tr("Add-on") : i.category].filter(Boolean).join(" · ")}</span>
+                    {f.status === "price" && <span className="block text-xs text-amber-700">{rp(i.price)} · {tr("most: {0}", rp(i.refPrice))}</span>}
                   </span>
                   <span className="flex-shrink-0 text-right">
                     <Badge tone={MENU_TONE[i.status]}>{i.status === "OUT_OF_STOCK" ? tr("Out of stock") : i.status === "OFF" ? tr("Off") : tr("Available")}</Badge>
@@ -831,7 +881,9 @@ function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merc
                       </td>
                       {!f.merchant && <td className="max-w-[14rem] truncate px-4 py-2.5 text-slate-700">{i.branchName}</td>}
                       <td className="max-w-[14rem] truncate px-4 py-2.5 text-slate-600">{i.category ?? "—"}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-slate-700">{rp(i.price)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-slate-700">
+                        <PriceCell i={i} />
+                      </td>
                       <td className="px-4 py-2.5"><Badge tone={MENU_TONE[i.status]}>{menuLabel(i.status)}</Badge></td>
                       <td className="whitespace-nowrap px-4 py-2.5 text-xs text-slate-500">{i.status === "OUT_OF_STOCK" && i.availableAt ? fmtDateTime(i.availableAt) : i.status === "OFF" ? tr("when switched on") : "—"}</td>
                     </tr>
@@ -844,6 +896,18 @@ function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merc
       </Panel>
       {sheet && <MenuFilters outlets={outlets} value={f} onClose={() => setSheet(false)} onApply={(v) => { apply(v); setSheet(false); }} />}
     </>
+  );
+}
+
+/** The price; when it differs from the price most outlets of the city ask, that price too (amber). */
+function PriceCell({ i }: { i: MenuItem }) {
+  const differs = i.kind === "item" && i.refPrice !== null && i.price !== i.refPrice;
+  if (!differs) return <>{rp(i.price)}</>;
+  return (
+    <span className="inline-flex flex-col items-end" title={tr("Most of the {0} outlets in the city ask {1}", fmtNumber(i.refOutlets ?? 0), rp(i.refPrice))}>
+      <span className="font-semibold text-amber-700">{rp(i.price)}</span>
+      <span className="text-[11px] text-slate-400">{tr("most: {0}", rp(i.refPrice))}</span>
+    </span>
   );
 }
 
@@ -864,9 +928,10 @@ function MenuFilters({ outlets, value, onApply, onClose }: { outlets: Outlet[]; 
           options={outlets.map((o) => ({ value: o.merchantId, label: o.branchName, meta: unavailable(o) ? fmtNumber(unavailable(o)) : undefined }))}
           placeholder={tr("Search outlet")} />
       </FilterSection>
-      <FilterSection title={tr("Status")} hint={tr("Out of stock today comes back by itself; switched off stays off until the outlet turns it on")}>
+      <FilterSection title={tr("Status")} hint={tr("Out of stock today comes back by itself; switched off stays off until the outlet turns it on. Different price: not the price most outlets of the same city use.")}>
         <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
           choices={[{ value: "unavailable", label: tr("Unavailable") }, { value: "OUT_OF_STOCK", label: tr("Out of stock today") }, { value: "OFF", label: tr("Switched off") },
+            { value: "price", label: tr("Different price") },
             ...(d.merchant ? [{ value: "all", label: tr("Whole menu") }] : [])]} />
       </FilterSection>
       <FilterSection title={tr("Type")}>

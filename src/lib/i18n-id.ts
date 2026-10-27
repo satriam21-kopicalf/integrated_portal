@@ -3333,4 +3333,23 @@ export const ID: Record<string, string> = {
   "Detected by Grab from the review: + positive, − negative": "Dideteksi Grab dari ulasan: + positif, − negatif",
   // GrabFood (2026-10-27)
   "Off": "Nonaktif",
+  // GrabFood (2026-10-27)
+  "Closed all day": "Tutup seharian",
+  "Closed in hours": "Tutup di jam buka",
+  "Closed in opening hours": "Tutup di jam operasional",
+  "Closed in opening hours today": "Sempat tutup di jam operasional hari ini",
+  "Closed {0} during its opening hours today.": "Tutup {0} di jam operasional hari ini.",
+  "Different price": "Harga berbeda",
+  "Every outlet asks the usual price of its city": "Semua outlet memakai harga yang umum di kotanya",
+  "Hours today": "Jam buka hari ini",
+  "Longest closed in opening hours": "Paling lama tutup di jam operasional",
+  "Not open now although its opening hours say open.": "Sedang tidak buka padahal masih jam operasional.",
+  "Opening hours on GrabFood": "Jam operasional di GrabFood",
+  "Out of stock today comes back by itself; switched off stays off until the outlet turns it on. Different price: not the price most outlets of the same city use.": "Habis hari ini aktif lagi dengan sendirinya; nonaktif tetap mati sampai outlet mengaktifkannya. Harga berbeda: tidak sama dengan harga yang dipakai sebagian besar outlet di kota yang sama.",
+  "Temporarily closed until {0}": "Tutup sementara sampai {0}",
+  "closed {0} in hours": "tutup {0} di jam buka",
+  "most: {0}": "umumnya: {0}",
+  "{0} h {1} min": "{0} jam {1} menit",
+  "Most of the {0} outlets in the city ask {1}": "Sebagian besar dari {0} outlet di kota ini memakai {1}",
+  "{0} paused / closed now · {1} today": "{0} dijeda / tutup sekarang · {1} hari ini",
 };
