@@ -5,7 +5,7 @@
 
 import { notFound, useParams } from "next/navigation";
 import FeatureSkeleton from "@/components/FeatureSkeleton";
-import GrabFood from "./GrabFood";
+import GrabFood from "@/so/features/grabfood/GrabFood";
 import { tr } from "@/lib/i18n";
 
 const SOURCES: Record<string, { name: string; logo: string }> = {
