@@ -18,7 +18,7 @@ import {
 } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
+import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, wibDay } from "@/so/ui/Filters";
 import { SearchChoice } from "@/so/ui/FilterControls";
 import { tr } from "@/lib/i18n";
 
@@ -140,9 +140,9 @@ export default function GrabFood() {
   const [open, setOpen] = useState<string | null>(null);
   const [preview, setPreview] = useState<Review | null>(null);
   const [sessionOpen, setSessionOpen] = useState(false);
-  const [reviewOutlet, setReviewOutlet] = useState("");
-  const [menuOutlet, setMenuOutlet] = useState("");
-  const [outletView, setOutletView] = useState("");
+  const [of, setOf] = useState<OF>(NO_OF);
+  const [rf, setRf] = useState<RF>(NO_RF);
+  const [mf, setMf] = useState<MF>(NO_MF);
 
   const load = useCallback(async (quiet = false) => {
     setError(null);
@@ -155,6 +155,7 @@ export default function GrabFood() {
   useEffect(() => { const t = setInterval(() => void load(true), 5 * 60_000); return () => clearInterval(t); }, [load]);
 
   const all = useMemo(() => res?.data ?? [], [res]);
+  const cities = useMemo(() => [...new Set(all.map((o) => o.cityName).filter((c): c is string => !!c))].sort(), [all]);
   const sum = useMemo(() => {
     const rated = all.filter((o) => scoreOf(o) !== null);
     const weight = rated.reduce((a, o) => a + (o.rating.count ?? 0), 0);
@@ -165,13 +166,12 @@ export default function GrabFood() {
       rating: weight ? rated.reduce((a, o) => a + (scoreOf(o) ?? 0) * (o.rating.count ?? 0), 0) / weight : null,
       ratings: weight, reviews: all.reduce((a, o) => a + o.reviewsAll.count, 0), photos: all.reduce((a, o) => a + o.reviewsAll.withPhoto, 0),
       outOfStock: all.reduce((a, o) => a + o.menu.outOfStock, 0), off: all.reduce((a, o) => a + o.menu.off, 0),
-      menuOutlets: all.filter((o) => unavailable(o) > 0).length,
       last: all.map((o) => o.status.checkedAt).filter(Boolean).sort().pop() ?? null,
     };
   }, [all]);
   const current = all.find((o) => o.merchantId === open) ?? null;
-  const go = (v: View, outletView_ = "") => { setView(v); if (v === "outlets") setOutletView(outletView_); };
   const iconBtn = "inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
+  const tabs = <PanelTabs view={view} onView={setView} counts={{ outlets: sum.outlets, reviews: sum.reviews, menu: sum.outOfStock + sum.off }} />;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element -- brand logo from public/assets
@@ -184,22 +184,22 @@ export default function GrabFood() {
       stats={
         <StatStrip label={tr("Summary")} columns={5} gridClassName="grid-cols-2 xl:grid-cols-5">
           <Stat label={tr("Open now")} emphasis className="col-span-2 xl:col-span-1" valueClassName={VALUE} icon={<Store size={13} />} value={res ? `${fmtNumber(sum.open)} / ${fmtNumber(sum.outlets)}` : <StatSkeleton />}
-            onClick={res ? () => go("outlets") : undefined} active={view === "outlets" && !outletView}>
+            onClick={res ? () => { setOf(NO_OF); setView("outlets"); } : undefined} active={view === "outlets" && !of.status}>
             {res && <p>{tr("outlets on GrabFood")}</p>}
           </Stat>
-          <Stat label={tr("Closed in opening hours")} icon={<AlertTriangle size={13} />} valueClassName={VALUE} value={res ? fmtNumber(sum.inHours) : <StatSkeleton />}
-            onClick={res ? () => go("outlets", "inHours") : undefined} active={view === "outlets" && outletView === "inHours"}>
+          <Stat label={tr("Closed in hours")} icon={<AlertTriangle size={13} />} valueClassName={VALUE} value={res ? fmtNumber(sum.inHours) : <StatSkeleton />}
+            onClick={res ? () => { setOf({ ...NO_OF, status: "inHours" }); setView("outlets"); } : undefined} active={view === "outlets" && of.status === "inHours"}>
             {res && <p>{tr("{0} paused / closed now · {1} today", fmtNumber(sum.notOpen), fmtDuration(sum.closedMinutes))}</p>}
           </Stat>
           <Stat label={tr("Average rating")} valueClassName={VALUE} icon={<Star size={13} />} value={res ? (sum.rating === null ? "—" : sum.rating.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : <StatSkeleton />}>
             {res && <p>{tr("{0} ratings, weighted", fmtNumber(sum.ratings))}</p>}
           </Stat>
           <Stat label={tr("Reviews")} valueClassName={VALUE} icon={<MessageSquareText size={13} />} value={res ? fmtNumber(sum.reviews) : <StatSkeleton />}
-            onClick={res ? () => { setReviewOutlet(""); go("reviews"); } : undefined} active={view === "reviews"}>
+            onClick={res ? () => { setRf(NO_RF); setView("reviews"); } : undefined} active={view === "reviews"}>
             {res && <p>{tr("{0} with photos", fmtNumber(sum.photos))}</p>}
           </Stat>
           <Stat label={tr("Menu unavailable")} valueClassName={VALUE} icon={<PackageX size={13} />} value={res ? fmtNumber(sum.outOfStock + sum.off) : <StatSkeleton />}
-            onClick={res ? () => { setMenuOutlet(""); go("menu"); } : undefined} active={view === "menu"}>
+            onClick={res ? () => { setMf(NO_MF); setView("menu"); } : undefined} active={view === "menu"}>
             {res && <p>{tr("{0} out of stock · {1} off", fmtNumber(sum.outOfStock), fmtNumber(sum.off))}</p>}
           </Stat>
         </StatStrip>
@@ -213,16 +213,14 @@ export default function GrabFood() {
         </div>
       )}
 
-      <ViewSwitch view={view} onView={(v) => go(v)} counts={{ outlets: sum.outlets, reviews: sum.reviews, menu: sum.outOfStock + sum.off }} />
-
-      {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel>
-        : view === "outlets" ? <OutletsPanel res={res} view={outletView} setView={setOutletView} onOpen={setOpen} />
-        : view === "reviews" ? <ReviewsPanel outlets={all} merchant={reviewOutlet} setMerchant={setReviewOutlet} onPreview={setPreview} />
-        : <MenuPanel outlets={all} merchant={menuOutlet} setMerchant={setMenuOutlet} />}
+      {error ? <Panel toolbar={tabs}><ErrorState message={error} onRetry={() => void load()} /></Panel>
+        : view === "outlets" ? <OutletsPanel tabs={tabs} res={res} cities={cities} f={of} setF={setOf} onOpen={setOpen} />
+        : view === "reviews" ? <ReviewsPanel tabs={tabs} outlets={all} cities={cities} f={rf} setF={setRf} onPreview={setPreview} />
+        : <MenuPanel tabs={tabs} outlets={all} cities={cities} f={mf} setF={setMf} />}
 
       {current && <OutletDrawer o={current} canEdit={!!res?.canEdit} onClose={() => setOpen(null)} onPreview={setPreview}
-        onReviews={() => { setReviewOutlet(current.merchantId); setOpen(null); go("reviews"); }}
-        onMenu={() => { setMenuOutlet(current.merchantId); setOpen(null); go("menu"); }}
+        onReviews={() => { setRf({ ...NO_RF, merchant: current.merchantId }); setOpen(null); setView("reviews"); }}
+        onMenu={() => { setMf({ ...NO_MF, merchant: current.merchantId }); setOpen(null); setView("menu"); }}
         onChanged={() => void load(true)} />}
       {preview && <ReviewPreview r={preview} onClose={() => setPreview(null)} />}
       {sessionOpen && res?.canEdit && <SessionDrawer session={res.session} onClose={() => setSessionOpen(false)}
@@ -231,68 +229,104 @@ export default function GrabFood() {
   );
 }
 
-function ViewSwitch({ view, onView, counts }: { view: View; onView: (v: View) => void; counts: Record<View, number> }) {
+/** The views as the header row of the panel (inside the table card): Outlets · Reviews · Menu. */
+function PanelTabs({ view, onView, counts }: { view: View; onView: (v: View) => void; counts: Record<View, number> }) {
   const items: { key: View; label: string; icon: ReactNode }[] = [
     { key: "outlets", label: tr("Outlets"), icon: <Store size={15} /> },
     { key: "reviews", label: tr("Reviews"), icon: <MessageSquareText size={15} /> },
     { key: "menu", label: tr("Menu"), icon: <UtensilsCrossed size={15} /> },
   ];
   return (
-    <div role="tablist" aria-label={tr("View")} className="grid grid-cols-3 gap-1 rounded-xl border border-slate-200/80 bg-white p-1 shadow-sm sm:inline-grid sm:w-auto">
+    <div role="tablist" aria-label={tr("View")} className="-mx-3 -mt-3 flex border-b border-slate-200 bg-slate-50/60 px-1 sm:-mx-4 sm:-mt-4 sm:px-2">
       {items.map((t) => (
         <button key={t.key} type="button" role="tab" aria-selected={view === t.key} onClick={() => onView(t.key)}
-          className={cx("inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors sm:px-4",
-            view === t.key ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900")}>
+          className={cx("relative inline-flex h-12 flex-1 items-center justify-center gap-2 px-3 text-sm font-medium transition-colors sm:flex-none sm:px-5",
+            view === t.key ? "text-blue-700" : "text-slate-500 hover:text-slate-900")}>
           {t.icon}<span>{t.label}</span>
-          <span className={cx("hidden rounded-full px-1.5 text-[11px] tabular-nums sm:inline", view === t.key ? "bg-white/20" : "bg-slate-100 text-slate-500")}>{fmtNumber(counts[t.key])}</span>
+          <span className={cx("hidden rounded-full px-1.5 py-px text-[11px] font-semibold tabular-nums sm:inline",
+            view === t.key ? "bg-blue-100 text-blue-700" : "bg-slate-200/70 text-slate-500")}>{fmtNumber(counts[t.key])}</span>
+          {view === t.key && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-blue-600" aria-hidden />}
         </button>
       ))}
     </div>
   );
 }
 
+/** Two lines in a table cell: the value, and a small note under it. */
+function Cell({ children, note, noteClass = "text-slate-400", align = "left" }: { children: ReactNode; note?: ReactNode; noteClass?: string; align?: "left" | "right" }) {
+  return (
+    <span className={cx("flex flex-col gap-0.5", align === "right" ? "items-end" : "items-start")}>
+      <span className="tabular-nums">{children}</span>
+      {note ? <span className={cx("text-[11px] leading-tight", noteClass)}>{note}</span> : null}
+    </span>
+  );
+}
+
+const TH = "px-4 py-3 font-semibold";
+const TD = "px-4 py-3 align-middle";
+
 /* ---------------------------------------------------------------- outlets */
 
-const OUTLET_VIEWS: Record<string, { label: () => string; test: (o: Outlet) => boolean }> = {
-  inHours: { label: () => tr("Closed in opening hours"), test: (o) => o.hours.closedInHours },
-  downtime: { label: () => tr("Closed in opening hours today"), test: (o) => (o.hours.closedMinutesToday ?? 0) > 0 },
-  closed: { label: () => tr("Paused / closed"), test: (o) => o.status.isOpen === false },
+type OF = { status: string; city: string; rating: string; issue: string; mapping: string; sort: string };
+const NO_OF: OF = { status: "", city: "", rating: "", issue: "", mapping: "", sort: "name" };
+const OUTLET_STATUS: Record<string, { label: () => string; test: (o: Outlet) => boolean }> = {
+  open: { label: () => tr("Open"), test: (o) => o.status.isOpen === true && !o.status.isBusy },
   busy: { label: () => tr("Busy"), test: (o) => !!o.status.isBusy },
-  low: { label: () => tr("Rating below {0}", LOW.toLocaleString()), test: (o) => scoreOf(o) !== null && scoreOf(o)! < LOW },
+  paused: { label: () => tr("Paused"), test: (o) => o.status.isOpen === false && (o.status.label || "").toLowerCase().includes("pause") },
+  closed: { label: () => tr("Closed"), test: (o) => o.status.isOpen === false && !(o.status.label || "").toLowerCase().includes("pause") },
+  inHours: { label: () => tr("Closed in opening hours"), test: (o) => o.hours.closedInHours },
+};
+const OUTLET_RATING: Record<string, { label: () => string; test: (o: Outlet) => boolean }> = {
+  low: { label: () => tr("Below {0}", LOW.toLocaleString()), test: (o) => scoreOf(o) !== null && scoreOf(o)! < LOW },
+  mid: { label: () => "4,5 – 4,8", test: (o) => scoreOf(o) !== null && scoreOf(o)! >= LOW && scoreOf(o)! < 4.8 },
+  high: { label: () => tr("{0} and up", "4,8"), test: (o) => scoreOf(o) !== null && scoreOf(o)! >= 4.8 },
+  none: { label: () => tr("No rating yet"), test: (o) => scoreOf(o) === null },
+};
+const OUTLET_ISSUES: Record<string, { label: () => string; test: (o: Outlet) => boolean }> = {
+  downtime: { label: () => tr("Closed in opening hours today"), test: (o) => (o.hours.closedMinutesToday ?? 0) > 0 },
   menu: { label: () => tr("Menu unavailable"), test: (o) => unavailable(o) > 0 },
+  stock: { label: () => tr("Out of stock today"), test: (o) => o.menu.outOfStock > 0 },
   bad: { label: () => tr("≤2★ reviews in 30 days"), test: (o) => o.reviews30d.low > 0 },
-  unmapped: { label: () => tr("Not mapped to a branch"), test: (o) => !o.branchCode },
+  unreplied: { label: () => tr("Reviews not replied (30 days)"), test: (o) => o.reviews30d.unreplied > 0 },
 };
 const OUTLET_SORTS: Record<string, { label: () => string; cmp: (a: Outlet, b: Outlet) => number }> = {
   name: { label: () => tr("Outlet name"), cmp: (a, b) => byName(a.branchName, b.branchName) },
+  downtime: { label: () => tr("Longest closed in opening hours"), cmp: (a, b) => (b.hours.closedMinutesToday ?? 0) - (a.hours.closedMinutesToday ?? 0) || byName(a.branchName, b.branchName) },
   low: { label: () => tr("Lowest rating"), cmp: (a, b) => (scoreOf(a) ?? 9) - (scoreOf(b) ?? 9) || byName(a.branchName, b.branchName) },
   high: { label: () => tr("Highest rating"), cmp: (a, b) => (scoreOf(b) ?? -1) - (scoreOf(a) ?? -1) || byName(a.branchName, b.branchName) },
-  downtime: { label: () => tr("Longest closed in opening hours"), cmp: (a, b) => (b.hours.closedMinutesToday ?? 0) - (a.hours.closedMinutesToday ?? 0) || byName(a.branchName, b.branchName) },
+  bad: { label: () => tr("Most ≤2★ reviews (30 days)"), cmp: (a, b) => b.reviews30d.low - a.reviews30d.low || byName(a.branchName, b.branchName) },
   menu: { label: () => tr("Most menu unavailable"), cmp: (a, b) => unavailable(b) - unavailable(a) || byName(a.branchName, b.branchName) },
-  reviews: { label: () => tr("Most reviews"), cmp: (a, b) => b.reviewsAll.count - a.reviewsAll.count },
+  reviews: { label: () => tr("Most reviews"), cmp: (a, b) => b.reviewsAll.count - a.reviewsAll.count || byName(a.branchName, b.branchName) },
 };
 
-function OutletsPanel({ res, view, setView, onOpen }: { res: Result | null; view: string; setView: (v: string) => void; onOpen: (id: string) => void }) {
+function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
+  tabs: ReactNode; res: Result | null; cities: string[]; f: OF; setF: (f: OF) => void; onOpen: (id: string) => void;
+}) {
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("name");
   const [sheet, setSheet] = useState(false);
   const all = useMemo(() => res?.data ?? [], [res]);
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
-    const v = view ? OUTLET_VIEWS[view] : null;
-    return all.filter((o) => (!v || v.test(o)) && (!s || `${o.branchName} ${o.merchantName} ${o.branchCode ?? ""} ${o.cityName ?? ""} ${o.address ?? ""}`.toLowerCase().includes(s)))
-      .sort(OUTLET_SORTS[sort].cmp);
-  }, [all, view, search, sort]);
-  const paged = usePaged(rows, rows.length + search + view + sort);
+    return all.filter((o) => (!f.status || OUTLET_STATUS[f.status].test(o)) && (!f.city || o.cityName === f.city)
+      && (!f.rating || OUTLET_RATING[f.rating].test(o)) && (!f.issue || OUTLET_ISSUES[f.issue].test(o))
+      && (!f.mapping || (f.mapping === "mapped") === !!o.branchCode)
+      && (!s || `${o.branchName} ${o.merchantName} ${o.branchCode ?? ""} ${o.cityName ?? ""} ${o.address ?? ""}`.toLowerCase().includes(s)))
+      .sort(OUTLET_SORTS[f.sort].cmp);
+  }, [all, f, search]);
+  const paged = usePaged(rows, rows.length + search + JSON.stringify(f));
   const chips: ActiveFilter[] = [
-    ...(view ? [{ key: "v", label: OUTLET_VIEWS[view].label(), onRemove: () => setView("") }] : []),
-    ...(sort !== "name" ? [{ key: "s", label: tr("Sort: {0}", OUTLET_SORTS[sort].label()), onRemove: () => setSort("name") }] : []),
+    ...(f.status ? [{ key: "st", label: OUTLET_STATUS[f.status].label(), onRemove: () => setF({ ...f, status: "" }) }] : []),
+    ...(f.city ? [{ key: "c", label: f.city, onRemove: () => setF({ ...f, city: "" }) }] : []),
+    ...(f.rating ? [{ key: "r", label: `${tr("Rating")}: ${OUTLET_RATING[f.rating].label()}`, onRemove: () => setF({ ...f, rating: "" }) }] : []),
+    ...(f.issue ? [{ key: "i", label: OUTLET_ISSUES[f.issue].label(), onRemove: () => setF({ ...f, issue: "" }) }] : []),
+    ...(f.mapping ? [{ key: "m", label: f.mapping === "mapped" ? tr("Mapped to a branch") : tr("Not mapped to a branch"), onRemove: () => setF({ ...f, mapping: "" }) }] : []),
+    ...(f.sort !== "name" ? [{ key: "s", label: tr("Sort: {0}", OUTLET_SORTS[f.sort].label()), onRemove: () => setF({ ...f, sort: "name" }) }] : []),
   ];
 
   return (
     <>
-      <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet, branch code or address")} filters={chips}
-        onOpen={() => setSheet(true)} onClear={() => { setView(""); setSort("name"); }} />}
+      <Panel toolbar={<>{tabs}<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet, branch code, city or address")} filters={chips}
+        onOpen={() => setSheet(true)} onClear={() => setF(NO_OF)} /></>}
         footer={res ? <>
           <span className="inline-flex flex-wrap items-center gap-2">
             {tr("{0} of {1} outlets", fmtNumber(rows.length), fmtNumber(all.length))} ·
@@ -319,7 +353,6 @@ function OutletsPanel({ res, view, setView, onOpen }: { res: Result | null; view
                         <Stars value={scoreOf(o)} size={12} />
                         {o.hours.week.length > 0 && <span className="tabular-nums">{rangesText(o.hours.today)}</span>}
                         {(o.hours.closedMinutesToday ?? 0) > 0 && <span className="text-red-600">{tr("closed {0} in hours", fmtDuration(o.hours.closedMinutesToday!))}</span>}
-                        <span>{tr("{0} reviews", fmtNumber(o.reviewsAll.count))}</span>
                         {unavailable(o) > 0 && <span className="text-amber-700">{tr("{0} menu unavailable", fmtNumber(unavailable(o)))}</span>}
                       </span>
                     </span>
@@ -328,41 +361,53 @@ function OutletsPanel({ res, view, setView, onOpen }: { res: Result | null; view
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[1080px] text-sm">
+              <table className="w-full min-w-[940px] text-sm">
                 <thead className={theadClass}>
                   <tr>
-                    <th className="px-4 py-2.5">{tr("Outlet")}</th>
-                    <th className="px-4 py-2.5">{tr("Now")}</th>
-                    <th className="px-4 py-2.5">{tr("Hours today")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Closed in hours")}</th>
-                    <th className="px-4 py-2.5">{tr("Rating")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Ratings")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Reviews")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("≤2★ (30 d)")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Menu unavailable")}</th>
+                    <th className={TH}>{tr("Outlet")}</th>
+                    <th className={TH}>{tr("Status & hours today")}</th>
+                    <th className={cx(TH, "text-right")}>{tr("Closed in hours")}</th>
+                    <th className={TH}>{tr("Rating")}</th>
+                    <th className={cx(TH, "text-right")}>{tr("Reviews")}</th>
+                    <th className={cx(TH, "text-right")}>{tr("Menu unavailable")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {!res ? <SkeletonRows cols={9} /> : paged.rows.map((o) => (
-                    <tr key={o.merchantId} onClick={() => onOpen(o.merchantId)} className="cursor-pointer hover:bg-slate-50/70">
-                      <td className="max-w-[22rem] px-4 py-2.5">
+                  {!res ? <SkeletonRows cols={6} /> : paged.rows.map((o) => (
+                    <tr key={o.merchantId} onClick={() => onOpen(o.merchantId)} className="cursor-pointer transition-colors hover:bg-blue-50/40">
+                      <td className={cx(TD, "max-w-[20rem]")}>
                         <span className="flex items-center gap-3">
                           <StorePhoto o={o} />
                           <span className="min-w-0">
                             <span className="block truncate font-medium text-slate-900">{o.branchName}</span>
-                            <span className="block truncate text-xs text-slate-400">{o.branchCode ?? <span className="text-amber-700">{tr("not mapped to a branch")}</span>}{o.cityName ? ` · ${o.cityName}` : ""}</span>
+                            <span className="block truncate text-xs text-slate-400">
+                              {o.branchCode ?? <span className="text-amber-700">{tr("not mapped to a branch")}</span>}{o.cityName ? ` · ${o.cityName}` : ""}
+                            </span>
                           </span>
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-2.5"><StatusBadge s={o.status} inHours={o.hours.closedInHours} /></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-slate-600">{o.hours.week.length ? rangesText(o.hours.today) : "—"}</td>
-                      <td className={cx("whitespace-nowrap px-4 py-2.5 text-right tabular-nums", o.hours.closedMinutesToday ? "font-semibold text-red-600" : "text-slate-400")}>
-                        {o.hours.closedMinutesToday ? fmtDuration(o.hours.closedMinutesToday) : "—"}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5"><Stars value={scoreOf(o)} /></td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{o.rating.count ? fmtNumber(o.rating.count) : "—"}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{fmtNumber(o.reviewsAll.count)}</td>
-                      <td className={cx("px-4 py-2.5 text-right tabular-nums", o.reviews30d.low ? "font-semibold text-red-600" : "text-slate-400")}>{o.reviews30d.low || "—"}</td>
-                      <td className={cx("px-4 py-2.5 text-right tabular-nums", unavailable(o) ? "font-semibold text-amber-700" : "text-slate-400")}>{unavailable(o) || "—"}</td>
+                      <td className={cx(TD, "whitespace-nowrap")}>
+                        <Cell note={o.hours.week.length ? rangesText(o.hours.today) : undefined}><StatusBadge s={o.status} inHours={o.hours.closedInHours} /></Cell>
+                      </td>
+                      <td className={cx(TD, "whitespace-nowrap text-right")}>
+                        {o.hours.closedMinutesToday ? <span className="font-semibold tabular-nums text-red-600">{fmtDuration(o.hours.closedMinutesToday)}</span> : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className={cx(TD, "whitespace-nowrap")}>
+                        <Cell note={o.rating.count ? tr("{0} ratings", fmtNumber(o.rating.count)) : undefined}><Stars value={scoreOf(o)} /></Cell>
+                      </td>
+                      <td className={cx(TD, "whitespace-nowrap text-right")}>
+                        <Cell align="right" noteClass={o.reviews30d.low ? "font-medium text-red-600" : "text-slate-400"}
+                          note={o.reviews30d.low ? tr("{0} ≤2★ in 30 days", o.reviews30d.low) : o.reviews30d.count ? tr("{0} in 30 days", o.reviews30d.count) : undefined}>
+                          <span className="text-slate-800">{fmtNumber(o.reviewsAll.count)}</span>
+                        </Cell>
+                      </td>
+                      <td className={cx(TD, "whitespace-nowrap text-right")}>
+                        {unavailable(o) ? (
+                          <Cell align="right" note={tr("{0} out of stock · {1} off", o.menu.outOfStock, o.menu.off)}>
+                            <span className="font-semibold text-amber-700">{fmtNumber(unavailable(o))}</span>
+                          </Cell>
+                        ) : <span className="text-slate-300">—</span>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -371,25 +416,41 @@ function OutletsPanel({ res, view, setView, onOpen }: { res: Result | null; view
           </>
         )}
       </Panel>
-      {sheet && (
-        <OutletFilters value={{ view, sort }} onClose={() => setSheet(false)}
-          onApply={(v) => { setView(v.view); setSort(v.sort); setSheet(false); }} />
-      )}
+      {sheet && <OutletFilters cities={cities} value={f} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </>
   );
 }
 
-function OutletFilters({ value, onApply, onClose }: { value: { view: string; sort: string }; onApply: (v: { view: string; sort: string }) => void; onClose: () => void }) {
+/** Outlets for a SearchChoice: sorted on the location, with a quiet count on the right. */
+const outletChoices = (outlets: Outlet[], count: (o: Outlet) => number) => [...outlets].sort((a, b) => byName(a.branchName, b.branchName))
+  .map((o) => ({ value: o.merchantId, label: o.branchName, meta: count(o) ? <span className="flex-shrink-0 text-xs tabular-nums text-slate-400">{fmtNumber(count(o))}</span> : undefined }));
+
+const choicesOf = (map: Record<string, { label: () => string }>, all: string) =>
+  [{ value: "", label: all }, ...Object.keys(map).map((k) => ({ value: k, label: map[k].label() }))];
+
+function OutletFilters({ cities, value, onApply, onClose }: { cities: string[]; value: OF; onApply: (v: OF) => void; onClose: () => void }) {
   const [d, setD] = useState(value);
   return (
-    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ view: "", sort: "name" })}>
-      <FilterSection title={tr("Show")}>
-        <ChoiceGroup label="" value={d.view} onChange={(v) => setD({ ...d, view: v })}
-          choices={[{ value: "", label: tr("All outlets") }, ...Object.keys(OUTLET_VIEWS).map((k) => ({ value: k, label: OUTLET_VIEWS[k].label() }))]} />
+    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_OF)}>
+      <FilterSection title={tr("Status now")} hint={tr("Closed in opening hours: paused or closed while its GrabFood hours say open")}>
+        <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })} choices={choicesOf(OUTLET_STATUS, tr("All"))} />
+      </FilterSection>
+      <FilterSection title={tr("City")}>
+        <SearchChoice label={tr("City")} anyLabel={tr("All cities")} value={d.city} onChange={(v) => setD({ ...d, city: v })}
+          options={cities.map((c) => ({ value: c, label: c }))} placeholder={tr("Search city")} />
+      </FilterSection>
+      <FilterSection title={tr("Rating")}>
+        <ChoiceGroup label="" value={d.rating} onChange={(v) => setD({ ...d, rating: v })} choices={choicesOf(OUTLET_RATING, tr("All"))} />
+      </FilterSection>
+      <FilterSection title={tr("Needs attention")}>
+        <ChoiceGroup label="" value={d.issue} onChange={(v) => setD({ ...d, issue: v })} choices={choicesOf(OUTLET_ISSUES, tr("All outlets"))} />
+      </FilterSection>
+      <FilterSection title={tr("ESB branch")}>
+        <ChoiceGroup label="" value={d.mapping} onChange={(v) => setD({ ...d, mapping: v })}
+          choices={[{ value: "", label: tr("All") }, { value: "mapped", label: tr("Mapped to a branch") }, { value: "unmapped", label: tr("Not mapped to a branch") }]} />
       </FilterSection>
       <FilterSection title={tr("Sort")}>
-        <ChoiceGroup label="" value={d.sort} onChange={(v) => setD({ ...d, sort: v })}
-          choices={Object.keys(OUTLET_SORTS).map((k) => ({ value: k, label: OUTLET_SORTS[k].label() }))} />
+        <ChoiceGroup label="" value={d.sort} onChange={(v) => setD({ ...d, sort: v })} choices={Object.keys(OUTLET_SORTS).map((k) => ({ value: k, label: OUTLET_SORTS[k].label() }))} />
       </FilterSection>
     </FilterSheet>
   );
@@ -540,11 +601,15 @@ function BranchPicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
 
 /* ---------------------------------------------------------------- reviews */
 
-type RF = { merchant: string; stars: string; photo: string; reply: string; from: string; to: string };
-const NO_RF: RF = { merchant: "", stars: "", photo: "", reply: "", from: "", to: "" };
+type RF = { merchant: string; city: string; stars: string; photo: string; text: string; reply: string; from: string; to: string; sort: string };
+const NO_RF: RF = { merchant: "", city: "", stars: "", photo: "", text: "", reply: "", from: "", to: "", sort: "newest" };
+const REVIEW_SORTS: Record<string, () => string> = {
+  newest: () => tr("Newest first"), oldest: () => tr("Oldest first"), lowest: () => tr("Lowest stars first"), highest: () => tr("Highest stars first"),
+};
 
-function ReviewsPanel({ outlets, merchant, setMerchant, onPreview }: { outlets: Outlet[]; merchant: string; setMerchant: (v: string) => void; onPreview: (r: Review) => void }) {
-  const [f, setF] = useState<RF>({ ...NO_RF, merchant });
+function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
+  tabs: ReactNode; outlets: Outlet[]; cities: string[]; f: RF; setF: (f: RF) => void; onPreview: (r: Review) => void;
+}) {
   const [search, setSearch] = useState("");
   const [q, setQ] = useState("");
   const [sheet, setSheet] = useState(false);
@@ -552,14 +617,15 @@ function ReviewsPanel({ outlets, merchant, setMerchant, onPreview }: { outlets: 
   const [res, setRes] = useState<ReviewPage | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => { setF((x) => ({ ...x, merchant })); }, [merchant]);
   useEffect(() => { const t = setTimeout(() => setQ(search.trim()), 350); return () => clearTimeout(t); }, [search]);
   useEffect(() => setPage(1), [f, q]);
   useEffect(() => {
-    const p = new URLSearchParams({ page: String(page), size: String(REVIEW_PAGE) });
+    const p = new URLSearchParams({ page: String(page), size: String(REVIEW_PAGE), sort: f.sort });
     if (f.merchant) p.set("merchant", f.merchant);
+    if (f.city) p.set("city", f.city);
     if (f.stars) p.set("rating", f.stars);
-    if (f.photo) p.set("photo", "true");
+    if (f.photo) p.set("photo", f.photo);
+    if (f.text) p.set("text", f.text);
     if (f.reply) p.set("replied", f.reply);
     if (f.from) p.set("from", f.from);
     if (f.to) p.set("to", f.to);
@@ -571,21 +637,23 @@ function ReviewsPanel({ outlets, merchant, setMerchant, onPreview }: { outlets: 
   }, [f, q, page]);
 
   const outletName = (id: string) => outlets.find((o) => o.merchantId === id)?.branchName ?? id;
-  const apply = (v: RF) => { setF(v); setMerchant(v.merchant); };
   const chips: ActiveFilter[] = [
-    ...(f.merchant ? [{ key: "m", label: outletName(f.merchant), onRemove: () => apply({ ...f, merchant: "" }) }] : []),
+    ...(f.merchant ? [{ key: "m", label: outletName(f.merchant), onRemove: () => setF({ ...f, merchant: "" }) }] : []),
+    ...(f.city ? [{ key: "c", label: f.city, onRemove: () => setF({ ...f, city: "" }) }] : []),
     ...(f.stars ? [{ key: "s", label: STAR_CHOICES.find((c) => c.value === f.stars)?.label ?? f.stars, onRemove: () => setF({ ...f, stars: "" }) }] : []),
-    ...(f.photo ? [{ key: "p", label: tr("With photo"), onRemove: () => setF({ ...f, photo: "" }) }] : []),
+    ...(f.photo ? [{ key: "p", label: f.photo === "true" ? tr("With photo") : tr("Without photo"), onRemove: () => setF({ ...f, photo: "" }) }] : []),
+    ...(f.text ? [{ key: "t", label: f.text === "true" ? tr("With written review") : tr("Stars only"), onRemove: () => setF({ ...f, text: "" }) }] : []),
     ...(f.reply ? [{ key: "r", label: f.reply === "false" ? tr("Not replied") : tr("Replied"), onRemove: () => setF({ ...f, reply: "" }) }] : []),
     ...(f.from || f.to ? [{ key: "d", label: `${f.from ? fmtDay(f.from) : "…"} – ${f.to ? fmtDay(f.to) : "…"}`, onRemove: () => setF({ ...f, from: "", to: "" }) }] : []),
+    ...(f.sort !== "newest" ? [{ key: "o", label: tr("Sort: {0}", REVIEW_SORTS[f.sort]()), onRemove: () => setF({ ...f, sort: "newest" }) }] : []),
   ];
   const pages = res ? Math.max(1, Math.ceil(res.total / res.size)) : 1;
   const first = res ? (res.page - 1) * res.size + 1 : 0;
 
   return (
     <>
-      <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search review text, item, customer or order")} filters={chips}
-        onOpen={() => setSheet(true)} onClear={() => apply(NO_RF)} />}
+      <Panel toolbar={<>{tabs}<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search review text, item, customer or order")} filters={chips}
+        onOpen={() => setSheet(true)} onClear={() => setF(NO_RF)} /></>}
         footer={res ? <>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span>{tr("{0} reviews", fmtNumber(res.total))}</span>
@@ -603,19 +671,62 @@ function ReviewsPanel({ outlets, merchant, setMerchant, onPreview }: { outlets: 
             </span>
           )}
         </> : undefined}>
-        {err ? <ErrorState message={err} /> : res === null ? (
-          <div className="divide-y divide-slate-100">{Array.from({ length: 5 }, (_, i) => <div key={i} className="px-4 py-3"><div className="skeleton h-14 rounded" /></div>)}</div>
-        ) : res.data.length === 0 ? (
+        {err ? <ErrorState message={err} /> : res && res.data.length === 0 ? (
           <Empty icon={<MessageSquareText size={28} />} title={chips.length || q ? tr("No review matches the search or filters") : tr("No review yet")} />
         ) : (
-          <ul className="divide-y divide-slate-100">
-            {res.data.map((r) => (
-              <li key={r.reviewId}><ReviewRow r={r} showOutlet={!f.merchant} onOpen={() => onPreview(r)} /></li>
-            ))}
-          </ul>
+          <>
+            <ul className="divide-y divide-slate-100 md:hidden">
+              {!res ? Array.from({ length: 5 }, (_, i) => <li key={i} className="px-4 py-3"><div className="skeleton h-14 rounded" /></li>)
+                : res.data.map((r) => <li key={r.reviewId}><ReviewRow r={r} showOutlet={!f.merchant} onOpen={() => onPreview(r)} /></li>)}
+            </ul>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[940px] table-fixed text-sm">
+                <colgroup>
+                  <col className="w-[8.5rem]" />{!f.merchant && <col className="w-[13rem]" />}<col className="w-[9rem]" /><col /><col className="w-[5.5rem]" /><col className="w-[7.5rem]" />
+                </colgroup>
+                <thead className={theadClass}>
+                  <tr>
+                    <th className={TH}>{tr("Date")}</th>
+                    {!f.merchant && <th className={TH}>{tr("Outlet")}</th>}
+                    <th className={TH}>{tr("Rating")}</th>
+                    <th className={TH}>{tr("Review")}</th>
+                    <th className={TH}>{tr("Photo")}</th>
+                    <th className={TH}>{tr("Reply")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {!res ? <SkeletonRows cols={f.merchant ? 5 : 6} /> : res.data.map((r) => (
+                    <tr key={r.reviewId} onClick={() => onPreview(r)} className={cx("cursor-pointer transition-colors hover:bg-blue-50/40", (r.rating ?? 5) <= 2 && "bg-red-50/30")}>
+                      <td className={cx(TD, "align-top")}>
+                        <Cell note={fmtTime(r.createdAt)}><span className="text-slate-700">{fmtDay(r.createdAt)}</span></Cell>
+                      </td>
+                      {!f.merchant && <td className={cx(TD, "align-top")}><span className="line-clamp-2 text-slate-700">{r.branchName}</span></td>}
+                      <td className={cx(TD, "align-top")}>
+                        <Cell note={(r.rating ?? 5) <= 2 ? <Badge tone="red">{tr("Low")}</Badge> : undefined}><Stars value={r.rating} size={12} /></Cell>
+                      </td>
+                      <td className={cx(TD, "align-top")}>
+                        <span className={cx("line-clamp-2", r.description ? "text-slate-800" : "italic text-slate-400")}>{r.description || tr("No written review (stars only)")}</span>
+                        {r.orderedItems.length > 0 && <span className="mt-0.5 block truncate text-xs text-slate-400">{r.orderedItems.join(" · ")}</span>}
+                      </td>
+                      <td className={cx(TD, "align-top")}>
+                        {r.imageUrls.length > 0 ? (
+                          <span className="relative inline-block">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- customer photo from the Grab CDN */}
+                            <img src={r.imageUrls[0]} alt="" loading="lazy" className="h-12 w-12 rounded-lg border border-slate-200 bg-slate-100 object-cover" />
+                            {r.imageUrls.length > 1 && <span className="absolute bottom-0.5 right-0.5 rounded bg-slate-900/70 px-1 text-[10px] font-semibold text-white">+{r.imageUrls.length - 1}</span>}
+                          </span>
+                        ) : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className={cx(TD, "align-top")}>{r.hasReply ? <Badge tone="green">{tr("Replied")}</Badge> : <Badge tone="blue" dot>{tr("not replied")}</Badge>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </Panel>
-      {sheet && <ReviewFilters outlets={outlets} value={f} onClose={() => setSheet(false)} onApply={(v) => { apply(v); setSheet(false); }} />}
+      {sheet && <ReviewFilters outlets={outlets} cities={cities} value={f} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </>
   );
 }
@@ -625,38 +736,56 @@ const STAR_CHOICES = [
   { value: "5", label: "5 ★" }, { value: "1", label: "1 ★" },
 ];
 
-function ReviewFilters({ outlets, value, onApply, onClose }: { outlets: Outlet[]; value: RF; onApply: (v: RF) => void; onClose: () => void }) {
+function ReviewFilters({ outlets, cities, value, onApply, onClose }: { outlets: Outlet[]; cities: string[]; value: RF; onApply: (v: RF) => void; onClose: () => void }) {
   const [d, setD] = useState(value);
+  const preset = (days: number) => setD({ ...d, from: wibDay(-days + 1), to: wibDay(0) });
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_RF)}>
       <FilterSection title={tr("Outlet")}>
         <SearchChoice label={tr("Outlet")} anyLabel={tr("All outlets")} value={d.merchant} onChange={(v) => setD({ ...d, merchant: v })}
-          options={outlets.map((o) => ({ value: o.merchantId, label: o.branchName, meta: o.reviewsAll.count ? fmtNumber(o.reviewsAll.count) : undefined }))}
+          options={outletChoices(outlets, (o) => o.reviewsAll.count)}
           placeholder={tr("Search outlet")} />
+      </FilterSection>
+      <FilterSection title={tr("City")}>
+        <SearchChoice label={tr("City")} anyLabel={tr("All cities")} value={d.city} onChange={(v) => setD({ ...d, city: v })}
+          options={cities.map((c) => ({ value: c, label: c }))} placeholder={tr("Search city")} />
       </FilterSection>
       <FilterSection title={tr("Stars")}>
         <ChoiceGroup label="" value={d.stars} onChange={(v) => setD({ ...d, stars: v })}
           choices={STAR_CHOICES.map((c) => (c.value ? c : { value: "", label: tr("All") }))} />
       </FilterSection>
-      <FilterSection title={tr("Show")}>
-        <ChoiceGroup label="" value={d.photo} onChange={(v) => setD({ ...d, photo: v })}
-          choices={[{ value: "", label: tr("All reviews") }, { value: "true", label: tr("With photo") }]} />
+      <FilterSection title={tr("Content")}>
+        <ChoiceGroup label="" value={d.text} onChange={(v) => setD({ ...d, text: v })}
+          choices={[{ value: "", label: tr("All") }, { value: "true", label: tr("With written review") }, { value: "false", label: tr("Stars only") }]} />
         <div className="mt-3">
-          <ChoiceGroup label="" value={d.reply} onChange={(v) => setD({ ...d, reply: v })}
-            choices={[{ value: "", label: tr("Replied or not") }, { value: "false", label: tr("Not replied") }, { value: "true", label: tr("Replied") }]} />
+          <ChoiceGroup label="" value={d.photo} onChange={(v) => setD({ ...d, photo: v })}
+            choices={[{ value: "", label: tr("With or without photo") }, { value: "true", label: tr("With photo") }, { value: "false", label: tr("Without photo") }]} />
         </div>
       </FilterSection>
+      <FilterSection title={tr("Reply")}>
+        <ChoiceGroup label="" value={d.reply} onChange={(v) => setD({ ...d, reply: v })}
+          choices={[{ value: "", label: tr("Replied or not") }, { value: "false", label: tr("Not replied") }, { value: "true", label: tr("Replied") }]} />
+      </FilterSection>
       <FilterSection title={tr("Period")} hint={tr("Date of the review (WIB)")}>
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {[[1, tr("Today")], [7, tr("7 days")], [30, tr("30 days")], [90, tr("90 days")]].map(([n, l]) => (
+            <button key={String(n)} type="button" onClick={() => preset(Number(n))}
+              className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:border-blue-300 hover:text-blue-700">{l}</button>
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-2">
           <Input type="date" value={d.from} max={d.to || undefined} onChange={(e) => setD({ ...d, from: e.target.value })} aria-label={tr("From")} />
           <Input type="date" value={d.to} min={d.from || undefined} onChange={(e) => setD({ ...d, to: e.target.value })} aria-label={tr("To")} />
         </div>
       </FilterSection>
+      <FilterSection title={tr("Sort")}>
+        <ChoiceGroup label="" value={d.sort} onChange={(v) => setD({ ...d, sort: v })} choices={Object.keys(REVIEW_SORTS).map((k) => ({ value: k, label: REVIEW_SORTS[k]() }))} />
+      </FilterSection>
     </FilterSheet>
   );
 }
 
-/** A review in the list: stars, date, outlet, text (3 lines) and the first photo. */
+/** A review in the phone list: stars, date, outlet, text (2 lines) and the first photo. */
 function ReviewRow({ r, showOutlet, onOpen }: { r: Review; showOutlet: boolean; onOpen: () => void }) {
   return (
     <button type="button" onClick={onOpen} className="flex w-full gap-3 px-4 py-3 text-left hover:bg-slate-50">
@@ -665,11 +794,9 @@ function ReviewRow({ r, showOutlet, onOpen }: { r: Review; showOutlet: boolean; 
           <Stars value={r.rating} size={12} />
           {(r.rating ?? 5) <= 2 && <Badge tone="red">{tr("Low")}</Badge>}
           {!r.hasReply && <Badge tone="blue" dot>{tr("not replied")}</Badge>}
-          <span className="text-xs text-slate-400">{fmtDateTime(r.createdAt)}</span>
         </span>
-        {showOutlet && <span className="mt-1 block truncate text-xs font-medium text-slate-600">{r.branchName}</span>}
+        <span className="mt-0.5 block text-xs text-slate-400">{fmtDateTime(r.createdAt)}{showOutlet ? ` · ${r.branchName}` : ""}</span>
         <span className={cx("mt-1 line-clamp-2 block text-sm", r.description ? "text-slate-700" : "italic text-slate-400")}>{r.description || tr("No written review (stars only)")}</span>
-        {r.orderedItems.length > 0 && <span className="mt-0.5 block truncate text-xs text-slate-400">{r.orderedItems.join(" · ")}</span>}
       </span>
       {r.imageUrls.length > 0 && (
         <span className="relative flex-shrink-0 self-center">
@@ -791,46 +918,58 @@ function Lightbox({ urls, index, onIndex, onClose }: { urls: string[]; index: nu
 
 /* ------------------------------------------------------------------- menu */
 
-type MF = { merchant: string; status: string; kind: string };
-const NO_MF: MF = { merchant: "", status: "unavailable", kind: "" };
+type MF = { merchant: string; city: string; status: string; kind: string; category: string; sort: string };
+const NO_MF: MF = { merchant: "", city: "", status: "unavailable", kind: "", category: "", sort: "status" };
+const MENU_SORTS: Record<string, { label: () => string; cmp: (a: MenuItem, b: MenuItem) => number }> = {
+  status: { label: () => tr("Out of stock first"), cmp: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || byName(a.branchName, b.branchName) || a.name.localeCompare(b.name) },
+  outlet: { label: () => tr("Outlet name"), cmp: (a, b) => byName(a.branchName, b.branchName) || a.name.localeCompare(b.name) },
+  name: { label: () => tr("Menu name"), cmp: (a, b) => a.name.localeCompare(b.name) || byName(a.branchName, b.branchName) },
+  price: { label: () => tr("Highest price"), cmp: (a, b) => (b.price ?? 0) - (a.price ?? 0) || a.name.localeCompare(b.name) },
+};
+const STATUS_RANK: Record<MenuItem["status"], number> = { OUT_OF_STOCK: 0, OFF: 1, AVAILABLE: 2 };
 
-function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merchant: string; setMerchant: (v: string) => void }) {
-  const [f, setF] = useState<MF>({ ...NO_MF, merchant });
+function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlets: Outlet[]; cities: string[]; f: MF; setF: (f: MF) => void }) {
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
   const [items, setItems] = useState<MenuItem[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  useEffect(() => { setF((x) => ({ ...x, merchant })); }, [merchant]);
+  // the server filters by outlet, status and type; city, category, search and sort are applied here
+  const server = `${f.merchant}|${f.status}|${f.kind}`;
   useEffect(() => {
-    const p = new URLSearchParams({ status: f.status });
-    if (f.merchant) p.set("merchant", f.merchant);
-    if (f.kind) p.set("kind", f.kind);
+    const [merchant, status, kind] = server.split("|");
+    const p = new URLSearchParams({ status });
+    if (merchant) p.set("merchant", merchant);
+    if (kind) p.set("kind", kind);
     let live = true;
     setItems(null); setErr(null);
     getJson<{ data: MenuItem[] }>(`/api/rating/grabfood/menu?${p}`).then((r) => live && setItems(r.data)).catch((e) => live && setErr((e as Error).message));
     return () => { live = false; };
-  }, [f]);
+  }, [server]);
+  const cityOf = useMemo(() => new Map(outlets.map((o) => [o.merchantId, o.cityName ?? ""])), [outlets]);
+  const categories = useMemo(() => [...new Set((items ?? []).map((i) => i.category).filter((c): c is string => !!c))].sort(), [items]);
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
-    const rank = { OUT_OF_STOCK: 0, OFF: 1, AVAILABLE: 2 };
-    return (items ?? []).filter((i) => !s || `${i.name} ${i.category ?? ""} ${i.itemCode ?? ""} ${i.branchName}`.toLowerCase().includes(s))
-      .sort((a, b) => rank[a.status] - rank[b.status] || byName(a.branchName, b.branchName) || a.name.localeCompare(b.name));
-  }, [items, search]);
+    return (items ?? []).filter((i) => (!f.city || cityOf.get(i.merchantId) === f.city) && (!f.category || i.category === f.category)
+      && (!s || `${i.name} ${i.category ?? ""} ${i.itemCode ?? ""} ${i.branchName}`.toLowerCase().includes(s)))
+      .sort(MENU_SORTS[f.sort].cmp);
+  }, [items, search, f.city, f.category, f.sort, cityOf]);
   const paged = usePaged(rows, rows.length + search + JSON.stringify(f));
   const outletName = (id: string) => outlets.find((o) => o.merchantId === id)?.branchName ?? id;
-  const apply = (v: MF) => { setF(v); setMerchant(v.merchant); };
   const statusLabel = (s: string) => (s === "unavailable" ? tr("Unavailable") : s === "all" ? tr("Whole menu") : s === "price" ? tr("Different price") : menuLabel(s as MenuItem["status"]));
   const chips: ActiveFilter[] = [
-    ...(f.merchant ? [{ key: "m", label: outletName(f.merchant), onRemove: () => apply({ ...f, merchant: "", status: f.status === "all" ? "unavailable" : f.status }) }] : []),
+    ...(f.merchant ? [{ key: "m", label: outletName(f.merchant), onRemove: () => setF({ ...f, merchant: "", status: f.status === "all" ? "unavailable" : f.status }) }] : []),
+    ...(f.city ? [{ key: "c", label: f.city, onRemove: () => setF({ ...f, city: "" }) }] : []),
     ...(f.status !== "unavailable" ? [{ key: "s", label: statusLabel(f.status), onRemove: () => setF({ ...f, status: "unavailable" }) }] : []),
     ...(f.kind ? [{ key: "k", label: f.kind === "item" ? tr("Menu items") : tr("Add-ons"), onRemove: () => setF({ ...f, kind: "" }) }] : []),
+    ...(f.category ? [{ key: "g", label: f.category, onRemove: () => setF({ ...f, category: "" }) }] : []),
+    ...(f.sort !== "status" ? [{ key: "o", label: tr("Sort: {0}", MENU_SORTS[f.sort].label()), onRemove: () => setF({ ...f, sort: "status" }) }] : []),
   ];
   const lastRead = outlets.map((o) => o.menu.syncedAt).filter(Boolean).sort().pop() ?? null;
 
   return (
     <>
-      <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search menu, category, code or outlet")} filters={chips}
-        onOpen={() => setSheet(true)} onClear={() => apply(NO_MF)} />}
+      <Panel toolbar={<>{tabs}<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search menu, category, code or outlet")} filters={chips}
+        onOpen={() => setSheet(true)} onClear={() => setF(NO_MF)} /></>}
         footer={items ? <>
           <span>{tr("{0} items", fmtNumber(rows.length))} · {tr("menus read every 30 minutes, last {0}", timeAgo(lastRead))}</span>
           <PageNav paged={paged} />
@@ -859,18 +998,17 @@ function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merc
               <table className="w-full min-w-[900px] text-sm">
                 <thead className={theadClass}>
                   <tr>
-                    <th className="px-4 py-2.5">{tr("Menu")}</th>
-                    {!f.merchant && <th className="px-4 py-2.5">{tr("Outlet")}</th>}
-                    <th className="px-4 py-2.5">{tr("Category")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Price")}</th>
-                    <th className="px-4 py-2.5">{tr("Status")}</th>
-                    <th className="px-4 py-2.5">{tr("Back on sale")}</th>
+                    <th className={TH}>{tr("Menu")}</th>
+                    {!f.merchant && <th className={TH}>{tr("Outlet")}</th>}
+                    <th className={TH}>{tr("Category")}</th>
+                    <th className={cx(TH, "text-right")}>{tr("Price")}</th>
+                    <th className={TH}>{tr("Status")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {!items ? <SkeletonRows cols={f.merchant ? 5 : 6} /> : paged.rows.map((i) => (
-                    <tr key={`${i.merchantId}-${i.itemId}`} className="hover:bg-slate-50/70">
-                      <td className="max-w-[20rem] px-4 py-2.5">
+                  {!items ? <SkeletonRows cols={f.merchant ? 4 : 5} /> : paged.rows.map((i) => (
+                    <tr key={`${i.merchantId}-${i.itemId}`} className="transition-colors hover:bg-slate-50/70">
+                      <td className={cx(TD, "max-w-[20rem]")}>
                         <span className="flex items-center gap-3">
                           <MenuPhoto i={i} />
                           <span className="min-w-0">
@@ -879,13 +1017,14 @@ function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merc
                           </span>
                         </span>
                       </td>
-                      {!f.merchant && <td className="max-w-[14rem] truncate px-4 py-2.5 text-slate-700">{i.branchName}</td>}
-                      <td className="max-w-[14rem] truncate px-4 py-2.5 text-slate-600">{i.category ?? "—"}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-slate-700">
-                        <PriceCell i={i} />
+                      {!f.merchant && <td className={cx(TD, "max-w-[14rem]")}><Cell note={cityOf.get(i.merchantId) || undefined}><span className="block max-w-[13rem] truncate text-slate-700">{i.branchName}</span></Cell></td>}
+                      <td className={cx(TD, "max-w-[12rem] truncate text-slate-600")}>{i.category ?? "—"}</td>
+                      <td className={cx(TD, "whitespace-nowrap text-right text-slate-700")}><PriceCell i={i} /></td>
+                      <td className={cx(TD, "whitespace-nowrap")}>
+                        <Cell note={i.status === "OUT_OF_STOCK" && i.availableAt ? tr("back {0}", fmtDateTime(i.availableAt)) : i.status === "OFF" ? tr("until the outlet switches it on") : undefined}>
+                          <Badge tone={MENU_TONE[i.status]}>{menuLabel(i.status)}</Badge>
+                        </Cell>
                       </td>
-                      <td className="px-4 py-2.5"><Badge tone={MENU_TONE[i.status]}>{menuLabel(i.status)}</Badge></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-xs text-slate-500">{i.status === "OUT_OF_STOCK" && i.availableAt ? fmtDateTime(i.availableAt) : i.status === "OFF" ? tr("when switched on") : "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -894,7 +1033,7 @@ function MenuPanel({ outlets, merchant, setMerchant }: { outlets: Outlet[]; merc
           </>
         )}
       </Panel>
-      {sheet && <MenuFilters outlets={outlets} value={f} onClose={() => setSheet(false)} onApply={(v) => { apply(v); setSheet(false); }} />}
+      {sheet && <MenuFilters outlets={outlets} cities={cities} categories={categories} value={f} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </>
   );
 }
@@ -918,15 +1057,21 @@ function MenuPhoto({ i }: { i: MenuItem }) {
     : <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400"><UtensilsCrossed size={15} /></span>;
 }
 
-function MenuFilters({ outlets, value, onApply, onClose }: { outlets: Outlet[]; value: MF; onApply: (v: MF) => void; onClose: () => void }) {
+function MenuFilters({ outlets, cities, categories, value, onApply, onClose }: {
+  outlets: Outlet[]; cities: string[]; categories: string[]; value: MF; onApply: (v: MF) => void; onClose: () => void;
+}) {
   const [d, setD] = useState(value);
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_MF)}>
       <FilterSection title={tr("Outlet")}>
         <SearchChoice label={tr("Outlet")} anyLabel={tr("All outlets")} value={d.merchant}
           onChange={(v) => setD({ ...d, merchant: v, status: !v && d.status === "all" ? "unavailable" : d.status })}
-          options={outlets.map((o) => ({ value: o.merchantId, label: o.branchName, meta: unavailable(o) ? fmtNumber(unavailable(o)) : undefined }))}
+          options={outletChoices(outlets, unavailable)}
           placeholder={tr("Search outlet")} />
+      </FilterSection>
+      <FilterSection title={tr("City")}>
+        <SearchChoice label={tr("City")} anyLabel={tr("All cities")} value={d.city} onChange={(v) => setD({ ...d, city: v })}
+          options={cities.map((c) => ({ value: c, label: c }))} placeholder={tr("Search city")} />
       </FilterSection>
       <FilterSection title={tr("Status")} hint={tr("Out of stock today comes back by itself; switched off stays off until the outlet turns it on. Different price: not the price most outlets of the same city use.")}>
         <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
@@ -937,6 +1082,13 @@ function MenuFilters({ outlets, value, onApply, onClose }: { outlets: Outlet[]; 
       <FilterSection title={tr("Type")}>
         <ChoiceGroup label="" value={d.kind} onChange={(v) => setD({ ...d, kind: v })}
           choices={[{ value: "", label: tr("All") }, { value: "item", label: tr("Menu items") }, { value: "modifier", label: tr("Add-ons") }]} />
+      </FilterSection>
+      <FilterSection title={tr("Category")} hint={tr("Categories of the menu shown now")}>
+        <SearchChoice label={tr("Category")} anyLabel={tr("All categories")} value={d.category} onChange={(v) => setD({ ...d, category: v })}
+          options={categories.map((c) => ({ value: c, label: c }))} placeholder={tr("Search category")} />
+      </FilterSection>
+      <FilterSection title={tr("Sort")}>
+        <ChoiceGroup label="" value={d.sort} onChange={(v) => setD({ ...d, sort: v })} choices={Object.keys(MENU_SORTS).map((k) => ({ value: k, label: MENU_SORTS[k].label() }))} />
       </FilterSection>
     </FilterSheet>
   );

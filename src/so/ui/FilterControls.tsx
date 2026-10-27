@@ -81,7 +81,8 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
     );
   };
   return (
-    <fieldset>
+    // min-w-0: a fieldset is at least as wide as its content by default, so long labels would overflow the drawer
+    <fieldset className="min-w-0">
       {label && <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</legend>}
       <div className="overflow-hidden rounded-lg border border-slate-200">
         <div className="relative border-b border-slate-100 p-2">
