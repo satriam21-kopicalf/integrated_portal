@@ -45,7 +45,7 @@ export const CATEGORY_LABEL: Record<string, () => string> = {
   PARKING: () => tr("Parking & security"), MEAL: () => tr("Meals"), OTHER: () => tr("Other"),
 };
 export const DOC_LABEL: Record<string, () => string> = {
-  NOTA: () => "Nota", KWITANSI: () => tr("Kwitansi (receipt)"), INVOICE: () => "Invoice", STRUK: () => tr("Struk (till slip)"),
+  NOTA: () => tr("Bill (nota)"), KWITANSI: () => tr("Signed receipt (kwitansi)"), INVOICE: () => "Invoice", STRUK: () => tr("Till slip (struk)"),
   TRANSFER: () => tr("Transfer proof"), FOTO: () => tr("Photo of the goods"), OTHER: () => tr("Other"),
 };
 export const categoryLabel = (c: string) => (CATEGORY_LABEL[c] ?? (() => c))();

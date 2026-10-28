@@ -83,26 +83,27 @@ export default function PengajuanMonitor() {
   const accountOpts = useMemo(() => [...new Map(all.map((p) => [p.username, p.name])).entries()].map(([value, label]) => ({ value, label: `${label} (@${value})` })), [all]);
 
   const exportCsv = () => {
-    const head = ["Nomor", "Status", "Outlet", "Kode", "Akun", "Barista", "Periode dari", "Periode sampai", "Saldo awal", "Dana masuk", "Total keluar",
-      "Saldo akhir", "Disetujui", "Dibayar", "Tgl pengeluaran", "Kategori", "Keterangan", "Nominal", "Pemeriksaan", "Catatan pemeriksaan"];
+    const head = [tr("Number"), tr("Status"), tr("Outlet"), tr("Code"), tr("Account"), tr("Baristas"), tr("Period from"), tr("Period to"), tr("Opening balance"),
+      tr("Money in"), tr("Total money out"), tr("Closing balance"), tr("Approved amount"), tr("Paid"), tr("Expense date"), tr("Category"), tr("Description"),
+      tr("Amount"), tr("Expense check"), tr("Check note")];
     const esc = (v: unknown) => { const s = v === null || v === undefined ? "" : String(v); return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const out = [head.join(",")];
     for (const p of rows) {
       const common = [p.number, STATUS_LABEL[p.status](), p.branchName, p.branchCode, p.username, p.baristas.map((b) => b.name).join(" / "), p.periodFrom, p.periodTo,
         p.openingBalance, p.incomeAmount, p.totalOut, p.closingBalance, p.approvedAmount, p.paidAmount];
       const lines = p.lines?.length ? p.lines : [null];
-      for (const l of lines) out.push([...common, l?.spentOn, l ? categoryLabel(l.category) : "", l?.description, l?.amount, l?.review, l?.reviewNote].map(esc).join(","));
+      for (const l of lines) out.push([...common, l?.spentOn, l ? categoryLabel(l.category) : "", l?.description, l?.amount, l?.review === "REJECTED" ? tr("Rejected") : l ? "OK" : "", l?.reviewNote].map(esc).join(","));
     }
     const blob = new Blob([`﻿${out.join("\n")}`], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `pengajuan-${f.period.from}-${f.period.to}.csv`;
+    a.download = `${tr("Fund requests").toLowerCase().replace(/\s+/g, "-")}-${f.period.from}-${f.period.to}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
 
   return (
-    <Page title={tr("Monitoring Pengajuan")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("petty cash and other requests of every outlet")}`}
+    <Page title={tr("Monitoring Fund Requests")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("petty cash and other fund requests of every outlet")}`}
       actions={<Button variant="secondary" disabled={!rows.length} onClick={exportCsv}><Download size={15} /> {tr("Export CSV")}</Button>}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
@@ -120,7 +121,7 @@ export default function PengajuanMonitor() {
           {tr("Your steps")}: {perms.length ? perms.map((p) => (p === "verify" ? tr("verify (Operations)") : tr("approve & pay (Finance)"))).join(" · ") : tr("view only")}
         </p>
       )}
-      <Panel title={tr("Pengajuan")} description={tr("Oldest waiting first; tap one to check it")}
+      <Panel title={tr("Fund requests")} description={tr("Oldest waiting first; tap one to check it")}
         toolbar={<>
           <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="tablist" aria-label={tr("Status")}>
             {TABS.map((t) => {
@@ -140,8 +141,8 @@ export default function PengajuanMonitor() {
         </>}
         footer={res ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))} · {fmtRp(sum(rows, (p) => p.totalOut))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : res && rows.length === 0 ? (
-          <Empty icon={<ClipboardList size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No pengajuan yet")}>
-            {!all.length && tr("Pengajuan appear here as soon as the outlets send them from Form → Pengajuan.")}
+          <Empty icon={<ClipboardList size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No fund request yet")}>
+            {!all.length && tr("Fund requests appear here as soon as they are sent from Form → Fund requests.")}
           </Empty>
         ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table> : (
           <>
@@ -215,7 +216,7 @@ function MonitorFilters({ value, bgroups, branches, accounts, categories, flagLa
   const [v, setV] = useState<F>(value);
   return (
     <FilterSheet title={tr("Filters")} onClose={onClose} onReset={() => setV(NO_F())} onApply={() => onApply(v)}>
-      <FilterSection title={tr("Sent in")} hint={tr("Open pengajuan always show")}><PeriodField value={v.period} onChange={(period) => setV({ ...v, period })} maxDays={366} /></FilterSection>
+      <FilterSection title={tr("Sent in")} hint={tr("Open fund requests always show")}><PeriodField value={v.period} onChange={(period) => setV({ ...v, period })} maxDays={366} /></FilterSection>
       <FilterSection title={tr("Branch group")}>
         <ChoiceGroup label="" value={v.bgroup} onChange={(bgroup) => setV({ ...v, bgroup })}
           choices={[{ value: "", label: tr("All") }, ...bgroups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a group") }]} />
@@ -287,7 +288,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
   const payment: PgFile[] = (p?.files ?? []).filter((x) => x.kind === "PAYMENT");
   const needNote = action === "REVISION" || action === "REJECTED";
   return (
-    <Drawer open onClose={onClose} size="xl" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Pengajuan")}
+    <Drawer open onClose={onClose} size="xl" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund requests")}
       description={p ? `${p.branchName} · @${p.username} · ${wibDateTime(p.submittedAt)}` : undefined}
       titleExtra={p ? <StatusBadge s={p.status} /> : undefined}
       footer={p && next.length > 0 ? (

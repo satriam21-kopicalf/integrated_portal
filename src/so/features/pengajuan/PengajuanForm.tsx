@@ -21,7 +21,7 @@ import { TZ, wibDate, wibDateTime, wibDay } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import PengajuanView, { Balances, FileChip, StatusBadge } from "./PengajuanView";
-import { type Barista, type FileKind, type FormState, type Line, type Pengajuan, type PgFile, CATEGORY_LABEL, DOC_LABEL, OPEN, fmtRp, parseRp,
+import { type Barista, type FileKind, type FormState, type Line, type Pengajuan, type PgFile, CATEGORY_LABEL, DOC_LABEL, OPEN, STATUS_LABEL, fmtRp, parseRp,
   typeRp, upload } from "./pengajuan";
 
 export default function PengajuanForm() {
@@ -76,7 +76,7 @@ export default function PengajuanForm() {
   const mine = (data?.requests ?? []).filter((r) => r.status !== "DRAFT");
   const shown = mine.filter((r) => show === "all" || (show === "open" ? OPEN.includes(r.status) : show === "paid" ? r.status === "PAID" : r.status === "REJECTED"));
   return (
-    <Page title={tr("Pengajuan")} actions={<LiveClock />}
+    <Page title={tr("Fund requests")} actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
       {error ? <div className="rounded-2xl border border-slate-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><div className="skeleton h-48 rounded-xl" /><div className="skeleton h-64 rounded-xl" /></div>
@@ -86,7 +86,7 @@ export default function PengajuanForm() {
             <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
               <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <div className="min-w-0 flex-1">
-                <p className="font-semibold">{tr("Pengajuan {0} sent", sent.number ?? "")}</p>
+                <p className="font-semibold">{tr("Fund request {0} sent", sent.number ?? "")}</p>
                 <p className="text-xs">{sent.branchName} · {fmtRp(sent.totalOut)} · {tr("Operations verifies it first, then Finance approves and pays")}</p>
                 <button type="button" onClick={() => setView(sent.id)} className="mt-1 text-xs font-semibold underline-offset-2 hover:underline">{tr("See the progress")}</button>
               </div>
@@ -122,7 +122,7 @@ export default function PengajuanForm() {
                   <li key={t} className="flex items-start gap-2 rounded-lg bg-slate-50 px-2.5 py-2"><span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">{i + 1}</span>{t}</li>
                 ))}
               </ol>
-              <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create pengajuan")}</Button>
+              <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create fund request")}</Button>
             </div>
           </section>
 
@@ -150,14 +150,14 @@ export default function PengajuanForm() {
           <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
               <div>
-                <p className="text-sm font-semibold text-slate-900">{tr("My pengajuan")}</p>
+                <p className="text-sm font-semibold text-slate-900">{tr("My fund requests")}</p>
                 <p className="text-xs text-slate-500">{tr("Tap one to see every step and note of the team")}</p>
               </div>
               <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
                 { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In progress")} ${mine.filter((r) => OPEN.includes(r.status)).length}` },
                 { value: "paid", label: `${tr("Paid")} ${mine.filter((r) => r.status === "PAID").length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.filter((r) => r.status === "REJECTED").length}` }]} />
             </div>
-            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{mine.length ? tr("Nothing in this view") : tr("No pengajuan sent yet")}</p> : (
+            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{mine.length ? tr("Nothing in this view") : tr("No fund request sent yet")}</p> : (
               <ul className="divide-y divide-slate-100">
                 {shown.map((r) => (
                   <li key={r.id}>
@@ -190,8 +190,8 @@ function MineDrawer({ id, onClose, onEdit }: { id: string; onClose: () => void; 
   const [error, setError] = useState<string | null>(null);
   useEffect(() => { call<Pengajuan>(`/api/pengajuan/requests/${id}`).then(setP).catch((e) => setError((e as Error).message)); }, [id]);
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Pengajuan")}
-      description={p ? `${p.branchName} · ${p.statusLabel}` : undefined}
+    <Drawer open onClose={onClose} size="lg" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund requests")}
+      description={p ? `${p.branchName} · ${STATUS_LABEL[p.status]()}` : undefined}
       footer={p?.status === "REVISION" ? <Button onClick={() => onEdit(p.id)}>{tr("Correct and send again")}</Button> : undefined}>
       {error ? <ErrorState message={error} /> : !p ? <div className="skeleton h-72 rounded-xl" /> : <PengajuanView p={p} />}
     </Drawer>
@@ -351,7 +351,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         <div className="mx-auto flex max-w-3xl items-center gap-2">
           <button type="button" onClick={() => void close()} className="-ml-1.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-semibold text-slate-900">{server.number ?? tr("New pengajuan")}</p>
+            <p className="truncate text-base font-semibold text-slate-900">{server.number ?? tr("New fund request")}</p>
             <p className="truncate text-xs text-slate-500">{server.branchName}</p>
           </div>
           <span className="flex items-center gap-1 text-xs text-slate-500" aria-live="polite">
@@ -403,7 +403,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           )}
         </FormCard>
 
-        <FormCard n={5} title={tr("Money out")} hint={tr("Every expense with its receipt (nota, kwitansi, invoice …)")}
+        <FormCard n={5} title={tr("Money out")} hint={tr("Every expense with its proof (bill, receipt, invoice …)")}
           aside={<span className="text-sm font-semibold tabular-nums text-slate-900">{fmtRp(totalOut)}</span>}>
           <ul className="space-y-3">
             {local.lines.map((l, i) => (
@@ -467,7 +467,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
       </div>
 
       <ConfirmDialog open={confirm} onClose={() => setConfirm(false)} onConfirm={() => void submit()} busy={sending}
-        title={tr("Send this pengajuan?")} confirmLabel={tr("Send")}
+        title={tr("Send this fund request?")} confirmLabel={tr("Send")}
         description={tr("{0} expenses, {1}. After sending it cannot be changed unless the team sends it back for a revision.", local.lines.length, fmtRp(totalOut))} />
       <ConfirmDialog open={discarding} onClose={() => setDiscarding(false)} onConfirm={() => void discard()} danger
         title={tr("Delete this draft?")} confirmLabel={tr("Delete")} description={tr("Every figure, expense and attachment of this draft is removed.")} />

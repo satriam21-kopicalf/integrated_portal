@@ -64,7 +64,7 @@ const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] 
     { get name() { return tr('Damaged Equipment'); }, href: '/forms/damaged-equipment', icon: Wrench, get description() { return tr('Repair & procurement requests'); } },
   ] },
   { get title() { return tr('Finance'); }, get hint() { return tr('Petty cash and other requests of the outlet'); }, icon: Wallet, items: [
-    { get name() { return tr('Pengajuan'); }, href: '/forms/pengajuan', icon: Wallet, get description() { return tr('Petty cash with receipts'); } },
+    { get name() { return tr('Fund requests'); }, href: '/forms/pengajuan', icon: Wallet, get description() { return tr('Petty cash with receipts'); } },
   ] },
 ];
 
@@ -84,7 +84,7 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
     { get name() { return tr('Damaged Equipment'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },
   ] },
   { get title() { return tr('Finance'); }, get hint() { return tr('Requests of the outlets: verify, approve, pay'); }, icon: Wallet, items: [
-    { get name() { return tr('Pengajuan'); }, href: '/monitoring/pengajuan', icon: Wallet, get description() { return tr('Petty cash, receipts & approvals'); } },
+    { get name() { return tr('Fund requests'); }, href: '/monitoring/pengajuan', icon: Wallet, get description() { return tr('Petty cash, receipts & approvals'); } },
   ] },
   { get title() { return tr('Settings'); }, get hint() { return tr('How the outlets are grouped'); }, icon: Boxes, items: [
     { get name() { return tr('Branch groups'); }, href: '/monitoring/branch-groups', icon: Boxes, get description() { return tr('CCI, CTG, CTGP … for the assessment'); } },
@@ -117,7 +117,7 @@ const rating: { title: string; hint: string; icon: typeof Users; items: CcItem[]
 type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
 const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'management', PopupConfig & { sections: typeof costControl }> = {
   forms: {
-    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet, maintenance & pengajuan'); }, get title() { return tr('Form'); },
+    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet, maintenance & fund requests'); }, get title() { return tr('Form'); },
     get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
     icon: ClipboardPen, sections: forms,
   },

@@ -135,7 +135,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
             {(p.closingBalance ?? 0) < 0 && <li className="flex items-start gap-1.5 rounded-lg bg-red-50 px-2.5 py-2 text-red-800"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
               {tr("Closing balance is negative")}</li>}
             {reused.length > 0 && <li className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-amber-900"><Copy size={13} className="mt-px flex-shrink-0" />
-              {tr("{0} attachments are the same file as in another pengajuan: {1}", reused.length, [...new Set(reused.flatMap((f) => f.usedIn))].join(", "))}</li>}
+              {tr("{0} attachments are the same file as in another fund request: {1}", reused.length, [...new Set(reused.flatMap((f) => f.usedIn))].join(", "))}</li>}
           </ul>
         )}
       </section>

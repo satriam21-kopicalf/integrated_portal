@@ -34,6 +34,8 @@ interface UsersSummary {
   locked: number;
   superadmins: number;
   users: number;
+  /** role Outlet / Hub (2026-10-28) */
+  outlets?: number;
   withoutBranch: number;
   neverSignedIn: number;
   active7d: number;
@@ -251,7 +253,7 @@ export default function UsersPage() {
         <div className="space-y-4 p-4 sm:p-6">
           <StatStrip label={tr('User summary')} columns={5}>
             <Stat label={tr('Users')} value={s ? formatNumber(s.total) : <StatSkeleton />}>
-              {s && <p>{formatNumber(s.superadmins)} {tr('super admin ·')} {formatNumber(s.users)} {tr('user')}</p>}
+              {s && <p>{tr('{0} super admin · {1} PIC · {2} outlet / hub', formatNumber(s.superadmins), formatNumber(s.users), formatNumber(s.outlets ?? 0))}</p>}
             </Stat>
             <Stat label={tr('Active')} emphasis value={s ? formatNumber(s.active) : <StatSkeleton />}>
               {s && <p>{formatNumber(s.inactive)} {tr('inactive ·')} {formatNumber(s.locked)} {tr('locked')}</p>}
@@ -263,7 +265,7 @@ export default function UsersPage() {
               {s && <p>{tr('of')} {formatNumber(branches.filter(b => b.count > 0).length)} {tr('branches with recent sales')}</p>}
             </Stat>
             <Stat label={tr('Without branch')} value={s ? formatNumber(s.withoutBranch) : <StatSkeleton />}>
-              {s && <p>{s.withoutBranch ? tr('role User sees no data until assigned') : tr('every User has a branch')}</p>}
+              {s && <p>{s.withoutBranch ? tr('PIC / outlet accounts see no data until assigned') : tr('every PIC and outlet account has a branch')}</p>}
             </Stat>
           </StatStrip>
           <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
@@ -685,7 +687,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
         </DrawerSection>
 
         {branchScoped(form.role) ? (
-          <DrawerSection title={tr('Branch access')} description={tr('Overview and Sales Transactions only show the data of these branches (also exports). Required for role User.')}>
+          <DrawerSection title={tr('Branch access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User (PIC) and Outlet / Hub.')}>
             <BranchAssign branches={branches} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
@@ -957,7 +959,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
         </button>
       </DrawerSection>
 
-      <DrawerSection title={tr('Record')}>
+      <DrawerSection title={tr('Account history')}>
         <InfoGrid items={[
           [tr('Created'), `${user.createdAt ? formatDateTime(user.createdAt) : '—'}${user.createdBy ? ` by ${user.createdBy}` : ''}`],
           [tr('Updated'), `${user.updatedAt ? formatDateTime(user.updatedAt) : '—'}${user.updatedBy ? ` by ${user.updatedBy}` : ''}`],

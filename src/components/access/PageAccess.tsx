@@ -89,7 +89,7 @@ export function PageAccessEditor({ role, overrides, onChange }: {
                     <span className="min-w-0 flex-1 truncate text-slate-800">{p.label} <StateTag page={p} /></span>
                     <OpsTag page={p.key} />
                     <span className={`text-[10px] font-semibold uppercase ${exception ? (on ? 'text-emerald-700' : 'text-rose-700') : 'text-slate-400'}`}>
-                      {exception ? (on ? tr('Added') : tr('Removed')) : base.has(p.key) ? tr('Role') : ''}
+                      {exception ? (on ? tr('Extra') : tr('Removed')) : base.has(p.key) ? tr('Role') : ''}
                     </span>
                   </label>
                 </li>
