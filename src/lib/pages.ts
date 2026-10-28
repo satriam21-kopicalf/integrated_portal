@@ -6,8 +6,9 @@ import { tr } from './i18n';
 
 export type PageKey =
   | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
-  | 'form.pic-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment'
+  | 'form.pic-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan'
   | 'mon.overview' | 'mon.pic-check-in' | 'mon.outlet' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
+  | 'mon.pengajuan' | 'mon.pengajuan.verify' | 'mon.pengajuan.finance'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs';
@@ -28,6 +29,7 @@ export const PAGES: PageInfo[] = [
   { key: 'form.product', href: '/forms/product', get label() { return tr('Monitoring Product (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.outlet', href: '/forms/outlet', get label() { return tr('Monitoring Outlet (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Damaged Equipment (form)'); }, get group() { return tr('Form'); } },
+  { key: 'form.pengajuan', href: '/forms/pengajuan', get label() { return tr('Pengajuan (form)'); }, get group() { return tr('Form'); } },
   { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.reviews', href: '/cost-control/reviews', get label() { return tr('Review'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.entry', href: '/cost-control/entry', get label() { return tr('Enter / import SO'); }, get group() { return tr('Cost Control · Stock opname'); }, state: 'hidden' },
@@ -49,10 +51,14 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return tr('Monitoring Outlet'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Damaged Equipment'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch groups'); }, get group() { return tr('Monitoring'); } },
-  { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Rating & Review'); } },
-  { key: 'rating.shopeefood', href: '/rating/shopeefood', get label() { return tr('ShopeeFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
-  { key: 'rating.gofood', href: '/rating/gofood', get label() { return tr('GoFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
-  { key: 'rating.grabfood', href: '/rating/grabfood', get label() { return tr('GrabFood'); }, get group() { return tr('Rating & Review'); }, state: 'building' },
+  { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Pengajuan'); }, get group() { return tr('Monitoring'); } },
+  // the two approval steps of Pengajuan: rights inside /monitoring/pengajuan, not menu entries of their own
+  { key: 'mon.pengajuan.verify', href: '/monitoring/pengajuan#verify', get label() { return tr('Pengajuan: verify (Operations)'); }, get group() { return tr('Monitoring'); }, state: 'hidden' },
+  { key: 'mon.pengajuan.finance', href: '/monitoring/pengajuan#finance', get label() { return tr('Pengajuan: approve & pay (Finance)'); }, get group() { return tr('Monitoring'); }, state: 'hidden' },
+  { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Aggregator'); } },
+  { key: 'rating.shopeefood', href: '/rating/shopeefood', get label() { return tr('ShopeeFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
+  { key: 'rating.gofood', href: '/rating/gofood', get label() { return tr('GoFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
+  { key: 'rating.grabfood', href: '/rating/grabfood', get label() { return tr('GrabFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
 ];
 
 /** The page a path belongs to ('superadmin' for User Accounts & Activity Logs, null for an unknown path). */

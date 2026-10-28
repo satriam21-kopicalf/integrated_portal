@@ -3,12 +3,12 @@
 // Page access in User Accounts: the pages a role opens (Roles & pages, editable by super admins) and the exceptions of
 // one user on top of the role (user form). Backend: /api/access (integrated_portal_be app/access.py).
 
-import { Briefcase, Building2, Check, LayoutGrid, Loader2, Pencil, Plus, RotateCcw, Save, X } from 'lucide-react';
+import { Briefcase, Building2, Check, LayoutGrid, Loader2, Pencil, Plus, RotateCcw, Save, Smartphone, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { buttonPrimary, buttonSecondary, inputClass } from '@/components/ui/Dialog';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { addMaster, loadMaster, MasterKind, MasterName } from '@/components/MasterCombobox';
-import { Role, ROLE_LABELS } from '@/lib/auth';
+import { OPERATIONS_PAGES, OPERATIONS_URL, operationsOnly, Role, ROLE_LABELS } from '@/lib/auth';
 import { serverMsg, tr } from '@/lib/i18n';
 import { PageInfo, PageKey, PAGES, STATE_LABEL } from '@/lib/pages';
 
@@ -61,8 +61,11 @@ export function PageAccessEditor({ role, overrides, onChange }: {
     onChange(next);
   };
   const changed = Object.keys(overrides).length;
+  const pages = PAGES.map(p => p.key).filter(effective);
+  const onlyOps = operationsOnly(role, pages);
   return (
     <div className="space-y-3">
+      <OperationsNote only={onlyOps} some={pages.some(k => OPERATIONS_PAGES.includes(k))} />
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
         <span>{tr('Ticked = the user opens the page. Grey label = from the role {0}.', ROLE_LABELS[role])}</span>
         {changed > 0 && (
@@ -84,6 +87,7 @@ export function PageAccessEditor({ role, overrides, onChange }: {
                     exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-slate-200 hover:bg-slate-50'}`}>
                     <input type="checkbox" checked={on} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-slate-300 text-blue-700" />
                     <span className="min-w-0 flex-1 truncate text-slate-800">{p.label} <StateTag page={p} /></span>
+                    <OpsTag page={p.key} />
                     <span className={`text-[10px] font-semibold uppercase ${exception ? (on ? 'text-emerald-700' : 'text-rose-700') : 'text-slate-400'}`}>
                       {exception ? (on ? tr('Added') : tr('Removed')) : base.has(p.key) ? tr('Role') : ''}
                     </span>
@@ -154,7 +158,7 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
                   <GroupRows key={g.group} group={g.group}>
                     {g.pages.map(p => (
                       <tr key={p.key} className="border-t border-slate-100">
-                        <td className="px-3 py-2 text-slate-800">{p.label} <StateTag page={p} /></td>
+                        <td className="px-3 py-2 text-slate-800">{p.label} <StateTag page={p} /> <OpsTag page={p.key} /></td>
                         <td className="px-3 py-2 text-center"><Check size={15} className="inline text-slate-400" aria-label={tr('Always')} /></td>
                         {EDITABLE.map(r => (
                           <td key={r} className="px-3 py-2 text-center">
@@ -174,12 +178,38 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
               </tbody>
             </table>
           </div>
+          <OperationsNote only={false} some />
           <p className="text-xs text-slate-500">{tr('Role User keeps seeing only its assigned branches; Cost Control pages show every branch.')}</p>
           <p className="text-xs text-slate-500">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
           {message && <p role="status" className={`rounded-lg px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
         </div>
       )}
     </Drawer>
+  );
+}
+
+/** Beside a page Operations also has: the account can open it at operations.kopicalf.co.id (2026-10-28). */
+function OpsTag({ page }: { page: PageKey }) {
+  if (!OPERATIONS_PAGES.includes(page)) return null;
+  return (
+    <span title={tr('Also opens in Operations: {0}', OPERATIONS_URL.replace('https://', ''))}
+      className="inline-flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap rounded bg-blue-50 px-1.5 py-px align-middle text-[10px] font-semibold text-blue-700">
+      <Smartphone size={10} aria-hidden /> Operations
+    </span>
+  );
+}
+
+/** Where the account signs in: an account with forms and only pages Operations has uses Operations, not the portal. */
+function OperationsNote({ only, some }: { only: boolean; some: boolean }) {
+  if (!only && !some) return null;
+  const host = OPERATIONS_URL.replace('https://', '');
+  return (
+    <p className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs ${only ? 'bg-blue-50 text-blue-900 ring-1 ring-blue-200' : 'bg-slate-50 text-slate-600'}`}>
+      <Smartphone size={14} className="mt-px flex-shrink-0" />
+      <span>{only
+        ? tr('This account opens forms and pages Operations has only: it signs in at {0} and the portal refuses it. Add a page without the Operations tag to keep the portal.', host)
+        : tr('Pages tagged Operations can also be opened at {0}. An account with forms and only such pages signs in there, not in the portal.', host)}</span>
+    </p>
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-// Rating & Review → Google Maps (page rating.google-maps): every Kopi Calf outlet on Google Maps through the official
+// Aggregator → Google Maps (page rating.google-maps): every Kopi Calf outlet on Google Maps through the official
 // Places API (integrated_portal_be app/gmaps.py, synced daily 06:10 WIB): rating, number of reviews, open / closed now,
 // today's hours, the latest reviews Google gives (at most 5 per outlet). Super admins and Cost Control link an outlet to
 // its place when the automatic match needs checking.

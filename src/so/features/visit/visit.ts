@@ -15,7 +15,7 @@ export type Item = { key: string; no: number; label: string; labelEn?: string; k
   required?: boolean; requiredFor?: string[]; note?: Evidence; photo?: Evidence;
   /** "g": the PIC also types the stock in grams, net weight (Stock Preparation, Espresso and Beans, 2026-10-28) */
   qty?: "g" };
-/** Google Maps figure of the outlet (Rating & Review → Google Maps) */
+/** Google Maps figure of the outlet (Aggregator → Google Maps) */
 export type AutoStars = { stars: number; reviews: number | null; source: "google"; fetchedAt: string | null; mapsUri?: string | null };
 export type Section = { key: string; title: string; titleEn?: string; items: Item[] };
 export type Group = { key: string; title: string; titleEn?: string; subtitle: string; subtitleEn?: string; sections: Section[] };

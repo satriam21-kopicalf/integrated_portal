@@ -77,6 +77,16 @@ const AuthContext = createContext<AuthState>({
 });
 
 export const PUBLIC_PATHS = ['/login', '/share'];
+/** Header the backend reads to tell the portal from Operations (app/access.py APP_HEADER). */
+const APP_HEADER = 'X-Kopicalf-App';
+/** Where the form accounts (PICs, Area Supervisors …) sign in. */
+export const OPERATIONS_URL = 'https://operations.kopicalf.co.id';
+/** Pages Operations has (same list as app/access.py OPERATIONS_PAGES): an account whose pages are all here and include
+ * a form signs in there, not in the portal. */
+export const OPERATIONS_PAGES: PageKey[] = ['overview', 'sales', 'rating.grabfood', 'form.pic-check-in', 'form.product', 'form.outlet', 'form.damaged-equipment'];
+export function operationsOnly(role: Role, pages: PageKey[]): boolean {
+  return role !== 'superadmin' && pages.some(p => p.startsWith('form.')) && pages.every(p => OPERATIONS_PAGES.includes(p));
+}
 export const ROLE_LABELS: Record<Role, string> = {
   get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User'); },
 };
@@ -139,6 +149,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace(`/login${qs ? `?${qs}` : ''}`);
   }, [router]);
 
+  // every /api call says it comes from the portal: the backend refuses the accounts that use Operations (2026-10-28).
+  // Installed before the session check below (effects run in order), so that call carries it too.
+  useEffect(() => {
+    const original = window.fetch;
+    window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+      if (typeof input === 'string' && input.startsWith('/api/')) {
+        const headers = new Headers(init?.headers);
+        headers.set(APP_HEADER, 'portal');
+        return original(input, { ...init, headers });
+      }
+      return original(input, init);
+    };
+    return () => { window.fetch = original; };
+  }, []);
+
   // confirm the session once per page load
   useEffect(() => {
     let cancelled = false;
@@ -146,11 +171,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(async res => {
         if (cancelled) return;
         if (res.ok) setUser((await res.json()).user);
-        else setUser(null);
+        else if (res.status === 403) {
+          // an account of the Operations app: its portal session is closed and the sign-in page points to Operations
+          leaving.current = true;
+          await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
+          setUser(null);
+          router.replace('/login?reason=operations');
+        } else setUser(null);
       })
       .catch(() => { if (!cancelled) setUser(null); });
     return () => { cancelled = true; };
-  }, [setUser]);
+  }, [setUser, router]);
 
   // not signed in on a protected page -> login
   useEffect(() => {

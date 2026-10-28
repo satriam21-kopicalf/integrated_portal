@@ -509,7 +509,7 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
             <span className="text-xs text-slate-400">{tr("Google Maps, automatic")}{auto.fetchedAt ? ` · ${wibDateTime(auto.fetchedAt)}` : ""}</span>
             {auto.mapsUri && <a href={auto.mapsUri} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline">{tr("View on Maps")} <ExternalLink size={11} /></a>}
           </>
-        ) : <span className="text-xs text-slate-500">{tr("No Google Maps rating for this outlet yet (Rating & Review → Google Maps)")}</span>}
+        ) : <span className="text-xs text-slate-500">{tr("No Google Maps rating for this outlet yet (Aggregator → Google Maps)")}</span>}
       </div>
     );
   }

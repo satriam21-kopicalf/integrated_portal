@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, X,
+  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, Wallet, X,
 } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
@@ -63,6 +63,9 @@ const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] 
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Repairs and procurement of the outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Damaged Equipment'); }, href: '/forms/damaged-equipment', icon: Wrench, get description() { return tr('Repair & procurement requests'); } },
   ] },
+  { get title() { return tr('Finance'); }, get hint() { return tr('Petty cash and other requests of the outlet'); }, icon: Wallet, items: [
+    { get name() { return tr('Pengajuan'); }, href: '/forms/pengajuan', icon: Wallet, get description() { return tr('Petty cash with receipts'); } },
+  ] },
 ];
 
 /** "Monitoring" menu: what the outlets / PICs filled in, for the teams that follow them (pages mon.*). */
@@ -80,6 +83,9 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Requests of every outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Damaged Equipment'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },
   ] },
+  { get title() { return tr('Finance'); }, get hint() { return tr('Requests of the outlets: verify, approve, pay'); }, icon: Wallet, items: [
+    { get name() { return tr('Pengajuan'); }, href: '/monitoring/pengajuan', icon: Wallet, get description() { return tr('Petty cash, receipts & approvals'); } },
+  ] },
   { get title() { return tr('Settings'); }, get hint() { return tr('How the outlets are grouped'); }, icon: Boxes, items: [
     { get name() { return tr('Branch groups'); }, href: '/monitoring/branch-groups', icon: Boxes, get description() { return tr('CCI, CTG, CTGP … for the assessment'); } },
   ] },
@@ -95,7 +101,7 @@ const management: { title: string; hint: string; icon: typeof Users; items: CcIt
   ] },
 ];
 
-/** "Rating & Review" menu: ratings and reviews of the outlets per platform (pages rating.*, being built). */
+/** "Aggregator" menu: ratings and reviews of the outlets per platform (pages rating.*, being built). */
 const rating: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Maps'); }, get hint() { return tr('What guests say about the outlets'); }, icon: MapPin, items: [
     { get name() { return tr('Google Maps'); }, href: '/rating/google-maps', icon: MapPin, logo: '/assets/googlemaps.png', get description() { return tr('Rating & reviews per outlet'); } },
@@ -111,7 +117,7 @@ const rating: { title: string; hint: string; icon: typeof Users; items: CcItem[]
 type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
 const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'management', PopupConfig & { sections: typeof costControl }> = {
   forms: {
-    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet & maintenance'); }, get title() { return tr('Form'); },
+    get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet, maintenance & pengajuan'); }, get title() { return tr('Form'); },
     get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
     icon: ClipboardPen, sections: forms,
   },
@@ -127,7 +133,7 @@ const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'manage
     icon: Gauge, sections: monitoring,
   },
   rating: {
-    get label() { return tr('Rating & Review'); }, get idle() { return tr('Google Maps & delivery apps'); }, get title() { return tr('Rating & Review'); },
+    get label() { return tr('Aggregator'); }, get idle() { return tr('Google Maps & delivery apps'); }, get title() { return tr('Aggregator'); },
     get subtitle() { return tr('Ratings and reviews of the outlets on Google Maps and the delivery apps'); },
     get footer() { return tr('Google Maps live · delivery apps being built'); },
     icon: Star, sections: rating,

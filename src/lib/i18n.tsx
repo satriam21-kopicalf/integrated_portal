@@ -130,6 +130,22 @@ const SERVER_EN: [RegExp, string][] = [
   [/^Gramasi harus angka 0 sampai 1\.000\.000 gram$/, 'The grams must be a number from 0 to 1,000,000'],
   [/^Belum ada butir yang dinilai$/, 'No item is rated yet'],
   [/^Tulis nama penanda tangan di bawah tanda tangan$/, "Write the signer's name under the signature"],
+  // Form / Monitoring Pengajuan (app/pengajuan.py, 2026-10-28)
+  [/^Akun ini menggunakan aplikasi Operations\. Silakan login di operations\.kopicalf\.co\.id$/, "This account uses the Operations app. Please sign in at operations.kopicalf.co.id"],
+  [/^Belum bisa dikirim: (.+)$/, "Cannot be sent yet: $1"],
+  [/^Pengajuan tidak ditemukan$/, "Pengajuan not found"],
+  [/^Pengajuan ini sudah dikirim; menunggu proses tim$/, "This pengajuan was sent; it waits for the team"],
+  [/^Cabang tidak tersedia untuk akun Anda$/, "This branch is not available for your account"],
+  [/^Lampiran harus PDF atau foto \(JPG, PNG, WebP\)$/, "Attachments must be a PDF or a photo (JPG, PNG, WebP)"],
+  [/^Lampiran maksimal (\d+) MB$/, "Attachments are at most $1 MB"],
+  [/^Simpan pengeluaran ini dulu, lalu lampirkan buktinya$/, "Save the expense first, then attach its receipt"],
+  [/^Tulis alasannya agar outlet tahu apa yang harus diperbaiki$/, "Write the reason so the outlet knows what to correct"],
+  [/^Tulis alasan penolakan$/, "Write the reason of the rejection"],
+  [/^Tulis alasan pengeluaran ini ditolak$/, "Write why this expense is rejected"],
+  [/^Lampirkan bukti transfer dulu$/, "Attach the transfer proof first"],
+  [/^Isi nominal yang ditransfer$/, "Fill in the amount transferred"],
+  [/^Isi tanggal transfer$/, "Fill in the transfer date"],
+  [/^Langkah ini bukan bagian akses Anda$/, "This step is not part of your access"],
 ];
 
 /** A message from the API in the UI language. */

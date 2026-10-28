@@ -6,13 +6,14 @@ import { AlertCircle, ArrowRight, Clock, Eye, EyeOff, Info, Loader2, Lock, Trend
 import BrandWatermark, { BRAND_LINE } from '@/components/BrandWatermark';
 import { DAY_PART_ICONS } from '@/components/WelcomeNotice';
 import { PreferenceSwitches } from '@/components/ui/Preferences';
-import { safeNext, useAuth } from '@/lib/auth';
+import { OPERATIONS_URL, safeNext, useAuth } from '@/lib/auth';
 import { Farewell, markSignedIn, takeFarewell } from '@/lib/greetings';
 import { tr, serverMsg } from '@/lib/i18n';
 
 const NOTICES: Record<string, string> = {
   get expired() { return tr('Your session has ended. Please sign in again.'); },
   get 'signed-out'() { return tr('You have been signed out.'); },
+  get operations() { return tr('Your account uses the Operations app: sign in at operations.kopicalf.co.id.'); },
 };
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -31,6 +32,8 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [fields, setFields] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
+  // a form account (PIC, Area Supervisor …): it signs in to Operations instead
+  const [operations, setOperations] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [farewell, setFarewell] = useState<Farewell | null>(null);
   const [next, setNext] = useState('/overview');
@@ -43,6 +46,7 @@ export default function LoginPage() {
     const bye = reason === 'signed-out' ? takeFarewell() : null;
     setFarewell(bye);
     setNotice(bye ? null : NOTICES[reason] ?? null);
+    if (reason === 'operations') setOperations(OPERATIONS_URL);
   }, []);
 
   // already signed in: straight to the dashboard
@@ -53,6 +57,7 @@ export default function LoginPage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setOperations(null);
     setNotice(null);
     setFarewell(null);
     const ident = identifier.trim();
@@ -75,6 +80,7 @@ export default function LoginPage() {
         body: JSON.stringify({ identifier: ident, password, method, remember }),
       });
       const body = await res.json().catch(() => ({}));
+      if (res.status === 403 && body.redirect) setOperations(String(body.redirect).startsWith('https://') ? body.redirect : OPERATIONS_URL);
       if (!res.ok) throw new Error(serverMsg(body.error) || tr('Sign-in failed, please try again'));
       markSignedIn(); // the dashboard greets the user once
       setUser(body.user);
@@ -188,6 +194,11 @@ export default function LoginPage() {
                   <p className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert">
                     <AlertCircle size={16} className="mt-0.5 flex-shrink-0" /> {error}
                   </p>
+                )}
+                {operations && (
+                  <a href={operations} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 text-sm font-semibold text-blue-800 hover:bg-blue-100">
+                    {tr('Open Operations')} <ArrowRight size={16} />
+                  </a>
                 )}
 
                 <button

@@ -1,6 +1,6 @@
 "use client";
 
-// Rating & Review → GrabFood (page rating.grabfood), the same file in the portal and in Operations, laid out like the
+// Aggregator → GrabFood (page rating.grabfood), the same file in the portal and in Operations, laid out like the
 // Google Maps page (summary band, one panel with search + filters, a table on desktop and a list on phones, a drawer
 // per outlet). Data from the Grab Merchant portal (integrated_portal_be app/grab.py):
 //   Outlets  open / paused / closed status (checked every 5 min), official rating, merchant photo, menu availability
