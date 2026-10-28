@@ -3581,4 +3581,9 @@ export const ID: Record<string, string> = {
   "Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User (PIC) and Outlet / Hub.": "Dasbor, Transaksi Penjualan, Stock Opname dan form hanya menampilkan cabang-cabang ini (termasuk ekspor). Wajib untuk role User (PIC) dan Outlet / Hub.",
   "Account history": "Riwayat akun",
   "Extra": "Tambahan",
+  "Add another {0}": "Tambah {0} lain",
+  "Total of the dates": "Total dari semua tanggal",
+  "Total {0} {1}": "Total {0} {1}",
+  "Quantity {0} ({1})": "Jumlah {0} ({1})",
+  "Remove date {0}": "Hapus tanggal {0}",
 };

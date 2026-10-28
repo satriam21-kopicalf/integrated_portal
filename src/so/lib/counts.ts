@@ -32,10 +32,13 @@ export type CountLine = {
   /** roasted date (HUB CK counts) / expired date (HUB WH counts), YYYY-MM-DD */
   roasted_date?: string | null;
   expired_date?: string | null;
+  /** several dates of the item (2026-10-28), each with its quantity in the line unit; 2+ = the line counts their sum */
+  date_batches?: DateBatch[];
   /** the date asked on this line: its item group's setting, else the count's (null = no date) */
   date_field?: DateField | null;
 };
 export type DateField = "roasted_date" | "expired_date";
+export type DateBatch = { date: string | null; qty: string | null };
 export const DATE_FIELD_LABEL: Record<DateField, () => string> = { roasted_date: () => tr("Roasted date"), expired_date: () => tr("Expired date") };
 /** The date asked on a line (item group → count type → facility default); always optional. */
 export const lineDateField = (l: Pick<CountLine, "date_field">, count: { date_field?: DateField | null }): DateField | null =>

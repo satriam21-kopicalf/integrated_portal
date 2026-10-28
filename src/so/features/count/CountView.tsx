@@ -7,14 +7,16 @@
 // marked by the reviewer can be changed (the old value stays in the history).
 // Phones (2026-10-20): one compact row per item (name left, quantity right with its unit, a quick "0"), the keyboard's
 // Next key moves to the next item (the line is saved on leaving it), counted / total per area on the area chips.
+// Several roasted / expired dates of one item (2026-10-28): (+) beside the date adds rows, each a date and its quantity;
+// the item then counts their sum (the quantity field shows the total) and the report lists every row.
 
-import { AlertTriangle, ArrowLeft, CalendarDays, Check, CheckCircle2, CloudUpload, Loader2, MapPin, RotateCcw, Search, Send, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CalendarDays, Check, CheckCircle2, CloudUpload, Loader2, MapPin, Plus, RotateCcw, Search, Send, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, ErrorState, cx, fmtDate, fmtDay, inputClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, type CountLine, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, lineDateField, parseQty } from "@/so/lib/counts";
+import { type Count, type CountLine, type DateBatch, type DateField, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, lineDateField, parseQty } from "@/so/lib/counts";
 import { wibDay } from "@/so/ui/Filters";
 import { tr } from "@/lib/i18n";
 import Evidence, { EvidenceFiles, SignatureCard } from "./Evidence";
@@ -48,6 +50,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   const [confirming, setConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [wipDirty, setWipDirty] = useState(false);
+  /** lines whose (+) was tapped: the date rows show before a second date is saved */
+  const [multi, setMulti] = useState<Set<number>>(new Set());
   const pending = useRef<Record<number, Draft>>({});
   // the phone tab bar steps aside while counting
   useFocusMode();
@@ -97,6 +101,26 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
     setSaving((s) => new Set(s).add(line.id));
     try {
       setCount(await api<Count>(`/api/so/counts/${countId}/lines`, { method: "PUT", json: { lines: [{ line_id: line.id, [field]: value }] } }));
+    } catch (e) {
+      toast(errorText(e), "error");
+    } finally {
+      setSaving((s) => { const n = new Set(s); n.delete(line.id); return n; });
+    }
+  };
+
+  /** the (+) rows of an item: each date with its quantity; the server keeps 2+ rows and counts their sum */
+  const saveBatches = async (line: CountLine, rows: DateBatch[]) => {
+    setSaving((s) => new Set(s).add(line.id));
+    try {
+      const c = await api<Count>(`/api/so/counts/${countId}/lines`, { method: "PUT", json: { lines: [{ line_id: line.id, batches: rows }] } });
+      setCount(c);
+      const now = c.lines.find((l) => l.id === line.id) ?? c.lines.find((l) => l.recount_of === line.id);
+      if (now) {
+        setDrafts((ds) => ({ ...ds, [now.id]: draftOf(now) }));
+        if ((now.date_batches?.length ?? 0) < 2 && rows.length < 2) {
+          setMulti((m) => { const n = new Set(m); n.delete(line.id); return n; });
+        }
+      }
     } catch (e) {
       toast(errorText(e), "error");
     } finally {
@@ -256,30 +280,44 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         <p className="mt-0.5 text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                       )}
                       {bad && <p className="mt-0.5 text-[11px] text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
-                      {(() => { const df = lineDateField(l, count); return df && l.source !== "WIP_EXPLODED" && (
-                        <label className="mt-1.5 block max-w-[12rem]">
-                          <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[df]()}</span>
-                          <input type="date" disabled={!edit} value={l[df] ?? ""}
-                            max={df === "roasted_date" ? wibDay(0) : undefined}
-                            onChange={(e) => void saveDate(l, e.target.value || null)}
-                            className={cx("mt-0.5 h-9 w-full rounded-lg border px-2 text-sm font-semibold tabular-nums text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50 disabled:text-slate-500",
-                              l[df] ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-white")}
-                            aria-label={`${DATE_FIELD_LABEL[df]()} ${l.item_name}`} />
-                        </label>
-                      ); })()}
+                      {(() => { const df = lineDateField(l, count); if (!df || l.source === "WIP_EXPLODED") return null;
+                        if ((l.date_batches?.length ?? 0) >= 2 || multi.has(l.id)) {
+                          return <DateRows line={l} field={df} edit={edit} unit={unitOf(l)} qty={d.qty} onSave={(rows) => saveBatches(l, rows)} />;
+                        }
+                        return (
+                          <div className="mt-1.5 max-w-[15rem]">
+                            <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[df]()}</span>
+                            <div className="mt-0.5 flex items-center gap-1.5">
+                              <input type="date" disabled={!edit} value={l[df] ?? ""}
+                                max={df === "roasted_date" ? wibDay(0) : undefined}
+                                onChange={(e) => void saveDate(l, e.target.value || null)}
+                                className={cx(DATE_INPUT, l[df] ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-white")}
+                                aria-label={`${DATE_FIELD_LABEL[df]()} ${l.item_name}`} />
+                              {edit && (
+                                <button type="button" onClick={() => setMulti((m) => new Set(m).add(l.id))}
+                                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-700"
+                                  aria-label={tr("Add another {0}", DATE_FIELD_LABEL[df]().toLowerCase())} title={tr("Add another {0}", DATE_FIELD_LABEL[df]().toLowerCase())}>
+                                  <Plus size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                     {l.source === "WIP_EXPLODED" ? (
                       <p className="flex-shrink-0 text-right text-xs font-medium text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom}<span className="block text-[10px] font-normal">{tr("from the WIP")}</span></p>
                     ) : (
                       <div className="flex flex-shrink-0 items-start gap-1.5">
-                        {edit && d.qty === "" && (
+                        {edit && d.qty === "" && !multi.has(l.id) && (l.date_batches?.length ?? 0) < 2 && (
                           <button type="button" onClick={() => { setDraft(l.id, { qty: "0" }); setTimeout(() => void save(l), 0); }}
                             className="h-11 w-10 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-800"
                             aria-label={tr("{0}: none (0)", l.item_name)} title={tr("None (0)")}>0</button>
                         )}
                         <div>
                           <label className="relative block w-28 sm:w-36">
-                            <input inputMode="decimal" enterKeyHint="next" data-qty disabled={!edit} value={d.qty} placeholder="—"
+                            <input inputMode="decimal" enterKeyHint="next" data-qty disabled={!edit || (l.date_batches?.length ?? 0) >= 2 || multi.has(l.id)} value={d.qty} placeholder="—"
+                              title={(l.date_batches?.length ?? 0) >= 2 ? tr("Total of the dates") : undefined}
                               onChange={(e) => setDraft(l.id, { qty: e.target.value })} onBlur={() => save(l)}
                               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); nextField(e.currentTarget); } }}
                               onFocus={(e) => e.currentTarget.select()}
@@ -324,6 +362,69 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         <ConfirmDialog open={confirming} busy={submitting} onClose={() => setConfirming(false)} onConfirm={() => void submit()}
           title={tr("Submit the count?")} description={tr("After submitting, the quantities are locked and go to Review. Another Cost Control member approves them.")}
           confirmLabel={tr("Submit")} />
+      )}
+    </div>
+  );
+}
+
+const DATE_INPUT = "h-10 min-w-0 flex-1 rounded-lg border px-2 text-sm font-semibold tabular-nums text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50 disabled:text-slate-500";
+
+type Row = { key: number; date: string; qty: string };
+let rowKey = 0;
+
+/** Several roasted / expired dates of one item: one row per date with its quantity in the line unit, (+) adds a row,
+ * each row is saved when it is left; the item counts the total. Removing rows down to one makes it a plain line. */
+function DateRows({ line, field, edit, unit, qty, onSave }: {
+  line: CountLine; field: DateField; edit: boolean; unit: string; qty: string; onSave: (rows: DateBatch[]) => Promise<void>;
+}) {
+  const [rows, setRows] = useState<Row[]>(() => {
+    const saved = line.date_batches ?? [];
+    if (saved.length >= 2) return saved.map((b) => ({ key: ++rowKey, date: b.date ?? "", qty: b.qty === null ? "" : fmtQty(b.qty) }));
+    // from a one-date line: its date and quantity become the first row
+    return [{ key: ++rowKey, date: line[field] ?? "", qty }, { key: ++rowKey, date: "", qty: "" }];
+  });
+  const [bad, setBad] = useState<Set<number>>(new Set());
+  const label = DATE_FIELD_LABEL[field]();
+  const send = (next: Row[]) => {
+    const wrong = new Set(next.filter((r) => parseQty(r.qty) === undefined).map((r) => r.key));
+    setBad(wrong);
+    if (wrong.size) return;
+    void onSave(next.filter((r) => r.date || r.qty).map((r) => ({ date: r.date || null, qty: parseQty(r.qty) ?? null })));
+  };
+  const set = (key: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+  const total = rows.reduce((a, r) => a + (Number(parseQty(r.qty) ?? 0) || 0), 0);
+  return (
+    <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50/70 p-2">
+      <p className="flex items-center justify-between gap-2 px-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+        <span className="flex items-center gap-1"><CalendarDays size={11} />{label}</span>
+        <span className="normal-case tabular-nums text-slate-600">{tr("Total {0} {1}", fmtQty(total), unit)}</span>
+      </p>
+      <ul className="mt-1.5 space-y-1.5">
+        {rows.map((r, i) => (
+          <li key={r.key} className="flex items-center gap-1.5">
+            <span className="w-4 flex-shrink-0 text-center text-[11px] font-semibold tabular-nums text-slate-400">{i + 1}</span>
+            <input type="date" disabled={!edit} value={r.date} max={field === "roasted_date" ? wibDay(0) : undefined}
+              onChange={(e) => { const next = rows.map((x) => (x.key === r.key ? { ...x, date: e.target.value } : x)); setRows(next); send(next); }}
+              className={cx(DATE_INPUT, r.date ? "border-emerald-200 bg-white" : "border-slate-200 bg-white")} aria-label={`${label} ${i + 1}`} />
+            <input inputMode="decimal" disabled={!edit} value={r.qty} placeholder={unit} onChange={(e) => set(r.key, { qty: e.target.value })}
+              onBlur={() => send(rows)} onFocus={(e) => e.currentTarget.select()}
+              className={cx(inputClass, "h-10 w-20 flex-shrink-0 text-right text-sm font-semibold tabular-nums sm:w-24", bad.has(r.key) && "border-red-400")}
+              aria-label={tr("Quantity {0} ({1})", i + 1, unit)} />
+            {edit && (
+              <button type="button" onClick={() => { const next = rows.filter((x) => x.key !== r.key); setRows(next); send(next); }}
+                className="flex h-10 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove date {0}", i + 1)}>
+                <Trash2 size={15} />
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {bad.size > 0 && <p className="mt-1 text-[11px] text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
+      {edit && rows.length < 20 && (
+        <button type="button" onClick={() => setRows((rs) => [...rs, { key: ++rowKey, date: "", qty: "" }])}
+          className="mt-1.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white text-xs font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-700">
+          <Plus size={14} /> {tr("Add another {0}", label.toLowerCase())}
+        </button>
       )}
     </div>
   );
