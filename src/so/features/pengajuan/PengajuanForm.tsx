@@ -7,7 +7,7 @@
 // filled; what is still missing is listed above the Send button. A pengajuan sent back for a revision opens here again
 // with the team's notes. Mobile first.
 
-import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Loader2, Paperclip, Plus, Send, Trash2, UserPlus, Users, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Loader2, Paperclip, Plus, Send, Trash2, UserPlus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -513,15 +513,11 @@ function Baristas({ value, options, onChange }: { value: Barista[]; options: { i
         </div>
       )}
       {options.filter((o) => !has(o.name)).length > 0 && (
-        <div>
-          <p className="mb-1 flex items-center gap-1 text-xs font-medium text-slate-500"><Users size={12} /> {tr("Accounts of the branch")}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {options.filter((o) => !has(o.name)).map((o) => (
-              <button key={o.id} type="button" onClick={() => onChange([...value, { name: o.name, userId: o.id }])}
-                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:border-blue-300 hover:text-blue-700"><Plus size={11} /> {o.name}</button>
-            ))}
-          </div>
-        </div>
+        <select value="" aria-label={tr("Accounts of the branch")} className={cx(inputClass, "h-10 text-sm")}
+          onChange={(e) => { const o = options.find((x) => x.id === e.target.value); if (o) onChange([...value, { name: o.name, userId: o.id }]); }}>
+          <option value="">{tr("Pick from the accounts of the branch ({0})", options.filter((o) => !has(o.name)).length)}</option>
+          {options.filter((o) => !has(o.name)).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+        </select>
       )}
       <div className="flex gap-2">
         <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} maxLength={80}
@@ -558,7 +554,7 @@ function Attachments({ files, docTypes, required, onAdd, onRemove }: { files: Pg
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={(e) => void pick(e.target.files)} />
         <button type="button" disabled={busy} onClick={() => input.current?.click()}
           className="inline-flex h-8 items-center gap-1.5 rounded-md bg-slate-900 px-2.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-60">
-          {busy ? <Loader2 size={13} className="animate-spin" /> : <Paperclip size={13} />} {tr("Attach")}
+          {busy ? <Loader2 size={13} className="animate-spin" /> : <Paperclip size={13} />} {tr("Attach file")}
         </button>
       </div>
       {required && !files.length && <Badge tone="red">{tr("Receipt required")}</Badge>}

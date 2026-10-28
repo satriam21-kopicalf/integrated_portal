@@ -161,7 +161,7 @@ export default function PengajuanMonitor() {
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[980px] text-sm">
                 <thead className={theadClass}>
-                  <tr>
+                  <tr className="whitespace-nowrap">
                     <th className="px-4 py-2.5">{tr("Number")}</th><th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5">{tr("Period")}</th>
                     <th className="px-4 py-2.5 text-right">{tr("Money in")}</th><th className="px-4 py-2.5 text-right">{tr("Money out")}</th>
                     <th className="px-4 py-2.5 text-right">{tr("Closing")}</th><th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5">{tr("Sent")}</th>
@@ -170,13 +170,13 @@ export default function PengajuanMonitor() {
                 <tbody className="divide-y divide-slate-100">
                   {paged.rows.map((p) => (
                     <tr key={p.id} onClick={() => setOpen(p.id)} className="cursor-pointer hover:bg-slate-50">
-                      <td className="px-4 py-2.5 font-mono text-xs font-semibold text-slate-600">{p.number}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs font-semibold text-slate-600">{p.number}</td>
                       <td className="max-w-[16rem] px-4 py-2.5"><p className="truncate font-medium text-slate-900">{p.branchName}</p>
                         <p className="truncate text-xs text-slate-500">@{p.username} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</p><Flags p={p} /></td>
                       <td className="whitespace-nowrap px-4 py-2.5 text-xs text-slate-600">{p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : "—"}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-emerald-700">{fmtRp(p.incomeAmount)}</td>
-                      <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900">{fmtRp(p.totalOut)}</td>
-                      <td className={cx("px-4 py-2.5 text-right tabular-nums", (p.closingBalance ?? 0) < 0 ? "text-red-700" : "text-slate-700")}>{fmtRp(p.closingBalance)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-emerald-700">{fmtRp(p.incomeAmount)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900">{fmtRp(p.totalOut)}</td>
+                      <td className={cx("whitespace-nowrap px-4 py-2.5 text-right tabular-nums", (p.closingBalance ?? 0) < 0 ? "text-red-700" : "text-slate-700")}>{fmtRp(p.closingBalance)}</td>
                       <td className="px-4 py-2.5"><StatusBadge s={p.status} /></td>
                       <td className="whitespace-nowrap px-4 py-2.5 text-xs tabular-nums text-slate-500">{wibDateTime(p.submittedAt)}</td>
                     </tr>

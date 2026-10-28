@@ -3559,4 +3559,6 @@ export const ID: Record<string, string> = {
   "{0} expenses, {1}. After sending it cannot be changed unless the team sends it back for a revision.": "{0} pengeluaran, {1}. Setelah dikirim tidak dapat diubah kecuali tim mengembalikannya untuk revisi.",
   "{0} files": "{0} file",
   "{0} things to complete before sending": "{0} hal perlu dilengkapi sebelum mengirim",
+  "Attach file": "Lampirkan",
+  "Pick from the accounts of the branch ({0})": "Pilih dari akun cabang ({0})",
 };
