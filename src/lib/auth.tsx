@@ -12,7 +12,8 @@ import { rememberFarewell } from '@/lib/greetings';
 import { tr } from './i18n';
 import { CC_PAGES, PageKey, PAGES, pageOf } from './pages';
 
-export type Role = 'superadmin' | 'cost_control' | 'user';
+/** outlet = the shared outlet / HUB CK / HUB WH accounts (2026-10-28): branch scoped like user */
+export type Role = 'superadmin' | 'cost_control' | 'user' | 'outlet';
 export type Gender = 'male' | 'female';
 
 export interface AuthUser {
@@ -83,12 +84,15 @@ const APP_HEADER = 'X-Kopicalf-App';
 export const OPERATIONS_URL = 'https://operations.kopicalf.co.id';
 /** Pages Operations has (same list as app/access.py OPERATIONS_PAGES): an account whose pages are all here and include
  * a form signs in there, not in the portal. */
-export const OPERATIONS_PAGES: PageKey[] = ['overview', 'sales', 'rating.grabfood', 'form.pic-check-in', 'form.product', 'form.outlet', 'form.damaged-equipment'];
+export const OPERATIONS_PAGES: PageKey[] = ['overview', 'sales', 'rating.grabfood', 'stock-opname', 'waste', 'guide', 'form.pic-check-in', 'form.product',
+  'form.outlet', 'form.damaged-equipment', 'form.pengajuan'];
+/** Roles that see their assigned branches only (the others see every branch). */
+export const branchScoped = (role: Role) => role === 'user' || role === 'outlet';
 export function operationsOnly(role: Role, pages: PageKey[]): boolean {
   return role !== 'superadmin' && pages.some(p => p.startsWith('form.')) && pages.every(p => OPERATIONS_PAGES.includes(p));
 }
 export const ROLE_LABELS: Record<Role, string> = {
-  get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User'); },
+  get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User (PIC)'); }, get outlet() { return tr('Outlet / Hub'); },
 };
 export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('Male'); }, get female() { return tr('Female'); } };
 
@@ -108,6 +112,7 @@ export function hasPage(user: Pick<AuthUser, 'role' | 'pages'> | null | undefine
 function pagesOf(user: Pick<AuthUser, 'role' | 'pages'>): PageKey[] {
   if (user.pages) return user.pages;
   const base: PageKey[] = ['overview', 'sales', 'stock-opname', 'guide'];
+  if (user.role === 'outlet') return ['stock-opname', 'waste'];
   return user.role === 'cost_control' ? [...base, 'waste', ...CC_PAGES] : base;
 }
 

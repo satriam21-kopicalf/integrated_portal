@@ -12,9 +12,9 @@ import { OPERATIONS_PAGES, OPERATIONS_URL, operationsOnly, Role, ROLE_LABELS } f
 import { serverMsg, tr } from '@/lib/i18n';
 import { PageInfo, PageKey, PAGES, STATE_LABEL } from '@/lib/pages';
 
-type EditableRole = 'cost_control' | 'user';
+type EditableRole = 'cost_control' | 'user' | 'outlet';
 type RolePages = Record<EditableRole, PageKey[]>;
-const EDITABLE: EditableRole[] = ['cost_control', 'user'];
+const EDITABLE: EditableRole[] = ['cost_control', 'user', 'outlet'];
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) } });
@@ -26,7 +26,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 let rolesPromise: Promise<RolePages> | null = null;
 export function loadRolePages(fresh = false): Promise<RolePages> {
   if (fresh || !rolesPromise) {
-    rolesPromise = call<{ roles: RolePages }>('/api/access/pages').then(r => r.roles).catch(() => ({ cost_control: [], user: [] }));
+    rolesPromise = call<{ roles: RolePages }>('/api/access/pages').then(r => ({ ...r.roles, outlet: r.roles.outlet ?? [] })).catch(() => ({ cost_control: [], user: [], outlet: [] }));
   }
   return rolesPromise;
 }
@@ -145,7 +145,7 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
       {!draft ? <div className="skeleton h-72 rounded-lg" /> : (
         <div className="space-y-4">
           <div className="overflow-x-auto rounded-xl border border-slate-200">
-            <table className="w-full min-w-[480px] text-sm">
+            <table className="w-full min-w-[600px] text-sm">
               <thead className="border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-3 py-2.5">{tr('Page')}</th>
@@ -173,13 +173,13 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
                 <tr className="border-t border-slate-200 bg-slate-50/60 text-slate-500">
                   <td className="px-3 py-2">{tr('User Accounts, Activity Logs')}</td>
                   <td className="px-3 py-2 text-center"><Check size={15} className="inline text-slate-400" /></td>
-                  <td colSpan={2} className="px-3 py-2 text-center text-xs">{tr('Super admins only')}</td>
+                  <td colSpan={EDITABLE.length} className="px-3 py-2 text-center text-xs">{tr('Super admins only')}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <OperationsNote only={false} some />
-          <p className="text-xs text-slate-500">{tr('Role User keeps seeing only its assigned branches; Cost Control pages show every branch.')}</p>
+          <p className="text-xs text-slate-500">{tr('Roles User (PIC) and Outlet / Hub see only their assigned branches; Cost Control pages show every branch. A new form is added to role User (PIC).')}</p>
           <p className="text-xs text-slate-500">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
           {message && <p role="status" className={`rounded-lg px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
         </div>
@@ -224,7 +224,7 @@ function GroupRows({ group, children }: { group: string; children: React.ReactNo
   return (
     <>
       <tr className="border-t border-slate-200 bg-slate-50/60">
-        <td colSpan={4} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{group}</td>
+        <td colSpan={EDITABLE.length + 2} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{group}</td>
       </tr>
       {children}
     </>

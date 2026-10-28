@@ -3561,4 +3561,11 @@ export const ID: Record<string, string> = {
   "{0} things to complete before sending": "{0} hal perlu dilengkapi sebelum mengirim",
   "Attach file": "Lampirkan",
   "Pick from the accounts of the branch ({0})": "Pilih dari akun cabang ({0})",
+  "Help": "Bantuan",
+  "How to use Operations": "Cara memakai Operations",
+  "Outlet / Hub": "Outlet / Hub",
+  "User (PIC)": "User (PIC)",
+  "Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches": "Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste dan semua form dari cabang yang ditugaskan",
+  "Roles User (PIC) and Outlet / Hub see only their assigned branches; Cost Control pages show every branch. A new form is added to role User (PIC).": "Role User (PIC) dan Outlet / Hub hanya melihat cabang yang ditugaskan; halaman Cost Control menampilkan semua cabang. Form baru ditambahkan ke role User (PIC).",
+  "Shared outlet / HUB account: Stock Opname and Waste of the assigned branches": "Akun bersama outlet / HUB: Stock Opname dan Waste dari cabang yang ditugaskan",
 };

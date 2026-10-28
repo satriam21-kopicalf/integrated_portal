@@ -18,7 +18,7 @@ import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
-import { AuthUser, GENDER_LABELS, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
+import { AuthUser, branchScoped, GENDER_LABELS, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
 import { locale, tr, serverMsg } from '@/lib/i18n';
@@ -405,7 +405,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
       }>
       <div className="space-y-6">
         <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: tr('All roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User') },
+          { value: '', label: tr('All roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User (PIC)') }, { value: 'outlet', label: tr('Outlet / Hub') },
         ]} />
         <ChoiceGroup label={tr('Status')} value={draft.status} onChange={set('status')} choices={[
           { value: '', label: tr('All') }, { value: 'active', label: tr('Active') }, { value: 'inactive', label: tr('Inactive') },
@@ -427,7 +427,7 @@ function Avatar({ user }: { user: AuthUser }) {
 
 function RoleBadge({ role }: { role: Role }) {
   const superadmin = role === 'superadmin';
-  const tone = superadmin ? 'bg-red-50 text-red-700' : role === 'cost_control' ? 'bg-amber-50 text-amber-800' : 'bg-blue-50 text-blue-700';
+  const tone = superadmin ? 'bg-red-50 text-red-700' : role === 'cost_control' ? 'bg-amber-50 text-amber-800' : role === 'outlet' ? 'bg-teal-50 text-teal-700' : 'bg-blue-50 text-blue-700';
   return (
     <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}`}>
       {superadmin && <ShieldCheck size={12} />}{ROLE_LABELS[role] ?? role}
@@ -444,7 +444,7 @@ function StatusBadge({ user }: { user: AuthUser }) {
 
 /** Branches the account may see: superadmins every branch; a user without branches sees no data. */
 function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code: string) => string }) {
-  if (user.role !== 'user') return <span className="whitespace-nowrap text-xs text-slate-500">{tr('All branches')}</span>;
+  if (!branchScoped(user.role)) return <span className="whitespace-nowrap text-xs text-slate-500">{tr('All branches')}</span>;
   const codes = user.branches ?? [];
   if (!codes.length) {
     return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700" title={tr('This user sees no data until branches are assigned')}><CircleAlert size={11} /> {tr('No branch')}</span>;
@@ -549,7 +549,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
       }
     }
     if (form.password) body.password = form.password;
-    if (form.role === 'user') body.branches = branchCodes;
+    if (branchScoped(form.role)) body.branches = branchCodes;
     if (form.role !== 'superadmin') body.pageOverrides = pageOverrides;
     return body;
   }, [form, profile, creating, branchCodes, pageOverrides]);
@@ -662,9 +662,10 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : tr('Pages of the role, data of the assigned branches')}>
+            <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : tr('Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches')}>
               <select id="f-role" className={inputClass} value={form.role} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
-                <option value="user">{tr('User')}</option>
+                <option value="user">{tr('User (PIC)')}</option>
+                <option value="outlet">{tr('Outlet / Hub')}</option>
                 <option value="cost_control">{tr('Cost Control')}</option>
                 <option value="superadmin">{tr('Super Admin')}</option>
               </select>
@@ -683,7 +684,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
           {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
         </DrawerSection>
 
-        {form.role === 'user' ? (
+        {branchScoped(form.role) ? (
           <DrawerSection title={tr('Branch access')} description={tr('Overview and Sales Transactions only show the data of these branches (also exports). Required for role User.')}>
             <BranchAssign branches={branches} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
@@ -851,16 +852,16 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       {/* at a glance */}
       <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-4">
         <Glance label={tr('Last sign-in')} value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('has not signed in')} />
-        <Glance label={tr('Branch access')} value={user.role !== 'user' ? 'All' : formatNumber(branchCodes.length)}
-          sub={user.role !== 'user' ? ROLE_LABELS[user.role] : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}
-          tone={user.role === 'user' && !branchCodes.length ? 'bad' : undefined} />
+        <Glance label={tr('Branch access')} value={!branchScoped(user.role) ? 'All' : formatNumber(branchCodes.length)}
+          sub={!branchScoped(user.role) ? ROLE_LABELS[user.role] : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}
+          tone={branchScoped(user.role) && !branchCodes.length ? 'bad' : undefined} />
         <Glance label={tr('Profile')} value={`${filled}/${PROFILE_REQUIRED.length}`} sub={missing.length ? tr('missing: {0}', missing.join(', ')) : tr('complete')}
           tone={missing.length ? 'warn' : 'good'} />
         <Glance label={tr('Activity, 30 days')} value={counts ? formatNumber(counts.total) : '…'} sub={counts ? tr('{0} exports', formatNumber(counts.exports)) : ''} />
       </div>
 
-      <DrawerSection title={tr('Branch access')} description={user.role !== 'user' ? tr('Super admins and Cost Control see every branch') : tr('Overview, Sales Transactions and exports are limited to these branches')}>
-        {user.role !== 'user' ? (
+      <DrawerSection title={tr('Branch access')} description={!branchScoped(user.role) ? tr('Super admins and Cost Control see every branch') : tr('Overview, Sales Transactions and exports are limited to these branches')}>
+        {!branchScoped(user.role) ? (
           <p className="flex items-center gap-2 text-sm text-slate-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All branches')}</p>
         ) : branchCodes.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
@@ -983,7 +984,7 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
   const { user, password, created } = issued;
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
-  const branches = user.role !== 'user' ? 'Semua cabang' : (user.branches ?? []).map(branchName).join(', ') || '—';
+  const branches = !branchScoped(user.role) ? 'Semua cabang' : (user.branches ?? []).map(branchName).join(', ') || '—';
   const text = [
     'Login Kopi Calf Integrated Portal',
     `URL: ${typeof window !== 'undefined' ? window.location.origin : ''}`,
