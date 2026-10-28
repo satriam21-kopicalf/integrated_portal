@@ -1,7 +1,7 @@
 // Monitoring Product / Monitoring Outlet (integrated_portal_be app/visit_forms.py): types, labels and helpers shared by
 // the form (PIC) and the monitoring pages (management).
 
-import { lang, tr } from "@/lib/i18n";
+import { lang, numberLocale, tr } from "@/lib/i18n";
 
 export type VisitFormKey = "product" | "outlet";
 export type Rating = "UNDER" | "MEET" | "EXCEED";
@@ -12,7 +12,9 @@ export type Platform = "google" | "gofood" | "grabfood" | "shopeefood";
  * skipped and needs neither. labelEn = the English text (the UI shows the one of its language). */
 export type Evidence = "required" | "optional";
 export type Item = { key: string; no: number; label: string; labelEn?: string; kind: "rating" | "text"; platform?: Platform;
-  required?: boolean; requiredFor?: string[]; note?: Evidence; photo?: Evidence };
+  required?: boolean; requiredFor?: string[]; note?: Evidence; photo?: Evidence;
+  /** "g": the PIC also types the stock in grams, net weight (Stock Preparation, Espresso and Beans, 2026-10-28) */
+  qty?: "g" };
 /** Google Maps figure of the outlet (Rating & Review → Google Maps) */
 export type AutoStars = { stars: number; reviews: number | null; source: "google"; fetchedAt: string | null; mapsUri?: string | null };
 export type Section = { key: string; title: string; titleEn?: string; items: Item[] };
@@ -32,10 +34,14 @@ export const isRequired = (i: Item, group?: string | null) => (i.required ?? tru
 /** What a rated item needs at this outlet: a required item its note / photo (both unless the item says otherwise). */
 export const evidenceOf = (i: Item, group?: string | null) => {
   const req = isRequired(i, group) && !i.platform;
-  return { note: req && (i.note ?? "required") === "required", photo: req && (i.photo ?? "required") === "required" };
+  return { note: req && (i.note ?? "required") === "required", photo: req && (i.photo ?? "required") === "required", qty: req && !!i.qty };
 };
-/** rating null = cleared (tapping the chosen rating again) */
-export type Answer = { rating?: Rating | null; note?: string; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null };
+/** rating null = cleared (tapping the chosen rating again); qty = grams (net weight) */
+export type Answer = { rating?: Rating | null; note?: string; qty?: number | null; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null };
+/** 1250.5 → "1,250.5 g" in the UI language */
+export const fmtGrams = (n: number) => `${n.toLocaleString(numberLocale(), { maximumFractionDigits: 1 })} g`;
+/** "note+qty" → "note + grams" (what a rated item still needs) */
+export const needLabel = (what: string) => what.split("+").map((w) => ({ note: tr("note"), photo: tr("photo"), qty: tr("grams") })[w] ?? w).join(" + ");
 export type Counts = { under: number; meet: number; exceed: number; rated: number; total: number; score: number | null };
 export type VisitPhoto = { id: string; item: string; takenAt: string | null; uploadedAt: string; latitude: number | null; longitude: number | null;
   distanceM: number | null; outsideRadius: boolean };
@@ -82,7 +88,7 @@ export function missingOf(d: Definition, answers: Record<string, Answer>, photos
     const a = answers[i.key] ?? {};
     if (!a.rating) return { item: i, need: (isRequired(i, group) ? "rating" : "optional") as "rating" | "optional", what: "" };
     const ev = evidenceOf(i, group);
-    const what = [ev.note && !a.note ? "note" : "", ev.photo && !withPhoto.has(i.key) ? "photo" : ""].filter(Boolean).join("+");
+    const what = [ev.note && !a.note ? "note" : "", ev.photo && !withPhoto.has(i.key) ? "photo" : "", ev.qty && a.qty == null ? "qty" : ""].filter(Boolean).join("+");
     return what ? { item: i, need: "evidence" as const, what } : null;
   }).filter((x): x is NonNullable<typeof x> => !!x);
 }

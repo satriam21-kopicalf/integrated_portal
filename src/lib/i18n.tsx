@@ -125,7 +125,9 @@ const SERVER_EN: [RegExp, string][] = [
   [/^Rating harus angka 1,0 sampai 5,0$/, 'The rating must be a number from 1.0 to 5.0'],
   [/^Maksimal (\d+) foto per butir; hapus satu dulu$/, 'At most $1 photos per item; remove one first'],
   [/^Belum bisa dikirim: (\d+) butir wajib belum dinilai$/, 'Cannot be sent yet: $1 required items are not rated'],
-  [/^Belum bisa dikirim: (\d+) butir yang dinilai belum lengkap catatan\/foto$/, 'Cannot be sent yet: $1 rated items still need a note or a photo'],
+  [/^Belum bisa dikirim: (\d+) butir yang dinilai belum lengkap catatan\/foto\/gram$/, 'Cannot be sent yet: $1 rated items still need a note, a photo or the grams'],
+  [/^Gramasi hanya untuk butir Stock Preparation, Espresso dan Beans$/, 'Grams are only for the Stock Preparation, Espresso and Beans items'],
+  [/^Gramasi harus angka 0 sampai 1\.000\.000 gram$/, 'The grams must be a number from 0 to 1,000,000'],
   [/^Belum ada butir yang dinilai$/, 'No item is rated yet'],
   [/^Tulis nama penanda tangan di bawah tanda tangan$/, "Write the signer's name under the signature"],
 ];

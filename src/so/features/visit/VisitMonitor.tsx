@@ -17,7 +17,7 @@ import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
 import { call } from "@/so/features/checkin/checkin";
 import { locale, tr } from "@/lib/i18n";
-import { type Definition, type Platform, type Rating, type Visit, type VisitFormKey, PLATFORM_LABEL, RATINGS, RATING_STYLE, fmtStars, ratingLabel, scoreTone, tl, visitPhotoUrl, visitSignatureUrl } from "./visit";
+import { type Definition, type Platform, type Rating, type Visit, type VisitFormKey, PLATFORM_LABEL, RATINGS, RATING_STYLE, fmtGrams, fmtStars, ratingLabel, scoreTone, tl, visitPhotoUrl, visitSignatureUrl } from "./visit";
 
 type SectionPerf = { key: string; title: string; titleEn?: string; group: string; under: number; meet: number; exceed: number };
 type Finding = { key: string; label: string; labelEn?: string; section: string; sectionEn?: string; count: number; branches: string[] };
@@ -448,6 +448,10 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                                     {a.reviews != null && <span className="font-normal text-amber-700">· {tr("{0} reviews", fmtNumber(a.reviews))}</span>}
                                     <span className="font-normal text-amber-700">· {a.source === "google" ? "Google" : tr("manual")}</span>
                                   </span>
+                                )}
+                                {a.qty != null && (
+                                  <span className="ml-2 inline-flex items-center whitespace-nowrap rounded-md bg-slate-100 px-1.5 py-0.5 align-middle text-[11px] font-semibold tabular-nums text-slate-700"
+                                    title={tr("Qty in grams (net weight)")}>{fmtGrams(a.qty)}</span>
                                 )}
                               </span>
                               {a.rating ? <span className={cx("rounded-md px-2 py-0.5 text-[11px] font-bold", RATING_STYLE[a.rating as Rating].on)}>{ratingLabel(a.rating as Rating)}</span>

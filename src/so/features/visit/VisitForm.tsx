@@ -5,7 +5,8 @@
 // saved as it is filled (it can be continued later), then submitted with the position. Each item: UNDER / MEET /
 // EXCEED, a note and up to 3 camera photos stamped with the time, the branch and the position. Required / optional per
 // item (2026-10-27, per branch group: some items only at CTGP / CCI): a required item must be rated, with the note and
-// photo it asks for; an optional item may be skipped. One visit per branch per day, the next one tomorrow. Labels in the
+// photo it asks for; an optional item may be skipped. Stock Preparation, Espresso and Beans also take the stock in grams
+// (net weight, 2026-10-28; required with the rating of a required item). One visit per branch per day, the next one tomorrow. Labels in the
 // UI language (Indonesian or English). Mobile first: one item per row, the progress stays on top, send at the bottom.
 
 import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, ClipboardList, CloudUpload, ExternalLink, MapPin, MessageSquareText, PenLine, Send, Star, Trash2, X } from "lucide-react";
@@ -25,7 +26,7 @@ import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import LiveClock from "@/so/ui/LiveClock";
 import { type Answer, type AutoStars, type FormState, type Item, type Rating, type Visit, type VisitFormKey, type VisitPhoto, PLATFORM_LABEL, RATINGS, RATING_STYLE,
-  allItems, evidenceOf, fmtStars, isRequired, missingOf, ratingLabel, scoreTone, tl, visitPhotoUrl } from "./visit";
+  allItems, evidenceOf, fmtStars, isRequired, missingOf, needLabel, ratingLabel, scoreTone, tl, visitPhotoUrl } from "./visit";
 
 const MAX_PHOTOS = 3;
 
@@ -382,7 +383,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
                   <AlertTriangle size={12} className={cx("flex-shrink-0", m.need === "optional" ? "text-slate-400" : "text-red-500")} />
                   <span className="min-w-0 flex-1 truncate text-slate-800">{tl(m.item)}</span>
                   <span className={cx("flex-shrink-0", m.need === "optional" ? "text-slate-500" : "text-red-700")}>
-                    {m.need === "rating" ? tr("required, not rated") : m.need === "optional" ? tr("optional") : m.what === "note" ? tr("note") : m.what === "photo" ? tr("photo") : tr("note + photo")}
+                    {m.need === "rating" ? tr("required, not rated") : m.need === "optional" ? tr("optional") : needLabel(m.what)}
                   </span>
                 </button>
               </li>
@@ -538,6 +539,34 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
   );
 }
 
+/** The stock in whole grams, net weight (Stock Preparation, Espresso and Beans): saved when the field is left. */
+function QtyGrams({ answer, required, missing, label, onAnswer }: { answer: Answer; required: boolean; missing: boolean; label: string; onAnswer: (v: Answer, now?: boolean) => void }) {
+  const [text, setText] = useState(answer.qty != null ? String(Math.round(answer.qty)) : "");
+  const [bad, setBad] = useState(false);
+  const commit = () => {
+    if (!text) { setBad(false); if (answer.qty != null) onAnswer({ qty: null }, true); return; }
+    const n = Number(text);
+    if (!Number.isFinite(n) || n > 1_000_000) { setBad(true); return; }
+    setBad(false);
+    if (n !== answer.qty) onAnswer({ qty: n }, true);
+  };
+  return (
+    <div className="mt-2">
+      <label className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="relative">
+          <input value={text} onChange={(e) => setText(e.target.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 7))} onBlur={commit}
+            onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+            inputMode="numeric" placeholder="0" aria-label={tr("{0}: grams (net weight)", label)} aria-invalid={bad || missing || undefined}
+            className={cx(inputClass, "h-10 w-36 pr-9 text-right text-sm font-semibold tabular-nums", (bad || missing) && "border-red-300")} />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">g</span>
+        </span>
+        <span className="text-xs text-slate-500">{tr("Qty in grams (net weight)")}{required ? "" : ` · ${tr("optional")}`}</span>
+      </label>
+      {bad && <p className="mt-1 text-xs text-red-600">{tr("Type a number from 0 to 1,000,000 grams")}</p>}
+    </div>
+  );
+}
+
 function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemovePhoto }: {
   item: Item; group: string | null; answer: Answer; auto: AutoStars | null; photos: VisitPhoto[]; onAnswer: (v: Answer, now?: boolean) => void; onCamera: () => void; onRemovePhoto: (id: string) => void;
 }) {
@@ -549,7 +578,9 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
   const showNote = item.kind === "text" || noteOpen || (rated && ev.note) || !!answer.note;
   const needNote = rated && ev.note && !answer.note;
   const needPhoto = rated && ev.photo && photos.length === 0;
+  const needQty = rated && ev.qty && answer.qty == null;
   const hint = required && !item.platform && ev.note !== ev.photo ? (ev.note ? tr("Note required · photo optional") : tr("Photo required · note optional")) : null;
+  const needs = [needNote && "note", needPhoto && "photo", needQty && "qty"].filter(Boolean).join("+");
   return (
     <li id={`item-${item.key}`} className={cx("px-4 py-3.5", under && "bg-red-50/40")}>
       <div className="flex items-start gap-2.5">
@@ -572,6 +603,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
               ))}
             </div>
           )}
+          {item.qty && <QtyGrams answer={answer} required={ev.qty} missing={needQty} label={tl(item)} onAnswer={onAnswer} />}
           {showNote && (
             <textarea value={answer.note ?? ""} onChange={(e) => onAnswer({ note: e.target.value })} rows={2} maxLength={1000}
               placeholder={item.kind === "text" ? tr("Names, separated by commas") : rated && ev.note ? tr("What you see (required)") : tr("Note (optional)")}
@@ -603,7 +635,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
                   <MessageSquareText size={14} /> {tr("Note")}
                 </button>
               )}
-              {(needNote || needPhoto) && <Badge tone="red">{needNote && needPhoto ? tr("Note & photo required") : needNote ? tr("Note required") : tr("Photo required")}</Badge>}
+              {needs && <Badge tone="red">{tr("Required: {0}", needLabel(needs))}</Badge>}
             </div>
           )}
         </div>
