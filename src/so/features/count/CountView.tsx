@@ -369,7 +369,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   );
 }
 
-const DATE_INPUT = "h-10 min-w-0 flex-1 rounded-lg border px-2 text-sm font-semibold tabular-nums text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50 disabled:text-slate-500";
+const DATE_INPUT = "h-10 min-w-[8.5rem] flex-1 rounded-lg border px-2 text-sm font-semibold tabular-nums text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50 disabled:text-slate-500";
 
 type Row = { key: number; date: string; qty: string };
 let rowKey = 0;
@@ -410,7 +410,7 @@ function DateRows({ line, field, edit, unit, qty, onSave }: {
               className={cx(DATE_INPUT, r.date ? "border-emerald-200 bg-white" : "border-slate-200 bg-white")} aria-label={`${label} ${i + 1}`} />
             <input inputMode="decimal" disabled={!edit} value={r.qty} placeholder="0" onChange={(e) => set(r.key, { qty: e.target.value })}
               onBlur={() => send(rows)} onFocus={(e) => e.currentTarget.select()}
-              className={cx(inputClass, "h-10 w-20 flex-shrink-0 text-right text-sm font-semibold tabular-nums sm:w-24", bad.has(r.key) && "border-red-400")}
+              className={cx(inputClass, "h-10 w-20 max-w-[5rem] flex-shrink-0 px-2 text-right text-sm font-semibold tabular-nums sm:w-24 sm:max-w-[6rem]", bad.has(r.key) && "border-red-400")}
               aria-label={tr("Quantity {0} ({1})", i + 1, unit)} />
             {edit && (
               <button type="button" onClick={() => { const next = rows.filter((x) => x.key !== r.key); setRows(next); send(next); }}

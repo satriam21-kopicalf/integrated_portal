@@ -51,7 +51,7 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
     <div role="radiogroup" aria-label={label} className="flex max-w-full gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1 [scrollbar-width:none]">
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
-          className={cx("min-h-9 flex-1 flex-shrink-0 whitespace-nowrap rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors sm:px-3 sm:text-sm",
+          className={cx("min-h-9 flex-1 flex-shrink-0 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm",
             value === o.value ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{o.label}</button>
       ))}
     </div>
