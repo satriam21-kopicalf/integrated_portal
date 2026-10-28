@@ -8,7 +8,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { ChevronRight, ClipboardCheck, ClipboardPen, LayoutDashboard, MapPinCheck, Menu, Package, Receipt, Store, Wrench, X, type LucideIcon } from 'lucide-react';
+import { ChevronRight, ClipboardCheck, ClipboardPen, LayoutDashboard, MapPinCheck, Menu, Package, Receipt, Store, Wallet, Wrench, X, type LucideIcon } from 'lucide-react';
 import { canAccess, useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { tr } from '@/lib/i18n';
@@ -29,6 +29,7 @@ const FORM_LINKS: FormLink[] = [
   { href: '/forms/product', key: 'form.product', icon: Package, label: () => 'Product', hint: () => tr('Fill in the product checklist') },
   { href: '/forms/outlet', key: 'form.outlet', icon: Store, label: () => 'Outlet', hint: () => tr('Fill in the outlet checklist') },
   { href: '/forms/damaged-equipment', key: 'form.damaged-equipment', icon: Wrench, label: () => tr('Damaged Equipment'), hint: () => tr('Repair & procurement requests') },
+  { href: '/forms/pengajuan', key: 'form.pengajuan', icon: Wallet, label: () => tr('Fund requests'), hint: () => tr('Petty cash with receipts') },
 ];
 
 type Tab = { key: string; label: string; icon: LucideIcon; href?: string; onClick?: () => void; active: boolean };
@@ -98,38 +99,39 @@ export default function BottomNav({ onMenu }: { onMenu: () => void }) {
   );
 }
 
-/** The forms the account may fill, as app tiles. */
+/** The forms the account may fill (2026-10-28: a plain list — one row per form, two columns on tablets). */
 function FormSheet({ links, on, onClose }: { links: FormLink[]; on: (href: string) => boolean; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[80] lg:hidden" role="dialog" aria-modal="true" aria-label={tr('Form')}>
-      <button type="button" className="drawer-backdrop absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]" onClick={onClose} aria-label={tr('Close')} />
-      <div className="sheet-panel absolute inset-x-0 bottom-0 mx-auto max-h-[85dvh] max-w-2xl overflow-y-auto rounded-t-[28px] bg-white shadow-2xl"
-        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
-        <div className="sticky top-0 z-10 bg-white/95 px-5 pb-2 pt-2.5 backdrop-blur">
-          <div className="mx-auto h-1 w-10 rounded-full bg-slate-200" aria-hidden />
-          <div className="mt-3 flex items-center justify-between">
-            <div>
-              <p className="text-lg font-bold text-slate-900">{tr('Form')}</p>
-              <p className="text-xs text-slate-500">{tr('Choose the form to fill in')}</p>
-            </div>
-            <button type="button" onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 active:bg-slate-200" aria-label={tr('Close')}><X size={18} /></button>
+      <button type="button" className="drawer-backdrop absolute inset-0 bg-slate-900/40" onClick={onClose} aria-label={tr('Close')} />
+      <div className="sheet-panel absolute inset-x-0 bottom-0 mx-auto flex max-h-[85dvh] max-w-3xl flex-col rounded-t-3xl bg-slate-50 shadow-2xl">
+        <div className="flex-shrink-0 rounded-t-3xl border-b border-slate-200/70 bg-white px-5 pb-3 pt-2.5">
+          <div className="mx-auto h-1 w-9 rounded-full bg-slate-300" aria-hidden />
+          <div className="mt-2.5 flex items-center justify-between gap-3">
+            <p className="text-base font-semibold text-slate-900">{tr('Form')} <span className="ml-1 text-sm font-normal text-slate-400">{links.length}</span></p>
+            <button type="button" onClick={onClose} className="-mr-1.5 flex h-9 w-9 items-center justify-center rounded-full text-slate-500 active:bg-slate-100" aria-label={tr('Close')}><X size={18} /></button>
           </div>
         </div>
-        <ul className="grid grid-cols-1 gap-2 px-4 pt-2 min-[400px]:grid-cols-2 sm:grid-cols-3">
-          {links.map((f) => (
-            <li key={f.href}>
-              <Link href={f.href} className={`flex h-full items-center gap-3 rounded-2xl border p-3 transition-colors min-[400px]:flex-col min-[400px]:items-start ${
-                on(f.href) ? 'border-blue-200 bg-blue-50' : 'border-slate-200/80 bg-white active:bg-slate-50'}`}>
-                <span className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${on(f.href) ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600'}`}><f.icon size={20} /></span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold leading-snug text-slate-900">{f.label()}</span>
-                  <span className="mt-0.5 line-clamp-2 block text-xs leading-snug text-slate-500">{f.hint()}</span>
-                </span>
-                <ChevronRight size={16} className="flex-shrink-0 text-slate-300 min-[400px]:hidden" />
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="flex-1 overflow-y-auto px-4 pt-4" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+          <ul className="grid gap-px overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200/70 sm:grid-cols-2">
+            {links.map((f) => {
+              const here = on(f.href);
+              return (
+                <li key={f.href} className="bg-white">
+                  <Link href={f.href} aria-current={here ? 'page' : undefined}
+                    className={`flex min-h-[60px] items-center gap-3 px-3.5 py-2.5 transition-colors ${here ? 'bg-blue-50/70' : 'active:bg-slate-50'}`}>
+                    <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${here ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`}><f.icon size={18} /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className={`block truncate text-sm font-semibold ${here ? 'text-blue-700' : 'text-slate-900'}`}>{f.label()}</span>
+                      <span className="block truncate text-xs text-slate-500">{f.hint()}</span>
+                    </span>
+                    <ChevronRight size={16} className="flex-shrink-0 text-slate-300" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
     </div>
   );
