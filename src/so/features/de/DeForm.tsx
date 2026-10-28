@@ -171,7 +171,7 @@ export default function DeForm() {
               </div>
               <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
                 { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In progress")} ${live.length}` },
-                { value: "done", label: `Done ${done.length}` }, { value: "rejected", label: `Reject ${mine.length - live.length - done.length}` }]} />
+                { value: "done", label: `${tr("Done")} ${done.length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.length - live.length - done.length}` }]} />
             </div>
             {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{mine.length ? tr("No request in this view") : tr("No request sent yet")}</p> : (
               <ul className="divide-y divide-slate-100">

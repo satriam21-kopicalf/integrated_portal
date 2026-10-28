@@ -262,7 +262,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                 const bad = invalid.has(l.id);
                 const done = (l.qty_base !== null || fromWip(l)) && !l.flags.includes("RECOUNT");
                 return (
-                  <li key={l.id} className={cx("flex items-center gap-3 px-3 py-2.5 sm:px-4", l.flags.includes("RECOUNT") && "bg-amber-50/50")}>
+                  <li key={l.id} className={cx("px-3 py-2.5 sm:px-4", l.flags.includes("RECOUNT") && "bg-amber-50/50")}>
+                    <div className="flex items-center gap-3">
                     <span className="flex w-5 flex-shrink-0 justify-center" aria-hidden>
                       {saving.has(l.id) ? <Loader2 size={15} className="animate-spin text-blue-600" />
                         : done ? <CheckCircle2 size={16} className="text-emerald-500" /> : <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-200" />}
@@ -280,30 +281,6 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         <p className="mt-0.5 text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                       )}
                       {bad && <p className="mt-0.5 text-[11px] text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
-                      {(() => { const df = lineDateField(l, count); if (!df || l.source === "WIP_EXPLODED") return null;
-                        if ((l.date_batches?.length ?? 0) >= 2 || multi.has(l.id)) {
-                          return <DateRows line={l} field={df} edit={edit} unit={unitOf(l)} qty={d.qty} onSave={(rows) => saveBatches(l, rows)} />;
-                        }
-                        return (
-                          <div className="mt-1.5 max-w-[15rem]">
-                            <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[df]()}</span>
-                            <div className="mt-0.5 flex items-center gap-1.5">
-                              <input type="date" disabled={!edit} value={l[df] ?? ""}
-                                max={df === "roasted_date" ? wibDay(0) : undefined}
-                                onChange={(e) => void saveDate(l, e.target.value || null)}
-                                className={cx(DATE_INPUT, l[df] ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-white")}
-                                aria-label={`${DATE_FIELD_LABEL[df]()} ${l.item_name}`} />
-                              {edit && (
-                                <button type="button" onClick={() => setMulti((m) => new Set(m).add(l.id))}
-                                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-700"
-                                  aria-label={tr("Add another {0}", DATE_FIELD_LABEL[df]().toLowerCase())} title={tr("Add another {0}", DATE_FIELD_LABEL[df]().toLowerCase())}>
-                                  <Plus size={16} />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
                     </div>
                     {l.source === "WIP_EXPLODED" ? (
                       <p className="flex-shrink-0 text-right text-xs font-medium text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom}<span className="block text-[10px] font-normal">{tr("from the WIP")}</span></p>
@@ -330,6 +307,31 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         </div>
                       </div>
                     )}
+                    </div>
+                      {(() => { const df = lineDateField(l, count); if (!df || l.source === "WIP_EXPLODED") return null;
+                        if ((l.date_batches?.length ?? 0) >= 2 || multi.has(l.id)) {
+                          return <div className="pl-8"><DateRows line={l} field={df} edit={edit} unit={unitOf(l)} qty={d.qty} onSave={(rows) => saveBatches(l, rows)} /></div>;
+                        }
+                        return (
+                          <div className="mt-1.5 pl-8 sm:max-w-sm">
+                            <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[df]()}</span>
+                            <div className="mt-0.5 flex items-center gap-1.5">
+                              <input type="date" disabled={!edit} value={l[df] ?? ""}
+                                max={df === "roasted_date" ? wibDay(0) : undefined}
+                                onChange={(e) => void saveDate(l, e.target.value || null)}
+                                className={cx(DATE_INPUT, l[df] ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-white")}
+                                aria-label={`${DATE_FIELD_LABEL[df]()} ${l.item_name}`} />
+                              {edit && (
+                                <button type="button" onClick={() => setMulti((m) => new Set(m).add(l.id))}
+                                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-700"
+                                  aria-label={tr("Add another {0}", DATE_FIELD_LABEL[df]().toLowerCase())} title={tr("Add another {0}", DATE_FIELD_LABEL[df]().toLowerCase())}>
+                                  <Plus size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                   </li>
                 );
               })}
@@ -406,7 +408,7 @@ function DateRows({ line, field, edit, unit, qty, onSave }: {
             <input type="date" disabled={!edit} value={r.date} max={field === "roasted_date" ? wibDay(0) : undefined}
               onChange={(e) => { const next = rows.map((x) => (x.key === r.key ? { ...x, date: e.target.value } : x)); setRows(next); send(next); }}
               className={cx(DATE_INPUT, r.date ? "border-emerald-200 bg-white" : "border-slate-200 bg-white")} aria-label={`${label} ${i + 1}`} />
-            <input inputMode="decimal" disabled={!edit} value={r.qty} placeholder={unit} onChange={(e) => set(r.key, { qty: e.target.value })}
+            <input inputMode="decimal" disabled={!edit} value={r.qty} placeholder="0" onChange={(e) => set(r.key, { qty: e.target.value })}
               onBlur={() => send(rows)} onFocus={(e) => e.currentTarget.select()}
               className={cx(inputClass, "h-10 w-20 flex-shrink-0 text-right text-sm font-semibold tabular-nums sm:w-24", bad.has(r.key) && "border-red-400")}
               aria-label={tr("Quantity {0} ({1})", i + 1, unit)} />
