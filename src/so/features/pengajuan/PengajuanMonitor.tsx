@@ -380,8 +380,8 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
   );
 }
 
-type StepEdit = { label: string; type: "APPROVE" | "PAY"; userIds: string[] };
-type Approver = { id: string; name: string; username: string; role: string; jobTitle: string | null };
+export type StepEdit = { label: string; type: "APPROVE" | "PAY"; userIds: string[] };
+export type Approver = { id: string; name: string; username: string; role: string; jobTitle: string | null };
 type Settings = { kinds: Record<Kind, string>; flows: Record<Kind, { label: string; type: "APPROVE" | "PAY"; users: { id: string; name: string }[] }[]>;
   users: Approver[]; plafon: { default: number | null; branches: { branchCode: string; amount: number }[] }; canEdit: boolean; canPlafon: boolean };
 
@@ -494,7 +494,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   );
 }
 
-function StepRow({ n, step, users, names, edit, payment, onChange, onUp, onDown, onRemove }: { n: number; step: StepEdit; users: Approver[];
+export function StepRow({ n, step, users, names, edit, payment, onChange, onUp, onDown, onRemove }: { n: number; step: StepEdit; users: Approver[];
   names: Map<string, string>; edit: boolean; payment?: boolean; onChange: (s: StepEdit) => void; onUp?: () => void; onDown?: () => void; onRemove?: () => void }) {
   const [pick, setPick] = useState("");
   return (

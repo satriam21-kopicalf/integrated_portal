@@ -21,7 +21,9 @@ import { tr } from "@/lib/i18n";
 import RequestView, { Gallery, Invoices, RequestHero, StatusBadge, UrgencyBadge } from "./RequestView";
 import DeOverview from "./DeOverview";
 import { DocActions } from "./DeForm";
-import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, OPEN, PORTAL_URLS,
+import { type Approver, type StepEdit, StepRow } from "@/so/features/pengajuan/PengajuanMonitor";
+import { useAuth } from "@/lib/auth";
+import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, KIND_LABEL, OPEN, PORTAL_URLS,
   STATUS_LABEL, STEPS, URGENCIES, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, workUrl } from "./de";
 
 type Result = { period: { from: string; to: string }; data: Request[]; categories: Category[]; technicians: Technician[] };
@@ -41,6 +43,7 @@ type PageTab = "requests" | "overview" | "tech" | "cat";
 const stepOf = (r: Request) => (r.status === "DONE" ? STEPS.length : Math.max(0, STEPS.indexOf((r.status === "ON_HOLD" ? r.holdFrom : r.status) ?? "PENDING")) + 1);
 
 export default function DeMonitor() {
+  const [approvals, setApprovals] = useState(false);
   const [f, setF] = useState<F>(NO_F);
   const [status, setStatus] = useState<Status | "" | "OPEN">("OPEN");
   const [res, setRes] = useState<Result | null>(null);
@@ -111,6 +114,7 @@ export default function DeMonitor() {
 
   return (
     <Page title={tr("Monitoring Damaged Equipment")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("repair & procurement requests of every outlet")}`}
+      actions={<Button variant="secondary" onClick={() => setApprovals(true)}><ListChecks size={15} /> {tr("Approvals")}</Button>}
       stats={tab !== "requests" ? undefined : 
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Open")} emphasis icon={<Wrench size={13} />} value={res ? fmtNumber(openRows.length) : <StatSkeleton />}>
@@ -176,6 +180,7 @@ export default function DeMonitor() {
       {sheet && <MonitorFilters value={f} groups={groups} bgroups={bgroups} branches={branchOpts} pics={picOpts} technicians={(res?.technicians ?? []).map((t) => t.name)}
         onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
       {open && res && <TeamDrawer id={open} technicians={res.technicians} all={all} onOpen={setOpen} onClose={() => setOpen(null)} onChanged={load} />}
+      {approvals && <DeApprovals onClose={() => setApprovals(false)} />}
     </Page>
   );
 }
@@ -424,8 +429,12 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const vendor = r?.mode === "VENDOR" && active.length > 0;
   const ho = r?.handover;
   // what still blocks a step (shown under the buttons, the button disabled)
+  const { user: me } = useAuth();
+  const approval = r?.status === "REVIEW" ? r.approval : null;
+  const myStep = !approval || me?.role === "superadmin" || approval.userIds.includes(me?.id ?? "");
   const blocker = (to: Status): string | null => {
     if (!r) return null;
+    if (approval && !myStep && (to === "ACCEPTED" || to === "REJECTED")) return tr("Waiting for {0}: {1}", approval.label, approval.users.join(", ") || "Superadmin");
     if ((to === "ACCEPTED" || to === "IN_PROGRESS") && vendor && r.estCost === null) return tr("Vendor work: fill in the estimated cost first (Cost & invoices)");
     if (to === "HANDOVER" && r.mode === "INTERNAL" && afterCount === 0) return tr("Waiting for the technician's photos: send the photo link below");
     if (to === "DONE" && !ho?.at) return tr("Waiting for the PIC's handover at the outlet");
@@ -462,7 +471,11 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
               <FormCard n={next()} title={tr("Next step")} hint={tr("A note is required to put on hold or reject; the PIC sees every note")}>
                 <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Note / reason for the PIC")}
                   className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note")} />
-                {(r.allowed ?? []).map(blocker).filter(Boolean).map((b) => (
+                {approval && (
+                  <p className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-900"><ListChecks size={13} />
+                    {tr("Approval {0} of {1}: {2}", approval.position, approval.total, approval.label)} · {approval.users.join(", ") || "Superadmin"}</p>
+                )}
+                {[...new Set((r.allowed ?? []).map(blocker).filter(Boolean))].map((b) => (
                   <p key={b} className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800"><AlertTriangle size={13} /> {b}</p>
                 ))}
                 <div className="flex flex-wrap gap-2">
@@ -471,7 +484,8 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                       disabled={busy || (noteNeeded(to) && !note.trim()) || !!blocker(to)}
                       onClick={() => void go(to)}>{to === "DONE" && <Check size={14} />}{to === "HANDOVER" && <Handshake size={14} />}
                       {r.status === "ON_HOLD" && to === r.holdFrom ? tr("Resume: {0}", STATUS_LABEL[to]()) : to === "HANDOVER" ? tr("Request handover from the PIC")
-                        : to === "IN_PROGRESS" && r.status === "HANDOVER" ? tr("Back to in progress (redo)") : STATUS_LABEL[to]()}</Button>
+                        : to === "IN_PROGRESS" && r.status === "HANDOVER" ? tr("Back to in progress (redo)")
+                        : to === "ACCEPTED" && approval && approval.position < approval.total ? tr("Approve: {0}", approval.label) : STATUS_LABEL[to]()}</Button>
                   ))}
                   <Button size="sm" variant="ghost" disabled={busy || !note.trim()} onClick={async () => { if (await act(`/api/de/monitor/${id}/notes`, { note }, tr("Note added"))) setNote(""); }}>{tr("Note only")}</Button>
                 </div>
@@ -1030,3 +1044,63 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
     </div>
   );
 }
+
+type DeFlows = { kinds: Record<string, string>; flows: Record<string, { label: string; users: { id: string; name: string }[] }[]>; users: Approver[]; canEdit: boolean };
+
+/** Who approves Review → Accept per kind, in order (as Form Fund); no step = any monitoring account accepts. */
+function DeApprovals({ onClose }: { onClose: () => void }) {
+  const toast = useToast();
+  const [data, setData] = useState<DeFlows | null>(null);
+  const [kind, setKind] = useState("REPAIR");
+  const [steps, setSteps] = useState<StepEdit[]>([]);
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(async () => {
+    try { setData(await call<DeFlows>("/api/de/approvals")); } catch (e) { toast((e as Error).message, "error"); }
+  }, [toast]);
+  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { if (data) setSteps((data.flows[kind] ?? []).map((x) => ({ label: x.label, type: "APPROVE", userIds: x.users.map((u) => u.id) }))); }, [data, kind]);
+  const names = useMemo(() => new Map((data?.users ?? []).map((u) => [u.id, u.name])), [data]);
+  const save = async () => {
+    setBusy(true);
+    try {
+      await call(`/api/de/approvals/${kind}`, { method: "PUT", json: { steps: steps.map(({ label, userIds }) => ({ label, userIds })) } });
+      await load();
+      toast(tr("Approvals saved"));
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  const edit = !!data?.canEdit;
+  return (
+    <Drawer open onClose={onClose} size="lg" icon={<ListChecks size={18} />} title={tr("Approvals")}
+      description={tr("Who approves Review → Accept, in order; without a step any monitoring account accepts")}
+      footer={edit ? <Button loading={busy} onClick={() => void save()}>{tr("Save")}</Button> : undefined}>
+      {!data ? <div className="skeleton h-60 rounded-xl" /> : (
+        <div className="space-y-3">
+          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="tablist">
+            {Object.entries(data.kinds).map(([k, label]) => (
+              <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
+                className={cx("flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium", kind === k ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-600")}>
+                {(KIND_LABEL as Record<string, () => string>)[k]?.() ?? label}</button>
+            ))}
+          </div>
+          {!edit && <p className="text-xs text-slate-500">{tr("Only a superadmin changes the approvals.")}</p>}
+          <ol className="space-y-2">
+            {steps.map((st, i) => (
+              <StepRow key={i} n={i + 1} step={st} users={data.users} names={names} edit={edit}
+                onChange={(x) => setSteps(steps.map((y, j) => (j === i ? x : y)))}
+                onUp={i > 0 ? () => { const l = [...steps]; [l[i - 1], l[i]] = [l[i], l[i - 1]]; setSteps(l); } : undefined}
+                onDown={i < steps.length - 1 ? () => { const l = [...steps]; [l[i + 1], l[i]] = [l[i], l[i + 1]]; setSteps(l); } : undefined}
+                onRemove={() => setSteps(steps.filter((_, j) => j !== i))} />
+            ))}
+            {!steps.length && <li className="rounded-xl border border-dashed border-slate-300 px-3 py-4 text-center text-sm text-slate-500">{tr("No approval step: any monitoring account accepts")}</li>}
+            {edit && steps.length < 8 && (
+              <li><Button variant="secondary" className="w-full" onClick={() => setSteps([...steps, { label: tr("Approval {0}", steps.length + 1), type: "APPROVE", userIds: [] }])}>
+                {tr("Add approval step")}</Button></li>
+            )}
+          </ol>
+          <p className="text-xs text-slate-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Damaged Equipment page.")}</p>
+        </div>
+      )}
+    </Drawer>
+  );
+}
+

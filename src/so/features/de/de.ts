@@ -31,7 +31,9 @@ export type Request = {
   signature: { name: string | null; signedAt: string | null } | null; estCost: number | null; actualCost: number | null; vendor: string | null;
   duplicateOf: { id: string; number: string | null } | null; createdAt: string; updatedAt: string; submittedAt: string | null; closedAt: string | null;
   items?: Item[]; media?: Media[]; events?: DeEvent[]; assignments?: Assignment[]; tracker?: Tracker; technicians?: string[];
-  lastNote?: DeEvent | null; openInBranch?: Request[]; related?: Request[]; allowed?: Status[]; shareUrl?: string | null;
+  lastNote?: DeEvent | null; openInBranch?: Request[]; related?: Request[]; allowed?: Status[];
+  /** Review → Accept: the approval step waiting (set by management, 2026-10-29); null when the kind has no step */
+  approval?: { position: number; total: number; label: string; users: string[]; userIds: string[]; steps: { label: string; users: string[] }[] } | null; shareUrl?: string | null;
   workLinks?: WorkLink[]; mode?: Mode | null; handover?: Handover | null; costItems?: CostItem[]; labor?: Labor[];
   target?: { at: string; note: string | null; by: string | null; setAt: string | null; changes: number } | null;
 };

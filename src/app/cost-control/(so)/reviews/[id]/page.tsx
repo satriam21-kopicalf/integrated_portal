@@ -31,14 +31,15 @@ export default function ReviewDetailPage() {
   const [action, setAction] = useState<"APPROVE" | "RECOUNT" | "CANCEL" | null>(null);
   const [busy, setBusy] = useState(false);
   // the line being corrected: quantity in the line's unit and the reason
-  const [fix, setFix] = useState<{ id: number; qty: string; note: string; wip?: boolean } | null>(null);
+  // the line being corrected: quantity in the line's unit, its roasted / expired date, and the reason (2026-10-29)
+  const [fix, setFix] = useState<{ id: number; qty: string; note: string; wip?: boolean; field?: "roasted_date" | "expired_date" | null; date?: string } | null>(null);
   const saveFix = async () => {
     if (!fix) return;
     setBusy(true);
     try {
       setCount(await api<Count>(`/api/so/counts/${id}/corrections`, { method: "POST",
         json: fix.wip ? { note: fix.note.trim(), wip_lines: [{ wip_line_id: fix.id, qty: fix.qty.replace(",", ".").trim() }] }
-          : { note: fix.note.trim(), lines: [{ line_id: fix.id, qty_unit: fix.qty.replace(",", ".").trim() }] } }));
+          : { note: fix.note.trim(), lines: [{ line_id: fix.id, qty_unit: fix.qty.replace(",", ".").trim(), ...(fix.field ? { [fix.field]: fix.date || null } : {}) }] } }));
       setFix(null);
       toast(tr("Quantity corrected"));
     } catch (e) {
@@ -259,7 +260,8 @@ export default function ReviewDetailPage() {
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
                       {reviewable && l.is_current && l.source !== "WIP_EXPLODED" && (fix?.wip || fix?.id !== l.id) && (
-                        <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(4)), note: "" })}
+                        <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(4)),
+                          field: lineDateField(l, count), date: (() => { const df = lineDateField(l, count); return df ? l[df] ?? "" : ""; })(), note: "" })}
                           className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", l.item_name)}>
                           <Pencil size={11} /> {tr("Correct")}
                         </button>
@@ -271,6 +273,11 @@ export default function ReviewDetailPage() {
                               className={cx(inputClass, "h-9 w-28 text-right text-sm font-semibold tabular-nums")} />
                             <span className="text-xs text-slate-500">{l.esb_uom || l.base_uom}</span>
                           </div>
+                          {fix.field && (
+                            <label className="block"><span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{DATE_FIELD_LABEL[fix.field]()}</span>
+                              <input type="date" value={fix.date ?? ""} onChange={(e) => setFix({ ...fix, date: e.target.value })} aria-label={DATE_FIELD_LABEL[fix.field]()}
+                                className={cx(inputClass, "h-9 text-sm")} /></label>
+                          )}
                           <input value={fix.note} onChange={(e) => setFix({ ...fix, note: e.target.value })} maxLength={500} placeholder={tr("Reason (required)")}
                             className={cx(inputClass, "h-9 text-xs")} />
                           <div className="flex justify-end gap-1.5">
