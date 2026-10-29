@@ -3723,4 +3723,10 @@ export const ID: Record<string, string> = {
   "Before the recount: {0} {1}": "Sebelum recount: {0} {1}",
   "Recount {0}": "Recount {0}",
   "Grams entered by the branch · tick a premix to recount only it: the items counted by hand stay": "Gram yang diinput cabang · centang premix untuk me-recount premix itu saja: item yang dihitung manual tetap",
+  "Quantity corrected": "Jumlah dikoreksi",
+  "replaced by recount / correction": "diganti recount / koreksi",
+  "Correct {0}": "Koreksi {0}",
+  "Correct": "Koreksi",
+  "Corrected quantity": "Jumlah koreksi",
+  "Corrected by Cost Control": "Dikoreksi Cost Control",
 };

@@ -28,6 +28,8 @@ export type CountLine = {
   flags: string[];
   recount_of: number | null;
   is_current: boolean;
+  /** corrected by Cost Control in the review (flag CORRECTED, 2026-10-29) */
+  corrected_at?: string | null; corrected_by_name?: string | null; correction_note?: string | null;
   note: string | null;
   /** roasted date (HUB CK counts) / expired date (HUB WH counts), YYYY-MM-DD */
   roasted_date?: string | null;

@@ -1,13 +1,15 @@
 "use client";
 
 // One count for review: every line with flags and history, then approve, ask for a recount of chosen lines, or cancel.
+// Cost Control may also correct a quantity directly with a reason, without a recount (2026-10-29): the branch's figure
+// stays in the history.
 // The reviewer cannot be one of the counters (D-30): the API refuses it and explains why.
 
-import { AlertTriangle, ArrowLeft, Check, History, Loader2, MapPin, RotateCcw, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, History, Loader2, MapPin, Pencil, RotateCcw, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Panel, SearchBox, cx, fmtDate, fmtDay, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, Panel, SearchBox, cx, fmtDate, fmtDay, inputClass, theadClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
 import { type Count, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, lineDateField, mapsUrl } from "@/so/lib/counts";
@@ -28,6 +30,22 @@ export default function ReviewDetailPage() {
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [action, setAction] = useState<"APPROVE" | "RECOUNT" | "CANCEL" | null>(null);
   const [busy, setBusy] = useState(false);
+  // the line being corrected: quantity in the line's unit and the reason
+  const [fix, setFix] = useState<{ id: number; qty: string; note: string } | null>(null);
+  const saveFix = async () => {
+    if (!fix) return;
+    setBusy(true);
+    try {
+      setCount(await api<Count>(`/api/so/counts/${id}/corrections`, { method: "POST",
+        json: { note: fix.note.trim(), lines: [{ line_id: fix.id, qty_unit: fix.qty.replace(",", ".").trim() }] } }));
+      setFix(null);
+      toast(tr("Quantity corrected"));
+    } catch (e) {
+      toast(errorText(e), "error");
+    } finally {
+      setBusy(false);
+    }
+  };
   // premix lines for a recount (2026-10-29): only their grams are worked out again, not the items counted by hand
   const [pickedWip, setPickedWip] = useState<Set<number>>(new Set());
 
@@ -203,7 +221,7 @@ export default function ReviewDetailPage() {
                     )}
                     <td className="max-w-[18rem] px-3 py-2.5">
                       <span className={cx("block truncate", l.is_current ? "font-medium text-slate-900" : "line-through")}>{l.item_name}</span>
-                      <span className="block font-mono text-[11px] text-slate-400">{l.item_code}{!l.is_current ? ` · ${tr("replaced by recount")}` : ""}</span>
+                      <span className="block font-mono text-[11px] text-slate-400">{l.item_code}{!l.is_current ? ` · ${tr("replaced by recount / correction")}` : ""}</span>
                     </td>
                     <td className="px-3 py-2.5 text-xs text-slate-500">{l.area}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
@@ -215,6 +233,27 @@ export default function ReviewDetailPage() {
                       )}
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
+                      {reviewable && l.is_current && l.source !== "WIP_EXPLODED" && fix?.id !== l.id && (
+                        <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(4)), note: "" })}
+                          className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", l.item_name)}>
+                          <Pencil size={11} /> {tr("Correct")}
+                        </button>
+                      )}
+                      {fix?.id === l.id && (
+                        <div className="mt-1.5 w-56 space-y-1.5 text-left">
+                          <div className="flex items-center gap-1.5">
+                            <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected quantity")}
+                              className={cx(inputClass, "h-9 w-28 text-right text-sm font-semibold tabular-nums")} />
+                            <span className="text-xs text-slate-500">{l.esb_uom || l.base_uom}</span>
+                          </div>
+                          <input value={fix.note} onChange={(e) => setFix({ ...fix, note: e.target.value })} maxLength={500} placeholder={tr("Reason (required)")}
+                            className={cx(inputClass, "h-9 text-xs")} />
+                          <div className="flex justify-end gap-1.5">
+                            <Button size="sm" variant="secondary" onClick={() => setFix(null)} disabled={busy}>{tr("Cancel")}</Button>
+                            <Button size="sm" loading={busy} disabled={!fix.note.trim() || fix.qty.trim() === "" || Number.isNaN(Number(fix.qty.replace(",", ".")))} onClick={() => void saveFix()}>{tr("Save")}</Button>
+                          </div>
+                        </div>
+                      )}
                     </td>
                     {dateFields.length > 0 && (() => {
                       const df = lineDateField(l, count);
@@ -229,7 +268,10 @@ export default function ReviewDetailPage() {
                     <td className="px-3 py-2.5"><div className="flex flex-wrap gap-1">
                       {l.flags.includes("SPIKE") && <Badge tone="amber">{tr("×3 vs last count")}</Badge>}
                       {l.flags.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
-                    </div></td>
+                      {l.flags.includes("CORRECTED") && <Badge tone="blue" title={`${l.corrected_by_name ?? ""} · ${l.corrected_at ? fmtDate(l.corrected_at) : ""}`}>{tr("Corrected by Cost Control")}</Badge>}
+                    </div>
+                      {l.flags.includes("CORRECTED") && l.correction_note && <p className="mt-1 max-w-[16rem] text-[11px] text-slate-500">{l.corrected_by_name}: {l.correction_note}</p>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
