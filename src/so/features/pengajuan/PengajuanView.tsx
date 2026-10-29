@@ -1,37 +1,42 @@
 "use client";
 
-// One pengajuan read-only (the outlet's sent pengajuan, the team's drawer): the steps, the balances, the baristas, every
-// expense with its receipts (the team may reject an expense with a note), the other evidence and the history.
+// One pengajuan read-only (the outlet's sent pengajuan, the approver's drawer): the approval steps of its kind, the
+// requester and the bank account, the balances and baristas (petty cash) or the purpose (budget), every line with its
+// receipts (the approver may reject a line with a note), the other evidence and the history.
 
-import { AlertTriangle, ArrowDownLeft, ArrowUpRight, Check, Copy, FileText, Paperclip, Users, Wallet, X } from "lucide-react";
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, Check, Copy, FileText, Landmark, Paperclip, Users, Wallet, X } from "lucide-react";
 import { useState } from "react";
 import { Badge, Button, cx, inputClass } from "@/so/ui";
 import { wibDateTime, wibDay } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import { type Line, type Pengajuan, type PgFile, type Status, STATUS_LABEL, STATUS_TONE, STEPS, acceptedTotal, categoryLabel, docLabel,
-  fileUrl, fmtRp } from "./pengajuan";
+import { type Line, type Pengajuan, type PgFile, type Status, NEEDED_LABEL, STATUS_LABEL, STATUS_TONE, acceptedTotal, categoryLabel, docLabel,
+  fileUrl, fmtRp, kindLabel } from "./pengajuan";
 
 export function StatusBadge({ s }: { s: Status }) {
   return <Badge tone={STATUS_TONE[s]} dot>{STATUS_LABEL[s]()}</Badge>;
 }
 
-/** Sent → verified → approved → paid; a revision or a rejection shows where it stopped. */
+/** Sent → every approval step of its kind → paid; a revision or a rejection shows where it stopped. */
 export function Steps({ p }: { p: Pengajuan }) {
-  const reached = p.status === "PAID" ? 4 : p.status === "APPROVED" ? 3 : p.status === "VERIFIED" ? 2 : p.status === "DRAFT" ? 0 : 1;
-  const at = [p.firstSubmittedAt ?? p.submittedAt, p.verifiedAt, p.approvedAt, p.paidAt];
-  const by = [p.name, p.verifiedBy, p.approvedBy, p.paidBy];
-  const label = [tr("Sent"), tr("Verified"), tr("Approved"), tr("Paid")];
+  const approvals = (p.steps ?? []).filter((x) => x.type === "APPROVE");
+  const pay = (p.steps ?? []).find((x) => x.type === "PAY");
+  const cells = [{ label: tr("Sent"), users: [p.name] }, ...approvals.map((x) => ({ label: x.label, users: x.users })),
+    { label: pay?.label ?? tr("Paid"), users: pay?.users ?? [] }];
+  // index of the cell waiting: sent = 0 done; SUBMITTED at approval step n → cell n; APPROVED → the payment; PAID → all done
+  const at = p.status === "PAID" ? cells.length : p.status === "APPROVED" ? cells.length - 1 : p.status === "DRAFT" ? 0
+    : Math.min(Math.max(p.approvalStep, 1), approvals.length || 1);
+  const stopped = p.status === "REVISION" || p.status === "REJECTED";
   return (
-    <ol className="grid grid-cols-4 gap-1.5">
-      {STEPS.map((s, i) => {
-        const done = i < reached && !(p.status === "REJECTED" && i === reached - 1 && i > 0);
-        const stop = (p.status === "REVISION" || p.status === "REJECTED") && i === reached;
+    <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}>
+      {cells.map((c, i) => {
+        const done = i < at;
+        const here = i === at && p.status !== "PAID";
         return (
-          <li key={s} className="min-w-0">
-            <span className={cx("block h-1.5 rounded-full", stop ? (p.status === "REJECTED" ? "bg-red-500" : "bg-amber-500") : done ? (p.status === "PAID" ? "bg-emerald-500" : "bg-blue-600") : "bg-slate-200")} />
-            <p className={cx("mt-1 truncate text-[11px] font-semibold", done ? "text-slate-800" : stop ? (p.status === "REJECTED" ? "text-red-700" : "text-amber-700") : "text-slate-400")}>
-              {stop ? STATUS_LABEL[p.status]() : label[i]}</p>
-            <p className="truncate text-[10px] text-slate-400">{done && at[i] ? `${wibDateTime(at[i])}${by[i] ? ` · ${by[i]}` : ""}` : ""}</p>
+          <li key={i} className="min-w-0">
+            <span className={cx("block h-1.5 rounded-full", here && stopped ? (p.status === "REJECTED" ? "bg-red-500" : "bg-amber-500") : done ? (p.status === "PAID" ? "bg-emerald-500" : "bg-blue-600") : here ? "bg-blue-200" : "bg-slate-200")} />
+            <p className={cx("mt-1 truncate text-[11px] font-semibold", done ? "text-slate-800" : here ? (stopped ? (p.status === "REJECTED" ? "text-red-700" : "text-amber-700") : "text-blue-700") : "text-slate-400")} title={c.label}>
+              {here && stopped ? STATUS_LABEL[p.status]() : c.label}</p>
+            <p className="truncate text-[10px] text-slate-400" title={c.users.join(", ")}>{i === 0 ? wibDateTime(p.firstSubmittedAt ?? p.submittedAt) : c.users.length ? c.users.join(", ") : "Superadmin"}</p>
           </li>
         );
       })}
@@ -116,15 +121,19 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
   const rejected = lines.filter((l) => l.review === "REJECTED");
   const reused = files.filter((f) => f.usedIn.length > 0);
   const differs = p.openingExpected !== null && p.openingBalance !== null && p.openingBalance !== p.openingExpected;
+  const petty = p.kind === "PETTY_CASH";
   return (
     <div className="space-y-5">
       <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <Steps p={p} />
-        <Balances p={p} />
+        {petty && <Balances p={p} />}
         <div className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-          <Info k={tr("Period")} v={p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : "—"} />
-          <Info k={tr("Sent by")} v={`${p.name} (@${p.username})`} />
-          <Info k={tr("Expenses accepted")} v={`${fmtRp(acceptedTotal(lines))}${rejected.length ? ` · ${tr("{0} rejected", rejected.length)}` : ""}`} />
+          <Info k={tr("Kind")} v={kindLabel(p.kind)} />
+          {petty ? <Info k={tr("Period")} v={p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : "—"} />
+            : NEEDED_LABEL[p.kind] ? <Info k={NEEDED_LABEL[p.kind]!()} v={p.neededOn ? wibDay(p.neededOn) : "—"} /> : null}
+          <Info k={tr("Sent by")} v={`${p.requesterName ?? p.name}${p.requesterPhone ? ` · ${p.requesterPhone}` : ""} (@${p.username})`} />
+          <Info k={tr("Lines accepted")} v={`${fmtRp(acceptedTotal(lines))}${rejected.length ? ` · ${tr("{0} rejected", rejected.length)}` : ""}`} />
+          <Info k={petty ? tr("Top-up asked") : tr("Amount asked")} v={`${fmtRp(p.requestedAmount ?? p.totalOut)}${petty && p.plafon !== null ? ` · ${tr("plafon {0}", fmtRp(p.plafon))}` : ""}`} />
           {p.approvedAmount !== null && <Info k={tr("Approved amount")} v={fmtRp(p.approvedAmount)} />}
           {p.paidAmount !== null && <Info k={tr("Paid")} v={`${fmtRp(p.paidAmount)}${p.paidOn ? ` · ${wibDay(p.paidOn)}` : ""}`} />}
         </div>
@@ -140,22 +149,36 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
         )}
       </section>
 
-      <section>
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><Users size={15} className="text-slate-500" /> {tr("Baristas")}</h3>
-        <div className="flex flex-wrap gap-1.5">{p.baristas.length ? p.baristas.map((b) => <Badge key={b.name} tone={b.userId ? "blue" : "slate"}>{b.name}</Badge>) : <span className="text-sm text-slate-400">—</span>}</div>
+      <section className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-slate-200 p-3 text-sm">
+          <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400"><Landmark size={12} /> {tr("Transfer to")}</p>
+          <p className="font-semibold text-slate-900">{p.payeeBank ?? "—"} · <span className="tabular-nums">{p.payeeAccount ?? "—"}</span></p>
+          <p className="text-slate-600">a/n {p.payeeName ?? "—"}</p>
+        </div>
+        {!petty && (
+          <div className="rounded-xl border border-slate-200 p-3 text-sm">
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Purpose")}</p>
+            <p className="whitespace-pre-line text-slate-800">{p.purpose ?? "—"}</p>
+          </div>
+        )}
       </section>
 
-      <section>
+      {petty && <section>
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><Users size={15} className="text-slate-500" /> {tr("Baristas")}</h3>
+        <div className="flex flex-wrap gap-1.5">{p.baristas.length ? p.baristas.map((b) => <Badge key={b.name} tone={b.userId ? "blue" : "slate"}>{b.name}</Badge>) : <span className="text-sm text-slate-400">—</span>}</div>
+      </section>}
+
+      {petty && <section>
         <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><ArrowDownLeft size={15} className="text-emerald-600" /> {tr("Money in")}</h3>
         <div className="rounded-xl border border-slate-200 p-3 text-sm">
           <p className="font-semibold tabular-nums text-slate-900">{fmtRp(p.incomeAmount)}</p>
           {p.incomeNote && <p className="mt-0.5 text-slate-600">{p.incomeNote}</p>}
           {income.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{income.map((f) => <FileChip key={f.id} f={f} />)}</div>}
         </div>
-      </section>
+      </section>}
 
       <section>
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><ArrowUpRight size={15} className="text-red-600" /> {tr("Money out ({0})", lines.length)}
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-900"><ArrowUpRight size={15} className="text-red-600" /> {petty || p.kind === "EMERGENCY" ? tr("Money out ({0})", lines.length) : tr("Cost details ({0})", lines.length)}
           <span className="ml-auto text-sm tabular-nums">{fmtRp(p.totalOut)}</span></h3>
         <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
           {lines.map((l, i) => (
@@ -167,10 +190,10 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
                     <span className={cx("font-medium text-slate-900", l.review === "REJECTED" && "line-through decoration-red-400")}>{l.description || "—"}</span>
                     <span className="ml-auto font-semibold tabular-nums text-slate-900">{fmtRp(l.amount)}</span>
                   </p>
-                  <p className="text-xs text-slate-500">{l.spentOn ? wibDay(l.spentOn) : "—"} · {categoryLabel(l.category)}</p>
+                  <p className="text-xs text-slate-500">{l.spentOn ? `${wibDay(l.spentOn)} · ` : ""}{categoryLabel(l.category)}</p>
                   {l.review === "REJECTED" && <p className="mt-1 text-xs font-medium text-red-700">{tr("Rejected")}{l.reviewedBy ? ` (${l.reviewedBy})` : ""}: {l.reviewNote}</p>}
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {byLine(l.id).length ? byLine(l.id).map((f) => <FileChip key={f.id} f={f} />) : <span className="text-xs text-red-600">{tr("No receipt")}</span>}
+                    {byLine(l.id).length ? byLine(l.id).map((f) => <FileChip key={f.id} f={f} />) : <span className={cx("text-xs", ["PETTY_CASH", "EMERGENCY", "BILL"].includes(p.kind) ? "text-red-600" : "text-slate-400")}>{tr("No receipt")}</span>}
                   </div>
                   {onReview && l.id !== undefined && <div className="mt-2"><LineReview line={l} onReview={(r, n) => onReview(l.id!, r, n)} /></div>}
                 </div>
@@ -211,8 +234,9 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
 
 function eventText(e: NonNullable<Pengajuan["events"]>[number]): string {
   if (e.kind === "SUBMIT") return e.details.resubmit ? tr("Sent again after the revision") : tr("Sent");
-  if (e.kind === "STATUS" && e.to) return tr("Status: {0}", STATUS_LABEL[e.to]());
-  if (e.kind === "LINE") return e.details.review === "REJECTED" ? tr("Expense rejected: {0}", String(e.details.description ?? "")) : tr("Expense accepted again: {0}", String(e.details.description ?? ""));
+  if (e.kind === "STATUS" && e.details.action === "APPROVE") return tr("Approved: {0}", String(e.details.step ?? ""));
+  if (e.kind === "STATUS" && e.to) return `${tr("Status: {0}", STATUS_LABEL[e.to]())}${e.details.step ? ` (${String(e.details.step)})` : ""}`;
+  if (e.kind === "LINE") return e.details.review === "REJECTED" ? tr("Line rejected: {0}", String(e.details.description ?? "")) : tr("Line accepted again: {0}", String(e.details.description ?? ""));
   return tr("Note");
 }
 

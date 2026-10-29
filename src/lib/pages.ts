@@ -8,7 +8,7 @@ export type PageKey =
   | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
   | 'form.pic-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan'
   | 'mon.overview' | 'mon.pic-check-in' | 'mon.outlet' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
-  | 'mon.pengajuan' | 'mon.pengajuan.verify' | 'mon.pengajuan.finance'
+  | 'mon.pengajuan'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs';
@@ -53,8 +53,6 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch groups'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Fund requests'); }, get group() { return tr('Monitoring'); } },
   // the two approval steps of Pengajuan: rights inside /monitoring/pengajuan, not menu entries of their own
-  { key: 'mon.pengajuan.verify', href: '/monitoring/pengajuan#verify', get label() { return tr('Fund requests: verify (Operations)'); }, get group() { return tr('Monitoring'); }, state: 'hidden' },
-  { key: 'mon.pengajuan.finance', href: '/monitoring/pengajuan#finance', get label() { return tr('Fund requests: approve & pay (Finance)'); }, get group() { return tr('Monitoring'); }, state: 'hidden' },
   { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Aggregator'); } },
   { key: 'rating.shopeefood', href: '/rating/shopeefood', get label() { return tr('ShopeeFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
   { key: 'rating.gofood', href: '/rating/gofood', get label() { return tr('GoFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },

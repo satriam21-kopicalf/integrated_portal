@@ -69,10 +69,12 @@ export type Labor = { assignmentId: number; technician: string; kind: "INTERNAL"
   rate: number; hours: number; units: number; unit: string; computed: number; adjust: number | null; note: string | null; amount: number };
 export type FormState = { user: { id: string; name: string }; branches: Branch[]; categories: Category[]; requests: Request[];
   /** the branch group of each branch (categories can be limited to groups) */ branchGroups: Record<string, string | null>;
+  /** merchandise of the ESB menu (MERCH; a T-shirt takes a size of MERCH SIZE), picked in the category group Merchandise */
+  merchandise?: { items: { name: string; sized: boolean }[]; sizes: string[] };
   limits: { photos: number; videoBytes: number; items: number } };
 
 export const KIND_LABEL: Record<Kind, () => string> = {
-  REPAIR: () => "Maintenance", PROCUREMENT: () => tr("Procurement (Decoration & Tools)"),
+  REPAIR: () => "Maintenance", PROCUREMENT: () => tr("Procurement (Decoration, Tools & Merchandise)"),
 };
 export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), PENDING: () => "Pending", VALIDATION: () => tr("Validation"), REVIEW: () => "Review", ON_HOLD: () => "On hold",

@@ -564,9 +564,13 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
                     <option value="">{tr("Choose the category")}</option>
                     {groups.map((g) => <optgroup key={g} label={g}>{cats.filter((c) => c.group === g).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</optgroup>)}
                   </select>
-                  <input value={it.name} onChange={(e) => upd({ name: e.target.value })} list={`ex-${it.key}`} maxLength={120} placeholder={tr("Item name, e.g. {0}", cat?.examples[0] ?? "Grinder")}
-                    className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item name")} />
-                  <datalist id={`ex-${it.key}`}>{(cat?.examples ?? []).map((x) => <option key={x} value={x} />)}</datalist>
+                  {cat?.group === MERCH_GROUP && data.merchandise?.items.length ? (
+                    <MerchPick value={it.name} merch={data.merchandise} onChange={(name) => upd({ name }, true)} />
+                  ) : <>
+                    <input value={it.name} onChange={(e) => upd({ name: e.target.value })} list={`ex-${it.key}`} maxLength={120} placeholder={tr("Item name, e.g. {0}", cat?.examples[0] ?? "Grinder")}
+                      className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item name")} />
+                    <datalist id={`ex-${it.key}`}>{(cat?.examples ?? []).map((x) => <option key={x} value={x} />)}</datalist>
+                  </>}
                 </div>
                 <div className="grid grid-cols-[5rem_1fr] gap-2 sm:grid-cols-[5rem_1fr_10rem]">
                   <input type="number" min={1} max={9999} value={it.qty} onChange={(e) => upd({ qty: Math.max(1, Number(e.target.value) || 1) })}
@@ -713,5 +717,30 @@ function SendSheet({ r, onClose, onSent }: { r: Request; onClose: () => void; on
         <p className="text-xs text-slate-500">{tr("After sending: the status is Pending, the team checks it; you get a PDF and a link to share, and follow every step under My requests.")}</p>
       </div>
     </Drawer>
+  );
+}
+
+const MERCH_GROUP = "Merchandise";
+
+/** Merchandise of the ESB menu; a T-shirt takes a size: the item name is "T-SHIRT … (LARGE)". */
+function MerchPick({ value, merch, onChange }: { value: string; merch: NonNullable<FormState["merchandise"]>; onChange: (name: string) => void }) {
+  const m = /^(.*) \((.+)\)$/.exec(value);
+  const base = merch.items.find((i) => i.name === value) ? value : m?.[1] ?? value;
+  const size = m && merch.items.find((i) => i.name === m[1]) ? m[2] : "";
+  const item = merch.items.find((i) => i.name === base);
+  const join = (b: string, s: string) => (merch.items.find((i) => i.name === b)?.sized && s ? `${b} (${s})` : b);
+  return (
+    <div className={cx("grid gap-2", item?.sized && "grid-cols-[minmax(0,1fr)_8.5rem]")}>
+      <select value={item ? base : ""} onChange={(e) => onChange(join(e.target.value, size))} aria-label={tr("Merchandise")} className={cx(inputClass, "h-10 text-sm")}>
+        <option value="">{tr("Choose the merchandise")}</option>
+        {merch.items.map((i) => <option key={i.name} value={i.name}>{i.name}</option>)}
+      </select>
+      {item?.sized && (
+        <select value={size} onChange={(e) => onChange(join(base, e.target.value))} aria-label={tr("Size")} className={cx(inputClass, "h-10 text-sm", !size && "border-red-300")}>
+          <option value="">{tr("Size")}</option>
+          {merch.sizes.map((x) => <option key={x} value={x}>{x}</option>)}
+        </select>
+      )}
+    </div>
   );
 }
