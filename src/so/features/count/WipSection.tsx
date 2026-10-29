@@ -5,7 +5,8 @@
 // Puding: 1 porsi = 115 g), a piece WIP in pieces (Tape Roll, Pisang Roll); another unit of the recipe or grams can be
 // picked. The grams of every ingredient follow from the recipe and are filled into the ingredient lines of the count,
 // so those items need no manual entry (user decision 2026-10-16); rounded up per ingredient as the calculator. Saved as
-// a whole with "Save WIP".
+// a whole with "Save WIP". In a recount (2026-10-29) only the premixes Cost Control picked open (the same quantity is
+// confirmed with "Same ✓"); the others stay as they are, and the grams counted by hand on their materials are not touched.
 
 import { ChevronDown, FlaskConical, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -32,6 +33,9 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
     unitOf[r.id] ?? r.units.find((u) => Number(saved[keyOf(r.id, u.uom)]) > 0)?.uom ?? r.count_uom ?? "Gram";
   const [busy, setBusy] = useState(false);
   useEffect(() => setValues(saved), [saved]);
+  const recount = count.status === "RECOUNT_REQUESTED";
+  const asked = (l: { flags?: string[] }) => !!l.flags?.some((f) => f === "RECOUNT" || f === "RECOUNTED");
+  const toConfirm = wip.lines.filter((l) => l.flags?.includes("RECOUNT")).length;
 
   const clean = (v: Record<string, string>) => JSON.stringify(Object.entries(v).filter(([, x]) => Number(x) > 0).sort());
   const dirty = clean(values) !== clean(saved);
@@ -55,13 +59,19 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
     return [...out.values()].sort((a, b) => Number(b.stock) - Number(a.stock) || a.name.localeCompare(b.name));
   }, [values, wip.recipes]);
 
-  const save = async () => {
+  /** `confirm`: the premix whose "Same ✓" was tapped */
+  const save = async (confirm?: number) => {
     setBusy(true);
     try {
-      const entries = Object.entries(values).filter(([, v]) => Number(v) > 0).map(([k, v]) => {
-        const [recipe_id, uom] = k.split("|");
-        return { recipe_id, uom, qty: Number(v) };
-      });
+      // a recount sends the premixes not asked again as they are, and of those asked again the one confirmed and the
+      // ones changed (0 = none there); one asked again and not sent stays to confirm
+      const entries = recount
+        ? wip.lines.filter((l) => !l.flags?.includes("RECOUNT") || l.id === confirm || (values[keyOf(l.recipe_id, l.uom)] ?? "") !== saved[keyOf(l.recipe_id, l.uom)])
+          .map((l) => ({ recipe_id: l.recipe_id, uom: l.uom, qty: Number(values[keyOf(l.recipe_id, l.uom)] || 0) }))
+        : Object.entries(values).filter(([, v]) => Number(v) > 0).map(([k, v]) => {
+          const [recipe_id, uom] = k.split("|");
+          return { recipe_id, uom, qty: Number(v) };
+        });
       const c = await api<Count>(`/api/so/counts/${count.id}/wip`, { method: "PUT", json: { entries } });
       onSaved(c);
       toast(tr("WIP saved: the grams are added to the ingredient lines"));
@@ -72,7 +82,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
     }
   };
 
-  const recipes = open ? wip.recipes : [];
+  const recipes = open && !recount ? wip.recipes : [];
   const entered = wip.lines.length;
   return (
     <section className="overflow-hidden rounded-xl border border-violet-200 bg-white shadow-sm">
@@ -83,13 +93,44 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
           <span className="block text-sm font-semibold text-slate-900">{tr("WIP / premix")}</span>
           <span className="block text-xs text-slate-500">{tr("Enter each WIP in its unit (grams, portions or pieces); the ingredients are calculated and filled into the items")}</span>
         </span>
+        {toConfirm > 0 && <Badge tone="amber">{tr("{0} to recount", toConfirm)}</Badge>}
         {entered > 0 && <Badge tone="violet">{tr("{0} entered", entered)}</Badge>}
         {dirty && <Badge tone="amber">{tr("Not saved")}</Badge>}
         <ChevronDown size={16} className={cx("text-slate-400 transition-transform", expanded && "rotate-180")} />
       </button>
       {expanded && (
         <div className="space-y-3 p-4">
-          {open ? (
+          {open && recount ? (
+            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+              {wip.lines.map((l) => {
+                const k = keyOf(l.recipe_id, l.uom);
+                const edit = asked(l);
+                return (
+                  <li key={l.id} className={cx("flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5", l.flags?.includes("RECOUNT") && "bg-amber-50/50")}>
+                    <span className="min-w-0 flex-1 basis-48">
+                      <span className="block text-sm font-medium text-slate-900">{l.name}</span>
+                      <span className="mt-0.5 flex flex-wrap gap-1">
+                        {l.flags?.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
+                        {l.flags?.includes("RECOUNTED") && <Badge tone="green">{tr("Recounted")}</Badge>}
+                      </span>
+                      {l.previous_qty !== null && l.previous_qty !== undefined && <span className="block text-[11px] text-slate-500">{tr("Before the recount: {0} {1}", l.previous_qty, isGram(l.uom) ? "g" : l.uom)}</span>}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      {edit && l.flags?.includes("RECOUNT") && (
+                        <button type="button" disabled={busy} onClick={() => void save(l.id)}
+                          className="h-11 rounded-lg border border-amber-300 bg-amber-50 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                          aria-label={tr("{0}: the quantity is right", l.name)} title={tr("The quantity is right: confirm the recount")}>{tr("Same ✓")}</button>
+                      )}
+                      <input inputMode="decimal" disabled={!edit} value={values[k] ?? ""} placeholder="0" aria-label={`${l.name} ${l.uom}`}
+                        onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "") }))}
+                        className={cx("h-11 w-24 rounded-lg border px-2 text-right text-base tabular-nums disabled:bg-slate-50 disabled:text-slate-500", edit ? "border-violet-400 bg-violet-50/50" : "border-slate-200")} />
+                      <span className="text-sm text-slate-600">{isGram(l.uom) ? "g" : l.uom}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : open ? (
             recipes.length === 0 ? <p className="text-sm text-slate-500">{tr("No WIP recipe is active for this location.")}</p> : (
               <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
                 {recipes.map(r => {
@@ -141,9 +182,9 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
               {dirty && <p className="mt-1.5 text-[11px] text-amber-700">{tr("Save the WIP to fill these grams into the item lines.")}</p>}
             </div>
           )}
-          {open && recipes.length > 0 && (
+          {open && (recipes.length > 0 || (recount && wip.lines.some(asked))) && (
             <div className="flex justify-end">
-              <Button loading={busy} disabled={!dirty} onClick={save}><Save size={16} /> {tr("Save WIP")}</Button>
+              <Button loading={busy} disabled={!dirty} onClick={() => void save()}><Save size={16} /> {tr("Save WIP")}</Button>
             </div>
           )}
         </div>

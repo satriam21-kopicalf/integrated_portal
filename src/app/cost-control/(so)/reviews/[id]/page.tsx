@@ -28,6 +28,8 @@ export default function ReviewDetailPage() {
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [action, setAction] = useState<"APPROVE" | "RECOUNT" | "CANCEL" | null>(null);
   const [busy, setBusy] = useState(false);
+  // premix lines for a recount (2026-10-29): only their grams are worked out again, not the items counted by hand
+  const [pickedWip, setPickedWip] = useState<Set<number>>(new Set());
 
   const load = useCallback(async () => {
     setError(null);
@@ -52,10 +54,12 @@ export default function ReviewDetailPage() {
     try {
       const c = await api<Count>(`/api/so/counts/${id}/review`, {
         method: "POST",
-        json: { action, note: note || null, line_ids: action === "RECOUNT" && picked.size ? Array.from(picked) : null },
+        json: { action, note: note || null, line_ids: action === "RECOUNT" && picked.size ? Array.from(picked) : null,
+          wip_line_ids: action === "RECOUNT" && pickedWip.size ? Array.from(pickedWip) : null },
       });
       setCount(c);
       setPicked(new Set());
+      setPickedWip(new Set());
       setAction(null);
       toast(action === "APPROVE" ? tr("Count approved") : action === "RECOUNT" ? tr("Recount requested") : tr("Count cancelled"));
     } catch (e) {
@@ -91,7 +95,7 @@ export default function ReviewDetailPage() {
           {(reviewable || cancellable) && (
             <div className="flex w-full flex-wrap gap-2 sm:w-auto">
               {cancellable && <Button variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => setAction("CANCEL")}><XCircle size={16} /> {tr("Cancel")}</Button>}
-              {reviewable && <Button variant="secondary" onClick={() => setAction("RECOUNT")}><RotateCcw size={16} /> {picked.size ? tr("Recount {0} lines", picked.size) : tr("Recount all")}</Button>}
+              {reviewable && <Button variant="secondary" onClick={() => setAction("RECOUNT")}><RotateCcw size={16} /> {picked.size + pickedWip.size ? tr("Recount {0} lines", picked.size + pickedWip.size) : tr("Recount all")}</Button>}
               {reviewable && <Button onClick={() => setAction("APPROVE")}><Check size={16} /> {tr("Approve")}</Button>}
             </div>
           )}
@@ -145,12 +149,21 @@ export default function ReviewDetailPage() {
         <SignatureCard count={count} />
 
         {(count.wip?.lines.length ?? 0) > 0 && (
-          <Panel title={tr("WIP / premix")} description={tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
+          <Panel title={tr("WIP / premix")} description={reviewable ? tr("Grams entered by the branch · tick a premix to recount only it: the items counted by hand stay") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
             <ul className="divide-y divide-slate-100">
               {count.wip!.lines.map((w) => (
-                <li key={w.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
-                  <span className="min-w-0 truncate"><span className="font-medium text-slate-900">{w.name}</span> <span className="font-mono text-[11px] text-slate-400">{w.code}</span></span>
-                  <span className="tabular-nums text-slate-700">{fmtQty(w.qty_base)} g</span>
+                <li key={w.id} className={cx("flex items-center justify-between gap-3 px-4 py-2.5 text-sm", w.flags?.includes("RECOUNT") && "bg-amber-50/50")}>
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    {reviewable && (
+                      <input type="checkbox" checked={pickedWip.has(w.id)} aria-label={tr("Recount {0}", w.name)} className="h-4 w-4 rounded border-slate-300"
+                        onChange={() => setPickedWip((s) => { const n = new Set(s); if (n.has(w.id)) n.delete(w.id); else n.add(w.id); return n; })} />
+                    )}
+                    <span className="min-w-0 truncate"><span className="font-medium text-slate-900">{w.name}</span> <span className="font-mono text-[11px] text-slate-400">{w.code}</span>
+                      {w.previous_qty !== null && w.previous_qty !== undefined && <span className="block text-[11px] text-slate-500">{tr("Before the recount: {0} {1}", w.previous_qty, w.uom.toLowerCase() === "gram" ? "g" : w.uom)}</span>}</span>
+                    {w.flags?.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
+                    {w.flags?.includes("RECOUNTED") && <Badge tone="green">{tr("Recounted")}</Badge>}
+                  </span>
+                  <span className="flex-shrink-0 text-right tabular-nums text-slate-700">{w.uom.toLowerCase() === "gram" ? "" : `${w.qty} ${w.uom} · `}{fmtQty(w.qty_base)} g</span>
                 </li>
               ))}
             </ul>
@@ -227,7 +240,7 @@ export default function ReviewDetailPage() {
 
       <ConfirmDialog open={!!action} busy={busy} onClose={() => setAction(null)} onConfirm={run} danger={action === "CANCEL"}
         reasonLabel={action === "APPROVE" ? tr("Note (optional)") : tr("Reason (required)")}
-        title={action === "APPROVE" ? tr("Approve this count?") : action === "RECOUNT" ? (picked.size ? tr("Ask to recount {0} lines?", picked.size) : tr("Ask to recount every line?")) : tr("Cancel this count?")}
+        title={action === "APPROVE" ? tr("Approve this count?") : action === "RECOUNT" ? (picked.size + pickedWip.size ? tr("Ask to recount {0} lines?", picked.size + pickedWip.size) : tr("Ask to recount every line?")) : tr("Cancel this count?")}
         description={action === "APPROVE" ? tr("Approved counts become the final quantities for the ESB import and the comparison.")
           : action === "RECOUNT" ? tr("The crew counts these lines again; the first values stay in the history.") : tr("The count is cancelled and can be started again.")}
         confirmLabel={action === "APPROVE" ? tr("Approve") : action === "RECOUNT" ? tr("Request recount") : tr("Cancel count")} />

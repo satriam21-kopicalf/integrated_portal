@@ -3718,4 +3718,9 @@ export const ID: Record<string, string> = {
   "Same ✓": "Sama ✓",
   "{0}: the quantity is right": "{0}: jumlahnya sudah benar",
   "The quantity is right: confirm the recount": "Jumlahnya sudah benar: konfirmasi recount",
+  "{0} to recount": "{0} perlu recount",
+  "Recounted": "Sudah di-recount",
+  "Before the recount: {0} {1}": "Sebelum recount: {0} {1}",
+  "Recount {0}": "Recount {0}",
+  "Grams entered by the branch · tick a premix to recount only it: the items counted by hand stay": "Gram yang diinput cabang · centang premix untuk me-recount premix itu saja: item yang dihitung manual tetap",
 };

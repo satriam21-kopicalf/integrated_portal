@@ -180,7 +180,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
 
   const st = STATUS[count.status];
   const open = count.status === "IN_PROGRESS" || count.status === "RECOUNT_REQUESTED";
-  const todo = count.lines.filter((l) => (l.qty_base === null && !fromWip(l)) || l.flags.includes("RECOUNT")).length;
+  const todo = count.lines.filter((l) => (l.qty_base === null && !fromWip(l)) || l.flags.includes("RECOUNT")).length
+    + (count.wip?.lines.filter((w) => w.flags?.includes("RECOUNT")).length ?? 0);
   const pct = count.progress.lines ? Math.round((count.progress.counted / count.progress.lines) * 100) : 0;
   const busy = saving.size > 0;
   // Cost Control entering a branch's count (D-56): no photos or location needed

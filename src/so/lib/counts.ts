@@ -250,5 +250,7 @@ export type WipLine = {
   id: number; recipe_id: string; code: string; name: string; version_no: number; uom: string; qty: number; qty_base: number;
   exploded: { item_id: string | null; name: string; is_stock: boolean; qty_base: string }[];
   counted_at: string; counted_by_name: string | null;
+  /** RECOUNT = asked again by the reviewer, RECOUNTED = the new line of a recount (2026-10-29) */
+  flags?: string[]; recount_of?: number | null; previous_qty?: number | null;
 };
 export type CountWip = { enabled: boolean; recipes: WipRecipe[]; lines: WipLine[] };
