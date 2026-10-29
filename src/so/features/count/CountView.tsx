@@ -35,7 +35,7 @@ const fromWip = (l: CountLine) => Number(l.qty_wip ?? 0) > 0;
 const draftOf = (l: CountLine): Draft => ({ qty: l.qty_base === null ? "" : fmtQty(Number(l.qty_base) / factorOf(l)) });
 
 const editableLine = (c: Count, l: CountLine) =>
-  c.status === "IN_PROGRESS" || (c.status === "RECOUNT_REQUESTED" && l.flags.includes("RECOUNT"));
+  c.status === "IN_PROGRESS" || (c.status === "RECOUNT_REQUESTED" && (l.flags.includes("RECOUNT") || l.flags.includes("RECOUNTED")));
 
 export default function CountView({ countId, backHref = "/stock-opname" }: { countId: string; backHref?: string }) {
   const toast = useToast();
