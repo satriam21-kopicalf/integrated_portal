@@ -27,7 +27,7 @@ type Row = {
 };
 type F = { period: Period; status: string; type: string; facilityType: string; source: string };
 
-const DEFAULT: () => F = () => ({ period: { from: wibDay(-6), to: wibDay(0) }, status: "SUBMITTED", type: "", facilityType: "", source: "" });
+const DEFAULT: () => F = () => ({ period: { from: wibDay(-6), to: wibDay(0) }, status: "", type: "", facilityType: "", source: "" });
 const STATUSES = ["SUBMITTED", "RECOUNT_REQUESTED", "IN_PROGRESS", "APPROVED", "EXPORTED", "CANCELLED"];
 
 export default function ReviewsPage() {
