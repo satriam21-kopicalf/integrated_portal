@@ -22,6 +22,7 @@ import { tr } from "@/lib/i18n";
 import Evidence, { EvidenceFiles, SignatureCard } from "./Evidence";
 import SubmitPreview from "./SubmitPreview";
 import WipSection from "./WipSection";
+import SheetTools from "./SheetTools";
 import SectionPicker from "@/so/ui/SectionPicker";
 import { useFocusMode } from "@/components/layout/BottomNav";
 
@@ -202,6 +203,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
               {count.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside the facility radius")}</Badge>}
               {count.progress.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} lines to check", count.progress.flagged)}</Badge>}
             </div>
+            {count.status !== "CANCELLED" && <SheetTools count={count} open={open} onImported={() => void load()} />}
           </div>
           <span className="flex-shrink-0 text-xs text-slate-400" aria-live="polite">
             {busy ? <span className="inline-flex items-center gap-1"><CloudUpload size={13} /> {tr("Saving…")}</span> : <span className="inline-flex items-center gap-1"><Check size={13} /> {tr("Saved")}</span>}
