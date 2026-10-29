@@ -1,7 +1,7 @@
 "use client";
 
 // Preview before submitting a count (06.9 §12.16, D-62): everything the crew entered — the count, every quantity per
-// area, the WIP, the evidence photos and files — and an optional signature with the signer's name. Nothing is sent until
+// area, the WIP, the evidence photos and files — and the signature with the signer's name (required, 2026-10-29). Nothing is sent until
 // "Submit"; "Back" returns to the count to change it.
 
 import { CheckCircle2, ClipboardCheck, Images, Paperclip, PenLine, Send } from "lucide-react";
@@ -44,19 +44,21 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
   }, [count.lines]);
   const zero = count.lines.filter((l) => l.source !== "WIP_EXPLODED" && Number(l.qty_base ?? 0) === 0 && !Number(l.qty_wip ?? 0)).length;
   const wip = count.wip?.lines ?? [];
+  // the crew signs every submit, a recount too (2026-10-29)
   const nameMissing = !!signature && !name.trim();
+  const blocked = !signature || !name.trim();
 
   return (
     <Drawer open={open} onClose={onClose} size="xl" icon={<ClipboardCheck size={18} />} title={tr("Check before submitting")}
       description={`${count.facility_name} · ${count.number}`} locked={busy} focusFirstField={false}
       footer={
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <p className={cx("text-xs sm:mr-auto", nameMissing ? "text-red-600" : "text-slate-500")}>
-            {nameMissing ? tr("Write the signer's name under the signature.") : signature ? tr("Signed · the quantities are locked after submitting.") : tr("Signature is optional · the quantities are locked after submitting.")}
+          <p className={cx("text-xs sm:mr-auto", blocked ? "text-red-600" : "text-slate-500")}>
+            {nameMissing ? tr("Write the signer's name under the signature.") : signature ? tr("Signed · the quantities are locked after submitting.") : tr("Sign below to submit · the quantities are locked after submitting.")}
           </p>
           <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the count")}</Button>
-          <Button loading={busy} disabled={nameMissing} onClick={() => onSubmit(signature, name.trim())}>
-            <Send size={15} /> {signature ? tr("Sign & submit") : tr("Submit")}
+          <Button loading={busy} disabled={blocked} onClick={() => onSubmit(signature, name.trim())}>
+            <Send size={15} /> {tr("Sign & submit")}
           </Button>
         </div>
       }>

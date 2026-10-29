@@ -75,7 +75,8 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
     const bad = qty === undefined;
     setInvalid((s) => { const n = new Set(s); if (bad) n.add(line.id); else n.delete(line.id); return n; });
     if (bad) return;
-    if (qty === (draftOf(line).qty === "" ? null : String(Number(draftOf(line).qty)))) return;
+    // unchanged: nothing to save, except a line marked for recount (the same quantity confirms it, 2026-10-29)
+    if (qty === (draftOf(line).qty === "" ? null : String(Number(draftOf(line).qty))) && !(line.flags.includes("RECOUNT") && qty !== null)) return;
     setSaving((s) => new Set(s).add(line.id));
     try {
       const c = await api<Count>(`/api/so/counts/${countId}/lines`, {
@@ -286,6 +287,11 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                       <p className="flex-shrink-0 text-right text-xs font-medium text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom}<span className="block text-[10px] font-normal">{tr("from the WIP")}</span></p>
                     ) : (
                       <div className="flex flex-shrink-0 items-start gap-1.5">
+                        {edit && l.flags.includes("RECOUNT") && d.qty !== "" && !multi.has(l.id) && (l.date_batches?.length ?? 0) < 2 && (
+                          <button type="button" onClick={() => void save(l)} disabled={saving.has(l.id)}
+                            className="h-11 rounded-lg border border-amber-300 bg-amber-50 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                            aria-label={tr("{0}: the quantity is right", l.item_name)} title={tr("The quantity is right: confirm the recount")}>{tr("Same ✓")}</button>
+                        )}
                         {edit && d.qty === "" && !multi.has(l.id) && (l.date_batches?.length ?? 0) < 2 && (
                           <button type="button" onClick={() => { setDraft(l.id, { qty: "0" }); setTimeout(() => void save(l), 0); }}
                             className="h-11 w-10 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-800"

@@ -3714,4 +3714,8 @@ export const ID: Record<string, string> = {
   "petty cash and budget requests of every outlet": "petty cash dan pengajuan budget semua outlet",
   "plafon {0}": "plafon {0}",
   "{0}: {1} asked. After sending it cannot be changed unless the approver sends it back for a revision.": "{0}: diajukan {1}. Setelah dikirim tidak dapat diubah kecuali approver mengembalikannya untuk revisi.",
+  "Sign below to submit · the quantities are locked after submitting.": "Tanda tangan di bawah untuk mengirim · jumlah terkunci setelah dikirim.",
+  "Same ✓": "Sama ✓",
+  "{0}: the quantity is right": "{0}: jumlahnya sudah benar",
+  "The quantity is right: confirm the recount": "Jumlahnya sudah benar: konfirmasi recount",
 };
