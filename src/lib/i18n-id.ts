@@ -3741,4 +3741,9 @@ export const ID: Record<string, string> = {
   "Rating and reviews on Google Maps": "Rating dan ulasan di Google Maps",
   "Rating and reviews on ShopeeFood": "Rating dan ulasan di ShopeeFood",
   "Rating and reviews on GoFood": "Rating dan ulasan di GoFood",
+  "Reference: Simple Purchase in ESB": "Acuan: Simple Purchase di ESB",
+  "{0} weeks up to {1}": "{0} minggu s.d. {1}",
+  "average {0} a week": "rata-rata {0} per minggu",
+  "last 7 days {0}": "7 hari terakhir {0}",
+  "{0} documents": "{0} dokumen",
 };

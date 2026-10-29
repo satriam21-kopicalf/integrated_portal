@@ -28,6 +28,8 @@ export type Pengajuan = {
   plafon: number | null; requestedAmount: number | null;
   /** the steps of its kind (full view); monitoring list: the step waiting and its approvers */
   steps?: Step[]; step?: { label: string; users: string[]; userIds: string[] } | null;
+  /** petty cash: what the outlet bought itself in ESB (Simple Purchase) over the 13 weeks before the period end */
+  purchaseRef?: { weeks: number; until: string; total: number; avgWeek: number; lastWeek: number; docs: number } | null;
   lines?: Line[]; files?: PgFile[]; events?: PgEvent[]; missing?: string[]; fileCount?: number; reusedFiles?: number;
   /** monitoring: what the signed-in checker may do now */
   can?: { next: Action[]; reviewLines: boolean; payment: boolean; step: string | null; stepUsers: string[] };

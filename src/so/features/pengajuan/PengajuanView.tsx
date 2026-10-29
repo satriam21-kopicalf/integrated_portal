@@ -137,6 +137,12 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
           {p.approvedAmount !== null && <Info k={tr("Approved amount")} v={fmtRp(p.approvedAmount)} />}
           {p.paidAmount !== null && <Info k={tr("Paid")} v={`${fmtRp(p.paidAmount)}${p.paidOn ? ` · ${wibDay(p.paidOn)}` : ""}`} />}
         </div>
+        {petty && p.purchaseRef && (
+          <p className="rounded-lg bg-white px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200">
+            <span className="font-semibold text-slate-800">{tr("Reference: Simple Purchase in ESB")}</span> · {tr("{0} weeks up to {1}", p.purchaseRef.weeks, wibDay(p.purchaseRef.until))}:
+            {" "}{tr("average {0} a week", fmtRp(p.purchaseRef.avgWeek))} · {tr("last 7 days {0}", fmtRp(p.purchaseRef.lastWeek))} · {tr("{0} documents", p.purchaseRef.docs)}
+          </p>
+        )}
         {(differs || reused.length > 0 || (p.closingBalance ?? 0) < 0) && (
           <ul className="space-y-1 text-xs">
             {differs && <li className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-amber-900"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
