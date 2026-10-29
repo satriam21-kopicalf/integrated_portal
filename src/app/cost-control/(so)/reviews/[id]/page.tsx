@@ -31,13 +31,14 @@ export default function ReviewDetailPage() {
   const [action, setAction] = useState<"APPROVE" | "RECOUNT" | "CANCEL" | null>(null);
   const [busy, setBusy] = useState(false);
   // the line being corrected: quantity in the line's unit and the reason
-  const [fix, setFix] = useState<{ id: number; qty: string; note: string } | null>(null);
+  const [fix, setFix] = useState<{ id: number; qty: string; note: string; wip?: boolean } | null>(null);
   const saveFix = async () => {
     if (!fix) return;
     setBusy(true);
     try {
       setCount(await api<Count>(`/api/so/counts/${id}/corrections`, { method: "POST",
-        json: { note: fix.note.trim(), lines: [{ line_id: fix.id, qty_unit: fix.qty.replace(",", ".").trim() }] } }));
+        json: fix.wip ? { note: fix.note.trim(), wip_lines: [{ wip_line_id: fix.id, qty: fix.qty.replace(",", ".").trim() }] }
+          : { note: fix.note.trim(), lines: [{ line_id: fix.id, qty_unit: fix.qty.replace(",", ".").trim() }] } }));
       setFix(null);
       toast(tr("Quantity corrected"));
     } catch (e) {
@@ -167,7 +168,7 @@ export default function ReviewDetailPage() {
         <SignatureCard count={count} />
 
         {(count.wip?.lines.length ?? 0) > 0 && (
-          <Panel title={tr("WIP / premix")} description={reviewable ? tr("Grams entered by the branch · tick a premix to recount only it: the items counted by hand stay") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
+          <Panel title={tr("WIP / premix")} description={reviewable ? tr("Grams entered by the branch · tick a premix to recount only it, or correct it directly: the items counted by hand stay") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
             <ul className="divide-y divide-slate-100">
               {count.wip!.lines.map((w) => (
                 <li key={w.id} className={cx("flex items-center justify-between gap-3 px-4 py-2.5 text-sm", w.flags?.includes("RECOUNT") && "bg-amber-50/50")}>
@@ -180,8 +181,32 @@ export default function ReviewDetailPage() {
                       {w.previous_qty !== null && w.previous_qty !== undefined && <span className="block text-[11px] text-slate-500">{tr("Before the recount: {0} {1}", w.previous_qty, w.uom.toLowerCase() === "gram" ? "g" : w.uom)}</span>}</span>
                     {w.flags?.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
                     {w.flags?.includes("RECOUNTED") && <Badge tone="green">{tr("Recounted")}</Badge>}
+                    {w.flags?.includes("CORRECTED") && <Badge tone="blue" title={`${w.corrected_by_name ?? ""}: ${w.correction_note ?? ""}`}>{tr("Corrected by Cost Control")}</Badge>}
                   </span>
-                  <span className="flex-shrink-0 text-right tabular-nums text-slate-700">{w.uom.toLowerCase() === "gram" ? "" : `${w.qty} ${w.uom} · `}{fmtQty(w.qty_base)} g</span>
+                  <span className="flex-shrink-0 text-right tabular-nums text-slate-700">{w.uom.toLowerCase() === "gram" ? "" : `${w.qty} ${w.uom} · `}{fmtQty(w.qty_base)} g
+                    {reviewable && !(fix?.wip && fix.id === w.id) && (
+                      <button type="button" onClick={() => setFix({ id: w.id, qty: String(w.qty), note: "", wip: true })}
+                        className="ml-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", w.name)}>
+                        <Pencil size={11} /> {tr("Correct")}
+                      </button>
+                    )}
+                    {fix?.wip && fix.id === w.id && (
+                      <span className="mt-1.5 block w-56 space-y-1.5 text-left">
+                        <span className="flex items-center gap-1.5">
+                          <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected quantity")}
+                            className={cx(inputClass, "h-9 w-28 text-right text-sm font-semibold tabular-nums")} />
+                          <span className="text-xs text-slate-500">{w.uom.toLowerCase() === "gram" ? "g" : w.uom}</span>
+                        </span>
+                        <input value={fix.note} onChange={(e) => setFix({ ...fix, note: e.target.value })} maxLength={500} placeholder={tr("Reason (required)")}
+                          className={cx(inputClass, "h-9 text-xs")} />
+                        <span className="flex justify-end gap-1.5">
+                          <Button size="sm" variant="secondary" onClick={() => setFix(null)} disabled={busy}>{tr("Cancel")}</Button>
+                          <Button size="sm" loading={busy} disabled={!fix.note.trim() || fix.qty.trim() === "" || Number.isNaN(Number(fix.qty.replace(",", ".")))} onClick={() => void saveFix()}>{tr("Save")}</Button>
+                        </span>
+                      </span>
+                    )}
+                    {w.flags?.includes("CORRECTED") && w.correction_note && <span className="mt-0.5 block max-w-[16rem] text-left text-[11px] text-slate-500">{w.corrected_by_name}: {w.correction_note}</span>}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -233,13 +258,13 @@ export default function ReviewDetailPage() {
                       )}
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
-                      {reviewable && l.is_current && l.source !== "WIP_EXPLODED" && fix?.id !== l.id && (
+                      {reviewable && l.is_current && l.source !== "WIP_EXPLODED" && (fix?.wip || fix?.id !== l.id) && (
                         <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(4)), note: "" })}
                           className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", l.item_name)}>
                           <Pencil size={11} /> {tr("Correct")}
                         </button>
                       )}
-                      {fix?.id === l.id && (
+                      {!fix?.wip && fix?.id === l.id && (
                         <div className="mt-1.5 w-56 space-y-1.5 text-left">
                           <div className="flex items-center gap-1.5">
                             <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected quantity")}

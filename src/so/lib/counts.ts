@@ -254,5 +254,6 @@ export type WipLine = {
   counted_at: string; counted_by_name: string | null;
   /** RECOUNT = asked again by the reviewer, RECOUNTED = the new line of a recount (2026-10-29) */
   flags?: string[]; recount_of?: number | null; previous_qty?: number | null;
+  corrected_at?: string | null; corrected_by_name?: string | null; correction_note?: string | null;
 };
 export type CountWip = { enabled: boolean; recipes: WipRecipe[]; lines: WipLine[] };
