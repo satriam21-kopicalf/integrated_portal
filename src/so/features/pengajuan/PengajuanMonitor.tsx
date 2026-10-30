@@ -383,7 +383,8 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
 export type StepEdit = { label: string; type: "APPROVE" | "PAY"; userIds: string[] };
 export type Approver = { id: string; name: string; username: string; role: string; jobTitle: string | null };
 type Settings = { kinds: Record<Kind, string>; flows: Record<Kind, { label: string; type: "APPROVE" | "PAY"; users: { id: string; name: string }[] }[]>;
-  users: Approver[]; plafon: { default: number | null; branches: { branchCode: string; amount: number }[] }; canEdit: boolean; canPlafon: boolean };
+  users: Approver[]; plafon: { default: number | null; branches: { branchCode: string; amount: number }[] }; canEdit: boolean; canPlafon: boolean;
+  /** every outlet, for the plafon per outlet */ outlets?: { code: string; name: string }[] };
 
 /** The approval steps of every kind (any number, in order, each with its users; then the payment) and the petty cash plafon. */
 function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: string; label: string }[]; onClose: () => void; onChanged: () => void }) {
@@ -402,7 +403,9 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
     if (data) setSteps(data.flows[kind].map((x) => ({ label: x.label, type: x.type, userIds: x.users.map((u) => u.id) })));
   }, [data, kind]);
   const names = useMemo(() => new Map((data?.users ?? []).map((u) => [u.id, u.name])), [data]);
-  const branchName = (code: string) => branches.find((b) => b.value === code)?.label ?? code;
+  // every outlet (not only those that sent a request in the period)
+  const outletOpts = useMemo(() => (data?.outlets?.length ? data.outlets.map((o) => ({ value: o.code, label: o.name })) : branches), [data, branches]);
+  const branchName = (code: string) => outletOpts.find((b) => b.value === code)?.label ?? code;
   const approvals = steps.filter((x) => x.type === "APPROVE");
   const pay = steps.find((x) => x.type === "PAY") ?? { label: tr("Payment"), type: "PAY" as const, userIds: [] };
   const setApprovals = (list: StepEdit[]) => setSteps([...list, pay]);
@@ -479,14 +482,13 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
             ))}
             {data.canPlafon && (
               <div className="grid gap-2 rounded-xl border border-dashed border-slate-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
-                <SearchChoice label="" anyLabel={tr("Choose the outlet")} options={branches.filter((b) => !data.plafon.branches.some((x) => x.branchCode === b.value))}
+                <SearchChoice label="" anyLabel={tr("Choose the outlet")} options={outletOpts.filter((b) => !data.plafon.branches.some((x) => x.branchCode === b.value))}
                   value={plafon.branch} onChange={(branch) => setPlafon({ ...plafon, branch })} placeholder={tr("Search outlet")} />
                 <input value={plafon.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setPlafon({ ...plafon, amount: typeRp(parseRp(e.target.value)) })}
                   className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} aria-label={tr("Plafon")} />
                 <Button disabled={!plafon.branch || parseRp(plafon.amount) === null} onClick={() => void savePlafon(plafon.branch, parseRp(plafon.amount))}>{tr("Add")}</Button>
               </div>
             )}
-            {!branches.length && data.canPlafon && <p className="text-xs text-slate-400">{tr("Outlets appear here once they sent a request in the period.")}</p>}
           </section>
         </div>
       )}
@@ -519,9 +521,14 @@ export function StepRow({ n, step, users, names, edit, payment, onChange, onUp, 
       </div>
       {edit && (
         <div className="mt-2">
-          <SearchChoice label="" anyLabel={tr("Add an approver")} placeholder={tr("Search name or username")} value={pick}
-            options={users.filter((u) => !step.userIds.includes(u.id)).map((u) => ({ value: u.id, label: `${u.name} (@${u.username})${u.jobTitle ? ` · ${u.jobTitle}` : ""}` }))}
-            onChange={(id) => { if (id) onChange({ ...step, userIds: [...step.userIds, id] }); setPick(""); }} />
+          {/* a compact dropdown (2026-10-30: the open list made the panel long); typing the first letters jumps to a name */}
+          <select value={pick} aria-label={tr("Add an approver")} className={cx(inputClass, "h-10 text-sm")}
+            onChange={(e) => { const id = e.target.value; if (id) onChange({ ...step, userIds: [...step.userIds, id] }); setPick(""); }}>
+            <option value="">{tr("+ Add an approver ({0} users)", users.filter((u) => !step.userIds.includes(u.id)).length)}</option>
+            {users.filter((u) => !step.userIds.includes(u.id)).map((u) => (
+              <option key={u.id} value={u.id}>{u.name} (@{u.username}){u.jobTitle ? ` · ${u.jobTitle}` : ""}</option>
+            ))}
+          </select>
         </div>
       )}
     </li>

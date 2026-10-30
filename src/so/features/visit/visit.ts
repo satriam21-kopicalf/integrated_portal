@@ -14,10 +14,13 @@ export type Evidence = "required" | "optional";
 export type Item = { key: string; no: number; label: string; labelEn?: string; kind: "rating" | "text"; platform?: Platform;
   required?: boolean; requiredFor?: string[]; note?: Evidence; photo?: Evidence;
   /** "g": the PIC also types the stock in grams, net weight (Stock Preparation, Espresso and Beans, 2026-10-28) */
-  qty?: "g" };
+  qty?: "g";
+  /** Travel Path (Outlet Cleanliness, 2026-10-30): the photo points, the standard to see, the category */
+  detail?: string; standard?: string; category?: "Kritikal" | "Mayor" | "Minor"; categoryEn?: string };
 /** Google Maps figure of the outlet (Aggregator → Google Maps) */
 export type AutoStars = { stars: number; reviews: number | null; source: "google"; fetchedAt: string | null; mapsUri?: string | null };
-export type Section = { key: string; title: string; titleEn?: string; items: Item[] };
+/** retired: a list no longer asked (2026-10-30), shown only in the visits that rated it */
+export type Section = { key: string; title: string; titleEn?: string; items: Item[]; retired?: boolean };
 export type Group = { key: string; title: string; titleEn?: string; subtitle: string; subtitleEn?: string; sections: Section[] };
 export type Definition = { title: string; titleEn?: string; groups: Group[] };
 
@@ -77,7 +80,7 @@ export const ratingLabel = (r: Rating) => ({ UNDER: tr("Under"), MEET: tr("Meet"
 
 export const visitPhotoUrl = (id: string) => `/api/visit-photos/${id}`;
 export const visitSignatureUrl = (visitId: string) => `/api/visit-signatures/${visitId}`;
-export const allItems = (d: Definition) => d.groups.flatMap((g) => g.sections.flatMap((s) => s.items.map((i) => ({ ...i, group: g.key, section: s.title, sectionEn: s.titleEn, sectionKey: s.key }))));
+export const allItems = (d: Definition) => d.groups.flatMap((g) => g.sections.filter((s) => !s.retired).flatMap((s) => s.items.map((i) => ({ ...i, group: g.key, section: s.title, sectionEn: s.titleEn, sectionKey: s.key }))));
 
 /** What the PIC still has to do (same rules as the server, 2026-10-27). need "rating": a required item not rated (blocks);
  * "evidence": a rated required item without its note / photo (blocks; `what` says which); "optional": an optional item

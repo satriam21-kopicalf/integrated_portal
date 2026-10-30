@@ -3767,4 +3767,6 @@ export const ID: Record<string, string> = {
   "Row {0}": "Baris {0}",
   "Correct these rows in the file and choose it again: nothing is saved while a row is wrong.": "Perbaiki baris tersebut di file lalu pilih lagi: tidak ada yang disimpan selama masih ada baris yang salah.",
   "Nothing to change: fill in Qty in the file first.": "Tidak ada perubahan: isi Qty di file terlebih dahulu.",
+  "Standard": "Standar",
+  "+ Add an approver ({0} users)": "+ Tambah approver ({0} user)",
 };

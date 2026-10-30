@@ -190,7 +190,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
   const [answers, setAnswers] = useState<Record<string, Answer>>(visit.answers ?? {});
   const [photos, setPhotos] = useState<VisitPhoto[]>(visit.photos ?? []);
   // one category (section of the workbook) at a time: short screens on phones
-  const parts = useMemo(() => def.groups.flatMap((g) => g.sections.map((s) => ({ ...s, group: g }))), [def]);
+  const parts = useMemo(() => def.groups.flatMap((g) => g.sections.filter((s) => !s.retired).map((s) => ({ ...s, group: g }))), [def]);
   const [section, setSection] = useState(parts[0].key);
   useFocusMode();
   const [saving, setSaving] = useState(0);
@@ -591,6 +591,9 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
             <span className={cx("ml-1.5 inline-block rounded px-1.5 py-px align-middle text-[10px] font-semibold uppercase tracking-wide",
               required ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-500")}>{required ? tr("Required") : tr("Optional")}</span>
           </p>
+          {item.category && <CategoryTag item={item} />}
+          {item.detail && <p className="mt-1 text-xs text-slate-600"><span className="font-semibold">{tr("Photo")}:</span> {item.detail}</p>}
+          {item.standard && <p className="mt-0.5 text-xs text-slate-500"><span className="font-semibold">{tr("Standard")}:</span> {item.standard}</p>}
           {hint && <p className="mt-0.5 text-[11px] text-slate-500">{hint}</p>}
           {item.platform && <PlatformStars item={item} answer={answer} auto={auto} onAnswer={onAnswer} />}
           {item.kind === "rating" && (
@@ -644,3 +647,8 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
   );
 }
 
+/** Travel Path category: Kritikal = food safety or safety, fixed in the same shift (2026-10-30). */
+export function CategoryTag({ item }: { item: Item }) {
+  const tone = item.category === "Kritikal" ? "bg-red-600 text-white" : item.category === "Mayor" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600";
+  return <span className={cx("mt-1 inline-block rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", tone)}>{tl({ label: item.category, labelEn: item.categoryEn })}</span>;
+}

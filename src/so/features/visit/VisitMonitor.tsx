@@ -423,6 +423,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
           {v.definition.groups.map((g) => {
             const sections = g.sections.map((sec) => ({ ...sec, items: sec.items.filter((it) => {
               const a = v.answers?.[it.key] ?? {};
+              if (sec.retired && !a.rating && !a.note && !photosOf(it.key).length) return false; // an old list: only what this visit rated
               return show === "all" || (show === "under" ? a.rating === "UNDER" : !!a.note || photosOf(it.key).length > 0);
             }) })).filter((sec) => sec.items.length);
             if (!sections.length) return null;

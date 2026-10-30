@@ -11,6 +11,7 @@ import Drawer from "@/so/ui/Drawer";
 import { api, errorText } from "@/so/lib/api";
 import { type Count, fmtQty } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type Preview = { rows: number; applied: boolean; changes: { row: number; item: string; from: number | null; to: number | null; date: string | null }[];
   problems: { row: number; item: string | null; error: string }[] };
@@ -36,11 +37,11 @@ export default function SheetTools({ count, open, onImported }: { count: Count; 
   };
   return (
     <>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        <Button size="sm" variant="secondary" loading={downloading} onClick={() => void download()}>
-          <Download size={14} /> {open ? tr("Import format") : tr("Export Excel")}
-        </Button>
-        {open && <Button size="sm" variant="secondary" onClick={() => setImporting(true)}><Upload size={14} /> {tr("Import Excel")}</Button>}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        {open ? <>
+          <Button size="sm" variant="secondary" loading={downloading} onClick={() => void download()}><Download size={14} /> {tr("Import format")}</Button>
+          <Button size="sm" variant="secondary" onClick={() => setImporting(true)}><Upload size={14} /> {tr("Import Excel")}</Button>
+        </> : <ExcelIconButton label={tr("Export Excel")} loading={downloading} onClick={() => void download()} />}
       </div>
       {importing && <ImportDrawer count={count} onClose={() => setImporting(false)} onDownload={() => void download()}
         onImported={() => { setImporting(false); onImported(); }} />}
