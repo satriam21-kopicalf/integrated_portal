@@ -30,6 +30,10 @@ export type Pengajuan = {
   steps?: Step[]; step?: { label: string; users: string[]; userIds: string[] } | null;
   /** petty cash: what the outlet bought itself in ESB (Simple Purchase) over the 13 weeks before the period end */
   purchaseRef?: { weeks: number; until: string; total: number; avgWeek: number; lastWeek: number; docs: number } | null;
+  /** petty cash: the outlet's Simple Purchase documents of the period (reconciliation with the expenses) */
+  purchaseDocs?: { from: string; to: string; total: number; docs: { number: string; date: string; supplier: string | null; total: number | null; status: string | null }[] } | null;
+  /** monitoring list: the outlet's weekly Simple Purchase average and whether the amount is far above it */
+  purchaseAvgWeek?: number | null; aboveRef?: boolean;
   lines?: Line[]; files?: PgFile[]; events?: PgEvent[]; missing?: string[]; fileCount?: number; reusedFiles?: number;
   /** monitoring: what the signed-in checker may do now */
   can?: { next: Action[]; reviewLines: boolean; payment: boolean; step: string | null; stepUsers: string[] };

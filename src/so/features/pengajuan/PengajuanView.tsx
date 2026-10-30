@@ -210,6 +210,32 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
         </ul>
       </section>
 
+      {petty && p.purchaseDocs && (
+        <section>
+          <h3 className="mb-2 text-sm font-semibold text-slate-900">{tr("Reconciliation with Simple Purchase (ESB)")}</h3>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {[[tr("Money out (this request)"), p.totalOut ?? 0], [tr("Simple Purchase in the period"), p.purchaseDocs.total],
+              [tr("Difference"), (p.totalOut ?? 0) - p.purchaseDocs.total]].map(([k, v], i) => (
+              <div key={String(k)} className="rounded-xl bg-white px-2 py-2 ring-1 ring-slate-200">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{k}</p>
+                <p className={cx("text-sm font-semibold tabular-nums", i === 2 && Math.abs(Number(v)) > 0 ? "text-amber-700" : "text-slate-900")}>{fmtRp(Number(v))}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-1 text-[11px] text-slate-500">{tr("Purchases the outlet entered in ESB from {0} to {1}; a difference means an expense not in ESB or the other way round.", wibDay(p.purchaseDocs.from), wibDay(p.purchaseDocs.to))}</p>
+          {p.purchaseDocs.docs.length > 0 ? (
+            <ul className="mt-2 max-h-56 divide-y divide-slate-100 overflow-auto rounded-xl border border-slate-200 text-xs">
+              {p.purchaseDocs.docs.map((d) => (
+                <li key={d.number} className="flex items-center justify-between gap-2 px-3 py-1.5">
+                  <span className="min-w-0 truncate"><span className="font-mono text-slate-500">{d.number}</span> · {wibDay(d.date)}{d.supplier ? ` · ${d.supplier}` : ""}</span>
+                  <span className="flex-shrink-0 font-semibold tabular-nums">{fmtRp(d.total)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="mt-2 text-xs text-slate-400">{tr("No Simple Purchase in ESB in the period")}</p>}
+        </section>
+      )}
+
       {(other.length > 0 || payment.length > 0 || p.note) && (
         <section className="space-y-3">
           {p.note && <div><p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Note")}</p><p className="whitespace-pre-line text-sm text-slate-700">{p.note}</p></div>}

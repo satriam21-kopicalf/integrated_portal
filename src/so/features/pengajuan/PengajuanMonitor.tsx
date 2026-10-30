@@ -24,7 +24,7 @@ import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTIO
   categoryLabel, fmtRp, kindLabel, parseRp, typeRp, upload } from "./pengajuan";
 
 type Result = { period: { from: string; to: string }; me: string; superadmin: boolean; data: Pengajuan[]; categories: Record<string, string> };
-type F = { period: Period; bgroup: string; branch: string; kind: Kind | ""; account: string; category: string; flag: "" | "reused" | "negative" | "opening" | "rejected" };
+type F = { period: Period; bgroup: string; branch: string; kind: Kind | ""; account: string; category: string; flag: "" | "reused" | "negative" | "opening" | "rejected" | "aboveRef" };
 const NO_F = (): F => ({ period: { from: wibOffset(-89), to: wibOffset(0) }, bgroup: "", branch: "", kind: "", account: "", category: "", flag: "" });
 type GroupOpt = { id: string; code: string; name: string };
 type Tab = Status | "" | "OPEN" | "MINE";
@@ -36,6 +36,7 @@ const flagged = (p: Pengajuan) => ({
   reused: (p.reusedFiles ?? 0) > 0, negative: (p.closingBalance ?? 0) < 0,
   opening: p.openingExpected !== null && p.openingBalance !== null && p.openingExpected !== p.openingBalance,
   rejected: (p.lines ?? []).some((l) => l.review === "REJECTED"),
+  aboveRef: !!p.aboveRef,
 });
 
 export default function PengajuanMonitor() {
@@ -81,7 +82,7 @@ export default function PengajuanMonitor() {
   const by = (s: Status) => base.filter((p) => p.status === s);
 
   const def = NO_F();
-  const FLAG_LABEL = { reused: tr("Same receipt used twice"), negative: tr("Negative closing balance"), opening: tr("Opening balance differs"), rejected: tr("With rejected expenses") };
+  const FLAG_LABEL = { reused: tr("Same receipt used twice"), negative: tr("Negative closing balance"), opening: tr("Opening balance differs"), rejected: tr("With rejected expenses"), aboveRef: tr("Far above the outlet's purchases") };
   const chips: ActiveFilter[] = [
     ...(f.period.from !== def.period.from || f.period.to !== def.period.to ? [{ key: "p", label: `${dmy(f.period.from)} – ${dmy(f.period.to)}`, onRemove: () => setF({ ...f, period: def.period }) }] : []),
     ...(f.bgroup ? [{ key: "bg", label: `${tr("Group")} ${f.bgroup === "none" ? tr("Without a group") : bgroups.find((g) => g.id === f.bgroup)?.code ?? ""}`, onRemove: () => setF({ ...f, bgroup: "" }) }] : []),
@@ -218,13 +219,14 @@ function StepWaiting({ p }: { p: Pengajuan }) {
 
 function Flags({ p }: { p: Pengajuan }) {
   const fl = flagged(p);
-  if (!fl.reused && !fl.negative && !fl.opening && !fl.rejected) return null;
+  if (!fl.reused && !fl.negative && !fl.opening && !fl.rejected && !fl.aboveRef) return null;
   return (
     <span className="mt-1 flex flex-wrap gap-1">
       {fl.reused && <Badge tone="amber" icon={<Copy size={10} />}>{tr("Receipt used twice")}</Badge>}
       {fl.negative && <Badge tone="red">{tr("Negative balance")}</Badge>}
       {fl.opening && <Badge tone="amber">{tr("Opening differs")}</Badge>}
       {fl.rejected && <Badge tone="red">{tr("Expense rejected")}</Badge>}
+      {fl.aboveRef && <Badge tone="amber" title={tr("Above {0}× the outlet's weekly Simple Purchase ({1})", 2, fmtRp(p.purchaseAvgWeek))}>{tr("Above the purchase reference")}</Badge>}
     </span>
   );
 }
@@ -477,6 +479,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
               <p className="text-sm font-semibold text-slate-900">{tr("Petty cash plafon")}</p>
               <p className="text-xs text-slate-500">{tr("The weekly top-up brings the cash of the outlet back to its plafon. An outlet without its own plafon uses the one of every outlet.")}</p>
             </div>
+            {data.canPlafon && <Suggestions onApplied={(pl) => setData((d) => (d ? { ...d, plafon: pl } : d))} />}
             <PlafonRow label={tr("Every outlet")} amount={data.plafon.default} edit={data.canPlafon} onSave={(a) => void savePlafon("*", a)} />
             {data.plafon.branches.map((b) => (
               <PlafonRow key={b.branchCode} label={branchName(b.branchCode)} amount={b.amount} edit={data.canPlafon} onSave={(a) => void savePlafon(b.branchCode, a)} removable />
@@ -552,3 +555,76 @@ function PlafonRow({ label, amount, edit, removable, onSave }: { label: string; 
     </div>
   );
 }
+
+type Suggestion = { code: string; name: string; avgWeek: number; suggested: number | null; current: number | null };
+
+/** A plafon per outlet from its own Simple Purchase in ESB (weekly average × factor, rounded up): Finance picks the
+ * outlets (by default those without a plafon), applies, then adjusts one by one (2026-10-30). */
+function Suggestions({ onApplied }: { onApplied: (p: Settings["plafon"]) => void }) {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [factor, setFactor] = useState("1.2");
+  const [rows, setRows] = useState<Suggestion[] | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(async (fct: string) => {
+    setRows(null);
+    try {
+      const r = await call<{ data: Suggestion[] }>(`/api/pengajuan/settings/plafon-suggestions?factor=${Number(fct) || 1.2}`);
+      setRows(r.data);
+      setPicked(new Set(r.data.filter((x) => x.suggested && x.current === null).map((x) => x.code)));
+    } catch (e) { toast((e as Error).message, "error"); }
+  }, [toast]);
+  useEffect(() => { if (open) void load(factor); }, [open, factor, load]);
+  const apply = async () => {
+    setBusy(true);
+    try {
+      const r = await call<Settings["plafon"] & { applied: number }>("/api/pengajuan/settings/plafon-suggestions",
+        { method: "POST", json: { codes: [...picked], factor: Number(factor) || 1.2 } });
+      onApplied(r);
+      toast(tr("Plafon set for {0} outlets", r.applied));
+      setOpen(false);
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  if (!open) {
+    return <Button variant="secondary" className="w-full" onClick={() => setOpen(true)}>{tr("Suggest the plafon from Simple Purchase (ESB)")}</Button>;
+  }
+  const withSug = (rows ?? []).filter((x) => x.suggested);
+  return (
+    <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/40 p-3">
+      <p className="text-sm font-semibold text-slate-900">{tr("Plafon from Simple Purchase")}</p>
+      <p className="text-xs text-slate-600">{tr("Weekly average of what the outlet bought itself in ESB (13 weeks) × the factor, rounded up to Rp 50.000. Outlets without a plafon are ticked; adjust any of them afterwards.")}</p>
+      <label className="flex items-center gap-2 text-xs text-slate-700">{tr("Factor")}
+        <select value={factor} onChange={(e) => setFactor(e.target.value)} className={cx(inputClass, "h-8 w-24 text-xs")}>
+          {["1", "1.1", "1.2", "1.3", "1.5", "2"].map((x) => <option key={x} value={x}>× {x}</option>)}
+        </select>
+        <span className="ml-auto">{tr("{0} of {1} ticked", picked.size, withSug.length)}</span>
+      </label>
+      {!rows ? <div className="skeleton h-40 rounded-lg" /> : (
+        <div className="max-h-72 overflow-auto rounded-lg border border-slate-200 bg-white">
+          <table className="w-full text-xs">
+            <thead className={theadClass}><tr><th className="w-8 px-2 py-1.5" /><th className="px-2 py-1.5 text-left">{tr("Outlet")}</th>
+              <th className="px-2 py-1.5 text-right">{tr("Average / week")}</th><th className="px-2 py-1.5 text-right">{tr("Suggested")}</th><th className="px-2 py-1.5 text-right">{tr("Now")}</th></tr></thead>
+            <tbody className="divide-y divide-slate-100">
+              {rows.map((x) => (
+                <tr key={x.code} className={cx(!x.suggested && "text-slate-400")}>
+                  <td className="px-2 py-1.5"><input type="checkbox" disabled={!x.suggested} checked={picked.has(x.code)} aria-label={x.name}
+                    onChange={() => setPicked((s) => { const n = new Set(s); if (n.has(x.code)) n.delete(x.code); else n.add(x.code); return n; })} /></td>
+                  <td className="max-w-[12rem] truncate px-2 py-1.5">{x.name}</td>
+                  <td className="px-2 py-1.5 text-right tabular-nums">{fmtRp(x.avgWeek)}</td>
+                  <td className="px-2 py-1.5 text-right font-semibold tabular-nums">{x.suggested ? fmtRp(x.suggested) : tr("no purchase")}</td>
+                  <td className="px-2 py-1.5 text-right tabular-nums">{x.current === null ? "—" : fmtRp(x.current)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div className="flex justify-end gap-2">
+        <Button size="sm" variant="secondary" onClick={() => setOpen(false)} disabled={busy}>{tr("Cancel")}</Button>
+        <Button size="sm" loading={busy} disabled={!picked.size} onClick={() => void apply()}>{tr("Set the plafon of {0} outlets", picked.size)}</Button>
+      </div>
+    </div>
+  );
+}
+
