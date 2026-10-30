@@ -93,6 +93,8 @@ export default function ReviewDetailPage() {
   if (!count) return <div className="flex justify-center p-10 text-slate-400"><Loader2 className="animate-spin" /></div>;
   const st = STATUS[count.status];
   const reviewable = count.status === "SUBMITTED" && can("inventory.count.review");
+  // Cost Control corrects quantities, premixes and dates also after the approval (2026-10-30), not once exported to ESB
+  const correctable = ["SUBMITTED", "APPROVED"].includes(count.status) && can("inventory.count.review");
   const cancellable = ["IN_PROGRESS", "SUBMITTED", "RECOUNT_REQUESTED"].includes(count.status) && can("inventory.count.review");
   const toggle = (lineId: number) => setPicked((s) => { const n = new Set(s); if (n.has(lineId)) n.delete(lineId); else n.add(lineId); return n; });
 
@@ -169,7 +171,8 @@ export default function ReviewDetailPage() {
         <SignatureCard count={count} />
 
         {(count.wip?.lines.length ?? 0) > 0 && (
-          <Panel title={tr("WIP / premix")} description={reviewable ? tr("Grams entered by the branch · tick a premix to recount only it, or correct it directly: the items counted by hand stay") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
+          <Panel title={tr("WIP / premix")} description={reviewable ? tr("Grams entered by the branch · tick a premix to recount only it, or correct it directly: the items counted by hand stay")
+            : correctable ? tr("Grams entered by the branch · approved: correct a premix directly, the items counted by hand stay") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
             <ul className="divide-y divide-slate-100">
               {count.wip!.lines.map((w) => (
                 <li key={w.id} className={cx("flex items-center justify-between gap-3 px-4 py-2.5 text-sm", w.flags?.includes("RECOUNT") && "bg-amber-50/50")}>
@@ -185,7 +188,7 @@ export default function ReviewDetailPage() {
                     {w.flags?.includes("CORRECTED") && <Badge tone="blue" title={`${w.corrected_by_name ?? ""}: ${w.correction_note ?? ""}`}>{tr("Corrected by Cost Control")}</Badge>}
                   </span>
                   <span className="flex-shrink-0 text-right tabular-nums text-slate-700">{w.uom.toLowerCase() === "gram" ? "" : `${w.qty} ${w.uom} · `}{fmtQty(w.qty_base)} g
-                    {reviewable && !(fix?.wip && fix.id === w.id) && (
+                    {correctable && !(fix?.wip && fix.id === w.id) && (
                       <button type="button" onClick={() => setFix({ id: w.id, qty: String(w.qty), note: "", wip: true })}
                         className="ml-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", w.name)}>
                         <Pencil size={11} /> {tr("Correct")}
@@ -259,7 +262,7 @@ export default function ReviewDetailPage() {
                       )}
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
-                      {reviewable && l.is_current && l.source !== "WIP_EXPLODED" && (fix?.wip || fix?.id !== l.id) && (
+                      {correctable && l.is_current && l.source !== "WIP_EXPLODED" && (fix?.wip || fix?.id !== l.id) && (
                         <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(4)),
                           field: lineDateField(l, count), date: (() => { const df = lineDateField(l, count); return df ? l[df] ?? "" : ""; })(), note: "" })}
                           className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", l.item_name)}>

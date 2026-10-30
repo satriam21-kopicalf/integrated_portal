@@ -3730,6 +3730,7 @@ export const ID: Record<string, string> = {
   "Corrected quantity": "Jumlah koreksi",
   "Corrected by Cost Control": "Dikoreksi Cost Control",
   "Grams entered by the branch · tick a premix to recount only it, or correct it directly: the items counted by hand stay": "Gram yang diinput cabang · centang premix untuk me-recount premix itu saja, atau koreksi langsung: item yang dihitung manual tetap",
+  "Grams entered by the branch · approved: correct a premix directly, the items counted by hand stay": "Gram yang diinput cabang · sudah di-approve: premix tetap bisa dikoreksi langsung, item yang dihitung manual tetap",
   "Approval {0} of {1}: {2}": "Approval {0} dari {1}: {2}",
   "Approvals": "Approval",
   "Approvals saved": "Approval tersimpan",
