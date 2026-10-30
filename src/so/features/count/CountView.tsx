@@ -284,7 +284,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                       {l.source !== "WIP_EXPLODED" && Number(l.qty_wip ?? 0) > 0 && (
                         <p className="mt-0.5 text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                       )}
-                      {bad && <p className="mt-0.5 text-[11px] text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
+                      {bad && <p className="mt-0.5 text-[11px] text-red-600">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
                     </div>
                     {l.source === "WIP_EXPLODED" ? (
                       <p className="flex-shrink-0 text-right text-xs font-medium text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom}<span className="block text-[10px] font-normal">{tr("from the WIP")}</span></p>
@@ -430,7 +430,7 @@ function DateRows({ line, field, edit, unit, qty, onSave }: {
           </li>
         ))}
       </ul>
-      {bad.size > 0 && <p className="mt-1 text-[11px] text-red-600">{tr("Use numbers only, e.g. 2 or 1.5")}</p>}
+      {bad.size > 0 && <p className="mt-1 text-[11px] text-red-600">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
       {edit && rows.length < 20 && (
         <button type="button" onClick={() => setRows((rs) => [...rs, { key: ++rowKey, date: "", qty: "" }])}
           className="mt-1.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white text-xs font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-700">

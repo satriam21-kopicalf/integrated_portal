@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Panel, SearchBox, cx, fmtDate, fmtDay, inputClass, theadClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { api, errorText } from "@/so/lib/api";
-import { type Count, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, lineDateField, mapsUrl } from "@/so/lib/counts";
+import { type Count, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, lineDateField, mapsUrl, parseQty } from "@/so/lib/counts";
 import { locale, tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
@@ -205,7 +205,7 @@ export default function ReviewDetailPage() {
                           className={cx(inputClass, "h-9 text-xs")} />
                         <span className="flex justify-end gap-1.5">
                           <Button size="sm" variant="secondary" onClick={() => setFix(null)} disabled={busy}>{tr("Cancel")}</Button>
-                          <Button size="sm" loading={busy} disabled={!fix.note.trim() || fix.qty.trim() === "" || Number.isNaN(Number(fix.qty.replace(",", ".")))} onClick={() => void saveFix()}>{tr("Save")}</Button>
+                          <Button size="sm" loading={busy} disabled={!fix.note.trim() || !parseQty(fix.qty)} onClick={() => void saveFix()}>{tr("Save")}</Button>
                         </span>
                       </span>
                     )}
@@ -263,7 +263,7 @@ export default function ReviewDetailPage() {
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
                       {correctable && l.is_current && l.source !== "WIP_EXPLODED" && (fix?.wip || fix?.id !== l.id) && (
-                        <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(4)),
+                        <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(2)),
                           field: lineDateField(l, count), date: (() => { const df = lineDateField(l, count); return df ? l[df] ?? "" : ""; })(), note: "" })}
                           className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", l.item_name)}>
                           <Pencil size={11} /> {tr("Correct")}
@@ -285,7 +285,7 @@ export default function ReviewDetailPage() {
                             className={cx(inputClass, "h-9 text-xs")} />
                           <div className="flex justify-end gap-1.5">
                             <Button size="sm" variant="secondary" onClick={() => setFix(null)} disabled={busy}>{tr("Cancel")}</Button>
-                            <Button size="sm" loading={busy} disabled={!fix.note.trim() || fix.qty.trim() === "" || Number.isNaN(Number(fix.qty.replace(",", ".")))} onClick={() => void saveFix()}>{tr("Save")}</Button>
+                            <Button size="sm" loading={busy} disabled={!fix.note.trim() || !parseQty(fix.qty)} onClick={() => void saveFix()}>{tr("Save")}</Button>
                           </div>
                         </div>
                       )}

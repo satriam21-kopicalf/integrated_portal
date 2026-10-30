@@ -230,15 +230,15 @@ export function getPosition(): Promise<Fix | null> {
 /** Google Maps link of a position. */
 export const mapsUrl = (lat: number | string, lng: number | string) => `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
-/** "1.5" / "1,5" / "" -> number string or null; NaN -> undefined (invalid). */
+/** "1.5" / "1,5" / "" -> number string or null; not a number or more than two decimals -> undefined (invalid). */
 export function parseQty(v: string): string | null | undefined {
   const s = v.trim().replace(",", ".");
   if (s === "") return null;
-  return /^\d+(\.\d+)?$/.test(s) ? s : undefined;
+  return /^\d+(\.\d{1,2})?$/.test(s) ? s : undefined; // at most two decimals (2026-10-30)
 }
 
 export const fmtQty = (v: string | number | null | undefined) =>
-  v === null || v === undefined || v === "" ? "" : Number(v).toLocaleString("en-US", { maximumFractionDigits: 3 }).replace(/,/g, "");
+  v === null || v === undefined || v === "" ? "" : Number(v).toLocaleString("en-US", { maximumFractionDigits: 2 }).replace(/,/g, "");
 
 /** WIP section of a count (premix counted in pail / teko / gram, exploded into the ingredient lines, D-34). */
 export type WipRecipe = {

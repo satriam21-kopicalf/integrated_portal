@@ -122,7 +122,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                           aria-label={tr("{0}: the quantity is right", l.name)} title={tr("The quantity is right: confirm the recount")}>{tr("Same ✓")}</button>
                       )}
                       <input inputMode="decimal" disabled={!edit} value={values[k] ?? ""} placeholder="0" aria-label={`${l.name} ${l.uom}`}
-                        onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "") }))}
+                        onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "").replace(/^(\d*\.\d{0,2}).*$/, "$1") }))}
                         className={cx("h-11 w-24 rounded-lg border px-2 text-right text-base tabular-nums disabled:bg-slate-50 disabled:text-slate-500", edit ? "border-violet-400 bg-violet-50/50" : "border-slate-200")} />
                       <span className="text-sm text-slate-600">{isGram(l.uom) ? "g" : l.uom}</span>
                     </span>
@@ -149,7 +149,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                       </span>
                       <span className="flex items-center gap-1.5">
                         <input inputMode="decimal" value={values[k] ?? ""} placeholder="0" aria-label={`${r.name} ${uom}`}
-                          onChange={e => setValues(v => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "") }))}
+                          onChange={e => setValues(v => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "").replace(/^(\d*\.\d{0,2}).*$/, "$1") }))}
                           className={cx("h-11 w-24 rounded-lg border px-2 text-right text-base tabular-nums", Number(values[k]) > 0 ? "border-violet-400 bg-violet-50/50" : "border-slate-200")} />
                         {r.units.length > 1 ? (
                           <select value={uom} onChange={(e) => setUnitOf((m) => ({ ...m, [r.id]: e.target.value }))} aria-label={tr("Unit of {0}", r.name)}
