@@ -1,12 +1,14 @@
 'use client';
 
 import { ReactNode, useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, ChevronRight, Download, Search } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronRight, Search } from 'lucide-react';
 import { formatCurrency, formatDate, formatNumber, fixed } from '@/lib/format';
 import { Granularity, Resource } from '@/lib/overview';
 import { Delta, Skeleton } from '../Card';
 import { numberLocale, tr } from '@/lib/i18n';
 
+import ExcelIconButton from '@/components/ExcelIconButton';
+import { downloadXlsx } from '@/lib/xlsx';
 /* ------------------------------------------------------------------ layout */
 
 /** One titled block of a drill-down drawer. */
@@ -84,10 +86,6 @@ export interface Column<R> {
   title?: string;
 }
 
-function csvCell(v: unknown): string {
-  const s = v === null || v === undefined ? '' : String(v);
-  return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
 
 /**
  * Full data table of a drawer: click a header to sort, optional search, CSV download
@@ -130,14 +128,9 @@ export function DetailTable<R>({
   }, [rows, q, search, sort, columns]);
 
   const download = () => {
-    const lines = [columns.map(c => csvCell(c.label)).join(','), ...shown.map(r => columns.map(c => csvCell(c.value(r))).join(','))];
-    const blob = new Blob([`﻿${lines.join('\n')}`], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${csvName ?? caption}.csv`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const cellOf = (v: unknown) => (typeof v === 'number' ? v : v === null || v === undefined ? null : String(v));
+    void downloadXlsx({ fileName: `${csvName ?? caption}`, sheet: String(caption).slice(0, 31) || 'Data', title: String(caption),
+      header: columns.map(c => String(c.label)), rows: shown.map(r => columns.map(c => cellOf(c.value(r)))) });
   };
 
   return (
@@ -153,9 +146,7 @@ export function DetailTable<R>({
         )}
         <span className="text-[11px] text-slate-400">{formatNumber(shown.length)}{shown.length !== rows.length ? tr(' of {0}', formatNumber(rows.length)) : ''} {tr('rows')}{onRowClick ? ` · ${rowHint ?? tr('click a row for details')}` : ''}</span>
         {csvName !== undefined && (
-          <button type="button" onClick={download} className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 text-xs font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-            <Download size={13} /> {tr('CSV')}
-          </button>
+          <span className="ml-auto"><ExcelIconButton label={tr('Export to Excel')} onClick={download} /></span>
         )}
       </div>
       <div className="custom-scrollbar overflow-auto rounded-lg border border-slate-200" style={{ maxHeight }}>

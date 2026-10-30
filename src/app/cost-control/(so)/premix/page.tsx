@@ -5,7 +5,7 @@
 // sheet, with the WIP entered, the share of each ingredient and the breakdown per WIP. Recipes: the recipes with
 // versions (what the count form uses). The workbook import tab was removed (2026-10-20: not used).
 
-import { Calculator, ChevronDown, Copy, Download, FlaskConical, Minus, Plus, RotateCcw, Scale, Search, X } from "lucide-react";
+import { Calculator, ChevronDown, Copy, FlaskConical, Minus, Plus, RotateCcw, Scale, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
@@ -16,6 +16,8 @@ import { api, errorText } from "@/so/lib/api";
 import { useMe } from "@/so/lib/me";
 import { tr } from "@/lib/i18n";
 
+import ExcelIconButton from "@/components/ExcelIconButton";
+import { downloadXlsx } from "@/lib/xlsx";
 type Tab = "calculator" | "recipes";
 const fmtG = (v: number, d = 0) => v.toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: 0 });
 /** Grams of one unit, 0 when the recipe gives no conversion. */
@@ -154,9 +156,9 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
     ...result.rows.map(r => [r.name, r.uom, String(r.qty), r.qty_base.toFixed(2)]),
   ] : [];
   const exportCsv = () => {
-    const url = URL.createObjectURL(new Blob(["﻿" + table().map(r => r.join(";")).join("\n")], { type: "text/csv;charset=utf-8" }));
-    Object.assign(document.createElement("a"), { href: url, download: `premix-calculator-${new Date().toISOString().slice(0, 10)}.csv` }).click();
-    URL.revokeObjectURL(url);
+    const [head, ...rest] = table();
+    void downloadXlsx({ fileName: `premix-calculator ${new Date().toISOString().slice(0, 10)}`, sheet: "Premix", title: "Premix calculator",
+      header: head as string[], rows: rest.map((r) => r.map((v) => (v !== "" && !Number.isNaN(Number(v)) ? Number(v) : v))) });
   };
   const copy = async () => {
     try {
@@ -334,7 +336,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
                   <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 bg-slate-50 px-4 py-3">
                     <p className="mr-auto text-xs text-slate-500">{tr("{0} stock items · {1} g in total", stockCount, fmtG(totalRounded))}</p>
                     <Button variant="secondary" size="sm" onClick={() => void copy()}><Copy size={14} /> {tr("Copy")}</Button>
-                    <Button variant="secondary" size="sm" onClick={exportCsv}><Download size={14} /> CSV</Button>
+                    <ExcelIconButton label={tr("Export to Excel")} onClick={exportCsv} />
                   </div>
                 </>
               )}

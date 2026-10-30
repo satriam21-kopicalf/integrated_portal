@@ -8,7 +8,7 @@
 // a revision or reject it (with a note); the payment step records the transfer with its proof. Settings: the approval
 // steps of every kind with their users (superadmin) and the petty cash plafon (superadmin, Finance).
 
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, Download, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -17,6 +17,8 @@ import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, P
 import { call } from "@/so/features/checkin/checkin";
 import { wibDate, wibDateTime, wibDay } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
+import ExcelIconButton from "@/components/ExcelIconButton";
+import { type XlsxCell, downloadXlsx } from "@/lib/xlsx";
 import PengajuanView, { FileChip, StatusBadge } from "./PengajuanView";
 import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTION_LABEL, CATEGORY_LABEL, KINDS, OPEN, STATUS_LABEL, acceptedTotal,
   categoryLabel, fmtRp, kindLabel, parseRp, typeRp, upload } from "./pengajuan";
@@ -40,6 +42,8 @@ export default function PengajuanMonitor() {
   const [f, setF] = useState<F>(NO_F);
   const [status, setStatus] = useState<Tab>("OPEN");
   const [settings, setSettings] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const toast = useToast();
   const [res, setRes] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -95,28 +99,25 @@ export default function PengajuanMonitor() {
       tr("Bank"), tr("Account number"), tr("Account holder"), tr("Purpose"), tr("Date needed"), tr("Baristas"), tr("Period from"), tr("Period to"),
       tr("Opening balance"), tr("Money in"), tr("Total money out"), tr("Closing balance"), tr("Plafon"), tr("Amount asked"), tr("Approved amount"), tr("Paid"),
       tr("Transfer date"), tr("Line date"), tr("Category"), tr("Description"), tr("Amount"), tr("Line check"), tr("Check note")];
-    const esc = (v: unknown) => { const s = v === null || v === undefined ? "" : String(v); return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-    const out = [head.join(",")];
+    const out: XlsxCell[][] = [];
     for (const p of rows) {
       const common = [p.number, kindLabel(p.kind), STATUS_LABEL[p.status](), p.step?.label, p.branchName, p.branchCode, p.username, p.requesterName, p.requesterPhone,
         p.payeeBank, p.payeeAccount, p.payeeName, p.purpose, p.neededOn, p.baristas.map((b) => b.name).join(" / "), p.periodFrom, p.periodTo,
         p.openingBalance, p.incomeAmount, p.totalOut, p.closingBalance, p.plafon, p.requestedAmount, p.approvedAmount, p.paidAmount, p.paidOn];
       const lines = p.lines?.length ? p.lines : [null];
-      for (const l of lines) out.push([...common, l?.spentOn, l ? categoryLabel(l.category) : "", l?.description, l?.amount, l?.review === "REJECTED" ? tr("Rejected") : l ? "OK" : "", l?.reviewNote].map(esc).join(","));
+      for (const l of lines) out.push([...common, l?.spentOn, l ? categoryLabel(l.category) : "", l?.description, l?.amount, l?.review === "REJECTED" ? tr("Rejected") : l ? "OK" : "", l?.reviewNote]);
     }
-    const blob = new Blob([`﻿${out.join("\n")}`], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${tr("Fund requests").toLowerCase().replace(/\s+/g, "-")}-${f.period.from}-${f.period.to}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    setExporting(true);
+    downloadXlsx({ fileName: `${tr("Fund requests")} ${f.period.from} - ${f.period.to}`, sheet: tr("Fund requests"),
+      title: `${tr("Monitoring Fund Requests")} · ${dmy(f.period.from)} – ${dmy(f.period.to)}`, header: head, rows: out })
+      .catch((e) => toast((e as Error).message, "error")).finally(() => setExporting(false));
   };
 
   return (
     <Page title={tr("Monitoring Fund Requests")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("petty cash and budget requests of every outlet")}`}
       actions={<div className="flex gap-2">
         <Button variant="secondary" onClick={() => setSettings(true)}><Settings2 size={15} /> {tr("Approvals & plafon")}</Button>
-        <Button variant="secondary" disabled={!rows.length} onClick={exportCsv}><Download size={15} /> {tr("Export CSV")}</Button>
+        <ExcelIconButton label={tr("Export to Excel")} loading={exporting} disabled={!rows.length} onClick={exportCsv} />
       </div>}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">

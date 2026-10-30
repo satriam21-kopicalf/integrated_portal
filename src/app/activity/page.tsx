@@ -18,6 +18,8 @@ import { AuthUser, ROLE_LABELS, Role } from '@/lib/auth';
 import { formatBytes, formatDate, formatDateTime, formatNumber, toIsoDate } from '@/lib/format';
 import { locale, tr, serverMsg } from '@/lib/i18n';
 
+import ExcelIconButton from '@/components/ExcelIconButton';
+import { downloadXlsx } from '@/lib/xlsx';
 // Activity log (superadmin only; the page guard and the API both enforce it).
 // Updates by itself: the newest entries are fetched every few seconds (and when the
 // tab becomes visible again) and slide in at the top, highlighted.
@@ -380,8 +382,7 @@ export default function ActivityPage() {
                     </button>
                   ))}
                 </div>
-                <button type="button" onClick={() => downloadCsv(entries, dateFrom, dateTo)} disabled={!entries.length} title={tr('Download the activities shown as CSV')}
-                  className={`${buttonSecondary} hidden h-10 sm:inline-flex`}><Download size={16} /> {tr('CSV')}</button>
+                <ExcelIconButton label={tr('Download the activities shown as Excel')} disabled={!entries.length} onClick={() => void downloadCsv(entries, dateFrom, dateTo)} />
               </div>
               <div className="-mx-1 flex gap-1 overflow-x-auto px-1" role="tablist" aria-label={tr('Category')}>
                 {CATEGORIES.map(c => {
@@ -728,20 +729,12 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
   );
 }
 
+/** The activities shown, as an Excel file (2026-10-30; a CSV before). */
 function downloadCsv(entries: Entry[], from: string, to: string) {
-  const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const head = [tr('Time (WIB)'), tr('Username'), tr('Name'), tr('Role'), tr('Category'), tr('Activity'), tr('Result'), tr('Page'), tr('Summary'), 'IP', tr('Device')];
   const rows = entries.map(e => [
     new Date(e.at).toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' }), e.user.username, e.user.fullName, e.user.role, e.category,
     ACTIONS[e.action]?.label ?? e.action, e.status, pageLabel(e.page), e.summary, e.ip, device(e.userAgent),
   ]);
-  const csv = [head, ...rows].map(r => r.map(cell).join(',')).join('\r\n');
-  const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `activity-logs_${from}_to_${to}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  return downloadXlsx({ fileName: `activity-logs ${from} - ${to}`, sheet: 'Activity', title: `Activity logs · ${from} – ${to}`, header: head, rows });
 }

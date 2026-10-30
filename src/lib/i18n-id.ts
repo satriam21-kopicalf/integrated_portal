@@ -3769,4 +3769,5 @@ export const ID: Record<string, string> = {
   "Nothing to change: fill in Qty in the file first.": "Tidak ada perubahan: isi Qty di file terlebih dahulu.",
   "Standard": "Standar",
   "+ Add an approver ({0} users)": "+ Tambah approver ({0} user)",
+  "Download the activities shown as Excel": "Unduh aktivitas yang tampil sebagai Excel",
 };
