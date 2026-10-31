@@ -1639,6 +1639,8 @@ export const ID: Record<string, string> = {
   "Updated {0}": "Diperbarui {0}",
   "Use default": "Pakai default",
   "Use numbers only, e.g. 2 or 1.5": "Gunakan angka saja, mis. 2 atau 1.5",
+  "Not saved yet, retrying automatically": "Belum tersimpan, dicoba lagi otomatis",
+  "Some quantities are not saved yet. Wait until every line is saved, then submit again.": "Masih ada qty yang belum tersimpan. Tunggu sampai semua baris tersimpan, lalu kirim lagi.",
   "Numbers only, at most 2 decimals, e.g. 2 or 1.25": "Angka saja, maksimal 2 angka di belakang koma, mis. 2 atau 1.25",
   "Used by": "Dipakai oleh",
   "Used by lists": "Dipakai daftar",

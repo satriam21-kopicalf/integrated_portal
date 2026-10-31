@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, ErrorState, cx, fmtDate, fmtDay, inputClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
-import { api, errorText } from "@/so/lib/api";
+import { ApiError, api, errorText } from "@/so/lib/api";
 import { type Count, type CountLine, type DateBatch, type DateField, DATE_FIELD_LABEL, ENTRY_SOURCE, STATUS, countTypeLabel, fmtQty, getPosition, lineDateField, parseQty } from "@/so/lib/counts";
 import { wibDay } from "@/so/ui/Filters";
 import { tr } from "@/lib/i18n";
@@ -34,6 +34,23 @@ const factorOf = (l: CountLine) => Number(l.esb_factor || 1) || 1;
 /** A line the premix filled (grams from the WIP): it needs no manual entry (2026-10-16). */
 const fromWip = (l: CountLine) => Number(l.qty_wip ?? 0) > 0;
 const draftOf = (l: CountLine): Draft => ({ qty: l.qty_base === null ? "" : fmtQty(Number(l.qty_base) / factorOf(l)) });
+
+/** Typed quantities not yet confirmed by the server, kept on the phone (2026-10-31): closing the app, a locked screen
+ * or a weak signal no longer loses them; they are restored and sent again when the count is opened. */
+const draftKey = (id: string) => `so-draft:${id}`;
+function readStored(id: string): Record<number, Draft> {
+  try { return JSON.parse(localStorage.getItem(draftKey(id)) || "{}") as Record<number, Draft>; } catch { return {}; }
+}
+function writeStored(id: string, all: Record<number, Draft>) {
+  try {
+    if (Object.keys(all).length) localStorage.setItem(draftKey(id), JSON.stringify(all));
+    else localStorage.removeItem(draftKey(id));
+  } catch { /* private mode / full storage: the server save still runs */ }
+}
+/** a failure worth retrying: no network, timeout, rate limit or server error (a refused value is not retried) */
+const retryable = (e: unknown) => !(e instanceof ApiError) || e.status >= 500 || e.status === 408 || e.status === 429;
+const AUTOSAVE_MS = 1200;
+const RETRY_MS = 5000;
 
 const editableLine = (c: Count, l: CountLine) =>
   c.status === "IN_PROGRESS" || (c.status === "RECOUNT_REQUESTED" && (l.flags.includes("RECOUNT") || l.flags.includes("RECOUNTED")));
@@ -54,6 +71,12 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   /** lines whose (+) was tapped: the date rows show before a second date is saved */
   const [multi, setMulti] = useState<Set<number>>(new Set());
   const pending = useRef<Record<number, Draft>>({});
+  /** lines whose last save failed (network / server): shown as not saved, retried automatically */
+  const [unsaved, setUnsaved] = useState<Set<number>>(new Set());
+  const timers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  const inflight = useRef<Set<number>>(new Set());
+  const countRef = useRef<Count | null>(null);
+  useEffect(() => { countRef.current = count; }, [count]);
   // the phone tab bar steps aside while counting
   useFocusMode();
 
@@ -62,39 +85,96 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
     try {
       const c = await api<Count>(`/api/so/counts/${countId}`);
       setCount(c);
-      setDrafts(Object.fromEntries(c.lines.map((l) => [l.id, draftOf(l)])));
+      countRef.current = c;
+      // quantities typed on this phone that the server never confirmed come back and are sent again
+      const stored = readStored(countId);
+      const restore: Record<number, Draft> = {};
+      for (const l of c.lines) {
+        const d = stored[l.id];
+        if (d && editableLine(c, l) && d.qty !== draftOf(l).qty) restore[l.id] = d;
+      }
+      pending.current = restore;
+      writeStored(countId, restore);
+      setDrafts(Object.fromEntries(c.lines.map((l) => [l.id, restore[l.id] ?? draftOf(l)])));
+      for (const id of Object.keys(restore)) schedule(Number(id), 0);
     } catch (e) {
       setError(errorText(e));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- schedule only reads refs
   }, [countId]);
   useEffect(() => { void load(); }, [load]);
 
   const save = async (line: CountLine) => {
+    clearTimeout(timers.current[line.id]);
     const d = pending.current[line.id] ?? drafts[line.id];
     if (!d) return;
+    if (inflight.current.has(line.id)) { schedule(line.id); return; } // one save per line at a time; the newest wins
     const qty = parseQty(d.qty);
     const bad = qty === undefined;
     setInvalid((s) => { const n = new Set(s); if (bad) n.add(line.id); else n.delete(line.id); return n; });
     if (bad) return;
+    const done = () => {
+      if (pending.current[line.id] === d) { delete pending.current[line.id]; writeStored(countId, pending.current); }
+      setUnsaved((s) => { if (!s.has(line.id)) return s; const n = new Set(s); n.delete(line.id); return n; });
+    };
     // unchanged: nothing to save, except a line marked for recount (the same quantity confirms it, 2026-10-29)
-    if (qty === (draftOf(line).qty === "" ? null : String(Number(draftOf(line).qty))) && !(line.flags.includes("RECOUNT") && qty !== null)) return;
+    if (qty === (draftOf(line).qty === "" ? null : String(Number(draftOf(line).qty))) && !(line.flags.includes("RECOUNT") && qty !== null)) { done(); return; }
+    inflight.current.add(line.id);
     setSaving((s) => new Set(s).add(line.id));
     try {
       const c = await api<Count>(`/api/so/counts/${countId}/lines`, {
         method: "PUT",
         json: { lines: [{ line_id: line.id, qty_unit: qty }] },
       });
-      delete pending.current[line.id];
+      done();
       setCount(c);
+      countRef.current = c;
       // a recount replaces the line: carry the typed values to the new line id
       const replaced = c.lines.find((l) => l.recount_of === line.id);
       if (replaced) setDrafts((ds) => ({ ...ds, [replaced.id]: draftOf(replaced) }));
     } catch (e) {
-      toast(errorText(e), "error");
+      if (retryable(e)) {
+        setUnsaved((s) => new Set(s).add(line.id));
+        schedule(line.id, RETRY_MS);
+      } else {
+        delete pending.current[line.id];
+        writeStored(countId, pending.current);
+        toast(errorText(e), "error");
+      }
     } finally {
+      inflight.current.delete(line.id);
       setSaving((s) => { const n = new Set(s); n.delete(line.id); return n; });
     }
   };
+
+  /** save a line soon (after typing stops), with the newest line object of the count */
+  function schedule(id: number, ms = AUTOSAVE_MS) {
+    clearTimeout(timers.current[id]);
+    timers.current[id] = setTimeout(() => {
+      const line = countRef.current?.lines.find((l) => l.id === id);
+      if (line) void save(line);
+    }, ms);
+  }
+
+  /** send everything still pending at once: the app goes to the background, the screen locks or the page closes */
+  const flush = () => {
+    for (const id of Object.keys(pending.current)) {
+      const line = countRef.current?.lines.find((l) => l.id === Number(id));
+      if (line) void save(line);
+    }
+  };
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === "hidden") flush(); };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", flush);
+    window.addEventListener("online", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", flush);
+      window.removeEventListener("online", flush);
+    };
+  });
+  useEffect(() => { const t = timers.current; return () => Object.values(t).forEach(clearTimeout); }, []);
 
   /** the roasted / expired date of a line (item group / count type / facility default), saved as soon as it is picked */
   const saveDate = async (line: CountLine, value: string | null) => {
@@ -134,10 +214,17 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
     setDrafts((ds) => {
       const next = { ...(ds[id] ?? { qty: "" }), ...patch };
       pending.current[id] = next;
+      writeStored(countId, pending.current);
+      schedule(id);
       return { ...ds, [id]: next };
     });
 
   const submit = async (signature: string | null = null, signedName = "") => {
+    if (Object.keys(pending.current).length || unsaved.size) {
+      flush();
+      toast(tr("Some quantities are not saved yet. Wait until every line is saved, then submit again."), "error");
+      return;
+    }
     setSubmitting(true);
     try {
       const pos = await getPosition();
@@ -284,6 +371,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                       {l.source !== "WIP_EXPLODED" && Number(l.qty_wip ?? 0) > 0 && (
                         <p className="mt-0.5 text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                       )}
+                      {unsaved.has(l.id) && <p className="mt-0.5 text-[11px] text-amber-700">{tr("Not saved yet, retrying automatically")}</p>}
                       {bad && <p className="mt-0.5 text-[11px] text-red-600">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
                     </div>
                     {l.source === "WIP_EXPLODED" ? (
