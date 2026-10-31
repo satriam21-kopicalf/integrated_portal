@@ -11,6 +11,7 @@ import { tr } from "@/lib/i18n";
 
 const SOURCES = [
   { href: "/monitoring/pic-check-in", icon: MapPinCheck, get label() { return tr("PIC Check In"); } },
+  { href: "/monitoring/surveyor-check-in", icon: MapPinCheck, get label() { return tr("Surveyor Check In"); } },
   { href: "/monitoring/product", icon: Package, label: "Monitoring Product" },
   { href: "/monitoring/outlet", icon: Store, label: "Monitoring Outlet" },
 ];

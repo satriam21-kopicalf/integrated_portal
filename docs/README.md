@@ -62,6 +62,11 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 - Export **Sales Recapitulation per Menu** (18 Okt 2026): satu sheet saja, header di baris 1 (siap pivot/filter). Satu baris per tanggal × cabang × channel × metode bayar × menu (paket tetap baris sendiri, *Item Type* = Package); kolom: Sales Date, Day, Branch, City, Channel, Channel Group, Payment Method, Menu Category (+Detail), Menu, Item Type, Bills, Qty, Subtotal, Discount, Tax, Total, Bill Discount, Total After Bill Discount, Nett Sales. Nominal = jumlah report Detail (Sep 2026 semua cabang: 414.722 baris, 33,8 MB, subtotal sama dengan Daily Sales Recapitulation). Maksimal 62 hari ke Excel, 31 hari ke Google Sheets (backend `app/menu_report.py`).
 - Tab tipe: Sales, Void & Cancelled, Other Cost, All. Pencarian nomor sales/bill/cabang, filter cabang (**bisa beberapa**, chip per cabang), export Excel (detail / daily recap) untuk cabang terpilih.
 
+### Surveyor Check In (31 Okt 2026)
+
+- **Form → Surveyor Check In** (`/forms/surveyor-check-in`, `form.surveyor-check-in`) dan **Monitoring → Surveyor Check In** (`/monitoring/surveyor-check-in`, `mon.surveyor-check-in`, default hanya Super Admin): layar dan aturan sama dengan PIC Check In (selfie dengan wajah, GPS vs radius outlet, sinyal lokasi palsu, review valid / tidak valid), komponen bersama `so/features/checkin/CheckInForm.tsx` / `CheckInMonitor.tsx` (`kind` pic | surveyor). Surveyor boleh check in di **semua cabang Kopi Calf**.
+- Akses diberikan **per akun** (bukan per role) ke 19 akun surveyor di `docs/User_Accounts_Inventory.xlsx` (migrasi backend 039); akun ber-role User membuka form ini di Operations.
+
 ### PIC Check In (19 Okt 2026)
 
 - **Form → PIC Check In** (`/forms/pic-check-in`, halaman akses `form.pic-check-in`, dibuka untuk role User oleh migrasi backend 019): nama PIC dari akun; pilih outlet bila PIC punya lebih dari satu cabang (Super Admin / Kontrol Biaya: semua cabang); lokasi GPS segar (`locate()`) dibandingkan dengan koordinat outlet di Lokasi Outlet (aturan radius sama dengan SO: jarak − min(akurasi, 100 m) > radius); foto wajah **kamera depan saja** (`so/features/checkin/SelfieCamera.tsx`, distempel PIC, outlet, tanggal & jam WIB, koordinat); wajah diperiksa **di server** (OpenCV, `app/face.py`) saat foto diambil dan lagi saat dikirim — tanpa wajah ditolak. Waktu kunjungan = waktu server saat dikirim (jam HP ikut disimpan).
@@ -74,11 +79,11 @@ Semua halaman selain `/login` wajib login. Role **user** hanya membuka **Overvie
 - **Pantauan Cost Control**: badge `so/features/count/LocationBadges.tsx` (Di luar radius, Akurasi GPS rendah, Outlet belum punya koordinat, jarak ±akurasi) di Monitor (plus filter *Lokasi* dan jumlah fasilitas tanpa koordinat) dan Review; detail Review menampilkan lokasi saat mulai & kirim (jarak, ±akurasi, jam, tautan Google Maps) dan lokasi outlet.
 - **Lokasi Outlet** (`/cost-control/locations`, halaman akses `cc.locations`): koordinat & radius setiap outlet/hub — tempel dari Google Maps (angka atau link), pakai posisi awal SO terakhir (setelah dicek di peta) atau posisi perangkat di lokasi; radius standar 100 m. Tersimpan di core kopicalf (diaudit).
 
-### Waste (kerangka, 18 Okt 2026)
+### Waste (31 Okt 2026)
 
-- Outlet menginput waste cabangnya (menu **Waste** di bawah Stock Opname, `/waste`, halaman akses `waste`); Cost Control memantau dan mereview (pop-up Cost Control → **Waste**: *Monitor waste* `/cost-control/waste/monitor` = `cc.waste-monitor`, *Review waste* `/cost-control/waste/reviews` = `cc.waste-review`).
-- Saat ini baru **RBAC + kerangka**: ketiga halaman ada di katalog (`src/lib/pages.ts` = backend `app/access.py`) sehingga bisa diatur per role / per user di User Accounts → *Role & halaman*; migrasi backend 017 memberi role `cost_control` ketiganya, role `user` belum (dicentang saat input siap). API `/api/waste/entries|monitor|reviews` dijaga halaman masing-masing (role user hanya cabangnya); layar menampilkan alur yang direncanakan (`so/features/waste/WasteSkeleton.tsx`).
-- Sidebar: grup *Platforms* (Roastery, CK, WMS, Operational, Finance, HRMS) dihapus (belum dibutuhkan).
+- **Input** (`/waste`, halaman `waste`; role User, Outlet / Hub, Cost Control): pilih cabang dan hari (hari ini / kemarin), lalu per item: jenis **Waste**, **Usage Management** (daftar `docs/Daily SO & Waste.xlsx`, tabel backend `waste_item`) atau **Premix** (resep PREMIX / WIP aktif kalkulator premix `kc_recipe`, dalam gram), jumlah, **kategori waste wajib** (sheet *Category Waste*, tabel `waste_category`), catatan / alasan, dan **foto kamera wajib** (distempel waktu, cabang, item; `so/features/count/CameraCapture.tsx`). Setiap item langsung tersimpan; penginput bisa menghapus selama belum direview (`so/features/waste/WasteForm.tsx`). Sama di Operations.
+- **Monitor waste** (`/cost-control/waste/monitor`, `cc.waste-monitor`) dan **Review waste** (`/cost-control/waste/reviews`, `cc.waste-review`): filter periode, cabang, jenis, kategori, status; ringkasan; tampilan entri (foto, catatan, penginput, posisi), per item, per cabang, per kategori; ekspor CSV; review = setujui / tolak (satu atau banyak sekaligus, dengan catatan) (`so/features/waste/WasteMonitor.tsx`).
+- Backend: `app/waste.py`, `app/routes/waste.py`, migrasi 040.
 
 ### Form & Monitoring (kerangka, 18 Okt 2026)
 

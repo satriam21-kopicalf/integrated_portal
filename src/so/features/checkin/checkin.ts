@@ -34,6 +34,14 @@ export async function call<T>(path: string, init?: RequestInit & { json?: unknow
 
 export const photoUrl = (id: string) => `/api/pic-check-in/${id}/photo`;
 
+/** PIC Check In or Surveyor Check In (2026-10-31): the same screens, their own endpoints and labels ("PIC" reads
+ * "Surveyor"). One kind per page, set by the page component before it renders. */
+export type Kind = "pic" | "surveyor";
+let currentKind: Kind = "pic";
+export const setKind = (k: Kind) => { currentKind = k; };
+export const kindSlug = () => (currentKind === "surveyor" ? "surveyor-check-in" : "pic-check-in");
+export const swapKind = (s: string) => (currentKind === "surveyor" ? s.replace(/PICs/g, "Surveyors").replace(/PIC/g, "Surveyor") : s);
+
 export function distanceM(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const r = 6371000, rad = Math.PI / 180;
   const dLat = (lat2 - lat1) * rad, dLng = (lng2 - lng1) * rad;

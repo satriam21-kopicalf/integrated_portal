@@ -8,7 +8,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { ChevronRight, ClipboardCheck, ClipboardPen, LayoutDashboard, MapPinCheck, Menu, Package, Receipt, Store, Wallet, Wrench, X, type LucideIcon } from 'lucide-react';
+import { ChevronRight, ClipboardCheck, ClipboardPen, LayoutDashboard, MapPinCheck, Menu, Package, Receipt, Store, Wallet, Wrench, X, type LucideIcon, UserRoundCheck } from 'lucide-react';
 import { canAccess, useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { tr } from '@/lib/i18n';
@@ -26,6 +26,7 @@ export function useFocusMode(on = true) {
 type FormLink = { href: string; key: string; icon: LucideIcon; label: () => string; hint: () => string };
 const FORM_LINKS: FormLink[] = [
   { href: '/forms/pic-check-in', key: 'form.pic-check-in', icon: MapPinCheck, label: () => tr('PIC Check In'), hint: () => tr('Check in at the outlet you visit') },
+  { href: '/forms/surveyor-check-in', key: 'form.surveyor-check-in', icon: UserRoundCheck, label: () => tr('Surveyor Check In'), hint: () => tr('Surveyor visit to the outlet') },
   { href: '/forms/product', key: 'form.product', icon: Package, label: () => 'Product', hint: () => tr('Fill in the product checklist') },
   { href: '/forms/outlet', key: 'form.outlet', icon: Store, label: () => 'Outlet', hint: () => tr('Fill in the outlet checklist') },
   { href: '/forms/damaged-equipment', key: 'form.damaged-equipment', icon: Wrench, label: () => tr('Damaged Equipment'), hint: () => tr('Repair & procurement requests') },

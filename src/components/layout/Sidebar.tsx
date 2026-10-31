@@ -6,8 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, Wallet, X,
-} from 'lucide-react';
+  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, Wallet, X, UserRoundCheck } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
 import { BRAND_LINE } from '@/components/BrandWatermark';
@@ -55,6 +54,7 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
 const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Visit'); }, get hint() { return tr('Check in at the outlet you visit'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
+    { get name() { return tr('Surveyor Check In'); }, href: '/forms/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Surveyor visit to the outlet'); } },
   ] },
   { get title() { return tr('Product & outlet'); }, get hint() { return tr('Condition of the products and the outlet'); }, icon: Store, items: [
     { get name() { return 'Product'; }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
@@ -75,6 +75,7 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
   ] },
   { get title() { return tr('Visit'); }, get hint() { return tr('Who checked in where and when'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/monitoring/pic-check-in', icon: MapPinCheck, get description() { return tr('Check-ins of every PIC'); } },
+    { get name() { return tr('Surveyor Check In'); }, href: '/monitoring/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Check-ins of every surveyor'); } },
   ] },
   { get title() { return tr('Product & outlet'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
     { get name() { return tr('Monitoring Product'); }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },

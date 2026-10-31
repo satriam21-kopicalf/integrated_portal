@@ -6,8 +6,8 @@ import { tr } from './i18n';
 
 export type PageKey =
   | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
-  | 'form.pic-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan'
-  | 'mon.overview' | 'mon.pic-check-in' | 'mon.outlet' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
+  | 'form.pic-check-in' | 'form.surveyor-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan'
+  | 'mon.overview' | 'mon.pic-check-in' | 'mon.surveyor-check-in' | 'mon.outlet' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
   | 'mon.pengajuan'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
@@ -23,9 +23,10 @@ export const PAGES: PageInfo[] = [
   { key: 'overview', href: '/overview', get label() { return tr('Dashboard'); }, get group() { return tr('Main menu'); } },
   { key: 'sales', href: '/sales', get label() { return tr('Sales Transactions'); }, get group() { return tr('Main menu'); } },
   { key: 'stock-opname', href: '/stock-opname', get label() { return tr('Stock Opname (count)'); }, get group() { return tr('Main menu'); } },
-  { key: 'waste', href: '/waste', get label() { return tr('Waste (input)'); }, get group() { return tr('Main menu'); }, state: 'building' },
+  { key: 'waste', href: '/waste', get label() { return tr('Waste (input)'); }, get group() { return tr('Main menu'); } },
   { key: 'guide', href: '/guide', get label() { return tr('Guide'); }, get group() { return tr('Main menu'); }, state: 'header' },
   { key: 'form.pic-check-in', href: '/forms/pic-check-in', get label() { return tr('PIC Check In (form)'); }, get group() { return tr('Form'); } },
+  { key: 'form.surveyor-check-in', href: '/forms/surveyor-check-in', get label() { return tr('Surveyor Check In (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.product', href: '/forms/product', get label() { return tr('Monitoring Product (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.outlet', href: '/forms/outlet', get label() { return tr('Monitoring Outlet (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Damaged Equipment (form)'); }, get group() { return tr('Form'); } },
@@ -41,12 +42,13 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.types', href: '/cost-control/types', get label() { return tr('Count Types'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.premix', href: '/cost-control/premix', get label() { return tr('Premix calculator'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.locations', href: '/cost-control/locations', get label() { return tr('Outlet locations'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
-  { key: 'cc.waste-monitor', href: '/cost-control/waste/monitor', get label() { return tr('Waste monitor'); }, get group() { return tr('Cost Control · Waste'); }, state: 'building' },
-  { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste review'); }, get group() { return tr('Cost Control · Waste'); }, state: 'building' },
+  { key: 'cc.waste-monitor', href: '/cost-control/waste/monitor', get label() { return tr('Waste monitor'); }, get group() { return tr('Cost Control · Waste'); } },
+  { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste review'); }, get group() { return tr('Cost Control · Waste'); } },
   { key: 'cc.ratio', href: '/cost-control/ratio', get label() { return tr('Outlet ratio'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.cogs', href: '/cost-control', get label() { return tr('COGS & usage'); }, get group() { return tr('Cost Control · Analytics'); }, state: 'soon' },
   { key: 'mon.overview', href: '/monitoring/overview', get label() { return tr('Monitoring overview'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.pic-check-in', href: '/monitoring/pic-check-in', get label() { return tr('PIC Check In'); }, get group() { return tr('Monitoring'); } },
+  { key: 'mon.surveyor-check-in', href: '/monitoring/surveyor-check-in', get label() { return tr('Surveyor Check In'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.product', href: '/monitoring/product', get label() { return tr('Monitoring Product'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return tr('Monitoring Outlet'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Damaged Equipment'); }, get group() { return tr('Monitoring'); } },
