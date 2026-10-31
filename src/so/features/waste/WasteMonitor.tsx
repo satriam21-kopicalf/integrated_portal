@@ -4,6 +4,7 @@
 // app/waste.py): the waste every branch entered in a period, filtered by branch, type, category and status; totals per
 // item, branch and category; each entry with its photo, note and author. In review mode the entries waiting for review
 // are ticked and approved or rejected (with a note), one by one or many at once. Export: CSV of the filtered entries.
+// Daily report: the branches that reported their waste each day; Usage Management: the daily lists (WasteDaily.tsx).
 
 import { CheckCircle2, Download, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -17,9 +18,10 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
+import { DailyReport, UsageReport } from "./WasteDaily";
 import { type Entry, type MonitorData, type Scope, type Status, SCOPES, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
 
-type View = "entries" | "items" | "branches" | "categories";
+type View = "entries" | "items" | "branches" | "categories" | "daily" | "usage";
 type BranchOpt = { branch_code: string; branch_name: string };
 
 export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
@@ -122,7 +124,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             </select>
             <select className={inputClass} value={scope} onChange={(e) => setScope(e.target.value as Scope | "")} aria-label={tr("Type")}>
               <option value="">{tr("All types")}</option>
-              {SCOPES.map((s) => <option key={s} value={s}>{scopeLabel(s)}</option>)}
+              {SCOPES.map((s) => <option key={s} value={s}>{scopeLabel(s)}{s === "usage" ? ` (${tr("before the daily list")})` : ""}</option>)}
             </select>
             <select className={inputClass} value={category} onChange={(e) => setCategory(e.target.value)} aria-label={tr("Waste category")}>
               <option value="">{tr("All categories")}</option>
@@ -136,7 +138,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Segmented label={tr("View")} value={view} onChange={setView} options={[
               { value: "entries", label: tr("Entries") }, { value: "items", label: tr("Per item") },
-              { value: "branches", label: tr("Per branch") }, { value: "categories", label: tr("Per category") }]} />
+              { value: "branches", label: tr("Per branch") }, { value: "categories", label: tr("Per category") },
+              { value: "daily", label: tr("Daily report") }, { value: "usage", label: tr("Usage Management") }]} />
             {view === "entries" && <input className={cx(inputClass, "sm:max-w-xs")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search item, branch or person")} />}
           </div>
           {review && view === "entries" && waiting.length > 0 && (
@@ -154,7 +157,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         </div>
       }
         footer={res && view === "entries" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 2,000 of the period")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
-        {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <SkeletonRows cols={6} /> : view === "entries" ? (
+        {view === "daily" ? <DailyReport period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
+          : view === "usage" ? <UsageReport period={period} branch={branch} />
+          : error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <SkeletonRows cols={6} /> : view === "entries" ? (
           rows.length === 0 ? (
             <Empty icon={<Trash2 size={28} />} title={res.data.length ? tr("Nothing matches the search or filters") : tr("No waste in this period")}>
               {!res.data.length && tr("Waste appears here as soon as the branches enter it from Waste (input).")}

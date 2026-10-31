@@ -5,8 +5,10 @@
 // recipes of the premix calculator, in grams), the quantity in its unit, a waste category, a note / reason and a camera
 // photo as evidence (stamped with the time, the branch and the item). An item is saved at once and listed under the
 // form; its author may delete it while Cost Control has not reviewed it.
+// Every day (migration 041): the branch reports its waste, the items or "no waste today", and fills the Usage
+// Management list, the quantity of every usage item (saved again to correct it). Usage is not a single waste entry.
 
-import { Camera, CheckCircle2, Plus, Search, Trash2, X } from "lucide-react";
+import { Camera, CheckCircle2, ClipboardList, Plus, Save, Search, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
@@ -17,7 +19,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import { TZ, wibDateTime } from "@/so/lib/wib";
-import { type Entry, type FormData, type Scope, type WasteItem, SCOPES, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
+import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
 
 const BLANK = { item: null as WasteItem | null, qty: "", category: "", note: "" };
 
@@ -36,6 +38,11 @@ export default function WasteForm() {
   const [saving, setSaving] = useState(false);
   const [remove, setRemove] = useState<Entry | null>(null);
   const [removing, setRemoving] = useState(false);
+  const [usage, setUsage] = useState<Record<string, string>>({});
+  const [usageDirty, setUsageDirty] = useState(false);
+  const [usageSaving, setUsageSaving] = useState(false);
+  const [usageSearch, setUsageSearch] = useState("");
+  const [flagging, setFlagging] = useState(false);
 
   const load = useCallback(async (b: string, d: string) => {
     setError(null);
@@ -55,6 +62,8 @@ export default function WasteForm() {
       }
       setDay(dayIso);
       setData(out);
+      setUsage(Object.fromEntries(Object.entries(out.usage ?? {}).map(([k, v]) => [k, String(v)])));
+      setUsageDirty(false);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -93,6 +102,44 @@ export default function WasteForm() {
       toast((e as Error).message, "error");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const usageItems = useMemo(() => {
+    const all = data?.items.usage ?? [];
+    const q = usageSearch.trim().toLowerCase();
+    return q ? all.filter((i) => i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)) : all;
+  }, [data, usageSearch]);
+  const usageFilled = (data?.items.usage ?? []).filter((i) => (usage[i.code] ?? "").trim() !== "").length;
+
+  const saveUsage = async () => {
+    if (!b) return;
+    setUsageSaving(true);
+    try {
+      const lines = Object.fromEntries((data?.items.usage ?? []).map((i) => {
+        const v = (usage[i.code] ?? "").trim().replace(",", ".");
+        return [i.code, v === "" ? null : Number(v)];
+      }));
+      await call("/api/waste/usage", { method: "PUT", json: { branchCode: b.code, businessDate: day, lines } });
+      toast(tr("Usage Management saved"));
+      await load(branch, day);
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setUsageSaving(false);
+    }
+  };
+
+  const flagNoWaste = async (on: boolean) => {
+    if (!b) return;
+    setFlagging(true);
+    try {
+      await call("/api/waste/no-waste", { method: "PUT", json: { branchCode: b.code, businessDate: day, noWaste: on } });
+      await load(branch, day);
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setFlagging(false);
     }
   };
 
@@ -138,10 +185,23 @@ export default function WasteForm() {
                 </select>
                 <Segmented label={tr("Day")} value={day} onChange={pickDay}
                   options={[{ value: data.days.to, label: `${tr("Today")} · ${dayName(data.days.to)}` }, { value: data.days.from, label: `${tr("Yesterday")} · ${dayName(data.days.from)}` }]} />
+                {b && (data.data.length > 0 ? (
+                  <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-800"><CheckCircle2 size={14} />{tr("Waste reported for this day: {0} items", data.data.length)}</p>
+                ) : data.noWaste ? (
+                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                    <CheckCircle2 size={14} /><span className="flex-1">{tr("Reported: no waste this day ({0}, {1})", data.noWaste.by, wibDateTime(data.noWaste.at))}</span>
+                    <button type="button" className="font-medium underline" disabled={flagging} onClick={() => void flagNoWaste(false)}>{tr("Undo")}</button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800 sm:flex-row sm:items-center">
+                    <span className="flex-1">{tr("Waste is reported every day. Enter the wasted items below, or confirm there was none.")}</span>
+                    <Button size="sm" variant="secondary" loading={flagging} onClick={() => void flagNoWaste(true)}><CheckCircle2 size={14} />{tr("No waste today")}</Button>
+                  </div>
+                ))}
               </FormCard>
 
               <FormCard n={2} title={tr("Wasted item")} hint={tr("Every item needs its category and a photo as evidence; the note is optional")}>
-                <Segmented label={tr("Type")} value={scope} onChange={pickScope} options={SCOPES.map((s) => ({ value: s, label: scopeLabel(s) }))} />
+                <Segmented label={tr("Type")} value={scope} onChange={pickScope} options={ENTRY_SCOPES.map((s) => ({ value: s, label: scopeLabel(s) }))} />
                 {line.item ? (
                   <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5">
                     <div className="min-w-0 flex-1">
@@ -200,6 +260,32 @@ export default function WasteForm() {
                   <p className="text-xs text-slate-500">{missing.length ? tr("Still missing: {0}", missing.join(", ")) : tr("Ready to save")}</p>
                   <Button onClick={() => void save()} loading={saving} disabled={missing.length > 0}><Plus size={16} />{tr("Save item")}</Button>
                 </div>
+              </FormCard>
+
+              <FormCard n={3} title={tr("Usage Management")} hint={tr("Fill the quantity of every usage item of the day; save again to correct it")}>
+                {!b ? <p className="text-xs text-slate-500">{tr("Choose the branch first")}</p> : (
+                  <>
+                    <div className="relative">
+                      <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input className={cx(inputClass, "pl-9")} value={usageSearch} onChange={(e) => setUsageSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
+                    </div>
+                    <ul className="max-h-[420px] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
+                      {usageItems.map((i) => (
+                        <li key={i.code} className="flex items-center gap-3 px-3 py-2">
+                          <span className="min-w-0 flex-1"><span className="block truncate text-sm text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400">{i.code}</span></span>
+                          <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={usage[i.code] ?? ""}
+                            onChange={(e) => { setUsage({ ...usage, [i.code]: e.target.value.replace(/[^0-9.,]/g, "") }); setUsageDirty(true); }} />
+                          <span className="w-24 flex-shrink-0 truncate text-xs text-slate-500">{i.unit}</span>
+                        </li>
+                      ))}
+                      {!usageItems.length && <li className="px-3 py-6 text-center text-xs text-slate-500">{tr("No item found")}</li>}
+                    </ul>
+                    <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="flex items-center gap-1.5 text-xs text-slate-500"><ClipboardList size={14} />{tr("{0} of {1} items filled", usageFilled, data.items.usage.length)}{usageDirty ? ` · ${tr("not saved yet")}` : ""}</p>
+                      <Button onClick={() => void saveUsage()} loading={usageSaving} disabled={!usageDirty}><Save size={16} />{tr("Save Usage Management")}</Button>
+                    </div>
+                  </>
+                )}
               </FormCard>
             </div>
 
