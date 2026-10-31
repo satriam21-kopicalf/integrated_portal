@@ -3860,6 +3860,8 @@ export const ID: Record<string, string> = {
   "Days with waste": "Hari dengan waste",
   "Last entry": "Input terakhir",
   // Waste every day, Usage Management list (2026-10-31)
+  "Product name": "Nama produk",
+  "Product code": "Kode produk",
   "Daily report": "Laporan harian",
   "before the daily list": "sebelum daftar harian",
   "No day of this period has started yet": "Belum ada hari yang berjalan pada periode ini",

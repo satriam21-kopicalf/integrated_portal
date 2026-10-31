@@ -269,17 +269,29 @@ export default function WasteForm() {
                       <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input className={cx(inputClass, "pl-9")} value={usageSearch} onChange={(e) => setUsageSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
                     </div>
-                    <ul className="max-h-[420px] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
-                      {usageItems.map((i) => (
-                        <li key={i.code} className="flex items-center gap-3 px-3 py-2">
-                          <span className="min-w-0 flex-1"><span className="block truncate text-sm text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400">{i.code}</span></span>
-                          <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={usage[i.code] ?? ""}
-                            onChange={(e) => { setUsage({ ...usage, [i.code]: e.target.value.replace(/[^0-9.,]/g, "") }); setUsageDirty(true); }} />
-                          <span className="w-24 flex-shrink-0 truncate text-xs text-slate-500">{i.unit}</span>
-                        </li>
-                      ))}
-                      {!usageItems.length && <li className="px-3 py-6 text-center text-xs text-slate-500">{tr("No item found")}</li>}
-                    </ul>
+                    <div className="max-h-[460px] overflow-auto rounded-xl border border-slate-200">
+                      <table className="w-full text-sm">
+                        <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                          <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{tr("Product name")}</th>
+                            <th className="hidden px-2 py-2 sm:table-cell">{tr("Product code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {usageItems.map((i) => (
+                            <tr key={i.code} className={(usage[i.code] ?? "").trim() ? "bg-blue-50/40" : undefined}>
+                              <td className="px-2 py-1.5 text-right text-xs tabular-nums text-slate-400">{data.items.usage.indexOf(i) + 1}</td>
+                              <td className="px-2 py-1.5"><span className="block text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400 sm:hidden">{i.code}</span></td>
+                              <td className="hidden px-2 py-1.5 text-xs text-slate-500 sm:table-cell">{i.code}</td>
+                              <td className="px-2 py-1.5 text-xs text-slate-500">{i.unit}</td>
+                              <td className="px-2 py-1.5">
+                                <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={usage[i.code] ?? ""}
+                                  onChange={(e) => { setUsage({ ...usage, [i.code]: e.target.value.replace(/[^0-9.,]/g, "") }); setUsageDirty(true); }} />
+                              </td>
+                            </tr>
+                          ))}
+                          {!usageItems.length && <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-slate-500">{tr("No item found")}</td></tr>}
+                        </tbody>
+                      </table>
+                    </div>
                     <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
                       <p className="flex items-center gap-1.5 text-xs text-slate-500"><ClipboardList size={14} />{tr("{0} of {1} items filled", usageFilled, data.items.usage.length)}{usageDirty ? ` · ${tr("not saved yet")}` : ""}</p>
                       <Button onClick={() => void saveUsage()} loading={usageSaving} disabled={!usageDirty}><Save size={16} />{tr("Save Usage Management")}</Button>
