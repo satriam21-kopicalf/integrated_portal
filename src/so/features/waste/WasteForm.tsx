@@ -140,7 +140,7 @@ export default function WasteForm() {
                   options={[{ value: data.days.to, label: `${tr("Today")} · ${dayName(data.days.to)}` }, { value: data.days.from, label: `${tr("Yesterday")} · ${dayName(data.days.from)}` }]} />
               </FormCard>
 
-              <FormCard n={2} title={tr("Wasted item")} hint={tr("Every item needs its category, a note and a photo as evidence")}>
+              <FormCard n={2} title={tr("Wasted item")} hint={tr("Every item needs its category and a photo as evidence; the note is optional")}>
                 <Segmented label={tr("Type")} value={scope} onChange={pickScope} options={SCOPES.map((s) => ({ value: s, label: scopeLabel(s) }))} />
                 {line.item ? (
                   <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5">

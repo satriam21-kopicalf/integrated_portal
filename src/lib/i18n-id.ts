@@ -3821,7 +3821,7 @@ export const ID: Record<string, string> = {
   "Branch and day": "Cabang dan hari",
   "Waste is entered for today or, late, for yesterday": "Waste diinput untuk hari ini, atau kemarin bila terlambat",
   "Wasted item": "Item waste",
-  "Every item needs its category, a note and a photo as evidence": "Setiap item wajib kategori, catatan dan foto sebagai evidence",
+  "Every item needs its category and a photo as evidence; the note is optional": "Setiap item wajib kategori dan foto sebagai evidence; catatan opsional",
   "Change the item": "Ganti item",
   "Search the item name or code": "Cari nama atau kode item",
   "Waste category": "Kategori waste",
