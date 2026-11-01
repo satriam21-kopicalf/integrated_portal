@@ -3908,4 +3908,6 @@ export const ID: Record<string, string> = {
   "Quantity per SKU, without rejected entries": "Qty per SKU, tanpa entri yang ditolak",
   "Per branch and day: waste entries, no waste or not reported": "Per cabang dan hari: entri waste, tidak ada waste atau belum lapor",
   "The daily usage lists of the branches": "Daftar usage harian cabang",
+  "Premix name": "Nama premix",
+  "Premix ingredients wasted (calculated)": "Bahan premix yang terbuang (terkalkulasi)",
 };

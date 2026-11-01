@@ -5,11 +5,15 @@
 // recipes of the premix calculator, in grams), the quantity in its unit, a waste category, a note / reason and a camera
 // photo as evidence (stamped with the time, the branch and the item). An item is saved at once and listed under the
 // form; its author may delete it while Cost Control has not reviewed it.
+// The list follows the Waste sheet of docs/Daily SO & Waste.xlsx: No / Product name / Product code / Unit / Qty; a
+// filled SKU opens its category, note, production and expired date and photo. Premix is listed and calculated as the
+// WIP of the stock opname: the recipes of the branch's location, entered in their count unit (grams, portions, pieces,
+// another unit can be picked), the grams of every ingredient follow from the recipe (migration 044).
 // Every day (migration 041): the branch reports its waste, the items or "no waste today", and fills the Usage
 // Management list, the quantity of every usage item (saved again to correct it). Usage is not a single waste entry.
 
-import { Camera, CheckCircle2, ClipboardList, Plus, Save, Search, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Camera, CheckCircle2, ClipboardList, FlaskConical, Plus, Save, Search, Trash2 } from "lucide-react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { FormCard, Segmented } from "@/so/ui/Simple";
@@ -19,10 +23,12 @@ import { call } from "@/so/features/checkin/checkin";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import { TZ, wibDateTime } from "@/so/lib/wib";
-import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
+import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, explodePremix, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone, unitText } from "./waste";
 
-type Row = { qty: string; category: string; note: string; made: string; expires: string; photo: Shot | null };
-const EMPTY: Row = { qty: "", category: "", note: "", made: "", expires: "", photo: null };
+/** uom: the unit a premix is entered in ("" = its count unit) */
+type Row = { qty: string; uom: string; category: string; note: string; made: string; expires: string; photo: Shot | null };
+const EMPTY: Row = { qty: "", uom: "", category: "", note: "", made: "", expires: "", photo: null };
+const uomOf = (i: WasteItem, r: Row) => r.uom || i.unit;
 const qtyOf = (r: Row) => Number(r.qty.replace(",", "."));
 const isFilled = (r: Row) => qtyOf(r) > 0;
 const lacks = (r: Row) => [!r.category && tr("the category"), !r.photo && tr("the photo"),
@@ -86,6 +92,20 @@ export default function WasteForm() {
   const filled = useMemo(() => ENTRY_SCOPES.flatMap((s) => (data?.items[s] ?? [])
     .filter((i) => isFilled(rows[i.code] ?? EMPTY)).map((i) => ({ scope: s, item: i, row: rows[i.code] }))), [data, rows]);
   const incomplete = filled.filter((f) => lacks(f.row).length).length;
+  // premix: grams per ingredient of everything filled (as "filled into the items" of the stock opname WIP)
+  const premixTotals = useMemo(() => {
+    const out = new Map<string, { name: string; grams: number; stock: boolean }>();
+    for (const f of filled) {
+      if (f.scope !== "premix") continue;
+      for (const c of explodePremix(f.item, uomOf(f.item, f.row), qtyOf(f.row)).ingredients) {
+        const k = c.code ?? `n:${c.name}`;
+        const cur = out.get(k) ?? { name: c.name, grams: 0, stock: c.isStock };
+        cur.grams += c.grams;
+        out.set(k, cur);
+      }
+    }
+    return [...out.values()].sort((a, b) => Number(b.stock) - Number(a.stock) || a.name.localeCompare(b.name));
+  }, [filled]);
   const setRow = (code: string, patch: Partial<Row>) => setRows((all) => ({ ...all, [code]: { ...(all[code] ?? EMPTY), ...patch } }));
 
   const pickBranch = (code: string) => { setBranch(code); setRows({}); void load(code, day); };
@@ -101,6 +121,7 @@ export default function WasteForm() {
       try {
         await call<Entry>("/api/waste/entries", { method: "POST", json: {
           branchCode: b.code, businessDate: day, scope: s, itemCode: item.code, qty: qtyOf(row), category: row.category,
+          uom: s === "premix" ? uomOf(item, row) : undefined,
           note: row.note.trim() || null, productionDate: row.made || null, expiredDate: row.expires || null,
           photo: row.photo!.image, takenAt: row.photo!.taken_at, latitude: row.photo!.lat, longitude: row.photo!.lng } });
         ok += 1;
@@ -219,52 +240,102 @@ export default function WasteForm() {
                 <label className="flex items-center gap-2 text-xs text-slate-600">
                   <input type="checkbox" checked={onlyFilled} onChange={(e) => setOnlyFilled(e.target.checked)} />{tr("Show filled SKUs only")}
                 </label>
-                <ul className="max-h-[560px] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
-                  {items.slice(0, 250).map((i) => {
-                    const r = rows[i.code] ?? EMPTY;
-                    const on = isFilled(r);
-                    const lack = on ? lacks(r) : [];
-                    return (
-                      <li key={i.code} className={cx("px-3 py-2", on && (lack.length ? "bg-amber-50/60" : "bg-blue-50/40"))}>
-                        <div className="flex items-center gap-3">
-                          <span className="min-w-0 flex-1"><span className="block truncate text-sm text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400">{i.code}</span></span>
-                          <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={r.qty}
-                            onChange={(e) => setRow(i.code, { qty: e.target.value.replace(/[^0-9.,]/g, "") })} />
-                          <span className="w-16 flex-shrink-0 truncate text-xs text-slate-500">{i.unit}</span>
-                        </div>
-                        {on && (
-                          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                            <select className={cx(inputClass, "h-9")} value={r.category} onChange={(e) => setRow(i.code, { category: e.target.value })} aria-label={tr("Waste category")}>
-                              <option value="">{tr("Choose the category")}</option>
-                              {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                            <input className={cx(inputClass, "h-9")} value={r.note} maxLength={500} onChange={(e) => setRow(i.code, { note: e.target.value })} placeholder={tr("Note / reason (optional)")} />
-                            <label className="text-[11px] text-slate-500">{tr("Production date")}
-                              <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.made} max={day} onChange={(e) => setRow(i.code, { made: e.target.value })} />
-                            </label>
-                            <label className="text-[11px] text-slate-500">{tr("Expired date")}
-                              <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.expires} min={r.made || undefined} onChange={(e) => setRow(i.code, { expires: e.target.value })} />
-                            </label>
-                            <div className="flex items-center gap-2 sm:col-span-2">
-                              {r.photo ? (
-                                <>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={r.photo.image} alt={tr("Photo evidence")} className="h-14 w-14 rounded-lg object-cover ring-1 ring-slate-200" />
-                                  <Button variant="secondary" size="sm" onClick={() => setShooting(i)}><Camera size={14} />{tr("Retake")}</Button>
-                                </>
-                              ) : (
-                                <Button variant="secondary" size="sm" onClick={() => setShooting(i)} disabled={!b}><Camera size={14} />{tr("Take photo")}</Button>
-                              )}
-                              {lack.length > 0 && <span className="text-[11px] text-amber-700">{tr("Still missing: {0}", lack.join(", "))}</span>}
-                            </div>
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                  {!items.length && <li className="px-3 py-6 text-center text-xs text-slate-500">{tr("No item found")}</li>}
-                  {items.length > 250 && <li className="px-3 py-2 text-center text-[11px] text-slate-400">{tr("Search to see the other {0} SKUs", items.length - 250)}</li>}
-                </ul>
+                <div className="max-h-[560px] overflow-auto rounded-xl border border-slate-200">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix name") : tr("Product name")}</th>
+                        <th className="hidden px-2 py-2 sm:table-cell">{tr("Product code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {items.slice(0, 250).map((i) => {
+                        const r = rows[i.code] ?? EMPTY;
+                        const on = isFilled(r);
+                        const lack = on ? lacks(r) : [];
+                        const uom = uomOf(i, r);
+                        const fixed = (i.units ?? []).filter((u) => u.uom.toLowerCase() !== "gram");
+                        const calc = scope === "premix" && on ? explodePremix(i, uom, qtyOf(r)) : null;
+                        return (
+                          <Fragment key={i.code}>
+                            <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-blue-50/40"))}>
+                              <td className="px-2 py-1.5 text-right align-top text-xs tabular-nums text-slate-400">{(data.items[scope] ?? []).indexOf(i) + 1}</td>
+                              <td className="px-2 py-1.5 align-top">
+                                <span className="block text-slate-800">{i.name}</span>
+                                <span className="text-[11px] text-slate-400 sm:hidden">{i.code}</span>
+                                {scope === "premix" && fixed.length > 0 && <span className="block text-[11px] text-slate-500">{fixed.map((u) => `1 ${u.uom} = ${fmtQty(u.grams)} g`).join(" · ")}</span>}
+                              </td>
+                              <td className="hidden px-2 py-1.5 align-top text-xs text-slate-500 sm:table-cell">{i.code}</td>
+                              <td className="px-2 py-1.5 align-top text-xs text-slate-500">
+                                {scope === "premix" && (i.units?.length ?? 0) > 1 ? (
+                                  <select value={uom} onChange={(e) => setRow(i.code, { uom: e.target.value })} aria-label={tr("Unit of {0}", i.name)}
+                                    className="h-9 rounded-lg border border-slate-200 bg-white px-1.5 text-xs text-slate-700">
+                                    {i.units!.map((u) => <option key={u.uom} value={u.uom}>{unitText(u.uom)}</option>)}
+                                  </select>
+                                ) : scope === "premix" ? unitText(uom) : i.unit}
+                              </td>
+                              <td className="px-2 py-1.5 text-right align-top">
+                                <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={r.qty}
+                                  onChange={(e) => setRow(i.code, { qty: e.target.value.replace(/[^0-9.,]/g, "") })} />
+                                {calc && uom.toLowerCase() !== "gram" && <span className="mt-0.5 block text-[11px] tabular-nums text-violet-700">= {fmtQty(calc.grams)} g</span>}
+                              </td>
+                            </tr>
+                            {on && (
+                              <tr className={lack.length ? "bg-amber-50/60" : "bg-blue-50/40"}>
+                                <td />
+                                <td colSpan={4} className="px-2 pb-3">
+                                  <div className="grid gap-2 sm:grid-cols-2">
+                                    <select className={cx(inputClass, "h-9")} value={r.category} onChange={(e) => setRow(i.code, { category: e.target.value })} aria-label={tr("Waste category")}>
+                                      <option value="">{tr("Choose the category")}</option>
+                                      {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                    <input className={cx(inputClass, "h-9")} value={r.note} maxLength={500} onChange={(e) => setRow(i.code, { note: e.target.value })} placeholder={tr("Note / reason (optional)")} />
+                                    <label className="text-[11px] text-slate-500">{tr("Production date")}
+                                      <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.made} max={day} onChange={(e) => setRow(i.code, { made: e.target.value })} />
+                                    </label>
+                                    <label className="text-[11px] text-slate-500">{tr("Expired date")}
+                                      <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.expires} min={r.made || undefined} onChange={(e) => setRow(i.code, { expires: e.target.value })} />
+                                    </label>
+                                    {calc && calc.ingredients.length > 0 && (
+                                      <div className="rounded-lg bg-white/70 px-2.5 py-1.5 text-[11px] text-slate-600 ring-1 ring-violet-100 sm:col-span-2">
+                                        <span className="font-semibold text-violet-700">{tr("Ingredients")}: </span>
+                                        {calc.ingredients.map((c) => `${c.name} ${fmtQty(c.grams)} g`).join(" · ")}
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-2 sm:col-span-2">
+                                      {r.photo ? (
+                                        <>
+                                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                                          <img src={r.photo.image} alt={tr("Photo evidence")} className="h-14 w-14 rounded-lg object-cover ring-1 ring-slate-200" />
+                                          <Button variant="secondary" size="sm" onClick={() => setShooting(i)}><Camera size={14} />{tr("Retake")}</Button>
+                                        </>
+                                      ) : (
+                                        <Button variant="secondary" size="sm" onClick={() => setShooting(i)} disabled={!b}><Camera size={14} />{tr("Take photo")}</Button>
+                                      )}
+                                      {lack.length > 0 && <span className="text-[11px] text-amber-700">{tr("Still missing: {0}", lack.join(", "))}</span>}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        );
+                      })}
+                      {!items.length && <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-slate-500">{scope === "premix" && !search ? tr("No WIP recipe is active for this location.") : tr("No item found")}</td></tr>}
+                    </tbody>
+                  </table>
+                  {items.length > 250 && <p className="px-3 py-2 text-center text-[11px] text-slate-400">{tr("Search to see the other {0} SKUs", items.length - 250)}</p>}
+                </div>
+                {premixTotals.length > 0 && (
+                  <div className="rounded-lg bg-violet-50/60 px-3 py-2">
+                    <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-violet-700"><FlaskConical size={13} />{tr("Premix ingredients wasted (calculated)")}</p>
+                    <ul className="grid gap-x-4 gap-y-0.5 text-xs sm:grid-cols-2">
+                      {premixTotals.map((p) => (
+                        <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-slate-400")}>
+                          <span className="truncate">{p.name}{!p.stock && ` (${tr("not stock")})`}</span><span className="tabular-nums">{fmtQty(p.grams)} g</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs text-slate-500">{filled.length ? (incomplete ? tr("{0} SKUs filled, {1} still incomplete", filled.length, incomplete) : tr("{0} SKUs ready to save", filled.length)) : tr("No SKU filled yet")}</p>
                   <Button onClick={() => void save()} loading={saving} disabled={!b || !filled.length || incomplete > 0}><Plus size={16} />{tr("Save {0} SKUs", filled.length)}</Button>
@@ -347,7 +418,8 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
                   <p className="truncate text-sm font-semibold text-slate-900">{e.itemName}</p>
                   <Badge tone={statusTone(e.status)}>{e.status === "approved" ? <CheckCircle2 size={11} /> : null}{statusLabel(e.status)}</Badge>
                 </div>
-                <p className="text-xs text-slate-600">{fmtQty(e.qty)} {e.unit} · {scopeLabel(e.scope)} · {e.category}</p>
+                <p className="text-xs text-slate-600">{fmtQty(e.qty)} {e.scope === "premix" ? unitText(e.unit) : e.unit}{e.scope === "premix" && e.grams != null && e.unit.toLowerCase() !== "gram" ? ` (${fmtQty(e.grams)} g)` : ""} · {scopeLabel(e.scope)} · {e.category}</p>
+                {e.ingredients?.length ? <p className="text-[11px] text-violet-700">{e.ingredients.map((c) => `${c.name} ${fmtQty(c.grams)} g`).join(" · ")}</p> : null}
                 {(e.productionDate || e.expiredDate) && <p className="text-[11px] text-slate-500">{tr("Production")} {e.productionDate ?? "—"} · {tr("Expired")} {e.expiredDate ?? "—"}</p>}
                 {e.note && <p className="mt-0.5 text-xs text-slate-500">“{e.note}”</p>}
                 {e.review?.note && <p className="mt-0.5 text-xs text-slate-500">{tr("Cost Control")}: {e.review.note}</p>}
