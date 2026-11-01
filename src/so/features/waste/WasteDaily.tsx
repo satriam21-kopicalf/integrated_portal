@@ -11,7 +11,7 @@ import { type Period, dmy } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import { type DailyData, type UsageRow, fmtQty } from "./waste";
+import { type DailyData, type UsageRow, fmtQty, usagePhotoUrl } from "./waste";
 
 const query = (period: Period, branch: string) =>
   new URLSearchParams({ dateFrom: period.from, dateTo: period.to, ...(branch ? { branch } : {}) });
@@ -100,7 +100,7 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
           <table className="w-full text-sm">
             <thead className={theadClass}>
               <tr><th className="px-4 py-2">{tr("Day")}</th><th className="px-4 py-2">{tr("Branch")}</th><th className="px-4 py-2">{tr("Item")}</th>
-                <th className="px-4 py-2 text-right">{tr("Quantity")}</th><th className="px-4 py-2">{tr("Filled by")}</th></tr>
+                <th className="px-4 py-2 text-right">{tr("Quantity")}</th><th className="px-4 py-2">{tr("Category")}</th><th className="px-4 py-2">{tr("Photo")}</th><th className="px-4 py-2">{tr("Filled by")}</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.slice(0, 1000).map((r) => (
@@ -109,6 +109,12 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
                   <td className="px-4 py-2 text-slate-800">{r.branchName}</td>
                   <td className="px-4 py-2"><span className="text-slate-800">{r.itemName}</span> <span className="text-[11px] text-slate-400">{r.itemCode}</span></td>
                   <td className="px-4 py-2 text-right tabular-nums">{fmtQty(r.qty)} <span className="text-xs text-slate-500">{r.unit}</span></td>
+                  <td className="px-4 py-2 text-xs text-slate-600">{r.category ?? "—"}{r.note && <span className="block text-slate-400">“{r.note}”</span>}</td>
+                  <td className="px-4 py-2">{r.hasPhoto ? (
+                    <a href={usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)} target="_blank" rel="noreferrer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)} alt="" loading="lazy" className="h-10 w-10 rounded-md bg-slate-100 object-cover" />
+                    </a>) : <span className="text-xs text-slate-400">—</span>}</td>
                   <td className="px-4 py-2 text-xs text-slate-500">{r.by} · {wibDateTime(r.updatedAt)}</td>
                 </tr>
               ))}

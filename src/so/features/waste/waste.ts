@@ -20,14 +20,18 @@ export type Entry = {
 export type FormData = {
   branches: { code: string; name: string }[]; days: { from: string; to: string };
   items: Record<Scope, WasteItem[]>; categories: string[]; data: Entry[];
-  usage?: Record<string, number>; noWaste?: { by: string; at: string } | null;
+  usage?: Record<string, number>;
+  /** migration 045: category, reason and whether a photo is saved, per Usage Management SKU */
+  usageDetail?: Record<string, { qty: number; category: string | null; note: string | null; hasPhoto: boolean }>;
+  noWaste?: { by: string; at: string } | null;
 };
 export type DailyCell = { date: string; entries: number; noWaste: boolean; usage: number; reported: boolean };
 export type DailyData = {
   period: { from: string; to: string }; dates: string[]; lastDate: string | null; missingLast: { code: string; name: string }[];
   branches: { code: string; name: string; days: DailyCell[]; reported: number; missing: number; usageDays: number }[];
 };
-export type UsageRow = { branchCode: string; branchName: string; businessDate: string; itemCode: string; itemName: string; unit: string; qty: number; by: string; updatedAt: string };
+export type UsageRow = { branchCode: string; branchName: string; businessDate: string; itemCode: string; itemName: string; unit: string; qty: number; by: string; updatedAt: string;
+  category?: string | null; note?: string | null; hasPhoto?: boolean };
 export type MonitorData = {
   period: { from: string; to: string }; categories: string[]; data: Entry[]; truncated: boolean;
   summary: { entries: number; branches: number; items: number; people: number; submitted: number; approved: number; rejected: number };
@@ -42,6 +46,8 @@ export const ENTRY_SCOPES: Scope[] = ["waste", "premix"];
 export const scopeLabel = (s: Scope) => ({ waste: tr("Waste"), usage: tr("Usage Management"), premix: tr("Premix") })[s];
 export const statusLabel = (s: Status) => ({ submitted: tr("Waiting review"), approved: tr("Approved"), rejected: tr("Rejected") })[s];
 export const statusTone = (s: Status) => ({ submitted: "amber", approved: "green", rejected: "red" } as const)[s];
+export const usagePhotoUrl = (branch: string, day: string, item: string) =>
+  `/api/waste/usage/${encodeURIComponent(branch)}/${day}/${encodeURIComponent(item)}/photo`;
 export const photoUrl = (id: string) => `/api/waste/entries/${id}/photo`;
 export const isGram = (uom: string) => uom.toLowerCase() === "gram";
 export const unitText = (uom: string) => (isGram(uom) ? "g" : uom);

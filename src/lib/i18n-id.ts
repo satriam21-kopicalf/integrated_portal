@@ -3910,4 +3910,7 @@ export const ID: Record<string, string> = {
   "The daily usage lists of the branches": "Daftar usage harian cabang",
   "Premix name": "Nama premix",
   "Premix ingredients wasted (calculated)": "Bahan premix yang terbuang (terkalkulasi)",
+  "Reason (optional)": "Alasan (opsional)",
+  "Usage Management saved: {0} SKUs": "Usage Management tersimpan: {0} SKU",
+  "Fill the quantity of every usage item of the day; every filled SKU needs its category and a photo, the reason is optional": "Isi qty setiap item usage hari ini; setiap SKU yang diisi wajib kategori dan foto, alasan opsional",
 };

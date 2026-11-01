@@ -21,7 +21,7 @@ import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { DailyReport, UsageReport } from "./WasteDaily";
-import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, SCOPES, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
+import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, SCOPES, fmtQty, photoUrl, usagePhotoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
 
 type View = "entries" | "items" | "branches" | "categories" | "daily" | "usage";
 type BranchOpt = { branch_code: string; branch_name: string };
@@ -107,8 +107,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const exportUsage = async () => {
     const u = await call<{ data: UsageRow[] }>(`/api/waste/usage?${q()}`);
     await downloadXlsx({ fileName: file("Usage Management"), sheet: "Usage Management", title: `Usage Management ${dmy(period.from)} – ${dmy(period.to)}`,
-      header: ["Tanggal", "Cabang", "Kode", "Item", "Qty", "Satuan", "Diisi oleh", "Waktu"],
-      rows: u.data.map((r) => [r.businessDate, r.branchName, r.itemCode, r.itemName, r.qty, r.unit, r.by, wibDateTime(r.updatedAt)]) });
+      header: ["Tanggal", "Cabang", "Kode", "Item", "Qty", "Satuan", "Kategori", "Alasan", "Diisi oleh", "Waktu", "Foto"],
+      rows: u.data.map((r) => [r.businessDate, r.branchName, r.itemCode, r.itemName, r.qty, r.unit, r.category, r.note, r.by,
+        wibDateTime(r.updatedAt), r.hasPhoto ? `${location.origin}${usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)}` : ""]) });
   };
   const safe = (f: () => Promise<void>) => async () => { try { await f(); } catch (e) { toast((e as Error).message, "error"); } };
 

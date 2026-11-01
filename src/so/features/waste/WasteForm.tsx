@@ -9,6 +9,8 @@
 // filled SKU opens its category, note, production and expired date and photo. Premix is listed and calculated as the
 // WIP of the stock opname: the recipes of the branch's location, entered in their count unit (grams, portions, pieces,
 // another unit can be picked), the grams of every ingredient follow from the recipe (migration 044).
+// Usage Management (migration 045): every SKU filled needs its category and a photo, the reason is optional; each changed
+// SKU is saved on its own request (a saved photo is kept when the SKU is saved again without a new one).
 // Every day (migration 041): the branch reports its waste, the items or "no waste today", and fills the Usage
 // Management list, the quantity of every usage item (saved again to correct it). Usage is not a single waste entry.
 
@@ -23,11 +25,16 @@ import { call } from "@/so/features/checkin/checkin";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import { TZ, wibDateTime } from "@/so/lib/wib";
-import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, explodePremix, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone, unitText } from "./waste";
+import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, explodePremix, usagePhotoUrl, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone, unitText } from "./waste";
 
 /** uom: the unit a premix is entered in ("" = its count unit) */
 type Row = { qty: string; uom: string; category: string; note: string; made: string; expires: string; photo: Shot | null };
 const EMPTY: Row = { qty: "", uom: "", category: "", note: "", made: "", expires: "", photo: null };
+/** a Usage Management SKU of the form: hasPhoto = a photo is saved already */
+type ULine = { qty: string; category: string; note: string; photo: Shot | null; hasPhoto: boolean };
+const UEMPTY: ULine = { qty: "", category: "", note: "", photo: null, hasPhoto: false };
+const uFilled = (l: ULine) => l.qty.trim() !== "";
+const uLacks = (l: ULine) => [!l.category && tr("the category"), !l.photo && !l.hasPhoto && tr("the photo")].filter(Boolean) as string[];
 const uomOf = (i: WasteItem, r: Row) => r.uom || i.unit;
 const qtyOf = (r: Row) => Number(r.qty.replace(",", "."));
 const isFilled = (r: Row) => qtyOf(r) > 0;
@@ -45,12 +52,12 @@ export default function WasteForm() {
   const [rows, setRows] = useState<Record<string, Row>>({});
   const [search, setSearch] = useState("");
   const [onlyFilled, setOnlyFilled] = useState(false);
-  const [shooting, setShooting] = useState<WasteItem | null>(null);
+  const [shooting, setShooting] = useState<(WasteItem & { usage?: boolean }) | null>(null);
   const [saving, setSaving] = useState(false);
   const [remove, setRemove] = useState<Entry | null>(null);
   const [removing, setRemoving] = useState(false);
-  const [usage, setUsage] = useState<Record<string, string>>({});
-  const [usageDirty, setUsageDirty] = useState(false);
+  const [usage, setUsage] = useState<Record<string, ULine>>({});
+  const [usageChanged, setUsageChanged] = useState<Set<string>>(new Set());
   const [usageSaving, setUsageSaving] = useState(false);
   const [usageSearch, setUsageSearch] = useState("");
   const [flagging, setFlagging] = useState(false);
@@ -73,8 +80,9 @@ export default function WasteForm() {
       }
       setDay(dayIso);
       setData(out);
-      setUsage(Object.fromEntries(Object.entries(out.usage ?? {}).map(([k, v]) => [k, String(v)])));
-      setUsageDirty(false);
+      setUsage(Object.fromEntries(Object.entries(out.usageDetail ?? {}).map(([k, v]) => [k,
+        { qty: String(v.qty), category: v.category ?? "", note: v.note ?? "", photo: null, hasPhoto: v.hasPhoto }])));
+      setUsageChanged(new Set());
     } catch (e) {
       setError((e as Error).message);
     }
@@ -141,24 +149,35 @@ export default function WasteForm() {
     const q = usageSearch.trim().toLowerCase();
     return q ? all.filter((i) => i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)) : all;
   }, [data, usageSearch]);
-  const usageFilled = (data?.items.usage ?? []).filter((i) => (usage[i.code] ?? "").trim() !== "").length;
+  const usageFilled = (data?.items.usage ?? []).filter((i) => uFilled(usage[i.code] ?? UEMPTY)).length;
+  const usageIncomplete = [...usageChanged].filter((c) => uFilled(usage[c] ?? UEMPTY) && uLacks(usage[c]).length).length;
+  const setULine = (code: string, patch: Partial<ULine>) => {
+    setUsage((all) => ({ ...all, [code]: { ...(all[code] ?? UEMPTY), ...patch } }));
+    setUsageChanged((s) => new Set(s).add(code));
+  };
 
+  // every changed SKU on its own request (photos are large)
   const saveUsage = async () => {
-    if (!b) return;
+    if (!b || !usageChanged.size || usageIncomplete) return;
     setUsageSaving(true);
-    try {
-      const lines = Object.fromEntries((data?.items.usage ?? []).map((i) => {
-        const v = (usage[i.code] ?? "").trim().replace(",", ".");
-        return [i.code, v === "" ? null : Number(v)];
-      }));
-      await call("/api/waste/usage", { method: "PUT", json: { branchCode: b.code, businessDate: day, lines } });
-      toast(tr("Usage Management saved"));
-      await load(branch, day);
-    } catch (e) {
-      toast((e as Error).message, "error");
-    } finally {
-      setUsageSaving(false);
+    let ok = 0;
+    const failed: string[] = [];
+    for (const code of usageChanged) {
+      const l = usage[code] ?? UEMPTY;
+      const line = !uFilled(l) ? null : {
+        qty: Number(l.qty.replace(",", ".")), category: l.category, note: l.note.trim() || null,
+        ...(l.photo ? { photo: l.photo.image, takenAt: l.photo.taken_at, latitude: l.photo.lat, longitude: l.photo.lng } : {}) };
+      try {
+        await call("/api/waste/usage", { method: "PUT", json: { branchCode: b.code, businessDate: day, lines: { [code]: line } } });
+        ok += 1;
+      } catch (e) {
+        failed.push(`${data?.items.usage.find((i) => i.code === code)?.name ?? code}: ${(e as Error).message}`);
+      }
     }
+    if (ok) toast(tr("Usage Management saved: {0} SKUs", ok));
+    if (failed.length) toast(failed.join(" · "), "error");
+    setUsageSaving(false);
+    await load(branch, day);
   };
 
   const flagNoWaste = async (on: boolean) => {
@@ -342,7 +361,7 @@ export default function WasteForm() {
                 </div>
               </FormCard>
 
-              <FormCard n={3} title={tr("Usage Management")} hint={tr("Fill the quantity of every usage item of the day; save again to correct it")}>
+              <FormCard n={3} title={tr("Usage Management")} hint={tr("Fill the quantity of every usage item of the day; every filled SKU needs its category and a photo, the reason is optional")}>
                 {!b ? <p className="text-xs text-slate-500">{tr("Choose the branch first")}</p> : (
                   <>
                     <div className="relative">
@@ -356,25 +375,58 @@ export default function WasteForm() {
                             <th className="hidden px-2 py-2 sm:table-cell">{tr("Product code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {usageItems.map((i) => (
-                            <tr key={i.code} className={(usage[i.code] ?? "").trim() ? "bg-blue-50/40" : undefined}>
-                              <td className="px-2 py-1.5 text-right text-xs tabular-nums text-slate-400">{data.items.usage.indexOf(i) + 1}</td>
-                              <td className="px-2 py-1.5"><span className="block text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400 sm:hidden">{i.code}</span></td>
-                              <td className="hidden px-2 py-1.5 text-xs text-slate-500 sm:table-cell">{i.code}</td>
-                              <td className="px-2 py-1.5 text-xs text-slate-500">{i.unit}</td>
-                              <td className="px-2 py-1.5">
-                                <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={usage[i.code] ?? ""}
-                                  onChange={(e) => { setUsage({ ...usage, [i.code]: e.target.value.replace(/[^0-9.,]/g, "") }); setUsageDirty(true); }} />
-                              </td>
-                            </tr>
-                          ))}
+                          {usageItems.map((i) => {
+                            const l = usage[i.code] ?? UEMPTY;
+                            const on = uFilled(l);
+                            const lack = on ? uLacks(l) : [];
+                            return (
+                              <Fragment key={i.code}>
+                                <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-blue-50/40"))}>
+                                  <td className="px-2 py-1.5 text-right text-xs tabular-nums text-slate-400">{data.items.usage.indexOf(i) + 1}</td>
+                                  <td className="px-2 py-1.5"><span className="block text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400 sm:hidden">{i.code}</span></td>
+                                  <td className="hidden px-2 py-1.5 text-xs text-slate-500 sm:table-cell">{i.code}</td>
+                                  <td className="px-2 py-1.5 text-xs text-slate-500">{i.unit}</td>
+                                  <td className="px-2 py-1.5">
+                                    <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={l.qty}
+                                      onChange={(e) => setULine(i.code, { qty: e.target.value.replace(/[^0-9.,]/g, "") })} />
+                                  </td>
+                                </tr>
+                                {on && (
+                                  <tr className={lack.length ? "bg-amber-50/60" : "bg-blue-50/40"}>
+                                    <td />
+                                    <td colSpan={4} className="px-2 pb-3">
+                                      <div className="grid gap-2 sm:grid-cols-2">
+                                        <select className={cx(inputClass, "h-9")} value={l.category} onChange={(e) => setULine(i.code, { category: e.target.value })} aria-label={tr("Category")}>
+                                          <option value="">{tr("Choose the category")}</option>
+                                          {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                        <input className={cx(inputClass, "h-9")} value={l.note} maxLength={500} onChange={(e) => setULine(i.code, { note: e.target.value })} placeholder={tr("Reason (optional)")} />
+                                        <div className="flex items-center gap-2 sm:col-span-2">
+                                          {l.photo || l.hasPhoto ? (
+                                            <>
+                                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                                              <img src={l.photo ? l.photo.image : usagePhotoUrl(b.code, day, i.code)} alt={tr("Photo evidence")} className="h-14 w-14 rounded-lg object-cover ring-1 ring-slate-200" />
+                                              <Button variant="secondary" size="sm" onClick={() => setShooting({ ...i, usage: true })}><Camera size={14} />{tr("Retake")}</Button>
+                                            </>
+                                          ) : (
+                                            <Button variant="secondary" size="sm" onClick={() => setShooting({ ...i, usage: true })}><Camera size={14} />{tr("Take photo")}</Button>
+                                          )}
+                                          {lack.length > 0 && <span className="text-[11px] text-amber-700">{tr("Still missing: {0}", lack.join(", "))}</span>}
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </Fragment>
+                            );
+                          })}
                           {!usageItems.length && <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-slate-500">{tr("No item found")}</td></tr>}
                         </tbody>
                       </table>
                     </div>
                     <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="flex items-center gap-1.5 text-xs text-slate-500"><ClipboardList size={14} />{tr("{0} of {1} items filled", usageFilled, data.items.usage.length)}{usageDirty ? ` · ${tr("not saved yet")}` : ""}</p>
-                      <Button onClick={() => void saveUsage()} loading={usageSaving} disabled={!usageDirty}><Save size={16} />{tr("Save Usage Management")}</Button>
+                      <p className="flex items-center gap-1.5 text-xs text-slate-500"><ClipboardList size={14} />{tr("{0} of {1} items filled", usageFilled, data.items.usage.length)}{usageChanged.size ? ` · ${usageIncomplete ? tr("{0} SKUs filled, {1} still incomplete", usageChanged.size, usageIncomplete) : tr("not saved yet")}` : ""}</p>
+                      <Button onClick={() => void saveUsage()} loading={usageSaving} disabled={!usageChanged.size || usageIncomplete > 0}><Save size={16} />{tr("Save Usage Management")}</Button>
                     </div>
                   </>
                 )}
@@ -385,8 +437,8 @@ export default function WasteForm() {
           </div>
         )}
       </div>
-      <CameraCapture open={!!shooting} title={tr("Waste")} branch={b?.name ?? ""} countNumber={shooting?.name ?? ""}
-        onClose={() => setShooting(null)} onShot={async (s) => { if (shooting) setRow(shooting.code, { photo: s }); setShooting(null); }} />
+      <CameraCapture open={!!shooting} title={shooting?.usage ? tr("Usage Management") : tr("Waste")} branch={b?.name ?? ""} countNumber={shooting?.name ?? ""}
+        onClose={() => setShooting(null)} onShot={async (s) => { if (shooting?.usage) setULine(shooting.code, { photo: s }); else if (shooting) setRow(shooting.code, { photo: s }); setShooting(null); }} />
       <ConfirmDialog open={!!remove} title={tr("Delete this waste?")} danger confirmLabel={tr("Delete")} busy={removing}
         description={remove ? `${remove.itemName} · ${fmtQty(remove.qty)} ${remove.unit}` : ""} onConfirm={() => void confirmRemove()} onClose={() => setRemove(null)} />
     </Page>
