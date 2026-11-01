@@ -8,6 +8,7 @@ export type WasteItem = { code: string; name: string; unit: string; type?: strin
 export type Entry = {
   id: string; userId: string; username: string; name: string; branchCode: string; branchName: string; businessDate: string;
   scope: Scope; itemCode: string; itemName: string; unit: string; qty: number; category: string; note: string | null;
+  productionDate?: string | null; expiredDate?: string | null;
   photoTakenAt: string | null; latitude: number | null; longitude: number | null; status: Status;
   review: { note: string | null; by: string | null; at: string | null } | null; createdAt: string;
 };

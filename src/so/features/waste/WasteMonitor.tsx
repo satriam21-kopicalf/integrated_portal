@@ -84,9 +84,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   };
 
   const exportCsv = () => {
-    const head = ["Tanggal", "Cabang", "Jenis", "Kode", "Item", "Qty", "Satuan", "Kategori", "Catatan", "Status", "Diinput oleh", "Waktu input", "Catatan review"];
+    const head = ["Tanggal", "Cabang", "Jenis", "Kode", "Item", "Qty", "Satuan", "Kategori", "Production date", "Expired date", "Catatan", "Status", "Diinput oleh", "Waktu input", "Catatan review"];
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const lines = rows.map((e) => [e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category, e.note,
+    const lines = rows.map((e) => [e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category, e.productionDate, e.expiredDate, e.note,
       statusLabel(e.status), e.name, wibDateTime(e.createdAt), e.review?.note].map(esc).join(","));
     const blob = new Blob(["﻿" + [head.join(","), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
@@ -210,6 +210,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 [tr("Item"), `${open.itemName} (${open.itemCode})`],
                 [tr("Quantity"), `${fmtQty(open.qty)} ${open.unit}`],
                 [tr("Waste category"), open.category],
+                [tr("Production date"), open.productionDate || "—"], [tr("Expired date"), open.expiredDate || "—"],
                 [tr("Note / reason"), open.note || "—"],
                 [tr("Entered by"), `${open.name} · @${open.username}`],
                 [tr("Entered at"), wibDateTime(open.createdAt)],

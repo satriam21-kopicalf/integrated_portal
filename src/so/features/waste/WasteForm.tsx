@@ -8,7 +8,7 @@
 // Every day (migration 041): the branch reports its waste, the items or "no waste today", and fills the Usage
 // Management list, the quantity of every usage item (saved again to correct it). Usage is not a single waste entry.
 
-import { Camera, CheckCircle2, ClipboardList, Plus, Save, Search, Trash2, X } from "lucide-react";
+import { Camera, CheckCircle2, ClipboardList, Plus, Save, Search, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
@@ -21,7 +21,12 @@ import { locale, tr } from "@/lib/i18n";
 import { TZ, wibDateTime } from "@/so/lib/wib";
 import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
 
-const BLANK = { item: null as WasteItem | null, qty: "", category: "", note: "" };
+type Row = { qty: string; category: string; note: string; made: string; expires: string; photo: Shot | null };
+const EMPTY: Row = { qty: "", category: "", note: "", made: "", expires: "", photo: null };
+const qtyOf = (r: Row) => Number(r.qty.replace(",", "."));
+const isFilled = (r: Row) => qtyOf(r) > 0;
+const lacks = (r: Row) => [!r.category && tr("the category"), !r.photo && tr("the photo"),
+  r.made && r.expires && r.expires < r.made && tr("an expired date after the production date")].filter(Boolean) as string[];
 
 export default function WasteForm() {
   const toast = useToast();
@@ -31,10 +36,10 @@ export default function WasteForm() {
   const [branch, setBranch] = useState("");
   const [day, setDay] = useState("");
   const [scope, setScope] = useState<Scope>("waste");
-  const [line, setLine] = useState(BLANK);
+  const [rows, setRows] = useState<Record<string, Row>>({});
   const [search, setSearch] = useState("");
-  const [photo, setPhoto] = useState<Shot | null>(null);
-  const [camera, setCamera] = useState(false);
+  const [onlyFilled, setOnlyFilled] = useState(false);
+  const [shooting, setShooting] = useState<WasteItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [remove, setRemove] = useState<Entry | null>(null);
   const [removing, setRemoving] = useState(false);
@@ -74,35 +79,40 @@ export default function WasteForm() {
   const items = useMemo(() => {
     const all = data?.items[scope] ?? [];
     const q = search.trim().toLowerCase();
-    return q ? all.filter((i) => i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)) : all;
-  }, [data, scope, search]);
-  const qty = Number(line.qty.replace(",", "."));
-  const missing = [
-    !b && tr("the branch"), !line.item && tr("the item"), !(qty > 0) && tr("the quantity"),
-    !line.category && tr("the category"), !photo && tr("the photo"),
-  ].filter(Boolean) as string[];
+    return all.filter((i) => (!q || i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q))
+      && (!onlyFilled || isFilled(rows[i.code] ?? EMPTY)));
+  }, [data, scope, search, onlyFilled, rows]);
+  // every filled SKU of both types (Waste and Premix) is saved together
+  const filled = useMemo(() => ENTRY_SCOPES.flatMap((s) => (data?.items[s] ?? [])
+    .filter((i) => isFilled(rows[i.code] ?? EMPTY)).map((i) => ({ scope: s, item: i, row: rows[i.code] }))), [data, rows]);
+  const incomplete = filled.filter((f) => lacks(f.row).length).length;
+  const setRow = (code: string, patch: Partial<Row>) => setRows((all) => ({ ...all, [code]: { ...(all[code] ?? EMPTY), ...patch } }));
 
-  const pickBranch = (code: string) => { setBranch(code); void load(code, day); };
+  const pickBranch = (code: string) => { setBranch(code); setRows({}); void load(code, day); };
   const pickDay = (d: string) => { setDay(d); void load(branch, d); };
-  const pickScope = (s: Scope) => { setScope(s); setLine({ ...line, item: null }); setSearch(""); };
+  const pickScope = (s: Scope) => { setScope(s); setSearch(""); };
 
   const save = async () => {
-    if (!b || !line.item || !photo || missing.length) return;
+    if (!b || !filled.length || incomplete) return;
     setSaving(true);
-    try {
-      await call<Entry>("/api/waste/entries", { method: "POST", json: {
-        branchCode: b.code, businessDate: day, scope, itemCode: line.item.code, qty, category: line.category,
-        note: line.note.trim() || null, photo: photo.image, takenAt: photo.taken_at, latitude: photo.lat, longitude: photo.lng } });
-      toast(tr("{0} saved", line.item.name));
-      setLine({ ...BLANK, category: line.category });
-      setPhoto(null);
-      setSearch("");
-      await load(branch, day);
-    } catch (e) {
-      toast((e as Error).message, "error");
-    } finally {
-      setSaving(false);
+    let ok = 0;
+    const failed: string[] = [];
+    for (const { scope: s, item, row } of filled) {
+      try {
+        await call<Entry>("/api/waste/entries", { method: "POST", json: {
+          branchCode: b.code, businessDate: day, scope: s, itemCode: item.code, qty: qtyOf(row), category: row.category,
+          note: row.note.trim() || null, productionDate: row.made || null, expiredDate: row.expires || null,
+          photo: row.photo!.image, takenAt: row.photo!.taken_at, latitude: row.photo!.lat, longitude: row.photo!.lng } });
+        ok += 1;
+        setRows((all) => { const n = { ...all }; delete n[item.code]; return n; });  // saved: the row is cleared
+      } catch (e) {
+        failed.push(`${item.name}: ${(e as Error).message}`);
+      }
     }
+    if (ok) toast(tr("{0} SKUs saved", ok));
+    if (failed.length) toast(failed.join(" · "), "error");
+    setSaving(false);
+    await load(branch, day);
   };
 
   const usageItems = useMemo(() => {
@@ -200,65 +210,64 @@ export default function WasteForm() {
                 ))}
               </FormCard>
 
-              <FormCard n={2} title={tr("Wasted item")} hint={tr("Every item needs its category and a photo as evidence; the note is optional")}>
+              <FormCard n={2} title={tr("Wasted items")} hint={tr("Fill the quantity of each wasted SKU; every filled SKU needs its category and a photo, the dates and the note are optional")}>
                 <Segmented label={tr("Type")} value={scope} onChange={pickScope} options={ENTRY_SCOPES.map((s) => ({ value: s, label: scopeLabel(s) }))} />
-                {line.item ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-900">{line.item.name}</p>
-                      <p className="text-xs text-slate-500">{line.item.code} · {line.item.unit}</p>
-                    </div>
-                    <button type="button" onClick={() => setLine({ ...line, item: null })} className="rounded-lg p-1.5 text-slate-500 hover:bg-white" aria-label={tr("Change the item")}><X size={16} /></button>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="relative">
-                      <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input className={cx(inputClass, "pl-9")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
-                    </div>
-                    <ul className="mt-2 max-h-60 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
-                      {items.slice(0, 80).map((i) => (
-                        <li key={i.code}>
-                          <button type="button" onClick={() => setLine({ ...line, item: i })} className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50">
-                            <span className="min-w-0"><span className="block truncate text-sm text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400">{i.code}</span></span>
-                            <span className="flex-shrink-0 text-xs text-slate-500">{i.unit}</span>
-                          </button>
-                        </li>
-                      ))}
-                      {!items.length && <li className="px-3 py-6 text-center text-xs text-slate-500">{tr("No item found")}</li>}
-                    </ul>
-                  </div>
-                )}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block text-xs font-medium text-slate-600">{tr("Quantity")}{line.item ? ` (${line.item.unit})` : ""}
-                    <input className={cx(inputClass, "mt-1")} inputMode="decimal" value={line.qty} onChange={(e) => setLine({ ...line, qty: e.target.value.replace(/[^0-9.,]/g, "") })} placeholder="0" />
-                  </label>
-                  <label className="block text-xs font-medium text-slate-600">{tr("Waste category")}
-                    <select className={cx(inputClass, "mt-1")} value={line.category} onChange={(e) => setLine({ ...line, category: e.target.value })}>
-                      <option value="">{tr("Choose the category")}</option>
-                      {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </label>
+                <div className="relative">
+                  <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input className={cx(inputClass, "pl-9")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
                 </div>
-                <label className="block text-xs font-medium text-slate-600">{tr("Note / reason")}
-                  <textarea className={cx(inputClass, "mt-1 min-h-[72px] py-2")} maxLength={500} value={line.note} onChange={(e) => setLine({ ...line, note: e.target.value })}
-                    placeholder={tr("What happened, e.g. dropped while serving")} />
+                <label className="flex items-center gap-2 text-xs text-slate-600">
+                  <input type="checkbox" checked={onlyFilled} onChange={(e) => setOnlyFilled(e.target.checked)} />{tr("Show filled SKUs only")}
                 </label>
-                <div>
-                  <p className="mb-1 text-xs font-medium text-slate-600">{tr("Photo evidence")}</p>
-                  {photo ? (
-                    <div className="flex items-center gap-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photo.image} alt={tr("Photo evidence")} className="h-24 w-24 rounded-xl object-cover ring-1 ring-slate-200" />
-                      <Button variant="secondary" size="sm" onClick={() => setCamera(true)}><Camera size={14} />{tr("Retake")}</Button>
-                    </div>
-                  ) : (
-                    <Button variant="secondary" onClick={() => setCamera(true)} disabled={!b || !line.item}><Camera size={16} />{tr("Take photo")}</Button>
-                  )}
-                </div>
+                <ul className="max-h-[560px] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
+                  {items.slice(0, 250).map((i) => {
+                    const r = rows[i.code] ?? EMPTY;
+                    const on = isFilled(r);
+                    const lack = on ? lacks(r) : [];
+                    return (
+                      <li key={i.code} className={cx("px-3 py-2", on && (lack.length ? "bg-amber-50/60" : "bg-blue-50/40"))}>
+                        <div className="flex items-center gap-3">
+                          <span className="min-w-0 flex-1"><span className="block truncate text-sm text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400">{i.code}</span></span>
+                          <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={r.qty}
+                            onChange={(e) => setRow(i.code, { qty: e.target.value.replace(/[^0-9.,]/g, "") })} />
+                          <span className="w-16 flex-shrink-0 truncate text-xs text-slate-500">{i.unit}</span>
+                        </div>
+                        {on && (
+                          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                            <select className={cx(inputClass, "h-9")} value={r.category} onChange={(e) => setRow(i.code, { category: e.target.value })} aria-label={tr("Waste category")}>
+                              <option value="">{tr("Choose the category")}</option>
+                              {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <input className={cx(inputClass, "h-9")} value={r.note} maxLength={500} onChange={(e) => setRow(i.code, { note: e.target.value })} placeholder={tr("Note / reason (optional)")} />
+                            <label className="text-[11px] text-slate-500">{tr("Production date")}
+                              <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.made} max={day} onChange={(e) => setRow(i.code, { made: e.target.value })} />
+                            </label>
+                            <label className="text-[11px] text-slate-500">{tr("Expired date")}
+                              <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.expires} min={r.made || undefined} onChange={(e) => setRow(i.code, { expires: e.target.value })} />
+                            </label>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                              {r.photo ? (
+                                <>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={r.photo.image} alt={tr("Photo evidence")} className="h-14 w-14 rounded-lg object-cover ring-1 ring-slate-200" />
+                                  <Button variant="secondary" size="sm" onClick={() => setShooting(i)}><Camera size={14} />{tr("Retake")}</Button>
+                                </>
+                              ) : (
+                                <Button variant="secondary" size="sm" onClick={() => setShooting(i)} disabled={!b}><Camera size={14} />{tr("Take photo")}</Button>
+                              )}
+                              {lack.length > 0 && <span className="text-[11px] text-amber-700">{tr("Still missing: {0}", lack.join(", "))}</span>}
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                  {!items.length && <li className="px-3 py-6 text-center text-xs text-slate-500">{tr("No item found")}</li>}
+                  {items.length > 250 && <li className="px-3 py-2 text-center text-[11px] text-slate-400">{tr("Search to see the other {0} SKUs", items.length - 250)}</li>}
+                </ul>
                 <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs text-slate-500">{missing.length ? tr("Still missing: {0}", missing.join(", ")) : tr("Ready to save")}</p>
-                  <Button onClick={() => void save()} loading={saving} disabled={missing.length > 0}><Plus size={16} />{tr("Save item")}</Button>
+                  <p className="text-xs text-slate-500">{filled.length ? (incomplete ? tr("{0} SKUs filled, {1} still incomplete", filled.length, incomplete) : tr("{0} SKUs ready to save", filled.length)) : tr("No SKU filled yet")}</p>
+                  <Button onClick={() => void save()} loading={saving} disabled={!b || !filled.length || incomplete > 0}><Plus size={16} />{tr("Save {0} SKUs", filled.length)}</Button>
                 </div>
               </FormCard>
 
@@ -305,8 +314,8 @@ export default function WasteForm() {
           </div>
         )}
       </div>
-      <CameraCapture open={camera} title={tr("Waste")} branch={b?.name ?? ""} countNumber={line.item?.name ?? ""}
-        onClose={() => setCamera(false)} onShot={async (s) => { setPhoto(s); setCamera(false); }} />
+      <CameraCapture open={!!shooting} title={tr("Waste")} branch={b?.name ?? ""} countNumber={shooting?.name ?? ""}
+        onClose={() => setShooting(null)} onShot={async (s) => { if (shooting) setRow(shooting.code, { photo: s }); setShooting(null); }} />
       <ConfirmDialog open={!!remove} title={tr("Delete this waste?")} danger confirmLabel={tr("Delete")} busy={removing}
         description={remove ? `${remove.itemName} · ${fmtQty(remove.qty)} ${remove.unit}` : ""} onConfirm={() => void confirmRemove()} onClose={() => setRemove(null)} />
     </Page>
@@ -339,6 +348,7 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
                   <Badge tone={statusTone(e.status)}>{e.status === "approved" ? <CheckCircle2 size={11} /> : null}{statusLabel(e.status)}</Badge>
                 </div>
                 <p className="text-xs text-slate-600">{fmtQty(e.qty)} {e.unit} · {scopeLabel(e.scope)} · {e.category}</p>
+                {(e.productionDate || e.expiredDate) && <p className="text-[11px] text-slate-500">{tr("Production")} {e.productionDate ?? "—"} · {tr("Expired")} {e.expiredDate ?? "—"}</p>}
                 {e.note && <p className="mt-0.5 text-xs text-slate-500">“{e.note}”</p>}
                 {e.review?.note && <p className="mt-0.5 text-xs text-slate-500">{tr("Cost Control")}: {e.review.note}</p>}
                 <p className="mt-0.5 text-[11px] text-slate-400">{e.name} · {wibDateTime(e.createdAt)}</p>

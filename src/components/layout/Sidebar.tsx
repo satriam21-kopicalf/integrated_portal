@@ -44,6 +44,9 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('Waste monitor'); }, href: '/cost-control/waste/monitor', icon: Activity, get description() { return tr('Waste entered by every branch'); } },
     { get name() { return tr('Waste review'); }, href: '/cost-control/waste/reviews', icon: ClipboardList, get description() { return tr('Approve or send back'); } },
   ] },
+  { get title() { return tr('Check In'); }, get hint() { return tr('Outlet visits of the Cost Control team'); }, icon: UserRoundCheck, items: [
+    { get name() { return tr('Cost Control Check In'); }, href: '/cost-control/check-in', icon: UserRoundCheck, get description() { return tr('Check-ins of every Cost Control surveyor'); } },
+  ] },
   { get title() { return tr('Analytics'); }, get hint() { return tr('Cost ratios per outlet from ESB data'); }, icon: BarChart3, items: [
     { get name() { return tr('Outlet ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
     { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Follows Outlet ratio'); }, soon: true },
@@ -54,7 +57,7 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
 const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Visit'); }, get hint() { return tr('Check in at the outlet you visit'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
-    { get name() { return tr('Surveyor Check In'); }, href: '/forms/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Surveyor visit to the outlet'); } },
+    { get name() { return tr('Cost Control Check In'); }, href: '/forms/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Cost Control visit to the outlet'); } },
   ] },
   { get title() { return tr('Product & outlet'); }, get hint() { return tr('Condition of the products and the outlet'); }, icon: Store, items: [
     { get name() { return 'Product'; }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
@@ -75,7 +78,6 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
   ] },
   { get title() { return tr('Visit'); }, get hint() { return tr('Who checked in where and when'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/monitoring/pic-check-in', icon: MapPinCheck, get description() { return tr('Check-ins of every PIC'); } },
-    { get name() { return tr('Surveyor Check In'); }, href: '/monitoring/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Check-ins of every surveyor'); } },
   ] },
   { get title() { return tr('Product & outlet'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
     { get name() { return tr('Monitoring Product'); }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },

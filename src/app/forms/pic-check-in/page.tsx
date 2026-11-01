@@ -1,6 +1,6 @@
 "use client";
 
-// PIC Check In (Form → Visit, page form.pic-check-in): the screen is shared with the Surveyor Check In
+// PIC Check In (Form → Visit, page form.pic-check-in): the screen is shared with the Cost Control Check In
 // (src/so/features/checkin/CheckInForm.tsx).
 
 import CheckInForm from "@/so/features/checkin/CheckInForm";
