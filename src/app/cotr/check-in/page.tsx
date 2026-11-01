@@ -2,9 +2,11 @@
 
 // Monitoring COTR → Driver Check In (page cotr.check-in): the day of every COTR driver from the driver app — the shift
 // (start / end check in with photo and location, the stock on the fleet, the cash to hand over, the stock difference at
-// the end), the reloads to approve or reject for the pool, and the cost requests to approve or reject.
+// the end), the reloads to approve or reject for the pool, the cost requests to approve or reject, and where the
+// drivers are (the GPS of their phone while the shift is open, on a map).
 
 import { Camera, Check, ChevronDown, LogIn, LogOut, MapPin, PackagePlus, RefreshCw, TriangleAlert, Wallet, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Input, Page, Panel, cx, theadClass, useToast } from "@/so/ui";
 import { Segmented } from "@/so/ui/Simple";
@@ -18,11 +20,13 @@ const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString(loc
 const cups = (s: Stock) => Object.values(s ?? {}).reduce((a, v) => a + v, 0);
 const photoUrl = (kind: "check-in" | "request", id: string) => `/api/cotr/photos/${kind}/${id}`;
 const KINDS: Record<string, () => string> = { fuel: () => tr("Fuel"), ice: () => tr("Ice"), stall: () => tr("Stall rent"), repair: () => tr("Fleet repair"), parking: () => tr("Parking / levy"), other: () => tr("Other") };
+// the map reads window (Leaflet): loaded in the browser only
+const DriverMap = dynamic(() => import("@/cotr/DriverMap"), { ssr: false, loading: () => <div className="skeleton h-[480px] rounded-2xl" /> });
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 
 export default function CotrCheckInPage() {
   const [day, setDay] = useState(todayWib());
-  const [tab, setTab] = useState<"shifts" | "reloads" | "requests">("shifts");
+  const [tab, setTab] = useState<"shifts" | "location" | "reloads" | "requests">("shifts");
   const [data, setData] = useState<Monitor | null>(null);
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(async () => {
@@ -50,12 +54,13 @@ export default function CotrCheckInPage() {
       )}>
       <Segmented label={tr("Section")} value={tab} onChange={setTab} options={[
         { value: "shifts", label: tr("Shifts") },
+        { value: "location", label: tr("Location") },
         { value: "reloads", label: pendingReloads ? `${tr("Reloads")} (${pendingReloads})` : tr("Reloads") },
         { value: "requests", label: pendingRequests ? `${tr("Requests")} (${pendingRequests})` : tr("Requests") },
       ]} />
       {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? (
         <div className="skeleton h-64 rounded-2xl" />
-      ) : tab === "shifts" ? <Shifts data={data} /> : tab === "reloads" ? <Reloads data={data} onDone={load} /> : <Requests data={data} onDone={load} />}
+      ) : tab === "shifts" ? <Shifts data={data} /> : tab === "location" ? <DriverMap day={day} live={day === todayWib()} /> : tab === "reloads" ? <Reloads data={data} onDone={load} /> : <Requests data={data} onDone={load} />}
     </Page>
   );
 }

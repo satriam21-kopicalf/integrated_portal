@@ -4,12 +4,13 @@
 // sign in to the driver app with (an account of role Driver made in User Accounts, tied here).
 
 import Link from "next/link";
-import { KeyRound } from "lucide-react";
+import { FileSpreadsheet, KeyRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge, Button, Page } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { Driver, DriverAccount, Fleet, Pool } from "@/cotr/types";
 import { MasterTable, useMaster } from "@/cotr/ui";
+import ImportDrivers from "@/cotr/ImportDrivers";
 import { tr } from "@/lib/i18n";
 
 const STATUS: Record<Driver["status"], { label: () => string; tone: "green" | "amber" | "slate" }> = {
@@ -23,11 +24,16 @@ export default function CotrDriversPage() {
   const pools = useMaster<Pool>("pools");
   const fleet = useMaster<Fleet>("fleet");
   const [accounts, setAccounts] = useState<DriverAccount[]>([]);
+  const [importing, setImporting] = useState(false);
   useEffect(() => { call<DriverAccount[]>("/api/cotr/driver-accounts").then(setAccounts).catch(() => setAccounts([])); }, [master.rows]);
   const poolName = (code: string) => pools.rows?.find((p) => p.code === code)?.name ?? code;
   return (
     <Page title={tr("Master Driver")} subtitle={tr("COTR drivers, their pool and fleet")}
-      actions={<Link href="/users"><Button variant="secondary"><KeyRound size={16} /> {tr("Driver accounts")}</Button></Link>}>
+      actions={<>
+        <Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import Excel")}</Button>
+        <Link href="/users"><Button variant="secondary"><KeyRound size={16} /> {tr("Driver accounts")}</Button></Link>
+      </>}>
+      {importing && <ImportDrivers pools={pools.rows ?? []} onClose={() => setImporting(false)} onDone={() => { void master.load(); void fleet.load(); }} />}
       <MasterTable noun={tr("driver")} title={tr("Drivers")} master={master}
         description={tr("Driver logins are made in User Accounts (role Driver (COTR)); pick the account here to tie it to the driver.")}
         blank={(): Partial<Driver> => ({ code: `DRV-${String((master.rows?.length ?? 0) + 1).padStart(3, "0")}`, name: "", phone: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", fleet_code: null, status: "active", joined_on: new Date().toISOString().slice(0, 10), user_id: null })}
