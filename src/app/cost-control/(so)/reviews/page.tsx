@@ -6,13 +6,11 @@
 // progress, or the approved ones only; it follows the period and the count type filter.
 
 import LocationBadges from "@/so/features/count/LocationBadges";
-import { AlertTriangle, ChevronRight, ClipboardCheck, FileSpreadsheet, Loader2, RotateCcw } from "lucide-react";
-import Image from "next/image";
+import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCheck, Clock, Layers, RotateCcw, Send } from "lucide-react";
+import ExcelExportMenu from "@/components/ExcelExportMenu";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
-import { assetUrl } from "@/lib/assets";
-import { useClickOutside } from "@/lib/useClickOutside";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, PeriodField, Period, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
@@ -37,10 +35,6 @@ export default function ReviewsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  useClickOutside(menuRef, () => setExporting(false), exporting);
 
   // every status of the period: the figures count all of them, the status filter only narrows the list
   const load = useCallback(async () => {
@@ -67,7 +61,6 @@ export default function ReviewsPage() {
 
   // every branch of the period in one file, one sheet per branch; `status` = which counts (REPORT_STATUSES of the platform)
   const download = async (status: ExportKind) => {
-    setDownloading(true);
     try {
       const qs = new URLSearchParams({ date_from: f.period.from, date_to: f.period.to, status, per_branch: "true", ...(f.type ? { count_type: f.type } : {}) });
       const res = await fetch(`/api/so/count-reports/file?${qs}`, { credentials: "same-origin" });
@@ -78,11 +71,8 @@ export default function ReviewsPage() {
       const href = URL.createObjectURL(await res.blob());
       Object.assign(document.createElement("a"), { href, download: `Stock Opname ${EXPORT_FILE[status]} ${f.period.from} - ${f.period.to}.xlsx` }).click();
       URL.revokeObjectURL(href);
-      setExporting(false);
     } catch (e) {
       toast(errorText(e), "error");
-    } finally {
-      setDownloading(false);
     }
   };
   const exportCount: Record<ExportKind, number> = {
@@ -105,35 +95,9 @@ export default function ReviewsPage() {
   return (
     <Page title={tr("Review Stock Opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("approve submitted counts or ask for a recount")}`}
       actions={
-        <div className="relative" ref={menuRef}>
-          <button type="button" onClick={() => setExporting(!exporting)} disabled={downloading} aria-expanded={exporting} aria-haspopup="menu"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-            title={downloading ? tr("Export in progress") : tr("Export to Excel")} aria-label={tr("Export")}>
-            {downloading ? <Loader2 size={18} className="animate-spin text-slate-600" />
-              : <span className="relative h-6 w-6"><Image src={assetUrl("assets/xlsx.png")} alt="" fill sizes="24px" className="object-contain" /></span>}
-          </button>
-          {exporting && (
-            <div role="menu" className="absolute left-0 top-full z-50 mt-2 w-[min(21rem,calc(100vw-2rem))] sm:left-auto sm:right-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl">
-              <div className="p-1.5">
-                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Export to")} Excel</p>
-                {EXPORT_KINDS.map((k) => (
-                  <button key={k} type="button" role="menuitem" disabled={exportCount[k] === 0} onClick={() => void download(k)}
-                    className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent">
-                    <FileSpreadsheet size={18} className="mt-0.5 flex-shrink-0 text-slate-400" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium text-slate-800">{EXPORT_LABEL[k]()}</span>
-                      <span className="block text-xs text-slate-500">{EXPORT_HINT[k]()}</span>
-                    </span>
-                    <span className="mt-0.5 flex-shrink-0 text-xs font-semibold tabular-nums text-slate-500">{fmtNumber(exportCount[k])}</span>
-                  </button>
-                ))}
-                <p className="border-t border-slate-100 px-2.5 pb-1 pt-2 text-[11px] text-slate-400">
-                  {f.type ? `${countTypeLabel(f.type)} · ` : ""}{tr("every branch, one sheet per branch")} · {dmy(f.period.from)} – {dmy(f.period.to)}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+        <ExcelExportMenu choices={EXPORT_KINDS.map((k) => ({ key: k, label: EXPORT_LABEL[k](), hint: EXPORT_HINT[k](), icon: EXPORT_ICON[k],
+          tone: EXPORT_TONE[k], count: exportCount[k], run: () => download(k) }))}
+          footer={<>{f.type ? `${countTypeLabel(f.type)} · ` : ""}{tr("every branch, one sheet per branch")} · {dmy(f.period.from)} – {dmy(f.period.to)}</>} />
       }
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
@@ -278,5 +242,12 @@ const EXPORT_HINT: Record<ExportKind, () => string> = {
   SUBMITTED: () => tr("Counts submitted and not reviewed yet"),
   ALL: () => tr("Also the counts still being entered (quantities so far)"),
   REVIEWED: () => tr("Approved and exported counts, as in Report Stock Opname"),
+};
+const EXPORT_ICON: Record<ExportKind, React.ReactNode> = {
+  ENTERED: <Send size={16} />, SUBMITTED: <Clock size={16} />, ALL: <Layers size={16} />, REVIEWED: <CheckCircle2 size={16} />,
+};
+const EXPORT_TONE: Record<ExportKind, string> = {
+  ENTERED: "bg-blue-50 text-blue-600", SUBMITTED: "bg-amber-50 text-amber-600", ALL: "bg-slate-100 text-slate-600",
+  REVIEWED: "bg-emerald-50 text-emerald-600",
 };
 const EXPORT_FILE: Record<ExportKind, string> = { ENTERED: "Entered", SUBMITTED: "Waiting Review", ALL: "All", REVIEWED: "Approved" };

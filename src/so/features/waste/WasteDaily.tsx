@@ -4,9 +4,9 @@
 // branch reports its waste each day (an entry or "no waste today"); the branches not reported on the last day of the
 // period, and per branch a cell per day. Usage Management: the quantities the branches filled for the period.
 
-import { AlertTriangle, CheckCircle2, Download } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Button, Empty, ErrorState, SkeletonRows, cx, fmtNumber, theadClass } from "@/so/ui";
+import { Empty, ErrorState, SkeletonRows, cx, fmtNumber, theadClass } from "@/so/ui";
 import { type Period, dmy } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
@@ -90,21 +90,10 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
   }, [data, search]);
   if (error) return <ErrorState message={error} onRetry={retry} />;
   if (!data) return <SkeletonRows cols={5} />;
-  const exportCsv = () => {
-    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const lines = rows.map((r) => [r.businessDate, r.branchName, r.itemCode, r.itemName, r.qty, r.unit, r.by, wibDateTime(r.updatedAt)].map(esc).join(","));
-    const blob = new Blob(["﻿" + ["Tanggal,Cabang,Kode,Item,Qty,Satuan,Diisi oleh,Waktu", ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `usage_management_${period.from}_${period.to}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
   return (
     <div>
       <div className="flex flex-col gap-2 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <input className="h-9 rounded-lg border border-slate-200 px-3 text-sm sm:max-w-xs" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search item or branch")} />
-        <Button variant="secondary" size="sm" onClick={exportCsv} disabled={!rows.length}><Download size={14} />{tr("Export")}</Button>
       </div>
       {!rows.length ? <Empty title={tr("No Usage Management list filled in this period")} /> : (
         <div className="overflow-x-auto">

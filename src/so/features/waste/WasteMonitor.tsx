@@ -3,10 +3,12 @@
 // Waste monitor (page cc.waste-monitor) and review (page cc.waste-review) of Cost Control (integrated_portal_be
 // app/waste.py): the waste every branch entered in a period, filtered by branch, type, category and status; totals per
 // item, branch and category; each entry with its photo, note and author. In review mode the entries waiting for review
-// are ticked and approved or rejected (with a note), one by one or many at once. Export: CSV of the filtered entries.
+// are ticked and approved or rejected (with a note), one by one or many at once. Export: Excel (entries, per item, daily report, Usage Management) from the Excel icon.
 // Daily report: the branches that reported their waste each day; Usage Management: the daily lists (WasteDaily.tsx).
 
-import { CheckCircle2, Download, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
+import { CalendarCheck, CheckCircle2, ClipboardList, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
+import ExcelExportMenu from "@/components/ExcelExportMenu";
+import { downloadXlsx } from "@/lib/xlsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -19,7 +21,7 @@ import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { DailyReport, UsageReport } from "./WasteDaily";
-import { type Entry, type MonitorData, type Scope, type Status, SCOPES, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
+import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, SCOPES, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
 
 type View = "entries" | "items" | "branches" | "categories" | "daily" | "usage";
 type BranchOpt = { branch_code: string; branch_name: string };
@@ -83,25 +85,44 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
     }
   };
 
-  const exportCsv = () => {
-    const head = ["Tanggal", "Cabang", "Jenis", "Kode", "Item", "Qty", "Satuan", "Kategori", "Production date", "Expired date", "Catatan", "Status", "Diinput oleh", "Waktu input", "Catatan review"];
-    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const lines = rows.map((e) => [e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category, e.productionDate, e.expiredDate, e.note,
-      statusLabel(e.status), e.name, wibDateTime(e.createdAt), e.review?.note].map(esc).join(","));
-    const blob = new Blob(["﻿" + [head.join(","), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `waste_${period.from}_${period.to}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  // Excel (POST /api/xlsx): the filtered entries, the totals per item, the daily report and the Usage Management lists
+  const file = (what: string) => `${what} ${period.from} - ${period.to}`;
+  const exportEntries = () => downloadXlsx({ fileName: file("Waste"), sheet: "Waste", title: `Waste ${dmy(period.from)} – ${dmy(period.to)}`,
+    header: ["Tanggal", "Cabang", "Jenis", "Kode", "Item", "Qty", "Satuan", "Kategori", "Production date", "Expired date", "Catatan", "Status",
+      "Diinput oleh", "Waktu input", "Catatan review", "Foto"],
+    rows: rows.map((e) => [e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category,
+      e.productionDate, e.expiredDate, e.note, statusLabel(e.status), e.name, wibDateTime(e.createdAt), e.review?.note,
+      `${location.origin}${photoUrl(e.id)}`]) });
+  const exportItems = () => downloadXlsx({ fileName: file("Waste per item"), sheet: "Per item", title: `Waste per item ${dmy(period.from)} – ${dmy(period.to)}`,
+    header: ["Jenis", "Kode", "Item", "Qty", "Satuan", "Entri", "Cabang"],
+    rows: (res?.byItem ?? []).map((i) => [scopeLabel(i.scope), i.code, i.name, i.qty, i.unit, i.entries, i.branches]) });
+  const q = () => new URLSearchParams({ dateFrom: period.from, dateTo: period.to, ...(branch ? { branch } : {}) });
+  const exportDaily = async () => {
+    const d = await call<DailyData>(`/api/waste/daily?${q()}`);
+    const mark = (c: DailyData["branches"][number]["days"][number]) => (c.entries ? c.entries : c.noWaste ? "Tidak ada waste" : "Belum lapor");
+    await downloadXlsx({ fileName: file("Laporan waste harian"), sheet: "Laporan harian", title: `Laporan waste harian ${dmy(period.from)} – ${dmy(period.to)}`,
+      header: ["Cabang", "Kode", "Hari lapor", "Hari belum lapor", "Hari daftar usage", ...d.dates.map(dmy)],
+      rows: d.branches.map((b) => [b.name, b.code, b.reported, b.missing, b.usageDays, ...b.days.map(mark)]) });
   };
+  const exportUsage = async () => {
+    const u = await call<{ data: UsageRow[] }>(`/api/waste/usage?${q()}`);
+    await downloadXlsx({ fileName: file("Usage Management"), sheet: "Usage Management", title: `Usage Management ${dmy(period.from)} – ${dmy(period.to)}`,
+      header: ["Tanggal", "Cabang", "Kode", "Item", "Qty", "Satuan", "Diisi oleh", "Waktu"],
+      rows: u.data.map((r) => [r.businessDate, r.branchName, r.itemCode, r.itemName, r.qty, r.unit, r.by, wibDateTime(r.updatedAt)]) });
+  };
+  const safe = (f: () => Promise<void>) => async () => { try { await f(); } catch (e) { toast((e as Error).message, "error"); } };
 
   const toggle = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   return (
     <Page title={review ? tr("Waste review") : tr("Waste monitor")}
       subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${review ? tr("approve or reject the waste of the branches") : tr("Waste entered by every branch")}`}
-      actions={<Button variant="secondary" size="sm" onClick={exportCsv} disabled={!rows.length}><Download size={14} />{tr("Export")}</Button>}
+      actions={<ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
+        { key: "entries", label: tr("Waste entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-blue-50 text-blue-600", count: res ? rows.length : null, run: safe(exportEntries) },
+        { key: "items", label: tr("Totals per item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
+        { key: "daily", label: tr("Daily report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
+        { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
+      ]} />}
       stats={
         <StatStrip label={tr("Summary")} columns={5}>
           <Stat label={tr("Entries")} emphasis icon={<Trash2 size={13} />} value={sm ? fmtNumber(sm.entries) : <StatSkeleton />}>

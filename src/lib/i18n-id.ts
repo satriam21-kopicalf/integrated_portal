@@ -3902,4 +3902,10 @@ export const ID: Record<string, string> = {
   "Check In": "Check In",
   "Outlet visits of the Cost Control team": "Kunjungan tim Cost Control ke outlet",
   "Check-ins of every Cost Control surveyor": "Check in semua surveyor Cost Control",
+  "Waste entries": "Entri waste",
+  "Every entry with category, dates, note, status and photo link (filters applied)": "Setiap entri dengan kategori, tanggal, catatan, status dan link foto (sesuai filter)",
+  "Totals per item": "Total per item",
+  "Quantity per SKU, without rejected entries": "Qty per SKU, tanpa entri yang ditolak",
+  "Per branch and day: waste entries, no waste or not reported": "Per cabang dan hari: entri waste, tidak ada waste atau belum lapor",
+  "The daily usage lists of the branches": "Daftar usage harian cabang",
 };
