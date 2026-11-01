@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { Bike, SlidersHorizontal } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
 import { Branch, branchesLabel } from '@/components/BranchFilter';
@@ -39,6 +39,9 @@ interface Filters {
   cmpTo: string;
 }
 
+const COTR = 'COTR';
+const EXTRA_TABS = [{ code: COTR, get name() { return 'Calf On The Road'; } }];
+
 const EMPTY: Filters = { from: '', to: '', branch: '', channels: [], cmp: 'auto', cmpFrom: '', cmpTo: '' };
 const CMP_MODES: CompareMode[] = ['auto', 'month', 'year', 'custom'];
 
@@ -75,7 +78,10 @@ export default function OverviewPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   // the brand of the view (Kopi Calf | Wasgee Tea): every figure of the page is of that brand only (lib/company.tsx)
-  const { company } = useCompany();
+  const { company, setCompany } = useCompany();
+  // Calf On The Road: a tab of its own (not an ESB company yet), empty until its sales exist (prototype 2026-11-01)
+  const [cotr, setCotr] = useState(false);
+  const pickTab = (code: string) => { if (code === COTR) { setCotr(true); return; } setCotr(false); setCompany(code); };
   const meta = useOverview<MetaResponse>('meta', `company=${company}`);
 
   // filters live in the URL so a view can be shared
@@ -131,8 +137,9 @@ export default function OverviewPage() {
               <h1 className="text-[22px] font-bold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Dashboard')}</h1>
               <p className="text-xs text-slate-500 sm:text-sm">{tr('Sales Analytics')}</p>
             </div>
-            <CompanySwitch className="order-last w-full sm:order-none sm:w-auto" />
-            <div className="ml-auto flex items-center gap-2">
+            <CompanySwitch className="order-last w-full sm:order-none sm:w-auto" extra={EXTRA_TABS}
+              value={cotr ? COTR : company} onChange={pickTab} />
+            {!cotr && <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
                 className={`inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
                   activeCount ? 'text-blue-700 hover:bg-blue-50' : 'text-slate-700 hover:bg-slate-100'}`}>
@@ -140,11 +147,11 @@ export default function OverviewPage() {
                 {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
               </button>
               <RealtimeIndicator className="h-10" />
-            </div>
+            </div>}
           </div>
         </header>
 
-        {filters && <OverviewContent filters={filters} branches={branches} company={company} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
+        {cotr ? <CotrEmpty /> : filters && <OverviewContent filters={filters} branches={branches} company={company} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
       </div>
       {filtersOpen && (
         <OverviewFilterDrawer value={f} branches={branches} channels={(meta.data?.channels ?? []).map(c => c.channel)}
@@ -152,6 +159,19 @@ export default function OverviewPage() {
           onApply={v => { update(v); setFiltersOpen(false); }} />
       )}
     </DashboardLayout>
+  );
+}
+
+/** The Calf On The Road tab: empty for now (no sales of the drivers yet). */
+function CotrEmpty() {
+  return (
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col items-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center">
+        <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400"><Bike size={24} /></span>
+        <p className="text-sm font-semibold text-slate-800">Calf On The Road</p>
+        <p className="mt-1 max-w-sm text-sm text-slate-500">{tr('The dashboard of the COTR drivers appears here once their sales are recorded.')}</p>
+      </div>
+    </div>
   );
 }
 

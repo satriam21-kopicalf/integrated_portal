@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, Wallet, X, UserRoundCheck } from 'lucide-react';
+  Activity, BarChart3, Bike, Building2, CookingPot, Coffee, Truck, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, Wallet, X, UserRoundCheck } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
 import { BRAND_LINE } from '@/components/BrandWatermark';
@@ -94,6 +94,22 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
   ] },
 ];
 
+/** "Monitoring COTR" menu: Calf On The Road, configured by the COTR team (pages cotr.*, prototype 2026-11-01). */
+const cotr: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Drivers on the road'); }, get hint() { return tr('Check-ins of the drivers from the COTR app'); }, icon: MapPinCheck, items: [
+    { get name() { return tr('Driver Check In'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Start, reload & end of shift'); } },
+  ] },
+  { get title() { return tr('Master data'); }, get hint() { return tr('Drivers, fleet, pools and menus'); }, icon: Boxes, items: [
+    { get name() { return tr('Master Driver'); }, href: '/cotr/drivers', icon: Bike, get description() { return tr('Drivers, pool & fleet'); } },
+    { get name() { return tr('Master Fleet'); }, href: '/cotr/fleet', icon: Truck, get description() { return tr('Motorbikes, carts & bicycles'); } },
+    { get name() { return tr('Master Pool / HUB'); }, href: '/cotr/pools', icon: Building2, get description() { return tr('Main HUB, parent pools & storage'); } },
+    { get name() { return tr('Master Menu'); }, href: '/cotr/menu', icon: Coffee, get description() { return tr('Menus, prices & recipes'); } },
+  ] },
+  { get title() { return tr('Production'); }, get hint() { return tr('What the HUB makes for the drivers'); }, icon: CookingPot, items: [
+    { get name() { return tr('Storage & Production'); }, href: '/cotr/production', icon: CookingPot, get description() { return tr('Menu list, BOM, production plan & waste'); } },
+  ] },
+];
+
 /** "Management" menu: super admins only (the pages and the API check the role too). */
 const management: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Accounts & access'); }, get hint() { return tr('Who signs in and what they open'); }, icon: Users, items: [
@@ -118,7 +134,7 @@ const rating: { title: string; hint: string; icon: typeof Users; items: CcItem[]
 
 /** The pop-up menus of the sidebar (same design): which pages, header and footer. */
 type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
-const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'management', PopupConfig & { sections: typeof costControl }> = {
+const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'rating' | 'management', PopupConfig & { sections: typeof costControl }> = {
   forms: {
     get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet, maintenance & fund requests'); }, get title() { return tr('Form'); },
     get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
@@ -134,6 +150,12 @@ const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'rating' | 'manage
     get label() { return tr('Monitoring'); }, get idle() { return tr('Check ins, outlets, products & maintenance'); }, get title() { return tr('Monitoring'); },
     get subtitle() { return tr('What the outlets and PICs filled in'); }, get footer() { return tr('All times in WIB · from the forms of the outlets'); },
     icon: Gauge, sections: monitoring,
+  },
+  cotr: {
+    get label() { return tr('Monitoring COTR'); }, get idle() { return tr('Drivers, fleet, pools, menus & production'); }, get title() { return tr('Monitoring COTR'); },
+    get subtitle() { return tr('Calf On The Road: drivers on the road and what the HUB produces'); },
+    get footer() { return tr('Prototype · sample data'); },
+    icon: Bike, sections: cotr,
   },
   rating: {
     get label() { return tr('Aggregator'); }, get idle() { return tr('Google Maps & delivery apps'); }, get title() { return tr('Aggregator'); },
@@ -275,7 +297,7 @@ function SidebarContent({
   const visible = (list: typeof costControl) => list
     .map(s => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter(i => user && canAccess(user, i.href)) }))
     .filter(s => s.items.length);
-  const popups = (['forms', 'costControl', 'monitoring', 'rating', 'management'] as const)
+  const popups = (['forms', 'costControl', 'monitoring', 'cotr', 'rating', 'management'] as const)
     .map(key => ({ key, config: POPUPS[key], sections: visible(POPUPS[key].sections) }))
     .filter(p => p.sections.length);
   return (

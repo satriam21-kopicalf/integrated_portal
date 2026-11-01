@@ -11,7 +11,8 @@ export type PageKey =
   | 'mon.pengajuan'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
-  | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs';
+  | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs'
+  | 'cotr.check-in' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production';
 
 /** How the page shows in the menu: 'header' = icon in the header (not the sidebar), 'hidden' = no menu entry for now
  * (opened by URL; user decision 2026-10-17), 'soon' = menu entry marked Soon, 'building' = skeleton screen only. */
@@ -59,6 +60,13 @@ export const PAGES: PageInfo[] = [
   { key: 'rating.shopeefood', href: '/rating/shopeefood', get label() { return tr('ShopeeFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
   { key: 'rating.gofood', href: '/rating/gofood', get label() { return tr('GoFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
   { key: 'rating.grabfood', href: '/rating/grabfood', get label() { return tr('GrabFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
+  // Calf On The Road (prototype 2026-11-01, sample data): configured by the COTR team
+  { key: 'cotr.check-in', href: '/cotr/check-in', get label() { return tr('Driver Check In'); }, get group() { return tr('Monitoring COTR'); } },
+  { key: 'cotr.drivers', href: '/cotr/drivers', get label() { return tr('Master Driver'); }, get group() { return tr('Monitoring COTR'); } },
+  { key: 'cotr.fleet', href: '/cotr/fleet', get label() { return tr('Master Fleet'); }, get group() { return tr('Monitoring COTR'); } },
+  { key: 'cotr.pools', href: '/cotr/pools', get label() { return tr('Master Pool / HUB'); }, get group() { return tr('Monitoring COTR'); } },
+  { key: 'cotr.menu', href: '/cotr/menu', get label() { return tr('Master Menu'); }, get group() { return tr('Monitoring COTR'); } },
+  { key: 'cotr.production', href: '/cotr/production', get label() { return tr('Storage & Production'); }, get group() { return tr('Monitoring COTR'); } },
 ];
 
 /** The page a path belongs to ('superadmin' for User Accounts & Activity Logs, null for an unknown path). */

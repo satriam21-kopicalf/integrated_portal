@@ -83,16 +83,22 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 
 export const useCompany = () => useContext(CompanyContext);
 
-/** The brand switch of the sales pages (Kopi Calf | Wasgee Tea); nothing when the user sees one brand only. */
-export function CompanySwitch({ className = '' }: { className?: string }) {
+/** The brand switch of the sales pages (Kopi Calf | Wasgee Tea); nothing when the user sees one brand only. `extra`
+ *  adds tabs that are not ESB companies (Calf On The Road on the Dashboard, 2026-11-01): the page handles them through
+ *  `value` / `onChange`. */
+export function CompanySwitch({ className = '', extra = [], value, onChange }: {
+  className?: string; extra?: { code: string; name: string }[]; value?: string; onChange?: (code: string) => void;
+}) {
   const { companies, company, setCompany } = useCompany();
-  if (companies.length < 2) return null;
+  const tabs = [...companies, ...extra];
+  if (tabs.length < 2) return null;
+  const shown = value ?? company;
   return (
     <div role="radiogroup" aria-label="Brand" className={`inline-flex rounded-xl bg-slate-100 p-1 ${className}`}>
-      {companies.map(c => {
-        const on = c.code === company;
+      {tabs.map(c => {
+        const on = c.code === shown;
         return (
-          <button key={c.code} type="button" role="radio" aria-checked={on} onClick={() => setCompany(c.code)}
+          <button key={c.code} type="button" role="radio" aria-checked={on} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors sm:text-sm ${
               on ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>
             {c.name}
