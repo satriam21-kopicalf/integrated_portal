@@ -407,7 +407,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
       }>
       <div className="space-y-6">
         <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: tr('All roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User (PIC)') }, { value: 'outlet', label: tr('Outlet / Hub') },
+          { value: '', label: tr('All roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User (PIC)') }, { value: 'outlet', label: tr('Outlet / Hub') }, { value: 'driver', label: tr('Driver (COTR)') },
         ]} />
         <ChoiceGroup label={tr('Status')} value={draft.status} onChange={set('status')} choices={[
           { value: '', label: tr('All') }, { value: 'active', label: tr('Active') }, { value: 'inactive', label: tr('Inactive') },
@@ -429,7 +429,7 @@ function Avatar({ user }: { user: AuthUser }) {
 
 function RoleBadge({ role }: { role: Role }) {
   const superadmin = role === 'superadmin';
-  const tone = superadmin ? 'bg-red-50 text-red-700' : role === 'cost_control' ? 'bg-amber-50 text-amber-800' : role === 'outlet' ? 'bg-teal-50 text-teal-700' : 'bg-blue-50 text-blue-700';
+  const tone = superadmin ? 'bg-red-50 text-red-700' : role === 'cost_control' ? 'bg-amber-50 text-amber-800' : role === 'outlet' ? 'bg-teal-50 text-teal-700' : role === 'driver' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700';
   return (
     <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}`}>
       {superadmin && <ShieldCheck size={12} />}{ROLE_LABELS[role] ?? role}
@@ -664,10 +664,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : tr('Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches')}>
+            <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : tr('Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches')}>
               <select id="f-role" className={inputClass} value={form.role} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
                 <option value="user">{tr('User (PIC)')}</option>
                 <option value="outlet">{tr('Outlet / Hub')}</option>
+                <option value="driver">{tr('Driver (COTR)')}</option>
                 <option value="cost_control">{tr('Cost Control')}</option>
                 <option value="superadmin">{tr('Super Admin')}</option>
               </select>
@@ -681,10 +682,12 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
           </div>
         </DrawerSection>
 
-        <DrawerSection title={tr('Page access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
-          <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} />
-          {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
-        </DrawerSection>
+        {form.role !== 'driver' && (
+          <DrawerSection title={tr('Page access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
+            <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} />
+            {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
+          </DrawerSection>
+        )}
 
         {branchScoped(form.role) ? (
           <DrawerSection title={tr('Branch access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User (PIC) and Outlet / Hub.')}>
@@ -693,7 +696,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
           </DrawerSection>
         ) : (
           <p className="mt-6 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
-            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {tr('Super admins see every branch.')}
+            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {form.role === 'driver' ? tr('Drivers have no branches: their pool and fleet are set in Master Driver.') : tr('Super admins see every branch.')}
           </p>
         )}
 

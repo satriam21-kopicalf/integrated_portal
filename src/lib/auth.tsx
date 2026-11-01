@@ -13,7 +13,7 @@ import { tr } from './i18n';
 import { CC_PAGES, PageKey, PAGES, pageOf } from './pages';
 
 /** outlet = the shared outlet / HUB CK / HUB WH accounts (2026-10-28): branch scoped like user */
-export type Role = 'superadmin' | 'cost_control' | 'user' | 'outlet';
+export type Role = 'superadmin' | 'cost_control' | 'user' | 'outlet' | 'driver'; // driver: Calf On The Road app only
 export type Gender = 'male' | 'female';
 
 export interface AuthUser {
@@ -93,6 +93,7 @@ export function operationsOnly(role: Role, pages: PageKey[]): boolean {
 }
 export const ROLE_LABELS: Record<Role, string> = {
   get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User (PIC)'); }, get outlet() { return tr('Outlet / Hub'); },
+  get driver() { return tr('Driver (COTR)'); },
 };
 export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('Male'); }, get female() { return tr('Female'); } };
 
