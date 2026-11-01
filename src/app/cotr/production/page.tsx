@@ -10,7 +10,7 @@ import { Badge, Button, Field, Input, Page, Panel, Select, theadClass } from "@/
 import { Segmented } from "@/so/ui/Simple";
 import { BOMS, Bom, MENUS, POOLS, SALES, WASTE, Waste, poolName } from "@/cotr/mock";
 import { MasterTable, PrototypeNote, newId, useLocalList } from "@/cotr/ui";
-import { tr } from "@/lib/i18n";
+import { locale, tr } from "@/lib/i18n";
 
 type Tab = "menu" | "bom" | "plan" | "waste";
 
@@ -162,7 +162,7 @@ function Plan({ boms }: { boms: Bom[] }) {
             {materials.map(([item, v]) => (
               <tr key={item}>
                 <td className="px-4 py-2.5"><span className="inline-flex items-center gap-2"><ListTree size={14} className="text-slate-400" />{item}</span></td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{Math.ceil(v.qty).toLocaleString("id-ID")} {v.unit}</td>
+                <td className="px-4 py-2.5 text-right tabular-nums">{Math.ceil(v.qty).toLocaleString(locale())} {v.unit}</td>
               </tr>
             ))}
           </tbody>

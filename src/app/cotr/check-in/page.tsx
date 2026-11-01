@@ -10,7 +10,7 @@ import { Segmented } from "@/so/ui/Simple";
 import { Stat, StatStrip } from "@/so/ui/StatStrip";
 import { CHECK_INS, DRIVERS, CheckIn, driverName, poolName } from "@/cotr/mock";
 import { PrototypeNote } from "@/cotr/ui";
-import { tr } from "@/lib/i18n";
+import { locale, tr } from "@/lib/i18n";
 
 const KIND: Record<CheckIn["kind"], { label: () => string; tone: "blue" | "violet" | "slate"; icon: typeof LogIn }> = {
   start: { label: () => tr("Start of shift"), tone: "blue", icon: LogIn },
@@ -18,7 +18,7 @@ const KIND: Record<CheckIn["kind"], { label: () => string; tone: "blue" | "viole
   end: { label: () => tr("End of shift"), tone: "slate", icon: LogOut },
 };
 
-const time = (iso: string) => new Date(iso).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
+const time = (iso: string) => new Date(iso).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
 
 export default function CotrCheckInPage() {
   const [kind, setKind] = useState<"all" | CheckIn["kind"]>("all");
