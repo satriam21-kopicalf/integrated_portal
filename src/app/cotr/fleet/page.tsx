@@ -22,7 +22,7 @@ export default function CotrFleetPage() {
           { label: tr("Fleet"), render: (f) => <><span className="block font-medium text-slate-900">{f.code}</span><span className="text-[11px] text-slate-400">{TYPE[f.type]()}{f.plate ? ` · ${f.plate}` : ""}</span></> },
           { label: tr("Pool / HUB"), render: (f) => pools.rows?.find((p) => p.code === f.pool_code)?.name ?? f.pool_code },
           { label: tr("Driver"), render: (f) => drivers.rows?.find((d) => d.fleet_code === f.code)?.name ?? <span className="text-slate-400">—</span> },
-          { label: tr("Capacity"), className: "text-right", render: (f) => <span className="tabular-nums">{f.capacity} {tr("cups")}</span> },
+          { label: tr("Capacity"), className: "text-right", render: (f) => <span className="tabular-nums">{f.capacity ? `${f.capacity} ${tr("cups")}` : "—"}</span> },
           { label: tr("Condition"), render: (f) => f.condition === "good" ? <Badge tone="green" dot>{tr("Good")}</Badge> : <Badge tone="amber" dot>{tr("In service")}</Badge> },
           { label: tr("Last service"), render: (f) => f.last_service ?? "—" },
         ]}

@@ -17,7 +17,7 @@ import { locale, tr } from "@/lib/i18n";
 const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
 const cups = (s: Stock) => Object.values(s ?? {}).reduce((a, v) => a + v, 0);
 const photoUrl = (kind: "check-in" | "request", id: string) => `/api/cotr/photos/${kind}/${id}`;
-const KINDS: Record<string, () => string> = { fuel: () => tr("Fuel"), ice: () => tr("Ice"), repair: () => tr("Fleet repair"), parking: () => tr("Parking / levy"), other: () => tr("Other") };
+const KINDS: Record<string, () => string> = { fuel: () => tr("Fuel"), ice: () => tr("Ice"), stall: () => tr("Stall rent"), repair: () => tr("Fleet repair"), parking: () => tr("Parking / levy"), other: () => tr("Other") };
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 
 export default function CotrCheckInPage() {
@@ -32,7 +32,6 @@ export default function CotrCheckInPage() {
   useEffect(() => { void load(); }, [load]);
   const pendingReloads = data?.reloads.filter((r) => r.status === "requested").length ?? 0;
   const pendingRequests = data?.requests.filter((r) => r.status === "sent").length ?? 0;
-  const issues = data?.shifts.filter((s) => s.recap.difference && Object.keys(s.recap.difference).length).length ?? 0;
 
   return (
     <Page title={tr("Driver Check In")} subtitle={tr("Shifts, reloads and requests of every COTR driver")}
@@ -44,9 +43,9 @@ export default function CotrCheckInPage() {
         <StatStrip label={tr("Summary")} columns={5}>
           <Stat label={tr("Drivers checked in")} icon={<LogIn size={16} />} value={`${data.shifts.length} / ${data.shifts.length + data.notStarted.length}`} />
           <Stat label={tr("Cups sold")} icon={<Check size={16} />} value={data.shifts.reduce((a, s) => a + s.recap.cups, 0)} />
-          <Stat label={tr("Cash to hand over")} icon={<Wallet size={16} />} value={rupiah(data.shifts.reduce((a, s) => a + s.recap.cash, 0))} />
+          <Stat label={tr("Cash to hand over")} icon={<Wallet size={16} />} value={rupiah(data.shifts.reduce((a, s) => a + s.recap.cashExpected, 0))} />
           <Stat label={tr("To decide")} icon={<PackagePlus size={16} />} value={pendingReloads + pendingRequests} />
-          <Stat label={tr("Stock differences")} icon={<TriangleAlert size={16} />} value={issues} />
+          <Stat label={tr("Cash short")} icon={<TriangleAlert size={16} />} value={rupiah(data.shifts.reduce((a, s) => a + Math.min(0, s.recap.balance ?? 0), 0))} />
         </StatStrip>
       )}>
       <Segmented label={tr("Section")} value={tab} onChange={setTab} options={[
@@ -74,7 +73,7 @@ function Shifts({ data }: { data: Monitor }) {
                   <th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-4 py-2.5">{tr("Pool / fleet")}</th>
                   <th className="px-4 py-2.5">{tr("Start")}</th><th className="px-4 py-2.5">{tr("End")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Sold")}</th><th className="px-4 py-2.5 text-right">{tr("On the fleet")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Cash")}</th><th className="px-4 py-2.5 text-right">{tr("QRIS")}</th>
+                  <th className="px-4 py-2.5 text-right">{tr("Cash")}</th><th className="px-4 py-2.5 text-right">{tr("QRIS")}</th><th className="px-4 py-2.5 text-right">{tr("Balance")}</th>
                   <th className="px-4 py-2.5">{tr("Check")}</th><th className="w-10" />
                 </tr>
               </thead>
@@ -92,13 +91,16 @@ function Shifts({ data }: { data: Monitor }) {
                         <td className="px-4 py-2.5 text-right tabular-nums">{s.status === "open" ? cups(s.stock) : "—"}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(s.recap.cash)}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(s.recap.qris)}</td>
+                        <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", (s.recap.balance ?? 0) < 0 ? "text-red-600" : (s.recap.balance ?? 0) > 0 ? "text-amber-700" : "text-slate-500")}>
+                          {s.recap.balance === null ? "—" : rupiah(s.recap.balance)}
+                        </td>
                         <td className="px-4 py-2.5">
                           {diff ? <Badge tone="red" icon={<TriangleAlert size={11} />}>{tr("Stock difference")}</Badge>
                             : s.recap.voided ? <Badge tone="amber">{tr("{0} voided", s.recap.voided)}</Badge> : <Badge tone="slate">OK</Badge>}
                         </td>
                         <td className="px-2"><ChevronDown size={16} className={cx("text-slate-400 transition-transform", open === s.id && "rotate-180")} /></td>
                       </tr>
-                      {open === s.id && <tr><td colSpan={10} className="bg-slate-50/60 px-4 py-4"><ShiftDetail s={s} /></td></tr>}
+                      {open === s.id && <tr><td colSpan={11} className="bg-slate-50/60 px-4 py-4"><ShiftDetail s={s} /></td></tr>}
                     </Fragment>
                   );
                 })}
@@ -147,6 +149,13 @@ function ShiftDetail({ s }: { s: Shift }) {
         <ul className="mt-2 space-y-1 text-xs text-slate-600">
           {s.recap.perMenu.map((m) => <li key={m.code} className="flex justify-between"><span>{m.name} × {m.qty}</span><span className="tabular-nums">{rupiah(m.total)}</span></li>)}
           <li className="flex justify-between border-t border-slate-100 pt-1 font-semibold text-slate-900"><span>{tr("Total")}</span><span className="tabular-nums">{rupiah(s.recap.total)}</span></li>
+          <li className="flex justify-between"><span>{tr("Waste")} · {tr("Cupping")}</span><span className="tabular-nums">{s.recap.waste} · {s.recap.cupping} {tr("cups")}</span></li>
+          {s.recap.cashActual !== null && <>
+            <li className="flex justify-between"><span>{tr("Spent from the cash")}</span><span className="tabular-nums">{rupiah(s.recap.cashSpent)}</span></li>
+            <li className="flex justify-between"><span>{tr("Cash to hand over")}</span><span className="tabular-nums">{rupiah(s.recap.cashExpected)}</span></li>
+            <li className="flex justify-between"><span>{tr("Cash counted")}</span><span className="tabular-nums">{rupiah(s.recap.cashActual)}</span></li>
+            <li className={cx("flex justify-between font-semibold", (s.recap.balance ?? 0) < 0 ? "text-red-600" : "text-slate-900")}><span>{tr("Balance")}</span><span className="tabular-nums">{rupiah(s.recap.balance ?? 0)}</span></li>
+          </>}
           <li className="flex justify-between"><span>{tr("Reloads received")}</span><span className="tabular-nums">{s.recap.reloaded} {tr("cups")}</span></li>
           <li className="flex justify-between"><span>{tr("Requests")}</span><span className="tabular-nums">{rupiah(s.recap.requested)}</span></li>
         </ul>

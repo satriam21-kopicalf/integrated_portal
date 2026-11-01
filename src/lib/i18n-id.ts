@@ -4070,4 +4070,10 @@ export const ID: Record<string, string> = {
   "Yield": "Hasil",
   "recipe": "resep",
   "{0} voided": "{0} dibatalkan",
+  "Balance": "Balance",
+  "Cash counted": "Actual cash",
+  "Cash short": "Kekurangan kas",
+  "Cupping": "Cupping",
+  "Spent from the cash": "Operasional dari kas",
+  "Stall rent": "Lapak armada",
 };
