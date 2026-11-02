@@ -37,10 +37,12 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('Count Lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
     { get name() { return tr('Items Groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Templates assigned to branches'); } },
     { get name() { return tr('Count Types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
+    { get name() { return tr('Outlet locations'); }, href: '/cost-control/locations', icon: MapPin, get description() { return tr('Coordinates & check-in radius'); } },
+  ] },
+  { get title() { return tr('Production & costing'); }, get hint() { return tr('Recipes, menu costing and raw material prices'); }, icon: FlaskConical, items: [
     { get name() { return tr('Production calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
     { get name() { return tr('Sales calculator by menu'); }, href: '/cost-control/sales-calculator', icon: Calculator, get description() { return tr('Menu recipe cards, MRP, usage & COGS'); } },
     { get name() { return tr('Pricelist items'); }, href: '/cost-control/pricelist', icon: Receipt, get description() { return tr('Prices of the raw materials'); } },
-    { get name() { return tr('Outlet locations'); }, href: '/cost-control/locations', icon: MapPin, get description() { return tr('Coordinates & check-in radius'); } },
   ] },
   { get title() { return tr('Waste'); }, get hint() { return tr('Follow and review the waste of every branch'); }, icon: Trash2, items: [
     { get name() { return tr('Waste monitor'); }, href: '/cost-control/waste/monitor', icon: Activity, get description() { return tr('Waste entered by every branch'); } },
@@ -371,7 +373,8 @@ function PopupMenu({ config, sections, pathname, collapsed, onNavigate }: {
       const r = button.current?.getBoundingClientRect();
       const h = panel.current?.offsetHeight ?? 420;
       if (!r || window.innerWidth < 1024) { setPos(null); return; }
-      setPos({ left: r.right + 10, top: Math.max(12, Math.min(r.top - 12, window.innerHeight - h - 12)) });
+      const w = panel.current?.offsetWidth ?? 704;
+      setPos({ left: Math.max(12, Math.min(r.right + 10, window.innerWidth - w - 12)), top: Math.max(12, Math.min(r.top - 12, window.innerHeight - h - 12)) });
     };
     place();
     window.addEventListener('resize', place);
@@ -403,12 +406,15 @@ function PopupMenu({ config, sections, pathname, collapsed, onNavigate }: {
   }, [open, canReview]);
 
   const go = () => { setOpen(false); onNavigate?.(); };
+  // many sections (Cost Control): three columns on wide screens; the sections flow as a masonry, never split
+  const wide = sections.length > 4;
   const menu = (
     <div ref={panel} role="menu" aria-label={config.title}
-      className={`fixed z-[80] w-[min(44rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ${
-        pos ? '' : 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2 overflow-y-auto'}`}
+      className={`fixed z-[80] flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl ${
+        wide ? 'w-[min(62rem,calc(100vw-2rem))]' : 'w-[min(44rem,calc(100vw-2rem))]'} ${
+        pos ? '' : 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2'}`}
       style={pos ? { left: pos.left, top: pos.top } : undefined}>
-      <div className="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
+      <div className="flex flex-shrink-0 items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
         <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white"><Icon size={19} /></span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-slate-900">{config.title}</p>
@@ -421,9 +427,9 @@ function PopupMenu({ config, sections, pathname, collapsed, onNavigate }: {
         )}
         <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close menu')}><X size={16} /></button>
       </div>
-      <div className="grid gap-x-3 gap-y-4 p-4 sm:grid-cols-2">
+      <div className={`min-h-0 flex-1 gap-x-3 overflow-y-auto overscroll-contain p-4 sm:columns-2 ${wide ? 'lg:columns-3' : ''}`}>
         {sections.map(section => (
-          <div key={section.title} className={section.items.length > 3 ? 'sm:row-span-2' : ''}>
+          <div key={section.title} className="mb-4 break-inside-avoid rounded-xl last:mb-0">
             <div className="mb-1.5 flex items-center gap-2 px-2">
               <section.icon size={13} className="text-slate-400" />
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{section.title}</p>
@@ -469,7 +475,7 @@ function PopupMenu({ config, sections, pathname, collapsed, onNavigate }: {
           </div>
         ))}
       </div>
-      <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-2.5 text-xs text-slate-500">
+      <div className="flex flex-shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-2.5 text-xs text-slate-500">
         <span className="truncate">{config.footer}</span>
         {guide && <Link href="/guide" onClick={go} className="inline-flex flex-shrink-0 items-center gap-1 font-medium text-blue-700 hover:underline"><BookOpen size={13} /> {tr('Guide')}</Link>}
       </div>

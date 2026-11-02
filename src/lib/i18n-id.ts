@@ -4479,4 +4479,7 @@ export const ID: Record<string, string> = {
   "per outlet-day": "per hari per outlet",
   "per portion sold": "per porsi terjual",
   "typed by hand": "isi manual",
+  // Sidebar Cost Control sections (2026-11-02)
+  "Production & costing": "Produksi & costing",
+  "Recipes, menu costing and raw material prices": "Resep, costing menu dan harga bahan baku",
 };
