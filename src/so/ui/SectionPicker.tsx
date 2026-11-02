@@ -6,6 +6,7 @@
 
 import { Check, ChevronDown, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { cx } from "@/so/ui";
 import { tr } from "@/lib/i18n";
 
@@ -63,8 +64,9 @@ export default function SectionPicker({ options, value, onChange, allLabel, titl
         ))}
       </div>
 
-      {open && (
-        <div className="fixed inset-0 z-[80] lg:hidden" role="dialog" aria-modal="true" aria-label={title}>
+      {/* on the body: a sticky header (z-index) or a transformed ancestor would put the sheet under the form's send bar */}
+      {open && createPortal(
+        <div className="fixed inset-0 z-[90] lg:hidden" role="dialog" aria-modal="true" aria-label={title}>
           <button type="button" className="absolute inset-0 bg-slate-900/40" onClick={() => setOpen(false)} aria-label={tr("Close")} />
           <div className="absolute inset-x-0 bottom-0 flex max-h-[80vh] flex-col rounded-t-2xl bg-white shadow-2xl"
             style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
@@ -99,7 +101,8 @@ export default function SectionPicker({ options, value, onChange, allLabel, titl
               })}
             </ul>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
