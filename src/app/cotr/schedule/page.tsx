@@ -15,9 +15,10 @@ import { locale, tr } from "@/lib/i18n";
 
 type Status = "work" | "off" | "leave" | "sick";
 type Attendance = "on_time" | "late" | "absent" | "planned" | "unscheduled" | "off" | "leave" | "sick" | "none";
-type Template = { code: string; name: string; start_time: string; end_time: string; break_min: number; grace_min: number; color: string | null; is_active: boolean; sort: number };
+type Template = { code: string; name: string; start_time: string; end_time: string; break_min: number; grace_min: number; color: string | null; is_active: boolean; sort: number; pay_rate?: number | null };
 type Cell = { driver: string; day: string; status: Status | null; template: string | null; pool: string | null; note: string | null; started: string | null; ended: string | null; attendance: Attendance };
-type Recap = { driver: string; scheduled: number; worked: number; on_time: number; late: number; absent: number; off: number; leave: number; sick: number; unscheduled: number };
+type Recap = { driver: string; scheduled: number; worked: number; on_time: number; late: number; absent: number; off: number; leave: number; sick: number; unscheduled: number; pay?: number };
+const rupiah = (n: number) => `Rp ${Math.round(n).toLocaleString("id-ID")}`;
 type Roster = { from: string; to: string; templates: Template[]; drivers: { code: string; name: string; pool_code: string | null }[]; cells: Cell[]; recap: Recap[] };
 type Edit = { status: Status | null; template: string | null };
 
@@ -172,13 +173,13 @@ function RosterView() {
         <Panel title={tr("Recap of the week")} description={tr("Days scheduled and worked, on time, late and absent: the reference of the incentives")}>
           <table className="w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Driver")}</th>
-              {[tr("Scheduled"), tr("Worked"), tr("On time"), tr("Late"), tr("Absent"), tr("Off"), tr("Leave"), tr("Sick"), tr("Unscheduled")].map((h) => <th key={h} className="px-3 py-2.5 text-right">{h}</th>)}</tr></thead>
+              {[tr("Scheduled"), tr("Worked"), tr("On time"), tr("Late"), tr("Absent"), tr("Off"), tr("Leave"), tr("Sick"), tr("Unscheduled"), tr("Base pay")].map((h) => <th key={h} className="px-3 py-2.5 text-right">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-slate-100">
               {data.drivers.map((dr) => { const r = recap(dr.code); return (
                 <tr key={dr.code}><td className="px-4 py-2">{dr.name}</td>
                   {(["scheduled", "worked", "on_time", "late", "absent", "off", "leave", "sick", "unscheduled"] as const).map((k) => (
                     <td key={k} className={cx("px-3 py-2 text-right tabular-nums", k === "late" && r?.late ? "text-amber-700" : k === "absent" && r?.absent ? "text-red-700" : "")}>{r?.[k] ?? 0}</td>
-                  ))}</tr>
+                  ))}<td className="px-3 py-2 text-right font-semibold tabular-nums">{r?.pay ? rupiah(r.pay) : "—"}</td></tr>
               ); })}
             </tbody>
           </table>
@@ -199,6 +200,7 @@ function TemplatesView() {
         { label: tr("Hours"), render: (t) => <span className={cx("rounded-md border px-2 py-0.5 text-xs tabular-nums", TEMPLATE_TONE[t.color ?? ""] ?? "border-slate-200")}>{t.start_time}–{t.end_time}</span> },
         { label: tr("Break"), render: (t) => `${t.break_min} ${tr("min")}` },
         { label: tr("Tolerance"), render: (t) => `${t.grace_min} ${tr("min")}` },
+        { label: tr("Day rate"), render: (t) => t.pay_rate != null ? <span className="tabular-nums">{rupiah(Number(t.pay_rate))}</span> : <span className="text-slate-400">—</span> },
         { label: tr("Status"), render: (t) => t.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge> },
       ]}
       fields={[
@@ -208,6 +210,7 @@ function TemplatesView() {
         { key: "end_time", label: tr("Ends"), type: "time", required: true },
         { key: "break_min", label: tr("Break (minutes)"), type: "number" },
         { key: "grace_min", label: tr("Late tolerance (minutes)"), type: "number" },
+        { key: "pay_rate", label: tr("Day rate (Rp)"), type: "number", hint: tr("Base pay of one day worked on this shift (N 85.000, H 75.000, LS 150.000 on the payroll sheets)") },
         { key: "color", label: tr("Color"), type: "select", options: Object.keys(TEMPLATE_TONE).map((c) => ({ value: c, label: c })) },
         { key: "sort", label: tr("Order"), type: "number" },
         { key: "is_active", label: tr("Active"), type: "bool" },

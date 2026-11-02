@@ -18,7 +18,9 @@ export type Driver = { code: string; name: string; phone: string; pool_code: str
   nik?: string | null; birth_place: string | null; birth_date: string | null; gender: 'male' | 'female' | null; address: string | null; emergency_name: string | null; emergency_phone: string | null;
   employment_status: 'permanent' | 'contract' | 'daily' | 'intern' | null; position: string | null; contract_end: string | null;
   salary_monthly?: number | null; allowance_monthly?: number | null; bank_name?: string | null; bank_account?: string | null; bank_holder?: string | null; note: string | null;
-  has_photo: boolean; updated_at: string };
+  has_photo: boolean; updated_at: string;
+  /** the sample DATA COTR (migration 060): employee id, nickname, department, bike */
+  employee_id?: string | null; nickname?: string | null; department?: string | null; bike_code?: string | null };
 export type DriverAccount = { id: string; username: string; name: string; driver: string | null };
 
 export type Stock = Record<string, number>;

@@ -59,11 +59,12 @@ export default function CotrDriversPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {d.has_photo ? <img src={imageUrl("drivers", d.code, "photo", d.updated_at)} alt="" className="h-full w-full object-cover" loading="lazy" /> : <UserRound size={16} />}
               </span>
-              <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{d.name || "—"}</span><span className="text-[11px] text-slate-400">{d.code}{d.phone ? ` · ${d.phone}` : ""}</span></span>
+              <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{d.name || "—"}</span><span className="text-[11px] text-slate-400">{d.employee_id ?? d.code}{d.nickname ? ` · ${d.nickname}` : ""}{d.phone ? ` · ${d.phone}` : ""}</span></span>
             </span>
           ) },
+          { label: tr("Department"), render: (d) => d.department ? <Badge tone={d.department === "Armada" ? "blue" : "slate"}>{d.department}</Badge> : <span className="text-slate-400">—</span> },
           { label: tr("Pool / HUB"), render: (d) => poolName(d.pool_code) },
-          { label: tr("Fleet"), render: (d) => d.fleet_code ?? <span className="text-slate-400">{tr("Not assigned")}</span> },
+          { label: tr("Fleet"), render: (d) => (d.fleet_code || d.bike_code) ? <span className="text-xs">{d.fleet_code ?? "—"}{d.bike_code ? <span className="block text-[11px] text-slate-400">{tr("Bike {0}", d.bike_code)}</span> : null}</span> : <span className="text-slate-400">{tr("Not assigned")}</span> },
           { label: tr("Employment"), render: (d) => d.employment_status ? <span className="text-xs">{EMPLOYMENT[d.employment_status]()}{d.position ? ` · ${d.position}` : ""}</span> : <span className="text-slate-400">—</span> },
           ...(management ? [{ label: tr("Salary / month"), className: "text-right", render: (d: Driver) => d.salary_monthly ? <span className="tabular-nums">{rupiah(d.salary_monthly)}</span> : <span className="text-slate-400">—</span> }] : []),
           { label: tr("Status"), render: (d) => <Badge tone={STATUS[d.status].tone} dot>{STATUS[d.status].label()}</Badge> },
@@ -73,6 +74,8 @@ export default function CotrDriversPage() {
           { key: "photo", label: tr("Profile picture"), type: "image", image: { entity: "drivers", slot: "photo" }, section: sec.profile },
           { key: "code", label: tr("Code"), required: true, section: sec.profile },
           { key: "name", label: tr("Name"), required: true, section: sec.profile },
+          { key: "nickname", label: tr("Nickname"), section: sec.profile, hint: tr("The name on the daily reports") },
+          { key: "employee_id", label: tr("Employee ID"), section: sec.profile, placeholder: "CALF0000000" },
           { key: "phone", label: tr("Phone"), section: sec.profile },
           { key: "status", label: tr("Status"), type: "select", required: true, section: sec.profile, options: (Object.keys(STATUS) as Driver["status"][]).map((s) => ({ value: s, label: STATUS[s].label() })) },
 
@@ -83,6 +86,8 @@ export default function CotrDriversPage() {
           { key: "user_id", label: tr("Account"), type: "search", section: sec.job, hint: tr("Accounts of role Driver (COTR) from User Accounts"), placeholder: tr("No account yet"),
             options: accounts.map((a) => ({ value: a.id, label: `${a.username} · ${a.name}`, hint: a.driver ?? tr("free") })) },
           { key: "joined_on", label: tr("Joined"), type: "date", section: sec.job },
+          { key: "department", label: tr("Department"), section: sec.job, placeholder: tr("e.g. Armada, Storage, Stockist") },
+          { key: "bike_code", label: tr("Bike"), section: sec.job, placeholder: "S7" },
 
           { key: "nik", label: tr("NIK (KTP)"), section: sec.person, when: management },
           { key: "gender", label: tr("Gender"), type: "select", section: sec.person, options: [{ value: "male", label: tr("Male") }, { value: "female", label: tr("Female") }] },
