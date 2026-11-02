@@ -1,13 +1,15 @@
 "use client";
 
 // Monitoring COTR → Master Pool / HUB (page cotr.pools): the main HUB, the parent pools under it where the drivers
-// start and reload, and the storages (menus and raw materials) of each.
+// start and reload, and the storages (menus and raw materials) of each. A summary, the network per main HUB (its pools
+// with drivers and fleet, location state), then the list with its filters (type, HUB, location, status).
 
-import { Boxes, Building2, MapPin, Warehouse } from "lucide-react";
+import { Boxes, Building2, CheckCircle2, Clock, Factory, MapPin, Network, Truck, UserRound, Users, Warehouse } from "lucide-react";
 import { Badge } from "@/so/ui";
 import { Page } from "@/components/kc/compat";
+import { Pill, StatCard, StatGrid, ValueSkeleton } from "@/components/kc";
 import { Driver, Fleet, Pool } from "@/cotr/types";
-import { MasterTable, useMaster } from "@/cotr/ui";
+import { type MasterFilter, MasterTable, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 
 const KIND: Record<Pool["kind"], { label: () => string; tone: "blue" | "violet" | "cyan"; icon: typeof Boxes }> = {
@@ -22,31 +24,94 @@ export default function CotrPoolsPage() {
   const fleet = useMaster<Fleet>("fleet");
   const rows = master.rows ?? [];
   const mains = rows.filter((p) => p.kind === "main");
+  const count = (code: string) => ({
+    drivers: (drivers.rows ?? []).filter((d) => d.pool_code === code && d.status !== "inactive").length,
+    fleet: (fleet.rows ?? []).filter((f) => f.pool_code === code && f.is_active).length,
+  });
+  const loaded = !!master.rows;
+  const located = (p: Pool) => p.latitude !== null && p.longitude !== null;
+  const filters: MasterFilter<Pool>[] = [
+    { key: "kind", label: tr("Type"), icon: <Building2 size={15} />, options: (Object.keys(KIND) as Pool["kind"][]).map((k) => ({ value: k, label: KIND[k].label(), test: (p) => p.kind === k })) },
+    { key: "under", label: tr("Under (main HUB)"), icon: <Network size={15} />, options: mains.map((m) => ({ value: m.code, label: m.name, test: (p) => p.parent_code === m.code || p.code === m.code })) },
+    { key: "coords", label: tr("Location"), icon: <MapPin size={15} />, options: [
+      { value: "with", label: tr("With coordinates"), test: located }, { value: "without", label: tr("No coordinates"), test: (p) => !located(p) }] },
+    { key: "active", label: tr("Status"), icon: <CheckCircle2 size={15} />, options: [
+      { value: "on", label: tr("Active"), test: (p) => p.is_active }, { value: "off", label: tr("Inactive"), test: (p) => !p.is_active }] },
+  ];
   return (
-    <Page eyebrow="Monitoring COTR" media={<Building2 size={19} />} title={tr("Master Pool / HUB")} subtitle={tr("Main HUB, parent pools and the storage of menus and raw materials")}>
-      {/* the hierarchy at a glance: main HUB → its pools and storages */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {mains.map((m) => (
-          <section key={m.code} className="rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm">
-            <p className="flex items-center gap-2 font-semibold text-neutral-900"><Building2 size={16} className="text-brand-700" />{m.name}<span className="text-xs font-normal text-neutral-400">{m.code} · {m.city}</span></p>
-            <ul className="mt-3 space-y-2 border-l-2 border-neutral-100 pl-4">
-              {rows.filter((p) => p.parent_code === m.code).map((p) => {
-                const k = KIND[p.kind];
-                return (
-                  <li key={p.code} className="text-sm">
-                    <span className="flex flex-wrap items-center gap-2"><k.icon size={14} className="text-neutral-400" /><span className="font-medium">{p.name}</span><Badge tone={k.tone}>{k.label()}</Badge></span>
-                    <span className="ml-6 block text-xs text-neutral-500">
-                      {p.kind === "storage" ? p.storage.join(", ")
-                        : tr("{0} drivers · {1} fleet", (drivers.rows ?? []).filter((d) => d.pool_code === p.code).length, (fleet.rows ?? []).filter((f) => f.pool_code === p.code).length)}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))}
+    <Page eyebrow="Monitoring COTR" media={<Building2 size={19} />} title={tr("Master Pool / HUB")} subtitle={tr("Main HUB, parent pools and the storage of menus and raw materials")}
+      stats={
+        <StatGrid label={tr("Summary")} cols={4}>
+          <StatCard label={tr("Main HUB")} tone="brand" icon={<Building2 />} value={loaded ? mains.length : <ValueSkeleton />}
+            sub={loaded && tr("{0} producing", rows.filter((p) => p.is_production).length)} />
+          <StatCard label={tr("Parent pools")} icon={<Warehouse />} value={loaded ? rows.filter((p) => p.kind === "parent").length : <ValueSkeleton />}
+            sub={loaded && tr("{0} storages", rows.filter((p) => p.kind === "storage").length)} />
+          <StatCard label={tr("Drivers & fleet")} icon={<Users />} value={drivers.rows ? (drivers.rows ?? []).filter((d) => d.status !== "inactive").length : <ValueSkeleton />}
+            sub={fleet.rows && tr("{0} armada in use", (fleet.rows ?? []).filter((f) => f.is_active).length)} />
+          <StatCard label={tr("No coordinates")} icon={<MapPin />} tone={rows.some((p) => !located(p)) ? "warn" : "default"} value={loaded ? rows.filter((p) => !located(p)).length : <ValueSkeleton />}
+            sub={tr("check-ins cannot be located there")} />
+        </StatGrid>
+      }>
+      {/* the network at a glance: every main HUB with its pools and storages */}
+      <div className="grid gap-4 xl:grid-cols-2">
+        {mains.map((m) => {
+          const children = rows.filter((p) => p.parent_code === m.code);
+          const c = count(m.code);
+          return (
+            <section key={m.code} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+              <header className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 px-4 py-3.5 sm:px-5">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-700 text-white"><Building2 size={18} /></span>
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-neutral-900">{m.name}
+                      {m.is_production && <Pill tone="brand" icon={<Factory size={11} />}>{tr("Production hub")}</Pill>}
+                      {!m.is_active && <Pill tone="gray">{tr("Inactive")}</Pill>}</p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-neutral-500">
+                      <span className="font-mono">{m.code}</span>
+                      {m.city && <span className="inline-flex items-center gap-1"><MapPin size={11} />{m.city}</span>}
+                      {m.open_time && <span className="inline-flex items-center gap-1"><Clock size={11} />{m.open_time}–{m.close_time ?? ""}</span>}
+                      {m.pic_name && <span className="inline-flex items-center gap-1"><UserRound size={11} />{m.pic_name}</span>}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 text-center">
+                  <Mini label={tr("Pools")} value={children.length} />
+                  <Mini label={tr("Drivers")} value={c.drivers + children.reduce((a, p) => a + count(p.code).drivers, 0)} />
+                  <Mini label={tr("Fleet")} value={c.fleet + children.reduce((a, p) => a + count(p.code).fleet, 0)} />
+                </div>
+              </header>
+              {children.length === 0 ? <p className="px-5 py-6 text-center text-xs text-neutral-400">{tr("No pool under this HUB yet")}</p> : (
+                <ul className="divide-y divide-neutral-100">
+                  {children.map((p) => {
+                    const k = KIND[p.kind];
+                    const n = count(p.code);
+                    return (
+                      <li key={p.code} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500"><k.icon size={15} /></span>
+                        <div className="min-w-0 flex-1">
+                          <p className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-neutral-900">{p.name}<Badge tone={k.tone}>{k.label()}</Badge>
+                            {!located(p) && <Pill tone="amber" icon={<MapPin size={10} />}>{tr("No coordinates")}</Pill>}</p>
+                          <p className="truncate text-[11px] text-neutral-500">
+                            {p.kind === "storage" ? (p.storage.join(", ") || "—") : [p.address, p.city].filter(Boolean).join(", ") || p.code}
+                          </p>
+                        </div>
+                        {p.kind !== "storage" && (
+                          <span className="flex flex-shrink-0 items-center gap-3 text-xs tabular-nums text-neutral-600">
+                            <span className="inline-flex items-center gap-1" title={tr("Drivers")}><Users size={13} className="text-neutral-400" />{n.drivers}</span>
+                            <span className="inline-flex items-center gap-1" title={tr("Fleet")}><Truck size={13} className="text-neutral-400" />{n.fleet}</span>
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          );
+        })}
+        {loaded && mains.length === 0 && <p className="rounded-xl border border-dashed border-neutral-300 px-4 py-8 text-center text-sm text-neutral-500">{tr("No main HUB yet: add one below.")}</p>}
       </div>
-      <MasterTable noun={tr("pool")} title={tr("Pools, HUBs & storages")} master={master}
+      <MasterTable noun={tr("pool")} title={tr("Pools, HUBs & storages")} master={master} filters={filters}
         blank={(): Partial<Pool> => ({ code: "", name: "", kind: "parent", parent_code: mains[0]?.code ?? null, city: "", address: "", storage: [], is_active: true, latitude: null, longitude: null, radius_m: 100 })}
         toForm={(p) => ({ ...p, storage: (p.storage ?? []).join(", ") })}
         fromForm={(v) => ({ ...v, storage: String(v.storage ?? "").split(",").map((s) => s.trim()).filter(Boolean) }) as Partial<Pool>}
@@ -81,5 +146,14 @@ export default function CotrPoolsPage() {
           { key: "is_production", label: tr("Production hub"), type: "bool", hint: tr("The main hub where the products are made and sent to the pools") },
         ]} />
     </Page>
+  );
+}
+
+function Mini({ label, value }: { label: string; value: number }) {
+  return (
+    <span className="min-w-[3.5rem] rounded-lg bg-neutral-50 px-2.5 py-1.5 ring-1 ring-inset ring-neutral-200">
+      <span className="block text-base font-semibold tabular-nums leading-tight text-neutral-900">{value}</span>
+      <span className="block text-[10px] font-medium uppercase tracking-wide text-neutral-500">{label}</span>
+    </span>
   );
 }

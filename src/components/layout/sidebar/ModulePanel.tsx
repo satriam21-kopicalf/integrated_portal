@@ -66,11 +66,12 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
   }, [open, canReview]);
 
   const go = () => { setOpen(false); onNavigate?.(); };
-  const wide = sections.length > 4;
+  // many pages (Cost Control): three cards a row on wide screens
+  const wide = sections.reduce((n, s) => n + s.items.length, 0) > 10;
   const menu = (
     <div ref={panel} role="menu" aria-label={config.title}
       className={cx('fixed z-[80] flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl',
-        wide ? 'w-[min(60rem,calc(100vw-2rem))]' : 'w-[min(40rem,calc(100vw-2rem))]',
+        wide ? 'w-[min(56rem,calc(100vw-2rem))]' : 'w-[min(38rem,calc(100vw-2rem))]',
         !pos && 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2')}
       style={pos ? { left: pos.left, top: pos.top } : undefined}>
       <div className="flex flex-shrink-0 items-start gap-3 px-5 pb-3 pt-4">
@@ -86,11 +87,15 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
         )}
         <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Close menu')}><X size={16} /></button>
       </div>
-      <div className={cx('min-h-0 flex-1 gap-x-4 overflow-y-auto overscroll-contain px-5 pb-4 sm:columns-2', wide && 'lg:columns-3')}>
+      {/* sections one under the other (as kopicalf-hrms), their pages as a grid of cards: no uneven columns */}
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain border-t border-neutral-100 px-5 py-4">
         {sections.map((section) => (
-          <section key={section.title} className="mb-4 break-inside-avoid last:mb-0">
-            <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400" title={section.hint}>{section.title}</p>
-            <ul className="space-y-1.5">
+          <section key={section.title}>
+            <p className="mb-2 flex items-baseline gap-2 px-0.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{section.title}</span>
+              <span className="truncate text-[11px] text-neutral-400">{section.hint}</span>
+            </p>
+            <ul className={cx('grid gap-2 sm:grid-cols-2', wide && 'lg:grid-cols-3')}>
               {section.items.map((item) => {
                 const ItemIcon = item.icon;
                 const on = under(pathname, item.href);
@@ -110,11 +115,11 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
                         </span>
                       )}
                       <span className="min-w-0 flex-1">
-                        <span className={cx('flex items-center gap-1.5 text-[13px]', on ? 'font-semibold text-brand-800' : 'font-medium text-neutral-900')}>
+                        <span className={cx('flex items-center gap-1.5 text-[13px] leading-tight', on ? 'font-semibold text-brand-800' : 'font-medium text-neutral-900')}>
                           <span className="truncate">{item.name}</span>
                           {item.soon && <span className="rounded bg-neutral-100 px-1.5 py-px text-[10px] font-semibold uppercase text-neutral-500">{tr('Soon')}</span>}
                         </span>
-                        <span className="block truncate text-xs text-neutral-500">{item.description}</span>
+                        <span className="mt-0.5 block truncate text-xs text-neutral-500">{item.description}</span>
                       </span>
                       {item.badge === 'review' && waiting !== null && waiting > 0 && (
                         <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{waiting}</span>

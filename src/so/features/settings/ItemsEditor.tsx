@@ -97,8 +97,8 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
               <option key={c.id} value={c.id}>{c.parent_name ? `${c.parent_name} › ${c.name}` : c.name} ({c.items})</option>
             ))}
           </select>
-          {adding && <Loader2 size={14} className="animate-spin text-slate-400" />}
-          {note && <span className="text-xs text-slate-500">{note}</span>}
+          {adding && <Loader2 size={14} className="animate-spin text-neutral-400" />}
+          {note && <span className="text-xs text-neutral-500">{note}</span>}
           {items.length > 0 && (
             <button type="button" className="ml-auto text-xs font-medium text-red-600 hover:underline"
               onClick={() => { if (window.confirm(tr("Remove all {0} items?", items.length))) onChange([]); }}>{tr("Remove all")}</button>
@@ -107,27 +107,27 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
       )}
       {!readOnly && (
         <div className="relative">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Add item: type a name or code")} aria-label={tr("Add item")}
             className={`${inputClass} pl-9`} />
-          {searching && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400" />}
+          {searching && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-neutral-400" />}
           {q.trim().length >= 2 && !searching && (
-            <ul className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white py-1 shadow-xl">
+            <ul className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-xl border border-neutral-200/80 bg-white py-1 shadow-xl">
               {found.map((f) => (
                 <li key={f.item_id}>
                   <button type="button" disabled={ids.has(f.item_id)} onClick={() => add(f)}
-                    className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-slate-50 disabled:opacity-40">
-                    <Plus size={14} className="text-blue-600" />
-                    <span className="min-w-0 flex-1"><span className="block truncate text-slate-900">{f.item_name}</span>
-                      <span className="block truncate text-[11px] text-slate-400">{f.item_code} · {f.category_name ?? tr("No category")} · {f.base_uom}</span></span>
+                    className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-neutral-50 disabled:opacity-40">
+                    <Plus size={14} className="text-brand-600" />
+                    <span className="min-w-0 flex-1"><span className="block truncate text-neutral-900">{f.item_name}</span>
+                      <span className="block truncate text-[11px] text-neutral-400">{f.item_code} · {f.category_name ?? tr("No category")} · {f.base_uom}</span></span>
                     {ids.has(f.item_id) && <Badge>{tr("Added")}</Badge>}
                   </button>
                 </li>
               ))}
-              {found.length === 0 && <li className="px-3 py-2 text-xs text-slate-400">{tr("No item found in the item master")}</li>}
-              <li className="border-t border-slate-100">
+              {found.length === 0 && <li className="px-3 py-2 text-xs text-neutral-400">{tr("No item found in the item master")}</li>}
+              <li className="border-t border-neutral-100">
                 <button type="button" onClick={() => setCreating(q.trim())}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-blue-700 hover:bg-blue-50">
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-brand-700 hover:bg-brand-50">
                   <Plus size={14} /> {tr("New item \"{0}\" (not in the item master)", q.trim())}
                 </button>
               </li>
@@ -138,17 +138,17 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
       {items.length > 8 && (
         <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder={tr("Filter the {0} items", items.length)} className={`${inputClass} h-9`} />
       )}
-      <ul className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200">
+      <ul className="divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200">
         {shown.map((i) => (
           <li key={i.item_id} className="space-y-2 px-3 py-2.5">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-900">{i.item_name}</p>
-                <p className="truncate text-[11px] text-slate-400"><span className="font-mono">{i.item_code}</span> · {tr("base")} {i.base_uom}</p>
+                <p className="truncate text-sm font-medium text-neutral-900">{i.item_name}</p>
+                <p className="truncate text-[11px] text-neutral-400"><span className="font-mono">{i.item_code}</span> · {tr("base")} {i.base_uom}</p>
               </div>
               {!readOnly && (
                 <button type="button" onClick={() => onChange(items.filter((x) => x.item_id !== i.item_id))}
-                  className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", i.item_name)}><Trash2 size={15} /></button>
+                  className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", i.item_name)}><Trash2 size={15} /></button>
               )}
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -168,13 +168,13 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
               </select>
               <button type="button" disabled={readOnly} onClick={() => set(i.item_id, { photo_required: !i.photo_required })} aria-pressed={i.photo_required}
                 className={cx("inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border text-xs font-medium",
-                  i.photo_required ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-500")}>
+                  i.photo_required ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-500")}>
                 <Camera size={13} /> {i.photo_required ? tr("Photo required") : tr("No photo")}
               </button>
             </div>
           </li>
         ))}
-        {items.length === 0 && <li className="px-3 py-8 text-center text-sm text-slate-400">{tr("No items yet")}</li>}
+        {items.length === 0 && <li className="px-3 py-8 text-center text-sm text-neutral-400">{tr("No items yet")}</li>}
       </ul>
       {creating !== null && (
         <NewItemDialog draft={/^[A-Z]{2,5}-?\d/i.test(creating) ? { code: creating } : { name: creating }} onClose={() => setCreating(null)}

@@ -149,7 +149,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
             {channels.map(c => (
               <li key={c.channel} className="flex items-center gap-1.5">
                 <SeriesKey color={channelColor(c.channel)} />
-                <ChannelLogo channel={c.channel} height={14} labelClassName="text-slate-600" />
+                <ChannelLogo channel={c.channel} height={14} labelClassName="text-neutral-600" />
               </li>
             ))}
           </ul>
@@ -158,7 +158,7 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
       )}
       <table className="m-cards w-full whitespace-nowrap text-xs">
         <caption className="sr-only">{tr('Gross sales per channel')}</caption>
-        <thead className="border-b border-slate-100 text-slate-500">
+        <thead className="border-b border-neutral-100 text-neutral-500">
           <tr>
             <th scope="col" className="py-1.5 text-left font-medium">{tr('Channel')}</th>
             <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Bills')}</th>
@@ -167,13 +167,13 @@ function ChannelBody({ data, view }: { data: ChannelsResponse; view: 'share' | '
             <th scope="col" className="py-1.5 pl-3 text-right font-medium">{tr('Change')}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-neutral-100">
           {channels.map(c => (
-            <tr key={c.channel} onClick={() => openChannel(c.channel)} className="cursor-pointer hover:bg-blue-50/50">
+            <tr key={c.channel} onClick={() => openChannel(c.channel)} className="cursor-pointer hover:bg-brand-50/50">
               <td className="py-1.5"><span className="flex items-center gap-2"><SeriesKey color={channelColor(c.channel)} /><ChannelLogo channel={c.channel} height={14} /></span></td>
-              <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{formatNumber(c.bills)}</td>
-              <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{c.avgTicket === null ? '-' : formatNumber(Math.round(c.avgTicket))}</td>
-              <td className="py-1.5 pl-3 text-right tabular-nums text-slate-700">{c.discountPct === null ? '-' : `${fixed(c.discountPct, 1)}%`}</td>
+              <td className="py-1.5 pl-3 text-right tabular-nums text-neutral-700">{formatNumber(c.bills)}</td>
+              <td className="py-1.5 pl-3 text-right tabular-nums text-neutral-700">{c.avgTicket === null ? '-' : formatNumber(Math.round(c.avgTicket))}</td>
+              <td className="py-1.5 pl-3 text-right tabular-nums text-neutral-700">{c.discountPct === null ? '-' : `${fixed(c.discountPct, 1)}%`}</td>
               <td className="py-1.5 pl-3 text-right"><Delta value={c.deltaPct} /></td>
             </tr>
           ))}

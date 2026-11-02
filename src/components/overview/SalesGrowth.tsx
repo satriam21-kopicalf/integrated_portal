@@ -78,7 +78,7 @@ export function GrowthBars({ data, height = 260, onSelect }: { data: GrowthRespo
     }],
   }), [s, seq, g]);
   if (!s.some(p => p.growthPct !== null)) {
-    return <p className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>{tr('No comparison: the comparison period starts before complete history (Aug 2025).')}</p>;
+    return <p className="flex items-center justify-center text-sm text-neutral-400" style={{ height }}>{tr('No comparison: the comparison period starts before complete history (Aug 2025).')}</p>;
   }
   return <EChart option={option} height={height} ariaLabel={tr('Sales growth per {0}', tr(g))} onClick={onSelect ? p => { if (s[p.dataIndex]) onSelect(s[p.dataIndex]); } : undefined} />;
 }
@@ -144,7 +144,7 @@ export function HourGrowthChart({ rows, height = 240 }: { rows: HourGrowthRow[];
       markLine: { symbol: 'none', silent: true, lineStyle: { color: INK.axis, type: 'solid' }, label: { show: false }, data: [{ yAxis: 0 }] },
     }],
   }), [rows]);
-  if (!rows.length) return <p className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>{tr('No sales in these periods')}</p>;
+  if (!rows.length) return <p className="flex items-center justify-center text-sm text-neutral-400" style={{ height }}>{tr('No sales in these periods')}</p>;
   return <EChart option={option} height={height} ariaLabel={tr('Gross sales growth per hour of the day')} />;
 }
 
@@ -208,7 +208,7 @@ export function HourGrowthTable({ rows }: { rows: HourGrowthRow[] }) {
 
 export function GrowthText({ v, abs, absOnly = false }: { v: number | null; abs?: number | null; absOnly?: boolean }) {
   const up = (absOnly ? abs ?? 0 : v ?? 0) >= 0;
-  return <span className={`tabular-nums ${up ? 'text-blue-700' : 'text-red-600'}`}>{absOnly ? signedRp(abs) : pctLabel(v)}</span>;
+  return <span className={`tabular-nums ${up ? 'text-brand-700' : 'text-red-600'}`}>{absOnly ? signedRp(abs) : pctLabel(v)}</span>;
 }
 
 /** Strongest growing and declining hours. */
@@ -218,12 +218,12 @@ export function HourMovers({ rows }: { rows: HourGrowthRow[] }) {
   const down = ranked.filter(r => r.growthAbs < 0).slice(-3).reverse();
   if (!up.length && !down.length) return null;
   const chip = (r: HourGrowthRow) => (
-    <span key={r.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${r.growthAbs >= 0 ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>
+    <span key={r.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${r.growthAbs >= 0 ? 'bg-brand-50 text-brand-700' : 'bg-red-50 text-red-700'}`}>
       {r.growthAbs >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{hourLabel(r.hour)} {signedRp(r.growthAbs)}{tr('/day')}
     </span>
   );
   return (
-    <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+    <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-neutral-500">
       {up.length > 0 && <>{tr('Growing most:')} {up.map(chip)}</>}
       {down.length > 0 && <span className="ml-1 inline-flex flex-wrap items-center gap-1.5">{tr('Declining most:')} {down.map(chip)}</span>}
     </div>
@@ -239,8 +239,8 @@ export function GrowthSummary({ data }: { data: GrowthResponse }) {
   return (
     <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr('Growth')}</p>
-        <p className={`text-2xl font-semibold tabular-nums ${t.growthPct === null ? 'text-slate-400' : up ? 'text-blue-700' : 'text-red-600'}`}>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr('Growth')}</p>
+        <p className={`text-2xl font-semibold tabular-nums ${t.growthPct === null ? 'text-neutral-400' : up ? 'text-brand-700' : 'text-red-600'}`}>
           {t.growthPct === null ? 'n/a' : pctLabel(t.growthPct)}
         </p>
       </div>
@@ -257,8 +257,8 @@ export function GrowthSummary({ data }: { data: GrowthResponse }) {
 function Figure({ label, value, title }: { label: string; value: string; title?: string }) {
   return (
     <div title={title}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="text-sm font-semibold tabular-nums text-slate-800">{value}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{label}</p>
+      <p className="text-sm font-semibold tabular-nums text-neutral-800">{value}</p>
     </div>
   );
 }

@@ -110,9 +110,9 @@ export default function TrendCard({ query }: { query: string }) {
             <div className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Legend items={[{ key: 'up', label: tr('Growth'), color: GROWTH_UP }, { key: 'down', label: tr('Decline'), color: GROWTH_DOWN }]} />
-                <p className="text-xs text-slate-500">
-                  <span className="font-semibold text-slate-900">{t.bucketsUp}</span> {tr(`${d.granularity}s`)} {tr('up')} ·{' '}
-                  <span className="font-semibold text-slate-900">{t.bucketsDown}</span> {tr('down')}
+                <p className="text-xs text-neutral-500">
+                  <span className="font-semibold text-neutral-900">{t.bucketsUp}</span> {tr(`${d.granularity}s`)} {tr('up')} ·{' '}
+                  <span className="font-semibold text-neutral-900">{t.bucketsDown}</span> {tr('down')}
                   {!sequential && d.compare.complete && <> {tr('· vs')} {formatDate(d.compare.from)} – {formatDate(d.compare.to)}</>}
                 </p>
               </div>

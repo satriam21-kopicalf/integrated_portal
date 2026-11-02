@@ -53,7 +53,7 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <Delta value={k.deltaPct} />
                   {hasPrev && (
-                    <span className={`font-semibold tabular-nums ${k.value - k.previous > 0 ? 'text-emerald-700' : k.value - k.previous < 0 ? 'text-red-700' : 'text-slate-500'}`}
+                    <span className={`font-semibold tabular-nums ${k.value - k.previous > 0 ? 'text-emerald-700' : k.value - k.previous < 0 ? 'text-red-700' : 'text-neutral-500'}`}
                       title={tr('Difference with the comparison period')}>
                       {k.value - k.previous > 0 ? '+' : k.value - k.previous < 0 ? '−' : '±'}{m.format(Math.abs(Math.round(k.value - k.previous)))}
                     </span>
@@ -61,24 +61,24 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
                 </div>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="truncate">
-                    {hasPrev ? <>{tr('vs')} <span className="tabular-nums text-slate-600">{m.format(k.previous)}</span> · {custom ? tr('comparison') : tr('prev.')} {days} {days === 1 ? tr('day') : tr('days')}</> : tr('no comparison')}
+                    {hasPrev ? <>{tr('vs')} <span className="tabular-nums text-neutral-600">{m.format(k.previous)}</span> · {custom ? tr('comparison') : tr('prev.')} {days} {days === 1 ? tr('day') : tr('days')}</> : tr('no comparison')}
                   </span>
                 </div>
                 <Sparkline className="mt-2" values={data!.daily.map(m.series)} height={30} label={tr('{0} per day', m.label)} />
               </>
             )}
             {error && !k && (
-              <button type="button" onClick={retry} className="text-xs font-medium text-slate-500 underline">{tr('Try again')}</button>
+              <button type="button" onClick={retry} className="text-xs font-medium text-neutral-500 underline">{tr('Try again')}</button>
             )}
           </Stat>
         );
         if (!drill || !k) return tile;
         return (
           <button key={m.key} type="button" onClick={() => drill.open({ kind: 'kpi', metric: m.key })}
-            className="group relative text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="group relative text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             title={tr('{0}: open details per day, weekday and the previous period', m.label)}>
             {tile}
-            <span className="absolute right-3 top-3 text-[10px] font-medium text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">{tr('Details ›')}</span>
+            <span className="absolute right-3 top-3 text-[10px] font-medium text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100">{tr('Details ›')}</span>
           </button>
         );
       })}

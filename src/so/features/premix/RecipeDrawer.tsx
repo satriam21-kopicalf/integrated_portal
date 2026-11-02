@@ -138,13 +138,13 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               <Field label={tr("Recipe Type")}><Select value={head.recipe_type} onChange={e => setHead({ ...head, recipe_type: e.target.value })}>{TYPES.map(t => <option key={t}>{t}</option>)}</Select></Field>
             </div>
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Counted at")} <span className="font-normal text-slate-400">({tr("none ticked = every facility type")})</span></p>
+              <p className="mb-1.5 text-xs font-semibold text-neutral-700">{tr("Counted at")} <span className="font-normal text-neutral-400">({tr("none ticked = every facility type")})</span></p>
               <div className="flex flex-wrap gap-1.5">
                 {FACILITY_TYPES.map(t => {
                   const on = head.facility_types.includes(t);
                   return (
                     <button key={t} type="button" aria-pressed={on} onClick={() => setHead({ ...head, facility_types: on ? head.facility_types.filter(x => x !== t) : [...head.facility_types, t] })}
-                      className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{t}</button>
+                      className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{t}</button>
                   );
                 })}
               </div>
@@ -160,7 +160,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
                 const g = batch > 0 ? unitGrams(u, batch) : 0;
                 const isSo = (head.count_uom || "Gram").toLowerCase() === u.uom.trim().toLowerCase() && !!u.uom.trim();
                 return (
-                  <li key={i} className={cx("rounded-lg border p-3", isSo ? "border-violet-300 bg-violet-50/40" : "border-slate-200")}>
+                  <li key={i} className={cx("rounded-lg border p-3", isSo ? "border-violet-300 bg-violet-50/40" : "border-neutral-200")}>
                     <div className="grid gap-2 sm:grid-cols-[9rem_1fr_9rem_auto] sm:items-center">
                       <input className={cx(inputClass, "h-9 text-sm")} value={u.uom} placeholder={tr("Unit, e.g. Porsi")} aria-label={tr("Unit")} onChange={e => setUnit(i, { uom: e.target.value })} />
                       <Segmented label={tr("Unit Type")} value={share ? "share" : "grams"}
@@ -169,12 +169,12 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
                       <span className="flex items-center gap-1.5">
                         <input className={cx(inputClass, "h-9 text-right text-sm")} inputMode="decimal" aria-label={share ? tr("Units per batch") : tr("Grams per unit")}
                           value={(share ? u.per_batch : u.qty_base) ?? ""} onChange={e => setUnit(i, share ? { per_batch: e.target.value.replace(",", ".") || null } : { qty_base: e.target.value.replace(",", ".") || null })} />
-                        <span className="whitespace-nowrap text-xs text-slate-500">{share ? tr("per batch") : "g"}</span>
+                        <span className="whitespace-nowrap text-xs text-neutral-500">{share ? tr("per batch") : "g"}</span>
                       </span>
-                      <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="justify-self-end rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>
+                      <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="justify-self-end rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                      <span className="text-slate-500">{g > 0 && u.uom.trim() ? `1 ${u.uom} = ${fmtG(g)} g${!share && batch > 0 && u.uom.toLowerCase() !== "gram" ? ` · ${tr("1 batch = {0} {1}", fmtG(batch / g), u.uom)}` : ""}` : "—"}</span>
+                      <span className="text-neutral-500">{g > 0 && u.uom.trim() ? `1 ${u.uom} = ${fmtG(g)} g${!share && batch > 0 && u.uom.toLowerCase() !== "gram" ? ` · ${tr("1 batch = {0} {1}", fmtG(batch / g), u.uom)}` : ""}` : "—"}</span>
                       <label className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-violet-800">
                         <input type="radio" name="count-uom" checked={isSo} disabled={!u.uom.trim()} onChange={() => setHead({ ...head, count_uom: u.uom.trim() })} className="h-3.5 w-3.5" />
                         {tr("Used in stock opname")}
@@ -185,8 +185,8 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               })}
             </ul>
             {!units.some(u => u.uom.toLowerCase() === "gram") && (
-              <label className={cx("flex cursor-pointer items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs", !head.count_uom ? "border-violet-300 bg-violet-50/40" : "border-dashed border-slate-200")}>
-                <span className="text-slate-600">{tr("Gram (weighed) — always available in the calculator and the count")}</span>
+              <label className={cx("flex cursor-pointer items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs", !head.count_uom ? "border-violet-300 bg-violet-50/40" : "border-dashed border-neutral-200")}>
+                <span className="text-neutral-600">{tr("Gram (weighed) — always available in the calculator and the count")}</span>
                 <span className="inline-flex items-center gap-1.5 font-medium text-violet-800">
                   <input type="radio" name="count-uom" checked={!head.count_uom} onChange={() => setHead({ ...head, count_uom: "" })} className="h-3.5 w-3.5" /> {tr("Used in stock opname")}
                 </span>
@@ -196,12 +196,12 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               {([["Porsi", { uom: "Porsi", qty_base: "", per_batch: null }], ["Pcs", { uom: "Pcs", qty_base: "", per_batch: null }],
                 ["Pail & Teko", null], ["Gram", { uom: "Gram", qty_base: 1, per_batch: null }]] as [string, Unit | null][]).map(([label, u]) => (
                 <button key={label} type="button" onClick={() => (u ? addUnit(u) : (addUnit({ uom: "Pail", qty_base: null, per_batch: 1 }), addUnit({ uom: "Teko", qty_base: null, per_batch: 3 })))}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 hover:border-blue-400 hover:text-blue-700">
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-600 hover:border-brand-400 hover:text-brand-700">
                   <Plus size={12} /> {label}
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-slate-500">{tr("Porsi / Pcs: fill in the grams of one portion or piece. The count form asks for the unit marked; another unit or grams can be chosen there.")}</p>
+            <p className="text-[11px] text-neutral-500">{tr("Porsi / Pcs: fill in the grams of one portion or piece. The count form asks for the unit marked; another unit or grams can be chosen there.")}</p>
           </FormCard>
 
           <FormCard n={3} title={tr("Components & Versions")} hint={tr("Grams of every component for one batch. Pick the stock item (ESB code) of each; water is not a stock item.")}>
@@ -209,19 +209,19 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               <div className="flex flex-wrap items-center gap-1.5">
                 {r.versions.map(v => (
                   <button key={v.id} type="button" onClick={() => { setVersionId(v.id); setDraft(v.status === "DRAFT" ? { batch: String(num(v.output_qty_base)), note: v.note ?? "", lines: v.lines.map(toDraft) } : null); }}
-                    className={cx("rounded-lg border px-2.5 py-1 text-xs font-medium", v.id === versionId ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
+                    className={cx("rounded-lg border px-2.5 py-1 text-xs font-medium", v.id === versionId ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>
                     v{v.version_no} · {v.status === "ACTIVE" ? tr("Active") : v.status === "DRAFT" ? tr("Draft") : tr("Retired")}
                   </button>
                 ))}
                 {(!draft || version) && !r.versions.some(v => v.status === "DRAFT") && (
-                  <button type="button" onClick={newVersion} className="inline-flex items-center gap-1 rounded-lg border border-dashed border-blue-300 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50">
+                  <button type="button" onClick={newVersion} className="inline-flex items-center gap-1 rounded-lg border border-dashed border-brand-300 px-2.5 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50">
                     <CopyPlus size={13} /> {tr("New version")}
                   </button>
                 )}
               </div>
             )}
             {version && version.status !== "DRAFT" && (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-neutral-500">
                 {version.status === "ACTIVE" ? tr("Active since {0}", version.effective_from ? fmtDate(version.effective_from) : "-") : tr("Retired")}
                 {version.approved_by_name ? ` · ${version.approved_by_name}` : ""} · {tr("read only: make a new version to change it")}
               </p>
@@ -238,11 +238,11 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               onRemove={i => setDraft(d => d && ({ ...d, lines: d.lines.filter((_, n) => n !== i) }))} />
             {draft && (
               <button type="button" onClick={() => setDraft(d => d && ({ ...d, lines: [...d.lines, { item_id: null, item_code: null, item_name: null, component_name: "", qty_base: "", is_stock: true }] }))}
-                className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline"><Plus size={13} /> {tr("Add component")}</button>
+                className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:underline"><Plus size={13} /> {tr("Add component")}</button>
             )}
             {draft && (
               <div>
-                <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Take components from the data we have")}</p>
+                <p className="mb-1.5 text-xs font-semibold text-neutral-700">{tr("Take components from the data we have")}</p>
                 <ComponentSources have={new Set(draft.lines.map(l => l.item_id).filter(Boolean) as string[])}
                   onAdd={(cs: PickedComponent[]) => setDraft(d => d && ({ ...d, lines: [...d.lines, ...cs.map(c => ({
                     item_id: c.item_id, item_code: c.item_code, item_name: c.item_name, component_name: c.component_name,
@@ -266,38 +266,38 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
 function ComponentTable({ lines, batch, editable, onChange, onRemove }: {
   lines: DraftLine[]; batch: number; editable: boolean; onChange: (i: number, p: Partial<DraftLine>) => void; onRemove: (i: number) => void;
 }) {
-  if (!lines.length) return <p className="rounded-lg border border-dashed border-slate-200 py-6 text-center text-sm text-slate-400">{tr("No components yet")}</p>;
+  if (!lines.length) return <p className="rounded-lg border border-dashed border-neutral-200 py-6 text-center text-sm text-neutral-400">{tr("No components yet")}</p>;
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200">
+    <div className="overflow-x-auto rounded-lg border border-neutral-200">
       <table className="m-cards w-full min-w-[640px] text-sm">
-        <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <thead className="bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
           <tr><th className="px-3 py-2">{tr("Component")}</th><th className="px-3 py-2">{tr("Stock Item")}</th>
             <th className="w-28 px-3 py-2 text-right">{tr("Grams / Batch")}</th><th className="w-16 px-3 py-2 text-right">%</th>{editable && <th className="w-10" />}</tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-neutral-100">
           {lines.map((l, i) => (
             <tr key={i} className="align-top">
               <td className="px-3 py-2">
                 {editable ? <input className={cx(inputClass, "h-8 text-xs")} value={l.component_name} placeholder={tr("Name in the workbook")} onChange={e => onChange(i, { component_name: e.target.value })} />
-                  : <span className="text-slate-800">{l.component_name}</span>}
+                  : <span className="text-neutral-800">{l.component_name}</span>}
               </td>
               <td className="px-3 py-2">
                 {!l.is_stock ? (
-                  <span className="inline-flex items-center gap-2 text-xs text-slate-500">{tr("Not stock (e.g. water)")}
-                    {editable && <button type="button" className="font-medium text-blue-700 hover:underline" onClick={() => onChange(i, { is_stock: true })}>{tr("Make stock")}</button>}</span>
+                  <span className="inline-flex items-center gap-2 text-xs text-neutral-500">{tr("Not stock (e.g. water)")}
+                    {editable && <button type="button" className="font-medium text-brand-700 hover:underline" onClick={() => onChange(i, { is_stock: true })}>{tr("Make stock")}</button>}</span>
                 ) : editable ? (
                   <ItemPicker value={l} onPick={f => onChange(i, { item_id: f.item_id, item_code: f.item_code, item_name: f.item_name, component_name: l.component_name || f.item_name })}
                     onNotStock={() => onChange(i, { is_stock: false, item_id: null, item_code: null, item_name: null })} />
                 ) : l.item_id ? (
-                  <span className="text-xs"><span className="font-mono text-slate-500">{l.item_code}</span> <span className="text-slate-800">{l.item_name}</span></span>
+                  <span className="text-xs"><span className="font-mono text-neutral-500">{l.item_code}</span> <span className="text-neutral-800">{l.item_name}</span></span>
                 ) : <Badge tone="red">{tr("Not mapped")}</Badge>}
               </td>
               <td className="px-3 py-2 text-right tabular-nums">
                 {editable ? <input className={cx(inputClass, "h-8 text-right text-xs")} inputMode="decimal" value={l.qty_base} onChange={e => onChange(i, { qty_base: e.target.value.replace(",", ".") })} />
                   : fmtG(num(l.qty_base))}
               </td>
-              <td className="px-3 py-2 text-right tabular-nums text-xs text-slate-500">{batch ? ((num(l.qty_base) / batch) * 100).toFixed(1) : "-"}</td>
-              {editable && <td className="px-1 py-2"><button type="button" onClick={() => onRemove(i)} className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={14} /></button></td>}
+              <td className="px-3 py-2 text-right tabular-nums text-xs text-neutral-500">{batch ? ((num(l.qty_base) / batch) * 100).toFixed(1) : "-"}</td>
+              {editable && <td className="px-1 py-2"><button type="button" onClick={() => onRemove(i)} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={14} /></button></td>}
             </tr>
           ))}
         </tbody>
@@ -323,26 +323,26 @@ function ItemPicker({ value, onPick, onNotStock }: { value: DraftLine; onPick: (
   return (
     <div className="relative">
       {value.item_id && !open ? (
-        <button type="button" onClick={() => setOpen(true)} className="w-full rounded-lg border border-slate-200 px-2 py-1 text-left text-xs hover:border-slate-300">
-          <span className="font-mono text-slate-500">{value.item_code}</span> <span className="text-slate-800">{value.item_name}</span>
+        <button type="button" onClick={() => setOpen(true)} className="w-full rounded-lg border border-neutral-200 px-2 py-1 text-left text-xs hover:border-neutral-300">
+          <span className="font-mono text-neutral-500">{value.item_code}</span> <span className="text-neutral-800">{value.item_name}</span>
         </button>
       ) : (
         <div className="relative">
-          <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input className={cx(inputClass, "h-8 pl-7 text-xs", !value.item_id && "border-red-300")} value={q} autoFocus={open} placeholder={tr("Search item for {0}", value.component_name || "…")}
             onFocus={() => setOpen(true)} onChange={e => { setQ(e.target.value); setOpen(true); }} onBlur={() => setTimeout(() => setOpen(false), 150)} />
-          {loading && <Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-slate-400" />}
+          {loading && <Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-neutral-400" />}
         </div>
       )}
       {open && (
-        <ul className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white py-1 shadow-xl">
+        <ul className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-xl border border-neutral-200/80 bg-white py-1 shadow-xl">
           {found.map(f => (
             <li key={f.item_id}><button type="button" onMouseDown={e => e.preventDefault()} onClick={() => { onPick(f); setOpen(false); setQ(""); }}
-              className="w-full px-3 py-1.5 text-left text-xs hover:bg-slate-50"><span className="font-mono text-slate-500">{f.item_code}</span> {f.item_name} <span className="text-slate-400">· {f.base_uom}</span></button></li>
+              className="w-full px-3 py-1.5 text-left text-xs hover:bg-neutral-50"><span className="font-mono text-neutral-500">{f.item_code}</span> {f.item_name} <span className="text-neutral-400">· {f.base_uom}</span></button></li>
           ))}
-          {!found.length && !loading && <li className="px-3 py-2 text-xs text-slate-400">{tr("Type a name or code")}</li>}
-          <li className="border-t border-slate-100"><button type="button" onMouseDown={e => e.preventDefault()} onClick={() => { onNotStock(); setOpen(false); }}
-            className="w-full px-3 py-1.5 text-left text-xs font-medium text-slate-600 hover:bg-slate-50">{tr("Not a stock item (water)")}</button></li>
+          {!found.length && !loading && <li className="px-3 py-2 text-xs text-neutral-400">{tr("Type a name or code")}</li>}
+          <li className="border-t border-neutral-100"><button type="button" onMouseDown={e => e.preventDefault()} onClick={() => { onNotStock(); setOpen(false); }}
+            className="w-full px-3 py-1.5 text-left text-xs font-medium text-neutral-600 hover:bg-neutral-50">{tr("Not a stock item (water)")}</button></li>
         </ul>
       )}
     </div>

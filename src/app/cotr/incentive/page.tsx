@@ -4,12 +4,13 @@
 // driver (cups sold per segment of the tiers, product bonus, late / absent deductions of Master Schedule, minimum
 // attendance), the schemes the COTR team adjusts (versioned by the month they start) and a simulator.
 
-import { Calculator, Download, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Building2, CalendarDays, Calculator, Coffee, Download, Layers, Plus, Trash2, TriangleAlert, Users, Wallet } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, Select, cx } from "@/so/ui";
-import { kcTable } from "@/components/kc";
+import { SearchInput, StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
+import { MonthField, ScopeBar } from "@/components/kc/ScopeBar";
+import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList, Segments } from "@/so/ui/MonitorFilters";
 import { Page, Panel } from "@/components/kc/compat";
-import { Segmented } from "@/so/ui/Simple";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool } from "@/cotr/types";
 import { MasterTable, rupiah, useMaster } from "@/cotr/ui";
@@ -34,8 +35,10 @@ export default function CotrIncentivePage() {
   const [tab, setTab] = useState<"recap" | "simulate" | "schemes">("recap");
   return (
     <Page eyebrow="Monitoring COTR" media={<Calculator size={19} />} title={tr("Incentive Calculator")} subtitle={tr("Monthly incentive of the drivers from cups sold and the attendance of Master Schedule")}>
-      <Segmented label={tr("Section")} value={tab} onChange={setTab} options={[
-        { value: "recap", label: tr("Monthly recap") }, { value: "simulate", label: tr("Simulator") }, { value: "schemes", label: tr("Schemes") },
+      <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={[
+        { key: "recap", label: <span className="inline-flex items-center gap-1.5"><Users size={15} />{tr("Monthly recap")}</span> },
+        { key: "simulate", label: <span className="inline-flex items-center gap-1.5"><Calculator size={15} />{tr("Simulator")}</span> },
+        { key: "schemes", label: <span className="inline-flex items-center gap-1.5"><Layers size={15} />{tr("Schemes")}</span> },
       ]} />
       {tab === "recap" && <RecapView />}
       {tab === "simulate" && <Simulator />}
@@ -54,6 +57,10 @@ function RecapView() {
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const [q, setQ] = useState("");
+  const [only, setOnly] = useState<"" | "eligible" | "below">("");
+  const [sheet, setSheet] = useState(false);
+  const [draft, setDraft] = useState({ month, scheme, pool, only });
   useEffect(() => {
     let alive = true;
     setError(null);
@@ -74,22 +81,57 @@ function RecapView() {
     a.click();
   };
 
+  const poolList = (pools.rows ?? []).filter((p) => p.kind !== "storage");
+  const rows = (data?.rows ?? []).filter((r) => (!only || (only === "eligible" ? r.eligible : !r.eligible))
+    && (!q.trim() || `${r.name} ${r.driver} ${r.pool ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())));
+  const monthLabel = new Date(`${month}-01T00:00:00`).toLocaleDateString(locale(), { month: "long", year: "numeric" });
   return (
-    <Panel title={tr("Incentives of {0}", month)} description={data ? `${tr("Scheme")}: ${data.scheme.name} · ${num(data.cups)} ${tr("cups")} · ${tr("Total")} ${rupiah(data.total)}` : undefined}
-      actions={<Button size="sm" variant="secondary" disabled={!data?.rows.length} onClick={exportCsv}><Download size={14} /> {tr("Export CSV")}</Button>}
-      toolbar={<div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("Month")} className="w-40"><Input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} /></Field>
-        <Field label={tr("Scheme")} className="w-56"><Select value={scheme} onChange={(e) => setScheme(e.target.value)}><option value="">{tr("Scheme of the month")}</option>{(schemes.rows ?? []).map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}</Select></Field>
-        <Field label={tr("Pool / HUB")} className="w-48"><Select value={pool} onChange={(e) => setPool(e.target.value)}><option value="">{tr("All pools")}</option>{(pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-        <Button variant="secondary" onClick={() => setTick((t) => t + 1)}><RefreshCw size={15} /> {tr("Refresh")}</Button>
-      </div>}>
+    <div className="space-y-5">
+      <ScopeBar onOpen={() => { setDraft({ month, scheme, pool, only }); setSheet(true); }} onRefresh={() => setTick((t) => t + 1)}
+        right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
+        scopes={[
+          { key: "month", icon: <CalendarDays />, label: tr("Month"), value: monthLabel },
+          { key: "scheme", icon: <Layers />, label: tr("Scheme"), value: (schemes.rows ?? []).find((x) => x.code === scheme)?.name ?? tr("Scheme of the month"), active: !!scheme },
+          { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolList.find((p) => p.code === pool)?.name ?? tr("All pools"), active: !!pool },
+          ...(only ? [{ key: "only", icon: <Users />, label: tr("Drivers"), value: only === "eligible" ? tr("Eligible") : tr("Below minimum"), active: true }] : []),
+        ]} />
+      <StatGrid label={tr("Summary")} cols={4}>
+        <StatCard label={tr("Drivers")} icon={<Users />} value={data ? data.rows.length : <ValueSkeleton />} sub={data && tr("{0} below the minimum attendance", data.rows.filter((r) => !r.eligible).length)} />
+        <StatCard label={tr("Cups sold")} icon={<Coffee />} value={data ? num(data.cups) : <ValueSkeleton />} />
+        <StatCard label={tr("Total incentive")} tone="brand" icon={<Wallet />} value={data ? rupiah(data.total) : <ValueSkeleton />} sub={data && `${tr("Scheme")}: ${data.scheme.name}`} />
+        <StatCard label={tr("Deductions")} icon={<TriangleAlert />} tone={data && data.rows.some((r) => r.deduction) ? "warn" : "default"}
+          value={data ? rupiah(data.rows.reduce((a, r) => a + r.deduction, 0)) : <ValueSkeleton />} />
+      </StatGrid>
+      {sheet && (
+        <MonitorFilterSheet active={[draft.scheme, draft.pool, draft.only].filter(Boolean).length} onClose={() => setSheet(false)}
+          onReset={() => setDraft({ month: new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 7), scheme: "", pool: "", only: "" })}
+          onApply={() => { setMonth(draft.month); setScheme(draft.scheme); setPool(draft.pool); setOnly(draft.only); setSheet(false); }}>
+          <FilterRow icon={<CalendarDays size={15} />} label={tr("Month")} value={draft.month}>
+            <MonthField value={draft.month} onChange={(v) => setDraft({ ...draft, month: v })} />
+          </FilterRow>
+          <FilterRow icon={<Layers size={15} />} label={tr("Scheme")} value={(schemes.rows ?? []).find((x) => x.code === draft.scheme)?.name ?? null} onClear={() => setDraft({ ...draft, scheme: "" })}>
+            <OptionList value={draft.scheme} onChange={(v) => setDraft({ ...draft, scheme: v })}
+              choices={[{ value: "", label: tr("Scheme of the month") }, ...(schemes.rows ?? []).map((x) => ({ value: x.code, label: x.name }))]} />
+          </FilterRow>
+          <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={poolList.find((p) => p.code === draft.pool)?.name ?? null} onClear={() => setDraft({ ...draft, pool: "" })}>
+            <ComboFilter value={draft.pool} onChange={(v) => setDraft({ ...draft, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
+              options={poolList.map((p) => ({ value: p.code, label: p.name, hint: p.city }))} />
+          </FilterRow>
+          <FilterRow icon={<Users size={15} />} label={tr("Drivers")} value={draft.only === "eligible" ? tr("Eligible") : draft.only === "below" ? tr("Below minimum") : null} onClear={() => setDraft({ ...draft, only: "" })}>
+            <Segments value={draft.only} onChange={(v) => setDraft({ ...draft, only: v as typeof only })}
+              choices={[{ value: "", label: tr("All") }, { value: "eligible", label: tr("Eligible") }, { value: "below", label: tr("Below minimum") }]} />
+          </FilterRow>
+        </MonitorFilterSheet>
+      )}
+    <Panel title={tr("Incentives of {0}", monthLabel)} description={data ? tr("{0} of {1} drivers · tap a driver for the breakdown", rows.length, data.rows.length) : undefined}
+      actions={<Button size="sm" variant="secondary" disabled={!rows.length} onClick={exportCsv}><Download size={14} /> {tr("Export CSV")}</Button>}>
       {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <div className="skeleton m-4 h-40 rounded-xl" /> : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-3 py-2.5 text-right">{tr("Attendance")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Tiers")}</th><th className="px-3 py-2.5 text-right">{tr("Product bonus")}</th><th className="px-3 py-2.5 text-right">{tr("Deduction")}</th><th className="px-4 py-2.5 text-right">{tr("Incentive")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
-              {data.rows.map((r) => (
+              {rows.map((r) => (
                 <Fragment key={r.driver}>
                   <tr className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(open === r.driver ? null : r.driver)}>
                     <td className="px-4 py-2"><span className="block font-medium text-neutral-900">{r.name}</span><span className="text-[11px] text-neutral-400">{r.driver}{r.pool ? ` · ${r.pool}` : ""}</span></td>
@@ -110,12 +152,13 @@ function RecapView() {
                   )}
                 </Fragment>
               ))}
-              {data.rows.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-neutral-400">{tr("No drivers in this pool")}</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-neutral-400">{data.rows.length ? tr("No driver matches the search or filters") : tr("No drivers in this pool")}</td></tr>}
             </tbody>
           </table>
         </div>
       )}
     </Panel>
+    </div>
   );
 }
 

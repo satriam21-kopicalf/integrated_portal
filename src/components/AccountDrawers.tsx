@@ -10,7 +10,8 @@ import { createContext, FormEvent, ReactNode, useCallback, useContext, useEffect
 import { AlertCircle, Check, CircleUserRound, KeyRound, Loader2, ShieldCheck, UserRoundPen, X } from 'lucide-react';
 import ChangePasswordDrawer from '@/components/ChangePasswordDrawer';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues, REQUIRED_PROFILE_KEYS, sameProfile } from '@/components/ProfileFields';
-import { AvatarEditor } from '@/components/UserAvatar';
+import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
+import { Pill } from '@/components/kc';
 import WelcomeNotice from '@/components/WelcomeNotice';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { buttonPrimary, buttonSecondary } from '@/components/ui/Dialog';
@@ -119,6 +120,19 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
       }
     >
       <form id="my-profile" onSubmit={submit} className="space-y-0" noValidate>
+        {/* identity, as in User details of User Accounts */}
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3.5">
+          <UserAvatar name={form.fullName || user.displayName} src={user.avatarUrl} size="lg" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-semibold text-neutral-900">{form.fullName || user.displayName}</p>
+            <p className="truncate text-[13px] text-neutral-500">{[form.jobTitle, form.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <Pill tone={user.role === 'superadmin' ? 'red' : 'brand'} icon={user.role === 'superadmin' ? <ShieldCheck size={11} /> : undefined}>{role}</Pill>
+              <Pill tone={filled === REQUIRED_PROFILE_KEYS.length ? 'green' : 'amber'}>{tr('Profile')} {filled}/{REQUIRED_PROFILE_KEYS.length}</Pill>
+            </div>
+          </div>
+        </div>
+
         <DrawerSection title={tr('Profile photo')} description={tr('Shown in the sidebar and in User Accounts. Saved right away.')}>
           <AvatarEditor name={form.fullName || user.username} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser} />
         </DrawerSection>

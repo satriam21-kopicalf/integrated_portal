@@ -79,9 +79,9 @@ export default function PricelistPage() {
           <select className={cx(inputClass, "sm:max-w-[14rem]")} value={category} onChange={(e) => setCategory(e.target.value)} aria-label={tr("Category")}>
             <option value="">{tr("All categories")}</option>{data?.categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <label className="flex h-10 items-center gap-2 text-sm text-slate-600"><input type="checkbox" checked={onlyMissing} onChange={(e) => setOnlyMissing(e.target.checked)} />{tr("Without a price only")}</label>
+          <label className="flex h-10 items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={onlyMissing} onChange={(e) => setOnlyMissing(e.target.checked)} />{tr("Without a price only")}</label>
           <span className="flex-1" />
-          <label className="text-xs text-slate-500">{tr("Valid from")}<input type="date" className={cx(inputClass, "mt-1 w-40")} value={from} onChange={(e) => setFrom(e.target.value)} /></label>
+          <label className="text-xs text-neutral-500">{tr("Valid from")}<input type="date" className={cx(inputClass, "mt-1 w-40")} value={from} onChange={(e) => setFrom(e.target.value)} /></label>
           <Button variant="secondary" onClick={usePurchase} title={tr("Fill the items without a price with the average purchase price")}>{tr("Use purchase average")}</Button>
           <Button loading={busy} disabled={!changed.length} onClick={() => void save()}><Save size={15} />{tr("Save {0} prices", changed.length)}</Button>
         </div>
@@ -91,17 +91,17 @@ export default function PricelistPage() {
             <table className="w-full min-w-[760px] text-sm">
               <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Category")}</th><th className="px-4 py-2.5">{tr("Unit")}</th>
                 <th className="px-4 py-2.5 text-right">{tr("Purchase Avg 90 Days")}</th><th className="px-4 py-2.5 text-right">{tr("Current Price")}</th><th className="px-4 py-2.5">{tr("New Price")}</th><th /></tr></thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {paged.rows.map((i) => (
-                  <tr key={i.code} className={draft[i.code] ? "bg-blue-50/40" : ""}>
-                    <td className="px-4 py-2"><span className="block font-medium text-slate-900">{i.name}</span><span className="text-[11px] text-slate-400">{i.code}</span></td>
-                    <td className="px-4 py-2 text-xs text-slate-600">{i.category ?? "—"}</td>
+                  <tr key={i.code} className={draft[i.code] ? "bg-brand-50/40" : ""}>
+                    <td className="px-4 py-2"><span className="block font-medium text-neutral-900">{i.name}</span><span className="text-[11px] text-neutral-400">{i.code}</span></td>
+                    <td className="px-4 py-2 text-xs text-neutral-600">{i.category ?? "—"}</td>
                     <td className="px-4 py-2 text-xs">{i.unit}</td>
-                    <td className="px-4 py-2 text-right text-xs tabular-nums text-slate-500">{rp(i.purchaseAvg, 4)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums">{i.price === null ? <Badge tone="amber">{tr("No price")}</Badge> : <>{rp(i.price, 4)}<span className="block text-[10px] text-slate-400">{tr("from {0}", i.validFrom ?? "")}</span></>}</td>
+                    <td className="px-4 py-2 text-right text-xs tabular-nums text-neutral-500">{rp(i.purchaseAvg, 4)}</td>
+                    <td className="px-4 py-2 text-right tabular-nums">{i.price === null ? <Badge tone="amber">{tr("No price")}</Badge> : <>{rp(i.price, 4)}<span className="block text-[10px] text-neutral-400">{tr("from {0}", i.validFrom ?? "")}</span></>}</td>
                     <td className="w-40 px-4 py-2"><input inputMode="decimal" className={cx(inputClass, "h-9 text-right")} placeholder={i.price !== null ? String(i.price) : "0"} value={draft[i.code] ?? ""}
                       onChange={(e) => setDraft({ ...draft, [i.code]: e.target.value })} aria-label={`${tr("New price")} ${i.name}`} /></td>
-                    <td className="px-2"><button type="button" onClick={() => setHistory(i)} className="rounded p-1.5 text-slate-400 hover:text-blue-700" aria-label={tr("Price History")}><History size={15} /></button></td>
+                    <td className="px-2"><button type="button" onClick={() => setHistory(i)} className="rounded p-1.5 text-neutral-400 hover:text-brand-700" aria-label={tr("Price History")}><History size={15} /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -118,13 +118,13 @@ function HistoryDrawer({ item, onClose }: { item: Item; onClose: () => void }) {
   const [rows, setRows] = useState<Hist[] | null>(null);
   useEffect(() => { void call<{ data: Hist[] }>(`/api/cost-control/pricelist/${encodeURIComponent(item.code)}/history`).then((r) => setRows(r.data)); }, [item.code]);
   return (
-    <Drawer open onClose={onClose} title={item.name} description={`${item.code} · ${tr("price per {0}", item.unit)}`}>
+    <Drawer open onClose={onClose} icon={<Tags size={18} />} title={item.name} description={`${item.code} · ${tr("price per {0}", item.unit)}`}>
       {!rows ? <div className="skeleton h-40 rounded-xl" /> : rows.length === 0 ? <Empty title={tr("No price yet")} /> : (
-        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
+        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
           {rows.map((r) => (
             <li key={r.validFrom} className="flex items-center justify-between gap-3 px-3 py-2">
-              <span><span className="font-medium">{rp(r.price, 4)}</span><span className="block text-[11px] text-slate-400">{tr("from {0}", r.validFrom)} · {r.by ?? ""} · {wibDateTime(r.at)}</span></span>
-              {r.note && <span className="text-xs text-slate-500">{r.note}</span>}
+              <span><span className="font-medium">{rp(r.price, 4)}</span><span className="block text-[11px] text-neutral-400">{tr("from {0}", r.validFrom)} · {r.by ?? ""} · {wibDateTime(r.at)}</span></span>
+              {r.note && <span className="text-xs text-neutral-500">{r.note}</span>}
             </li>
           ))}
         </ul>

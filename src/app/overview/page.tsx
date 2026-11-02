@@ -130,21 +130,21 @@ export default function OverviewPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-slate-50">
+      <div className="min-h-full bg-neutral-50">
         <header className="px-4 pt-1 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Dashboard')}</h1>
-              <p className="text-xs text-slate-500 sm:text-sm">{tr('Sales Analytics')}</p>
+              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-neutral-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Dashboard')}</h1>
+              <p className="text-xs text-neutral-500 sm:text-sm">{tr('Sales Analytics')}</p>
             </div>
             <CompanySwitch className="order-last w-full sm:order-none sm:w-auto" extra={EXTRA_TABS}
               value={cotr ? COTR : company} onChange={pickTab} />
             {!cotr && <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
                 className={`inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
-                  activeCount ? 'text-blue-700 hover:bg-blue-50' : 'text-slate-700 hover:bg-slate-100'}`}>
+                  activeCount ? 'text-brand-700 hover:bg-brand-50' : 'text-neutral-700 hover:bg-neutral-100'}`}>
                 <SlidersHorizontal size={16} /> {tr('Filters')}
-                {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
+                {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
               </button>
               <RealtimeIndicator className="h-10" />
             </div>}
@@ -166,10 +166,10 @@ export default function OverviewPage() {
 function CotrEmpty() {
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex flex-col items-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center">
-        <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400"><Bike size={24} /></span>
-        <p className="text-sm font-semibold text-slate-800">Calf On The Road</p>
-        <p className="mt-1 max-w-sm text-sm text-slate-500">{tr('The dashboard of the COTR drivers appears here once their sales are recorded.')}</p>
+      <div className="flex flex-col items-center rounded-xl border border-dashed border-neutral-300 bg-white px-6 py-20 text-center">
+        <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-100 text-neutral-400"><Bike size={24} /></span>
+        <p className="text-sm font-semibold text-neutral-800">Calf On The Road</p>
+        <p className="mt-1 max-w-sm text-sm text-neutral-500">{tr('The dashboard of the COTR drivers appears here once their sales are recorded.')}</p>
       </div>
     </div>
   );
@@ -224,14 +224,14 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
       {/* Company health (components/overview/HealthCard.tsx) is hidden for now */}
 
       <div className="space-y-0">
-        <p className="pb-2 text-xs text-slate-500 sm:text-sm">
+        <p className="pb-2 text-xs text-neutral-500 sm:text-sm">
           {f ? (
             <>
-              <span className="font-medium text-slate-900">{periodText(f.from, f.to)}</span> · {branchName} · {channelText}
+              <span className="font-medium text-neutral-900">{periodText(f.from, f.to)}</span> · {branchName} · {channelText}
               {f.previous.complete ? (
                 <>
                   {tr(' · vs ')}
-                  <span className={f.previous.custom ? 'rounded bg-slate-900 px-1.5 py-0.5 font-medium text-white' : ''}>
+                  <span className={f.previous.custom ? 'rounded bg-neutral-900 px-1.5 py-0.5 font-medium text-white' : ''}>
                     {periodText(f.previous.from, f.previous.to)}{f.previous.until ? ` ${tr('until {0} WIB', f.previous.until)}` : ''}
                   </span>
                   {f.previous.days !== undefined && f.previous.days !== f.days && (
@@ -294,9 +294,9 @@ function periodText(from: string, to: string): string {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+      <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
         {title}
-        <span className="h-px flex-1 bg-slate-200" aria-hidden />
+        <span className="h-px flex-1 bg-neutral-200" aria-hidden />
       </h2>
       {children}
     </section>

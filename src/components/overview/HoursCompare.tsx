@@ -153,7 +153,7 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
       <EChart option={option} height={size === 'card' ? 200 : 280} ariaLabel={tr('Busy hours: {0} compared with {1}', curLabel, cmpLabel)} />
       {movers.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          <span className="text-[11px] text-slate-500">{tr('Biggest changes:')}</span>
+          <span className="text-[11px] text-neutral-500">{tr('Biggest changes:')}</span>
           {movers.map(m => (
             <span key={m.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${m.d! >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
               {m.d! >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{hourLabel(m.hour)} {m.d! >= 0 ? '+' : '−'}{fixed(Math.abs(m.d!), 0)}%
@@ -182,22 +182,22 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
 
 function Summary({ color, title, range, p, vs }: { color: string; title: string; range: string; p: HoursProfile; vs?: HoursProfile }) {
   return (
-    <div className="rounded-lg border border-slate-200 px-3 py-2">
-      <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+    <div className="rounded-lg border border-neutral-200 px-3 py-2">
+      <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
         <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: color }} />{title}
       </p>
-      <p className="text-[11px] text-slate-500">{range} · {p.days} {tr('days')}</p>
-      <p className="mt-1 text-sm text-slate-800">
+      <p className="text-[11px] text-neutral-500">{range} · {p.days} {tr('days')}</p>
+      <p className="mt-1 text-sm text-neutral-800">
         <span className="font-semibold tabular-nums">{formatNumber(Math.round(p.avgBillsPerDay))}</span> {tr('bills/day')}
         {p.peakHour !== null && <> {tr('· peak')} <span className="font-semibold">{hourLabel(p.peakHour)}</span></>}
-        {vs && <span className="ml-1 text-xs text-slate-500">{tr('(this period')} {formatNumber(Math.round(vs.avgBillsPerDay))}, <ChangeText v={change(vs.avgBillsPerDay, p.avgBillsPerDay)} />)</span>}
+        {vs && <span className="ml-1 text-xs text-neutral-500">{tr('(this period')} {formatNumber(Math.round(vs.avgBillsPerDay))}, <ChangeText v={change(vs.avgBillsPerDay, p.avgBillsPerDay)} />)</span>}
       </p>
     </div>
   );
 }
 
 function ChangeText({ v }: { v: number | null }) {
-  if (v === null) return <span className="text-slate-400">-</span>;
+  if (v === null) return <span className="text-neutral-400">-</span>;
   return <span className={v >= 0 ? 'text-emerald-700' : 'text-rose-700'}>{v >= 0 ? '+' : '−'}{fixed(Math.abs(v), 1)}%</span>;
 }
 
@@ -232,10 +232,10 @@ function BranchCompare({ branches, measure, size, picked }: { branches: BranchHo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [hours, branches, measure]);
 
-  if (!branches.length) return <p className="py-8 text-center text-sm text-slate-400">{tr('No branches with sales in this period')}</p>;
+  if (!branches.length) return <p className="py-8 text-center text-sm text-neutral-400">{tr('No branches with sales in this period')}</p>;
   return (
     <div className="space-y-3">
-      <p className="text-[11px] text-slate-500">
+      <p className="text-[11px] text-neutral-500">
         {picked ? tr('Your branch selection') : tr('The selected branches, or the 5 busiest of the period')} {tr('· averages per day the branch had sales')}
       </p>
       <Legend items={branches.map((b, i) => ({ key: b.branchCode, label: short(b.branchName), color: SERIES_COLORS[i], shape: 'line' as const }))} />

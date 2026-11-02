@@ -127,17 +127,17 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
     : '';
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white" aria-label={tr('Gross sales today')}>
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
+    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white" aria-label={tr('Gross sales today')}>
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3 sm:px-5">
         <div className="min-w-0">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <CalendarClock size={15} className="text-blue-600" aria-hidden /> {tr('Today')} <InfoTip info="today" />
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+            <CalendarClock size={15} className="text-brand-600" aria-hidden /> {tr('Today')} <InfoTip info="today" />
           </h2>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-neutral-500">
             {dateLabel || tr('Today')} {tr('· follows the branch and channel filters')}
           </p>
         </div>
-        <p className="flex items-center gap-1.5 text-xs text-slate-500">
+        <p className="flex items-center gap-1.5 text-xs text-neutral-500">
           <Clock3 size={13} aria-hidden />
           {data && (data.lastSyncedAt || salesSyncedAt)
             ? <>{tr('Last new data')} {minutesAgo(data.lastSyncedAt ?? salesSyncedAt, now)}</>
@@ -145,17 +145,17 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         </p>
       </header>
 
-      <div className="grid divide-y divide-slate-100 xl:grid-cols-12 xl:divide-x xl:divide-y-0">
+      <div className="grid divide-y divide-neutral-100 xl:grid-cols-12 xl:divide-x xl:divide-y-0">
         {/* Today's figures */}
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Gross sales today')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Gross sales today')}</p>
             {t ? (
               <>
-                <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 tabular-nums" title={formatCurrency(t.subtotal)}>
+                <p className="mt-1 text-3xl font-semibold tracking-tight text-neutral-900 tabular-nums" title={formatCurrency(t.subtotal)}>
                   {formatCurrency(Math.round(sales))}
                 </p>
-                <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500">
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-neutral-500">
                   <Delta value={t.deltaPct} />
                   <Diff value={t.subtotal - t.yesterdaySameTime.subtotal} rupiah />
                   <span>{tr('vs the same day last week at this time (')}{formatCurrency(t.yesterdaySameTime.subtotal)})</span>
@@ -169,23 +169,23 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
           {t && ofYesterday !== null && (
             <div>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="text-slate-500">{tr('Progress vs the same day last week (full day)')}</span>
-                <span className="font-semibold tabular-nums text-slate-900">{fixed(ofYesterday, 0)}%</span>
+                <span className="text-neutral-500">{tr('Progress vs the same day last week (full day)')}</span>
+                <span className="font-semibold tabular-nums text-neutral-900">{fixed(ofYesterday, 0)}%</span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
-                <div className="h-full rounded-full bg-blue-600 transition-[width] duration-700" style={{ width: `${Math.min(100, ofYesterday)}%` }} />
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-neutral-100">
+                <div className="h-full rounded-full bg-brand-600 transition-[width] duration-700" style={{ width: `${Math.min(100, ofYesterday)}%` }} />
               </div>
               <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[11px]">
-                <span className="text-slate-400">{tr('Same day last week, full day:')} {formatCurrency(data!.yesterday.subtotal)}</span>
+                <span className="text-neutral-400">{tr('Same day last week, full day:')} {formatCurrency(data!.yesterday.subtotal)}</span>
                 <span className="flex items-baseline gap-1">
                   <Diff value={t.subtotal - data!.yesterday.subtotal} rupiah />
-                  <span className="text-slate-400">{t.subtotal >= data!.yesterday.subtotal ? tr('above last week') : tr('to reach last week')}</span>
+                  <span className="text-neutral-400">{t.subtotal >= data!.yesterday.subtotal ? tr('above last week') : tr('to reach last week')}</span>
                 </span>
               </div>
             </div>
           )}
 
-          <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
+          <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100">
             <MiniStat icon={<Receipt size={13} />} label={tr('Bills')} value={t ? formatNumber(Math.round(bills)) : '—'} delta={t?.billsDeltaPct}
               diff={t && ys ? <Diff value={t.bills - ys.bills} /> : null} />
             <MiniStat icon={<ShoppingBag size={13} />} label={tr('Average Order Value')} value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} delta={t ? avgDeltaPct : undefined}
@@ -193,15 +193,15 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
             <MiniStat icon={<Tag size={13} />} label={tr('Nett sales')} value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct}
               diff={t && ys ? <Diff value={t.nettSales - ys.nettSales} rupiah /> : null} />
           </dl>
-          {t && <p className="-mt-2 text-[11px] text-slate-400">{tr('− / + vs the same day last week at this time')}</p>}
+          {t && <p className="-mt-2 text-[11px] text-neutral-400">{tr('− / + vs the same day last week at this time')}</p>}
         </div>
 
         {/* Hourly and channels */}
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Gross sales by hour')}</p>
-              <span className="flex items-center gap-3 text-[11px] text-slate-500">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Gross sales by hour')}</p>
+              <span className="flex items-center gap-3 text-[11px] text-neutral-500">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#2a78d6]" />{tr('Today')}</span>
                 <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />{tr('Same day last week')}</span>
               </span>
@@ -209,10 +209,10 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
             {hourOption ? <EChart option={hourOption} height={120} ariaLabel={tr('Gross sales per hour today compared with the same day last week')} /> : <div className="h-[120px]" />}
           </div>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Channels today')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Channels today')}</p>
             {channels.length > 0 && t ? (
               <>
-                <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={tr('Share of today\'s sales per channel')}>
+                <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-neutral-100" role="img" aria-label={tr('Share of today\'s sales per channel')}>
                   {channels.map(c => (
                     <span key={c.channel} className="h-full border-r-2 border-white last:border-r-0"
                       style={{ width: `${(c.subtotal / t.subtotal) * 100}%`, background: channelColor(c.channel) }} />
@@ -223,15 +223,15 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                     <li key={c.channel} className="flex items-center justify-between gap-2">
                       <span className="flex min-w-0 items-center gap-1.5">
                         <span className="h-2 w-2 flex-shrink-0 rounded-sm" style={{ background: channelColor(c.channel) }} />
-                        <ChannelLogo channel={c.channel} height={13} labelClassName="text-slate-600" />
+                        <ChannelLogo channel={c.channel} height={13} labelClassName="text-neutral-600" />
                       </span>
-                      <span className="tabular-nums text-slate-900">{fixed(((c.subtotal / t.subtotal) * 100), 0)}%</span>
+                      <span className="tabular-nums text-neutral-900">{fixed(((c.subtotal / t.subtotal) * 100), 0)}%</span>
                     </li>
                   ))}
                 </ul>
               </>
             ) : (
-              <p className="mt-2 text-xs text-slate-400">{tr('No sales yet today')}</p>
+              <p className="mt-2 text-xs text-neutral-400">{tr('No sales yet today')}</p>
             )}
           </div>
         </div>
@@ -239,9 +239,9 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         {/* Latest sales feed */}
         <div className="flex min-w-0 flex-col xl:col-span-4">
           <div className="flex items-center justify-between px-4 pt-4 sm:px-5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Latest sales')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Latest sales')}</p>
             {batch && batch.bills > 0 && (
-              <span className="text-[11px] text-slate-500" title={tr('Sales that arrived with the most recent sync')}>
+              <span className="text-[11px] text-neutral-500" title={tr('Sales that arrived with the most recent sync')}>
                 +{formatNumber(batch.bills)} {tr('at last sync ·')} {formatCurrency(batch.subtotal)}
               </span>
             )}
@@ -255,25 +255,25 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                   className={`grid grid-cols-[3rem_1fr_auto] items-start gap-2 rounded-lg px-2 py-2 ${mode === 'fresh' ? 'live-enter' : 'live-fade'}`}
                   style={mode === 'initial' ? { animationDelay: `${delay}ms` } : undefined}
                 >
-                  <span className="pt-0.5 font-mono text-[11px] tabular-nums text-slate-400">{clock(sale.orderTime)}</span>
+                  <span className="pt-0.5 font-mono text-[11px] tabular-nums text-neutral-400">{clock(sale.orderTime)}</span>
                   <div className="min-w-0">
-                    <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-slate-800" title={sale.branchName}>
-                      {isNew && <span className="rounded bg-blue-600 px-1 text-[9px] font-bold uppercase tracking-wide text-white">{tr('New')}</span>}
+                    <p className="flex items-center gap-1.5 truncate text-[13px] font-medium text-neutral-800" title={sale.branchName}>
+                      {isNew && <span className="rounded bg-brand-600 px-1 text-[9px] font-bold uppercase tracking-wide text-white">{tr('New')}</span>}
                       <span className="truncate">{sale.branchName.replace(/^Kopi Calf /, '')}</span>
                     </p>
-                    <p className="truncate text-[11px] text-slate-500" title={itemsLine(sale)}>{itemsLine(sale)}</p>
-                    <p className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-400">
-                      <ChannelLogo channel={sale.channel} height={12} labelClassName="text-slate-500" />
+                    <p className="truncate text-[11px] text-neutral-500" title={itemsLine(sale)}>{itemsLine(sale)}</p>
+                    <p className="mt-1 flex items-center gap-1.5 text-[11px] text-neutral-400">
+                      <ChannelLogo channel={sale.channel} height={12} labelClassName="text-neutral-500" />
                       {sale.paymentMethod && <span className="truncate">· {paymentLabel(sale.paymentMethod)}</span>}
                     </p>
                   </div>
-                  <span className="pt-0.5 text-[13px] font-semibold tabular-nums text-slate-900">{formatNumber(sale.subtotal)}</span>
+                  <span className="pt-0.5 text-[13px] font-semibold tabular-nums text-neutral-900">{formatNumber(sale.subtotal)}</span>
                 </li>
               );
             })}
-            {data && !rows.length && <li className="py-8 text-center text-sm text-slate-400">{tr('No sales yet today')}</li>}
+            {data && !rows.length && <li className="py-8 text-center text-sm text-neutral-400">{tr('No sales yet today')}</li>}
           </ol>
-          <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-slate-400 sm:px-5">
+          <p className="border-t border-neutral-100 px-4 py-2 text-[11px] text-neutral-400 sm:px-5">
             {tr('Outlet local time · updates automatically after every POS sync (every 15 min, 06:00–24:00 WIB)')}
           </p>
         </div>
@@ -285,9 +285,9 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
 function MiniStat({ icon, label, value, delta, diff }: { icon: ReactNode; label: string; value: string; delta?: number | null; diff?: ReactNode }) {
   return (
     <div className="flex items-center gap-3 px-3 py-2">
-      <dt className="flex flex-1 items-center gap-1.5 text-xs text-slate-500">{icon}{label}</dt>
+      <dt className="flex flex-1 items-center gap-1.5 text-xs text-neutral-500">{icon}{label}</dt>
       <dd className="text-right">
-        <span className="block text-sm font-semibold tabular-nums text-slate-900">{value}</span>
+        <span className="block text-sm font-semibold tabular-nums text-neutral-900">{value}</span>
         {diff && <span className="block text-[11px] leading-tight">{diff}</span>}
       </dd>
       {delta !== undefined && <dd className="w-16 self-start pt-0.5 text-right"><Delta value={delta ?? null} /></dd>}
@@ -301,7 +301,7 @@ function Diff({ value, rupiah = false }: { value: number; rupiah?: boolean }) {
   const sign = v > 0 ? '+' : v < 0 ? '−' : '±';
   const text = rupiah ? formatCurrency(Math.abs(v)) : formatNumber(Math.abs(v));
   return (
-    <span className={`font-semibold tabular-nums ${v > 0 ? 'text-emerald-700' : v < 0 ? 'text-red-700' : 'text-slate-500'}`}>
+    <span className={`font-semibold tabular-nums ${v > 0 ? 'text-emerald-700' : v < 0 ? 'text-red-700' : 'text-neutral-500'}`}>
       {sign}{text}
     </span>
   );

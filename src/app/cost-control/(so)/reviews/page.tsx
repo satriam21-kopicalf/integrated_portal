@@ -124,15 +124,15 @@ export default function ReviewsPage() {
           </Empty>
         ) : (
           <>
-            <ul className="divide-y divide-slate-100 md:hidden">
+            <ul className="divide-y divide-neutral-100 md:hidden">
               {paged.rows.map((r) => {
                 const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
                 return (
                   <li key={r.id}>
-                    <Link href={`/cost-control/reviews/${r.id}`} className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-slate-50">
+                    <Link href={`/cost-control/reviews/${r.id}`} className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-neutral-50">
                       <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-slate-900">{r.facility_name}</span>
-                        <span className="block truncate text-xs text-slate-500">{countTypeLabel(r.count_type)} · {dmy(r.business_date)} · {r.counted}/{r.lines}</span>
+                        <span className="block truncate text-sm font-medium text-neutral-900">{r.facility_name}</span>
+                        <span className="block truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {dmy(r.business_date)} · {r.counted}/{r.lines}</span>
                         <span className="mt-1 flex flex-wrap gap-1">
                           {r.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} to check", r.flagged)}</Badge>}
                           {r.entry_source && r.entry_source !== "CREW" && <Badge tone="violet">{ENTRY_SOURCE[r.entry_source]?.()}</Badge>}
@@ -158,23 +158,23 @@ export default function ReviewsPage() {
                     <th className="w-16 px-4 py-2.5" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {rows === null ? <SkeletonRows cols={7} /> : paged.rows.map((r) => {
                     const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
                     const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                     return (
-                      <tr key={r.id} className="group hover:bg-slate-50/70">
+                      <tr key={r.id} className="group hover:bg-neutral-50/70">
                         <td className="max-w-[18rem] px-4 py-3">
                           <Link href={`/cost-control/reviews/${r.id}`} className="block min-w-0">
-                            <span className="block truncate font-medium text-slate-900 group-hover:text-blue-700">{r.facility_name}</span>
-                            <span className="block truncate font-mono text-[11px] text-slate-400">{r.number}</span>
+                            <span className="block truncate font-medium text-neutral-900 group-hover:text-brand-700">{r.facility_name}</span>
+                            <span className="block truncate font-mono text-[11px] text-neutral-400">{r.number}</span>
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-slate-700">{countTypeLabel(r.count_type)}<span className="block text-xs text-slate-400">{dmy(r.business_date)}</span></td>
+                        <td className="px-4 py-3 text-neutral-700">{countTypeLabel(r.count_type)}<span className="block text-xs text-neutral-400">{dmy(r.business_date)}</span></td>
                         <td className="px-4 py-3"><Badge tone={st.tone} dot>{st.label()}</Badge></td>
                         <td className="px-4 py-3 text-right">
-                          <span className="tabular-nums text-slate-700">{r.counted}/{r.lines}</span>
-                          <span className="ml-auto mt-1 block h-1 w-16 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-blue-600" style={{ width: `${p}%` }} /></span>
+                          <span className="tabular-nums text-neutral-700">{r.counted}/{r.lines}</span>
+                          <span className="ml-auto mt-1 block h-1 w-16 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${p}%` }} /></span>
                         </td>
                         <td className="px-4 py-3"><div className="flex flex-wrap gap-1">
                           {r.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} to check", r.flagged)}</Badge>}
@@ -182,10 +182,10 @@ export default function ReviewsPage() {
                           {r.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
                           <LocationBadges s={r} />
                         </div></td>
-                        <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{r.submitted_at ? fmtDate(r.submitted_at) : "—"}
+                        <td className="whitespace-nowrap px-4 py-3 text-xs text-neutral-500">{r.submitted_at ? fmtDate(r.submitted_at) : "—"}
                           {r.started_by_name && <span className="block">{r.started_by_name}</span>}</td>
                         <td className="px-4 py-3 text-right">
-                          <Link href={`/cost-control/reviews/${r.id}`} className="inline-flex items-center text-xs font-semibold text-blue-700 hover:underline">{tr("Open")}<ChevronRight size={13} /></Link>
+                          <Link href={`/cost-control/reviews/${r.id}`} className="inline-flex items-center text-xs font-semibold text-brand-700 hover:underline">{tr("Open")}<ChevronRight size={13} /></Link>
                         </td>
                       </tr>
                     );
@@ -247,7 +247,7 @@ const EXPORT_ICON: Record<ExportKind, React.ReactNode> = {
   ENTERED: <Send size={16} />, SUBMITTED: <Clock size={16} />, ALL: <Layers size={16} />, REVIEWED: <CheckCircle2 size={16} />,
 };
 const EXPORT_TONE: Record<ExportKind, string> = {
-  ENTERED: "bg-blue-50 text-blue-600", SUBMITTED: "bg-amber-50 text-amber-600", ALL: "bg-slate-100 text-slate-600",
+  ENTERED: "bg-brand-50 text-brand-600", SUBMITTED: "bg-amber-50 text-amber-600", ALL: "bg-neutral-100 text-neutral-600",
   REVIEWED: "bg-emerald-50 text-emerald-600",
 };
 const EXPORT_FILE: Record<ExportKind, string> = { ENTERED: "Entered", SUBMITTED: "Waiting Review", ALL: "All", REVIEWED: "Approved" };

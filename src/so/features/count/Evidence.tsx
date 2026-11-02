@@ -33,17 +33,17 @@ export function SignatureCard({ count }: { count: Count }) {
   const sig = count.signature;
   if (!sig) return null;
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
-        <PenLine size={18} className="text-slate-500" />
-        <h2 className="text-sm font-semibold text-slate-900">{tr("Signature")}</h2>
+    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+      <div className="flex items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">
+        <PenLine size={18} className="text-neutral-500" />
+        <h2 className="text-sm font-semibold text-neutral-900">{tr("Signature")}</h2>
       </div>
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
         {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
-        <img src={photoUrl(sig.id)} alt={tr("Signature")} className="h-28 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-slate-200" />
+        <img src={photoUrl(sig.id)} alt={tr("Signature")} className="h-28 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-neutral-200" />
         <div className="text-sm">
-          <p className="font-semibold text-slate-900">{sig.name ?? sig.signed_by_name ?? "—"}</p>
-          <p className="text-xs text-slate-500">{wibDateTime(sig.signed_at)}{sig.signed_by_name && sig.signed_by_name !== sig.name ? ` · ${tr("account {0}", sig.signed_by_name)}` : ""}</p>
+          <p className="font-semibold text-neutral-900">{sig.name ?? sig.signed_by_name ?? "—"}</p>
+          <p className="text-xs text-neutral-500">{wibDateTime(sig.signed_at)}{sig.signed_by_name && sig.signed_by_name !== sig.name ? ` · ${tr("account {0}", sig.signed_by_name)}` : ""}</p>
         </div>
       </div>
     </section>
@@ -77,7 +77,7 @@ export function EvidenceDownloads({ count }: { count: Count }) {
 
 const FILE_TONE: Record<string, string> = {
   pdf: "bg-red-50 text-red-700", xlsx: "bg-emerald-50 text-emerald-700", xls: "bg-emerald-50 text-emerald-700", csv: "bg-emerald-50 text-emerald-700",
-  docx: "bg-blue-50 text-blue-700", doc: "bg-blue-50 text-blue-700", pptx: "bg-orange-50 text-orange-700", ppt: "bg-orange-50 text-orange-700",
+  docx: "bg-brand-50 text-brand-700", doc: "bg-brand-50 text-brand-700", pptx: "bg-orange-50 text-orange-700", ppt: "bg-orange-50 text-orange-700",
 };
 
 /** The attached documents: name, size, who and when; a tap downloads the file. Removable by its uploader while open. */
@@ -85,21 +85,21 @@ export function CountFileList({ files, onRemove, canRemove }: {
   files: CountFile[]; onRemove?: (id: string) => void; canRemove?: (f: CountFile) => boolean;
 }) {
   return (
-    <ul className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200">
+    <ul className="divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200">
       {files.map((f) => {
         const ext = fileExt(f.file_name);
         return (
           <li key={f.id} className="flex items-center gap-3 px-3 py-2.5">
-            <span className={cx("flex h-9 w-11 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-bold uppercase", FILE_TONE[ext] ?? "bg-slate-100 text-slate-600")}>
+            <span className={cx("flex h-9 w-11 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-bold uppercase", FILE_TONE[ext] ?? "bg-neutral-100 text-neutral-600")}>
               {ext || <FileText size={15} />}
             </span>
-            <a href={fileUrl(f.id)} download={f.file_name} className="min-w-0 flex-1 hover:text-blue-700" title={`SHA-256 ${f.sha256}`}>
-              <span className="block truncate text-sm font-medium text-slate-900">{f.file_name}</span>
-              <span className="block truncate text-[11px] text-slate-500">{fmtBytes(f.bytes)} · {f.uploaded_by_name ?? "—"} · {wibDateTime(f.uploaded_at)}</span>
+            <a href={fileUrl(f.id)} download={f.file_name} className="min-w-0 flex-1 hover:text-brand-700" title={`SHA-256 ${f.sha256}`}>
+              <span className="block truncate text-sm font-medium text-neutral-900">{f.file_name}</span>
+              <span className="block truncate text-[11px] text-neutral-500">{fmtBytes(f.bytes)} · {f.uploaded_by_name ?? "—"} · {wibDateTime(f.uploaded_at)}</span>
             </a>
-            <a href={fileUrl(f.id)} download={f.file_name} aria-label={tr("Download {0}", f.file_name)} className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Download size={15} /></a>
+            <a href={fileUrl(f.id)} download={f.file_name} aria-label={tr("Download {0}", f.file_name)} className="rounded-md p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><Download size={15} /></a>
             {onRemove && canRemove?.(f) && (
-              <button type="button" onClick={() => onRemove(f.id)} aria-label={tr("Remove {0}", f.file_name)} className="rounded-md p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"><X size={15} /></button>
+              <button type="button" onClick={() => onRemove(f.id)} aria-label={tr("Remove {0}", f.file_name)} className="rounded-md p-2 text-neutral-400 hover:bg-red-50 hover:text-red-600"><X size={15} /></button>
             )}
           </li>
         );
@@ -148,12 +148,12 @@ export function EvidenceFiles({ count, open, onChange }: { count: Count; open: b
   };
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
-        <Paperclip size={18} className="text-slate-500" />
+    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">
+        <Paperclip size={18} className="text-neutral-500" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-slate-900">{tr("Evidence files")} <span className="font-normal text-slate-500">({files.length}/{MAX_FILES})</span></h2>
-          <p className="text-xs text-slate-500">{open ? tr("Optional: PDF, Excel, Word, PowerPoint, CSV or images, up to 10 MB each.") : tr("Files attached to the count.")}</p>
+          <h2 className="text-sm font-semibold text-neutral-900">{tr("Evidence files")} <span className="font-normal text-neutral-500">({files.length}/{MAX_FILES})</span></h2>
+          <p className="text-xs text-neutral-500">{open ? tr("Optional: PDF, Excel, Word, PowerPoint, CSV or images, up to 10 MB each.") : tr("Files attached to the count.")}</p>
         </div>
         {open && (
           <>
@@ -165,15 +165,15 @@ export function EvidenceFiles({ count, open, onChange }: { count: Count; open: b
         )}
       </div>
       <div className="space-y-2 p-4">
-        {busy && <p className="flex items-center gap-2 text-xs text-slate-500"><Loader2 size={13} className="animate-spin" /> {tr("Uploading {0}…", busy)}</p>}
+        {busy && <p className="flex items-center gap-2 text-xs text-neutral-500"><Loader2 size={13} className="animate-spin" /> {tr("Uploading {0}…", busy)}</p>}
         {files.length === 0 ? (
           open ? (
             <button type="button" onClick={() => input.current?.click()} disabled={!!busy}
-              className="flex w-full flex-col items-center gap-1 rounded-lg border-2 border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500 hover:border-blue-400 hover:text-blue-700">
+              className="flex w-full flex-col items-center gap-1 rounded-lg border-2 border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 hover:border-brand-400 hover:text-brand-700">
               <Paperclip size={18} /> {tr("Attach files (optional)")}
-              <span className="text-[11px] text-slate-400">{tr("The count can be submitted without files")}</span>
+              <span className="text-[11px] text-neutral-400">{tr("The count can be submitted without files")}</span>
             </button>
-          ) : <p className="text-sm text-slate-500">{tr("No files were attached.")}</p>
+          ) : <p className="text-sm text-neutral-500">{tr("No files were attached.")}</p>
         ) : <CountFileList files={files} onRemove={open ? (id) => void remove(id) : undefined} canRemove={(f) => f.uploaded_by === me?.id} />}
         {open && full && <p className="text-xs text-amber-700">{tr("The maximum of 15 files is reached; remove one to attach another.")}</p>}
       </div>
@@ -212,27 +212,27 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
   };
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
-        <Images size={18} className="text-slate-500" />
+    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">
+        <Images size={18} className="text-neutral-500" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-slate-900">{tr("Evidence photos")} <span className="font-normal text-slate-500">({photos.length}/{MAX_PHOTOS})</span></h2>
-          <p className="text-xs text-slate-500">{open ? tr("Optional: up to 15 photos of the count, taken with the camera.") : tr("Photos taken during the count.")}</p>
+          <h2 className="text-sm font-semibold text-neutral-900">{tr("Evidence photos")} <span className="font-normal text-neutral-500">({photos.length}/{MAX_PHOTOS})</span></h2>
+          <p className="text-xs text-neutral-500">{open ? tr("Optional: up to 15 photos of the count, taken with the camera.") : tr("Photos taken during the count.")}</p>
         </div>
         <EvidenceDownloads count={count} />
       </div>
       <div className="p-4">
-        {photos.length === 0 && !open ? <p className="text-sm text-slate-500">{tr("No evidence photos were taken.")}</p> : (
+        {photos.length === 0 && !open ? <p className="text-sm text-neutral-500">{tr("No evidence photos were taken.")}</p> : (
           <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
             {photos.map((p) => (
               <li key={p.id} className="relative">
                 <a href={photoUrl(p.id)} target="_blank" rel="noreferrer" title={`${p.uploaded_by_name ?? ""} · ${wibDateTime(p.taken_at ?? p.uploaded_at)}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API, not a static asset */}
-                  <img src={photoUrl(p.id)} alt={tr("Photo")} className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200" loading="lazy" />
+                  <img src={photoUrl(p.id)} alt={tr("Photo")} className="aspect-square w-full rounded-lg object-cover ring-1 ring-neutral-200" loading="lazy" />
                 </a>
                 {open && p.uploaded_by === me?.id && (
                   <button type="button" onClick={() => remove(p.id)} aria-label={tr("Remove photo")}
-                    className="absolute -right-1.5 -top-1.5 rounded-full bg-slate-900 p-1 text-white shadow"><X size={12} /></button>
+                    className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-900 p-1 text-white shadow"><X size={12} /></button>
                 )}
               </li>
             ))}
@@ -240,7 +240,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
               <li>
                 <button type="button" onClick={() => setCamera(true)} disabled={busy}
                   className={cx("flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed text-xs font-medium",
-                    "border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-700")}>
+                    "border-neutral-300 text-neutral-500 hover:border-brand-400 hover:text-brand-700")}>
                   {busy ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
                   {tr("Take photo")}
                 </button>

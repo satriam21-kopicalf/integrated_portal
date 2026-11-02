@@ -100,13 +100,13 @@ export default function ReviewDetailPage() {
   const toggle = (lineId: number) => setPicked((s) => { const n = new Set(s); if (n.has(lineId)) n.delete(lineId); else n.add(lineId); return n; });
 
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className="min-h-full bg-neutral-50">
       <header className="px-4 pt-5 sm:px-6 sm:pt-6">
         <div className="flex flex-wrap items-start gap-3">
-          <Link href="/cost-control/reviews" className="mt-0.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></Link>
+          <Link href="/cost-control/reviews" className="mt-0.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></Link>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-semibold text-slate-900">{count.facility_name}</h1>
-            <p className="text-xs text-slate-500 sm:text-sm">{countTypeLabel(count.count_type, count.count_type_name)} · {fmtDay(count.business_date)} · <span className="font-mono">{count.number}</span></p>
+            <h1 className="truncate text-lg font-semibold text-neutral-900">{count.facility_name}</h1>
+            <p className="text-xs text-neutral-500 sm:text-sm">{countTypeLabel(count.count_type, count.count_type_name)} · {fmtDay(count.business_date)} · <span className="font-mono">{count.number}</span></p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <Badge tone={st.tone} dot>{st.label()}</Badge>
               {count.entry_source && count.entry_source !== "CREW" && <Badge tone="violet">{ENTRY_SOURCE[count.entry_source]?.()}</Badge>}
@@ -126,7 +126,7 @@ export default function ReviewDetailPage() {
       </header>
 
       <div className="space-y-4 p-4 sm:p-6">
-        <dl className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-sm lg:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-3 rounded-xl border border-neutral-200/80 bg-white p-4 text-sm shadow-sm lg:grid-cols-4">
           <Info label={tr("Started")} value={`${fmtDate(count.started_at)}${count.started_by_name ? ` · ${count.started_by_name}` : ""}`} />
           <Position label={tr("Location at Start")} lat={count.start_lat} lng={count.start_lng} distance={count.start_distance_m}
             accuracy={count.start_accuracy_m} at={count.start_located_at} none={count.entry_source && count.entry_source !== "CREW" ? "—" : tr("No location")} />
@@ -143,19 +143,19 @@ export default function ReviewDetailPage() {
         {(count.photos.length > 0 || count.status === "APPROVED" || count.status === "EXPORTED") && (
           <Panel title={tr("Evidence Photos")} actions={<EvidenceDownloads count={count} />}
             description={tr("{0} photos · time and position recorded by the server; SHA-256 proves the file is unchanged", count.photos.length)}>
-            {count.photos.length === 0 && <p className="px-4 py-6 text-sm text-slate-500">{tr("No evidence photos were taken.")}</p>}
+            {count.photos.length === 0 && <p className="px-4 py-6 text-sm text-neutral-500">{tr("No evidence photos were taken.")}</p>}
             <ul className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-6">
               {count.photos.map((ph) => {
                 const item = ph.subject.startsWith("ITEM:") ? count.lines.find((l) => l.item_id === ph.subject.slice(5))?.item_name : null;
                 return (
                   <li key={ph.id} className="min-w-0">
-                    <a href={photoUrl(ph.id)} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg ring-1 ring-slate-200">
+                    <a href={photoUrl(ph.id)} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg ring-1 ring-neutral-200">
                       {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
                       <img src={photoUrl(ph.id)} alt={ph.subject} loading="lazy" className="aspect-square w-full object-cover" />
                     </a>
-                    <p className="mt-1 truncate text-xs font-medium text-slate-700">{item ?? (ph.subject === "GENERAL" ? tr("Count photo") : ph.subject.replace("AREA:", ""))}</p>
-                    <p className="truncate text-[11px] text-slate-400">{fmtDate(ph.uploaded_at)}{ph.uploaded_by_name ? ` · ${ph.uploaded_by_name}` : ""}</p>
-                    <p className="truncate font-mono text-[10px] text-slate-300" title={ph.sha256}>{ph.sha256.slice(0, 16)}…</p>
+                    <p className="mt-1 truncate text-xs font-medium text-neutral-700">{item ?? (ph.subject === "GENERAL" ? tr("Count photo") : ph.subject.replace("AREA:", ""))}</p>
+                    <p className="truncate text-[11px] text-neutral-400">{fmtDate(ph.uploaded_at)}{ph.uploaded_by_name ? ` · ${ph.uploaded_by_name}` : ""}</p>
+                    <p className="truncate font-mono text-[10px] text-neutral-300" title={ph.sha256}>{ph.sha256.slice(0, 16)}…</p>
                   </li>
                 );
               })}
@@ -174,24 +174,24 @@ export default function ReviewDetailPage() {
         {(count.wip?.lines.length ?? 0) > 0 && (
           <Panel title={tr("WIP / Premix")} description={reviewable ? tr("Grams entered by the branch · tick a premix to recount only it, or correct it directly: the items counted by hand stay")
             : correctable ? tr("Grams entered by the branch · approved: correct a premix directly, the items counted by hand stay") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-neutral-100">
               {count.wip!.lines.map((w) => (
                 <li key={w.id} className={cx("flex items-center justify-between gap-3 px-4 py-2.5 text-sm", w.flags?.includes("RECOUNT") && "bg-amber-50/50")}>
                   <span className="flex min-w-0 items-center gap-2.5">
                     {reviewable && (
-                      <input type="checkbox" checked={pickedWip.has(w.id)} aria-label={tr("Recount {0}", w.name)} className="h-4 w-4 rounded border-slate-300"
+                      <input type="checkbox" checked={pickedWip.has(w.id)} aria-label={tr("Recount {0}", w.name)} className="h-4 w-4 rounded border-neutral-300"
                         onChange={() => setPickedWip((s) => { const n = new Set(s); if (n.has(w.id)) n.delete(w.id); else n.add(w.id); return n; })} />
                     )}
-                    <span className="min-w-0 truncate"><span className="font-medium text-slate-900">{w.name}</span> <span className="font-mono text-[11px] text-slate-400">{w.code}</span>
-                      {w.previous_qty !== null && w.previous_qty !== undefined && <span className="block text-[11px] text-slate-500">{tr("Before the recount: {0} {1}", w.previous_qty, w.uom.toLowerCase() === "gram" ? "g" : w.uom)}</span>}</span>
+                    <span className="min-w-0 truncate"><span className="font-medium text-neutral-900">{w.name}</span> <span className="font-mono text-[11px] text-neutral-400">{w.code}</span>
+                      {w.previous_qty !== null && w.previous_qty !== undefined && <span className="block text-[11px] text-neutral-500">{tr("Before the recount: {0} {1}", w.previous_qty, w.uom.toLowerCase() === "gram" ? "g" : w.uom)}</span>}</span>
                     {w.flags?.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
                     {w.flags?.includes("RECOUNTED") && <Badge tone="green">{tr("Recounted")}</Badge>}
                     {w.flags?.includes("CORRECTED") && <Badge tone="blue" title={`${w.corrected_by_name ?? ""}: ${w.correction_note ?? ""}`}>{tr("Corrected by Cost Control")}</Badge>}
                   </span>
-                  <span className="flex-shrink-0 text-right tabular-nums text-slate-700">{w.uom.toLowerCase() === "gram" ? "" : `${w.qty} ${w.uom} · `}{fmtQty(w.qty_base)} g
+                  <span className="flex-shrink-0 text-right tabular-nums text-neutral-700">{w.uom.toLowerCase() === "gram" ? "" : `${w.qty} ${w.uom} · `}{fmtQty(w.qty_base)} g
                     {correctable && !(fix?.wip && fix.id === w.id) && (
                       <button type="button" onClick={() => setFix({ id: w.id, qty: String(w.qty), note: "", wip: true })}
-                        className="ml-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", w.name)}>
+                        className="ml-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-brand-700 hover:bg-brand-50" aria-label={tr("Correct {0}", w.name)}>
                         <Pencil size={11} /> {tr("Correct")}
                       </button>
                     )}
@@ -200,7 +200,7 @@ export default function ReviewDetailPage() {
                         <span className="flex items-center gap-1.5">
                           <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected Quantity")}
                             className={cx(inputClass, "h-9 w-28 text-right text-sm font-semibold tabular-nums")} />
-                          <span className="text-xs text-slate-500">{w.uom.toLowerCase() === "gram" ? "g" : w.uom}</span>
+                          <span className="text-xs text-neutral-500">{w.uom.toLowerCase() === "gram" ? "g" : w.uom}</span>
                         </span>
                         <input value={fix.note} onChange={(e) => setFix({ ...fix, note: e.target.value })} maxLength={500} placeholder={tr("Reason (required)")}
                           className={cx(inputClass, "h-9 text-xs")} />
@@ -210,7 +210,7 @@ export default function ReviewDetailPage() {
                         </span>
                       </span>
                     )}
-                    {w.flags?.includes("CORRECTED") && w.correction_note && <span className="mt-0.5 block max-w-[16rem] text-left text-[11px] text-slate-500">{w.corrected_by_name}: {w.correction_note}</span>}
+                    {w.flags?.includes("CORRECTED") && w.correction_note && <span className="mt-0.5 block max-w-[16rem] text-left text-[11px] text-neutral-500">{w.corrected_by_name}: {w.correction_note}</span>}
                   </span>
                 </li>
               ))}
@@ -241,32 +241,32 @@ export default function ReviewDetailPage() {
                   <th className="px-3 py-2.5">{tr("Check")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {lines.map((l) => (
-                  <tr key={l.id} className={cx(!l.is_current && "bg-slate-50 text-slate-400", picked.has(l.id) && "bg-blue-50/50")}>
+                  <tr key={l.id} className={cx(!l.is_current && "bg-neutral-50 text-neutral-400", picked.has(l.id) && "bg-brand-50/50")}>
                     {reviewable && (
                       <td className="px-3 py-2.5">
-                        {l.is_current && <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(l.id)} onChange={() => toggle(l.id)} aria-label={tr("Select {0}", l.item_name)} />}
+                        {l.is_current && <input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(l.id)} onChange={() => toggle(l.id)} aria-label={tr("Select {0}", l.item_name)} />}
                       </td>
                     )}
                     <td className="max-w-[18rem] px-3 py-2.5">
-                      <span className={cx("block truncate", l.is_current ? "font-medium text-slate-900" : "line-through")}>{l.item_name}</span>
-                      <span className="block font-mono text-[11px] text-slate-400">{l.item_code}{!l.is_current ? ` · ${tr("replaced by recount / correction")}` : ""}</span>
+                      <span className={cx("block truncate", l.is_current ? "font-medium text-neutral-900" : "line-through")}>{l.item_name}</span>
+                      <span className="block font-mono text-[11px] text-neutral-400">{l.item_code}{!l.is_current ? ` · ${tr("replaced by recount / correction")}` : ""}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-xs text-slate-500">{l.area}</td>
+                    <td className="px-3 py-2.5 text-xs text-neutral-500">{l.area}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
-                      {l.qty_base === null ? <span className="text-slate-300">—</span> : (
+                      {l.qty_base === null ? <span className="text-neutral-300">—</span> : (
                         <>
                           <span>{fmtQty(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1))} {l.esb_uom || l.base_uom}</span>
-                          {(Number(l.esb_factor || 1) || 1) !== 1 && <span className="block text-[11px] text-slate-400">= {fmtQty(l.qty_base)} {l.base_uom}</span>}
+                          {(Number(l.esb_factor || 1) || 1) !== 1 && <span className="block text-[11px] text-neutral-400">= {fmtQty(l.qty_base)} {l.base_uom}</span>}
                         </>
                       )}
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
-                      {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-slate-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
+                      {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-neutral-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
                       {correctable && l.is_current && l.source !== "WIP_EXPLODED" && (fix?.wip || fix?.id !== l.id) && (
                         <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(2)),
                           field: lineDateField(l, count), date: (() => { const df = lineDateField(l, count); return df ? l[df] ?? "" : ""; })(), note: "" })}
-                          className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-50" aria-label={tr("Correct {0}", l.item_name)}>
+                          className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-brand-700 hover:bg-brand-50" aria-label={tr("Correct {0}", l.item_name)}>
                           <Pencil size={11} /> {tr("Correct")}
                         </button>
                       )}
@@ -275,10 +275,10 @@ export default function ReviewDetailPage() {
                           <div className="flex items-center gap-1.5">
                             <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected Quantity")}
                               className={cx(inputClass, "h-9 w-28 text-right text-sm font-semibold tabular-nums")} />
-                            <span className="text-xs text-slate-500">{l.esb_uom || l.base_uom}</span>
+                            <span className="text-xs text-neutral-500">{l.esb_uom || l.base_uom}</span>
                           </div>
                           {fix.field && (
-                            <label className="block"><span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{DATE_FIELD_LABEL[fix.field]()}</span>
+                            <label className="block"><span className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{DATE_FIELD_LABEL[fix.field]()}</span>
                               <input type="date" value={fix.date ?? ""} onChange={(e) => setFix({ ...fix, date: e.target.value })} aria-label={DATE_FIELD_LABEL[fix.field]()}
                                 className={cx(inputClass, "h-9 text-sm")} /></label>
                           )}
@@ -294,19 +294,19 @@ export default function ReviewDetailPage() {
                     {dateFields.length > 0 && (() => {
                       const df = lineDateField(l, count);
                       return (
-                        <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-slate-700">
-                          {df && l[df] ? fmtDay(l[df]!) : <span className="text-slate-300">—</span>}
-                          {df && dateFields.length > 1 && <span className="block text-[10px] text-slate-400">{DATE_FIELD_LABEL[df]()}</span>}
+                        <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-neutral-700">
+                          {df && l[df] ? fmtDay(l[df]!) : <span className="text-neutral-300">—</span>}
+                          {df && dateFields.length > 1 && <span className="block text-[10px] text-neutral-400">{DATE_FIELD_LABEL[df]()}</span>}
                         </td>
                       );
                     })()}
-                    <td className="px-3 py-2.5 text-xs text-slate-500">{l.counted_by_name ?? "—"}{l.counted_at && <span className="block">{fmtDate(l.counted_at)}</span>}</td>
+                    <td className="px-3 py-2.5 text-xs text-neutral-500">{l.counted_by_name ?? "—"}{l.counted_at && <span className="block">{fmtDate(l.counted_at)}</span>}</td>
                     <td className="px-3 py-2.5"><div className="flex flex-wrap gap-1">
                       {l.flags.includes("SPIKE") && <Badge tone="amber">{tr("×3 vs last count")}</Badge>}
                       {l.flags.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
                       {l.flags.includes("CORRECTED") && <Badge tone="blue" title={`${l.corrected_by_name ?? ""} · ${l.corrected_at ? fmtDate(l.corrected_at) : ""}`}>{tr("Corrected by Cost Control")}</Badge>}
                     </div>
-                      {l.flags.includes("CORRECTED") && l.correction_note && <p className="mt-1 max-w-[16rem] text-[11px] text-slate-500">{l.corrected_by_name}: {l.correction_note}</p>}
+                      {l.flags.includes("CORRECTED") && l.correction_note && <p className="mt-1 max-w-[16rem] text-[11px] text-neutral-500">{l.corrected_by_name}: {l.correction_note}</p>}
                     </td>
                   </tr>
                 ))}
@@ -329,9 +329,9 @@ export default function ReviewDetailPage() {
 function Info({ label, value, href }: { label: string; value: string; href?: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-slate-400">{label}</dt>
-      <dd className="truncate font-medium text-slate-700" title={value}>
-        {href ? <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="text-blue-700 hover:underline">{value}</a> : value}
+      <dt className="text-xs text-neutral-400">{label}</dt>
+      <dd className="truncate font-medium text-neutral-700" title={value}>
+        {href ? <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="text-brand-700 hover:underline">{value}</a> : value}
       </dd>
     </div>
   );

@@ -214,7 +214,7 @@ export default function WasteForm() {
   if (error || !data) {
     return (
       <Page title={tr("Waste")} subtitle={subtitle} actions={<LiveClock />}>
-        {error ? <div className="rounded-2xl border border-slate-200/80 bg-white"><ErrorState message={error} onRetry={() => void load(branch, day)} /></div>
+        {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={() => void load(branch, day)} /></div>
           : <div className="mx-auto max-w-5xl space-y-4"><div className="skeleton h-24 rounded-xl" /><div className="skeleton h-72 rounded-xl" /></div>}
       </Page>
     );
@@ -225,7 +225,7 @@ export default function WasteForm() {
     <Page title={tr("Waste")} subtitle={subtitle} actions={<LiveClock />}>
       <div className="mx-auto max-w-5xl space-y-4">
         {data.branches.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200/80 bg-white px-6 py-12 text-center text-sm text-slate-500">
+          <div className="rounded-xl border border-neutral-200/80 bg-white px-6 py-12 text-center text-sm text-neutral-500">
             {tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}
           </div>
         ) : (
@@ -256,19 +256,19 @@ export default function WasteForm() {
               <FormCard n={2} title={tr("Wasted Items")} hint={tr("Fill the quantity of each wasted SKU; every filled SKU needs its category and a photo, the dates and the note are optional")}>
                 <Segmented label={tr("Type")} value={scope} onChange={pickScope} options={ENTRY_SCOPES.map((s) => ({ value: s, label: scopeLabel(s) }))} />
                 <div className="relative">
-                  <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input className={cx(inputClass, "pl-9")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
                 </div>
-                <label className="flex items-center gap-2 text-xs text-slate-600">
+                <label className="flex items-center gap-2 text-xs text-neutral-600">
                   <input type="checkbox" checked={onlyFilled} onChange={(e) => setOnlyFilled(e.target.checked)} />{tr("Show filled SKUs only")}
                 </label>
-                <div className="max-h-[560px] overflow-auto rounded-xl border border-slate-200">
+                <div className="max-h-[560px] overflow-auto rounded-xl border border-neutral-200">
                   <table className="w-full text-sm">
-                    <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                       <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix name") : tr("Product name")}</th>
                         <th className="hidden px-2 py-2 sm:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-neutral-100">
                       {items.slice(0, 250).map((i) => {
                         const r = rows[i.code] ?? EMPTY;
                         const on = isFilled(r);
@@ -278,18 +278,18 @@ export default function WasteForm() {
                         const calc = scope === "premix" && on ? explodePremix(i, uom, qtyOf(r)) : null;
                         return (
                           <Fragment key={i.code}>
-                            <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-blue-50/40"))}>
-                              <td className="px-2 py-1.5 text-right align-top text-xs tabular-nums text-slate-400">{(data.items[scope] ?? []).indexOf(i) + 1}</td>
+                            <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-brand-50/40"))}>
+                              <td className="px-2 py-1.5 text-right align-top text-xs tabular-nums text-neutral-400">{(data.items[scope] ?? []).indexOf(i) + 1}</td>
                               <td className="px-2 py-1.5 align-top">
-                                <span className="block text-slate-800">{i.name}</span>
-                                <span className="text-[11px] text-slate-400 sm:hidden">{i.code}</span>
-                                {scope === "premix" && fixed.length > 0 && <span className="block text-[11px] text-slate-500">{fixed.map((u) => `1 ${u.uom} = ${fmtQty(u.grams)} g`).join(" · ")}</span>}
+                                <span className="block text-neutral-800">{i.name}</span>
+                                <span className="text-[11px] text-neutral-400 sm:hidden">{i.code}</span>
+                                {scope === "premix" && fixed.length > 0 && <span className="block text-[11px] text-neutral-500">{fixed.map((u) => `1 ${u.uom} = ${fmtQty(u.grams)} g`).join(" · ")}</span>}
                               </td>
-                              <td className="hidden px-2 py-1.5 align-top text-xs text-slate-500 sm:table-cell">{i.code}</td>
-                              <td className="px-2 py-1.5 align-top text-xs text-slate-500">
+                              <td className="hidden px-2 py-1.5 align-top text-xs text-neutral-500 sm:table-cell">{i.code}</td>
+                              <td className="px-2 py-1.5 align-top text-xs text-neutral-500">
                                 {scope === "premix" && (i.units?.length ?? 0) > 1 ? (
                                   <select value={uom} onChange={(e) => setRow(i.code, { uom: e.target.value })} aria-label={tr("Unit of {0}", i.name)}
-                                    className="h-9 rounded-lg border border-slate-200 bg-white px-1.5 text-xs text-slate-700">
+                                    className="h-9 rounded-lg border border-neutral-200 bg-white px-1.5 text-xs text-neutral-700">
                                     {i.units!.map((u) => <option key={u.uom} value={u.uom}>{unitText(u.uom)}</option>)}
                                   </select>
                                 ) : scope === "premix" ? unitText(uom) : i.unit}
@@ -301,7 +301,7 @@ export default function WasteForm() {
                               </td>
                             </tr>
                             {on && (
-                              <tr className={lack.length ? "bg-amber-50/60" : "bg-blue-50/40"}>
+                              <tr className={lack.length ? "bg-amber-50/60" : "bg-brand-50/40"}>
                                 <td />
                                 <td colSpan={4} className="px-2 pb-3">
                                   <div className="grid gap-2 sm:grid-cols-2">
@@ -310,14 +310,14 @@ export default function WasteForm() {
                                       {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                     <input className={cx(inputClass, "h-9")} value={r.note} maxLength={500} onChange={(e) => setRow(i.code, { note: e.target.value })} placeholder={tr("Note / reason (optional)")} />
-                                    <label className="text-[11px] text-slate-500">{tr("Production date")}
+                                    <label className="text-[11px] text-neutral-500">{tr("Production date")}
                                       <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.made} max={day} onChange={(e) => setRow(i.code, { made: e.target.value })} />
                                     </label>
-                                    <label className="text-[11px] text-slate-500">{tr("Expired date")}
+                                    <label className="text-[11px] text-neutral-500">{tr("Expired date")}
                                       <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.expires} min={r.made || undefined} onChange={(e) => setRow(i.code, { expires: e.target.value })} />
                                     </label>
                                     {calc && calc.ingredients.length > 0 && (
-                                      <div className="rounded-lg bg-white/70 px-2.5 py-1.5 text-[11px] text-slate-600 ring-1 ring-violet-100 sm:col-span-2">
+                                      <div className="rounded-lg bg-white/70 px-2.5 py-1.5 text-[11px] text-neutral-600 ring-1 ring-violet-100 sm:col-span-2">
                                         <span className="font-semibold text-violet-700">{tr("Ingredients")}: </span>
                                         {calc.ingredients.map((c) => `${c.name} ${fmtQty(c.grams)} g`).join(" · ")}
                                       </div>
@@ -326,7 +326,7 @@ export default function WasteForm() {
                                       {r.photo ? (
                                         <>
                                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                                          <img src={r.photo.image} alt={tr("Photo evidence")} className="h-14 w-14 rounded-lg object-cover ring-1 ring-slate-200" />
+                                          <img src={r.photo.image} alt={tr("Photo evidence")} className="h-14 w-14 rounded-lg object-cover ring-1 ring-neutral-200" />
                                           <Button variant="secondary" size="sm" onClick={() => setShooting(i)}><Camera size={14} />{tr("Retake")}</Button>
                                         </>
                                       ) : (
@@ -341,61 +341,61 @@ export default function WasteForm() {
                           </Fragment>
                         );
                       })}
-                      {!items.length && <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-slate-500">{scope === "premix" && !search ? tr("No WIP recipe is active for this location.") : tr("No item found")}</td></tr>}
+                      {!items.length && <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-neutral-500">{scope === "premix" && !search ? tr("No WIP recipe is active for this location.") : tr("No item found")}</td></tr>}
                     </tbody>
                   </table>
-                  {items.length > 250 && <p className="px-3 py-2 text-center text-[11px] text-slate-400">{tr("Search to see the other {0} SKUs", items.length - 250)}</p>}
+                  {items.length > 250 && <p className="px-3 py-2 text-center text-[11px] text-neutral-400">{tr("Search to see the other {0} SKUs", items.length - 250)}</p>}
                 </div>
                 {premixTotals.length > 0 && (
                   <div className="rounded-lg bg-violet-50/60 px-3 py-2">
                     <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-violet-700"><FlaskConical size={13} />{tr("Premix ingredients wasted (calculated)")}</p>
                     <ul className="grid gap-x-4 gap-y-0.5 text-xs sm:grid-cols-2">
                       {premixTotals.map((p) => (
-                        <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-slate-400")}>
+                        <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-neutral-400")}>
                           <span className="truncate">{p.name}{!p.stock && ` (${tr("not stock")})`}</span><span className="tabular-nums">{fmtQty(p.grams)} g</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-                <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-xs text-slate-500">{filled.length ? (incomplete ? tr("{0} SKUs filled, {1} still incomplete", filled.length, incomplete) : tr("{0} SKUs ready to save", filled.length)) : tr("No SKU filled yet")}</p>
+                <div className="flex flex-col gap-2 border-t border-neutral-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs text-neutral-500">{filled.length ? (incomplete ? tr("{0} SKUs filled, {1} still incomplete", filled.length, incomplete) : tr("{0} SKUs ready to save", filled.length)) : tr("No SKU filled yet")}</p>
                   <Button onClick={() => setSigning("waste")} loading={saving} disabled={!b || !filled.length || incomplete > 0}><Plus size={16} />{tr("Save {0} SKUs", filled.length)}</Button>
                 </div>
               </FormCard>
 
               <FormCard n={3} title={tr("Usage Management")} hint={tr("Fill the quantity of every usage item of the day; every filled SKU needs its category and a photo, the reason is optional")}>
-                {!b ? <p className="text-xs text-slate-500">{tr("Choose the branch first")}</p> : (
+                {!b ? <p className="text-xs text-neutral-500">{tr("Choose the branch first")}</p> : (
                   <>
                     <div className="relative">
-                      <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                       <input className={cx(inputClass, "pl-9")} value={usageSearch} onChange={(e) => setUsageSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
                     </div>
-                    <div className="max-h-[460px] overflow-auto rounded-xl border border-slate-200">
+                    <div className="max-h-[460px] overflow-auto rounded-xl border border-neutral-200">
                       <table className="w-full text-sm">
-                        <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                           <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{tr("Product Name")}</th>
                             <th className="hidden px-2 py-2 sm:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-neutral-100">
                           {usageItems.map((i) => {
                             const l = usage[i.code] ?? UEMPTY;
                             const on = uFilled(l);
                             const lack = on ? uLacks(l) : [];
                             return (
                               <Fragment key={i.code}>
-                                <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-blue-50/40"))}>
-                                  <td className="px-2 py-1.5 text-right text-xs tabular-nums text-slate-400">{data.items.usage.indexOf(i) + 1}</td>
-                                  <td className="px-2 py-1.5"><span className="block text-slate-800">{i.name}</span><span className="text-[11px] text-slate-400 sm:hidden">{i.code}</span></td>
-                                  <td className="hidden px-2 py-1.5 text-xs text-slate-500 sm:table-cell">{i.code}</td>
-                                  <td className="px-2 py-1.5 text-xs text-slate-500">{i.unit}</td>
+                                <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-brand-50/40"))}>
+                                  <td className="px-2 py-1.5 text-right text-xs tabular-nums text-neutral-400">{data.items.usage.indexOf(i) + 1}</td>
+                                  <td className="px-2 py-1.5"><span className="block text-neutral-800">{i.name}</span><span className="text-[11px] text-neutral-400 sm:hidden">{i.code}</span></td>
+                                  <td className="hidden px-2 py-1.5 text-xs text-neutral-500 sm:table-cell">{i.code}</td>
+                                  <td className="px-2 py-1.5 text-xs text-neutral-500">{i.unit}</td>
                                   <td className="px-2 py-1.5">
                                     <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={l.qty}
                                       onChange={(e) => setULine(i.code, { qty: e.target.value.replace(/[^0-9.,]/g, "") })} />
                                   </td>
                                 </tr>
                                 {on && (
-                                  <tr className={lack.length ? "bg-amber-50/60" : "bg-blue-50/40"}>
+                                  <tr className={lack.length ? "bg-amber-50/60" : "bg-brand-50/40"}>
                                     <td />
                                     <td colSpan={4} className="px-2 pb-3">
                                       <div className="grid gap-2 sm:grid-cols-2">
@@ -408,7 +408,7 @@ export default function WasteForm() {
                                           {l.photo || l.hasPhoto ? (
                                             <>
                                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                                              <img src={l.photo ? l.photo.image : usagePhotoUrl(b.code, day, i.code)} alt={tr("Photo evidence")} className="h-14 w-14 rounded-lg object-cover ring-1 ring-slate-200" />
+                                              <img src={l.photo ? l.photo.image : usagePhotoUrl(b.code, day, i.code)} alt={tr("Photo evidence")} className="h-14 w-14 rounded-lg object-cover ring-1 ring-neutral-200" />
                                               <Button variant="secondary" size="sm" onClick={() => setShooting({ ...i, usage: true })}><Camera size={14} />{tr("Retake")}</Button>
                                             </>
                                           ) : (
@@ -423,12 +423,12 @@ export default function WasteForm() {
                               </Fragment>
                             );
                           })}
-                          {!usageItems.length && <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-slate-500">{tr("No item found")}</td></tr>}
+                          {!usageItems.length && <tr><td colSpan={5} className="px-3 py-6 text-center text-xs text-neutral-500">{tr("No item found")}</td></tr>}
                         </tbody>
                       </table>
                     </div>
-                    <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="flex items-center gap-1.5 text-xs text-slate-500"><ClipboardList size={14} />{tr("{0} of {1} items filled", usageFilled, data.items.usage.length)}{usageChanged.size ? ` · ${usageIncomplete ? tr("{0} SKUs filled, {1} still incomplete", usageChanged.size, usageIncomplete) : tr("not saved yet")}` : ""}</p>
+                    <div className="flex flex-col gap-2 border-t border-neutral-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="flex items-center gap-1.5 text-xs text-neutral-500"><ClipboardList size={14} />{tr("{0} of {1} items filled", usageFilled, data.items.usage.length)}{usageChanged.size ? ` · ${usageIncomplete ? tr("{0} SKUs filled, {1} still incomplete", usageChanged.size, usageIncomplete) : tr("not saved yet")}` : ""}</p>
                       <Button onClick={() => setSigning("usage")} loading={usageSaving} disabled={!usageChanged.size || usageIncomplete > 0}><Save size={16} />{tr("Save Usage Management")}</Button>
                     </div>
                   </>
@@ -453,38 +453,38 @@ export default function WasteForm() {
 
 function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; branch: string; day: string; me: string; onRemove: (e: Entry) => void }) {
   return (
-    <section className="h-fit rounded-2xl border border-slate-200/80 bg-white">
-      <header className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+    <section className="h-fit rounded-xl border border-neutral-200/80 bg-white">
+      <header className="flex items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3">
         <span className="min-w-0">
-          <span className="block text-sm font-semibold text-slate-900">{tr("Waste entered")}</span>
-          <span className="block truncate text-xs text-slate-500">{branch ? `${branch} · ${day}` : tr("Choose the branch")}</span>
+          <span className="block text-sm font-semibold text-neutral-900">{tr("Waste entered")}</span>
+          <span className="block truncate text-xs text-neutral-500">{branch ? `${branch} · ${day}` : tr("Choose the branch")}</span>
         </span>
         <Badge tone={entries.length ? "blue" : "slate"}>{tr("{0} items", entries.length)}</Badge>
       </header>
       {!entries.length ? (
-        <p className="px-4 py-10 text-center text-sm text-slate-500">{branch ? tr("No waste entered yet for this day.") : tr("Choose the branch to see its waste.")}</p>
+        <p className="px-4 py-10 text-center text-sm text-neutral-500">{branch ? tr("No waste entered yet for this day.") : tr("Choose the branch to see its waste.")}</p>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-neutral-100">
           {entries.map((e) => (
             <li key={e.id} className="flex gap-3 px-4 py-3">
               <a href={photoUrl(e.id)} target="_blank" rel="noreferrer" className="flex-shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photoUrl(e.id)} alt="" loading="lazy" className="h-14 w-14 rounded-lg bg-slate-100 object-cover" />
+                <img src={photoUrl(e.id)} alt="" loading="lazy" className="h-14 w-14 rounded-lg bg-neutral-100 object-cover" />
               </a>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <p className="truncate text-sm font-semibold text-slate-900">{e.itemName}</p>
+                  <p className="truncate text-sm font-semibold text-neutral-900">{e.itemName}</p>
                   <Badge tone={statusTone(e.status)}>{e.status === "approved" ? <CheckCircle2 size={11} /> : null}{statusLabel(e.status)}</Badge>
                 </div>
-                <p className="text-xs text-slate-600">{fmtQty(e.qty)} {e.scope === "premix" ? unitText(e.unit) : e.unit}{e.scope === "premix" && e.grams != null && e.unit.toLowerCase() !== "gram" ? ` (${fmtQty(e.grams)} g)` : ""} · {scopeLabel(e.scope)} · {e.category}</p>
+                <p className="text-xs text-neutral-600">{fmtQty(e.qty)} {e.scope === "premix" ? unitText(e.unit) : e.unit}{e.scope === "premix" && e.grams != null && e.unit.toLowerCase() !== "gram" ? ` (${fmtQty(e.grams)} g)` : ""} · {scopeLabel(e.scope)} · {e.category}</p>
                 {e.ingredients?.length ? <p className="text-[11px] text-violet-700">{e.ingredients.map((c) => `${c.name} ${fmtQty(c.grams)} g`).join(" · ")}</p> : null}
-                {(e.productionDate || e.expiredDate) && <p className="text-[11px] text-slate-500">{tr("Production")} {e.productionDate ?? "—"} · {tr("Expired")} {e.expiredDate ?? "—"}</p>}
-                {e.note && <p className="mt-0.5 text-xs text-slate-500">“{e.note}”</p>}
-                {e.review?.note && <p className="mt-0.5 text-xs text-slate-500">{tr("Cost Control")}: {e.review.note}</p>}
-                <p className="mt-0.5 text-[11px] text-slate-400">{e.name} · {wibDateTime(e.createdAt)}</p>
+                {(e.productionDate || e.expiredDate) && <p className="text-[11px] text-neutral-500">{tr("Production")} {e.productionDate ?? "—"} · {tr("Expired")} {e.expiredDate ?? "—"}</p>}
+                {e.note && <p className="mt-0.5 text-xs text-neutral-500">“{e.note}”</p>}
+                {e.review?.note && <p className="mt-0.5 text-xs text-neutral-500">{tr("Cost Control")}: {e.review.note}</p>}
+                <p className="mt-0.5 text-[11px] text-neutral-400">{e.name} · {wibDateTime(e.createdAt)}</p>
               </div>
               {e.status === "submitted" && e.userId === me && (
-                <button type="button" onClick={() => onRemove(e)} className="h-fit rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={16} /></button>
+                <button type="button" onClick={() => onRemove(e)} className="h-fit rounded-lg p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={16} /></button>
               )}
             </li>
           ))}
@@ -505,7 +505,7 @@ function SignDialog({ what, count, onSign, onClose }: { what: "waste" | "usage";
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button disabled={!sig} onClick={() => sig && onSign(sig)}><PenLine size={15} />{tr("Sign & submit")}</Button>
       </>}>
-      <p className="mb-3 text-xs text-slate-500">{tr("By signing, I confirm the quantities, categories and photos entered are true.")}</p>
+      <p className="mb-3 text-xs text-neutral-500">{tr("By signing, I confirm the quantities, categories and photos entered are true.")}</p>
       <SignaturePad onChange={setSig} />
     </Dialog>
   );

@@ -5,13 +5,17 @@
 // cup or can uses: premix, packaging, ice), the calculator (recipe × unit × quantity → grams of every raw material,
 // rounded up as the sheet does) and the theoretical usage of the drivers' sales, waste and cupping (backend 051).
 
-import { Calculator, FlaskConical, Package, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
+import { Building2, CalendarRange, Calculator, Coffee, FlaskConical, Package, Plus, Save, Trash2, Wallet } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Empty, ErrorState, Field, Input, Panel, Select, cx, theadClass, useToast } from '@/so/ui';
 import { call } from '@/so/features/checkin/checkin';
 import { Bom, BomLine, Item, ItemCategory, Menu, Pool } from '@/cotr/types';
 import { MasterTable, SearchSelect, rupiah, useMaster } from '@/cotr/ui';
 import { locale, tr } from '@/lib/i18n';
+import { StatCard, StatGrid, ValueSkeleton } from '@/components/kc';
+import { SkeletonRows } from '@/components/kc/Skeleton';
+import { ScopeBar, dmyOf } from '@/components/kc/ScopeBar';
+import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from '@/so/ui/MonitorFilters';
 
 export const CATEGORY: Record<ItemCategory, { label: () => string; tone: 'amber' | 'violet' | 'blue' | 'cyan' | 'slate' | 'green' }> = {
   raw: { label: () => tr('Raw material'), tone: 'amber' }, premix: { label: () => tr('Premix'), tone: 'violet' },
@@ -348,6 +352,8 @@ export function UsageTab() {
   const [data, setData] = useState<Usage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const [sheet, setSheet] = useState(false);
+  const [draft, setDraft] = useState({ from: '', to: '', pool: '' });
   useEffect(() => {
     let alive = true;
     setError(null);
@@ -356,18 +362,45 @@ export function UsageTab() {
     return () => { alive = false; };
   }, [from, to, pool, tick]);
   const value = data?.items.reduce((a, r) => a + (r.value ?? 0), 0) ?? 0;
+  const poolList = (pools.rows ?? []).filter((p) => p.kind !== 'storage');
+  const daysBack = (n: number) => new Date(Date.parse(`${today}T00:00:00Z`) - n * 864e5).toISOString().slice(0, 10);
+  const quick = [{ value: '0', label: tr('Today') }, { value: '6', label: tr('Last {0} days', 7) }, { value: '13', label: tr('Last {0} days', 14) }, { value: '29', label: tr('Last {0} days', 30) }];
+  const quickOf = (f: string, t: string) => (t === today ? quick.find((q) => daysBack(Number(q.value)) === f)?.value ?? '' : '');
+  const total = (k: 'sold' | 'waste' | 'cupping') => data?.menus.reduce((a, m) => a + m[k], 0) ?? 0;
   return (
     <>
-      <Panel title={tr('Theoretical usage')} description={tr('Cups sold, wasted and given for tasting by the drivers, exploded through the recipe cards')}
-        toolbar={
-          <div className="flex flex-wrap items-end gap-3">
-            <Field label={tr('From')} className="w-40"><Input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /></Field>
-            <Field label={tr('To')} className="w-40"><Input type="date" value={to} max={today} onChange={(e) => setTo(e.target.value)} /></Field>
-            <Field label={tr('Pool / HUB')} className="w-48"><Select value={pool} onChange={(e) => setPool(e.target.value)}><option value="">{tr('All pools')}</option>{(pools.rows ?? []).filter((p) => p.kind !== 'storage').map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-            <Button variant="secondary" onClick={() => setTick((t) => t + 1)}><RefreshCw size={15} /> {tr('Refresh')}</Button>
-          </div>
-        }>
-        {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <div className="skeleton m-4 h-32 rounded-xl" /> : (
+      <ScopeBar onOpen={() => { setDraft({ from, to, pool }); setSheet(true); }} onRefresh={() => setTick((t) => t + 1)}
+        scopes={[
+          { key: 'period', icon: <CalendarRange />, label: tr('Period'), value: from === to ? dmyOf(from) : `${dmyOf(from)} – ${dmyOf(to)}`, active: quickOf(from, to) !== '6' },
+          { key: 'pool', icon: <Building2 />, label: tr('Pool / HUB'), value: poolList.find((p) => p.code === pool)?.name ?? tr('All pools'), active: !!pool },
+        ]} />
+      <StatGrid label={tr('Theoretical usage')} cols={4}>
+        <StatCard label={tr('Cups sold')} icon={<Coffee />} value={data ? num(total('sold')) : <ValueSkeleton />} />
+        <StatCard label={tr('Waste')} icon={<Trash2 />} tone={total('waste') ? 'warn' : 'default'} value={data ? num(total('waste')) : <ValueSkeleton />} />
+        <StatCard label={tr('Cupping')} icon={<FlaskConical />} value={data ? num(total('cupping')) : <ValueSkeleton />} />
+        <StatCard label={tr('Value')} tone="brand" icon={<Wallet />} value={data ? rupiah(value) : <ValueSkeleton />} sub={data && tr('{0} items', data.items.length)} />
+      </StatGrid>
+      {sheet && (
+        <MonitorFilterSheet active={(quickOf(draft.from, draft.to) !== '6' ? 1 : 0) + (draft.pool ? 1 : 0)} onClose={() => setSheet(false)}
+          onReset={() => setDraft({ from: daysBack(6), to: today, pool: '' })} applyDisabled={!draft.from || !draft.to || draft.from > draft.to}
+          onApply={() => { setFrom(draft.from); setTo(draft.to); setPool(draft.pool); setSheet(false); }}>
+          <FilterRow icon={<CalendarRange size={15} />} label={tr('Period')} value={`${dmyOf(draft.from)} – ${dmyOf(draft.to)}`}>
+            <div className="space-y-2">
+              <Segments value={quickOf(draft.from, draft.to)} onChange={(v) => setDraft({ ...draft, from: daysBack(Number(v)), to: today })} choices={quick} />
+              <div className="grid grid-cols-2 gap-2">
+                <Field label={tr('From')}><Input type="date" value={draft.from} max={draft.to || today} onChange={(e) => setDraft({ ...draft, from: e.target.value })} /></Field>
+                <Field label={tr('To')}><Input type="date" value={draft.to} min={draft.from} max={today} onChange={(e) => setDraft({ ...draft, to: e.target.value })} /></Field>
+              </div>
+            </div>
+          </FilterRow>
+          <FilterRow icon={<Building2 size={15} />} label={tr('Pool / HUB')} value={poolList.find((p) => p.code === draft.pool)?.name ?? null} onClear={() => setDraft({ ...draft, pool: '' })}>
+            <ComboFilter value={draft.pool} onChange={(v) => setDraft({ ...draft, pool: v })} allLabel={tr('All pools')} placeholder={tr('Search pool')}
+              options={poolList.map((p) => ({ value: p.code, label: p.name, hint: p.city }))} />
+          </FilterRow>
+        </MonitorFilterSheet>
+      )}
+      <Panel title={tr('Theoretical usage')} description={tr('Cups sold, wasted and given for tasting by the drivers, exploded through the recipe cards')}>
+        {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonRows cols={4} /> : (
           <>
             {data.noRecipe.length > 0 && (
               <p className="mx-4 mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">

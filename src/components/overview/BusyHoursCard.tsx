@@ -59,7 +59,7 @@ function HoursGrowth({ query }: { query: string }) {
   if (!d) return <LoadingState height={300} label={tr('hourly growth')} />;
   return (
     <div className="space-y-3">
-      <p className="text-[11px] text-slate-500">
+      <p className="text-[11px] text-neutral-500">
         {tr('Gross sales per day in each hour (outlet time) · vs')} {formatDate(d.compare.from)} – {formatDate(d.compare.to)}
       </p>
       <HourGrowthChart rows={rows} height={280} />
@@ -169,7 +169,7 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
     };
   }, [model]);
 
-  if (!model) return <p className="py-10 text-center text-sm text-slate-400">{tr('No sales in this period')}</p>;
+  if (!model) return <p className="py-10 text-center text-sm text-neutral-400">{tr('No sales in this period')}</p>;
   const peak = data.peak;
 
   if (view === 'table') {
@@ -192,8 +192,8 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
   return (
     <div className="space-y-3">
       {peak && (
-        <p className="text-xs text-slate-600">
-          {tr('Busiest slot:')} <span className="font-semibold text-slate-900">{DOW_LABELS[peak.dow - 1]} {hourLabel(peak.hour)}</span> ·{' '}
+        <p className="text-xs text-neutral-600">
+          {tr('Busiest slot:')} <span className="font-semibold text-neutral-900">{DOW_LABELS[peak.dow - 1]} {hourLabel(peak.hour)}</span> ·{' '}
           {formatNumber(Math.round(peak.avgBills))} {tr('bills/day ·')} {compactRupiah(peak.avgSubtotal)}
         </p>
       )}
@@ -215,11 +215,11 @@ function HoursVs({ data }: { data: HourlyResponse }) {
   const peak = [...byHour.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
   const delta = prev.avgBillsPerDay ? ((perDay - prev.avgBillsPerDay) / prev.avgBillsPerDay) * 100 : null;
   return (
-    <p className="mb-2 flex flex-wrap gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-      <span>{tr('Peak')} <b className="text-slate-900">{peak !== undefined ? hourLabel(peak) : '–'}</b> {tr('vs')} {prev.peakHour !== null ? hourLabel(prev.peakHour) : '–'}</span>
-      <span>{tr('Bills per day')} <b className="tabular-nums text-slate-900">{formatNumber(Math.round(perDay))}</b> {tr('vs')} {formatNumber(Math.round(prev.avgBillsPerDay))}
+    <p className="mb-2 flex flex-wrap gap-x-4 gap-y-1 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+      <span>{tr('Peak')} <b className="text-neutral-900">{peak !== undefined ? hourLabel(peak) : '–'}</b> {tr('vs')} {prev.peakHour !== null ? hourLabel(prev.peakHour) : '–'}</span>
+      <span>{tr('Bills per day')} <b className="tabular-nums text-neutral-900">{formatNumber(Math.round(perDay))}</b> {tr('vs')} {formatNumber(Math.round(prev.avgBillsPerDay))}
         {delta !== null && <b className={delta >= 0 ? ' text-emerald-700' : ' text-red-700'}> {delta >= 0 ? '+' : '−'}{fixed(Math.abs(delta), 1)}%</b>}</span>
-      <span className="text-slate-400">{tr('comparison')} {prev.from === prev.to ? prev.from : `${prev.from} – ${prev.to}`}</span>
+      <span className="text-neutral-400">{tr('comparison')} {prev.from === prev.to ? prev.from : `${prev.from} – ${prev.to}`}</span>
     </p>
   );
 }

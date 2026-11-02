@@ -280,12 +280,12 @@ export default function SalesPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-slate-50">
+      <div className="min-h-full bg-neutral-50">
         <header className="px-4 pt-1 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Sales Transactions')}</h1>
-              <p className="truncate text-xs text-slate-500 sm:text-sm">
+              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-neutral-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Sales Transactions')}</h1>
+              <p className="truncate text-xs text-neutral-500 sm:text-sm">
                 {periodLabel} · {branchLabel}
               </p>
             </div>
@@ -297,20 +297,20 @@ export default function SalesPage() {
           <SummaryStrip summary={summary} loading={summaryLoading} />
 
           {/* Transactions card */}
-          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
             {/* Toolbar */}
-            <div className="flex flex-col gap-3 border-b border-slate-200 p-3 sm:flex-row sm:items-center sm:p-4">
+            <div className="flex flex-col gap-3 border-b border-neutral-200 p-3 sm:flex-row sm:items-center sm:p-4">
               <div className="relative flex-1">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
                   placeholder={tr('Search sales no., bill no. or branch')}
                   value={search}
                   onChange={e => handleSearchChange(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/5"
+                  className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/5"
                 />
                 {search && (
-                  <button type="button" onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label={tr('Clear search')}>
+                  <button type="button" onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700" aria-label={tr('Clear search')}>
                     <X size={14} />
                   </button>
                 )}
@@ -330,7 +330,7 @@ export default function SalesPage() {
             </div>
 
             {/* Transaction type tabs */}
-            <div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-3 sm:px-4" role="tablist">
+            <div className="flex gap-1 overflow-x-auto border-b border-neutral-200 px-3 sm:px-4" role="tablist">
               {TX_TYPES.map(t => {
                 const active = t.value === txType;
                 return (
@@ -341,13 +341,13 @@ export default function SalesPage() {
                     aria-selected={active}
                     onClick={() => setTxType(t.value)}
                     className={`-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
-                      active ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'
+                      active ? 'border-neutral-900 text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-800'
                     }`}
                   >
                     <span className="sm:hidden">{t.short}</span>
                     <span className="hidden sm:inline">{t.label}</span>
                     {typeCounts[t.value] !== undefined && (
-                      <span className={`rounded-full px-1.5 py-0.5 text-[11px] tabular-nums ${active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                      <span className={`rounded-full px-1.5 py-0.5 text-[11px] tabular-nums ${active ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
                         {formatNumber(typeCounts[t.value])}
                       </span>
                     )}
@@ -358,7 +358,7 @@ export default function SalesPage() {
 
             {/* Active filters */}
             {hasChips && (
-              <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 sm:px-4">
+              <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 px-3 py-2 sm:px-4">
                 {!defaultDates && <Chip label={tr('Date: {0} – {1}', formatDate(dateFrom), formatDate(dateTo || dateFrom))} onRemove={() => handleDateChange('', '')} />}
                 {splitBranches(branch).map(code => (
                   <Chip key={code} label={tr('Branch: {0}', branchName(code))}
@@ -366,14 +366,14 @@ export default function SalesPage() {
                 ))}
                 {txType !== 'sales' && <Chip label={tr('Type: {0}', typeInfo.label)} onRemove={() => setTxType('sales')} />}
                 {debouncedSearch && <Chip label={tr('Search: “{0}”', debouncedSearch)} onRemove={clearSearch} />}
-                <button type="button" onClick={clearFilters} className="text-xs font-medium text-slate-500 hover:text-slate-900">
+                <button type="button" onClick={clearFilters} className="text-xs font-medium text-neutral-500 hover:text-neutral-900">
                   {tr('Clear all')}
                 </button>
               </div>
             )}
 
             {txType !== 'sales' && (
-              <div className="flex items-start gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500 sm:px-4">
+              <div className="flex items-start gap-2 border-b border-neutral-100 bg-neutral-50 px-3 py-2 text-xs text-neutral-500 sm:px-4">
                 <Info size={14} className="mt-0.5 flex-shrink-0" />
                 <span>
                   {txType === 'all'
@@ -386,9 +386,9 @@ export default function SalesPage() {
             )}
 
             {newData && (
-              <div className="flex items-center justify-between gap-3 border-b border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800 sm:px-4">
+              <div className="flex items-center justify-between gap-3 border-b border-brand-100 bg-brand-50 px-3 py-2 text-xs text-brand-800 sm:px-4">
                 <span className="flex items-center gap-1.5"><ArrowUpCircle size={14} /> {tr('New transactions were synced.')}</span>
-                <button type="button" onClick={() => fetchData(null)} className="rounded-md bg-blue-600 px-2.5 py-1 font-medium text-white hover:bg-blue-700">
+                <button type="button" onClick={() => fetchData(null)} className="rounded-md bg-brand-600 px-2.5 py-1 font-medium text-white hover:bg-brand-700">
                   {tr('Show latest')}
                 </button>
               </div>
@@ -398,9 +398,9 @@ export default function SalesPage() {
             <div className="relative">
               {loadError && !loading && (
                 <div className="flex flex-col items-center gap-2 px-4 py-16 text-center">
-                  <p className="text-sm font-medium text-slate-800">{tr('Couldn’t load transactions')}</p>
-                  <p className="text-xs text-slate-500">{loadError}</p>
-                  <button type="button" onClick={() => fetchData(null)} className="mt-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                  <p className="text-sm font-medium text-neutral-800">{tr('Couldn’t load transactions')}</p>
+                  <p className="text-xs text-neutral-500">{loadError}</p>
+                  <button type="button" onClick={() => fetchData(null)} className="mt-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
                     {tr('Try again')}
                   </button>
                 </div>
@@ -408,11 +408,11 @@ export default function SalesPage() {
 
               {!loadError && !loading && data.length === 0 && (
                 <div className="flex flex-col items-center px-4 py-16 text-center">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                    <Receipt size={22} className="text-slate-400" />
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
+                    <Receipt size={22} className="text-neutral-400" />
                   </div>
-                  <p className="text-sm font-medium text-slate-800">{tr('No transactions found')}</p>
-                  <p className="mt-1 text-xs text-slate-500">{tr('Try another date range, branch or transaction type.')}</p>
+                  <p className="text-sm font-medium text-neutral-800">{tr('No transactions found')}</p>
+                  <p className="mt-1 text-xs text-neutral-500">{tr('Try another date range, branch or transaction type.')}</p>
                 </div>
               )}
 
@@ -425,8 +425,8 @@ export default function SalesPage() {
 
               {refreshing && (
                 <div className="absolute inset-0 z-10 flex items-start justify-center bg-white/60 pt-24 backdrop-blur-[1px]">
-                  <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-                    <Loader2 size={16} className="animate-spin text-slate-500" />
+                  <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm">
+                    <Loader2 size={16} className="animate-spin text-neutral-500" />
                     {tr('Updating results…')}
                   </div>
                 </div>
@@ -435,19 +435,19 @@ export default function SalesPage() {
 
             {/* Footer */}
             {data.length > 0 && (
-              <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/60 px-3 py-3 sm:flex-row sm:px-4">
-                <p className="text-xs text-slate-500 sm:text-sm">
-                  {tr('Showing')} <span className="font-semibold text-slate-800">{formatNumber(groups.length)}</span> {tr('transactions')}
+              <div className="flex flex-col items-center justify-between gap-3 border-t border-neutral-200 bg-neutral-50/60 px-3 py-3 sm:flex-row sm:px-4">
+                <p className="text-xs text-neutral-500 sm:text-sm">
+                  {tr('Showing')} <span className="font-semibold text-neutral-800">{formatNumber(groups.length)}</span> {tr('transactions')}
                   {' · '}
-                  <span className="font-semibold text-slate-800">{formatNumber(data.length)}</span> {tr('item rows')}
-                  {pagination.hasMore && <span className="text-slate-400"> {tr('· more available')}</span>}
+                  <span className="font-semibold text-neutral-800">{formatNumber(data.length)}</span> {tr('item rows')}
+                  {pagination.hasMore && <span className="text-neutral-400"> {tr('· more available')}</span>}
                 </p>
                 {pagination.hasMore && (
                   <button
                     type="button"
                     onClick={() => pagination.cursor && fetchData(pagination.cursor)}
                     disabled={loadingMore}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-60 sm:w-auto"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60 sm:w-auto"
                   >
                     {loadingMore ? <><Loader2 size={15} className="animate-spin" /> {tr('Loading…')}</> : <>{tr('Load more')} <ChevronRight size={15} /></>}
                   </button>
@@ -494,7 +494,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
         value={pending ? <StatSkeleton /> : money(t?.sales.nettSales)} title={formatCurrency(t?.sales.nettSales)}>
         {t && (
           <p>
-            {tr('After discounts ·')} <span className="tabular-nums text-slate-600">{formatCurrency(discount)}</span>
+            {tr('After discounts ·')} <span className="tabular-nums text-neutral-600">{formatCurrency(discount)}</span>
             {t.sales.subtotal ? ` (${fixed(((discount / t.sales.subtotal) * 100), 1)}%)` : ''}
           </p>
         )}
@@ -505,11 +505,11 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
           <>
             <p>{formatNumber(t.gross.transactions)} {tr('transactions, all statuses (before deductions)')}</p>
             {parts.length > 0 && (
-              <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-200" role="img"
+              <div className="flex h-1.5 overflow-hidden rounded-full bg-neutral-200" role="img"
                 aria-label={parts.map(p => `${p.label} ${fixed(((p.value / t.gross.subtotal) * 100), 1)}%`).join(', ')}>
                 {parts.map(p => (
                   <span key={p.key} title={`${p.label}: ${formatCurrency(p.value)} (${fixed(((p.value / t.gross.subtotal) * 100), 1)}%)`}
-                    className="h-full border-r border-slate-50 last:border-r-0"
+                    className="h-full border-r border-neutral-50 last:border-r-0"
                     style={{ width: `${Math.max(0.5, (p.value / t.gross.subtotal) * 100)}%`, background: p.color }} />
                 ))}
               </div>
@@ -539,9 +539,9 @@ function DeductionRow({ label, color, value, count, hint }: { label: string; col
       <dt className="flex items-center gap-1.5 whitespace-nowrap">
         <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: color }} aria-hidden />
         {label}
-        <span className="text-slate-400">· {formatNumber(count)}</span>
+        <span className="text-neutral-400">· {formatNumber(count)}</span>
       </dt>
-      <dd className="whitespace-nowrap tabular-nums text-slate-700">−{formatCurrency(value)}</dd>
+      <dd className="whitespace-nowrap tabular-nums text-neutral-700">−{formatCurrency(value)}</dd>
     </div>
   );
 }
@@ -549,7 +549,7 @@ function DeductionRow({ label, color, value, count, hint }: { label: string; col
 /* -------------------------------------------------------------------- table */
 
 function StatusBadge({ status }: { status?: string | null }) {
-  if (!status) return <span className="text-slate-400">-</span>;
+  if (!status) return <span className="text-neutral-400">-</span>;
   const s = status.toLowerCase();
   const style =
     s === 'finished' || s === 'completed'
@@ -560,15 +560,15 @@ function StatusBadge({ status }: { status?: string | null }) {
   return <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${style}`}>{status}</span>;
 }
 
-const TH = 'px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 whitespace-nowrap';
+const TH = 'px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500 whitespace-nowrap';
 const TD = 'px-3 py-2.5 text-sm align-top';
 
 function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skeleton: boolean; onSelect: (t: TransactionCombined) => void }) {
   return (
     <div className="hidden max-h-[calc(100dvh-17rem)] min-h-[16rem] overflow-auto md:block">
       <table className="w-full min-w-[900px] border-separate border-spacing-0 2xl:min-w-[1040px]">
-        <thead className="sticky top-0 z-[5] bg-slate-50">
-          <tr className="[&>th]:border-b [&>th]:border-slate-200">
+        <thead className="sticky top-0 z-[5] bg-neutral-50">
+          <tr className="[&>th]:border-b [&>th]:border-neutral-200">
             <th className={TH}>{tr('Sales / Bill')}</th>
             <th className={TH}>{tr('Date')}</th>
             <th className={TH}>{tr('Branch / Payment')}</th>
@@ -584,7 +584,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
             Array.from({ length: 8 }).map((_, i) => (
               <tr key={i}>
                 {Array.from({ length: 8 }).map((__, j) => (
-                  <td key={j} className="border-b border-slate-100 px-3 py-3">
+                  <td key={j} className="border-b border-neutral-100 px-3 py-3">
                     <div className="h-4 skeleton rounded" style={{ width: `${50 + ((i + j) % 4) * 12}%` }} />
                   </td>
                 ))}
@@ -595,50 +595,50 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
               group.rows.map((tx, i) => {
                 const first = i === 0;
                 const last = i === group.rows.length - 1;
-                const border = last ? 'border-b border-slate-200' : 'border-b border-transparent';
+                const border = last ? 'border-b border-neutral-200' : 'border-b border-transparent';
                 return (
                   <tr
                     key={`${group.key}-${tx.line_number ?? i}`}
                     onClick={() => onSelect(tx)}
-                    className="group cursor-pointer [&>td]:transition-colors hover:[&>td]:bg-slate-50"
+                    className="group cursor-pointer [&>td]:transition-colors hover:[&>td]:bg-neutral-50"
                   >
                     <td className={`${TD} ${border}`}>
                       {first && (
                         <>
-                          <p className="font-medium text-slate-900 group-hover:text-blue-700">{tx.sales_num}</p>
-                          <p className="text-xs text-slate-400">{tx.bill_num || tr('No bill number')}</p>
+                          <p className="font-medium text-neutral-900 group-hover:text-brand-700">{tx.sales_num}</p>
+                          <p className="text-xs text-neutral-400">{tx.bill_num || tr('No bill number')}</p>
                         </>
                       )}
                     </td>
                     <td className={`${TD} ${border} whitespace-nowrap`}>
                       {first && (
                         <>
-                          <p className="text-slate-700">{formatDate(tx.sales_date)}</p>
-                          <p className="text-xs text-slate-400">{formatTime(tx.sales_date_in)}</p>
+                          <p className="text-neutral-700">{formatDate(tx.sales_date)}</p>
+                          <p className="text-xs text-neutral-400">{formatTime(tx.sales_date_in)}</p>
                         </>
                       )}
                     </td>
                     <td className={`${TD} ${border} max-w-[190px]`}>
                       {first && (
                         <>
-                          <p className="truncate text-slate-700" title={tx.branch_name}>{tx.branch_name || '-'}</p>
-                          <p className="truncate text-xs text-slate-400" title={tx.payment_method}>{tx.payment_method || '-'}</p>
+                          <p className="truncate text-neutral-700" title={tx.branch_name}>{tx.branch_name || '-'}</p>
+                          <p className="truncate text-xs text-neutral-400" title={tx.payment_method}>{tx.payment_method || '-'}</p>
                         </>
                       )}
                     </td>
                     <td className={`${TD} ${border}`}>
-                      <p className={tx.menu_name?.endsWith(')') ? 'pl-3 text-slate-500' : 'font-medium text-slate-800'}>{tx.menu_name || '-'}</p>
+                      <p className={tx.menu_name?.endsWith(')') ? 'pl-3 text-neutral-500' : 'font-medium text-neutral-800'}>{tx.menu_name || '-'}</p>
                       {tx.menu_category && !tx.menu_name?.endsWith(')') && (
-                        <p className="text-xs text-slate-400">{tx.menu_category}{tx.menu_category_detail ? ` · ${tx.menu_category_detail}` : ''}</p>
+                        <p className="text-xs text-neutral-400">{tx.menu_category}{tx.menu_category_detail ? ` · ${tx.menu_category_detail}` : ''}</p>
                       )}
                     </td>
-                    <td className={`${TD} ${border} text-right tabular-nums text-slate-700`}>{formatNumber(tx.quantity)}</td>
-                    <td className={`${TD} ${border} hidden text-right tabular-nums text-slate-600 2xl:table-cell`}>{formatCurrency(tx.unit_price)}</td>
-                    <td className={`${TD} ${border} text-right tabular-nums text-slate-800`}>{formatCurrency(tx.total_item)}</td>
+                    <td className={`${TD} ${border} text-right tabular-nums text-neutral-700`}>{formatNumber(tx.quantity)}</td>
+                    <td className={`${TD} ${border} hidden text-right tabular-nums text-neutral-600 2xl:table-cell`}>{formatCurrency(tx.unit_price)}</td>
+                    <td className={`${TD} ${border} text-right tabular-nums text-neutral-800`}>{formatCurrency(tx.total_item)}</td>
                     <td className={`${TD} ${border} text-right`}>
                       {first && (
                         <>
-                          <p className="font-semibold tabular-nums text-slate-900">{formatCurrency(tx.total_amount)}</p>
+                          <p className="font-semibold tabular-nums text-neutral-900">{formatCurrency(tx.total_amount)}</p>
                           <div className="mt-1"><StatusBadge status={tx.status} /></div>
                         </>
                       )}
@@ -656,7 +656,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
 function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skeleton: boolean; onSelect: (t: TransactionCombined) => void }) {
   if (skeleton) {
     return (
-      <ul className="divide-y divide-slate-100 md:hidden">
+      <ul className="divide-y divide-neutral-100 md:hidden">
         {Array.from({ length: 5 }).map((_, i) => (
           <li key={i} className="space-y-2 p-4">
             <div className="h-4 w-2/3 skeleton rounded" />
@@ -668,37 +668,37 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
     );
   }
   return (
-    <ul className="divide-y divide-slate-100 md:hidden">
+    <ul className="divide-y divide-neutral-100 md:hidden">
       {groups.map(group => {
         const tx = group.rows[0];
         const menus = group.rows.filter(r => r.menu_name && !r.menu_name.endsWith(')'));
         return (
           <li key={group.key}>
-            <button type="button" onClick={() => onSelect(tx)} className="block w-full min-w-0 p-4 text-left active:bg-slate-50">
+            <button type="button" onClick={() => onSelect(tx)} className="block w-full min-w-0 p-4 text-left active:bg-neutral-50">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-900">{tx.sales_num}</p>
-                  <p className="truncate text-xs text-slate-500">
+                  <p className="truncate text-sm font-semibold text-neutral-900">{tx.sales_num}</p>
+                  <p className="truncate text-xs text-neutral-500">
                     {formatDate(tx.sales_date)} · {formatTime(tx.sales_date_in)} · {tx.branch_name}
                   </p>
                 </div>
                 <div className="flex-shrink-0 text-right">
-                  <p className="text-sm font-semibold tabular-nums text-slate-900">{formatCurrency(tx.total_amount)}</p>
+                  <p className="text-sm font-semibold tabular-nums text-neutral-900">{formatCurrency(tx.total_amount)}</p>
                   <div className="mt-1"><StatusBadge status={tx.status} /></div>
                 </div>
               </div>
               {menus.length > 0 && (
-                <ul className="mt-2 space-y-0.5 text-xs text-slate-600">
+                <ul className="mt-2 space-y-0.5 text-xs text-neutral-600">
                   {menus.slice(0, 3).map((m, i) => (
                     <li key={i} className="flex justify-between gap-3">
                       <span className="truncate">{formatNumber(m.quantity)} × {m.menu_name}</span>
-                      <span className="whitespace-nowrap tabular-nums text-slate-500">{formatCurrency(m.total_item)}</span>
+                      <span className="whitespace-nowrap tabular-nums text-neutral-500">{formatCurrency(m.total_item)}</span>
                     </li>
                   ))}
-                  {menus.length > 3 && <li className="text-slate-400">+{menus.length - 3} {tr('more items')}</li>}
+                  {menus.length > 3 && <li className="text-neutral-400">+{menus.length - 3} {tr('more items')}</li>}
                 </ul>
               )}
-              <p className="mt-2 truncate text-[11px] text-slate-400">{tx.payment_method || '-'} · {tx.bill_num || tr('No bill number')}</p>
+              <p className="mt-2 truncate text-[11px] text-neutral-400">{tx.payment_method || '-'} · {tx.bill_num || tr('No bill number')}</p>
             </button>
           </li>
         );
@@ -709,9 +709,9 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex max-w-full items-center gap-1 rounded-md border border-slate-200 bg-white py-0.5 pl-2 pr-1 text-xs font-medium text-slate-700">
+    <span className="inline-flex max-w-full items-center gap-1 rounded-md border border-neutral-200 bg-white py-0.5 pl-2 pr-1 text-xs font-medium text-neutral-700">
       <span className="truncate">{label}</span>
-      <button type="button" onClick={onRemove} className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Remove {0}', label)}>
+      <button type="button" onClick={onRemove} className="rounded p-0.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Remove {0}', label)}>
         <X size={12} />
       </button>
     </span>

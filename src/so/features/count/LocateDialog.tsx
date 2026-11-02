@@ -50,15 +50,15 @@ export default function LocateDialog({ title, onCancel, onDone }: { title: strin
       description={tr("The stock opname records where it starts.")} footer={footer}>
       {state === "locating" ? (
         <div className="flex flex-col items-center gap-3 py-4 text-center">
-          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-            <span className="absolute inset-0 animate-ping rounded-full bg-blue-200/60" />
+          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+            <span className="absolute inset-0 animate-ping rounded-full bg-brand-200/60" />
             <Crosshair size={24} className="relative" />
           </span>
-          <p className="text-sm font-medium text-slate-800">{tr("Finding your location…")}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-medium text-neutral-800">{tr("Finding your location…")}</p>
+          <p className="text-xs text-neutral-500">
             {fix ? tr("Accuracy ±{0} m, improving", Math.round(fix.accuracy)) : tr("Keep this page open; it takes a few seconds")}
           </p>
-          <Loader2 size={16} className="animate-spin text-slate-400" />
+          <Loader2 size={16} className="animate-spin text-neutral-400" />
         </div>
       ) : state === "weak" ? (
         <div className="flex gap-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">

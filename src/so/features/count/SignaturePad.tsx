@@ -93,20 +93,20 @@ export default function SignaturePad({ onChange }: { onChange: (image: string | 
 
   return (
     <div>
-      <div className="relative overflow-hidden rounded-xl border border-slate-300 bg-white">
+      <div className="relative overflow-hidden rounded-xl border border-neutral-300 bg-white">
         <canvas ref={canvas} style={{ height: HEIGHT, touchAction: "none" }} className="block w-full cursor-crosshair"
           onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={up}
           aria-label={tr("Signature area: draw your signature")} role="img" />
         {!inked && (
-          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-slate-300">
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-neutral-300">
             {tr("Sign here")}
           </span>
         )}
-        <span className="pointer-events-none absolute inset-x-6 bottom-9 border-b border-dashed border-slate-300" />
+        <span className="pointer-events-none absolute inset-x-6 bottom-9 border-b border-dashed border-neutral-300" />
       </div>
       <div className="mt-1.5 flex justify-end">
         <button type="button" onClick={clear} disabled={!inked}
-          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-40">
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-40">
           <Eraser size={13} /> {tr("Clear")}
         </button>
       </div>

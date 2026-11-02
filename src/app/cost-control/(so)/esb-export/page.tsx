@@ -87,19 +87,19 @@ export default function EsbExportPage() {
             <table className="m-cards w-full min-w-[560px] text-sm">
               <thead className={theadClass}>
                 <tr>
-                  <th className="w-10 px-4 py-2.5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={all} aria-label={tr("Select All Shown")}
+                  <th className="w-10 px-4 py-2.5"><input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={all} aria-label={tr("Select All Shown")}
                     onChange={() => setPicked(all ? new Set() : new Set((ready ?? []).map((r) => r.id)))} /></th>
                   <th className="px-4 py-2.5">{tr("Facility")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Approved")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {ready === null ? <SkeletonRows cols={4} rows={3} /> : ready.map((r) => (
-                  <tr key={r.id} className={cx(picked.has(r.id) && "bg-blue-50/40")}>
-                    <td className="px-4 py-3"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(r.id)} aria-label={r.facility_name}
+                  <tr key={r.id} className={cx(picked.has(r.id) && "bg-brand-50/40")}>
+                    <td className="px-4 py-3"><input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(r.id)} aria-label={r.facility_name}
                       onChange={() => setPicked((s) => { const n = new Set(s); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; })} /></td>
-                    <td className="px-4 py-3"><span className="block font-medium text-slate-900">{r.facility_name}</span><span className="block font-mono text-[11px] text-slate-400">{r.number}</span></td>
+                    <td className="px-4 py-3"><span className="block font-medium text-neutral-900">{r.facility_name}</span><span className="block font-mono text-[11px] text-neutral-400">{r.number}</span></td>
                     <td className="px-4 py-3 text-right tabular-nums">{r.lines}</td>
-                    <td className="px-4 py-3 text-xs text-slate-500">{r.reviewed_at ? fmtDate(r.reviewed_at) : "—"}</td>
+                    <td className="px-4 py-3 text-xs text-neutral-500">{r.reviewed_at ? fmtDate(r.reviewed_at) : "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -109,17 +109,17 @@ export default function EsbExportPage() {
       </Panel>
 
       <Panel title={tr("Export History")} description={tr("Download again any time: the file is exactly the one that was exported.")}>
-        {batches && batches.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-500">{tr("No exports yet")}</p> : (
-          <ul className="divide-y divide-slate-100">
+        {batches && batches.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-500">{tr("No exports yet")}</p> : (
+          <ul className="divide-y divide-neutral-100">
             {(batches ?? []).map((b) => (
               <li key={b.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
                 <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700"><FileSpreadsheet size={16} /></span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900">{b.number} · {countTypeLabel(b.count_type)} · {fmtDay(b.business_date)}</p>
-                  <p className="truncate text-xs text-slate-500">
+                  <p className="truncate text-sm font-medium text-neutral-900">{b.number} · {countTypeLabel(b.count_type)} · {fmtDay(b.business_date)}</p>
+                  <p className="truncate text-xs text-neutral-500">
                     {tr("{0} counts · {1} lines", b.counts, b.lines)}{b.total_value ? ` · Rp ${fmtNumber(Math.round(Number(b.total_value)))}` : ""} · {fmtDate(b.created_at)}{b.created_by_name ? ` · ${b.created_by_name}` : ""}
                   </p>
-                  <p className="truncate font-mono text-[10px] text-slate-400" title={b.file_sha256}>SHA-256 {b.file_sha256}</p>
+                  <p className="truncate font-mono text-[10px] text-neutral-400" title={b.file_sha256}>SHA-256 {b.file_sha256}</p>
                 </div>
                 <Button variant="secondary" size="sm" onClick={() => download(`/api/so/count-exports/${b.id}/file`, `${b.number}.xlsx`).catch((e) => toast(errorText(e), "error"))}>
                   <Download size={14} /> .xlsx

@@ -325,7 +325,7 @@ export function BranchesDrawer({ q }: { q: string }) {
                 initialSort={{ key: 'sales', desc: true }}
                 columns={[
                   { key: 'rank', label: '#', align: 'right', value: b => b.rank },
-                  { key: 'branch', label: tr('Branch'), value: b => b.branchName, render: b => <span title={b.branchName}>{short(b.branchName)}{b.isNew && <span className="ml-1.5 rounded bg-blue-50 px-1 text-[10px] font-medium text-blue-700">{tr('New')}</span>}</span> },
+                  { key: 'branch', label: tr('Branch'), value: b => b.branchName, render: b => <span title={b.branchName}>{short(b.branchName)}{b.isNew && <span className="ml-1.5 rounded bg-brand-50 px-1 text-[10px] font-medium text-brand-700">{tr('New')}</span>}</span> },
                   { key: 'code', label: tr('Code'), value: b => b.branchCode },
                   { key: 'sales', label: tr('Gross sales'), align: 'right', value: b => b.subtotal, render: b => rp(b.subtotal) },
                   { key: 'chg', label: tr('Change'), align: 'right', value: b => b.deltaPct, render: b => delta(b.deltaPct) },
@@ -466,10 +466,10 @@ export function MenusDrawer({ q }: { q: string }) {
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-2">
                     {d.categories.map(c => (
-                      <div key={c.category} className="min-w-[8rem] flex-1 rounded-lg border border-slate-200 px-3 py-2">
-                        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500"><SeriesKey color={CATEGORY_COLORS[c.category] ?? '#a8a29e'} />{c.category}</p>
-                        <p className="text-lg font-semibold text-slate-900">{pctText(c.share)}</p>
-                        <p className="text-[11px] text-slate-500">{compactRupiah(c.subtotal)} · {formatNumber(c.qty)} {tr('pcs')}</p>
+                      <div key={c.category} className="min-w-[8rem] flex-1 rounded-lg border border-neutral-200 px-3 py-2">
+                        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><SeriesKey color={CATEGORY_COLORS[c.category] ?? '#a8a29e'} />{c.category}</p>
+                        <p className="text-lg font-semibold text-neutral-900">{pctText(c.share)}</p>
+                        <p className="text-[11px] text-neutral-500">{compactRupiah(c.subtotal)} · {formatNumber(c.qty)} {tr('pcs')}</p>
                       </div>
                     ))}
                   </div>
@@ -660,7 +660,7 @@ export function DeductionsDrawer({ q }: { q: string }) {
                 <ChannelGroups data={d} />
                 {d.dailyGroups.length > 1 && (
                   <>
-                    <p className="text-xs font-medium text-slate-500">{tr('Void rate per day · click a day for its profile')}</p>
+                    <p className="text-xs font-medium text-neutral-500">{tr('Void rate per day · click a day for its profile')}</p>
                     <GroupVoidChart data={d} onSelect={date => drill.drill(to.period(date, date, longDate(date)))} />
                   </>
                 )}
@@ -707,7 +707,7 @@ export function DeductionsDrawer({ q }: { q: string }) {
                 columns={[
                   { key: 'status', label: tr('Status'), value: b => b.status, render: b => (b.status === 'review'
                     ? <span className="inline-flex items-center gap-1 font-medium text-amber-700"><AlertTriangle size={12} /> {tr('Review')}</span>
-                    : <span className="inline-flex items-center gap-1 text-slate-500"><CheckCircle2 size={12} /> {tr('Normal')}</span>) },
+                    : <span className="inline-flex items-center gap-1 text-neutral-500"><CheckCircle2 size={12} /> {tr('Normal')}</span>) },
                   { key: 'branch', label: tr('Branch'), value: b => b.branchName, render: b => short(b.branchName) },
                   { key: 'bills', label: tr('Transactions'), align: 'right', value: b => b.bills },
                   { key: 'void', label: tr('Void bills'), align: 'right', value: b => b.voidBills },
@@ -827,7 +827,7 @@ export function MonthlyDrawer({ q }: { q: string }) {
             <Block title={tr('All months')}>
               <DetailTable caption={tr('Months')} csvName="monthly-growth" rows={d.months} rowKey={m => m.month} initialSort={{ key: 'month', desc: true }} onRowClick={open}
                 columns={[
-                  { key: 'month', label: tr('Month'), value: m => m.month, render: m => <>{monthLabel(m.month, 'long')}{m.partial && <span className="ml-1 text-slate-400">({m.days} d)</span>}</> },
+                  { key: 'month', label: tr('Month'), value: m => m.month, render: m => <>{monthLabel(m.month, 'long')}{m.partial && <span className="ml-1 text-neutral-400">({m.days} d)</span>}</> },
                   { key: 'sales', label: tr('Gross sales'), align: 'right', value: m => m.subtotal, render: m => rp(m.subtotal) },
                   { key: 'nett', label: tr('Nett'), align: 'right', value: m => m.nettSales, render: m => rp(m.nettSales) },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: m => m.bills },

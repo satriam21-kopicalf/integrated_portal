@@ -76,35 +76,35 @@ export default function DeductionsCard({ resource }: { resource: Resource<Deduct
 
             {data.daily.length > 1 && (
               <div>
-                <p className="mb-1 text-xs font-medium text-slate-500">{tr('Void rate per day')}</p>
+                <p className="mb-1 text-xs font-medium text-neutral-500">{tr('Void rate per day')}</p>
                 <VoidRateChart data={data} />
               </div>
             )}
 
             <div>
-              <p className="mb-1.5 text-xs font-medium text-slate-500">
+              <p className="mb-1.5 text-xs font-medium text-neutral-500">
                 {flagged.length
                   ? tr('{0} {1} above the P90 void rate ({2}%)', flagged.length, flagged.length === 1 ? tr('branch') : tr('branches'), fixed(data.threshold, 2))
                   : tr('Highest void rates')}
               </p>
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-neutral-100">
                 {list.map(b => (
-                  <li key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs hover:bg-blue-50/50">
+                  <li key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs hover:bg-brand-50/50">
                     {b.status === 'review' ? (
                       <span className="inline-flex w-[4.5rem] flex-shrink-0 items-center gap-1 font-medium text-amber-700">
                         <AlertTriangle size={13} aria-hidden /> {tr('Review')}
                       </span>
                     ) : (
-                      <span className="inline-flex w-[4.5rem] flex-shrink-0 items-center gap-1 text-slate-500">
+                      <span className="inline-flex w-[4.5rem] flex-shrink-0 items-center gap-1 text-neutral-500">
                         <CheckCircle2 size={13} aria-hidden /> {tr('Normal')}
                       </span>
                     )}
-                    <span className="min-w-0 flex-1 truncate text-slate-700" title={b.branchName}>{b.branchName}</span>
-                    <span className="flex-shrink-0 tabular-nums text-slate-500">{formatNumber(b.voidBills)} {tr('void')}</span>
-                    <span className="w-14 flex-shrink-0 text-right font-medium tabular-nums text-slate-900">{fixed(b.voidRate, 2)}%</span>
+                    <span className="min-w-0 flex-1 truncate text-neutral-700" title={b.branchName}>{b.branchName}</span>
+                    <span className="flex-shrink-0 tabular-nums text-neutral-500">{formatNumber(b.voidBills)} {tr('void')}</span>
+                    <span className="w-14 flex-shrink-0 text-right font-medium tabular-nums text-neutral-900">{fixed(b.voidRate, 2)}%</span>
                   </li>
                 ))}
-                {!list.length && <li className="py-4 text-center text-slate-400">{tr('No void or other-cost transactions')}</li>}
+                {!list.length && <li className="py-4 text-center text-neutral-400">{tr('No void or other-cost transactions')}</li>}
               </ul>
             </div>
           </div>
@@ -116,10 +116,10 @@ export default function DeductionsCard({ resource }: { resource: Resource<Deduct
 
 function Stat({ label, value, detail, title }: { label: string; value: string; detail: string; title?: string }) {
   return (
-    <div className="min-w-0 rounded-lg bg-slate-50 p-2.5" title={title}>
-      <dt className="truncate text-[11px] text-slate-500">{label}</dt>
-      <dd className="mt-0.5 truncate text-sm font-semibold text-slate-900 sm:text-base">{value}</dd>
-      <dd className="truncate text-[11px] text-slate-500" title={detail}>{detail}</dd>
+    <div className="min-w-0 rounded-lg bg-neutral-50 p-2.5" title={title}>
+      <dt className="truncate text-[11px] text-neutral-500">{label}</dt>
+      <dd className="mt-0.5 truncate text-sm font-semibold text-neutral-900 sm:text-base">{value}</dd>
+      <dd className="truncate text-[11px] text-neutral-500" title={detail}>{detail}</dd>
     </div>
   );
 }
@@ -133,22 +133,22 @@ export function ChannelGroups({ data }: { data: DeductionsResponse }) {
       {groups.map(g => {
         const deltaPp = g.previousVoidRate === null || g.previousVoidRate === undefined ? null : g.voidRate - g.previousVoidRate;
         return (
-          <div key={g.group} className="min-w-0 rounded-lg border border-slate-200 px-3 py-2.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <div key={g.group} className="min-w-0 rounded-lg border border-neutral-200 px-3 py-2.5">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
               <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: GROUP_COLORS[g.group] }} />
               {GROUP_LABELS[g.group]}
-              <span className="font-normal normal-case tracking-normal text-slate-400">{g.group === 'offline' ? tr('Dine In, Takeaway') : tr('GoFood, GrabFood, ShopeeFood')}</span>
+              <span className="font-normal normal-case tracking-normal text-neutral-400">{g.group === 'offline' ? tr('Dine In, Takeaway') : tr('GoFood, GrabFood, ShopeeFood')}</span>
             </p>
             <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-lg font-semibold tabular-nums text-slate-900" title={tr('Void & cancelled bills ÷ all bills')}>{fixed(g.voidRate, 2)}%</span>
-              <span className="text-[11px] text-slate-500">{tr('void rate')}</span>
+              <span className="text-lg font-semibold tabular-nums text-neutral-900" title={tr('Void & cancelled bills ÷ all bills')}>{fixed(g.voidRate, 2)}%</span>
+              <span className="text-[11px] text-neutral-500">{tr('void rate')}</span>
               <Delta value={deltaPp} upIsGood={false} unit=" pp" />
             </div>
-            <dl className="mt-1 grid grid-cols-2 gap-x-3 text-[11px] text-slate-500">
-              <div><dt className="inline">{tr('Void')} </dt><dd className="inline font-medium tabular-nums text-slate-700">{formatNumber(g.voidBills)} · {compactRupiah(g.voidSubtotal)}</dd></div>
-              <div><dt className="inline">{tr('Share of voids')} </dt><dd className="inline font-medium tabular-nums text-slate-700">{fixed((g.voidShare ?? 0), 1)}%</dd></div>
-              <div><dt className="inline">{tr('Other cost')} </dt><dd className="inline font-medium tabular-nums text-slate-700">{formatNumber(g.otherCostBills)} · {compactRupiah(g.otherCostSubtotal)}</dd></div>
-              <div><dt className="inline">{tr('Open')} </dt><dd className="inline font-medium tabular-nums text-slate-700">{formatNumber(g.openBills)}</dd></div>
+            <dl className="mt-1 grid grid-cols-2 gap-x-3 text-[11px] text-neutral-500">
+              <div><dt className="inline">{tr('Void')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{formatNumber(g.voidBills)} · {compactRupiah(g.voidSubtotal)}</dd></div>
+              <div><dt className="inline">{tr('Share of voids')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{fixed((g.voidShare ?? 0), 1)}%</dd></div>
+              <div><dt className="inline">{tr('Other cost')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{formatNumber(g.otherCostBills)} · {compactRupiah(g.otherCostSubtotal)}</dd></div>
+              <div><dt className="inline">{tr('Open')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{formatNumber(g.openBills)}</dd></div>
             </dl>
           </div>
         );

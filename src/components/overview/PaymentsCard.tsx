@@ -21,8 +21,8 @@ export default function PaymentsCard({ resource }: { resource: Resource<Payments
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               {data.types.map(t => (
-                <span key={t.type} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-                  {t.type} <span className="text-slate-900">{t.share === null ? '-' : `${fixed(t.share, 1)}%`}</span>
+                <span key={t.type} className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-600">
+                  {t.type} <span className="text-neutral-900">{t.share === null ? '-' : `${fixed(t.share, 1)}%`}</span>
                   {t.deltaPct !== undefined && t.deltaPct !== null && <span className={t.deltaPct >= 0 ? ' text-emerald-700' : ' text-red-700'}> {deltaText(t.deltaPct)}</span>}
                 </span>
               ))}
@@ -48,7 +48,7 @@ export default function PaymentsCard({ resource }: { resource: Resource<Payments
               }}
             />
             {rest.length > 0 && (
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-neutral-400">
                 +{rest.length} {tr('more:')} {rest.map(m => paymentLabel(m.method)).join(', ')} ({compactRupiah(rest.reduce((s, m) => s + m.subtotal, 0))})
               </p>
             )}

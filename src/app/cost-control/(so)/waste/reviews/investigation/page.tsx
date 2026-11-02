@@ -17,11 +17,11 @@ const longDate = (v: string | null | undefined) => {
 };
 
 function Line({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div className="flex gap-2"><span className="w-40 flex-shrink-0">{label}</span><span className="flex-1 border-b border-slate-400">: {value}</span></div>;
+  return <div className="flex gap-2"><span className="w-40 flex-shrink-0">{label}</span><span className="flex-1 border-b border-neutral-400">: {value}</span></div>;
 }
 
 function Box({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-[6rem] whitespace-pre-wrap border border-slate-700 p-3">{children}</div>;
+  return <div className="min-h-[6rem] whitespace-pre-wrap border border-neutral-700 p-3">{children}</div>;
 }
 
 function Sheet() {
@@ -34,24 +34,24 @@ function Sheet() {
   const r = inv.report;
   const mark = (on: boolean) => <span className="inline-block w-6 text-center font-semibold">( {on ? "✓" : " "} )</span>;
   const pick = (list: string[], on: (x: string) => boolean) => list.map((x, i) => (
-    <span key={x}>{i ? ", " : ""}<span className={on(x) ? "rounded-full border border-slate-900 px-1" : ""}>{x}</span></span>
+    <span key={x}>{i ? ", " : ""}<span className={on(x) ? "rounded-full border border-neutral-900 px-1" : ""}>{x}</span></span>
   ));
   const entries = Array.isArray(inv.entries) ? inv.entries : [];
   return (
-    <div className="print-sheet mx-auto my-6 w-[210mm] max-w-full bg-white p-[12mm] text-[11px] leading-snug text-slate-900 shadow print:my-0 print:shadow-none">
-      <table className="w-full border-collapse border border-slate-700">
+    <div className="print-sheet mx-auto my-6 w-[210mm] max-w-full bg-white p-[12mm] text-[11px] leading-snug text-neutral-900 shadow print:my-0 print:shadow-none">
+      <table className="w-full border-collapse border border-neutral-700">
         <tbody>
           <tr>
-            <td rowSpan={2} className="w-28 border border-slate-700 p-2 text-center">
+            <td rowSpan={2} className="w-28 border border-neutral-700 p-2 text-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/calf-logo.png" alt="Calf" className="mx-auto h-10 object-contain" />
             </td>
-            <td className="border border-slate-700 p-1 text-center font-semibold">FORM</td>
-            <td className="w-40 border border-slate-700 p-1 text-[10px]">No : FM - QAQC - 03<br />Date : 19 Oktober 2026</td>
+            <td className="border border-neutral-700 p-1 text-center font-semibold">FORM</td>
+            <td className="w-40 border border-neutral-700 p-1 text-[10px]">No : FM - QAQC - 03<br />Date : 19 Oktober 2026</td>
           </tr>
           <tr>
-            <td className="border border-slate-700 p-1 text-center font-semibold">INVESTIGASI KOMPLAIN &amp; WASTE</td>
-            <td className="border border-slate-700 p-1 text-[10px]">Rev : 00</td>
+            <td className="border border-neutral-700 p-1 text-center font-semibold">INVESTIGASI KOMPLAIN &amp; WASTE</td>
+            <td className="border border-neutral-700 p-1 text-[10px]">Rev : 00</td>
           </tr>
         </tbody>
       </table>
@@ -91,7 +91,7 @@ function Sheet() {
           const v = r.checks[c] ?? { checked: false, finding: "" };
           return (
             <div key={c} className="grid grid-cols-[3rem_16rem_6rem_1fr] items-end">
-              {mark(v.checked)}<span>{c}</span><span>Hasil Temuan</span><span className="border-b border-slate-400">: {v.finding}</span>
+              {mark(v.checked)}<span>{c}</span><span>Hasil Temuan</span><span className="border-b border-neutral-400">: {v.finding}</span>
             </div>
           );
         })}
@@ -105,17 +105,17 @@ function Sheet() {
       <p className="mt-3">PREVENTIVE ACTION - Tindakan Pencegahan Jangka Panjang (Mencegah Terulang Kembali)</p>
       <Box>{r.preventive}</Box>
 
-      <table className="mt-6 w-full border-collapse border border-slate-700 text-center" style={{ breakInside: "avoid" }}>
+      <table className="mt-6 w-full border-collapse border border-neutral-700 text-center" style={{ breakInside: "avoid" }}>
         <tbody>
-          <tr>{SIGNERS.map((s) => <td key={s.key} className="w-1/3 border border-slate-700 p-1">{s.title},</td>)}</tr>
+          <tr>{SIGNERS.map((s) => <td key={s.key} className="w-1/3 border border-neutral-700 p-1">{s.title},</td>)}</tr>
           <tr>{SIGNERS.map((s) => (
-            <td key={s.key} className="h-24 border border-slate-700 p-1">
+            <td key={s.key} className="h-24 border border-neutral-700 p-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {inv.signatures[s.key]?.image ? <img src={inv.signatures[s.key]!.image!} alt="" className="mx-auto max-h-20 object-contain" /> : null}
             </td>
           ))}</tr>
-          <tr>{SIGNERS.map((s) => <td key={s.key} className="border border-slate-700 p-1 text-left">Nama : {inv.signatures[s.key]?.name ?? ""}</td>)}</tr>
-          <tr>{SIGNERS.map((s) => <td key={s.key} className="border border-slate-700 p-1">{inv.signatures[s.key]?.role || s.role}</td>)}</tr>
+          <tr>{SIGNERS.map((s) => <td key={s.key} className="border border-neutral-700 p-1 text-left">Nama : {inv.signatures[s.key]?.name ?? ""}</td>)}</tr>
+          <tr>{SIGNERS.map((s) => <td key={s.key} className="border border-neutral-700 p-1">{inv.signatures[s.key]?.role || s.role}</td>)}</tr>
         </tbody>
       </table>
     </div>
@@ -124,10 +124,10 @@ function Sheet() {
 
 export default function InvestigationPrintPage() {
   return (
-    <div className="fixed inset-0 z-[100] overflow-auto bg-slate-100 print:static print:bg-white">
+    <div className="fixed inset-0 z-[100] overflow-auto bg-neutral-100 print:static print:bg-white">
       <style>{`@media print { @page { size: A4; margin: 0 } body * { visibility: hidden } .print-sheet, .print-sheet * { visibility: visible } .print-sheet { position: absolute; left: 0; top: 0; width: 210mm } }`}</style>
-      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-slate-100/90 px-4 py-2 backdrop-blur print:hidden">
-        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-sm font-medium text-white"><Printer size={15} />{tr("Print / PDF")}</button>
+      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-neutral-100/90 px-4 py-2 backdrop-blur print:hidden">
+        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-lg bg-brand-700 px-3 py-2 text-sm font-medium text-white"><Printer size={15} />{tr("Print / PDF")}</button>
       </div>
       <Suspense><Sheet /></Suspense>
     </div>

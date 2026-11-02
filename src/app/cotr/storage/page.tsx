@@ -5,10 +5,13 @@
 // settles the differences a driver reports (the final cups = the start stock of the shift), and decides the reloads:
 // approve with the cups sent (fewer when short) or reject, then settle a difference found on arrival.
 
-import { AlertTriangle, Check, ClipboardCopy, Coffee, PackagePlus, RefreshCw, Save, Send, Sparkles, Warehouse, X } from "lucide-react";
+import { AlertTriangle, Building2, CalendarDays, Check, ClipboardCopy, Coffee, PackagePlus, Save, Send, Sparkles, UserRound, Warehouse, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Input, Select, cx, useToast } from "@/so/ui";
-import { Page, Panel, Stat, StatStrip } from "@/components/kc/compat";
+import { Badge, Button, Empty, ErrorState, Input, cx, useToast } from "@/so/ui";
+import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
+import { SearchInput } from "@/components/kc";
+import { DayField, ScopeBar, dmyOf } from "@/components/kc/ScopeBar";
+import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool, Stock } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
@@ -37,6 +40,14 @@ const planOf = (d: Dispatch | null): Plan => {
   return { sell, cupping: { ...taste } };
 };
 
+/** the drivers listed: by where their assignment is */
+type DriverFilter = "" | "none" | "assigned" | "disputed" | "accepted" | "road";
+const FILTER_STATUS: Record<Exclude<DriverFilter, "">, () => string> = {
+  none: () => tr("Not assigned"), assigned: () => tr("Waiting for the driver's check"), disputed: () => tr("Difference reported"),
+  accepted: () => tr("Accepted"), road: () => tr("On the road or shift ended"),
+};
+const matchStatus = (r: Row, f: DriverFilter) => !f || (f === "road" ? !!r.shift : f === "none" ? !r.dispatch && !r.shift : !r.shift && r.dispatch?.status === f);
+
 const STATUS: Record<Dispatch["status"], { label: () => string; tone: "blue" | "red" | "green" }> = {
   assigned: { label: () => tr("Waiting for the driver's check"), tone: "blue" },
   disputed: { label: () => tr("Difference reported"), tone: "red" },
@@ -56,6 +67,11 @@ export default function CotrStoragePage() {
   const [draft, setDraft] = useState<Record<string, Plan>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const poolCode = pool || usable[0]?.code || "";
+  const [status, setStatus] = useState<DriverFilter>("");
+  const [q, setQ] = useState("");
+  const [sheet, setSheet] = useState(false);
+  const [draftF, setDraftF] = useState({ pool: "", day: todayWib(), status: "" as DriverFilter });
+  useEffect(() => { if (sheet) setDraftF({ pool: poolCode, day, status }); }, [sheet]); // eslint-disable-line react-hooks/exhaustive-deps -- the values when the drawer opens
 
   // a new pool / day, or `load()` after a change: read the day again
   const [tick, setTick] = useState(0);
@@ -111,23 +127,40 @@ export default function CotrStoragePage() {
   const disputes = rows.filter((r) => r.dispatch?.status === "disputed");
   const reloads = data?.reloads.filter((r) => r.status === "requested" || r.status === "disputed") ?? [];
   const name = (code: string) => rows.find((r) => r.code === code)?.name ?? code;
+  const listed = rows.filter((r) => matchStatus(r, status) && (!q.trim() || `${r.name} ${r.nickname ?? ""} ${r.code} ${r.fleet ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())));
 
   return (
     <Page eyebrow="Monitoring COTR" media={<Warehouse size={19} />} title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
-      actions={<>
-        <Select value={poolCode} onChange={(e) => setPool(e.target.value)} className="h-10 w-48">{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select>
-        <Input type="date" value={day} onChange={(e) => setDay(e.target.value || todayWib())} className="h-10 w-40" />
-        <Button variant="secondary" onClick={() => void load()}><RefreshCw size={15} /> {tr("Refresh")}</Button>
-      </>}
-      stats={data && (
+      stats={<>
+        <ScopeBar onOpen={() => setSheet(true)} onRefresh={() => void load()} scopes={[
+          { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: usable.find((p) => p.code === poolCode)?.name ?? "—" },
+          { key: "day", icon: <CalendarDays />, label: tr("Day"), value: day === todayWib() ? tr("Today") : dmyOf(day) },
+          { key: "status", icon: <UserRound />, label: tr("Drivers"), value: status ? FILTER_STATUS[status]() : tr("All"), active: !!status },
+        ]} />
         <StatStrip label={tr("Summary")} columns={5}>
-          <Stat label={tr("Drivers")} icon={<Warehouse size={16} />} value={rows.length} />
-          <Stat label={tr("Assigned")} icon={<Send size={16} />} value={rows.filter((r) => r.dispatch).length} />
-          <Stat label={tr("Accepted")} icon={<Check size={16} />} value={rows.filter((r) => r.dispatch?.status === "accepted").length} />
-          <Stat label={tr("Differences to settle")} icon={<AlertTriangle size={16} />} value={disputes.length} />
-          <Stat label={tr("Reloads to decide")} icon={<PackagePlus size={16} />} value={reloads.length} />
+          <Stat label={tr("Drivers")} icon={<Warehouse size={16} />} value={data ? rows.length : <StatSkeleton />} />
+          <Stat label={tr("Assigned")} icon={<Send size={16} />} value={data ? rows.filter((r) => r.dispatch).length : <StatSkeleton />} />
+          <Stat label={tr("Accepted")} icon={<Check size={16} />} value={data ? rows.filter((r) => r.dispatch?.status === "accepted").length : <StatSkeleton />} />
+          <Stat label={tr("Differences to settle")} icon={<AlertTriangle size={16} />} value={data ? disputes.length : <StatSkeleton />} emphasis={disputes.length > 0} />
+          <Stat label={tr("Reloads to decide")} icon={<PackagePlus size={16} />} value={data ? reloads.length : <StatSkeleton />} emphasis={reloads.length > 0} />
         </StatStrip>
-      )}>
+      </>}>
+      {sheet && (
+        <MonitorFilterSheet active={status ? 1 : 0} onClose={() => setSheet(false)} onReset={() => setDraftF({ pool: poolCode, day: todayWib(), status: "" })}
+          onApply={() => { setPool(draftF.pool); setDay(draftF.day); setStatus(draftF.status); setSheet(false); }}>
+          <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={usable.find((p) => p.code === draftF.pool)?.name ?? null}>
+            <ComboFilter value={draftF.pool} onChange={(v) => setDraftF({ ...draftF, pool: v || poolCode })} allLabel={tr("Choose the pool")} placeholder={tr("Search pool")}
+              options={usable.map((p) => ({ value: p.code, label: p.name, hint: p.city }))} />
+          </FilterRow>
+          <FilterRow icon={<CalendarDays size={15} />} label={tr("Day")} value={dmyOf(draftF.day)}>
+            <DayField value={draftF.day} onChange={(v) => setDraftF({ ...draftF, day: v })} future />
+          </FilterRow>
+          <FilterRow icon={<UserRound size={15} />} label={tr("Drivers")} value={draftF.status ? FILTER_STATUS[draftF.status]() : null} onClear={() => setDraftF({ ...draftF, status: "" })}>
+            <OptionList value={draftF.status} onChange={(v) => setDraftF({ ...draftF, status: v as DriverFilter })}
+              choices={[{ value: "", label: tr("Every driver") }, ...(Object.keys(FILTER_STATUS) as Exclude<DriverFilter, "">[]).map((k) => ({ value: k, label: FILTER_STATUS[k]() }))]} />
+          </FilterRow>
+        </MonitorFilterSheet>
+      )}
       {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? <div className="skeleton h-64 rounded-xl" /> : (
         <>
           {disputes.length > 0 && (
@@ -165,13 +198,17 @@ export default function CotrStoragePage() {
           </Panel>
 
           <Panel title={tr("Assignment of the day")} description={tr("Products every driver carries, set per driver from his sales: what to sell and what is for cupping")}
+            toolbar={rows.length > 0 ? <div className="flex flex-wrap items-center gap-2">
+              <SearchInput value={q} onChange={setQ} placeholder={tr("Search driver or armada")} />
+              <span className="text-xs tabular-nums text-neutral-500">{tr("{0} of {1}", listed.length, rows.length)}</span>
+            </div> : undefined}
             actions={<>
               <Button size="sm" variant="secondary" onClick={fromAdvice}><Sparkles size={14} /> <span className="hidden sm:inline">{tr("Use the advice for all")}</span></Button>
               <Button size="sm" variant="secondary" onClick={fromYesterday}><ClipboardCopy size={14} /> <span className="hidden sm:inline">{tr("Fill from the last day")}</span></Button>
             </>}>
-            {rows.length === 0 ? <Empty title={tr("No driver in this pool")}>{tr("Add the drivers in Master Driver.")}</Empty> : (
+            {rows.length === 0 ? <Empty title={tr("No driver in this pool")}>{tr("Add the drivers in Master Driver.")}</Empty> : listed.length === 0 ? <Empty title={tr("No driver matches the search or filters")} /> : (
               <ul className="grid gap-3 p-3 sm:p-4 xl:grid-cols-2">
-                {rows.map((r) => {
+                {listed.map((r) => {
                   const can = editable(r);
                   const plan = draft[r.code] ?? { sell: {}, cupping: {} };
                   const shown = can ? plan : planOf(r.dispatch);
@@ -238,7 +275,7 @@ export default function CotrStoragePage() {
           </Panel>
 
           {toSave.length > 0 && (
-            <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-4 flex items-center gap-3 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6"
+            <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-5 flex items-center gap-3 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mb-6 lg:px-8"
               style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
               <p className="min-w-0 flex-1 text-xs text-neutral-600">{tr("{0} assignments not saved yet", toSave.length)}</p>
               <Button loading={busy === "save"} onClick={() => void save(toSave)}><Save size={15} /> {tr("Save {0}", toSave.length)}</Button>

@@ -119,13 +119,13 @@ export default function GroupsPage() {
                 <tr><th className="px-4 py-2.5">{tr("Group")}</th><th className="px-4 py-2.5 text-right">{tr("Items")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Used by Lists")}</th><th className="px-4 py-2.5">{tr("Updated")}</th></tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {rows === null ? <SkeletonRows cols={4} /> : paged.rows.map((g) => (
-                  <tr key={g.id} className="group cursor-pointer hover:bg-slate-50/70" onClick={() => setOpen(g.id)}>
+                  <tr key={g.id} className="group cursor-pointer hover:bg-neutral-50/70" onClick={() => setOpen(g.id)}>
                     <td className="px-4 py-3">
-                      <span className="block font-medium text-slate-900 group-hover:text-blue-700">{g.name} {!g.is_active && <Badge>{tr("Inactive")}</Badge>}
-                        {g.date_field && <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">{GROUP_DATE_OPTIONS.find((x) => x.value === g.date_field)?.label()}</span>}</span>
-                      <span className="block font-mono text-[11px] text-slate-400">{g.code}{g.source_ref ? ` · ${g.source_ref}` : ""}</span>
+                      <span className="block font-medium text-neutral-900 group-hover:text-brand-700">{g.name} {!g.is_active && <Badge>{tr("Inactive")}</Badge>}
+                        {g.date_field && <span className="ml-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">{GROUP_DATE_OPTIONS.find((x) => x.value === g.date_field)?.label()}</span>}</span>
+                      <span className="block font-mono text-[11px] text-neutral-400">{g.code}{g.source_ref ? ` · ${g.source_ref}` : ""}</span>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {g.items}
@@ -134,7 +134,7 @@ export default function GroupsPage() {
                     <td className="px-4 py-3 text-right tabular-nums">
                       {g.lists || <span className="text-xs font-medium text-amber-700">{tr("Not assigned")}</span>}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">{fmtDate(g.updated_at)}</td>
+                    <td className="px-4 py-3 text-xs text-neutral-500">{fmtDate(g.updated_at)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -199,12 +199,12 @@ function BranchPicker({ facilities, types, usedBy, countTypes, setCountTypes, pi
   const allPicked = shown.length > 0 && shown.every((f) => picked.has(f.id));
   const toggle = (id: string) => { const n = new Set(picked); if (n.has(id)) n.delete(id); else n.add(id); setPicked(n); };
   const chip = (on: boolean) => cx("rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-    on ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300");
+    on ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300");
 
   return (
     <div className="space-y-4">
       <div>
-        <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Counted in")}</p>
+        <p className="mb-1.5 text-xs font-semibold text-neutral-700">{tr("Counted in")}</p>
         <div className="flex flex-wrap gap-1.5">
           {types.map((t) => {
             const on = countTypes.includes(t.code);
@@ -226,7 +226,7 @@ function BranchPicker({ facilities, types, usedBy, countTypes, setCountTypes, pi
           <SearchBox value={q} onChange={setQ} placeholder={tr("Search branch")} />
           {cities.length > 1 && (
             <select value={city} onChange={(e) => setCity(e.target.value)} aria-label={tr("City")}
-              className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700">
+              className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700">
               <option value="">{tr("All cities")}</option>
               {cities.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -234,27 +234,27 @@ function BranchPicker({ facilities, types, usedBy, countTypes, setCountTypes, pi
         </div>
       </div>
       <div className="flex items-center justify-between gap-2 text-xs">
-        <label className="flex items-center gap-2 font-medium text-slate-600">
-          <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={allPicked}
+        <label className="flex items-center gap-2 font-medium text-neutral-600">
+          <input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={allPicked}
             onChange={() => { const n = new Set(picked); shown.forEach((f) => (allPicked ? n.delete(f.id) : n.add(f.id))); setPicked(n); }} />
           {tr("Select all shown")} ({shown.length})
         </label>
-        <span className="text-slate-500">
+        <span className="text-neutral-500">
           {tr("{0} selected", picked.size)}
-          {picked.size > 0 && <button type="button" className="ml-2 font-medium text-blue-700 hover:underline" onClick={() => setPicked(new Set())}>{tr("Clear")}</button>}
+          {picked.size > 0 && <button type="button" className="ml-2 font-medium text-brand-700 hover:underline" onClick={() => setPicked(new Set())}>{tr("Clear")}</button>}
         </span>
       </div>
-      <ul className="max-h-[22rem] divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
+      <ul className="max-h-[22rem] divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200">
         {facilities === null ? <li className="skeleton m-2 h-24 rounded" /> : shown.map((f) => {
           const has = assigned.get(f.id) ?? [];
           return (
             <li key={f.id}>
-              <label className={cx("flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-slate-50", picked.has(f.id) && "bg-blue-50/60")}>
-                <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(f.id)} onChange={() => toggle(f.id)} />
-                <Store size={15} className="flex-shrink-0 text-slate-400" />
+              <label className={cx("flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-neutral-50", picked.has(f.id) && "bg-brand-50/60")}>
+                <input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(f.id)} onChange={() => toggle(f.id)} />
+                <Store size={15} className="flex-shrink-0 text-neutral-400" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-slate-900">{f.name}</span>
-                  <span className="block truncate text-[11px] text-slate-400">{f.code} · {f.facility_type}{f.city ? ` · ${f.city}` : ""}</span>
+                  <span className="block truncate text-neutral-900">{f.name}</span>
+                  <span className="block truncate text-[11px] text-neutral-400">{f.code} · {f.facility_type}{f.city ? ` · ${f.city}` : ""}</span>
                 </span>
                 {has.length > 0 && (
                   <span className="flex flex-wrap justify-end gap-1">
@@ -265,7 +265,7 @@ function BranchPicker({ facilities, types, usedBy, countTypes, setCountTypes, pi
             </li>
           );
         })}
-        {facilities !== null && shown.length === 0 && <li className="px-3 py-8 text-center text-sm text-slate-400">{tr("No branch matches")}</li>}
+        {facilities !== null && shown.length === 0 && <li className="px-3 py-8 text-center text-sm text-neutral-400">{tr("No branch matches")}</li>}
       </ul>
     </div>
   );
@@ -298,12 +298,12 @@ function Stepper({ step, onStep, maxStep }: { step: number; onStep: (n: number) 
         <li key={i}>
           <button type="button" disabled={i > maxStep} onClick={() => onStep(i)}
             className={cx("w-full rounded-lg border-t-4 bg-white px-1 pt-2 text-left disabled:cursor-not-allowed",
-              i < step ? "border-blue-600" : i === step ? "border-blue-600" : "border-slate-200")}>
-            <span className={cx("flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide", i <= step ? "text-blue-700" : "text-slate-400")}>
+              i < step ? "border-brand-600" : i === step ? "border-brand-600" : "border-neutral-200")}>
+            <span className={cx("flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide", i <= step ? "text-brand-700" : "text-neutral-400")}>
               {i < step ? <Check size={12} /> : null}{tr("Step {0}", i + 1)}
             </span>
-            <span className={cx("block text-sm font-semibold", i <= step ? "text-slate-900" : "text-slate-400")}>{label()}</span>
-            <span className="hidden text-xs text-slate-500 sm:block">{STEP_HINTS[i]()}</span>
+            <span className={cx("block text-sm font-semibold", i <= step ? "text-neutral-900" : "text-neutral-400")}>{label()}</span>
+            <span className="hidden text-xs text-neutral-500 sm:block">{STEP_HINTS[i]()}</span>
           </button>
         </li>
       ))}
@@ -371,8 +371,8 @@ function CreateWizard({ facilities, types, onClose, onCreated }: {
                   className={cx(inputClass, "h-auto py-2")} />
               </Field>
             </FormCard>
-            <aside className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
-              <p className="font-semibold text-slate-800">{tr("How a group works")}</p>
+            <aside className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-600">
+              <p className="font-semibold text-neutral-800">{tr("How a group works")}</p>
               <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-xs">
                 <li>{tr("Add its items once (a whole category or single items).")}</li>
                 <li>{tr("Assign it to the count lists of many branches.")}</li>
@@ -488,15 +488,15 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
       description={g ? `${g.code} · ${tr("{0} items", items.length)}` : undefined} footer={footer}>
       {!g ? <div className="skeleton h-64 rounded-lg" /> : (
         <div className="space-y-5">
-          <dl className="grid grid-cols-3 divide-x divide-slate-200 rounded-xl border border-slate-200 bg-slate-50 text-center">
-            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Items")}</dt><dd className="text-lg font-semibold tabular-nums text-slate-900">{items.length}</dd></div>
-            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-slate-900" : "text-amber-600")}>{g.used_by.length}</dd></div>
-            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Status")}</dt><dd className="mt-1">{g.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}</dd></div>
+          <dl className="grid grid-cols-3 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-neutral-50 text-center">
+            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Items")}</dt><dd className="text-lg font-semibold tabular-nums text-neutral-900">{items.length}</dd></div>
+            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-neutral-900" : "text-amber-600")}>{g.used_by.length}</dd></div>
+            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Status")}</dt><dd className="mt-1">{g.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}</dd></div>
           </dl>
-          <div role="tablist" className="flex gap-1 border-b border-slate-200">
+          <div role="tablist" className="flex gap-1 border-b border-neutral-200">
             {tabs.map((t) => (
               <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
-                className={cx("-mb-px border-b-2 px-3 py-2 text-sm font-medium", tab === t.key ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800")}>
+                className={cx("-mb-px border-b-2 px-3 py-2 text-sm font-medium", tab === t.key ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800")}>
                 {t.label}{t.key === "items" && dirty ? " •" : ""}
               </button>
             ))}
@@ -509,12 +509,12 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
           {tab === "items" && g.pending_items.length > 0 && (
             <DrawerSection title={tr("Not in the item master yet ({0})", g.pending_items.length)}
               description={tr("Products of the template the item master does not have. Create one and it joins this group (and every other group that lists it).")}>
-              <ul className="divide-y divide-slate-100 rounded-lg border border-amber-200 bg-amber-50/40">
+              <ul className="divide-y divide-neutral-100 rounded-lg border border-amber-200 bg-amber-50/40">
                 {g.pending_items.map((p) => (
                   <li key={p.id} className="flex items-center gap-3 px-3 py-2">
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm text-slate-900">{p.name}</span>
-                      <span className="block truncate text-[11px] text-slate-500"><span className="font-mono">{p.code}</span>{p.category ? ` · ${p.category}` : ""}{p.unit ? ` · ${p.unit}` : ""}</span>
+                      <span className="block truncate text-sm text-neutral-900">{p.name}</span>
+                      <span className="block truncate text-[11px] text-neutral-500"><span className="font-mono">{p.code}</span>{p.category ? ` · ${p.category}` : ""}{p.unit ? ` · ${p.unit}` : ""}</span>
                     </span>
                     <Button variant="secondary" onClick={() => setNewItem({ code: p.code, name: p.name, category_id: p.suggested_category_id, unit: p.unit })}>
                       <PackagePlus size={15} /> {tr("Create item")}
@@ -540,12 +540,12 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
                 {g.used_by.length === 0 ? <p className="text-sm text-amber-700">{tr("Not assigned to any branch yet: pick branches below.")}</p> : (
                   <div className="flex flex-wrap gap-1.5">
                     {g.used_by.map((u) => (
-                      <span key={u.list_id} className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 py-0.5 pl-2.5 pr-1 text-xs text-slate-700">
-                        <MapPin size={11} className="text-slate-400" />
+                      <span key={u.list_id} className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 py-0.5 pl-2.5 pr-1 text-xs text-neutral-700">
+                        <MapPin size={11} className="text-neutral-400" />
                         {u.facility_name ?? `${u.facility_type} (${tr("default")})`} · {countTypeLabel(u.count_type)}
                         {u.facility_id ? (
                           <button type="button" disabled={busy} onClick={() => unassign(u)} aria-label={tr("Remove")}
-                            className="rounded-full p-0.5 text-slate-400 hover:bg-red-50 hover:text-red-600"><X size={12} /></button>
+                            className="rounded-full p-0.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><X size={12} /></button>
                         ) : <span className="w-1" />}
                       </span>
                     ))}
@@ -564,7 +564,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
                 <Field label={tr("Description")} hint={tr("Optional")}>
                   <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={cx(inputClass, "h-auto py-2")} />
                 </Field>
-                <p className="text-xs text-slate-400">{tr("Code")}: <span className="font-mono">{g.code}</span>{g.source_ref ? ` · ${g.source_ref}` : ""}</p>
+                <p className="text-xs text-neutral-400">{tr("Code")}: <span className="font-mono">{g.code}</span>{g.source_ref ? ` · ${g.source_ref}` : ""}</p>
               </FormCard>
               <FormCard title={tr("Status")}>
                 <Switch label={tr("Active")} hint={tr("An inactive group is ignored by every list that uses it")} checked={g.is_active} disabled={busy} onChange={setActive} />
@@ -623,38 +623,38 @@ function ImportTemplateDrawer({ onClose, onDone }: { onClose: () => void; onDone
         <Button variant="secondary" loading={busy && !report} disabled={!file} onClick={() => run(false)}><Search size={15} /> {tr("Check")}</Button>
         <Button loading={busy && !!report} disabled={!report || report.applied} onClick={() => run(true)}>{tr("Import {0} groups", report?.sheets.length ?? 0)}</Button></>}>
       <div className="space-y-4">
-        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 px-4 py-3 text-sm hover:border-blue-400 hover:bg-blue-50/40">
-          <Upload size={18} className="text-slate-400" />
-          <span className="min-w-0 flex-1 truncate text-slate-700">{file ? file.name : tr("Choose TEMPLATE SO PER CATEGORY (.xlsx)")}</span>
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-neutral-300 px-4 py-3 text-sm hover:border-brand-400 hover:bg-brand-50/40">
+          <Upload size={18} className="text-neutral-400" />
+          <span className="min-w-0 flex-1 truncate text-neutral-700">{file ? file.name : tr("Choose TEMPLATE SO PER CATEGORY (.xlsx)")}</span>
           <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
-        <p className="text-xs text-slate-500">{tr("Items are matched by product code. Category becomes the area, the template unit the ESB unit (and pack when the item has it). Codes the item master does not have are kept on the group to create later. Importing again replaces the items of these groups; their branches stay.")}</p>
+        <p className="text-xs text-neutral-500">{tr("Items are matched by product code. Category becomes the area, the template unit the ESB unit (and pack when the item has it). Codes the item master does not have are kept on the group to create later. Importing again replaces the items of these groups; their branches stay.")}</p>
         {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         {report && (
           <>
-            <p className={cx("rounded-lg px-3 py-2 text-sm", report.applied ? "bg-emerald-50 text-emerald-800" : "bg-slate-50 text-slate-700")}>
+            <p className={cx("rounded-lg px-3 py-2 text-sm", report.applied ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-700")}>
               {report.applied ? tr("Imported.") : tr("Check result, nothing saved yet.")}{" "}
               {tr("{0} codes not in the item master, {1} units the item does not have.", report.pending_codes.length, report.unit_gaps)}
             </p>
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <div className="overflow-x-auto rounded-lg border border-neutral-200">
               <table className="m-cards w-full min-w-[620px] text-sm">
                 <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Sheet / Group")}</th><th className="px-3 py-2 text-right">{tr("Rows")}</th>
                   <th className="px-3 py-2 text-right">{tr("Items")}</th><th className="px-3 py-2">{tr("Not in the Item Master")}</th><th className="px-3 py-2">{tr("Unit Missing")}</th></tr></thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {report.sheets.map((sh) => (
                     <tr key={sh.code} className="align-top">
-                      <td className="px-3 py-2"><span className="block font-medium text-slate-900">{sh.sheet}</span>
-                        <span className="block text-[11px] text-slate-400">{sh.code} · {sh.status === "NEW" ? tr("new group") : tr("replaces the items")}</span></td>
+                      <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{sh.sheet}</span>
+                        <span className="block text-[11px] text-neutral-400">{sh.code} · {sh.status === "NEW" ? tr("new group") : tr("replaces the items")}</span></td>
                       <td className="px-3 py-2 text-right tabular-nums">{sh.rows}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{sh.items}</td>
                       <td className="px-3 py-2 text-xs text-amber-800">{sh.pending.length ? sh.pending.map((x) => x.code).join(", ") : "-"}</td>
-                      <td className="px-3 py-2 text-xs text-slate-600">{sh.unit_gaps.length ? sh.unit_gaps.map((x) => `${x.code} ${x.unit}`).join(", ") : "-"}</td>
+                      <td className="px-3 py-2 text-xs text-neutral-600">{sh.unit_gaps.length ? sh.unit_gaps.map((x) => `${x.code} ${x.unit}`).join(", ") : "-"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {report.applied && <p className="text-xs text-slate-500">{tr("Open a group to create its missing items and to assign it to branches.")}</p>}
+            {report.applied && <p className="text-xs text-neutral-500">{tr("Open a group to create its missing items and to assign it to branches.")}</p>}
           </>
         )}
       </div>

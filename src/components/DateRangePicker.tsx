@@ -105,8 +105,8 @@ export default function DateRangePicker({
         onClick={() => (isOpen ? close() : setIsOpen(true))}
         className={`relative inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
           active || isOpen
-            ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            ? 'bg-brand-50 text-brand-700 hover:bg-brand-100'
+            : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
         }`}
         title={label}
         aria-label={label}
@@ -116,11 +116,11 @@ export default function DateRangePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-xl">
+          <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">{tr('Date range')}</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm font-semibold text-neutral-900">{tr('Date range')}</p>
+              <p className="text-xs text-neutral-500">
                 {pendingFrom ? tr('From {0} — select end date', formatDate(pendingFrom)) : active ? label : tr('Default: {0}', defaultLabel)}
               </p>
             </div>
@@ -128,7 +128,7 @@ export default function DateRangePicker({
               <button
                 type="button"
                 onClick={() => { onChange('', ''); close(); }}
-                className="rounded-md px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-md px-2 py-1 text-xs font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
               >
                 {tr('Clear')}
               </button>
@@ -137,7 +137,7 @@ export default function DateRangePicker({
 
           <div className="flex flex-col sm:flex-row">
             {/* Presets */}
-            <div className="flex gap-1 overflow-x-auto border-b border-slate-100 p-2 sm:w-32 sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r">
+            <div className="flex gap-1 overflow-x-auto border-b border-neutral-100 p-2 sm:w-32 sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r">
               {ranges.map(r => {
                 const selected = r.from === dateFrom && r.to === dateTo;
                 return (
@@ -146,7 +146,7 @@ export default function DateRangePicker({
                     type="button"
                     onClick={() => applyPreset(r.from, r.to)}
                     className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-left text-xs font-medium transition-colors ${
-                      selected ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      selected ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
                     }`}
                   >
                     {r.label}
@@ -161,18 +161,18 @@ export default function DateRangePicker({
                 <button
                   type="button"
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-                  className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                  className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
                   aria-label={tr('Previous month')}
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <span className="text-sm font-semibold text-slate-900">
+                <span className="text-sm font-semibold text-neutral-900">
                   {month.toLocaleDateString(locale(), { month: 'long', year: 'numeric' })}
                 </span>
                 <button
                   type="button"
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-                  className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                  className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
                   aria-label={tr('Next month')}
                 >
                   <ChevronRight size={16} />
@@ -181,7 +181,7 @@ export default function DateRangePicker({
 
               <div className="grid grid-cols-7 text-center">
                 {WEEK_DAYS.map(d => (
-                  <div key={d} className="py-1 text-[11px] font-medium text-slate-400">{d}</div>
+                  <div key={d} className="py-1 text-[11px] font-medium text-neutral-400">{d}</div>
                 ))}
                 {days.map((day, i) => {
                   if (day === null) return <div key={`blank-${i}`} />;
@@ -195,10 +195,10 @@ export default function DateRangePicker({
                       onClick={() => pick(day)}
                       className={`h-9 text-sm transition-colors ${
                         isEdge
-                          ? 'rounded-md bg-slate-900 font-semibold text-white'
+                          ? 'rounded-md bg-neutral-900 font-semibold text-white'
                           : inRange
-                          ? 'bg-slate-100 text-slate-900'
-                          : `rounded-md hover:bg-slate-100 ${value === today ? 'font-semibold text-blue-600' : 'text-slate-700'}`
+                          ? 'bg-neutral-100 text-neutral-900'
+                          : `rounded-md hover:bg-neutral-100 ${value === today ? 'font-semibold text-brand-600' : 'text-neutral-700'}`
                       }`}
                     >
                       {day}

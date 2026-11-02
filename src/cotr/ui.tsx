@@ -4,12 +4,14 @@
 // /api/cotr/masters/{entity}, one table + drawer form driven by field specs (sections, searchable selects, pictures,
 // coordinates on a map), and the picture of a master row (/api/cotr/masters/{entity}/{code}/image/{slot}).
 
-import { Camera, ChevronDown, ImageOff, MapPin, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { Camera, ChevronDown, ImageOff, MapPin, Pencil, Plus, Save, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge, Button, ErrorState, Field, Input, PageNav, Select, SkeletonRows, cx, inputClass, usePaged, useToast } from '@/so/ui';
 import { EmptyState, SearchInput, kcTable } from '@/components/kc';
 import { Panel } from '@/components/kc/compat';
+import { type ActiveFilter, ActiveFilters, FilterButton } from '@/so/ui/FilterControls';
+import { FilterRow, MonitorFilterSheet, OptionList, Segments } from '@/so/ui/MonitorFilters';
 import Drawer from '@/so/ui/Drawer';
 import { ConfirmDialog } from '@/so/ui/Dialog';
 import { call } from '@/so/features/checkin/checkin';
@@ -58,26 +60,39 @@ export type Column<T> = { label: string; render: (row: T) => ReactNode; classNam
 /** A master list: table + add / edit drawer on the backend; pictures are uploaded after the row is saved. */
 const PAGE = 25;
 
+/** A filter of a master list: its choices, each a test on the row ('' = all). */
+export type MasterFilter<T> = { key: string; label: string; icon?: ReactNode; options: { value: string; label: string; test: (row: T) => boolean }[] };
+
 /** A master list (design after kopicalf-hrms, 2026-11-02): search with the count, 25 rows a page, a row opens its form
  * (the pencil too), an empty state with the add button; the form in a drawer (EditDrawer). */
-export function MasterTable<T extends Row>({ title, description, master, columns, fields, blank, noun, toForm, fromForm, actions, rowActions }: {
+export function MasterTable<T extends Row>({ title, description, master, columns, fields, blank, noun, toForm, fromForm, actions, rowActions, filters }: {
   title: string; description?: string; master: ReturnType<typeof useMaster<T>>; columns: Column<T>[]; fields: FieldSpec[];
   blank: () => Partial<T>; noun: string;
   /** the row as the form edits it (e.g. a list to a comma text) and back */
   toForm?: (row: Partial<T>) => Record<string, unknown>; fromForm?: (v: Record<string, unknown>) => Partial<T>;
   actions?: ReactNode; rowActions?: (row: T) => ReactNode;
+  /** the filters of the list, in one drawer (Filters button) with their chips */ filters?: MasterFilter<T>[];
 }) {
   const [open, setOpen] = useState<{ row: Partial<T>; key: string | null } | null>(null);
   const [q, setQ] = useState('');
+  const [picked, setPicked] = useState<Record<string, string>>({});
+  const [sheet, setSheet] = useState(false);
   const rows = master.rows;
   const shown = useMemo(() => {
     const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    return !rows || !words.length ? rows : rows.filter((r) => {
+    const tests = (filters ?? []).map((f) => f.options.find((o) => o.value === picked[f.key])?.test).filter(Boolean) as ((r: T) => boolean)[];
+    return !rows ? rows : rows.filter((r) => {
+      if (!tests.every((t) => t(r))) return false;
+      if (!words.length) return true;
       const text = Object.values(r).filter((v) => typeof v === 'string' || typeof v === 'number').join(' ').toLowerCase();
       return words.every((w) => text.includes(w));
     });
-  }, [rows, q]);
-  const paged = usePaged(shown ?? [], q, PAGE);
+  }, [rows, q, picked, filters]);
+  const paged = usePaged(shown ?? [], q + JSON.stringify(picked), PAGE);
+  const chips: ActiveFilter[] = (filters ?? []).flatMap((f) => {
+    const o = f.options.find((x) => x.value === picked[f.key]);
+    return o ? [{ key: f.key, label: `${f.label}: ${o.label}`, onRemove: () => setPicked((p) => ({ ...p, [f.key]: '' })) }] : [];
+  });
   const shownFields = fields.filter((f) => f.when !== false);
   const images = shownFields.filter((f) => f.type === 'image' && f.image);
   const add = () => setOpen({ row: blank(), key: null });
@@ -85,9 +100,13 @@ export function MasterTable<T extends Row>({ title, description, master, columns
     <Panel title={title} description={description}
       actions={<>{actions}<Button size="sm" onClick={add}><Plus size={14} /> {tr('Add {0}', noun)}</Button></>}
       toolbar={rows && rows.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <SearchInput value={q} onChange={setQ} placeholder={tr('Search {0}', noun)} />
-          <span className="text-xs tabular-nums text-neutral-500">{q ? tr('{0} of {1}', shown?.length ?? 0, rows.length) : tr('{0} rows', rows.length)}</span>
+        <div className="space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <SearchInput value={q} onChange={setQ} placeholder={tr('Search {0}', noun)} />
+            {!!filters?.length && <FilterButton count={chips.length} onClick={() => setSheet(true)} />}
+            <span className="text-xs tabular-nums text-neutral-500">{q || chips.length ? tr('{0} of {1}', shown?.length ?? 0, rows.length) : tr('{0} rows', rows.length)}</span>
+          </div>
+          <ActiveFilters filters={chips} onClear={() => setPicked({})} />
         </div>
       ) : undefined}
       footer={shown && shown.length > PAGE ? <><span>{tr('{0} rows', shown.length)}</span><PageNav paged={paged} /></> : undefined}>
@@ -116,6 +135,7 @@ export function MasterTable<T extends Row>({ title, description, master, columns
           </table>
         </div>
       )}
+      {sheet && filters && <MasterFilterSheet filters={filters} value={picked} onClose={() => setSheet(false)} onApply={(v) => { setPicked(v); setSheet(false); }} />}
       {open && (
         <EditDrawer title={open.key ? tr('Edit {0}', noun) : tr('New {0}', noun)} initial={toForm ? toForm(open.row) : open.row} fields={shownFields}
           code={open.key} onClose={() => setOpen(null)}
@@ -134,6 +154,24 @@ export function MasterTable<T extends Row>({ title, description, master, columns
           onDelete={open.key ? async () => { await master.remove(open.key!); setOpen(null); } : undefined} />
       )}
     </Panel>
+  );
+}
+
+/** Every filter of a master list in one drawer (the Monitoring filter design). */
+function MasterFilterSheet<T>({ filters, value, onApply, onClose }: { filters: MasterFilter<T>[]; value: Record<string, string>; onApply: (v: Record<string, string>) => void; onClose: () => void }) {
+  const [d, setD] = useState(value);
+  const active = filters.filter((f) => d[f.key]).length;
+  return (
+    <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({})}>
+      {filters.map((f) => (
+        <FilterRow key={f.key} icon={f.icon ?? <SlidersHorizontal size={15} />} label={f.label} value={f.options.find((o) => o.value === d[f.key])?.label ?? null}
+          onClear={() => setD({ ...d, [f.key]: '' })}>
+          {f.options.length > 6
+            ? <OptionList value={d[f.key] ?? ''} onChange={(v) => setD({ ...d, [f.key]: v })} choices={[{ value: '', label: tr('All') }, ...f.options]} />
+            : <Segments value={d[f.key] ?? ''} onChange={(v) => setD({ ...d, [f.key]: v })} choices={[{ value: '', label: tr('All') }, ...f.options]} />}
+        </FilterRow>
+      ))}
+    </MonitorFilterSheet>
   );
 }
 

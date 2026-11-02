@@ -48,17 +48,17 @@ export default function InfoTip({ info }: { info: InfoKey | MetricInfo }) {
       <button ref={btn} type="button" aria-label={tr('How "{0}" is calculated', tr(data.title))} aria-expanded={open}
         onClick={e => { e.stopPropagation(); setPinned(p => !p); setOpen(o => !(o && pinned)); }}
         onMouseEnter={() => setOpen(true)} onMouseLeave={() => { if (!pinned) setOpen(false); }}
-        className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">
+        className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700">
         <Info size={14} />
       </button>
       {open && typeof document !== 'undefined' && createPortal(
         <div ref={panel} role="tooltip" onMouseEnter={() => setOpen(true)} onMouseLeave={() => { if (!pinned) setOpen(false); }}
           style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999, width: `min(${WIDTH}px, calc(100vw - 16px))` }}
-          className="fixed z-[95] rounded-2xl border border-slate-200/80 bg-white p-3.5 text-left text-xs leading-relaxed text-slate-600 shadow-xl">
-          <p className="mb-2 text-sm font-semibold text-slate-900">{tr(data.title)}</p>
+          className="fixed z-[95] rounded-xl border border-neutral-200/80 bg-white p-3.5 text-left text-xs leading-relaxed text-neutral-600 shadow-xl">
+          <p className="mb-2 text-sm font-semibold text-neutral-900">{tr(data.title)}</p>
           {data.formula && data.formula.length > 0 && (
             <Part title={tr('Formula')}>
-              {data.formula.map(f => <li key={f} className="rounded bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-800">{tr(f)}</li>)}
+              {data.formula.map(f => <li key={f} className="rounded bg-neutral-50 px-2 py-1 font-mono text-[11px] text-neutral-800">{tr(f)}</li>)}
             </Part>
           )}
           <Part title={tr('What is counted')}>{data.definition.map(d => <li key={d}>{tr(d)}</li>)}</Part>
@@ -73,7 +73,7 @@ export default function InfoTip({ info }: { info: InfoKey | MetricInfo }) {
 function Part({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mt-2 first:mt-0">
-      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{title}</p>
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">{title}</p>
       <ul className="space-y-1">{children}</ul>
     </div>
   );

@@ -132,7 +132,7 @@ export default function ListsPage() {
           onClear={() => setLf({ type: "", lists: "", city: "" })} />}
           footer={facilities ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(facilities.length))}</span><PageNav paged={paged} /></> : undefined}>
           {error ? <ErrorState message={error} onRetry={loadFacilities} /> : (
-            <ul className="max-h-[32rem] divide-y divide-slate-100 overflow-y-auto lg:max-h-[calc(100dvh-16rem)]">
+            <ul className="max-h-[32rem] divide-y divide-neutral-100 overflow-y-auto lg:max-h-[calc(100dvh-16rem)]">
               {facilities === null ? [0, 1, 2, 3].map((i) => <li key={i} className="p-3"><div className="skeleton h-9 rounded" /></li>) : paged.rows.map((f) => (
                 <li key={f.id}>
                   <button type="button" onClick={() => {
@@ -140,14 +140,14 @@ export default function ListsPage() {
                     // phones: the branch detail sits under the list
                     if (window.innerWidth < 1024) setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                   }}
-                    className={cx("flex w-full items-center gap-3 px-4 py-2.5 text-left", selected?.id === f.id ? "bg-blue-50" : "hover:bg-slate-50")}>
-                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-slate-900">{f.name}</span>
-                      <span className="block truncate text-[11px] text-slate-400">{f.code} · {f.facility_type}</span></span>
+                    className={cx("flex w-full items-center gap-3 px-4 py-2.5 text-left", selected?.id === f.id ? "bg-brand-50" : "hover:bg-neutral-50")}>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-neutral-900">{f.name}</span>
+                      <span className="block truncate text-[11px] text-neutral-400">{f.code} · {f.facility_type}</span></span>
                     {f.own_lists > 0 ? <Badge tone="blue">{tr("{0} own", f.own_lists)}</Badge> : <Badge>{tr("Default")}</Badge>}
                   </button>
                 </li>
               ))}
-              {facilities && shown.length === 0 && <li className="px-4 py-8 text-center text-sm text-slate-400">{tr("No branch matches")}</li>}
+              {facilities && shown.length === 0 && <li className="px-4 py-8 text-center text-sm text-neutral-400">{tr("No branch matches")}</li>}
             </ul>
           )}
         </Panel>
@@ -158,21 +158,21 @@ export default function ListsPage() {
         ) : (
           <Panel title={selected.name} description={`${selected.code} · ${selected.facility_type} · ${selected.legal_entity_code}`}>
             {lists === null ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-14 rounded-lg" />)}</div> : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-neutral-100">
                 {COUNT_TYPES.map((ct) => {
                   const own = lists.find((l) => l.facility_id === selected.id && l.count_type === ct);
                   const def = lists.find((l) => !l.facility_id && l.count_type === ct);
                   const used = own ?? def;
                   return (
                     <li key={ct} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
-                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700"><ListChecks size={16} /></span>
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><ListChecks size={16} /></span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900">{countTypeLabel(ct)}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm font-semibold text-neutral-900">{countTypeLabel(ct)}</p>
+                        <p className="text-xs text-neutral-500">
                           {own ? tr("Own list · {0} items · {1}", own.items, SOURCE[own.source]?.() ?? own.source)
                             : def ? tr("Uses the {0} default · {1} items", selected.facility_type, def.items) : tr("No list: not counted here")}
                         </p>
-                        {used && <p className="text-[11px] text-slate-400">{tr("Updated {0}", fmtDate(used.updated_at))}{used.source_ref ? ` · ${used.source_ref}` : ""}</p>}
+                        {used && <p className="text-[11px] text-neutral-400">{tr("Updated {0}", fmtDate(used.updated_at))}{used.source_ref ? ` · ${used.source_ref}` : ""}</p>}
                       </div>
                       <div className="flex w-full gap-2 sm:w-auto">
                         {own && <Button variant="ghost" size="sm" onClick={() => setResetting(own)}><RotateCcw size={14} /> {tr("Use default")}</Button>}
@@ -244,14 +244,14 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
       {!d ? <div className="skeleton h-64 rounded-lg" /> : (
         <div className="space-y-6">
           <DrawerSection title={tr("Item Groups")} description={tr("When a group is assigned, the count shows the items of the assigned groups only (the branch template). This list's own settings still apply to those items.")}>
-            {groups.length === 0 ? <p className="text-sm text-slate-500">{tr("No item groups yet. Create them under Items Groups.")}</p> : (
+            {groups.length === 0 ? <p className="text-sm text-neutral-500">{tr("No item groups yet. Create them under Items Groups.")}</p> : (
               <div className="flex flex-wrap gap-2">
                 {groups.map((g) => {
                   const on = groupIds.includes(g.id);
                   return (
                     <button key={g.id} type="button" onClick={() => toggleGroup(g.id)} aria-pressed={on}
-                      className={cx("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm", on ? "border-blue-600 bg-blue-50 text-blue-800" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
-                      <Boxes size={14} /> {g.name} <span className="text-xs text-slate-400">{g.items}</span>
+                      className={cx("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm", on ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>
+                      <Boxes size={14} /> {g.name} <span className="text-xs text-neutral-400">{g.items}</span>
                     </button>
                   );
                 })}

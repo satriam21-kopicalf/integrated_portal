@@ -72,7 +72,7 @@ export default function NewItemDialog({ draft, onClose, onCreated }: { draft: It
           <datalist id="base-units">{BASE_UNITS.map(u => <option key={u} value={u} />)}</datalist>
         </Field>
         <div>
-          <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Pack units")} <span className="font-normal text-slate-400">({tr("e.g. PACK@100PCS = 100 PCS")})</span></p>
+          <p className="mb-1.5 text-xs font-semibold text-neutral-700">{tr("Pack units")} <span className="font-normal text-neutral-400">({tr("e.g. PACK@100PCS = 100 PCS")})</span></p>
           <ul className="space-y-2">
             {units.map((u, i) => (
               <li key={i} className="grid grid-cols-[1fr_8rem_auto] items-center gap-2">
@@ -80,11 +80,11 @@ export default function NewItemDialog({ draft, onClose, onCreated }: { draft: It
                   onChange={e => setUnits(us => us.map((x, n) => (n === i ? { ...x, uom: e.target.value.toUpperCase() } : x)))} />
                 <input className={`${inputClass} h-9 text-right`} inputMode="decimal" value={u.factor} aria-label={tr("Base units in one pack")}
                   onChange={e => setUnits(us => us.map((x, n) => (n === i ? { ...x, factor: e.target.value.replace(",", ".") } : x)))} />
-                <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>
+                <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>
               </li>
             ))}
           </ul>
-          <button type="button" onClick={() => setUnits(us => [...us, { uom: "", factor: "" }])} className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline"><Plus size={12} /> {tr("Add pack unit")}</button>
+          <button type="button" onClick={() => setUnits(us => [...us, { uom: "", factor: "" }])} className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:underline"><Plus size={12} /> {tr("Add pack unit")}</button>
         </div>
         {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       </div>

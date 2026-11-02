@@ -115,13 +115,13 @@ export default function ReportsPage() {
           <table className="m-cards w-full min-w-[600px] text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Date")}</th><th className="px-4 py-2.5">{tr("Branch")}</th>
               <th className="px-4 py-2.5">{tr("Count Type")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-neutral-100">
               {rows === null ? <SkeletonRows cols={5} rows={4} /> : shown.length === 0 ? (
                 <tr><td colSpan={5}><Empty icon={<FileSpreadsheet size={28} />} title={tr("No reviewed stock opname in this period")}>{tr("Change the period or the filters.")}</Empty></td></tr>
               ) : paged.rows.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-50/70">
+                <tr key={r.id} className="hover:bg-neutral-50/70">
                   <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{dmy(r.business_date)}</td>
-                  <td className="px-4 py-2.5"><span className="block font-medium text-slate-900">{r.facility_name}</span><span className="font-mono text-[11px] text-slate-400">{r.number}</span></td>
+                  <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{r.facility_name}</span><span className="font-mono text-[11px] text-neutral-400">{r.number}</span></td>
                   <td className="px-4 py-2.5">{countTypeLabel(r.count_type)}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{fmtNumber(r.lines)}</td>
                   <td className="px-4 py-2.5"><Badge tone={STATUS[r.status]?.tone ?? "slate"}>{STATUS[r.status]?.label() ?? r.status}</Badge></td>
@@ -155,7 +155,7 @@ function ReportFilters({ value, facilities, types, onApply, onClose }: {
       </FilterSection>
       <FilterSection title={tr("Branch")}>
         <SearchChoice label="" anyLabel={tr("All branches")} value={d.facility} onChange={(v) => setD({ ...d, facility: v })} placeholder={tr("Search branch name or code")}
-          options={facilities.map((x) => ({ value: x.id, label: x.name, meta: <span className="font-mono text-[10px] text-slate-400">{x.code}</span> }))} />
+          options={facilities.map((x) => ({ value: x.id, label: x.name, meta: <span className="font-mono text-[10px] text-neutral-400">{x.code}</span> }))} />
       </FilterSection>
       <FilterSection title={tr("File")}>
         <Checkbox label={tr("One Sheet per Branch")} hint={tr("Besides the table of every branch, the Summary and the WIP premix sheet")}

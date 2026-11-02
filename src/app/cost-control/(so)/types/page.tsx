@@ -127,7 +127,7 @@ export default function TypesPage() {
   useEffect(() => { void loadCalendar(); }, [loadCalendar]);
 
   const colors = useMemo(() => new Map((rows ?? []).map((t, i) => [t.code, TYPE_COLORS[i % TYPE_COLORS.length]])), [rows]);
-  const colorOf = (code: string) => colors.get(code) ?? "bg-slate-400";
+  const colorOf = (code: string) => colors.get(code) ?? "bg-neutral-400";
   const labelOf = (code: string, name: string) => countTypeLabel(code, name);
   const all = rows ?? [];
   const shownTypes = all.filter((t) => (!q.trim() || `${countTypeLabel(t.code, t.name)} ${t.code}`.toLowerCase().includes(q.trim().toLowerCase()))
@@ -162,21 +162,21 @@ export default function TypesPage() {
       }>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <div className="space-y-5">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4">
+          <div className="rounded-xl border border-neutral-200/80 bg-white p-3 shadow-sm sm:p-4">
             <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips}
               onOpen={() => setSheet(true)} onClear={() => setTf(TF_EMPTY)} />
           </div>
-          {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">{tr("Nothing matches the search or filters")}</p>}
+          {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500">{tr("Nothing matches the search or filters")}</p>}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-64 rounded-xl" />) : paged.rows.map((t) => (
               <TypeCard key={t.code} t={t} color={colorOf(t.code)} onOpen={() => setOpen(t)} />
             ))}
           </div>
-          <div className="flex justify-end text-xs text-slate-500 empty:hidden"><PageNav paged={paged} /></div>
+          <div className="flex justify-end text-xs text-neutral-500 empty:hidden"><PageNav paged={paged} /></div>
           <Panel>
             <div className="p-4">
               <MonthCalendar month={month} days={calendar} colorOf={colorOf} labelOf={labelOf} onMonth={setMonth} />
-              <p className="mt-3 flex items-center gap-1.5 text-xs text-slate-500"><CalendarClock size={14} />
+              <p className="mt-3 flex items-center gap-1.5 text-xs text-neutral-500"><CalendarClock size={14} />
                 {tr("Dates and windows follow the count types; a branch can have its own day or window (count lists).")}</p>
             </div>
           </Panel>
@@ -193,7 +193,7 @@ export default function TypesPage() {
 
 const FREQ_TONE: Record<Frequency, string> = {
   DAILY: "bg-sky-50 text-sky-700", WEEKLY: "bg-emerald-50 text-emerald-700", MONTHLY: "bg-amber-50 text-amber-700",
-  DATES: "bg-violet-50 text-violet-700", ADHOC: "bg-slate-100 text-slate-600",
+  DATES: "bg-violet-50 text-violet-700", ADHOC: "bg-neutral-100 text-neutral-600",
 };
 
 /** One count type: what it is, when it is due, its window and validity, the next dates, then lists / WIP / ESB. */
@@ -203,39 +203,39 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
     ? `${t.valid_from ? fmtDate(t.valid_from) : tr("now")} – ${t.valid_to ? fmtDate(t.valid_to) : tr("no end")}` : tr("Always");
   return (
     <button type="button" onClick={onOpen}
-      className={cx("group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:border-blue-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-        t.is_active ? "border-slate-200" : "border-dashed border-slate-300 bg-slate-50/60")}>
-      <span className={cx("h-1 w-full", t.is_active ? color : "bg-slate-300")} aria-hidden />
+      className={cx("group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:border-brand-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
+        t.is_active ? "border-neutral-200" : "border-dashed border-neutral-300 bg-neutral-50/60")}>
+      <span className={cx("h-1 w-full", t.is_active ? color : "bg-neutral-300")} aria-hidden />
       <span className="flex items-start gap-3 px-4 pb-3 pt-3.5">
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-base font-semibold text-slate-900 group-hover:text-blue-700" title={countTypeLabel(t.code, t.name)}>{countTypeLabel(t.code, t.name)}</span>
+          <span className="block truncate text-base font-semibold text-neutral-900 group-hover:text-brand-700" title={countTypeLabel(t.code, t.name)}>{countTypeLabel(t.code, t.name)}</span>
           <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <span className={cx("rounded-full px-2 py-0.5 text-[11px] font-semibold", FREQ_TONE[t.frequency])}>{FREQUENCIES.find((f) => f.key === t.frequency)?.label()}</span>
             {t.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}
           </span>
         </span>
-        <ChevronRight size={18} className="mt-0.5 flex-shrink-0 text-slate-300 transition-colors group-hover:text-blue-600" aria-hidden />
+        <ChevronRight size={18} className="mt-0.5 flex-shrink-0 text-neutral-300 transition-colors group-hover:text-brand-600" aria-hidden />
       </span>
-      <span className="mx-4 block divide-y divide-slate-100 rounded-lg border border-slate-100 text-sm">
+      <span className="mx-4 block divide-y divide-neutral-100 rounded-lg border border-neutral-100 text-sm">
         <Row icon={<CalendarDays size={14} />} k={tr("Schedule")} v={scheduleText(t)} />
         <Row icon={<Clock size={14} />} k={tr("Count window")} v={t.frequency === "ADHOC" ? tr("Any time") : windowText(t.window_start, t.window_end)} />
         <Row icon={<CalendarRange size={14} />} k={tr("Valid period")} v={validity} />
       </span>
       <span className="block px-4 pt-3">
-        <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Next")}</span>
+        <span className="block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Next")}</span>
         <span className="mt-1.5 flex min-h-[1.5rem] flex-wrap gap-1">
-          {t.next_dates.length === 0 ? <span className="text-xs text-slate-400">{t.frequency === "ADHOC" ? tr("Started when needed") : tr("Nothing scheduled")}</span>
+          {t.next_dates.length === 0 ? <span className="text-xs text-neutral-400">{t.frequency === "ADHOC" ? tr("Started when needed") : tr("Nothing scheduled")}</span>
             : t.next_dates.slice(0, 3).map((d) => (
-              <span key={d} className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">{fmtDate(d)}{t.period_days > 1 ? ` – ${end(d)}` : ""}</span>
+              <span key={d} className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-700">{fmtDate(d)}{t.period_days > 1 ? ` – ${end(d)}` : ""}</span>
             ))}
         </span>
       </span>
-      <span className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[11px] text-slate-500">
+      <span className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-neutral-100 bg-neutral-50/70 px-4 py-2.5 text-[11px] text-neutral-500">
         <span className="inline-flex items-center gap-1" title={t.overrides ? tr("{0} branch overrides", t.overrides) : undefined}><ListChecks size={12} /> {tr("{0} lists", t.lists)}</span>
         {t.wip_enabled && <span className="inline-flex items-center gap-1 text-violet-700"><FlaskConical size={12} /> {tr("WIP form")}</span>}
-        {t.date_field && <span className="inline-flex items-center gap-1 text-slate-500" title={tr("Date Asked per Item")}><CalendarRange size={12} /> {dateFieldLabel(t.date_field)}</span>}
-        <span className="ml-auto max-w-full truncate font-mono text-slate-400" title={t.esb_purpose ?? undefined}>{t.code}</span>
-        {t.esb_purpose && <span className="w-full truncate text-slate-400" title={t.esb_purpose}>ESB: {t.esb_purpose}</span>}
+        {t.date_field && <span className="inline-flex items-center gap-1 text-neutral-500" title={tr("Date Asked per Item")}><CalendarRange size={12} /> {dateFieldLabel(t.date_field)}</span>}
+        <span className="ml-auto max-w-full truncate font-mono text-neutral-400" title={t.esb_purpose ?? undefined}>{t.code}</span>
+        {t.esb_purpose && <span className="w-full truncate text-neutral-400" title={t.esb_purpose}>ESB: {t.esb_purpose}</span>}
       </span>
     </button>
   );
@@ -244,10 +244,10 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
 function Row({ icon, k, v }: { icon: React.ReactNode; k: string; v: string }) {
   return (
     <span className="flex items-start gap-2 px-3 py-2">
-      <span className="mt-0.5 text-slate-400">{icon}</span>
+      <span className="mt-0.5 text-neutral-400">{icon}</span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] text-slate-500">{k}</span>
-        <span className="block text-[13px] font-medium leading-snug text-slate-800">{v}</span>
+        <span className="block text-[11px] text-neutral-500">{k}</span>
+        <span className="block text-[13px] font-medium leading-snug text-neutral-800">{v}</span>
       </span>
     </span>
   );
@@ -331,7 +331,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
   };
 
   const dayBtn = (on: boolean) => cx("h-9 rounded-lg border text-sm font-medium transition-colors",
-    on ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300");
+    on ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300");
   const windowPreset = WINDOWS.findIndex(([a, b]) => d.window_start === a && d.window_end === b);
   const summary = scheduleText({ ...d, weekday: d.weekday });
 
@@ -348,12 +348,12 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
       </>}>
       <div className="space-y-4">
         {/* what the staff will see */}
-        <section className="rounded-xl bg-slate-900 p-4 text-white">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Summary")}</p>
+        <section className="rounded-xl bg-neutral-900 p-4 text-white">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Summary")}</p>
           <p className="mt-1 truncate text-lg font-semibold">{d.name.trim() || tr("Untitled count type")}</p>
-          <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-200">
-            <span className="inline-flex items-center gap-1.5"><CalendarDays size={14} className="text-slate-400" />{summary}</span>
-            {d.frequency !== "ADHOC" && <span className="inline-flex items-center gap-1.5"><Clock size={14} className="text-slate-400" />{windowText(d.window_start, d.window_end)}</span>}
+          <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-200">
+            <span className="inline-flex items-center gap-1.5"><CalendarDays size={14} className="text-neutral-400" />{summary}</span>
+            {d.frequency !== "ADHOC" && <span className="inline-flex items-center gap-1.5"><Clock size={14} className="text-neutral-400" />{windowText(d.window_start, d.window_end)}</span>}
           </p>
           {upcoming.length > 0 && (
             <p className="mt-3 flex flex-wrap gap-1.5">
@@ -361,9 +361,9 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
             </p>
           )}
           <p className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
-            <span className={cx("rounded-full px-2 py-0.5 font-semibold", d.is_active ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-slate-300")}>{d.is_active ? tr("Active") : tr("Inactive")}</span>
+            <span className={cx("rounded-full px-2 py-0.5 font-semibold", d.is_active ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-neutral-300")}>{d.is_active ? tr("Active") : tr("Inactive")}</span>
             {d.wip_enabled && <span className="rounded-full bg-violet-500/20 px-2 py-0.5 font-semibold text-violet-200">{tr("WIP form")}</span>}
-            {d.date_field && <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-slate-200">{dateFieldLabel(d.date_field)}</span>}
+            {d.date_field && <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-neutral-200">{dateFieldLabel(d.date_field)}</span>}
           </p>
         </section>
 
@@ -377,15 +377,15 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
               <Input value={code} onChange={(e) => { setCodeTouched(true); setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "_")); }} className="font-mono" />
             </Field>
           ) : (
-            <p className="text-xs text-slate-500">{tr("Code")}: <span className="font-mono text-slate-700">{code || "—"}</span>
-              <button type="button" onClick={() => setEditCode(true)} className="ml-2 font-medium text-blue-700 hover:underline">{tr("Edit code")}</button></p>
+            <p className="text-xs text-neutral-500">{tr("Code")}: <span className="font-mono text-neutral-700">{code || "—"}</span>
+              <button type="button" onClick={() => setEditCode(true)} className="ml-2 font-medium text-brand-700 hover:underline">{tr("Edit code")}</button></p>
           ))}
         </FormCard>
 
         <FormCard n={2} title={tr("Schedule")} hint={tr("When the branches have to count")}
           aside={(
             <select value="" aria-label={tr("Quick Setup")} onChange={(e) => { const q = QUICK[Number(e.target.value)]; if (q) setD((o) => ({ ...o, ...q.set })); }}
-              className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600">
+              className="h-8 rounded-lg border border-neutral-200 bg-white px-2 text-xs font-medium text-neutral-600">
               {QUICK_KEYS.map((k) => <option key={k || "x"} value={k}>{k === "" ? tr("Quick setup…") : QUICK[Number(k)].label()}</option>)}
             </select>
           )}>
@@ -393,7 +393,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
             options={FREQUENCIES.map((f) => ({ value: f.key, label: f.label() }))} />
           {d.frequency === "DAILY" && (
             <div>
-              <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("On these days")}</p>
+              <p className="mb-1.5 text-xs font-medium text-neutral-600">{tr("On these days")}</p>
               <div className="grid grid-cols-7 gap-1.5">
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                   <button key={n} type="button" className={dayBtn(!d.days_of_week.length || d.days_of_week.includes(n))} onClick={() => toggleDay(n)}>{dayName(n, "short")}</button>
@@ -403,7 +403,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           )}
           {d.frequency === "WEEKLY" && (
             <div>
-              <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("Day of the week")}</p>
+              <p className="mb-1.5 text-xs font-medium text-neutral-600">{tr("Day of the week")}</p>
               <div className="grid grid-cols-7 gap-1.5">
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => <button key={n} type="button" className={dayBtn(d.weekday === n)} onClick={() => set("weekday", n)} title={dayName(n)}>{dayName(n, "short")}</button>)}
               </div>
@@ -411,30 +411,30 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           )}
           {d.frequency === "MONTHLY" && (
             <div>
-              <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("Day of the month")}</p>
+              <p className="mb-1.5 text-xs font-medium text-neutral-600">{tr("Day of the month")}</p>
               <div className="grid grid-cols-7 gap-1">
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
                   <button key={n} type="button" className={cx(dayBtn(d.month_day === n), "h-8 tabular-nums")} onClick={() => set("month_day", n)}>{n}</button>
                 ))}
                 <button type="button" className={cx(dayBtn(d.month_day === 0), "col-span-4 h-8")} onClick={() => set("month_day", 0)}>{tr("Last day")}</button>
               </div>
-              {d.month_day > 28 && <p className="mt-1.5 text-xs text-slate-500">{tr("Months without day {0} use their last day.", d.month_day)}</p>}
+              {d.month_day > 28 && <p className="mt-1.5 text-xs text-neutral-500">{tr("Months without day {0} use their last day.", d.month_day)}</p>}
             </div>
           )}
           {d.frequency === "DATES" && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-slate-600">{tr("Tap the dates the count is due (tap again to remove)")}</p>
-              <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-blue-600"} labelOf={(_c, n) => n} highlight={marked} onPick={pickDate} compact />
+              <p className="text-xs font-medium text-neutral-600">{tr("Tap the dates the count is due (tap again to remove)")}</p>
+              <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-brand-600"} labelOf={(_c, n) => n} highlight={marked} onPick={pickDate} compact />
               <div className="flex flex-wrap items-center gap-1.5">
                 {d.dates.length === 0 ? <span className="text-xs text-amber-700">{tr("No date chosen yet")}</span> : d.dates.map((x) => (
-                  <button key={x} type="button" onClick={() => pickDate(x)} className="rounded-md bg-blue-50 px-2 py-0.5 text-xs text-blue-800 hover:bg-red-50 hover:text-red-700"
+                  <button key={x} type="button" onClick={() => pickDate(x)} className="rounded-md bg-brand-50 px-2 py-0.5 text-xs text-brand-800 hover:bg-red-50 hover:text-red-700"
                     title={tr("Remove")}>{fmtDate(x)} ×</button>
                 ))}
-                {d.dates.length > 0 && <button type="button" className="text-xs font-medium text-slate-500 hover:underline" onClick={() => set("dates", [])}>{tr("Clear all")}</button>}
+                {d.dates.length > 0 && <button type="button" className="text-xs font-medium text-neutral-500 hover:underline" onClick={() => set("dates", [])}>{tr("Clear all")}</button>}
               </div>
             </div>
           )}
-          {d.frequency === "ADHOC" && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">{tr("No schedule: the branch starts this count whenever it is needed.")}</p>}
+          {d.frequency === "ADHOC" && <p className="rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-600">{tr("No schedule: the branch starts this count whenever it is needed.")}</p>}
         </FormCard>
 
         {d.frequency !== "ADHOC" && (
@@ -444,17 +444,17 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
               <Field label={(d.period_days || 1) > 1 ? tr("Closes on the last day") : tr("Closes")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-slate-500">{tr("Common")}:</span>
+              <span className="text-xs text-neutral-500">{tr("Common")}:</span>
               {WINDOWS.map(([a, b], i) => (
                 <button key={a + b} type="button" onClick={() => setD((o) => ({ ...o, window_start: a, window_end: b }))}
-                  className={cx("rounded-full border px-2.5 py-0.5 text-xs font-medium", windowPreset === i ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{a}–{b}</button>
+                  className={cx("rounded-full border px-2.5 py-0.5 text-xs font-medium", windowPreset === i ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{a}–{b}</button>
               ))}
             </div>
             <div>
-              <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("The count stays open")}</p>
+              <p className="mb-1.5 text-xs font-medium text-neutral-600">{tr("The count stays open")}</p>
               <Segmented label={tr("The Count Stays Open")} value={String(d.period_days || 1)} onChange={(v) => set("period_days", Number(v))}
                 options={[1, 2, 3, 7].map((n) => ({ value: String(n), label: n === 1 ? tr("Same day") : tr("{0} days", n) }))} />
-              {(d.period_days || 1) > 1 && <p className="mt-1.5 text-xs text-slate-500">{tr("The window opens on the scheduled day and closes on day {0} (e.g. 14–15 Oct). One count per branch for the whole period.", d.period_days)}</p>}
+              {(d.period_days || 1) > 1 && <p className="mt-1.5 text-xs text-neutral-500">{tr("The window opens on the scheduled day and closes on day {0} (e.g. 14–15 Oct). One count per branch for the whole period.", d.period_days)}</p>}
             </div>
           </FormCard>
         )}
@@ -462,21 +462,21 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
         {d.frequency !== "ADHOC" && d.frequency !== "DATES" && (
           <FormCard n={4} title={tr("Calendar Preview")} hint={tr("Highlighted: the dates this schedule produces (not saved yet).")}>
             {previewError ? <p className="text-sm text-red-600">{previewError}</p>
-              : <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-blue-600"} labelOf={(_c, n) => n} highlight={marked} compact />}
+              : <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-brand-600"} labelOf={(_c, n) => n} highlight={marked} compact />}
           </FormCard>
         )}
 
-        <section className="rounded-2xl border border-slate-200/80 bg-white">
+        <section className="rounded-xl border border-neutral-200/80 bg-white">
           <button type="button" onClick={() => setMore((v) => !v)} aria-expanded={more}
             className="flex w-full items-center justify-between px-4 py-3 text-left">
             <span>
-              <span className="block text-sm font-semibold text-slate-900">{tr("More settings")}</span>
-              <span className="block text-xs text-slate-500">{tr("Status, WIP form, validity, ESB purpose and order")}</span>
+              <span className="block text-sm font-semibold text-neutral-900">{tr("More settings")}</span>
+              <span className="block text-xs text-neutral-500">{tr("Status, WIP form, validity, ESB purpose and order")}</span>
             </span>
-            <ChevronDown size={18} className={cx("text-slate-400 transition-transform", more && "rotate-180")} />
+            <ChevronDown size={18} className={cx("text-neutral-400 transition-transform", more && "rotate-180")} />
           </button>
           {more && (
-            <div className="space-y-4 border-t border-slate-100 p-4">
+            <div className="space-y-4 border-t border-neutral-100 p-4">
               <Switch label={tr("Active")} hint={tr("An inactive count type is not offered to the branches")} checked={d.is_active} onChange={(v) => set("is_active", v)} />
               <Switch label={tr("WIP Form")} hint={tr("The count also asks for WIP / premix in grams; its ingredients are added to the count")}
                 checked={d.wip_enabled} onChange={(v) => set("wip_enabled", v)} />
@@ -484,7 +484,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
                 <Segmented label={tr("Date Asked per Item")} value={d.date_field ?? ""}
                   onChange={(v) => set("date_field", (v || null) as Draft["date_field"])}
                   options={DATE_FIELD_OPTIONS.map((o) => ({ value: o.value, label: o.label() }))} />
-                <p className="mt-1.5 text-xs text-slate-500">
+                <p className="mt-1.5 text-xs text-neutral-500">
                   {tr("Optional on the line either way. \"Facility default\" asks the roasted date at a Central Kitchen and the expired date at a Warehouse; \"No date\" asks none.")}
                 </p>
               </div>

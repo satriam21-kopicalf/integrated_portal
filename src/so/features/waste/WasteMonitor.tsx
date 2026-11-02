@@ -152,7 +152,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
     <Page title={review ? tr("Waste Review") : tr("Waste Monitor")}
       subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${review ? tr("approve or reject the waste of the branches") : tr("Waste entered by every branch")}`}
       actions={<>{review && <Button variant="secondary" size="sm" onClick={() => setCats(true)}><Tags size={14} />{tr("Categories")}</Button>}<ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
-        { key: "entries", label: tr("Waste Entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-blue-50 text-blue-600", count: res ? rows.length : null, run: safe(exportEntries) },
+        { key: "entries", label: tr("Waste Entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-brand-50 text-brand-600", count: res ? rows.length : null, run: safe(exportEntries) },
         { key: "items", label: tr("Totals per Item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
         { key: "daily", label: tr("Daily Report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
         { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
@@ -180,8 +180,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             { value: "daily", label: tr("Daily Report") }, { value: "usage", label: tr("Usage Management") },
             { value: "investigations", label: tr("Investigations") }]} />
           {review && view === "entries" && waiting.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm">
-              <label className="flex items-center gap-2 text-slate-700">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-sm">
+              <label className="flex items-center gap-2 text-neutral-700">
                 <input type="checkbox" checked={picked.size > 0 && picked.size === waiting.length}
                   onChange={(e) => setPicked(e.target.checked ? new Set(waiting.map((x) => x.id)) : new Set())} />
                 {tr("{0} of {1} selected", picked.size, waiting.length)}
@@ -204,20 +204,20 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
               {!res.data.length && tr("Waste appears here as soon as the branches enter it from Waste (input).")}
             </Empty>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-neutral-100">
               {paged.rows.map((e) => (
-                <li key={e.id} className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50">
+                <li key={e.id} className="flex items-start gap-3 px-4 py-3 hover:bg-neutral-50">
                   {review && (e.status === "submitted" || e.status === "investigating") && <input type="checkbox" className="mt-4" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}
                   <button type="button" onClick={() => setOpen(e)} className="flex min-w-0 flex-1 items-start gap-3 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoUrl(e.id)} alt="" loading="lazy" className="h-14 w-14 flex-shrink-0 rounded-lg bg-slate-100 object-cover" />
+                    <img src={photoUrl(e.id)} alt="" loading="lazy" className="h-14 w-14 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-1.5">
-                        <span className="truncate text-sm font-semibold text-slate-900">{e.itemName}</span>
+                        <span className="truncate text-sm font-semibold text-neutral-900">{e.itemName}</span>
                         <Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge>
                       </span>
-                      <span className="block text-xs text-slate-600">{fmtQty(e.qty)} {e.unit} · {scopeLabel(e.scope)} · {e.category}</span>
-                      <span className="block truncate text-xs text-slate-500">{e.branchName} · {dmy(e.businessDate)} · {e.name}{e.note ? ` · “${e.note}”` : ""}</span>
+                      <span className="block text-xs text-neutral-600">{fmtQty(e.qty)} {e.unit} · {scopeLabel(e.scope)} · {e.category}</span>
+                      <span className="block truncate text-xs text-neutral-500">{e.branchName} · {dmy(e.businessDate)} · {e.name}{e.note ? ` · “${e.note}”` : ""}</span>
                     </span>
                   </button>
                 </li>
@@ -229,7 +229,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         )}
       </Panel>
 
-      <Drawer open={!!open} onClose={() => setOpen(null)} title={open?.itemName ?? ""} description={open ? `${open.branchName} · ${dmy(open.businessDate)}` : ""}
+      <Drawer open={!!open} onClose={() => setOpen(null)} icon={<Trash2 size={18} />} title={open?.itemName ?? ""} description={open ? `${open.branchName} · ${dmy(open.businessDate)}` : ""}
         footer={open && review && (open.status === "submitted" || open.status === "investigating") ? (
           <div className="flex flex-wrap justify-end gap-2">
             {open.investigationId
@@ -243,9 +243,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           <div className="space-y-4">
             <a href={photoUrl(open.id)} target="_blank" rel="noreferrer">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photoUrl(open.id)} alt={tr("Photo evidence")} className="w-full rounded-xl bg-slate-100 object-contain" />
+              <img src={photoUrl(open.id)} alt={tr("Photo evidence")} className="w-full rounded-xl bg-neutral-100 object-contain" />
             </a>
-            <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
+            <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
               {([
                 [tr("Status"), <Badge key="s" tone={statusTone(open.status)}>{statusLabel(open.status)}</Badge>],
                 [tr("Type"), scopeLabel(open.scope)],
@@ -258,16 +258,16 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 [tr("Entered at"), wibDateTime(open.createdAt)],
                 [tr("Photo taken"), open.photoTakenAt ? wibDateTime(open.photoTakenAt) : "—"],
                 [tr("Position"), open.latitude !== null && open.longitude !== null
-                  ? <a key="p" href={mapsUrl(open.latitude, open.longitude)} target="_blank" rel="noreferrer" className="text-blue-700 hover:underline">{open.latitude.toFixed(5)}, {open.longitude.toFixed(5)}</a> : "—"],
+                  ? <a key="p" href={mapsUrl(open.latitude, open.longitude)} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">{open.latitude.toFixed(5)}, {open.longitude.toFixed(5)}</a> : "—"],
                 ...(open.review ? [[tr("Review"), `${open.review.by ?? ""} · ${open.review.at ? wibDateTime(open.review.at) : ""}${open.review.note ? ` · ${open.review.note}` : ""}`]] : []),
               ] as [string, React.ReactNode][]).map(([k, v]) => (
-                <div key={k} className="flex gap-3 px-3 py-2"><dt className="w-32 flex-shrink-0 text-slate-500">{k}</dt><dd className="min-w-0 flex-1 text-slate-800">{v}</dd></div>
+                <div key={k} className="flex gap-3 px-3 py-2"><dt className="w-32 flex-shrink-0 text-neutral-500">{k}</dt><dd className="min-w-0 flex-1 text-neutral-800">{v}</dd></div>
               ))}
             </dl>
             <Ingredients entry={open} />
             {open.signed && (
-              <div className="rounded-xl border border-slate-200 p-3">
-                <p className="mb-1 text-xs font-semibold text-slate-700">{tr("Signature of {0}", open.name)}</p>
+              <div className="rounded-xl border border-neutral-200 p-3">
+                <p className="mb-1 text-xs font-semibold text-neutral-700">{tr("Signature of {0}", open.name)}</p>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={signatureUrl(open.id)} alt={tr("Signature")} className="max-h-28 object-contain" />
               </div>
@@ -297,12 +297,12 @@ function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "inve
       <div className="overflow-x-auto"><table className="w-full text-sm">
         <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Type")}</th>
           <th className="px-4 py-2.5 text-right">{tr("Quantity")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th><th className="px-4 py-2.5 text-right">{tr("Branches")}</th></tr></thead>
-        <tbody className="divide-y divide-slate-100">{res.byItem.map((i) => (
-          <tr key={`${i.scope}:${i.code}:${i.unit}`}><td className="px-4 py-2"><p className="font-medium text-slate-800">{i.name}</p><p className="text-[11px] text-slate-400">{i.code}</p></td>
-            <td className="px-4 py-2 text-slate-600">{scopeLabel(i.scope)}</td><td className="px-4 py-2 text-right tabular-nums">{fmtQty(i.qty)} {i.unit}</td>
+        <tbody className="divide-y divide-neutral-100">{res.byItem.map((i) => (
+          <tr key={`${i.scope}:${i.code}:${i.unit}`}><td className="px-4 py-2"><p className="font-medium text-neutral-800">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p></td>
+            <td className="px-4 py-2 text-neutral-600">{scopeLabel(i.scope)}</td><td className="px-4 py-2 text-right tabular-nums">{fmtQty(i.qty)} {i.unit}</td>
             <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(i.entries)}</td><td className="px-4 py-2 text-right tabular-nums">{fmtNumber(i.branches)}</td></tr>
         ))}</tbody></table>
-        <p className="px-4 py-2 text-[11px] text-slate-400">{tr("Rejected entries are not counted")}</p></div>
+        <p className="px-4 py-2 text-[11px] text-neutral-400">{tr("Rejected entries are not counted")}</p></div>
     );
   }
   if (view === "branches") {
@@ -310,19 +310,19 @@ function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "inve
       <div className="overflow-x-auto"><table className="w-full text-sm">
         <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th>
           <th className="px-4 py-2.5 text-right">{tr("Waiting Review")}</th><th className="px-4 py-2.5 text-right">{tr("Days with Waste")}</th><th className="px-4 py-2.5">{tr("Last Entry")}</th></tr></thead>
-        <tbody className="divide-y divide-slate-100">{res.byBranch.map((b) => (
-          <tr key={b.code} className="cursor-pointer hover:bg-slate-50" onClick={() => onBranch(b.code)}><td className="px-4 py-2 font-medium text-slate-800">{b.name}</td>
+        <tbody className="divide-y divide-neutral-100">{res.byBranch.map((b) => (
+          <tr key={b.code} className="cursor-pointer hover:bg-neutral-50" onClick={() => onBranch(b.code)}><td className="px-4 py-2 font-medium text-neutral-800">{b.name}</td>
             <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(b.entries)}</td><td className={cx("px-4 py-2 text-right tabular-nums", b.submitted > 0 && "text-amber-600")}>{fmtNumber(b.submitted)}</td>
-            <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="px-4 py-2 text-slate-600">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
+            <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="px-4 py-2 text-neutral-600">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
         ))}</tbody></table></div>
     );
   }
   const max = Math.max(1, ...res.byCategory.map((c) => c.entries));
   return !res.byCategory.length ? <Empty title={tr("No waste in this period")} /> : (
-    <ul className="divide-y divide-slate-100">{res.byCategory.map((c) => (
+    <ul className="divide-y divide-neutral-100">{res.byCategory.map((c) => (
       <li key={c.name} className="px-4 py-2.5">
-        <div className="flex items-center justify-between gap-3 text-sm"><span className="text-slate-800">{c.name}</span><span className="tabular-nums text-slate-600">{fmtNumber(c.entries)}</span></div>
-        <div className="mt-1 h-1.5 rounded-full bg-slate-100"><div className="h-1.5 rounded-full bg-blue-500" style={{ width: `${(c.entries / max) * 100}%` }} /></div>
+        <div className="flex items-center justify-between gap-3 text-sm"><span className="text-neutral-800">{c.name}</span><span className="tabular-nums text-neutral-600">{fmtNumber(c.entries)}</span></div>
+        <div className="mt-1 h-1.5 rounded-full bg-neutral-100"><div className="h-1.5 rounded-full bg-brand-500" style={{ width: `${(c.entries / max) * 100}%` }} /></div>
       </li>
     ))}</ul>
   );
@@ -333,7 +333,7 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
   value: Filters; branches: BranchOpt[]; categories: string[]; onApply: (f: Filters) => void; onClose: () => void; onReset: () => Filters;
 }) {
   const [d, setD] = useState<Filters>(value);
-  const pill = (on: boolean) => cx("rounded-full border px-3 py-1.5 text-xs font-medium", on ? "border-blue-600 bg-blue-50 text-blue-800" : "border-slate-200 text-slate-600 hover:bg-slate-50");
+  const pill = (on: boolean) => cx("rounded-full border px-3 py-1.5 text-xs font-medium", on ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50");
   return (
     <FilterSheet onClose={onClose} onReset={() => setD(onReset())} onApply={() => onApply(d)}>
       <FilterSection title={tr("Period")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={92} /></FilterSection>

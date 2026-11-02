@@ -67,23 +67,23 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
       : tr('Preparing {0} day{1}…', job.totalDays, job.totalDays > 1 ? 's' : '');
   }
 
-  const tone = failed ? 'text-rose-600' : done && !empty ? 'text-emerald-600' : empty ? 'text-amber-600' : 'text-blue-600';
+  const tone = failed ? 'text-rose-600' : done && !empty ? 'text-emerald-600' : empty ? 'text-amber-600' : 'text-brand-600';
   const Icon = failed ? XCircle : done && !empty ? CheckCircle2 : empty ? AlertTriangle : Loader2;
 
   return (
-    <div role="status" aria-live="polite" className="rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div role="status" aria-live="polite" className="rounded-xl border border-neutral-200 bg-white shadow-2xl">
       <div className="flex items-start gap-3 p-4">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100">
-          {gsheet ? <Sheet size={20} className="text-emerald-600" /> : <FileSpreadsheet size={20} className="text-slate-700" />}
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-neutral-100">
+          {gsheet ? <Sheet size={20} className="text-emerald-600" /> : <FileSpreadsheet size={20} className="text-neutral-700" />}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-slate-900">{reportLabel}{gsheet && <span className="font-normal text-slate-500"> {tr('· Google Sheets')}</span>}</p>
-          <p className="truncate text-xs text-slate-500">
+          <p className="truncate text-sm font-semibold text-neutral-900">{reportLabel}{gsheet && <span className="font-normal text-neutral-500"> {tr('· Google Sheets')}</span>}</p>
+          <p className="truncate text-xs text-neutral-500">
             {typeLabel} · {params.branchLabel}
             {job ? ` · ${formatDate(job.dateFrom)} – ${formatDate(job.dateTo)}` : ''}
           </p>
         </div>
-        <button type="button" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        <button type="button" onClick={onClose} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
           aria-label={tr('Close')} title={!failed && !done ? tr('Hide (the export keeps running on the server)') : tr('Close')}>
           <X size={16} />
         </button>
@@ -93,18 +93,18 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
         <div className={`flex items-center gap-2 text-sm font-medium ${tone}`}>
           <Icon size={16} className={!failed && !done ? 'animate-spin' : ''} />
           <span className="truncate">{statusText}</span>
-          {!failed && !done && <span className="ml-auto tabular-nums text-slate-900">{percent}%</span>}
+          {!failed && !done && <span className="ml-auto tabular-nums text-neutral-900">{percent}%</span>}
         </div>
 
         {!failed && !done && (
           <>
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
               <div
-                className={`h-full rounded-full bg-blue-600 transition-all duration-500 ${!job || job.status === 'queued' ? 'w-1/4 animate-pulse' : ''}`}
+                className={`h-full rounded-full bg-brand-600 transition-all duration-500 ${!job || job.status === 'queued' ? 'w-1/4 animate-pulse' : ''}`}
                 style={job && job.status !== 'queued' ? { width: `${Math.max(percent, 3)}%` } : undefined}
               />
             </div>
-            <p className="mt-2 text-[11px] text-slate-400">
+            <p className="mt-2 text-[11px] text-neutral-400">
               {gsheet
                 ? (parts.length ? tr('{0} sheet(s) ready so far — you can keep using other pages.', parts.length) : tr('You can keep using other pages — a link to the sheet appears here when ready.'))
                 : tr('You can keep using other pages — the file downloads automatically when ready.')}
@@ -117,7 +117,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
         )}
 
         {!failed && job && !empty && (
-          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-slate-50 px-3 py-2.5 text-xs">
+          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-neutral-50 px-3 py-2.5 text-xs">
             <Stat label={tr('Rows')} value={formatNumber(job.rows)} />
             <Stat label={report === 'daily' ? tr('Bills') : tr('Transactions')} value={formatNumber(job.headers)} />
             {done ? (
@@ -138,16 +138,16 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
           </dl>
         )}
 
-        {empty && <p className="mt-2 text-xs text-slate-500">{tr('Try a different date range, branch or transaction type.')}</p>}
+        {empty && <p className="mt-2 text-xs text-neutral-500">{tr('Try a different date range, branch or transaction type.')}</p>}
 
         {done && gsheet && parts.length > 1 && (
-          <ul className="custom-scrollbar mt-2 max-h-32 space-y-1 overflow-auto rounded-lg border border-slate-100 px-2.5 py-2 text-xs">
+          <ul className="custom-scrollbar mt-2 max-h-32 space-y-1 overflow-auto rounded-lg border border-neutral-100 px-2.5 py-2 text-xs">
             {parts.map(p => (
               <li key={p.part}>
-                <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-700 hover:underline">
+                <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-brand-700 hover:underline">
                   <Sheet size={12} className="flex-shrink-0 text-emerald-600" />
                   <span className="truncate">{tr('Part')} {p.part} · {formatDate(p.dateFrom)}{p.dateTo !== p.dateFrom ? ` – ${formatDate(p.dateTo)}` : ''}</span>
-                  <span className="ml-auto flex-shrink-0 tabular-nums text-slate-400">{formatNumber(p.rows)} {tr('rows')}</span>
+                  <span className="ml-auto flex-shrink-0 tabular-nums text-neutral-400">{formatNumber(p.rows)} {tr('rows')}</span>
                 </a>
               </li>
             ))}
@@ -155,7 +155,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
         )}
 
         {done && gsheet && job?.sheetUrl && (
-          <p className="mt-2 text-[11px] text-slate-500">
+          <p className="mt-2 text-[11px] text-neutral-500">
             {job.sheetLinkAccess === 'view' || job.sheetLinkAccess === 'edit'
               ? (job.sheetLinkAccess === 'edit'
                 ? (parts.length > 1 ? tr('Anyone with the link can edit the folder and its sheets — no access request needed.') : tr('Anyone with the link can edit it — no access request needed.'))
@@ -166,11 +166,11 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
 
         {(done || failed) && (
           <div className="mt-3 flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100">
+            <button type="button" onClick={onClose} className="rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100">
               {tr('Dismiss')}
             </button>
             {failed && (
-              <button type="button" onClick={onRetry} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800">
+              <button type="button" onClick={onRetry} className="inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800">
                 <RotateCcw size={14} /> {tr('Try again')}
               </button>
             )}
@@ -179,8 +179,8 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
                 href={job.downloadUrl}
                 download={job.fileName}
                 className={gsheet
-                  ? 'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100'
-                  : 'inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800'}
+                  ? 'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100'
+                  : 'inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800'}
                 title={gsheet ? tr('The same data as an Excel file') : undefined}
               >
                 <Download size={14} /> {gsheet ? tr('.xlsx') : tr('Download again')}
@@ -206,8 +206,8 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-slate-400">{label}</dt>
-      <dd className="font-semibold tabular-nums text-slate-800">{value}</dd>
+      <dt className="text-neutral-400">{label}</dt>
+      <dd className="font-semibold tabular-nums text-neutral-800">{value}</dd>
     </div>
   );
 }

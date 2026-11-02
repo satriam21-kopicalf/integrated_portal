@@ -22,7 +22,7 @@ const short = (name: string) => name.replace(/^Kopi Calf (To Go )?/, '');
 
 function MoreButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="inline-flex items-center gap-0.5 text-xs font-medium text-blue-700 hover:underline">
+    <button type="button" onClick={onClick} className="inline-flex items-center gap-0.5 text-xs font-medium text-brand-700 hover:underline">
       {label} <ChevronRight size={13} />
     </button>
   );
@@ -217,7 +217,7 @@ function DayHours({ data, perDay = false }: { data: HourlyResponse; perDay?: boo
       series: [{ type: 'bar', barMaxWidth: 18, data: vals.map(v => ({ value: Math.round(v), itemStyle: { color: v === max ? '#184f95' : '#6da7ec', borderRadius: [4, 4, 0, 0] } })) }],
     };
   }, [data, perDay]);
-  if (!data.cells.length) return <p className="py-6 text-center text-sm text-slate-400">{tr('No sales')}</p>;
+  if (!data.cells.length) return <p className="py-6 text-center text-sm text-neutral-400">{tr('No sales')}</p>;
   return <EChart option={option} height={200} ariaLabel={tr('Bills per hour')} />;
 }
 
@@ -233,7 +233,7 @@ export function MenuDrawer({ q, menuId, menuKind }: { q: string; menuId: string;
         const t = d.totals;
         return (
           <>
-            <p className="-mt-1 mb-4 text-xs text-slate-500">{[d.menu.category, d.menu.categoryDetail].filter(Boolean).join(' · ')}{d.menu.kind !== 'menu' ? ` · ${d.menu.kind}` : ''}</p>
+            <p className="-mt-1 mb-4 text-xs text-neutral-500">{[d.menu.category, d.menu.categoryDetail].filter(Boolean).join(' · ')}{d.menu.kind !== 'menu' ? ` · ${d.menu.kind}` : ''}</p>
             <Tiles columns={5} tiles={[
               { label: tr('Qty'), value: num(t.qty), delta: t.qtyDeltaPct, sub: t.previousQty !== null ? tr('prev. {0}', num(t.previousQty)) : tr('no comparison') },
               { label: tr('Gross sales'), value: compactRupiah(t.subtotal), title: formatCurrency(t.subtotal), sub: t.previousSubtotal !== null ? tr('prev. {0}', compactRupiah(t.previousSubtotal)) : '' },
@@ -295,7 +295,7 @@ function MenuSeries({ data, measure, onSelect }: { data: MenuDetailResponse; mea
       series: [{ type: 'bar', barMaxWidth: 18, data: data.series.map(s => s[measure]), itemStyle: { color: INK.accent, borderRadius: [3, 3, 0, 0] } }],
     };
   }, [data, measure]);
-  if (!data.series.length) return <p className="py-6 text-center text-sm text-slate-400">{tr('Not sold in this period')}</p>;
+  if (!data.series.length) return <p className="py-6 text-center text-sm text-neutral-400">{tr('Not sold in this period')}</p>;
   return <EChart option={option} height={240} ariaLabel={tr('Menu sold over time')} onClick={p => { const s = data.series[p.dataIndex]; if (s) onSelect(s.date); }} />;
 }
 

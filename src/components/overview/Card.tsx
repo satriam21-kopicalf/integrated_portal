@@ -32,19 +32,19 @@ export function Card<T>({
 }) {
   const { data, loading, error, retry } = resource;
   return (
-    <section className={`group/card relative flex h-full min-w-0 flex-col rounded-2xl border border-slate-200/80 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-slate-200/70' : ''} ${className}`}>
+    <section className={`group/card relative flex h-full min-w-0 flex-col rounded-xl border border-neutral-200/80 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-neutral-200/70' : ''} ${className}`}>
       {loading && data && <RefreshBar />}
       <header className="flex flex-wrap items-start justify-between gap-2 px-4 pb-2 pt-4 sm:px-5">
         <div className="min-w-0">
           <div className="flex items-center gap-1">
             {onOpen ? (
-              <button type="button" onClick={onOpen} className="text-left text-sm font-semibold text-slate-900 hover:text-blue-700">{title}</button>
+              <button type="button" onClick={onOpen} className="text-left text-sm font-semibold text-neutral-900 hover:text-brand-700">{title}</button>
             ) : (
-              <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+              <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
             )}
             {info && <InfoTip info={info} />}
           </div>
-          {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+          {subtitle && <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>}
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {actions}
@@ -56,9 +56,9 @@ export function Card<T>({
         {error && !loading ? (
           <div className="flex h-full min-h-[inherit] flex-col items-center justify-center gap-2 text-center">
             <AlertTriangle size={20} className="text-amber-500" />
-            <p className="text-sm text-slate-600">{tr('Could not load this widget')}</p>
-            <p className="max-w-xs text-xs text-slate-400">{error}</p>
-            <button type="button" onClick={retry} className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+            <p className="text-sm text-neutral-600">{tr('Could not load this widget')}</p>
+            <p className="max-w-xs text-xs text-neutral-400">{error}</p>
+            <button type="button" onClick={retry} className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
               <RotateCw size={13} /> {tr('Try again')}
             </button>
           </div>
@@ -79,11 +79,11 @@ export function CardTabs<V extends string>({ value, options, onChange, label }: 
   value: V; options: { value: V; label: string }[]; onChange: (v: V) => void; label: string;
 }) {
   return (
-    <div className="flex gap-1 overflow-x-auto border-b border-slate-100" role="tablist" aria-label={label}>
+    <div className="flex gap-1 overflow-x-auto border-b border-neutral-100" role="tablist" aria-label={label}>
       {options.map(o => (
         <button key={o.value} type="button" role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)}
           className={`-mb-px whitespace-nowrap border-b-2 px-3 pb-2 pt-1 text-sm font-medium transition-colors ${
-            value === o.value ? 'border-blue-700 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+            value === o.value ? 'border-brand-700 text-brand-700' : 'border-transparent text-neutral-500 hover:text-neutral-900'}`}>
           {o.label}
         </button>
       ))}
@@ -95,7 +95,7 @@ export function CardTabs<V extends string>({ value, options, onChange, label }: 
 export function DetailsButton({ onClick, label = tr('Details') }: { onClick: () => void; label?: string }) {
   return (
     <button type="button" onClick={onClick} title={tr('All data behind this analytic')}
-      className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+      className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 text-xs font-medium text-neutral-600 transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700">
       <Maximize2 size={12} /> {label}
     </button>
   );
@@ -118,7 +118,7 @@ export function Delta({
 }) {
   if (value === null || value === undefined) {
     return (
-      <span className={`inline-flex items-center gap-0.5 text-xs text-slate-400 ${className}`} title={tr('No comparable comparison period')}>
+      <span className={`inline-flex items-center gap-0.5 text-xs text-neutral-400 ${className}`} title={tr('No comparable comparison period')}>
         <Minus size={12} /> n/a
       </span>
     );
@@ -127,7 +127,7 @@ export function Delta({
   const up = value > 0;
   const good = flat ? null : up === upIsGood;
   const Icon = flat ? Minus : up ? ArrowUpRight : ArrowDownRight;
-  const tone = good === null ? 'text-slate-500' : good ? 'text-emerald-700' : 'text-rose-700';
+  const tone = good === null ? 'text-neutral-500' : good ? 'text-emerald-700' : 'text-rose-700';
   return (
     <span className={`inline-flex items-center gap-0.5 text-xs font-medium tabular-nums ${tone} ${className}`}>
       <Icon size={13} strokeWidth={2.25} aria-hidden />
@@ -150,7 +150,7 @@ export function Segmented<V extends string>({
   label: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg bg-slate-100 p-0.5">
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg bg-neutral-100 p-0.5">
       {options.map(o => (
         <button
           key={o.value}
@@ -159,7 +159,7 @@ export function Segmented<V extends string>({
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-            value === o.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+            value === o.value ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'
           }`}
         >
           {o.label}
@@ -179,10 +179,10 @@ export function DataTable({
   maxHeight?: number;
 }) {
   return (
-    <div className="custom-scrollbar overflow-auto rounded-lg border border-slate-100" style={{ maxHeight }}>
+    <div className="custom-scrollbar overflow-auto rounded-lg border border-neutral-100" style={{ maxHeight }}>
       <table className="w-full text-xs">
         <caption className="sr-only">{caption}</caption>
-        <thead className="sticky top-0 bg-slate-50 text-slate-500">
+        <thead className="sticky top-0 bg-neutral-50 text-neutral-500">
           <tr>
             {columns.map(c => (
               <th key={c.key} scope="col" className={`whitespace-nowrap px-3 py-2 font-medium ${c.align === 'right' ? 'text-right' : 'text-left'}`}>
@@ -191,11 +191,11 @@ export function DataTable({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-neutral-100">
           {rows.map(r => (
-            <tr key={r.key} className="hover:bg-slate-50/60">
+            <tr key={r.key} className="hover:bg-neutral-50/60">
               {columns.map(c => (
-                <td key={c.key} className={`whitespace-nowrap px-3 py-1.5 ${c.align === 'right' ? 'text-right tabular-nums' : 'text-left'} text-slate-700`}>
+                <td key={c.key} className={`whitespace-nowrap px-3 py-1.5 ${c.align === 'right' ? 'text-right tabular-nums' : 'text-left'} text-neutral-700`}>
                   {r.cells[c.key]}
                 </td>
               ))}

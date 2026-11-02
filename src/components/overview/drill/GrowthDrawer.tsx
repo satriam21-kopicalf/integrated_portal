@@ -21,11 +21,11 @@ import { tr } from '@/lib/i18n';
 const short = (name: string) => name.replace(/^Kopi Calf (To Go )?/, '');
 
 const STATUS: Record<NonNullable<GrowthSplit['status']>, { label: string; cls: string }> = {
-  new: { get label() { return tr('New'); }, cls: 'bg-blue-50 text-blue-700' },
+  new: { get label() { return tr('New'); }, cls: 'bg-brand-50 text-brand-700' },
   lost: { get label() { return tr('No sales now'); }, cls: 'bg-red-50 text-red-700' },
-  growing: { get label() { return tr('Growing'); }, cls: 'bg-blue-50 text-blue-700' },
+  growing: { get label() { return tr('Growing'); }, cls: 'bg-brand-50 text-brand-700' },
   declining: { get label() { return tr('Declining'); }, cls: 'bg-red-50 text-red-700' },
-  flat: { get label() { return tr('Flat'); }, cls: 'bg-slate-100 text-slate-600' },
+  flat: { get label() { return tr('Flat'); }, cls: 'bg-neutral-100 text-neutral-600' },
 };
 
 /** Everything about sales growth: per bucket, per hour, weekday x hour, branches and channels behind it. */
@@ -100,7 +100,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
           <div className="space-y-3">
             <HourGrowthChart rows={hours.rows} height={260} />
             <HourMovers rows={hours.rows} />
-            <p className="pt-2 text-xs font-medium text-slate-500">{tr('Weekday × hour')}</p>
+            <p className="pt-2 text-xs font-medium text-neutral-500">{tr('Weekday × hour')}</p>
             <HourGrowthHeatmap current={hours.data.current} compare={hours.data.compare} />
             <HourGrowthTable rows={hours.rows} />
           </div>
@@ -155,7 +155,7 @@ function ContributionChart({ rows, label }: { rows: GrowthSplit[]; label: (r: Gr
       label: { show: true, position: 'right', fontSize: 10, color: INK.secondary, formatter: (p: { dataIndex: number }) => signedRp(picked[p.dataIndex].growthAbs) },
     }],
   }), [picked, label]);
-  if (!picked.length) return <p className="py-6 text-center text-sm text-slate-400">{tr('No comparison available')}</p>;
+  if (!picked.length) return <p className="py-6 text-center text-sm text-neutral-400">{tr('No comparison available')}</p>;
   return <EChart option={option} height={Math.max(160, picked.length * 24 + 16)} ariaLabel={tr('Branches with the largest growth and decline contribution')} />;
 }
 
@@ -174,7 +174,7 @@ function SplitTable({ rows, kind, onOpen }: { rows: GrowthSplit[]; kind: 'branch
         { key: 'abs', label: tr('Growth'), align: 'right', value: r => r.growthAbs, render: r => <GrowthText v={r.growthPct} abs={r.growthAbs} absOnly /> },
         { key: 'pct', label: tr('Growth %'), align: 'right', value: r => r.growthPct, render: r => <Delta value={r.growthPct} /> },
         { key: 'contribution', label: tr('Contribution'), align: 'right', value: r => r.contributionPp, title: tr('Percentage points of the total growth'),
-          render: r => (r.contributionPp === null ? '-' : <span className={r.contributionPp >= 0 ? 'text-blue-700' : 'text-red-600'}>{r.contributionPp >= 0 ? '+' : '−'}{fixed(Math.abs(r.contributionPp), 2)} {tr('pp')}</span>) },
+          render: r => (r.contributionPp === null ? '-' : <span className={r.contributionPp >= 0 ? 'text-brand-700' : 'text-red-600'}>{r.contributionPp >= 0 ? '+' : '−'}{fixed(Math.abs(r.contributionPp), 2)} {tr('pp')}</span>) },
         { key: 'bills', label: tr('Bills'), align: 'right', value: r => r.bills },
       ]} />
   );

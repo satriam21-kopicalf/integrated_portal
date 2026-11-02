@@ -59,7 +59,7 @@ export function MonthlyBody({ data }: { data: MonthlyResponse }) {
   };
   return (
     <div className="space-y-2">
-      <p className="text-[11px] text-slate-500">{tr('Average gross sales per calendar day, so partial and 30/31-day months compare fairly · lighter bar = month in progress · click a month for its profile')}</p>
+      <p className="text-[11px] text-neutral-500">{tr('Average gross sales per calendar day, so partial and 30/31-day months compare fairly · lighter bar = month in progress · click a month for its profile')}</p>
       <div className="grid gap-4 xl:grid-cols-5">
         <div className="min-w-0 xl:col-span-3">
           <MonthlyChart months={months} onSelect={openMonth} />
@@ -67,7 +67,7 @@ export function MonthlyBody({ data }: { data: MonthlyResponse }) {
         <div className="custom-scrollbar min-w-0 overflow-auto xl:col-span-2" style={{ maxHeight: 260 }}>
           <table className="w-full min-w-[22rem] whitespace-nowrap text-xs">
             <caption className="sr-only">{tr('Monthly gross sales and growth')}</caption>
-            <thead className="sticky top-0 bg-white text-slate-500">
+            <thead className="sticky top-0 bg-white text-neutral-500">
               <tr>
                 <th scope="col" className="py-1.5 pr-2 text-left font-medium">{tr('Month')}</th>
                 <th scope="col" className="px-2 py-1.5 text-right font-medium">{tr('Gross sales')}</th>
@@ -76,14 +76,14 @@ export function MonthlyBody({ data }: { data: MonthlyResponse }) {
                 <th scope="col" className="py-1.5 pl-2 text-right font-medium" title={tr('Branches open ≥90% of the days in both months')}>{tr('Same-store')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-neutral-100">
               {[...months].reverse().map(m => (
-                <tr key={m.month} onClick={() => openMonth(m)} className="cursor-pointer hover:bg-blue-50/50">
-                  <td className="py-1.5 pr-2 text-slate-700">
+                <tr key={m.month} onClick={() => openMonth(m)} className="cursor-pointer hover:bg-brand-50/50">
+                  <td className="py-1.5 pr-2 text-neutral-700">
                     {monthLabel(m.month)}
-                    {m.partial && <span className="ml-1 text-slate-400">({m.days}d)</span>}
+                    {m.partial && <span className="ml-1 text-neutral-400">({m.days}d)</span>}
                   </td>
-                  <td className="px-2 py-1.5 text-right tabular-nums text-slate-900" title={formatCurrency(m.subtotal)}>{compactRupiah(m.subtotal)}</td>
+                  <td className="px-2 py-1.5 text-right tabular-nums text-neutral-900" title={formatCurrency(m.subtotal)}>{compactRupiah(m.subtotal)}</td>
                   <td className="px-2 py-1.5 text-right"><Delta value={m.momPct} /></td>
                   <td className="px-2 py-1.5 text-right"><Delta value={m.yoyPct} /></td>
                   <td className="py-1.5 pl-2 text-right" title={tr('{0} branches', m.sameStore.branches)}><Delta value={m.sameStore.growthPct} /></td>

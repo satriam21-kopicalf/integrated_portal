@@ -91,30 +91,30 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
         className="flex w-full items-center gap-3 bg-violet-50/70 px-4 py-3 text-left">
         <FlaskConical size={18} className="flex-shrink-0 text-violet-700" />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-slate-900">{tr("WIP / premix")}</span>
-          <span className="block text-xs text-slate-500">{tr("Enter each WIP in its unit (grams, portions or pieces); the ingredients are calculated and filled into the items")}</span>
+          <span className="block text-sm font-semibold text-neutral-900">{tr("WIP / premix")}</span>
+          <span className="block text-xs text-neutral-500">{tr("Enter each WIP in its unit (grams, portions or pieces); the ingredients are calculated and filled into the items")}</span>
         </span>
         {toConfirm > 0 && <Badge tone="amber">{tr("{0} to recount", toConfirm)}</Badge>}
         {entered > 0 && <Badge tone="violet">{tr("{0} entered", entered)}</Badge>}
         {dirty && <Badge tone="amber">{tr("Not saved")}</Badge>}
-        <ChevronDown size={16} className={cx("text-slate-400 transition-transform", expanded && "rotate-180")} />
+        <ChevronDown size={16} className={cx("text-neutral-400 transition-transform", expanded && "rotate-180")} />
       </button>
       {expanded && (
         <div className="space-y-3 p-4">
           {open && recount ? (
-            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
               {wip.lines.map((l) => {
                 const k = keyOf(l.recipe_id, l.uom);
                 const edit = asked(l);
                 return (
                   <li key={l.id} className={cx("flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5", l.flags?.includes("RECOUNT") && "bg-amber-50/50")}>
                     <span className="min-w-0 flex-1 basis-48">
-                      <span className="block text-sm font-medium text-slate-900">{l.name}</span>
+                      <span className="block text-sm font-medium text-neutral-900">{l.name}</span>
                       <span className="mt-0.5 flex flex-wrap gap-1">
                         {l.flags?.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
                         {l.flags?.includes("RECOUNTED") && <Badge tone="green">{tr("Recounted")}</Badge>}
                       </span>
-                      {l.previous_qty !== null && l.previous_qty !== undefined && <span className="block text-[11px] text-slate-500">{tr("Before the recount: {0} {1}", l.previous_qty, isGram(l.uom) ? "g" : l.uom)}</span>}
+                      {l.previous_qty !== null && l.previous_qty !== undefined && <span className="block text-[11px] text-neutral-500">{tr("Before the recount: {0} {1}", l.previous_qty, isGram(l.uom) ? "g" : l.uom)}</span>}
                     </span>
                     <span className="flex items-center gap-1.5">
                       {edit && l.flags?.includes("RECOUNT") && (
@@ -124,16 +124,16 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                       )}
                       <input inputMode="decimal" disabled={!edit} value={values[k] ?? ""} placeholder="0" aria-label={`${l.name} ${l.uom}`}
                         onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "").replace(/^(\d*\.\d{0,2}).*$/, "$1") }))}
-                        className={cx("h-11 w-24 rounded-lg border px-2 text-right text-base tabular-nums disabled:bg-slate-50 disabled:text-slate-500", edit ? "border-violet-400 bg-violet-50/50" : "border-slate-200")} />
-                      <span className="text-sm text-slate-600">{isGram(l.uom) ? "g" : l.uom}</span>
+                        className={cx("h-11 w-24 rounded-lg border px-2 text-right text-base tabular-nums disabled:bg-neutral-50 disabled:text-neutral-500", edit ? "border-violet-400 bg-violet-50/50" : "border-neutral-200")} />
+                      <span className="text-sm text-neutral-600">{isGram(l.uom) ? "g" : l.uom}</span>
                     </span>
                   </li>
                 );
               })}
             </ul>
           ) : open ? (
-            recipes.length === 0 ? <p className="text-sm text-slate-500">{tr("No WIP recipe is active for this location.")}</p> : (
-              <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            recipes.length === 0 ? <p className="text-sm text-neutral-500">{tr("No WIP recipe is active for this location.")}</p> : (
+              <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
                 {recipes.map(r => {
                   const uom = unitFor(r);
                   const unit = r.units.find((u) => u.uom === uom) ?? { uom, grams: 1 };
@@ -144,20 +144,20 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                   return (
                     <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5">
                       <span className="min-w-0 flex-1 basis-48">
-                        <span className="block text-sm font-medium text-slate-900">{r.name}</span>
-                        {fixed.length > 0 && <span className="block text-[11px] text-slate-500">{fixed.map((u) => `1 ${u.uom} = ${fmtG(u.grams)} g`).join(" · ")}</span>}
+                        <span className="block text-sm font-medium text-neutral-900">{r.name}</span>
+                        {fixed.length > 0 && <span className="block text-[11px] text-neutral-500">{fixed.map((u) => `1 ${u.uom} = ${fmtG(u.grams)} g`).join(" · ")}</span>}
                         {others.map((u) => <span key={u.uom} className="block text-[11px] text-amber-700">{tr("Also entered: {0} {1}", values[keyOf(r.id, u.uom)], u.uom)}</span>)}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <input inputMode="decimal" value={values[k] ?? ""} placeholder="0" aria-label={`${r.name} ${uom}`}
                           onChange={e => setValues(v => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "").replace(/^(\d*\.\d{0,2}).*$/, "$1") }))}
-                          className={cx("h-11 w-24 rounded-lg border px-2 text-right text-base tabular-nums", Number(values[k]) > 0 ? "border-violet-400 bg-violet-50/50" : "border-slate-200")} />
+                          className={cx("h-11 w-24 rounded-lg border px-2 text-right text-base tabular-nums", Number(values[k]) > 0 ? "border-violet-400 bg-violet-50/50" : "border-neutral-200")} />
                         {r.units.length > 1 ? (
                           <select value={uom} onChange={(e) => setUnitOf((m) => ({ ...m, [r.id]: e.target.value }))} aria-label={tr("Unit of {0}", r.name)}
-                            className="h-11 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-700">
+                            className="h-11 rounded-lg border border-neutral-200 bg-white px-2 text-sm text-neutral-700">
                             {r.units.map((u) => <option key={u.uom} value={u.uom}>{isGram(u.uom) ? "g" : u.uom}</option>)}
                           </select>
-                        ) : <span className="text-sm text-slate-600">{isGram(unit.uom) ? "g" : unit.uom}</span>}
+                        ) : <span className="text-sm text-neutral-600">{isGram(unit.uom) ? "g" : unit.uom}</span>}
                       </span>
                       {grams > 0 && !isGram(uom) && <span className="w-full text-right text-[11px] tabular-nums text-violet-700 sm:w-auto">= {fmtG(grams)} g</span>}
                     </li>
@@ -165,17 +165,17 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                 })}
               </ul>
             )
-          ) : entered === 0 ? <p className="text-sm text-slate-500">{tr("No WIP was entered.")}</p> : (
+          ) : entered === 0 ? <p className="text-sm text-neutral-500">{tr("No WIP was entered.")}</p> : (
             <ul className="space-y-1 text-sm">
-              {wip.lines.map(l => <li key={l.id} className="flex justify-between gap-2"><span>{l.name} <span className="text-slate-400">v{l.version_no}</span></span><span className="tabular-nums">{l.qty} {l.uom} · {fmtG(l.qty_base)} g</span></li>)}
+              {wip.lines.map(l => <li key={l.id} className="flex justify-between gap-2"><span>{l.name} <span className="text-neutral-400">v{l.version_no}</span></span><span className="tabular-nums">{l.qty} {l.uom} · {fmtG(l.qty_base)} g</span></li>)}
             </ul>
           )}
           {preview.length > 0 && (
-            <div className="rounded-lg bg-slate-50 px-3 py-2">
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">{tr("Filled into the items automatically")}</p>
+            <div className="rounded-lg bg-neutral-50 px-3 py-2">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Filled into the items automatically")}</p>
               <ul className="grid gap-x-4 gap-y-0.5 text-xs sm:grid-cols-2">
                 {preview.map(p => (
-                  <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-slate-400")}>
+                  <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-neutral-400")}>
                     <span className="truncate">{p.name}{!p.stock && ` (${tr("not stock")})`}</span><span className="tabular-nums">{fmtG(Math.ceil(p.grams - 0.001))} g</span>
                   </li>
                 ))}

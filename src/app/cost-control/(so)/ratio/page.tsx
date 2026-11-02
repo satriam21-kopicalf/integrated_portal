@@ -237,12 +237,12 @@ export default function RatioPage() {
               <table className="m-cards w-full min-w-[1600px] text-xs">
                 <thead className={cx(theadClass, "sticky top-0 z-10")}>
                   <tr>
-                    <th className="sticky left-0 z-20 bg-slate-50 px-3 py-2.5">{tr("Outlet")}</th>
+                    <th className="sticky left-0 z-20 bg-neutral-50 px-3 py-2.5">{tr("Outlet")}</th>
                     {COLS.map((c, i) => (
                       <th key={c.key} className="whitespace-nowrap px-2 py-2.5 text-right">
                         <span className="inline-flex items-center gap-1">
                           <button type="button" onClick={() => setSort(s => ({ key: c.key, desc: s.key === c.key ? !s.desc : true }))}
-                            className="inline-flex items-center gap-0.5 uppercase hover:text-slate-800">
+                            className="inline-flex items-center gap-0.5 uppercase hover:text-neutral-800">
                             {c.label}{sort.key === c.key && (sort.desc ? <ArrowDown size={11} /> : <ArrowUp size={11} />)}
                           </button>
                           <HeaderInfo label={c.label} info={c.info} alignRight={i > COLS.length - 4} />
@@ -251,12 +251,12 @@ export default function RatioPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {!data ? <SkeletonRows cols={COLS.length + 1} /> : paged.rows.map(r => (
-                    <tr key={r.branchCode} className="hover:bg-slate-50/70">
+                    <tr key={r.branchCode} className="hover:bg-neutral-50/70">
                       <td className="sticky left-0 z-[1] max-w-[15rem] bg-white px-3 py-2">
-                        <span className="block truncate font-medium text-slate-900" title={r.branchName}>{r.branchName}</span>
-                        <span className="block font-mono text-[10px] text-slate-400">{r.branchCode}</span>
+                        <span className="block truncate font-medium text-neutral-900" title={r.branchName}>{r.branchName}</span>
+                        <span className="block font-mono text-[10px] text-neutral-400">{r.branchCode}</span>
                       </td>
                       {COLS.map(c => (
                         <td key={c.key} className="whitespace-nowrap px-2 py-2 text-right tabular-nums">
@@ -264,14 +264,14 @@ export default function RatioPage() {
                             : c.kind === "mdr" ? (data.period.mdrEditable ? (
                               <input defaultValue={r.mdrPct ?? ""} placeholder="—" inputMode="decimal" aria-label={`MDR ${r.branchName}`}
                                 onBlur={e => void saveMdr(r, e.target.value)} onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-                                className="h-7 w-16 rounded border border-slate-200 px-1.5 text-right" />
+                                className="h-7 w-16 rounded border border-neutral-200 px-1.5 text-right" />
                             ) : (r.mdrPct === null ? "-" : `${r.mdrPct}%`))
                             : <SoCell so={r[c.key] as So} onEdit={() => setEditSo({ row: r, which: c.key as "soStart" | "soEnd" })} />}
                         </td>
                       ))}
                     </tr>
                   ))}
-                  {data && rows.length === 0 && <tr><td colSpan={COLS.length + 1} className="py-10 text-center text-sm text-slate-400">{tr("No outlet matches")}</td></tr>}
+                  {data && rows.length === 0 && <tr><td colSpan={COLS.length + 1} className="py-10 text-center text-sm text-neutral-400">{tr("No outlet matches")}</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -300,7 +300,7 @@ function RatioFilters({ basis, month, range, watch, onApply, onClose }: {
       <FilterSection title={tr("Month")}>
         <input type="month" value={iso(m).slice(0, 7)} aria-label={tr("Month")} max={iso(new Date()).slice(0, 7)}
           onChange={e => { if (!e.target.value) return; const [y, mm] = e.target.value.split("-").map(Number); const d = new Date(y, mm - 1, 1); setM(d); setR(presets(d).at(-1)!); }}
-          className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" />
+          className="h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm" />
       </FilterSection>
       <FilterSection title={tr("Period")} hint={tr("Cumulative from the 1st, as the workbook (W1 1–7 … W4 1–28)")}>
         <ChoiceGroup label="" value={r.key} onChange={k => setR(list.find(p => p.key === k) ?? list.at(-1)!)} choices={list.map(p => ({ value: p.key, label: p.label }))} />
@@ -321,10 +321,10 @@ function RatioFilters({ basis, month, range, watch, onApply, onClose }: {
 function HeaderInfo({ label, info, alignRight }: { label: string; info: Info; alignRight?: boolean }) {
   return (
     <span className="group/info relative inline-flex normal-case">
-      <button type="button" aria-label={tr("About {0}", label)} className="rounded-full p-0.5 text-slate-300 outline-none hover:text-slate-600 focus-visible:text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300">
+      <button type="button" aria-label={tr("About {0}", label)} className="rounded-full p-0.5 text-neutral-300 outline-none hover:text-neutral-600 focus-visible:text-brand-700 focus-visible:ring-2 focus-visible:ring-brand-300">
         <InfoIcon size={12} aria-hidden />
       </button>
-      <span role="tooltip" className={cx("pointer-events-none invisible absolute top-full z-30 mt-1.5 w-72 whitespace-normal rounded-lg bg-slate-900 px-3 py-2 text-left text-[11px] font-normal leading-relaxed tracking-normal text-slate-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus-within/info:visible group-focus-within/info:opacity-100",
+      <span role="tooltip" className={cx("pointer-events-none invisible absolute top-full z-30 mt-1.5 w-72 whitespace-normal rounded-lg bg-neutral-900 px-3 py-2 text-left text-[11px] font-normal leading-relaxed tracking-normal text-neutral-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus-within/info:visible group-focus-within/info:opacity-100",
         alignRight ? "right-0" : "left-1/2 -translate-x-1/2")}>
         <span className="mb-1 block font-semibold text-white">{label}</span>
         <span className="block">{info.source()}</span>
@@ -337,11 +337,11 @@ function HeaderInfo({ label, info, alignRight }: { label: string; info: Info; al
 /** Gross / Net: which sales the ratios of the table divide by. */
 function BasisSwitch({ value, onChange }: { value: Basis; onChange: (b: Basis) => void }) {
   return (
-    <div role="radiogroup" aria-label={tr("Ratio Basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 rounded-lg bg-slate-100 p-1">
+    <div role="radiogroup" aria-label={tr("Ratio Basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 rounded-lg bg-neutral-100 p-1">
       {(["gross", "net"] as Basis[]).map((b) => (
         <button key={b} type="button" role="radio" aria-checked={value === b} onClick={() => onChange(b)}
           className={cx("h-8 rounded-md px-3 text-sm font-medium transition-colors",
-            value === b ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>
+            value === b ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800")}>
           {b === "gross" ? tr("Gross sales") : tr("Net sales")}
         </button>
       ))}
@@ -353,7 +353,7 @@ function BasisSwitch({ value, onChange }: { value: Basis; onChange: (b: Basis) =
 function NetCell({ row }: { row: Row }) {
   return (
     <span title={row.netBasis === "pendapatan" ? tr("Pendapatan: gross × (1 − MDR {0}%)", row.mdrPct ?? 0) : tr("ESB nett sales (no MDR for this month)")}>
-      {row.netBasis === "nett" && <span className="mr-1 rounded bg-slate-100 px-1 text-[9px] font-semibold text-slate-500">ESB</span>}
+      {row.netBasis === "nett" && <span className="mr-1 rounded bg-neutral-100 px-1 text-[9px] font-semibold text-neutral-500">ESB</span>}
       {rp(row.net)}
     </span>
   );
@@ -361,11 +361,11 @@ function NetCell({ row }: { row: Row }) {
 
 function SoCell({ so, onEdit }: { so: So; onEdit: () => void }) {
   return (
-    <button type="button" onClick={onEdit} className="group inline-flex items-center gap-1 rounded px-1 hover:bg-slate-100"
+    <button type="button" onClick={onEdit} className="group inline-flex items-center gap-1 rounded px-1 hover:bg-neutral-100"
       title={so.override ? `${tr("Corrected")}: ${so.override.note}` : so.doc ? `${so.doc} · ${so.docDate} · ${so.docStatus}` : tr("No stock opname document")}>
       {so.override && <Badge tone="violet">{tr("Corrected")}</Badge>}
-      <span className={so.value === null ? "text-slate-300" : ""}>{rp(so.value)}</span>
-      <Pencil size={11} className="text-slate-300 group-hover:text-slate-600" />
+      <span className={so.value === null ? "text-neutral-300" : ""}>{rp(so.value)}</span>
+      <Pencil size={11} className="text-neutral-300 group-hover:text-neutral-600" />
     </button>
   );
 }
@@ -393,12 +393,12 @@ function SoDialog({ row, which, onClose, onSaved }: { row: Row; which: "soStart"
         <Button loading={busy} disabled={!value.trim() || !note.trim()} onClick={() => void send({ value: Number(value.replace(/\./g, "").replace(",", ".")), note })}>{tr("Save correction")}</Button>
       </>}>
       <div className="space-y-3">
-        <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
           {so.doc ? tr("ESB stock opname {0} ({1}, {2}): Rp {3}", so.doc, so.docDate ?? "", so.docStatus ?? "", rp(so.esb)) : tr("No ESB stock opname document around this date.")}
         </p>
         <Field label={tr("Value Used (Rp)")} required><Input inputMode="numeric" value={value} onChange={e => setValue(e.target.value)} /></Field>
         <Field label={tr("Reason")} required><Input value={note} onChange={e => setNote(e.target.value)} placeholder={tr("e.g. espresso stock counted separately")} /></Field>
-        {so.override && <p className="text-[11px] text-slate-400">{tr("Last corrected by {0}", so.override.by ?? "-")}</p>}
+        {so.override && <p className="text-[11px] text-neutral-400">{tr("Last corrected by {0}", so.override.by ?? "-")}</p>}
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
       </div>
     </Dialog>

@@ -21,14 +21,14 @@ function Choice<V extends string>({ value, options, onChange, label }: {
   onChange: (v: V) => void;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="grid gap-1 rounded-lg bg-slate-100 p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+    <div role="radiogroup" aria-label={label} className="grid gap-1 rounded-lg bg-neutral-100 p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
       {options.map(o => {
         const on = o.value === value;
         const Icon = o.icon;
         return (
           <button key={o.value} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.value)}
             className={`inline-flex h-7 items-center justify-center gap-1 rounded-md text-xs font-medium transition-colors ${
-              on ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+              on ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-800'}`}>
             {Icon && <Icon size={13} aria-hidden />}{o.label}
           </button>
         );
@@ -42,13 +42,13 @@ export function PreferenceControls() {
   const { mode, setMode } = useTheme();
   const { lang, setLang } = useLang();
   return (
-    <div className="space-y-2.5 border-b border-slate-100 px-3 py-3">
+    <div className="space-y-2.5 border-b border-neutral-100 px-3 py-3">
       <div>
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Appearance')}</p>
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tr('Appearance')}</p>
         <Choice label={tr('Appearance')} value={mode} onChange={setMode} options={THEMES.map(o => ({ ...o, label: tr(o.label) }))} />
       </div>
       <div>
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{tr('Language')}</p>
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tr('Language')}</p>
         <Choice label={tr('Language')} value={lang} onChange={setLang} options={LANGS.map(o => ({ value: o.value, label: o.label }))} />
       </div>
     </div>
@@ -60,7 +60,7 @@ export function PreferenceSwitches({ className = '' }: { className?: string }) {
   const { dark, setMode } = useTheme();
   const { lang, setLang } = useLang();
   const next = LANGS.find(l => l.value !== lang)!;
-  const btn = 'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900';
+  const btn = 'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 text-xs font-semibold text-neutral-600 transition-colors hover:border-neutral-300 hover:text-neutral-900';
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <button type="button" onClick={() => setLang(next.value)} className={btn}

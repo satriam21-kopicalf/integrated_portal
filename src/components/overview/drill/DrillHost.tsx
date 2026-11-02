@@ -96,9 +96,9 @@ export default function DrillHost() {
     <Drawer open onClose={close} size="xl" icon={icon} title={title} onBack={stack.length > 1 ? back : undefined} titleExtra={<InfoTip info={infoOf(t)} />}
       description={(
         <>
-          {trail && <span className="block text-[11px] text-slate-400">{trail} ›</span>}
+          {trail && <span className="block text-[11px] text-neutral-400">{trail} ›</span>}
           {t.kind === 'profile' && t.subtitle ? `${t.subtitle} · ` : ''}{context}
-          {filters.from !== (from ?? filters.from) || filters.branch !== branch ? <span className="ml-1 text-[11px] text-blue-700">{tr('(drilled down)')}</span> : null}
+          {filters.from !== (from ?? filters.from) || filters.branch !== branch ? <span className="ml-1 text-[11px] text-brand-700">{tr('(drilled down)')}</span> : null}
         </>
       )}
       footer={<button type="button" className={buttonSecondary} onClick={close}><X size={16} /> {tr('Close')}</button>}>

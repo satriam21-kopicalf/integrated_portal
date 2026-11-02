@@ -36,7 +36,7 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
   const short = (d: string) => d.slice(8, 10) + "/" + d.slice(5, 7);
   return (
     <div>
-      <div className={cx("flex items-start gap-2 border-b border-slate-100 px-4 py-3 text-sm", data.missingLast.length ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800")}>
+      <div className={cx("flex items-start gap-2 border-b border-neutral-100 px-4 py-3 text-sm", data.missingLast.length ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800")}>
         {data.missingLast.length ? <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" /> : <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0" />}
         <p>
           {data.missingLast.length
@@ -48,25 +48,25 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
         <table className="w-full text-sm">
           <thead className={theadClass}>
             <tr>
-              <th className="sticky left-0 bg-slate-50 px-4 py-2">{tr("Branch")}</th>
+              <th className="sticky left-0 bg-neutral-50 px-4 py-2">{tr("Branch")}</th>
               <th className="px-2 py-2 text-right">{tr("Reported")}</th>
               <th className="px-2 py-2 text-right">{tr("Usage List")}</th>
               {data.dates.map((d) => <th key={d} className="px-1 py-2 text-center font-medium">{short(d)}</th>)}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-neutral-100">
             {[...data.branches].sort((a, b) => b.missing - a.missing || a.name.localeCompare(b.name)).map((b) => (
-              <tr key={b.code} className="hover:bg-slate-50">
+              <tr key={b.code} className="hover:bg-neutral-50">
                 <td className="sticky left-0 bg-white px-4 py-2">
-                  <button type="button" onClick={() => onBranch(b.code)} className="text-left text-slate-800 hover:text-blue-600">{b.name}</button>
+                  <button type="button" onClick={() => onBranch(b.code)} className="text-left text-neutral-800 hover:text-brand-600">{b.name}</button>
                 </td>
-                <td className={cx("px-2 py-2 text-right tabular-nums", b.missing ? "text-amber-700" : "text-slate-600")}>{b.reported}/{b.days.length}</td>
-                <td className="px-2 py-2 text-right tabular-nums text-slate-600">{b.usageDays}/{b.days.length}</td>
+                <td className={cx("px-2 py-2 text-right tabular-nums", b.missing ? "text-amber-700" : "text-neutral-600")}>{b.reported}/{b.days.length}</td>
+                <td className="px-2 py-2 text-right tabular-nums text-neutral-600">{b.usageDays}/{b.days.length}</td>
                 {b.days.map((c) => (
                   <td key={c.date} className="px-1 py-2 text-center">
                     <span title={c.entries ? tr("{0} waste entries", c.entries) : c.noWaste ? tr("No waste today") : tr("Not reported")}
                       className={cx("inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1 text-[11px] font-semibold",
-                        c.entries ? "bg-blue-100 text-blue-700" : c.noWaste ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>
+                        c.entries ? "bg-brand-100 text-brand-700" : c.noWaste ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>
                       {c.entries ? c.entries : c.noWaste ? "0" : "–"}
                     </span>
                   </td>
@@ -76,7 +76,7 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
           </tbody>
         </table>
       </div>
-      <p className="px-4 py-2 text-[11px] text-slate-500">{tr("Number = waste entries · 0 = no waste today · – = not reported")}</p>
+      <p className="px-4 py-2 text-[11px] text-neutral-500">{tr("Number = waste entries · 0 = no waste today · – = not reported")}</p>
     </div>
   );
 }
@@ -92,8 +92,8 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
   if (!data) return <SkeletonRows cols={5} />;
   return (
     <div>
-      <div className="flex flex-col gap-2 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <input className="h-9 rounded-lg border border-slate-200 px-3 text-sm sm:max-w-xs" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search item or branch")} />
+      <div className="flex flex-col gap-2 border-b border-neutral-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <input className="h-9 rounded-lg border border-neutral-200 px-3 text-sm sm:max-w-xs" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search item or branch")} />
       </div>
       {!rows.length ? <Empty title={tr("No Usage Management list filled in this period")} /> : (
         <div className="overflow-x-auto">
@@ -102,25 +102,25 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
               <tr><th className="px-4 py-2">{tr("Day")}</th><th className="px-4 py-2">{tr("Branch")}</th><th className="px-4 py-2">{tr("Item")}</th>
                 <th className="px-4 py-2 text-right">{tr("Quantity")}</th><th className="px-4 py-2">{tr("Category")}</th><th className="px-4 py-2">{tr("Photo")}</th><th className="px-4 py-2">{tr("Filled by")}</th></tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-neutral-100">
               {rows.slice(0, 1000).map((r) => (
                 <tr key={`${r.branchCode}-${r.businessDate}-${r.itemCode}`}>
-                  <td className="px-4 py-2 text-slate-600">{dmy(r.businessDate)}</td>
-                  <td className="px-4 py-2 text-slate-800">{r.branchName}</td>
-                  <td className="px-4 py-2"><span className="text-slate-800">{r.itemName}</span> <span className="text-[11px] text-slate-400">{r.itemCode}</span></td>
-                  <td className="px-4 py-2 text-right tabular-nums">{fmtQty(r.qty)} <span className="text-xs text-slate-500">{r.unit}</span></td>
-                  <td className="px-4 py-2 text-xs text-slate-600">{r.category ?? "—"}{r.note && <span className="block text-slate-400">“{r.note}”</span>}</td>
+                  <td className="px-4 py-2 text-neutral-600">{dmy(r.businessDate)}</td>
+                  <td className="px-4 py-2 text-neutral-800">{r.branchName}</td>
+                  <td className="px-4 py-2"><span className="text-neutral-800">{r.itemName}</span> <span className="text-[11px] text-neutral-400">{r.itemCode}</span></td>
+                  <td className="px-4 py-2 text-right tabular-nums">{fmtQty(r.qty)} <span className="text-xs text-neutral-500">{r.unit}</span></td>
+                  <td className="px-4 py-2 text-xs text-neutral-600">{r.category ?? "—"}{r.note && <span className="block text-neutral-400">“{r.note}”</span>}</td>
                   <td className="px-4 py-2">{r.hasPhoto ? (
                     <a href={usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)} target="_blank" rel="noreferrer">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)} alt="" loading="lazy" className="h-10 w-10 rounded-md bg-slate-100 object-cover" />
-                    </a>) : <span className="text-xs text-slate-400">—</span>}</td>
-                  <td className="px-4 py-2 text-xs text-slate-500">{r.by} · {wibDateTime(r.updatedAt)}</td>
+                      <img src={usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)} alt="" loading="lazy" className="h-10 w-10 rounded-md bg-neutral-100 object-cover" />
+                    </a>) : <span className="text-xs text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-2 text-xs text-neutral-500">{r.by} · {wibDateTime(r.updatedAt)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {rows.length > 1000 && <p className="px-4 py-2 text-xs text-slate-500">{tr("{0} of {1} shown", fmtNumber(1000), fmtNumber(rows.length))}</p>}
+          {rows.length > 1000 && <p className="px-4 py-2 text-xs text-neutral-500">{tr("{0} of {1} shown", fmtNumber(1000), fmtNumber(rows.length))}</p>}
         </div>
       )}
     </div>

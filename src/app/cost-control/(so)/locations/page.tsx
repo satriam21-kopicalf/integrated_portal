@@ -88,7 +88,7 @@ export default function LocationsPage() {
           <Stat label={tr("With Coordinates")} emphasis value={rows ? `${pct}%` : <StatSkeleton />}>
             {rows && (
               <>
-                <div className="h-1.5 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-neutral-200"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
                 <p>{tr("{0} of {1}", fmtNumber(withCoords), fmtNumber(all.length))}</p>
               </>
             )}
@@ -116,36 +116,36 @@ export default function LocationsPage() {
                   <th className="w-24 px-4 py-2.5" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {rows === null ? <SkeletonRows cols={5} /> : paged.rows.map((r) => {
                   const ls = r.last_start;
                   const off = ls && located(r) ? distance([Number(r.latitude), Number(r.longitude)], [ls.start_lat, ls.start_lng]) : null;
                   return (
-                    <tr key={r.id} className="hover:bg-slate-50/70">
+                    <tr key={r.id} className="hover:bg-neutral-50/70">
                       <td className="max-w-[18rem] px-4 py-3">
-                        <span className="block truncate font-medium text-slate-900">{r.name}</span>
-                        <span className="block text-xs text-slate-400">{r.code} · {r.facility_type}</span>
+                        <span className="block truncate font-medium text-neutral-900">{r.name}</span>
+                        <span className="block text-xs text-neutral-400">{r.code} · {r.facility_type}</span>
                       </td>
                       <td className="px-4 py-3">
                         {located(r) ? (
                           <a href={mapsUrl(r.latitude!, r.longitude!)} target="_blank" rel="noreferrer"
-                            className="inline-flex items-center gap-1 font-mono text-xs text-blue-700 hover:underline">
+                            className="inline-flex items-center gap-1 font-mono text-xs text-brand-700 hover:underline">
                             {Number(r.latitude).toFixed(5)}, {Number(r.longitude).toFixed(5)} <ExternalLink size={11} />
                           </a>
                         ) : <Badge tone="amber" icon={<MapPinOff size={11} />}>{tr("Not set")}</Badge>}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-slate-700">{r.radius_m} m</td>
-                      <td className="px-4 py-3 text-xs text-slate-600">
+                      <td className="px-4 py-3 text-right tabular-nums text-neutral-700">{r.radius_m} m</td>
+                      <td className="px-4 py-3 text-xs text-neutral-600">
                         {ls ? (
                           <>
-                            <a href={mapsUrl(ls.start_lat, ls.start_lng)} target="_blank" rel="noreferrer" className="text-blue-700 hover:underline">
+                            <a href={mapsUrl(ls.start_lat, ls.start_lng)} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">
                               {fmtDate(ls.started_at)}
                             </a>
                             {ls.start_accuracy_m != null && <> · ±{Math.round(Number(ls.start_accuracy_m))} m</>}
                             {off !== null && <span className={off > r.radius_m ? " font-semibold text-amber-700" : ""}> · {tr("{0} m from the coordinates", off)}</span>}
-                            {ls.started_by_name && <span className="block text-slate-400">{ls.started_by_name} · {ls.number}</span>}
+                            {ls.started_by_name && <span className="block text-neutral-400">{ls.started_by_name} · {ls.number}</span>}
                           </>
-                        ) : <span className="text-slate-400">—</span>}
+                        ) : <span className="text-neutral-400">—</span>}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Button variant="secondary" size="sm" onClick={() => setEdit(r)}><Pencil size={13} /> {tr("Set")}</Button>
@@ -235,18 +235,18 @@ function LocationDrawer({ row, onClose, onSaved }: { row: Row; onClose: () => vo
           )}
           <Button variant="secondary" size="sm" loading={here === "busy"} onClick={() => void takeHere()}><Crosshair size={13} /> {tr("Use my position (on site)")}</Button>
           {coords && (
-            <a href={mapsUrl(coords[0], coords[1])} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 self-center text-xs font-medium text-blue-700 hover:underline">
+            <a href={mapsUrl(coords[0], coords[1])} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 self-center text-xs font-medium text-brand-700 hover:underline">
               {tr("Check on Google Maps")} <ExternalLink size={12} />
             </a>
           )}
         </div>
         {ls && (
-          <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
             {tr("Latest stock opname {0} started on {1}", ls.number, fmtDate(ls.started_at))}
             {ls.start_accuracy_m != null && ` · ±${Math.round(Number(ls.start_accuracy_m))} m`}
             {ls.started_by_name && ` · ${ls.started_by_name}`}
             {off !== null && <span className={off > r ? "block font-semibold text-amber-700" : "block"}>{tr("{0} m from these coordinates", off)}</span>}
-            <span className="block text-slate-400">{tr("Check the point on the map before using it: it is where the phone was, not necessarily the outlet.")}</span>
+            <span className="block text-neutral-400">{tr("Check the point on the map before using it: it is where the phone was, not necessarily the outlet.")}</span>
           </p>
         )}
       </DrawerSection>
@@ -257,7 +257,7 @@ function LocationDrawer({ row, onClose, onSaved }: { row: Row; onClose: () => vo
         <div className="flex flex-wrap gap-1.5">
           {[50, 100, 150, 250].map((v) => (
             <button key={v} type="button" onClick={() => setRadius(String(v))}
-              className={`h-8 rounded-lg border px-3 text-xs font-medium ${r === v ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+              className={`h-8 rounded-lg border px-3 text-xs font-medium ${r === v ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"}`}>
               {v} m{v === STANDARD_RADIUS ? ` · ${tr("standard")}` : ""}
             </button>
           ))}

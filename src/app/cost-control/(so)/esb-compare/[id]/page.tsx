@@ -51,13 +51,13 @@ export default function CompareDetail() {
   if (!r) return <PageSkeleton />;
   const st = COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH;
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className="min-h-full bg-neutral-50">
       <header className="px-4 pt-5 sm:px-6 sm:pt-6">
         <div className="flex items-start gap-3">
-          <Link href="/cost-control/esb-compare" className="mt-0.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></Link>
+          <Link href="/cost-control/esb-compare" className="mt-0.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></Link>
           <div className="min-w-0">
-            <h1 className="truncate text-lg font-semibold text-slate-900">{r.facility_name}</h1>
-            <p className="text-xs text-slate-500 sm:text-sm">{countTypeLabel(r.count_type)} · {fmtDay(r.business_date)} · <span className="font-mono">{r.number}</span>
+            <h1 className="truncate text-lg font-semibold text-neutral-900">{r.facility_name}</h1>
+            <p className="text-xs text-neutral-500 sm:text-sm">{countTypeLabel(r.count_type)} · {fmtDay(r.business_date)} · <span className="font-mono">{r.number}</span>
               {r.esb_doc && <> · ESB <span className="font-mono">{r.esb_doc.doc_num}</span> ({r.esb_doc.status_name})</>}</p>
             <div className="mt-2 flex flex-wrap gap-1.5"><Badge tone={st.tone}>{st.label()}</Badge>
               {r.variance_value !== undefined && <Badge>{tr("Variance")} Rp {fmtNumber(Math.round(Number(r.variance_value)))}</Badge>}</div>
@@ -66,7 +66,7 @@ export default function CompareDetail() {
       </header>
       <div className="p-4 sm:p-6">
         {r.status === "WAITING_FOR_ESB" || r.status === "NO_ESB_BRANCH" ? (
-          <Panel><p className="px-5 py-10 text-center text-sm text-slate-500">
+          <Panel><p className="px-5 py-10 text-center text-sm text-neutral-500">
             {r.status === "WAITING_FOR_ESB" ? tr("ESB has no stock opname for this branch, day and purpose yet. Upload the export file in ESB; the comparison appears after the next ESB sync.")
               : tr("This facility is not linked to an ESB branch.")}</p></Panel>
         ) : (
@@ -83,16 +83,16 @@ export default function CompareDetail() {
                     <th className="px-3 py-2.5 text-right">{tr("ESB Actual")}</th><th className="px-3 py-2.5 text-right">{tr("ESB System")}</th>
                     <th className="px-3 py-2.5 text-right">{tr("Variance")}</th><th className="px-3 py-2.5">{tr("Status")}</th></tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {lines.map((l) => (
                     <tr key={l.product_id} className={cx(l.status !== "MATCH" && "bg-red-50/30")}>
-                      <td className="max-w-[18rem] px-3 py-2.5"><span className="block truncate font-medium text-slate-900">{l.product_name}</span>
-                        <span className="block font-mono text-[11px] text-slate-400">{l.product_code}</span></td>
-                      <td className="px-3 py-2.5 text-xs text-slate-500">{l.unit ?? "—"}</td>
+                      <td className="max-w-[18rem] px-3 py-2.5"><span className="block truncate font-medium text-neutral-900">{l.product_name}</span>
+                        <span className="block font-mono text-[11px] text-neutral-400">{l.product_code}</span></td>
+                      <td className="px-3 py-2.5 text-xs text-neutral-500">{l.unit ?? "—"}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums">{fmtQty(l.platform_qty) || "—"}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums">{fmtQty(l.esb_actual) || "—"}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums text-slate-500">{fmtQty(l.esb_system) || "—"}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{l.variance_qty !== undefined ? <>{fmtQty(l.variance_qty)}<span className="block text-[11px] text-slate-400">Rp {fmtNumber(Math.round(Number(l.variance_value)))}</span></> : "—"}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums text-neutral-500">{fmtQty(l.esb_system) || "—"}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums">{l.variance_qty !== undefined ? <>{fmtQty(l.variance_qty)}<span className="block text-[11px] text-neutral-400">Rp {fmtNumber(Math.round(Number(l.variance_value)))}</span></> : "—"}</td>
                       <td className="px-3 py-2.5"><Badge tone={(LINE[l.status] ?? LINE.MISMATCH).tone}>{(LINE[l.status] ?? LINE.MISMATCH).label()}</Badge></td>
                     </tr>
                   ))}

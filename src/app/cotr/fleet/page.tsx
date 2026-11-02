@@ -7,7 +7,7 @@
 // labels (no QRIS: it is shown only for a payment) are printed from here; their QR opens /share/fleet/{token}.
 
 import Link from "next/link";
-import { Bike, ExternalLink, Printer, QrCode, Truck } from "lucide-react";
+import { Bike, Building2, CheckCircle2, ExternalLink, Printer, QrCode, Truck, Wrench } from "lucide-react";
 import { useState } from "react";
 import { Badge, Button } from "@/so/ui";
 import { Page } from "@/components/kc/compat";
@@ -41,7 +41,17 @@ export default function CotrFleetPage() {
   return (
     <Page eyebrow="Monitoring COTR" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
       actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print labels")}</Button></Link>}>
-      <MasterTable noun={tr("fleet")} title={tr("Fleet")} master={master}
+      <MasterTable noun={tr("fleet")} title={tr("Fleet")} master={master} filters={[
+        { key: "pool", label: tr("Pool / HUB"), icon: <Building2 size={15} />, options: (pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => ({ value: p.code, label: p.name, test: (f: Fleet) => f.pool_code === p.code })) },
+        { key: "type", label: tr("Type"), icon: <Truck size={15} />, options: (types.rows ?? []).map((t) => ({ value: t.code, label: t.name, test: (f: Fleet) => f.type === t.code })) },
+        { key: "condition", label: tr("Condition"), icon: <Wrench size={15} />, options: [
+          { value: "good", label: tr("Good"), test: (f: Fleet) => f.condition === "good" }, { value: "service", label: tr("In service"), test: (f: Fleet) => f.condition === "service" },
+          { value: "due", label: tr("Papers or service due"), test: (f: Fleet) => dues(f, now).length > 0 }] },
+        { key: "active", label: tr("Status"), icon: <CheckCircle2 size={15} />, options: [
+          { value: "on", label: tr("Active"), test: (f: Fleet) => f.is_active }, { value: "off", label: tr("Inactive"), test: (f: Fleet) => !f.is_active }] },
+        { key: "qris", label: tr("QRIS"), icon: <QrCode size={15} />, options: [
+          { value: "with", label: tr("With QRIS"), test: (f: Fleet) => !!(f.qris_nmid || f.has_qris) }, { value: "without", label: tr("No QRIS"), test: (f: Fleet) => !(f.qris_nmid || f.has_qris) }] },
+      ]}
         blank={(): Partial<Fleet> => ({ code: "", name: "", type: types.rows?.[0]?.code ?? "sepeda", plate: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", capacity: 0, condition: "good", last_service: null, is_active: true })}
         rowActions={(f) => (<>
           {f.label_token && <a href={`/share/fleet/${f.label_token}`} target="_blank" rel="noreferrer" aria-label={tr("Information page")} title={tr("Information page (what the QR opens)")}

@@ -4,12 +4,13 @@
 // roster of the drivers (a shift, off, leave or sick per day), the attendance against the check in of the driver
 // app and a recap per driver — the administrative reference of the incentives.
 
-import { CalendarDays, ChevronLeft, ChevronRight, Copy, Save, Search } from "lucide-react";
+import { Building2, CalendarDays, ChevronLeft, ChevronRight, Clock, Copy, Save, Users, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Select, Tone, cx, inputClass, useToast } from "@/so/ui";
-import { kcTable } from "@/components/kc";
+import { Badge, Button, Empty, ErrorState, Tone, cx, useToast } from "@/so/ui";
+import { SearchInput, StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
+import { ScopeBar } from "@/components/kc/ScopeBar";
+import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
 import { Page, Panel } from "@/components/kc/compat";
-import { Segmented } from "@/so/ui/Simple";
 import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
 import { MasterTable, useMaster } from "@/cotr/ui";
@@ -47,7 +48,10 @@ export default function CotrSchedulePage() {
   const [tab, setTab] = useState<"roster" | "templates">("roster");
   return (
     <Page eyebrow="Monitoring COTR" media={<CalendarDays size={19} />} title={tr("Master Schedule")} subtitle={tr("Shifts of the drivers per day, attendance against the check in, and the recap for the incentives")}>
-      <Segmented label={tr("Section")} value={tab} onChange={setTab} options={[{ value: "roster", label: tr("Roster") }, { value: "templates", label: tr("Shift templates") }]} />
+      <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={[
+        { key: "roster", label: <span className="inline-flex items-center gap-1.5"><CalendarDays size={15} />{tr("Roster")}</span> },
+        { key: "templates", label: <span className="inline-flex items-center gap-1.5"><Clock size={15} />{tr("Shift templates")}</span> },
+      ]} />
       {tab === "roster" ? <RosterView /> : <TemplatesView />}
     </Page>
   );
@@ -66,6 +70,8 @@ function RosterView() {
   const [tick, setTick] = useState(0);
   const [q, setQ] = useState("");
   const [dept, setDept] = useState("");
+  const [sheet, setSheet] = useState(false);
+  const [draftF, setDraftF] = useState({ pool: "", dept: "" });
   // phones: one day at a time; desktop: the week grid (both can be switched)
   const [mode, setMode] = useState<"day" | "week">("week");
   useEffect(() => { if (window.matchMedia("(max-width: 1023.98px)").matches) setMode("day"); }, []);
@@ -121,42 +127,55 @@ function RosterView() {
   const recap = (code: string) => data?.recap.find((r) => r.driver === code);
   const sum = data ? people.reduce((a, p) => { const r = recap(p.code); return { scheduled: a.scheduled + (r?.scheduled ?? 0), worked: a.worked + (r?.worked ?? 0), late: a.late + (r?.late ?? 0), pay: a.pay + (r?.pay ?? 0) }; }, { scheduled: 0, worked: 0, late: 0, pay: 0 }) : null;
 
+  const poolList = (pools.rows ?? []).filter((p) => p.kind !== "storage");
   return (
     <>
+      <StatGrid label={tr("Recap of the week")} cols={4}>
+        <StatCard label={tr("People")} icon={<Users />} value={data ? people.length : <ValueSkeleton />} sub={data && tr("{0} with a shift today", people.filter((p) => valueOf(p.code, today).status === "work").length)} />
+        <StatCard label={tr("Scheduled")} icon={<CalendarDays />} value={sum ? sum.scheduled : <ValueSkeleton />} sub={sum && tr("{0} worked", sum.worked)} />
+        <StatCard label={tr("Late")} icon={<Clock />} tone={sum?.late ? "warn" : "default"} value={sum ? sum.late : <ValueSkeleton />} />
+        <StatCard label={tr("Base pay")} tone="brand" icon={<Wallet />} value={sum ? rupiah(sum.pay) : <ValueSkeleton />} sub={tr("reference of the incentives")} />
+      </StatGrid>
+      {sheet && (
+        <MonitorFilterSheet active={[draftF.pool, draftF.dept].filter(Boolean).length} onClose={() => setSheet(false)} onReset={() => setDraftF({ pool: "", dept: "" })}
+          onApply={() => { setPool(draftF.pool); setDept(draftF.dept); setSheet(false); }}>
+          <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={poolList.find((p) => p.code === draftF.pool)?.name ?? null} onClear={() => setDraftF({ ...draftF, pool: "" })}>
+            <ComboFilter value={draftF.pool} onChange={(v) => setDraftF({ ...draftF, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
+              options={poolList.map((p) => ({ value: p.code, label: p.name, hint: p.city }))} />
+          </FilterRow>
+          {departments.length > 0 && (
+            <FilterRow icon={<Users size={15} />} label={tr("Department")} value={draftF.dept || null} onClear={() => setDraftF({ ...draftF, dept: "" })}>
+              <OptionList value={draftF.dept} onChange={(v) => setDraftF({ ...draftF, dept: v })} choices={[{ value: "", label: tr("All departments") }, ...departments.map((d) => ({ value: d, label: d }))]} />
+            </FilterRow>
+          )}
+        </MonitorFilterSheet>
+      )}
       <Panel title={tr("Roster")} description={tr("Choose a shift, off, leave or sick for every person and day; the attendance follows the check in of the driver app")}
         actions={<Button size="sm" variant="secondary" disabled={busy} onClick={() => void copyLastWeek()}><Copy size={14} /> <span className="hidden sm:inline">{tr("Copy last week")}</span></Button>}
         toolbar={
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center rounded-xl border border-neutral-200 bg-white">
-                <button type="button" aria-label={tr("Previous week")} onClick={() => setWeek(addDays(week, -7))} className="rounded-l-xl p-2.5 text-neutral-500 hover:bg-neutral-50"><ChevronLeft size={16} /></button>
-                <span className="min-w-[9.5rem] px-1 text-center text-sm font-semibold tabular-nums text-neutral-800">{dayLabel(week, { day: "numeric", month: "short" })} – {dayLabel(addDays(week, 6), { day: "numeric", month: "short" })}</span>
-                <button type="button" aria-label={tr("Next week")} onClick={() => setWeek(addDays(week, 7))} className="rounded-r-xl p-2.5 text-neutral-500 hover:bg-neutral-50"><ChevronRight size={16} /></button>
+              <div className="flex items-center rounded-lg border border-neutral-200 bg-white shadow-sm">
+                <button type="button" aria-label={tr("Previous week")} onClick={() => setWeek(addDays(week, -7))} className="rounded-l-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronLeft size={16} /></button>
+                <span className="min-w-[9.5rem] px-1 text-center text-[13px] font-semibold tabular-nums text-neutral-800">{dayLabel(week, { day: "numeric", month: "short" })} – {dayLabel(addDays(week, 6), { day: "numeric", month: "short" })}</span>
+                <button type="button" aria-label={tr("Next week")} onClick={() => setWeek(addDays(week, 7))} className="rounded-r-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronRight size={16} /></button>
               </div>
               {week !== mondayOf(today) && <Button size="sm" variant="ghost" onClick={() => { setWeek(mondayOf(today)); setDay(today); }}>{tr("This week")}</Button>}
-              <Select value={pool} onChange={(e) => setPool(e.target.value)} aria-label={tr("Pool / HUB")} className="h-10 w-auto min-w-[10rem] flex-1 sm:flex-none">
-                <option value="">{tr("All pools")}</option>{(pools.rows ?? []).map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
-              </Select>
-              <div role="radiogroup" aria-label={tr("View")} className="ml-auto flex rounded-xl bg-neutral-100 p-1">
+              <div role="radiogroup" aria-label={tr("View")} className="ml-auto flex rounded-lg bg-neutral-100 p-1">
                 {(["day", "week"] as const).map((m) => (
                   <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-                    className={cx("rounded-lg px-3 py-1.5 text-xs font-semibold", mode === m ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500")}>
+                    className={cx("rounded-md px-3 py-1 text-xs font-semibold", mode === m ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500")}>
                     {m === "day" ? tr("Per day") : tr("Weekly")}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative min-w-0 flex-1 basis-48">
-                <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search name or nickname")} className={cx(inputClass, "h-10 pl-9")} />
-              </div>
-              {departments.length > 1 && (
-                <Select value={dept} onChange={(e) => setDept(e.target.value)} aria-label={tr("Department")} className="h-10 w-auto">
-                  <option value="">{tr("All departments")}</option>{departments.map((d) => <option key={d} value={d}>{d}</option>)}
-                </Select>
-              )}
-            </div>
+            <ScopeBar onOpen={() => { setDraftF({ pool, dept }); setSheet(true); }} onRefresh={() => setTick((t) => t + 1)}
+              right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search name or nickname")} />}
+              scopes={[
+                { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolList.find((p) => p.code === pool)?.name ?? tr("All pools"), active: !!pool },
+                ...(departments.length ? [{ key: "dept", icon: <Users />, label: tr("Department"), value: dept || tr("All departments"), active: !!dept }] : []),
+              ]} />
           </div>
         }>
         {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <div className="skeleton m-4 h-40 rounded-xl" /> : people.length === 0 ? (
@@ -267,7 +286,7 @@ function RosterView() {
       </Panel>
 
       {dirty > 0 && (
-        <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-4 flex items-center gap-3 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6"
+        <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-5 flex items-center gap-3 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mb-6 lg:px-8"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <p className="min-w-0 flex-1 text-xs text-neutral-600">{tr("{0} changes not saved yet", dirty)}</p>
           <Button variant="ghost" size="sm" onClick={() => setEdits({})}>{tr("Undo")}</Button>
@@ -277,11 +296,6 @@ function RosterView() {
 
       {data && people.length > 0 && sum && (
         <Panel title={tr("Recap of the week")} description={tr("Days scheduled and worked, on time, late and absent, base pay: the reference of the incentives")}>
-          <div className="grid grid-cols-2 gap-px border-b border-neutral-100 bg-neutral-100 sm:grid-cols-4">
-            {([[tr("Scheduled"), sum.scheduled], [tr("Worked"), sum.worked], [tr("Late"), sum.late], [tr("Base pay"), rupiah(sum.pay)]] as [string, string | number][]).map(([k, v]) => (
-              <div key={k} className="bg-white px-4 py-2.5"><p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{k}</p><p className="text-lg font-semibold tabular-nums text-neutral-900">{v}</p></div>
-            ))}
-          </div>
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Name")}</th>
               {[tr("Scheduled"), tr("Worked"), tr("On time"), tr("Late"), tr("Absent"), tr("Off"), tr("Leave"), tr("Sick"), tr("Base pay")].map((h) => <th key={h} className="px-3 py-2.5 text-right">{h}</th>)}</tr></thead>

@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { Check, Eye, EyeOff, KeyRound, Loader2 } from 'lucide-react';
-import Drawer from '@/components/ui/Drawer';
+import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
 import { useAuth } from '@/lib/auth';
 import { tr, serverMsg } from '@/lib/i18n';
@@ -79,10 +79,13 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
         </>
       }
     >
-      <form id="change-password" onSubmit={submit} className="space-y-4">
+      <form id="change-password" onSubmit={submit}>
+        <DrawerSection title={tr('Current password')}>
         <Field label={tr('Current password')} htmlFor="pw-current" required>
           <input id="pw-current" type={type} autoComplete="current-password" className={inputClass} value={current} onChange={e => setCurrent(e.target.value)} />
         </Field>
+        </DrawerSection>
+        <DrawerSection title={tr('New password')}>
         <Field label={tr('New password')} htmlFor="pw-new" required>
           <div className="relative">
             <input id="pw-new" type={type} autoComplete="new-password" className={`${inputClass} pr-10`} value={next} onChange={e => setNext(e.target.value)} />
@@ -92,7 +95,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
             </button>
           </div>
         </Field>
-        <ul className="space-y-0.5 text-xs">
+        <ul className="grid gap-1 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-xs sm:grid-cols-2">
           {RULES.map(r => (
             <li key={r.label} className={`flex items-center gap-1.5 ${r.test(next) ? 'text-emerald-600' : 'text-neutral-400'}`}>
               <Check size={12} /> {r.label}
@@ -102,7 +105,8 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
         <Field label={tr('Confirm new password')} htmlFor="pw-confirm" required error={confirm && next !== confirm ? tr('Does not match') : null}>
           <input id="pw-confirm" type={type} autoComplete="new-password" className={inputClass} value={confirm} onChange={e => setConfirm(e.target.value)} />
         </Field>
-        {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
+        </DrawerSection>
+        {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
       </form>
     </Drawer>
   );

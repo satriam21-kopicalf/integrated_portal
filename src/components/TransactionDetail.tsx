@@ -1,8 +1,9 @@
 'use client';
 
 import { currentCompany, withCompany } from '@/lib/company';
-import { useCallback, useEffect, useState } from 'react';
-import { MapPin, Receipt, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import Drawer, { DrawerSection } from '@/components/kc/Drawer';
+import { MapPin, Receipt } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatDateTime, formatNumber, parseLocalDate } from '@/lib/format';
 import { channelLabel } from '@/lib/overview';
@@ -31,31 +32,8 @@ function duration(from?: string | null, to?: string | null): string {
 }
 
 export default function TransactionDrawer({ transaction, onClose }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const handleClose = useCallback(() => {
-    setIsOpen(false);
-    setTimeout(onClose, 250);
-  }, [onClose]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setIsOpen(true), 10);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      clearTimeout(t);
-      document.body.style.overflow = '';
-    };
-  }, []);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [handleClose]);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,47 +50,21 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
   const discount = Number(tx.discount_amount || 0);
 
   return (
-    <>
-      <div
-        className={`fixed inset-0 z-[80] bg-slate-900/40 dark:bg-black/70 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
-        onClick={handleClose}
-      />
-      <aside
-        className={`fixed inset-y-0 right-0 z-[80] flex w-full flex-col bg-white shadow-2xl transition-transform duration-300 ease-out sm:w-[440px] ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={tr('Transaction detail')}
-      >
-        {/* Header */}
-        <div className="flex items-start gap-3 border-b border-slate-200 px-5 py-4">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100">
-            <Receipt size={20} className="text-slate-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{tr('Transaction')}</p>
-            <p className="truncate font-mono text-sm font-semibold text-slate-900">{tx.sales_num}</p>
-          </div>
-          <button type="button" onClick={handleClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close')}>
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
+    <Drawer open onClose={onClose} title={tr('Transaction detail')} icon={<Receipt />} focusFirstField={false}
+      description={<span className="font-mono">{tx.sales_num}</span>}>
           {/* Total */}
-          <div className="border-b border-slate-100 px-5 py-4">
+          <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyle(tx.status)}`}>
                 {tx.status || tr('Unknown')}
               </span>
-              <span className="flex min-w-0 items-center gap-1 text-xs text-slate-500">
+              <span className="flex min-w-0 items-center gap-1 text-xs text-neutral-500">
                 <MapPin size={12} className="flex-shrink-0" />
                 <span className="truncate">{tx.branch_name || '-'}</span>
               </span>
             </div>
-            <p className="mt-3 text-xs text-slate-500">{tr('Grand total')}</p>
-            <p className="text-3xl font-semibold tabular-nums text-slate-900">{formatCurrency(tx.total_amount)}</p>
+            <p className="mt-3 text-xs text-neutral-500">{tr('Grand total')}</p>
+            <p className="text-3xl font-semibold tabular-nums text-neutral-900">{formatCurrency(tx.total_amount)}</p>
           </div>
 
           {/* Information */}
@@ -138,21 +90,21 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
                 {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-9 skeleton rounded" />)}
               </div>
             ) : rows.length === 0 ? (
-              <p className="text-sm text-slate-500">{tr('No items recorded for this transaction.')}</p>
+              <p className="text-sm text-neutral-500">{tr('No items recorded for this transaction.')}</p>
             ) : (
-              <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+              <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
                 {rows.map((r, i) => {
                   const addon = r.menu_name?.endsWith(')');
                   return (
-                    <li key={i} className={`flex items-start justify-between gap-3 px-3 py-2 ${addon ? 'bg-slate-50/60' : ''}`}>
+                    <li key={i} className={`flex items-start justify-between gap-3 px-3 py-2 ${addon ? 'bg-neutral-50/60' : ''}`}>
                       <div className="min-w-0">
-                        <p className={`truncate text-sm ${addon ? 'pl-3 text-slate-500' : 'font-medium text-slate-800'}`}>{r.menu_name}</p>
-                        <p className={`text-xs text-slate-400 ${addon ? 'pl-3' : ''}`}>
+                        <p className={`truncate text-sm ${addon ? 'pl-3 text-neutral-500' : 'font-medium text-neutral-800'}`}>{r.menu_name}</p>
+                        <p className={`text-xs text-neutral-400 ${addon ? 'pl-3' : ''}`}>
                           {formatNumber(r.quantity)} × {formatCurrency(r.unit_price)}
                           {Number(r.discount_item) ? tr(' · disc. {0}', formatCurrency(r.discount_item)) : ''}
                         </p>
                       </div>
-                      <p className="whitespace-nowrap text-sm tabular-nums text-slate-800">{formatCurrency(r.total_item)}</p>
+                      <p className="whitespace-nowrap text-sm tabular-nums text-neutral-800">{formatCurrency(r.total_item)}</p>
                     </li>
                   );
                 })}
@@ -166,7 +118,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
               <Row label={tr('Subtotal')} value={formatCurrency(tx.subtotal)} />
               {discount > 0 && <Row label={tr('Discount')} value={`−${formatCurrency(discount)}`} tone="text-rose-600" />}
               {Number(tx.tax_amount) > 0 && <Row label={tr('Tax')} value={formatCurrency(tx.tax_amount)} />}
-              <div className="my-2 border-t border-slate-200" />
+              <div className="my-2 border-t border-neutral-200" />
               <Row label={tr('Grand total')} value={formatCurrency(tx.total_amount)} strong />
               {tx.nett_sales !== undefined && <Row label={tr('Nett sales')} value={formatCurrency(tx.nett_sales)} />}
             </dl>
@@ -182,35 +134,28 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
               </dl>
             </Section>
           )}
-        </div>
-      </aside>
-    </>
+    </Drawer>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="border-b border-slate-100 px-5 py-4">
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
-      {children}
-    </section>
-  );
+  return <DrawerSection title={title}>{children}</DrawerSection>;
 }
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-slate-400">{label}</dt>
-      <dd className="truncate text-sm font-medium text-slate-800" title={value}>{value}</dd>
+      <dt className="text-xs text-neutral-400">{label}</dt>
+      <dd className="truncate text-sm font-medium text-neutral-800" title={value}>{value}</dd>
     </div>
   );
 }
 
-function Row({ label, value, strong = false, tone = 'text-slate-700' }: { label: string; value: string; strong?: boolean; tone?: string }) {
+function Row({ label, value, strong = false, tone = 'text-neutral-700' }: { label: string; value: string; strong?: boolean; tone?: string }) {
   return (
     <div className="flex justify-between gap-3">
-      <dt className={strong ? 'font-semibold text-slate-900' : 'text-slate-500'}>{label}</dt>
-      <dd className={`tabular-nums ${strong ? 'font-semibold text-slate-900' : tone}`}>{value}</dd>
+      <dt className={strong ? 'font-semibold text-neutral-900' : 'text-neutral-500'}>{label}</dt>
+      <dd className={`tabular-nums ${strong ? 'font-semibold text-neutral-900' : tone}`}>{value}</dd>
     </div>
   );
 }

@@ -5,10 +5,13 @@
 // and the COTR management (page cotr.management) the monthly salary, allowance, NIK and bank account (migration 050).
 
 import Link from "next/link";
-import { Bike, FileSpreadsheet, KeyRound, ShieldCheck, UserRound } from "lucide-react";
+import { Bike, Building2, KeyRound, ShieldCheck, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button } from "@/so/ui";
+import { Badge } from "@/so/ui";
 import { Page } from "@/components/kc/compat";
+import { IconButton } from "@/components/kc";
+import { assetUrl } from "@/lib/assets";
+import Image from "next/image";
 import { call } from "@/so/features/checkin/checkin";
 import { Driver, DriverAccount, Fleet, Pool } from "@/cotr/types";
 import { MasterTable, imageUrl, rupiah, useMaster } from "@/cotr/ui";
@@ -41,8 +44,12 @@ export default function CotrDriversPage() {
   return (
     <Page eyebrow="Monitoring COTR" media={<Bike size={19} />} title={tr("Master Driver")} subtitle={tr("COTR drivers: profile, assignment, employment, payroll and bank account")}
       actions={<>
-        <Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import Excel")}</Button>
-        <Link href="/users"><Button variant="secondary"><KeyRound size={16} /> {tr("Driver accounts")}</Button></Link>
+        {/* icons only (2026-11-02): the real Excel icon for the import, a key for the driver accounts (User Accounts) */}
+        <IconButton label={tr("Import Excel")} onClick={() => setImporting(true)}>
+          <span className="relative h-5 w-5"><Image src={assetUrl("assets/xlsx.png")} alt="" fill sizes="20px" className="object-contain" /></span>
+        </IconButton>
+        <Link href="/users" title={tr("Driver accounts")} aria-label={tr("Driver accounts")}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-900"><KeyRound size={17} /></Link>
       </>}>
       {importing && <ImportDrivers pools={pools.rows ?? []} onClose={() => setImporting(false)} onDone={() => { void master.load(); void fleet.load(); }} />}
       {!management && (
@@ -50,7 +57,14 @@ export default function CotrDriversPage() {
           <ShieldCheck size={14} />{tr("Salary, bank account and NIK are shown to superadmins and the COTR management only.")}
         </p>
       )}
-      <MasterTable noun={tr("driver")} title={tr("Drivers")} master={master}
+      <MasterTable noun={tr("driver")} title={tr("Drivers")} master={master} filters={[
+        { key: "pool", label: tr("Pool / HUB"), icon: <Building2 size={15} />, options: (pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => ({ value: p.code, label: p.name, test: (d: Driver) => d.pool_code === p.code })) },
+        { key: "status", label: tr("Status"), icon: <UserRound size={15} />, options: (Object.keys(STATUS) as Driver["status"][]).map((k) => ({ value: k, label: STATUS[k].label(), test: (d: Driver) => d.status === k })) },
+        { key: "account", label: tr("Driver app account"), icon: <KeyRound size={15} />, options: [
+          { value: "with", label: tr("With an account"), test: (d: Driver) => !!d.user_id }, { value: "without", label: tr("No account yet"), test: (d: Driver) => !d.user_id }] },
+        { key: "fleet", label: tr("Armada"), icon: <Bike size={15} />, options: [
+          { value: "with", label: tr("With an armada"), test: (d: Driver) => !!d.fleet_code }, { value: "without", label: tr("No armada"), test: (d: Driver) => !d.fleet_code }] },
+      ]}
         description={tr("Driver logins are made in User Accounts (role Driver (COTR)); pick the account here to tie it to the driver.")}
         blank={(): Partial<Driver> => ({ code: `DRV-${String((master.rows?.length ?? 0) + 1).padStart(3, "0")}`, name: "", phone: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", fleet_code: null, status: "active", joined_on: new Date().toISOString().slice(0, 10), user_id: null })}
         columns={[

@@ -41,9 +41,9 @@ export default function ActivityInsights({ data, onPickDay }: { data: ActivityIn
 
 function Panel({ title, note, className = '', children }: { title: string; note: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className={`min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm ${className}`}>
-      <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-      <p className="text-xs text-slate-500">{note}</p>
+    <div className={`min-w-0 rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm ${className}`}>
+      <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
+      <p className="text-xs text-neutral-500">{note}</p>
       <div className="mt-2">{children}</div>
     </div>
   );
@@ -77,11 +77,11 @@ function DayChart({ data, onPickDay }: { data: ActivityInsightsData; onPickDay: 
         itemStyle: { color: ISSUE, borderRadius: [4, 4, 0, 0], borderColor: '#fff', borderWidth: 1 } },
     ],
   }), [days]);
-  if (!days.length) return <p className="py-16 text-center text-sm text-slate-400">{tr('No activity in this period')}</p>;
+  if (!days.length) return <p className="py-16 text-center text-sm text-neutral-400">{tr('No activity in this period')}</p>;
   return (
     <>
       <EChart option={option} height={180} ariaLabel={tr('Activity per day')} onClick={p => days[p.dataIndex] && onPickDay(days[p.dataIndex].day)} />
-      <div className="mt-1 flex gap-4 text-[11px] text-slate-500">
+      <div className="mt-1 flex gap-4 text-[11px] text-neutral-500">
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: OK }} />{tr('Succeeded')}</span>
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: ISSUE }} />{tr('Failed or denied')}</span>
       </div>
@@ -109,28 +109,28 @@ function HourChart({ data }: { data: ActivityInsightsData }) {
     yAxis: valueAxis(v => formatNumber(v), { minInterval: 1 }),
     series: [{ type: 'bar', data: counts.map((v, h) => ({ value: v, itemStyle: { color: h === peak && v ? '#1d4ed8' : '#93c5fd', borderRadius: [3, 3, 0, 0] } })), barMaxWidth: 14 }],
   }), [counts, peak]);
-  if (!counts.some(Boolean)) return <p className="py-16 text-center text-sm text-slate-400">{tr('No activity')}</p>;
+  if (!counts.some(Boolean)) return <p className="py-16 text-center text-sm text-neutral-400">{tr('No activity')}</p>;
   return (
     <>
       <EChart option={option} height={180} ariaLabel={tr('Activity per hour of the day')} />
-      <p className="mt-1 text-[11px] text-slate-500">{tr('Busiest:')} <b className="text-slate-700">{String(peak).padStart(2, '0')}:00</b> ({formatNumber(counts[peak])} {tr('activities)')}</p>
+      <p className="mt-1 text-[11px] text-neutral-500">{tr('Busiest:')} <b className="text-neutral-700">{String(peak).padStart(2, '0')}:00</b> ({formatNumber(counts[peak])} {tr('activities)')}</p>
     </>
   );
 }
 
 function TopPages({ data }: { data: ActivityInsightsData }) {
   const max = Math.max(1, ...data.topPages.map(p => p.count));
-  if (!data.topPages.length) return <p className="py-16 text-center text-sm text-slate-400">{tr('No page activity')}</p>;
+  if (!data.topPages.length) return <p className="py-16 text-center text-sm text-neutral-400">{tr('No page activity')}</p>;
   return (
     <ul className="space-y-2.5 pt-1">
       {data.topPages.map(p => (
         <li key={p.page}>
           <div className="flex items-center justify-between gap-2 text-xs">
-            <span className="truncate font-medium text-slate-700">{pageName(p.page)}</span>
-            <span className="flex-shrink-0 tabular-nums text-slate-500"><b className="text-slate-800">{formatNumber(p.count)}</b> · {formatNumber(p.users)} {tr('users')}</span>
+            <span className="truncate font-medium text-neutral-700">{pageName(p.page)}</span>
+            <span className="flex-shrink-0 tabular-nums text-neutral-500"><b className="text-neutral-800">{formatNumber(p.count)}</b> · {formatNumber(p.users)} {tr('users')}</span>
           </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.max(3, (p.count / max) * 100)}%` }} />
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-neutral-100">
+            <div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.max(3, (p.count / max) * 100)}%` }} />
           </div>
         </li>
       ))}

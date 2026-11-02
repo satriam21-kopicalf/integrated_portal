@@ -97,12 +97,12 @@ export default function ExportButton({
           type="button"
           onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
           disabled={running}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
           title={running ? tr('Export in progress') : tr('Export to Excel or Google Sheets')}
           aria-label={tr('Export')}
         >
           {running ? (
-            <Loader2 size={18} className="animate-spin text-slate-600" />
+            <Loader2 size={18} className="animate-spin text-neutral-600" />
           ) : (
             <span className="relative h-6 w-6">
               <Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="24px" className="object-contain" />
@@ -111,14 +111,14 @@ export default function ExportButton({
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl">
+          <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-xl">
             {confirmReport ? (
               <div className="p-4">
                 <div className="flex gap-3">
                   <AlertTriangle size={20} className="mt-0.5 flex-shrink-0 text-amber-500" />
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{splitInParts ? tr('Split into several Google Sheets') : tr('Large export')}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                    <p className="text-sm font-semibold text-neutral-900">{splitInParts ? tr('Split into several Google Sheets') : tr('Large export')}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-neutral-500">
                       {days} {tr('days')}{!dateFrom && tr(' (no date filter, last 65 days)')}
                       {!branch && tr(' · approx. {0} rows', formatNumber(days * ROWS_PER_DAY_ESTIMATE))}.{' '}
                       {splitInParts
@@ -128,17 +128,17 @@ export default function ExportButton({
                   </div>
                 </div>
                 <div className="mt-4 flex justify-end gap-2">
-                  <button type="button" onClick={() => setConfirmReport(null)} className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100">
+                  <button type="button" onClick={() => setConfirmReport(null)} className="rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100">
                     {tr('Cancel')}
                   </button>
-                  <button type="button" onClick={() => runExport(confirmReport)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800">
+                  <button type="button" onClick={() => runExport(confirmReport)} className="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800">
                     {tr('Continue')}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="p-1.5">
-                <div role="radiogroup" aria-label={tr('Export format')} className="mb-1.5 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+                <div role="radiogroup" aria-label={tr('Export format')} className="mb-1.5 grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1">
                   {FORMATS.map(f => {
                     const unavailable = f.value === 'gsheet' && !googleSheets;
                     return (
@@ -151,7 +151,7 @@ export default function ExportButton({
                         onClick={() => chooseFormat(f.value)}
                         title={unavailable ? tr('Google Sheets is not set up on the server yet') : undefined}
                         className={`inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                          format === f.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800 disabled:hover:text-slate-500'}`}
+                          format === f.value ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 disabled:hover:text-neutral-500'}`}
                       >
                         {f.value === 'gsheet' ? <Sheet size={14} className="text-emerald-600" /> : <FileSpreadsheet size={14} className="text-emerald-700" />}
                         {f.label}
@@ -160,9 +160,9 @@ export default function ExportButton({
                   })}
                 </div>
                 {!googleSheets && (
-                  <p className="px-2.5 pb-1 text-[11px] leading-snug text-slate-400">{tr('Google Sheets becomes available once it is set up on the server.')}</p>
+                  <p className="px-2.5 pb-1 text-[11px] leading-snug text-neutral-400">{tr('Google Sheets becomes available once it is set up on the server.')}</p>
                 )}
-                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr('Export to')} {destination}</p>
+                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr('Export to')} {destination}</p>
                 {REPORTS.map(r => {
                   // one sheet only: the period is capped (one month of every branch ≈ 450k rows)
                   const tooLong = r.value === 'menu' && days > MENU_MAX_DAYS[format];
@@ -172,18 +172,18 @@ export default function ExportButton({
                       type="button"
                       disabled={tooLong}
                       onClick={() => requestExport(r.value)}
-                      className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
+                      className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
                     >
-                      <FileSpreadsheet size={18} className="mt-0.5 flex-shrink-0 text-slate-400" />
+                      <FileSpreadsheet size={18} className="mt-0.5 flex-shrink-0 text-neutral-400" />
                       <span>
-                        <span className="block text-sm font-medium text-slate-800">{r.label}</span>
-                        <span className="block text-xs text-slate-500">{r.description}</span>
+                        <span className="block text-sm font-medium text-neutral-800">{r.label}</span>
+                        <span className="block text-xs text-neutral-500">{r.description}</span>
                         {tooLong && <span className="block text-xs text-amber-700">{tr('At most {0} days for {1}: choose a shorter period', MENU_MAX_DAYS[format], destination)}</span>}
                       </span>
                     </button>
                   );
                 })}
-                <p className="border-t border-slate-100 px-2.5 pb-1 pt-2 text-[11px] text-slate-400">
+                <p className="border-t border-neutral-100 px-2.5 pb-1 pt-2 text-[11px] text-neutral-400">
                   {typeLabel} · {branchLabel} · {dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Last 65 days')}
                   {format === 'gsheet' && <span className="block pt-0.5">{tr('The sheet is shared with your account e-mail.')}</span>}
                 </p>
