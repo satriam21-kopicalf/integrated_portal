@@ -10,6 +10,7 @@ import { AlertTriangle, CalendarDays, ClipboardCheck, Layers, MapPinCheck, Packa
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
 import { FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
@@ -18,11 +19,14 @@ import { scoreTone } from "@/so/features/visit/visit";
 import { tr } from "@/lib/i18n";
 
 type Pic = { id: string; name: string; branches: number; checkins: number; checkinDays: number; outside: number; productVisits: number; productScore: number | null;
-  outletVisits: number; outletScore: number | null; under: number; swatAudits: number; conformity: number | null; overrated: number; openActions: number };
+  outletVisits: number; outletScore: number | null; under: number; swatAudits: number; conformity: number | null; overrated: number; openActions: number;
+  /** the PIC score (2026-11-02): check-ins against the target, punctuality (before 11:00), visits, scores, SWAT */
+  outlets: number; checkinTarget: number; checkinRate: number | null; punctualDays: number; punctuality: number | null; visitTarget: number; visitRate: number | null; score: number | null };
 type Outlet = { code: string; name: string; groupCode: string | null; checkins: number; pics: number; productVisits: number; productScore: number | null; outletVisits: number;
   outletScore: number | null; under: number; swatAudits: number; swatScore: number | null; openActions: number; visited: boolean };
 type Result = { period: { from: string; to: string }; summary: { outlets: number; visited: number; checkins: number; productScore: number | null; outletScore: number | null; pics: number; under: number };
   swat: { audits: number; conformity: number | null; overrated: number; openActions: number }; picAssessment: Pic[]; branches: Outlet[];
+  weights: Record<"checkin" | "punctuality" | "visits" | "product" | "outlet" | "swat", number>; workingDays: number;
   groupOptions: { id: string; code: string; name: string }[] };
 type F = { period: Period; group: string };
 const NO_F = (): F => ({ period: { from: wibDay(-29), to: wibDay(0) }, group: "" });
@@ -36,6 +40,7 @@ export default function MonitoringOverviewPage() {
   const [sheet, setSheet] = useState(false);
   const [q, setQ] = useState("");
   const [view, setView] = useState<"pics" | "outlets">("pics");
+  const [open, setOpen] = useState<Pic | null>(null);
   useEffect(() => {
     let live = true;
     setRes(null);
@@ -73,7 +78,7 @@ export default function MonitoringOverviewPage() {
         </StatStrip>
       }>
       <Panel title={view === "pics" ? tr("Assessment per PIC") : tr("Per outlet")}
-        description={view === "pics" ? tr("Lowest agreement with the SWAT team first; a PIC without an audit yet comes last") : tr("Daily forms and SWAT audits of every outlet")}
+        description={view === "pics" ? tr("Lowest PIC score first; tap a row to see how the score is made") : tr("Daily forms and SWAT audits of every outlet")}
         actions={<div className="flex rounded-lg bg-slate-100 p-1">
           {([["pics", tr("PIC"), UsersRound], ["outlets", tr("Outlet"), Store]] as const).map(([k, label, Icon]) => (
             <button key={k} type="button" onClick={() => setView(k)} aria-pressed={view === k}
@@ -85,18 +90,25 @@ export default function MonitoringOverviewPage() {
         {error ? <ErrorState message={error} /> : !res ? <SkeletonRows cols={8} /> : view === "pics" ? (
           pics.length === 0 ? <Empty icon={<UsersRound size={28} />} title={tr("No PIC activity in this period")} /> : (
             <div className="overflow-x-auto">
-              <table className="m-cards w-full min-w-[980px] text-sm">
+              <table className="m-cards w-full min-w-[1180px] text-sm">
                 <thead className={theadClass}><tr>
-                  <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("Check-in days")}</th>
+                  <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("PIC Score")}</th>
+                  <th className="px-3 py-2.5 text-right">{tr("Check-Ins")}</th><th className="px-3 py-2.5 text-right">{tr("On Time")}</th>
                   <th className="px-3 py-2.5 text-right">Product</th><th className="px-3 py-2.5 text-right">Outlet</th><th className="px-3 py-2.5 text-right">UNDER</th>
                   <th className="px-3 py-2.5 text-right">{tr("SWAT audits")}</th><th className="px-3 py-2.5 text-right">{tr("Overrated")}</th>
                   <th className="px-3 py-2.5 text-right">{tr("Open plans")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Agreement with SWAT")}</th>
                 </tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {pagedPics.rows.map((p) => (
-                    <tr key={p.id}>
+                    <tr key={p.id} onClick={() => setOpen(p)} className="cursor-pointer hover:bg-blue-50/40">
                       <td className="py-2.5 pl-5 pr-3" data-label={tr("PIC")}><span className="block font-medium text-slate-900">{p.name}</span><span className="text-[11px] text-slate-400">{tr("{0} outlets", p.branches)}</span></td>
-                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Check-in days")}>{p.checkinDays}{p.outside ? <span className="block text-[10px] text-red-600">{tr("{0} outside radius", p.outside)}</span> : null}</td>
+                      <td className="px-3 py-2.5 text-right" data-label={tr("PIC Score")}><span className={cx("text-base font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</span></td>
+                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Check-Ins")}>
+                        <span className={cx("font-semibold", scoreTone(p.checkinRate))}>{pct(p.checkinRate)}</span>
+                        <span className="block text-[10px] text-slate-400">{p.checkins}/{p.checkinTarget}{p.outside ? ` · ${tr("{0} outside radius", p.outside)}` : ""}</span></td>
+                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("On Time")}>
+                        <span className={cx("font-semibold", scoreTone(p.punctuality))}>{pct(p.punctuality)}</span>
+                        <span className="block text-[10px] text-slate-400">{tr("{0} of {1} days", p.punctualDays, p.checkinDays)}</span></td>
                       <td className="px-3 py-2.5 text-right" data-label="Product"><Score v={p.productScore} n={p.productVisits} /></td>
                       <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={p.outletScore} n={p.outletVisits} /></td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.under ? "text-red-600" : "text-slate-400")} data-label="UNDER">{p.under}</td>
@@ -140,8 +152,44 @@ export default function MonitoringOverviewPage() {
         <span className="inline-flex items-center gap-1"><AlertTriangle size={12} /> {tr("Overrated: items the PIC passed and the SWAT team found UNDER")}</span>
         <Link href="/monitoring/wwwr" className="text-blue-700 hover:underline">Monitoring WW-WR →</Link>
       </p>
+      {open && res && <ScoreDrawer p={open} weights={res.weights} workingDays={res.workingDays} onClose={() => setOpen(null)} />}
       {sheet && res && <OverviewFilters value={f} groups={res.groupOptions} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </Page>
+  );
+}
+
+/** How the PIC score is made: each part, its weight and its value (parts without data are left out). */
+function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Result["weights"]; workingDays: number; onClose: () => void }) {
+  const parts: { key: keyof Result["weights"]; label: string; value: number | null; how: string }[] = [
+    { key: "checkin", label: tr("PIC Check-In"), value: p.checkinRate, how: tr("{0} of {1}: {2} outlets × check-ins per day of the branch group × {3} working days", p.checkins, p.checkinTarget, p.outlets, workingDays) },
+    { key: "punctuality", label: tr("On Time"), value: p.punctuality, how: tr("First check-in of the day before 11:00 WIB: {0} of {1} days", p.punctualDays, p.checkinDays) },
+    { key: "visits", label: tr("Product & Outlet Visits"), value: p.visitRate, how: tr("{0} of {1} visits (both forms every working day)", p.productVisits + p.outletVisits, p.visitTarget) },
+    { key: "product", label: tr("Monitoring Product Score"), value: p.productScore, how: tr("Average of the visits of the PIC ({0})", p.productVisits) },
+    { key: "outlet", label: tr("Monitoring Outlet Score"), value: p.outletScore, how: tr("Average of the visits of the PIC ({0})", p.outletVisits) },
+    { key: "swat", label: tr("Agreement with SWAT"), value: p.conformity, how: p.swatAudits ? tr("{0} SWAT audits · {1} items overrated", p.swatAudits, p.overrated) : tr("Not audited yet") },
+  ];
+  return (
+    <Drawer open onClose={onClose} size="md" icon={<Scale size={18} />} title={p.name} description={tr("How the PIC score is made")} focusFirstField={false}>
+      <div className="space-y-4 text-sm">
+        <div className="rounded-2xl bg-slate-50 p-4 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{tr("PIC Score")}</p>
+          <p className={cx("text-4xl font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</p>
+          <p className="mt-1 text-xs text-slate-500">{tr("Weighted over the parts with data; net sales will join later")}</p>
+        </div>
+        <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200">
+          {parts.map((x) => (
+            <li key={x.key} className={cx("px-4 py-3", x.value === null && "opacity-60")}>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="font-medium text-slate-900">{x.label} <span className="text-xs font-normal text-slate-400">· {weights[x.key]}%</span></span>
+                <span className={cx("font-semibold tabular-nums", scoreTone(x.value))}>{pct(x.value)}</span>
+              </div>
+              <div className="mt-1.5 h-1.5 rounded-full bg-slate-100"><span className="block h-full rounded-full bg-blue-600" style={{ width: `${x.value ?? 0}%` }} /></div>
+              <p className="mt-1 text-[11px] text-slate-500">{x.how}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Drawer>
   );
 }
 

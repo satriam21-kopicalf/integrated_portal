@@ -29,6 +29,8 @@ type Result = {
   period: { from: string; to: string }; definition: Definition; data: Visit[]; sections: SectionPerf[]; findings: Finding[];
   summary: { visits: number; branches: number; pics: number; under: number; meet: number; exceed: number; score: number | null; outside: number };
   pics: { id: string; name: string; n: number }[]; truncated: boolean; attendance?: Attendance;
+  /** per branch group (2026-11-02): visits, outlets, PICs, average score, UNDER */
+  groups?: { code: string; visits: number; outlets: number; pics: number; under: number; score: number | null }[];
   /** Monitoring Outlet: average stars per platform of the visits that carry one */
   platforms?: { key: string; platform: Platform; label: string; stars: number | null; visits: number }[];
 };
@@ -186,7 +188,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                       <ScorePill score={v.score} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold text-slate-900">{v.branchName}</span>
-                        <span className="block truncate text-xs text-slate-500">{v.name} · {wibDateTime(v.submittedAt)}</span>
+                        <span className="block truncate text-xs text-slate-500">{v.branchGroup ? `${v.branchGroup} · ` : ""}{v.name} · {wibDateTime(v.submittedAt)}</span>
                         <Bar c={v.counts} className="mt-1.5" />
                       </span>
                       <ChevronRight size={16} className="text-slate-300" />
@@ -206,7 +208,8 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                   <tbody className="divide-y divide-slate-100">
                     {!res ? <SkeletonRows cols={8} /> : paged.rows.map((v) => (
                       <tr key={v.id} onClick={() => setOpen(v.id)} className="group cursor-pointer hover:bg-blue-50/40">
-                        <td className="max-w-[16rem] py-3 pl-5 pr-3"><span className="block truncate font-semibold text-slate-900">{v.branchName}</span><span className="text-[11px] text-slate-400">{v.branchCode}</span></td>
+                        <td className="max-w-[16rem] py-3 pl-5 pr-3"><span className="block truncate font-semibold text-slate-900">{v.branchName}</span><span className="text-[11px] text-slate-400">{v.branchCode}</span>
+                          {v.branchGroup && <span className="ml-1.5 rounded bg-blue-50 px-1 text-[10px] font-semibold text-blue-700">{v.branchGroup}</span>}</td>
                         <td className="px-3 py-3">
                           <span className="flex items-center gap-2"><span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">{initials(v.name)}</span>
                             <span className="min-w-0"><span className="block truncate text-slate-800">{v.name}</span><span className="block max-w-[14rem] truncate text-[11px] text-slate-400">{v.audit ? tr("Team: {0}", v.audit.members.map((m) => m.name).join(", ")) : `@${v.username}`}</span></span></span>
@@ -407,6 +410,23 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
           )}
         </Panel>
       </div>
+
+      {(res.groups?.length ?? 0) > 0 && (
+        <Panel title={tr("Per Branch Group")} description={tr("The items asked follow the branch group of the outlet (CCI, CTG, CTGP)")}>
+          <ul className="grid gap-px bg-slate-100 sm:grid-cols-2 lg:grid-cols-4">
+            {res.groups!.map((g) => (
+              <li key={g.code} className="bg-white px-4 py-3">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-sm font-semibold text-slate-900">{g.code === "—" ? tr("Without a group") : g.code}</span>
+                  <span className={cx("text-xl font-semibold tabular-nums", scoreTone(g.score))}>{g.score === null ? "—" : `${g.score}%`}</span>
+                </div>
+                <p className="mt-0.5 text-[11px] text-slate-500">{tr("{0} visits · {1} outlets · {2} PICs", fmtNumber(g.visits), fmtNumber(g.outlets), fmtNumber(g.pics))}</p>
+                <p className={cx("text-[11px]", g.under ? "text-red-600" : "text-slate-400")}>{tr("{0} UNDER", fmtNumber(g.under))}</p>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
 
       <Panel title={tr("Outlets needing attention")} description={tr("Lowest average score first; tap an outlet to see its visits")}>
         <div className="overflow-x-auto">

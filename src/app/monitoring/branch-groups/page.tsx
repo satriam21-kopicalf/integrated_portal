@@ -4,7 +4,7 @@
 // Check In, Monitoring Product and Monitoring Outlet are judged by. One group per branch; a branch picked for a group
 // moves out of its former group. Used by Monitoring → Overview and the group filter of the monitoring pages.
 
-import { Boxes, Check, Plus, Save, Store, Trash2 } from "lucide-react";
+import { Boxes, Check, MapPinCheck, Plus, Save, Store, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, cx, inputClass, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -15,7 +15,8 @@ import { useAuth, hasPage } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
 
 type Branch = { code: string; name: string };
-type Group = { id: string; code: string; name: string; description: string | null; sort: number; branches: Branch[] };
+type Group = { id: string; code: string; name: string; description: string | null; sort: number; branches: Branch[];
+  /** PIC check-ins an outlet of the group takes per day (null = once a day, migration 066) */ checkin_max_per_day: number | null };
 type Data = { groups: Group[]; unassigned: Branch[] };
 
 export default function BranchGroupsPage() {
@@ -60,6 +61,7 @@ export default function BranchGroupsPage() {
                   {g.branches.length === 0 && <span className="text-xs text-amber-700">{tr("No branch yet")}</span>}
                 </span>
                 {g.description && g.name !== g.code && <span className="mt-3 text-xs text-slate-500">{g.description}</span>}
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate-600"><MapPinCheck size={13} className="text-slate-400" />{tr("PIC check-in: {0}× per outlet per day", g.checkin_max_per_day ?? 1)}</span>
               </button>
             ))}
           </div>
@@ -82,6 +84,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
   const [code, setCode] = useState(group?.code ?? "");
   const [name, setName] = useState(group?.name ?? "");
   const [description, setDescription] = useState(group?.description ?? "");
+  const [maxCheckin, setMaxCheckin] = useState(group?.checkin_max_per_day ? String(group.checkin_max_per_day) : "");
   const [picked, setPicked] = useState<Set<string>>(new Set(group?.branches.map((b) => b.code) ?? []));
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
@@ -104,7 +107,8 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
     setBusy(true);
     setError("");
     try {
-      const body = { code: code.trim().toUpperCase(), name: name.trim(), description: description.trim() || null, sort: group?.sort ?? 50 };
+      const body = { code: code.trim().toUpperCase(), name: name.trim(), description: description.trim() || null, sort: group?.sort ?? 50,
+        checkinMaxPerDay: maxCheckin ? Number(maxCheckin) : null };
       const r = group ? await call<{ id: string }>(`/api/monitoring/branch-groups/${group.id}`, { method: "PATCH", json: body })
         : await call<{ id: string }>("/api/monitoring/branch-groups", { method: "POST", json: body });
       await call(`/api/monitoring/branch-groups/${r.id}/branches`, { method: "PUT", json: { branchCodes: [...picked] } });
@@ -143,6 +147,15 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
           </div>
           <Field label={tr("Description")} hint={tr("Optional")}>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} maxLength={300} className={cx(inputClass, "h-auto py-2")} />
+          </Field>
+          <Field label={tr("PIC Check-Ins per Outlet per Day")} hint={tr("The most check-ins a PIC does at one outlet of this group in a day; also the daily target of the PIC score. Empty = once a day.")}>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input value={maxCheckin} onChange={(e) => setMaxCheckin(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1" className="w-24 text-right tabular-nums" />
+              {[1, 2, 3].map((n) => (
+                <button key={n} type="button" onClick={() => setMaxCheckin(String(n))}
+                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", Number(maxCheckin || 1) === n ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{tr("{0}× a day", n)}</button>
+              ))}
+            </div>
           </Field>
         </FormCard>
         <FormCard n={2} title={tr("Branches")} hint={tr("A branch belongs to one group: picking it here moves it out of its former group")}

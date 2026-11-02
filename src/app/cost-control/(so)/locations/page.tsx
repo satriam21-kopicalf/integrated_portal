@@ -21,7 +21,7 @@ type Row = { id: string; code: string; name: string; facility_type: string; lati
   radius_m: number; last_start: LastStart | null };
 type F = { state: string; type: string };
 
-const STANDARD_RADIUS = 100;
+const STANDARD_RADIUS = 50; // every Kopi Calf outlet (2026-11-02, migration 066)
 const located = (r: Row) => r.latitude !== null && r.longitude !== null;
 
 /** Great-circle distance in metres (same formula as the server). */

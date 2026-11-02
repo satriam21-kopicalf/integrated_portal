@@ -28,7 +28,7 @@ import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import LiveClock from "@/so/ui/LiveClock";
 import { type Answer, type AutoStars, type FormState, type Item, type Rating, type Visit, type VisitFormKey, type VisitPhoto, PLATFORM_LABEL, RATINGS, RATING_STYLE,
-  allItems, evidenceOf, fmtStars, isRequired, missingOf, needLabel, ratingLabel, tl, visitPhotoUrl } from "./visit";
+  allItems, evidenceOf, forGroup, fmtStars, isRequired, missingOf, needLabel, ratingLabel, tl, visitPhotoUrl } from "./visit";
 
 const MAX_PHOTOS = 3;
 
@@ -188,7 +188,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
   evaluation?: { node: React.ReactNode; ready: boolean };
 }) {
   const toast = useToast();
-  const def = data.definition;
+  const def = useMemo(() => forGroup(data.definition, visit.branchGroup), [data.definition, visit.branchGroup]);
   const base = `/api/forms/${form}/visits/${visit.id}`;
   const [answers, setAnswers] = useState<Record<string, Answer>>(visit.answers ?? {});
   const [photos, setPhotos] = useState<VisitPhoto[]>(visit.photos ?? []);
@@ -307,7 +307,8 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           <div className="flex items-start gap-2">
             <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-base font-semibold text-slate-900 sm:text-lg">{tl(def, "title")} · {visit.branchName}</h1>
+              <h1 className="flex min-w-0 items-center gap-2 text-base font-semibold text-slate-900 sm:text-lg"><span className="truncate">{tl(def, "title")} · {visit.branchName}</span>
+                {visit.branchGroup && <span className="flex-shrink-0 rounded-md bg-blue-50 px-1.5 py-0.5 text-[11px] font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">{visit.branchGroup}</span>}</h1>
               <p className="truncate text-xs text-slate-500">{visit.audit ? tr("Team: {0}", visit.audit.members.map((m) => m.name).join(", ")) : visit.name} · {tr("started {0}", wibDateTime(visit.startedAt))}</p>
             </div>
             <span className="flex-shrink-0 pt-1 text-xs text-slate-400" aria-live="polite">
@@ -619,8 +620,8 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
           </p>
           {item.category && <CategoryTag item={item} />}
           {answer.by && <p className="mt-0.5 text-[11px] text-slate-400">{tr("Filled by {0}", answer.by)}</p>}
-          {item.detail && <p className="mt-1 text-xs text-slate-600"><span className="font-semibold">{tr("Photo")}:</span> {item.detail}</p>}
-          {item.standard && <p className="mt-0.5 text-xs text-slate-500"><span className="font-semibold">{tr("Standard")}:</span> {item.standard}</p>}
+          {item.detail && <p className="mt-1 text-xs text-slate-600"><span className="font-semibold">{tr("Photo")}:</span> {tl(item, "detail")}</p>}
+          {item.standard && <p className="mt-0.5 text-xs text-slate-500"><span className="font-semibold">{tr("Standard")}:</span> {tl(item, "standard")}</p>}
           {hint && <p className="mt-0.5 text-[11px] text-slate-500">{hint}</p>}
           {item.platform && <PlatformStars item={item} answer={answer} auto={auto} onAnswer={onAnswer} />}
           {item.kind === "rating" && (

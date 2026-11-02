@@ -91,7 +91,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
             <>
               <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
                 <Panel title={tr("Weekly trend")} description={tr("Requests in vs done per week")}
-                  actions={<span className="flex items-center gap-3 text-[11px] text-slate-500"><Legend color="bg-blue-600" label={tr("In")} /><Legend color="bg-emerald-500" label="Done" /></span>}>
+                  actions={<span className="flex items-center gap-3 text-[11px] text-slate-500"><Legend color="bg-blue-600" label={tr("In")} /><Legend color="bg-emerald-500" label={tr("Done")} /></span>}>
                   {!d ? <Skel /> : <Trend rows={d.trend} />}
                 </Panel>
                 <Panel title={tr("Where the requests stand")} description={tr("Current status of the requests of the period")}>
@@ -106,7 +106,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
                 <Panel title={tr("Urgency vs target")} description={tr("Done on target per urgency")}>
                   {!d ? <Skel /> : (
                     <table className="w-full text-sm">
-                      <thead className="text-left text-[11px] uppercase tracking-wide text-slate-400"><tr><th className="px-4 py-2">{tr("Urgency")}</th><th className="px-2 py-2 text-right">{tr("Requests")}</th><th className="px-2 py-2 text-right">Done</th><th className="px-2 py-2">{tr("On target")}</th><th className="px-4 py-2 text-right">{tr("Average")}</th></tr></thead>
+                      <thead className="text-left text-[11px] uppercase tracking-wide text-slate-400"><tr><th className="px-4 py-2">{tr("Urgency")}</th><th className="px-2 py-2 text-right">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Done")}</th><th className="px-2 py-2">{tr("On target")}</th><th className="px-4 py-2 text-right">{tr("Average")}</th></tr></thead>
                       <tbody className="divide-y divide-slate-100">
                         {d.urgency.map((u) => (
                           <tr key={u.urgency}>

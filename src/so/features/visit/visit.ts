@@ -13,10 +13,12 @@ export type Platform = "google" | "gofood" | "grabfood" | "shopeefood";
 export type Evidence = "required" | "optional";
 export type Item = { key: string; no: number; label: string; labelEn?: string; kind: "rating" | "text"; platform?: Platform;
   required?: boolean; requiredFor?: string[]; note?: Evidence; photo?: Evidence;
+  /** asked only at the outlets of these branch groups (2026-11-02); the others do not see it */ onlyFor?: string[];
   /** "g": the PIC also types the stock in grams, net weight (Stock Preparation, Espresso and Beans, 2026-10-28) */
   qty?: "g";
   /** Travel Path (Outlet Cleanliness, 2026-10-30): the photo points, the standard to see, the category */
-  detail?: string; standard?: string; category?: "Kritikal" | "Mayor" | "Minor"; categoryEn?: string };
+  detail?: string; standard?: string; category?: "Kritikal" | "Mayor" | "Minor"; categoryEn?: string;
+  /** the photo points and the standard in English (2026-11-02) */ detailEn?: string; standardEn?: string };
 /** Google Maps figure of the outlet (Aggregator → Google Maps) */
 export type AutoStars = { stars: number; reviews: number | null; source: "google"; fetchedAt: string | null; mapsUri?: string | null };
 /** retired: a list no longer asked (2026-10-30), shown only in the visits that rated it */
@@ -25,7 +27,7 @@ export type Group = { key: string; title: string; titleEn?: string; subtitle: st
 export type Definition = { title: string; titleEn?: string; groups: Group[] };
 
 /** A label / title / subtitle of the form in the UI language: the English text (…En) or the Indonesian one. */
-export function tl(o: object, field: "label" | "title" | "subtitle" | "section" = "label"): string {
+export function tl(o: object, field: "label" | "title" | "subtitle" | "section" | "detail" | "standard" = "label"): string {
   const r = o as Record<string, unknown>;
   const id = typeof r[field] === "string" ? (r[field] as string) : "";
   const en = r[`${field}En`];
@@ -33,7 +35,13 @@ export function tl(o: object, field: "label" | "title" | "subtitle" | "section" 
 }
 
 /** Must the item be rated before sending, at an outlet of this branch group (CCI, CTG, CTGP …)? */
-export const isRequired = (i: Item, group?: string | null) => (i.required ?? true) || (!!group && (i.requiredFor ?? []).includes(group));
+/** Is the item asked at an outlet of this branch group? (an outlet without a group is asked everything) */
+export const appliesTo = (i: Item, group?: string | null) => !i.onlyFor?.length || !group || i.onlyFor.includes(group);
+export const isRequired = (i: Item, group?: string | null) => appliesTo(i, group) && ((i.required ?? true) || (!!group && (i.requiredFor ?? []).includes(group)));
+/** The definition as an outlet of this branch group is asked: its items only, empty sections left out. */
+export const forGroup = (d: Definition, group?: string | null): Definition => ({ ...d,
+  groups: d.groups.map((g) => ({ ...g, sections: g.sections.map((s) => ({ ...s, items: s.items.filter((i) => appliesTo(i, group)) })).filter((s) => s.items.length) }))
+    .filter((g) => g.sections.length) });
 /** What a rated item needs at this outlet: a required item its note / photo (both unless the item says otherwise). */
 export const evidenceOf = (i: Item, group?: string | null) => {
   const req = isRequired(i, group) && !i.platform;
