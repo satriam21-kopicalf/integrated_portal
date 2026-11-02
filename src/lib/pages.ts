@@ -12,7 +12,7 @@ export type PageKey =
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs'
-  | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production';
+  | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule';
 
 /** How the page shows in the menu: 'header' = icon in the header (not the sidebar), 'hidden' = no menu entry for now
  * (opened by URL; user decision 2026-10-17), 'soon' = menu entry marked Soon, 'building' = skeleton screen only. */
@@ -70,6 +70,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cotr.pools', href: '/cotr/pools', get label() { return tr('Master Pool / HUB'); }, get group() { return tr('Monitoring COTR'); } },
   { key: 'cotr.menu', href: '/cotr/menu', get label() { return tr('Master Menu'); }, get group() { return tr('Monitoring COTR'); } },
   { key: 'cotr.production', href: '/cotr/production', get label() { return tr('Storage & Production'); }, get group() { return tr('Monitoring COTR'); } },
+  { key: 'cotr.schedule', href: '/cotr/schedule', get label() { return tr('Master Schedule'); }, get group() { return tr('Monitoring COTR'); } },
 ];
 
 /** The page a path belongs to ('superadmin' for User Accounts & Activity Logs, null for an unknown path). */
