@@ -12,11 +12,11 @@ export type DriverAccount = { id: string; username: string; name: string; driver
 export type Stock = Record<string, number>;
 export type Recap = { cups: number; total: number; cash: number; qris: number; voided: number; perMenu: { code: string; name: string; qty: number; total: number }[]; reloaded: number; requested: number; difference: Record<string, number> | null;
   waste: number; cupping: number; cashSpent: number; cashActual: number | null; cashExpected: number; balance: number | null };
-export type ShiftCheckIn = { id: string; kind: 'start' | 'end'; at: string; lat: number | null; lng: number | null; stock: Stock; note: string | null; hasPhoto: boolean };
+export type ShiftCheckIn = { id: string; kind: 'start' | 'end'; at: string; lat: number | null; lng: number | null; stock: Stock; note: string | null; hasPhoto: boolean; hasSignature: boolean };
 export type Shift = {
   id: string; driver: string; driverName: string | null; pool: string | null; poolName: string | null; fleet: string | null; status: 'open' | 'closed';
   startedAt: string; endedAt: string | null; startStock: Stock; stock: Stock; endNote: string | null; checkIns: ShiftCheckIn[]; recap: Recap;
 };
-export type Reload = { id: string; at: string; lines: Stock; note: string | null; status: 'requested' | 'approved' | 'rejected' | 'received'; decisionNote: string | null; receivedAt: string | null; driver: string | null };
+export type Reload = { id: string; at: string; lines: Stock; note: string | null; status: 'requested' | 'approved' | 'rejected' | 'disputed' | 'received'; decisionNote: string | null; receivedAt: string | null; driver: string | null };
 export type Request = { id: string; at: string; kind: string; amount: number; note: string; status: 'sent' | 'approved' | 'rejected'; decisionNote: string | null; driverCode: string; driverName: string | null };
 export type Monitor = { day: string; shifts: Shift[]; notStarted: { code: string; name: string; pool: string }[]; reloads: Reload[]; requests: Request[] };

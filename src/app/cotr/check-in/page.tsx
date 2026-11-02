@@ -18,7 +18,7 @@ import { locale, tr } from "@/lib/i18n";
 
 const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
 const cups = (s: Stock) => Object.values(s ?? {}).reduce((a, v) => a + v, 0);
-const photoUrl = (kind: "check-in" | "request", id: string) => `/api/cotr/photos/${kind}/${id}`;
+const photoUrl = (kind: "check-in" | "signature" | "request", id: string) => `/api/cotr/photos/${kind}/${id}`;
 const KINDS: Record<string, () => string> = { fuel: () => tr("Fuel"), ice: () => tr("Ice"), stall: () => tr("Stall rent"), repair: () => tr("Fleet repair"), parking: () => tr("Parking / levy"), other: () => tr("Other") };
 // the map reads window (Leaflet): loaded in the browser only
 const DriverMap = dynamic(() => import("@/cotr/DriverMap"), { ssr: false, loading: () => <div className="skeleton h-[480px] rounded-2xl" /> });
@@ -60,7 +60,7 @@ export default function CotrCheckInPage() {
       ]} />
       {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? (
         <div className="skeleton h-64 rounded-2xl" />
-      ) : tab === "shifts" ? <Shifts data={data} /> : tab === "location" ? <DriverMap day={day} live={day === todayWib()} /> : tab === "reloads" ? <Reloads data={data} onDone={load} /> : <Requests data={data} onDone={load} />}
+      ) : tab === "shifts" ? <Shifts data={data} /> : tab === "location" ? <DriverMap day={day} live={day === todayWib()} /> : tab === "reloads" ? <Reloads data={data} /> : <Requests data={data} onDone={load} />}
     </Page>
   );
 }
@@ -147,6 +147,10 @@ function ShiftDetail({ s }: { s: Shift }) {
           )}
           <p className="mt-1 text-xs text-slate-600">{Object.entries(c.stock).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"}</p>
           {c.note && <p className="mt-1 text-xs text-slate-500">{c.note}</p>}
+          {c.hasSignature && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoUrl("signature", c.id)} alt={tr("Signature")} className="mt-2 h-16 rounded-md border border-slate-100 bg-white object-contain" loading="lazy" />
+          )}
         </section>
       ))}
       <section className="rounded-xl border border-slate-200 bg-white p-3 text-sm">
@@ -178,6 +182,7 @@ function ShiftDetail({ s }: { s: Shift }) {
 const RELOAD: Record<Reload["status"], { label: () => string; tone: "amber" | "violet" | "red" | "green" }> = {
   requested: { label: () => tr("Waiting"), tone: "amber" }, approved: { label: () => tr("Approved"), tone: "violet" },
   rejected: { label: () => tr("Rejected"), tone: "red" }, received: { label: () => tr("Received"), tone: "green" },
+  disputed: { label: () => tr("Difference reported"), tone: "red" },
 };
 
 function Decide({ url, onDone, needNote }: { url: string; onDone: () => Promise<void>; needNote?: boolean }) {
@@ -199,10 +204,10 @@ function Decide({ url, onDone, needNote }: { url: string; onDone: () => Promise<
   );
 }
 
-function Reloads({ data, onDone }: { data: Monitor; onDone: () => Promise<void> }) {
+function Reloads({ data }: { data: Monitor }) {
   const name = (code: string | null) => data.shifts.find((s) => s.driver === code)?.driverName ?? code ?? "—";
   return (
-    <Panel title={tr("Reloads")} description={tr("Approve a reload once the pool has the products ready; the driver confirms when it is picked up")}>
+    <Panel title={tr("Reloads")} description={tr("Decided and settled by the storage team in Storage & Assignment")}>
       {data.reloads.length === 0 ? <Empty title={tr("No reload on this day")} /> : (
         <ul className="divide-y divide-slate-100">
           {[...data.reloads].sort((a, b) => Number(b.status === "requested") - Number(a.status === "requested") || b.at.localeCompare(a.at)).map((r) => (
@@ -212,8 +217,7 @@ function Reloads({ data, onDone }: { data: Monitor; onDone: () => Promise<void> 
                 <span className="text-xs text-slate-500">{Object.entries(r.lines).map(([k, v]) => `${k} ${v}`).join(" · ")}{r.note ? ` · ${r.note}` : ""}</span>
                 {r.decisionNote && <span className="block text-xs text-slate-400">{r.decisionNote}</span>}
               </span>
-              {r.status === "requested" ? <Decide url={`/api/cotr/reloads/${r.id}/decide`} onDone={onDone} />
-                : <Badge tone={RELOAD[r.status].tone}>{RELOAD[r.status].label()}{r.receivedAt ? ` ${time(r.receivedAt)}` : ""}</Badge>}
+              <Badge tone={RELOAD[r.status].tone}>{RELOAD[r.status].label()}{r.receivedAt ? ` ${time(r.receivedAt)}` : ""}</Badge>
             </li>
           ))}
         </ul>

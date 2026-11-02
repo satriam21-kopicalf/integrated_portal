@@ -12,7 +12,7 @@ export type PageKey =
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs'
-  | 'cotr.check-in' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production';
+  | 'cotr.check-in' | 'cotr.storage' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production';
 
 /** How the page shows in the menu: 'header' = icon in the header (not the sidebar), 'hidden' = no menu entry for now
  * (opened by URL; user decision 2026-10-17), 'soon' = menu entry marked Soon, 'building' = skeleton screen only. */
@@ -62,6 +62,7 @@ export const PAGES: PageInfo[] = [
   { key: 'rating.grabfood', href: '/rating/grabfood', get label() { return tr('GrabFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
   // Calf On The Road (prototype 2026-11-01, sample data): configured by the COTR team
   { key: 'cotr.check-in', href: '/cotr/check-in', get label() { return tr('Driver Check In'); }, get group() { return tr('Monitoring COTR'); } },
+  { key: 'cotr.storage', href: '/cotr/storage', get label() { return tr('Storage & Assignment'); }, get group() { return tr('Monitoring COTR'); } },
   { key: 'cotr.drivers', href: '/cotr/drivers', get label() { return tr('Master Driver'); }, get group() { return tr('Monitoring COTR'); } },
   { key: 'cotr.fleet', href: '/cotr/fleet', get label() { return tr('Master Fleet'); }, get group() { return tr('Monitoring COTR'); } },
   { key: 'cotr.pools', href: '/cotr/pools', get label() { return tr('Master Pool / HUB'); }, get group() { return tr('Monitoring COTR'); } },

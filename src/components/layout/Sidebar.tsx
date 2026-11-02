@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  Activity, BarChart3, Bike, Building2, CookingPot, Coffee, Truck, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, Wallet, X, UserRoundCheck } from 'lucide-react';
+  Activity, BarChart3, Bike, Warehouse, Building2, CookingPot, Coffee, Truck, BookOpen, Download, Boxes, Calculator, ClipboardPen, FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ChevronRight, ClipboardCheck, ClipboardList, ListChecks, Settings2, ChevronsUpDown, History, KeyRound, LayoutDashboard, LogOut, PanelLeftClose, PanelLeftOpen, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, UserRoundPen, Users, Wallet, X, UserRoundCheck } from 'lucide-react';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
 import { BRAND_LINE } from '@/components/BrandWatermark';
@@ -98,6 +98,7 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
 const cotr: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Drivers on the road'); }, get hint() { return tr('Check-ins of the drivers from the COTR app'); }, icon: MapPinCheck, items: [
     { get name() { return tr('Driver Check In'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Start, reload & end of shift'); } },
+    { get name() { return tr('Storage & Assignment'); }, href: '/cotr/storage', icon: Warehouse, get description() { return tr('Products per driver, differences & reloads'); } },
   ] },
   { get title() { return tr('Master data'); }, get hint() { return tr('Drivers, fleet, pools and menus'); }, icon: Boxes, items: [
     { get name() { return tr('Master Driver'); }, href: '/cotr/drivers', icon: Bike, get description() { return tr('Drivers, pool & fleet'); } },
