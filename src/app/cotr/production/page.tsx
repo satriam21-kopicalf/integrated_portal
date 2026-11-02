@@ -1,133 +1,38 @@
 "use client";
 
-// Monitoring COTR → Storage & Production (page cotr.production): the menus produced at the HUB, their BOM / recipe
-// (edited and saved per output), the production plan from the drivers' sales of the last days (average + a buffer,
+// Monitoring COTR → Storage & Production (page cotr.production): the items and recipe cards of COTR (src/cotr/Recipes),
+// the premix calculator, the theoretical usage, the production plan from the drivers' sales of the last days (average + a buffer,
 // exploded through the BOMs down to raw materials: cup → premix → milk, espresso …) and the waste of the pools.
 
-import { ClipboardList, Factory, ListTree, Plus, Save, Trash2 } from "lucide-react";
+import { ClipboardList, Factory, ListTree, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, Select, theadClass, useToast } from "@/so/ui";
 import { Segmented } from "@/so/ui/Simple";
 import { call } from "@/so/features/checkin/checkin";
-import { Bom, Menu, Pool } from "@/cotr/types";
-import { MasterTable, useMaster } from "@/cotr/ui";
+import { Pool } from "@/cotr/types";
+import { useMaster } from "@/cotr/ui";
+import { CalculatorTab, ItemsTab, RecipesTab, UsageTab } from "@/cotr/Recipes";
 import { locale, tr } from "@/lib/i18n";
 
-type Tab = "menu" | "bom" | "plan" | "waste";
+type Tab = "items" | "recipes" | "calc" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 type Waste = { id: string; day: string; pool_code: string; item: string; qty: number; unit: string; reason: string };
 
 export default function CotrProductionPage() {
-  const [tab, setTab] = useState<Tab>("plan");
-  const boms = useMaster<Bom>("boms");
-  const menus = useMaster<Menu>("menus");
+  const [tab, setTab] = useState<Tab>("recipes");
   return (
-    <Page title={tr("Storage & Production")} subtitle={tr("Menus, recipes, production plan from daily sales, and waste")}>
+    <Page title={tr("Storage & Production")} subtitle={tr("Items, recipe cards, premix calculator, production plan, theoretical usage and waste")}>
       <Segmented label={tr("Section")} value={tab} onChange={setTab} options={[
-        { value: "menu", label: tr("Menu list") }, { value: "bom", label: tr("BOM / recipes") },
-        { value: "plan", label: tr("Production plan") }, { value: "waste", label: tr("Waste") },
+        { value: "items", label: tr("Items") }, { value: "recipes", label: tr("Recipe cards") }, { value: "calc", label: tr("Calculator") },
+        { value: "plan", label: tr("Production plan") }, { value: "usage", label: tr("Usage") }, { value: "waste", label: tr("Waste") },
       ]} />
-      {tab === "menu" && <MenuList menus={menus.rows ?? []} boms={boms.rows ?? []} />}
-      {tab === "bom" && <BomEditor master={boms} />}
+      {tab === "items" && <ItemsTab />}
+      {tab === "recipes" && <RecipesTab />}
+      {tab === "calc" && <CalculatorTab />}
       {tab === "plan" && <PlanView />}
+      {tab === "usage" && <UsageTab />}
       {tab === "waste" && <WasteList />}
     </Page>
-  );
-}
-
-function MenuList({ menus, boms }: { menus: Menu[]; boms: Bom[] }) {
-  return (
-    <Panel title={tr("Menus produced")} description={tr("Menus of Master Menu and the recipe each one is made with")}>
-      <table className="w-full text-sm">
-        <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5">{tr("Recipe (BOM)")}</th><th className="px-4 py-2.5">{tr("Components")}</th></tr></thead>
-        <tbody className="divide-y divide-slate-100">
-          {menus.filter((m) => m.is_active).map((m) => {
-            const b = boms.find((x) => x.code === m.bom_code);
-            return (
-              <tr key={m.code}>
-                <td className="px-4 py-2.5 font-medium">{m.name}</td>
-                <td className="px-4 py-2.5">{b ? b.name : <Badge tone="amber">{tr("No recipe yet")}</Badge>}</td>
-                <td className="px-4 py-2.5 text-xs text-slate-500">{b?.lines.map((l) => `${l.item} ${l.qty} ${l.unit}`).join(" · ") ?? "—"}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </Panel>
-  );
-}
-
-function BomEditor({ master }: { master: ReturnType<typeof useMaster<Bom>> }) {
-  const toast = useToast();
-  const rows = master.rows ?? [];
-  const [code, setCode] = useState<string | null>(null);
-  const [draft, setDraft] = useState<Bom | null>(null);
-  const [busy, setBusy] = useState(false);
-  const current = code ?? rows[0]?.code ?? null;
-  useEffect(() => { setDraft(rows.find((b) => b.code === current) ?? null); }, [current, master.rows]); // eslint-disable-line react-hooks/exhaustive-deps
-  const setLines = (lines: Bom["lines"]) => draft && setDraft({ ...draft, lines });
-  const save = async () => {
-    if (!draft) return;
-    setBusy(true);
-    try { await master.save({ ...draft }, draft.code); toast(tr("Saved")); } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
-  };
-  if (master.error) return <Panel><ErrorState message={master.error} onRetry={() => void master.load()} /></Panel>;
-  return (
-    <>
-      <Panel title={tr("BOM / recipes")} description={tr("Per output: what one cup or one batch uses; a premix line is exploded by its own BOM")}
-        actions={draft && <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr("Save recipe")}</Button>}>
-        <div className="grid gap-0 lg:grid-cols-[16rem_1fr]">
-          <ul className="divide-y divide-slate-100 border-b border-slate-100 lg:border-b-0 lg:border-r">
-            {rows.map((b) => (
-              <li key={b.code}>
-                <button type="button" onClick={() => setCode(b.code)}
-                  className={`w-full px-4 py-2.5 text-left text-sm ${b.code === current ? "bg-blue-50 text-blue-800" : "hover:bg-slate-50"}`}>
-                  <span className="block font-medium">{b.name}</span>
-                  <span className="text-[11px] text-slate-400">{b.code} · {tr("yields {0} {1}", b.yield_qty, b.yield_unit)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          {draft && (
-            <div className="p-4">
-              <table className="w-full text-sm">
-                <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Component")}</th><th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2">{tr("Unit")}</th><th className="w-10" /></tr></thead>
-                <tbody className="divide-y divide-slate-100">
-                  {draft.lines.map((l, i) => (
-                    <tr key={i}>
-                      <td className="px-3 py-1.5"><Input value={l.item} onChange={(e) => setLines(draft.lines.map((x, j) => (j === i ? { ...x, item: e.target.value } : x)))} className="h-9" /></td>
-                      <td className="w-28 px-3 py-1.5"><Input type="number" value={l.qty} onChange={(e) => setLines(draft.lines.map((x, j) => (j === i ? { ...x, qty: Number(e.target.value) } : x)))} className="h-9 text-right" /></td>
-                      <td className="w-24 px-3 py-1.5">
-                        <Select value={l.unit} onChange={(e) => setLines(draft.lines.map((x, j) => (j === i ? { ...x, unit: e.target.value } : x)))} className="h-9">
-                          {["g", "ml", "pcs"].map((u) => <option key={u}>{u}</option>)}
-                        </Select>
-                      </td>
-                      <td className="px-1"><button type="button" aria-label={tr("Delete")} onClick={() => setLines(draft.lines.filter((_, j) => j !== i))} className="rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <Button size="sm" variant="secondary" className="mt-3" onClick={() => setLines([...draft.lines, { item: "", qty: 0, unit: "g" }])}><Plus size={14} /> {tr("Add component")}</Button>
-            </div>
-          )}
-        </div>
-      </Panel>
-      <MasterTable noun={tr("recipe")} title={tr("Recipes")} master={master}
-        blank={() => ({ code: "BOM-", name: "", output: "", yield_qty: 1, yield_unit: "cup", lines: [] })}
-        columns={[
-          { label: tr("Recipe"), render: (b) => <><span className="block font-medium text-slate-900">{b.name}</span><span className="text-[11px] text-slate-400">{b.code}</span></> },
-          { label: tr("Output"), render: (b) => b.output },
-          { label: tr("Yield"), render: (b) => `${b.yield_qty} ${b.yield_unit}` },
-          { label: tr("Components"), render: (b) => b.lines.length },
-        ]}
-        fields={[
-          { key: "code", label: tr("Code"), required: true },
-          { key: "name", label: tr("Name"), required: true },
-          { key: "output", label: tr("Output"), required: true, hint: tr("A component with this name in another recipe is exploded by this one (premix)") },
-          { key: "yield_qty", label: tr("Yield"), type: "number", required: true },
-          { key: "yield_unit", label: tr("Unit"), type: "select", required: true, options: ["cup", "g", "ml", "pcs"].map((u) => ({ value: u, label: u })) },
-        ]} />
-    </>
   );
 }
 

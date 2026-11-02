@@ -8,7 +8,11 @@ export type Fleet = { code: string; name: string | null; type: string; plate: st
   has_photo: boolean; has_qris: boolean; updated_at: string };
 export type FleetType = { code: string; name: string; sort: number };
 export type BomLine = { item: string; qty: number; unit: string };
-export type Bom = { code: string; name: string; output: string; yield_qty: number; yield_unit: string; lines: BomLine[] };
+export type BomUnit = { name: string; grams: number };
+// a premix batch (output = a premix item, units = its containers) or the recipe card of one cup / can of a menu
+export type Bom = { code: string; name: string; output: string; yield_qty: number; yield_unit: string; lines: BomLine[]; kind: 'premix' | 'menu'; units: BomUnit[]; note: string | null };
+export type ItemCategory = 'raw' | 'premix' | 'packaging' | 'supply' | 'tools' | 'other';
+export type Item = { code: string; name: string; category: ItemCategory; unit: string; pack_unit: string | null; pack_qty: number | null; cost: number | null; is_stock: boolean; is_active: boolean; note: string | null };
 export type Menu = { code: string; name: string; category: string; price: number; bom_code: string | null; is_active: boolean; sort: number };
 export type Driver = { code: string; name: string; phone: string; pool_code: string; fleet_code: string | null; status: 'active' | 'leave' | 'inactive'; joined_on: string | null; user_id: string | null; account: string | null;
   nik?: string | null; birth_place: string | null; birth_date: string | null; gender: 'male' | 'female' | null; address: string | null; emergency_name: string | null; emergency_phone: string | null;

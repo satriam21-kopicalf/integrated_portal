@@ -28,7 +28,7 @@ export default function CotrMenuPage() {
           { key: "name", label: tr("Name"), required: true },
           { key: "category", label: tr("Category"), type: "select", required: true, options: ["Kopi susu", "Kopi hitam", "Non kopi", "Snack"].map((c) => ({ value: c, label: c })) },
           { key: "price", label: tr("Price (Rp)"), type: "number", required: true },
-          { key: "bom_code", label: tr("Recipe (BOM)"), type: "select", options: (boms.rows ?? []).filter((b) => b.yield_unit === "cup").map((b) => ({ value: b.code, label: b.name })) },
+          { key: "bom_code", label: tr("Recipe card"), type: "search", hint: tr("Made in Storage & Production → Recipe cards"), options: (boms.rows ?? []).filter((b) => b.kind === "menu").map((b) => ({ value: b.code, label: b.name, hint: b.code })) },
           { key: "is_active", label: tr("Sold"), type: "bool" },
           { key: "sort", label: tr("Order in the app"), type: "number" },
         ]} />

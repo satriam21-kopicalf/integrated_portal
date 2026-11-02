@@ -13,7 +13,7 @@ import { ConfirmDialog } from '@/so/ui/Dialog';
 import { call } from '@/so/features/checkin/checkin';
 import { tr } from '@/lib/i18n';
 
-export type Entity = 'pools' | 'fleet' | 'fleet-types' | 'menus' | 'boms' | 'drivers';
+export type Entity = 'pools' | 'fleet' | 'fleet-types' | 'menus' | 'boms' | 'items' | 'drivers';
 type Row = Record<string, unknown> & { code: string };
 
 /** One master: rows, reload, save (create when `key` is null) and delete; the messages of a refusal are thrown. */
