@@ -6,7 +6,7 @@
 // be corrected here (with the reason), as the team does in the workbook. Two views of the same figures: every ratio on
 // gross sales (subtotal) or on net sales (Pendapatan = gross × (1 − MDR) when the MDR is filled in, else ESB nett).
 
-import { ArrowDown, ArrowUp, BarChart3, Pencil, Store } from "lucide-react";
+import { ArrowDown, ArrowUp, BarChart3, Info as InfoIcon, Pencil, Store } from "lucide-react";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, Field, Input, Page, Panel, SkeletonRows, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -56,12 +56,41 @@ function presets(month: Date) {
 
 type SortKey = keyof Row;
 type Basis = "gross" | "net";
-type Col = { key: SortKey; label: string; kind: "rp" | "pct" | "so" | "mdr" };
+type Col = { key: SortKey; label: string; kind: "rp" | "pct" | "so" | "mdr"; info: Info };
+/** Where a column comes from and how it is computed (the header tooltip; app/ratio.py of the backend). */
+type Info = { source: () => string; formula?: () => string };
+const INFO: Record<string, Info> = {
+  gross: { source: () => tr("ESB POS: subtotal of the sales bills of the outlet in the period (synced daily, agg_sales_daily, type Sales). Same as the workbook column Sub Total (GROSS SALES)."),
+    formula: () => tr("Σ subtotal of the sales bills") },
+  net: { source: () => tr("Pendapatan when the MDR of the month is filled in, otherwise the ESB nett sales of the sales bills (marked ESB)."),
+    formula: () => tr("Gross sales × (1 − MDR %)") },
+  mdrPct: { source: () => tr("Entered here by Cost Control per outlet and month (merchant discount rate of the payment channels). Editable when the period is within one month.") },
+  bb: { source: () => tr("ESB purchase invoices of the outlet from the supplier Calf Warehouse, by invoice date in the period: raw materials, packaging and supplies.") },
+  espresso: { source: () => tr("ESB purchase invoices of the outlet from the supplier Calf Central Kitchen (espresso / premix), by invoice date in the period.") },
+  dimsum: { source: () => tr("ESB purchase invoices of the outlet from the supplier Calf Central Kitchen Food (dimsum), by invoice date in the period.") },
+  cogs: { source: () => tr("Purchases of the outlet from the three internal suppliers; purchases from other suppliers are not included (Excel column Pembelian lain)."),
+    formula: () => tr("Pembelian BB + Espresso + Dimsum") },
+  espressoShare: { source: () => tr("Share of espresso in the purchases."), formula: () => tr("Espresso ÷ COGS value") },
+  bbRatio: { source: () => tr("Raw materials and dimsum bought against the sales of the view (gross or net)."), formula: () => tr("(Pembelian BB + Dimsum) ÷ sales") },
+  espRatio: { source: () => tr("Espresso bought against the sales of the view."), formula: () => tr("Espresso ÷ sales") },
+  cogsRatio: { source: () => tr("Purchases against the sales of the view: what was bought, not yet what was used (see Usage ratio)."), formula: () => tr("COGS value ÷ sales") },
+  soStart: { source: () => tr("Stock value of the ESB stock opname document of the day before the period (the closest document from 2 days before to 1 day after), or the value corrected here with a reason (Corrected)."),
+    formula: () => tr("Σ qty × price of the stock opname lines") },
+  soEnd: { source: () => tr("Stock value of the ESB stock opname document of the last day of the period (the closest document from 2 days before to 1 day after), or the value corrected here with a reason (Corrected)."),
+    formula: () => tr("Σ qty × price of the stock opname lines") },
+  usage: { source: () => tr("What was really used: purchases plus the stock at the start minus the stock at the end, against the sales of the view. Empty when SO awal or SO akhir is missing."),
+    formula: () => tr("(COGS value + SO awal − SO akhir) ÷ sales") },
+  delta: { source: () => tr("Positive: more was bought than used (stock grows); negative: stock was used up. Near 0: purchases follow the usage."),
+    formula: () => tr("COGS ratio − Usage ratio") },
+  nonSales: { source: () => tr("ESB POS: subtotal of the bills of type Other cost (non sales, e.g. compliments, staff meals) in the period.") },
+  itemJournal: { source: () => tr("ESB item journal documents of the outlet in the period (waste, QC and other stock adjustments), valued at the line price."),
+    formula: () => tr("Σ |qty × price| of the item journal lines") },
+};
 const BASIS_KEY = "portal.ratio.basis";
 // the columns of a view; the ratios divide by the sales of the view
 const SALES: Record<Basis, Col[]> = {
-  gross: [{ key: "gross", label: "Gross sales", kind: "rp" }, { key: "mdrPct", label: "MDR", kind: "mdr" }],
-  net: [{ key: "net", label: "Net sales", kind: "rp" }, { key: "mdrPct", label: "MDR", kind: "mdr" }],
+  gross: [{ key: "gross", label: "Gross sales", kind: "rp", info: INFO.gross }, { key: "mdrPct", label: "MDR", kind: "mdr", info: INFO.mdrPct }],
+  net: [{ key: "net", label: "Net sales", kind: "rp", info: INFO.net }, { key: "mdrPct", label: "MDR", kind: "mdr", info: INFO.mdrPct }],
 };
 const RATIOS: Record<Basis, Record<"bb" | "esp" | "cogs" | "usage" | "delta", SortKey>> = {
   gross: { bb: "bbRatioGross", esp: "espressoRatioGross", cogs: "cogsRatioGross", usage: "usageRatioGross", delta: "deltaGross" },
@@ -71,20 +100,20 @@ function columns(basis: Basis): Col[] {
   const r = RATIOS[basis];
   return [
     ...SALES[basis],
-    { key: "bb", label: "Pembelian BB", kind: "rp" },
-    { key: "espresso", label: "Espresso", kind: "rp" },
-    { key: "dimsum", label: "Dimsum", kind: "rp" },
-    { key: "cogs", label: "COGS value", kind: "rp" },
-    { key: "espressoShare", label: "% Esp", kind: "pct" },
-    { key: r.bb, label: "BB ratio", kind: "pct" },
-    { key: r.esp, label: "Esp ratio", kind: "pct" },
-    { key: r.cogs, label: "COGS ratio", kind: "pct" },
-    { key: "soStart", label: "SO awal", kind: "so" },
-    { key: "soEnd", label: "SO akhir", kind: "so" },
-    { key: r.usage, label: "Usage ratio", kind: "pct" },
-    { key: r.delta, label: "Δ COGS−usage", kind: "pct" },
-    { key: "nonSales", label: "Non sales", kind: "rp" },
-    { key: "itemJournal", label: "Item journal", kind: "rp" },
+    { key: "bb", label: "Pembelian BB", kind: "rp", info: INFO.bb },
+    { key: "espresso", label: "Espresso", kind: "rp", info: INFO.espresso },
+    { key: "dimsum", label: "Dimsum", kind: "rp", info: INFO.dimsum },
+    { key: "cogs", label: "COGS value", kind: "rp", info: INFO.cogs },
+    { key: "espressoShare", label: "% Esp", kind: "pct", info: INFO.espressoShare },
+    { key: r.bb, label: "BB ratio", kind: "pct", info: INFO.bbRatio },
+    { key: r.esp, label: "Esp ratio", kind: "pct", info: INFO.espRatio },
+    { key: r.cogs, label: "COGS ratio", kind: "pct", info: INFO.cogsRatio },
+    { key: "soStart", label: "SO awal", kind: "so", info: INFO.soStart },
+    { key: "soEnd", label: "SO akhir", kind: "so", info: INFO.soEnd },
+    { key: r.usage, label: "Usage ratio", kind: "pct", info: INFO.usage },
+    { key: r.delta, label: "Δ COGS−usage", kind: "pct", info: INFO.delta },
+    { key: "nonSales", label: "Non sales", kind: "rp", info: INFO.nonSales },
+    { key: "itemJournal", label: "Item journal", kind: "rp", info: INFO.itemJournal },
   ];
 }
 /** The same column in the other view (the sort follows a switch of view). */
@@ -209,12 +238,15 @@ export default function RatioPage() {
                 <thead className={cx(theadClass, "sticky top-0 z-10")}>
                   <tr>
                     <th className="sticky left-0 z-20 bg-slate-50 px-3 py-2.5">{tr("Outlet")}</th>
-                    {COLS.map(c => (
+                    {COLS.map((c, i) => (
                       <th key={c.key} className="whitespace-nowrap px-2 py-2.5 text-right">
-                        <button type="button" onClick={() => setSort(s => ({ key: c.key, desc: s.key === c.key ? !s.desc : true }))}
-                          className="inline-flex items-center gap-0.5 uppercase hover:text-slate-800">
-                          {c.label}{sort.key === c.key && (sort.desc ? <ArrowDown size={11} /> : <ArrowUp size={11} />)}
-                        </button>
+                        <span className="inline-flex items-center gap-1">
+                          <button type="button" onClick={() => setSort(s => ({ key: c.key, desc: s.key === c.key ? !s.desc : true }))}
+                            className="inline-flex items-center gap-0.5 uppercase hover:text-slate-800">
+                            {c.label}{sort.key === c.key && (sort.desc ? <ArrowDown size={11} /> : <ArrowUp size={11} />)}
+                          </button>
+                          <HeaderInfo label={c.label} info={c.info} alignRight={i > COLS.length - 4} />
+                        </span>
                       </th>
                     ))}
                   </tr>
@@ -282,6 +314,23 @@ function RatioFilters({ basis, month, range, watch, onApply, onClose }: {
           choices={[{ value: "", label: tr("All") }, { value: "missing", label: tr("SO awal or akhir missing") }, { value: "complete", label: tr("Both values") }]} />
       </FilterSection>
     </FilterSheet>
+  );
+}
+
+/** The ⓘ of a header: where the column comes from and its formula, on hover or focus (touch: tap). */
+function HeaderInfo({ label, info, alignRight }: { label: string; info: Info; alignRight?: boolean }) {
+  return (
+    <span className="group/info relative inline-flex normal-case">
+      <button type="button" aria-label={tr("About {0}", label)} className="rounded-full p-0.5 text-slate-300 outline-none hover:text-slate-600 focus-visible:text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-300">
+        <InfoIcon size={12} aria-hidden />
+      </button>
+      <span role="tooltip" className={cx("pointer-events-none invisible absolute top-full z-30 mt-1.5 w-72 whitespace-normal rounded-lg bg-slate-900 px-3 py-2 text-left text-[11px] font-normal leading-relaxed tracking-normal text-slate-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus-within/info:visible group-focus-within/info:opacity-100",
+        alignRight ? "right-0" : "left-1/2 -translate-x-1/2")}>
+        <span className="mb-1 block font-semibold text-white">{label}</span>
+        <span className="block">{info.source()}</span>
+        {info.formula && <span className="mt-1.5 block rounded bg-white/10 px-2 py-1 font-mono text-[10.5px] text-white">{info.formula()}</span>}
+      </span>
+    </span>
   );
 }
 
