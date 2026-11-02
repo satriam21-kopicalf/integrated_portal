@@ -4777,4 +4777,18 @@ export const ID: Record<string, string> = {
   "Search name or nickname": "Cari nama atau nama panggilan",
   "This week": "Minggu ini",
   "{0} changes not saved yet": "{0} perubahan belum disimpan",
+  // COTR assignment advice and cupping (2026-11-03)
+  "Advice from the pool average": "Saran dari rata-rata pool",
+  "Advice from {0} days worked": "Saran dari {0} hari kerja",
+  "Carried": "Dibawa",
+  "Products every driver carries, set per driver from his sales: what to sell and what is for cupping": "Produk yang dibawa setiap driver, diatur per driver sesuai penjualannya: untuk dijual dan untuk cupping",
+  "Sell": "Jual",
+  "Total per product of the assignments below: to sell and for cupping": "Total per produk dari assignment di bawah: untuk dijual dan untuk cupping",
+  "Use advice": "Pakai saran",
+  "Use the advice for all": "Pakai saran untuk semua",
+  "What the pool prepares today": "Yang disiapkan pool hari ini",
+  "advice {0}": "saran {0}",
+  "waste {0}%": "waste {0}%",
+  "{0} assignments not saved yet": "{0} assignment belum disimpan",
+  "{0} to sell · {1} cupping": "{0} dijual · {1} cupping",
 };
