@@ -51,17 +51,17 @@ export default function PremixPage() {
   const toFix = all.filter(r => (r.active?.issues ?? []).some(i => i.level === "error")).length;
   const drafts = all.filter(r => r.drafts > 0).length;
   return (
-    <Page title={tr("Production calculator")} subtitle={tr("Premix recipes of Cost Control: grams of every ingredient, and the WIP form of the stock opname")}
+    <Page title={tr("Production Calculator")} subtitle={tr("Premix recipes of Cost Control: grams of every ingredient, and the WIP form of the stock opname")}
       actions={manage && tab === "recipes" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New recipe")}</Button> : undefined}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Recipes")} icon={<FlaskConical size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} inactive", fmtNumber(all.filter(r => !r.is_active).length))}</p>}
           </Stat>
-          <Stat label={tr("Active in the count")} emphasis value={rows ? fmtNumber(active) : <StatSkeleton />}>
+          <Stat label={tr("Active in the Count")} emphasis value={rows ? fmtNumber(active) : <StatSkeleton />}>
             {rows && <p>{tr("offered in the WIP form of the stock opname")}</p>}
           </Stat>
-          <Stat label={tr("To fix")} value={rows ? fmtNumber(toFix) : <StatSkeleton />}>
+          <Stat label={tr("To Fix")} value={rows ? fmtNumber(toFix) : <StatSkeleton />}>
             {rows && <p>{toFix ? tr("ingredients without a stock item") : tr("every ingredient is mapped")}</p>}
           </Stat>
           <Stat label={tr("Drafts")} value={rows ? fmtNumber(drafts) : <StatSkeleton />}>
@@ -178,7 +178,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
       <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div className="space-y-3 border-b border-slate-100 p-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">{tr("1. Enter the WIP quantities")}</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{tr("1. Enter the WIP Quantities")}</h2>
             <p className="text-xs text-slate-500">{tr("Per unit (pail, teko, gram…); the grams of the WIP appear under each recipe.")}</p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -242,7 +242,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
         <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
           <div className="flex items-start justify-between gap-3 border-b border-slate-100 p-4">
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-slate-900">{tr("2. Ingredients to prepare")}</h2>
+              <h2 className="text-sm font-semibold text-slate-900">{tr("2. Ingredients to Prepare")}</h2>
               <p className="text-xs text-slate-500">{tr("Grams per ingredient, rounded up to the gram as in the workbook")}</p>
             </div>
             {entries.length > 0 && (
@@ -452,11 +452,11 @@ function RecipeFilters({ value, types, facilities, onApply, onClose }: {
         <ChoiceGroup label="" value={d.status} onChange={v => setD({ ...d, status: v })}
           choices={[{ value: "", label: tr("All") }, ...Object.keys(RSTATUS).map(k => ({ value: k, label: RSTATUS[k]() }))]} />
       </FilterSection>
-      <FilterSection title={tr("Recipe type")}>
+      <FilterSection title={tr("Recipe Type")}>
         <ChoiceGroup label="" value={d.type} onChange={v => setD({ ...d, type: v })} choices={[{ value: "", label: tr("All") }, ...types.map(t => ({ value: t, label: t }))]} />
       </FilterSection>
       {facilities.length > 0 && (
-        <FilterSection title={tr("Facility type")}>
+        <FilterSection title={tr("Facility Type")}>
           <ChoiceGroup label="" value={d.facility} onChange={v => setD({ ...d, facility: v })} choices={[{ value: "", label: tr("All") }, ...facilities.map(t => ({ value: t, label: t }))]} />
         </FilterSection>
       )}

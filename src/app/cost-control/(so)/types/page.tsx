@@ -146,16 +146,16 @@ export default function TypesPage() {
       actions={<Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New count type")}</Button>}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
-          <Stat label={tr("Active count types")} icon={<CalendarDays size={13} />} value={rows ? fmtNumber(all.filter((t) => t.is_active).length) : <StatSkeleton />}>
+          <Stat label={tr("Active Count Types")} icon={<CalendarDays size={13} />} value={rows ? fmtNumber(all.filter((t) => t.is_active).length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} in total", fmtNumber(all.length))}</p>}
           </Stat>
-          <Stat label={tr("Next stock opname")} emphasis value={rows ? (next ? fmtDate(next.d) : "—") : <StatSkeleton />} valueClassName="truncate text-lg sm:text-xl">
+          <Stat label={tr("Next Stock Opname")} emphasis value={rows ? (next ? fmtDate(next.d) : "—") : <StatSkeleton />} valueClassName="truncate text-lg sm:text-xl">
             {rows && <p className="truncate">{next ? `${countTypeLabel(next.t.code, next.t.name)} · ${windowText(next.t.window_start)}` : tr("Nothing scheduled")}</p>}
           </Stat>
-          <Stat label={tr("This month")} icon={<CalendarClock size={13} />} value={calendar ? fmtNumber(thisMonth) : <StatSkeleton />}>
+          <Stat label={tr("This Month")} icon={<CalendarClock size={13} />} value={calendar ? fmtNumber(thisMonth) : <StatSkeleton />}>
             {calendar && <p>{tr("count days on the calendar")}</p>}
           </Stat>
-          <Stat label={tr("Count lists")} value={rows ? fmtNumber(all.reduce((a, t) => a + t.lists, 0)) : <StatSkeleton />}>
+          <Stat label={tr("Count Lists")} value={rows ? fmtNumber(all.reduce((a, t) => a + t.lists, 0)) : <StatSkeleton />}>
             {rows && <p>{tr("{0} branch schedule overrides", fmtNumber(all.reduce((a, t) => a + t.overrides, 0)))}</p>}
           </Stat>
         </StatStrip>
@@ -233,7 +233,7 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
       <span className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[11px] text-slate-500">
         <span className="inline-flex items-center gap-1" title={t.overrides ? tr("{0} branch overrides", t.overrides) : undefined}><ListChecks size={12} /> {tr("{0} lists", t.lists)}</span>
         {t.wip_enabled && <span className="inline-flex items-center gap-1 text-violet-700"><FlaskConical size={12} /> {tr("WIP form")}</span>}
-        {t.date_field && <span className="inline-flex items-center gap-1 text-slate-500" title={tr("Date asked per item")}><CalendarRange size={12} /> {dateFieldLabel(t.date_field)}</span>}
+        {t.date_field && <span className="inline-flex items-center gap-1 text-slate-500" title={tr("Date Asked per Item")}><CalendarRange size={12} /> {dateFieldLabel(t.date_field)}</span>}
         <span className="ml-auto max-w-full truncate font-mono text-slate-400" title={t.esb_purpose ?? undefined}>{t.code}</span>
         {t.esb_purpose && <span className="w-full truncate text-slate-400" title={t.esb_purpose}>ESB: {t.esb_purpose}</span>}
       </span>
@@ -368,7 +368,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
         </section>
 
         <FormCard n={1} title={tr("Name")} hint={tr("Shown to the staff on the stock opname screen and to Cost Control")}>
-          <Field label={tr("Count type name")} required>
+          <Field label={tr("Count Type Name")} required>
             <Input value={d.name} autoFocus={creating} onChange={(e) => { set("name", e.target.value); if (creating && !codeTouched) setCode(slug(e.target.value)); }}
               placeholder={tr("e.g. SO Mingguan Bahan Baku")} />
           </Field>
@@ -384,7 +384,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
 
         <FormCard n={2} title={tr("Schedule")} hint={tr("When the branches have to count")}
           aside={(
-            <select value="" aria-label={tr("Quick setup")} onChange={(e) => { const q = QUICK[Number(e.target.value)]; if (q) setD((o) => ({ ...o, ...q.set })); }}
+            <select value="" aria-label={tr("Quick Setup")} onChange={(e) => { const q = QUICK[Number(e.target.value)]; if (q) setD((o) => ({ ...o, ...q.set })); }}
               className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600">
               {QUICK_KEYS.map((k) => <option key={k || "x"} value={k}>{k === "" ? tr("Quick setup…") : QUICK[Number(k)].label()}</option>)}
             </select>
@@ -438,7 +438,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
         </FormCard>
 
         {d.frequency !== "ADHOC" && (
-          <FormCard n={3} title={tr("Count window")} hint={tr("The hours (WIB) the count can be started, and how long it stays open")}>
+          <FormCard n={3} title={tr("Count Window")} hint={tr("The hours (WIB) the count can be started, and how long it stays open")}>
             <div className="grid grid-cols-2 gap-3">
               <Field label={(d.period_days || 1) > 1 ? tr("Opens on the first day") : tr("Opens")}><Input type="time" value={d.window_start} onChange={(e) => set("window_start", e.target.value)} /></Field>
               <Field label={(d.period_days || 1) > 1 ? tr("Closes on the last day") : tr("Closes")}><Input type="time" value={d.window_end} onChange={(e) => set("window_end", e.target.value)} /></Field>
@@ -452,7 +452,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
             </div>
             <div>
               <p className="mb-1.5 text-xs font-medium text-slate-600">{tr("The count stays open")}</p>
-              <Segmented label={tr("The count stays open")} value={String(d.period_days || 1)} onChange={(v) => set("period_days", Number(v))}
+              <Segmented label={tr("The Count Stays Open")} value={String(d.period_days || 1)} onChange={(v) => set("period_days", Number(v))}
                 options={[1, 2, 3, 7].map((n) => ({ value: String(n), label: n === 1 ? tr("Same day") : tr("{0} days", n) }))} />
               {(d.period_days || 1) > 1 && <p className="mt-1.5 text-xs text-slate-500">{tr("The window opens on the scheduled day and closes on day {0} (e.g. 14–15 Oct). One count per branch for the whole period.", d.period_days)}</p>}
             </div>
@@ -460,7 +460,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
         )}
 
         {d.frequency !== "ADHOC" && d.frequency !== "DATES" && (
-          <FormCard n={4} title={tr("Calendar preview")} hint={tr("Highlighted: the dates this schedule produces (not saved yet).")}>
+          <FormCard n={4} title={tr("Calendar Preview")} hint={tr("Highlighted: the dates this schedule produces (not saved yet).")}>
             {previewError ? <p className="text-sm text-red-600">{previewError}</p>
               : <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-blue-600"} labelOf={(_c, n) => n} highlight={marked} compact />}
           </FormCard>
@@ -478,10 +478,10 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           {more && (
             <div className="space-y-4 border-t border-slate-100 p-4">
               <Switch label={tr("Active")} hint={tr("An inactive count type is not offered to the branches")} checked={d.is_active} onChange={(v) => set("is_active", v)} />
-              <Switch label={tr("WIP form")} hint={tr("The count also asks for WIP / premix in grams; its ingredients are added to the count")}
+              <Switch label={tr("WIP Form")} hint={tr("The count also asks for WIP / premix in grams; its ingredients are added to the count")}
                 checked={d.wip_enabled} onChange={(v) => set("wip_enabled", v)} />
               <div>
-                <Segmented label={tr("Date asked per item")} value={d.date_field ?? ""}
+                <Segmented label={tr("Date Asked per Item")} value={d.date_field ?? ""}
                   onChange={(v) => set("date_field", (v || null) as Draft["date_field"])}
                   options={DATE_FIELD_OPTIONS.map((o) => ({ value: o.value, label: o.label() }))} />
                 <p className="mt-1.5 text-xs text-slate-500">
@@ -491,11 +491,11 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
               {d.frequency !== "ADHOC" && (
                 <div className="grid grid-cols-2 gap-3">
                   <Field label={tr("Valid from")} hint={tr("Empty = from now")}><Input type="date" value={d.valid_from ?? ""} onChange={(e) => set("valid_from", e.target.value || null)} /></Field>
-                  <Field label={tr("Valid until")} hint={tr("Empty = no end")}><Input type="date" value={d.valid_to ?? ""} min={d.valid_from ?? undefined} onChange={(e) => set("valid_to", e.target.value || null)} /></Field>
+                  <Field label={tr("Valid Until")} hint={tr("Empty = no end")}><Input type="date" value={d.valid_to ?? ""} min={d.valid_from ?? undefined} onChange={(e) => set("valid_to", e.target.value || null)} /></Field>
                 </div>
               )}
               <div className="grid grid-cols-[1fr_6rem] gap-3">
-                <Field label={tr("ESB purpose")} hint={tr("Purpose name in the ESB stock opname import file")}>
+                <Field label={tr("ESB Purpose")} hint={tr("Purpose name in the ESB stock opname import file")}>
                   <Input value={d.esb_purpose ?? ""} onChange={(e) => set("esb_purpose", e.target.value)} placeholder="STOCK OPNAME MINGGUAN (OUTLET)" />
                 </Field>
                 <Field label={tr("Order")}><Input inputMode="numeric" value={String(d.sort)} onChange={(e) => set("sort", Number(e.target.value.replace(/\D/g, "")) || 0)} /></Field>

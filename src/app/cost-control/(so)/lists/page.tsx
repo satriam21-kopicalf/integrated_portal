@@ -116,13 +116,13 @@ export default function ListsPage() {
           <Stat label={lf.type ? tr("Branches · {0}", lf.type) : tr("Branches")} icon={<Building2 size={13} />} value={facilities ? fmtNumber(scope.length) : <StatSkeleton />}>
             {facilities && <p>{tr("{0} facility types", fmtNumber(types.length))}</p>}
           </Stat>
-          <Stat label={tr("With own lists")} emphasis value={facilities ? fmtNumber(scope.filter((f) => f.own_lists > 0).length) : <StatSkeleton />}>
+          <Stat label={tr("With Own Lists")} emphasis value={facilities ? fmtNumber(scope.filter((f) => f.own_lists > 0).length) : <StatSkeleton />}>
             {facilities && <p>{tr("a list or item group of their own")}</p>}
           </Stat>
-          <Stat label={tr("Using the default")} value={facilities ? fmtNumber(scope.filter((f) => !f.own_lists).length) : <StatSkeleton />}>
+          <Stat label={tr("Using the Default")} value={facilities ? fmtNumber(scope.filter((f) => !f.own_lists).length) : <StatSkeleton />}>
             {facilities && <p>{tr("the list of their facility type")}</p>}
           </Stat>
-          <Stat label={tr("Own lists")} value={facilities ? fmtNumber(scope.reduce((a, f) => a + f.own_lists, 0)) : <StatSkeleton />}>
+          <Stat label={tr("Own Lists")} value={facilities ? fmtNumber(scope.reduce((a, f) => a + f.own_lists, 0)) : <StatSkeleton />}>
             {facilities && <p>{tr("over every count type")}</p>}
           </Stat>
         </StatStrip>
@@ -154,7 +154,7 @@ export default function ListsPage() {
 
         <div ref={detailRef} className="scroll-mt-4">
         {!selected ? (
-          <Panel><Empty icon={<Building2 size={28} />} title={tr("Choose a branch")}>{tr("Its count lists per count type are shown here.")}</Empty></Panel>
+          <Panel><Empty icon={<Building2 size={28} />} title={tr("Choose a Branch")}>{tr("Its count lists per count type are shown here.")}</Empty></Panel>
         ) : (
           <Panel title={selected.name} description={`${selected.code} · ${selected.facility_type} · ${selected.legal_entity_code}`}>
             {lists === null ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-14 rounded-lg" />)}</div> : (
@@ -243,7 +243,7 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button><Button loading={busy} disabled={!dirty} onClick={save}><Save size={16} /> {tr("Save")}</Button></>}>
       {!d ? <div className="skeleton h-64 rounded-lg" /> : (
         <div className="space-y-6">
-          <DrawerSection title={tr("Item groups")} description={tr("When a group is assigned, the count shows the items of the assigned groups only (the branch template). This list's own settings still apply to those items.")}>
+          <DrawerSection title={tr("Item Groups")} description={tr("When a group is assigned, the count shows the items of the assigned groups only (the branch template). This list's own settings still apply to those items.")}>
             {groups.length === 0 ? <p className="text-sm text-slate-500">{tr("No item groups yet. Create them under Items Groups.")}</p> : (
               <div className="flex flex-wrap gap-2">
                 {groups.map((g) => {
@@ -258,7 +258,7 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
               </div>
             )}
           </DrawerSection>
-          <DrawerSection title={tr("Own items")} description={d.source_ref ? `${SOURCE[d.source]?.() ?? d.source} · ${d.source_ref}` : undefined}>
+          <DrawerSection title={tr("Own Items")} description={d.source_ref ? `${SOURCE[d.source]?.() ?? d.source} · ${d.source_ref}` : undefined}>
             {groupIds.length > 0 && (
               <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                 {tr("Groups are assigned: own items that are not in a group are not counted. Remove all groups to count the own items again.")}
@@ -278,12 +278,12 @@ function ListFilters({ value, types, cities, onApply, onClose }: {
   const [d, setD] = useState(value);
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ type: "", lists: "", city: "" })}>
-      <FilterSection title={tr("Facility type")}>
+      <FilterSection title={tr("Facility Type")}>
         <ChoiceGroup label="" value={d.type} onChange={(v) => setD({ ...d, type: v })} choices={[{ value: "", label: tr("All") }, ...types.map((t) => ({ value: t, label: t }))]} />
       </FilterSection>
-      <FilterSection title={tr("Count list")}>
+      <FilterSection title={tr("Count List")}>
         <ChoiceGroup label="" value={d.lists} onChange={(v) => setD({ ...d, lists: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "own", label: tr("Own lists") }, { value: "default", label: tr("Default list") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "own", label: tr("Own Lists") }, { value: "default", label: tr("Default List") }]} />
       </FilterSection>
       {cities.length > 0 && (
         <FilterSection title={tr("City")}>

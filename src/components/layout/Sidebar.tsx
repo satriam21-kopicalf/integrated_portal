@@ -37,23 +37,23 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('Count Lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
     { get name() { return tr('Items Groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Templates assigned to branches'); } },
     { get name() { return tr('Count Types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
-    { get name() { return tr('Outlet locations'); }, href: '/cost-control/locations', icon: MapPin, get description() { return tr('Coordinates & check-in radius'); } },
+    { get name() { return tr('Outlet Locations'); }, href: '/cost-control/locations', icon: MapPin, get description() { return tr('Coordinates & check-in radius'); } },
   ] },
   { get title() { return tr('Production & costing'); }, get hint() { return tr('Recipes, menu costing and raw material prices'); }, icon: FlaskConical, items: [
-    { get name() { return tr('Production calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
-    { get name() { return tr('Sales calculator by menu'); }, href: '/cost-control/sales-calculator', icon: Calculator, get description() { return tr('Menu recipe cards, MRP, usage & COGS'); } },
-    { get name() { return tr('Pricelist items'); }, href: '/cost-control/pricelist', icon: Receipt, get description() { return tr('Prices of the raw materials'); } },
+    { get name() { return tr('Production Calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
+    { get name() { return tr('Sales Calculator by Menu'); }, href: '/cost-control/sales-calculator', icon: Calculator, get description() { return tr('Menu recipe cards, MRP, usage & COGS'); } },
+    { get name() { return tr('Pricelist Items'); }, href: '/cost-control/pricelist', icon: Receipt, get description() { return tr('Prices of the raw materials'); } },
   ] },
   { get title() { return tr('Waste'); }, get hint() { return tr('Follow and review the waste of every branch'); }, icon: Trash2, items: [
-    { get name() { return tr('Waste monitor'); }, href: '/cost-control/waste/monitor', icon: Activity, get description() { return tr('Waste entered by every branch'); } },
-    { get name() { return tr('Waste review'); }, href: '/cost-control/waste/reviews', icon: ClipboardList, get description() { return tr('Approve or send back'); } },
+    { get name() { return tr('Waste Monitor'); }, href: '/cost-control/waste/monitor', icon: Activity, get description() { return tr('Waste entered by every branch'); } },
+    { get name() { return tr('Waste Review'); }, href: '/cost-control/waste/reviews', icon: ClipboardList, get description() { return tr('Approve or send back'); } },
   ] },
   { get title() { return tr('Check In'); }, get hint() { return tr('Outlet visits of the Cost Control team'); }, icon: UserRoundCheck, items: [
     { get name() { return tr('Cost Control Check In'); }, href: '/cost-control/check-in', icon: UserRoundCheck, get description() { return tr('Check-ins of every Cost Control surveyor'); } },
   ] },
   { get title() { return tr('Analytics'); }, get hint() { return tr('Cost ratios per outlet from ESB data'); }, icon: BarChart3, items: [
-    { get name() { return tr('Outlet ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
-    { get name() { return tr('COGS & usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Follows Outlet ratio'); }, soon: true },
+    { get name() { return tr('Outlet Ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
+    { get name() { return tr('COGS & Usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Follows Outlet ratio'); }, soon: true },
   ] },
 ];
 

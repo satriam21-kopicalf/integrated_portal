@@ -231,7 +231,7 @@ export default function WasteForm() {
         ) : (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <div className="space-y-4">
-              <FormCard n={1} title={tr("Branch and day")} hint={tr("Waste is entered for today or, late, for yesterday")}>
+              <FormCard n={1} title={tr("Branch and Day")} hint={tr("Waste is entered for today or, late, for yesterday")}>
                 <select className={inputClass} value={branch} onChange={(e) => pickBranch(e.target.value)} aria-label={tr("Branch")}>
                   <option value="">{tr("Choose the branch")}</option>
                   {data.branches.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
@@ -253,7 +253,7 @@ export default function WasteForm() {
                 ))}
               </FormCard>
 
-              <FormCard n={2} title={tr("Wasted items")} hint={tr("Fill the quantity of each wasted SKU; every filled SKU needs its category and a photo, the dates and the note are optional")}>
+              <FormCard n={2} title={tr("Wasted Items")} hint={tr("Fill the quantity of each wasted SKU; every filled SKU needs its category and a photo, the dates and the note are optional")}>
                 <Segmented label={tr("Type")} value={scope} onChange={pickScope} options={ENTRY_SCOPES.map((s) => ({ value: s, label: scopeLabel(s) }))} />
                 <div className="relative">
                   <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -266,7 +266,7 @@ export default function WasteForm() {
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                       <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix name") : tr("Product name")}</th>
-                        <th className="hidden px-2 py-2 sm:table-cell">{tr("Product code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
+                        <th className="hidden px-2 py-2 sm:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {items.slice(0, 250).map((i) => {
@@ -305,7 +305,7 @@ export default function WasteForm() {
                                 <td />
                                 <td colSpan={4} className="px-2 pb-3">
                                   <div className="grid gap-2 sm:grid-cols-2">
-                                    <select className={cx(inputClass, "h-9")} value={r.category} onChange={(e) => setRow(i.code, { category: e.target.value })} aria-label={tr("Waste category")}>
+                                    <select className={cx(inputClass, "h-9")} value={r.category} onChange={(e) => setRow(i.code, { category: e.target.value })} aria-label={tr("Waste Category")}>
                                       <option value="">{tr("Choose the category")}</option>
                                       {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
                                     </select>
@@ -374,8 +374,8 @@ export default function WasteForm() {
                     <div className="max-h-[460px] overflow-auto rounded-xl border border-slate-200">
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                          <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{tr("Product name")}</th>
-                            <th className="hidden px-2 py-2 sm:table-cell">{tr("Product code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
+                          <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{tr("Product Name")}</th>
+                            <th className="hidden px-2 py-2 sm:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {usageItems.map((i) => {
@@ -499,7 +499,7 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
 function SignDialog({ what, count, onSign, onClose }: { what: "waste" | "usage"; count: number; onSign: (image: string) => void; onClose: () => void }) {
   const [sig, setSig] = useState<string | null>(null);
   return (
-    <Dialog open size="sm" onClose={onClose} title={tr("Sign before submitting")}
+    <Dialog open size="sm" onClose={onClose} title={tr("Sign Before Submitting")}
       description={what === "waste" ? tr("{0} waste SKUs", count) : tr("Usage Management: {0} SKUs", count)}
       footer={<>
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>

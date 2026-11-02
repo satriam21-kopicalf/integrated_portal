@@ -51,7 +51,7 @@ function presets(month: Date) {
     return day > today ? today : day;
   };
   return [7, 14, 21, 28].map((d, i) => ({ key: `W${i + 1}`, label: `W${i + 1} (1–${d})`, from: iso(new Date(y, m, 1)), to: iso(cap(d)) }))
-    .concat([{ key: "M", label: tr("Whole month (1–{0})", last), from: iso(new Date(y, m, 1)), to: iso(cap(last)) }]);
+    .concat([{ key: "M", label: tr("Whole Month (1–{0})", last), from: iso(new Date(y, m, 1)), to: iso(cap(last)) }]);
 }
 
 type SortKey = keyof Row;
@@ -194,35 +194,35 @@ export default function RatioPage() {
     ...(watch.so ? [{ key: "s", label: watch.so === "missing" ? tr("Stock opname missing") : tr("Both stock opname values"), onRemove: () => setWatch({ ...watch, so: "" }) }] : []),
   ];
   return (
-    <Page title={tr("Outlet ratio")} subtitle={`${monthLabel} · ${dmy(range.from)} – ${dmy(range.to)} · ${tr("COGS, BB, espresso and usage ratio per outlet, from ESB data")}`}
+    <Page title={tr("Outlet Ratio")} subtitle={`${monthLabel} · ${dmy(range.from)} – ${dmy(range.to)} · ${tr("COGS, BB, espresso and usage ratio per outlet, from ESB data")}`}
       actions={<ExcelIconButton label={tr("Download Excel")} href={`/api/cost-control/ratio/export?${query}`} />}
       stats={error ? undefined : (
         <StatStrip label={tr("Summary")} columns={5} gridClassName="sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Stat label={basis === "gross" ? tr("Gross sales") : tr("Net sales")} icon={<Store size={13} />} value={t ? rp(basis === "gross" ? t.gross : t.net) : <StatSkeleton />}>
             {t && <p className="truncate">{tr("{0} outlets", t.outlets)} · {basis === "gross" ? tr("net {0}", rp(t.net)) : tr("gross {0}", rp(t.gross))}</p>}
           </Stat>
-          <Stat label={tr("COGS value")} value={t ? rp(t.cogs) : <StatSkeleton />}>
+          <Stat label={tr("COGS Value")} value={t ? rp(t.cogs) : <StatSkeleton />}>
             {t && <p className="truncate">BB {rp(t.bb)} · Esp {rp(t.espresso)}</p>}
           </Stat>
           {basis === "gross" ? (
-            <Stat label={tr("COGS ratio gross")} emphasis icon={<BarChart3 size={13} />} value={t ? pc(t.cogsRatioGross) : <StatSkeleton />}>
+            <Stat label={tr("COGS Ratio Gross")} emphasis icon={<BarChart3 size={13} />} value={t ? pc(t.cogsRatioGross) : <StatSkeleton />}>
               {t && <p>{tr("net {0} · BB {1}", pc(t.cogsRatioNet), pc(t.bbRatioGross))}</p>}
             </Stat>
           ) : (
-            <Stat label={tr("COGS ratio net")} emphasis icon={<BarChart3 size={13} />} value={t ? pc(t.cogsRatioNet) : <StatSkeleton />}>
+            <Stat label={tr("COGS Ratio Net")} emphasis icon={<BarChart3 size={13} />} value={t ? pc(t.cogsRatioNet) : <StatSkeleton />}>
               {t && <p>{tr("gross {0} · BB {1}", pc(t.cogsRatioGross), pc(t.bbRatio))}</p>}
             </Stat>
           )}
           {basis === "gross" ? (
-            <Stat label={tr("Usage ratio gross")} value={t ? pc(t.usageRatioGross) : <StatSkeleton />}>
+            <Stat label={tr("Usage Ratio Gross")} value={t ? pc(t.usageRatioGross) : <StatSkeleton />}>
               {t && <p>{tr("net {0} · {1} outlets with SO", pc(t.usageRatioNet), t.outletsWithSo)}</p>}
             </Stat>
           ) : (
-            <Stat label={tr("Usage ratio net")} value={t ? pc(t.usageRatioNet) : <StatSkeleton />}>
+            <Stat label={tr("Usage Ratio Net")} value={t ? pc(t.usageRatioNet) : <StatSkeleton />}>
               {t && <p>{tr("gross {0} · {1} outlets with SO", pc(t.usageRatioGross), t.outletsWithSo)}</p>}
             </Stat>
           )}
-          <Stat label={tr("Non sales · item journal")} value={t ? rp(t.nonSales + t.itemJournal) : <StatSkeleton />}>
+          <Stat label={tr("Non Sales · Item Journal")} value={t ? rp(t.nonSales + t.itemJournal) : <StatSkeleton />}>
             {t && <p>{basis === "gross" ? <>{pc(t.nonSalesPct)} · {pc(t.itemJournalPct)}</> : <>{pc(t.nonSalesPctNet)} · {pc(t.itemJournalPctNet)}</>}</p>}
           </Stat>
         </StatStrip>
@@ -309,9 +309,9 @@ function RatioFilters({ basis, month, range, watch, onApply, onClose }: {
         <ChoiceGroup label="" value={w.cogs} onChange={v => setW({ ...w, cogs: v })}
           choices={[{ value: "", label: tr("Any") }, ...["30", "35", "40", "45"].map(v => ({ value: v, label: `> ${v}%` }))]} />
       </FilterSection>
-      <FilterSection title={tr("Stock opname")}>
+      <FilterSection title={tr("Stock Opname")}>
         <ChoiceGroup label="" value={w.so} onChange={v => setW({ ...w, so: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "missing", label: tr("SO awal or akhir missing") }, { value: "complete", label: tr("Both values") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "missing", label: tr("SO Awal or Akhir Missing") }, { value: "complete", label: tr("Both Values") }]} />
       </FilterSection>
     </FilterSheet>
   );
@@ -337,7 +337,7 @@ function HeaderInfo({ label, info, alignRight }: { label: string; info: Info; al
 /** Gross / Net: which sales the ratios of the table divide by. */
 function BasisSwitch({ value, onChange }: { value: Basis; onChange: (b: Basis) => void }) {
   return (
-    <div role="radiogroup" aria-label={tr("Ratio basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 rounded-lg bg-slate-100 p-1">
+    <div role="radiogroup" aria-label={tr("Ratio Basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 rounded-lg bg-slate-100 p-1">
       {(["gross", "net"] as Basis[]).map((b) => (
         <button key={b} type="button" role="radio" aria-checked={value === b} onClick={() => onChange(b)}
           className={cx("h-8 rounded-md px-3 text-sm font-medium transition-colors",
@@ -396,7 +396,7 @@ function SoDialog({ row, which, onClose, onSaved }: { row: Row; which: "soStart"
         <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
           {so.doc ? tr("ESB stock opname {0} ({1}, {2}): Rp {3}", so.doc, so.docDate ?? "", so.docStatus ?? "", rp(so.esb)) : tr("No ESB stock opname document around this date.")}
         </p>
-        <Field label={tr("Value used (Rp)")} required><Input inputMode="numeric" value={value} onChange={e => setValue(e.target.value)} /></Field>
+        <Field label={tr("Value Used (Rp)")} required><Input inputMode="numeric" value={value} onChange={e => setValue(e.target.value)} /></Field>
         <Field label={tr("Reason")} required><Input value={note} onChange={e => setNote(e.target.value)} placeholder={tr("e.g. espresso stock counted separately")} /></Field>
         {so.override && <p className="text-[11px] text-slate-400">{tr("Last corrected by {0}", so.override.by ?? "-")}</p>}
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}

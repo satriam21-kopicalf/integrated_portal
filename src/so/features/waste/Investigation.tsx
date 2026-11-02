@@ -125,7 +125,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
       {error ? <ErrorState message={error} /> : !inv || !report ? <div className="skeleton h-96 rounded-xl" /> : (
         <div className="space-y-5 text-sm">
           <section className="space-y-2">
-            <h3 className="font-semibold text-slate-900">{tr("Waste entries")}</h3>
+            <h3 className="font-semibold text-slate-900">{tr("Waste Entries")}</h3>
             <ul className="space-y-2">
               {entries.map((e) => (
                 <li key={e.id} className="rounded-xl border border-slate-200 p-3">
@@ -145,7 +145,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
           </section>
 
           <section className="space-y-3">
-            <h3 className="font-semibold text-slate-900">A. {tr("Incident category")}</h3>
+            <h3 className="font-semibold text-slate-900">A. {tr("Incident Category")}</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={field}>{tr("Investigation date")}<input type="date" className={cx(inputClass, "mt-1")} value={report.date} onChange={(e) => set("date", e.target.value)} /></label>
               <label className={field}>{tr("Incident")}
@@ -176,7 +176,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
           </section>
 
           <section className="space-y-3">
-            <h3 className="font-semibold text-slate-900">B. {tr("Object & chronology")}</h3>
+            <h3 className="font-semibold text-slate-900">B. {tr("Object & Chronology")}</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={field}>{tr("Menu / raw material")}<input className={cx(inputClass, "mt-1")} value={report.object} onChange={(e) => set("object", e.target.value)} /></label>
               <label className={field}>{tr("Quantity")}<input className={cx(inputClass, "mt-1")} value={report.qty} onChange={(e) => set("qty", e.target.value)} /></label>
@@ -189,7 +189,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
           </section>
 
           <section className="space-y-2">
-            <h3 className="font-semibold text-slate-900">C. {tr("Root cause analysis")}</h3>
+            <h3 className="font-semibold text-slate-900">C. {tr("Root Cause Analysis")}</h3>
             {CHECKS.map((c) => {
               const v = report.checks[c] ?? { checked: false, finding: "" };
               return (
@@ -206,7 +206,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
           </section>
 
           <section className="space-y-3">
-            <h3 className="font-semibold text-slate-900">D. {tr("Corrective & preventive action")}</h3>
+            <h3 className="font-semibold text-slate-900">D. {tr("Corrective & Preventive Action")}</h3>
             <label className={field}>{tr("Corrective action (immediate: return / compensation / handling of the waste)")}<textarea rows={3} className={cx(inputClass, "mt-1 h-auto py-2")} value={report.corrective} onChange={(e) => set("corrective", e.target.value)} /></label>
             <label className={field}>{tr("Preventive action (long term)")}<textarea rows={3} className={cx(inputClass, "mt-1 h-auto py-2")} value={report.preventive} onChange={(e) => set("preventive", e.target.value)} /></label>
           </section>
@@ -264,7 +264,7 @@ export function CategoriesDrawer({ onClose }: { onClose: () => void }) {
     catch (e) { toast((e as Error).message, "error"); }
   };
   return (
-    <Drawer open onClose={onClose} title={tr("Waste categories")} description={tr("The categories outlets pick in Form Waste and Usage Management; only Cost Control adds or changes them")}>
+    <Drawer open onClose={onClose} title={tr("Waste Categories")} description={tr("The categories outlets pick in Form Waste and Usage Management; only Cost Control adds or changes them")}>
       <div className="space-y-4">
         <div className="flex gap-2">
           <select className={cx(inputClass, "w-44")} value={draft.scope} onChange={(e) => setDraft({ ...draft, scope: e.target.value as Category["scope"] })} aria-label={tr("Form")}>

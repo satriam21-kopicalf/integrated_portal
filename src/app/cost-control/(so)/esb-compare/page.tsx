@@ -39,7 +39,7 @@ export default function ComparePage() {
   const variance = all.reduce((t, r) => t + Number(r.variance_value ?? 0), 0);
 
   return (
-    <Page title={tr("ESB comparison")} subtitle={tr("Exported counts against the stock opname in ESB")}
+    <Page title={tr("ESB Comparison")} subtitle={tr("Exported counts against the stock opname in ESB")}
       actions={
         <div className="flex gap-2">
           <Input type="date" value={from} max={to} onChange={(e) => e.target.value && setFrom(e.target.value)} aria-label={tr("From")} className="w-auto" />
@@ -48,12 +48,12 @@ export default function ComparePage() {
       }
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
-          <Stat label={tr("Exported counts")} value={rows ? fmtNumber(all.length) : <StatSkeleton />} />
+          <Stat label={tr("Exported Counts")} value={rows ? fmtNumber(all.length) : <StatSkeleton />} />
           <Stat label={tr("Matches ESB")} emphasis value={rows ? fmtNumber(n("MATCHED_ESB")) : <StatSkeleton />}>
             {rows && <p>{tr("{0} differ", fmtNumber(n("ESB_MISMATCH")))}</p>}
           </Stat>
           <Stat label={tr("Waiting for ESB")} value={rows ? fmtNumber(n("WAITING_FOR_ESB")) : <StatSkeleton />} />
-          <Stat label={tr("Variance value")} value={rows ? rp(variance) : <StatSkeleton />}>{rows && <p>{tr("ESB actual − ESB system")}</p>}</Stat>
+          <Stat label={tr("Variance Value")} value={rows ? rp(variance) : <StatSkeleton />}>{rows && <p>{tr("ESB actual − ESB system")}</p>}</Stat>
         </StatStrip>
       }>
       <Panel>
@@ -75,8 +75,8 @@ export default function ComparePage() {
             <div className="hidden overflow-x-auto md:block">
               <table className="m-cards w-full min-w-[760px] text-sm">
                 <thead className={theadClass}>
-                  <tr><th className="px-4 py-2.5">{tr("Facility")}</th><th className="px-4 py-2.5">{tr("Count")}</th><th className="px-4 py-2.5">{tr("ESB document")}</th>
-                    <th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5 text-right">{tr("Differences")}</th><th className="px-4 py-2.5 text-right">{tr("Variance value")}</th></tr>
+                  <tr><th className="px-4 py-2.5">{tr("Facility")}</th><th className="px-4 py-2.5">{tr("Count")}</th><th className="px-4 py-2.5">{tr("ESB Document")}</th>
+                    <th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5 text-right">{tr("Differences")}</th><th className="px-4 py-2.5 text-right">{tr("Variance Value")}</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {rows === null ? <SkeletonRows cols={6} /> : all.map((r) => (

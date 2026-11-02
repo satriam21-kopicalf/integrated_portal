@@ -101,16 +101,16 @@ export default function ReviewsPage() {
       }
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
-          <Stat label={tr("Waiting for review")} emphasis value={rows ? fmtNumber(n("SUBMITTED")) : <StatSkeleton />}>
+          <Stat label={tr("Waiting for Review")} emphasis value={rows ? fmtNumber(n("SUBMITTED")) : <StatSkeleton />}>
             {rows && <p>{flaggedCounts ? tr("{0} with lines to check", fmtNumber(flaggedCounts)) : tr("No flagged lines")}</p>}
           </Stat>
-          <Stat label={tr("Recount requested")} icon={<RotateCcw size={12} />} value={rows ? fmtNumber(n("RECOUNT_REQUESTED")) : <StatSkeleton />}>
+          <Stat label={tr("Recount Requested")} icon={<RotateCcw size={12} />} value={rows ? fmtNumber(n("RECOUNT_REQUESTED")) : <StatSkeleton />}>
             {rows && <p>{tr("{0} in progress", fmtNumber(n("IN_PROGRESS")))}</p>}
           </Stat>
           <Stat label={tr("Approved")} value={rows ? fmtNumber(n("APPROVED") + n("EXPORTED")) : <StatSkeleton />}>
             {rows && <p>{tr("{0} exported to ESB", fmtNumber(n("EXPORTED")))}</p>}
           </Stat>
-          <Stat label={tr("Counts in the period")} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
+          <Stat label={tr("Counts in the Period")} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} late · {1} outside radius", fmtNumber(all.filter((r) => r.is_late).length), fmtNumber(all.filter((r) => r.outside_radius).length))}</p>}
           </Stat>
         </StatStrip>
@@ -210,16 +210,16 @@ function ReviewFilters({ value, types, facilityTypes, onApply, onClose }: {
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ ...DEFAULT(), status: "" })} applyDisabled={days > 93}>
-      <FilterSection title={tr("Count day")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={93} /></FilterSection>
+      <FilterSection title={tr("Count Day")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={93} /></FilterSection>
       <FilterSection title={tr("Status")}>
         <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
           choices={[{ value: "", label: tr("All") }, ...STATUSES.map((s) => ({ value: s, label: STATUS[s].label() }))]} />
       </FilterSection>
-      <FilterSection title={tr("Count type")}>
+      <FilterSection title={tr("Count Type")}>
         <ChoiceGroup label="" value={d.type} onChange={(v) => setD({ ...d, type: v })}
           choices={[{ value: "", label: tr("All") }, ...types.map((t) => ({ value: t, label: countTypeLabel(t) }))]} />
       </FilterSection>
-      <FilterSection title={tr("Facility type")}>
+      <FilterSection title={tr("Facility Type")}>
         <ChoiceGroup label="" value={d.facilityType} onChange={(v) => setD({ ...d, facilityType: v })}
           choices={[{ value: "", label: tr("All") }, ...facilityTypes.map((t) => ({ value: t, label: t }))]} />
       </FilterSection>

@@ -19,7 +19,7 @@ export default function CostPage() {
     <DashboardLayout>
       <div className="min-h-full bg-slate-50">
         <header className="px-4 pt-5 sm:px-6 sm:pt-6">
-          <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('COGS & usage')}</h1>
+          <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('COGS & Usage')}</h1>
           <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">{tr('Cost Control · Analytics')}</p>
         </header>
         <div className="p-4 sm:p-6">

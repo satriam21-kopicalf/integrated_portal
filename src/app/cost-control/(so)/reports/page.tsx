@@ -86,7 +86,7 @@ export default function ReportsPage() {
     ...(f.type ? [{ key: "t", label: countTypeLabel(f.type, types.find((t) => t.code === f.type)?.name), onRemove: () => setF({ ...f, type: "" }) }] : []),
     ...(f.facility ? [{ key: "b", label: facilityName ?? tr("Branch"), onRemove: () => setF({ ...f, facility: "" }) }] : []),
     ...(f.status !== "REVIEWED" ? [{ key: "s", label: STATUS_LABEL[f.status](), onRemove: () => setF({ ...f, status: "REVIEWED" }) }] : []),
-    ...(!f.perBranch ? [{ key: "pb", label: tr("Without branch sheets"), onRemove: () => setF({ ...f, perBranch: true }) }] : []),
+    ...(!f.perBranch ? [{ key: "pb", label: tr("Without Branch Sheets"), onRemove: () => setF({ ...f, perBranch: true }) }] : []),
   ];
 
   return (
@@ -100,10 +100,10 @@ export default function ReportsPage() {
           <Stat label={tr("Branches")} icon={<Building2 size={13} />} value={rows ? fmtNumber(branches) : <StatSkeleton />}>
             {rows && <p>{f.perBranch ? tr("one sheet per branch") : tr("one table for every branch")}</p>}
           </Stat>
-          <Stat label={tr("Item lines")} icon={<Layers size={13} />} value={rows ? fmtNumber(lines) : <StatSkeleton />}>
+          <Stat label={tr("Item Lines")} icon={<Layers size={13} />} value={rows ? fmtNumber(lines) : <StatSkeleton />}>
             {rows && <p>{tr("rows in the Stock Opname sheet")}</p>}
           </Stat>
-          <Stat label={tr("Count types")} value={rows ? fmtNumber(typesIn.size) : <StatSkeleton />}>
+          <Stat label={tr("Count Types")} value={rows ? fmtNumber(typesIn.size) : <StatSkeleton />}>
             {rows && <p className="truncate">{[...typesIn].map((t) => countTypeLabel(t)).join(", ") || "—"}</p>}
           </Stat>
         </StatStrip>
@@ -114,7 +114,7 @@ export default function ReportsPage() {
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[600px] text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Date")}</th><th className="px-4 py-2.5">{tr("Branch")}</th>
-              <th className="px-4 py-2.5">{tr("Count type")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
+              <th className="px-4 py-2.5">{tr("Count Type")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
               {rows === null ? <SkeletonRows cols={5} rows={4} /> : shown.length === 0 ? (
                 <tr><td colSpan={5}><Empty icon={<FileSpreadsheet size={28} />} title={tr("No reviewed stock opname in this period")}>{tr("Change the period or the filters.")}</Empty></td></tr>
@@ -144,21 +144,21 @@ function ReportFilters({ value, facilities, types, onApply, onClose }: {
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(DEFAULT())} applyDisabled={days > 93}>
-      <FilterSection title={tr("Count day")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={93} /></FilterSection>
+      <FilterSection title={tr("Count Day")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={93} /></FilterSection>
       <FilterSection title={tr("Status")}>
         <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
           choices={["REVIEWED", "APPROVED", "EXPORTED"].map((s) => ({ value: s, label: STATUS_LABEL[s]() }))} />
       </FilterSection>
-      <FilterSection title={tr("Count type")}>
+      <FilterSection title={tr("Count Type")}>
         <ChoiceGroup label="" value={d.type} onChange={(v) => setD({ ...d, type: v })}
-          choices={[{ value: "", label: tr("All types") }, ...types.map((t) => ({ value: t.code, label: countTypeLabel(t.code, t.name) }))]} />
+          choices={[{ value: "", label: tr("All Types") }, ...types.map((t) => ({ value: t.code, label: countTypeLabel(t.code, t.name) }))]} />
       </FilterSection>
       <FilterSection title={tr("Branch")}>
         <SearchChoice label="" anyLabel={tr("All branches")} value={d.facility} onChange={(v) => setD({ ...d, facility: v })} placeholder={tr("Search branch name or code")}
           options={facilities.map((x) => ({ value: x.id, label: x.name, meta: <span className="font-mono text-[10px] text-slate-400">{x.code}</span> }))} />
       </FilterSection>
       <FilterSection title={tr("File")}>
-        <Checkbox label={tr("One sheet per branch")} hint={tr("Besides the table of every branch, the Summary and the WIP premix sheet")}
+        <Checkbox label={tr("One Sheet per Branch")} hint={tr("Besides the table of every branch, the Summary and the WIP premix sheet")}
           checked={d.perBranch} onChange={(e) => setD({ ...d, perBranch: e.target.checked })} />
       </FilterSection>
     </FilterSheet>

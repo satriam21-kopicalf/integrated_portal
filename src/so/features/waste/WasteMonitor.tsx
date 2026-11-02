@@ -15,7 +15,7 @@ import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { Segmented } from "@/so/ui/Simple";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { PeriodField, type Period, dmy, wibDay } from "@/so/ui/Filters";
+import { type ActiveFilter, FilterSection, FilterSheet, FilterToolbar, PeriodField, type Period, dmy, wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
@@ -24,6 +24,8 @@ import { DailyReport, UsageReport } from "./WasteDaily";
 import { CategoriesDrawer, Ingredients, InvestigationDrawer, InvestigationList } from "./Investigation";
 import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, SCOPES, fmtQty, photoUrl, usagePhotoUrl, scopeLabel, signatureUrl, statusLabel, statusTone } from "./waste";
 
+const DEFAULT_PERIOD = (): Period => ({ from: wibDay(-6), to: wibDay(0) });
+type Filters = { period: Period; branch: string; scope: Scope | ""; category: string; status: Status | "" };
 type View = "entries" | "items" | "branches" | "categories" | "daily" | "usage" | "investigations";
 type BranchOpt = { branch_code: string; branch_name: string };
 
@@ -44,6 +46,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [verdict, setVerdict] = useState<"approved" | "rejected" | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sheet, setSheet] = useState(false);
   // migration 055: the investigation open in the editor, the categories of the forms
   const [investigation, setInvestigation] = useState<string | null>(null);
   const [cats, setCats] = useState(false);
@@ -133,15 +136,25 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   };
   const safe = (f: () => Promise<void>) => async () => { try { await f(); } catch (e) { toast((e as Error).message, "error"); } };
 
+  // the filters in force, as chips; each removable
+  const isDefaultPeriod = period.from === wibDay(-6) && period.to === wibDay(0);
+  const chips: ActiveFilter[] = [
+    ...(!isDefaultPeriod ? [{ key: "p", label: `${dmy(period.from)} – ${dmy(period.to)}`, onRemove: () => setPeriod(DEFAULT_PERIOD()) }] : []),
+    ...(branch ? [{ key: "b", label: branches.find((x) => x.branch_code === branch)?.branch_name ?? branch, onRemove: () => setBranch("") }] : []),
+    ...(scope ? [{ key: "t", label: scopeLabel(scope), onRemove: () => setScope("") }] : []),
+    ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
+    ...(status ? [{ key: "s", label: statusLabel(status), onRemove: () => setStatus("") }] : []),
+  ];
+
   const toggle = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   return (
-    <Page title={review ? tr("Waste review") : tr("Waste monitor")}
+    <Page title={review ? tr("Waste Review") : tr("Waste Monitor")}
       subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${review ? tr("approve or reject the waste of the branches") : tr("Waste entered by every branch")}`}
       actions={<>{review && <Button variant="secondary" size="sm" onClick={() => setCats(true)}><Tags size={14} />{tr("Categories")}</Button>}<ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
-        { key: "entries", label: tr("Waste entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-blue-50 text-blue-600", count: res ? rows.length : null, run: safe(exportEntries) },
-        { key: "items", label: tr("Totals per item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
-        { key: "daily", label: tr("Daily report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
+        { key: "entries", label: tr("Waste Entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-blue-50 text-blue-600", count: res ? rows.length : null, run: safe(exportEntries) },
+        { key: "items", label: tr("Totals per Item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
+        { key: "daily", label: tr("Daily Report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
         { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
       ]} /></>}
       stats={
@@ -151,40 +164,21 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           </Stat>
           <Stat label={tr("Branches")} icon={<Store size={13} />} onClick={() => setView("branches")} active={view === "branches"} value={sm ? fmtNumber(sm.branches) : <StatSkeleton />} />
           <Stat label={tr("Items")} icon={<Package size={13} />} onClick={() => setView("items")} active={view === "items"} value={sm ? fmtNumber(sm.items) : <StatSkeleton />} />
-          <Stat label={tr("Waiting review")} icon={<Tags size={13} />} onClick={() => setStatus(status === "submitted" ? "" : "submitted")} active={status === "submitted"}
+          <Stat label={tr("Waiting Review")} icon={<Tags size={13} />} onClick={() => setStatus(status === "submitted" ? "" : "submitted")} active={status === "submitted"}
             value={sm ? <span className={sm.submitted ? "text-amber-600" : undefined}>{fmtNumber(sm.submitted)}</span> : <StatSkeleton />} />
-          <Stat label={tr("Approved / rejected")} icon={<CheckCircle2 size={13} />} value={sm ? `${fmtNumber(sm.approved)} / ${fmtNumber(sm.rejected)}` : <StatSkeleton />} />
+          <Stat label={tr("Approved / Rejected")} icon={<CheckCircle2 size={13} />} value={sm ? `${fmtNumber(sm.approved)} / ${fmtNumber(sm.rejected)}` : <StatSkeleton />} />
         </StatStrip>
       }>
       <Panel toolbar={
         <div className="space-y-3">
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-            <PeriodField value={period} onChange={setPeriod} maxDays={92} />
-            <select className={inputClass} value={branch} onChange={(e) => setBranch(e.target.value)} aria-label={tr("Branch")}>
-              <option value="">{tr("All branches")}</option>
-              {branches.map((b) => <option key={b.branch_code} value={b.branch_code}>{b.branch_name}</option>)}
-            </select>
-            <select className={inputClass} value={scope} onChange={(e) => setScope(e.target.value as Scope | "")} aria-label={tr("Type")}>
-              <option value="">{tr("All types")}</option>
-              {SCOPES.map((s) => <option key={s} value={s}>{scopeLabel(s)}{s === "usage" ? ` (${tr("before the daily list")})` : ""}</option>)}
-            </select>
-            <select className={inputClass} value={category} onChange={(e) => setCategory(e.target.value)} aria-label={tr("Waste category")}>
-              <option value="">{tr("All categories")}</option>
-              {(res?.categories ?? []).map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <select className={inputClass} value={status} onChange={(e) => setStatus(e.target.value as Status | "")} aria-label={tr("Status")}>
-              <option value="">{tr("All statuses")}</option>
-              {(["submitted", "investigating", "approved", "rejected"] as Status[]).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <Segmented label={tr("View")} value={view} onChange={setView} options={[
-              { value: "entries", label: tr("Entries") }, { value: "items", label: tr("Per item") },
-              { value: "branches", label: tr("Per branch") }, { value: "categories", label: tr("Per category") },
-              { value: "daily", label: tr("Daily report") }, { value: "usage", label: tr("Usage Management") },
-              { value: "investigations", label: tr("Investigations") }]} />
-            {view === "entries" && <input className={cx(inputClass, "sm:max-w-xs")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search item, branch or person")} />}
-          </div>
+          <FilterToolbar search={view === "entries" ? search : undefined} onSearch={view === "entries" ? setSearch : undefined}
+            placeholder={tr("Search item, branch or person")} filters={chips} onOpen={() => setSheet(true)}
+            onClear={() => { setPeriod(DEFAULT_PERIOD()); setBranch(""); setScope(""); setCategory(""); setStatus(review ? "submitted" : ""); }} />
+          <Segmented label={tr("View")} value={view} onChange={setView} options={[
+            { value: "entries", label: tr("Entries") }, { value: "items", label: tr("Per Item") },
+            { value: "branches", label: tr("Per Branch") }, { value: "categories", label: tr("Per Category") },
+            { value: "daily", label: tr("Daily Report") }, { value: "usage", label: tr("Usage Management") },
+            { value: "investigations", label: tr("Investigations") }]} />
           {review && view === "entries" && waiting.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm">
               <label className="flex items-center gap-2 text-slate-700">
@@ -282,6 +276,10 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         )}
       </Drawer>
 
+      {sheet && <WasteFilterSheet value={{ period, branch, scope, category, status }} branches={branches} categories={res?.categories ?? []}
+        onClose={() => setSheet(false)}
+        onApply={(f) => { setPeriod(f.period); setBranch(f.branch); setScope(f.scope); setCategory(f.category); setStatus(f.status); setSheet(false); }}
+        onReset={() => ({ period: DEFAULT_PERIOD(), branch: "", scope: "", category: "", status: review ? "submitted" : "" })} />}
       {investigation && <InvestigationDrawer id={investigation} onClose={() => setInvestigation(null)} onChanged={() => void load()} />}
       {cats && <CategoriesDrawer onClose={() => setCats(false)} />}
       <ConfirmDialog open={!!verdict} busy={busy} danger={verdict === "rejected"}
@@ -311,7 +309,7 @@ function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "inve
     return !res.byBranch.length ? <Empty title={tr("No waste in this period")} /> : (
       <div className="overflow-x-auto"><table className="w-full text-sm">
         <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th>
-          <th className="px-4 py-2.5 text-right">{tr("Waiting review")}</th><th className="px-4 py-2.5 text-right">{tr("Days with waste")}</th><th className="px-4 py-2.5">{tr("Last entry")}</th></tr></thead>
+          <th className="px-4 py-2.5 text-right">{tr("Waiting Review")}</th><th className="px-4 py-2.5 text-right">{tr("Days with Waste")}</th><th className="px-4 py-2.5">{tr("Last Entry")}</th></tr></thead>
         <tbody className="divide-y divide-slate-100">{res.byBranch.map((b) => (
           <tr key={b.code} className="cursor-pointer hover:bg-slate-50" onClick={() => onBranch(b.code)}><td className="px-4 py-2 font-medium text-slate-800">{b.name}</td>
             <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(b.entries)}</td><td className={cx("px-4 py-2 text-right tabular-nums", b.submitted > 0 && "text-amber-600")}>{fmtNumber(b.submitted)}</td>
@@ -327,5 +325,42 @@ function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "inve
         <div className="mt-1 h-1.5 rounded-full bg-slate-100"><div className="h-1.5 rounded-full bg-blue-500" style={{ width: `${(c.entries / max) * 100}%` }} /></div>
       </li>
     ))}</ul>
+  );
+}
+
+/** The filters of the monitor / review in one sheet: period, branch, type, category, status. */
+function WasteFilterSheet({ value, branches, categories, onApply, onClose, onReset }: {
+  value: Filters; branches: BranchOpt[]; categories: string[]; onApply: (f: Filters) => void; onClose: () => void; onReset: () => Filters;
+}) {
+  const [d, setD] = useState<Filters>(value);
+  const pill = (on: boolean) => cx("rounded-full border px-3 py-1.5 text-xs font-medium", on ? "border-blue-600 bg-blue-50 text-blue-800" : "border-slate-200 text-slate-600 hover:bg-slate-50");
+  return (
+    <FilterSheet onClose={onClose} onReset={() => setD(onReset())} onApply={() => onApply(d)}>
+      <FilterSection title={tr("Period")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={92} /></FilterSection>
+      <FilterSection title={tr("Branch")}>
+        <select className={inputClass} value={d.branch} onChange={(e) => setD({ ...d, branch: e.target.value })} aria-label={tr("Branch")}>
+          <option value="">{tr("All branches")}</option>
+          {branches.map((b) => <option key={b.branch_code} value={b.branch_code}>{b.branch_name}</option>)}
+        </select>
+      </FilterSection>
+      <FilterSection title={tr("Type")}>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={pill(!d.scope)} onClick={() => setD({ ...d, scope: "" })}>{tr("All types")}</button>
+          {SCOPES.map((s) => <button key={s} type="button" className={pill(d.scope === s)} onClick={() => setD({ ...d, scope: s })}>{scopeLabel(s)}</button>)}
+        </div>
+      </FilterSection>
+      <FilterSection title={tr("Status")}>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={pill(!d.status)} onClick={() => setD({ ...d, status: "" })}>{tr("All statuses")}</button>
+          {(["submitted", "investigating", "approved", "rejected"] as Status[]).map((s) => <button key={s} type="button" className={pill(d.status === s)} onClick={() => setD({ ...d, status: s })}>{statusLabel(s)}</button>)}
+        </div>
+      </FilterSection>
+      <FilterSection title={tr("Waste Category")}>
+        <select className={inputClass} value={d.category} onChange={(e) => setD({ ...d, category: e.target.value })} aria-label={tr("Waste Category")}>
+          <option value="">{tr("All categories")}</option>
+          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </FilterSection>
+    </FilterSheet>
   );
 }

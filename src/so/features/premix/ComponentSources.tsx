@@ -23,9 +23,9 @@ const fmt = (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 
 export default function ComponentSources({ have, onAdd }: { have: Set<string>; onAdd: (c: PickedComponent[]) => void }) {
   const [tab, setTab] = useState<Tab>("items");
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: "items", label: tr("Item master"), icon: <Package size={13} /> },
+    { key: "items", label: tr("Item Master"), icon: <Package size={13} /> },
     { key: "bom", label: tr("ESB BOM"), icon: <Layers size={13} /> },
-    { key: "used", label: tr("Used in recipes"), icon: <Sparkles size={13} /> },
+    { key: "used", label: tr("Used in Recipes"), icon: <Sparkles size={13} /> },
   ];
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/60">

@@ -79,7 +79,7 @@ export default function CompareDetail() {
               <table className="m-cards w-full min-w-[760px] text-sm">
                 <thead className={theadClass}>
                   <tr><th className="px-3 py-2.5">{tr("Item")}</th><th className="px-3 py-2.5">{tr("Unit")}</th><th className="px-3 py-2.5 text-right">{tr("Platform")}</th>
-                    <th className="px-3 py-2.5 text-right">{tr("ESB actual")}</th><th className="px-3 py-2.5 text-right">{tr("ESB system")}</th>
+                    <th className="px-3 py-2.5 text-right">{tr("ESB Actual")}</th><th className="px-3 py-2.5 text-right">{tr("ESB System")}</th>
                     <th className="px-3 py-2.5 text-right">{tr("Variance")}</th><th className="px-3 py-2.5">{tr("Status")}</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

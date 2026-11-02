@@ -47,7 +47,7 @@ export default function EntryPage() {
   }, []);
 
   return (
-    <Page title={tr("Enter / import SO")} subtitle={tr("Optional: fill in or import the stock opname of branches. Branches can still count themselves.")}>
+    <Page title={tr("Enter / Import SO")} subtitle={tr("Optional: fill in or import the stock opname of branches. Branches can still count themselves.")}>
       <p className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
         <Info size={16} className="mt-0.5 flex-shrink-0" />
         <span>{tr("What you enter or import goes to Review as Submitted. Another Cost Control member approves it (you cannot approve your own entry).")}</span>
@@ -109,12 +109,12 @@ function FormEntry({ facilities, types }: { facilities: Facility[]; types: Count
             ))}
           </Select>
         </div>
-        <Field label={tr("Count type")} required>
+        <Field label={tr("Count Type")} required>
           <Select value={type} onChange={(e) => setType(e.target.value)}>
             {types.map((t) => <option key={t.code} value={t.code}>{countTypeLabel(t.code, t.name)}</option>)}
           </Select>
         </Field>
-        <Field label={tr("Count day (WIB)")} required hint={tr("Today or an earlier day")}>
+        <Field label={tr("Count Day (WIB)")} required hint={tr("Today or an earlier day")}>
           <Input type="date" value={day} max={wibDate()} onChange={(e) => e.target.value && setDay(e.target.value)} />
         </Field>
       </div>
@@ -153,7 +153,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
   const p = result?.problems;
 
   return (
-    <Panel title={tr("Import a file")} description={tr('A file in the "Stock Opname Report" layout: Branch, Product Code, Unit and Actual Opname Qty per row. Rows without a quantity are skipped.')}>
+    <Panel title={tr("Import a File")} description={tr('A file in the "Stock Opname Report" layout: Branch, Product Code, Unit and Actual Opname Qty per row. Rows without a quantity are skipped.')}>
       <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-[1fr_220px_180px]">
         <Field label={tr("File (.xlsx)")} required>
           <label className={cx("flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 text-sm", file ? "border-blue-400 bg-blue-50 text-blue-800" : "border-slate-300 text-slate-500 hover:border-slate-400")}>
@@ -161,12 +161,12 @@ function ImportEntry({ types }: { types: CountType[] }) {
             <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null); }} />
           </label>
         </Field>
-        <Field label={tr("Count type")} required>
+        <Field label={tr("Count Type")} required>
           <Select value={type} onChange={(e) => { setType(e.target.value); setResult(null); }}>
             {types.filter((t) => t.code !== "ADHOC").map((t) => <option key={t.code} value={t.code}>{countTypeLabel(t.code, t.name)}</option>)}
           </Select>
         </Field>
-        <Field label={tr("Count day (WIB)")} required>
+        <Field label={tr("Count Day (WIB)")} required>
           <Input type="date" value={day} max={wibDate()} onChange={(e) => { if (e.target.value) { setDay(e.target.value); setResult(null); } }} />
         </Field>
       </div>
@@ -179,10 +179,10 @@ function ImportEntry({ types }: { types: CountType[] }) {
       {result && (
         <div className="space-y-4 border-t border-slate-100 p-4 sm:p-5">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Stat label={tr("Branches in the file")} value={result.branches.length + (p?.branches.length ?? 0)} />
+            <Stat label={tr("Branches in the File")} value={result.branches.length + (p?.branches.length ?? 0)} />
             <Stat label={result.applied ? tr("Imported") : tr("Ready to import")} value={result.applied ? result.branches.filter((b) => b.status === "CREATED").length : ready.length} tone="green" />
-            <Stat label={tr("Unknown branches")} value={p?.branches.length ?? 0} tone={p?.branches.length ? "amber" : undefined} />
-            <Stat label={tr("Unknown items / units")} value={(p?.items.length ?? 0) + (p?.units.length ?? 0)} tone={(p?.items.length ?? 0) + (p?.units.length ?? 0) ? "amber" : undefined} />
+            <Stat label={tr("Unknown Branches")} value={p?.branches.length ?? 0} tone={p?.branches.length ? "amber" : undefined} />
+            <Stat label={tr("Unknown Items / Units")} value={(p?.items.length ?? 0) + (p?.units.length ?? 0)} tone={(p?.items.length ?? 0) + (p?.units.length ?? 0) ? "amber" : undefined} />
           </div>
           {(p?.branches.length || p?.items.length || p?.units.length) ? (
             <details className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -198,7 +198,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
             <div className="overflow-x-auto rounded-lg border border-slate-200">
               <table className="m-cards w-full min-w-[560px] text-sm">
                 <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Rows")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Items with quantity")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
+                  <th className="px-4 py-2.5 text-right">{tr("Items with Quantity")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {result.branches.map((b) => (
                     <tr key={b.facility_id}>

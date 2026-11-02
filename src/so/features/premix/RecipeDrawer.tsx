@@ -135,7 +135,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
           <FormCard n={1} title={tr("Recipe")} hint={tr("Name, type and where this WIP is counted")}>
             <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
               <Field label={tr("Name")} required><Input value={head.name} onChange={e => setHead({ ...head, name: e.target.value })} placeholder={tr("e.g. Premix Premium")} /></Field>
-              <Field label={tr("Recipe type")}><Select value={head.recipe_type} onChange={e => setHead({ ...head, recipe_type: e.target.value })}>{TYPES.map(t => <option key={t}>{t}</option>)}</Select></Field>
+              <Field label={tr("Recipe Type")}><Select value={head.recipe_type} onChange={e => setHead({ ...head, recipe_type: e.target.value })}>{TYPES.map(t => <option key={t}>{t}</option>)}</Select></Field>
             </div>
             <div>
               <p className="mb-1.5 text-xs font-semibold text-slate-700">{tr("Counted at")} <span className="font-normal text-slate-400">({tr("none ticked = every facility type")})</span></p>
@@ -152,7 +152,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
             <Switch checked={head.is_active} onChange={(is_active) => setHead({ ...head, is_active })} label={tr("Active")} hint={tr("An inactive recipe is not offered in the calculator and the count form")} />
           </FormCard>
 
-          <FormCard n={2} title={tr("Units & stock opname")} hint={tr("How this WIP is counted: a share of the batch (Pail, Teko) or grams per unit (porsi@gram, pcs@gram)")}
+          <FormCard n={2} title={tr("Units & Stock Opname")} hint={tr("How this WIP is counted: a share of the batch (Pail, Teko) or grams per unit (porsi@gram, pcs@gram)")}
             aside={<Badge tone="violet" icon={<ClipboardCheck size={11} />}>{tr("SO: {0}", head.count_uom || "Gram")}</Badge>}>
             <ul className="space-y-2">
               {units.map((u, i) => {
@@ -163,9 +163,9 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
                   <li key={i} className={cx("rounded-lg border p-3", isSo ? "border-violet-300 bg-violet-50/40" : "border-slate-200")}>
                     <div className="grid gap-2 sm:grid-cols-[9rem_1fr_9rem_auto] sm:items-center">
                       <input className={cx(inputClass, "h-9 text-sm")} value={u.uom} placeholder={tr("Unit, e.g. Porsi")} aria-label={tr("Unit")} onChange={e => setUnit(i, { uom: e.target.value })} />
-                      <Segmented label={tr("Unit type")} value={share ? "share" : "grams"}
+                      <Segmented label={tr("Unit Type")} value={share ? "share" : "grams"}
                         onChange={(v) => setUnit(i, v === "share" ? { per_batch: u.per_batch || "1", qty_base: null } : { qty_base: u.qty_base || (g ? String(Math.round(g)) : "1"), per_batch: null })}
-                        options={[{ value: "grams", label: tr("Grams per unit") }, { value: "share", label: tr("Share of the batch") }]} />
+                        options={[{ value: "grams", label: tr("Grams per Unit") }, { value: "share", label: tr("Share of the Batch") }]} />
                       <span className="flex items-center gap-1.5">
                         <input className={cx(inputClass, "h-9 text-right text-sm")} inputMode="decimal" aria-label={share ? tr("Units per batch") : tr("Grams per unit")}
                           value={(share ? u.per_batch : u.qty_base) ?? ""} onChange={e => setUnit(i, share ? { per_batch: e.target.value.replace(",", ".") || null } : { qty_base: e.target.value.replace(",", ".") || null })} />
@@ -204,7 +204,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
             <p className="text-[11px] text-slate-500">{tr("Porsi / Pcs: fill in the grams of one portion or piece. The count form asks for the unit marked; another unit or grams can be chosen there.")}</p>
           </FormCard>
 
-          <FormCard n={3} title={tr("Components & versions")} hint={tr("Grams of every component for one batch. Pick the stock item (ESB code) of each; water is not a stock item.")}>
+          <FormCard n={3} title={tr("Components & Versions")} hint={tr("Grams of every component for one batch. Pick the stock item (ESB code) of each; water is not a stock item.")}>
             {r && r.versions.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5">
                 {r.versions.map(v => (
@@ -227,7 +227,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               </p>
             )}
             <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
-              <Field label={tr("Batch (grams)")} hint={tr("A pail recipe: the grams of one pail")}>
+              <Field label={tr("Batch (Grams)")} hint={tr("A pail recipe: the grams of one pail")}>
                 <Input inputMode="decimal" value={draft ? draft.batch : String(batch)} disabled={!draft} onChange={e => setDraft(d => d && ({ ...d, batch: e.target.value }))} />
               </Field>
               <div className={cx("flex items-end gap-2 pb-2 text-sm", Math.abs(ratio - 1) > 0.005 ? "text-amber-700" : "text-emerald-700")}>
@@ -271,8 +271,8 @@ function ComponentTable({ lines, batch, editable, onChange, onRemove }: {
     <div className="overflow-x-auto rounded-lg border border-slate-200">
       <table className="m-cards w-full min-w-[640px] text-sm">
         <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          <tr><th className="px-3 py-2">{tr("Component")}</th><th className="px-3 py-2">{tr("Stock item")}</th>
-            <th className="w-28 px-3 py-2 text-right">{tr("Grams / batch")}</th><th className="w-16 px-3 py-2 text-right">%</th>{editable && <th className="w-10" />}</tr>
+          <tr><th className="px-3 py-2">{tr("Component")}</th><th className="px-3 py-2">{tr("Stock Item")}</th>
+            <th className="w-28 px-3 py-2 text-right">{tr("Grams / Batch")}</th><th className="w-16 px-3 py-2 text-right">%</th>{editable && <th className="w-10" />}</tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
           {lines.map((l, i) => (

@@ -50,7 +50,7 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
             <tr>
               <th className="sticky left-0 bg-slate-50 px-4 py-2">{tr("Branch")}</th>
               <th className="px-2 py-2 text-right">{tr("Reported")}</th>
-              <th className="px-2 py-2 text-right">{tr("Usage list")}</th>
+              <th className="px-2 py-2 text-right">{tr("Usage List")}</th>
               {data.dates.map((d) => <th key={d} className="px-1 py-2 text-center font-medium">{short(d)}</th>)}
             </tr>
           </thead>

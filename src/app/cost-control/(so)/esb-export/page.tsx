@@ -70,11 +70,11 @@ export default function EsbExportPage() {
   const all = (ready ?? []).length > 0 && (ready ?? []).every((r) => picked.has(r.id));
 
   return (
-    <Page title={tr("ESB export")} subtitle={tr("Approved counts become one import file in the ESB stock opname template")}>
-      <Panel title={tr("Ready to export")} toolbar={
+    <Page title={tr("ESB Export")} subtitle={tr("Approved counts become one import file in the ESB stock opname template")}>
+      <Panel title={tr("Ready to Export")} toolbar={
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[180px_240px_1fr]">
           <Field label={tr("Day")}><Input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} /></Field>
-          <Field label={tr("Count type")}><Select value={type} onChange={(e) => setType(e.target.value)}>{TYPES.map((t) => <option key={t} value={t}>{countTypeLabel(t)}</option>)}</Select></Field>
+          <Field label={tr("Count Type")}><Select value={type} onChange={(e) => setType(e.target.value)}>{TYPES.map((t) => <option key={t} value={t}>{countTypeLabel(t)}</option>)}</Select></Field>
           <div className="flex items-end justify-end">
             <Button disabled={!picked.size} onClick={() => setConfirm(true)}><FileOutput size={16} /> {tr("Export {0} counts", picked.size)}</Button>
           </div>
@@ -87,7 +87,7 @@ export default function EsbExportPage() {
             <table className="m-cards w-full min-w-[560px] text-sm">
               <thead className={theadClass}>
                 <tr>
-                  <th className="w-10 px-4 py-2.5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={all} aria-label={tr("Select all shown")}
+                  <th className="w-10 px-4 py-2.5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={all} aria-label={tr("Select All Shown")}
                     onChange={() => setPicked(all ? new Set() : new Set((ready ?? []).map((r) => r.id)))} /></th>
                   <th className="px-4 py-2.5">{tr("Facility")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Approved")}</th>
                 </tr>
@@ -108,7 +108,7 @@ export default function EsbExportPage() {
         )}
       </Panel>
 
-      <Panel title={tr("Export history")} description={tr("Download again any time: the file is exactly the one that was exported.")}>
+      <Panel title={tr("Export History")} description={tr("Download again any time: the file is exactly the one that was exported.")}>
         {batches && batches.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-500">{tr("No exports yet")}</p> : (
           <ul className="divide-y divide-slate-100">
             {(batches ?? []).map((b) => (

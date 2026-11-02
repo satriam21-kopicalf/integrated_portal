@@ -94,13 +94,13 @@ export default function GroupsPage() {
           <Stat label={tr("Groups")} icon={<Boxes size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} from the template", fmtNumber(all.filter((g) => g.source_ref).length))}</p>}
           </Stat>
-          <Stat label={tr("Assigned to branches")} emphasis value={rows ? fmtNumber(all.filter((g) => g.lists > 0).length) : <StatSkeleton />}>
+          <Stat label={tr("Assigned to Branches")} emphasis value={rows ? fmtNumber(all.filter((g) => g.lists > 0).length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} count lists use a group", fmtNumber(all.reduce((a, g) => a + g.lists, 0)))}</p>}
           </Stat>
-          <Stat label={tr("Items in groups")} value={rows ? fmtNumber(all.reduce((a, g) => a + g.items, 0)) : <StatSkeleton />}>
+          <Stat label={tr("Items in Groups")} value={rows ? fmtNumber(all.reduce((a, g) => a + g.items, 0)) : <StatSkeleton />}>
             {rows && <p>{tr("over every group")}</p>}
           </Stat>
-          <Stat label={tr("Not in the item master")} value={rows ? fmtNumber(all.reduce((a, g) => a + g.pending, 0)) : <StatSkeleton />}>
+          <Stat label={tr("Not in the Item Master")} value={rows ? fmtNumber(all.reduce((a, g) => a + g.pending, 0)) : <StatSkeleton />}>
             {rows && <p>{tr("create them from the group")}</p>}
           </Stat>
         </StatStrip>
@@ -117,7 +117,7 @@ export default function GroupsPage() {
             <table className="m-cards w-full min-w-[560px] text-sm">
               <thead className={theadClass}>
                 <tr><th className="px-4 py-2.5">{tr("Group")}</th><th className="px-4 py-2.5 text-right">{tr("Items")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Used by lists")}</th><th className="px-4 py-2.5">{tr("Updated")}</th></tr>
+                  <th className="px-4 py-2.5 text-right">{tr("Used by Lists")}</th><th className="px-4 py-2.5">{tr("Updated")}</th></tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {rows === null ? <SkeletonRows cols={4} /> : paged.rows.map((g) => (
@@ -345,7 +345,7 @@ function CreateWizard({ facilities, types, onClose, onCreated }: {
   };
 
   return (
-    <Drawer open onClose={onClose} size="xl" icon={<Boxes size={18} />} title={tr("New item group")}
+    <Drawer open onClose={onClose} size="xl" icon={<Boxes size={18} />} title={tr("New Item Group")}
       description={name.trim() ? `${name.trim()} · ${tr("{0} items", items.length)}` : tr("Build a set of items once and assign it to many branches")}
       footer={
         <>
@@ -364,7 +364,7 @@ function CreateWizard({ facilities, types, onClose, onCreated }: {
         <Stepper step={step} onStep={setStep} maxStep={maxStep} />
         {step === 0 && (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
-            <FormCard title={tr("Group details")} hint={tr("A clear name helps Cost Control find the group when assigning it")}>
+            <FormCard title={tr("Group Details")} hint={tr("A clear name helps Cost Control find the group when assigning it")}>
               <Field label={tr("Name")} required><Input value={name} autoFocus onChange={(e) => setName(e.target.value)} placeholder={tr("e.g. Espresso bar")} /></Field>
               <Field label={tr("Description")} hint={tr("Optional")}>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder={tr("What the crew counts with this group")}
@@ -552,14 +552,14 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
                   </div>
                 )}
               </DrawerSection>
-              <DrawerSection title={tr("Add or remove branches")} description={tr("Branches without their own list get one, starting from their type's default list.")}>
+              <DrawerSection title={tr("Add or Remove Branches")} description={tr("Branches without their own list get one, starting from their type's default list.")}>
                 <BranchPicker facilities={facilities} types={types} usedBy={g.used_by} countTypes={countTypes} setCountTypes={setCountTypes} picked={picked} setPicked={setPicked} />
               </DrawerSection>
             </>
           )}
           {tab === "details" && (
             <div className="max-w-xl space-y-4">
-              <FormCard title={tr("Group details")}>
+              <FormCard title={tr("Group Details")}>
                 <Field label={tr("Name")} required><Input value={name} onChange={(e) => setName(e.target.value)} /></Field>
                 <Field label={tr("Description")} hint={tr("Optional")}>
                   <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={cx(inputClass, "h-auto py-2")} />
@@ -569,8 +569,8 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
               <FormCard title={tr("Status")}>
                 <Switch label={tr("Active")} hint={tr("An inactive group is ignored by every list that uses it")} checked={g.is_active} disabled={busy} onChange={setActive} />
               </FormCard>
-              <FormCard title={tr("Date asked per item")} hint={tr("For the items of this group, whatever the count type asks. Always optional on the count form.")}>
-                <Segmented label={tr("Date asked per item")} value={g.date_field ?? ""} onChange={(v) => { if (!busy) setDateField(v); }}
+              <FormCard title={tr("Date Asked per Item")} hint={tr("For the items of this group, whatever the count type asks. Always optional on the count form.")}>
+                <Segmented label={tr("Date Asked per Item")} value={g.date_field ?? ""} onChange={(v) => { if (!busy) setDateField(v); }}
                   options={GROUP_DATE_OPTIONS.map((x) => ({ value: x.value, label: x.label() }))} />
               </FormCard>
             </div>
@@ -617,7 +617,7 @@ function ImportTemplateDrawer({ onClose, onDone }: { onClose: () => void; onDone
     }
   };
   return (
-    <Drawer open onClose={onClose} size="xl" icon={<FileSpreadsheet size={18} />} title={tr("Import template")}
+    <Drawer open onClose={onClose} size="xl" icon={<FileSpreadsheet size={18} />} title={tr("Import Template")}
       description={tr("Each sheet of the template becomes an item group (not assigned to branches yet)")}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button>
         <Button variant="secondary" loading={busy && !report} disabled={!file} onClick={() => run(false)}><Search size={15} /> {tr("Check")}</Button>
@@ -638,8 +638,8 @@ function ImportTemplateDrawer({ onClose, onDone }: { onClose: () => void; onDone
             </p>
             <div className="overflow-x-auto rounded-lg border border-slate-200">
               <table className="m-cards w-full min-w-[620px] text-sm">
-                <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Sheet / group")}</th><th className="px-3 py-2 text-right">{tr("Rows")}</th>
-                  <th className="px-3 py-2 text-right">{tr("Items")}</th><th className="px-3 py-2">{tr("Not in the item master")}</th><th className="px-3 py-2">{tr("Unit missing")}</th></tr></thead>
+                <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Sheet / Group")}</th><th className="px-3 py-2 text-right">{tr("Rows")}</th>
+                  <th className="px-3 py-2 text-right">{tr("Items")}</th><th className="px-3 py-2">{tr("Not in the Item Master")}</th><th className="px-3 py-2">{tr("Unit Missing")}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {report.sheets.map((sh) => (
                     <tr key={sh.code} className="align-top">

@@ -127,20 +127,20 @@ export default function ReviewDetailPage() {
       <div className="space-y-4 p-4 sm:p-6">
         <dl className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-sm lg:grid-cols-4">
           <Info label={tr("Started")} value={`${fmtDate(count.started_at)}${count.started_by_name ? ` · ${count.started_by_name}` : ""}`} />
-          <Position label={tr("Location at start")} lat={count.start_lat} lng={count.start_lng} distance={count.start_distance_m}
+          <Position label={tr("Location at Start")} lat={count.start_lat} lng={count.start_lng} distance={count.start_distance_m}
             accuracy={count.start_accuracy_m} at={count.start_located_at} none={count.entry_source && count.entry_source !== "CREW" ? "—" : tr("No location")} />
           <Info label={tr("Submitted")} value={count.submitted_at ? fmtDate(count.submitted_at) : "—"} />
-          <Position label={tr("Location at submit")} lat={count.submit_lat} lng={count.submit_lng} distance={count.submit_distance_m}
+          <Position label={tr("Location at Submit")} lat={count.submit_lat} lng={count.submit_lng} distance={count.submit_distance_m}
             accuracy={count.submit_accuracy_m} at={count.submit_located_at} none={count.submitted_at && count.entry_source === "CREW" ? tr("No location") : "—"} />
-          <Info label={tr("Outlet location")} value={count.facility_lat != null
+          <Info label={tr("Outlet Location")} value={count.facility_lat != null
             ? `${Number(count.facility_lat).toFixed(5)}, ${Number(count.facility_lng).toFixed(5)} · ${tr("radius {0} m", count.facility_radius_m ?? "")}`
             : tr("No coordinates yet")} href={count.facility_lat != null ? mapsUrl(count.facility_lat, count.facility_lng ?? 0) : "/cost-control/locations"} />
           {count.reviewed_at && <Info label={tr("Reviewed")} value={`${fmtDate(count.reviewed_at)} · ${count.reviewed_by_name ?? ""}`} />}
-          {count.review_note && <Info label={tr("Review note")} value={count.review_note} />}
+          {count.review_note && <Info label={tr("Review Note")} value={count.review_note} />}
         </dl>
 
         {(count.photos.length > 0 || count.status === "APPROVED" || count.status === "EXPORTED") && (
-          <Panel title={tr("Evidence photos")} actions={<EvidenceDownloads count={count} />}
+          <Panel title={tr("Evidence Photos")} actions={<EvidenceDownloads count={count} />}
             description={tr("{0} photos · time and position recorded by the server; SHA-256 proves the file is unchanged", count.photos.length)}>
             {count.photos.length === 0 && <p className="px-4 py-6 text-sm text-slate-500">{tr("No evidence photos were taken.")}</p>}
             <ul className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-6">
@@ -163,7 +163,7 @@ export default function ReviewDetailPage() {
         )}
 
         {(count.files?.length ?? 0) > 0 && (
-          <Panel title={tr("Evidence files")} description={tr("{0} files attached by the branch · tap to download; also in the ZIP once approved", count.files!.length)}>
+          <Panel title={tr("Evidence Files")} description={tr("{0} files attached by the branch · tap to download; also in the ZIP once approved", count.files!.length)}>
             <div className="p-4"><CountFileList files={count.files!} /></div>
           </Panel>
         )}
@@ -171,7 +171,7 @@ export default function ReviewDetailPage() {
         <SignatureCard count={count} />
 
         {(count.wip?.lines.length ?? 0) > 0 && (
-          <Panel title={tr("WIP / premix")} description={reviewable ? tr("Grams entered by the branch · tick a premix to recount only it, or correct it directly: the items counted by hand stay")
+          <Panel title={tr("WIP / Premix")} description={reviewable ? tr("Grams entered by the branch · tick a premix to recount only it, or correct it directly: the items counted by hand stay")
             : correctable ? tr("Grams entered by the branch · approved: correct a premix directly, the items counted by hand stay") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
             <ul className="divide-y divide-slate-100">
               {count.wip!.lines.map((w) => (
@@ -197,7 +197,7 @@ export default function ReviewDetailPage() {
                     {fix?.wip && fix.id === w.id && (
                       <span className="mt-1.5 block w-56 space-y-1.5 text-left">
                         <span className="flex items-center gap-1.5">
-                          <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected quantity")}
+                          <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected Quantity")}
                             className={cx(inputClass, "h-9 w-28 text-right text-sm font-semibold tabular-nums")} />
                           <span className="text-xs text-slate-500">{w.uom.toLowerCase() === "gram" ? "g" : w.uom}</span>
                         </span>
@@ -272,7 +272,7 @@ export default function ReviewDetailPage() {
                       {!fix?.wip && fix?.id === l.id && (
                         <div className="mt-1.5 w-56 space-y-1.5 text-left">
                           <div className="flex items-center gap-1.5">
-                            <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected quantity")}
+                            <input autoFocus inputMode="decimal" value={fix.qty} onChange={(e) => setFix({ ...fix, qty: e.target.value })} aria-label={tr("Corrected Quantity")}
                               className={cx(inputClass, "h-9 w-28 text-right text-sm font-semibold tabular-nums")} />
                             <span className="text-xs text-slate-500">{l.esb_uom || l.base_uom}</span>
                           </div>

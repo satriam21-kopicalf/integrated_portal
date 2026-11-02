@@ -79,13 +79,13 @@ export default function LocationsPage() {
   ];
 
   return (
-    <Page title={tr("Outlet locations")} subtitle={tr("Coordinates and check-in radius of every outlet and hub, to check where each stock opname starts")}
+    <Page title={tr("Outlet Locations")} subtitle={tr("Coordinates and check-in radius of every outlet and hub, to check where each stock opname starts")}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Facilities")} icon={<MapPin size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
             {rows && <p>{tr("outlets and hubs that count stock")}</p>}
           </Stat>
-          <Stat label={tr("With coordinates")} emphasis value={rows ? `${pct}%` : <StatSkeleton />}>
+          <Stat label={tr("With Coordinates")} emphasis value={rows ? `${pct}%` : <StatSkeleton />}>
             {rows && (
               <>
                 <div className="h-1.5 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
@@ -93,10 +93,10 @@ export default function LocationsPage() {
               </>
             )}
           </Stat>
-          <Stat label={tr("Without coordinates")} icon={<MapPinOff size={13} />} value={rows ? fmtNumber(all.length - withCoords) : <StatSkeleton />}>
+          <Stat label={tr("Without Coordinates")} icon={<MapPinOff size={13} />} value={rows ? fmtNumber(all.length - withCoords) : <StatSkeleton />}>
             {rows && <p>{tr("{0} can use the position of their latest stock opname", fmtNumber(fromSo))}</p>}
           </Stat>
-          <Stat label={tr("Standard radius")} value={`${STANDARD_RADIUS} m`}>
+          <Stat label={tr("Standard Radius")} value={`${STANDARD_RADIUS} m`}>
             <p>{tr("GPS accuracy counts for the counter, at most 100 m")}</p>
           </Stat>
         </StatStrip>
@@ -112,7 +112,7 @@ export default function LocationsPage() {
                   <th className="px-4 py-2.5">{tr("Facility")}</th>
                   <th className="px-4 py-2.5">{tr("Coordinates")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Radius")}</th>
-                  <th className="px-4 py-2.5">{tr("Latest stock opname start")}</th>
+                  <th className="px-4 py-2.5">{tr("Latest Stock Opname Start")}</th>
                   <th className="w-24 px-4 py-2.5" />
                 </tr>
               </thead>
@@ -171,9 +171,9 @@ function LocationFilters({ value, types, onApply, onClose }: { value: F; types: 
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD({ state: "", type: "" })}>
       <FilterSection title={tr("Coordinates")}>
         <ChoiceGroup label="" value={d.state} onChange={(v) => setD({ ...d, state: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "unset", label: tr("Without coordinates") }, { value: "set", label: tr("With coordinates") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "unset", label: tr("Without Coordinates") }, { value: "set", label: tr("With Coordinates") }]} />
       </FilterSection>
-      <FilterSection title={tr("Facility type")}>
+      <FilterSection title={tr("Facility Type")}>
         <ChoiceGroup label="" value={d.type} onChange={(v) => setD({ ...d, type: v })}
           choices={[{ value: "", label: tr("All") }, ...types.map((t) => ({ value: t, label: t }))]} />
       </FilterSection>
@@ -224,7 +224,7 @@ function LocationDrawer({ row, onClose, onSaved }: { row: Row; onClose: () => vo
         <Button loading={busy} disabled={invalid || !radiusOk || (!coords && !located(row))} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button>
       </>}>
       <DrawerSection title={tr("Coordinates")} description={tr("Paste them from Google Maps: right-click the outlet → copy the numbers, or paste the map link.")}>
-        <Field label={tr("Latitude, longitude")} error={invalid ? tr("Not a coordinate, e.g. -6.26071, 106.81372") : undefined}>
+        <Field label={tr("Latitude, Longitude")} error={invalid ? tr("Not a coordinate, e.g. -6.26071, 106.81372") : undefined}>
           <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="-6.26071, 106.81372" inputMode="text" />
         </Field>
         <div className="flex flex-wrap gap-2">
@@ -250,8 +250,8 @@ function LocationDrawer({ row, onClose, onSaved }: { row: Row; onClose: () => vo
           </p>
         )}
       </DrawerSection>
-      <DrawerSection title={tr("Check-in radius")} description={tr("A stock opname started farther than this (minus the GPS accuracy, at most 100 m) is marked outside the radius.")}>
-        <Field label={tr("Radius (m)")} error={!radiusOk ? tr("Between 10 and 5000 m") : undefined}>
+      <DrawerSection title={tr("Check-in Radius")} description={tr("A stock opname started farther than this (minus the GPS accuracy, at most 100 m) is marked outside the radius.")}>
+        <Field label={tr("Radius (M)")} error={!radiusOk ? tr("Between 10 and 5000 m") : undefined}>
           <Input value={radius} onChange={(e) => setRadius(e.target.value.replace(/\D/g, ""))} inputMode="numeric" />
         </Field>
         <div className="flex flex-wrap gap-1.5">

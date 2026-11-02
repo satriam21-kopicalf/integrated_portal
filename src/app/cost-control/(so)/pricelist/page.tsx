@@ -63,14 +63,14 @@ export default function PricelistPage() {
   });
 
   return (
-    <Page title={tr("Pricelist items")} subtitle={tr("The price of every raw material per base unit, used for the COGS of the menu recipe cards")}
+    <Page title={tr("Pricelist Items")} subtitle={tr("The price of every raw material per base unit, used for the COGS of the menu recipe cards")}
       stats={
         <StatStrip label={tr("Summary")} columns={3}>
           <Stat label={tr("Items")} icon={<Tags size={13} />} value={data ? data.data.length.toLocaleString("id-ID") : <StatSkeleton />} />
-          <Stat label={tr("With a price")} emphasis value={data ? priced.toLocaleString("id-ID") : <StatSkeleton />}>
+          <Stat label={tr("With a Price")} emphasis value={data ? priced.toLocaleString("id-ID") : <StatSkeleton />}>
             {data && <p>{tr("{0} without a price", data.data.length - priced)}</p>}
           </Stat>
-          <Stat label={tr("Not saved yet")} value={changed.length.toLocaleString("id-ID")} />
+          <Stat label={tr("Not Saved Yet")} value={changed.length.toLocaleString("id-ID")} />
         </StatStrip>
       }>
       <Panel toolbar={
@@ -90,7 +90,7 @@ export default function PricelistPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Category")}</th><th className="px-4 py-2.5">{tr("Unit")}</th>
-                <th className="px-4 py-2.5 text-right">{tr("Purchase avg 90 days")}</th><th className="px-4 py-2.5 text-right">{tr("Current price")}</th><th className="px-4 py-2.5">{tr("New price")}</th><th /></tr></thead>
+                <th className="px-4 py-2.5 text-right">{tr("Purchase Avg 90 Days")}</th><th className="px-4 py-2.5 text-right">{tr("Current Price")}</th><th className="px-4 py-2.5">{tr("New Price")}</th><th /></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {paged.rows.map((i) => (
                   <tr key={i.code} className={draft[i.code] ? "bg-blue-50/40" : ""}>
@@ -101,7 +101,7 @@ export default function PricelistPage() {
                     <td className="px-4 py-2 text-right tabular-nums">{i.price === null ? <Badge tone="amber">{tr("No price")}</Badge> : <>{rp(i.price, 4)}<span className="block text-[10px] text-slate-400">{tr("from {0}", i.validFrom ?? "")}</span></>}</td>
                     <td className="w-40 px-4 py-2"><input inputMode="decimal" className={cx(inputClass, "h-9 text-right")} placeholder={i.price !== null ? String(i.price) : "0"} value={draft[i.code] ?? ""}
                       onChange={(e) => setDraft({ ...draft, [i.code]: e.target.value })} aria-label={`${tr("New price")} ${i.name}`} /></td>
-                    <td className="px-2"><button type="button" onClick={() => setHistory(i)} className="rounded p-1.5 text-slate-400 hover:text-blue-700" aria-label={tr("Price history")}><History size={15} /></button></td>
+                    <td className="px-2"><button type="button" onClick={() => setHistory(i)} className="rounded p-1.5 text-slate-400 hover:text-blue-700" aria-label={tr("Price History")}><History size={15} /></button></td>
                   </tr>
                 ))}
               </tbody>

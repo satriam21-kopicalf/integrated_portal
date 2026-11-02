@@ -116,10 +116,10 @@ export default function MonitorPage() {
               </>
             )}
           </Stat>
-          <Stat label={tr("In progress")} value={rows ? fmtNumber(n("IN_PROGRESS")) : <StatSkeleton />}>
+          <Stat label={tr("In Progress")} value={rows ? fmtNumber(n("IN_PROGRESS")) : <StatSkeleton />}>
             {rows && <p>{tr("{0} waiting for review", fmtNumber(n("SUBMITTED")))}</p>}
           </Stat>
-          <Stat label={tr("Not started")} value={rows ? fmtNumber(n("NOT_STARTED") + n("MISSED")) : <StatSkeleton />}>
+          <Stat label={tr("Not Started")} value={rows ? fmtNumber(n("NOT_STARTED") + n("MISSED")) : <StatSkeleton />}>
             {rows && <p>{n("MISSED") > 0 ? tr("{0} missed", fmtNumber(n("MISSED"))) : tr("Nothing missed")}{late ? ` · ${tr("{0} late", fmtNumber(late))}` : ""}</p>}
           </Stat>
         </StatStrip>
@@ -220,7 +220,7 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
           aria-label={TABS.map((t) => `${STATUS[t.key].label()} ${tabCount(t.key)}`).join(", ")}>
           {TABS.map((t) => tabCount(t.key) > 0 && <span key={t.key} className={t.color} style={{ width: `${(tabCount(t.key) / total) * 100}%` }} />)}
         </div>
-        <div className="-mx-1 mt-2 flex gap-1 overflow-x-auto pb-1" role="tablist" aria-label={tr("Status of the day")}>
+        <div className="-mx-1 mt-2 flex gap-1 overflow-x-auto pb-1" role="tablist" aria-label={tr("Status of the Day")}>
           {[{ key: "", color: "bg-slate-900" }, ...TABS].map((t) => {
             const on = status === t.key;
             const count = t.key ? tabCount(t.key) : total;
@@ -237,7 +237,7 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
         </div>
       </div>
       {byType.length > 1 && (
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label={tr("Per count type")}>
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label={tr("Per Count Type")}>
           {byType.map(([t, x]) => {
             const p = x.due ? Math.round((x.done / x.due) * 100) : 0;
             const on = type === t;
@@ -301,11 +301,11 @@ function MonitorFilters({ value, types, facilityTypes, onApply, onClose }: {
         <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
           choices={[{ value: "", label: tr("All") }, ...STATUSES.map((s) => ({ value: s, label: STATUS[s].label() }))]} />
       </FilterSection>
-      <FilterSection title={tr("Count type")}>
+      <FilterSection title={tr("Count Type")}>
         <ChoiceGroup label="" value={d.type} onChange={(v) => setD({ ...d, type: v })}
           choices={[{ value: "", label: tr("All") }, ...types.map((t) => ({ value: t, label: countTypeLabel(t) }))]} />
       </FilterSection>
-      <FilterSection title={tr("Facility type")}>
+      <FilterSection title={tr("Facility Type")}>
         <ChoiceGroup label="" value={d.facilityType} onChange={(v) => setD({ ...d, facilityType: v })}
           choices={[{ value: "", label: tr("All") }, ...facilityTypes.map((t) => ({ value: t, label: t }))]} />
       </FilterSection>
