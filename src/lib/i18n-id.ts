@@ -4760,4 +4760,21 @@ export const ID: Record<string, string> = {
   "{0} left out": "{0} dilewati",
   // COTR production mobile (2026-11-03)
   "Recipe to edit": "Resep yang diubah",
+  // COTR schedule mobile, recipe card per menu (2026-11-03)
+  "All departments": "Semua departemen",
+  "Choose a shift, off, leave or sick for every person and day; the attendance follows the check in of the driver app": "Pilih shift, libur, cuti atau sakit untuk setiap orang dan hari; kehadiran mengikuti check in aplikasi driver",
+  "Days scheduled and worked, on time, late and absent, base pay: the reference of the incentives": "Hari terjadwal dan bekerja, tepat waktu, terlambat dan tidak hadir, gaji pokok: acuan insentif",
+  "Edit card": "Ubah kartu",
+  "Every product the drivers sell needs its card: the sales become the usage of the raw materials, the production plan and the HPP": "Setiap produk yang dijual driver butuh kartu resep: penjualan menjadi pemakaian bahan baku, rencana produksi dan HPP",
+  "Make card": "Buat kartu",
+  "Margin": "Margin",
+  "No active menu yet": "Belum ada menu aktif",
+  "No card yet": "Belum ada kartu",
+  "No one matches": "Tidak ada yang cocok",
+  "Recipe card of {0} made: add its components": "Kartu resep {0} dibuat: tambahkan komponennya",
+  "Recipe card per menu": "Kartu resep per menu",
+  "Sales of this menu are not turned into the usage of raw materials yet": "Penjualan menu ini belum diurai ke pemakaian bahan baku",
+  "Search name or nickname": "Cari nama atau nama panggilan",
+  "This week": "Minggu ini",
+  "{0} changes not saved yet": "{0} perubahan belum disimpan",
 };

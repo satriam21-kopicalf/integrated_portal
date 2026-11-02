@@ -83,6 +83,7 @@ export function RecipesTab() {
   const [code, setCode] = useState<string | null>(null);
   const [draft, setDraft] = useState<Bom | null>(null);
   const [busy, setBusy] = useState(false);
+  const [making, setMaking] = useState<string | null>(null);
   const current = code ?? rows[0]?.code ?? null;
   useEffect(() => { setDraft(rows.find((b) => b.code === current) ? { ...rows.find((b) => b.code === current)! } : null); }, [current, boms.rows]); // eslint-disable-line react-hooks/exhaustive-deps
   const itemList = items.rows ?? [];
@@ -98,8 +99,60 @@ export function RecipesTab() {
   if (boms.error) return <Panel><ErrorState message={boms.error} onRetry={() => void boms.load()} /></Panel>;
   const group = (k: Bom['kind']) => rows.filter((b) => b.kind === k);
   const usedBy = (b: Bom) => (menus.rows ?? []).filter((m) => m.bom_code === b.code).map((m) => m.name);
+  // a menu without a card: its card is made (one cup / can, linked to the menu) and opened in the editor
+  const makeCard = async (m: Menu) => {
+    setMaking(m.code);
+    try {
+      const card = `BOM-${m.code.replace(/^COTR-/, '')}`;
+      const unit = /\bcan\b/i.test(m.name) ? 'can' : 'cup';
+      if (!rows.some((b) => b.code === card)) {
+        await boms.save({ code: card, name: m.name, output: m.code, yield_qty: 1, yield_unit: unit, kind: 'menu', units: [], lines: [] }, null);
+      }
+      await menus.save({ ...m, bom_code: card }, m.code);
+      setCode(card);
+      toast(tr('Recipe card of {0} made: add its components', m.name));
+    } catch (e) { toast((e as Error).message, 'error'); } finally { setMaking(null); }
+  };
+  const active = (menus.rows ?? []).filter((m) => m.is_active);
+  const covered = active.filter((m) => m.bom_code && rows.some((b) => b.code === m.bom_code)).length;
   return (
     <>
+      <Panel title={tr('Recipe card per menu')} description={tr('Every product the drivers sell needs its card: the sales become the usage of the raw materials, the production plan and the HPP')}
+        actions={<Badge tone={covered === active.length ? 'green' : 'amber'}>{tr('{0} of {1} menus', covered, active.length)}</Badge>}>
+        {active.length === 0 ? <Empty title={tr('No active menu yet')} /> : (
+          <ul className="grid gap-2 p-4 sm:grid-cols-2 xl:grid-cols-3">
+            {active.map((m) => {
+              const card = rows.find((b) => b.code === m.bom_code);
+              const hpp = card ? costOf(rows, itemList, card.code) : null;
+              const margin = hpp !== null ? m.price - hpp : null;
+              return (
+                <li key={m.code} className={cx('flex flex-col rounded-xl border p-3', card ? 'border-slate-200' : 'border-dashed border-amber-300 bg-amber-50/40')}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-900">{m.name}</p>
+                      <p className="text-[11px] text-slate-400">{m.code} · {rupiah(m.price)}</p>
+                    </div>
+                    {card ? <Badge tone="green" dot>{tr('{0} components', card.lines.length)}</Badge> : <Badge tone="amber">{tr('No card yet')}</Badge>}
+                  </div>
+                  {card ? (
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                      <div className="rounded-lg bg-slate-50 px-2.5 py-1.5"><p className="text-[10px] font-semibold uppercase text-slate-400">HPP</p><p className="font-semibold tabular-nums text-slate-900">{hpp === null ? '—' : rupiah(hpp)}</p></div>
+                      <div className="rounded-lg bg-slate-50 px-2.5 py-1.5"><p className="text-[10px] font-semibold uppercase text-slate-400">{tr('Margin')}</p>
+                        <p className={cx('font-semibold tabular-nums', margin === null ? 'text-slate-400' : margin < 0 ? 'text-red-700' : 'text-emerald-700')}>{margin === null ? '—' : `${rupiah(margin)} · ${Math.round((margin / (m.price || 1)) * 100)}%`}</p></div>
+                    </div>
+                  ) : <p className="mt-2 text-xs text-amber-800">{tr('Sales of this menu are not turned into the usage of raw materials yet')}</p>}
+                  <div className="mt-auto pt-2.5">
+                    {card
+                      ? <Button size="sm" variant="secondary" className="w-full" onClick={() => { setCode(card.code); window.scrollTo({ top: document.getElementById('recipe-editor')?.offsetTop ?? 0, behavior: 'smooth' }); }}>{tr('Edit card')}</Button>
+                      : <Button size="sm" className="w-full" loading={making === m.code} onClick={() => void makeCard(m)}><Plus size={14} /> {tr('Make card')}</Button>}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Panel>
+      <div id="recipe-editor" />
       <Panel title={tr('Recipe cards')} description={tr('Premix per batch (Pail / Teko / Gram) as the premix calculator of Cost Control; menu cards per cup or can')}
         actions={draft && <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr('Save recipe')}</Button>}>
         <div className="grid lg:grid-cols-[17rem_1fr]">
