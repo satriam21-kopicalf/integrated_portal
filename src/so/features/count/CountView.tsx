@@ -413,11 +413,10 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                           <div className="mt-1.5 pl-8 sm:max-w-sm">
                             <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[df]()}</span>
                             <div className="mt-0.5 flex items-center gap-1.5">
-                              <input type="date" disabled={!edit} value={l[df] ?? ""}
-                                max={df === "roasted_date" ? wibDay(0) : undefined}
-                                onChange={(e) => void saveDate(l, e.target.value || null)}
+                              <DateField disabled={!edit} value={l[df] ?? ""} max={df === "roasted_date" ? wibDay(0) : undefined}
+                                onCommit={(v) => void saveDate(l, v || null)}
                                 className={cx(DATE_INPUT, l[df] ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-white")}
-                                aria-label={`${DATE_FIELD_LABEL[df]()} ${l.item_name}`} />
+                                label={`${DATE_FIELD_LABEL[df]()} ${l.item_name}`} />
                               {edit && (
                                 <button type="button" onClick={() => setMulti((m) => new Set(m).add(l.id))}
                                   className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-700"
@@ -502,9 +501,9 @@ function DateRows({ line, field, edit, unit, qty, onSave }: {
         {rows.map((r, i) => (
           <li key={r.key} className="flex items-center gap-1.5">
             <span className="w-4 flex-shrink-0 text-center text-[11px] font-semibold tabular-nums text-slate-400">{i + 1}</span>
-            <input type="date" disabled={!edit} value={r.date} max={field === "roasted_date" ? wibDay(0) : undefined}
-              onChange={(e) => { const next = rows.map((x) => (x.key === r.key ? { ...x, date: e.target.value } : x)); setRows(next); send(next); }}
-              className={cx(DATE_INPUT, r.date ? "border-emerald-200 bg-white" : "border-slate-200 bg-white")} aria-label={`${label} ${i + 1}`} />
+            <DateField disabled={!edit} value={r.date} max={field === "roasted_date" ? wibDay(0) : undefined}
+              onCommit={(v) => { const next = rows.map((x) => (x.key === r.key ? { ...x, date: v } : x)); setRows(next); send(next); }}
+              className={cx(DATE_INPUT, r.date ? "border-emerald-200 bg-white" : "border-slate-200 bg-white")} label={`${label} ${i + 1}`} />
             <input inputMode="decimal" disabled={!edit} value={r.qty} placeholder="0" onChange={(e) => set(r.key, { qty: e.target.value })}
               onBlur={() => send(rows)} onFocus={(e) => e.currentTarget.select()}
               className={cx(inputClass, "h-10 w-20 max-w-[5rem] flex-shrink-0 px-2 text-right text-sm font-semibold tabular-nums sm:w-24 sm:max-w-[6rem]", bad.has(r.key) && "border-red-400")}
@@ -526,5 +525,23 @@ function DateRows({ line, field, edit, unit, qty, onSave }: {
         </button>
       )}
     </div>
+  );
+}
+
+/** A roasted / expired date of any year (2026-11-02): typed digit by digit the browser reports half years (0002-…,
+ * 0020-…), so the date is saved only once it is complete (a 4-digit year 1990-2100) or when the field is left; a roasted
+ * date stays in the past (max). An emptied field clears the date. */
+function DateField({ value, onCommit, max, disabled, className, label }: {
+  value: string; onCommit: (v: string) => void; max?: string; disabled?: boolean; className?: string; label: string;
+}) {
+  const [text, setText] = useState(value);
+  const [seen, setSeen] = useState(value);
+  if (value !== seen) { setSeen(value); setText(value); }
+  const complete = (v: string) => { const y = Number(v.slice(0, 4)); return /^\d{4}-\d{2}-\d{2}$/.test(v) && y >= 1990 && y <= 2100 && (!max || v <= max); };
+  const commit = (v: string) => { if (v === value) return; if (v === "" || complete(v)) onCommit(v); else setText(value); };
+  return (
+    <input type="date" disabled={disabled} value={text} max={max} min="1990-01-01" aria-label={label} className={className}
+      onChange={(e) => { const v = e.target.value; setText(v); if (v === "" || (complete(v) && v !== value)) onCommit(v); }}
+      onBlur={(e) => commit(e.target.value)} />
   );
 }
