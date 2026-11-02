@@ -97,16 +97,16 @@ export function CompanySwitch({ className = '', extra = [], value, onChange }: {
   if (tabs.length < 2) return null;
   const shown = value ?? company;
   return (
-    <div role="radiogroup" aria-label="Brand" className={`inline-flex rounded-xl bg-slate-100 p-1 ${className}`}>
+    <div role="radiogroup" aria-label="Brand" className={`flex max-w-full rounded-xl bg-slate-100 p-1 sm:inline-flex ${className}`}>
       {tabs.map(c => {
         const on = c.code === shown;
         return (
           <button key={c.code} type="button" role="radio" aria-checked={on} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors sm:text-sm ${
+            className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-1.5 py-1.5 text-[11px] font-semibold transition-colors sm:flex-none sm:gap-1.5 sm:px-3 sm:text-sm ${
               on ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {LOGOS[c.code] && <img src={LOGOS[c.code]} alt="" aria-hidden className={`h-4 w-auto max-w-[2.75rem] object-contain ${on ? '' : 'opacity-70 grayscale'}`} />}
-            {c.name}
+            {LOGOS[c.code] && <img src={LOGOS[c.code]} alt="" aria-hidden className={`h-3.5 w-auto max-w-[2rem] flex-shrink-0 object-contain sm:h-4 sm:max-w-[2.75rem] ${on ? '' : 'opacity-70 grayscale'}`} />}
+            <span className="min-w-0 truncate">{c.name}</span>
           </button>
         );
       })}
