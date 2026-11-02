@@ -86,6 +86,9 @@ export const useCompany = () => useContext(CompanyContext);
 /** The brand switch of the sales pages (Kopi Calf | Wasgee Tea); nothing when the user sees one brand only. `extra`
  *  adds tabs that are not ESB companies (Calf On The Road on the Dashboard, 2026-11-01): the page handles them through
  *  `value` / `onChange`. */
+/** The logo of a brand tab (public/assets); none for an unknown code. */
+const LOGOS: Record<string, string> = { CALF: '/assets/calf-logo.png', CALF7: '/assets/Logo-Wasgee.png', COTR: '/assets/Logo-COTR.png' };
+
 export function CompanySwitch({ className = '', extra = [], value, onChange }: {
   className?: string; extra?: { code: string; name: string }[]; value?: string; onChange?: (code: string) => void;
 }) {
@@ -99,8 +102,10 @@ export function CompanySwitch({ className = '', extra = [], value, onChange }: {
         const on = c.code === shown;
         return (
           <button key={c.code} type="button" role="radio" aria-checked={on} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors sm:text-sm ${
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors sm:text-sm ${
               on ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {LOGOS[c.code] && <img src={LOGOS[c.code]} alt="" aria-hidden className={`h-4 w-auto max-w-[2.75rem] object-contain ${on ? '' : 'opacity-70 grayscale'}`} />}
             {c.name}
           </button>
         );
