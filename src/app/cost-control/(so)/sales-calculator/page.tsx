@@ -21,7 +21,8 @@ type Kind = "item" | "wip" | "other";
 type Line = { type: Kind; code: string; name: string; qty: number; unit: string; price?: number | null };
 type Extra = { id: number; code: string | null; name: string; unit: string; price: number | null; basis: "bill" | "portion" | "day"; qty: number; note: string | null; isActive: boolean };
 type Recipe = { code: string; name: string; category: string | null; lines: Line[]; note: string | null; isActive: boolean; menus: { id: string; name: string }[] };
-type Menu = { id: string; name: string; category: string; qty: number; recipe: string | null };
+type Menu = { id: string; name: string; category: string; detail?: string; kinds?: string[]; companies?: { code: string; name: string }[];
+  qty: number; lastSold?: string | null; recipe: string | null };
 type Item = { code: string; name: string; unit: string; category: string | null; price: number | null };
 type Wip = { code: string; name: string; components: { code: string | null; name: string; unit: string; perGram: number }[] };
 type Report = {
@@ -44,6 +45,9 @@ const num = (n: number | null | undefined, d = 2) => (n === null || n === undefi
 const rp = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `Rp ${Math.round(n).toLocaleString("id-ID")}`);
 const pct = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${(n * 100).toFixed(1)}%`);
 /** "1,5" / "1.5" → 1.5; an empty or unfinished value → null */
+/** every word of the search in the text, in any order ("es kopi premium" finds "ES KOPI CALF - PREMIUM") */
+const matches = (text: string, q: string) => { const t = text.toLowerCase(); return q.toLowerCase().split(/\s+/).filter(Boolean).every((w) => t.includes(w)); };
+const brands = (m: Menu) => (m.companies ?? []).map((c) => c.name).join(" · ");
 const parse = (v: string) => { const n = Number(v.replace(",", ".")); return v.trim() === "" || Number.isNaN(n) ? null : n; };
 
 export default function SalesCalculatorPage() {
@@ -237,7 +241,7 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
     try { await call(`/api/cost-control/sales-calc/recipes/${encodeURIComponent(recipe.code)}`, { method: "DELETE" }); onSaved(); } catch (e) { toast((e as Error).message, "error"); }
   };
   const ids = new Set(assigned.map((m) => m.id));
-  const menuShown = menus.filter((m) => !menuQ || `${m.name} ${m.category}`.toLowerCase().includes(menuQ.toLowerCase()));
+  const menuShown = menus.filter((m) => !menuQ || matches(`${m.name} ${m.category} ${m.detail ?? ""} ${brands(m)}`, menuQ)).slice(0, 400);
 
   return (
     <Drawer open onClose={onClose} size="lg" title={recipe ? recipe.name : tr("New Card")} description={tr("One portion of the menu")}
@@ -307,7 +311,7 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
           <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
             <div>
               <h3 className="font-semibold text-slate-900">{tr("ESB Menus with This Card")} <span className="font-normal text-slate-500">({assigned.length})</span></h3>
-              <p className="text-xs text-slate-500">{tr("Menus sold in the last 90 days; a menu on another card moves here when ticked")}</p>
+              <p className="text-xs text-slate-500">{tr("Every menu of the POS transactions; a menu on another card moves here when ticked")}</p>
             </div>
             <input className={cx(inputClass, "h-9 sm:max-w-[14rem]")} value={menuQ} onChange={(e) => setMenuQ(e.target.value)} placeholder={tr("Search menu")} />
           </div>
@@ -316,7 +320,7 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
               <label key={m.id} className={cx("flex cursor-pointer items-center gap-2 border-b border-slate-100 px-3 py-2 text-xs last:border-0", ids.has(m.id) ? "bg-blue-50/50" : "hover:bg-slate-50")}>
                 <input type="checkbox" checked={ids.has(m.id)}
                   onChange={(e) => setAssigned(e.target.checked ? [...assigned, { id: m.id, name: m.name }] : assigned.filter((x) => x.id !== m.id))} />
-                <span className="min-w-0 flex-1 truncate"><span className="font-medium text-slate-800">{m.name}</span> <span className="text-slate-400">· {m.category}</span></span>
+                <span className="min-w-0 flex-1 truncate"><span className="font-medium text-slate-800">{m.name}</span> <span className="text-slate-400">· {m.category}{brands(m) ? ` · ${brands(m)}` : ""}</span></span>
                 {m.recipe && m.recipe !== head.code && <Badge tone="amber">{m.recipe}</Badge>}
                 <span className="w-14 text-right tabular-nums text-slate-400">{num(m.qty, 0)}</span>
               </label>
@@ -336,8 +340,11 @@ function MenuAssign() {
   const [menus, setMenus] = useState<Menu[] | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [q, setQ] = useState("");
-  const [onlyFree, setOnlyFree] = useState(true);
+  const [brand, setBrand] = useState("");
+  const [category, setCategory] = useState("");
+  const [onlyFree, setOnlyFree] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const load = useCallback(() => {
     void call<{ data: Menu[] }>("/api/cost-control/sales-calc/menus").then((r) => setMenus(r.data));
     void call<{ data: Recipe[] }>("/api/cost-control/sales-calc/recipes").then((r) => setRecipes(r.data));
@@ -353,36 +360,67 @@ function MenuAssign() {
       load();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(null); }
   };
-  const all = menus ?? [];
+  const all = useMemo(() => menus ?? [], [menus]);
+  const brandList = useMemo(() => [...new Map(all.flatMap((m) => m.companies ?? []).map((c) => [c.code, c.name])).entries()], [all]);
+  const categories = useMemo(() => [...new Set(all.map((m) => m.category).filter(Boolean))].sort(), [all]);
+  const shown = all.filter((m) => (!onlyFree || !m.recipe) && (!brand || (m.companies ?? []).some((c) => c.code === brand))
+    && (!category || m.category === category) && (!q || matches(`${m.name} ${m.category} ${m.detail ?? ""}`, q)));
+  const SIZE = 100;
+  const pages = Math.max(1, Math.ceil(shown.length / SIZE));
+  const at = Math.min(page, pages);
+  useEffect(() => { setPage(1); }, [q, brand, category, onlyFree]);
   const free = all.filter((m) => !m.recipe).length;
-  const shown = all.filter((m) => (!onlyFree || !m.recipe) && (!q || `${m.name} ${m.category}`.toLowerCase().includes(q.toLowerCase())));
   return (
-    <Panel title={tr("Assign Menus")} description={tr("The ESB POS menus sold by the branches in the last 90 days and the recipe card each one uses; several menus may share a card")}
-      toolbar={<div className="flex flex-wrap items-center gap-3">
-        <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search menu")} /></div>
-        <label className="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />{tr("Without a card only")}</label>
-        {menus && <span className="ml-auto text-xs text-slate-500">{tr("{0} of {1} menus have a card", all.length - free, all.length)}</span>}
-      </div>}>
-      {!menus ? <SkeletonRows cols={4} /> : !recipes.length ? <Empty icon={<BookOpen size={26} />} title={tr("Make a recipe card first")}>{tr("Menus are assigned to the cards of step 1.")}</Empty>
-        : shown.length === 0 ? <Empty title={onlyFree ? tr("Every menu has a card") : tr("No menu matches")} /> : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5">{tr("Category")}</th><th className="px-4 py-2.5 text-right">{tr("Sold 90 Days")}</th><th className="px-4 py-2.5">{tr("Recipe Card")}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
-              {shown.slice(0, 300).map((m) => (
-                <tr key={m.id} className={busy === m.id ? "opacity-50" : ""}>
-                  <td className="px-4 py-2 font-medium text-slate-900">{m.name}</td><td className="px-4 py-2 text-xs text-slate-600">{m.category}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{num(m.qty, 0)}</td>
-                  <td className="w-72 px-4 py-2">
-                    <select className={cx(inputClass, "h-9", !m.recipe && "text-slate-400")} value={m.recipe ?? ""} disabled={busy === m.id} onChange={(e) => void assign(m, e.target.value)} aria-label={`${tr("Recipe Card")} ${m.name}`}>
-                      <option value="">{tr("— No card —")}</option>{recipes.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <Panel title={tr("Assign Menus")} description={tr("Every menu of the POS transactions of the branches and the recipe card it uses; several menus may share a card")}
+      toolbar={<div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-0 flex-1 basis-56"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search menu, e.g. es kopi premium")} /></div>
+        <select className={cx(inputClass, "w-auto")} value={brand} onChange={(e) => setBrand(e.target.value)} aria-label={tr("Brand")}>
+          <option value="">{tr("All brands")}</option>{brandList.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+        </select>
+        <select className={cx(inputClass, "w-auto max-w-[14rem]")} value={category} onChange={(e) => setCategory(e.target.value)} aria-label={tr("Category")}>
+          <option value="">{tr("All categories")}</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <label className="flex h-10 items-center gap-2 text-sm text-slate-600"><input type="checkbox" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />{tr("Without a card only")}</label>
+      </div>}
+      footer={menus ? <>
+        <span>{tr("{0} of {1} menus have a card", all.length - free, all.length)} · {tr("{0} shown", shown.length)}</span>
+        {pages > 1 && <span className="flex items-center gap-2">
+          <Button size="sm" variant="secondary" disabled={at <= 1} onClick={() => setPage(at - 1)}>‹</Button>
+          <span className="tabular-nums">{at} / {pages}</span>
+          <Button size="sm" variant="secondary" disabled={at >= pages} onClick={() => setPage(at + 1)}>›</Button>
+        </span>}
+      </> : undefined}>
+      {!menus ? <SkeletonRows cols={5} /> : (
+        <>
+          {!recipes.length && <p className="mx-4 mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No recipe card yet: make the cards in step 1, then choose them here.")}</p>}
+          {shown.length === 0 ? <Empty title={tr("No menu matches")} /> : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5">{tr("Category")}</th><th className="px-4 py-2.5">{tr("Brand")}</th>
+                  <th className="px-4 py-2.5 text-right">{tr("Sold 90 Days")}</th><th className="px-4 py-2.5">{tr("Recipe Card")}</th></tr></thead>
+                <tbody className="divide-y divide-slate-100">
+                  {shown.slice((at - 1) * SIZE, at * SIZE).map((m) => (
+                    <tr key={m.id} className={busy === m.id ? "opacity-50" : ""}>
+                      <td className="px-4 py-2">
+                        <span className="font-medium text-slate-900">{m.name}</span>
+                        {(m.kinds ?? []).filter((k) => k !== "menu").map((k) => <Badge key={k} tone="slate">{k === "package" ? tr("Package") : tr("Extra")}</Badge>)}
+                        {m.lastSold && <span className="block text-[11px] text-slate-400">{tr("last sold {0}", m.lastSold)}</span>}
+                      </td>
+                      <td className="px-4 py-2 text-xs text-slate-600">{m.category}{m.detail && m.detail !== m.category ? <span className="block text-[11px] text-slate-400">{m.detail}</span> : null}</td>
+                      <td className="px-4 py-2 text-xs text-slate-600">{brands(m)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums">{num(m.qty, 0)}</td>
+                      <td className="w-64 px-4 py-2">
+                        <select className={cx(inputClass, "h-9", !m.recipe && "text-slate-400")} value={m.recipe ?? ""} disabled={busy === m.id || !recipes.length} onChange={(e) => void assign(m, e.target.value)} aria-label={`${tr("Recipe Card")} ${m.name}`}>
+                          <option value="">{tr("— No card —")}</option>{recipes.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </Panel>
   );

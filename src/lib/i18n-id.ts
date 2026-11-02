@@ -4692,4 +4692,13 @@ export const ID: Record<string, string> = {
   "Batch (Grams)": "Batch (Gram)",
   "Stock Item": "Item Stok",
   "Grams / Batch": "Gram / Batch",
+  // Sales Calculator menu list (2026-11-02)
+  "All brands": "Semua brand",
+  "Every menu of the POS transactions of the branches and the recipe card it uses; several menus may share a card": "Semua menu dari transaksi POS cabang dan kartu resep yang dipakai; beberapa menu boleh memakai satu kartu",
+  "Every menu of the POS transactions; a menu on another card moves here when ticked": "Semua menu dari transaksi POS; menu di kartu lain pindah ke sini bila dicentang",
+  "No recipe card yet: make the cards in step 1, then choose them here.": "Belum ada kartu resep: buat kartu di langkah 1, lalu pilih di sini.",
+  "Package": "Paket",
+  "Search menu, e.g. es kopi premium": "Cari menu, mis. es kopi premium",
+  "last sold {0}": "terakhir terjual {0}",
+  "{0} shown": "{0} tampil",
 };
