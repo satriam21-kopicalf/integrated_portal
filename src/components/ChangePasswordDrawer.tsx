@@ -86,7 +86,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
         <Field label={tr('New password')} htmlFor="pw-new" required>
           <div className="relative">
             <input id="pw-new" type={type} autoComplete="new-password" className={`${inputClass} pr-10`} value={next} onChange={e => setNext(e.target.value)} />
-            <button type="button" onClick={() => setShow(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700"
+            <button type="button" onClick={() => setShow(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700"
               aria-label={show ? tr('Hide passwords') : tr('Show passwords')}>
               {show ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -94,7 +94,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
         </Field>
         <ul className="space-y-0.5 text-xs">
           {RULES.map(r => (
-            <li key={r.label} className={`flex items-center gap-1.5 ${r.test(next) ? 'text-emerald-600' : 'text-slate-400'}`}>
+            <li key={r.label} className={`flex items-center gap-1.5 ${r.test(next) ? 'text-emerald-600' : 'text-neutral-400'}`}>
               <Check size={12} /> {r.label}
             </li>
           ))}

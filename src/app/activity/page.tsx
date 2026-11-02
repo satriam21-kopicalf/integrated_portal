@@ -99,15 +99,15 @@ const PAGES: Record<string, string> = {
 /** category -> icon tile + bar colour */
 const TONES: Record<string, { tile: string; bar: string; label: string }> = {
   export: { tile: 'bg-emerald-50 text-emerald-700', bar: 'bg-emerald-500', get label() { return tr('Exports'); } },
-  auth: { tile: 'bg-blue-50 text-blue-700', bar: 'bg-blue-500', get label() { return tr('Sign-in'); } },
-  page: { tile: 'bg-slate-100 text-slate-600', bar: 'bg-slate-400', get label() { return tr('Pages'); } },
-  filter: { tile: 'bg-slate-100 text-slate-600', bar: 'bg-slate-300', get label() { return tr('Filters'); } },
+  auth: { tile: 'bg-brand-50 text-brand-700', bar: 'bg-brand-500', get label() { return tr('Sign-in'); } },
+  page: { tile: 'bg-neutral-100 text-neutral-600', bar: 'bg-neutral-400', get label() { return tr('Pages'); } },
+  filter: { tile: 'bg-neutral-100 text-neutral-600', bar: 'bg-neutral-300', get label() { return tr('Filters'); } },
   transaction: { tile: 'bg-violet-50 text-violet-700', bar: 'bg-violet-500', get label() { return tr('Transactions'); } },
   user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', get label() { return tr('User accounts'); } },
   profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', get label() { return tr('Own profile'); } },
   access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', get label() { return tr('Access denied'); } },
   form: { tile: 'bg-teal-50 text-teal-700', bar: 'bg-teal-500', get label() { return tr('Forms'); } },
-  system: { tile: 'bg-slate-900 text-white', bar: 'bg-slate-700', get label() { return tr('System'); } },
+  system: { tile: 'bg-neutral-900 text-white', bar: 'bg-neutral-700', get label() { return tr('System'); } },
 };
 
 const REPORT_LABELS: Record<string, string> = { get detail() { return tr('Sales Recapitulation Detail'); }, get daily() { return tr('Daily Sales Recapitulation'); } };
@@ -506,23 +506,23 @@ function TimelineRow({ entry, isNew, onOpen }: { entry: Entry; isNew: boolean; o
     <li>
       <button type="button" onClick={onOpen}
         className={`group grid w-full grid-cols-[3.75rem_2rem_minmax(0,1fr)_1rem] items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors duration-700 hover:bg-neutral-50 ${accent} ${isNew ? 'bg-brand-50/70' : ''}`}>
-        <span className="pt-1.5 text-xs tabular-nums text-slate-500">{clock(entry.at)}</span>
+        <span className="pt-1.5 text-xs tabular-nums text-neutral-500">{clock(entry.at)}</span>
         <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${tone.tile}`}>{action?.icon ?? <History size={15} />}</span>
         <span className="min-w-0">
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
-            <span className="font-semibold text-slate-900">{displayName(entry)}</span>
-            <span className="text-slate-600">{verb.startsWith("'") ? verb.slice(1) : verb}</span>
-            {entry.action === 'page.view' && <span className="font-medium text-slate-800">{pageLabel(entry.page)}</span>}
+            <span className="font-semibold text-neutral-900">{displayName(entry)}</span>
+            <span className="text-neutral-600">{verb.startsWith("'") ? verb.slice(1) : verb}</span>
+            {entry.action === 'page.view' && <span className="font-medium text-neutral-800">{pageLabel(entry.page)}</span>}
             <StatusBadge status={entry.status} />
             {isNew && <span className="rounded-full bg-brand-700 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">{tr('New')}</span>}
           </span>
-          {entry.summary && entry.action !== 'page.view' && <span className="mt-0.5 block truncate text-sm text-slate-600">{entry.summary}</span>}
-          <span className="mt-0.5 block truncate text-[11px] text-slate-400">
+          {entry.summary && entry.action !== 'page.view' && <span className="mt-0.5 block truncate text-sm text-neutral-600">{entry.summary}</span>}
+          <span className="mt-0.5 block truncate text-[11px] text-neutral-400">
             {entry.user.username && entry.user.fullName ? `@${entry.user.username} · ` : ''}
             {pageLabel(entry.page)} · {device(entry.userAgent)}{entry.ip ? ` · ${entry.ip}` : ''}
           </span>
         </span>
-        <ChevronRight size={16} className="mt-1.5 text-slate-300 group-hover:text-slate-500" />
+        <ChevronRight size={16} className="mt-1.5 text-neutral-300 group-hover:text-neutral-500" />
       </button>
     </li>
   );
@@ -535,7 +535,7 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
   const set = (key: keyof Filters) => (v: string) => setDraft(d => ({ ...d, [key]: v }));
   const options = useMemo(() => [...users].sort((a, b) => a.displayName.localeCompare(b.displayName)).map(u => ({
     value: u.id, label: `${u.displayName} (${u.username})`,
-    meta: <span className="text-[11px] text-slate-400">{ROLE_LABELS[u.role]}</span>,
+    meta: <span className="text-[11px] text-neutral-400">{ROLE_LABELS[u.role]}</span>,
   })), [users]);
   return (
     <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter activity')}
@@ -564,11 +564,11 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
 
 function Rows({ rows }: { rows: [string, ReactNode][] }) {
   return (
-    <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
+    <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100">
       {rows.filter(([, v]) => v !== undefined).map(([k, v]) => (
         <div key={k} className="grid grid-cols-[9rem_1fr] gap-3 px-3 py-2 text-sm">
-          <dt className="text-slate-500">{k}</dt>
-          <dd className="min-w-0 break-words text-slate-800">{v === null || v === '' ? '—' : v}</dd>
+          <dt className="text-neutral-500">{k}</dt>
+          <dd className="min-w-0 break-words text-neutral-800">{v === null || v === '' ? '—' : v}</dd>
         </div>
       ))}
     </dl>
@@ -578,7 +578,7 @@ function Rows({ rows }: { rows: [string, ReactNode][] }) {
 function value(v: unknown): ReactNode {
   if (v === null || v === undefined || v === '') return '—';
   if (Array.isArray(v)) return v.length ? v.join(', ') : '—';
-  if (typeof v === 'object') return <pre className="whitespace-pre-wrap break-all font-mono text-xs text-slate-700">{JSON.stringify(v, null, 2)}</pre>;
+  if (typeof v === 'object') return <pre className="whitespace-pre-wrap break-all font-mono text-xs text-neutral-700">{JSON.stringify(v, null, 2)}</pre>;
   if (typeof v === 'boolean') return v ? tr('Yes') : tr('No');
   return String(v);
 }
@@ -614,11 +614,11 @@ function EntryDrawer({ entry, onClose }: { entry: Entry; onClose: () => void }) 
     <Drawer open onClose={onClose} size="md" icon={<History size={18} />} title={action?.label ?? entry.action}
       description={formatDateTime(entry.at)}
       footer={<button type="button" className={buttonSecondary} onClick={onClose}><X size={16} /> {tr('Close')}</button>}>
-      <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
+      <div className="flex items-center gap-3 border-b border-neutral-100 pb-5">
         <UserAvatar name={name} src={entry.user.avatarUrl} size="lg" />
         <div className="min-w-0">
-          <p className="truncate font-semibold text-slate-900">{name}</p>
-          <p className="truncate text-sm text-slate-500">
+          <p className="truncate font-semibold text-neutral-900">{name}</p>
+          <p className="truncate text-sm text-neutral-500">
             {entry.user.username ?? '—'}{entry.user.role ? ` · ${ROLE_LABELS[entry.user.role] ?? entry.user.role}` : ''}
           </p>
         </div>
@@ -645,7 +645,7 @@ function EntryDrawer({ entry, onClose }: { entry: Entry; onClose: () => void }) 
         <Rows rows={[
           [tr('IP address'), entry.ip],
           [tr('Browser'), device(entry.userAgent)],
-          [tr('User agent'), entry.userAgent ? <span key="ua" className="text-xs text-slate-500">{entry.userAgent}</span> : null],
+          [tr('User agent'), entry.userAgent ? <span key="ua" className="text-xs text-neutral-500">{entry.userAgent}</span> : null],
         ]} />
       </DrawerSection>
     </Drawer>
@@ -658,26 +658,26 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
   return (
     <div className={`custom-scrollbar max-h-[70vh] overflow-auto ${loading ? 'opacity-60' : ''}`}>
       <table className="w-full text-sm">
-        <thead className="sticky top-0 z-[1] bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <thead className="sticky top-0 z-[1] bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
           <tr>
             {[tr('Time'), tr('User'), tr('Activity'), tr('Details'), tr('Page'), tr('Result'), tr('Device · IP')].map(h => <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5">{h}</th>)}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-neutral-100">
           {entries.map(e => {
             const action = ACTIONS[e.action];
             const tone = TONES[e.category] ?? TONES.page;
             return (
-              <tr key={e.id} onClick={() => onOpen(e)} className={`cursor-pointer align-top hover:bg-slate-50 ${fresh.has(e.id) ? 'bg-blue-50/70' : ''}`}>
-                <td className="whitespace-nowrap px-3 py-2 text-xs tabular-nums text-slate-500">{formatDate(toIsoDate(new Date(e.at)))}<span className="block text-slate-700">{clock(e.at)}</span></td>
-                <td className="max-w-[11rem] px-3 py-2"><span className="block truncate font-medium text-slate-900">{displayName(e)}</span><span className="block truncate text-[11px] text-slate-400">{e.user.username ?? '—'}</span></td>
+              <tr key={e.id} onClick={() => onOpen(e)} className={`cursor-pointer align-top hover:bg-neutral-50 ${fresh.has(e.id) ? 'bg-brand-50/70' : ''}`}>
+                <td className="whitespace-nowrap px-3 py-2 text-xs tabular-nums text-neutral-500">{formatDate(toIsoDate(new Date(e.at)))}<span className="block text-neutral-700">{clock(e.at)}</span></td>
+                <td className="max-w-[11rem] px-3 py-2"><span className="block truncate font-medium text-neutral-900">{displayName(e)}</span><span className="block truncate text-[11px] text-neutral-400">{e.user.username ?? '—'}</span></td>
                 <td className="whitespace-nowrap px-3 py-2">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700"><span className={`flex h-6 w-6 items-center justify-center rounded-md ${tone.tile}`}>{action?.icon ?? <History size={13} />}</span>{action?.label ?? e.action}</span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-700"><span className={`flex h-6 w-6 items-center justify-center rounded-md ${tone.tile}`}>{action?.icon ?? <History size={13} />}</span>{action?.label ?? e.action}</span>
                 </td>
-                <td className="max-w-[22rem] px-3 py-2 text-xs text-slate-600"><span className="line-clamp-2">{e.summary ?? '—'}</span></td>
-                <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600">{pageLabel(e.page)}</td>
+                <td className="max-w-[22rem] px-3 py-2 text-xs text-neutral-600"><span className="line-clamp-2">{e.summary ?? '—'}</span></td>
+                <td className="whitespace-nowrap px-3 py-2 text-xs text-neutral-600">{pageLabel(e.page)}</td>
                 <td className="whitespace-nowrap px-3 py-2">{e.status === 'ok' ? <span className="text-xs text-emerald-700">{tr('Succeeded')}</span> : <StatusBadge status={e.status} />}</td>
-                <td className="whitespace-nowrap px-3 py-2 text-[11px] text-slate-400">{device(e.userAgent)}<span className="block">{e.ip ?? ''}</span></td>
+                <td className="whitespace-nowrap px-3 py-2 text-[11px] text-neutral-400">{device(e.userAgent)}<span className="block">{e.ip ?? ''}</span></td>
               </tr>
             );
           })}

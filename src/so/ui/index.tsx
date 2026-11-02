@@ -13,14 +13,14 @@ export function cx(...c: (string | false | null | undefined)[]) {
 
 // 16px text on phones: iOS zooms into a field with smaller text
 export const inputClass =
-  "h-11 w-full rounded-2xl border border-slate-200/80 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 lg:h-10 lg:rounded-lg lg:text-sm " +
-  "focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50 disabled:text-slate-500";
+  "h-11 w-full rounded-xl px-3 text-base lg:h-10 lg:rounded-lg lg:text-sm " +
+  "border border-transparent bg-neutral-100 text-neutral-900 placeholder:text-neutral-400 transition-colors hover:bg-neutral-200/60 focus:border-neutral-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400";
 
 const BUTTON = {
-  primary: "bg-blue-600 font-semibold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 active:bg-blue-800 disabled:shadow-none",
-  secondary: "border border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50",
-  danger: "bg-red-600 font-semibold text-white hover:bg-red-700",
-  ghost: "font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+  primary: "bg-brand-700 font-medium text-white shadow-sm hover:bg-brand-800 active:bg-brand-900 disabled:shadow-none",
+  secondary: "border border-neutral-200 bg-white font-medium text-neutral-800 shadow-sm hover:bg-neutral-50",
+  danger: "bg-red-600 font-medium text-white shadow-sm hover:bg-red-700",
+  ghost: "font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
 } as const;
 
 export function Button({
@@ -38,7 +38,7 @@ export function Button({
       disabled={p.disabled || loading}
       className={cx(
         "inline-flex items-center justify-center gap-2 rounded-xl text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 lg:rounded-lg",
-        size === "sm" ? "h-9 px-3 text-xs lg:h-8" : "h-11 px-4 lg:h-10",
+        size === "sm" ? "h-9 px-3 text-xs lg:h-8" : "h-11 px-4 lg:h-9 lg:px-3.5 lg:text-[13px]",
         BUTTON[variant],
         className,
       )}
@@ -54,12 +54,12 @@ export function Field({ label, hint, error, required, children, className }: {
 }) {
   return (
     <label className={cx("block", className)}>
-      <span className="mb-1 block text-xs font-semibold text-slate-700">
+      <span className="mb-1.5 block text-xs font-medium text-neutral-600">
         {label}{required && <span className="ml-0.5 text-red-500">*</span>}
       </span>
       {children}
       {error ? <span className="mt-1 block text-xs text-red-600">{error}</span>
-        : hint ? <span className="mt-1 block text-xs text-slate-400">{hint}</span> : null}
+        : hint ? <span className="mt-1 block text-xs text-neutral-500">{hint}</span> : null}
     </label>
   );
 }
@@ -74,11 +74,11 @@ export function Select({ className, ...p }: React.SelectHTMLAttributes<HTMLSelec
 
 export function Checkbox({ label, hint, ...p }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
   return (
-    <label className="flex cursor-pointer select-none items-start gap-2.5 text-sm text-slate-700">
-      <input type="checkbox" {...p} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500" />
+    <label className="flex cursor-pointer select-none items-start gap-2.5 text-sm text-neutral-800">
+      <input type="checkbox" {...p} className="mt-0.5 h-4 w-4 rounded border-neutral-300 accent-brand-700" />
       <span>
         {label}
-        {hint && <span className="block text-xs text-slate-400">{hint}</span>}
+        {hint && <span className="block text-xs text-neutral-500">{hint}</span>}
       </span>
     </label>
   );

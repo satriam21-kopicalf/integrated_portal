@@ -23,7 +23,7 @@ export default function UserAvatar({
     return <img src={src} alt={name} className={`${box} object-cover`} onError={() => setFailed(true)} />;
   }
   return (
-    <span className={`${box} bg-gradient-to-br from-blue-700 to-blue-900 font-semibold text-white`} aria-label={name}>
+    <span className={`${box} bg-gradient-to-br from-brand-700 to-brand-900 font-semibold text-white`} aria-label={name}>
       {initials(name)}
     </span>
   );
@@ -122,14 +122,14 @@ export function AvatarEditor({
         <UserAvatar name={name || '?'} src={preview} size="xl" />
         {busy && (
           <span className="absolute inset-0 flex items-center justify-center rounded-full bg-white/70">
-            <Loader2 size={20} className="animate-spin text-blue-700" />
+            <Loader2 size={20} className="animate-spin text-brand-700" />
           </span>
         )}
       </div>
       <div className="min-w-0 space-y-2">
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => input.current?.click()} disabled={busy}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60">
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-60">
             <Camera size={15} /> {preview ? tr('Change photo') : tr('Upload photo')}
           </button>
           {preview && (
@@ -139,7 +139,7 @@ export function AvatarEditor({
             </button>
           )}
         </div>
-        <p className="text-xs text-slate-400">{tr('JPG, PNG or WebP. Cropped to a square, 256 × 256 px.')}</p>
+        <p className="text-xs text-neutral-400">{tr('JPG, PNG or WebP. Cropped to a square, 256 × 256 px.')}</p>
         {error && <p className="text-xs text-red-600" role="alert">{error}</p>}
       </div>
       <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={pick} />

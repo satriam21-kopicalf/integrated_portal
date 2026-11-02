@@ -341,7 +341,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
 export function DrawerBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
+      <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{title}</h3>
       {children}
     </section>
   );
@@ -350,8 +350,8 @@ export function DrawerBlock({ title, children }: { title: string; children: Reac
 export function DrawerRow({ k, v }: { k: string; v: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 px-3 py-2">
-      <dt className="text-slate-500">{k}</dt>
-      <dd className="flex min-w-0 flex-wrap items-center gap-1.5 break-words text-slate-800">{v}</dd>
+      <dt className="text-neutral-500">{k}</dt>
+      <dd className="flex min-w-0 flex-wrap items-center gap-1.5 break-words text-neutral-900">{v}</dd>
     </div>
   );
 }

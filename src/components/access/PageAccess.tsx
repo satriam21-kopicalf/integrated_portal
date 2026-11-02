@@ -53,7 +53,7 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
   if (role === 'superadmin') {
     return (
       <div className="space-y-3">
-        <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600">{tr('Super admins open every page, including User Accounts and Activity Logs.')}</p>
+        <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">{tr('Super admins open every page, including User Accounts and Activity Logs.')}</p>
         {onHiddenChange && <MenuDisplay hidden={hidden ?? []} onChange={onHiddenChange} />}
       </div>
     );
@@ -73,17 +73,17 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
   return (
     <div className="space-y-3">
       <OperationsNote only={onlyOps} some={pages.some(k => OPERATIONS_PAGES.includes(k))} />
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500">
         <span>{tr('Ticked = the user opens the page. Grey label = from the role {0}.', ROLE_LABELS[role])}</span>
         {changed > 0 && (
-          <button type="button" onClick={() => onChange({})} className="inline-flex items-center gap-1 font-medium text-blue-700 hover:underline">
+          <button type="button" onClick={() => onChange({})} className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline">
             <RotateCcw size={12} /> {tr('Back to the role ({0} exceptions)', changed)}
           </button>
         )}
       </div>
       {groups().map(g => (
         <div key={g.group}>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.group}</p>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{g.group}</p>
           <ul className="grid gap-1 sm:grid-cols-2">
             {g.pages.map(p => {
               const on = effective(p.key);
@@ -91,11 +91,11 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
               return (
                 <li key={p.key}>
                   <label className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm transition-colors ${
-                    exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-slate-200 hover:bg-slate-50'}`}>
-                    <input type="checkbox" checked={on} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-slate-300 text-blue-700" />
-                    <span className="min-w-0 flex-1 truncate text-slate-800">{p.label} <StateTag page={p} /></span>
+                    exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-neutral-200 hover:bg-neutral-50'}`}>
+                    <input type="checkbox" checked={on} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-neutral-300 text-brand-700" />
+                    <span className="min-w-0 flex-1 truncate text-neutral-800">{p.label} <StateTag page={p} /></span>
                     <OpsTag page={p.key} />
-                    <span className={`text-[10px] font-semibold uppercase ${exception ? (on ? 'text-emerald-700' : 'text-rose-700') : 'text-slate-400'}`}>
+                    <span className={`text-[10px] font-semibold uppercase ${exception ? (on ? 'text-emerald-700' : 'text-rose-700') : 'text-neutral-400'}`}>
                       {exception ? (on ? tr('Extra') : tr('Removed')) : base.has(p.key) ? tr('Role') : ''}
                     </span>
                   </label>
@@ -151,9 +151,9 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
       </>}>
       {!draft ? <div className="skeleton h-72 rounded-lg" /> : (
         <div className="space-y-4">
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <div className="overflow-x-auto rounded-xl border border-neutral-200">
             <table className="w-full min-w-[600px] text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                 <tr>
                   <th className="px-3 py-2.5">{tr('Page')}</th>
                   <th className="w-28 px-3 py-2.5 text-center">{ROLE_LABELS.superadmin}</th>
@@ -164,30 +164,30 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
                 {groups().map(g => (
                   <GroupRows key={g.group} group={g.group}>
                     {g.pages.map(p => (
-                      <tr key={p.key} className="border-t border-slate-100">
-                        <td className="px-3 py-2 text-slate-800">{p.label} <StateTag page={p} /> <OpsTag page={p.key} /></td>
-                        <td className="px-3 py-2 text-center"><Check size={15} className="inline text-slate-400" aria-label={tr('Always')} /></td>
+                      <tr key={p.key} className="border-t border-neutral-100">
+                        <td className="px-3 py-2 text-neutral-800">{p.label} <StateTag page={p} /> <OpsTag page={p.key} /></td>
+                        <td className="px-3 py-2 text-center"><Check size={15} className="inline text-neutral-400" aria-label={tr('Always')} /></td>
                         {EDITABLE.map(r => (
                           <td key={r} className="px-3 py-2 text-center">
                             <input type="checkbox" aria-label={`${ROLE_LABELS[r]} · ${p.label}`} checked={draft[r].includes(p.key)}
-                              onChange={() => toggle(r, p.key)} className="h-4 w-4 rounded border-slate-300 text-blue-700" />
+                              onChange={() => toggle(r, p.key)} className="h-4 w-4 rounded border-neutral-300 text-brand-700" />
                           </td>
                         ))}
                       </tr>
                     ))}
                   </GroupRows>
                 ))}
-                <tr className="border-t border-slate-200 bg-slate-50/60 text-slate-500">
+                <tr className="border-t border-neutral-200 bg-neutral-50/60 text-neutral-500">
                   <td className="px-3 py-2">{tr('User Accounts, Activity Logs')}</td>
-                  <td className="px-3 py-2 text-center"><Check size={15} className="inline text-slate-400" /></td>
+                  <td className="px-3 py-2 text-center"><Check size={15} className="inline text-neutral-400" /></td>
                   <td colSpan={EDITABLE.length} className="px-3 py-2 text-center text-xs">{tr('Super admins only')}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <OperationsNote only={false} some />
-          <p className="text-xs text-slate-500">{tr('Roles User (PIC) and Outlet / Hub see only their assigned branches; Cost Control pages show every branch. A new form is added to role User (PIC).')}</p>
-          <p className="text-xs text-slate-500">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
+          <p className="text-xs text-neutral-500">{tr('Roles User (PIC) and Outlet / Hub see only their assigned branches; Cost Control pages show every branch. A new form is added to role User (PIC).')}</p>
+          <p className="text-xs text-neutral-500">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
           {message && <p role="status" className={`rounded-lg px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
         </div>
       )}
@@ -201,22 +201,22 @@ export function MenuDisplay({ hidden, onChange }: { hidden: string[]; onChange: 
   const toggle = (k: string) => onChange(hidden.includes(k) ? hidden.filter(x => x !== k) : [...hidden, k]);
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500">
         <span>{tr('Menu display: ticked pages are shown in the menu. Unticked pages keep working (by their address, links and approvals) — only the menu gets shorter.')}</span>
         {hidden.length > 0 && (
-          <button type="button" onClick={() => onChange([])} className="inline-flex items-center gap-1 font-medium text-blue-700 hover:underline">
+          <button type="button" onClick={() => onChange([])} className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline">
             <RotateCcw size={12} /> {tr('Show every page ({0} hidden)', hidden.length)}
           </button>
         )}
       </div>
       {groups().map(g => (
         <div key={g.group}>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.group}</p>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{g.group}</p>
           <ul className="grid gap-1 sm:grid-cols-2">
             {g.pages.filter(p => p.state !== 'hidden').map(p => (
               <li key={p.key}>
-                <label className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm ${hidden.includes(p.key) ? 'border-slate-200 bg-slate-50 text-slate-400' : 'border-slate-200 hover:bg-slate-50'}`}>
-                  <input type="checkbox" checked={!hidden.includes(p.key)} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-slate-300 text-blue-700" />
+                <label className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm ${hidden.includes(p.key) ? 'border-neutral-200 bg-neutral-50 text-neutral-400' : 'border-neutral-200 hover:bg-neutral-50'}`}>
+                  <input type="checkbox" checked={!hidden.includes(p.key)} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-neutral-300 text-brand-700" />
                   <span className="min-w-0 flex-1 truncate">{p.label}</span>
                 </label>
               </li>
@@ -287,28 +287,28 @@ export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
       </>}>
       {message && <p className={`mb-3 rounded-lg px-3 py-2 text-xs ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
       {!pages ? <div className="skeleton h-72 rounded-lg" /> : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="overflow-x-auto rounded-xl border border-neutral-200">
           <table className="w-full min-w-[560px] text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
               <tr><th className="px-3 py-2.5">{tr('Page')}</th>{ALL_PLATFORMS.map(k => <th key={k} className="w-28 px-3 py-2.5 text-center">{PLATFORM_LABEL[k]}</th>)}<th className="w-10" /></tr>
             </thead>
             <tbody>
               {byGroup.map(g => (
                 <Fragment key={g.group}>
-                  <tr className="border-t border-slate-200 bg-slate-50/60"><td colSpan={5} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.group}</td></tr>
+                  <tr className="border-t border-neutral-200 bg-neutral-50/60"><td colSpan={5} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{g.group}</td></tr>
                   {g.pages.map(p => (
-                    <tr key={p.key} className="border-t border-slate-100">
-                      <td className="px-3 py-2 text-slate-800">{p.label}{custom(p) && <span className="ml-1 rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold uppercase text-amber-700">{tr('Set')}</span>}</td>
+                    <tr key={p.key} className="border-t border-neutral-100">
+                      <td className="px-3 py-2 text-neutral-800">{p.label}{custom(p) && <span className="ml-1 rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold uppercase text-amber-700">{tr('Set')}</span>}</td>
                       {ALL_PLATFORMS.map(k => (
                         <td key={k} className="px-3 py-2 text-center">
                           {p.available.includes(k)
-                            ? <input type="checkbox" aria-label={`${PLATFORM_LABEL[k]} · ${p.label}`} checked={current(p).includes(k)} onChange={() => toggle(p, k)} className="h-4 w-4 rounded border-slate-300 text-blue-700" />
-                            : <span className="text-slate-300">—</span>}
+                            ? <input type="checkbox" aria-label={`${PLATFORM_LABEL[k]} · ${p.label}`} checked={current(p).includes(k)} onChange={() => toggle(p, k)} className="h-4 w-4 rounded border-neutral-300 text-brand-700" />
+                            : <span className="text-neutral-300">—</span>}
                         </td>
                       ))}
                       <td className="px-1 text-center">
                         {custom(p) && (
-                          <button type="button" title={tr('Back to the default')} aria-label={tr('Back to the default')} onClick={() => setDraft(d => ({ ...d, [p.key]: null }))} className="rounded p-1 text-slate-400 hover:text-blue-700"><RotateCcw size={13} /></button>
+                          <button type="button" title={tr('Back to the default')} aria-label={tr('Back to the default')} onClick={() => setDraft(d => ({ ...d, [p.key]: null }))} className="rounded p-1 text-neutral-400 hover:text-brand-700"><RotateCcw size={13} /></button>
                         )}
                       </td>
                     </tr>
@@ -327,7 +327,7 @@ function OpsTag({ page }: { page: PageKey }) {
   if (!OPERATIONS_PAGES.includes(page)) return null;
   return (
     <span title={tr('Also opens in Operations: {0}', OPERATIONS_URL.replace('https://', ''))}
-      className="inline-flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap rounded bg-blue-50 px-1.5 py-px align-middle text-[10px] font-semibold text-blue-700">
+      className="inline-flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap rounded bg-brand-50 px-1.5 py-px align-middle text-[10px] font-semibold text-brand-700">
       <Smartphone size={10} aria-hidden /> Operations
     </span>
   );
@@ -338,7 +338,7 @@ function OperationsNote({ only, some }: { only: boolean; some: boolean }) {
   if (!only && !some) return null;
   const host = OPERATIONS_URL.replace('https://', '');
   return (
-    <p className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs ${only ? 'bg-blue-50 text-blue-900 ring-1 ring-blue-200' : 'bg-slate-50 text-slate-600'}`}>
+    <p className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs ${only ? 'bg-brand-50 text-brand-900 ring-1 ring-brand-200' : 'bg-neutral-50 text-neutral-600'}`}>
       <Smartphone size={14} className="mt-px flex-shrink-0" />
       <span>{only
         ? tr('This account opens forms and pages Operations has only: it signs in at {0} and the portal refuses it. Add a page without the Operations tag to keep the portal.', host)
@@ -350,15 +350,15 @@ function OperationsNote({ only, some }: { only: boolean; some: boolean }) {
 /** "Not in the menu", "Being built" … beside a page whose menu entry is special. */
 function StateTag({ page }: { page: PageInfo }) {
   if (!page.state) return null;
-  const tone = page.state === 'hidden' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500';
+  const tone = page.state === 'hidden' ? 'bg-amber-50 text-amber-700' : 'bg-neutral-100 text-neutral-500';
   return <span className={`ml-1 inline-block whitespace-nowrap rounded px-1.5 py-px align-middle text-[10px] font-semibold uppercase ${tone}`}>{STATE_LABEL[page.state]()}</span>;
 }
 
 function GroupRows({ group, children }: { group: string; children: React.ReactNode }) {
   return (
     <>
-      <tr className="border-t border-slate-200 bg-slate-50/60">
-        <td colSpan={EDITABLE.length + 2} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{group}</td>
+      <tr className="border-t border-neutral-200 bg-neutral-50/60">
+        <td colSpan={EDITABLE.length + 2} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{group}</td>
       </tr>
       {children}
     </>
@@ -372,10 +372,10 @@ export function MastersDrawer({ onClose }: { onClose: () => void }) {
     <Drawer open onClose={onClose} size="md" icon={kind === 'jobTitle' ? <Briefcase size={18} /> : <Building2 size={18} />}
       title={tr('Job titles & departments')} description={tr('The names offered in the user forms. New names can also be added straight from a form.')}
       footer={<button type="button" className={buttonSecondary} onClick={onClose}>{tr('Close')}</button>}>
-      <div className="mb-4 flex gap-1 border-b border-slate-200" role="tablist">
+      <div className="mb-4 flex gap-1 border-b border-neutral-200" role="tablist">
         {(['jobTitle', 'department'] as MasterKind[]).map(k => (
           <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${kind === k ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${kind === k ? 'border-brand-600 text-brand-700' : 'border-transparent text-neutral-500 hover:text-neutral-800'}`}>
             {k === 'jobTitle' ? tr('Job titles') : tr('Departments')}
           </button>
         ))}
@@ -413,33 +413,33 @@ function MasterList({ kind }: { kind: MasterKind }) {
       </form>
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
       {!rows ? <div className="skeleton h-40 rounded-lg" /> : rows.length === 0 ? (
-        <p className="py-6 text-center text-sm text-slate-400">{tr('No names yet')}</p>
+        <p className="py-6 text-center text-sm text-neutral-400">{tr('No names yet')}</p>
       ) : (
-        <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+        <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
           {rows.map(r => (
-            <li key={r.id} className={`flex items-center gap-2 px-3 py-2 ${r.isActive ? '' : 'bg-slate-50 opacity-70'}`}>
+            <li key={r.id} className={`flex items-center gap-2 px-3 py-2 ${r.isActive ? '' : 'bg-neutral-50 opacity-70'}`}>
               {editing?.id === r.id ? (
                 <form className="flex flex-1 gap-2" onSubmit={e => { e.preventDefault(); void run(async () => { await patch(r.id, { name: editing.name }); setEditing(null); }); }}>
                   <input className={`${inputClass} h-9`} value={editing.name} autoFocus maxLength={80} onChange={e => setEditing({ id: r.id, name: e.target.value })} aria-label={tr('Name')} />
                   <button type="submit" className="rounded-md p-1.5 text-emerald-700 hover:bg-emerald-50" aria-label={tr('Save')}><Check size={16} /></button>
-                  <button type="button" onClick={() => setEditing(null)} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100" aria-label={tr('Cancel')}><X size={16} /></button>
+                  <button type="button" onClick={() => setEditing(null)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100" aria-label={tr('Cancel')}><X size={16} /></button>
                 </form>
               ) : (
                 <>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-slate-900">{r.name}</span>
-                    <span className="block text-[11px] text-slate-400">{tr('{0} users', r.users)}{r.isActive ? '' : ` · ${tr('Inactive')}`}</span>
+                    <span className="block truncate text-sm text-neutral-900">{r.name}</span>
+                    <span className="block text-[11px] text-neutral-400">{tr('{0} users', r.users)}{r.isActive ? '' : ` · ${tr('Inactive')}`}</span>
                   </span>
-                  <button type="button" onClick={() => setEditing({ id: r.id, name: r.name })} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Rename {0}', r.name)}><Pencil size={15} /></button>
+                  <button type="button" onClick={() => setEditing({ id: r.id, name: r.name })} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Rename {0}', r.name)}><Pencil size={15} /></button>
                   <button type="button" onClick={() => void run(() => patch(r.id, { isActive: !r.isActive }))}
-                    className="rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100">{r.isActive ? tr('Hide') : tr('Show')}</button>
+                    className="rounded-md px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100">{r.isActive ? tr('Hide') : tr('Show')}</button>
                 </>
               )}
             </li>
           ))}
         </ul>
       )}
-      <p className="text-xs text-slate-500">{tr('Renaming changes the name on every account that uses it. Hidden names are no longer offered; accounts keep them.')}</p>
+      <p className="text-xs text-neutral-500">{tr('Renaming changes the name on every account that uses it. Hidden names are no longer offered; accounts keep them.')}</p>
     </DrawerSection>
   );
 }

@@ -234,7 +234,7 @@ export default function UsersPage() {
   if (!allowed) {
     return (
       <DashboardLayout>
-        <div className="flex h-full items-center justify-center text-slate-400"><Loader2 className="animate-spin" /></div>
+        <div className="flex h-full items-center justify-center text-neutral-400"><Loader2 className="animate-spin" /></div>
       </DashboardLayout>
     );
   }
@@ -347,7 +347,7 @@ export default function UsersPage() {
       {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
       {toast && (
-        <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-slate-900' : 'bg-red-600'}`} role="status">
+        <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-neutral-900' : 'bg-red-600'}`} role="status">
           {toast.tone === 'ok' ? <CheckCircle2 size={16} className="text-emerald-400" /> : <AlertCircle size={16} />}
           {toast.text}
           <button type="button" onClick={() => setToast(null)} className="ml-1 rounded p-0.5 opacity-70 hover:opacity-100" aria-label={tr('Dismiss')}><X size={14} /></button>
@@ -375,7 +375,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
   const [draft, setDraft] = useState<UserFilters>(value);
   const set = (key: keyof UserFilters) => (v: string) => setDraft(d => ({ ...d, [key]: v }));
   const options = useMemo(() => [...branches].sort((a, b) => a.branch_name.localeCompare(b.branch_name)).map(b => ({
-    value: b.branch_code, label: b.branch_name, meta: <span className="font-mono text-[11px] text-slate-400">{b.branch_code}</span>,
+    value: b.branch_code, label: b.branch_name, meta: <span className="font-mono text-[11px] text-neutral-400">{b.branch_code}</span>,
   })), [branches]);
   return (
     <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter users')}
@@ -397,7 +397,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
         ]} />
         <SearchChoice label={tr('Branch')} anyLabel={tr('All branches')} options={options} value={draft.branch} onChange={set('branch')}
           placeholder={tr('Search outlet name or code')} loading={branchesLoading} />
-        <p className="text-xs text-slate-500">{tr('A branch shows the users assigned to it; super admins see every branch and are always included.')}</p>
+        <p className="text-xs text-neutral-500">{tr('A branch shows the users assigned to it; super admins see every branch and are always included.')}</p>
       </div>
     </Drawer>
   );
@@ -614,7 +614,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                   <input id="f-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" className={`${inputClass} pr-10 font-mono`}
                     value={form.password} onChange={e => set('password', e.target.value)} maxLength={128} required={creating}
                     placeholder={creating ? '' : tr('Keep current password')} />
-                  <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700"
+                  <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700"
                     aria-label={showPassword ? tr('Hide password') : tr('Show password')}>
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -624,9 +624,9 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 </button>
               </div>
             </Field>
-            <label className="flex items-center gap-2 text-sm text-slate-600">
+            <label className="flex items-center gap-2 text-sm text-neutral-600">
               <input type="checkbox" checked={form.mustChangePassword} onChange={e => set('mustChangePassword', e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-blue-700" />
+                className="h-4 w-4 rounded border-neutral-300 text-brand-700" />
               {tr('Must change password at next sign-in')}
             </label>
           </div>
@@ -670,7 +670,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
         ) : (
-          <p className="mt-6 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
+          <p className="mt-6 flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">
             <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {form.role === 'driver' ? tr('Drivers have no branches: their pool and fleet are set in Master Driver.') : tr('Super admins see every branch.')}
           </p>
         )}
@@ -682,8 +682,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 <textarea id="f-notes" rows={2} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
               </Field>
             </DrawerSection>
-            <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/60 px-3.5 py-3 text-sm text-blue-900">
-              <Info size={16} className="mt-0.5 flex-shrink-0 text-blue-700" />
+            <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-brand-100 bg-brand-50/60 px-3.5 py-3 text-sm text-brand-900">
+              <Info size={16} className="mt-0.5 flex-shrink-0 text-brand-700" />
               <p>
                 {tr('After saving you get the login details to share with the user. At the first sign-in the user sets a new password and completes')} <span className="font-medium">{tr('My profile')}</span> {tr('(gender, date of birth, address, work location…).')}
               </p>
@@ -714,11 +714,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
 
 function DetailList({ rows }: { rows: [string, ReactNode][] }) {
   return (
-    <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100">
+    <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100">
       {rows.map(([k, v]) => (
         <div key={k} className="grid grid-cols-[9.5rem_1fr] gap-3 px-3 py-2 text-sm">
-          <dt className="text-slate-500">{k}</dt>
-          <dd className="min-w-0 break-words text-slate-800">{v ?? '—'}</dd>
+          <dt className="text-neutral-500">{k}</dt>
+          <dd className="min-w-0 break-words text-neutral-800">{v ?? '—'}</dd>
         </div>
       ))}
     </dl>
@@ -731,8 +731,8 @@ function InfoGrid({ items }: { items: [string, ReactNode][] }) {
     <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
       {items.map(([k, v]) => (
         <div key={k} className="min-w-0">
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{k}</dt>
-          <dd className="mt-0.5 break-words text-sm text-slate-800">{v === null || v === undefined || v === '' ? <span className="text-slate-400">—</span> : v}</dd>
+          <dt className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{k}</dt>
+          <dd className="mt-0.5 break-words text-sm text-neutral-800">{v === null || v === undefined || v === '' ? <span className="text-neutral-400">—</span> : v}</dd>
         </div>
       ))}
     </dl>
@@ -821,8 +821,8 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <UserAvatar name={user.displayName} src={user.avatarUrl} size="xl" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xl font-semibold text-slate-900">{user.displayName}</p>
-          <p className="truncate text-sm text-slate-500">
+          <p className="truncate text-xl font-semibold text-neutral-900">{user.displayName}</p>
+          <p className="truncate text-sm text-neutral-500">
             {[user.jobTitle, user.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{!user.profileComplete && <ProfileBadge />}</div>
@@ -830,7 +830,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       </div>
 
       {/* at a glance */}
-      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-4">
         <Glance label={tr('Last sign-in')} value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('has not signed in')} />
         <Glance label={tr('Branch access')} value={!branchScoped(user.role) ? 'All' : formatNumber(branchCodes.length)}
           sub={!branchScoped(user.role) ? ROLE_LABELS[user.role] : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}
@@ -842,14 +842,14 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       <DrawerSection title={tr('Branch access')} description={!branchScoped(user.role) ? tr('Super admins and Cost Control see every branch') : tr('Overview, Sales Transactions and exports are limited to these branches')}>
         {!branchScoped(user.role) ? (
-          <p className="flex items-center gap-2 text-sm text-slate-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All branches')}</p>
+          <p className="flex items-center gap-2 text-sm text-neutral-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All branches')}</p>
         ) : branchCodes.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {branchCodes.map(code => (
-              <li key={code} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
-                <Store size={14} className="flex-shrink-0 text-slate-400" />
-                <span className="min-w-0 flex-1 truncate text-slate-800">{branchName(code)}</span>
-                <span className="font-mono text-[11px] text-slate-400">{code}</span>
+              <li key={code} className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm">
+                <Store size={14} className="flex-shrink-0 text-neutral-400" />
+                <span className="min-w-0 flex-1 truncate text-neutral-800">{branchName(code)}</span>
+                <span className="font-mono text-[11px] text-neutral-400">{code}</span>
               </li>
             ))}
           </ul>
@@ -863,7 +863,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           {PAGES.filter(p => user.role === 'superadmin' || (user.pages ?? []).includes(p.key)).map(p => {
             const extra = user.pageOverrides?.[p.key] === true;
             return (
-              <li key={p.key} className={`rounded-full px-2.5 py-1 text-xs ${extra ? 'bg-emerald-50 font-medium text-emerald-800' : 'bg-slate-100 text-slate-700'}`}
+              <li key={p.key} className={`rounded-full px-2.5 py-1 text-xs ${extra ? 'bg-emerald-50 font-medium text-emerald-800' : 'bg-neutral-100 text-neutral-700'}`}
                 title={extra ? tr('Added for this user') : p.group}>{p.label}</li>
             );
           })}
@@ -877,10 +877,10 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       <DrawerSection title={tr('Contact')}>
         <InfoGrid items={[
-          [tr('Email'), <a key="e" href={`mailto:${user.email}`} className="text-blue-700 hover:underline">{user.email}</a>],
+          [tr('Email'), <a key="e" href={`mailto:${user.email}`} className="text-brand-700 hover:underline">{user.email}</a>],
           [tr('Phone'), user.phoneNumber ? (
             <span key="p" className="flex flex-wrap items-center gap-2">
-              <a href={`tel:${user.phoneNumber}`} className="text-blue-700 hover:underline">{user.phoneNumber}</a>
+              <a href={`tel:${user.phoneNumber}`} className="text-brand-700 hover:underline">{user.phoneNumber}</a>
               <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100">{tr('WhatsApp')}</a>
             </span>
           ) : null],
@@ -918,21 +918,21 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       <DrawerSection title={tr('Recent activity')} description={tr('Last 30 days')}>
         {recent === null ? (
-          <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100" />)}</div>
+          <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-neutral-100" />)}</div>
         ) : recent.length === 0 ? (
-          <p className="text-sm text-slate-400">{tr('No activity in the last 30 days.')}</p>
+          <p className="text-sm text-neutral-400">{tr('No activity in the last 30 days.')}</p>
         ) : (
-          <ol className="relative space-y-3 border-l border-slate-200 pl-4">
+          <ol className="relative space-y-3 border-l border-neutral-200 pl-4">
             {recent.map(a => (
               <li key={a.id} className="relative">
-                <span className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-white ${a.status === 'ok' ? 'bg-slate-300' : a.status === 'denied' ? 'bg-red-500' : 'bg-amber-500'}`} />
-                <p className="text-sm text-slate-800">{a.summary || a.action}</p>
-                <p className="text-[11px] text-slate-400">{formatDateTime(a.at)} · <span className="font-mono">{a.action}</span></p>
+                <span className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-white ${a.status === 'ok' ? 'bg-neutral-300' : a.status === 'denied' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                <p className="text-sm text-neutral-800">{a.summary || a.action}</p>
+                <p className="text-[11px] text-neutral-400">{formatDateTime(a.at)} · <span className="font-mono">{a.action}</span></p>
               </li>
             ))}
           </ol>
         )}
-        <button type="button" onClick={() => router.push(`/activity?user=${user.id}`)} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline">
+        <button type="button" onClick={() => router.push(`/activity?user=${user.id}`)} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:underline">
           <History size={14} /> {tr('Open in Activity Logs')}
         </button>
       </DrawerSection>
@@ -949,12 +949,12 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 }
 
 function Glance({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: 'good' | 'warn' | 'bad' }) {
-  const color = tone === 'bad' ? 'text-red-700' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : 'text-slate-900';
+  const color = tone === 'bad' ? 'text-red-700' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : 'text-neutral-900';
   return (
     <div className="min-w-0 bg-white px-3 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">{label}</p>
       <p className={`mt-0.5 truncate text-base font-semibold tabular-nums ${color}`}>{value}</p>
-      <p className="truncate text-[11px] text-slate-500" title={sub}>{sub}</p>
+      <p className="truncate text-[11px] text-neutral-500" title={sub}>{sub}</p>
     </div>
   );
 }
@@ -995,10 +995,10 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
           </button>
         </>
       }>
-      <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
+      <div className="flex items-center gap-3 border-b border-neutral-100 pb-5">
         <UserAvatar name={user.displayName} src={user.avatarUrl} size="lg" />
         <div className="min-w-0">
-          <p className="truncate font-semibold text-slate-900">{user.displayName}</p>
+          <p className="truncate font-semibold text-neutral-900">{user.displayName}</p>
           <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><BranchesBadge user={user} branchName={branchName} /></div>
         </div>
       </div>
@@ -1009,7 +1009,7 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
           [tr('Password'), (
             <span key="p" className="flex items-center gap-2">
               <span className="font-mono">{show ? password : '•'.repeat(Math.min(password.length, 14))}</span>
-              <button type="button" onClick={() => setShow(s => !s)} className="rounded p-1 text-slate-400 hover:text-slate-700" aria-label={show ? tr('Hide password') : tr('Show password')}>
+              <button type="button" onClick={() => setShow(s => !s)} className="rounded p-1 text-neutral-400 hover:text-neutral-700" aria-label={show ? tr('Hide password') : tr('Show password')}>
                 {show ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </span>
@@ -1052,8 +1052,8 @@ function DeleteDialog({ user, onClose, onDeleted, onError }: { user: AuthUser; o
       <div className="flex items-center gap-3 rounded-lg bg-red-50 px-3 py-3">
         <KeyRound size={18} className="text-red-600" />
         <div className="text-sm">
-          <p className="font-semibold text-slate-900">{user.displayName}</p>
-          <p className="text-slate-600">{user.username} · {user.email}</p>
+          <p className="font-semibold text-neutral-900">{user.displayName}</p>
+          <p className="text-neutral-600">{user.username} · {user.email}</p>
         </div>
       </div>
     </Dialog>

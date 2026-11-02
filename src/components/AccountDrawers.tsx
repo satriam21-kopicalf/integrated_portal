@@ -143,7 +143,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
         <ProfileFields values={form} onChange={set} fieldError={fieldError} idPrefix="me" currentBranchName={user.workBranchName} />
 
         <DrawerSection title={tr('Sign-in & access')} description={tr('Managed by an administrator.')}>
-          <dl className="divide-y divide-slate-100 rounded-lg border border-slate-100 text-sm">
+          <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100 text-sm">
             {([
               [tr('Username'), user.username],
               [tr('Email'), user.email],
@@ -151,8 +151,8 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
               [tr('Password changed'), user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
             ] as [string, ReactNode][]).map(([k, v]) => (
               <div key={k} className="grid grid-cols-[9rem_1fr] gap-3 px-3 py-2">
-                <dt className="text-slate-500">{k}</dt>
-                <dd className="min-w-0 break-words text-slate-800">{v}</dd>
+                <dt className="text-neutral-500">{k}</dt>
+                <dd className="min-w-0 break-words text-neutral-800">{v}</dd>
               </div>
             ))}
           </dl>
@@ -192,18 +192,18 @@ function ProfileNudge({ user, onOpen }: { user: AuthUser; onOpen: () => void }) 
   if (!visible) return null;
   return (
     <div className="fixed inset-x-4 bottom-4 z-[70] sm:left-auto sm:w-[360px]" role="status" data-bottom-notice>
-      <div className="drawer-backdrop rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xl">
+      <div className="drawer-backdrop rounded-xl border border-neutral-200/80 bg-white p-4 shadow-xl">
         <div className="flex items-start gap-3">
           <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><CircleUserRound size={20} /></span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-900">{tr('Complete your profile')}</p>
-            <p className="mt-0.5 text-sm text-slate-500">{tr('Add your full name, phone number, job title and department.')}</p>
+            <p className="text-sm font-semibold text-neutral-900">{tr('Complete your profile')}</p>
+            <p className="mt-0.5 text-sm text-neutral-500">{tr('Add your full name, phone number, job title and department.')}</p>
             <div className="mt-3 flex gap-2">
               <button type="button" className={`${buttonPrimary} h-9 px-3`} onClick={onOpen}>{tr('Complete profile')}</button>
               <button type="button" className={`${buttonSecondary} h-9 px-3`} onClick={dismiss}>{tr('Later')}</button>
             </div>
           </div>
-          <button type="button" onClick={dismiss} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Dismiss')}><X size={16} /></button>
+          <button type="button" onClick={dismiss} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Dismiss')}><X size={16} /></button>
         </div>
       </div>
     </div>

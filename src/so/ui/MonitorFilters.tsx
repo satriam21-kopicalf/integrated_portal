@@ -22,7 +22,7 @@ export function MonitorFilterSheet({ active, onClose, onReset, onApply, applyDis
       footer={
         <>
           <button type="button" onClick={onReset} disabled={!active}
-            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-transparent">
+            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 disabled:opacity-40 disabled:hover:bg-transparent">
             <RotateCcw size={14} /> {tr('Reset all')}
           </button>
           <Button onClick={onApply} disabled={applyDisabled} className="min-w-[9rem]">
@@ -30,7 +30,7 @@ export function MonitorFilterSheet({ active, onClose, onReset, onApply, applyDis
           </Button>
         </>
       }>
-      <div className="-mx-1 divide-y divide-slate-100">{children}</div>
+      <div className="-mx-1 divide-y divide-neutral-100">{children}</div>
     </Drawer>
   );
 }
@@ -42,11 +42,11 @@ export function FilterRow({ icon, label, value, onClear, children }: {
   return (
     <section className="px-1 py-4 first:pt-1">
       <header className="mb-2.5 flex items-center gap-2">
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">{icon}</span>
-        <h3 className="text-sm font-semibold text-slate-900">{label}</h3>
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500">{icon}</span>
+        <h3 className="text-sm font-semibold text-neutral-900">{label}</h3>
         <span className="ml-auto flex min-w-0 items-center gap-2 text-xs">
-          {value ? <span className="truncate font-medium text-blue-700">{value}</span> : <span className="text-slate-400">{tr('All')}</span>}
-          {value && onClear && <button type="button" onClick={onClear} className="flex-shrink-0 text-slate-400 underline-offset-2 hover:text-slate-700 hover:underline">{tr('Clear')}</button>}
+          {value ? <span className="truncate font-medium text-brand-700">{value}</span> : <span className="text-neutral-400">{tr('All')}</span>}
+          {value && onClear && <button type="button" onClick={onClear} className="flex-shrink-0 text-neutral-400 underline-offset-2 hover:text-neutral-700 hover:underline">{tr('Clear')}</button>}
         </span>
       </header>
       {children}
@@ -57,12 +57,12 @@ export function FilterRow({ icon, label, value, onClear, children }: {
 /** A few choices side by side ('' = all). */
 export function Segments({ value, onChange, choices }: { value: string; onChange: (v: string) => void; choices: { value: string; label: string }[] }) {
   return (
-    <div className="flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1" role="radiogroup">
+    <div className="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1" role="radiogroup">
       {choices.map((c) => {
         const on = c.value === value;
         return (
           <button key={c.value || 'all'} type="button" role="radio" aria-checked={on} onClick={() => onChange(c.value)}
-            className={cx('min-w-0 flex-1 basis-[30%] truncate rounded-lg px-2.5 py-1.5 text-xs font-medium transition', on ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-600 hover:text-slate-900')}>
+            className={cx('min-w-0 flex-1 basis-[30%] truncate rounded-lg px-2.5 py-1.5 text-xs font-medium transition', on ? 'bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200' : 'text-neutral-600 hover:text-neutral-900')}>
             {c.label}
           </button>
         );
@@ -74,16 +74,16 @@ export function Segments({ value, onChange, choices }: { value: string; onChange
 /** Choices with longer names, one per line with a radio dot ('' = all). */
 export function OptionList({ value, onChange, choices }: { value: string; onChange: (v: string) => void; choices: { value: string; label: string; icon?: ReactNode }[] }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200" role="radiogroup">
+    <div className="overflow-hidden rounded-xl border border-neutral-200" role="radiogroup">
       {choices.map((c) => {
         const on = c.value === value;
         return (
           <button key={c.value || 'all'} type="button" role="radio" aria-checked={on} onClick={() => onChange(c.value)}
-            className={cx('flex w-full items-center gap-2.5 border-b border-slate-100 px-3 py-2 text-left text-sm last:border-b-0', on ? 'bg-blue-50/70 font-medium text-blue-900' : 'text-slate-700 hover:bg-slate-50')}>
-            <span className={cx('flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border', on ? 'border-blue-600' : 'border-slate-300')}>
-              {on && <span className="h-2 w-2 rounded-full bg-blue-600" />}
+            className={cx('flex w-full items-center gap-2.5 border-b border-neutral-100 px-3 py-2 text-left text-sm last:border-b-0', on ? 'bg-brand-50/70 font-medium text-brand-900' : 'text-neutral-700 hover:bg-neutral-50')}>
+            <span className={cx('flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border', on ? 'border-brand-600' : 'border-neutral-300')}>
+              {on && <span className="h-2 w-2 rounded-full bg-brand-600" />}
             </span>
-            {c.icon && <span className="flex-shrink-0 text-slate-400">{c.icon}</span>}
+            {c.icon && <span className="flex-shrink-0 text-neutral-400">{c.icon}</span>}
             <span className="min-w-0 flex-1 truncate">{c.label}</span>
           </button>
         );
@@ -114,32 +114,32 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
   const item = (v: string, label: string, hint?: string) => (
     <li key={v || 'all'}>
       <button type="button" onClick={() => pick(v)} aria-pressed={v === value}
-        className={cx('flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-slate-50', v === value ? 'font-medium text-blue-800' : 'text-slate-700')}>
+        className={cx('flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-neutral-50', v === value ? 'font-medium text-brand-800' : 'text-neutral-700')}>
         <span className="flex w-4 flex-shrink-0 justify-center">{v === value && <Check size={14} />}</span>
-        <span className="min-w-0 flex-1 truncate">{label}</span>{hint && <span className="flex-shrink-0 text-[11px] text-slate-400">{hint}</span>}
+        <span className="min-w-0 flex-1 truncate">{label}</span>{hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{hint}</span>}
       </button>
     </li>
   );
   return (
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className={cx(inputClass, 'flex h-10 items-center justify-between gap-2 text-left', open && 'border-blue-500 ring-2 ring-blue-500/20')}>
-        <span className={cx('truncate text-sm', !current && 'text-slate-500')}>{current ? current.label : allLabel}</span>
-        <span className="flex flex-shrink-0 items-center gap-1 text-slate-400">
-          {current && <X size={14} className="hover:text-slate-700" onClick={(e) => { e.stopPropagation(); pick(''); }} aria-label={tr('Clear')} />}
+        className={cx(inputClass, 'flex h-10 items-center justify-between gap-2 text-left', open && 'border-brand-500 ring-2 ring-brand-500/20')}>
+        <span className={cx('truncate text-sm', !current && 'text-neutral-500')}>{current ? current.label : allLabel}</span>
+        <span className="flex flex-shrink-0 items-center gap-1 text-neutral-400">
+          {current && <X size={14} className="hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); pick(''); }} aria-label={tr('Clear')} />}
           <ChevronDown size={15} className={cx('transition', open && 'rotate-180')} />
         </span>
       </button>
       {open && (
-        <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-          <div className="relative border-b border-slate-100 p-2">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg">
+          <div className="relative border-b border-neutral-100 p-2">
+            <Search size={14} className="absolute left-4 top-1/2 -tranneutral-y-1/2 text-neutral-400" />
             <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={placeholder} className={cx(inputClass, 'h-9 pl-8 text-sm')} />
           </div>
           <ul className="max-h-60 overflow-y-auto py-1">
             {!q && item('', allLabel)}
             {shown.map((o) => item(o.value, o.label, o.hint))}
-            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-slate-400">{tr('No match')}</li>}
+            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr('No match')}</li>}
           </ul>
         </div>
       )}
@@ -175,17 +175,17 @@ export function QuickPeriod({ value, onChange, maxDays }: { value: Period; onCha
       }} choices={[...presets.map((p) => ({ value: p.key, label: p.label })), { value: 'custom', label: tr('Custom') }]} />
       {custom && (
         <div className="grid grid-cols-2 gap-2">
-          <label className="text-[11px] font-medium text-slate-500">{tr('From')}
+          <label className="text-[11px] font-medium text-neutral-500">{tr('From')}
             <input type="date" value={value.from} max={value.to} className={cx(inputClass, 'mt-1 h-10')}
               onChange={(e) => e.target.value && onChange({ from: e.target.value, to: value.to < e.target.value ? e.target.value : value.to })} />
           </label>
-          <label className="text-[11px] font-medium text-slate-500">{tr('To')}
+          <label className="text-[11px] font-medium text-neutral-500">{tr('To')}
             <input type="date" value={value.to} min={value.from} max={today} className={cx(inputClass, 'mt-1 h-10')}
               onChange={(e) => e.target.value && onChange({ from: value.from > e.target.value ? e.target.value : value.from, to: e.target.value })} />
           </label>
         </div>
       )}
-      <p className={cx('flex items-center gap-1.5 text-xs', tooLong ? 'text-red-600' : 'text-slate-500')}>
+      <p className={cx('flex items-center gap-1.5 text-xs', tooLong ? 'text-red-600' : 'text-neutral-500')}>
         <CalendarDays size={13} /> {dmy(value.from)} – {dmy(value.to)} · {tr('{0} days', days)}{tooLong ? ` · ${tr('at most {0} days', maxDays)}` : ''}
       </p>
     </div>

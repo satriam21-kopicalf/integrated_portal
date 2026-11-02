@@ -54,28 +54,28 @@ export default function Dialog({
   const width = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl' }[size];
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4" role="presentation">
-      <div className="absolute inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-[1px]" onClick={locked ? undefined : onClose} aria-hidden />
+      <div className="absolute inset-0 bg-neutral-900/30 dark:bg-black/70" onClick={locked ? undefined : onClose} aria-hidden />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl outline-none sm:rounded-2xl ${width}`}
+        className={`relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl outline-none sm:rounded-xl ${width}`}
       >
-        <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <header className="flex items-start justify-between gap-3 border-b border-neutral-200 px-5 py-4">
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-            {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
+            <h2 className="text-[15px] font-semibold text-neutral-900">{title}</h2>
+            {description && <p className="mt-0.5 text-[13px] text-neutral-500">{description}</p>}
           </div>
           {!locked && (
-            <button type="button" data-close onClick={onClose} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Close')}>
+            <button type="button" data-close onClick={onClose} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Close')}>
               <X size={18} />
             </button>
           )}
         </header>
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-3">{footer}</footer>}
+        {footer && <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-5 py-3">{footer}</footer>}
       </div>
     </div>
   );
@@ -94,27 +94,27 @@ export function Field({
 }) {
   return (
     <div className={className}>
-      <label htmlFor={htmlFor} className="mb-1 block text-xs font-semibold text-slate-700">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium text-neutral-600">
         {label}{required && <span className="ml-0.5 text-red-500">*</span>}
       </label>
       {children}
-      {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : hint ? <p className="mt-1 text-xs text-slate-400">{hint}</p> : null}
+      {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : hint ? <p className="mt-1 text-xs text-neutral-500">{hint}</p> : null}
     </div>
   );
 }
 
 export const inputClass =
-  'h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 ' +
-  'focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50 disabled:text-slate-500';
+  'h-10 w-full rounded-lg px-3 text-sm ' +
+  'border border-transparent bg-neutral-100 text-neutral-900 placeholder:text-neutral-400 transition-colors hover:bg-neutral-200/60 focus:border-neutral-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400';
 
 export const buttonPrimary =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 text-sm font-semibold text-white ' +
-  'transition-colors hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60';
+  'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-brand-700 px-3.5 text-[13px] font-medium text-white shadow-sm ' +
+  'transition-colors hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60';
 
 export const buttonSecondary =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium ' +
-  'text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60';
+  'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3.5 text-[13px] font-medium ' +
+  'text-neutral-800 shadow-sm transition-colors hover:bg-neutral-50 disabled:opacity-60';
 
 export const buttonDanger =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white ' +
+  'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-red-600 px-3.5 text-[13px] font-medium text-white shadow-sm ' +
   'transition-colors hover:bg-red-700 disabled:opacity-60';

@@ -61,18 +61,18 @@ function MatchBadge({ o }: { o: Outlet }) {
 function OpenBadge({ o }: { o: Outlet }) {
   if (o.businessStatus === "CLOSED_PERMANENTLY") return <Badge tone="red">{tr("Permanently closed")}</Badge>;
   if (o.businessStatus === "CLOSED_TEMPORARILY") return <Badge tone="amber">{tr("Temporarily closed")}</Badge>;
-  if (o.openNow === null) return <span className="text-xs text-slate-400">—</span>;
+  if (o.openNow === null) return <span className="text-xs text-neutral-400">—</span>;
   return o.openNow ? <Badge tone="green" dot>{tr("Open")}</Badge> : <Badge tone="slate" dot>{tr("Closed")}</Badge>;
 }
 
 function Stars({ value, size = 13 }: { value: number | null; size?: number }) {
-  if (value === null) return <span className="text-xs text-slate-400">—</span>;
+  if (value === null) return <span className="text-xs text-neutral-400">—</span>;
   return (
     <span className="inline-flex items-center gap-1.5" aria-label={tr("{0} of 5 stars", value)}>
-      <span className="font-semibold tabular-nums text-slate-900">{value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
+      <span className="font-semibold tabular-nums text-neutral-900">{value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
       <span className="inline-flex" aria-hidden>
         {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} size={size} className={value >= i - 0.25 ? "fill-amber-400 text-amber-400" : value >= i - 0.75 ? "fill-amber-200 text-amber-400" : "text-slate-300"} />
+          <Star key={i} size={size} className={value >= i - 0.25 ? "fill-amber-400 text-amber-400" : value >= i - 0.75 ? "fill-amber-200 text-amber-400" : "text-neutral-300"} />
         ))}
       </span>
     </span>
@@ -159,7 +159,7 @@ export default function GoogleMapsRatingPage() {
         {res?.canEdit && res.ready && (
           <button type="button" onClick={() => void sync()} disabled={starting || res.syncing} className={iconBtn}
             title={res.syncing ? tr("Sync running…") : tr("Sync with Google now")} aria-label={tr("Sync with Google now")}>
-            <CloudDownload size={19} className={res.syncing ? "animate-pulse text-blue-600" : ""} />
+            <CloudDownload size={19} className={res.syncing ? "animate-pulse text-brand-600" : ""} />
           </button>
         )}
       </>}
@@ -207,15 +207,15 @@ export default function GoogleMapsRatingPage() {
           <Empty icon={<MapPin size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No outlet yet")} />
         ) : (
           <>
-            <ul className="divide-y divide-slate-100 md:hidden">
+            <ul className="divide-y divide-neutral-100 md:hidden">
               {paged.rows.map((o) => (
                 <li key={o.code}>
-                  <button type="button" onClick={() => setOpen(o.code)} className="flex w-full flex-col gap-1.5 px-4 py-3 text-left hover:bg-slate-50">
+                  <button type="button" onClick={() => setOpen(o.code)} className="flex w-full flex-col gap-1.5 px-4 py-3 text-left hover:bg-neutral-50">
                     <span className="flex items-start justify-between gap-3">
-                      <span className="min-w-0 truncate text-sm font-medium text-slate-900">{o.branchName}</span>
+                      <span className="min-w-0 truncate text-sm font-medium text-neutral-900">{o.branchName}</span>
                       <OpenBadge o={o} />
                     </span>
-                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
                       <Stars value={o.rating} size={12} />
                       {o.reviewCount !== null && <span>{tr("{0} reviews", fmtNumber(o.reviewCount))}</span>}
                       {o.todayHours && <span>{o.todayHours}</span>}
@@ -237,22 +237,22 @@ export default function GoogleMapsRatingPage() {
                     <th className="px-4 py-2.5">{tr("Google Maps")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {!res ? <SkeletonRows cols={6} /> : paged.rows.map((o) => (
-                    <tr key={o.code} onClick={() => setOpen(o.code)} className="cursor-pointer hover:bg-slate-50/70">
+                    <tr key={o.code} onClick={() => setOpen(o.code)} className="cursor-pointer hover:bg-neutral-50/70">
                       <td className="max-w-[20rem] px-4 py-2.5">
-                        <span className="block truncate font-medium text-slate-900">{o.branchName}</span>
-                        <span className="block truncate text-xs text-slate-400">{o.address ?? o.code}</span>
+                        <span className="block truncate font-medium text-neutral-900">{o.branchName}</span>
+                        <span className="block truncate text-xs text-neutral-400">{o.address ?? o.code}</span>
                       </td>
                       <td className="whitespace-nowrap px-4 py-2.5"><Stars value={o.rating} /></td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{o.reviewCount === null ? "—" : fmtNumber(o.reviewCount)}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-neutral-700">{o.reviewCount === null ? "—" : fmtNumber(o.reviewCount)}</td>
                       <td className="px-4 py-2.5"><OpenBadge o={o} /></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-slate-600">{o.todayHours ?? "—"}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-neutral-600">{o.todayHours ?? "—"}</td>
                       <td className="px-4 py-2.5">
                         <span className="inline-flex items-center gap-2">
                           <MatchBadge o={o} />
                           {o.mapsUri && <a href={o.mapsUri} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title={tr("Open in Google Maps")}
-                            aria-label={tr("Open in Google Maps")} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-blue-700">
+                            aria-label={tr("Open in Google Maps")} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-brand-700">
                             <ExternalLink size={15} />
                           </a>}
                         </span>
@@ -295,14 +295,14 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
       <div className="space-y-5">
         <div className="flex flex-wrap items-center gap-3">
           <Stars value={o.rating} size={16} />
-          {o.reviewCount !== null && <span className="text-sm text-slate-500">{tr("{0} reviews", fmtNumber(o.reviewCount))}</span>}
+          {o.reviewCount !== null && <span className="text-sm text-neutral-500">{tr("{0} reviews", fmtNumber(o.reviewCount))}</span>}
           <OpenBadge o={o} />
           <MatchBadge o={o} />
         </div>
         {(o.address || o.mapsUri) && (
-          <div className="rounded-xl border border-slate-200 p-3 text-sm">
-            {o.address && <p className="text-slate-700">{o.address}</p>}
-            {o.mapsUri && <a href={o.mapsUri} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-blue-700 hover:underline">
+          <div className="rounded-xl border border-neutral-200 p-3 text-sm">
+            {o.address && <p className="text-neutral-700">{o.address}</p>}
+            {o.mapsUri && <a href={o.mapsUri} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-brand-700 hover:underline">
               {tr("Open in Google Maps")} <ExternalLink size={12} /></a>}
           </div>
         )}
@@ -310,13 +310,13 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
 
         {o.weekHours.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{tr("Opening hours")}</h3>
-            <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Opening hours")}</h3>
+            <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
               {o.weekHours.map((line) => {
                 const [day, hours] = line.includes(": ") ? line.split(": ", 2) : [line, ""];
                 return (
                   <div key={line} className="flex justify-between gap-3 px-3 py-1.5">
-                    <dt className="text-slate-500">{day}</dt><dd className="tabular-nums text-slate-800">{hours}</dd>
+                    <dt className="text-neutral-500">{day}</dt><dd className="tabular-nums text-neutral-800">{hours}</dd>
                   </div>
                 );
               })}
@@ -325,30 +325,30 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
         )}
 
         <section>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{tr("Latest reviews")}</h3>
-          <p className="mb-2 text-xs text-slate-400">{tr("Newest first. Google picks at most 5 reviews per outlet in the Places API (not always the newest ones); the rating and the number of reviews cover all of them.")}</p>
-          {o.reviews.length === 0 ? <p className="rounded-xl border border-dashed border-slate-200 px-3 py-6 text-center text-sm text-slate-400">{tr("No review yet")}</p> : (
+          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Latest reviews")}</h3>
+          <p className="mb-2 text-xs text-neutral-400">{tr("Newest first. Google picks at most 5 reviews per outlet in the Places API (not always the newest ones); the rating and the number of reviews cover all of them.")}</p>
+          {o.reviews.length === 0 ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p> : (
             <ul className="space-y-2">
               {o.reviews.map((r, i) => (
-                <li key={r.uri ?? i} className="rounded-xl border border-slate-200 p-3">
+                <li key={r.uri ?? i} className="rounded-xl border border-neutral-200 p-3">
                   <div className="flex items-center gap-2">
                     {r.authorPhoto
                       // eslint-disable-next-line @next/next/no-img-element -- reviewer photo from Google
-                      ? <img src={r.authorPhoto} alt="" referrerPolicy="no-referrer" className="h-7 w-7 rounded-full bg-slate-100 object-cover" />
-                      : <span className="h-7 w-7 rounded-full bg-slate-100" />}
+                      ? <img src={r.authorPhoto} alt="" referrerPolicy="no-referrer" className="h-7 w-7 rounded-full bg-neutral-100 object-cover" />
+                      : <span className="h-7 w-7 rounded-full bg-neutral-100" />}
                     <span className="min-w-0 flex-1">
-                      {r.authorUri ? <a href={r.authorUri} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-slate-900 hover:underline">{r.author}</a>
-                        : <span className="block truncate text-sm font-medium text-slate-900">{r.author ?? tr("Google user")}</span>}
-                      <span className="text-xs text-slate-400">{[r.publishedAt ? wibDay(r.publishedAt) : null, r.when].filter(Boolean).join(" · ")}</span>
+                      {r.authorUri ? <a href={r.authorUri} target="_blank" rel="noreferrer" className="block truncate text-sm font-medium text-neutral-900 hover:underline">{r.author}</a>
+                        : <span className="block truncate text-sm font-medium text-neutral-900">{r.author ?? tr("Google user")}</span>}
+                      <span className="text-xs text-neutral-400">{[r.publishedAt ? wibDay(r.publishedAt) : null, r.when].filter(Boolean).join(" · ")}</span>
                     </span>
                     <Stars value={r.rating} size={11} />
                   </div>
-                  {r.text && <p className="mt-2 whitespace-pre-line text-sm text-slate-700">{r.text}</p>}
+                  {r.text && <p className="mt-2 whitespace-pre-line text-sm text-neutral-700">{r.text}</p>}
                 </li>
               ))}
             </ul>
           )}
-          <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-slate-400">
+          <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-neutral-400">
             {/* eslint-disable-next-line @next/next/no-img-element -- Google Maps attribution */}
             <img src={LOGO} alt="Google Maps" className="h-3 w-auto" /> {o.fetchedAt ? tr("fetched {0}", wibDateTime(o.fetchedAt)) : ""}
           </p>
@@ -393,9 +393,9 @@ function PlacePicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{tr("Place on Google Maps")}</h3>
-      <p className="mt-1 text-xs text-slate-500">
+    <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Place on Google Maps")}</h3>
+      <p className="mt-1 text-xs text-neutral-500">
         {o.match === "auto" ? tr("Matched automatically ({0} m from the outlet's coordinates).", o.matchDistanceM ?? "?")
           : o.match === "manual" ? tr("Chosen by {0}.", o.setBy ?? "—")
           : o.match === "review" ? (o.matchDistanceM !== null
@@ -412,15 +412,15 @@ function PlacePicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
       </form>
       {note && <div className="mt-2"><NoteLine note={note} /></div>}
       {found && (
-        <ul className="mt-2 divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200 bg-white">
-          {found.length === 0 && <li className="px-3 py-4 text-center text-sm text-slate-400">{tr("Nothing found")}</li>}
+        <ul className="mt-2 divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+          {found.length === 0 && <li className="px-3 py-4 text-center text-sm text-neutral-400">{tr("Nothing found")}</li>}
           {found.map((c) => (
             <li key={c.placeId} className="flex items-center gap-3 px-3 py-2">
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-slate-900">{c.name}</span>
-                <span className="block truncate text-xs text-slate-500">{c.address}</span>
+                <span className="block truncate text-sm font-medium text-neutral-900">{c.name}</span>
+                <span className="block truncate text-xs text-neutral-500">{c.address}</span>
               </span>
-              {c.distanceM !== null && <span className={`text-xs tabular-nums ${c.distanceM > 300 ? "text-amber-700" : "text-slate-500"}`}>{fmtNumber(c.distanceM)} m</span>}
+              {c.distanceM !== null && <span className={`text-xs tabular-nums ${c.distanceM > 300 ? "text-amber-700" : "text-neutral-500"}`}>{fmtNumber(c.distanceM)} m</span>}
               <Button size="sm" variant={c.placeId === o.placeId ? "secondary" : "primary"} loading={busy === c.placeId} disabled={!!busy}
                 onClick={() => void choose(c.placeId)}>{c.placeId === o.placeId ? tr("Current") : tr("Choose")}</Button>
             </li>
@@ -428,7 +428,7 @@ function PlacePicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
         </ul>
       )}
       {o.match !== "none" && (
-        <button type="button" disabled={!!busy} onClick={() => void choose(null)} className="mt-2 text-xs text-slate-500 hover:text-red-700 hover:underline">
+        <button type="button" disabled={!!busy} onClick={() => void choose(null)} className="mt-2 text-xs text-neutral-500 hover:text-red-700 hover:underline">
           {tr("This outlet is not on Google Maps")}
         </button>
       )}

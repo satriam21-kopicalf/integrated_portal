@@ -17,8 +17,8 @@ export function Switch({ checked, onChange, label, hint, disabled }: {
         {hint && <span className="mt-0.5 block text-xs text-slate-500">{hint}</span>}
       </span>
       <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
-        className={cx("relative mt-0.5 inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-          checked ? "bg-blue-600" : "bg-slate-300")}>
+        className={cx("relative mt-0.5 inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2",
+          checked ? "bg-brand-700" : "bg-neutral-300")}>
         <span className={cx("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform", checked ? "translate-x-[22px]" : "translate-x-0.5")} />
       </button>
     </label>
@@ -28,12 +28,12 @@ export function Switch({ checked, onChange, label, hint, disabled }: {
 /** A numbered step of a form in a drawer. */
 export function FormCard({ n, title, hint, children, aside }: { n?: number; title: string; hint?: string; children: ReactNode; aside?: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white">
-      <header className="flex items-start gap-3 border-b border-slate-100 px-4 py-3">
-        {n !== undefined && <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-white">{n}</span>}
+    <section className="rounded-xl border border-neutral-200 bg-white">
+      <header className="flex items-start gap-3 border-b border-neutral-100 px-4 py-3">
+        {n !== undefined && <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">{n}</span>}
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-slate-900">{title}</span>
-          {hint && <span className="mt-0.5 block text-xs text-slate-500">{hint}</span>}
+          <span className="block text-sm font-semibold text-neutral-900">{title}</span>
+          {hint && <span className="mt-0.5 block text-xs text-neutral-500">{hint}</span>}
         </span>
         {aside}
       </header>
@@ -48,11 +48,11 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
 }) {
   return (
     // one line on phones too: the options scroll sideways instead of wrapping onto a second row (2026-10-28)
-    <div role="radiogroup" aria-label={label} className="flex max-w-full gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1 [scrollbar-width:none]">
+    <div role="radiogroup" aria-label={label} className="flex max-w-full gap-1 overflow-x-auto rounded-lg bg-neutral-100 p-1 [scrollbar-width:none]">
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
           className={cx("min-h-9 flex-1 flex-shrink-0 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm",
-            value === o.value ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{o.label}</button>
+            value === o.value ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800")}>{o.label}</button>
       ))}
     </div>
   );

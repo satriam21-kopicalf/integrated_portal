@@ -63,39 +63,39 @@ export default function ResetLogsDrawer({ storage, retentionDays, onClose, onDon
         </>
       }>
       <div className="space-y-6">
-        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 text-sm">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200 text-sm">
           <div className="bg-white px-3 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Entries stored')}</dt>
-            <dd className="mt-0.5 font-semibold tabular-nums text-slate-900">{storage ? formatNumber(storage.entries) : '…'}</dd>
+            <dt className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Entries stored')}</dt>
+            <dd className="mt-0.5 font-semibold tabular-nums text-neutral-900">{storage ? formatNumber(storage.entries) : '…'}</dd>
           </div>
           <div className="bg-white px-3 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{tr('Auto clean-up')}</dt>
-            <dd className="mt-0.5 font-semibold text-slate-900">{retentionDays ? tr('after {0} days', retentionDays) : tr('off')}</dd>
+            <dt className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Auto clean-up')}</dt>
+            <dd className="mt-0.5 font-semibold text-neutral-900">{retentionDays ? tr('after {0} days', retentionDays) : tr('off')}</dd>
           </div>
-          <div className="col-span-2 bg-white px-3 py-2.5 text-xs text-slate-500">
+          <div className="col-span-2 bg-white px-3 py-2.5 text-xs text-neutral-500">
             {storage?.oldest ? <>{tr('From')} {formatDateTime(storage.oldest)} {tr('to')} {formatDateTime(storage.newest)}</> : tr('The log is empty')}
           </div>
         </dl>
 
         <fieldset className="space-y-2">
-          <legend className="mb-2 text-sm font-medium text-slate-700">{tr('What to remove')}</legend>
+          <legend className="mb-2 text-sm font-medium text-neutral-700">{tr('What to remove')}</legend>
           {([
             ['all', tr('All entries'), tr('Empty the whole log.')],
             ['before', tr('Entries before a date'), tr('Keep recent activity, remove what is older.')],
           ] as const).map(([value, label, hint]) => (
-            <label key={value} className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 ${scope === value ? 'border-red-300 bg-red-50/50' : 'border-slate-200 hover:bg-slate-50'}`}>
+            <label key={value} className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 ${scope === value ? 'border-red-300 bg-red-50/50' : 'border-neutral-200 hover:bg-neutral-50'}`}>
               <input type="radio" name="scope" value={value} checked={scope === value} onChange={() => setScope(value)} className="mt-1 accent-red-600" />
               <span>
-                <span className="block text-sm font-medium text-slate-800">{label}</span>
-                <span className="block text-xs text-slate-500">{hint}</span>
+                <span className="block text-sm font-medium text-neutral-800">{label}</span>
+                <span className="block text-xs text-neutral-500">{hint}</span>
               </span>
             </label>
           ))}
           {scope === 'before' && (
             <div className="pl-1 pt-1">
-              <label className="text-xs text-slate-500" htmlFor="reset-before">{tr('Remove everything before (WIB)')}</label>
+              <label className="text-xs text-neutral-500" htmlFor="reset-before">{tr('Remove everything before (WIB)')}</label>
               <input id="reset-before" type="date" value={before} max={toIsoDate(new Date())} onChange={e => setBefore(e.target.value)} className={`${inputClass} mt-1`} />
-              {before && <p className="mt-1 text-[11px] text-slate-500">{tr('Entries up to')} {formatDate(toIsoDate(new Date(new Date(`${before}T00:00:00`).getTime() - 86_400_000)))} {tr('are removed.')}</p>}
+              {before && <p className="mt-1 text-[11px] text-neutral-500">{tr('Entries up to')} {formatDate(toIsoDate(new Date(new Date(`${before}T00:00:00`).getTime() - 86_400_000)))} {tr('are removed.')}</p>}
             </div>
           )}
         </fieldset>

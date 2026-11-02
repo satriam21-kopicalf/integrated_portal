@@ -70,7 +70,7 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
       footer={
         <>
           <button type="button" onClick={onReset}
-            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900">
+            className="mr-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">
             <RotateCcw size={14} /> {tr('Reset')}
           </button>
           <Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button>
@@ -85,10 +85,10 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
 /** One filter of the drawer as a card, like the form cards of the edit drawers (Count types, Monitoring). */
 export function FilterSection({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white">
-      <header className="border-b border-slate-100 px-4 py-2.5">
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-        {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
+    <section className="rounded-xl border border-neutral-200 bg-white">
+      <header className="border-b border-neutral-100 px-4 py-2.5">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{title}</h3>
+        {hint && <p className="mt-0.5 text-xs text-neutral-500">{hint}</p>}
       </header>
       <div className="p-4">{children}</div>
     </section>
@@ -96,7 +96,7 @@ export function FilterSection({ title, hint, children }: { title: string; hint?:
 }
 
 const chip = (on: boolean) => cx('h-9 rounded-lg border px-2 text-xs font-medium transition-colors',
-  on ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300');
+  on ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300');
 
 /** One day with quick picks (today, yesterday …). */
 export function DayField({ value, onChange, picks }: { value: string; onChange: (v: string) => void; picks?: { label: string; value: string }[] }) {
@@ -142,11 +142,11 @@ export function PeriodField({ value, onChange, presets, maxDays }: {
       <div className="flex items-center gap-2">
         <input type="date" value={value.from} max={value.to} aria-label={tr('From')} className={cx(inputClass, 'h-10')}
           onChange={(e) => e.target.value && onChange({ from: e.target.value, to: value.to < e.target.value ? e.target.value : value.to })} />
-        <span className="text-slate-400">–</span>
+        <span className="text-neutral-400">–</span>
         <input type="date" value={value.to} min={value.from} max={today} aria-label={tr('To')} className={cx(inputClass, 'h-10')}
           onChange={(e) => e.target.value && onChange({ from: value.from > e.target.value ? e.target.value : value.from, to: e.target.value })} />
       </div>
-      <p className={cx('text-xs', maxDays && days > maxDays ? 'text-red-600' : 'text-slate-500')}>
+      <p className={cx('text-xs', maxDays && days > maxDays ? 'text-red-600' : 'text-neutral-500')}>
         {dmy(value.from)} – {dmy(value.to)} · {tr('{0} days', days)}{maxDays && days > maxDays ? ` · ${tr('at most {0} days', maxDays)}` : ''}
       </p>
     </div>
