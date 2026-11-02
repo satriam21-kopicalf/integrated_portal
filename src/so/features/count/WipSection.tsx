@@ -26,14 +26,15 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
   const wip = count.wip!;
   const saved = useMemo(() => Object.fromEntries(wip.lines.map(l => [keyOf(l.recipe_id, l.uom), String(l.qty)])), [wip.lines]);
   const [values, setValues] = useState<Record<string, string>>(saved);
-  const [expanded, setExpanded] = useState(wip.lines.length > 0);
+  const [expanded, setExpanded] = useState(wip.lines.length > 0 || count.status === "RECOUNT_REQUESTED");
   // unit shown per recipe: the one already entered, else the recipe's count unit (Porsi, Pcs …), else Gram
   const [unitOf, setUnitOf] = useState<Record<string, string>>({});
   const unitFor = (r: { id: string; units: { uom: string }[]; count_uom?: string }) =>
     unitOf[r.id] ?? r.units.find((u) => Number(saved[keyOf(r.id, u.uom)]) > 0)?.uom ?? r.count_uom ?? "Gram";
   const [busy, setBusy] = useState(false);
   useEffect(() => setValues(saved), [saved]);
-  const recount = count.status === "RECOUNT_REQUESTED";
+  // a recount opens the premixes Cost Control picked; a count submitted without any WIP gets the whole form (2026-11-02)
+  const recount = count.status === "RECOUNT_REQUESTED" && wip.lines.length > 0;
   const asked = (l: { flags?: string[] }) => !!l.flags?.some((f) => f === "RECOUNT" || f === "RECOUNTED");
   const toConfirm = wip.lines.filter((l) => l.flags?.includes("RECOUNT")).length;
 
