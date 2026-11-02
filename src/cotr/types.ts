@@ -6,7 +6,15 @@ export type Pool = { code: string; name: string; kind: 'main' | 'parent' | 'stor
   latitude: number | null; longitude: number | null; radius_m: number; pic_name: string | null; phone: string | null; open_time: string | null; close_time: string | null; note: string | null };
 export type Fleet = { code: string; name: string | null; type: string; plate: string | null; pool_code: string; capacity: number; condition: 'good' | 'service'; last_service: string | null; is_active: boolean;
   brand: string | null; model: string | null; frame_no: string | null; acquired_on: string | null; qris_bank: string | null; qris_nmid: string | null; qris_merchant: string | null; note: string | null;
+  /** papers and upkeep, the label QR token (migration 063) */
+  asset_no?: string | null; color?: string | null; year_made?: number | null; battery_no?: string | null; stnk_no?: string | null; stnk_expires?: string | null;
+  insurance_no?: string | null; insurance_expires?: string | null; odometer_km?: number | null; next_service?: string | null; gps_id?: string | null; label_token?: string;
   has_photo: boolean; has_qris: boolean; updated_at: string };
+/** the armada as its label QR shows it (GET /api/public/fleet/{token}, or /api/cotr/fleet/{code}/card in full) */
+export type FleetCard = { full: boolean; fleet: Partial<Fleet> & { code: string; type_name: string | null };
+  pool: { code: string; name: string; kind: string; city: string | null; address: string | null; pic_name: string | null; phone?: string | null; open_time: string | null; close_time: string | null } | null;
+  drivers: (Partial<Driver> & { code: string; name: string; pool_name: string | null })[];
+  today: { driver: string; name: string; status: 'open' | 'closed'; startedAt: string; endedAt: string | null } | null };
 export type FleetType = { code: string; name: string; sort: number };
 export type BomLine = { item: string; qty: number; unit: string };
 export type BomUnit = { name: string; grams: number };
