@@ -4,7 +4,8 @@
 // the premix calculator, the theoretical usage, the production plan from the drivers' sales of the last days (average + a buffer,
 // exploded through the BOMs down to raw materials: cup → premix → milk, espresso …) and the waste of the pools.
 
-import { BookOpen, Calculator, ClipboardList, Factory, ListTree, Package, Plus, Trash2, TrendingDown } from "lucide-react";
+import { BookOpen, Calculator, ClipboardList, Factory, ListTree, Package, Plus, Trash2, TrendingDown, Truck } from "lucide-react";
+import { BatchesTab } from "@/cotr/Batches";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, Select, cx, theadClass, useToast } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
@@ -13,13 +14,14 @@ import { useMaster } from "@/cotr/ui";
 import { CalculatorTab, ItemsTab, RecipesTab, UsageTab } from "@/cotr/Recipes";
 import { locale, tr } from "@/lib/i18n";
 
-type Tab = "items" | "recipes" | "calc" | "plan" | "usage" | "waste";
+type Tab = "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 type Waste = { id: string; day: string; pool_code: string; item: string; qty: number; unit: string; reason: string };
 
 const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
   { key: "items", label: () => tr("Items"), icon: Package }, { key: "recipes", label: () => tr("Recipe cards"), icon: BookOpen },
-  { key: "calc", label: () => tr("Calculator"), icon: Calculator }, { key: "plan", label: () => tr("Production plan"), icon: Factory },
+  { key: "calc", label: () => tr("Calculator"), icon: Calculator }, { key: "batch", label: () => tr("Batches"), icon: Truck },
+  { key: "plan", label: () => tr("Production plan"), icon: Factory },
   { key: "usage", label: () => tr("Usage"), icon: TrendingDown }, { key: "waste", label: () => tr("Waste"), icon: Trash2 },
 ];
 
@@ -27,7 +29,7 @@ export default function CotrProductionPage() {
   const [tab, setTab] = useState<Tab>("recipes");
   return (
     <Page title={tr("Storage & Production")} subtitle={tr("Items, recipe cards, premix calculator, production plan, theoretical usage and waste")}>
-      <nav role="tablist" aria-label={tr("Section")} className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+      <nav role="tablist" aria-label={tr("Section")} className="grid grid-cols-4 gap-2 sm:grid-cols-7">
         {SECTIONS.map((s) => {
           const on = tab === s.key;
           return (
@@ -43,6 +45,7 @@ export default function CotrProductionPage() {
       {tab === "items" && <ItemsTab />}
       {tab === "recipes" && <RecipesTab />}
       {tab === "calc" && <CalculatorTab />}
+      {tab === "batch" && <BatchesTab />}
       {tab === "plan" && <PlanView />}
       {tab === "usage" && <UsageTab />}
       {tab === "waste" && <WasteList />}

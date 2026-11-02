@@ -77,6 +77,7 @@ export default function CotrPoolsPage() {
           { key: "open_time", label: tr("Opens"), type: "time", section: tr("Contact & hours") },
           { key: "close_time", label: tr("Closes"), type: "time", section: tr("Contact & hours") },
           { key: "note", label: tr("Note"), type: "textarea", section: tr("Contact & hours") },
+          { key: "is_production", label: tr("Production hub"), type: "bool", hint: tr("The main hub where the products are made and sent to the pools") },
         ]} />
     </Page>
   );

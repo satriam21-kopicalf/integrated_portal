@@ -12,6 +12,7 @@ import { Stat, StatStrip } from "@/so/ui/StatStrip";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool, Stock } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
+import { PoolBatches } from "@/cotr/Batches";
 import { locale, tr } from "@/lib/i18n";
 
 type Dispatch = { id: string; lines: Stock; note: string | null; status: "assigned" | "disputed" | "accepted"; driverCounts: Stock | null; driverNote: string | null; finalLines: Stock | null; resolutionNote: string | null;
@@ -148,6 +149,8 @@ export default function CotrStoragePage() {
               </div>
             </Panel>
           )}
+
+          <PoolBatches pool={poolCode} />
 
           <Panel title={tr("What the pool prepares today")} description={tr("Total per product of the assignments below: to sell and for cupping")}>
             <div className="grid grid-cols-2 gap-px bg-slate-100 sm:grid-cols-3 lg:grid-cols-6">

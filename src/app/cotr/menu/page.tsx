@@ -31,6 +31,7 @@ export default function CotrMenuPage() {
           { key: "bom_code", label: tr("Recipe card"), type: "search", hint: tr("Made in Storage & Production → Recipe cards"), options: (boms.rows ?? []).filter((b) => b.kind === "menu").map((b) => ({ value: b.code, label: b.name, hint: b.code })) },
           { key: "is_active", label: tr("Sold"), type: "bool" },
           { key: "sort", label: tr("Order in the app"), type: "number" },
+          { key: "shelf_life_days", label: tr("Shelf life (days)"), type: "number", hint: tr("The default expiry of a production batch") },
         ]} />
     </Page>
   );
