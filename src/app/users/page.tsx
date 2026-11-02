@@ -4,7 +4,7 @@ import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, Briefcase, MonitorSmartphone, CheckCircle2, LayoutGrid, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
-  Search, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Wand2, X,
+  LogIn, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserCheck, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
 } from 'lucide-react';
 import BranchAssign from '@/components/BranchAssign';
 import type { Branch } from '@/components/BranchFilter';
@@ -12,7 +12,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import MasterCombobox from '@/components/MasterCombobox';
 import { MastersDrawer, PageAccessEditor, PlatformsDrawer, RolePagesDrawer } from '@/components/access/PageAccess';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
-import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
+import { Card, EmptyState, ErrorBlock, IconButton, PageHeader, PageShell, Pill, type PillTone, SearchInput, StatCard, StatGrid, Tabs, Toolbar, ValueSkeleton, btn, kcTable } from '@/components/kc';
 import ActionMenu, { ActionItem } from '@/components/ui/ActionMenu';
 import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
@@ -39,7 +39,6 @@ import { locale, tr, serverMsg } from '@/lib/i18n';
 
 const PAGE_SIZE = 50;
 /** header actions shown as an icon only, without a border (name in the tooltip) */
-const ICON_BUTTON = 'inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900';
 
 interface UsersSummary {
   total: number;
@@ -241,146 +240,96 @@ export default function UsersPage() {
   }
 
   const s = summary;
+  const lineTabs = LINES.map(l => ({
+    key: l.key, title: l.label, count: s?.lines ? formatNumber(s.lines[l.key] ?? 0) : undefined,
+    // the logo only (2026-11-02); the name is the label
+    // eslint-disable-next-line @next/next/no-img-element
+    label: <img src={l.logo} alt="" aria-hidden className={`max-h-5 max-w-[5.5rem] object-contain transition ${line === l.key ? '' : 'opacity-50 grayscale'}`} />,
+  }));
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-slate-50">
-        <header className="px-4 pt-5 sm:px-6 sm:pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('User Accounts')}</h1>
-              <p className="truncate text-xs text-slate-500 sm:text-sm">{tr('Sign-in, role and branch access of every dashboard user')}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button type="button" className={ICON_BUTTON} onClick={() => setPanel('roles')}
-                title={tr('Roles & pages')} aria-label={tr('Roles & pages')}>
-                <LayoutGrid size={20} strokeWidth={1.75} />
-              </button>
-              <button type="button" className={ICON_BUTTON} onClick={() => setPanel('platforms')}
-                title={tr('Menus per platform')} aria-label={tr('Menus per platform')}>
-                <MonitorSmartphone size={20} strokeWidth={1.75} />
-              </button>
-              <button type="button" className={ICON_BUTTON} onClick={() => setPanel('masters')}
-                title={tr('Job titles & departments')} aria-label={tr('Job titles & departments')}>
-                <Briefcase size={20} strokeWidth={1.75} />
-              </button>
-              <button type="button" className={buttonPrimary} onClick={() => setEditing('new')}>
-                <Plus size={16} /> {tr('New user')}
-              </button>
-            </div>
-          </div>
-        </header>
+      <PageShell>
+        <PageHeader title={tr('User Accounts')} subtitle={tr('Sign-in, role and branch access of every dashboard user')} eyebrow={tr('Management')}
+          actions={<>
+            <IconButton label={tr('Roles & pages')} onClick={() => setPanel('roles')}><LayoutGrid size={17} strokeWidth={1.75} /></IconButton>
+            <IconButton label={tr('Menus per platform')} onClick={() => setPanel('platforms')}><MonitorSmartphone size={17} strokeWidth={1.75} /></IconButton>
+            <IconButton label={tr('Job titles & departments')} onClick={() => setPanel('masters')}><Briefcase size={17} strokeWidth={1.75} /></IconButton>
+            <button type="button" className={btn('solid')} onClick={() => setEditing('new')}><Plus size={15} /> {tr('New user')}</button>
+          </>} />
 
+        <Tabs label={tr('Business line')} tabs={lineTabs} value={line} onChange={k => { setLine(k as BusinessLine); setPage(1); applyFilters(NO_FILTERS); }} />
 
-        <div className="space-y-4 p-4 sm:p-6">
-          <div role="tablist" aria-label={tr('Business line')} className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1 shadow-sm">
-            {LINES.map(l => (
-              <button key={l.key} type="button" role="tab" aria-selected={line === l.key} aria-label={l.label} title={l.label} onClick={() => { setLine(l.key); setPage(1); applyFilters(NO_FILTERS); }}
-                className={`flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 transition-colors ${line === l.key ? 'bg-blue-50 ring-2 ring-blue-600' : 'hover:bg-slate-50'}`}>
-                {/* the logo only (2026-11-02); the name is the label */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={l.logo} alt="" aria-hidden className={`max-h-6 max-w-[6rem] object-contain transition ${line === l.key ? '' : 'opacity-60 grayscale'}`} />
-                {s?.lines && <span className={`rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${line === l.key ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-500'}`}>{formatNumber(s.lines[l.key] ?? 0)}</span>}
-              </button>
-            ))}
-          </div>
-          <StatStrip label={tr('User summary')} columns={5}>
-            <Stat label={tr('Users')} value={s ? formatNumber(s.total) : <StatSkeleton />}>
-              {s && <p>{tr('{0} super admin · {1} PIC · {2} outlet / hub', formatNumber(s.superadmins), formatNumber(s.users), formatNumber(s.outlets ?? 0))}</p>}
-            </Stat>
-            <Stat label={tr('Active')} emphasis value={s ? formatNumber(s.active) : <StatSkeleton />}>
-              {s && <p>{formatNumber(s.inactive)} {tr('inactive ·')} {formatNumber(s.locked)} {tr('locked')}</p>}
-            </Stat>
-            <Stat label={tr('Signed in, 7 days')} value={s ? formatNumber(s.active7d) : <StatSkeleton />}>
-              {s && <p>{formatNumber(s.neverSignedIn)} {tr('never signed in')}</p>}
-            </Stat>
-            <Stat label={tr('Branches covered')} value={s ? formatNumber(s.branchesCovered) : <StatSkeleton />}>
-              {s && <p>{tr('of')} {formatNumber(branches.filter(b => b.count > 0).length)} {tr('branches with recent sales')}</p>}
-            </Stat>
-            <Stat label={tr('Without branch')} value={s ? formatNumber(s.withoutBranch) : <StatSkeleton />}>
-              {s && <p>{s.withoutBranch ? tr('PIC / outlet accounts see no data until assigned') : tr('every PIC and outlet account has a branch')}</p>}
-            </Stat>
-          </StatStrip>
-          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-            <div className="space-y-3 border-b border-slate-200 p-3 sm:p-4">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input value={search} onChange={e => onSearch(e.target.value)} placeholder={tr('Search name, username, email, phone or job title')}
-                    className={`${inputClass} pl-9 pr-9`} aria-label={tr('Search users')} />
-                  {search && (
-                    <button type="button" onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label={tr('Clear search')}>
-                      <X size={14} />
+        <StatGrid label={tr('User summary')} cols={5}>
+          <StatCard label={tr('Users')} icon={<Users />} value={s ? formatNumber(s.total) : <ValueSkeleton />}
+            sub={s && tr('{0} super admin · {1} PIC · {2} outlet / hub', formatNumber(s.superadmins), formatNumber(s.users), formatNumber(s.outlets ?? 0))} />
+          <StatCard label={tr('Active')} tone="brand" icon={<UserCheck />} value={s ? formatNumber(s.active) : <ValueSkeleton />}
+            sub={s && `${formatNumber(s.inactive)} ${tr('inactive ·')} ${formatNumber(s.locked)} ${tr('locked')}`} />
+          <StatCard label={tr('Signed in, 7 days')} icon={<LogIn />} value={s ? formatNumber(s.active7d) : <ValueSkeleton />}
+            sub={s && `${formatNumber(s.neverSignedIn)} ${tr('never signed in')}`} />
+          <StatCard label={tr('Branches covered')} icon={<Store />} value={s ? formatNumber(s.branchesCovered) : <ValueSkeleton />}
+            sub={s && `${tr('of')} ${formatNumber(branches.filter(b => b.count > 0).length)} ${tr('branches with recent sales')}`} />
+          <StatCard label={tr('Without branch')} icon={<CircleAlert />} tone={s?.withoutBranch ? 'warn' : 'default'} value={s ? formatNumber(s.withoutBranch) : <ValueSkeleton />}
+            sub={s && (s.withoutBranch ? tr('PIC / outlet accounts see no data until assigned') : tr('every PIC and outlet account has a branch'))} />
+        </StatGrid>
+
+        <Card flush
+          toolbar={<Toolbar
+            search={<SearchInput value={search} onChange={onSearch} placeholder={tr('Search name, username, email, phone or job title')} label={tr('Search users')} />}
+            chips={<ActiveFilters filters={activeFilters} onClear={() => applyFilters(NO_FILTERS)} />}>
+            <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
+          </Toolbar>}
+          footer={<>
+            <span>{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
+            <div className="flex items-center gap-2">
+              <button type="button" className={btn('outline', 'sm')} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous page')}><ChevronLeft size={15} /></button>
+              <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
+              <button type="button" className={btn('outline', 'sm')} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next page')}><ChevronRight size={15} /></button>
+            </div>
+          </>}>
+          {error ? <ErrorBlock message={error} onRetry={load} /> : !loading && rows.length === 0 ? (
+            <EmptyState icon={<UserRound size={22} />} title={filtersActive ? tr('No users match the search or filters') : tr('No users yet')} />
+          ) : (
+            <div className={loading && rows.length ? 'opacity-60' : ''}>
+              <div className="hidden overflow-x-auto md:block">
+                <table className={`${kcTable.table} min-w-[760px]`}>
+                  <thead className={kcTable.thead}>
+                    <tr>
+                      <th scope="col" className={kcTable.th}>{tr('User')}</th>
+                      <th scope="col" className={`${kcTable.th} hidden lg:table-cell`}>{tr('Contact')}</th>
+                      <th scope="col" className={kcTable.th}>{tr('Role')}</th>
+                      <th scope="col" className={kcTable.th}>{tr('Branch access')}</th>
+                      <th scope="col" className={kcTable.th}>{tr('Status')}</th>
+                      <th scope="col" className={`${kcTable.th} hidden xl:table-cell`}>{tr('Last sign-in')}</th>
+                      <th scope="col" className="w-14 px-3 py-2.5"><span className="sr-only">{tr('Actions')}</span></th>
+                    </tr>
+                  </thead>
+                  <tbody className={kcTable.tbody}>
+                    {(loading && !rows.length ? Array.from({ length: 6 }) : rows).map((u, i) => u ? (
+                      <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
+                        onView={() => setViewing(u as AuthUser)} actions={actionsFor(u as AuthUser)} />
+                    ) : (
+                      <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-9 animate-pulse rounded-lg bg-neutral-100" /></td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <ul className="divide-y divide-neutral-100 md:hidden">
+                {rows.map(u => (
+                  <li key={u.id} className="flex items-start gap-3 px-4 py-3">
+                    <Avatar user={u} />
+                    <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setViewing(u)}>
+                      <p className="truncate text-sm font-medium text-neutral-900">{u.displayName}{u.id === me?.id && <span className="ml-1.5 text-xs font-normal text-neutral-400">{tr('(you)')}</span>}</p>
+                      <p className="truncate text-xs text-neutral-500">{u.username} · {u.email}</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><BranchesBadge user={u} branchName={branchName} /><StatusBadge user={u} /></div>
                     </button>
-                  )}
-                </div>
-                <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
-              </div>
-              <ActiveFilters filters={activeFilters} onClear={() => applyFilters(NO_FILTERS)} />
+                    <ActionMenu items={actionsFor(u)} label={tr('Actions for {0}', u.username)} />
+                  </li>
+                ))}
+              </ul>
             </div>
-
-            {error ? (
-              <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
-                <AlertCircle className="text-red-500" />
-                <p className="text-sm text-slate-700">{error}</p>
-                <button type="button" className={buttonSecondary} onClick={load}>{tr('Try again')}</button>
-              </div>
-            ) : !loading && rows.length === 0 ? (
-              <div className="flex flex-col items-center px-4 py-14 text-center">
-                <UserRound className="mb-2 text-slate-300" size={28} />
-                <p className="text-sm font-medium text-slate-700">{filtersActive ? tr('No users match the search or filters') : tr('No users yet')}</p>
-              </div>
-            ) : (
-              <div className={loading && rows.length ? 'opacity-60' : ''}>
-                <div className="hidden overflow-x-auto md:block">
-                  <table className="w-full min-w-[760px] text-sm">
-                    <thead className="border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                      <tr>
-                        <th scope="col" className="px-4 py-2.5">{tr('User')}</th>
-                        <th scope="col" className="hidden px-4 py-2.5 lg:table-cell">{tr('Contact')}</th>
-                        <th scope="col" className="px-4 py-2.5">{tr('Role')}</th>
-                        <th scope="col" className="px-4 py-2.5">{tr('Branch access')}</th>
-                        <th scope="col" className="px-4 py-2.5">{tr('Status')}</th>
-                        <th scope="col" className="hidden px-4 py-2.5 xl:table-cell">{tr('Last sign-in')}</th>
-                        <th scope="col" className="w-14 px-3 py-2.5"><span className="sr-only">{tr('Actions')}</span></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {(loading && !rows.length ? Array.from({ length: 6 }) : rows).map((u, i) => u ? (
-                        <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
-                          onView={() => setViewing(u as AuthUser)} actions={actionsFor(u as AuthUser)} />
-                      ) : (
-                        <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-9 animate-pulse rounded bg-slate-100" /></td></tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <ul className="divide-y divide-slate-100 md:hidden">
-                  {rows.map(u => (
-                    <li key={u.id} className="flex items-start gap-3 px-4 py-3">
-                      <Avatar user={u} />
-                      <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setViewing(u)}>
-                        <p className="truncate text-sm font-medium text-slate-900">{u.displayName}{u.id === me?.id && <span className="ml-1.5 text-xs font-normal text-slate-400">{tr('(you)')}</span>}</p>
-                        <p className="truncate text-xs text-slate-500">{u.username} · {u.email}</p>
-                        <div className="mt-1.5 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><BranchesBadge user={u} branchName={branchName} /><StatusBadge user={u} /></div>
-                      </button>
-                      <ActionMenu items={actionsFor(u)} label={tr('Actions for {0}', u.username)} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="flex flex-col items-center justify-between gap-2 border-t border-slate-200 bg-slate-50/60 px-4 py-3 text-xs text-slate-500 sm:flex-row">
-              <span>{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
-              <div className="flex items-center gap-2">
-                <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous page')}><ChevronLeft size={16} /></button>
-                <span>{tr('Page')} {page} {tr('of')} {pages}</span>
-                <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next page')}><ChevronRight size={16} /></button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
+          )}
+        </Card>
+      </PageShell>
 
       {filtersOpen && <UserFiltersDrawer value={filters} branches={lineBranches(branches, line)} branchesLoading={branchesLoading}
         onApply={next => { applyFilters(next); setFiltersOpen(false); }} onClose={() => setFiltersOpen(false)} />}
@@ -460,73 +409,57 @@ function Avatar({ user }: { user: AuthUser }) {
   return <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" />;
 }
 
+const ROLE_TONE: Record<Role, PillTone> = { superadmin: 'red', cost_control: 'amber', outlet: 'teal', driver: 'violet', user: 'brand' };
+
 function RoleBadge({ role }: { role: Role }) {
-  const superadmin = role === 'superadmin';
-  const tone = superadmin ? 'bg-red-50 text-red-700' : role === 'cost_control' ? 'bg-amber-50 text-amber-800' : role === 'outlet' ? 'bg-teal-50 text-teal-700' : role === 'driver' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700';
-  return (
-    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}`}>
-      {superadmin && <ShieldCheck size={12} />}{ROLE_LABELS[role] ?? role}
-    </span>
-  );
+  return <Pill tone={ROLE_TONE[role] ?? 'brand'} icon={role === 'superadmin' ? <ShieldCheck size={12} /> : undefined}>{ROLE_LABELS[role] ?? role}</Pill>;
 }
 
 function StatusBadge({ user }: { user: AuthUser }) {
-  if (user.isLocked) return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700"><Lock size={11} /> {tr('Locked')}</span>;
-  return user.isActive
-    ? <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{tr('Active')}</span>
-    : <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />{tr('Inactive')}</span>;
+  if (user.isLocked) return <Pill tone="amber" icon={<Lock size={11} />}>{tr('Locked')}</Pill>;
+  return user.isActive ? <Pill tone="green" dot>{tr('Active')}</Pill> : <Pill tone="gray" dot>{tr('Inactive')}</Pill>;
 }
 
 /** Branches the account may see: superadmins every branch; a user without branches sees no data. */
 function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code: string) => string }) {
-  if (!branchScoped(user.role)) return <span className="whitespace-nowrap text-xs text-slate-500">{tr('All branches')}</span>;
+  if (!branchScoped(user.role)) return <span className="whitespace-nowrap text-xs text-neutral-500">{tr('All branches')}</span>;
   const codes = user.branches ?? [];
-  if (!codes.length) {
-    return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700" title={tr('This user sees no data until branches are assigned')}><CircleAlert size={11} /> {tr('No branch')}</span>;
-  }
+  if (!codes.length) return <Pill tone="red" icon={<CircleAlert size={11} />} title={tr('This user sees no data until branches are assigned')}>{tr('No branch')}</Pill>;
   const label = codes.length === 1 ? branchName(codes[0]) : tr('{0} branches', codes.length);
-  return (
-    <span className="inline-flex max-w-[14rem] items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700" title={codes.map(branchName).join('\n')}>
-      <Store size={11} className="flex-shrink-0" /><span className="truncate">{label}</span>
-    </span>
-  );
+  return <Pill tone="gray" icon={<Store size={11} className="flex-shrink-0" />} title={codes.map(branchName).join('\n')} className="max-w-[14rem]"><span className="truncate">{label}</span></Pill>;
 }
 
 /** the user has not filled in their own profile yet */
 function ProfileBadge() {
-  return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700" title={tr('Full name, phone number, job title or department is missing')}>
-      <CircleAlert size={11} /> {tr('Profile incomplete')}
-    </span>
-  );
+  return <Pill tone="amber" icon={<CircleAlert size={11} />} title={tr('Full name, phone number, job title or department is missing')}>{tr('Profile incomplete')}</Pill>;
 }
 
 function UserRow({ user, isMe, branchName, onView, actions }: {
   user: AuthUser; isMe: boolean; branchName: (code: string) => string; onView: () => void; actions: ActionItem[];
 }) {
   return (
-    <tr className="group hover:bg-slate-50/70">
-      <td className="max-w-[18rem] px-4 py-3">
+    <tr className={kcTable.row}>
+      <td className={`${kcTable.td} max-w-[18rem]`}>
         <button type="button" onClick={onView} className="flex min-w-0 items-center gap-3 text-left">
           <Avatar user={user} />
           <span className="min-w-0">
-            <span className="block truncate font-medium text-slate-900 group-hover:text-blue-700">
-              {user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-slate-400">{tr('(you)')}</span>}
+            <span className="block truncate font-medium text-neutral-900 group-hover:text-brand-700">
+              {user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-neutral-400">{tr('(you)')}</span>}
             </span>
             {user.profileComplete
-              ? <span className="block truncate text-xs text-slate-500">@{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
-              : <span className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">@{user.username} <ProfileBadge /></span>}
+              ? <span className="block truncate text-xs text-neutral-500">@{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
+              : <span className="mt-0.5 flex items-center gap-1.5 text-xs text-neutral-500">@{user.username} <ProfileBadge /></span>}
           </span>
         </button>
       </td>
-      <td className="hidden max-w-[16rem] px-4 py-3 lg:table-cell">
-        <span className="block truncate text-slate-700">{user.email}</span>
-        <span className="block truncate text-xs text-slate-400">{user.phoneNumber || '—'}</span>
+      <td className={`${kcTable.td} hidden max-w-[16rem] lg:table-cell`}>
+        <span className="block truncate text-neutral-700">{user.email}</span>
+        <span className="block truncate text-xs text-neutral-400">{user.phoneNumber || '—'}</span>
       </td>
-      <td className="px-4 py-3"><RoleBadge role={user.role} /></td>
-      <td className="px-4 py-3"><BranchesBadge user={user} branchName={branchName} /></td>
-      <td className="px-4 py-3"><StatusBadge user={user} /></td>
-      <td className="hidden whitespace-nowrap px-4 py-3 text-xs text-slate-500 xl:table-cell">{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('Never')}</td>
+      <td className={kcTable.td}><RoleBadge role={user.role} /></td>
+      <td className={kcTable.td}><BranchesBadge user={user} branchName={branchName} /></td>
+      <td className={kcTable.td}><StatusBadge user={user} /></td>
+      <td className={`${kcTable.td} hidden whitespace-nowrap text-xs text-neutral-500 xl:table-cell`}>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('Never')}</td>
       <td className="px-3 py-3 text-right"><ActionMenu items={actions} label={tr('Actions for {0}', user.username)} /></td>
     </tr>
   );

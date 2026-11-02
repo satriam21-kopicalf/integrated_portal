@@ -7,9 +7,12 @@
 
 import { AlertTriangle, CloudDownload, ExternalLink, MapPin, MessageSquareText, Search, Star, Store } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Input, Page, PageNav, Panel, SkeletonRows, type Tone, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import {
+  Badge, Button, Empty, ErrorState, Input, PageNav, SkeletonRows, type Tone, fmtNumber, usePaged,
+} from "@/so/ui";
+import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
+import { kcTable } from "@/components/kc";
 import Drawer from "@/so/ui/Drawer";
-import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import { wibDateTime, wibDay } from "@/so/lib/wib";
 import { call } from "@/so/features/checkin/checkin";
@@ -146,11 +149,11 @@ export default function GoogleMapsRatingPage() {
     ...(f.sort !== "name" ? [{ key: "s", label: tr("Sort: {0}", SORTS[f.sort].label()), onRemove: () => setF({ ...f, sort: "name" }) }] : []),
   ];
   const current = all.find((o) => o.code === open) ?? null;
-  const iconBtn = "inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:cursor-wait";
+  const iconBtn = "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-900 disabled:cursor-wait";
 
   return (
     // eslint-disable-next-line @next/next/no-img-element -- brand logo from public/assets
-    <Page title={<img src={LOGO} alt="Google Maps" width={262} height={48} className="h-6 w-auto sm:h-7" />}
+    <Page eyebrow={tr("Aggregator")} title={<img src={LOGO} alt="Google Maps" width={262} height={48} className="h-6 w-auto sm:h-7" />}
       subtitle={`${tr("Rating, reviews and opening hours of the outlets on Google Maps")}${sum.last ? ` · ${tr("last sync {0}", wibDateTime(sum.last))}` : ""}`}
       actions={<>
         {res?.canEdit && res.ready && (
@@ -224,7 +227,7 @@ export default function GoogleMapsRatingPage() {
             </ul>
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[860px] text-sm">
-                <thead className={theadClass}>
+                <thead className={kcTable.thead}>
                   <tr>
                     <th className="px-4 py-2.5">{tr("Outlet")}</th>
                     <th className="px-4 py-2.5">{tr("Rating")}</th>

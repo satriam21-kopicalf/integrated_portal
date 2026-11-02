@@ -1,7 +1,7 @@
 "use client";
 
 // Aggregator (pages rating.google-maps, rating.shopeefood, rating.gofood, rating.grabfood): ratings and reviews of
-// the outlets per platform. Empty for now (being built): the menu and the access rules are in place.
+// the outlets per platform. ShopeeFood and GoFood are being built (the menu and the access rules are in place).
 
 import { notFound, useParams } from "next/navigation";
 import FeatureSkeleton from "@/components/FeatureSkeleton";
@@ -21,7 +21,10 @@ export default function RatingPage() {
   if (!s) notFound();
   if (source === "grabfood") return <GrabFood />;
   return (
-    <FeatureSkeleton title={tr("Aggregator · {0}", s.name)} subtitle={tr("Ratings and reviews of the outlets on {0}", s.name)}
+    <FeatureSkeleton eyebrow={tr("Aggregator")} subtitle={tr("Ratings and reviews of the outlets on {0}", s.name)}
+      // the logo as the title, like Google Maps and GrabFood (its name is the alt text)
+      // eslint-disable-next-line @next/next/no-img-element -- brand logo from public/assets
+      title={<img src={s.logo} alt={s.name} className="h-6 w-auto sm:h-7" />}
       endpoint={`/api/rating/${source}`} logo
       // eslint-disable-next-line @next/next/no-img-element -- brand logo from public/assets
       icon={<img src={s.logo} alt={s.name} className="max-h-5 max-w-[7.5rem] object-contain" />} />

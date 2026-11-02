@@ -14,10 +14,11 @@ import {
   UtensilsCrossed, X,
 } from "lucide-react";
 import {
-  Badge, Button, Empty, ErrorState, Input, Page, PageNav, Panel, SkeletonRows, type Tone, cx, fmtNumber, theadClass, usePaged, useToast,
+  Badge, Button, Empty, ErrorState, Input, PageNav, SkeletonRows, type Tone, cx, fmtNumber, usePaged, useToast,
 } from "@/so/ui";
+import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
+import { Tabs, kcTable } from "@/components/kc";
 import Drawer from "@/so/ui/Drawer";
-import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, wibDay } from "@/so/ui/Filters";
 import { SearchChoice } from "@/so/ui/FilterControls";
 import { tr } from "@/lib/i18n";
@@ -170,12 +171,12 @@ export default function GrabFood() {
     };
   }, [all]);
   const current = all.find((o) => o.merchantId === open) ?? null;
-  const iconBtn = "inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
+  const iconBtn = "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-900";
   const tabs = <PanelTabs view={view} onView={setView} counts={{ outlets: sum.outlets, reviews: sum.reviews, menu: sum.outOfStock + sum.off }} />;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element -- brand logo from public/assets
-    <Page title={<img src={LOGO} alt="GrabFood" width={160} height={56} className="h-6 w-auto sm:h-7" />}
+    <Page eyebrow={tr("Aggregator")} title={<img src={LOGO} alt="GrabFood" width={160} height={56} className="h-6 w-auto sm:h-7" />}
       subtitle={`${tr("Status, rating, reviews and menu of the outlets on GrabFood")}${sum.last ? ` · ${tr("status checked {0}", timeAgo(sum.last))}` : ""}`}
       actions={res?.canEdit ? (
         <button type="button" onClick={() => setSessionOpen(true)} className={cx(iconBtn, res.session && !res.session.valid && "text-amber-600")}
@@ -237,18 +238,8 @@ function PanelTabs({ view, onView, counts }: { view: View; onView: (v: View) => 
     { key: "menu", label: tr("Menu"), icon: <UtensilsCrossed size={15} /> },
   ];
   return (
-    <div role="tablist" aria-label={tr("View")} className="-mx-3 -mt-3 flex border-b border-slate-200 bg-slate-50/60 px-1 sm:-mx-4 sm:-mt-4 sm:px-2">
-      {items.map((t) => (
-        <button key={t.key} type="button" role="tab" aria-selected={view === t.key} onClick={() => onView(t.key)}
-          className={cx("relative inline-flex h-12 flex-1 items-center justify-center gap-2 px-3 text-sm font-medium transition-colors sm:flex-none sm:px-5",
-            view === t.key ? "text-blue-700" : "text-slate-500 hover:text-slate-900")}>
-          {t.icon}<span>{t.label}</span>
-          <span className={cx("hidden rounded-full px-1.5 py-px text-[11px] font-semibold tabular-nums sm:inline",
-            view === t.key ? "bg-blue-100 text-blue-700" : "bg-slate-200/70 text-slate-500")}>{fmtNumber(counts[t.key])}</span>
-          {view === t.key && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-blue-600" aria-hidden />}
-        </button>
-      ))}
-    </div>
+    <Tabs label={tr("View")} value={view} onChange={(k) => onView(k as typeof view)} className="-mt-1"
+      tabs={items.map((t) => ({ key: t.key, label: <span className="inline-flex items-center gap-2">{t.icon}{t.label}</span>, count: fmtNumber(counts[t.key]) }))} />
   );
 }
 
@@ -362,7 +353,7 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
             </ul>
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[940px] text-sm">
-                <thead className={theadClass}>
+                <thead className={kcTable.thead}>
                   <tr>
                     <th className={TH}>{tr("Outlet")}</th>
                     <th className={TH}>{tr("Status & hours today")}</th>
@@ -684,7 +675,7 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
                 <colgroup>
                   <col className="w-[8.5rem]" />{!f.merchant && <col className="w-[13rem]" />}<col className="w-[9rem]" /><col /><col className="w-[5.5rem]" /><col className="w-[7.5rem]" />
                 </colgroup>
-                <thead className={theadClass}>
+                <thead className={kcTable.thead}>
                   <tr>
                     <th className={TH}>{tr("Date")}</th>
                     {!f.merchant && <th className={TH}>{tr("Outlet")}</th>}
@@ -996,7 +987,7 @@ function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlet
             </ul>
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[900px] text-sm">
-                <thead className={theadClass}>
+                <thead className={kcTable.thead}>
                   <tr>
                     <th className={TH}>{tr("Menu")}</th>
                     {!f.merchant && <th className={TH}>{tr("Outlet")}</th>}

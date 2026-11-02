@@ -3,14 +3,14 @@
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapPin,
   AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Database, Download, Eye, FileSpreadsheet, Filter, History, KeyRound, List, LogIn,
-  LogOut, Monitor, Rows3, Search, ShieldAlert, SlidersHorizontal, Trash2, UserCog, UserRound, X,
+  LogOut, Monitor, Receipt, Rows3, ShieldAlert, SlidersHorizontal, Trash2, UserCog, UserRound, X,
 } from 'lucide-react';
 import ActivityInsights, { ActivityInsightsData } from '@/components/activity/ActivityInsights';
 import ResetLogsDrawer, { LogStorage } from '@/components/activity/ResetLogsDrawer';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import DateRangePicker from '@/components/DateRangePicker';
-import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
-import { buttonPrimary, buttonSecondary, inputClass } from '@/components/ui/Dialog';
+import { Card, EmptyState, IconButton, PageHeader, PageShell, Pill, SearchInput, StatCard, StatGrid, Tabs, Toolbar, ValueSkeleton, btn } from '@/components/kc';
+import { buttonPrimary, buttonSecondary } from '@/components/ui/Dialog';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar from '@/components/UserAvatar';
@@ -311,109 +311,83 @@ export default function ActivityPage() {
   const filtered = Boolean(category || query || activeFilters.length);
   const categoryTotal = summary ? Object.values(summary.byCategory).reduce((a, b) => a + b, 0) : 0;
 
+  const categoryTabs = CATEGORIES.map(c => {
+    const n = c.value ? c.value.split(',').reduce((sum, k) => sum + (summary?.byCategory[k] ?? 0), 0) : summary?.totals.total;
+    return { key: c.value, label: c.label, count: n !== undefined ? formatNumber(n) : undefined };
+  });
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-slate-50">
-        <header className="px-4 pt-5 sm:px-6 sm:pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">{tr('Activity Logs')}</h1>
-              <p className="truncate text-xs text-slate-500 sm:text-sm">{formatDate(dateFrom)} – {formatDate(dateTo)} {tr('· sign-ins, pages, filters, transactions and exports')}</p>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} defaultLabel={tr('last 7 days')}
-                onChange={(from, to) => {
-                  const d = lastDays(7);
-                  setDateFrom(from || to || d.from);
-                  setDateTo(to || from || d.to);
-                }} />
-              <button type="button" onClick={() => setResetting(true)} title={tr('Reset logs')} aria-label={tr('Reset logs')}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-700">
-                <Trash2 size={18} strokeWidth={1.75} />
-              </button>
-            </div>
+      <PageShell>
+        <PageHeader title={tr('Activity Logs')} eyebrow={tr('Management')}
+          subtitle={`${formatDate(dateFrom)} – ${formatDate(dateTo)} ${tr('· sign-ins, pages, filters, transactions and exports')}`}
+          actions={<>
+            <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} defaultLabel={tr('last 7 days')}
+              onChange={(from, to) => {
+                const d = lastDays(7);
+                setDateFrom(from || to || d.from);
+                setDateTo(to || from || d.to);
+              }} />
+            <IconButton label={tr('Reset logs')} onClick={() => setResetting(true)}><Trash2 size={17} strokeWidth={1.75} /></IconButton>
+          </>} />
+
+        {notice && (
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
+            <CheckCircle2 size={16} /> {notice}
+            <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label={tr('Dismiss')}><X size={14} /></button>
           </div>
-        </header>
+        )}
 
-        <div className="space-y-4 p-4 sm:p-6">
-          {notice && (
-            <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
-              <CheckCircle2 size={16} /> {notice}
-              <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label={tr('Dismiss')}><X size={14} /></button>
-            </div>
-          )}
+        <StatGrid label={tr('Activity summary')} cols={5}>
+          <StatCard label={tr('Activities')} icon={<History />} value={t ? formatNumber(t.total) : <ValueSkeleton />} sub={t && `${formatNumber(t.users)} ${tr('active users')}`} />
+          <StatCard label={tr('Exports')} tone="brand" icon={<Download />} value={t ? formatNumber(t.exports) : <ValueSkeleton />} sub={t && `${formatNumber(t.downloads)} ${tr('downloads')}`} />
+          <StatCard label={tr('Transactions opened')} icon={<Receipt />} value={summary ? formatNumber(summary.byCategory.transaction ?? 0) : <ValueSkeleton />} />
+          <StatCard label={tr('Failed sign-ins')} icon={<LogIn />} tone={t?.failedLogins ? 'warn' : 'default'} value={t ? formatNumber(t.failedLogins) : <ValueSkeleton />} />
+          <StatCard label={tr('Access denied')} icon={<ShieldAlert />} tone={t?.denied ? 'bad' : 'default'} value={t ? formatNumber(t.denied) : <ValueSkeleton />} sub={t && tr('pages or data outside the user\'s access')} />
+        </StatGrid>
 
-          <StatStrip label={tr('Activity summary')} columns={5}>
-            <Stat label={tr('Activities')} value={t ? formatNumber(t.total) : <StatSkeleton />}>
-              {t && <p>{formatNumber(t.users)} {tr('active users')}</p>}
-            </Stat>
-            <Stat label={tr('Exports')} emphasis value={t ? formatNumber(t.exports) : <StatSkeleton />}>
-              {t && <p>{formatNumber(t.downloads)} {tr('downloads')}</p>}
-            </Stat>
-            <Stat label={tr('Transactions opened')} value={summary ? formatNumber(summary.byCategory.transaction ?? 0) : <StatSkeleton />} />
-            <Stat label={tr('Failed sign-ins')} value={t ? formatNumber(t.failedLogins) : <StatSkeleton />} />
-            <Stat label={tr('Access denied')} value={t ? formatNumber(t.denied) : <StatSkeleton />}>
-              {t && <p>{tr('pages or data outside the user\'s access')}</p>}
-            </Stat>
-          </StatStrip>
+        <ActivityInsights data={summary} onPickDay={day => { setDateFrom(day); setDateTo(day); }} />
 
-          <ActivityInsights data={summary} onPickDay={day => { setDateFrom(day); setDateTo(day); }} />
-
-          <div className="grid gap-4 xl:grid-cols-12">
-          <section className="min-w-0 rounded-2xl border border-slate-200/80 bg-white shadow-sm xl:col-span-8 2xl:col-span-9">
-            <div className="space-y-3 border-b border-slate-200 p-3 sm:p-4">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input value={search} onChange={e => onSearch(e.target.value)} placeholder={tr('Search user, activity, file name, sales no.')}
-                    className={`${inputClass} pl-9 pr-9`} aria-label={tr('Search activity')} />
-                  {search && (
-                    <button type="button" onClick={() => onSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700" aria-label={tr('Clear search')}>
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
+        <div className="grid gap-5 xl:grid-cols-12">
+          <Card flush className="min-w-0 xl:col-span-8 2xl:col-span-9"
+            toolbar={<div className="space-y-3">
+              <Toolbar
+                search={<SearchInput value={search} onChange={onSearch} placeholder={tr('Search user, activity, file name, sales no.')} label={tr('Search activity')} />}
+                chips={<ActiveFilters filters={activeFilters} onClear={() => setFilters(NO_FILTERS)} />}>
                 <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
-                <div className="hidden rounded-lg bg-slate-100 p-1 sm:flex" role="radiogroup" aria-label={tr('View')}>
+                <div className="hidden rounded-lg bg-neutral-100 p-1 sm:flex" role="radiogroup" aria-label={tr('View')}>
                   {([['timeline', tr('Timeline'), <List key="i" size={14} />], ['table', tr('Table'), <Rows3 key="i" size={14} />]] as const).map(([v, l, icon]) => (
                     <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
-                      className={`inline-flex items-center gap-1.5 rounded-md px-2.5 text-xs font-medium ${view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+                      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium ${view === v ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-800'}`}>
                       {icon}{l}
                     </button>
                   ))}
                 </div>
                 <ExcelIconButton label={tr('Download the activities shown as Excel')} disabled={!entries.length} onClick={() => void downloadCsv(entries, dateFrom, dateTo)} />
-              </div>
-              <div className="-mx-1 flex gap-1 overflow-x-auto px-1" role="tablist" aria-label={tr('Category')}>
-                {CATEGORIES.map(c => {
-                  const active = c.value === category;
-                  const n = c.value ? c.value.split(',').reduce((s, k) => s + (summary?.byCategory[k] ?? 0), 0) : summary?.totals.total;
-                  return (
-                    <button key={c.label} type="button" role="tab" aria-selected={active} onClick={() => setCategory(c.value)}
-                      className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                      {c.label}
-                      {n !== undefined && <span className={`tabular-nums ${active ? 'text-slate-300' : 'text-slate-400'}`}>{formatNumber(n)}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-              <ActiveFilters filters={activeFilters} onClear={() => setFilters(NO_FILTERS)} />
-            </div>
-
+              </Toolbar>
+              <Tabs label={tr('Category')} tabs={categoryTabs} value={category} onChange={setCategory} className="mb-0" />
+            </div>}
+            footer={<>
+              <span>{formatNumber(total ? (page - 1) * PAGE_SIZE + 1 : 0)}–{formatNumber((page - 1) * PAGE_SIZE + entries.length)} {tr('of')} {formatNumber(total)} {tr('activities')}{filtered ? tr(' matching') : ''}</span>
+              {pages > 1 && (
+                <div className="flex items-center gap-2">
+                  <button type="button" className={btn('outline', 'sm')} disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous page')}><ChevronLeft size={15} /></button>
+                  <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
+                  <button type="button" className={btn('outline', 'sm')} disabled={page >= pages || loading} onClick={() => setPage(p => p + 1)} aria-label={tr('Next page')}><ChevronRight size={15} /></button>
+                </div>
+              )}
+            </>}>
             {error ? (
               <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
                 <AlertCircle className="text-red-500" />
-                <p className="text-sm text-slate-700">{error}</p>
-                <p className="text-xs text-slate-400">{tr('Retrying automatically…')}</p>
+                <p className="text-sm text-neutral-700">{error}</p>
+                <p className="text-xs text-neutral-400">{tr('Retrying automatically…')}</p>
               </div>
             ) : loading && !entries.length ? (
-              <div className="space-y-2 p-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />)}</div>
+              <div className="space-y-2 p-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-neutral-100" />)}</div>
             ) : entries.length === 0 ? (
-              <div className="flex flex-col items-center px-4 py-14 text-center">
-                <Filter className="mb-2 text-slate-300" size={28} />
-                <p className="text-sm font-medium text-slate-700">{filtered ? tr('No activity matches the search or filters') : tr('No activity in this period yet')}</p>
-                <p className="mt-1 text-xs text-slate-400">{tr('New activity appears here automatically.')}</p>
-              </div>
+              <EmptyState icon={<Filter size={22} />} title={filtered ? tr('No activity matches the search or filters') : tr('No activity in this period yet')}>
+                {tr('New activity appears here automatically.')}
+              </EmptyState>
             ) : (
               view === 'table' ? (
                 <ActivityTable entries={entries} fresh={fresh} loading={loading} onOpen={setSelected} />
@@ -421,11 +395,11 @@ export default function ActivityPage() {
               <div className={loading ? 'opacity-60 transition-opacity' : ''}>
                 {days.map(day => (
                   <section key={day.key} aria-label={day.label}>
-                    <h2 className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-slate-50/95 px-4 py-2 text-xs font-semibold text-slate-600 backdrop-blur">
+                    <h2 className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-100 bg-neutral-50/95 px-4 py-2 text-xs font-semibold text-neutral-600 backdrop-blur">
                       <span>{day.label}</span>
-                      <span className="font-normal text-slate-400">{formatNumber(day.items.length)} {tr('shown')}</span>
+                      <span className="font-normal text-neutral-400">{formatNumber(day.items.length)} {tr('shown')}</span>
                     </h2>
-                    <ol className="divide-y divide-slate-100">
+                    <ol className="divide-y divide-neutral-100">
                       {day.items.map(e => <TimelineRow key={e.id} entry={e} isNew={fresh.has(e.id)} onOpen={() => setSelected(e)} />)}
                     </ol>
                   </section>
@@ -433,43 +407,31 @@ export default function ActivityPage() {
               </div>
               )
             )}
+          </Card>
 
-            <div className="flex flex-col items-center justify-between gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50/60 px-4 py-3 text-xs text-slate-500 sm:flex-row">
-              <span>{formatNumber(total ? (page - 1) * PAGE_SIZE + 1 : 0)}–{formatNumber((page - 1) * PAGE_SIZE + entries.length)} {tr('of')} {formatNumber(total)} {tr('activities')}{filtered ? tr(' matching') : ''}</span>
-              {pages > 1 && (
-                <div className="flex items-center gap-2">
-                  <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous page')}><ChevronLeft size={16} /></button>
-                  <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
-                  <button type="button" className={`${buttonSecondary} h-8 px-2`} disabled={page >= pages || loading} onClick={() => setPage(p => p + 1)} aria-label={tr('Next page')}><ChevronRight size={16} /></button>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <aside className="min-w-0 space-y-4 xl:col-span-4 2xl:col-span-3">
-            <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-              <h2 className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">{tr('Most active users')}</h2>
+          <aside className="min-w-0 space-y-5 xl:col-span-4 2xl:col-span-3">
+            <Card title={tr('Most active users')} flush>
               {!summary ? (
-                <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 animate-pulse rounded bg-slate-100" />)}</div>
+                <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 animate-pulse rounded-lg bg-neutral-100" />)}</div>
               ) : summary.topUsers.length === 0 ? (
-                <p className="px-4 py-6 text-center text-sm text-slate-400">{tr('No activity')}</p>
+                <p className="px-4 py-6 text-center text-sm text-neutral-400">{tr('No activity')}</p>
               ) : (
-                <ul className="divide-y divide-slate-100">
+                <ul className="divide-y divide-neutral-100">
                   {summary.topUsers.map((u, i) => {
                     const on = filters.user === u.id;
                     return (
                       <li key={u.id}>
                         <button type="button" onClick={() => setFilters(f => ({ ...f, user: on ? '' : u.id }))}
-                          className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${on ? 'bg-blue-50/70' : 'hover:bg-slate-50'}`}
+                          className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${on ? 'bg-brand-50' : 'hover:bg-neutral-50'}`}
                           title={on ? tr('Show all users') : tr('Only {0}', u.username)}>
-                          <span className="w-4 text-xs tabular-nums text-slate-400">{i + 1}</span>
+                          <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums ${on ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-500'}`}>{i + 1}</span>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-slate-800">{u.username}</p>
-                            <p className="truncate text-[11px] text-slate-500">{ROLE_LABELS[u.role] ?? u.role} {tr('· last')} {formatDateTime(u.lastAt)}</p>
+                            <p className="truncate text-[13px] font-medium text-neutral-900">{u.username}</p>
+                            <p className="truncate text-[11px] text-neutral-500">{ROLE_LABELS[u.role] ?? u.role} {tr('· last')} {formatDateTime(u.lastAt)}</p>
                           </div>
                           <div className="text-right text-xs tabular-nums">
-                            <p className="font-semibold text-slate-800">{formatNumber(u.count)}</p>
-                            <p className="text-slate-400">{formatNumber(u.exports)} {tr('export')}</p>
+                            <p className="font-semibold text-neutral-900">{formatNumber(u.count)}</p>
+                            <p className="text-neutral-400">{formatNumber(u.exports)} {tr('export')}</p>
                           </div>
                         </button>
                       </li>
@@ -477,46 +439,43 @@ export default function ActivityPage() {
                   })}
                 </ul>
               )}
-            </section>
+            </Card>
 
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900"><Database size={15} className="text-slate-400" /> {tr('Log storage')}</h2>
+            <Card title={<span className="inline-flex items-center gap-2"><Database size={15} className="text-neutral-400" /> {tr('Log storage')}</span>}>
               <dl className="space-y-1.5 text-xs">
-                <div className="flex justify-between gap-2"><dt className="text-slate-500">{tr('Entries stored')}</dt><dd className="font-semibold tabular-nums text-slate-800">{summary?.storage ? formatNumber(summary.storage.entries) : '…'}</dd></div>
-                <div className="flex justify-between gap-2"><dt className="text-slate-500">{tr('Oldest entry')}</dt><dd className="text-slate-800">{summary?.storage?.oldest ? formatDateTime(summary.storage.oldest) : '—'}</dd></div>
-                <div className="flex justify-between gap-2"><dt className="text-slate-500">{tr('Auto clean-up')}</dt><dd className="text-slate-800">{summary?.retentionDays ? tr('older than {0} days, daily 03:30', summary.retentionDays) : tr('off')}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr('Entries stored')}</dt><dd className="font-semibold tabular-nums text-neutral-900">{summary?.storage ? formatNumber(summary.storage.entries) : '…'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr('Oldest entry')}</dt><dd className="text-neutral-800">{summary?.storage?.oldest ? formatDateTime(summary.storage.oldest) : '—'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr('Auto clean-up')}</dt><dd className="text-neutral-800">{summary?.retentionDays ? tr('older than {0} days, daily 03:30', summary.retentionDays) : tr('off')}</dd></div>
               </dl>
-              <button type="button" onClick={() => setResetting(true)} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50">
+              <button type="button" onClick={() => setResetting(true)} className={`${btn('outline', 'sm')} mt-3 w-full border-red-200 text-red-700 hover:bg-red-50`}>
                 <Trash2 size={13} /> {tr('Reset logs now')}
               </button>
-            </section>
+            </Card>
 
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
-              <h2 className="mb-3 text-sm font-semibold text-slate-900">{tr('By type')}</h2>
+            <Card title={tr('By type')}>
               {!summary ? (
-                <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 animate-pulse rounded bg-slate-100" />)}</div>
+                <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 animate-pulse rounded bg-neutral-100" />)}</div>
               ) : !categoryTotal ? (
-                <p className="text-sm text-slate-400">{tr('No activity')}</p>
+                <p className="text-sm text-neutral-400">{tr('No activity')}</p>
               ) : (
                 <ul className="space-y-2.5">
                   {Object.entries(summary.byCategory).sort((a, b) => b[1] - a[1]).map(([cat, n]) => (
                     <li key={cat}>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-600">{TONES[cat]?.label ?? cat}</span>
-                        <span className="tabular-nums text-slate-800">{formatNumber(n)}</span>
+                        <span className="text-neutral-600">{TONES[cat]?.label ?? cat}</span>
+                        <span className="tabular-nums text-neutral-900">{formatNumber(n)}</span>
                       </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                        <div className={`h-full rounded-full ${TONES[cat]?.bar ?? 'bg-slate-400'}`} style={{ width: `${Math.max(2, (n / categoryTotal) * 100)}%` }} />
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-neutral-100">
+                        <div className={`h-full rounded-full ${TONES[cat]?.bar ?? 'bg-neutral-400'}`} style={{ width: `${Math.max(2, (n / categoryTotal) * 100)}%` }} />
                       </div>
                     </li>
                   ))}
                 </ul>
               )}
-            </section>
+            </Card>
           </aside>
         </div>
-        </div>
-      </div>
+      </PageShell>
 
       {filtersOpen && <ActivityFiltersDrawer value={filters} users={users} onApply={f => { setFilters(f); setFiltersOpen(false); }} onClose={() => setFiltersOpen(false)} />}
       {selected && <EntryDrawer entry={selected} onClose={() => setSelected(null)} />}
@@ -534,8 +493,7 @@ export default function ActivityPage() {
 
 function StatusBadge({ status }: { status: Entry['status'] }) {
   if (status === 'ok') return null;
-  const tone = status === 'denied' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700';
-  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}`}>{status === 'denied' ? tr('Denied') : tr('Failed')}</span>;
+  return <Pill tone={status === 'denied' ? 'red' : 'amber'}>{status === 'denied' ? tr('Denied') : tr('Failed')}</Pill>;
 }
 
 /** One line of the timeline: time · type icon · "<who> <did what>" · what exactly · where/from. */
@@ -547,7 +505,7 @@ function TimelineRow({ entry, isNew, onOpen }: { entry: Entry; isNew: boolean; o
   return (
     <li>
       <button type="button" onClick={onOpen}
-        className={`group grid w-full grid-cols-[3.75rem_2rem_minmax(0,1fr)_1rem] items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors duration-700 hover:bg-slate-50 ${accent} ${isNew ? 'bg-blue-50/70' : ''}`}>
+        className={`group grid w-full grid-cols-[3.75rem_2rem_minmax(0,1fr)_1rem] items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors duration-700 hover:bg-neutral-50 ${accent} ${isNew ? 'bg-brand-50/70' : ''}`}>
         <span className="pt-1.5 text-xs tabular-nums text-slate-500">{clock(entry.at)}</span>
         <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${tone.tile}`}>{action?.icon ?? <History size={15} />}</span>
         <span className="min-w-0">
@@ -556,7 +514,7 @@ function TimelineRow({ entry, isNew, onOpen }: { entry: Entry; isNew: boolean; o
             <span className="text-slate-600">{verb.startsWith("'") ? verb.slice(1) : verb}</span>
             {entry.action === 'page.view' && <span className="font-medium text-slate-800">{pageLabel(entry.page)}</span>}
             <StatusBadge status={entry.status} />
-            {isNew && <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">{tr('New')}</span>}
+            {isNew && <span className="rounded-full bg-brand-700 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">{tr('New')}</span>}
           </span>
           {entry.summary && entry.action !== 'page.view' && <span className="mt-0.5 block truncate text-sm text-slate-600">{entry.summary}</span>}
           <span className="mt-0.5 block truncate text-[11px] text-slate-400">

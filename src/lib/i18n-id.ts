@@ -5131,4 +5131,6 @@ export const ID: Record<string, string> = {
   "{0} of {1}: {2} outlets × check-ins per day of the branch group × {3} working days": "{0} dari {1}: {2} outlet × check in per hari sesuai branch group × {3} hari kerja",
   "{0} visits · {1} outlets · {2} PICs": "{0} kunjungan · {1} outlet · {2} PIC",
   "{0}× a day": "{0}× sehari",
+  // UI redesign stage 1
+  "Modules": "Modul",
 };

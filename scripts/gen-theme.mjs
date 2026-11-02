@@ -20,6 +20,9 @@ const tailwind = require('tailwindcss/colors');
 const BRAND = {
   blue: { 50: '#eef3ff', 100: '#dce6fe', 200: '#bfd1fc', 300: '#93b2f8', 400: '#5f8bf0', 500: '#3366e3', 600: '#0e46c7',
     700: '#0b3aa6', 800: '#0e3286', 900: '#112c6b', 950: '#0c1b44' },
+  // the navy of kopicalf-hrms (#0b1385 = brand-700, 2026-11-02): the accent of the redesign (sidebar, Management, Aggregator)
+  brand: { 50: '#eef0fb', 100: '#dfe2f7', 200: '#c3c8f0', 300: '#a5abf0', 400: '#6c74db', 500: '#3a44c4', 600: '#1a24a8',
+    700: '#0b1385', 800: '#080e63', 900: '#050a4a', 950: '#03062e' },
   maroon: { 50: '#fbf3f3', 100: '#f6e3e3', 200: '#eecbcb', 300: '#e0a3a4', 400: '#cb6e70', 500: '#b14548', 600: '#962d31',
     700: '#7e2226', 800: '#691e22', 900: '#591d20', 950: '#310c0e' },
 };
@@ -29,6 +32,8 @@ const BRAND_THEMES = {
   'brand-wasgee': {
     blue: { 50: '#fff6ed', 100: '#ffead5', 200: '#fdd0aa', 300: '#fbad74', 400: '#f7803c', 500: '#ea5f16', 600: '#c94a0b',
       700: '#a53b0c', 800: '#843112', 900: '#6b2a12', 950: '#3a1306' },
+    brand: { 50: '#fff6ed', 100: '#ffead5', 200: '#fdd0aa', 300: '#fbad74', 400: '#f7803c', 500: '#ea5f16', 600: '#c94a0b',
+      700: '#a53b0c', 800: '#843112', 900: '#6b2a12', 950: '#3a1306' },
     maroon: { 50: '#faf5f0', 100: '#f2e6d9', 200: '#e5ccb3', 300: '#d1a682', 400: '#b8794f', 500: '#9a5a33', 600: '#7f4627',
       700: '#673920', 800: '#55301d', 900: '#47291b', 950: '#28140c' },
   },
@@ -36,7 +41,7 @@ const BRAND_THEMES = {
 
 const STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
 const NEUTRALS = ['slate', 'gray', 'zinc', 'neutral', 'stone'];
-const HUES = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'maroon'];
+const HUES = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'maroon', 'brand'];
 const SURFACE = '#0f172a';
 
 const rgb = hex => {
