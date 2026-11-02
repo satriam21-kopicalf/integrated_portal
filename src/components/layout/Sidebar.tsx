@@ -110,6 +110,9 @@ const cotr: { title: string; hint: string; icon: typeof Users; items: CcItem[] }
   { get title() { return tr('Production'); }, get hint() { return tr('What the HUB makes for the drivers'); }, icon: CookingPot, items: [
     { get name() { return tr('Storage & Production'); }, href: '/cotr/production', icon: CookingPot, get description() { return tr('Items, recipe cards, calculator, usage & waste'); } },
   ] },
+  { get title() { return tr('Incentives'); }, get hint() { return tr('Monthly incentive of the drivers'); }, icon: Wallet, items: [
+    { get name() { return tr('Incentive Calculator'); }, href: '/cotr/incentive', icon: Calculator, get description() { return tr('Tiers per cup, bonus & attendance'); } },
+  ] },
 ];
 
 /** "Management" menu: super admins only (the pages and the API check the role too). */
