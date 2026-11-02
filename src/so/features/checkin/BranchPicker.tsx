@@ -5,12 +5,13 @@
 // first, marked), the state of each outlet today (checked in / sent, a draft, no coordinates) and a short summary.
 // One branch: a plain card. Branches done today stay visible but cannot be picked.
 
-import { Check, MapPin, MapPinOff, Navigation, Search, Store } from "lucide-react";
+import { Check, MapPin, MapPinOff, Navigation, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cx, inputClass } from "@/so/ui";
 import { type Fix } from "@/so/lib/counts";
 import { distanceM } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
+import { assetUrl } from "@/lib/assets";
 
 export type PickBranch = { code: string; name: string; latitude: number | null; longitude: number | null; radius_m: number | null };
 export type BranchState = { label: string; tone: "done" | "draft"; locked?: boolean };
@@ -37,7 +38,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
     const r = rows[0];
     return (
       <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50/50 px-3.5 py-3">
-        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-700 text-white"><Store size={18} /></span>
+        <Logo on />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-slate-900">{r.name}</span>
           <span className="block text-xs text-slate-500">{r.code}{r.distance !== null ? ` · ${tr("{0} from you", km(r.distance))}` : ""}</span>
@@ -68,9 +69,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
               <button type="button" role="radio" aria-checked={on} disabled={locked} onClick={() => onChange(r.code)}
                 className={cx("flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
                   on ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/15" : locked ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-70" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50")}>
-                <span className={cx("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl", on ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-500")}>
-                  {on ? <Check size={18} strokeWidth={2.5} /> : <Store size={18} />}
-                </span>
+                <Logo on={on} muted={locked} />
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-1.5">
                     <span className={cx("truncate text-sm font-semibold", on ? "text-blue-900" : "text-slate-900")}>{r.name}</span>
@@ -93,5 +92,17 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
         {!shown.length && <li className="rounded-xl border border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-400">{tr("No outlet matches")}</li>}
       </ul>
     </div>
+  );
+}
+
+/** The Kopi Calf logo of an outlet card; a check on its corner when the outlet is picked. */
+function Logo({ on, muted }: { on?: boolean; muted?: boolean }) {
+  return (
+    <span className={cx("relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white p-1.5 ring-1",
+      on ? "ring-2 ring-blue-600" : "ring-slate-200", muted && "grayscale")}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- the brand logo (public/assets) */}
+      <img src={assetUrl("assets/calf-logo.png")} alt="" aria-hidden className="max-h-full max-w-full object-contain" />
+      {on && <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white ring-2 ring-white"><Check size={12} strokeWidth={3} /></span>}
+    </span>
   );
 }
