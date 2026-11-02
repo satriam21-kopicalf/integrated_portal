@@ -17,7 +17,8 @@ import { SearchSelect } from "@/cotr/ui";
 import { downloadXlsx } from "@/lib/xlsx";
 import { tr } from "@/lib/i18n";
 
-type Line = { type: "item" | "wip"; code: string; name: string; qty: number; unit: string };
+type Line = { type: "item" | "wip" | "other"; code: string; name: string; qty: number; unit: string; price?: number | null };
+type Extra = { id: number; code: string | null; name: string; unit: string; price: number | null; basis: "bill" | "portion" | "day"; qty: number; note: string | null; isActive: boolean };
 type Recipe = { code: string; name: string; category: string | null; lines: Line[]; note: string | null; isActive: boolean; menus: { id: string; name: string }[] };
 type Menu = { id: string; name: string; category: string; qty: number; recipe: string | null };
 type Item = { code: string; name: string; unit: string; category: string | null; price: number | null };
@@ -27,24 +28,28 @@ type Report = {
   menus: { id: string; name: string; recipe: string; recipeName: string; qty: number; sales: number; hpp: number | null; cogs: number | null; ratio: number | null }[];
   unmapped: { id: string; name: string; category: string; qty: number; sales: number }[];
   usage: { code: string | null; name: string; unit: string; isStock: boolean; system: number; actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
-  mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; value: number | null }[];
-  total: { sales: number; cogs: number; ratio: number | null; menusMapped: number; menusUnmapped: number; unpriced: number; systemValue: number; actualValue: number };
+  mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; value: number | null; extra?: boolean }[];
+  extras?: (Extra & { count: number; used: number })[];
+  total: { sales: number; cogs: number; menuCogs?: number; extraCogs?: number; ratio: number | null; menusMapped: number; menusUnmapped: number; unpriced: number; systemValue: number; actualValue: number };
 };
 type Branch = { branch_code: string; branch_name: string };
 
+const BASIS: Record<Extra["basis"], () => string> = { bill: () => tr("per bill"), portion: () => tr("per portion sold"), day: () => tr("per outlet-day") };
 const num = (n: number | null | undefined, d = 2) => (n === null || n === undefined ? "—" : n.toLocaleString("id-ID", { maximumFractionDigits: d }));
 const rp = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `Rp ${Math.round(n).toLocaleString("id-ID")}`);
 const pct = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${(n * 100).toFixed(1)}%`);
 
 export default function SalesCalculatorPage() {
-  const [tab, setTab] = useState<"report" | "recipes" | "menus">("report");
+  const [tab, setTab] = useState<"report" | "recipes" | "menus" | "extras">("report");
   return (
     <Page title={tr("Sales calculator by menu")} subtitle={tr("Recipe cards per menu, the menus assigned to them, and from the POS sales: material planning, usage actual vs system and COGS bahan baku")}>
       <Segmented label={tr("Section")} value={tab} onChange={setTab} options={[
-        { value: "report", label: tr("Calculator") }, { value: "recipes", label: tr("Recipe cards") }, { value: "menus", label: tr("Assign menus") }]} />
+        { value: "report", label: tr("Calculator") }, { value: "recipes", label: tr("Recipe cards") }, { value: "menus", label: tr("Assign menus") },
+        { value: "extras", label: tr("Additional items") }]} />
       {tab === "report" && <ReportView />}
       {tab === "recipes" && <Recipes />}
       {tab === "menus" && <MenuAssign />}
+      {tab === "extras" && <Extras />}
     </Page>
   );
 }
@@ -85,7 +90,7 @@ function ReportView() {
     <>
       <StatStrip label={tr("Summary")} columns={4}>
         <Stat label={tr("Sales of mapped menus")} value={t ? rp(t.sales) : <StatSkeleton />}>{t && <p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}</p>}</Stat>
-        <Stat label={tr("COGS bahan baku")} emphasis value={t ? rp(t.cogs) : <StatSkeleton />}>{t && <p>{tr("ratio {0}", pct(t.ratio))}{t.unpriced ? ` · ${tr("{0} cards miss a price", t.unpriced)}` : ""}</p>}</Stat>
+        <Stat label={tr("COGS bahan baku")} emphasis value={t ? rp(t.cogs) : <StatSkeleton />}>{t && <p>{tr("ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}{t.unpriced ? ` · ${tr("{0} cards miss a price", t.unpriced)}` : ""}</p>}</Stat>
         <Stat label={tr("Usage system")} value={t ? rp(t.systemValue) : <StatSkeleton />} />
         <Stat label={tr("Usage actual (ESB)")} value={t ? rp(t.actualValue) : <StatSkeleton />}>{t && t.systemValue ? <p>{tr("difference {0}", rp(t.actualValue - t.systemValue))}</p> : null}</Stat>
       </StatStrip>
@@ -164,6 +169,22 @@ function ReportView() {
                 </tbody>
               </table>
             )}
+            {view === "cogs" && !!data.extras?.length && (
+              <table className="mt-2 w-full min-w-[760px] text-sm">
+                <caption className="px-4 py-2 text-left text-xs font-semibold text-slate-700">{tr("Additional items (outside the recipe cards)")}</caption>
+                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Basis")}</th><th className="px-4 py-2.5 text-right">{tr("Used")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th></tr></thead>
+                <tbody className="divide-y divide-slate-100">
+                  {data.extras.map((e) => (
+                    <tr key={e.id}>
+                      <td className="px-4 py-2">{e.name}{e.code && <span className="ml-1 text-[11px] text-slate-400">{e.code}</span>}</td>
+                      <td className="px-4 py-2 text-xs text-slate-600">{num(e.qty)} {e.unit} {BASIS[e.basis]()} × {num(e.count, 0)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums">{num(e.used)} {e.unit}</td>
+                      <td className="px-4 py-2 text-right tabular-nums">{rp(data.usage.find((u) => (u.code ?? u.name) === (e.code ?? e.name))?.systemValue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
       </Panel>
@@ -224,6 +245,7 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
   const hpp = useMemo(() => {
     let total = 0;
     for (const l of d.lines) {
+      if (l.type === "other") { if (l.price == null) return null; total += l.price * l.qty; continue; }
       if (l.type === "item") { const p = price.get(l.code); if (p == null) return null; total += p * l.qty; continue; }
       const w = wips.find((x) => x.code === l.code);
       if (!w) return null;
@@ -231,14 +253,16 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
     }
     return total;
   }, [d.lines, price, wips]);
-  const options = [...wips.map((w) => ({ value: `wip:${w.code}`, label: w.name, hint: tr("WIP / premix (gram)") })),
+  const options = [{ value: "other:", label: tr("+ Other item (typed by hand)"), hint: tr("not in the item master: name, unit and price") },
+    ...wips.map((w) => ({ value: `wip:${w.code}`, label: w.name, hint: tr("WIP / premix (gram)") })),
     ...items.map((i) => ({ value: `item:${i.code}`, label: i.name, hint: `${i.code} · ${i.unit}` }))];
   const setLine = (i: number, patch: Partial<Line>) => setD({ ...d, lines: d.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) });
   const pick = (i: number, v: string | null) => {
     if (!v) return;
     const at = v.indexOf(":");
-    const type = v.slice(0, at) as "item" | "wip";
+    const type = v.slice(0, at) as Line["type"];
     const code = v.slice(at + 1);
+    if (type === "other") { setLine(i, { type, code: `other-${i + 1}`, name: "", unit: "PCS", price: null }); return; }
     const it = type === "item" ? items.find((x) => x.code === code) : null;
     const w = type === "wip" ? wips.find((x) => x.code === code) : null;
     setLine(i, { type, code, name: it?.name ?? w?.name ?? code, unit: type === "wip" ? "GR" : it?.unit ?? "" });
@@ -276,9 +300,16 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
           <div className="space-y-2">
             {d.lines.map((l, i) => (
               <div key={i} className="flex items-center gap-2">
-                <div className="min-w-0 flex-1"><SearchSelect value={l.code ? `${l.type}:${l.code}` : ""} options={options} onChange={(v) => pick(i, v)} placeholder={tr("Raw material or WIP")} /></div>
+                <div className="min-w-0 flex-1">{l.type === "other" ? (
+                  <div className="flex gap-2">
+                    <input className={cx(inputClass, "h-10")} value={l.name} onChange={(e) => setLine(i, { name: e.target.value })} placeholder={tr("Item name, e.g. Stiker")} />
+                    <input className={cx(inputClass, "h-10 w-20")} value={l.unit} onChange={(e) => setLine(i, { unit: e.target.value })} aria-label={tr("Unit")} />
+                    <input inputMode="decimal" className={cx(inputClass, "h-10 w-28 text-right")} value={l.price ?? ""} placeholder={tr("Price")}
+                      onChange={(e) => setLine(i, { price: e.target.value === "" ? null : Number(e.target.value.replace(",", ".")) || 0 })} aria-label={tr("Price per unit")} />
+                  </div>
+                ) : <SearchSelect value={l.code ? `${l.type}:${l.code}` : ""} options={options} onChange={(v) => pick(i, v)} placeholder={tr("Raw material, packaging or WIP")} />}</div>
                 <input inputMode="decimal" className={cx(inputClass, "h-10 w-24 text-right")} value={l.qty || ""} onChange={(e) => setLine(i, { qty: Number(e.target.value.replace(",", ".")) || 0 })} aria-label={tr("Qty")} />
-                <span className="w-12 text-xs text-slate-500">{l.unit}</span>
+                {l.type !== "other" && <span className="w-12 text-xs text-slate-500">{l.unit}</span>}
                 <button type="button" aria-label={tr("Delete")} onClick={() => setD({ ...d, lines: d.lines.filter((_, j) => j !== i) })} className="rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button>
               </div>
             ))}
@@ -349,6 +380,79 @@ function MenuAssign() {
             ))}
           </tbody>
         </table>
+      )}
+    </Panel>
+  );
+}
+
+/** Items outside the recipe cards (cable ties, plastic bags, tissue …): a quantity per bill, per portion sold or per day
+ * of an outlet with sales; an item of the master (priced in Pricelist items) or typed by hand with its own price. */
+function Extras() {
+  const toast = useToast();
+  const { items } = useCatalog();
+  const [rows, setRows] = useState<Extra[] | null>(null);
+  const blank: Omit<Extra, "id"> = { code: null, name: "", unit: "PCS", price: null, basis: "bill", qty: 1, note: null, isActive: true };
+  const [edit, setEdit] = useState<(Omit<Extra, "id"> & { id?: number }) | null>(null);
+  const load = useCallback(() => { void call<{ data: Extra[] }>("/api/cost-control/sales-calc/extras").then((r) => setRows(r.data)); }, []);
+  useEffect(() => { load(); }, [load]);
+  const save = async () => {
+    if (!edit) return;
+    try {
+      await call(edit.id ? `/api/cost-control/sales-calc/extras/${edit.id}` : "/api/cost-control/sales-calc/extras", { method: edit.id ? "PUT" : "POST", json: edit });
+      setEdit(null); load(); toast(tr("Saved"));
+    } catch (e) { toast((e as Error).message, "error"); }
+  };
+  const remove = async (x: Extra) => {
+    if (!window.confirm(tr("Delete {0}?", x.name))) return;
+    try { await call(`/api/cost-control/sales-calc/extras/${x.id}`, { method: "DELETE" }); load(); } catch (e) { toast((e as Error).message, "error"); }
+  };
+  const price = (x: Extra) => (x.code ? items.find((i) => i.code === x.code)?.price ?? null : x.price);
+  const options = items.map((i) => ({ value: i.code, label: i.name, hint: `${i.code} · ${i.unit}` }));
+  return (
+    <Panel title={tr("Additional items")} description={tr("Items no menu records (cable ties, plastic bags …): counted per bill, per portion sold or per day of an outlet, and added to the planning, the usage and the COGS")}
+      actions={<Button size="sm" onClick={() => setEdit({ ...blank })}><Plus size={14} />{tr("Add item")}</Button>}>
+      {!rows ? <SkeletonRows cols={5} /> : rows.length === 0 ? <Empty title={tr("No additional item yet")} /> : (
+        <table className="w-full text-sm">
+          <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Usage")}</th><th className="px-4 py-2.5 text-right">{tr("Price / unit")}</th><th className="px-4 py-2.5">{tr("Status")}</th><th /></tr></thead>
+          <tbody className="divide-y divide-slate-100">
+            {rows.map((x) => (
+              <tr key={x.id} className="cursor-pointer hover:bg-slate-50" onClick={() => setEdit({ ...x })}>
+                <td className="px-4 py-2"><span className="block font-medium text-slate-900">{x.name}</span><span className="text-[11px] text-slate-400">{x.code ?? tr("typed by hand")}</span></td>
+                <td className="px-4 py-2 text-xs">{num(x.qty)} {x.unit} {BASIS[x.basis]()}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{price(x) === null ? <Badge tone="amber">{tr("No price")}</Badge> : rp(price(x))}</td>
+                <td className="px-4 py-2">{x.isActive ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge>}</td>
+                <td className="px-2"><button type="button" onClick={(e) => { e.stopPropagation(); void remove(x); }} className="rounded p-1.5 text-slate-400 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={15} /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {edit && (
+        <Drawer open onClose={() => setEdit(null)} title={edit.id ? edit.name : tr("Add item")} description={tr("Additional items")}
+          footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button onClick={() => void save()}><Save size={15} />{tr("Save")}</Button></div>}>
+          <div className="space-y-3 text-sm">
+            <label className="flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={edit.code === null} onChange={(e) => setEdit({ ...edit, code: e.target.checked ? null : "" })} />{tr("Typed by hand (not in the item master)")}</label>
+            {edit.code === null ? (
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className="text-xs text-slate-600 sm:col-span-2">{tr("Name")}<input className={cx(inputClass, "mt-1")} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder={tr("e.g. Cable ties")} /></label>
+                <label className="text-xs text-slate-600">{tr("Unit")}<input className={cx(inputClass, "mt-1")} value={edit.unit} onChange={(e) => setEdit({ ...edit, unit: e.target.value })} /></label>
+                <label className="text-xs text-slate-600">{tr("Price per unit (Rp)")}<input inputMode="decimal" className={cx(inputClass, "mt-1")} value={edit.price ?? ""} onChange={(e) => setEdit({ ...edit, price: e.target.value === "" ? null : Number(e.target.value.replace(",", ".")) || 0 })} /></label>
+              </div>
+            ) : (
+              <div><p className="mb-1 text-xs text-slate-600">{tr("Item")}</p><SearchSelect value={edit.code} options={options} onChange={(v) => { const it = items.find((i) => i.code === v); setEdit({ ...edit, code: v ?? "", name: it?.name ?? "", unit: it?.unit ?? edit.unit }); }} placeholder={tr("Search item")} /></div>
+            )}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-xs text-slate-600">{tr("Quantity")}<input inputMode="decimal" className={cx(inputClass, "mt-1")} value={edit.qty || ""} onChange={(e) => setEdit({ ...edit, qty: Number(e.target.value.replace(",", ".")) || 0 })} /></label>
+              <label className="text-xs text-slate-600">{tr("Counted")}
+                <select className={cx(inputClass, "mt-1")} value={edit.basis} onChange={(e) => setEdit({ ...edit, basis: e.target.value as Extra["basis"] })}>
+                  {(["bill", "portion", "day"] as const).map((b) => <option key={b} value={b}>{BASIS[b]()}</option>)}
+                </select>
+              </label>
+            </div>
+            <label className="text-xs text-slate-600">{tr("Note")}<input className={cx(inputClass, "mt-1")} value={edit.note ?? ""} onChange={(e) => setEdit({ ...edit, note: e.target.value || null })} /></label>
+            <label className="flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={edit.isActive} onChange={(e) => setEdit({ ...edit, isActive: e.target.checked })} />{tr("Active")}</label>
+          </div>
+        </Drawer>
       )}
     </Panel>
   );
