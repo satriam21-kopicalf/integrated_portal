@@ -277,7 +277,7 @@ export default function UsersPage() {
               <button key={l.key} type="button" role="tab" aria-selected={line === l.key} onClick={() => { setLine(l.key); setPage(1); applyFilters(NO_FILTERS); }}
                 className={`flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-colors ${line === l.key ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={l.logo} alt="" className={`h-6 w-6 rounded-full object-contain ${line === l.key ? 'bg-white p-0.5' : ''}`} />
+                <span className="flex h-7 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white px-1 ring-1 ring-slate-200"><img src={l.logo} alt="" className="max-h-5 max-w-full object-contain" /></span>
                 <span className="truncate">{l.label}</span>
                 {s?.lines && <span className={`rounded-full px-1.5 text-[11px] ${line === l.key ? 'bg-white/20' : 'bg-slate-100 text-slate-500'}`}>{formatNumber(s.lines[l.key] ?? 0)}</span>}
               </button>
