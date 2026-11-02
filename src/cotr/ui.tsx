@@ -81,7 +81,7 @@ export function MasterTable<T extends Row>({ title, description, master, columns
       ) : undefined}>
       {master.error ? <ErrorState message={master.error} onRetry={() => void master.load()} /> : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="m-cards w-full text-sm">
             <thead className={theadClass}>
               <tr>{columns.map((c) => <th key={c.label} className={cx('px-4 py-2.5', c.className)}>{c.label}</th>)}<th className="w-20 px-2" /></tr>
             </thead>

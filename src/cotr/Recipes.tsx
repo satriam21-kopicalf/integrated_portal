@@ -103,7 +103,19 @@ export function RecipesTab() {
       <Panel title={tr('Recipe cards')} description={tr('Premix per batch (Pail / Teko / Gram) as the premix calculator of Cost Control; menu cards per cup or can')}
         actions={draft && <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr('Save recipe')}</Button>}>
         <div className="grid lg:grid-cols-[17rem_1fr]">
-          <div className="border-b border-slate-100 lg:border-b-0 lg:border-r">
+          {/* phones and tablets: the recipe to edit from a list, the editor right under it */}
+          <div className="border-b border-slate-100 p-4 lg:hidden">
+            <Field label={tr('Recipe to edit')}>
+              <Select value={current ?? ''} onChange={(e) => setCode(e.target.value)} className="h-11">
+                {(['premix', 'menu'] as const).map((k) => (
+                  <optgroup key={k} label={k === 'premix' ? tr('Premix') : tr('Menu cards')}>
+                    {group(k).map((b) => <option key={b.code} value={b.code}>{b.name} · {num(b.yield_qty, 3)} {b.yield_unit}</option>)}
+                  </optgroup>
+                ))}
+              </Select>
+            </Field>
+          </div>
+          <div className="hidden border-b border-slate-100 lg:block lg:border-b-0 lg:border-r">
             {(['premix', 'menu'] as const).map((k) => (
               <div key={k}>
                 <p className="flex items-center gap-1.5 bg-slate-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -148,7 +160,7 @@ export function RecipesTab() {
                   </div>
                 </div>
               )}
-              <table className="w-full text-sm">
+              <table className="m-cards w-full text-sm">
                 <thead className={theadClass}>
                   <tr><th className="px-3 py-2">{tr('Component')}</th><th className="px-3 py-2 text-right">{tr('Qty')}</th><th className="px-3 py-2">{tr('Unit')}</th>
                     {draft.kind === 'premix' && <th className="px-3 py-2 text-right">{tr('Per gram')}</th>}<th className="px-3 py-2 text-right">{tr('Cost')}</th><th className="w-8" /></tr>
@@ -180,6 +192,7 @@ export function RecipesTab() {
                 </p>
               </div>
               {draft.kind === 'menu' && usedBy(draft).length > 0 && <p className="text-xs text-slate-500">{tr('Used by')}: {usedBy(draft).join(', ')}</p>}
+              <Button className="h-11 w-full lg:hidden" loading={busy} onClick={() => void save()}><Save size={16} /> {tr('Save recipe')}</Button>
             </div>
           ) : <Empty title={tr('No recipe yet')} />}
         </div>
@@ -230,7 +243,7 @@ export function CalculatorTab() {
     <>
       <Panel title={tr('Premix calculator')} description={tr('Choose the premix, its unit and how many: the grams of every raw material, rounded up as the Cost Control calculator')}
         actions={<Button size="sm" variant="secondary" onClick={() => setRows([...rows, { bom: premix[0]?.code ?? '', unit: premix[0]?.units[0]?.name ?? 'Gram', qty: 1 }])}><Plus size={14} /> {tr('Row')}</Button>}>
-        <table className="w-full text-sm">
+        <table className="m-cards w-full text-sm">
           <thead className={theadClass}><tr><th className="px-4 py-2">{tr('Premix')}</th><th className="px-4 py-2">{tr('Unit')}</th><th className="px-4 py-2 text-right">{tr('Qty')}</th><th className="px-4 py-2 text-right">{tr('Grams')}</th><th className="w-8" /></tr></thead>
           <tbody className="divide-y divide-slate-100">
             {rows.map((r, i) => {
@@ -251,7 +264,7 @@ export function CalculatorTab() {
       </Panel>
       <Panel title={tr('Raw materials needed')} description={tr('Total per material, rounded up')}>
         {result.length === 0 ? <Empty icon={<Calculator size={26} />} title={tr('Add a row above')} /> : (
-          <table className="w-full text-sm">
+          <table className="m-cards w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Material')}</th><th className="px-4 py-2.5 text-right">{tr('Qty')}</th><th className="px-4 py-2.5 text-right">{tr('Packs')}</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
               {result.map((r) => (
@@ -308,7 +321,7 @@ export function UsageTab() {
                 {tr('Menus without a recipe card are not exploded: {0}', data.menus.filter((m) => !m.bom).map((m) => m.name).join(', '))}
               </p>
             )}
-            <table className="w-full text-sm">
+            <table className="m-cards w-full text-sm">
               <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Menu')}</th><th className="px-4 py-2.5 text-right">{tr('Sold')}</th><th className="px-4 py-2.5 text-right">{tr('Waste')}</th><th className="px-4 py-2.5 text-right">{tr('Cupping')}</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {data.menus.map((m) => (
@@ -323,7 +336,7 @@ export function UsageTab() {
       </Panel>
       {data && data.items.length > 0 && (
         <Panel title={tr('Items used')} description={value ? `${tr('Value')}: ${rupiah(value)}` : undefined}>
-          <table className="w-full text-sm">
+          <table className="m-cards w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Item')}</th><th className="px-4 py-2.5 text-right">{tr('Sold')}</th><th className="px-4 py-2.5 text-right">{tr('Waste')}</th><th className="px-4 py-2.5 text-right">{tr('Cupping')}</th><th className="px-4 py-2.5 text-right">{tr('Total')}</th><th className="px-4 py-2.5 text-right">{tr('Value')}</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
               {data.items.map((r) => (

@@ -4,10 +4,9 @@
 // the premix calculator, the theoretical usage, the production plan from the drivers' sales of the last days (average + a buffer,
 // exploded through the BOMs down to raw materials: cup → premix → milk, espresso …) and the waste of the pools.
 
-import { ClipboardList, Factory, ListTree, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Calculator, ClipboardList, Factory, ListTree, Package, Plus, Trash2, TrendingDown } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, Select, theadClass, useToast } from "@/so/ui";
-import { Segmented } from "@/so/ui/Simple";
+import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, Select, cx, theadClass, useToast } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
@@ -18,14 +17,29 @@ type Tab = "items" | "recipes" | "calc" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 type Waste = { id: string; day: string; pool_code: string; item: string; qty: number; unit: string; reason: string };
 
+const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
+  { key: "items", label: () => tr("Items"), icon: Package }, { key: "recipes", label: () => tr("Recipe cards"), icon: BookOpen },
+  { key: "calc", label: () => tr("Calculator"), icon: Calculator }, { key: "plan", label: () => tr("Production plan"), icon: Factory },
+  { key: "usage", label: () => tr("Usage"), icon: TrendingDown }, { key: "waste", label: () => tr("Waste"), icon: Trash2 },
+];
+
 export default function CotrProductionPage() {
   const [tab, setTab] = useState<Tab>("recipes");
   return (
     <Page title={tr("Storage & Production")} subtitle={tr("Items, recipe cards, premix calculator, production plan, theoretical usage and waste")}>
-      <Segmented label={tr("Section")} value={tab} onChange={setTab} options={[
-        { value: "items", label: tr("Items") }, { value: "recipes", label: tr("Recipe cards") }, { value: "calc", label: tr("Calculator") },
-        { value: "plan", label: tr("Production plan") }, { value: "usage", label: tr("Usage") }, { value: "waste", label: tr("Waste") },
-      ]} />
+      <nav role="tablist" aria-label={tr("Section")} className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {SECTIONS.map((s) => {
+          const on = tab === s.key;
+          return (
+            <button key={s.key} type="button" role="tab" aria-selected={on} onClick={() => setTab(s.key)}
+              className={cx("flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-center transition-colors",
+                on ? "border-blue-600 bg-blue-50 text-blue-800 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300")}>
+              <s.icon size={18} className={on ? "text-blue-700" : "text-slate-400"} />
+              <span className="text-[11px] font-semibold leading-tight sm:text-xs">{s.label()}</span>
+            </button>
+          );
+        })}
+      </nav>
       {tab === "items" && <ItemsTab />}
       {tab === "recipes" && <RecipesTab />}
       {tab === "calc" && <CalculatorTab />}
@@ -58,7 +72,7 @@ function PlanView() {
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !plan ? <div className="skeleton m-4 h-32 rounded-xl" /> : plan.days === 0 ? (
           <Empty title={tr("No sales yet")}>{tr("The plan follows the sales the drivers record in the COTR app.")}</Empty>
         ) : (
-          <table className="w-full text-sm">
+          <table className="m-cards w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5 text-right">{tr("Average / day")}</th><th className="px-4 py-2.5 text-right">{tr("Highest day")}</th><th className="px-4 py-2.5 text-right">{tr("Plan (cups)")}</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
               {plan.menus.map((r) => (
@@ -75,7 +89,7 @@ function PlanView() {
       </Panel>
       {plan && plan.days > 0 && (
         <Panel title={tr("Raw materials needed")} description={tr("The plan exploded through the recipes (premix down to its materials), rounded up")}>
-          <table className="w-full text-sm">
+          <table className="m-cards w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
               {plan.materials.map((m) => (
@@ -131,7 +145,7 @@ function WasteList() {
         </div>
       }>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <div className="skeleton m-4 h-24 rounded-xl" /> : rows.length === 0 ? <Empty title={tr("Nothing yet")} /> : (
-        <table className="w-full text-sm">
+        <table className="m-cards w-full text-sm">
           <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Day")}</th><th className="px-4 py-2.5">{tr("Pool / HUB")}</th><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th><th className="px-4 py-2.5">{tr("Reason")}</th><th className="w-10" /></tr></thead>
           <tbody className="divide-y divide-slate-100">
             {rows.map((w) => (

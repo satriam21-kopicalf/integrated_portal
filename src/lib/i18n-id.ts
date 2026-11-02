@@ -4758,4 +4758,6 @@ export const ID: Record<string, string> = {
   "The workbook DATA COTR (every employee, pool by placement) or an armada file (Armada, Nama, HP / Report Armada)": "Workbook DATA COTR (semua karyawan, pool dari placement) atau file armada (Armada, Nama, HP / Report Armada)",
   "e.g. Armada, Storage, Stockist": "mis. Armada, Storage, Stockist",
   "{0} left out": "{0} dilewati",
+  // COTR production mobile (2026-11-03)
+  "Recipe to edit": "Resep yang diubah",
 };
