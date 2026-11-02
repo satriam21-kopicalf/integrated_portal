@@ -243,33 +243,77 @@ function CheckInFilters({ value, groups, branches, pics, onApply, onClose }: {
 
 function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => void; onReviewed: () => void }) {
   const skew = c.deviceTime ? Math.round((Date.parse(c.deviceTime) - Date.parse(c.visitedAt)) / 60_000) : null;
-  const rows: [string, React.ReactNode][] = [
-    [tr("PIC"), `${c.name} · @${c.username}`],
-    [tr("Outlet"), `${c.branchName} (${c.branchCode})`],
-    [tr("Visit time"), wibDateTime(c.visitedAt)],
-    [tr("Phone clock"), c.deviceTime ? `${wibDateTime(c.deviceTime)}${skew && Math.abs(skew) >= 5 ? ` · ${tr("differs {0} min", skew)}` : ""}` : "—"],
-    [tr("PIC position"), <a key="p" href={mapsUrl(c.latitude, c.longitude)} target="_blank" rel="noreferrer" className="text-blue-700 hover:underline">
-      {c.latitude.toFixed(5)}, {c.longitude.toFixed(5)}{c.accuracyM !== null ? ` ±${Math.round(c.accuracyM)} m` : ""} <ExternalLink size={11} className="inline" /></a>],
-    [tr("Outlet location"), c.outletLatitude !== null && c.outletLongitude !== null
-      ? <a key="o" href={mapsUrl(c.outletLatitude, c.outletLongitude)} target="_blank" rel="noreferrer" className="text-blue-700 hover:underline">
-        {c.outletLatitude.toFixed(5)}, {c.outletLongitude.toFixed(5)} · {tr("radius {0} m", c.radiusM ?? "")} <ExternalLink size={11} className="inline" /></a>
-      : tr("No coordinates yet")],
-    [tr("Distance"), c.distanceM !== null ? tr("{0} m from the outlet", c.distanceM) : "—"],
-    [tr("Face"), tr("{0} face(s) detected", c.faces)],
-    ...(c.note ? [[tr("Note"), c.note] as [string, React.ReactNode]] : []),
-  ];
+  const risky = suspect(c);
+  // the verdict at a glance: where the PIC was, the location check, the review
+  const verdict = !c.outletLocated ? { tone: "slate", icon: <MapPinOff size={20} />, title: tr("Outlet has no coordinates"), text: tr("Set the outlet's location in Cost Control → Outlet Locations") }
+    : c.outsideRadius ? { tone: "red", icon: <MapPin size={20} />, title: tr("Outside radius"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100) }
+    : { tone: "green", icon: <CheckCircle2 size={20} />, title: tr("At the outlet"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? 0, c.radiusM ?? 100) };
+  const toneBox: Record<string, string> = { green: "border-emerald-200 bg-emerald-50 text-emerald-900", red: "border-red-200 bg-red-50 text-red-900", slate: "border-slate-200 bg-slate-50 text-slate-800" };
+  const toneIcon: Record<string, string> = { green: "bg-emerald-600", red: "bg-red-600", slate: "bg-slate-500" };
   return (
-    <Drawer open onClose={onClose} size="md" icon={<ScanFace size={18} />} title={c.name} description={`${c.branchName} · ${wibDateTime(c.visitedAt)}`}>
-      <div className="space-y-4">
-        {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-        <img src={photoUrl(c.id)} alt={tr("Face photo")} className="w-full rounded-xl bg-slate-100 object-contain" />
-        <LocationTags c={c} />
+    <Drawer open onClose={onClose} size="lg" icon={<ScanFace size={18} />} title={c.name} description={`${c.branchName} · ${wibDateTime(c.visitedAt)}`}>
+      <div className="space-y-5">
+        <div className="grid gap-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
+          <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+            {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
+            <img src={photoUrl(c.id)} alt={tr("Face photo")} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
+            <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-lg bg-black/55 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">
+              <ScanFace size={12} />{tr("{0} face(s) detected", c.faces)}
+            </span>
+          </a>
+          <div className="flex min-w-0 flex-col gap-3">
+            <div>
+              <p className="text-base font-semibold text-slate-900">{c.name}</p>
+              <p className="text-xs text-slate-500">@{c.username}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <Fact icon={<Store size={14} />} label={tr("Outlet")} value={c.branchName} sub={c.branchCode} />
+              <Fact icon={<CalendarDays size={14} />} label={tr("Visit time")} value={wibDateTime(c.visitedAt)} />
+            </div>
+            <div className={cx("flex items-start gap-3 rounded-xl border px-3 py-2.5", toneBox[verdict.tone])}>
+              <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-white", toneIcon[verdict.tone])}>{verdict.icon}</span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold">{verdict.title}</span>
+                <span className="block text-xs opacity-90">{verdict.text}</span>
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {c.lowAccuracy && <Badge tone="slate" icon={<SignalLow size={11} />}>{tr("Low GPS accuracy")}</Badge>}
+              <RiskTags c={c} />
+            </div>
+          </div>
+        </div>
+
+        <DrawerBlock title={tr("Location")}>
+          <div className="grid grid-cols-3 divide-x divide-slate-100 rounded-xl border border-slate-200">
+            <Figure label={tr("Distance")} value={c.distanceM !== null ? `${c.distanceM} m` : "—"} tone={c.outsideRadius ? "text-red-700" : undefined} />
+            <Figure label={tr("Radius")} value={c.radiusM !== null ? `${c.radiusM} m` : "—"} />
+            <Figure label={tr("GPS accuracy")} value={c.accuracyM !== null ? `±${Math.round(c.accuracyM)} m` : "—"} tone={c.lowAccuracy ? "text-amber-700" : undefined} />
+          </div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <MapLink href={mapsUrl(c.latitude, c.longitude)} label={tr("PIC position")} value={`${c.latitude.toFixed(5)}, ${c.longitude.toFixed(5)}`} />
+            {c.outletLatitude !== null && c.outletLongitude !== null
+              ? <MapLink href={mapsUrl(c.outletLatitude, c.outletLongitude)} label={tr("Outlet location")} value={`${c.outletLatitude.toFixed(5)}, ${c.outletLongitude.toFixed(5)}`} />
+              : <div className="rounded-xl border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-500">{tr("Outlet location")}: {tr("No coordinates yet")}</div>}
+          </div>
+        </DrawerBlock>
+
+        <DrawerBlock title={tr("Time")}>
+          <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
+            <DrawerRow k={tr("Visit time")} v={`${wibDateTime(c.visitedAt)} · ${tr("server time")}`} />
+            <DrawerRow k={tr("Phone clock")} v={c.deviceTime ? <>{wibDateTime(c.deviceTime)}{skew !== null && Math.abs(skew) >= 5 && <Badge tone="amber">{tr("differs {0} min", skew)}</Badge>}</> : "—"} />
+          </dl>
+        </DrawerBlock>
+
+        {c.note && (
+          <DrawerBlock title={tr("Note")}>
+            <p className="rounded-xl bg-slate-50 px-3 py-2.5 text-sm leading-relaxed text-slate-700">{c.note}</p>
+          </DrawerBlock>
+        )}
+
         {(c.riskSignals ?? []).length > 0 && (
-          <section className={cx("rounded-xl border p-3", suspect(c) ? "border-red-200 bg-red-50" : "border-slate-200 bg-slate-50")}>
-            <p className={cx("flex items-center gap-1.5 text-sm font-semibold", suspect(c) ? "text-red-800" : "text-slate-700")}>
-              <ShieldAlert size={15} /> {tr("Location check")} · {RISK_LABEL[c.riskLevel ?? "none"]()}
-            </p>
-            <ul className="mt-2 space-y-1 text-xs">
+          <DrawerBlock title={`${tr("Location check")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
+            <ul className={cx("space-y-1.5 rounded-xl border p-3 text-xs", risky ? "border-red-200 bg-red-50" : "border-slate-200 bg-slate-50")}>
               {(c.riskSignals ?? []).map((x) => (
                 <li key={x.code} className="flex gap-2">
                   <span className={cx("mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full", x.level === "high" ? "bg-red-500" : x.level === "medium" ? "bg-amber-500" : "bg-slate-400")} />
@@ -277,19 +321,63 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
                 </li>
               ))}
             </ul>
-          </section>
+          </DrawerBlock>
         )}
-        {(c.outsideRadius || suspect(c) || c.review) && <ReviewBox c={c} onReviewed={onReviewed} />}
-        <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
-          {rows.map(([k, v]) => (
-            <div key={k} className="grid grid-cols-[8.5rem_1fr] gap-3 px-3 py-2">
-              <dt className="text-slate-500">{k}</dt>
-              <dd className="min-w-0 break-words text-slate-800">{v}</dd>
-            </div>
-          ))}
-        </dl>
+
+        {(c.outsideRadius || risky || c.review) && <ReviewBox c={c} onReviewed={onReviewed} />}
       </div>
     </Drawer>
+  );
+}
+
+/** A titled block of a detail drawer. */
+export function DrawerBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+export function DrawerRow({ k, v }: { k: string; v: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 px-3 py-2">
+      <dt className="text-slate-500">{k}</dt>
+      <dd className="flex min-w-0 flex-wrap items-center gap-1.5 break-words text-slate-800">{v}</dd>
+    </div>
+  );
+}
+
+function Fact({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
+  return (
+    <div className="min-w-0 rounded-xl border border-slate-200 px-3 py-2">
+      <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{icon}{label}</p>
+      <p className="mt-0.5 truncate text-sm font-semibold text-slate-900" title={value}>{value}</p>
+      {sub && <p className="font-mono text-[10px] text-slate-400">{sub}</p>}
+    </div>
+  );
+}
+
+function Figure({ label, value, tone }: { label: string; value: string; tone?: string }) {
+  return (
+    <div className="px-3 py-2.5 text-center">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <p className={cx("mt-0.5 text-base font-semibold tabular-nums text-slate-900", tone)}>{value}</p>
+    </div>
+  );
+}
+
+function MapLink({ href, label, value }: { href: string; label: string; value: string }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 hover:border-blue-300 hover:bg-blue-50/40">
+      <MapPin size={15} className="flex-shrink-0 text-blue-700" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-medium text-slate-700">{label}</span>
+        <span className="block truncate font-mono text-[11px] text-slate-500">{value}</span>
+      </span>
+      <ExternalLink size={13} className="flex-shrink-0 text-slate-400" />
+    </a>
   );
 }
 
@@ -405,8 +493,8 @@ function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
     }
   };
   return (
-    <section className="rounded-xl border border-slate-200 p-3">
-      <p className="text-sm font-semibold text-slate-900">{tr("Review")}</p>
+    <section className="rounded-xl border border-blue-200 bg-blue-50/40 p-3">
+      <p className="text-sm font-semibold text-slate-900">{tr("Management review")}</p>
       {c.review ? (
         <p className="mt-1 text-xs text-slate-600">
           {c.review.status === "valid" ? tr("Valid") : tr("Not valid")} · {c.review.by ?? "—"}{c.review.at ? ` · ${wibDateTime(c.review.at)}` : ""}

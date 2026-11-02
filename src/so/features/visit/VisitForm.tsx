@@ -20,7 +20,8 @@ import { useFocusMode } from "@/components/layout/BottomNav";
 import UserAvatar from "@/components/UserAvatar";
 import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
 import { call } from "@/so/features/checkin/checkin";
-import { locate } from "@/so/lib/counts";
+import { type Fix, locate } from "@/so/lib/counts";
+import BranchPicker, { type BranchState } from "@/so/features/checkin/BranchPicker";
 import { TZ, wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
@@ -40,7 +41,10 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
   const [opening, setOpening] = useState(false);
   const [done, setDone] = useState<Visit | null>(null);
   const [now, setNow] = useState<Date | null>(null);
+  // where the user is, to sort the outlets by distance (the photos of the visit take their own position)
+  const [fix, setFix] = useState<Fix | null>(null);
   const base = `/api/forms/${form}`;
+  useEffect(() => { void locate((f) => setFix(f)).then((r) => { if (r.fix) setFix(r.fix); }); }, []);
 
   useEffect(() => {
     setNow(new Date());
@@ -84,6 +88,9 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
   }
 
   const draftOf = (code: string) => data?.drafts.find((d) => d.branchCode === code);
+  const stateOf = (code: string): BranchState | null => data?.today?.[code]
+    ? { label: tr("Sent {0}", new Date(data.today[code].submittedAt).toLocaleTimeString(locale(), { timeZone: TZ, hour: "2-digit", minute: "2-digit" })), tone: "done", locked: true }
+    : draftOf(code) ? { label: tr("Draft"), tone: "draft" } : null;
   return (
     <Page title={title} subtitle={subtitle} actions={clock}>
       {error ? <div className="rounded-2xl border border-slate-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
@@ -113,13 +120,8 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
               <p className="text-sm font-semibold text-slate-900">{tr("Outlet visited")}</p>
               {data.branches.length === 0 ? (
                 <p className="rounded-lg bg-slate-50 px-3 py-3 text-sm text-slate-500">{tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}</p>
-              ) : data.branches.length === 1 ? (
-                <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-900">{data.branches[0].name}</p>
               ) : (
-                <select value={branch} onChange={(e) => setBranch(e.target.value)} className={cx(inputClass, "h-11")} aria-label={tr("Outlet visited")}>
-                  <option value="">{tr("Choose the outlet you are visiting")}</option>
-                  {data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}{data.today?.[b.code] ? ` · ${tr("sent today")}` : draftOf(b.code) ? ` · ${tr("draft")}` : ""}</option>)}
-                </select>
+                <BranchPicker branches={data.branches} value={branch} onChange={setBranch} fix={fix} stateOf={stateOf} />
               )}
               <p className="text-xs text-slate-500">{tr("One visit per outlet per day (server time when sent); a day without a visit counts as a day off. With several outlets, fill them one after the other.")}</p>
               {branch && data.today?.[branch] && (

@@ -12,7 +12,7 @@
 // screen confirmation (phones / PWA), then the form is back to its start. "My latest check-ins" open in a drawer with the
 // photo, the position and the management's review (valid / not valid with its note) from Monitoring → PIC Check In.
 
-import { AlertTriangle, Camera, Check, CheckCircle2, ChevronRight, Clock, Crosshair, ExternalLink, Loader2, MapPin, MapPinOff, MessageSquareText, RotateCcw, Send,
+import { AlertTriangle, Camera, Check, Image as ImageIcon, Lightbulb, Smile, CheckCircle2, ChevronRight, Clock, Crosshair, ExternalLink, Loader2, MapPin, MapPinOff, MessageSquareText, RotateCcw, Send,
   ShieldCheck, ShieldX, XCircle } from "lucide-react";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -27,6 +27,7 @@ import { type CheckIn, type FormData, call, deviceSignals, judge, photoUrl, useG
 import { type Kind, kindSlug, setKind, swapKind } from "@/so/features/checkin/checkin";
 import { locale, tr as baseTr } from "@/lib/i18n";
 import LiveClock from "@/so/ui/LiveClock";
+import BranchPicker, { type BranchState } from "@/so/features/checkin/BranchPicker";
 import { useFocusMode } from "@/components/layout/BottomNav";
 const tr = (key: string, ...args: (string | number | null | undefined)[]) => baseTr(swapKind(key), ...args);
 
@@ -89,6 +90,10 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   useEffect(() => { void findMe(); }, [findMe]);
 
   const b = data?.branches.find((x) => x.code === branch);
+  const stateOf = useCallback((code: string): BranchState | null => {
+    const t = data?.today?.[code];
+    return t ? { label: tr("Checked in {0}", wibTime(t.visitedAt)), tone: "done", locked: true } : null;
+  }, [data]);
   const doneToday = b ? data?.today?.[b.code] : undefined;
   const allDone = !!data && data.branches.length > 0 && data.branches.every((x) => data.today?.[x.code]);
   const where = useMemo(() => (fix ? judge(fix.lat, fix.lng, fix.accuracy, b) : null), [fix, b]);
@@ -213,15 +218,8 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
             <div className="space-y-4">
               <Card n={1} ok={!!b} active={current === 0} title={tr("Outlet visited")} hint={tr("The outlet where you are now")}>
-                {data.branches.length === 1 ? (
-                  <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-900">{data.branches[0].name}</p>
-                ) : (
-                  <select value={branch} onChange={(e) => { setBranch(e.target.value); setPhoto(null); setFaces(null); }}
-                    className={cx(inputClass, "h-11")} aria-label={tr("Outlet visited")}>
-                    <option value="">{tr("Choose the outlet you are visiting")}</option>
-                    {data.branches.map((x) => <option key={x.code} value={x.code} disabled={!!data.today?.[x.code]}>{x.name}{data.today?.[x.code] ? ` · ${tr("checked in today")}` : ""}</option>)}
-                  </select>
-                )}
+                <BranchPicker branches={data.branches} value={branch} fix={fix} stateOf={stateOf}
+                  onChange={(code) => { setBranch(code); setPhoto(null); setFaces(null); }} />
                 {doneToday && (
                   <p className="mt-2 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
                     <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
@@ -306,12 +304,14 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 px-4 py-4 sm:flex-row sm:items-center">
-                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white text-slate-500 ring-1 ring-slate-200"><Camera size={18} /></span>
-                    <p className="min-w-0 flex-1 text-xs leading-relaxed text-slate-600">
-                      {b && fix ? tr("Your face must be clearly visible; it is checked automatically") : tr("Choose the outlet and wait for the location first.")}
-                    </p>
-                    <Button disabled={!b || !fix || !!doneToday} onClick={() => setCamera(true)} className="w-full sm:w-auto"><Camera size={15} /> {tr("Take face photo")}</Button>
+                  <div className="space-y-3">
+                    <PhotoGuide />
+                    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/60 px-4 py-3 sm:flex-row sm:items-center">
+                      <p className="min-w-0 flex-1 text-xs leading-relaxed text-slate-600">
+                        {b && fix ? tr("Your face must be clearly visible; it is checked automatically") : tr("Choose the outlet and wait for the location first.")}
+                      </p>
+                      <Button disabled={!b || !fix || !!doneToday} onClick={() => setCamera(true)} className="w-full sm:w-auto"><Camera size={15} /> {tr("Take face photo")}</Button>
+                    </div>
                   </div>
                 )}
               </Card>
@@ -379,11 +379,34 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
       )}
 
       {camera && b && (
-        <SelfieCamera pic={data.user.name} branch={b.name} position={position} onClose={() => setCamera(false)} onShot={(s) => void takePhoto(s)} />
+        <SelfieCamera pic={data.user.name} branch={b.name} position={position} onClose={() => setCamera(false)} onShot={(s) => void takePhoto(s)}
+          tip={tr("Stand where the outlet's design or accessories are behind you (logo, signage, mural, menu board)")} />
       )}
       {done && <SuccessScreen c={done} onClose={() => { setDone(null); window.scrollTo({ top: 0 }); }} onDetail={() => { setView(done); setDone(null); }} />}
       {view && <CheckInDrawer c={view} onClose={() => setView(null)} />}
     </Page>
+  );
+}
+
+/** What a good check-in photo shows (2026-11-02): the face, and behind it the outlet's own design / accessories. */
+function PhotoGuide() {
+  const tips = [
+    { icon: <Smile size={15} />, title: tr("Face clearly visible"), text: tr("Facing the camera, no mask or sunglasses, in good light") },
+    { icon: <ImageIcon size={15} />, title: tr("Outlet design in the background"), text: tr("Logo, signage, mural, menu board or the outlet's accessories behind you") },
+    { icon: <Lightbulb size={15} />, title: tr("Inside the outlet"), text: tr("Not in front of a plain wall or outside the outlet, so the visit can be verified") },
+  ];
+  return (
+    <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
+      <p className="mb-2 text-xs font-semibold text-blue-900">{tr("For a valid check-in photo")}</p>
+      <ul className="grid gap-2 sm:grid-cols-3">
+        {tips.map((t) => (
+          <li key={t.title} className="flex gap-2 rounded-lg bg-white px-2.5 py-2 ring-1 ring-blue-100">
+            <span className="mt-0.5 flex-shrink-0 text-blue-700">{t.icon}</span>
+            <span className="min-w-0"><span className="block text-xs font-semibold text-slate-900">{t.title}</span><span className="block text-[11px] leading-snug text-slate-600">{t.text}</span></span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

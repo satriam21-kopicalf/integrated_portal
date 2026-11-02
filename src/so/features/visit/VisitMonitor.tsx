@@ -395,17 +395,27 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
       {error ? <ErrorState message={error} /> : !v ? <div className="skeleton h-64 rounded-xl" /> : (
         <div className="space-y-4">
           <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-            <div className="flex flex-wrap items-center gap-4 px-4 py-4 sm:px-5">
-              <ScorePill score={v.score} large />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Score of the visit")}</p>
-                <Bar c={v.counts} className="mt-1.5 h-2.5" />
-                <p className="mt-1.5 flex flex-wrap gap-x-3 text-xs">
-                  {RATINGS.map((r) => <span key={r} className={cx("inline-flex items-center gap-1 font-semibold", RATING_STYLE[r].text)}><span className={cx("h-2 w-2 rounded-full", RATING_STYLE[r].dot)} />{v.counts[r.toLowerCase() as "under" | "meet" | "exceed"]} {r}</span>)}
-                </p>
+            <div className="grid gap-4 px-4 py-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-5">
+              <div className="flex items-center gap-3">
+                <ScorePill score={v.score} large />
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{tr("Score of the visit")}</p>
+                  <p className="text-xs text-slate-500">{tr("{0} items rated", v.counts.under + v.counts.meet + v.counts.exceed)}</p>
+                </div>
+              </div>
+              <div className="min-w-0">
+                <div className="grid grid-cols-3 gap-2">
+                  {RATINGS.map((r) => (
+                    <div key={r} className={cx("rounded-xl px-3 py-2 text-center ring-1 ring-inset", RATING_STYLE[r].on)}>
+                      <p className="text-lg font-bold tabular-nums leading-none">{v.counts[r.toLowerCase() as "under" | "meet" | "exceed"]}</p>
+                      <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide">{ratingLabel(r)}</p>
+                    </div>
+                  ))}
+                </div>
+                <Bar c={v.counts} className="mt-2 h-2" />
               </div>
             </div>
-            <dl className="grid grid-cols-2 border-t border-slate-100 bg-slate-50/60 sm:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-px border-t border-slate-100 bg-slate-100 sm:grid-cols-4">
               <Fact icon={<UsersRound size={12} />} k="PIC" v={<>{v.name}<span className="block text-[11px] font-normal text-slate-400">@{v.username}</span></>} />
               <Fact icon={<CalendarDays size={12} />} k={tr("Started → sent")} v={<>{wibDateTime(v.submittedAt)}<span className="block text-[11px] font-normal text-slate-400">{tr("started {0}", wibDateTime(v.startedAt))}</span></>} />
               <Fact icon={<MapPin size={12} />} k={tr("Location when sent")} v={v.latitude !== null && v.longitude !== null ? (
@@ -432,15 +442,24 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                 <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700">{tl(g, "title")} <span className="font-normal normal-case text-slate-400">· {tl(g, "subtitle")}</span></p>
                 {sections.map((sec) => (
                   <div key={sec.key} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-                    <p className="border-b border-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-900">{tl(sec, "title")}</p>
+                    <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50/60 px-4 py-2.5">
+                      <p className="min-w-0 flex-1 text-sm font-semibold text-slate-900">{tl(sec, "title")} <span className="font-normal text-slate-400">· {tr("{0} items", sec.items.length)}</span></p>
+                      {(() => {
+                        const c = { under: 0, meet: 0, exceed: 0 };
+                        for (const it of sec.items) { const r = v.answers?.[it.key]?.rating; if (r) c[r.toLowerCase() as "under" | "meet" | "exceed"] += 1; }
+                        return <span className="flex items-center gap-1.5 text-[11px] font-semibold tabular-nums">
+                          {RATINGS.map((r) => c[r.toLowerCase() as "under" | "meet" | "exceed"] > 0 && <span key={r} className={cx("inline-flex items-center gap-1", RATING_STYLE[r].text)}><span className={cx("h-1.5 w-1.5 rounded-full", RATING_STYLE[r].dot)} />{c[r.toLowerCase() as "under" | "meet" | "exceed"]}</span>)}
+                        </span>;
+                      })()}
+                    </div>
                     <ul className="divide-y divide-slate-100">
                       {sec.items.map((it) => {
                         const a = v.answers?.[it.key] ?? {};
                         const ph = photosOf(it.key);
                         return (
                           <li key={it.key} className={cx("px-4 py-3", a.rating === "UNDER" && "bg-red-50/40")}>
-                            <div className="flex items-start gap-2.5">
-                              <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-slate-400">{it.no}</span>
+                            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-start gap-2.5">
+                              <span className="mt-0.5 text-right text-xs font-semibold tabular-nums text-slate-400">{it.no}</span>
                               <span className="min-w-0 flex-1 text-sm font-medium text-slate-800">{tl(it)}
                                 {a.stars != null && (
                                   <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-amber-50 px-1.5 py-0.5 align-middle text-[11px] font-semibold tabular-nums text-amber-800"
@@ -455,16 +474,16 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                                     title={tr("Qty in grams (net weight)")}>{fmtGrams(a.qty)}</span>
                                 )}
                               </span>
-                              {a.rating ? <span className={cx("rounded-md px-2 py-0.5 text-[11px] font-bold", RATING_STYLE[a.rating as Rating].on)}>{ratingLabel(a.rating as Rating)}</span>
-                                : it.kind === "text" ? null : <span className="text-xs text-slate-400">—</span>}
+                              {a.rating ? <span className={cx("min-w-[4.5rem] rounded-md px-2 py-0.5 text-center text-[11px] font-bold", RATING_STYLE[a.rating as Rating].on)}>{ratingLabel(a.rating as Rating)}</span>
+                                : it.kind === "text" ? <span /> : <span className="min-w-[4.5rem] text-center text-xs text-slate-400">—</span>}
                             </div>
                             {(a.note || ph.length > 0) && (
-                              <div className="ml-7 mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                              <div className="ml-8 mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                                 {a.note ? <p className="flex items-start gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700"><MessageSquareText size={13} className="mt-0.5 flex-shrink-0 text-slate-400" /><span className="whitespace-pre-line">{a.note}</span></p> : <span />}
                                 {ph.length > 0 && (
                                   <div className="flex flex-wrap gap-2">
                                     {ph.map((p) => (
-                                      <a key={p.id} href={visitPhotoUrl(p.id)} target="_blank" rel="noreferrer" className="group block w-24" title={p.takenAt ? wibDateTime(p.takenAt) : undefined}>
+                                      <a key={p.id} href={visitPhotoUrl(p.id)} target="_blank" rel="noreferrer" className="group block w-28" title={p.takenAt ? wibDateTime(p.takenAt) : undefined}>
                                         {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
                                         <img src={visitPhotoUrl(p.id)} alt={tl(it)} loading="lazy" className="aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200 group-hover:ring-2 group-hover:ring-blue-400" />
                                         <span className={cx("mt-0.5 block truncate text-[10px]", p.outsideRadius ? "font-semibold text-red-600" : "text-slate-400")}>
@@ -485,6 +504,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
             );
           })}
           {show === "under" && v.counts.under === 0 && <p className="py-6 text-center text-sm text-slate-400">{tr("No UNDER in this visit")}</p>}
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">{tr("Signature of the PIC")}</p>
           {v.signature ? (
             <section className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
               {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
@@ -504,7 +524,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
 
 function Fact({ icon, k, v }: { icon: React.ReactNode; k: string; v: React.ReactNode }) {
   return (
-    <div className="border-t border-slate-100 px-4 py-2.5 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0 [&:nth-child(2)]:border-t-0">
+    <div className="bg-slate-50/80 px-4 py-2.5">
       <dt className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{icon}{k}</dt>
       <dd className="mt-0.5 text-sm font-medium text-slate-900">{v}</dd>
     </div>
