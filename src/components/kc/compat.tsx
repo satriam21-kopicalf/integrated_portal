@@ -68,11 +68,4 @@ export function Stat({ label, icon, value, title, children, emphasis = false, cl
   return onClick ? <button type="button" onClick={onClick} aria-pressed={active} className={cls}>{body}</button> : <div className={cls}>{body}</div>;
 }
 
-export function StatSkeleton() {
-  return (
-    <span className="block space-y-2" aria-hidden>
-      <span className="block h-7 w-3/4 animate-pulse rounded-md bg-neutral-100" />
-      <span className="block h-3 w-1/2 animate-pulse rounded bg-neutral-100" />
-    </span>
-  );
-}
+export { SkeletonValue as StatSkeleton } from './Skeleton';

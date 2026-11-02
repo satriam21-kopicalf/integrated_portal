@@ -7,7 +7,9 @@
 import { Camera, ChevronDown, ImageOff, MapPin, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Badge, Button, ErrorState, Field, Input, Panel, Select, SkeletonRows, cx, inputClass, theadClass, useToast } from '@/so/ui';
+import { Badge, Button, ErrorState, Field, Input, PageNav, Select, SkeletonRows, cx, inputClass, usePaged, useToast } from '@/so/ui';
+import { EmptyState, SearchInput, kcTable } from '@/components/kc';
+import { Panel } from '@/components/kc/compat';
 import Drawer from '@/so/ui/Drawer';
 import { ConfirmDialog } from '@/so/ui/Dialog';
 import { call } from '@/so/features/checkin/checkin';
@@ -54,6 +56,10 @@ export type FieldSpec = {
 export type Column<T> = { label: string; render: (row: T) => ReactNode; className?: string };
 
 /** A master list: table + add / edit drawer on the backend; pictures are uploaded after the row is saved. */
+const PAGE = 25;
+
+/** A master list (design after kopicalf-hrms, 2026-11-02): search with the count, 25 rows a page, a row opens its form
+ * (the pencil too), an empty state with the add button; the form in a drawer (EditDrawer). */
 export function MasterTable<T extends Row>({ title, description, master, columns, fields, blank, noun, toForm, fromForm, actions, rowActions }: {
   title: string; description?: string; master: ReturnType<typeof useMaster<T>>; columns: Column<T>[]; fields: FieldSpec[];
   blank: () => Partial<T>; noun: string;
@@ -65,38 +71,47 @@ export function MasterTable<T extends Row>({ title, description, master, columns
   const [q, setQ] = useState('');
   const rows = master.rows;
   const shown = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return !rows || !s ? rows : rows.filter((r) => Object.values(r).some((v) => typeof v === 'string' && v.toLowerCase().includes(s)));
+    const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    return !rows || !words.length ? rows : rows.filter((r) => {
+      const text = Object.values(r).filter((v) => typeof v === 'string' || typeof v === 'number').join(' ').toLowerCase();
+      return words.every((w) => text.includes(w));
+    });
   }, [rows, q]);
+  const paged = usePaged(shown ?? [], q, PAGE);
   const shownFields = fields.filter((f) => f.when !== false);
   const images = shownFields.filter((f) => f.type === 'image' && f.image);
+  const add = () => setOpen({ row: blank(), key: null });
   return (
-    <Panel title={rows ? `${title} (${rows.length})` : title} description={description}
-      actions={<>{actions}<Button size="sm" onClick={() => setOpen({ row: blank(), key: null })}><Plus size={14} /> {tr('Add {0}', noun)}</Button></>}
-      toolbar={rows && rows.length > 8 ? (
-        <div className="relative max-w-sm">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search')} className={cx(inputClass, 'pl-9')} />
+    <Panel title={title} description={description}
+      actions={<>{actions}<Button size="sm" onClick={add}><Plus size={14} /> {tr('Add {0}', noun)}</Button></>}
+      toolbar={rows && rows.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchInput value={q} onChange={setQ} placeholder={tr('Search {0}', noun)} />
+          <span className="text-xs tabular-nums text-neutral-500">{q ? tr('{0} of {1}', shown?.length ?? 0, rows.length) : tr('{0} rows', rows.length)}</span>
         </div>
-      ) : undefined}>
-      {master.error ? <ErrorState message={master.error} onRetry={() => void master.load()} /> : (
+      ) : undefined}
+      footer={shown && shown.length > PAGE ? <><span>{tr('{0} rows', shown.length)}</span><PageNav paged={paged} /></> : undefined}>
+      {master.error ? <ErrorState message={master.error} onRetry={() => void master.load()} /> : shown && shown.length === 0 ? (
+        <EmptyState icon={<Search size={20} />} title={rows?.length ? tr('Nothing matches the search') : tr('No {0} yet', noun)}>
+          {!rows?.length && <Button size="sm" className="mt-3" onClick={add}><Plus size={14} /> {tr('Add {0}', noun)}</Button>}
+        </EmptyState>
+      ) : (
         <div className="overflow-x-auto">
-          <table className="m-cards w-full text-sm">
-            <thead className={theadClass}>
-              <tr>{columns.map((c) => <th key={c.label} className={cx('px-4 py-2.5', c.className)}>{c.label}</th>)}<th className="w-20 px-2" /></tr>
+          <table className={cx(kcTable.table, 'm-cards')}>
+            <thead className={kcTable.thead}>
+              <tr>{columns.map((c) => <th key={c.label} className={cx(kcTable.th, c.className)}>{c.label}</th>)}<th className="w-20 px-2"><span className="sr-only">{tr('Actions')}</span></th></tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {!shown ? <SkeletonRows cols={columns.length + 1} rows={4} /> : shown.map((r) => (
-                <tr key={r.code} className="hover:bg-slate-50/70">
-                  {columns.map((c) => <td key={c.label} className={cx('px-4 py-2.5 align-top', c.className)}>{c.render(r)}</td>)}
-                  <td className="whitespace-nowrap px-2 py-2.5 text-right">
+            <tbody className={kcTable.tbody}>
+              {!shown ? <SkeletonRows cols={columns.length + 1} rows={4} /> : paged.rows.map((r) => (
+                <tr key={r.code} className={cx(kcTable.row, 'cursor-pointer')} onClick={() => setOpen({ row: r, key: r.code })}>
+                  {columns.map((c) => <td key={c.label} data-label={c.label} className={cx('px-4 py-3 align-top', c.className)}>{c.render(r)}</td>)}
+                  <td className="whitespace-nowrap px-2 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                     {rowActions?.(r)}
-                    <button type="button" onClick={() => setOpen({ row: r, key: r.code })} aria-label={tr('Edit')}
-                      className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Pencil size={15} /></button>
+                    <button type="button" onClick={() => setOpen({ row: r, key: r.code })} aria-label={tr('Edit')} title={tr('Edit')}
+                      className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-brand-700"><Pencil size={15} /></button>
                   </td>
                 </tr>
               ))}
-              {shown && shown.length === 0 && <tr><td colSpan={columns.length + 1} className="px-4 py-10 text-center text-slate-400">{tr('Nothing yet')}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -141,7 +156,7 @@ function EditDrawer({ title, initial, fields, code, onClose, onSave, onDelete }:
   };
   const sections = [...new Set(fields.map((f) => f.section ?? ''))];
   return (
-    <Drawer open onClose={onClose} title={title} size="lg"
+    <Drawer open onClose={onClose} title={title} size="lg" icon={code ? <Pencil /> : <Plus />} description={code ?? tr('Fill the fields, then save')}
       footer={<>
         {onDelete && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => setDeleting(true)}><Trash2 size={15} /> {tr('Delete')}</Button>}
         {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-red-600">{error}</p>}
@@ -150,9 +165,9 @@ function EditDrawer({ title, initial, fields, code, onClose, onSave, onDelete }:
       </>}>
       <div className="space-y-5">
         {sections.map((sec) => (
-          <section key={sec || 'main'} className={cx(sec && 'rounded-2xl border border-slate-200/80 p-4')}>
-            {sec && <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{sec}</h3>}
-            <div className="grid gap-3 sm:grid-cols-2">
+          <section key={sec || 'main'} className={cx(sec && 'rounded-xl border border-neutral-200 bg-white')}>
+            {sec && <h3 className="border-b border-neutral-100 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{sec}</h3>}
+            <div className={cx('grid gap-x-4 gap-y-3.5 sm:grid-cols-2', sec && 'p-4')}>
               {fields.filter((f) => (f.section ?? '') === sec).map((f) => (
                 <div key={f.key} className={cx(['textarea', 'image', 'coords'].includes(f.type ?? '') && 'sm:col-span-2')}>
                   <FieldInput f={f} v={v} set={set} code={code} picture={pictures[f.key]} onPicture={(p) => setPictures((x) => ({ ...x, [f.key]: p }))} />
@@ -224,25 +239,25 @@ export function SearchSelect({ value, options, onChange, required, placeholder }
   return (
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} className={cx(inputClass, 'flex items-center justify-between gap-2 text-left')}>
-        <span className={cx('truncate', !current && 'text-slate-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
+        <span className={cx('truncate', !current && 'text-neutral-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
         <span className="flex items-center gap-1">
-          {current && !required && <X size={14} className="text-slate-400 hover:text-slate-700" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
-          <ChevronDown size={15} className="text-slate-400" />
+          {current && !required && <X size={14} className="text-neutral-400 hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
+          <ChevronDown size={15} className="text-neutral-400" />
         </span>
       </button>
       {open && (
-        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-          <div className="border-b border-slate-100 p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search')} className={cx(inputClass, 'h-9')} /></div>
+        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg">
+          <div className="border-b border-neutral-100 p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search')} className={cx(inputClass, 'h-9')} /></div>
           <ul className="max-h-64 overflow-y-auto py-1">
             {shown.map((o) => (
               <li key={o.value}>
                 <button type="button" onClick={() => { onChange(o.value); setOpen(false); setQ(''); }}
-                  className={cx('flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-slate-50', o.value === value && 'bg-blue-50 text-blue-800')}>
-                  <span className="truncate">{o.label}</span>{o.hint && <span className="flex-shrink-0 text-[11px] text-slate-400">{o.hint}</span>}
+                  className={cx('flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-neutral-50', o.value === value && 'bg-brand-50 text-brand-800')}>
+                  <span className="truncate">{o.label}</span>{o.hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{o.hint}</span>}
                 </button>
               </li>
             ))}
-            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-slate-400">{tr('No match')}</li>}
+            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr('No match')}</li>}
           </ul>
         </div>
       )}
@@ -267,12 +282,12 @@ export function ImageInput({ value, onChange, square }: { value: string | null; 
   };
   return (
     <div className="flex items-center gap-3">
-      <span className={cx('flex flex-shrink-0 items-center justify-center overflow-hidden border border-slate-200 bg-slate-50', square ? 'h-28 w-28 rounded-xl' : 'h-20 w-20 rounded-full')}>
+      <span className={cx('flex flex-shrink-0 items-center justify-center overflow-hidden border border-neutral-200 bg-neutral-50', square ? 'h-28 w-28 rounded-xl' : 'h-20 w-20 rounded-full')}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {value ? <img src={value} alt="" className={cx('h-full w-full', square ? 'object-contain' : 'object-cover')} /> : <ImageOff size={20} className="text-slate-300" />}
+        {value ? <img src={value} alt="" className={cx('h-full w-full', square ? 'object-contain' : 'object-cover')} /> : <ImageOff size={20} className="text-neutral-300" />}
       </span>
       <span className="flex flex-col gap-1.5">
-        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
           <Camera size={14} /> {value ? tr('Change') : tr('Upload')}
           <input type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
@@ -296,7 +311,7 @@ function CoordsInput({ lat, lng, onChange }: { lat: number | null; lng: number |
   return (
     <div className="space-y-2">
       <div className="relative">
-        <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
         <input value={link} onChange={(e) => fromLink(e.target.value)} placeholder={tr('Paste a Google Maps link or “-6.18, 106.84”')} className={cx(inputClass, 'pl-9')} />
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -304,7 +319,7 @@ function CoordsInput({ lat, lng, onChange }: { lat: number | null; lng: number |
         <Input type="number" step="0.000001" value={lng ?? ''} placeholder={tr('Longitude')} onChange={(e) => onChange(lat, e.target.value === '' ? null : Number(e.target.value))} />
       </div>
       <CoordsMap lat={lat} lng={lng} onPick={onChange} />
-      <p className="text-[11px] text-slate-400">{tr('Click the map to set the position')}</p>
+      <p className="text-[11px] text-neutral-400">{tr('Click the map to set the position')}</p>
     </div>
   );
 }

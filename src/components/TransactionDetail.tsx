@@ -135,7 +135,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
           <Section title={tr('Items{0}', rows.length ? ` (${rows.filter(r => !r.menu_name?.endsWith(')')).length})` : '')}>
             {loading ? (
               <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-9 animate-pulse rounded bg-slate-100" />)}
+                {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-9 skeleton rounded" />)}
               </div>
             ) : rows.length === 0 ? (
               <p className="text-sm text-slate-500">{tr('No items recorded for this transaction.')}</p>

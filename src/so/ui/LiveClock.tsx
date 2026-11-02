@@ -21,10 +21,10 @@ export default function LiveClock() {
   if (!now) return null;
   // phones / tablets: a pill under the title; desktop: the large clock on the right
   return (
-    <p className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold tabular-nums text-slate-900 shadow-sm ring-1 ring-slate-200/80 lg:bg-transparent lg:p-0 lg:text-2xl lg:shadow-none lg:ring-0"
+    <p className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold tabular-nums text-neutral-900 shadow-sm ring-1 ring-neutral-200/80 lg:bg-transparent lg:p-0 lg:text-2xl lg:shadow-none lg:ring-0"
       aria-label={`${clockText(now)} ${TZ_LABEL}`}>
       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 lg:hidden" aria-hidden />
-      {clockText(now)}<span className="text-[11px] font-medium text-slate-400 lg:text-xs">{TZ_LABEL}</span>
+      {clockText(now)}<span className="text-[11px] font-medium text-neutral-400 lg:text-xs">{TZ_LABEL}</span>
     </p>
   );
 }

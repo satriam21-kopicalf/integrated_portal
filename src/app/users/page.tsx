@@ -36,6 +36,7 @@ function lineBranches(branches: Branch[], line: BusinessLine): Branch[] {
 import { PAGES } from '@/lib/pages';
 import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
 import { locale, tr, serverMsg } from '@/lib/i18n';
+import { PageSkeleton } from '@/components/kc/Skeleton';
 
 const PAGE_SIZE = 50;
 /** header actions shown as an icon only, without a border (name in the tooltip) */
@@ -234,7 +235,7 @@ export default function UsersPage() {
   if (!allowed) {
     return (
       <DashboardLayout>
-        <div className="flex h-full items-center justify-center text-neutral-400"><Loader2 className="animate-spin" /></div>
+        <PageSkeleton cards={5} />
       </DashboardLayout>
     );
   }
@@ -308,7 +309,7 @@ export default function UsersPage() {
                       <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
                         onView={() => setViewing(u as AuthUser)} actions={actionsFor(u as AuthUser)} />
                     ) : (
-                      <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-9 animate-pulse rounded-lg bg-neutral-100" /></td></tr>
+                      <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-9 skeleton rounded-lg" /></td></tr>
                     ))}
                   </tbody>
                 </table>
@@ -918,7 +919,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       <DrawerSection title={tr('Recent activity')} description={tr('Last 30 days')}>
         {recent === null ? (
-          <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-neutral-100" />)}</div>
+          <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 skeleton rounded-lg" />)}</div>
         ) : recent.length === 0 ? (
           <p className="text-sm text-neutral-400">{tr('No activity in the last 30 days.')}</p>
         ) : (

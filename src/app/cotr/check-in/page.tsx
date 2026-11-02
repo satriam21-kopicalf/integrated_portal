@@ -5,12 +5,13 @@
 // the end), the reloads to approve or reject for the pool, the cost requests to approve or reject, and where the
 // drivers are (the GPS of their phone while the shift is open, on a map).
 
-import { Camera, Check, ChevronDown, LogIn, LogOut, MapPin, PackagePlus, RefreshCw, TriangleAlert, Wallet, X } from "lucide-react";
+import { Camera, Check, ChevronDown, LogIn, LogOut, MapPin, MapPinCheck, PackagePlus, RefreshCw, TriangleAlert, Wallet, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Input, Page, Panel, cx, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Input, cx, useToast } from "@/so/ui";
+import { kcTable } from "@/components/kc";
+import { Page, Panel, Stat, StatStrip } from "@/components/kc/compat";
 import { Segmented } from "@/so/ui/Simple";
-import { Stat, StatStrip } from "@/so/ui/StatStrip";
 import { call } from "@/so/features/checkin/checkin";
 import { Monitor, Reload, Request, Shift, Stock } from "@/cotr/types";
 import { rupiah } from "@/cotr/ui";
@@ -21,7 +22,7 @@ const cups = (s: Stock) => Object.values(s ?? {}).reduce((a, v) => a + v, 0);
 const photoUrl = (kind: "check-in" | "signature" | "request", id: string) => `/api/cotr/photos/${kind}/${id}`;
 const KINDS: Record<string, () => string> = { fuel: () => tr("Fuel"), ice: () => tr("Ice"), stall: () => tr("Stall rent"), repair: () => tr("Fleet repair"), parking: () => tr("Parking / levy"), other: () => tr("Other") };
 // the map reads window (Leaflet): loaded in the browser only
-const DriverMap = dynamic(() => import("@/cotr/DriverMap"), { ssr: false, loading: () => <div className="skeleton h-[480px] rounded-2xl" /> });
+const DriverMap = dynamic(() => import("@/cotr/DriverMap"), { ssr: false, loading: () => <div className="skeleton h-[480px] rounded-xl" /> });
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 
 export default function CotrCheckInPage() {
@@ -38,7 +39,7 @@ export default function CotrCheckInPage() {
   const pendingRequests = data?.requests.filter((r) => r.status === "sent").length ?? 0;
 
   return (
-    <Page title={tr("Driver Check In")} subtitle={tr("Shifts, reloads and requests of every COTR driver")}
+    <Page eyebrow="Monitoring COTR" media={<MapPinCheck size={19} />} title={tr("Driver Check In")} subtitle={tr("Shifts, reloads and requests of every COTR driver")}
       actions={<>
         <Input type="date" value={day} max={todayWib()} onChange={(e) => setDay(e.target.value || todayWib())} className="h-10 w-40" />
         <Button variant="secondary" onClick={() => void load()}><RefreshCw size={15} /> {tr("Refresh")}</Button>
@@ -59,7 +60,7 @@ export default function CotrCheckInPage() {
         { value: "requests", label: pendingRequests ? `${tr("Requests")} (${pendingRequests})` : tr("Requests") },
       ]} />
       {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? (
-        <div className="skeleton h-64 rounded-2xl" />
+        <div className="skeleton h-64 rounded-xl" />
       ) : tab === "shifts" ? <Shifts data={data} /> : tab === "location" ? <DriverMap day={day} live={day === todayWib()} /> : tab === "reloads" ? <Reloads data={data} /> : <Requests data={data} onDone={load} />}
     </Page>
   );
@@ -73,7 +74,7 @@ function Shifts({ data }: { data: Monitor }) {
         {data.shifts.length === 0 ? <Empty title={tr("No driver has checked in on this day")} /> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className={theadClass}>
+              <thead className={kcTable.thead}>
                 <tr>
                   <th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-4 py-2.5">{tr("Pool / fleet")}</th>
                   <th className="px-4 py-2.5">{tr("Start")}</th><th className="px-4 py-2.5">{tr("End")}</th>
@@ -82,30 +83,30 @@ function Shifts({ data }: { data: Monitor }) {
                   <th className="px-4 py-2.5">{tr("Check")}</th><th className="w-10" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {data.shifts.map((s) => {
                   const diff = s.recap.difference && Object.keys(s.recap.difference).length;
                   return (
                     <Fragment key={s.id}>
-                      <tr className="cursor-pointer hover:bg-slate-50/70" onClick={() => setOpen(open === s.id ? null : s.id)}>
-                        <td className="px-4 py-2.5"><span className="block font-medium text-slate-900">{s.driverName ?? s.driver}</span><span className="text-[11px] text-slate-400">{s.driver}</span></td>
-                        <td className="px-4 py-2.5"><span className="block">{s.poolName ?? s.pool}</span><span className="text-[11px] text-slate-400">{s.fleet ?? "—"}</span></td>
+                      <tr className="cursor-pointer hover:bg-neutral-50/70" onClick={() => setOpen(open === s.id ? null : s.id)}>
+                        <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{s.driverName ?? s.driver}</span><span className="text-[11px] text-neutral-400">{s.driver}</span></td>
+                        <td className="px-4 py-2.5"><span className="block">{s.poolName ?? s.pool}</span><span className="text-[11px] text-neutral-400">{s.fleet ?? "—"}</span></td>
                         <td className="px-4 py-2.5 tabular-nums">{time(s.startedAt)}</td>
                         <td className="px-4 py-2.5 tabular-nums">{s.status === "open" ? <Badge tone="green" dot>{tr("On the road")}</Badge> : time(s.endedAt)}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums">{s.recap.cups}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums">{s.status === "open" ? cups(s.stock) : "—"}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(s.recap.cash)}</td>
                         <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(s.recap.qris)}</td>
-                        <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", (s.recap.balance ?? 0) < 0 ? "text-red-600" : (s.recap.balance ?? 0) > 0 ? "text-amber-700" : "text-slate-500")}>
+                        <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", (s.recap.balance ?? 0) < 0 ? "text-red-600" : (s.recap.balance ?? 0) > 0 ? "text-amber-700" : "text-neutral-500")}>
                           {s.recap.balance === null ? "—" : rupiah(s.recap.balance)}
                         </td>
                         <td className="px-4 py-2.5">
                           {diff ? <Badge tone="red" icon={<TriangleAlert size={11} />}>{tr("Stock difference")}</Badge>
                             : s.recap.voided ? <Badge tone="amber">{tr("{0} voided", s.recap.voided)}</Badge> : <Badge tone="slate">OK</Badge>}
                         </td>
-                        <td className="px-2"><ChevronDown size={16} className={cx("text-slate-400 transition-transform", open === s.id && "rotate-180")} /></td>
+                        <td className="px-2"><ChevronDown size={16} className={cx("text-neutral-400 transition-transform", open === s.id && "rotate-180")} /></td>
                       </tr>
-                      {open === s.id && <tr><td colSpan={11} className="bg-slate-50/60 px-4 py-4"><ShiftDetail s={s} /></td></tr>}
+                      {open === s.id && <tr><td colSpan={11} className="bg-neutral-50/60 px-4 py-4"><ShiftDetail s={s} /></td></tr>}
                     </Fragment>
                   );
                 })}
@@ -129,10 +130,10 @@ function ShiftDetail({ s }: { s: Shift }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
       {s.checkIns.map((c) => (
-        <section key={c.id} className="rounded-xl border border-slate-200 bg-white p-3">
-          <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+        <section key={c.id} className="rounded-xl border border-neutral-200 bg-white p-3">
+          <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
             {c.kind === "start" ? <LogIn size={14} /> : <LogOut size={14} />}{c.kind === "start" ? tr("Start of shift") : tr("End of shift")}
-            <span className="font-normal text-slate-400">{time(c.at)}</span>
+            <span className="font-normal text-neutral-400">{time(c.at)}</span>
           </p>
           {c.hasPhoto ? (
             <a href={photoUrl("check-in", c.id)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-lg">
@@ -141,29 +142,29 @@ function ShiftDetail({ s }: { s: Shift }) {
             </a>
           ) : <p className="mt-2 flex items-center gap-1 text-xs text-red-600"><Camera size={12} />{tr("Missing")}</p>}
           {c.lat !== null && c.lng !== null && (
-            <a href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-blue-700">
+            <a href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-brand-700">
               <MapPin size={12} />{c.lat.toFixed(5)}, {c.lng.toFixed(5)}
             </a>
           )}
-          <p className="mt-1 text-xs text-slate-600">{Object.entries(c.stock).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"}</p>
-          {c.note && <p className="mt-1 text-xs text-slate-500">{c.note}</p>}
+          <p className="mt-1 text-xs text-neutral-600">{Object.entries(c.stock).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"}</p>
+          {c.note && <p className="mt-1 text-xs text-neutral-500">{c.note}</p>}
           {c.hasSignature && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={photoUrl("signature", c.id)} alt={tr("Signature")} className="mt-2 h-16 rounded-md border border-slate-100 bg-white object-contain" loading="lazy" />
+            <img src={photoUrl("signature", c.id)} alt={tr("Signature")} className="mt-2 h-16 rounded-md border border-neutral-100 bg-white object-contain" loading="lazy" />
           )}
         </section>
       ))}
-      <section className="rounded-xl border border-slate-200 bg-white p-3 text-sm">
-        <p className="font-semibold text-slate-900">{tr("Recap")}</p>
-        <ul className="mt-2 space-y-1 text-xs text-slate-600">
+      <section className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+        <p className="font-semibold text-neutral-900">{tr("Recap")}</p>
+        <ul className="mt-2 space-y-1 text-xs text-neutral-600">
           {s.recap.perMenu.map((m) => <li key={m.code} className="flex justify-between"><span>{m.name} × {m.qty}</span><span className="tabular-nums">{rupiah(m.total)}</span></li>)}
-          <li className="flex justify-between border-t border-slate-100 pt-1 font-semibold text-slate-900"><span>{tr("Total")}</span><span className="tabular-nums">{rupiah(s.recap.total)}</span></li>
+          <li className="flex justify-between border-t border-neutral-100 pt-1 font-semibold text-neutral-900"><span>{tr("Total")}</span><span className="tabular-nums">{rupiah(s.recap.total)}</span></li>
           <li className="flex justify-between"><span>{tr("Waste")} · {tr("Cupping")}</span><span className="tabular-nums">{s.recap.waste} · {s.recap.cupping} {tr("cups")}</span></li>
           {s.recap.cashActual !== null && <>
             <li className="flex justify-between"><span>{tr("Spent from the cash")}</span><span className="tabular-nums">{rupiah(s.recap.cashSpent)}</span></li>
             <li className="flex justify-between"><span>{tr("Cash to hand over")}</span><span className="tabular-nums">{rupiah(s.recap.cashExpected)}</span></li>
             <li className="flex justify-between"><span>{tr("Cash counted")}</span><span className="tabular-nums">{rupiah(s.recap.cashActual)}</span></li>
-            <li className={cx("flex justify-between font-semibold", (s.recap.balance ?? 0) < 0 ? "text-red-600" : "text-slate-900")}><span>{tr("Balance")}</span><span className="tabular-nums">{rupiah(s.recap.balance ?? 0)}</span></li>
+            <li className={cx("flex justify-between font-semibold", (s.recap.balance ?? 0) < 0 ? "text-red-600" : "text-neutral-900")}><span>{tr("Balance")}</span><span className="tabular-nums">{rupiah(s.recap.balance ?? 0)}</span></li>
           </>}
           <li className="flex justify-between"><span>{tr("Reloads received")}</span><span className="tabular-nums">{s.recap.reloaded} {tr("cups")}</span></li>
           <li className="flex justify-between"><span>{tr("Requests")}</span><span className="tabular-nums">{rupiah(s.recap.requested)}</span></li>
@@ -209,13 +210,13 @@ function Reloads({ data }: { data: Monitor }) {
   return (
     <Panel title={tr("Reloads")} description={tr("Decided and settled by the storage team in Storage & Assignment")}>
       {data.reloads.length === 0 ? <Empty title={tr("No reload on this day")} /> : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-neutral-100">
           {[...data.reloads].sort((a, b) => Number(b.status === "requested") - Number(a.status === "requested") || b.at.localeCompare(a.at)).map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
               <span className="min-w-0">
-                <span className="block font-medium text-slate-900">{name(r.driver)} · {cups(r.lines)} {tr("cups")} <span className="font-normal text-slate-400">{time(r.at)}</span></span>
-                <span className="text-xs text-slate-500">{Object.entries(r.lines).map(([k, v]) => `${k} ${v}`).join(" · ")}{r.note ? ` · ${r.note}` : ""}</span>
-                {r.decisionNote && <span className="block text-xs text-slate-400">{r.decisionNote}</span>}
+                <span className="block font-medium text-neutral-900">{name(r.driver)} · {cups(r.lines)} {tr("cups")} <span className="font-normal text-neutral-400">{time(r.at)}</span></span>
+                <span className="text-xs text-neutral-500">{Object.entries(r.lines).map(([k, v]) => `${k} ${v}`).join(" · ")}{r.note ? ` · ${r.note}` : ""}</span>
+                {r.decisionNote && <span className="block text-xs text-neutral-400">{r.decisionNote}</span>}
               </span>
               <Badge tone={RELOAD[r.status].tone}>{RELOAD[r.status].label()}{r.receivedAt ? ` ${time(r.receivedAt)}` : ""}</Badge>
             </li>
@@ -234,18 +235,18 @@ function Requests({ data, onDone }: { data: Monitor; onDone: () => Promise<void>
   return (
     <Panel title={tr("Requests")} description={tr("Costs on the road with the receipt; the ones still waiting are listed whatever their day")}>
       {data.requests.length === 0 ? <Empty title={tr("No request")} /> : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-neutral-100">
           {data.requests.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
               <span className="flex min-w-0 items-center gap-3">
-                <a href={photoUrl("request", r.id)} target="_blank" rel="noreferrer" className="flex-shrink-0 overflow-hidden rounded-lg ring-1 ring-slate-200">
+                <a href={photoUrl("request", r.id)} target="_blank" rel="noreferrer" className="flex-shrink-0 overflow-hidden rounded-lg ring-1 ring-neutral-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photoUrl("request", r.id)} alt={tr("Receipt")} className="h-14 w-14 object-cover" loading="lazy" />
                 </a>
                 <span className="min-w-0">
-                  <span className="block font-medium text-slate-900">{r.driverName ?? r.driverCode} · {(KINDS[r.kind] ?? (() => r.kind))()} · {rupiah(r.amount)}</span>
-                  <span className="text-xs text-slate-500">{new Date(r.at).toLocaleDateString(locale(), { day: "numeric", month: "short", timeZone: "Asia/Jakarta" })} {time(r.at)} · {r.note}</span>
-                  {r.decisionNote && <span className="block text-xs text-slate-400">{r.decisionNote}</span>}
+                  <span className="block font-medium text-neutral-900">{r.driverName ?? r.driverCode} · {(KINDS[r.kind] ?? (() => r.kind))()} · {rupiah(r.amount)}</span>
+                  <span className="text-xs text-neutral-500">{new Date(r.at).toLocaleDateString(locale(), { day: "numeric", month: "short", timeZone: "Asia/Jakarta" })} {time(r.at)} · {r.note}</span>
+                  {r.decisionNote && <span className="block text-xs text-neutral-400">{r.decisionNote}</span>}
                 </span>
               </span>
               {r.status === "sent" ? <Decide url={`/api/cotr/requests/${r.id}/decide`} onDone={onDone} needNote />

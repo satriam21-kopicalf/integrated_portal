@@ -33,5 +33,5 @@ export default function CoordsMap({ lat, lng, onPick }: { lat: number | null; ln
     map.current.panTo([lat, lng]);
   }, [lat, lng]);
 
-  return <div ref={box} className="h-56 w-full overflow-hidden rounded-xl bg-slate-100" />;
+  return <div ref={box} className="h-56 w-full overflow-hidden rounded-xl bg-neutral-100" />;
 }

@@ -67,11 +67,4 @@ export function Stat({
   return <div className={`relative min-w-0 bg-slate-50 px-4 py-4 sm:px-5 ${className}`}>{body}</div>;
 }
 
-export function StatSkeleton() {
-  return (
-    <div className="space-y-2">
-      <div className="skeleton h-8 w-3/4 rounded" />
-      <div className="skeleton h-3 w-1/2 rounded" />
-    </div>
-  );
-}
+export { SkeletonValue as StatSkeleton } from '@/components/kc/Skeleton';

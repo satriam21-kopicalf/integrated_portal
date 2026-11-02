@@ -3,7 +3,7 @@
 // One exported count against its ESB stock opname: per item the platform quantity, ESB actual (must match) and
 // ESB system quantity (variance in quantity and value).
 
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -12,6 +12,7 @@ import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel, fmtQty } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { COMPARE } from "@/so/lib/esb";
+import { PageSkeleton } from '@/components/kc/Skeleton';
 
 type Line = { product_id: string; product_code: string; product_name: string; unit: string | null; platform_qty: string | null; esb_actual: string | null;
   esb_system: string | null; status: string; variance_qty?: string; variance_value?: string };
@@ -47,7 +48,7 @@ export default function CompareDetail() {
   }, [r, q, onlyIssues]);
 
   if (error) return <div className="p-4 sm:p-6"><ErrorState message={error} onRetry={load} /></div>;
-  if (!r) return <div className="flex justify-center p-10 text-slate-400"><Loader2 className="animate-spin" /></div>;
+  if (!r) return <PageSkeleton />;
   const st = COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH;
   return (
     <div className="min-h-full bg-slate-50">

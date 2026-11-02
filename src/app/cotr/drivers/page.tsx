@@ -5,9 +5,10 @@
 // and the COTR management (page cotr.management) the monthly salary, allowance, NIK and bank account (migration 050).
 
 import Link from "next/link";
-import { FileSpreadsheet, KeyRound, ShieldCheck, UserRound } from "lucide-react";
+import { Bike, FileSpreadsheet, KeyRound, ShieldCheck, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Page } from "@/so/ui";
+import { Badge, Button } from "@/so/ui";
+import { Page } from "@/components/kc/compat";
 import { call } from "@/so/features/checkin/checkin";
 import { Driver, DriverAccount, Fleet, Pool } from "@/cotr/types";
 import { MasterTable, imageUrl, rupiah, useMaster } from "@/cotr/ui";
@@ -38,14 +39,14 @@ export default function CotrDriversPage() {
   const usedBy = useMemo(() => Object.fromEntries((master.rows ?? []).filter((d) => d.fleet_code).map((d) => [d.fleet_code!, d.name])), [master.rows]);
   const sec = { profile: tr("Profile"), job: tr("Assignment"), person: tr("Personal data"), work: tr("Employment"), pay: tr("Payroll"), bank: tr("Bank account") };
   return (
-    <Page title={tr("Master Driver")} subtitle={tr("COTR drivers: profile, assignment, employment, payroll and bank account")}
+    <Page eyebrow="Monitoring COTR" media={<Bike size={19} />} title={tr("Master Driver")} subtitle={tr("COTR drivers: profile, assignment, employment, payroll and bank account")}
       actions={<>
         <Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import Excel")}</Button>
         <Link href="/users"><Button variant="secondary"><KeyRound size={16} /> {tr("Driver accounts")}</Button></Link>
       </>}>
       {importing && <ImportDrivers pools={pools.rows ?? []} onClose={() => setImporting(false)} onDone={() => { void master.load(); void fleet.load(); }} />}
       {!management && (
-        <p className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        <p className="flex items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-500">
           <ShieldCheck size={14} />{tr("Salary, bank account and NIK are shown to superadmins and the COTR management only.")}
         </p>
       )}
@@ -55,18 +56,18 @@ export default function CotrDriversPage() {
         columns={[
           { label: tr("Driver"), render: (d) => (
             <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-slate-400">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-neutral-400">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {d.has_photo ? <img src={imageUrl("drivers", d.code, "photo", d.updated_at)} alt="" className="h-full w-full object-cover" loading="lazy" /> : <UserRound size={16} />}
               </span>
-              <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{d.name || "—"}</span><span className="text-[11px] text-slate-400">{d.employee_id ?? d.code}{d.nickname ? ` · ${d.nickname}` : ""}{d.phone ? ` · ${d.phone}` : ""}</span></span>
+              <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{d.name || "—"}</span><span className="text-[11px] text-neutral-400">{d.employee_id ?? d.code}{d.nickname ? ` · ${d.nickname}` : ""}{d.phone ? ` · ${d.phone}` : ""}</span></span>
             </span>
           ) },
-          { label: tr("Department"), render: (d) => d.department ? <Badge tone={d.department === "Armada" ? "blue" : "slate"}>{d.department}</Badge> : <span className="text-slate-400">—</span> },
+          { label: tr("Department"), render: (d) => d.department ? <Badge tone={d.department === "Armada" ? "blue" : "slate"}>{d.department}</Badge> : <span className="text-neutral-400">—</span> },
           { label: tr("Pool / HUB"), render: (d) => poolName(d.pool_code) },
-          { label: tr("Fleet"), render: (d) => (d.fleet_code || d.bike_code) ? <span className="text-xs">{d.fleet_code ?? "—"}{d.bike_code ? <span className="block text-[11px] text-slate-400">{tr("Bike {0}", d.bike_code)}</span> : null}</span> : <span className="text-slate-400">{tr("Not assigned")}</span> },
-          { label: tr("Employment"), render: (d) => d.employment_status ? <span className="text-xs">{EMPLOYMENT[d.employment_status]()}{d.position ? ` · ${d.position}` : ""}</span> : <span className="text-slate-400">—</span> },
-          ...(management ? [{ label: tr("Salary / month"), className: "text-right", render: (d: Driver) => d.salary_monthly ? <span className="tabular-nums">{rupiah(d.salary_monthly)}</span> : <span className="text-slate-400">—</span> }] : []),
+          { label: tr("Fleet"), render: (d) => (d.fleet_code || d.bike_code) ? <span className="text-xs">{d.fleet_code ?? "—"}{d.bike_code ? <span className="block text-[11px] text-neutral-400">{tr("Bike {0}", d.bike_code)}</span> : null}</span> : <span className="text-neutral-400">{tr("Not assigned")}</span> },
+          { label: tr("Employment"), render: (d) => d.employment_status ? <span className="text-xs">{EMPLOYMENT[d.employment_status]()}{d.position ? ` · ${d.position}` : ""}</span> : <span className="text-neutral-400">—</span> },
+          ...(management ? [{ label: tr("Salary / month"), className: "text-right", render: (d: Driver) => d.salary_monthly ? <span className="tabular-nums">{rupiah(d.salary_monthly)}</span> : <span className="text-neutral-400">—</span> }] : []),
           { label: tr("Status"), render: (d) => <Badge tone={STATUS[d.status].tone} dot>{STATUS[d.status].label()}</Badge> },
           { label: tr("Account"), render: (d) => d.account ? <span className="font-mono text-xs">{d.account}</span> : <Badge tone="amber">{tr("No account yet")}</Badge> },
         ]}

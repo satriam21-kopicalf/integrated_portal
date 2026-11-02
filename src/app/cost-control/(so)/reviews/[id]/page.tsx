@@ -5,7 +5,7 @@
 // stays in the history.
 // The reviewer cannot be one of the counters (D-30): the API refuses it and explains why.
 
-import { AlertTriangle, ArrowLeft, Check, History, Loader2, MapPin, Pencil, RotateCcw, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, History, MapPin, Pencil, RotateCcw, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -17,6 +17,7 @@ import { locale, tr } from "@/lib/i18n";
 import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
 import { CountFileList, EvidenceDownloads, SignatureCard } from "@/so/features/count/Evidence";
+import { PageSkeleton } from '@/components/kc/Skeleton';
 
 export default function ReviewDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +91,7 @@ export default function ReviewDetailPage() {
   };
 
   if (error) return <div className="p-4 sm:p-6"><ErrorState message={error} onRetry={load} /></div>;
-  if (!count) return <div className="flex justify-center p-10 text-slate-400"><Loader2 className="animate-spin" /></div>;
+  if (!count) return <PageSkeleton />;
   const st = STATUS[count.status];
   const reviewable = count.status === "SUBMITTED" && can("inventory.count.review");
   // Cost Control corrects quantities, premixes and dates also after the approval (2026-10-30), not once exported to ESB

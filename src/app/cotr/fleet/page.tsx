@@ -7,9 +7,10 @@
 // labels (no QRIS: it is shown only for a payment) are printed from here; their QR opens /share/fleet/{token}.
 
 import Link from "next/link";
-import { Bike, ExternalLink, Printer, QrCode } from "lucide-react";
+import { Bike, ExternalLink, Printer, QrCode, Truck } from "lucide-react";
 import { useState } from "react";
-import { Badge, Button, Page } from "@/so/ui";
+import { Badge, Button } from "@/so/ui";
+import { Page } from "@/components/kc/compat";
 import { Driver, Fleet, FleetType, Pool } from "@/cotr/types";
 import { MasterTable, imageUrl, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
@@ -38,31 +39,31 @@ export default function CotrFleetPage() {
   const sec = { main: tr("Armada"), unit: tr("Vehicle"), papers: tr("Papers & upkeep"), qris: tr("QRIS (payments only)") };
   const [now] = useState(() => Date.now());
   return (
-    <Page title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
+    <Page eyebrow="Monitoring COTR" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
       actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print labels")}</Button></Link>}>
       <MasterTable noun={tr("fleet")} title={tr("Fleet")} master={master}
         blank={(): Partial<Fleet> => ({ code: "", name: "", type: types.rows?.[0]?.code ?? "sepeda", plate: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", capacity: 0, condition: "good", last_service: null, is_active: true })}
         rowActions={(f) => (<>
           {f.label_token && <a href={`/share/fleet/${f.label_token}`} target="_blank" rel="noreferrer" aria-label={tr("Information page")} title={tr("Information page (what the QR opens)")}
-            className="inline-flex rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><ExternalLink size={15} /></a>}
+            className="inline-flex rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><ExternalLink size={15} /></a>}
           <Link href={`/cotr/fleet/labels?codes=${encodeURIComponent(f.code)}`} aria-label={tr("Print label")} title={tr("Print label")}
-            className="inline-flex rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Printer size={15} /></Link>
+            className="inline-flex rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><Printer size={15} /></Link>
         </>)}
         columns={[
           { label: tr("Fleet"), render: (f) => (
             <span className="flex items-center gap-3">
-              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-slate-400">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-100 text-neutral-400">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {f.has_photo ? <img src={imageUrl("fleet", f.code, "photo", f.updated_at)} alt="" className="h-full w-full object-cover" loading="lazy" /> : <Bike size={16} />}
               </span>
-              <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{f.code}{f.name ? ` · ${f.name}` : ""}</span>
-                <span className="text-[11px] text-slate-400">{typeName(f.type)}{f.brand ? ` · ${f.brand} ${f.model ?? ""}` : ""}{f.plate ? ` · ${f.plate}` : ""}{f.color ? ` · ${f.color}` : ""}</span></span>
+              <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{f.code}{f.name ? ` · ${f.name}` : ""}</span>
+                <span className="text-[11px] text-neutral-400">{typeName(f.type)}{f.brand ? ` · ${f.brand} ${f.model ?? ""}` : ""}{f.plate ? ` · ${f.plate}` : ""}{f.color ? ` · ${f.color}` : ""}</span></span>
             </span>
           ) },
           { label: tr("Pool / HUB"), render: (f) => pools.rows?.find((p) => p.code === f.pool_code)?.name ?? f.pool_code },
-          { label: tr("Driver"), render: (f) => drivers.rows?.find((d) => d.fleet_code === f.code)?.name ?? <span className="text-slate-400">—</span> },
+          { label: tr("Driver"), render: (f) => drivers.rows?.find((d) => d.fleet_code === f.code)?.name ?? <span className="text-neutral-400">—</span> },
           { label: tr("QRIS"), render: (f) => f.qris_nmid || f.has_qris
-            ? <Badge tone="blue" icon={<QrCode size={11} />}>{f.qris_bank ?? "QRIS"}{f.qris_nmid ? ` · ${f.qris_nmid}` : ""}</Badge> : <span className="text-slate-400">—</span> },
+            ? <Badge tone="blue" icon={<QrCode size={11} />}>{f.qris_bank ?? "QRIS"}{f.qris_nmid ? ` · ${f.qris_nmid}` : ""}</Badge> : <span className="text-neutral-400">—</span> },
           { label: tr("Condition"), render: (f) => (
             <span className="flex flex-wrap gap-1">
               {f.condition === "good" ? <Badge tone="green" dot>{tr("Good")}</Badge> : <Badge tone="amber" dot>{tr("In service")}</Badge>}
@@ -111,7 +112,7 @@ export default function CotrFleetPage() {
         description={tr("The kinds of armada the team uses; add one when a new kind of vehicle comes")}
         blank={(): Partial<FleetType> => ({ code: "", name: "", sort: (types.rows?.length ?? 0) + 1 })}
         columns={[
-          { label: tr("Type"), render: (t) => <><span className="block font-medium text-slate-900">{t.name}</span><span className="text-[11px] text-slate-400">{t.code}</span></> },
+          { label: tr("Type"), render: (t) => <><span className="block font-medium text-neutral-900">{t.name}</span><span className="text-[11px] text-neutral-400">{t.code}</span></> },
           { label: tr("Fleet"), className: "text-right", render: (t) => <span className="tabular-nums">{(master.rows ?? []).filter((f) => f.type === t.code).length}</span> },
         ]}
         fields={[

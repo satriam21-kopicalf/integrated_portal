@@ -129,7 +129,7 @@ export function StatCard({ label, value, sub, icon, tone = 'default', onClick, a
 }
 
 /** The shimmer of a value still loading. */
-export const ValueSkeleton = () => <span className="inline-block h-7 w-16 animate-pulse rounded-md bg-neutral-100" aria-hidden />;
+export const ValueSkeleton = () => <span className="skeleton inline-block h-7 w-16 rounded-md align-middle" aria-hidden />;
 
 /* ---------------------------------------------------------------- tabs */
 
@@ -231,3 +231,5 @@ export const kcTable = {
   row: 'group transition-colors hover:bg-neutral-50',
   td: 'px-4 py-3 align-middle',
 };
+
+export { PageSkeleton, Skeleton, SkeletonCards, SkeletonList, SkeletonRows, SkeletonValue } from './Skeleton';

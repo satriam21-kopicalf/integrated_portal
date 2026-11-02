@@ -50,7 +50,7 @@ function Panel({ title, note, className = '', children }: { title: string; note:
 }
 
 function Skeleton() {
-  return <div className="h-[180px] animate-pulse rounded-lg bg-slate-100" />;
+  return <div className="h-[180px] skeleton rounded-lg" />;
 }
 
 function DayChart({ data, onPickDay }: { data: ActivityInsightsData; onPickDay: (day: string) => void }) {

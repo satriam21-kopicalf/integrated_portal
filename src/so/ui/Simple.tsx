@@ -13,8 +13,8 @@ export function Switch({ checked, onChange, label, hint, disabled }: {
   return (
     <label className={cx("flex items-start justify-between gap-4", disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer")}>
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-slate-800">{label}</span>
-        {hint && <span className="mt-0.5 block text-xs text-slate-500">{hint}</span>}
+        <span className="block text-sm font-medium text-neutral-800">{label}</span>
+        {hint && <span className="mt-0.5 block text-xs text-neutral-500">{hint}</span>}
       </span>
       <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
         className={cx("relative mt-0.5 inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2",

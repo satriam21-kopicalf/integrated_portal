@@ -101,29 +101,29 @@ export function BatchesTab() {
               const left = daysLeft(b.expiresOn);
               const pct = Math.round((b.sent / b.qty) * 100);
               return (
-                <li key={b.id} className="rounded-2xl border border-slate-200 bg-white">
-                  <div className="flex flex-wrap items-start gap-2 border-b border-slate-100 px-4 py-3">
+                <li key={b.id} className="rounded-xl border border-neutral-200 bg-white">
+                  <div className="flex flex-wrap items-start gap-2 border-b border-neutral-100 px-4 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-900">{name(b.menu)} · {b.qty}</p>
-                      <p className="font-mono text-[11px] text-slate-400">{b.batchNo} · {b.hub}</p>
+                      <p className="truncate text-sm font-semibold text-neutral-900">{name(b.menu)} · {b.qty}</p>
+                      <p className="font-mono text-[11px] text-neutral-400">{b.batchNo} · {b.hub}</p>
                     </div>
                     <ExpiryBadge days={left} date={b.expiresOn} />
-                    {b.sent === 0 && <button type="button" onClick={() => void remove(b)} aria-label={tr('Delete')} className="rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button>}
+                    {b.sent === 0 && <button type="button" onClick={() => void remove(b)} aria-label={tr('Delete')} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={15} /></button>}
                   </div>
                   <div className="space-y-3 px-4 py-3">
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="rounded-lg bg-slate-50 py-1.5"><p className="text-[10px] uppercase text-slate-400">{tr('Produced')}</p><p className="font-semibold">{dmy(b.producedOn)}</p></div>
-                      <div className="rounded-lg bg-slate-50 py-1.5"><p className="text-[10px] uppercase text-slate-400">{tr('Expires')}</p><p className="font-semibold">{dmy(b.expiresOn)}</p></div>
-                      <div className="rounded-lg bg-slate-50 py-1.5"><p className="text-[10px] uppercase text-slate-400">{tr('At the hub')}</p><p className="font-semibold tabular-nums">{b.atHub}</p></div>
+                      <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('Produced')}</p><p className="font-semibold">{dmy(b.producedOn)}</p></div>
+                      <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('Expires')}</p><p className="font-semibold">{dmy(b.expiresOn)}</p></div>
+                      <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('At the hub')}</p><p className="font-semibold tabular-nums">{b.atHub}</p></div>
                     </div>
                     <div>
-                      <div className="mb-1 flex justify-between text-[11px] text-slate-500"><span>{tr('Sent {0} of {1}', b.sent, b.qty)}</span><span>{tr('{0} received', b.received)}</span></div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-500" style={{ width: `${pct}%` }} /></div>
+                      <div className="mb-1 flex justify-between text-[11px] text-neutral-500"><span>{tr('Sent {0} of {1}', b.sent, b.qty)}</span><span>{tr('{0} received', b.received)}</span></div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${pct}%` }} /></div>
                     </div>
                     {b.transfers.length > 0 && (
                       <ul className="space-y-1 text-xs">
                         {b.transfers.map((t) => (
-                          <li key={t.id} className="flex items-center gap-2"><Truck size={12} className="text-slate-400" /><span className="flex-1 truncate">{t.poolName}</span>
+                          <li key={t.id} className="flex items-center gap-2"><Truck size={12} className="text-neutral-400" /><span className="flex-1 truncate">{t.poolName}</span>
                             <span className="tabular-nums">{t.qty}</span>{t.status === 'received' ? <Badge tone="green">{tr('Received')}</Badge> : <Badge tone="amber">{tr('On the way')}</Badge>}</li>
                         ))}
                       </ul>
@@ -153,7 +153,7 @@ function SendForm({ batch, pools, onClose, onSent }: { batch: Batch; pools: Pool
     catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
   };
   return (
-    <div className="grid gap-2 rounded-xl border border-blue-200 bg-blue-50/40 p-2.5 sm:grid-cols-[1fr_6rem_auto]">
+    <div className="grid gap-2 rounded-xl border border-brand-200 bg-brand-50/40 p-2.5 sm:grid-cols-[1fr_6rem_auto]">
       <Select value={pool} onChange={(e) => setPool(e.target.value)} className="h-10">{pools.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select>
       <Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="h-10 text-right" aria-label={tr('Quantity')} />
       <div className="flex gap-2"><Button size="sm" variant="ghost" onClick={onClose}>{tr('Cancel')}</Button>
@@ -180,13 +180,13 @@ export function PoolBatches({ pool }: { pool: string }) {
   return (
     <Panel title={tr('Stock from the main hub')} description={tr('Batches of the pool, first expired first: hand the oldest to the drivers')}>
       {data.incoming.length > 0 && (
-        <div className="border-b border-slate-100 p-3 sm:p-4">
+        <div className="border-b border-neutral-100 p-3 sm:p-4">
           <p className="mb-2 text-xs font-semibold text-amber-800">{tr('On the way to this pool ({0})', data.incoming.length)}</p>
           <ul className="grid gap-2 sm:grid-cols-2">
             {data.incoming.map((i) => (
               <li key={i.transfer} className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/50 px-3 py-2">
                 <Truck size={16} className="flex-shrink-0 text-amber-700" />
-                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{i.menuName} · {i.qty}</span><span className="font-mono text-[11px] text-slate-500">{i.batchNo} · {tr('exp')} {dmy(i.expiresOn)}</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{i.menuName} · {i.qty}</span><span className="font-mono text-[11px] text-neutral-500">{i.batchNo} · {tr('exp')} {dmy(i.expiresOn)}</span></span>
                 <Button size="sm" onClick={() => void receive(i.transfer)}><PackageCheck size={14} /> {tr('Receive')}</Button>
               </li>
             ))}
@@ -196,10 +196,10 @@ export function PoolBatches({ pool }: { pool: string }) {
       {data.received.length > 0 && (
         <table className="m-cards w-full text-sm">
           <thead className={theadClass}><tr><th className="px-4 py-2">{tr('Product')}</th><th className="px-3 py-2">{tr('Batch')}</th><th className="px-3 py-2 text-right">{tr('Quantity')}</th><th className="px-3 py-2">{tr('Produced')}</th><th className="px-4 py-2">{tr('Expiry')}</th></tr></thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-neutral-100">
             {data.received.map((i) => (
               <tr key={i.transfer} className={cx(i.daysLeft < 0 && 'bg-red-50/50')}>
-                <td className="px-4 py-2 font-medium text-slate-900">{i.menuName}</td><td className="px-3 py-2 font-mono text-xs">{i.batchNo}</td>
+                <td className="px-4 py-2 font-medium text-neutral-900">{i.menuName}</td><td className="px-3 py-2 font-mono text-xs">{i.batchNo}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{i.qty}</td><td className="px-3 py-2 text-xs">{dmy(i.producedOn)}</td>
                 <td className="px-4 py-2"><ExpiryBadge days={i.daysLeft} date={i.expiresOn} /></td>
               </tr>

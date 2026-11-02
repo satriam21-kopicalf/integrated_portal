@@ -52,10 +52,10 @@ export function ItemsTab() {
       description={tr('Raw materials, premix, packaging, supplies and tools; the cost per base unit gives the HPP of the recipe cards')}
       blank={(): Partial<Item> => ({ code: '', name: '', category: 'raw', unit: 'g', pack_unit: null, pack_qty: null, cost: null, is_stock: true, is_active: true })}
       columns={[
-        { label: tr('Item'), render: (i) => <><span className="block font-medium text-slate-900">{i.name}</span><span className="text-[11px] text-slate-400">{i.code}</span></> },
+        { label: tr('Item'), render: (i) => <><span className="block font-medium text-neutral-900">{i.name}</span><span className="text-[11px] text-neutral-400">{i.code}</span></> },
         { label: tr('Category'), render: (i) => <Badge tone={CATEGORY[i.category].tone}>{CATEGORY[i.category].label()}</Badge> },
         { label: tr('Unit'), render: (i) => <span className="text-xs">{i.unit}{i.pack_unit ? ` · ${i.pack_unit}${i.pack_qty ? ` = ${num(i.pack_qty)} ${i.unit}` : ''}` : ''}</span> },
-        { label: tr('Cost / unit'), className: 'text-right', render: (i) => i.cost !== null ? <span className="tabular-nums">{rupiah(i.cost)}</span> : <span className="text-slate-400">—</span> },
+        { label: tr('Cost / unit'), className: 'text-right', render: (i) => i.cost !== null ? <span className="tabular-nums">{rupiah(i.cost)}</span> : <span className="text-neutral-400">—</span> },
         { label: tr('Stock'), render: (i) => i.is_stock ? <Badge tone="green" dot>{tr('Counted')}</Badge> : <Badge tone="slate">{tr('Not counted')}</Badge> },
       ]}
       fields={[
@@ -126,19 +126,19 @@ export function RecipesTab() {
               const hpp = card ? costOf(rows, itemList, card.code) : null;
               const margin = hpp !== null ? m.price - hpp : null;
               return (
-                <li key={m.code} className={cx('flex flex-col rounded-xl border p-3', card ? 'border-slate-200' : 'border-dashed border-amber-300 bg-amber-50/40')}>
+                <li key={m.code} className={cx('flex flex-col rounded-xl border p-3', card ? 'border-neutral-200' : 'border-dashed border-amber-300 bg-amber-50/40')}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900">{m.name}</p>
-                      <p className="text-[11px] text-slate-400">{m.code} · {rupiah(m.price)}</p>
+                      <p className="truncate text-sm font-semibold text-neutral-900">{m.name}</p>
+                      <p className="text-[11px] text-neutral-400">{m.code} · {rupiah(m.price)}</p>
                     </div>
                     {card ? <Badge tone="green" dot>{tr('{0} components', card.lines.length)}</Badge> : <Badge tone="amber">{tr('No card yet')}</Badge>}
                   </div>
                   {card ? (
                     <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                      <div className="rounded-lg bg-slate-50 px-2.5 py-1.5"><p className="text-[10px] font-semibold uppercase text-slate-400">HPP</p><p className="font-semibold tabular-nums text-slate-900">{hpp === null ? '—' : rupiah(hpp)}</p></div>
-                      <div className="rounded-lg bg-slate-50 px-2.5 py-1.5"><p className="text-[10px] font-semibold uppercase text-slate-400">{tr('Margin')}</p>
-                        <p className={cx('font-semibold tabular-nums', margin === null ? 'text-slate-400' : margin < 0 ? 'text-red-700' : 'text-emerald-700')}>{margin === null ? '—' : `${rupiah(margin)} · ${Math.round((margin / (m.price || 1)) * 100)}%`}</p></div>
+                      <div className="rounded-lg bg-neutral-50 px-2.5 py-1.5"><p className="text-[10px] font-semibold uppercase text-neutral-400">HPP</p><p className="font-semibold tabular-nums text-neutral-900">{hpp === null ? '—' : rupiah(hpp)}</p></div>
+                      <div className="rounded-lg bg-neutral-50 px-2.5 py-1.5"><p className="text-[10px] font-semibold uppercase text-neutral-400">{tr('Margin')}</p>
+                        <p className={cx('font-semibold tabular-nums', margin === null ? 'text-neutral-400' : margin < 0 ? 'text-red-700' : 'text-emerald-700')}>{margin === null ? '—' : `${rupiah(margin)} · ${Math.round((margin / (m.price || 1)) * 100)}%`}</p></div>
                     </div>
                   ) : <p className="mt-2 text-xs text-amber-800">{tr('Sales of this menu are not turned into the usage of raw materials yet')}</p>}
                   <div className="mt-auto pt-2.5">
@@ -157,7 +157,7 @@ export function RecipesTab() {
         actions={draft && <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr('Save recipe')}</Button>}>
         <div className="grid lg:grid-cols-[17rem_1fr]">
           {/* phones and tablets: the recipe to edit from a list, the editor right under it */}
-          <div className="border-b border-slate-100 p-4 lg:hidden">
+          <div className="border-b border-neutral-100 p-4 lg:hidden">
             <Field label={tr('Recipe to edit')}>
               <Select value={current ?? ''} onChange={(e) => setCode(e.target.value)} className="h-11">
                 {(['premix', 'menu'] as const).map((k) => (
@@ -168,22 +168,22 @@ export function RecipesTab() {
               </Select>
             </Field>
           </div>
-          <div className="hidden border-b border-slate-100 lg:block lg:border-b-0 lg:border-r">
+          <div className="hidden border-b border-neutral-100 lg:block lg:border-b-0 lg:border-r">
             {(['premix', 'menu'] as const).map((k) => (
               <div key={k}>
-                <p className="flex items-center gap-1.5 bg-slate-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                <p className="flex items-center gap-1.5 bg-neutral-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                   {k === 'premix' ? <FlaskConical size={12} /> : <Package size={12} />}{k === 'premix' ? tr('Premix') : tr('Menu cards')}
                 </p>
-                <ul className="divide-y divide-slate-100">
+                <ul className="divide-y divide-neutral-100">
                   {group(k).map((b) => (
                     <li key={b.code}>
-                      <button type="button" onClick={() => setCode(b.code)} className={cx('w-full px-4 py-2.5 text-left text-sm', b.code === current ? 'bg-blue-50 text-blue-800' : 'hover:bg-slate-50')}>
+                      <button type="button" onClick={() => setCode(b.code)} className={cx('w-full px-4 py-2.5 text-left text-sm', b.code === current ? 'bg-brand-50 text-brand-800' : 'hover:bg-neutral-50')}>
                         <span className="block font-medium">{b.name}</span>
-                        <span className="text-[11px] text-slate-400">{b.code} · {tr('yields {0} {1}', num(b.yield_qty, 3), b.yield_unit)}</span>
+                        <span className="text-[11px] text-neutral-400">{b.code} · {tr('yields {0} {1}', num(b.yield_qty, 3), b.yield_unit)}</span>
                       </button>
                     </li>
                   ))}
-                  {group(k).length === 0 && <li className="px-4 py-3 text-xs text-slate-400">{k === 'menu' ? tr('No menu card yet: add one below') : '—'}</li>}
+                  {group(k).length === 0 && <li className="px-4 py-3 text-xs text-neutral-400">{k === 'menu' ? tr('No menu card yet: add one below') : '—'}</li>}
                 </ul>
               </div>
             ))}
@@ -199,14 +199,14 @@ export function RecipesTab() {
               </div>
               {draft.kind === 'premix' && (
                 <div>
-                  <p className="mb-1 text-xs font-semibold text-slate-700">{tr('Units of the premix')}</p>
+                  <p className="mb-1 text-xs font-semibold text-neutral-700">{tr('Units of the premix')}</p>
                   <div className="flex flex-wrap gap-2">
                     {draft.units.map((u, i) => (
-                      <span key={i} className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1">
+                      <span key={i} className="flex items-center gap-1 rounded-lg border border-neutral-200 px-2 py-1">
                         <input value={u.name} onChange={(e) => setDraft({ ...draft, units: draft.units.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })} className="w-28 text-xs outline-none" />
                         <input type="number" value={u.grams} onChange={(e) => setDraft({ ...draft, units: draft.units.map((x, j) => (j === i ? { ...x, grams: Number(e.target.value) } : x)) })} className="w-20 text-right text-xs tabular-nums outline-none" />
-                        <span className="text-[11px] text-slate-400">g</span>
-                        <button type="button" aria-label={tr('Delete')} onClick={() => setDraft({ ...draft, units: draft.units.filter((_, j) => j !== i) })} className="text-slate-400 hover:text-red-600"><Trash2 size={12} /></button>
+                        <span className="text-[11px] text-neutral-400">g</span>
+                        <button type="button" aria-label={tr('Delete')} onClick={() => setDraft({ ...draft, units: draft.units.filter((_, j) => j !== i) })} className="text-neutral-400 hover:text-red-600"><Trash2 size={12} /></button>
                       </span>
                     ))}
                     <Button size="sm" variant="ghost" onClick={() => setDraft({ ...draft, units: [...draft.units, { name: 'Teko', grams: Math.round(draft.yield_qty / 3) }] })}><Plus size={13} /> {tr('Unit')}</Button>
@@ -218,7 +218,7 @@ export function RecipesTab() {
                   <tr><th className="px-3 py-2">{tr('Component')}</th><th className="px-3 py-2 text-right">{tr('Qty')}</th><th className="px-3 py-2">{tr('Unit')}</th>
                     {draft.kind === 'premix' && <th className="px-3 py-2 text-right">{tr('Per gram')}</th>}<th className="px-3 py-2 text-right">{tr('Cost')}</th><th className="w-8" /></tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {draft.lines.map((l, i) => {
                     const it = itemList.find((x) => x.code === l.item);
                     return (
@@ -228,10 +228,10 @@ export function RecipesTab() {
                             onChange={(x) => setLines(draft.lines.map((y, j) => (j === i ? { ...y, item: x ?? '', unit: itemList.find((z) => z.code === x)?.unit ?? y.unit } : y)))} />
                         </td>
                         <td className="w-28 px-3 py-1.5"><Input type="number" value={l.qty} onChange={(e) => setLines(draft.lines.map((y, j) => (j === i ? { ...y, qty: Number(e.target.value) } : y)))} className="h-9 text-right" /></td>
-                        <td className="w-16 px-3 py-1.5 text-xs text-slate-500">{it?.unit ?? l.unit}</td>
-                        {draft.kind === 'premix' && <td className="px-3 py-1.5 text-right text-xs tabular-nums text-slate-500">{draft.yield_qty ? num(l.qty / draft.yield_qty, 4) : '—'}</td>}
-                        <td className="px-3 py-1.5 text-right text-xs tabular-nums text-slate-500">{it?.cost != null ? rupiah(l.qty * it.cost) : '—'}</td>
-                        <td className="px-1"><button type="button" aria-label={tr('Delete')} onClick={() => setLines(draft.lines.filter((_, j) => j !== i))} className="rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button></td>
+                        <td className="w-16 px-3 py-1.5 text-xs text-neutral-500">{it?.unit ?? l.unit}</td>
+                        {draft.kind === 'premix' && <td className="px-3 py-1.5 text-right text-xs tabular-nums text-neutral-500">{draft.yield_qty ? num(l.qty / draft.yield_qty, 4) : '—'}</td>}
+                        <td className="px-3 py-1.5 text-right text-xs tabular-nums text-neutral-500">{it?.cost != null ? rupiah(l.qty * it.cost) : '—'}</td>
+                        <td className="px-1"><button type="button" aria-label={tr('Delete')} onClick={() => setLines(draft.lines.filter((_, j) => j !== i))} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={15} /></button></td>
                       </tr>
                     );
                   })}
@@ -239,12 +239,12 @@ export function RecipesTab() {
               </table>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <Button size="sm" variant="secondary" onClick={() => setLines([...draft.lines, { item: '', qty: 0, unit: 'g' }])}><Plus size={14} /> {tr('Add component')}</Button>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-neutral-500">
                   {draft.kind === 'premix' && <>{tr('Total {0} g of {1} g', num(total), num(draft.yield_qty))}{Math.round(total) !== Math.round(draft.yield_qty) && <span className="ml-1 text-amber-700">· {tr('the lines do not add up to the batch')}</span>} · </>}
-                  {tr('HPP per {0}', draft.yield_unit === 'g' ? 'g' : draft.yield_unit)}: <span className="font-semibold text-slate-900">{hpp === null ? tr('fill the cost of the items') : rupiah(hpp)}</span>
+                  {tr('HPP per {0}', draft.yield_unit === 'g' ? 'g' : draft.yield_unit)}: <span className="font-semibold text-neutral-900">{hpp === null ? tr('fill the cost of the items') : rupiah(hpp)}</span>
                 </p>
               </div>
-              {draft.kind === 'menu' && usedBy(draft).length > 0 && <p className="text-xs text-slate-500">{tr('Used by')}: {usedBy(draft).join(', ')}</p>}
+              {draft.kind === 'menu' && usedBy(draft).length > 0 && <p className="text-xs text-neutral-500">{tr('Used by')}: {usedBy(draft).join(', ')}</p>}
               <Button className="h-11 w-full lg:hidden" loading={busy} onClick={() => void save()}><Save size={16} /> {tr('Save recipe')}</Button>
             </div>
           ) : <Empty title={tr('No recipe yet')} />}
@@ -253,11 +253,11 @@ export function RecipesTab() {
       <MasterTable noun={tr('recipe')} title={tr('Recipes')} master={boms}
         blank={(): Partial<Bom> => ({ code: 'BOM-', name: '', output: '', yield_qty: 1, yield_unit: 'cup', kind: 'menu', units: [], lines: [] })}
         columns={[
-          { label: tr('Recipe'), render: (b) => <><span className="block font-medium text-slate-900">{b.name}</span><span className="text-[11px] text-slate-400">{b.code}</span></> },
+          { label: tr('Recipe'), render: (b) => <><span className="block font-medium text-neutral-900">{b.name}</span><span className="text-[11px] text-neutral-400">{b.code}</span></> },
           { label: tr('Kind'), render: (b) => <Badge tone={b.kind === 'premix' ? 'violet' : 'blue'}>{b.kind === 'premix' ? tr('Premix') : tr('Menu card')}</Badge> },
           { label: tr('Output'), render: (b) => itemList.find((i) => i.code === b.output)?.name ?? b.output },
           { label: tr('Yield'), render: (b) => `${num(b.yield_qty, 3)} ${b.yield_unit}` },
-          { label: tr('HPP'), className: 'text-right', render: (b) => { const c = costOf(rows, itemList, b.code); return c === null ? <span className="text-slate-400">—</span> : <span className="tabular-nums">{rupiah(c)}</span>; } },
+          { label: tr('HPP'), className: 'text-right', render: (b) => { const c = costOf(rows, itemList, b.code); return c === null ? <span className="text-neutral-400">—</span> : <span className="tabular-nums">{rupiah(c)}</span>; } },
         ]}
         fields={[
           { key: 'code', label: tr('Code'), required: true, placeholder: 'BOM-XXX' },
@@ -298,7 +298,7 @@ export function CalculatorTab() {
         actions={<Button size="sm" variant="secondary" onClick={() => setRows([...rows, { bom: premix[0]?.code ?? '', unit: premix[0]?.units[0]?.name ?? 'Gram', qty: 1 }])}><Plus size={14} /> {tr('Row')}</Button>}>
         <table className="m-cards w-full text-sm">
           <thead className={theadClass}><tr><th className="px-4 py-2">{tr('Premix')}</th><th className="px-4 py-2">{tr('Unit')}</th><th className="px-4 py-2 text-right">{tr('Qty')}</th><th className="px-4 py-2 text-right">{tr('Grams')}</th><th className="w-8" /></tr></thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-neutral-100">
             {rows.map((r, i) => {
               const b = premix.find((x) => x.code === r.bom);
               const g = (b?.units.find((u) => u.name === r.unit)?.grams ?? 1) * r.qty;
@@ -308,7 +308,7 @@ export function CalculatorTab() {
                   <td className="px-4 py-1.5"><Select value={r.unit} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, unit: e.target.value } : x)))} className="h-9">{(b?.units.length ? b.units : [{ name: 'Gram', grams: 1 }]).map((u) => <option key={u.name} value={u.name}>{u.name}</option>)}</Select></td>
                   <td className="w-28 px-4 py-1.5"><Input type="number" value={r.qty} min={0} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, qty: Number(e.target.value) } : x)))} className="h-9 text-right" /></td>
                   <td className="px-4 py-1.5 text-right tabular-nums">{num(g)} g</td>
-                  <td className="px-1"><button type="button" aria-label={tr('Delete')} onClick={() => setRows(rows.filter((_, j) => j !== i))} className="rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button></td>
+                  <td className="px-1"><button type="button" aria-label={tr('Delete')} onClick={() => setRows(rows.filter((_, j) => j !== i))} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={15} /></button></td>
                 </tr>
               );
             })}
@@ -319,12 +319,12 @@ export function CalculatorTab() {
         {result.length === 0 ? <Empty icon={<Calculator size={26} />} title={tr('Add a row above')} /> : (
           <table className="m-cards w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Material')}</th><th className="px-4 py-2.5 text-right">{tr('Qty')}</th><th className="px-4 py-2.5 text-right">{tr('Packs')}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-neutral-100">
               {result.map((r) => (
                 <tr key={r.code}>
-                  <td className="px-4 py-2">{r.item?.name ?? r.code}{r.item && !r.item.is_stock && <span className="ml-1 text-[11px] text-slate-400">({tr('not counted')})</span>}</td>
+                  <td className="px-4 py-2">{r.item?.name ?? r.code}{r.item && !r.item.is_stock && <span className="ml-1 text-[11px] text-neutral-400">({tr('not counted')})</span>}</td>
                   <td className="px-4 py-2 text-right font-semibold tabular-nums">{num(r.qty)} {r.item?.unit ?? 'g'}</td>
-                  <td className="px-4 py-2 text-right text-xs text-slate-500">{r.item?.pack_qty ? `${num(r.qty / r.item.pack_qty, 2)} × ${r.item.pack_unit ?? ''}` : '—'}</td>
+                  <td className="px-4 py-2 text-right text-xs text-neutral-500">{r.item?.pack_qty ? `${num(r.qty / r.item.pack_qty, 2)} × ${r.item.pack_unit ?? ''}` : '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -376,12 +376,12 @@ export function UsageTab() {
             )}
             <table className="m-cards w-full text-sm">
               <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Menu')}</th><th className="px-4 py-2.5 text-right">{tr('Sold')}</th><th className="px-4 py-2.5 text-right">{tr('Waste')}</th><th className="px-4 py-2.5 text-right">{tr('Cupping')}</th></tr></thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {data.menus.map((m) => (
                   <tr key={m.code}><td className="px-4 py-2">{m.name} {!m.bom && <Badge tone="amber">{tr('No recipe yet')}</Badge>}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{m.sold}</td><td className="px-4 py-2 text-right tabular-nums">{m.waste}</td><td className="px-4 py-2 text-right tabular-nums">{m.cupping}</td></tr>
                 ))}
-                {data.menus.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">{tr('No sales in this period')}</td></tr>}
+                {data.menus.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-neutral-400">{tr('No sales in this period')}</td></tr>}
               </tbody>
             </table>
           </>
@@ -391,13 +391,13 @@ export function UsageTab() {
         <Panel title={tr('Items used')} description={value ? `${tr('Value')}: ${rupiah(value)}` : undefined}>
           <table className="m-cards w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Item')}</th><th className="px-4 py-2.5 text-right">{tr('Sold')}</th><th className="px-4 py-2.5 text-right">{tr('Waste')}</th><th className="px-4 py-2.5 text-right">{tr('Cupping')}</th><th className="px-4 py-2.5 text-right">{tr('Total')}</th><th className="px-4 py-2.5 text-right">{tr('Value')}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-neutral-100">
               {data.items.map((r) => (
                 <tr key={r.item}>
-                  <td className="px-4 py-2"><span className="block">{r.name}</span>{r.category && <span className="text-[11px] text-slate-400">{CATEGORY[r.category].label()}</span>}</td>
+                  <td className="px-4 py-2"><span className="block">{r.name}</span>{r.category && <span className="text-[11px] text-neutral-400">{CATEGORY[r.category].label()}</span>}</td>
                   <td className="px-4 py-2 text-right tabular-nums">{num(r.sold)}</td><td className="px-4 py-2 text-right tabular-nums">{num(r.waste)}</td>
                   <td className="px-4 py-2 text-right tabular-nums">{num(r.cupping)}</td><td className="px-4 py-2 text-right font-semibold tabular-nums">{num(r.total)} {r.unit}</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-slate-500">{r.value !== null ? rupiah(r.value) : '—'}</td>
+                  <td className="px-4 py-2 text-right tabular-nums text-neutral-500">{r.value !== null ? rupiah(r.value) : '—'}</td>
                 </tr>
               ))}
             </tbody>

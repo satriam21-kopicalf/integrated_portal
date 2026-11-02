@@ -585,7 +585,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
               <tr key={i}>
                 {Array.from({ length: 8 }).map((__, j) => (
                   <td key={j} className="border-b border-slate-100 px-3 py-3">
-                    <div className="h-4 animate-pulse rounded bg-slate-100" style={{ width: `${50 + ((i + j) % 4) * 12}%` }} />
+                    <div className="h-4 skeleton rounded" style={{ width: `${50 + ((i + j) % 4) * 12}%` }} />
                   </td>
                 ))}
               </tr>
@@ -659,9 +659,9 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
       <ul className="divide-y divide-slate-100 md:hidden">
         {Array.from({ length: 5 }).map((_, i) => (
           <li key={i} className="space-y-2 p-4">
-            <div className="h-4 w-2/3 animate-pulse rounded bg-slate-100" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
-            <div className="h-3 w-full animate-pulse rounded bg-slate-100" />
+            <div className="h-4 w-2/3 skeleton rounded" />
+            <div className="h-3 w-1/2 skeleton rounded" />
+            <div className="h-3 w-full skeleton rounded" />
           </li>
         ))}
       </ul>

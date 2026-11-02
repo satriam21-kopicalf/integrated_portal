@@ -5133,4 +5133,9 @@ export const ID: Record<string, string> = {
   "{0}× a day": "{0}× sehari",
   // UI redesign stage 1
   "Modules": "Modul",
+  // COTR redesign
+  "Fill the fields, then save": "Isi kolom yang diperlukan, lalu simpan",
+  "No {0} yet": "Belum ada {0}",
+  "Search {0}": "Cari {0}",
+  "{0} rows": "{0} baris",
 };

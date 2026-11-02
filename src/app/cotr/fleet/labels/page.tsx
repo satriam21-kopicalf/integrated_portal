@@ -10,7 +10,8 @@ import { useSearchParams } from "next/navigation";
 import { Printer, RefreshCw } from "lucide-react";
 import QRCode from "qrcode";
 import { Suspense, useEffect, useMemo, useState, type CSSProperties } from "react";
-import { Button, Page, Panel, Select, cx, useToast } from "@/so/ui";
+import { Button, Select, cx, useToast } from "@/so/ui";
+import { Page, Panel } from "@/components/kc/compat";
 import { Fleet, FleetType, Pool } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
 import { call } from "@/so/features/checkin/checkin";
@@ -85,7 +86,7 @@ function Labels() {
   };
 
   return (
-    <Page title={tr("Armada labels")} subtitle={tr("Information label of the armada: code, vehicle and a QR that opens its details and driver (the QRIS is not printed)")}
+    <Page eyebrow="Monitoring COTR" media={<Printer size={19} />} title={tr("Armada labels")} subtitle={tr("Information label of the armada: code, vehicle and a QR that opens its details and driver (the QRIS is not printed)")}
       actions={<Button disabled={!chosen.length || !origin} onClick={() => window.print()}><Printer size={16} /> {tr("Print {0}", chosen.length * copies)}</Button>}>
       <style>{`@media print {
         body * { visibility: hidden !important; }
@@ -104,33 +105,33 @@ function Labels() {
             const l = LAYOUTS[k];
             return (
               <button key={k} type="button" onClick={() => setLayout(k)} aria-pressed={layout === k}
-                className={cx("flex items-center gap-3 rounded-xl border p-3 text-left transition", layout === k ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-slate-200 bg-white hover:border-slate-300")}>
+                className={cx("flex items-center gap-3 rounded-xl border p-3 text-left transition", layout === k ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200 bg-white hover:border-neutral-300")}>
                 <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center">
-                  <span className={cx("rounded-sm border-2", layout === k ? "border-blue-600 bg-white" : "border-slate-300 bg-slate-50")}
+                  <span className={cx("rounded-sm border-2", layout === k ? "border-brand-600 bg-white" : "border-neutral-300 bg-neutral-50")}
                     style={{ width: `${Math.min(44, (44 * l.w) / Math.max(l.w, l.h))}px`, height: `${Math.min(44, (44 * l.h) / Math.max(l.w, l.h))}px` }} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-slate-900">{tr(l.name)}</span>
-                  <span className="block text-[11px] text-slate-500">{l.w} × {l.h} mm</span>
-                  <span className="block text-[11px] text-slate-400">{tr(l.use)}</span>
+                  <span className="block text-sm font-semibold text-neutral-900">{tr(l.name)}</span>
+                  <span className="block text-[11px] text-neutral-500">{l.w} × {l.h} mm</span>
+                  <span className="block text-[11px] text-neutral-400">{tr(l.use)}</span>
                 </span>
               </button>
             );
           })}
         </div>
-        <div className="flex flex-wrap items-end gap-3 border-t border-slate-100 p-4">
-          <label className="text-xs font-medium text-slate-600">{tr("Print on")}
+        <div className="flex flex-wrap items-end gap-3 border-t border-neutral-100 p-4">
+          <label className="text-xs font-medium text-neutral-600">{tr("Print on")}
             <Select value={mode} onChange={(e) => setMode(e.target.value as Mode)} className="mt-1 h-10 w-64">
               <option value="sheet">{tr("A4 sheet with cut lines")}</option>
               <option value="roll">{tr("Label printer (one label per page)")}</option>
             </Select>
           </label>
-          <label className="text-xs font-medium text-slate-600">{tr("Copies per armada")}
+          <label className="text-xs font-medium text-neutral-600">{tr("Copies per armada")}
             <Select value={copies} onChange={(e) => setCopies(Number(e.target.value))} className="mt-1 h-10 w-32">
               {[1, 2, 3, 4, 6].map((n) => <option key={n} value={n}>{n}</option>)}
             </Select>
           </label>
-          <p className="pb-2 text-[11px] text-slate-500">{mode === "roll"
+          <p className="pb-2 text-[11px] text-neutral-500">{mode === "roll"
             ? tr("Set the paper of the label printer to {0} × {1} mm, margins none, scale 100%.", L.w, L.h)
             : tr("Print at scale 100% (not “fit to page”) so the label keeps its size.")}</p>
         </div>
@@ -145,25 +146,25 @@ function Labels() {
           {rows.map((f) => (
             <li key={f.code}>
               <button type="button" onClick={() => toggle(f.code)}
-                className={cx("rounded-full border px-3 py-1 text-xs font-medium", picked?.has(f.code) ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600", !f.is_active && "opacity-60")}>{f.code}</button>
+                className={cx("rounded-full border px-3 py-1 text-xs font-medium", picked?.has(f.code) ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-200 bg-white text-neutral-600", !f.is_active && "opacity-60")}>{f.code}</button>
             </li>
           ))}
         </ul>
         {chosen.length === 1 && (
-          <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 px-4 py-3 text-xs text-neutral-500">
             {tr("Label lost or damaged? Replace its QR so the old one stops opening.")}
             <Button size="sm" variant="secondary" loading={renewing === chosen[0].code} onClick={() => void renew(chosen[0].code)}><RefreshCw size={14} /> {tr("Replace QR of {0}", chosen[0].code)}</Button>
           </div>
         )}
       </Panel>
 
-      <div className="cotr-labels flex flex-wrap gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+      <div className="cotr-labels flex flex-wrap gap-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4">
         {chosen.flatMap((f) => Array.from({ length: copies }, (_, i) => (
           <div key={`${f.code}-${i}`} className="cotr-cut" style={{ outline: "0.2mm dashed #94a3b8", outlineOffset: "0.6mm" }}>
             <Label layout={layout} x={info(f)} />
           </div>
         )))}
-        {!chosen.length && <p className="w-full py-10 text-center text-sm text-slate-400">{tr("Choose the armada to print.")}</p>}
+        {!chosen.length && <p className="w-full py-10 text-center text-sm text-neutral-400">{tr("Choose the armada to print.")}</p>}
       </div>
     </Page>
   );
@@ -172,7 +173,7 @@ function Labels() {
 function Label({ layout, x }: { layout: Layout; x: Info }) {
   const l = LAYOUTS[layout];
   const box: CSSProperties = { width: `${l.w}mm`, height: `${l.h}mm` };
-  const shell = "cotr-label relative flex overflow-hidden bg-white text-slate-900 shadow-sm";
+  const shell = "cotr-label relative flex overflow-hidden bg-white text-neutral-900 shadow-sm";
   const { f } = x;
   const vehicle = [f.brand, f.model].filter(Boolean).join(" ");
   if (layout === "tag") {
@@ -200,7 +201,7 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
           <div className="min-w-0 flex-1">
             <p className="font-black leading-none tracking-tight" style={{ fontSize: "7mm" }}>{f.code}</p>
             <p className="mt-[1mm] truncate font-semibold" style={{ fontSize: "2.4mm" }}>{x.type}{f.plate ? ` · ${f.plate}` : ""}</p>
-            <p className="truncate text-slate-500" style={{ fontSize: "2.1mm" }}>{x.pool}</p>
+            <p className="truncate text-neutral-500" style={{ fontSize: "2.1mm" }}>{x.pool}</p>
           </div>
           <Qr src={x.qr} mm={19} />
         </div>
@@ -220,7 +221,7 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
           <p className="font-semibold uppercase tracking-[0.2em]" style={{ fontSize: "2.3mm", color: RED }}>{tr("Armada")}</p>
           <p className="font-black leading-none tracking-tight" style={{ fontSize: "14mm" }}>{f.code}</p>
           <p className="mt-[1mm] truncate font-semibold" style={{ fontSize: "3mm" }}>{[f.name, x.type].filter(Boolean).join(" · ")}</p>
-          <p className="truncate text-slate-500" style={{ fontSize: "2.5mm" }}>{[f.plate, x.pool].filter(Boolean).join(" · ")}</p>
+          <p className="truncate text-neutral-500" style={{ fontSize: "2.5mm" }}>{[f.plate, x.pool].filter(Boolean).join(" · ")}</p>
         </div>
         <div className="flex flex-col items-center justify-center gap-[1mm] pr-[4mm]">
           <Qr src={x.qr} mm={26} />
@@ -248,15 +249,15 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
           {f.name && <p className="mt-[1.5mm] font-semibold" style={{ fontSize: "3.6mm" }}>{f.name}</p>}
           <dl className="mt-[4mm] grid w-full grid-cols-2 gap-x-[4mm] gap-y-[2mm] text-left">
             {facts.filter(([, v]) => v !== null && v !== undefined && v !== "").slice(0, 6).map(([k, v]) => (
-              <div key={k} className="min-w-0 border-b border-slate-200 pb-[1mm]">
-                <dt className="uppercase tracking-wide text-slate-400" style={{ fontSize: "1.9mm" }}>{k}</dt>
+              <div key={k} className="min-w-0 border-b border-neutral-200 pb-[1mm]">
+                <dt className="uppercase tracking-wide text-neutral-400" style={{ fontSize: "1.9mm" }}>{k}</dt>
                 <dd className="truncate font-semibold" style={{ fontSize: "3mm" }}>{v}</dd>
               </div>
             ))}
           </dl>
           <div className="mt-auto flex items-center gap-[4mm] pb-[3mm] pt-[3mm]">
             <Qr src={x.qr} mm={28} />
-            <p className="max-w-[40mm] text-left leading-snug text-slate-600" style={{ fontSize: "2.5mm" }}>
+            <p className="max-w-[40mm] text-left leading-snug text-neutral-600" style={{ fontSize: "2.5mm" }}>
               <span className="block font-bold uppercase" style={{ color: BLUE, fontSize: "2.8mm" }}>{tr("Scan for info")}</span>
               {tr("The armada in detail and the driver on duty")}
             </p>
@@ -276,18 +277,18 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
           <img src={LOGO} alt="Calf On The Road" className="object-contain" style={{ width: "11mm", height: "11mm" }} />
           <div className="leading-tight">
             <p className="font-extrabold tracking-[0.12em]" style={{ fontSize: "2.5mm", color: BLUE }}>CALF ON THE ROAD</p>
-            <p className="font-semibold uppercase tracking-[0.18em] text-slate-400" style={{ fontSize: "1.9mm" }}>{tr("Armada")}</p>
+            <p className="font-semibold uppercase tracking-[0.18em] text-neutral-400" style={{ fontSize: "1.9mm" }}>{tr("Armada")}</p>
           </div>
         </div>
         <p className="mt-[2.5mm] font-black leading-none tracking-tight" style={{ fontSize: "10mm" }}>{f.code}</p>
         <p className="mt-[1.2mm] truncate font-semibold" style={{ fontSize: "2.8mm" }}>{f.name ?? x.type}</p>
-        <p className="truncate text-slate-500" style={{ fontSize: "2.3mm" }}>{[f.name ? x.type : null, vehicle || null, f.plate].filter(Boolean).join(" · ")}</p>
+        <p className="truncate text-neutral-500" style={{ fontSize: "2.3mm" }}>{[f.name ? x.type : null, vehicle || null, f.plate].filter(Boolean).join(" · ")}</p>
         <p className="mt-auto truncate font-semibold" style={{ fontSize: "2.3mm", color: RED }}>{x.pool}</p>
       </div>
-      <div className="flex flex-col items-center justify-center gap-[1.2mm] border-l border-dashed border-slate-200 px-[3mm]">
+      <div className="flex flex-col items-center justify-center gap-[1.2mm] border-l border-dashed border-neutral-200 px-[3mm]">
         <Qr src={x.qr} mm={22} />
         <span className="font-bold uppercase" style={{ fontSize: "1.9mm", color: BLUE }}>{tr("Scan for info")}</span>
-        {f.asset_no && <span className="text-slate-400" style={{ fontSize: "1.7mm" }}>{f.asset_no}</span>}
+        {f.asset_no && <span className="text-neutral-400" style={{ fontSize: "1.7mm" }}>{f.asset_no}</span>}
       </div>
     </section>
   );
@@ -296,12 +297,12 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
 function Qr({ src, mm }: { src: string | null; mm: number }) {
   const size = { width: `${mm}mm`, height: `${mm}mm` };
   // eslint-disable-next-line @next/next/no-img-element
-  return src ? <img src={src} alt="QR" style={size} className="flex-shrink-0" /> : <span style={size} className="flex-shrink-0 animate-pulse rounded bg-slate-100" />;
+  return src ? <img src={src} alt="QR" style={size} className="flex-shrink-0" /> : <span style={size} className="flex-shrink-0 skeleton rounded" />;
 }
 
 function Footer({ size }: { size: number }) {
   return (
-    <footer className="border-t border-slate-200 px-[2mm] py-[0.8mm] text-center text-slate-500" style={{ fontSize: `${size}mm` }}>
+    <footer className="border-t border-neutral-200 px-[2mm] py-[0.8mm] text-center text-neutral-500" style={{ fontSize: `${size}mm` }}>
       {tr("Property of Kopi Calf · report if found")}
     </footer>
   );

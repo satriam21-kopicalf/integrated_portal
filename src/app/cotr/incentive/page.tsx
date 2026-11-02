@@ -4,9 +4,11 @@
 // driver (cups sold per segment of the tiers, product bonus, late / absent deductions of Master Schedule, minimum
 // attendance), the schemes the COTR team adjusts (versioned by the month they start) and a simulator.
 
-import { Download, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Calculator, Download, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Page, Panel, Select, cx, theadClass } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, Select, cx } from "@/so/ui";
+import { kcTable } from "@/components/kc";
+import { Page, Panel } from "@/components/kc/compat";
 import { Segmented } from "@/so/ui/Simple";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool } from "@/cotr/types";
@@ -31,7 +33,7 @@ function tierPay(cups: number, tiers: Tier[]) {
 export default function CotrIncentivePage() {
   const [tab, setTab] = useState<"recap" | "simulate" | "schemes">("recap");
   return (
-    <Page title={tr("Incentive Calculator")} subtitle={tr("Monthly incentive of the drivers from cups sold and the attendance of Master Schedule")}>
+    <Page eyebrow="Monitoring COTR" media={<Calculator size={19} />} title={tr("Incentive Calculator")} subtitle={tr("Monthly incentive of the drivers from cups sold and the attendance of Master Schedule")}>
       <Segmented label={tr("Section")} value={tab} onChange={setTab} options={[
         { value: "recap", label: tr("Monthly recap") }, { value: "simulate", label: tr("Simulator") }, { value: "schemes", label: tr("Schemes") },
       ]} />
@@ -84,13 +86,13 @@ function RecapView() {
       {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <div className="skeleton m-4 h-40 rounded-xl" /> : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-3 py-2.5 text-right">{tr("Attendance")}</th>
+            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-3 py-2.5 text-right">{tr("Attendance")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Tiers")}</th><th className="px-3 py-2.5 text-right">{tr("Product bonus")}</th><th className="px-3 py-2.5 text-right">{tr("Deduction")}</th><th className="px-4 py-2.5 text-right">{tr("Incentive")}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-neutral-100">
               {data.rows.map((r) => (
                 <Fragment key={r.driver}>
-                  <tr className="cursor-pointer hover:bg-slate-50" onClick={() => setOpen(open === r.driver ? null : r.driver)}>
-                    <td className="px-4 py-2"><span className="block font-medium text-slate-900">{r.name}</span><span className="text-[11px] text-slate-400">{r.driver}{r.pool ? ` · ${r.pool}` : ""}</span></td>
+                  <tr className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(open === r.driver ? null : r.driver)}>
+                    <td className="px-4 py-2"><span className="block font-medium text-neutral-900">{r.name}</span><span className="text-[11px] text-neutral-400">{r.driver}{r.pool ? ` · ${r.pool}` : ""}</span></td>
                     <td className="px-3 py-2 text-right tabular-nums">{num(r.cups)}</td>
                     <td className="px-3 py-2 text-right text-xs">
                       <span className="tabular-nums">{r.attendance.worked}/{r.attendance.scheduled}{r.attendancePct !== null ? ` · ${r.attendancePct}%` : ""}</span>
@@ -102,13 +104,13 @@ function RecapView() {
                     <td className="px-4 py-2 text-right font-semibold tabular-nums">{rupiah(r.total)}</td>
                   </tr>
                   {open === r.driver && (
-                    <tr className="bg-slate-50/60">
+                    <tr className="bg-neutral-50/60">
                       <td colSpan={7} className="px-4 py-3"><Breakdown row={r} /></td>
                     </tr>
                   )}
                 </Fragment>
               ))}
-              {data.rows.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">{tr("No drivers in this pool")}</td></tr>}
+              {data.rows.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-neutral-400">{tr("No drivers in this pool")}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -121,19 +123,19 @@ function Breakdown({ row }: { row: Pick<Row, "tiers" | "bonus" | "deduction" | "
   return (
     <div className="grid gap-3 text-xs sm:grid-cols-3">
       <div>
-        <p className="mb-1 font-semibold text-slate-700">{tr("Tiers")}</p>
+        <p className="mb-1 font-semibold text-neutral-700">{tr("Tiers")}</p>
         {row.tiers.map((t, i) => (
           <p key={i} className="flex justify-between gap-3 tabular-nums"><span>{num(t.from)}–{t.to === null ? "∞" : num(t.to)}: {num(t.cups)} × {rupiah(t.rate)}</span><span>{rupiah(t.pay)}</span></p>
         ))}
       </div>
       <div>
-        <p className="mb-1 font-semibold text-slate-700">{tr("Product bonus")}</p>
-        {row.bonus.length === 0 ? <p className="text-slate-400">—</p> : row.bonus.map((b) => (
+        <p className="mb-1 font-semibold text-neutral-700">{tr("Product bonus")}</p>
+        {row.bonus.length === 0 ? <p className="text-neutral-400">—</p> : row.bonus.map((b) => (
           <p key={b.menu} className="flex justify-between gap-3 tabular-nums"><span>{b.menu}: {num(b.cups)} × {rupiah(b.rate)}</span><span>{rupiah(b.pay)}</span></p>
         ))}
       </div>
       <div>
-        <p className="mb-1 font-semibold text-slate-700">{tr("Attendance")}</p>
+        <p className="mb-1 font-semibold text-neutral-700">{tr("Attendance")}</p>
         <p>{tr("Late")}: {row.attendance.late} · {tr("Absent")}: {row.attendance.absent}</p>
         <p className="tabular-nums">{tr("Deduction")}: {row.deduction ? `−${rupiah(row.deduction)}` : "—"}</p>
       </div>
@@ -171,14 +173,14 @@ function Simulator() {
           </div>
         </div>
         {result && (
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-500">{tr("Incentive")}</p>
-            <p className="text-3xl font-bold tabular-nums text-slate-900">{rupiah(result.total)}</p>
+          <div className="rounded-xl border border-neutral-200 p-4">
+            <p className="text-xs text-neutral-500">{tr("Incentive")}</p>
+            <p className="text-3xl font-bold tabular-nums text-neutral-900">{rupiah(result.total)}</p>
             {!result.eligible && <p className="mt-1 text-xs text-red-700">{tr("Attendance {0}% is below the minimum {1}%", result.pct ?? 0, s!.min_attendance_pct)}</p>}
             <table className="mt-4 w-full text-sm">
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {result.tiers.map((t, i) => (
-                  <tr key={i} className={t.cups ? "" : "text-slate-400"}><td className="py-1.5">{num(t.from)}–{t.to === null ? "∞" : num(t.to)} {tr("cups")}</td><td className="py-1.5 text-right tabular-nums">{num(t.cups)} × {rupiah(t.rate)}</td><td className="py-1.5 text-right tabular-nums">{rupiah(t.pay)}</td></tr>
+                  <tr key={i} className={t.cups ? "" : "text-neutral-400"}><td className="py-1.5">{num(t.from)}–{t.to === null ? "∞" : num(t.to)} {tr("cups")}</td><td className="py-1.5 text-right tabular-nums">{num(t.cups)} × {rupiah(t.rate)}</td><td className="py-1.5 text-right tabular-nums">{rupiah(t.pay)}</td></tr>
                 ))}
                 <tr><td className="py-1.5" colSpan={2}>{tr("Deduction")}</td><td className="py-1.5 text-right tabular-nums text-red-700">{result.deduction ? `−${rupiah(result.deduction)}` : "—"}</td></tr>
               </tbody>
@@ -201,7 +203,7 @@ function TiersInput({ value, onChange }: { value: Tier[]; onChange: (v: Tier[]) 
           <Input type="number" value={t.to ?? ""} placeholder="∞" onChange={(e) => onChange(tiers.map((x, j) => (j === i ? { ...x, to: e.target.value === "" ? null : Number(e.target.value) } : x)))} className="h-9 w-24 text-right" aria-label={tr("To")} />
           <span>{tr("cups")} ×</span>
           <Input type="number" value={t.rate} onChange={(e) => onChange(tiers.map((x, j) => (j === i ? { ...x, rate: Number(e.target.value) } : x)))} className="h-9 w-28 text-right" aria-label={tr("Rate")} />
-          <button type="button" aria-label={tr("Delete")} onClick={() => onChange(tiers.filter((_, j) => j !== i))} className="rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={14} /></button>
+          <button type="button" aria-label={tr("Delete")} onClick={() => onChange(tiers.filter((_, j) => j !== i))} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={14} /></button>
         </div>
       ))}
       <Button size="sm" variant="ghost" onClick={() => { const last = tiers[tiers.length - 1]; onChange([...tiers, { from: last?.to ?? 0, to: null, rate: 0 }]); }}><Plus size={13} /> {tr("Tier")}</Button>
@@ -220,7 +222,7 @@ function BonusInput({ value, onChange, menus }: { value: Bonus[]; onChange: (v: 
           </Select>
           <span>×</span>
           <Input type="number" value={b.rate} onChange={(e) => onChange(rows.map((x, j) => (j === i ? { ...x, rate: Number(e.target.value) } : x)))} className="h-9 w-28 text-right" aria-label={tr("Rate")} />
-          <button type="button" aria-label={tr("Delete")} onClick={() => onChange(rows.filter((_, j) => j !== i))} className="rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={14} /></button>
+          <button type="button" aria-label={tr("Delete")} onClick={() => onChange(rows.filter((_, j) => j !== i))} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={14} /></button>
         </div>
       ))}
       <Button size="sm" variant="ghost" onClick={() => onChange([...rows, { menu: "", rate: 0 }])}><Plus size={13} /> {tr("Bonus")}</Button>
@@ -246,7 +248,7 @@ function Schemes() {
         blank={(): Partial<Scheme> => ({ code: "", name: "", valid_from: `${new Date().toISOString().slice(0, 7)}-01`, tiers: [], product_bonus: [], late_penalty: 0, absent_penalty: 0, min_attendance_pct: 0, is_active: true })}
         rowActions={(s) => <Button size="sm" variant="ghost" onClick={() => setEdit({ ...s, tiers: [...s.tiers], product_bonus: [...s.product_bonus] })}>{tr("Tiers & bonus")}</Button>}
         columns={[
-          { label: tr("Scheme"), render: (s) => <><span className="block font-medium text-slate-900">{s.name}</span><span className="text-[11px] text-slate-400">{s.code}</span></> },
+          { label: tr("Scheme"), render: (s) => <><span className="block font-medium text-neutral-900">{s.name}</span><span className="text-[11px] text-neutral-400">{s.code}</span></> },
           { label: tr("From"), render: (s) => s.valid_from.slice(0, 7) },
           { label: tr("Tiers"), render: (s) => <span className="text-xs">{s.tiers.map((t) => `${num(t.from)}–${t.to === null ? "∞" : num(t.to)} × ${num(t.rate)}`).join(" · ") || "—"}</span> },
           { label: tr("Deductions"), render: (s) => <span className="text-xs">{tr("Late")} {rupiah(s.late_penalty)} · {tr("Absent")} {rupiah(s.absent_penalty)}</span> },
@@ -266,8 +268,8 @@ function Schemes() {
         <Panel title={tr("Tiers & bonus of {0}", edit.name)} description={tr("Cups of every segment are paid at its rate; the last tier without an end")}
           actions={<div className="flex gap-2"><Button size="sm" variant="ghost" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button size="sm" loading={busy} onClick={() => void save()}>{tr("Save")}</Button></div>}>
           <div className="grid gap-6 p-4 lg:grid-cols-2">
-            <div><p className="mb-2 text-xs font-semibold text-slate-700">{tr("Tiers")}</p><TiersInput value={edit.tiers} onChange={(tiers) => setEdit({ ...edit, tiers })} /></div>
-            <div><p className="mb-2 text-xs font-semibold text-slate-700">{tr("Product bonus (per cup)")}</p><BonusInput value={edit.product_bonus} menus={menus.rows ?? []} onChange={(product_bonus) => setEdit({ ...edit, product_bonus })} /></div>
+            <div><p className="mb-2 text-xs font-semibold text-neutral-700">{tr("Tiers")}</p><TiersInput value={edit.tiers} onChange={(tiers) => setEdit({ ...edit, tiers })} /></div>
+            <div><p className="mb-2 text-xs font-semibold text-neutral-700">{tr("Product bonus (per cup)")}</p><BonusInput value={edit.product_bonus} menus={menus.rows ?? []} onChange={(product_bonus) => setEdit({ ...edit, product_bonus })} /></div>
           </div>
           {error && <p className="px-4 pb-4 text-xs text-red-700">{error}</p>}
         </Panel>

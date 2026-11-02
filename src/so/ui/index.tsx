@@ -85,11 +85,11 @@ export function Checkbox({ label, hint, ...p }: React.InputHTMLAttributes<HTMLIn
 }
 
 const TONES = {
-  slate: "bg-slate-100 text-slate-600",
+  slate: "bg-neutral-100 text-neutral-600",
   green: "bg-emerald-50 text-emerald-700",
   amber: "bg-amber-50 text-amber-700",
   red: "bg-red-50 text-red-700",
-  blue: "bg-blue-50 text-blue-700",
+  blue: "bg-brand-50 text-brand-700",
   violet: "bg-violet-50 text-violet-700",
   cyan: "bg-cyan-50 text-cyan-700",
 } as const;
@@ -112,13 +112,13 @@ export function Page({ title, subtitle, actions, stats, children }: {
   /** text, or e.g. a brand logo (with its alt text) */ title: ReactNode; subtitle?: string; actions?: ReactNode; stats?: ReactNode; children: ReactNode;
 }) {
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className="min-h-full bg-neutral-50">
       {/* phones / tablets: a large title under the app bar (the bar shows it once the page scrolls) */}
       <header className="px-4 pt-1 sm:px-6 lg:pt-6">
         <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
           <div className="min-w-0">
-            <h1 className="text-[22px] font-bold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-xl lg:font-semibold">{title}</h1>
-            {subtitle && <p className="mt-1 text-[13px] text-slate-500 sm:truncate sm:text-sm">{subtitle}</p>}
+            <h1 className="text-[22px] font-bold leading-tight tracking-tight text-neutral-900 sm:text-2xl lg:text-xl lg:font-semibold">{title}</h1>
+            {subtitle && <p className="mt-1 text-[13px] text-neutral-500 sm:truncate sm:text-sm">{subtitle}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
@@ -134,20 +134,20 @@ export function Panel({ title, description, actions, toolbar, footer, children, 
   title?: string; description?: string; actions?: ReactNode; toolbar?: ReactNode; footer?: ReactNode; children: ReactNode; className?: string;
 }) {
   return (
-    <section className={cx("overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm", className)}>
+    <section className={cx("overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm", className)}>
       {(title || actions) && (
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 px-4 py-3 sm:px-5">
           <div className="min-w-0">
-            {title && <h2 className="text-sm font-semibold text-slate-900">{title}</h2>}
-            {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
+            {title && <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>}
+            {description && <p className="mt-0.5 text-xs text-neutral-500">{description}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
       )}
-      {toolbar && <div className="space-y-3 border-b border-slate-200 p-3 sm:p-4">{toolbar}</div>}
+      {toolbar && <div className="space-y-3 border-b border-neutral-200 p-3 sm:p-4">{toolbar}</div>}
       {children}
       {footer && (
-        <div className="flex flex-col items-center justify-between gap-2 border-t border-slate-200 bg-slate-50/60 px-4 py-3 text-xs text-slate-500 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-2 border-t border-neutral-200 bg-neutral-50/60 px-4 py-3 text-xs text-neutral-500 sm:flex-row">
           {footer}
         </div>
       )}
@@ -158,12 +158,12 @@ export function Panel({ title, description, actions, toolbar, footer, children, 
 export function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
     <div className="relative flex-1">
-      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder}
         className={`${inputClass} pl-9 pr-9`} />
       {value && (
         <button type="button" onClick={() => onChange("")} aria-label={tr("Clear search")}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-700">
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700">
           <X size={14} />
         </button>
       )}
@@ -172,24 +172,16 @@ export function SearchBox({ value, onChange, placeholder }: { value: string; onC
 }
 
 /** Table header row style shared by every list. */
-export const theadClass = "border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500";
+export const theadClass = "border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500";
 
-export function SkeletonRows({ cols, rows = 6 }: { cols: number; rows?: number }) {
-  return (
-    <>
-      {Array.from({ length: rows }).map((_, i) => (
-        <tr key={i}><td colSpan={cols} className="px-4 py-3"><div className="skeleton h-9 rounded" /></td></tr>
-      ))}
-    </>
-  );
-}
+export { SkeletonRows } from "@/components/kc/Skeleton";
 
 export function Empty({ icon, title, children }: { icon?: ReactNode; title?: string; children?: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-4 py-14 text-center">
-      <span className="mb-2 text-slate-300">{icon ?? <Inbox size={28} />}</span>
-      {title && <p className="text-sm font-medium text-slate-700">{title}</p>}
-      {children && <p className="mt-1 max-w-md text-sm text-slate-500">{children}</p>}
+      <span className="mb-2 text-neutral-300">{icon ?? <Inbox size={28} />}</span>
+      {title && <p className="text-sm font-medium text-neutral-700">{title}</p>}
+      {children && <p className="mt-1 max-w-md text-sm text-neutral-500">{children}</p>}
     </div>
   );
 }
@@ -198,7 +190,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   return (
     <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
       <AlertCircle className="text-red-500" />
-      <p className="text-sm text-slate-700">{message}</p>
+      <p className="text-sm text-neutral-700">{message}</p>
       {onRetry && <Button variant="secondary" onClick={onRetry}>{tr("Try again")}</Button>}
     </div>
   );
@@ -257,7 +249,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div key={t.id} role="status"
             className={cx("notice-in pointer-events-auto flex max-w-full items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg",
-              t.tone === "ok" ? "bg-slate-900" : "bg-red-600")}>
+              t.tone === "ok" ? "bg-neutral-900" : "bg-red-600")}>
             {t.tone === "ok" ? <CheckCircle2 size={16} className="flex-shrink-0 text-emerald-400" /> : <AlertCircle size={16} className="flex-shrink-0" />}
             <span className="min-w-0">{t.text}</span>
             <button type="button" onClick={() => dismiss(t.id)} className="ml-1 rounded p-0.5 opacity-70 hover:opacity-100" aria-label={tr("Dismiss")}>

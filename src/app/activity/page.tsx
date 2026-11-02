@@ -383,7 +383,7 @@ export default function ActivityPage() {
                 <p className="text-xs text-neutral-400">{tr('Retrying automatically…')}</p>
               </div>
             ) : loading && !entries.length ? (
-              <div className="space-y-2 p-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-neutral-100" />)}</div>
+              <div className="space-y-2 p-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="h-12 skeleton rounded-lg" />)}</div>
             ) : entries.length === 0 ? (
               <EmptyState icon={<Filter size={22} />} title={filtered ? tr('No activity matches the search or filters') : tr('No activity in this period yet')}>
                 {tr('New activity appears here automatically.')}
@@ -412,7 +412,7 @@ export default function ActivityPage() {
           <aside className="min-w-0 space-y-5 xl:col-span-4 2xl:col-span-3">
             <Card title={tr('Most active users')} flush>
               {!summary ? (
-                <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 animate-pulse rounded-lg bg-neutral-100" />)}</div>
+                <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 skeleton rounded-lg" />)}</div>
               ) : summary.topUsers.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm text-neutral-400">{tr('No activity')}</p>
               ) : (
@@ -454,7 +454,7 @@ export default function ActivityPage() {
 
             <Card title={tr('By type')}>
               {!summary ? (
-                <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 animate-pulse rounded bg-neutral-100" />)}</div>
+                <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 skeleton rounded" />)}</div>
               ) : !categoryTotal ? (
                 <p className="text-sm text-neutral-400">{tr('No activity')}</p>
               ) : (

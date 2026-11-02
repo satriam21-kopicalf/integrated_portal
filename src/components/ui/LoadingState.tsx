@@ -25,8 +25,8 @@ export default function LoadingState({ height = 200, label = 'data' }: { height?
         ))}
       </div>
       <span className="absolute inset-0 flex items-center justify-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200">
-          <Loader2 size={13} className="animate-spin text-blue-600" /> {tr('Loading')} {label}…
+        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-neutral-500 shadow-sm ring-1 ring-neutral-200">
+          <Loader2 size={13} className="animate-spin text-brand-600" /> {tr('Loading')} {label}…
         </span>
       </span>
     </div>

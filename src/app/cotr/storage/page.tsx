@@ -7,8 +7,8 @@
 
 import { AlertTriangle, Check, ClipboardCopy, Coffee, PackagePlus, RefreshCw, Save, Send, Sparkles, Warehouse, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Input, Page, Panel, Select, cx, useToast } from "@/so/ui";
-import { Stat, StatStrip } from "@/so/ui/StatStrip";
+import { Badge, Button, Empty, ErrorState, Input, Select, cx, useToast } from "@/so/ui";
+import { Page, Panel, Stat, StatStrip } from "@/components/kc/compat";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool, Stock } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
@@ -113,7 +113,7 @@ export default function CotrStoragePage() {
   const name = (code: string) => rows.find((r) => r.code === code)?.name ?? code;
 
   return (
-    <Page title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
+    <Page eyebrow="Monitoring COTR" media={<Warehouse size={19} />} title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
       actions={<>
         <Select value={poolCode} onChange={(e) => setPool(e.target.value)} className="h-10 w-48">{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select>
         <Input type="date" value={day} onChange={(e) => setDay(e.target.value || todayWib())} className="h-10 w-40" />
@@ -128,7 +128,7 @@ export default function CotrStoragePage() {
           <Stat label={tr("Reloads to decide")} icon={<PackagePlus size={16} />} value={reloads.length} />
         </StatStrip>
       )}>
-      {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? <div className="skeleton h-64 rounded-2xl" /> : (
+      {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? <div className="skeleton h-64 rounded-xl" /> : (
         <>
           {disputes.length > 0 && (
             <Panel title={tr("Differences reported by the drivers")} description={tr("Set the final cups: they become the start stock of the shift")}>
@@ -153,12 +153,12 @@ export default function CotrStoragePage() {
           <PoolBatches pool={poolCode} />
 
           <Panel title={tr("What the pool prepares today")} description={tr("Total per product of the assignments below: to sell and for cupping")}>
-            <div className="grid grid-cols-2 gap-px bg-slate-100 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-px bg-neutral-100 sm:grid-cols-3 lg:grid-cols-6">
               {need.map((n) => (
                 <div key={n.menu.code} className="bg-white px-3 py-2.5">
-                  <p className="truncate text-xs font-medium text-slate-600" title={n.menu.name}>{n.menu.name}</p>
-                  <p className="text-xl font-bold tabular-nums text-slate-900">{n.sell + n.cupping}</p>
-                  <p className="text-[11px] text-slate-500">{tr("{0} to sell · {1} cupping", n.sell, n.cupping)}</p>
+                  <p className="truncate text-xs font-medium text-neutral-600" title={n.menu.name}>{n.menu.name}</p>
+                  <p className="text-xl font-bold tabular-nums text-neutral-900">{n.sell + n.cupping}</p>
+                  <p className="text-[11px] text-neutral-500">{tr("{0} to sell · {1} cupping", n.sell, n.cupping)}</p>
                 </div>
               ))}
             </div>
@@ -178,25 +178,25 @@ export default function CotrStoragePage() {
                   const st = r.dispatch ? STATUS[r.dispatch.status] : null;
                   const a = r.advice;
                   return (
-                    <li key={r.code} className={cx("rounded-2xl border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-slate-200")}>
-                      <div className="flex items-start gap-3 border-b border-slate-100 px-4 py-3">
+                    <li key={r.code} className={cx("rounded-xl border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-neutral-200")}>
+                      <div className="flex items-start gap-3 border-b border-neutral-100 px-4 py-3">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-slate-900">{r.name}</p>
-                          <p className="text-[11px] text-slate-500">{[r.nickname, r.fleet ?? r.code].filter(Boolean).join(" · ")}</p>
+                          <p className="truncate text-sm font-semibold text-neutral-900">{r.name}</p>
+                          <p className="text-[11px] text-neutral-500">{[r.nickname, r.fleet ?? r.code].filter(Boolean).join(" · ")}</p>
                         </div>
                         {r.shift ? <Badge tone="green" dot>{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Badge>
                           : st ? <Badge tone={st.tone}>{st.label()}</Badge> : <Badge tone="slate">{tr("Not assigned")}</Badge>}
                       </div>
                       {a && (
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-slate-50/70 px-4 py-2 text-[11px] text-slate-600">
-                          <span className="inline-flex items-center gap-1 font-medium text-slate-700"><Sparkles size={12} className="text-violet-600" />
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-neutral-50/70 px-4 py-2 text-[11px] text-neutral-600">
+                          <span className="inline-flex items-center gap-1 font-medium text-neutral-700"><Sparkles size={12} className="text-violet-600" />
                             {a.source === "pool" ? tr("Advice from the pool average") : tr("Advice from {0} days worked", a.days)}</span>
                           {a.wasteRate !== null && <span className={cx(a.wasteRate > 0.15 ? "font-semibold text-red-700" : "")}>{tr("waste {0}%", Math.round(a.wasteRate * 100))}</span>}
                           {can && <button type="button" onClick={() => applyAdvice(r)} className="ml-auto rounded-md bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-violet-700">{tr("Use advice")}</button>}
                         </div>
                       )}
                       <table className="w-full text-sm">
-                        <thead className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                        <thead className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
                           <tr><th className="px-4 pb-1 pt-2 text-left">{tr("Product")}</th><th className="w-20 px-1 pb-1 pt-2 text-center">{tr("Sell")}</th>
                             <th className="w-20 px-1 pb-1 pt-2 text-center"><span className="inline-flex items-center gap-0.5"><Coffee size={10} />{tr("Cupping")}</span></th><th className="w-16 px-3 pb-1 pt-2 text-right">{tr("Carried")}</th></tr>
                         </thead>
@@ -205,25 +205,25 @@ export default function CotrStoragePage() {
                             const sell = shown.sell[m.code] ?? 0, taste = shown.cupping[m.code] ?? 0;
                             const hint = a ? `${tr("avg {0}/day", a.avgSold[m.code] ?? 0)} · ${tr("advice {0}", a.sell[m.code] ?? 0)}` : undefined;
                             return (
-                              <tr key={m.code} className="border-t border-slate-50">
-                                <td className="px-4 py-1"><span className="block truncate text-[13px] text-slate-800">{m.name}</span>{hint && <span className="block text-[10px] text-slate-400">{hint}</span>}</td>
+                              <tr key={m.code} className="border-t border-neutral-50">
+                                <td className="px-4 py-1"><span className="block truncate text-[13px] text-neutral-800">{m.name}</span>{hint && <span className="block text-[10px] text-neutral-400">{hint}</span>}</td>
                                 {(["sell", "cupping"] as const).map((part) => (
                                   <td key={part} className="px-1 py-1 text-center">
                                     {can ? (
                                       <input inputMode="numeric" value={(part === "sell" ? sell : taste) || ""} placeholder="0" aria-label={`${r.name} · ${m.name} · ${part === "sell" ? tr("Sell") : tr("Cupping")}`}
                                         onChange={(e) => setQty(r.code, part, m.code, Number(e.target.value.replace(/\D/g, "")) || 0)}
-                                        className={cx("h-10 w-full rounded-lg border text-center text-base tabular-nums focus:border-blue-500 focus:outline-none sm:h-9 sm:text-sm", part === "cupping" ? "border-amber-200 bg-amber-50/40" : "border-slate-200")} />
-                                    ) : <span className="tabular-nums text-slate-700">{(part === "sell" ? sell : taste) || "—"}</span>}
+                                        className={cx("h-10 w-full rounded-lg border text-center text-base tabular-nums focus:border-brand-500 focus:outline-none sm:h-9 sm:text-sm", part === "cupping" ? "border-amber-200 bg-amber-50/40" : "border-neutral-200")} />
+                                    ) : <span className="tabular-nums text-neutral-700">{(part === "sell" ? sell : taste) || "—"}</span>}
                                   </td>
                                 ))}
-                                <td className="px-3 py-1 text-right font-semibold tabular-nums text-slate-900">{sell + taste || "—"}</td>
+                                <td className="px-3 py-1 text-right font-semibold tabular-nums text-neutral-900">{sell + taste || "—"}</td>
                               </tr>
                             );
                           })}
                         </tbody>
                         <tfoot>
-                          <tr className="border-t border-slate-200 text-xs">
-                            <td className="px-4 py-2 font-semibold text-slate-600">{tr("Total")}</td>
+                          <tr className="border-t border-neutral-200 text-xs">
+                            <td className="px-4 py-2 font-semibold text-neutral-600">{tr("Total")}</td>
                             <td className="px-1 py-2 text-center font-semibold tabular-nums">{cups(shown.sell)}</td>
                             <td className="px-1 py-2 text-center font-semibold tabular-nums text-amber-700">{cups(shown.cupping)}</td>
                             <td className="px-3 py-2 text-right font-bold tabular-nums">{cups(shown.sell) + cups(shown.cupping)}</td>
@@ -238,9 +238,9 @@ export default function CotrStoragePage() {
           </Panel>
 
           {toSave.length > 0 && (
-            <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-4 flex items-center gap-3 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6"
+            <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-4 flex items-center gap-3 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6"
               style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-              <p className="min-w-0 flex-1 text-xs text-slate-600">{tr("{0} assignments not saved yet", toSave.length)}</p>
+              <p className="min-w-0 flex-1 text-xs text-neutral-600">{tr("{0} assignments not saved yet", toSave.length)}</p>
               <Button loading={busy === "save"} onClick={() => void save(toSave)}><Save size={15} /> {tr("Save {0}", toSave.length)}</Button>
             </div>
           )}
@@ -267,17 +267,17 @@ function Settle({ title, menus, expected, found, note, url, onDone }: {
   };
   return (
     <section className="rounded-xl border border-red-200 bg-white p-3">
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
+      <p className="text-sm font-semibold text-neutral-900">{title}</p>
       {note && <p className="mt-1 rounded-lg bg-red-50 px-2 py-1.5 text-xs text-red-700">{note}</p>}
       <table className="mt-2 w-full text-xs">
-        <thead className="text-slate-500"><tr><th className="py-1 text-left">{tr("Menu")}</th><th className="text-right">{tr("Sent")}</th><th className="text-right">{tr("Found")}</th><th className="text-right">{tr("Final")}</th></tr></thead>
+        <thead className="text-neutral-500"><tr><th className="py-1 text-left">{tr("Menu")}</th><th className="text-right">{tr("Sent")}</th><th className="text-right">{tr("Found")}</th><th className="text-right">{tr("Final")}</th></tr></thead>
         <tbody>
           {codes.map((c) => (
             <tr key={c} className={cx((found[c] ?? 0) !== (expected[c] ?? 0) && "text-red-700")}>
               <td className="py-1">{name(c)}</td><td className="text-right tabular-nums">{expected[c] ?? 0}</td><td className="text-right tabular-nums">{found[c] ?? 0}</td>
               <td className="py-1 text-right">
                 <input inputMode="numeric" value={final[c] ?? 0} onChange={(e) => setFinal({ ...final, [c]: Number(e.target.value.replace(/\D/g, "")) || 0 })}
-                  className="h-8 w-16 rounded-md border border-slate-200 text-center tabular-nums text-slate-900" aria-label={`${tr("Final")} ${name(c)}`} />
+                  className="h-8 w-16 rounded-md border border-neutral-200 text-center tabular-nums text-neutral-900" aria-label={`${tr("Final")} ${name(c)}`} />
               </td>
             </tr>
           ))}
@@ -309,17 +309,17 @@ function ReloadDecide({ r, title, menus, onDone }: { r: Reload; title: string; m
   };
   return (
     <section className="rounded-xl border border-amber-200 bg-white p-3">
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
-      {r.note && <p className="mt-1 text-xs text-slate-500">{r.note}</p>}
+      <p className="text-sm font-semibold text-neutral-900">{title}</p>
+      {r.note && <p className="mt-1 text-xs text-neutral-500">{r.note}</p>}
       <table className="mt-2 w-full text-xs">
-        <thead className="text-slate-500"><tr><th className="py-1 text-left">{tr("Menu")}</th><th className="text-right">{tr("Asked")}</th><th className="text-right">{tr("Sent")}</th></tr></thead>
+        <thead className="text-neutral-500"><tr><th className="py-1 text-left">{tr("Menu")}</th><th className="text-right">{tr("Asked")}</th><th className="text-right">{tr("Sent")}</th></tr></thead>
         <tbody>
           {Object.keys(r.lines).map((c) => (
             <tr key={c}>
               <td className="py-1">{name(c)}</td><td className="text-right tabular-nums">{r.lines[c]}</td>
               <td className="py-1 text-right">
                 <input inputMode="numeric" value={sent[c] ?? 0} onChange={(e) => setSent({ ...sent, [c]: Number(e.target.value.replace(/\D/g, "")) || 0 })}
-                  className="h-8 w-16 rounded-md border border-slate-200 text-center tabular-nums" aria-label={`${tr("Sent")} ${name(c)}`} />
+                  className="h-8 w-16 rounded-md border border-neutral-200 text-center tabular-nums" aria-label={`${tr("Sent")} ${name(c)}`} />
               </td>
             </tr>
           ))}

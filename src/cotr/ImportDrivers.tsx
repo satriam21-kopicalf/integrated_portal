@@ -81,7 +81,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
             </Field>
           )}
           <Field label={tr('Excel file (.xlsx)')} required>
-            <label className="flex h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-slate-300 px-3 text-sm text-slate-600 hover:bg-slate-50 lg:h-10">
+            <label className="flex h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-neutral-300 px-3 text-sm text-neutral-600 hover:bg-neutral-50 lg:h-10">
               <Upload size={16} /> <span className="truncate">{name || tr('Choose a file')}</span>
               <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => void pick(e.target.files?.[0])} />
             </label>
@@ -98,21 +98,21 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
             </div>
             {team && result.departments && (
               <div className="flex flex-wrap gap-1.5">
-                <button type="button" onClick={() => setDept('')} className={cx('rounded-full border px-2.5 py-1 text-xs', !dept ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-slate-200 text-slate-600')}>{tr('All')} · {result.rows.length}</button>
+                <button type="button" onClick={() => setDept('')} className={cx('rounded-full border px-2.5 py-1 text-xs', !dept ? 'border-brand-600 bg-brand-50 text-brand-800' : 'border-neutral-200 text-neutral-600')}>{tr('All')} · {result.rows.length}</button>
                 {Object.entries(result.departments).map(([d, n]) => (
-                  <button key={d} type="button" onClick={() => setDept(d)} className={cx('rounded-full border px-2.5 py-1 text-xs', dept === d ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-slate-200 text-slate-600')}>{d || '—'} · {n}</button>
+                  <button key={d} type="button" onClick={() => setDept(d)} className={cx('rounded-full border px-2.5 py-1 text-xs', dept === d ? 'border-brand-600 bg-brand-50 text-brand-800' : 'border-neutral-200 text-neutral-600')}>{d || '—'} · {n}</button>
                 ))}
               </div>
             )}
-            <div className="max-h-[28rem] overflow-auto rounded-xl border border-slate-200">
+            <div className="max-h-[28rem] overflow-auto rounded-xl border border-neutral-200">
               {team ? (
                 <table className="w-full min-w-[720px] text-sm">
                   <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Employee')}</th><th className="px-3 py-2">{tr('Department')}</th><th className="px-3 py-2">{tr('Pool / HUB')}</th>
                     <th className="px-3 py-2">{tr('Bike')}</th><th className="px-3 py-2">{tr('Armada (QRIS)')}</th><th className="px-3 py-2" /></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-neutral-100">
                     {teamRows.map((r) => (
                       <tr key={r.employeeId}>
-                        <td className="px-3 py-2"><span className="block font-medium text-slate-900">{r.name}</span><span className="text-[11px] text-slate-400">{r.employeeId} · {r.nickname}</span></td>
+                        <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{r.name}</span><span className="text-[11px] text-neutral-400">{r.employeeId} · {r.nickname}</span></td>
                         <td className="px-3 py-2 text-xs">{r.department}</td>
                         <td className="px-3 py-2 text-xs">{poolName(r.pool)}</td>
                         <td className="px-3 py-2 font-mono text-xs">{r.bike || '—'}</td>
@@ -125,12 +125,12 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
               ) : (
                 <table className="w-full text-sm">
                   <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Armada')}</th><th className="px-3 py-2">{tr('Name')}</th><th className="px-3 py-2">{tr('Phone')}</th><th className="px-3 py-2" /></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-neutral-100">
                     {(result.rows as ArmadaRow[]).map((r) => (
                       <tr key={r.armada}>
                         <td className="px-3 py-2 font-mono text-xs">{r.armada}</td>
-                        <td className="px-3 py-2">{r.name}{r.action === 'update' && r.current && <span className="block text-[11px] text-slate-400">{tr('now')}: {r.current}</span>}</td>
-                        <td className="px-3 py-2 text-xs text-slate-500">{r.phone || '—'}</td>
+                        <td className="px-3 py-2">{r.name}{r.action === 'update' && r.current && <span className="block text-[11px] text-neutral-400">{tr('now')}: {r.current}</span>}</td>
+                        <td className="px-3 py-2 text-xs text-neutral-500">{r.phone || '—'}</td>
                         <td className="px-3 py-2 text-right"><Badge tone={ACTION[r.action].tone}>{ACTION[r.action].label()}</Badge></td>
                       </tr>
                     ))}

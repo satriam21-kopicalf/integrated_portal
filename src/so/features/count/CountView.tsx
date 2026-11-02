@@ -25,6 +25,7 @@ import WipSection from "./WipSection";
 import SheetTools from "./SheetTools";
 import SectionPicker from "@/so/ui/SectionPicker";
 import { useFocusMode } from "@/components/layout/BottomNav";
+import { PageSkeleton } from '@/components/kc/Skeleton';
 
 type Draft = { qty: string };
 
@@ -264,7 +265,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   }, [count, q, area, onlyOpen]);
 
   if (error) return <div className="p-4 sm:p-6"><ErrorState message={error} onRetry={load} /></div>;
-  if (!count) return <div className="flex justify-center p-10 text-slate-400"><Loader2 className="animate-spin" /></div>;
+  if (!count) return <PageSkeleton cards={0} rows={8} />;
 
   const st = STATUS[count.status];
   const open = count.status === "IN_PROGRESS" || count.status === "RECOUNT_REQUESTED";

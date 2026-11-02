@@ -87,22 +87,22 @@ export default function DriverMap({ day, live }: { day: string; live: boolean })
       actions={<Button size="sm" variant="secondary" onClick={() => void load()}><RefreshCw size={14} /> {tr('Refresh')}</Button>}>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : (
         <div className="grid lg:grid-cols-[1fr_20rem]">
-          <div ref={box} className="h-[480px] w-full bg-slate-100" />
-          <div className="max-h-[480px] overflow-y-auto border-t border-slate-100 lg:border-l lg:border-t-0">
+          <div ref={box} className="h-[480px] w-full bg-neutral-100" />
+          <div className="max-h-[480px] overflow-y-auto border-t border-neutral-100 lg:border-l lg:border-t-0">
             {!rows ? <div className="skeleton m-4 h-24 rounded-xl" /> : rows.length === 0 ? (
               <Empty icon={<LocateFixed size={26} />} title={tr('No position yet')}>{tr('Positions arrive once a driver has checked in with the location allowed.')}</Empty>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-neutral-100">
                 {[...rows].sort((a, b) => b.at.localeCompare(a.at)).map((p) => {
                   const tone = fresh(p);
                   return (
                     <li key={p.driver}>
-                      <button type="button" onClick={() => focus(p)} className={cx('w-full px-4 py-2.5 text-left text-sm hover:bg-slate-50', picked === p.driver && 'bg-blue-50/70')}>
+                      <button type="button" onClick={() => focus(p)} className={cx('w-full px-4 py-2.5 text-left text-sm hover:bg-neutral-50', picked === p.driver && 'bg-brand-50/70')}>
                         <span className="flex items-center justify-between gap-2">
-                          <span className="truncate font-medium text-slate-900">{p.name}</span>
+                          <span className="truncate font-medium text-neutral-900">{p.name}</span>
                           <Badge tone={tone} dot>{p.shift === 'open' ? tr('{0} min ago', minutes(p.at)) : tr('Shift ended')}</Badge>
                         </span>
-                        <span className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[11px] text-slate-500">
+                        <span className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[11px] text-neutral-500">
                           <span>{p.fleet ?? p.driver} · {time(p.at)}</span>
                           {p.accuracy !== null && <span>± {Math.round(p.accuracy)} m</span>}
                           {p.speed !== null && p.speed > 0.5 && <span className="inline-flex items-center gap-0.5"><Navigation size={10} />{Math.round(p.speed * 3.6)} km/h</span>}

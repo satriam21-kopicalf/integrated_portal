@@ -4,10 +4,13 @@
 // the premix calculator, the theoretical usage, the production plan from the drivers' sales of the last days (average + a buffer,
 // exploded through the BOMs down to raw materials: cup → premix → milk, espresso …) and the waste of the pools.
 
-import { BookOpen, Calculator, ClipboardList, Factory, ListTree, Package, Plus, Trash2, TrendingDown, Truck } from "lucide-react";
+import { BookOpen, Calculator, ClipboardList, CookingPot, Factory, ListTree, Package, Plus, Trash2, TrendingDown, Truck } from "lucide-react";
 import { BatchesTab } from "@/cotr/Batches";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, Select, cx, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Field, Input, Select, useToast } from "@/so/ui";
+import { kcTable } from "@/components/kc";
+import { Page, Panel } from "@/components/kc/compat";
+import { Tabs } from "@/components/kc";
 import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
@@ -28,20 +31,9 @@ const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
 export default function CotrProductionPage() {
   const [tab, setTab] = useState<Tab>("recipes");
   return (
-    <Page title={tr("Storage & Production")} subtitle={tr("Items, recipe cards, premix calculator, production plan, theoretical usage and waste")}>
-      <nav role="tablist" aria-label={tr("Section")} className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-        {SECTIONS.map((s) => {
-          const on = tab === s.key;
-          return (
-            <button key={s.key} type="button" role="tab" aria-selected={on} onClick={() => setTab(s.key)}
-              className={cx("flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-center transition-colors",
-                on ? "border-blue-600 bg-blue-50 text-blue-800 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300")}>
-              <s.icon size={18} className={on ? "text-blue-700" : "text-slate-400"} />
-              <span className="text-[11px] font-semibold leading-tight sm:text-xs">{s.label()}</span>
-            </button>
-          );
-        })}
-      </nav>
+    <Page eyebrow="Monitoring COTR" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Items, recipe cards, premix calculator, production plan, theoretical usage and waste")}>
+      <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as Tab)}
+        tabs={SECTIONS.map((x) => ({ key: x.key, label: <span className="inline-flex items-center gap-1.5"><x.icon size={15} />{x.label()}</span> }))} />
       {tab === "items" && <ItemsTab />}
       {tab === "recipes" && <RecipesTab />}
       {tab === "calc" && <CalculatorTab />}
@@ -76,14 +68,14 @@ function PlanView() {
           <Empty title={tr("No sales yet")}>{tr("The plan follows the sales the drivers record in the COTR app.")}</Empty>
         ) : (
           <table className="m-cards w-full text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5 text-right">{tr("Average / day")}</th><th className="px-4 py-2.5 text-right">{tr("Highest day")}</th><th className="px-4 py-2.5 text-right">{tr("Plan (cups)")}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5 text-right">{tr("Average / day")}</th><th className="px-4 py-2.5 text-right">{tr("Highest day")}</th><th className="px-4 py-2.5 text-right">{tr("Plan (cups)")}</th></tr></thead>
+            <tbody className="divide-y divide-neutral-100">
               {plan.menus.map((r) => (
                 <tr key={r.code}>
                   <td className="px-4 py-2.5 font-medium">{r.name} {!r.bom && <Badge tone="amber">{tr("No recipe yet")}</Badge>}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{r.average.toLocaleString(locale())}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-slate-500">{r.highest}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-blue-700">{r.plan}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-500">{r.highest}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-brand-700">{r.plan}</td>
                 </tr>
               ))}
             </tbody>
@@ -93,11 +85,11 @@ function PlanView() {
       {plan && plan.days > 0 && (
         <Panel title={tr("Raw materials needed")} description={tr("The plan exploded through the recipes (premix down to its materials), rounded up")}>
           <table className="m-cards w-full text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th></tr></thead>
+            <tbody className="divide-y divide-neutral-100">
               {plan.materials.map((m) => (
                 <tr key={m.item}>
-                  <td className="px-4 py-2.5"><span className="inline-flex items-center gap-2"><ListTree size={14} className="text-slate-400" />{m.item}</span></td>
+                  <td className="px-4 py-2.5"><span className="inline-flex items-center gap-2"><ListTree size={14} className="text-neutral-400" />{m.item}</span></td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{m.qty.toLocaleString(locale())} {m.unit}</td>
                 </tr>
               ))}
@@ -149,16 +141,16 @@ function WasteList() {
       }>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <div className="skeleton m-4 h-24 rounded-xl" /> : rows.length === 0 ? <Empty title={tr("Nothing yet")} /> : (
         <table className="m-cards w-full text-sm">
-          <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Day")}</th><th className="px-4 py-2.5">{tr("Pool / HUB")}</th><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th><th className="px-4 py-2.5">{tr("Reason")}</th><th className="w-10" /></tr></thead>
-          <tbody className="divide-y divide-slate-100">
+          <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Day")}</th><th className="px-4 py-2.5">{tr("Pool / HUB")}</th><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th><th className="px-4 py-2.5">{tr("Reason")}</th><th className="w-10" /></tr></thead>
+          <tbody className="divide-y divide-neutral-100">
             {rows.map((w) => (
               <tr key={w.id}>
                 <td className="px-4 py-2.5">{w.day}</td>
                 <td className="px-4 py-2.5">{poolName(w.pool_code)}</td>
-                <td className="px-4 py-2.5"><span className="inline-flex items-center gap-2"><Factory size={13} className="text-slate-400" />{w.item}</span></td>
+                <td className="px-4 py-2.5"><span className="inline-flex items-center gap-2"><Factory size={13} className="text-neutral-400" />{w.item}</span></td>
                 <td className="px-4 py-2.5 text-right tabular-nums">{w.qty} {w.unit}</td>
-                <td className="px-4 py-2.5"><span className="inline-flex items-center gap-1 text-xs text-slate-600"><ClipboardList size={12} />{w.reason}</span></td>
-                <td className="px-1"><button type="button" aria-label={tr("Delete")} onClick={() => void remove(w.id)} className="rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button></td>
+                <td className="px-4 py-2.5"><span className="inline-flex items-center gap-1 text-xs text-neutral-600"><ClipboardList size={12} />{w.reason}</span></td>
+                <td className="px-1"><button type="button" aria-label={tr("Delete")} onClick={() => void remove(w.id)} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={15} /></button></td>
               </tr>
             ))}
           </tbody>
