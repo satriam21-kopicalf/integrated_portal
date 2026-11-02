@@ -41,7 +41,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.lists', href: '/cost-control/lists', get label() { return tr('Count Lists'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.groups', href: '/cost-control/groups', get label() { return tr('Items Groups'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.types', href: '/cost-control/types', get label() { return tr('Count Types'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
-  { key: 'cc.premix', href: '/cost-control/premix', get label() { return tr('Premix calculator'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
+  { key: 'cc.premix', href: '/cost-control/premix', get label() { return tr('Production calculator'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.locations', href: '/cost-control/locations', get label() { return tr('Outlet locations'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.waste-monitor', href: '/cost-control/waste/monitor', get label() { return tr('Waste monitor'); }, get group() { return tr('Cost Control · Waste'); } },
   { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste review'); }, get group() { return tr('Cost Control · Waste'); } },

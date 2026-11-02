@@ -51,7 +51,7 @@ export default function PremixPage() {
   const toFix = all.filter(r => (r.active?.issues ?? []).some(i => i.level === "error")).length;
   const drafts = all.filter(r => r.drafts > 0).length;
   return (
-    <Page title={tr("Premix calculator")} subtitle={tr("Premix recipes of Cost Control: grams of every ingredient, and the WIP form of the stock opname")}
+    <Page title={tr("Production calculator")} subtitle={tr("Premix recipes of Cost Control: grams of every ingredient, and the WIP form of the stock opname")}
       actions={manage && tab === "recipes" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New recipe")}</Button> : undefined}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
@@ -157,7 +157,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
   ] : [];
   const exportCsv = () => {
     const [head, ...rest] = table();
-    void downloadXlsx({ fileName: `premix-calculator ${new Date().toISOString().slice(0, 10)}`, sheet: "Premix", title: "Premix calculator",
+    void downloadXlsx({ fileName: `production-calculator ${new Date().toISOString().slice(0, 10)}`, sheet: "Premix", title: "Production calculator",
       header: head as string[], rows: rest.map((r) => r.map((v) => (v !== "" && !Number.isNaN(Number(v)) ? Number(v) : v))) });
   };
   const copy = async () => {

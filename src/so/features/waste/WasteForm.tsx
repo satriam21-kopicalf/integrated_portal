@@ -14,10 +14,11 @@
 // Every day (migration 041): the branch reports its waste, the items or "no waste today", and fills the Usage
 // Management list, the quantity of every usage item (saved again to correct it). Usage is not a single waste entry.
 
-import { Camera, CheckCircle2, ClipboardList, FlaskConical, Plus, Save, Search, Trash2 } from "lucide-react";
+import { Camera, CheckCircle2, ClipboardList, FlaskConical, PenLine, Plus, Save, Search, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
-import { ConfirmDialog } from "@/so/ui/Dialog";
+import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
+import SignaturePad from "@/so/features/count/SignaturePad";
 import { FormCard, Segmented } from "@/so/ui/Simple";
 import LiveClock from "@/so/ui/LiveClock";
 import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
@@ -59,6 +60,8 @@ export default function WasteForm() {
   const [usage, setUsage] = useState<Record<string, ULine>>({});
   const [usageChanged, setUsageChanged] = useState<Set<string>>(new Set());
   const [usageSaving, setUsageSaving] = useState(false);
+  // the signature asked before submitting (migration 055): the waste SKUs or the Usage Management list
+  const [signing, setSigning] = useState<"waste" | "usage" | null>(null);
   const [usageSearch, setUsageSearch] = useState("");
   const [flagging, setFlagging] = useState(false);
 
@@ -120,7 +123,7 @@ export default function WasteForm() {
   const pickDay = (d: string) => { setDay(d); void load(branch, d); };
   const pickScope = (s: Scope) => { setScope(s); setSearch(""); };
 
-  const save = async () => {
+  const save = async (signature: string) => {
     if (!b || !filled.length || incomplete) return;
     setSaving(true);
     let ok = 0;
@@ -131,7 +134,7 @@ export default function WasteForm() {
           branchCode: b.code, businessDate: day, scope: s, itemCode: item.code, qty: qtyOf(row), category: row.category,
           uom: s === "premix" ? uomOf(item, row) : undefined,
           note: row.note.trim() || null, productionDate: row.made || null, expiredDate: row.expires || null,
-          photo: row.photo!.image, takenAt: row.photo!.taken_at, latitude: row.photo!.lat, longitude: row.photo!.lng } });
+          photo: row.photo!.image, takenAt: row.photo!.taken_at, latitude: row.photo!.lat, longitude: row.photo!.lng, signature } });
         ok += 1;
         setRows((all) => { const n = { ...all }; delete n[item.code]; return n; });  // saved: the row is cleared
       } catch (e) {
@@ -157,7 +160,7 @@ export default function WasteForm() {
   };
 
   // every changed SKU on its own request (photos are large)
-  const saveUsage = async () => {
+  const saveUsage = async (signature: string) => {
     if (!b || !usageChanged.size || usageIncomplete) return;
     setUsageSaving(true);
     let ok = 0;
@@ -168,7 +171,7 @@ export default function WasteForm() {
         qty: Number(l.qty.replace(",", ".")), category: l.category, note: l.note.trim() || null,
         ...(l.photo ? { photo: l.photo.image, takenAt: l.photo.taken_at, latitude: l.photo.lat, longitude: l.photo.lng } : {}) };
       try {
-        await call("/api/waste/usage", { method: "PUT", json: { branchCode: b.code, businessDate: day, lines: { [code]: line } } });
+        await call("/api/waste/usage", { method: "PUT", json: { branchCode: b.code, businessDate: day, lines: { [code]: line }, signature } });
         ok += 1;
       } catch (e) {
         failed.push(`${data?.items.usage.find((i) => i.code === code)?.name ?? code}: ${(e as Error).message}`);
@@ -357,7 +360,7 @@ export default function WasteForm() {
                 )}
                 <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs text-slate-500">{filled.length ? (incomplete ? tr("{0} SKUs filled, {1} still incomplete", filled.length, incomplete) : tr("{0} SKUs ready to save", filled.length)) : tr("No SKU filled yet")}</p>
-                  <Button onClick={() => void save()} loading={saving} disabled={!b || !filled.length || incomplete > 0}><Plus size={16} />{tr("Save {0} SKUs", filled.length)}</Button>
+                  <Button onClick={() => setSigning("waste")} loading={saving} disabled={!b || !filled.length || incomplete > 0}><Plus size={16} />{tr("Save {0} SKUs", filled.length)}</Button>
                 </div>
               </FormCard>
 
@@ -398,7 +401,7 @@ export default function WasteForm() {
                                       <div className="grid gap-2 sm:grid-cols-2">
                                         <select className={cx(inputClass, "h-9")} value={l.category} onChange={(e) => setULine(i.code, { category: e.target.value })} aria-label={tr("Category")}>
                                           <option value="">{tr("Choose the category")}</option>
-                                          {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                                          {(data.usageCategories ?? data.categories).map((c) => <option key={c} value={c}>{c}</option>)}
                                         </select>
                                         <input className={cx(inputClass, "h-9")} value={l.note} maxLength={500} onChange={(e) => setULine(i.code, { note: e.target.value })} placeholder={tr("Reason (optional)")} />
                                         <div className="flex items-center gap-2 sm:col-span-2">
@@ -426,7 +429,7 @@ export default function WasteForm() {
                     </div>
                     <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
                       <p className="flex items-center gap-1.5 text-xs text-slate-500"><ClipboardList size={14} />{tr("{0} of {1} items filled", usageFilled, data.items.usage.length)}{usageChanged.size ? ` · ${usageIncomplete ? tr("{0} SKUs filled, {1} still incomplete", usageChanged.size, usageIncomplete) : tr("not saved yet")}` : ""}</p>
-                      <Button onClick={() => void saveUsage()} loading={usageSaving} disabled={!usageChanged.size || usageIncomplete > 0}><Save size={16} />{tr("Save Usage Management")}</Button>
+                      <Button onClick={() => setSigning("usage")} loading={usageSaving} disabled={!usageChanged.size || usageIncomplete > 0}><Save size={16} />{tr("Save Usage Management")}</Button>
                     </div>
                   </>
                 )}
@@ -441,6 +444,9 @@ export default function WasteForm() {
         onClose={() => setShooting(null)} onShot={async (s) => { if (shooting?.usage) setULine(shooting.code, { photo: s }); else if (shooting) setRow(shooting.code, { photo: s }); setShooting(null); }} />
       <ConfirmDialog open={!!remove} title={tr("Delete this waste?")} danger confirmLabel={tr("Delete")} busy={removing}
         description={remove ? `${remove.itemName} · ${fmtQty(remove.qty)} ${remove.unit}` : ""} onConfirm={() => void confirmRemove()} onClose={() => setRemove(null)} />
+      {signing && <SignDialog what={signing} count={signing === "waste" ? filled.length : usageChanged.size}
+        onClose={() => setSigning(null)}
+        onSign={(sig) => { const w = signing; setSigning(null); void (w === "waste" ? save(sig) : saveUsage(sig)); }} />}
     </Page>
   );
 }
@@ -485,5 +491,22 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
         </ul>
       )}
     </section>
+  );
+}
+
+/** The signature of the person who submits (migration 055): drawn before the waste SKUs or the Usage Management list
+ * are saved; it is kept with every entry and shown to Cost Control. */
+function SignDialog({ what, count, onSign, onClose }: { what: "waste" | "usage"; count: number; onSign: (image: string) => void; onClose: () => void }) {
+  const [sig, setSig] = useState<string | null>(null);
+  return (
+    <Dialog open size="sm" onClose={onClose} title={tr("Sign before submitting")}
+      description={what === "waste" ? tr("{0} waste SKUs", count) : tr("Usage Management: {0} SKUs", count)}
+      footer={<>
+        <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
+        <Button disabled={!sig} onClick={() => sig && onSign(sig)}><PenLine size={15} />{tr("Sign & submit")}</Button>
+      </>}>
+      <p className="mb-3 text-xs text-slate-500">{tr("By signing, I confirm the quantities, categories and photos entered are true.")}</p>
+      <SignaturePad onChange={setSig} />
+    </Dialog>
   );
 }

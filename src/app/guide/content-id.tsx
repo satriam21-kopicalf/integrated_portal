@@ -121,7 +121,7 @@ export const CC: Part = {
       id: 'cc-alur', title: 'Alur kerja ringkas',
       body: (
         <Table head={['Kapan', 'Yang dilakukan', 'Halaman']} rows={[
-          ['Sekali / saat ada perubahan', 'Atur jenis SO & jadwal, daftar hitung, grup item, resep WIP', 'Jenis SO, Daftar hitung, Grup item, Kalkulator Premix'],
+          ['Sekali / saat ada perubahan', 'Atur jenis SO & jadwal, daftar hitung, grup item, resep WIP', 'Jenis SO, Daftar hitung, Grup item, Kalkulator Produksi'],
           ['Setiap pagi (setelah 08:00)', 'Cek cabang yang belum/terlambat SO', 'Monitor'],
           ['Setelah SO dikirim', 'Setujui atau minta hitung ulang', 'Tinjau'],
           ['Setelah disetujui', 'Unduh laporan SO (Excel) yang rapi', 'Laporan SO'],
@@ -181,12 +181,12 @@ export const CC: Part = {
       ),
     },
     {
-      id: 'cc-premix', title: 'Kalkulator Premix & resep WIP',
+      id: 'cc-premix', title: 'Kalkulator Produksi & resep WIP',
       body: (
         <>
           <p className="text-sm text-slate-700">Pengganti workbook <i>Kalkulator Premix WIP – SO BAR KITCHEN</i>. Resep yang aktif dipakai kalkulator dan form WIP di SO.</p>
           <Steps items={[
-            <><b>Impor awal</b>: <Go href="/cost-control/premix">Kalkulator Premix</Go> → tab <Menu>Impor workbook</Menu> → pilih file → <Menu>Periksa</Menu> (belum menyimpan) → baca hasil (resep baru/berubah, bahan yang belum dipetakan, resep yang total bahannya ≠ 100%) → <Menu>Impor</Menu>.</>,
+            <><b>Impor awal</b>: <Go href="/cost-control/premix">Kalkulator Produksi</Go> → tab <Menu>Impor workbook</Menu> → pilih file → <Menu>Periksa</Menu> (belum menyimpan) → baca hasil (resep baru/berubah, bahan yang belum dipetakan, resep yang total bahannya ≠ 100%) → <Menu>Impor</Menu>.</>,
             <><b>Petakan bahan</b>: tab <Menu>Resep WIP</Menu> → buka resep bertanda “perlu diperbaiki” → pada setiap bahan pilih <b>item stok</b> (kode ESB). Air pilih “Bukan item stok”. Pilihan diingat untuk impor berikutnya.</>,
             <><b>Tambah bahan dari data yang ada</b>: di editor ada panel <b>Item master</b> (per kategori), <b>BOM ESB</b> (ambil satu baris atau semua bahan sebuah BOM) dan <b>Dipakai di resep</b>. Setelah ditambahkan, isi <b>gram per batch</b>.</>,
             <><b>Batch & satuan</b>: batch = gram satu pail untuk resep pail. Satuan: Pail = 1 per batch, Teko = 3 per batch, Gram = 1 g. Persentase per bahan & total terlihat langsung.</>,

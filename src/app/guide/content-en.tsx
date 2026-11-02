@@ -121,7 +121,7 @@ export const CC: Part = {
       id: 'cc-alur', title: 'Workflow at a glance',
       body: (
         <Table head={['When', 'What to do', 'Page']} rows={[
-          ['Once / when something changes', 'Set count types & schedules, count lists, item groups, WIP recipes', 'Count types, Count lists, Item groups, Premix calculator'],
+          ['Once / when something changes', 'Set count types & schedules, count lists, item groups, WIP recipes', 'Count types, Count lists, Item groups, Production calculator'],
           ['Every morning (after 08:00)', 'Check branches that have not counted or are late', 'Monitor'],
           ['After a count is submitted', 'Approve or request a recount', 'Review'],
           ['After approval', 'Download the tidy SO report (Excel)', 'SO report'],
@@ -181,12 +181,12 @@ export const CC: Part = {
       ),
     },
     {
-      id: 'cc-premix', title: 'Premix calculator & WIP recipes',
+      id: 'cc-premix', title: 'Production calculator & WIP recipes',
       body: (
         <>
           <p className="text-sm text-slate-700">Replaces the <i>Kalkulator Premix WIP – SO BAR KITCHEN</i> workbook. Active recipes are used by the calculator and the WIP form of the count.</p>
           <Steps items={[
-            <><b>First import</b>: <Go href="/cost-control/premix">Premix calculator</Go> → tab <Menu>Import workbook</Menu> → choose the file → <Menu>Check</Menu> (nothing saved yet) → read the result (new/changed recipes, unmapped ingredients, recipes whose ingredients do not add up to 100%) → <Menu>Import</Menu>.</>,
+            <><b>First import</b>: <Go href="/cost-control/premix">Production calculator</Go> → tab <Menu>Import workbook</Menu> → choose the file → <Menu>Check</Menu> (nothing saved yet) → read the result (new/changed recipes, unmapped ingredients, recipes whose ingredients do not add up to 100%) → <Menu>Import</Menu>.</>,
             <><b>Map ingredients</b>: tab <Menu>WIP recipes</Menu> → open a recipe marked “needs fixing” → pick the <b>stock item</b> (ESB code) for every ingredient. For water choose “Not a stock item”. The choice is remembered for the next import.</>,
             <><b>Add ingredients from existing data</b>: the editor has panels <b>Item master</b> (per category), <b>ESB BOM</b> (one line or every ingredient of a BOM) and <b>Used in recipes</b>. Then enter the <b>grams per batch</b>.</>,
             <><b>Batch & units</b>: the batch is the grams of one pail for pail recipes. Units: Pail = 1 per batch, Teko = 3 per batch, Gram = 1 g (outlets enter grams). The share of every ingredient and the total show right away.</>,

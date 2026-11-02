@@ -37,7 +37,7 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('Count Lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
     { get name() { return tr('Items Groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Templates assigned to branches'); } },
     { get name() { return tr('Count Types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
-    { get name() { return tr('Premix calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
+    { get name() { return tr('Production calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
     { get name() { return tr('Outlet locations'); }, href: '/cost-control/locations', icon: MapPin, get description() { return tr('Coordinates & check-in radius'); } },
   ] },
   { get title() { return tr('Waste'); }, get hint() { return tr('Follow and review the waste of every branch'); }, icon: Trash2, items: [

@@ -6,7 +6,7 @@
 // are ticked and approved or rejected (with a note), one by one or many at once. Export: Excel (entries, per item, daily report, Usage Management) from the Excel icon.
 // Daily report: the branches that reported their waste each day; Usage Management: the daily lists (WasteDaily.tsx).
 
-import { CalendarCheck, CheckCircle2, ClipboardList, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
+import { CalendarCheck, CheckCircle2, ClipboardList, FileSearch, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { downloadXlsx } from "@/lib/xlsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -21,9 +21,10 @@ import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { DailyReport, UsageReport } from "./WasteDaily";
-import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, SCOPES, fmtQty, photoUrl, usagePhotoUrl, scopeLabel, statusLabel, statusTone } from "./waste";
+import { CategoriesDrawer, Ingredients, InvestigationDrawer, InvestigationList } from "./Investigation";
+import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, SCOPES, fmtQty, photoUrl, usagePhotoUrl, scopeLabel, signatureUrl, statusLabel, statusTone } from "./waste";
 
-type View = "entries" | "items" | "branches" | "categories" | "daily" | "usage";
+type View = "entries" | "items" | "branches" | "categories" | "daily" | "usage" | "investigations";
 type BranchOpt = { branch_code: string; branch_name: string };
 
 export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
@@ -43,6 +44,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [verdict, setVerdict] = useState<"approved" | "rejected" | null>(null);
   const [busy, setBusy] = useState(false);
+  // migration 055: the investigation open in the editor, the categories of the forms
+  const [investigation, setInvestigation] = useState<string | null>(null);
+  const [cats, setCats] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -66,7 +70,23 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   }, [res, search]);
   const paged = usePaged(rows, rows.length + search);
   const sm = res?.summary;
-  const waiting = rows.filter((e) => e.status === "submitted");
+  // not decided yet: waiting review or under investigation
+  const waiting = rows.filter((e) => e.status === "submitted" || e.status === "investigating");
+  const investigate = async () => {
+    const ids = open && !picked.size ? [open.id] : [...picked];
+    setBusy(true);
+    try {
+      const out = await call<{ id: string; reportNo: number }>("/api/waste/investigations", { method: "POST", json: { ids } });
+      toast(tr("Investigation No. {0} opened", String(out.reportNo).padStart(2, "0")));
+      setOpen(null);
+      setInvestigation(out.id);
+      await load();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const decide = async (note: string) => {
     if (!verdict) return;
@@ -118,12 +138,12 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   return (
     <Page title={review ? tr("Waste review") : tr("Waste monitor")}
       subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${review ? tr("approve or reject the waste of the branches") : tr("Waste entered by every branch")}`}
-      actions={<ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
+      actions={<>{review && <Button variant="secondary" size="sm" onClick={() => setCats(true)}><Tags size={14} />{tr("Categories")}</Button>}<ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
         { key: "entries", label: tr("Waste entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-blue-50 text-blue-600", count: res ? rows.length : null, run: safe(exportEntries) },
         { key: "items", label: tr("Totals per item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
         { key: "daily", label: tr("Daily report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
         { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
-      ]} />}
+      ]} /></>}
       stats={
         <StatStrip label={tr("Summary")} columns={5}>
           <Stat label={tr("Entries")} emphasis icon={<Trash2 size={13} />} value={sm ? fmtNumber(sm.entries) : <StatSkeleton />}>
@@ -154,14 +174,15 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             </select>
             <select className={inputClass} value={status} onChange={(e) => setStatus(e.target.value as Status | "")} aria-label={tr("Status")}>
               <option value="">{tr("All statuses")}</option>
-              {(["submitted", "approved", "rejected"] as Status[]).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
+              {(["submitted", "investigating", "approved", "rejected"] as Status[]).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Segmented label={tr("View")} value={view} onChange={setView} options={[
               { value: "entries", label: tr("Entries") }, { value: "items", label: tr("Per item") },
               { value: "branches", label: tr("Per branch") }, { value: "categories", label: tr("Per category") },
-              { value: "daily", label: tr("Daily report") }, { value: "usage", label: tr("Usage Management") }]} />
+              { value: "daily", label: tr("Daily report") }, { value: "usage", label: tr("Usage Management") },
+              { value: "investigations", label: tr("Investigations") }]} />
             {view === "entries" && <input className={cx(inputClass, "sm:max-w-xs")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search item, branch or person")} />}
           </div>
           {review && view === "entries" && waiting.length > 0 && (
@@ -172,6 +193,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 {tr("{0} of {1} selected", picked.size, waiting.length)}
               </label>
               <span className="flex-1" />
+              <Button size="sm" variant="secondary" disabled={!picked.size || busy} onClick={() => void investigate()}><FileSearch size={14} />{tr("Investigate")}</Button>
               <Button size="sm" variant="secondary" disabled={!picked.size} onClick={() => setVerdict("rejected")}><XCircle size={14} />{tr("Reject")}</Button>
               <Button size="sm" disabled={!picked.size} onClick={() => setVerdict("approved")}><CheckCircle2 size={14} />{tr("Approve")}</Button>
             </div>
@@ -179,7 +201,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         </div>
       }
         footer={res && view === "entries" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 2,000 of the period")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
-        {view === "daily" ? <DailyReport period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
+        {view === "investigations" ? <InvestigationList key={String(investigation)} onOpen={setInvestigation} />
+          : view === "daily" ? <DailyReport period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
           : view === "usage" ? <UsageReport period={period} branch={branch} />
           : error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <SkeletonRows cols={6} /> : view === "entries" ? (
           rows.length === 0 ? (
@@ -190,7 +213,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             <ul className="divide-y divide-slate-100">
               {paged.rows.map((e) => (
                 <li key={e.id} className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50">
-                  {review && e.status === "submitted" && <input type="checkbox" className="mt-4" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}
+                  {review && (e.status === "submitted" || e.status === "investigating") && <input type="checkbox" className="mt-4" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}
                   <button type="button" onClick={() => setOpen(e)} className="flex min-w-0 flex-1 items-start gap-3 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={photoUrl(e.id)} alt="" loading="lazy" className="h-14 w-14 flex-shrink-0 rounded-lg bg-slate-100 object-cover" />
@@ -213,8 +236,11 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
       </Panel>
 
       <Drawer open={!!open} onClose={() => setOpen(null)} title={open?.itemName ?? ""} description={open ? `${open.branchName} · ${dmy(open.businessDate)}` : ""}
-        footer={open && review && open.status === "submitted" ? (
-          <div className="flex justify-end gap-2">
+        footer={open && review && (open.status === "submitted" || open.status === "investigating") ? (
+          <div className="flex flex-wrap justify-end gap-2">
+            {open.investigationId
+              ? <Button variant="secondary" className="mr-auto" onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={14} />{tr("Open the investigation")}</Button>
+              : <Button variant="secondary" className="mr-auto" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button>}
             <Button variant="secondary" onClick={() => { setPicked(new Set()); setVerdict("rejected"); }}><XCircle size={14} />{tr("Reject")}</Button>
             <Button onClick={() => { setPicked(new Set()); setVerdict("approved"); }}><CheckCircle2 size={14} />{tr("Approve")}</Button>
           </div>
@@ -244,10 +270,20 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 <div key={k} className="flex gap-3 px-3 py-2"><dt className="w-32 flex-shrink-0 text-slate-500">{k}</dt><dd className="min-w-0 flex-1 text-slate-800">{v}</dd></div>
               ))}
             </dl>
+            <Ingredients entry={open} />
+            {open.signed && (
+              <div className="rounded-xl border border-slate-200 p-3">
+                <p className="mb-1 text-xs font-semibold text-slate-700">{tr("Signature of {0}", open.name)}</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={signatureUrl(open.id)} alt={tr("Signature")} className="max-h-28 object-contain" />
+              </div>
+            )}
           </div>
         )}
       </Drawer>
 
+      {investigation && <InvestigationDrawer id={investigation} onClose={() => setInvestigation(null)} onChanged={() => void load()} />}
+      {cats && <CategoriesDrawer onClose={() => setCats(false)} />}
       <ConfirmDialog open={!!verdict} busy={busy} danger={verdict === "rejected"}
         title={verdict === "approved" ? tr("Approve the waste?") : tr("Reject the waste?")}
         description={tr("{0} entries", open && !picked.size ? 1 : picked.size)}
@@ -257,7 +293,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   );
 }
 
-function Totals({ view, res, onBranch }: { view: Exclude<View, "entries">; res: MonitorData; onBranch: (code: string) => void }) {
+function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "investigations">; res: MonitorData; onBranch: (code: string) => void }) {
   if (view === "items") {
     return !res.byItem.length ? <Empty title={tr("No waste in this period")} /> : (
       <div className="overflow-x-auto"><table className="w-full text-sm">
