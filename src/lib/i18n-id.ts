@@ -4701,4 +4701,18 @@ export const ID: Record<string, string> = {
   "Search menu, e.g. es kopi premium": "Cari menu, mis. es kopi premium",
   "last sold {0}": "terakhir terjual {0}",
   "{0} shown": "{0} tampil",
+  // Sales Calculator empty filters (2026-11-02)
+  "Choose the sales period": "Pilih periode penjualan",
+  "Choose the sales period in Filters first": "Pilih periode penjualan di Filter terlebih dahulu",
+  "Fill the planned days": "Isi jumlah hari rencana",
+  "Material Required Planning needs the days to plan for (and a buffer, optional) in Filters.": "Material Required Planning membutuhkan jumlah hari rencana (dan buffer, opsional) di Filter.",
+  "Materials to prepare for the planned days": "Bahan yang perlu disiapkan untuk hari rencana",
+  "Open Filters": "Buka Filter",
+  "Per material: system, actual (ESB), difference and value": "Per bahan: system, actual (ESB), selisih dan nilai",
+  "Per menu: sold, sales, HPP per portion, COGS and ratio": "Per menu: terjual, sales, HPP per porsi, COGS dan rasio",
+  "The calculator reads the POS transactions of the period and branch you choose; fill the planned days for the Material Required Planning.": "Kalkulator membaca transaksi POS pada periode dan cabang yang dipilih; isi jumlah hari rencana untuk Material Required Planning.",
+  "e.g. 10": "mis. 10",
+  "e.g. 7": "mis. 7",
+  "{0} cards": "{0} kartu",
+  "{0} of {1} menus": "{0} dari {1} menu",
 };

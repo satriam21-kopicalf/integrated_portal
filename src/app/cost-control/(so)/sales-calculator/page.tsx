@@ -7,14 +7,15 @@
 // bill, portion or outlet-day; 4. Calculator — from the POS transactions of the branches: Material Required Planning,
 // Usage Actual vs System (ESB stock opname + purchases) and COGS Bahan Baku (Pricelist Items).
 
-import { BookOpen, Calculator, ChevronDown, Download, FlaskConical, ListChecks, Package, PenLine, Plus, RefreshCw, Save, Search, Trash2 } from "lucide-react";
+import { BookOpen, Calculator, ChevronDown, FlaskConical, ListChecks, Package, PenLine, Plus, Save, Search, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, Panel, SkeletonRows, theadClass, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
-import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { Stat, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterSection, FilterSheet, FilterToolbar, PeriodField, type Period, dmy, wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { tr } from "@/lib/i18n";
 
 type Kind = "item" | "wip" | "other";
@@ -52,6 +53,18 @@ const parse = (v: string) => { const n = Number(v.replace(",", ".")); return v.t
 
 export default function SalesCalculatorPage() {
   const [step, setStep] = useState<Step>("recipes");
+  // progress of the steps, refreshed when a step is opened
+  const [progress, setProgress] = useState<{ cards: number; menus: number; mapped: number; extras: number } | null>(null);
+  useEffect(() => {
+    Promise.all([call<{ data: Recipe[] }>("/api/cost-control/sales-calc/recipes"), call<{ data: Menu[] }>("/api/cost-control/sales-calc/menus"),
+      call<{ data: Extra[] }>("/api/cost-control/sales-calc/extras")])
+      .then(([r, m, e]) => setProgress({ cards: r.data.length, menus: m.data.length, mapped: m.data.filter((x) => x.recipe).length, extras: e.data.filter((x) => x.isActive).length }))
+      .catch(() => setProgress(null));
+  }, [step]);
+  const status: Record<Step, string | null> = progress ? {
+    recipes: tr("{0} cards", progress.cards), menus: tr("{0} of {1} menus", progress.mapped, progress.menus),
+    extras: tr("{0} active", progress.extras), report: null,
+  } : { recipes: null, menus: null, extras: null, report: null };
   const steps: { key: Step; label: string; hint: string; icon: typeof BookOpen }[] = [
     { key: "recipes", label: tr("Recipe Cards"), hint: tr("Components per portion"), icon: BookOpen },
     { key: "menus", label: tr("Assign Menus"), hint: tr("ESB menus to a card"), icon: ListChecks },
@@ -70,7 +83,7 @@ export default function SalesCalculatorPage() {
               <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm font-bold", on ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-500")}>{i + 1}</span>
               <span className="min-w-0">
                 <span className={cx("block truncate text-sm font-semibold", on ? "text-blue-800" : "text-slate-800")}>{s.label}</span>
-                <span className="block truncate text-[11px] text-slate-500">{s.hint}</span>
+                <span className="block truncate text-[11px] text-slate-500">{status[s.key] ?? s.hint}</span>
               </span>
             </button>
           );
@@ -516,20 +529,23 @@ function Extras() {
 
 function ReportView({ onGo }: { onGo: (s: Step) => void }) {
   const toast = useToast();
-  const [period, setPeriod] = useState<Period>({ from: wibDay(-6), to: wibDay(0) });
+  // no filter at first (2026-11-02): the calculator loads once the sales period is chosen
+  const [period, setPeriod] = useState<Period | null>(null);
   const [branch, setBranch] = useState("");
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [horizon, setHorizon] = useState("7");
-  const [buffer, setBuffer] = useState("10");
+  const [horizon, setHorizon] = useState("");
+  const [buffer, setBuffer] = useState("");
   const [view, setView] = useState<"cogs" | "mrp" | "usage">("cogs");
   const [data, setData] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const [sheet, setSheet] = useState(false);
-  const h = Math.min(60, Math.max(1, Number(horizon) || 7));
+  const planned = horizon.trim() !== "";
+  const h = Math.min(60, Math.max(1, Number(horizon) || 1));
   const b = Math.min(200, Math.max(0, Number(buffer) || 0));
   useEffect(() => { void call<Branch[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
   useEffect(() => {
+    if (!period) return;
     let alive = true;
     setData(null);
     setError(null);
@@ -537,43 +553,46 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
       .then((d) => { if (alive) setData(d); }).catch((e: Error) => { if (alive) setError(e.message); });
     return () => { alive = false; };
   }, [period, branch, h, b, tick]);
-  const t = data?.total;
-  const exportView = async () => {
-    if (!data) return;
-    const name = `${view === "mrp" ? "Material Required Planning" : view === "usage" ? "Usage Actual vs System" : "COGS Bahan Baku"} ${period.from} - ${period.to}`;
-    try {
-      if (view === "mrp") await downloadXlsx({ fileName: name, sheet: "MRP", title: name, header: ["Kode", "Bahan", "Qty", "Satuan", "Nilai"], rows: data.mrp.map((r) => [r.code, r.name, r.qty, r.unit, r.value]) });
-      else if (view === "usage") await downloadXlsx({ fileName: name, sheet: "Usage", title: name, header: ["Kode", "Bahan", "Satuan", "System", "Actual", "Selisih", "Harga", "Nilai System", "Nilai Actual"],
-        rows: data.usage.map((r) => [r.code, r.name, r.unit, r.system, r.actual, r.variance, r.price, r.systemValue, r.actualValue]) });
-      else await downloadXlsx({ fileName: name, sheet: "COGS", title: name, header: ["Menu", "Kartu Resep", "Terjual", "Sales", "HPP / Porsi", "COGS", "Rasio"],
-        rows: data.menus.map((m) => [m.name, m.recipeName, m.qty, m.sales, m.hpp, m.cogs, m.ratio]) });
-    } catch (e) { toast((e as Error).message, "error"); }
+  const t = period ? data?.total : undefined;
+  const file = (what: string) => `${what} ${period?.from ?? ""} - ${period?.to ?? ""}`;
+  const guard = (f: (d: Report) => Promise<void>) => async () => {
+    if (!data || !period) { toast(tr("Choose the sales period in Filters first"), "error"); return; }
+    try { await f(data); } catch (e) { toast((e as Error).message, "error"); }
   };
   const branchName = branches.find((x) => x.branch_code === branch)?.branch_name ?? branch;
   const chips: ActiveFilter[] = [
-    { key: "p", label: `${dmy(period.from)} – ${dmy(period.to)}`, onRemove: () => setPeriod({ from: wibDay(-6), to: wibDay(0) }) },
+    ...(period ? [{ key: "p", label: `${dmy(period.from)} – ${dmy(period.to)}`, onRemove: () => { setPeriod(null); setData(null); } }] : []),
     ...(branch ? [{ key: "b", label: branchName, onRemove: () => setBranch("") }] : []),
-    { key: "h", label: tr("Plan {0} days + {1}% buffer", h, b), onRemove: () => { setHorizon("7"); setBuffer("10"); } },
+    ...(planned ? [{ key: "h", label: tr("Plan {0} days + {1}% buffer", h, b), onRemove: () => { setHorizon(""); setBuffer(""); } }] : []),
   ];
   const outputs = [{ key: "cogs", label: tr("COGS Bahan Baku") }, { key: "mrp", label: tr("Material Required Planning") }, { key: "usage", label: tr("Usage Actual vs System") }] as const;
   return (
     <>
-      <StatStrip label={tr("Summary")} columns={4}>
-        <Stat label={tr("Sales of Mapped Menus")} value={t ? rp(t.sales) : <StatSkeleton />}>{t && <p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}</p>}</Stat>
-        <Stat label={tr("COGS Bahan Baku")} emphasis value={t ? rp(t.cogs) : <StatSkeleton />}>{t && <p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p>}</Stat>
-        <Stat label={tr("Usage System")} value={t ? rp(t.systemValue) : <StatSkeleton />} />
-        <Stat label={tr("Usage Actual (ESB)")} value={t ? rp(t.actualValue) : <StatSkeleton />}>{t && t.actualValue ? <p>{tr("difference {0}", rp(t.actualValue - t.systemValue))}</p> : <p>{tr("needs SO awal & akhir of the branch")}</p>}</Stat>
-      </StatStrip>
-      {sheet && <CalcFilterSheet value={{ period, branch, horizon, buffer }} branches={branches} onClose={() => setSheet(false)}
+      {t && (
+        <StatStrip label={tr("Summary")} columns={4}>
+          <Stat label={tr("Sales of Mapped Menus")} value={rp(t.sales)}><p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}</p></Stat>
+          <Stat label={tr("COGS Bahan Baku")} emphasis value={rp(t.cogs)}><p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p></Stat>
+          <Stat label={tr("Usage System")} value={rp(t.systemValue)} />
+          <Stat label={tr("Usage Actual (ESB)")} value={rp(t.actualValue)}>{t.actualValue ? <p>{tr("difference {0}", rp(t.actualValue - t.systemValue))}</p> : <p>{tr("needs SO awal & akhir of the branch")}</p>}</Stat>
+        </StatStrip>
+      )}
+      {sheet && <CalcFilterSheet value={{ period: period ?? { from: wibDay(-6), to: wibDay(0) }, branch, horizon, buffer }} branches={branches} onClose={() => setSheet(false)}
         onApply={(f) => { setPeriod(f.period); setBranch(f.branch); setHorizon(f.horizon); setBuffer(f.buffer); setSheet(false); }} />}
       <Panel toolbar={
         <div className="space-y-3">
           <FilterToolbar filters={chips} onOpen={() => setSheet(true)}
-            onClear={() => { setPeriod({ from: wibDay(-6), to: wibDay(0) }); setBranch(""); setHorizon("7"); setBuffer("10"); }}
-            extra={<div className="ml-auto flex gap-2">
-              <Button variant="secondary" onClick={() => setTick((x) => x + 1)} aria-label={tr("Refresh")}><RefreshCw size={15} /></Button>
-              <Button variant="secondary" disabled={!data} onClick={() => void exportView()}><Download size={15} />Excel</Button>
-            </div>} />
+            onClear={() => { setPeriod(null); setData(null); setBranch(""); setHorizon(""); setBuffer(""); }}
+            extra={<div className="ml-auto"><ExcelExportMenu footer={period ? <>{branch ? branchName : tr("All branches")} · {dmy(period.from)} – {dmy(period.to)}</> : tr("Choose the sales period in Filters first")} choices={[
+              { key: "cogs", label: tr("COGS Bahan Baku"), hint: tr("Per menu: sold, sales, HPP per portion, COGS and ratio"), icon: <Calculator size={16} />, tone: "bg-blue-50 text-blue-600", count: data ? data.menus.length : null,
+                run: guard((d) => downloadXlsx({ fileName: file("COGS Bahan Baku"), sheet: "COGS", title: file("COGS Bahan Baku"), header: ["Menu", "Kartu Resep", "Terjual", "Sales", "HPP / Porsi", "COGS", "Rasio"],
+                  rows: d.menus.map((m) => [m.name, m.recipeName, m.qty, m.sales, m.hpp, m.cogs, m.ratio]) })) },
+              { key: "mrp", label: tr("Material Required Planning"), hint: tr("Materials to prepare for the planned days"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: data ? data.mrp.length : null,
+                run: guard((d) => downloadXlsx({ fileName: file("Material Required Planning"), sheet: "MRP", title: file("Material Required Planning"), header: ["Kode", "Bahan", "Qty", "Satuan", "Nilai"],
+                  rows: d.mrp.map((r) => [r.code, r.name, r.qty, r.unit, r.value]) })) },
+              { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: system, actual (ESB), difference and value"), icon: <ListChecks size={16} />, tone: "bg-emerald-50 text-emerald-600", count: data ? data.usage.length : null,
+                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "System", "Actual", "Selisih", "Harga", "Nilai System", "Nilai Actual"],
+                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.system, r.actual, r.variance, r.price, r.systemValue, r.actualValue]) })) },
+            ]} /></div>} />
           <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-slate-200">
             {outputs.map((o) => (
               <button key={o.key} type="button" role="tab" aria-selected={view === o.key} onClick={() => setView(o.key)}
@@ -582,7 +601,17 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
           </div>
         </div>
       }>
-        {error ? <ErrorState message={error} onRetry={() => setTick((x) => x + 1)} /> : !data ? <SkeletonRows cols={6} /> : (
+        {!period ? (
+          <Empty icon={<Calculator size={28} />} title={tr("Choose the sales period")}>
+            <p className="max-w-md">{tr("The calculator reads the POS transactions of the period and branch you choose; fill the planned days for the Material Required Planning.")}</p>
+            <Button className="mt-3" onClick={() => setSheet(true)}>{tr("Open Filters")}</Button>
+          </Empty>
+        ) : view === "mrp" && !planned ? (
+          <Empty icon={<Package size={28} />} title={tr("Fill the planned days")}>
+            <p className="max-w-md">{tr("Material Required Planning needs the days to plan for (and a buffer, optional) in Filters.")}</p>
+            <Button className="mt-3" onClick={() => setSheet(true)}>{tr("Open Filters")}</Button>
+          </Empty>
+        ) : error ? <ErrorState message={error} onRetry={() => setTick((x) => x + 1)} /> : !data ? <SkeletonRows cols={6} /> : (
           <div className="overflow-x-auto">
             {data.unmapped.length > 0 && (
               <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
@@ -675,7 +704,7 @@ function CalcFilterSheet({ value, branches, onApply, onClose }: { value: CalcFil
   const [d, setD] = useState<CalcFilters>(value);
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)}
-      onReset={() => setD({ period: { from: wibDay(-6), to: wibDay(0) }, branch: "", horizon: "7", buffer: "10" })}>
+      onReset={() => setD({ period: { from: wibDay(-6), to: wibDay(0) }, branch: "", horizon: "", buffer: "" })}>
       <FilterSection title={tr("Sales Period")} hint={tr("The POS transactions of the branches in this period")}>
         <PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={92} />
       </FilterSection>
@@ -686,8 +715,8 @@ function CalcFilterSheet({ value, branches, onApply, onClose }: { value: CalcFil
       </FilterSection>
       <FilterSection title={tr("Material Required Planning")} hint={tr("Average daily sales × the days planned, plus a buffer")}>
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-xs font-medium text-slate-600">{tr("Plan for (days)")}<input inputMode="numeric" className={cx(inputClass, "mt-1")} value={d.horizon} onChange={(e) => setD({ ...d, horizon: e.target.value })} /></label>
-          <label className="text-xs font-medium text-slate-600">{tr("Buffer (%)")}<input inputMode="numeric" className={cx(inputClass, "mt-1")} value={d.buffer} onChange={(e) => setD({ ...d, buffer: e.target.value })} /></label>
+          <label className="text-xs font-medium text-slate-600">{tr("Plan for (days)")}<input inputMode="numeric" className={cx(inputClass, "mt-1")} value={d.horizon} placeholder={tr("e.g. 7")} onChange={(e) => setD({ ...d, horizon: e.target.value.replace(/[^0-9]/g, "") })} /></label>
+          <label className="text-xs font-medium text-slate-600">{tr("Buffer (%)")}<input inputMode="numeric" className={cx(inputClass, "mt-1")} value={d.buffer} placeholder={tr("e.g. 10")} onChange={(e) => setD({ ...d, buffer: e.target.value.replace(/[^0-9]/g, "") })} /></label>
         </div>
       </FilterSection>
     </FilterSheet>
