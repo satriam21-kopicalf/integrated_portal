@@ -38,6 +38,8 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('Items Groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Templates assigned to branches'); } },
     { get name() { return tr('Count Types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
     { get name() { return tr('Production calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
+    { get name() { return tr('Sales calculator by menu'); }, href: '/cost-control/sales-calculator', icon: Calculator, get description() { return tr('Menu recipe cards, MRP, usage & COGS'); } },
+    { get name() { return tr('Pricelist items'); }, href: '/cost-control/pricelist', icon: Receipt, get description() { return tr('Prices of the raw materials'); } },
     { get name() { return tr('Outlet locations'); }, href: '/cost-control/locations', icon: MapPin, get description() { return tr('Coordinates & check-in radius'); } },
   ] },
   { get title() { return tr('Waste'); }, get hint() { return tr('Follow and review the waste of every branch'); }, icon: Trash2, items: [

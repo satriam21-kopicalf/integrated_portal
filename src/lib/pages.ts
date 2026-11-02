@@ -11,7 +11,7 @@ export type PageKey =
   | 'mon.pengajuan'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
-  | 'cc.premix' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs'
+  | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs'
   | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule' | 'cotr.incentive';
 
 /** How the page shows in the menu: 'header' = icon in the header (not the sidebar), 'hidden' = no menu entry for now
@@ -42,6 +42,8 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.groups', href: '/cost-control/groups', get label() { return tr('Items Groups'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.types', href: '/cost-control/types', get label() { return tr('Count Types'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.premix', href: '/cost-control/premix', get label() { return tr('Production calculator'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
+  { key: 'cc.sales-calc', href: '/cost-control/sales-calculator', get label() { return tr('Sales calculator by menu'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
+  { key: 'cc.pricelist', href: '/cost-control/pricelist', get label() { return tr('Pricelist items'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.locations', href: '/cost-control/locations', get label() { return tr('Outlet locations'); }, get group() { return tr('Cost Control · Stock opname settings'); } },
   { key: 'cc.waste-monitor', href: '/cost-control/waste/monitor', get label() { return tr('Waste monitor'); }, get group() { return tr('Cost Control · Waste'); } },
   { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste review'); }, get group() { return tr('Cost Control · Waste'); } },
