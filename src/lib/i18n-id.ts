@@ -4303,4 +4303,13 @@ export const ID: Record<string, string> = {
   "Tiers per cup, bonus & attendance": "Tier per cup, bonus & kehadiran",
   "Try a number of cups and an attendance against a scheme (the product bonus is counted in the monthly recap)": "Coba jumlah cup dan kehadiran terhadap skema (bonus produk dihitung di rekap bulanan)",
   "scheme": "skema",
+  // User Accounts lines & menus (2026-11-02)
+  "Business line": "Lini bisnis",
+  "Menus per platform": "Menu per platform",
+  "The tab of User Accounts the account is listed in; its branches are of this line": "Tab User Accounts tempat akun ini tercantum; cabangnya dari lini ini",
+  "Menu display: ticked pages are shown in the menu. Unticked pages keep working (by their address, links and approvals) — only the menu gets shorter.": "Tampilan menu: halaman yang dicentang tampil di menu. Halaman yang tidak dicentang tetap berfungsi (lewat alamat, tautan dan approval) — hanya menunya yang lebih ringkas.",
+  "Show every page ({0} hidden)": "Tampilkan semua halaman ({0} disembunyikan)",
+  "Saved. The menus follow within a minute (after the next sign-in check).": "Tersimpan. Menu menyesuaikan dalam satu menit (setelah pengecekan login berikutnya).",
+  "Where every page is shown in the menu: the portal, Operations or the Calf On The Road app. Only the menu changes; the access and the flows stay as they are.": "Tempat setiap halaman tampil di menu: portal, Operations atau aplikasi Calf On The Road. Hanya menu yang berubah; akses dan alur tetap seperti biasa.",
+  "Back to the default": "Kembali ke default",
 };

@@ -3,14 +3,14 @@
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  AlertCircle, Briefcase, CheckCircle2, LayoutGrid, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
+  AlertCircle, Briefcase, MonitorSmartphone, CheckCircle2, LayoutGrid, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
   Search, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserPlus, UserRound, UserRoundPen, Wand2, X,
 } from 'lucide-react';
 import BranchAssign from '@/components/BranchAssign';
 import type { Branch } from '@/components/BranchFilter';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import MasterCombobox from '@/components/MasterCombobox';
-import { MastersDrawer, PageAccessEditor, RolePagesDrawer } from '@/components/access/PageAccess';
+import { MastersDrawer, PageAccessEditor, PlatformsDrawer, RolePagesDrawer } from '@/components/access/PageAccess';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import ActionMenu, { ActionItem } from '@/components/ui/ActionMenu';
@@ -18,7 +18,21 @@ import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
-import { AuthUser, branchScoped, GENDER_LABELS, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
+import { AuthUser, branchScoped, BusinessLine, GENDER_LABELS, LINE_COMPANY, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
+
+/** The business lines of User Accounts (migration 054): accounts and branches of each line apart. */
+const LINES: { key: BusinessLine; label: string; logo: string }[] = [
+  { key: 'kopicalf', label: 'Kopi Calf', logo: '/assets/calf-logo.png' },
+  { key: 'wasgee', label: 'Wasgee Tea', logo: '/assets/Logo-Wasgee.png' },
+  { key: 'cotr', label: 'Calf On The Road', logo: '/assets/Logo-COTR.png' },
+];
+/** The branches of a line: its ESB company (sites without an ESB company — HUB WH / CK — belong to Kopi Calf);
+ * Calf On The Road works with pools, every branch may still be given. */
+function lineBranches(branches: Branch[], line: BusinessLine): Branch[] {
+  const company = LINE_COMPANY[line];
+  if (!company) return branches;
+  return branches.filter(b => (b.company_code ?? 'CALF') === company);
+}
 import { PAGES } from '@/lib/pages';
 import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
 import { locale, tr, serverMsg } from '@/lib/i18n';
@@ -40,6 +54,7 @@ interface UsersSummary {
   neverSignedIn: number;
   active7d: number;
   branchesCovered: number;
+  lines?: Record<BusinessLine, number>;
 }
 
 interface ListResponse {
@@ -99,7 +114,8 @@ export default function UsersPage() {
   const [issued, setIssued] = useState<IssuedLogin | null>(null);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AuthUser | 'new' | null>(null);
-  const [panel, setPanel] = useState<'roles' | 'masters' | null>(null);
+  const [panel, setPanel] = useState<'roles' | 'masters' | 'platforms' | null>(null);
+  const [line, setLine] = useState<BusinessLine>('kopicalf');
   const [viewing, setViewing] = useState<AuthUser | null>(null);
   const [deleting, setDeleting] = useState<AuthUser | null>(null);
   const [toast, setToast] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
@@ -139,6 +155,7 @@ export default function UsersPage() {
       if (filters.role) params.set('role', filters.role);
       if (filters.status) params.set('status', filters.status);
       if (filters.branch) params.set('branch', filters.branch);
+      params.set('line', line);
       const [body, counts] = await Promise.all([
         api<ListResponse>(`/api/users?${params}`),
         api<UsersSummary>('/api/users/summary').catch(() => null),
@@ -151,7 +168,7 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, query, filters]);
+  }, [page, query, filters, line]);
 
   useEffect(() => {
     if (allowed) load();
@@ -238,6 +255,10 @@ export default function UsersPage() {
                 title={tr('Roles & pages')} aria-label={tr('Roles & pages')}>
                 <LayoutGrid size={20} strokeWidth={1.75} />
               </button>
+              <button type="button" className={ICON_BUTTON} onClick={() => setPanel('platforms')}
+                title={tr('Menus per platform')} aria-label={tr('Menus per platform')}>
+                <MonitorSmartphone size={20} strokeWidth={1.75} />
+              </button>
               <button type="button" className={ICON_BUTTON} onClick={() => setPanel('masters')}
                 title={tr('Job titles & departments')} aria-label={tr('Job titles & departments')}>
                 <Briefcase size={20} strokeWidth={1.75} />
@@ -251,6 +272,17 @@ export default function UsersPage() {
 
 
         <div className="space-y-4 p-4 sm:p-6">
+          <div role="tablist" aria-label={tr('Business line')} className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1 shadow-sm">
+            {LINES.map(l => (
+              <button key={l.key} type="button" role="tab" aria-selected={line === l.key} onClick={() => { setLine(l.key); setPage(1); applyFilters(NO_FILTERS); }}
+                className={`flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-colors ${line === l.key ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={l.logo} alt="" className={`h-6 w-6 rounded-full object-contain ${line === l.key ? 'bg-white p-0.5' : ''}`} />
+                <span className="truncate">{l.label}</span>
+                {s?.lines && <span className={`rounded-full px-1.5 text-[11px] ${line === l.key ? 'bg-white/20' : 'bg-slate-100 text-slate-500'}`}>{formatNumber(s.lines[l.key] ?? 0)}</span>}
+              </button>
+            ))}
+          </div>
           <StatStrip label={tr('User summary')} columns={5}>
             <Stat label={tr('Users')} value={s ? formatNumber(s.total) : <StatSkeleton />}>
               {s && <p>{tr('{0} super admin · {1} PIC · {2} outlet / hub', formatNumber(s.superadmins), formatNumber(s.users), formatNumber(s.outlets ?? 0))}</p>}
@@ -350,10 +382,10 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {filtersOpen && <UserFiltersDrawer value={filters} branches={branches} branchesLoading={branchesLoading}
+      {filtersOpen && <UserFiltersDrawer value={filters} branches={lineBranches(branches, line)} branchesLoading={branchesLoading}
         onApply={next => { applyFilters(next); setFiltersOpen(false); }} onClose={() => setFiltersOpen(false)} />}
       {editing && <UserFormDrawer user={editing === 'new' ? null : editing} isMe={editing !== 'new' && editing.id === me?.id}
-        branches={branches} branchesLoading={branchesLoading}
+        branches={branches} branchesLoading={branchesLoading} line={line}
         onClose={() => setEditing(null)} onSaved={saved} />}
       {viewing && <UserDetailDrawer user={viewing} isMe={viewing.id === me?.id} branchName={branchName} onClose={() => setViewing(null)}
         onEdit={() => { setEditing(viewing); setViewing(null); }} onDelete={() => { setDeleting(viewing); setViewing(null); }} onUnlock={() => unlock(viewing)} />}
@@ -362,6 +394,7 @@ export default function UsersPage() {
         onError={text => setToast({ tone: 'error', text })} />}
       {panel === 'roles' && <RolePagesDrawer onClose={() => setPanel(null)} />}
       {panel === 'masters' && <MastersDrawer onClose={() => setPanel(null)} />}
+      {panel === 'platforms' && <PlatformsDrawer onClose={() => setPanel(null)} />}
       {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
       {toast && (
@@ -516,8 +549,8 @@ interface AccountForm {
  * department), sign-in, access and branches; the user completes the rest under "My profile".
  * Edit: everything, incl. correcting the profile and the photo.
  */
-function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSaved }: {
-  user: AuthUser | null; isMe: boolean; branches: Branch[]; branchesLoading: boolean; onClose: () => void;
+function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, onSaved }: {
+  user: AuthUser | null; isMe: boolean; branches: Branch[]; branchesLoading: boolean; line: BusinessLine; onClose: () => void;
   onSaved: (u: AuthUser, created: boolean, password?: string) => void;
 }) {
   const creating = !user;
@@ -529,6 +562,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
   const [profile, setProfile] = useState<ProfileValues>(() => profileValues(user));
   const [branchCodes, setBranchCodes] = useState<string[]>(() => user?.branches ?? []);
   const [pageOverrides, setPageOverrides] = useState<Record<string, boolean>>(() => user?.pageOverrides ?? {});
+  const [businessLine, setBusinessLine] = useState<BusinessLine>(() => user?.businessLine ?? line);
+  const [hiddenPages, setHiddenPages] = useState<string[]>(() => user?.hiddenPages ?? []);
   const [showPassword, setShowPassword] = useState(creating);
   // the username follows the full name until it is typed by hand
   const [usernameTouched, setUsernameTouched] = useState(!creating);
@@ -553,8 +588,10 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
     if (form.password) body.password = form.password;
     if (branchScoped(form.role)) body.branches = branchCodes;
     if (form.role !== 'superadmin') body.pageOverrides = pageOverrides;
+    else body.hiddenPages = hiddenPages;
+    body.businessLine = businessLine;
     return body;
-  }, [form, profile, creating, branchCodes, pageOverrides]);
+  }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -664,6 +701,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={tr('Business line')} htmlFor="f-line" error={fieldError('businessLine')} hint={tr('The tab of User Accounts the account is listed in; its branches are of this line')}>
+              <select id="f-line" value={businessLine} onChange={e => { setBusinessLine(e.target.value as BusinessLine); setBranchCodes([]); }} className={inputClass}>
+                {LINES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
+              </select>
+            </Field>
             <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : tr('Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches')}>
               <select id="f-role" className={inputClass} value={form.role} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
                 <option value="user">{tr('User (PIC)')}</option>
@@ -684,14 +726,14 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, onClose, onSave
 
         {form.role !== 'driver' && (
           <DrawerSection title={tr('Page access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
-            <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} />
+            <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} hidden={hiddenPages} onHiddenChange={setHiddenPages} />
             {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
           </DrawerSection>
         )}
 
         {branchScoped(form.role) ? (
           <DrawerSection title={tr('Branch access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User (PIC) and Outlet / Hub.')}>
-            <BranchAssign branches={branches} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
+            <BranchAssign branches={lineBranches(branches, businessLine)} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
         ) : (

@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { ChevronRight, ClipboardCheck, ClipboardPen, LayoutDashboard, MapPinCheck, Menu, Package, Receipt, Store, Wallet, Wrench, X, type LucideIcon, UserRoundCheck } from 'lucide-react';
-import { canAccess, useAuth } from '@/lib/auth';
+import { inMenu, useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { tr } from '@/lib/i18n';
 
@@ -49,14 +49,14 @@ export default function BottomNav({ onMenu }: { onMenu: () => void }) {
   if (!user) return null;
 
   const ready = (key: string) => PAGES.find((p) => p.key === key)?.state !== 'building';
-  const formLinks = FORM_LINKS.filter((f) => ready(f.key) && canAccess(user, f.href));
+  const formLinks = FORM_LINKS.filter((f) => ready(f.key) && inMenu(user, f.href));
   const on = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const tabs: Tab[] = [
     ...[
       { href: '/overview', label: tr('Dashboard'), icon: LayoutDashboard },
       { href: '/sales', label: tr('Sales'), icon: Receipt },
       { href: '/stock-opname', label: 'Opname', icon: ClipboardCheck },
-    ].filter((t) => canAccess(user, t.href)).map((t) => ({ ...t, key: t.href, active: on(t.href) })),
+    ].filter((t) => inMenu(user, t.href)).map((t) => ({ ...t, key: t.href, active: on(t.href) })),
     ...(formLinks.length ? [{ key: 'form', label: tr('Form'), icon: ClipboardPen, onClick: () => setForms(true), active: forms || pathname.startsWith('/forms') }] : []),
     { key: 'menu', label: tr('Menu'), icon: Menu, onClick: onMenu, active: false },
   ];

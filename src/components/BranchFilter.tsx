@@ -9,6 +9,7 @@ import { tr } from '@/lib/i18n';
 export interface Branch {
   branch_code: string;
   branch_name: string;
+  company_code?: string;
   count: number;
 }
 

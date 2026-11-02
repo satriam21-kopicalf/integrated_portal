@@ -62,7 +62,17 @@ export interface AuthUser {
   pages: PageKey[];
   /** User Accounts only: pages added (true) or removed (false) on top of the role */
   pageOverrides?: Record<string, boolean>;
+  /** business line of the account (tabs of User Accounts, migration 054) */
+  businessLine?: BusinessLine;
+  /** pages left out of the own menu (display only) */
+  hiddenPages?: string[];
+  /** {page: platforms} where the superadmins set the menus (no entry = the default of the app) */
+  platforms?: Record<string, Platform[]>;
 }
+
+export type BusinessLine = 'kopicalf' | 'wasgee' | 'cotr';
+export type Platform = 'portal' | 'operations' | 'cotr';
+export const LINE_COMPANY: Record<BusinessLine, string | null> = { kopicalf: 'CALF', wasgee: 'CALF7', cotr: null };
 
 type Status = 'loading' | 'authenticated' | 'anonymous';
 
@@ -103,6 +113,17 @@ export function canAccess(user: Pick<AuthUser, 'role' | 'pages'>, pathname: stri
   if (user.role === 'superadmin') return true;
   const page = pageOf(pathname);
   return page !== null && page !== 'superadmin' && pagesOf(user).includes(page);
+}
+
+/** Is the path in the menu of the portal: the user opens it, did not hide it and the superadmins did not move it off
+ * the portal. Display only — a hidden page still opens by its address (canAccess). */
+export function inMenu(user: Pick<AuthUser, 'role' | 'pages' | 'hiddenPages' | 'platforms'>, pathname: string): boolean {
+  if (!canAccess(user, pathname)) return false;
+  const page = pageOf(pathname);
+  if (!page || page === 'superadmin') return true;
+  if (user.hiddenPages?.includes(page)) return false;
+  const on = user.platforms?.[page];
+  return !on || on.includes('portal');
 }
 
 export function hasPage(user: Pick<AuthUser, 'role' | 'pages'> | null | undefined, page: PageKey): boolean {

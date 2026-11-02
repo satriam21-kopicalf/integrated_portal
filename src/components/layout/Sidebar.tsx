@@ -12,7 +12,7 @@ import UserAvatar from '@/components/UserAvatar';
 import { BRAND_LINE } from '@/components/BrandWatermark';
 import { PreferenceControls } from '@/components/ui/Preferences';
 import { assetUrl } from '@/lib/assets';
-import { canAccess, ROLE_LABELS, useAuth } from '@/lib/auth';
+import { canAccess, inMenu, ROLE_LABELS, useAuth } from '@/lib/auth';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { tr } from '@/lib/i18n';
 
@@ -297,10 +297,10 @@ function SidebarContent({
   children: React.ReactNode; // header action (collapse / close)
 }) {
   const { user } = useAuth();
-  const items = navigation.filter(item => user && canAccess(user, item.href));
+  const items = navigation.filter(item => user && inMenu(user, item.href));
   // pop-up menus: only the pages this user opens
   const visible = (list: typeof costControl) => list
-    .map(s => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter(i => user && canAccess(user, i.href)) }))
+    .map(s => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter(i => user && inMenu(user, i.href)) }))
     .filter(s => s.items.length);
   const popups = (['forms', 'costControl', 'monitoring', 'cotr', 'rating', 'management'] as const)
     .map(key => ({ key, config: POPUPS[key], sections: visible(POPUPS[key].sections) }))

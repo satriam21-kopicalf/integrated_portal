@@ -4,7 +4,7 @@
 // one user on top of the role (user form). Backend: /api/access (integrated_portal_be app/access.py).
 
 import { Briefcase, Building2, Check, LayoutGrid, Loader2, Pencil, Plus, RotateCcw, Save, Smartphone, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { buttonPrimary, buttonSecondary, inputClass } from '@/components/ui/Dialog';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { addMaster, loadMaster, MasterKind, MasterName } from '@/components/MasterCombobox';
@@ -43,13 +43,20 @@ function groups(): { group: string; pages: typeof PAGES }[] {
 }
 
 /** Exceptions of one user: tick or untick pages on top of the role's pages. */
-export function PageAccessEditor({ role, overrides, onChange }: {
+export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenChange }: {
   role: Role; overrides: Record<string, boolean>; onChange: (v: Record<string, boolean>) => void;
+  /** superadmins: pages left out of their menu (display only) */
+  hidden?: string[]; onHiddenChange?: (v: string[]) => void;
 }) {
   const [roles, setRoles] = useState<RolePages | null>(null);
   useEffect(() => { void loadRolePages().then(setRoles); }, []);
   if (role === 'superadmin') {
-    return <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600">{tr('Super admins open every page, including User Accounts and Activity Logs.')}</p>;
+    return (
+      <div className="space-y-3">
+        <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600">{tr('Super admins open every page, including User Accounts and Activity Logs.')}</p>
+        {onHiddenChange && <MenuDisplay hidden={hidden ?? []} onChange={onHiddenChange} />}
+      </div>
+    );
   }
   if (!roles) return <div className="skeleton h-40 rounded-lg" />;
   const base = new Set<string>(roles[role as EditableRole] ?? []);
@@ -189,6 +196,133 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
 }
 
 /** Beside a page Operations also has: the account can open it at operations.kopicalf.co.id (2026-10-28). */
+/** The menu of a super admin: untick pages to keep the menu short; they keep opening by their address. */
+export function MenuDisplay({ hidden, onChange }: { hidden: string[]; onChange: (v: string[]) => void }) {
+  const toggle = (k: string) => onChange(hidden.includes(k) ? hidden.filter(x => x !== k) : [...hidden, k]);
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        <span>{tr('Menu display: ticked pages are shown in the menu. Unticked pages keep working (by their address, links and approvals) — only the menu gets shorter.')}</span>
+        {hidden.length > 0 && (
+          <button type="button" onClick={() => onChange([])} className="inline-flex items-center gap-1 font-medium text-blue-700 hover:underline">
+            <RotateCcw size={12} /> {tr('Show every page ({0} hidden)', hidden.length)}
+          </button>
+        )}
+      </div>
+      {groups().map(g => (
+        <div key={g.group}>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.group}</p>
+          <ul className="grid gap-1 sm:grid-cols-2">
+            {g.pages.filter(p => p.state !== 'hidden').map(p => (
+              <li key={p.key}>
+                <label className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm ${hidden.includes(p.key) ? 'border-slate-200 bg-slate-50 text-slate-400' : 'border-slate-200 hover:bg-slate-50'}`}>
+                  <input type="checkbox" checked={!hidden.includes(p.key)} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-slate-300 text-blue-700" />
+                  <span className="min-w-0 flex-1 truncate">{p.label}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+type PlatformKey = 'portal' | 'operations' | 'cotr';
+type PlatformPage = { key: string; label: string; group: string; available: PlatformKey[] };
+const PLATFORM_LABEL: Record<PlatformKey, string> = { portal: 'Portal', operations: 'Operations', cotr: 'Calf On The Road' };
+const ALL_PLATFORMS: PlatformKey[] = ['portal', 'operations', 'cotr'];
+
+/** Menus per platform: on which app (portal, Operations, the driver app) every page is shown in the menu. Display only:
+ * the access stays as the roles give it. No setting = the default of each app (every platform that has the page). */
+export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
+  const [pages, setPages] = useState<PlatformPage[] | null>(null);
+  const [saved, setSaved] = useState<Record<string, PlatformKey[]>>({});
+  const [draft, setDraft] = useState<Record<string, PlatformKey[] | null>>({});
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  useEffect(() => {
+    void call<{ pages: PlatformPage[]; platforms: Record<string, PlatformKey[]> }>('/api/access/platforms')
+      .then(r => { setPages(r.pages); setSaved(r.platforms); }).catch(e => setMessage({ ok: false, text: (e as Error).message }));
+  }, []);
+  const current = (p: PlatformPage): PlatformKey[] => (p.key in draft ? draft[p.key] ?? p.available : saved[p.key] ?? p.available);
+  const custom = (p: PlatformPage) => (p.key in draft ? draft[p.key] !== null : p.key in saved);
+  const toggle = (p: PlatformPage, k: PlatformKey) => {
+    const now = current(p);
+    const next = now.includes(k) ? now.filter(x => x !== k) : [...now, k];
+    const isDefault = next.length === p.available.length && p.available.every(a => next.includes(a));
+    setDraft(d => ({ ...d, [p.key]: isDefault ? null : next }));
+  };
+  const save = async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const r = await call<{ platforms: Record<string, PlatformKey[]> }>('/api/access/platforms', { method: 'PUT', body: JSON.stringify({ platforms: draft }) });
+      setSaved(r.platforms);
+      setDraft({});
+      setMessage({ ok: true, text: tr('Saved. The menus follow within a minute (after the next sign-in check).') });
+    } catch (e) {
+      setMessage({ ok: false, text: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  };
+  const byGroup = useMemo(() => {
+    const out: { group: string; pages: PlatformPage[] }[] = [];
+    for (const p of pages ?? []) {
+      const last = out[out.length - 1];
+      if (last && last.group === p.group) last.pages.push(p);
+      else out.push({ group: p.group, pages: [p] });
+    }
+    return out;
+  }, [pages]);
+  return (
+    <Drawer open onClose={onClose} size="lg" icon={<Smartphone size={18} />} title={tr('Menus per platform')}
+      description={tr('Where every page is shown in the menu: the portal, Operations or the Calf On The Road app. Only the menu changes; the access and the flows stay as they are.')}
+      footer={<>
+        <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Close')}</button>
+        <button type="button" className={buttonPrimary} disabled={!Object.keys(draft).length || busy} onClick={save}>
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} {tr('Save')}
+        </button>
+      </>}>
+      {message && <p className={`mb-3 rounded-lg px-3 py-2 text-xs ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
+      {!pages ? <div className="skeleton h-72 rounded-lg" /> : (
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <table className="w-full min-w-[560px] text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <tr><th className="px-3 py-2.5">{tr('Page')}</th>{ALL_PLATFORMS.map(k => <th key={k} className="w-28 px-3 py-2.5 text-center">{PLATFORM_LABEL[k]}</th>)}<th className="w-10" /></tr>
+            </thead>
+            <tbody>
+              {byGroup.map(g => (
+                <Fragment key={g.group}>
+                  <tr className="border-t border-slate-200 bg-slate-50/60"><td colSpan={5} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{g.group}</td></tr>
+                  {g.pages.map(p => (
+                    <tr key={p.key} className="border-t border-slate-100">
+                      <td className="px-3 py-2 text-slate-800">{p.label}{custom(p) && <span className="ml-1 rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold uppercase text-amber-700">{tr('Set')}</span>}</td>
+                      {ALL_PLATFORMS.map(k => (
+                        <td key={k} className="px-3 py-2 text-center">
+                          {p.available.includes(k)
+                            ? <input type="checkbox" aria-label={`${PLATFORM_LABEL[k]} · ${p.label}`} checked={current(p).includes(k)} onChange={() => toggle(p, k)} className="h-4 w-4 rounded border-slate-300 text-blue-700" />
+                            : <span className="text-slate-300">—</span>}
+                        </td>
+                      ))}
+                      <td className="px-1 text-center">
+                        {custom(p) && (
+                          <button type="button" title={tr('Back to the default')} aria-label={tr('Back to the default')} onClick={() => setDraft(d => ({ ...d, [p.key]: null }))} className="rounded p-1 text-slate-400 hover:text-blue-700"><RotateCcw size={13} /></button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Drawer>
+  );
+}
+
 function OpsTag({ page }: { page: PageKey }) {
   if (!OPERATIONS_PAGES.includes(page)) return null;
   return (
