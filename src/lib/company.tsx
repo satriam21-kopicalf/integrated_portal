@@ -101,12 +101,14 @@ export function CompanySwitch({ className = '', extra = [], value, onChange }: {
       {tabs.map(c => {
         const on = c.code === shown;
         return (
-          <button key={c.code} type="button" role="radio" aria-checked={on} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
-            className={`flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg px-1.5 py-1.5 text-[11px] font-semibold transition-colors sm:flex-none sm:gap-1.5 sm:px-3 sm:text-sm ${
-              on ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {LOGOS[c.code] && <img src={LOGOS[c.code]} alt="" aria-hidden className={`h-3.5 w-auto max-w-[2rem] flex-shrink-0 object-contain sm:h-4 sm:max-w-[2.75rem] ${on ? '' : 'opacity-70 grayscale'}`} />}
-            <span className="min-w-0 truncate">{c.name}</span>
+          <button key={c.code} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
+            className={`flex h-9 min-w-0 flex-1 items-center justify-center rounded-lg px-3 transition-colors sm:w-24 sm:flex-none ${
+              on ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'hover:bg-white/60'}`}>
+            {/* the logo only (2026-11-02); the name is the label */}
+            {LOGOS[c.code]
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`max-h-5 max-w-full object-contain transition ${on ? '' : 'opacity-60 grayscale'}`} />
+              : <span className="truncate text-xs font-semibold text-slate-600">{c.name}</span>}
           </button>
         );
       })}

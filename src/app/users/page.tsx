@@ -274,12 +274,12 @@ export default function UsersPage() {
         <div className="space-y-4 p-4 sm:p-6">
           <div role="tablist" aria-label={tr('Business line')} className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1 shadow-sm">
             {LINES.map(l => (
-              <button key={l.key} type="button" role="tab" aria-selected={line === l.key} onClick={() => { setLine(l.key); setPage(1); applyFilters(NO_FILTERS); }}
-                className={`flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition-colors ${line === l.key ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+              <button key={l.key} type="button" role="tab" aria-selected={line === l.key} aria-label={l.label} title={l.label} onClick={() => { setLine(l.key); setPage(1); applyFilters(NO_FILTERS); }}
+                className={`flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 transition-colors ${line === l.key ? 'bg-blue-50 ring-2 ring-blue-600' : 'hover:bg-slate-50'}`}>
+                {/* the logo only (2026-11-02); the name is the label */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <span className="flex h-7 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-white px-1 ring-1 ring-slate-200"><img src={l.logo} alt="" className="max-h-5 max-w-full object-contain" /></span>
-                <span className="truncate">{l.label}</span>
-                {s?.lines && <span className={`rounded-full px-1.5 text-[11px] ${line === l.key ? 'bg-white/20' : 'bg-slate-100 text-slate-500'}`}>{formatNumber(s.lines[l.key] ?? 0)}</span>}
+                <img src={l.logo} alt="" aria-hidden className={`max-h-6 max-w-[6rem] object-contain transition ${line === l.key ? '' : 'opacity-60 grayscale'}`} />
+                {s?.lines && <span className={`rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${line === l.key ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-500'}`}>{formatNumber(s.lines[l.key] ?? 0)}</span>}
               </button>
             ))}
           </div>
