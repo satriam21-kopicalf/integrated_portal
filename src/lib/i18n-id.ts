@@ -4715,4 +4715,6 @@ export const ID: Record<string, string> = {
   "e.g. 7": "mis. 7",
   "{0} cards": "{0} kartu",
   "{0} of {1} menus": "{0} dari {1} menu",
+  // Form menu: Stock (2026-11-02)
+  "Stock opname and waste of your branch": "Stock opname dan waste cabang Anda",
 };

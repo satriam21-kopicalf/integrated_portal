@@ -23,9 +23,9 @@ export interface PageInfo { key: PageKey; href: string; label: string; group: st
 export const PAGES: PageInfo[] = [
   { key: 'overview', href: '/overview', get label() { return tr('Dashboard'); }, get group() { return tr('Main menu'); } },
   { key: 'sales', href: '/sales', get label() { return tr('Sales Transactions'); }, get group() { return tr('Main menu'); } },
-  { key: 'stock-opname', href: '/stock-opname', get label() { return tr('Stock Opname (count)'); }, get group() { return tr('Main menu'); } },
-  { key: 'waste', href: '/waste', get label() { return tr('Waste (input)'); }, get group() { return tr('Main menu'); } },
   { key: 'guide', href: '/guide', get label() { return tr('Guide'); }, get group() { return tr('Main menu'); }, state: 'header' },
+  { key: 'stock-opname', href: '/stock-opname', get label() { return tr('Stock Opname (count)'); }, get group() { return tr('Form'); } },
+  { key: 'waste', href: '/waste', get label() { return tr('Waste (input)'); }, get group() { return tr('Form'); } },
   { key: 'form.pic-check-in', href: '/forms/pic-check-in', get label() { return tr('PIC Check In (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.surveyor-check-in', href: '/forms/surveyor-check-in', get label() { return tr('Cost Control Check In (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.product', href: '/forms/product', get label() { return tr('Monitoring Product (form)'); }, get group() { return tr('Form'); } },

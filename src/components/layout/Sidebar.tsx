@@ -19,8 +19,6 @@ import { tr } from '@/lib/i18n';
 const navigation = [
   { get name() { return tr('Dashboard'); }, href: '/overview', icon: LayoutDashboard, get description() { return tr('Overview & analytics'); } },
   { get name() { return tr('Sales Transactions'); }, href: '/sales', icon: Receipt, get description() { return tr('View & export data'); } },
-  { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); } },
-  { get name() { return tr('Waste'); }, href: '/waste', icon: Trash2, get description() { return tr('Enter the waste of your branch'); } },
 ];
 
 /** "Cost Control" menu: role cost_control and superadmins (stock opname of every branch, settings, analytics); opens as a
@@ -59,6 +57,10 @@ const costControl: { title: string; hint: string; icon: typeof Users; items: CcI
 
 /** "Form" menu: the forms outlets / PICs fill in (pages form.*, off for every role until ticked in Roles & pages). */
 const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Stock'); }, get hint() { return tr('Stock opname and waste of your branch'); }, icon: ClipboardCheck, items: [
+    { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); } },
+    { get name() { return tr('Waste'); }, href: '/waste', icon: Trash2, get description() { return tr('Enter the waste of your branch'); } },
+  ] },
   { get title() { return tr('Visit'); }, get hint() { return tr('Check in at the outlet you visit'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
     { get name() { return tr('Cost Control Check In'); }, href: '/forms/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Cost Control visit to the outlet'); } },
