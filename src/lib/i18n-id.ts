@@ -4909,4 +4909,6 @@ export const ID: Record<string, string> = {
   "{0} sent": "{0} terkirim",
   "{0} storages": "{0} storage",
   "{0} with a shift today": "{0} punya shift hari ini",
+  // Stock opname review: premix-only lines
+  "Recount it through its premix": "Hitung ulang lewat premix-nya",
 };

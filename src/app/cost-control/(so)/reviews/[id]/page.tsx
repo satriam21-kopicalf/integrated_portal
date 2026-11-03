@@ -246,7 +246,10 @@ export default function ReviewDetailPage() {
                   <tr key={l.id} className={cx(!l.is_current && "bg-neutral-50 text-neutral-400", picked.has(l.id) && "bg-brand-50/50")}>
                     {reviewable && (
                       <td className="px-3 py-2.5">
-                        {l.is_current && <input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(l.id)} onChange={() => toggle(l.id)} aria-label={tr("Select {0}", l.item_name)} />}
+                        {/* an item that only comes from a premix is recounted through its premix (WIP / Premix above): the
+                            backend never marks it, so it cannot be ticked here */}
+                        {l.is_current && l.source !== "WIP_EXPLODED" && <input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(l.id)} onChange={() => toggle(l.id)} aria-label={tr("Select {0}", l.item_name)} />}
+                        {l.is_current && l.source === "WIP_EXPLODED" && <span title={tr("Recount it through its premix")} className="block h-4 w-4 rounded border border-dashed border-violet-300" aria-label={tr("Recount it through its premix")} />}
                       </td>
                     )}
                     <td className="max-w-[18rem] px-3 py-2.5">
