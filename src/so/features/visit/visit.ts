@@ -3,7 +3,7 @@
 
 import { lang, numberLocale, tr } from "@/lib/i18n";
 
-export type VisitFormKey = "product" | "outlet";
+export type VisitFormKey = "product" | "outlet" | "wwwr";  // wwwr: the SWAT audit (Product + Outlet in one form)
 export type Rating = "UNDER" | "MEET" | "EXCEED";
 /** Rating Outlet items carry the outlet's stars on a platform (2026-10-21): Google automatic, the delivery apps typed */
 export type Platform = "google" | "gofood" | "grabfood" | "shopeefood";
@@ -40,7 +40,8 @@ export const evidenceOf = (i: Item, group?: string | null) => {
   return { note: req && (i.note ?? "required") === "required", photo: req && (i.photo ?? "required") === "required", qty: req && !!i.qty };
 };
 /** rating null = cleared (tapping the chosen rating again); qty = grams (net weight) */
-export type Answer = { rating?: Rating | null; note?: string; qty?: number | null; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null };
+export type Answer = { rating?: Rating | null; note?: string; qty?: number | null; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null;
+  /** WW-WR: the member of the team who filled it */ by?: string };
 /** 1250.5 → "1,250.5 g" in the UI language */
 export const fmtGrams = (n: number) => `${n.toLocaleString(numberLocale(), { maximumFractionDigits: 1 })} g`;
 /** "note+qty" → "note + grams" (what a rated item still needs) */
@@ -61,7 +62,16 @@ export type Visit = {
   auto?: Record<string, AutoStars | null>;
   /** the outlet's branch group: which items are required (2026-10-27) */
   branchGroup?: string | null;
+  /** WW-WR: the audit of the visit */
+  audit?: AuditTeam | null;
 };
+export type Person = { id: string; name: string; username?: string };
+export type AuditTeam = { id: string; day: string; lead: Person; members: Person[]; note?: string | null; status?: AuditStatus };
+export type AuditStatus = "scheduled" | "in_progress" | "submitted" | "cancelled";
+/** One WW-WR audit as the schedule lists it (integrated_portal_be app/wwwr.py) */
+export type Audit = { id: string; branchCode: string; branchName: string; day: string; lead: Person; members: Person[]; note: string | null;
+  status: AuditStatus; visitId: string | null; submittedAt: string | null; counts: Counts | null; score?: number | null };
+export type WwwrState = { definition: Definition; user: { id: string; username: string; name: string }; audits: Audit[] };
 
 export const PLATFORM_LABEL: Record<Platform, string> = { google: "Google Maps", gofood: "GoFood", grabfood: "GrabFood", shopeefood: "ShopeeFood" };
 /** 4.6 → "4.6" (as the platforms show it) */

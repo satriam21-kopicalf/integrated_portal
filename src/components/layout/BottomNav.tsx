@@ -8,7 +8,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { ChevronRight, ClipboardCheck, ClipboardPen, LayoutDashboard, MapPinCheck, Menu, Package, Receipt, Store, Wallet, Wrench, X, type LucideIcon, UserRoundCheck } from 'lucide-react';
+import { ChevronRight, ClipboardCheck, ClipboardPen, LayoutDashboard, MapPinCheck, Menu, Package, Receipt, ShieldCheck, Store, Wallet, Wrench, X, type LucideIcon, UserRoundCheck } from 'lucide-react';
 import { inMenu, useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { tr } from '@/lib/i18n';
@@ -31,6 +31,7 @@ const FORM_LINKS: FormLink[] = [
   { href: '/forms/outlet', key: 'form.outlet', icon: Store, label: () => 'Outlet', hint: () => tr('Fill in the outlet checklist') },
   { href: '/forms/damaged-equipment', key: 'form.damaged-equipment', icon: Wrench, label: () => tr('Damaged Equipment'), hint: () => tr('Repair & procurement requests') },
   { href: '/forms/pengajuan', key: 'form.pengajuan', icon: Wallet, label: () => tr('Fund requests'), hint: () => tr('Petty cash with receipts') },
+  { href: '/forms/wwwr', key: 'form.wwwr', icon: ShieldCheck, label: () => 'WW-WR', hint: () => tr('SWAT audit of the outlet') },
 ];
 
 type Tab = { key: string; label: string; icon: LucideIcon; href?: string; onClick?: () => void; active: boolean };

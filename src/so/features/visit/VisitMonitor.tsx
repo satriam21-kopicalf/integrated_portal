@@ -3,9 +3,10 @@
 // Monitoring → Monitoring Product / Monitoring Outlet (pages mon.product, mon.outlet): the visits the PICs sent for a
 // period. Tabs: Visits (the list, one visit in full in a drawer), Analysis (performance per section, the most frequent
 // findings, the stars per platform) and Attendance (one visit per outlet per day: the days each PIC visited and the days
-// off — a day without any visit).
+// off — a day without any visit). Monitoring WW-WR (form wwwr, the SWAT audit): Audits, Analysis, Comparison with the
+// PIC and Schedule (WwwrMonitor) instead of the attendance.
 
-import { AlertTriangle, BarChart3, CalendarDays, CalendarOff, Camera, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, Layers, MapPin, MessageSquareText, PenLine, Star,
+import { AlertTriangle, BarChart3, CalendarDays, CalendarOff, Camera, CalendarPlus, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, Layers, MapPin, MessageSquareText, PenLine, Scale, Star,
   Store, UserRound, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
@@ -13,6 +14,7 @@ import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, FilterToolbar, Period, dmy, wibDay } from "@/so/ui/Filters";
 import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
+import { ComparisonPanel, SchedulePanel } from "./WwwrMonitor";
 import { Segmented } from "@/so/ui/Simple";
 import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
@@ -33,7 +35,7 @@ type Result = {
 type BranchOpt = { branch_code: string; branch_name: string };
 type F = { period: Period; group: string; branch: string; user: string; only: "" | "under" | "outside" };
 type GroupOpt = { id: string; code: string; name: string };
-type Tab = "visits" | "analysis" | "attendance";
+type Tab = "visits" | "analysis" | "attendance" | "comparison" | "schedule";
 
 const NO_F = (): F => ({ period: { from: wibDay(-29), to: wibDay(0) }, group: "", branch: "", user: "", only: "" });
 const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
@@ -55,6 +57,7 @@ function ScorePill({ score, large }: { score: number | null; large?: boolean }) 
 }
 
 export default function VisitMonitor({ form }: { form: VisitFormKey }) {
+  const audit = form === "wwwr";
   const [f, setF] = useState<F>(NO_F);
   const [tab, setTab] = useState<Tab>("visits");
   const [res, setRes] = useState<Result | null>(null);
@@ -79,7 +82,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   useEffect(() => { void call<BranchOpt[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
   useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setGroups(r.groups)).catch(() => setGroups([])); }, []);
 
-  const title = res ? tl(res.definition, "title") : (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
+  const title = audit ? "Monitoring WW-WR" : res ? tl(res.definition, "title") : (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
     return (res?.data ?? []).filter((v) => (!s || v.branchName.toLowerCase().includes(s) || v.name.toLowerCase().includes(s))
@@ -100,11 +103,11 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   const toggle = (only: F["only"]) => { setTab("visits"); setF({ ...f, only: f.only === only ? "" : only }); };
 
   return (
-    <Page title={title} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("visits of the PICs to the outlets")}`}
+    <Page title={title} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${audit ? tr("SWAT audits of the outlets") : tr("visits of the PICs to the outlets")}`}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
-          <Stat label={tr("Visits")} emphasis icon={<ClipboardList size={13} />} value={s ? fmtNumber(s.visits) : <StatSkeleton />}>
-            {s && <p>{tr("{0} outlets · {1} PICs", fmtNumber(s.branches), fmtNumber(s.pics))}</p>}
+          <Stat label={audit ? tr("Audits") : tr("Visits")} emphasis icon={<ClipboardList size={13} />} value={s ? fmtNumber(s.visits) : <StatSkeleton />}>
+            {s && <p>{audit ? tr("{0} outlets · {1} leads", fmtNumber(s.branches), fmtNumber(s.pics)) : tr("{0} outlets · {1} PICs", fmtNumber(s.branches), fmtNumber(s.pics))}</p>}
           </Stat>
           <Stat label={tr("Average score")} icon={<BarChart3 size={13} />} value={s ? <span className={scoreTone(s.score)}>{s.score === null ? "—" : `${s.score}%`}</span> : <StatSkeleton />}>
             {s && <p>{tr("items rated MEET or EXCEED")}</p>}
@@ -113,15 +116,23 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
             value={s ? <span className={s.under ? "text-red-600" : undefined}>{fmtNumber(s.under)}</span> : <StatSkeleton />}>
             {s && <p>{tr("{0} MEET · {1} EXCEED", fmtNumber(s.meet), fmtNumber(s.exceed))}</p>}
           </Stat>
-          <Stat label={tr("Days off")} icon={<CalendarOff size={13} />} onClick={att ? () => setTab("attendance") : undefined} active={tab === "attendance"}
-            value={att ? fmtNumber(offDays) : <StatSkeleton />}>
-            {att && <p>{tr("days without a visit · {0} PICs", fmtNumber(att.pics.length))}</p>}
-          </Stat>
+          {audit ? (
+            <Stat label={tr("Comparison with the PIC")} icon={<Scale size={13} />} onClick={() => setTab("comparison")} active={tab === "comparison"} value={<Scale size={18} className="text-blue-700" />}>
+              <p>{tr("SWAT against the PIC's own visits")}</p>
+            </Stat>
+          ) : (
+            <Stat label={tr("Days off")} icon={<CalendarOff size={13} />} onClick={att ? () => setTab("attendance") : undefined} active={tab === "attendance"}
+              value={att ? fmtNumber(offDays) : <StatSkeleton />}>
+              {att && <p>{tr("days without a visit · {0} PICs", fmtNumber(att.pics.length))}</p>}
+            </Stat>
+          )}
         </StatStrip>
       }>
       <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-slate-200 px-1" role="tablist" aria-label={tr("Sections")}>
-        {([["visits", tr("Visits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
-          ["attendance", tr("PIC attendance"), <CalendarDays key="t" size={15} />, att?.pics.length]] as [Tab, string, React.ReactNode, number | null | undefined][]).map(([k, label, icon, n]) => (
+        {((audit ? [["visits", tr("Audits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
+          ["comparison", tr("Comparison"), <Scale key="c" size={15} />, null], ["schedule", tr("Schedule"), <CalendarPlus key="s" size={15} />, null]]
+          : [["visits", tr("Visits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
+          ["attendance", tr("PIC attendance"), <CalendarDays key="t" size={15} />, att?.pics.length]]) as [Tab, string, React.ReactNode, number | null | undefined][]).map(([k, label, icon, n]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("-mb-px inline-flex flex-shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
               tab === k ? "border-blue-700 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800")}>
@@ -153,6 +164,8 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
         </div>
       ))}
 
+      {tab === "comparison" && <ComparisonPanel period={f.period} branch={f.branch} group={f.group} />}
+      {tab === "schedule" && <SchedulePanel branches={branches} onOpenVisit={setOpen} />}
       {tab === "attendance" && <AttendancePanel form={form} group={f.group} branch={f.branch} onPic={(id) => { setF({ ...f, user: id }); setTab("visits"); }} />}
 
       {tab === "visits" && (
@@ -185,7 +198,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                 <table className="w-full min-w-[920px] text-sm">
                   <thead className={theadClass}>
                     <tr>
-                      <th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5">{tr("PIC")}</th><th className="px-3 py-2.5">{tr("Sent")}</th>
+                      <th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5">{audit ? tr("Lead") : tr("PIC")}</th><th className="px-3 py-2.5">{tr("Sent")}</th>
                       <th className="px-3 py-2.5">{tr("Result")}</th><th className="px-3 py-2.5 text-center">{tr("Score")}</th>
                       <th className="px-3 py-2.5 text-right">{tr("Photos")}</th><th className="px-3 py-2.5">{tr("Location")}</th><th className="w-8" />
                     </tr>
@@ -196,7 +209,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                         <td className="max-w-[16rem] py-3 pl-5 pr-3"><span className="block truncate font-semibold text-slate-900">{v.branchName}</span><span className="text-[11px] text-slate-400">{v.branchCode}</span></td>
                         <td className="px-3 py-3">
                           <span className="flex items-center gap-2"><span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">{initials(v.name)}</span>
-                            <span className="min-w-0"><span className="block truncate text-slate-800">{v.name}</span><span className="text-[11px] text-slate-400">@{v.username}</span></span></span>
+                            <span className="min-w-0"><span className="block truncate text-slate-800">{v.name}</span><span className="block max-w-[14rem] truncate text-[11px] text-slate-400">{v.audit ? tr("Team: {0}", v.audit.members.map((m) => m.name).join(", ")) : `@${v.username}`}</span></span></span>
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 text-xs tabular-nums text-slate-600">{wibDateTime(v.submittedAt)}</td>
                         <td className="w-56 px-3 py-3">
@@ -505,7 +518,9 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
               </div>
             </div>
             <dl className="grid grid-cols-2 gap-px border-t border-slate-100 bg-slate-100 sm:grid-cols-4">
-              <Fact icon={<UsersRound size={12} />} k="PIC" v={<>{v.name}<span className="block text-[11px] font-normal text-slate-400">@{v.username}</span></>} />
+              {v.audit ? <Fact icon={<UsersRound size={12} />} k={tr("SWAT team")} v={<>{v.audit.lead.name} <span className="text-[11px] font-normal text-slate-400">({tr("lead")})</span>
+                <span className="block text-[11px] font-normal text-slate-400">{v.audit.members.filter((m) => m.id !== v.audit!.lead.id).map((m) => m.name).join(", ") || "—"}</span></>} />
+                : <Fact icon={<UsersRound size={12} />} k="PIC" v={<>{v.name}<span className="block text-[11px] font-normal text-slate-400">@{v.username}</span></>} />}
               <Fact icon={<CalendarDays size={12} />} k={tr("Started → sent")} v={<>{wibDateTime(v.submittedAt)}<span className="block text-[11px] font-normal text-slate-400">{tr("started {0}", wibDateTime(v.startedAt))}</span></>} />
               <Fact icon={<MapPin size={12} />} k={tr("Location when sent")} v={v.latitude !== null && v.longitude !== null ? (
                 <a href={mapsUrl(v.latitude, v.longitude)} target="_blank" rel="noreferrer" className={cx("hover:underline", v.outsideRadius ? "text-red-700" : "text-blue-700")}>

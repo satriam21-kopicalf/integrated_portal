@@ -68,6 +68,7 @@ const forms: { title: string; hint: string; icon: typeof Users; items: CcItem[] 
   { get title() { return tr('Product & outlet'); }, get hint() { return tr('Condition of the products and the outlet'); }, icon: Store, items: [
     { get name() { return 'Product'; }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
     { get name() { return 'Outlet'; }, href: '/forms/outlet', icon: Store, get description() { return tr('Fill in the outlet checklist'); } },
+    { get name() { return 'WW-WR'; }, href: '/forms/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audit of the outlet'); } },
   ] },
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Repairs and procurement of the outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Damaged Equipment'); }, href: '/forms/damaged-equipment', icon: Wrench, get description() { return tr('Repair & procurement requests'); } },
@@ -88,6 +89,7 @@ const monitoring: { title: string; hint: string; icon: typeof Users; items: CcIt
   { get title() { return tr('Product & outlet'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
     { get name() { return tr('Monitoring Product'); }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },
     { get name() { return tr('Monitoring Outlet'); }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
+    { get name() { return 'Monitoring WW-WR'; }, href: '/monitoring/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audits, comparison with the PIC & schedule'); } },
   ] },
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Requests of every outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Damaged Equipment'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },

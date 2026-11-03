@@ -181,8 +181,9 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
 
 // ------------------------------------------------------------------------------------------------- the visit
 
-function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
-  form: VisitFormKey; data: FormState; visit: Visit; onClose: () => void; onSubmitted: (v: Visit) => void;
+export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend = true, canDiscard = true }: {
+  form: VisitFormKey; data: Pick<FormState, "definition">; visit: Visit; onClose: () => void; onSubmitted: (v: Visit) => void;
+  /** WW-WR: only the lead of the team sends; nobody deletes the shared audit */ canSend?: boolean; canDiscard?: boolean;
 }) {
   const toast = useToast();
   const def = data.definition;
@@ -303,7 +304,7 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
             <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-base font-semibold text-slate-900 sm:text-lg">{tl(def, "title")} · {visit.branchName}</h1>
-              <p className="truncate text-xs text-slate-500">{visit.name} · {tr("started {0}", wibDateTime(visit.startedAt))}</p>
+              <p className="truncate text-xs text-slate-500">{visit.audit ? tr("Team: {0}", visit.audit.members.map((m) => m.name).join(", ")) : visit.name} · {tr("started {0}", wibDateTime(visit.startedAt))}</p>
             </div>
             <span className="flex-shrink-0 pt-1 text-xs text-slate-400" aria-live="polite">
               {saving > 0 ? <span className="inline-flex items-center gap-1"><CloudUpload size={13} /> {tr("Saving…")}</span> : <span className="inline-flex items-center gap-1"><Check size={13} /> {tr("Saved")}</span>}
@@ -353,11 +354,11 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
             <span className="truncate">{si < parts.length - 1 ? tl(parts[si + 1], "title") : tr("Last category")}</span> <ChevronRight size={15} />
           </Button>
         </div>
-        <div className="flex justify-center pt-1">
+        {canDiscard && <div className="flex justify-center pt-1">
           <button type="button" onClick={() => setDiscarding(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-red-600">
             <Trash2 size={13} /> {tr("Delete this draft")}
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* send */}
@@ -372,7 +373,8 @@ function VisitEditor({ form, data, visit, onClose, onSubmitted }: {
                 : unrated ? tr("{0} optional items not rated (can still be sent) · see which", unrated) : tr("Everything is complete")}
             </p>
           </button>
-          <Button disabled={blocking > 0 || done === 0 || saving > 0} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>
+          {canSend ? <Button disabled={blocking > 0 || done === 0 || saving > 0} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>
+            : <span className="max-w-[9rem] text-right text-[11px] leading-tight text-slate-500">{tr("The lead {0} sends the audit", visit.audit?.lead.name ?? "")}</span>}
         </div>
         {showMissing && todo.length > 0 && (
           <ul className="mx-auto mt-2 max-h-48 max-w-4xl overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 text-xs">
@@ -592,6 +594,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
               required ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-500")}>{required ? tr("Required") : tr("Optional")}</span>
           </p>
           {item.category && <CategoryTag item={item} />}
+          {answer.by && <p className="mt-0.5 text-[11px] text-slate-400">{tr("Filled by {0}", answer.by)}</p>}
           {item.detail && <p className="mt-1 text-xs text-slate-600"><span className="font-semibold">{tr("Photo")}:</span> {item.detail}</p>}
           {item.standard && <p className="mt-0.5 text-xs text-slate-500"><span className="font-semibold">{tr("Standard")}:</span> {item.standard}</p>}
           {hint && <p className="mt-0.5 text-[11px] text-slate-500">{hint}</p>}

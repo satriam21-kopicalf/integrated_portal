@@ -6,9 +6,9 @@ import { tr } from './i18n';
 
 export type PageKey =
   | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
-  | 'form.pic-check-in' | 'form.surveyor-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan'
+  | 'form.pic-check-in' | 'form.surveyor-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan' | 'form.wwwr'
   | 'mon.overview' | 'mon.pic-check-in' | 'mon.surveyor-check-in' | 'mon.outlet' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
-  | 'mon.pengajuan'
+  | 'mon.pengajuan' | 'mon.wwwr'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs'
@@ -32,6 +32,8 @@ export const PAGES: PageInfo[] = [
   { key: 'form.outlet', href: '/forms/outlet', get label() { return tr('Monitoring Outlet (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Damaged Equipment (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.pengajuan', href: '/forms/pengajuan', get label() { return tr('Fund request (form)'); }, get group() { return tr('Form'); } },
+  // the SWAT audit (2026-11-03): given per account
+  { key: 'form.wwwr', href: '/forms/wwwr', get label() { return tr('WW-WR (form, SWAT)'); }, get group() { return tr('Form'); } },
   { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.reviews', href: '/cost-control/reviews', get label() { return tr('Review'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.entry', href: '/cost-control/entry', get label() { return tr('Enter / import SO'); }, get group() { return tr('Cost Control · Stock opname'); }, state: 'hidden' },
@@ -54,6 +56,7 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.surveyor-check-in', href: '/cost-control/check-in', get label() { return tr('Cost Control Check In'); }, get group() { return tr('Cost Control · Check In'); } },
   { key: 'mon.product', href: '/monitoring/product', get label() { return tr('Monitoring Product'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return tr('Monitoring Outlet'); }, get group() { return tr('Monitoring'); } },
+  { key: 'mon.wwwr', href: '/monitoring/wwwr', label: 'Monitoring WW-WR', get group() { return tr('Monitoring'); } },
   { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Damaged Equipment'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch groups'); }, get group() { return tr('Monitoring'); } },
   { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Fund requests'); }, get group() { return tr('Monitoring'); } },
