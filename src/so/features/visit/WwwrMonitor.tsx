@@ -5,7 +5,7 @@
 // (every audit sent against the latest Product and Outlet visits of the PIC of the outlet in the 7 days before: per PIC
 // the conformity, the items the PIC passed and the team found UNDER; one audit item by item in a drawer).
 
-import { AlertTriangle, CalendarPlus, CheckCircle2, Crown, Pencil, Scale, Search, Trash2, UsersRound } from "lucide-react";
+import { AlertTriangle, CalendarPlus, CheckCircle2, Copy, Crown, Printer, Pencil, Scale, Search, Trash2, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Field, Panel, cx, fmtNumber, inputClass, theadClass, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -15,12 +15,12 @@ import { type Period, wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { locale, tr } from "@/lib/i18n";
-import { type Audit, type AuditStatus, type Person, type Rating, RATING_STYLE, ratingLabel, scoreTone, tl } from "./visit";
+import { type Audit, type AuditStatus, type AuditTeam, type Person, type Rating, RATING_STYLE, ratingLabel, scoreTone, sentAudit, tl } from "./visit";
 
 type BranchOpt = { branch_code: string; branch_name: string };
 const STATUS: Record<AuditStatus, { tone: "slate" | "amber" | "green" | "red" | "blue"; label: () => string }> = {
   scheduled: { tone: "blue", label: () => tr("Scheduled") }, in_progress: { tone: "amber", label: () => tr("In progress") },
-  submitted: { tone: "green", label: () => tr("Sent") }, cancelled: { tone: "slate", label: () => tr("Cancelled") },
+  follow_up: { tone: "amber", label: () => tr("Follow-up") }, completed: { tone: "green", label: () => tr("Completed") }, cancelled: { tone: "slate", label: () => tr("Cancelled") },
 };
 const dayShort = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 
@@ -42,8 +42,8 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
   useEffect(() => { void call<Person[]>("/api/monitoring/wwwr/team").then(setTeam).catch(() => setTeam([])); }, []);
   const today = wibDay(0);
   const list = (rows ?? []).filter((a) => showCancelled || a.status !== "cancelled");
-  const next = list.filter((a) => a.day >= today && a.status !== "submitted").sort((a, b) => a.day.localeCompare(b.day));
-  const past = list.filter((a) => !(a.day >= today && a.status !== "submitted"));
+  const next = list.filter((a) => a.day >= today && !sentAudit(a.status)).sort((a, b) => a.day.localeCompare(b.day));
+  const past = list.filter((a) => !(a.day >= today && !sentAudit(a.status)));
   const doCancel = async () => {
     if (!cancel) return;
     try {
@@ -85,7 +85,8 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
                       {a.note && <p className="mt-0.5 truncate text-[11px] text-slate-400">{a.note}</p>}
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-1">
-                      {a.status === "submitted" && a.visitId && (
+                      {a.status === "follow_up" && <span className="text-[11px] text-amber-700">{tr("{0} of {1} action plans open", a.actions.filter((x) => x.status === "open").length, a.actions.length)}{a.revisitOn ? ` · ${tr("revisit {0}", dayShort(a.revisitOn))}` : ""}</span>}
+                      {sentAudit(a.status) && a.visitId && (
                         <button type="button" onClick={() => onOpenVisit(a.visitId!)} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50">
                           <span className={cx("tabular-nums", scoreTone(a.score ?? null))}>{a.score ?? "—"}%</span> {tr("Result")}
                         </button>
@@ -344,5 +345,45 @@ function Tile({ label, value, note }: { label: string; value: React.ReactNode; n
       <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{value}</p>
       <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{note}</p>
     </div>
+  );
+}
+
+// ------------------------------------------------------------------------------------------------- one audit: the evaluation
+
+/** In the audit drawer of the monitoring: the status of the follow-up, the evaluation, the action plans and the share link. */
+export function AuditEvaluation({ audit }: { audit: AuditTeam }) {
+  const toast = useToast();
+  const actions = audit.actions ?? [];
+  const open = actions.filter((x) => x.status === "open").length;
+  const url = audit.shareToken ? `${window.location.origin}/share/wwwr/${audit.shareToken}` : null;
+  const copy = async () => { if (!url) return; try { await navigator.clipboard.writeText(url); toast(tr("Link copied: share it with the PIC")); } catch { toast(url); } };
+  return (
+    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900">{tr("Evaluation & action plan")}</h3>
+          <p className="text-xs text-slate-500">{audit.status === "completed" ? tr("Completed {0}", wibDateTime(audit.completedAt ?? null)) : tr("Follow-up: {0} of {1} action plans open", open, actions.length)}
+            {audit.revisitOn ? ` · ${tr("revisit {0}", dayShort(audit.revisitOn))}` : ""}</p>
+        </div>
+        {url && <div className="flex gap-1.5">
+          <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={13} /> {tr("Copy link")}</Button>
+          <a href={`${url}?print=1`} target="_blank" rel="noreferrer"><Button size="sm" variant="secondary"><Printer size={13} /> {tr("Print / PDF")}</Button></a>
+        </div>}
+      </header>
+      <div className="space-y-3 px-4 py-3 text-sm">
+        <p className="whitespace-pre-line text-slate-700">{audit.summary || <span className="text-slate-400">{tr("No evaluation written")}</span>}</p>
+        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
+          {actions.map((x) => (
+            <li key={x.id} className="flex items-start gap-2.5 px-3 py-2">
+              {x.status === "done" ? <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0 text-emerald-600" /> : <span className="mt-1 h-3 w-3 flex-shrink-0 rounded-full border-2 border-amber-400" />}
+              <span className="min-w-0 flex-1"><span className={cx("block", x.status === "done" ? "text-slate-500 line-through" : "font-medium text-slate-900")}>{x.title}</span>
+                <span className="text-[11px] text-slate-500">{x.assignee ?? "—"} · {tr("Due {0}", x.dueOn ? dayShort(x.dueOn) : "—")}{x.doneNote ? ` · “${x.doneNote}”` : ""}</span></span>
+            </li>
+          ))}
+          {actions.length === 0 && <li className="px-3 py-3 text-xs text-slate-400">{tr("No action plan yet")}</li>}
+        </ul>
+        {audit.revisitNote && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-900">{tr("Revisit")}: {audit.revisitNote}</p>}
+      </div>
+    </section>
   );
 }

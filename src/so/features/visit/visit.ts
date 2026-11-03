@@ -65,12 +65,18 @@ export type Visit = {
   /** WW-WR: the audit of the visit */
   audit?: AuditTeam | null;
 };
-export type Person = { id: string; name: string; username?: string };
-export type AuditTeam = { id: string; day: string; lead: Person; members: Person[]; note?: string | null; status?: AuditStatus };
-export type AuditStatus = "scheduled" | "in_progress" | "submitted" | "cancelled";
+export type Person = { id: string; name: string; username?: string; jobTitle?: string | null };
+/** WW-WR evaluation (migration 065): what to do, who of the team handles it, by when; marked done after sending */
+export type ActionPlan = { id: string; title: string; detail: string | null; assigneeId: string | null; assignee: string | null; dueOn: string | null;
+  status: "open" | "done"; doneAt: string | null; doneNote: string | null; doneBy: string | null };
+export type Evaluation = { summary: string | null; revisitOn: string | null; revisitNote: string | null; completedAt: string | null; actions: ActionPlan[]; shareToken?: string };
+export type AuditTeam = { id: string; day: string; lead: Person; members: Person[]; note?: string | null; status?: AuditStatus } & Partial<Evaluation>;
+/** follow_up: sent, the action plans and the revisit still open; completed: the lead closed the revisit */
+export type AuditStatus = "scheduled" | "in_progress" | "follow_up" | "completed" | "cancelled";
 /** One WW-WR audit as the schedule lists it (integrated_portal_be app/wwwr.py) */
 export type Audit = { id: string; branchCode: string; branchName: string; day: string; lead: Person; members: Person[]; note: string | null;
-  status: AuditStatus; visitId: string | null; submittedAt: string | null; counts: Counts | null; score?: number | null };
+  status: AuditStatus; visitId: string | null; submittedAt: string | null; counts: Counts | null; score?: number | null } & Evaluation;
+export const sentAudit = (s: AuditStatus | undefined) => s === "follow_up" || s === "completed";
 export type WwwrState = { definition: Definition; user: { id: string; username: string; name: string }; audits: Audit[] };
 
 export const PLATFORM_LABEL: Record<Platform, string> = { google: "Google Maps", gofood: "GoFood", grabfood: "GrabFood", shopeefood: "ShopeeFood" };

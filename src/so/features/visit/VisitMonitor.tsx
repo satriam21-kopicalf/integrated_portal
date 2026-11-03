@@ -14,7 +14,7 @@ import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, FilterToolbar, Period, dmy, wibDay } from "@/so/ui/Filters";
 import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
-import { ComparisonPanel, SchedulePanel } from "./WwwrMonitor";
+import { AuditEvaluation, ComparisonPanel, SchedulePanel } from "./WwwrMonitor";
 import { Segmented } from "@/so/ui/Simple";
 import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
@@ -530,6 +530,8 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
               <Fact icon={<Camera size={12} />} k={tr("Evidence")} v={<>{tr("{0} photos", v.photos?.length ?? 0)}<span className="block text-[11px] font-normal text-slate-400">{tr("{0} notes", notes)}</span></>} />
             </dl>
           </section>
+
+          {v.audit && <AuditEvaluation audit={v.audit} />}
 
           <Segmented label={tr("Show")} value={show} onChange={setShow}
             options={[{ value: "all", label: tr("All items") }, { value: "under", label: tr("UNDER ({0})", v.counts.under) }, { value: "notes", label: tr("With notes or photos") }]} />

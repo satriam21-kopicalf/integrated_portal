@@ -181,9 +181,11 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
 
 // ------------------------------------------------------------------------------------------------- the visit
 
-export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend = true, canDiscard = true }: {
+export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend = true, canDiscard = true, evaluation }: {
   form: VisitFormKey; data: Pick<FormState, "definition">; visit: Visit; onClose: () => void; onSubmitted: (v: Visit) => void;
   /** WW-WR: only the lead of the team sends; nobody deletes the shared audit */ canSend?: boolean; canDiscard?: boolean;
+  /** WW-WR: the evaluation & action plans, a step after the last category; the audit is sent only when it is ready */
+  evaluation?: { node: React.ReactNode; ready: boolean };
 }) {
   const toast = useToast();
   const def = data.definition;
@@ -193,6 +195,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
   // one category (section of the workbook) at a time: short screens on phones
   const parts = useMemo(() => def.groups.flatMap((g) => g.sections.filter((s) => !s.retired).map((s) => ({ ...s, group: g }))), [def]);
   const [section, setSection] = useState(parts[0].key);
+  const [evalOpen, setEvalOpen] = useState(false);
   useFocusMode();
   const [saving, setSaving] = useState(0);
   const [camera, setCamera] = useState<Item | null>(null);
@@ -248,7 +251,8 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
   };
   const si = Math.max(0, parts.findIndex((p) => p.key === section));
   const current = parts[si];
-  const go = (key: string) => { setSection(key); window.scrollTo({ top: 0 }); document.querySelector("main")?.scrollTo({ top: 0 }); };
+  const go = (key: string) => { setEvalOpen(false); setSection(key); window.scrollTo({ top: 0 }); document.querySelector("main")?.scrollTo({ top: 0 }); };
+  const openEval = () => { setEvalOpen(true); window.scrollTo({ top: 0 }); document.querySelector("main")?.scrollTo({ top: 0 }); };
 
   const upload = async (item: Item, shot: Shot) => {
     try {
@@ -319,13 +323,26 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium">
             {RATINGS.map((r) => <span key={r} className={cx("inline-flex items-center gap-1", RATING_STYLE[r].text)}><span className={cx("h-2 w-2 rounded-full", RATING_STYLE[r].dot)} />{ratingLabel(r)} {counts[r]}</span>)}
           </div>
-          <div className="mt-2.5">
-            <SectionPicker title={tr("Category")} value={section} onChange={go}
-              options={parts.map((p) => { const [a, b] = sectionDone(p.key); return { key: p.key, label: tl(p, "title"), done: a, total: b, hint: tl(p.group, "title") }; })} />
+          <div className="mt-2.5 flex items-center gap-2">
+            {evaluation && (
+              <button type="button" onClick={openEval} aria-pressed={evalOpen}
+                className={cx("order-last inline-flex h-10 flex-shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-semibold",
+                  evalOpen ? "border-blue-600 bg-blue-600 text-white" : evaluation.ready ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-800")}>
+                {evaluation.ready ? <CheckCircle2 size={14} /> : <ClipboardList size={14} />} {tr("Evaluation")}
+              </button>
+            )}
+            <div className="min-w-0 flex-1"><SectionPicker title={tr("Category")} value={section} onChange={go}
+              options={parts.map((p) => { const [a, b] = sectionDone(p.key); return { key: p.key, label: tl(p, "title"), done: a, total: b, hint: tl(p.group, "title") }; })} /></div>
           </div>
         </div>
       </header>
 
+      {evaluation && evalOpen ? (
+        <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
+          {evaluation.node}
+          <Button variant="secondary" onClick={() => go(parts[parts.length - 1].key)}><ChevronLeft size={15} /> {tr("Back to the items")}</Button>
+        </div>
+      ) : (
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
         <div className="px-1">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">{tl(current.group, "title")} · {tl(current.group, "subtitle")}</p>
@@ -350,9 +367,13 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           <Button variant="secondary" disabled={si === 0} onClick={() => go(parts[si - 1].key)} className="justify-start">
             <ChevronLeft size={15} /> <span className="truncate">{si > 0 ? tl(parts[si - 1], "title") : tr("Previous")}</span>
           </Button>
+          {si >= parts.length - 1 && evaluation ? (
+            <Button onClick={openEval} className="justify-end"><span className="truncate">{tr("Evaluation & action plan")}</span> <ChevronRight size={15} /></Button>
+          ) : (
           <Button variant={si < parts.length - 1 ? "primary" : "secondary"} disabled={si >= parts.length - 1} onClick={() => go(parts[si + 1].key)} className="justify-end">
             <span className="truncate">{si < parts.length - 1 ? tl(parts[si + 1], "title") : tr("Last category")}</span> <ChevronRight size={15} />
           </Button>
+          )}
         </div>
         {canDiscard && <div className="flex justify-center pt-1">
           <button type="button" onClick={() => setDiscarding(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-red-600">
@@ -360,6 +381,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           </button>
         </div>}
       </div>
+      )}
 
       {/* send */}
       <div className="action-bar sticky bottom-0 z-30 border-t border-slate-200/70 bg-white/95 px-4 pt-3 backdrop-blur"
@@ -373,7 +395,9 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
                 : unrated ? tr("{0} optional items not rated (can still be sent) · see which", unrated) : tr("Everything is complete")}
             </p>
           </button>
-          {canSend ? <Button disabled={blocking > 0 || done === 0 || saving > 0} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>
+          {canSend ? (evaluation && !evaluation.ready && blocking === 0 && done > 0
+            ? <Button variant="secondary" onClick={openEval}><ClipboardList size={15} /> {tr("Fill the evaluation")}</Button>
+            : <Button disabled={blocking > 0 || done === 0 || saving > 0 || (!!evaluation && !evaluation.ready)} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>)
             : <span className="max-w-[9rem] text-right text-[11px] leading-tight text-slate-500">{tr("The lead {0} sends the audit", visit.audit?.lead.name ?? "")}</span>}
         </div>
         {showMissing && todo.length > 0 && (
