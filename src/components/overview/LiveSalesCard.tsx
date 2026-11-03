@@ -127,7 +127,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
     : '';
 
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white" aria-label={tr('Gross sales today')}>
+    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white" aria-label={tr('Gross Sales Today')}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
@@ -149,7 +149,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         {/* Today's figures */}
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Gross sales today')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Gross Sales Today')}</p>
             {t ? (
               <>
                 <p className="mt-1 text-3xl font-semibold tracking-tight text-neutral-900 tabular-nums" title={formatCurrency(t.subtotal)}>
@@ -190,7 +190,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
               diff={t && ys ? <Diff value={t.bills - ys.bills} /> : null} />
             <MiniStat icon={<ShoppingBag size={13} />} label={tr('Average Order Value')} value={t ? formatCurrency(Math.round(t.avgTicket)) : '—'} delta={t ? avgDeltaPct : undefined}
               diff={t && ysAvg ? <Diff value={Math.round(t.avgTicket - ysAvg)} rupiah /> : null} />
-            <MiniStat icon={<Tag size={13} />} label={tr('Nett sales')} value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct}
+            <MiniStat icon={<Tag size={13} />} label={tr('Nett Sales')} value={t ? formatCurrency(t.nettSales) : '—'} delta={t?.nettDeltaPct}
               diff={t && ys ? <Diff value={t.nettSales - ys.nettSales} rupiah /> : null} />
           </dl>
           {t && <p className="-mt-2 text-[11px] text-neutral-400">{tr('− / + vs the same day last week at this time')}</p>}
@@ -239,14 +239,14 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         {/* Latest sales feed */}
         <div className="flex min-w-0 flex-col xl:col-span-4">
           <div className="flex items-center justify-between px-4 pt-4 sm:px-5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Latest sales')}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Latest Sales')}</p>
             {batch && batch.bills > 0 && (
               <span className="text-[11px] text-neutral-500" title={tr('Sales that arrived with the most recent sync')}>
                 +{formatNumber(batch.bills)} {tr('at last sync ·')} {formatCurrency(batch.subtotal)}
               </span>
             )}
           </div>
-          <ol className="custom-scrollbar mt-2 max-h-[19rem] flex-1 overflow-y-auto px-2 pb-2 sm:px-3" aria-live="polite" aria-label={tr('Latest sales')}>
+          <ol className="custom-scrollbar mt-2 max-h-[19rem] flex-1 overflow-y-auto px-2 pb-2 sm:px-3" aria-live="polite" aria-label={tr('Latest Sales')}>
             {rows.map(({ sale, mode, delay, arrived }) => {
               const isNew = mode === 'fresh' && now - arrived < FRESH_MS;
               return (

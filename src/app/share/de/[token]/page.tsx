@@ -56,9 +56,9 @@ function ShareView() {
       subtitle={r ? `${r.kindLabel} · PIC ${r.picName}` : undefined}
       actions={r && (
         <>
-          <button type="button" onClick={() => void copy()} aria-label={tr("Copy link")}
+          <button type="button" onClick={() => void copy()} aria-label={tr("Copy Link")}
             className="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-white ring-1 ring-white/25 hover:bg-white/10 sm:inline-flex">
-            {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? tr("Copied") : tr("Copy link")}</button>
+            {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? tr("Copied") : tr("Copy Link")}</button>
           <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><Download size={14} /> PDF</Button>
         </>
       )}>

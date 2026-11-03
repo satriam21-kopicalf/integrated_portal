@@ -18,7 +18,7 @@ import { ScopeBar, dmyOf } from '@/components/kc/ScopeBar';
 import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from '@/so/ui/MonitorFilters';
 
 export const CATEGORY: Record<ItemCategory, { label: () => string; tone: 'amber' | 'violet' | 'blue' | 'cyan' | 'slate' | 'green' }> = {
-  raw: { label: () => tr('Raw material'), tone: 'amber' }, premix: { label: () => tr('Premix'), tone: 'violet' },
+  raw: { label: () => tr('Raw Material'), tone: 'amber' }, premix: { label: () => tr('Premix'), tone: 'violet' },
   packaging: { label: () => tr('Packaging'), tone: 'blue' }, supply: { label: () => tr('Supplies'), tone: 'cyan' },
   tools: { label: () => tr('Tools'), tone: 'slate' }, other: { label: () => tr('Other'), tone: 'green' },
 };
@@ -59,18 +59,18 @@ export function ItemsTab() {
         { label: tr('Item'), render: (i) => <><span className="block font-medium text-neutral-900">{i.name}</span><span className="text-[11px] text-neutral-400">{i.code}</span></> },
         { label: tr('Category'), render: (i) => <Badge tone={CATEGORY[i.category].tone}>{CATEGORY[i.category].label()}</Badge> },
         { label: tr('Unit'), render: (i) => <span className="text-xs">{i.unit}{i.pack_unit ? ` · ${i.pack_unit}${i.pack_qty ? ` = ${num(i.pack_qty)} ${i.unit}` : ''}` : ''}</span> },
-        { label: tr('Cost / unit'), className: 'text-right', render: (i) => i.cost !== null ? <span className="tabular-nums">{rupiah(i.cost)}</span> : <span className="text-neutral-400">—</span> },
+        { label: tr('Cost / Unit'), className: 'text-right', render: (i) => i.cost !== null ? <span className="tabular-nums">{rupiah(i.cost)}</span> : <span className="text-neutral-400">—</span> },
         { label: tr('Stock'), render: (i) => i.is_stock ? <Badge tone="green" dot>{tr('Counted')}</Badge> : <Badge tone="slate">{tr('Not counted')}</Badge> },
       ]}
       fields={[
         { key: 'code', label: tr('Code'), required: true, placeholder: 'RM-XXX' },
         { key: 'name', label: tr('Name'), required: true },
         { key: 'category', label: tr('Category'), type: 'select', required: true, options: (Object.keys(CATEGORY) as ItemCategory[]).map((c) => ({ value: c, label: CATEGORY[c].label() })) },
-        { key: 'unit', label: tr('Base unit'), type: 'select', required: true, options: ['g', 'ml', 'pcs', 'pack'].map((u) => ({ value: u, label: u })) },
+        { key: 'unit', label: tr('Base Unit'), type: 'select', required: true, options: ['g', 'ml', 'pcs', 'pack'].map((u) => ({ value: u, label: u })) },
         { key: 'pack_unit', label: tr('Pack'), placeholder: tr('e.g. Dus (20 Pack), Pail'), hint: tr('How it is bought or counted') },
-        { key: 'pack_qty', label: tr('Base units per pack'), type: 'number' },
+        { key: 'pack_qty', label: tr('Base Units per Pack'), type: 'number' },
         { key: 'cost', label: tr('Cost per base unit (Rp)'), type: 'number' },
-        { key: 'is_stock', label: tr('Counted in stock'), type: 'bool', hint: tr('No for water and the like') },
+        { key: 'is_stock', label: tr('Counted in Stock'), type: 'bool', hint: tr('No for water and the like') },
         { key: 'is_active', label: tr('Active'), type: 'bool' },
         { key: 'note', label: tr('Note'), type: 'textarea' },
       ]} />
@@ -121,7 +121,7 @@ export function RecipesTab() {
   const covered = active.filter((m) => m.bom_code && rows.some((b) => b.code === m.bom_code)).length;
   return (
     <>
-      <Panel title={tr('Recipe card per menu')} description={tr('Every product the drivers sell needs its card: the sales become the usage of the raw materials, the production plan and the HPP')}
+      <Panel title={tr('Recipe Card per Menu')} description={tr('Every product the drivers sell needs its card: the sales become the usage of the raw materials, the production plan and the HPP')}
         actions={<Badge tone={covered === active.length ? 'green' : 'amber'}>{tr('{0} of {1} menus', covered, active.length)}</Badge>}>
         {active.length === 0 ? <Empty title={tr('No active menu yet')} /> : (
           <ul className="grid gap-2 p-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -148,7 +148,7 @@ export function RecipesTab() {
                   <div className="mt-auto pt-2.5">
                     {card
                       ? <Button size="sm" variant="secondary" className="w-full" onClick={() => { setCode(card.code); window.scrollTo({ top: document.getElementById('recipe-editor')?.offsetTop ?? 0, behavior: 'smooth' }); }}>{tr('Edit card')}</Button>
-                      : <Button size="sm" className="w-full" loading={making === m.code} onClick={() => void makeCard(m)}><Plus size={14} /> {tr('Make card')}</Button>}
+                      : <Button size="sm" className="w-full" loading={making === m.code} onClick={() => void makeCard(m)}><Plus size={14} /> {tr('Make Card')}</Button>}
                   </div>
                 </li>
               );
@@ -157,12 +157,12 @@ export function RecipesTab() {
         )}
       </Panel>
       <div id="recipe-editor" />
-      <Panel title={tr('Recipe cards')} description={tr('Premix per batch (Pail / Teko / Gram) as the premix calculator of Cost Control; menu cards per cup or can')}
-        actions={draft && <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr('Save recipe')}</Button>}>
+      <Panel title={tr('Recipe Cards')} description={tr('Premix per batch (Pail / Teko / Gram) as the premix calculator of Cost Control; menu cards per cup or can')}
+        actions={draft && <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr('Save Recipe')}</Button>}>
         <div className="grid lg:grid-cols-[17rem_1fr]">
           {/* phones and tablets: the recipe to edit from a list, the editor right under it */}
           <div className="border-b border-neutral-100 p-4 lg:hidden">
-            <Field label={tr('Recipe to edit')}>
+            <Field label={tr('Recipe to Edit')}>
               <Select value={current ?? ''} onChange={(e) => setCode(e.target.value)} className="h-11">
                 {(['premix', 'menu'] as const).map((k) => (
                   <optgroup key={k} label={k === 'premix' ? tr('Premix') : tr('Menu cards')}>
@@ -220,7 +220,7 @@ export function RecipesTab() {
               <table className="m-cards w-full text-sm">
                 <thead className={theadClass}>
                   <tr><th className="px-3 py-2">{tr('Component')}</th><th className="px-3 py-2 text-right">{tr('Qty')}</th><th className="px-3 py-2">{tr('Unit')}</th>
-                    {draft.kind === 'premix' && <th className="px-3 py-2 text-right">{tr('Per gram')}</th>}<th className="px-3 py-2 text-right">{tr('Cost')}</th><th className="w-8" /></tr>
+                    {draft.kind === 'premix' && <th className="px-3 py-2 text-right">{tr('Per Gram')}</th>}<th className="px-3 py-2 text-right">{tr('Cost')}</th><th className="w-8" /></tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {draft.lines.map((l, i) => {
@@ -249,7 +249,7 @@ export function RecipesTab() {
                 </p>
               </div>
               {draft.kind === 'menu' && usedBy(draft).length > 0 && <p className="text-xs text-neutral-500">{tr('Used by')}: {usedBy(draft).join(', ')}</p>}
-              <Button className="h-11 w-full lg:hidden" loading={busy} onClick={() => void save()}><Save size={16} /> {tr('Save recipe')}</Button>
+              <Button className="h-11 w-full lg:hidden" loading={busy} onClick={() => void save()}><Save size={16} /> {tr('Save Recipe')}</Button>
             </div>
           ) : <Empty title={tr('No recipe yet')} />}
         </div>
@@ -266,7 +266,7 @@ export function RecipesTab() {
         fields={[
           { key: 'code', label: tr('Code'), required: true, placeholder: 'BOM-XXX' },
           { key: 'name', label: tr('Name'), required: true },
-          { key: 'kind', label: tr('Kind'), type: 'select', required: true, options: [{ value: 'menu', label: tr('Menu card (per cup / can)') }, { value: 'premix', label: tr('Premix (per batch)') }] },
+          { key: 'kind', label: tr('Kind'), type: 'select', required: true, options: [{ value: 'menu', label: tr('Menu card (per cup / can)') }, { value: 'premix', label: tr('Premix (Per Batch)') }] },
           { key: 'output', label: tr('Output'), type: 'search', required: true, hint: tr('A premix: its premix item; a menu card: the menu'),
             options: [...itemList.filter((i) => i.category === 'premix').map((i) => ({ value: i.code, label: i.name, hint: tr('Premix') })),
                       ...(menus.rows ?? []).map((m) => ({ value: m.code, label: m.name, hint: tr('Menu') }))] },
@@ -298,7 +298,7 @@ export function CalculatorTab() {
   }, [rows, premix, boms.rows, items.rows]);
   return (
     <>
-      <Panel title={tr('Premix calculator')} description={tr('Choose the premix, its unit and how many: the grams of every raw material, rounded up as the Cost Control calculator')}
+      <Panel title={tr('Premix Calculator')} description={tr('Choose the premix, its unit and how many: the grams of every raw material, rounded up as the Cost Control calculator')}
         actions={<Button size="sm" variant="secondary" onClick={() => setRows([...rows, { bom: premix[0]?.code ?? '', unit: premix[0]?.units[0]?.name ?? 'Gram', qty: 1 }])}><Plus size={14} /> {tr('Row')}</Button>}>
         <table className="m-cards w-full text-sm">
           <thead className={theadClass}><tr><th className="px-4 py-2">{tr('Premix')}</th><th className="px-4 py-2">{tr('Unit')}</th><th className="px-4 py-2 text-right">{tr('Qty')}</th><th className="px-4 py-2 text-right">{tr('Grams')}</th><th className="w-8" /></tr></thead>
@@ -319,8 +319,8 @@ export function CalculatorTab() {
           </tbody>
         </table>
       </Panel>
-      <Panel title={tr('Raw materials needed')} description={tr('Total per material, rounded up')}>
-        {result.length === 0 ? <Empty icon={<Calculator size={26} />} title={tr('Add a row above')} /> : (
+      <Panel title={tr('Raw Materials Needed')} description={tr('Total per material, rounded up')}>
+        {result.length === 0 ? <Empty icon={<Calculator size={26} />} title={tr('Add a Row Above')} /> : (
           <table className="m-cards w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Material')}</th><th className="px-4 py-2.5 text-right">{tr('Qty')}</th><th className="px-4 py-2.5 text-right">{tr('Packs')}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
@@ -374,8 +374,8 @@ export function UsageTab() {
           { key: 'period', icon: <CalendarRange />, label: tr('Period'), value: from === to ? dmyOf(from) : `${dmyOf(from)} – ${dmyOf(to)}`, active: quickOf(from, to) !== '6' },
           { key: 'pool', icon: <Building2 />, label: tr('Pool / HUB'), value: poolList.find((p) => p.code === pool)?.name ?? tr('All pools'), active: !!pool },
         ]} />
-      <StatGrid label={tr('Theoretical usage')} cols={4}>
-        <StatCard label={tr('Cups sold')} icon={<Coffee />} value={data ? num(total('sold')) : <ValueSkeleton />} />
+      <StatGrid label={tr('Theoretical Usage')} cols={4}>
+        <StatCard label={tr('Cups Sold')} icon={<Coffee />} value={data ? num(total('sold')) : <ValueSkeleton />} />
         <StatCard label={tr('Waste')} icon={<Trash2 />} tone={total('waste') ? 'warn' : 'default'} value={data ? num(total('waste')) : <ValueSkeleton />} />
         <StatCard label={tr('Cupping')} icon={<FlaskConical />} value={data ? num(total('cupping')) : <ValueSkeleton />} />
         <StatCard label={tr('Value')} tone="brand" icon={<Wallet />} value={data ? rupiah(value) : <ValueSkeleton />} sub={data && tr('{0} items', data.items.length)} />
@@ -399,7 +399,7 @@ export function UsageTab() {
           </FilterRow>
         </MonitorFilterSheet>
       )}
-      <Panel title={tr('Theoretical usage')} description={tr('Cups sold, wasted and given for tasting by the drivers, exploded through the recipe cards')}>
+      <Panel title={tr('Theoretical Usage')} description={tr('Cups sold, wasted and given for tasting by the drivers, exploded through the recipe cards')}>
         {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonRows cols={4} /> : (
           <>
             {data.noRecipe.length > 0 && (
@@ -421,7 +421,7 @@ export function UsageTab() {
         )}
       </Panel>
       {data && data.items.length > 0 && (
-        <Panel title={tr('Items used')} description={value ? `${tr('Value')}: ${rupiah(value)}` : undefined}>
+        <Panel title={tr('Items Used')} description={value ? `${tr('Value')}: ${rupiah(value)}` : undefined}>
           <table className="m-cards w-full text-sm">
             <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Item')}</th><th className="px-4 py-2.5 text-right">{tr('Sold')}</th><th className="px-4 py-2.5 text-right">{tr('Waste')}</th><th className="px-4 py-2.5 text-right">{tr('Cupping')}</th><th className="px-4 py-2.5 text-right">{tr('Total')}</th><th className="px-4 py-2.5 text-right">{tr('Value')}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">

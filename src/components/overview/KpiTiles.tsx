@@ -18,11 +18,11 @@ const METRICS: {
 }[] = [
   { key: 'sales', get label() { return tr('Gross sales'); }, get hint() { return tr('Subtotal of finished bills with a bill number (ESB Sub Total)'); }, icon: Wallet,
     format: formatCurrency, full: formatCurrency, series: d => d.subtotal },
-  { key: 'nettSales', get label() { return tr('Nett sales'); }, get hint() { return tr('After item and bill discounts'); }, icon: Tag,
+  { key: 'nettSales', get label() { return tr('Nett Sales'); }, get hint() { return tr('After item and bill discounts'); }, icon: Tag,
     format: formatCurrency, full: formatCurrency, series: d => d.nettSales },
   { key: 'bills', get label() { return tr('Bills'); }, get hint() { return tr('Number of sales transactions'); }, icon: Receipt,
     format: formatNumber, full: formatNumber, series: d => d.bills },
-  { key: 'avgTicket', get label() { return tr('Average Order Value'); }, get hint() { return tr('Gross sales ÷ bills'); }, icon: ShoppingBag,
+  { key: 'avgTicket', get label() { return tr('Average Order Value'); }, get hint() { return tr('Gross Sales ÷ Bills'); }, icon: ShoppingBag,
     format: formatCurrency, full: formatCurrency, series: d => d.avgTicket ?? 0 },
 ];
 
@@ -68,7 +68,7 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
               </>
             )}
             {error && !k && (
-              <button type="button" onClick={retry} className="text-xs font-medium text-neutral-500 underline">{tr('Try again')}</button>
+              <button type="button" onClick={retry} className="text-xs font-medium text-neutral-500 underline">{tr('Try Again')}</button>
             )}
           </Stat>
         );

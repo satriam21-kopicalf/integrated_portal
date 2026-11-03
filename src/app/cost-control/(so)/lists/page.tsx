@@ -129,7 +129,7 @@ export default function ListsPage() {
         </StatStrip>
       }>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(280px,360px)_1fr]">
-        <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search branch")} filters={chips} onOpen={() => setSheet(true)}
+        <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search Branch")} filters={chips} onOpen={() => setSheet(true)}
           onClear={() => setLf({ type: "", lists: "", city: "" })} />}
           footer={facilities ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(facilities.length))}</span><PageNav paged={paged} /></> : undefined}>
           {error ? <ErrorState message={error} onRetry={loadFacilities} /> : (
@@ -176,11 +176,11 @@ export default function ListsPage() {
                         {used && <p className="text-[11px] text-neutral-400">{tr("Updated {0}", fmtDate(used.updated_at))}{used.source_ref ? ` · ${used.source_ref}` : ""}</p>}
                       </div>
                       <div className="flex w-full gap-2 sm:w-auto">
-                        {own && <Button variant="ghost" size="sm" onClick={() => setResetting(own)}><RotateCcw size={14} /> {tr("Use default")}</Button>}
+                        {own && <Button variant="ghost" size="sm" onClick={() => setResetting(own)}><RotateCcw size={14} /> {tr("Use Default")}</Button>}
                         {own ? <Button size="sm" onClick={() => setOpen(own.id)}>{tr("Edit")}</Button>
                           : <>
-                            {def && <Button variant="secondary" size="sm" onClick={() => setOpen(def.id)}>{tr("View default")}</Button>}
-                            <Button size="sm" loading={busy} onClick={() => createOwn(ct)}><Plus size={14} /> {tr("Own list")}</Button>
+                            {def && <Button variant="secondary" size="sm" onClick={() => setOpen(def.id)}>{tr("View Default")}</Button>}
+                            <Button size="sm" loading={busy} onClick={() => createOwn(ct)}><Plus size={14} /> {tr("Own List")}</Button>
                           </>}
                       </div>
                     </li>
@@ -195,7 +195,7 @@ export default function ListsPage() {
       {sheet && <ListFilters value={lf} types={types} cities={cities} onClose={() => setSheet(false)} onApply={(v) => { setLf(v); setSheet(false); }} />}
       {open && <ListDrawer listId={open} onClose={() => setOpen(null)} onChanged={() => selected && void loadLists(selected)} />}
       <ConfirmDialog open={!!resetting} busy={busy} onClose={() => setResetting(null)} onConfirm={reset}
-        title={tr("Remove the own list?")} description={tr("The branch counts its type's default list again. The own list and its items are deleted.")} confirmLabel={tr("Use default")} danger />
+        title={tr("Remove the own list?")} description={tr("The branch counts its type's default list again. The own list and its items are deleted.")} confirmLabel={tr("Use Default")} danger />
     </Page>
   );
 }

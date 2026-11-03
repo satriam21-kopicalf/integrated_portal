@@ -312,10 +312,10 @@ export default function WasteForm() {
                                       {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                     <input className={cx(inputClass, "h-9")} value={r.note} maxLength={500} onChange={(e) => setRow(i.code, { note: e.target.value })} placeholder={tr("Note / reason (optional)")} />
-                                    <label className="text-[11px] text-neutral-500">{tr("Production date")}
+                                    <label className="text-[11px] text-neutral-500">{tr("Production Date")}
                                       <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.made} max={day} onChange={(e) => setRow(i.code, { made: e.target.value })} />
                                     </label>
-                                    <label className="text-[11px] text-neutral-500">{tr("Expired date")}
+                                    <label className="text-[11px] text-neutral-500">{tr("Expired Date")}
                                       <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.expires} min={r.made || undefined} onChange={(e) => setRow(i.code, { expires: e.target.value })} />
                                     </label>
                                     {calc && calc.ingredients.length > 0 && (
@@ -332,7 +332,7 @@ export default function WasteForm() {
                                           <Button variant="secondary" size="sm" onClick={() => setShooting(i)}><Camera size={14} />{tr("Retake")}</Button>
                                         </>
                                       ) : (
-                                        <Button variant="secondary" size="sm" onClick={() => setShooting(i)} disabled={!b}><Camera size={14} />{tr("Take photo")}</Button>
+                                        <Button variant="secondary" size="sm" onClick={() => setShooting(i)} disabled={!b}><Camera size={14} />{tr("Take Photo")}</Button>
                                       )}
                                       {lack.length > 0 && <span className="text-[11px] text-amber-700">{tr("Still missing: {0}", lack.join(", "))}</span>}
                                     </div>
@@ -414,7 +414,7 @@ export default function WasteForm() {
                                               <Button variant="secondary" size="sm" onClick={() => setShooting({ ...i, usage: true })}><Camera size={14} />{tr("Retake")}</Button>
                                             </>
                                           ) : (
-                                            <Button variant="secondary" size="sm" onClick={() => setShooting({ ...i, usage: true })}><Camera size={14} />{tr("Take photo")}</Button>
+                                            <Button variant="secondary" size="sm" onClick={() => setShooting({ ...i, usage: true })}><Camera size={14} />{tr("Take Photo")}</Button>
                                           )}
                                           {lack.length > 0 && <span className="text-[11px] text-amber-700">{tr("Still missing: {0}", lack.join(", "))}</span>}
                                         </div>
@@ -505,7 +505,7 @@ function SignDialog({ what, count, onSign, onClose }: { what: "waste" | "usage";
       description={what === "waste" ? tr("{0} waste SKUs", count) : tr("Usage Management: {0} SKUs", count)}
       footer={<>
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
-        <Button disabled={!sig} onClick={() => sig && onSign(sig)}><PenLine size={15} />{tr("Sign & submit")}</Button>
+        <Button disabled={!sig} onClick={() => sig && onSign(sig)}><PenLine size={15} />{tr("Sign & Submit")}</Button>
       </>}>
       <p className="mb-3 text-xs text-neutral-500">{tr("By signing, I confirm the quantities, categories and photos entered are true.")}</p>
       <SignaturePad onChange={setSig} />

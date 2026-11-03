@@ -35,14 +35,14 @@ const NO_F: F = { view: "", sort: "name" };
 const LOGO = "/assets/googlemaps.png";
 const VIEWS: Record<string, { label: () => string; test: (o: Outlet) => boolean }> = {
   low: { label: () => tr("Rating below {0}", LOW.toLocaleString()), test: (o) => o.rating !== null && o.rating < LOW },
-  closed: { label: () => tr("Closed now"), test: (o) => o.openNow === false },
-  check: { label: () => tr("Needs checking"), test: (o) => needsCheck(o) },
+  closed: { label: () => tr("Closed Now"), test: (o) => o.openNow === false },
+  check: { label: () => tr("Needs Checking"), test: (o) => needsCheck(o) },
 };
 const SORTS: Record<string, { label: () => string; cmp: (a: Outlet, b: Outlet) => number }> = {
-  name: { label: () => tr("Outlet name"), cmp: (a, b) => a.branchName.localeCompare(b.branchName) },
-  low: { label: () => tr("Lowest rating"), cmp: (a, b) => (a.rating ?? 9) - (b.rating ?? 9) || a.branchName.localeCompare(b.branchName) },
-  high: { label: () => tr("Highest rating"), cmp: (a, b) => (b.rating ?? -1) - (a.rating ?? -1) || a.branchName.localeCompare(b.branchName) },
-  reviews: { label: () => tr("Most reviews"), cmp: (a, b) => (b.reviewCount ?? -1) - (a.reviewCount ?? -1) },
+  name: { label: () => tr("Outlet Name"), cmp: (a, b) => a.branchName.localeCompare(b.branchName) },
+  low: { label: () => tr("Lowest Rating"), cmp: (a, b) => (a.rating ?? 9) - (b.rating ?? 9) || a.branchName.localeCompare(b.branchName) },
+  high: { label: () => tr("Highest Rating"), cmp: (a, b) => (b.rating ?? -1) - (a.rating ?? -1) || a.branchName.localeCompare(b.branchName) },
+  reviews: { label: () => tr("Most Reviews"), cmp: (a, b) => (b.reviewCount ?? -1) - (a.reviewCount ?? -1) },
 };
 
 const needsCheck = (o: Outlet) => ["pending", "review", "missing"].includes(o.match) || !!o.error;
@@ -158,7 +158,7 @@ export default function GoogleMapsRatingPage() {
       actions={<>
         {res?.canEdit && res.ready && (
           <button type="button" onClick={() => void sync()} disabled={starting || res.syncing} className={iconBtn}
-            title={res.syncing ? tr("Sync running…") : tr("Sync with Google now")} aria-label={tr("Sync with Google now")}>
+            title={res.syncing ? tr("Sync running…") : tr("Sync with Google Now")} aria-label={tr("Sync with Google Now")}>
             <CloudDownload size={19} className={res.syncing ? "animate-pulse text-brand-600" : ""} />
           </button>
         )}
@@ -168,7 +168,7 @@ export default function GoogleMapsRatingPage() {
           <Stat label={tr("Outlets on Google Maps")} emphasis icon={<Store size={13} />} value={res ? `${fmtNumber(sum.onMaps)} / ${fmtNumber(sum.outlets)}` : <StatSkeleton />}>
             {res && <p>{tr("{0} open now", fmtNumber(sum.open))}</p>}
           </Stat>
-          <Stat label={tr("Average rating")} icon={<Star size={13} />} value={res ? (sum.rating === null ? "—" : sum.rating.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })) : <StatSkeleton />}>
+          <Stat label={tr("Average Rating")} icon={<Star size={13} />} value={res ? (sum.rating === null ? "—" : sum.rating.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })) : <StatSkeleton />}>
             {res && <p>{tr("weighted by the number of reviews")}</p>}
           </Stat>
           <Stat label={tr("Reviews")} icon={<MessageSquareText size={13} />} value={res ? fmtNumber(sum.reviews) : <StatSkeleton />}>
@@ -178,7 +178,7 @@ export default function GoogleMapsRatingPage() {
             value={res ? fmtNumber(sum.low) : <StatSkeleton />}>
             {res && <p>{tr("outlets · click to show them")}</p>}
           </Stat>
-          <Stat label={tr("Needs checking")} icon={<MapPin size={13} />} onClick={res ? () => toggle("check") : undefined} active={f.view === "check"}
+          <Stat label={tr("Needs Checking")} icon={<MapPin size={13} />} onClick={res ? () => toggle("check") : undefined} active={f.view === "check"}
             value={res ? fmtNumber(sum.check) : <StatSkeleton />}>
             {res && <p>{tr("place to confirm or not found")}</p>}
           </Stat>
@@ -278,7 +278,7 @@ function RatingFilters({ value, onApply, onClose }: { value: F; onApply: (v: F) 
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_F)}>
       <FilterSection title={tr("Show")}>
         <ChoiceGroup label="" value={d.view} onChange={(v) => setD({ ...d, view: v })}
-          choices={[{ value: "", label: tr("All outlets") }, ...Object.keys(VIEWS).map((k) => ({ value: k, label: VIEWS[k].label() }))]} />
+          choices={[{ value: "", label: tr("All Outlets") }, ...Object.keys(VIEWS).map((k) => ({ value: k, label: VIEWS[k].label() }))]} />
       </FilterSection>
       <FilterSection title={tr("Sort")}>
         <ChoiceGroup label="" value={d.sort} onChange={(v) => setD({ ...d, sort: v })}
@@ -310,7 +310,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
 
         {o.weekHours.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Opening hours")}</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Opening Hours")}</h3>
             <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
               {o.weekHours.map((line) => {
                 const [day, hours] = line.includes(": ") ? line.split(": ", 2) : [line, ""];
@@ -325,7 +325,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
         )}
 
         <section>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Latest reviews")}</h3>
+          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Latest Reviews")}</h3>
           <p className="mb-2 text-xs text-neutral-400">{tr("Newest first. Google picks at most 5 reviews per outlet in the Places API (not always the newest ones); the rating and the number of reviews cover all of them.")}</p>
           {o.reviews.length === 0 ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p> : (
             <ul className="space-y-2">

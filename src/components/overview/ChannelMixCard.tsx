@@ -40,13 +40,13 @@ export default function ChannelMixCard({ resource }: { resource: Resource<Channe
   const drill = useDrill();
   return (
     <Card
-      title={tr('Channel mix')}
+      title={tr('Channel Mix')}
       info="channels"
       subtitle={tr('Gross sales and share per channel · click a channel for its details')}
       resource={resource}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'channels' })}
-      actions={<Segmented label={tr('View')} value={view} options={[{ value: 'share', label: tr('Share') }, { value: 'daily', label: tr('Over time') }]} onChange={setView} />}
+      actions={<Segmented label={tr('View')} value={view} options={[{ value: 'share', label: tr('Share') }, { value: 'daily', label: tr('Over Time') }]} onChange={setView} />}
     >
       {data => <ChannelBody data={data} view={view} />}
     </Card>

@@ -31,7 +31,7 @@ export const PAGES: PageInfo[] = [
   { key: 'form.product', href: '/forms/product', get label() { return tr('Monitoring Product (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.outlet', href: '/forms/outlet', get label() { return tr('Monitoring Outlet (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Damaged Equipment (form)'); }, get group() { return tr('Form'); } },
-  { key: 'form.pengajuan', href: '/forms/pengajuan', get label() { return tr('Fund request (form)'); }, get group() { return tr('Form'); } },
+  { key: 'form.pengajuan', href: '/forms/pengajuan', get label() { return tr('Fund Request (Form)'); }, get group() { return tr('Form'); } },
   // the SWAT audit (2026-11-03): given per account
   { key: 'form.wwwr', href: '/forms/wwwr', get label() { return tr('WW-WR (form, SWAT)'); }, get group() { return tr('Form'); } },
   { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
@@ -51,7 +51,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste Review'); }, get group() { return tr('Cost Control · Waste'); } },
   { key: 'cc.ratio', href: '/cost-control/ratio', get label() { return tr('Outlet Ratio'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.cogs', href: '/cost-control', get label() { return tr('COGS & Usage'); }, get group() { return tr('Cost Control · Analytics'); }, state: 'soon' },
-  { key: 'mon.overview', href: '/monitoring/overview', get label() { return tr('Monitoring overview'); }, get group() { return tr('Monitoring OPS'); } },
+  { key: 'mon.overview', href: '/monitoring/overview', get label() { return tr('Monitoring Overview'); }, get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.pic-check-in', href: '/monitoring/pic-check-in', get label() { return tr('PIC Check In'); }, get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.surveyor-check-in', href: '/cost-control/check-in', get label() { return tr('Cost Control Check In'); }, get group() { return tr('Cost Control · Check In'); } },
   { key: 'mon.product', href: '/monitoring/product', get label() { return tr('Monitoring Product'); }, get group() { return tr('Monitoring OPS'); } },
@@ -59,7 +59,7 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.wwwr', href: '/monitoring/wwwr', label: 'Monitoring WW-WR', get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Damaged Equipment'); }, get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch groups'); }, get group() { return tr('Monitoring OPS'); } },
-  { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Fund requests'); }, get group() { return tr('Monitoring OPS'); } },
+  { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Fund Request'); }, get group() { return tr('Monitoring OPS'); } },
   // the two approval steps of Pengajuan: rights inside /monitoring/pengajuan, not menu entries of their own
   { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Aggregator'); } },
   { key: 'rating.shopeefood', href: '/rating/shopeefood', get label() { return tr('ShopeeFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },

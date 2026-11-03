@@ -54,7 +54,7 @@ function DeviceCheck() {
   const mark = (c: Check) => c === "ok" ? <CheckCircle2 size={15} className="text-emerald-600" /> : c === "fail" ? <XCircle size={15} className="text-red-600" /> : null;
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <Button variant="secondary" size="sm" loading={camera === "busy"} onClick={run}><Camera size={14} /> {tr("Check camera & location")}</Button>
+      <Button variant="secondary" size="sm" loading={camera === "busy"} onClick={run}><Camera size={14} /> {tr("Check Camera & Location")}</Button>
       {camera !== "idle" && camera !== "busy" && <span className="inline-flex items-center gap-1 text-xs text-neutral-600">{mark(camera)} {tr("Camera")}</span>}
       {location !== "idle" && location !== "busy" && <span className="inline-flex items-center gap-1 text-xs text-neutral-600">{mark(location)} {tr("Location")}{location === "ok" && accuracy !== null ? ` ±${accuracy} m` : ""}</span>}
       {(camera === "fail" || location === "fail") && (

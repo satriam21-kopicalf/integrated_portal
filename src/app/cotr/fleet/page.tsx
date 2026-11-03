@@ -41,13 +41,13 @@ export default function CotrFleetPage() {
   const [now] = useState(() => Date.now());
   return (
     <Page eyebrow="Monitoring COTR" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
-      actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print labels")}</Button></Link>}>
+      actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print Labels")}</Button></Link>}>
       <MasterTable noun={tr("fleet")} title={tr("Fleet")} master={master} filters={[
         { key: "pool", label: tr("Pool / HUB"), icon: <Building2 size={15} />, options: (pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => ({ value: p.code, label: p.name, test: (f: Fleet) => f.pool_code === p.code })) },
         { key: "type", label: tr("Type"), icon: <Truck size={15} />, options: (types.rows ?? []).map((t) => ({ value: t.code, label: t.name, test: (f: Fleet) => f.type === t.code })) },
         { key: "condition", label: tr("Condition"), icon: <Wrench size={15} />, options: [
-          { value: "good", label: tr("Good"), test: (f: Fleet) => f.condition === "good" }, { value: "service", label: tr("In service"), test: (f: Fleet) => f.condition === "service" },
-          { value: "due", label: tr("Papers or service due"), test: (f: Fleet) => dues(f, now).length > 0 }] },
+          { value: "good", label: tr("Good"), test: (f: Fleet) => f.condition === "good" }, { value: "service", label: tr("In Service"), test: (f: Fleet) => f.condition === "service" },
+          { value: "due", label: tr("Papers or Service Due"), test: (f: Fleet) => dues(f, now).length > 0 }] },
         { key: "active", label: tr("Status"), icon: <CheckCircle2 size={15} />, options: [
           { value: "on", label: tr("Active"), test: (f: Fleet) => f.is_active }, { value: "off", label: tr("Inactive"), test: (f: Fleet) => !f.is_active }] },
         { key: "qris", label: tr("QRIS"), icon: <QrCode size={15} />, options: [
@@ -55,9 +55,9 @@ export default function CotrFleetPage() {
       ]}
         blank={(): Partial<Fleet> => ({ code: "", name: "", type: types.rows?.[0]?.code ?? "sepeda", plate: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", capacity: 0, condition: "good", last_service: null, is_active: true })}
         rowActions={(f) => (<>
-          {f.label_token && <a href={`/share/fleet/${f.label_token}`} target="_blank" rel="noreferrer" aria-label={tr("Information page")} title={tr("Information page (what the QR opens)")}
+          {f.label_token && <a href={`/share/fleet/${f.label_token}`} target="_blank" rel="noreferrer" aria-label={tr("Information Page")} title={tr("Information page (what the QR opens)")}
             className="inline-flex rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><ExternalLink size={15} /></a>}
-          <Link href={`/cotr/fleet/labels?codes=${encodeURIComponent(f.code)}`} aria-label={tr("Print label")} title={tr("Print label")}
+          <Link href={`/cotr/fleet/labels?codes=${encodeURIComponent(f.code)}`} aria-label={tr("Print Label")} title={tr("Print Label")}
             className="inline-flex rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><Printer size={15} /></Link>
         </>)}
         columns={[
@@ -77,49 +77,49 @@ export default function CotrFleetPage() {
             ? <Badge tone="blue" icon={<QrCode size={11} />}>{f.qris_bank ?? "QRIS"}{f.qris_nmid ? ` · ${f.qris_nmid}` : ""}</Badge> : <span className="text-neutral-400">—</span> },
           { label: tr("Condition"), render: (f) => (
             <span className="flex flex-wrap gap-1">
-              {f.condition === "good" ? <Badge tone="green" dot>{tr("Good")}</Badge> : <Badge tone="amber" dot>{tr("In service")}</Badge>}
+              {f.condition === "good" ? <Badge tone="green" dot>{tr("Good")}</Badge> : <Badge tone="amber" dot>{tr("In Service")}</Badge>}
               {dues(f, now).map((d) => <Badge key={d.label} tone={d.late ? "red" : "amber"}>{d.late ? tr("{0} overdue", d.label) : tr("{0} due", d.label)}</Badge>)}
             </span>
           ) },
         ]}
         fields={[
-          { key: "photo", label: tr("Photo of the armada"), type: "image", image: { entity: "fleet", slot: "photo" }, section: sec.main },
+          { key: "photo", label: tr("Photo of the Armada"), type: "image", image: { entity: "fleet", slot: "photo" }, section: sec.main },
           { key: "code", label: tr("Code"), required: true, placeholder: "BNI 01", section: sec.main },
           { key: "name", label: tr("Name"), required: true, placeholder: tr("e.g. Armada Kwitang 01"), section: sec.main },
           { key: "type", label: tr("Type"), type: "search", required: true, section: sec.main, options: (types.rows ?? []).map((t) => ({ value: t.code, label: t.name })) },
           { key: "pool_code", label: tr("Pool / HUB"), type: "search", required: true, section: sec.main,
             options: (pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => ({ value: p.code, label: p.name, hint: p.city })) },
-          { key: "condition", label: tr("Condition"), type: "select", required: true, section: sec.main, options: [{ value: "good", label: tr("Good") }, { value: "service", label: tr("In service") }] },
-          { key: "asset_no", label: tr("Asset number"), section: sec.main, placeholder: "AST-COTR-001", hint: tr("The number of the company asset register") },
+          { key: "condition", label: tr("Condition"), type: "select", required: true, section: sec.main, options: [{ value: "good", label: tr("Good") }, { value: "service", label: tr("In Service") }] },
+          { key: "asset_no", label: tr("Asset Number"), section: sec.main, placeholder: "AST-COTR-001", hint: tr("The number of the company asset register") },
           { key: "is_active", label: tr("Active"), type: "bool", section: sec.main },
 
           { key: "brand", label: tr("Make"), section: sec.unit, placeholder: "Uwinfly / Genio …" },
           { key: "model", label: tr("Model"), section: sec.unit },
           { key: "color", label: tr("Colour"), section: sec.unit },
-          { key: "year_made", label: tr("Year made"), type: "number", section: sec.unit },
-          { key: "plate", label: tr("Plate number"), section: sec.unit, hint: tr("Motorbikes and cars") },
-          { key: "frame_no", label: tr("Frame number"), section: sec.unit },
-          { key: "battery_no", label: tr("Battery number"), section: sec.unit, hint: tr("Electric bikes") },
-          { key: "capacity", label: tr("Capacity (cups)"), type: "number", section: sec.unit },
+          { key: "year_made", label: tr("Year Made"), type: "number", section: sec.unit },
+          { key: "plate", label: tr("Plate Number"), section: sec.unit, hint: tr("Motorbikes and cars") },
+          { key: "frame_no", label: tr("Frame Number"), section: sec.unit },
+          { key: "battery_no", label: tr("Battery Number"), section: sec.unit, hint: tr("Electric bikes") },
+          { key: "capacity", label: tr("Capacity (Cups)"), type: "number", section: sec.unit },
           { key: "acquired_on", label: tr("Acquired on"), type: "date", section: sec.unit },
-          { key: "gps_id", label: tr("GPS tracker ID"), section: sec.unit },
+          { key: "gps_id", label: tr("GPS Tracker ID"), section: sec.unit },
           { key: "note", label: tr("Note"), type: "textarea", section: sec.unit },
 
-          { key: "stnk_no", label: tr("STNK number"), section: sec.papers, hint: tr("Motorbikes and cars") },
-          { key: "stnk_expires", label: tr("STNK valid until"), type: "date", section: sec.papers },
-          { key: "insurance_no", label: tr("Insurance policy"), section: sec.papers },
-          { key: "insurance_expires", label: tr("Insurance valid until"), type: "date", section: sec.papers },
-          { key: "last_service", label: tr("Last service"), type: "date", section: sec.papers },
-          { key: "next_service", label: tr("Next service"), type: "date", section: sec.papers, hint: tr("Flagged {0} days before", DUE_DAYS) },
-          { key: "odometer_km", label: tr("Odometer (km)"), type: "number", section: sec.papers },
+          { key: "stnk_no", label: tr("STNK Number"), section: sec.papers, hint: tr("Motorbikes and cars") },
+          { key: "stnk_expires", label: tr("STNK Valid Until"), type: "date", section: sec.papers },
+          { key: "insurance_no", label: tr("Insurance Policy"), section: sec.papers },
+          { key: "insurance_expires", label: tr("Insurance Valid Until"), type: "date", section: sec.papers },
+          { key: "last_service", label: tr("Last Service"), type: "date", section: sec.papers },
+          { key: "next_service", label: tr("Next Service"), type: "date", section: sec.papers, hint: tr("Flagged {0} days before", DUE_DAYS) },
+          { key: "odometer_km", label: tr("Odometer (Km)"), type: "number", section: sec.papers },
 
-          { key: "qris_bank", label: tr("QRIS bank"), section: sec.qris, placeholder: "BNI / BRI …" },
+          { key: "qris_bank", label: tr("QRIS Bank"), section: sec.qris, placeholder: "BNI / BRI …" },
           { key: "qris_nmid", label: tr("NMID"), section: sec.qris, hint: tr("National Merchant ID printed under the QR") },
-          { key: "qris_merchant", label: tr("Merchant name"), section: sec.qris },
-          { key: "qris", label: tr("QRIS image"), type: "image", image: { entity: "fleet", slot: "qris" }, section: sec.qris, hint: tr("A photo or screenshot of the QRIS; shown to the customer only for a payment, never printed on the label") },
+          { key: "qris_merchant", label: tr("Merchant Name"), section: sec.qris },
+          { key: "qris", label: tr("QRIS Image"), type: "image", image: { entity: "fleet", slot: "qris" }, section: sec.qris, hint: tr("A photo or screenshot of the QRIS; shown to the customer only for a payment, never printed on the label") },
         ]} />
 
-      <MasterTable noun={tr("type")} title={tr("Armada types")} master={types}
+      <MasterTable noun={tr("type")} title={tr("Armada Types")} master={types}
         description={tr("The kinds of armada the team uses; add one when a new kind of vehicle comes")}
         blank={(): Partial<FleetType> => ({ code: "", name: "", sort: (types.rows?.length ?? 0) + 1 })}
         columns={[

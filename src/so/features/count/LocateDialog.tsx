@@ -35,13 +35,13 @@ export default function LocateDialog({ title, onCancel, onDone }: { title: strin
     <Button variant="secondary" onClick={onCancel}>{tr("Cancel")}</Button>
   ) : state === "weak" ? (
     <>
-      <Button variant="secondary" onClick={() => void run()}><RotateCcw size={15} /> {tr("Try again")}</Button>
-      <Button onClick={() => fix && onDone(fix)}>{tr("Start anyway")}</Button>
+      <Button variant="secondary" onClick={() => void run()}><RotateCcw size={15} /> {tr("Try Again")}</Button>
+      <Button onClick={() => fix && onDone(fix)}>{tr("Start Anyway")}</Button>
     </>
   ) : (
     <>
       <Button variant="secondary" onClick={onCancel}>{tr("Cancel")}</Button>
-      <Button onClick={() => void run()}><RotateCcw size={15} /> {tr("Try again")}</Button>
+      <Button onClick={() => void run()}><RotateCcw size={15} /> {tr("Try Again")}</Button>
     </>
   );
 

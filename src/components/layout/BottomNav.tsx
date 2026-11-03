@@ -30,7 +30,7 @@ const FORM_LINKS: FormLink[] = [
   { href: '/forms/product', key: 'form.product', icon: Package, label: () => 'Product', hint: () => tr('Fill in the product checklist') },
   { href: '/forms/outlet', key: 'form.outlet', icon: Store, label: () => 'Outlet', hint: () => tr('Fill in the outlet checklist') },
   { href: '/forms/damaged-equipment', key: 'form.damaged-equipment', icon: Wrench, label: () => tr('Damaged Equipment'), hint: () => tr('Repair & procurement requests') },
-  { href: '/forms/pengajuan', key: 'form.pengajuan', icon: Wallet, label: () => tr('Fund requests'), hint: () => tr('Petty cash with receipts') },
+  { href: '/forms/pengajuan', key: 'form.pengajuan', icon: Wallet, label: () => tr('Fund Request'), hint: () => tr('Petty cash with receipts') },
   { href: '/forms/wwwr', key: 'form.wwwr', icon: ShieldCheck, label: () => 'WW-WR', hint: () => tr('SWAT audit of the outlet') },
 ];
 
@@ -89,7 +89,7 @@ export default function BottomNav({ onMenu }: { onMenu: () => void }) {
               return t.href ? (
                 <Link key={t.key} href={t.href} className={cls} aria-current={t.active ? 'page' : undefined}>{inner}</Link>
               ) : (
-                <button key={t.key} type="button" onClick={t.onClick} className={cls} aria-haspopup="dialog" aria-label={t.key === 'menu' ? tr('Open menu') : undefined}>{inner}</button>
+                <button key={t.key} type="button" onClick={t.onClick} className={cls} aria-haspopup="dialog" aria-label={t.key === 'menu' ? tr('Open Menu') : undefined}>{inner}</button>
               );
             })}
           </div>

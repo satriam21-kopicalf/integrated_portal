@@ -99,10 +99,10 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   const def = NO_F();
   const chips: ActiveFilter[] = [
     ...(f.period.from !== def.period.from || f.period.to !== def.period.to ? [{ key: "p", label: `${dmy(f.period.from)} – ${dmy(f.period.to)}`, onRemove: () => setF({ ...f, period: def.period }) }] : []),
-    ...(f.group ? [{ key: "g", label: `${tr("Group")} ${f.group === "none" ? tr("Without a group") : groups.find((g) => g.id === f.group)?.code ?? ""}`, onRemove: () => setF({ ...f, group: "" }) }] : []),
+    ...(f.group ? [{ key: "g", label: `${tr("Group")} ${f.group === "none" ? tr("Without a Group") : groups.find((g) => g.id === f.group)?.code ?? ""}`, onRemove: () => setF({ ...f, group: "" }) }] : []),
     ...(f.branch ? [{ key: "b", label: branches.find((b) => b.branch_code === f.branch)?.branch_name ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
     ...(f.user ? [{ key: "u", label: res?.pics.find((p) => p.id === f.user)?.name ?? tr("PIC"), onRemove: () => setF({ ...f, user: "" }) }] : []),
-    ...(f.only ? [{ key: "o", label: f.only === "under" ? tr("With UNDER findings") : tr("Outside radius"), onRemove: () => setF({ ...f, only: "" }) }] : []),
+    ...(f.only ? [{ key: "o", label: f.only === "under" ? tr("With UNDER findings") : tr("Outside Radius"), onRemove: () => setF({ ...f, only: "" }) }] : []),
   ];
   const toggle = (only: F["only"]) => { setTab("visits"); setF({ ...f, only: f.only === only ? "" : only }); };
 
@@ -113,10 +113,10 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
           <Stat label={audit ? tr("Audits") : tr("Visits")} emphasis icon={<ClipboardList size={13} />} value={s ? fmtNumber(s.visits) : <StatSkeleton />}>
             {s && <p>{audit ? tr("{0} outlets · {1} leads", fmtNumber(s.branches), fmtNumber(s.pics)) : tr("{0} outlets · {1} PICs", fmtNumber(s.branches), fmtNumber(s.pics))}</p>}
           </Stat>
-          <Stat label={tr("Average score")} icon={<BarChart3 size={13} />} value={s ? <span className={scoreTone(s.score)}>{s.score === null ? "—" : `${s.score}%`}</span> : <StatSkeleton />}>
+          <Stat label={tr("Average Score")} icon={<BarChart3 size={13} />} value={s ? <span className={scoreTone(s.score)}>{s.score === null ? "—" : `${s.score}%`}</span> : <StatSkeleton />}>
             {s && <p>{tr("items rated MEET or EXCEED")}</p>}
           </Stat>
-          <Stat label={tr("UNDER findings")} icon={<AlertTriangle size={13} />} onClick={s ? () => toggle("under") : undefined} active={f.only === "under"}
+          <Stat label={tr("UNDER Findings")} icon={<AlertTriangle size={13} />} onClick={s ? () => toggle("under") : undefined} active={f.only === "under"}
             value={s ? <span className={s.under ? "text-red-600" : undefined}>{fmtNumber(s.under)}</span> : <StatSkeleton />}>
             {s && <p>{tr("{0} MEET · {1} EXCEED", fmtNumber(s.meet), fmtNumber(s.exceed))}</p>}
           </Stat>
@@ -125,7 +125,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
               <p>{tr("SWAT against the PIC's own visits")}</p>
             </Stat>
           ) : (
-            <Stat label={tr("Days off")} icon={<CalendarOff size={13} />} onClick={att ? () => setTab("attendance") : undefined} active={tab === "attendance"}
+            <Stat label={tr("Days Off")} icon={<CalendarOff size={13} />} onClick={att ? () => setTab("attendance") : undefined} active={tab === "attendance"}
               value={att ? fmtNumber(offDays) : <StatSkeleton />}>
               {att && <p>{tr("days without a visit · {0} PICs", fmtNumber(att.pics.length))}</p>}
             </Stat>
@@ -136,7 +136,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
         {((audit ? [["visits", tr("Audits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
           ["comparison", tr("Comparison"), <Scale key="c" size={15} />, null], ["schedule", tr("Schedule"), <CalendarPlus key="s" size={15} />, null]]
           : [["visits", tr("Visits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
-          ["attendance", tr("PIC attendance"), <CalendarDays key="t" size={15} />, att?.pics.length]]) as [Tab, string, React.ReactNode, number | null | undefined][]).map(([k, label, icon, n]) => (
+          ["attendance", tr("PIC Attendance"), <CalendarDays key="t" size={15} />, att?.pics.length]]) as [Tab, string, React.ReactNode, number | null | undefined][]).map(([k, label, icon, n]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("-mb-px inline-flex flex-shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
               tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800")}>
@@ -151,7 +151,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
         <div className="space-y-4">
           <Analysis res={res} onOutlet={(code) => { setF({ ...f, branch: code }); setTab("visits"); }} />
           {!!res.platforms?.length && (
-            <Panel title={tr("Outlet rating per platform")} description={tr("Average stars of the visits of the period: Google Maps automatic, delivery apps typed by the PIC")}>
+            <Panel title={tr("Outlet Rating per Platform")} description={tr("Average stars of the visits of the period: Google Maps automatic, delivery apps typed by the PIC")}>
               <ul className="grid grid-cols-2 gap-px bg-neutral-100 lg:grid-cols-4">
                 {res.platforms.map((p) => (
                   <li key={p.key} className="bg-white px-4 py-3">
@@ -274,7 +274,7 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
   const sunday = (d: string) => new Date(`${d}T00:00:00`).getDay() === 0;
   const past = (att?.days ?? []).filter((d) => d < (att?.today ?? "")).length;
   return (
-    <Panel title={tr("PIC attendance")} description={att ? tr("{0}: {1} days in the month · counted from {2} · one visit per outlet per day; a past day without any visit is a day off", label, dates.length, dmy(att.since), ) : tr("Loading…")}
+    <Panel title={tr("PIC Attendance")} description={att ? tr("{0}: {1} days in the month · counted from {2} · one visit per outlet per day; a past day without any visit is a day off", label, dates.length, dmy(att.since), ) : tr("Loading…")}
       actions={<div className="flex flex-wrap items-center gap-3">
         <span className="hidden items-center gap-3 text-[11px] text-neutral-500 lg:flex">
           <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />{tr("Visit")}</span>
@@ -283,9 +283,9 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
           <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-neutral-100" />{tr("Not counted")}</span>
         </span>
         <span className="inline-flex items-center rounded-lg border border-neutral-200 bg-white">
-          <button type="button" onClick={() => setMonth(shiftMonth(month, -1))} className="rounded-l-lg p-2 text-neutral-500 hover:bg-neutral-50" aria-label={tr("Previous month")}><ChevronLeft size={15} /></button>
+          <button type="button" onClick={() => setMonth(shiftMonth(month, -1))} className="rounded-l-lg p-2 text-neutral-500 hover:bg-neutral-50" aria-label={tr("Previous Month")}><ChevronLeft size={15} /></button>
           <span className="min-w-[8.5rem] px-2 text-center text-sm font-semibold capitalize text-neutral-900">{label}</span>
-          <button type="button" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= current} className="rounded-r-lg p-2 text-neutral-500 hover:bg-neutral-50 disabled:opacity-30" aria-label={tr("Next month")}><ChevronRight size={15} /></button>
+          <button type="button" onClick={() => setMonth(shiftMonth(month, 1))} disabled={month >= current} className="rounded-r-lg p-2 text-neutral-500 hover:bg-neutral-50 disabled:opacity-30" aria-label={tr("Next Month")}><ChevronRight size={15} /></button>
         </span>
       </div>}>
       {error ? <ErrorState message={error} /> : !att ? <SkeletonList rows={5} /> : att.pics.length === 0 ? (
@@ -296,7 +296,7 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
             <thead className={theadClass}>
               <tr>
                 <th className="sticky left-0 z-10 min-w-[14rem] bg-neutral-50 py-2.5 pl-5 pr-3">{tr("PIC")}</th>
-                <th className="px-2 py-2.5 text-right">{tr("Visited")}</th><th className="px-2 py-2.5 text-right">{tr("Days off")}</th><th className="px-2 py-2.5 text-right">{tr("Visits")}</th>
+                <th className="px-2 py-2.5 text-right">{tr("Visited")}</th><th className="px-2 py-2.5 text-right">{tr("Days Off")}</th><th className="px-2 py-2.5 text-right">{tr("Visits")}</th>
                 {dates.map((d) => (
                   <th key={d} className={cx("w-6 px-0 py-2.5 text-center text-[10px] tabular-nums", d === att.today ? "text-brand-700" : sunday(d) ? "text-red-500" : "")}>{Number(d.slice(8))}</th>
                 ))}
@@ -366,15 +366,15 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
   return (
     <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Insight label={tr("Average score")} value={<span className={scoreTone(s.score)}>{s.score === null ? "—" : `${s.score}%`}</span>}
+        <Insight label={tr("Average Score")} value={<span className={scoreTone(s.score)}>{s.score === null ? "—" : `${s.score}%`}</span>}
           note={tr("{0} visits · target {1}%", fmtNumber(s.visits), TARGET)} />
-        <Insight label={tr("Weakest section")} value={weakest ? <span className={scoreTone(weakest.pct)}>{weakest.pct}%</span> : "—"} note={weakest ? tl(weakest, "title") : tr("No rating yet")} />
-        <Insight label={tr("Top finding")} value={top ? <span className="text-red-600">{top.count}×</span> : "0"} note={top ? tl(top) : tr("No UNDER in this period")} />
-        <Insight label={tr("Outlets below 75%")} value={<span className={below ? "text-red-600" : "text-emerald-600"}>{below}</span>} note={tr("of {0} outlets visited", fmtNumber(outlets.length))} />
+        <Insight label={tr("Weakest Section")} value={weakest ? <span className={scoreTone(weakest.pct)}>{weakest.pct}%</span> : "—"} note={weakest ? tl(weakest, "title") : tr("No rating yet")} />
+        <Insight label={tr("Top Finding")} value={top ? <span className="text-red-600">{top.count}×</span> : "0"} note={top ? tl(top) : tr("No UNDER in this period")} />
+        <Insight label={tr("Outlets Below 75%")} value={<span className={below ? "text-red-600" : "text-emerald-600"}>{below}</span>} note={tr("of {0} outlets visited", fmtNumber(outlets.length))} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title={tr("Performance per section")} description={tr("Share of items rated MEET or EXCEED, weakest first; the line is the target {0}%", TARGET)}>
+        <Panel title={tr("Performance per Section")} description={tr("Share of items rated MEET or EXCEED, weakest first; the line is the target {0}%", TARGET)}>
           <ul className="space-y-3 px-4 py-4 sm:px-5">
             {sections.map((sec) => (
               <li key={sec.key} title={`${sec.under} UNDER · ${sec.meet} MEET · ${sec.exceed} EXCEED`}>
@@ -392,7 +392,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
           </ul>
         </Panel>
 
-        <Panel title={tr("Most frequent findings")} description={tr("Items rated UNDER most often in the period")}>
+        <Panel title={tr("Most Frequent Findings")} description={tr("Items rated UNDER most often in the period")}>
           {res.findings.length === 0 ? <p className="px-4 py-10 text-center text-sm text-neutral-400">{tr("No UNDER in this period")}</p> : (
             <ol className="space-y-3 px-4 py-4 sm:px-5">
               {res.findings.slice(0, 8).map((x, i) => (
@@ -419,7 +419,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
             {res.groups!.map((g) => (
               <li key={g.code} className="bg-white px-4 py-3">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-sm font-semibold text-neutral-900">{g.code === "—" ? tr("Without a group") : g.code}</span>
+                  <span className="text-sm font-semibold text-neutral-900">{g.code === "—" ? tr("Without a Group") : g.code}</span>
                   <span className={cx("text-xl font-semibold tabular-nums", scoreTone(g.score))}>{g.score === null ? "—" : `${g.score}%`}</span>
                 </div>
                 <p className="mt-0.5 text-[11px] text-neutral-500">{tr("{0} visits · {1} outlets · {2} PICs", fmtNumber(g.visits), fmtNumber(g.outlets), fmtNumber(g.pics))}</p>
@@ -430,12 +430,12 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
         </Panel>
       )}
 
-      <Panel title={tr("Outlets needing attention")} description={tr("Lowest average score first; tap an outlet to see its visits")}>
+      <Panel title={tr("Outlets Needing Attention")} description={tr("Lowest average score first; tap an outlet to see its visits")}>
         <div className="overflow-x-auto">
           <table className="m-cards w-full text-sm">
             <thead className={theadClass}>
               <tr><th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Visits")}</th>
-                <th className="px-3 py-2.5 text-right">{tr("UNDER")}</th><th className="px-3 py-2.5">{tr("Last visit")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Average score")}</th></tr>
+                <th className="px-3 py-2.5 text-right">{tr("UNDER")}</th><th className="px-3 py-2.5">{tr("Last Visit")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Average Score")}</th></tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
               {outlets.slice(0, 10).map((o) => (
@@ -443,8 +443,8 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
                   <td className="py-2.5 pl-5 pr-3" data-label={tr("Outlet")}><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}</span></td>
                   <td className="px-3 py-2.5 text-right tabular-nums text-neutral-700" data-label={tr("Visits")}>{o.visits}</td>
                   <td className={cx("px-3 py-2.5 text-right tabular-nums", o.under ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("UNDER")}>{o.under}</td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-xs text-neutral-500" data-label={tr("Last visit")}>{o.last ? wibDateTime(o.last) : "—"}</td>
-                  <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Average score")}><ScorePill score={o.avg} /></td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-xs text-neutral-500" data-label={tr("Last Visit")}>{o.last ? wibDateTime(o.last) : "—"}</td>
+                  <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Average Score")}><ScorePill score={o.avg} /></td>
                 </tr>
               ))}
             </tbody>
@@ -472,16 +472,16 @@ function VisitFilters({ value, groups, branches, pics, onApply, onClose }: {
   const def = NO_F();
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
   const period = periodLabel(d.period, def.period);
-  const groupName = d.group === "none" ? tr("Without a group") : groups.find((g) => g.id === d.group)?.code ?? null;
-  const only = { "": null, under: tr("With UNDER findings"), outside: tr("Outside radius") }[d.only];
+  const groupName = d.group === "none" ? tr("Without a Group") : groups.find((g) => g.id === d.group)?.code ?? null;
+  const only = { "": null, under: tr("With UNDER findings"), outside: tr("Outside Radius") }[d.only];
   const active = [period, d.group, d.branch, d.user, d.only].filter(Boolean).length;
   return (
     <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(def)} applyDisabled={days > 366}>
-      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 30 days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
+      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 30 Days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
         <QuickPeriod value={d.period} onChange={(p) => setD({ ...d, period: p })} maxDays={366} />
       </FilterRow>
       <FilterRow icon={<Store size={15} />} label={tr("Outlet")} value={branches.find((b) => b.branch_code === d.branch)?.branch_name ?? null} onClear={() => setD({ ...d, branch: "" })}>
-        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All outlets")} placeholder={tr("Search outlet")}
+        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All Outlets")} placeholder={tr("Search outlet")}
           options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code }))} />
       </FilterRow>
       <FilterRow icon={<UserRound size={15} />} label={tr("PIC")} value={pics.find((p) => p.id === d.user)?.name ?? null} onClear={() => setD({ ...d, user: "" })}>
@@ -489,14 +489,14 @@ function VisitFilters({ value, groups, branches, pics, onApply, onClose }: {
           options={pics.map((p) => ({ value: p.id, label: p.name }))} />
       </FilterRow>
       {groups.length > 0 && (
-        <FilterRow icon={<Layers size={15} />} label={tr("Branch group")} value={groupName} onClear={() => setD({ ...d, group: "" })}>
+        <FilterRow icon={<Layers size={15} />} label={tr("Branch Group")} value={groupName} onClear={() => setD({ ...d, group: "" })}>
           <Segments value={d.group} onChange={(v) => setD({ ...d, group: v })}
             choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("No group") }]} />
         </FilterRow>
       )}
-      <FilterRow icon={<AlertTriangle size={15} />} label={tr("Show only")} value={only} onClear={() => setD({ ...d, only: "" })}>
+      <FilterRow icon={<AlertTriangle size={15} />} label={tr("Show Only")} value={only} onClear={() => setD({ ...d, only: "" })}>
         <Segments value={d.only} onChange={(v) => setD({ ...d, only: v as F["only"] })}
-          choices={[{ value: "", label: tr("All visits") }, { value: "under", label: tr("With UNDER") }, { value: "outside", label: tr("Outside radius") }]} />
+          choices={[{ value: "", label: tr("All Visits") }, { value: "under", label: tr("With UNDER") }, { value: "outside", label: tr("Outside Radius") }]} />
       </FilterRow>
     </MonitorFilterSheet>
   );
@@ -547,7 +547,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
               <Fact icon={<MapPin size={12} />} k={tr("Location when sent")} v={v.latitude !== null && v.longitude !== null ? (
                 <a href={mapsUrl(v.latitude, v.longitude)} target="_blank" rel="noreferrer" className={cx("hover:underline", v.outsideRadius ? "text-red-700" : "text-brand-700")}>
                   {v.distanceM !== null ? tr("{0} m from the outlet", v.distanceM) : `${v.latitude.toFixed(4)}, ${v.longitude.toFixed(4)}`} <ExternalLink size={10} className="inline" />
-                  {v.outsideRadius && <span className="block text-[11px] font-semibold">{tr("Outside radius")}</span>}
+                  {v.outsideRadius && <span className="block text-[11px] font-semibold">{tr("Outside Radius")}</span>}
                 </a>) : tr("No position")} />
               <Fact icon={<Camera size={12} />} k={tr("Evidence")} v={<>{tr("{0} photos", v.photos?.length ?? 0)}<span className="block text-[11px] font-normal text-neutral-400">{tr("{0} notes", notes)}</span></>} />
             </dl>
@@ -556,7 +556,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
           {v.audit && <AuditEvaluation audit={v.audit} />}
 
           <Segmented label={tr("Show")} value={show} onChange={setShow}
-            options={[{ value: "all", label: tr("All items") }, { value: "under", label: tr("UNDER ({0})", v.counts.under) }, { value: "notes", label: tr("With notes or photos") }]} />
+            options={[{ value: "all", label: tr("All Items") }, { value: "under", label: tr("UNDER ({0})", v.counts.under) }, { value: "notes", label: tr("With notes or photos") }]} />
 
           {v.definition.groups.map((g) => {
             const sections = g.sections.map((sec) => ({ ...sec, items: sec.items.filter((it) => {

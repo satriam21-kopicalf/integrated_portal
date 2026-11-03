@@ -81,7 +81,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
       .toLowerCase().includes(s));
   }, [rows, q]);
   return (
-    <Page title={tr("Stock opname today")}
+    <Page title={tr("Stock Opname Today")}
       subtitle={day ? new Date(`${day}T00:00:00`).toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : tr("Counts due at your facilities")}
       actions={<LiveClock />}>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel>
@@ -97,7 +97,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet, code or count type")} aria-label={tr("Search outlet, code or count type")}
                   className={`${inputClass} h-11 bg-white pl-9 pr-9`} enterKeyHint="search" />
-                {q && <button type="button" onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr("Clear search")}><X size={15} /></button>}
+                {q && <button type="button" onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr("Clear Search")}><X size={15} /></button>}
               </label>
               <p className="text-xs text-neutral-500">{q ? tr("{0} of {1} facilities", shown.length, rows.length) : tr("{0} facilities · {1} counts today", rows.length, total)}</p>
             </div>
@@ -142,11 +142,11 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                             )}
                           </div>
                           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-neutral-50 p-3 text-xs sm:grid-cols-4">
-                            <Info icon={<CalendarClock size={13} />} label={tr("Count window")}
+                            <Info icon={<CalendarClock size={13} />} label={tr("Count Window")}
                               value={c.window_start ? periodText(c.period_start ?? f.business_date, c.period_end, c.window_start, c.window_end) : "—"} />
                             <Info icon={<Layers size={13} />} label={tr("Items")} value={c.items !== null && c.items !== undefined ? tr("{0} items · {1} areas", c.items, c.areas.length) : "—"} />
-                            <Info icon={<History size={13} />} label={tr("Last count")} value={c.last ? `${fmtDay(c.last.business_date)} · ${(STATUS[c.last.status] ?? STATUS.IN_PROGRESS).label()}` : tr("None yet")} />
-                            <Info icon={<ClipboardList size={13} />} label={tr("ESB purpose")} value={c.esb_purpose ?? tr("Not set")} />
+                            <Info icon={<History size={13} />} label={tr("Last Count")} value={c.last ? `${fmtDay(c.last.business_date)} · ${(STATUS[c.last.status] ?? STATUS.IN_PROGRESS).label()}` : tr("None yet")} />
+                            <Info icon={<ClipboardList size={13} />} label={tr("ESB Purpose")} value={c.esb_purpose ?? tr("Not set")} />
                           </dl>
                           {c.areas.length > 0 && (
                             <p className="text-[11px] text-neutral-400">{tr("Areas")}: {c.areas.join(" · ")}</p>

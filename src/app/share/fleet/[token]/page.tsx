@@ -75,7 +75,7 @@ export default function FleetSharePage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {f.has_photo ? <img src={thumb(`${base}/photo?v=${encodeURIComponent(f.updated_at ?? "")}`, 640)} decoding="async" loading="lazy" alt="" className="h-full w-full object-cover" /> : <Bike size={56} />}
                 <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${f.is_active === false ? "bg-neutral-800 text-white" : f.condition === "service" ? "bg-amber-500 text-white" : "bg-emerald-600 text-white"}`}>
-                  {f.is_active === false ? tr("Not in use") : f.condition === "service" ? <><Wrench size={12} /> {tr("In service")}</> : <><CheckCircle2 size={12} /> {tr("Ready to sell")}</>}
+                  {f.is_active === false ? tr("Not in use") : f.condition === "service" ? <><Wrench size={12} /> {tr("In Service")}</> : <><CheckCircle2 size={12} /> {tr("Ready to sell")}</>}
                 </span>
               </div>
               <div className="p-4">
@@ -83,18 +83,18 @@ export default function FleetSharePage() {
                 {f.name && <p className="text-sm font-semibold text-neutral-700">{f.name}</p>}
                 <p className="mt-0.5 text-xs text-neutral-500">{[f.type_name ?? f.type, [f.brand, f.model].filter(Boolean).join(" "), f.color].filter(Boolean).join(" · ")}</p>
                 <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                  <Fact label={tr("Plate number")} value={f.plate} />
-                  <Fact label={tr("Year made")} value={f.year_made} />
+                  <Fact label={tr("Plate Number")} value={f.plate} />
+                  <Fact label={tr("Year Made")} value={f.year_made} />
                   <Fact label={tr("Capacity")} value={f.capacity ? tr("{0} cups", f.capacity) : null} />
-                  <Fact label={tr("Asset number")} value={f.asset_no} />
+                  <Fact label={tr("Asset Number")} value={f.asset_no} />
                   <Fact label={tr("Acquired on")} value={day(f.acquired_on)} />
-                  <Fact label={tr("Last service")} value={day(f.last_service)} />
-                  <Fact label={tr("Next service")} value={day(f.next_service)} />
+                  <Fact label={tr("Last Service")} value={day(f.last_service)} />
+                  <Fact label={tr("Next Service")} value={day(f.next_service)} />
                   {card.full && <>
-                    <Fact label={tr("Frame number")} value={f.frame_no} />
-                    <Fact label={tr("Battery number")} value={f.battery_no} />
-                    <Fact label={tr("Odometer (km)")} value={f.odometer_km?.toLocaleString("id-ID")} />
-                    <Fact label={tr("GPS tracker ID")} value={f.gps_id} />
+                    <Fact label={tr("Frame Number")} value={f.frame_no} />
+                    <Fact label={tr("Battery Number")} value={f.battery_no} />
+                    <Fact label={tr("Odometer (Km)")} value={f.odometer_km?.toLocaleString("id-ID")} />
+                    <Fact label={tr("GPS Tracker ID")} value={f.gps_id} />
                   </>}
                 </dl>
               </div>
@@ -103,12 +103,12 @@ export default function FleetSharePage() {
             {card.full && (
               <Section icon={<ShieldCheck size={16} />} title={tr("Papers")}>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                  <Fact label={tr("STNK number")} value={f.stnk_no} />
-                  <Fact label={tr("STNK valid until")} value={day(f.stnk_expires)} warn={soon(f.stnk_expires)} />
-                  <Fact label={tr("Insurance policy")} value={f.insurance_no} />
-                  <Fact label={tr("Insurance valid until")} value={day(f.insurance_expires)} warn={soon(f.insurance_expires)} />
+                  <Fact label={tr("STNK Number")} value={f.stnk_no} />
+                  <Fact label={tr("STNK Valid Until")} value={day(f.stnk_expires)} warn={soon(f.stnk_expires)} />
+                  <Fact label={tr("Insurance Policy")} value={f.insurance_no} />
+                  <Fact label={tr("Insurance Valid Until")} value={day(f.insurance_expires)} warn={soon(f.insurance_expires)} />
                   <Fact label={tr("QRIS")} value={[f.qris_bank, f.qris_nmid].filter(Boolean).join(" · ") || null} />
-                  <Fact label={tr("Merchant name")} value={f.qris_merchant} />
+                  <Fact label={tr("Merchant Name")} value={f.qris_merchant} />
                 </dl>
                 {f.note && <p className="mt-3 rounded-lg bg-neutral-50 p-3 text-xs text-neutral-600">{f.note}</p>}
               </Section>
@@ -134,7 +134,7 @@ export default function FleetSharePage() {
                         <p className="font-semibold text-neutral-900">{d.name}{d.nickname ? <span className="font-normal text-neutral-500"> ({d.nickname})</span> : null}</p>
                         <p className="text-xs text-neutral-500">{[d.employee_id, d.position ?? d.department, d.pool_name].filter(Boolean).join(" · ")}</p>
                         <p className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                          <span className={`rounded-full px-2 py-0.5 font-medium ${d.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{d.status === "active" ? tr("Active") : tr("On leave")}</span>
+                          <span className={`rounded-full px-2 py-0.5 font-medium ${d.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{d.status === "active" ? tr("Active") : tr("On Leave")}</span>
                           {d.joined_on && <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600">{tr("Joined {0}", day(d.joined_on) ?? "")}</span>}
                         </p>
                         {card.full && d.phone && <a href={`tel:${d.phone}`} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-700"><Phone size={12} /> {d.phone}</a>}

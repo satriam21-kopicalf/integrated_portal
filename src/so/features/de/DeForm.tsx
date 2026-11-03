@@ -140,7 +140,7 @@ export default function DeForm() {
                 )}
               </div>
               <p className="text-xs text-neutral-500">{tr("Date and time = server time when sent; PIC and branch come from your account.")}</p>
-              <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create request")}</Button>
+              <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create Request")}</Button>
             </div>
           </section>
 
@@ -171,7 +171,7 @@ export default function DeForm() {
                 <p className="text-xs text-neutral-500">{tr("Tap a request to see every step and note of the team")}</p>
               </div>
               <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
-                { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In progress")} ${live.length}` },
+                { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In Progress")} ${live.length}` },
                 { value: "done", label: `${tr("Done")} ${done.length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.length - live.length - done.length}` }]} />
             </div>
             {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{mine.length ? tr("No request in this view") : tr("No request sent yet")}</p> : (
@@ -229,7 +229,7 @@ function SentCard({ r, onClose, onOpen }: { r: Request; onClose: () => void; onO
         <button type="button" onClick={onClose} className="rounded-md p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
       </div>
       <div className="mt-3"><DocActions r={r} /></div>
-      <button type="button" onClick={onOpen} className="mt-2 text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline">{tr("See the progress")}</button>
+      <button type="button" onClick={onOpen} className="mt-2 text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline">{tr("See the Progress")}</button>
     </div>
   );
 }
@@ -275,7 +275,7 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
         <Button size="sm" loading={busy} onClick={() => void final()}><FileCheck2 size={14} /> {r.mode === "VENDOR" ? tr("Vendor handover record") : tr("Final work report")}</Button>
       )}
       <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><Download size={14} /> PDF</Button>
-      {url && <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy link")}</Button>}
+      {url && <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy Link")}</Button>}
       {url && <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"
         className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
         <MessageCircle size={14} className="text-emerald-600" /> WhatsApp</a>}
@@ -317,7 +317,7 @@ function MyRequest({ id, onClose }: { id: string; onClose: () => void }) {
             <FormCard title={tr("Photos while the work runs")} hint={tr("Optional: let the team follow the technician's work at your outlet")}
               aside={<Badge>{(r.media ?? []).filter((m) => m.kind === "MONITOR").length}/10</Badge>}>
               <PicPhotos r={r} kind="MONITOR" onRemove={(mid) => void removePhoto(mid)}
-                add={(r.media ?? []).filter((m) => m.kind === "MONITOR").length < 10 ? <AddPhotoTile onClick={() => setCamera("MONITOR")} label={tr("Take photo")} /> : undefined} />
+                add={(r.media ?? []).filter((m) => m.kind === "MONITOR").length < 10 ? <AddPhotoTile onClick={() => setCamera("MONITOR")} label={tr("Take Photo")} /> : undefined} />
             </FormCard>
           )}
         </RequestView>
@@ -364,16 +364,16 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-cyan-600 text-white"><Handshake size={18} /></span>
         <div>
-          <p className="font-semibold text-neutral-900">{tr("Handover at the outlet")}</p>
+          <p className="font-semibold text-neutral-900">{tr("Handover at the Outlet")}</p>
           <p className="text-xs text-neutral-600">{vendor ? tr("The maintenance team asks you to check the vendor's work: photos of the result, the vendor's signature and yours.")
             : tr("The maintenance team asks you to check the work: photos of the result and your signature.")}</p>
         </div>
       </div>
-      <FormCard n={++n} title={tr("Photos of the result")} hint={tr("1–5 photos with the camera at the outlet")} aside={<Badge tone={photos ? "green" : "red"}>{photos ? `${photos}/5` : tr("Required")}</Badge>}>
-        <PicPhotos r={r} kind="HANDOVER" onRemove={onRemove} add={photos < 5 ? <AddPhotoTile onClick={onCamera} label={tr("Take photo")} tone={photos ? "slate" : "blue"} /> : undefined} />
+      <FormCard n={++n} title={tr("Photos of the Result")} hint={tr("1–5 photos with the camera at the outlet")} aside={<Badge tone={photos ? "green" : "red"}>{photos ? `${photos}/5` : tr("Required")}</Badge>}>
+        <PicPhotos r={r} kind="HANDOVER" onRemove={onRemove} add={photos < 5 ? <AddPhotoTile onClick={onCamera} label={tr("Take Photo")} tone={photos ? "slate" : "blue"} /> : undefined} />
       </FormCard>
       {vendor && (
-        <FormCard n={++n} title={tr("Vendor's signature")} hint={tr("The vendor's officer signs on this phone")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
+        <FormCard n={++n} title={tr("Vendor's Signature")} hint={tr("The vendor's officer signs on this phone")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
           <SignaturePad onChange={setVendorSign} />
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Vendor officer's name")}{vendorName0 ? ` · ${vendorName0}` : ""}</span>
@@ -390,7 +390,7 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={1000} placeholder={tr("Note (optional), e.g. anything still to follow up")}
           className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note")} />
       </FormCard>
-      <Button className="w-full" loading={busy} disabled={!ready} onClick={() => void send()}><Send size={15} /> {tr("Send the handover")}</Button>
+      <Button className="w-full" loading={busy} disabled={!ready} onClick={() => void send()}><Send size={15} /> {tr("Send the Handover")}</Button>
       {!ready && <p className="text-center text-[11px] text-neutral-500">{vendor ? tr("Photos, the vendor's signature and name, and your signature are needed.") : tr("Photos and your signature are needed.")}</p>}
     </section>
   );
@@ -515,7 +515,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
       </header>
 
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
-        <FormCard n={1} title={tr("Request data")} hint={tr("Filled automatically from your account")}>
+        <FormCard n={1} title={tr("Request Data")} hint={tr("Filled automatically from your account")}>
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
             <div><dt className="text-[11px] text-neutral-400">{tr("Date & time")}</dt><dd className="font-medium text-neutral-900"><LiveClock /></dd></div>
             <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
@@ -557,7 +557,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
               <div key={it.key} className={cx("space-y-2 rounded-lg border p-3", dup ? "border-amber-300 bg-amber-50/40" : "border-neutral-200")}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-neutral-500">{tr("Item {0}", idx + 1)}</span>
-                  <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove item")}><Trash2 size={15} /></button>
+                  <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Item")}><Trash2 size={15} /></button>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <select value={it.categoryId || ""} aria-label={tr("Category")} className={cx(inputClass, "h-10 text-sm")}
@@ -569,7 +569,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
                     <MerchPick value={it.name} merch={data.merchandise} onChange={(name) => upd({ name }, true)} />
                   ) : <>
                     <input value={it.name} onChange={(e) => upd({ name: e.target.value })} list={`ex-${it.key}`} maxLength={120} placeholder={tr("Item name, e.g. {0}", cat?.examples[0] ?? "Grinder")}
-                      className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item name")} />
+                      className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item Name")} />
                     <datalist id={`ex-${it.key}`}>{(cat?.examples ?? []).map((x) => <option key={x} value={x} />)}</datalist>
                   </>}
                 </div>
@@ -588,7 +588,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
               </div>
             );
           })}
-          <Button variant="secondary" disabled={items.length >= data.limits.items} onClick={() => setItems([...items, blank(undefined)])}><Plus size={15} /> {tr("Add item")}</Button>
+          <Button variant="secondary" disabled={items.length >= data.limits.items} onClick={() => setItems([...items, blank(undefined)])}><Plus size={15} /> {tr("Add Item")}</Button>
         </FormCard>
 
         <FormCard n={3} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
@@ -599,7 +599,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Cause")}>
               {CAUSES.map((c) => (
                 <button key={c.value} type="button" role="radio" aria-checked={cause === c.value} onClick={() => { const v = cause === c.value ? "" : c.value; setCause(v); save({ cause: v || null }, true); }}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", cause === c.value ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{c.label()}</button>
+                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", cause === c.value ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{c.label()}</button>
               ))}
             </div>
           )}
@@ -609,12 +609,12 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           hint={tr("Photos with the camera (at most {0}) and one video of at most {1}", data.limits.photos, fmtMb(data.limits.videoBytes))}
           aside={<Badge tone={photos.length ? "blue" : "slate"}>{photos.length}/{data.limits.photos}</Badge>}>
           <EvidenceGrid list={photos} urls={PORTAL_URLS} onRemove={(id) => void removeMedia(id)}
-            add={photos.length < data.limits.photos ? <AddPhotoTile onClick={() => setCamera(true)} label={photos.length ? tr("Add photo") : tr("Take photo")} tone={photos.length ? "slate" : "blue"} /> : undefined} />
+            add={photos.length < data.limits.photos ? <AddPhotoTile onClick={() => setCamera(true)} label={photos.length ? tr("Add photo") : tr("Take Photo")} tone={photos.length ? "slate" : "blue"} /> : undefined} />
           <div className="rounded-lg border border-neutral-200 p-3">
             {video ? (
               <div className="space-y-2">
                 <p className="flex items-center justify-between gap-2 text-xs text-neutral-600"><span className="inline-flex min-w-0 items-center gap-1 truncate"><Video size={14} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</span>
-                  <button type="button" onClick={() => void removeMedia(video.id)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove video")}><Trash2 size={14} /></button></p>
+                  <button type="button" onClick={() => void removeMedia(video.id)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Video")}><Trash2 size={14} /></button></p>
                 <video src={PORTAL_URLS.media(video.id)} controls preload="metadata" className="max-h-64 w-full rounded-lg bg-black" />
               </div>
             ) : upload !== null ? (
@@ -642,7 +642,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </div>
       </div>
 
-      <CameraCapture open={camera} title={tr("Damaged Equipment evidence")} branch={r.branchName} countNumber={r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}
+      <CameraCapture open={camera} title={tr("Damaged Equipment Evidence")} branch={r.branchName} countNumber={r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}
         onClose={() => setCamera(false)} onShot={addPhoto} />
       {preview && <SendSheet r={{ ...r, items: items.filter((i) => i.categoryId && i.name.trim()).map((i) => ({ ...i, category: cats.find((c) => c.id === i.categoryId)?.name, group: cats.find((c) => c.id === i.categoryId)?.group })), analysis, cause }}
         onClose={() => setPreview(false)} onSent={onSent} />}
@@ -673,13 +673,13 @@ function SendSheet({ r, onClose, onSent }: { r: Request; onClose: () => void; on
     }
   };
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<FileText size={18} />} title={tr("Check before sending")} description={`${r.kindLabel} · ${r.branchName}`}
+    <Drawer open onClose={onClose} size="lg" icon={<FileText size={18} />} title={tr("Check Before Sending")} description={`${r.kindLabel} · ${r.branchName}`}
       focusFirstField={false} footer={<>
-        <Button variant="secondary" onClick={onClose}>{tr("Back to the request")}</Button>
+        <Button variant="secondary" onClick={onClose}>{tr("Back to the Request")}</Button>
         <Button loading={busy} disabled={!signature || !name.trim()} onClick={() => void send()}><Send size={15} /> {tr("Send")}</Button>
       </>}>
       <div className="space-y-4">
-        <FormCard n={1} title={tr("Request data")} hint={tr("Filled automatically from your account")}>
+        <FormCard n={1} title={tr("Request Data")} hint={tr("Filled automatically from your account")}>
           <dl className="grid grid-cols-2 gap-3 text-sm">
             <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
             <div><dt className="text-[11px] text-neutral-400">{tr("Branch")}</dt><dd className="font-medium text-neutral-900">{r.branchName}</dd></div>
@@ -708,7 +708,7 @@ function SendSheet({ r, onClose, onSent }: { r: Request; onClose: () => void; on
             ))}
           </ul>
         </FormCard>
-        <FormCard n={4} title={tr("PIC signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
+        <FormCard n={4} title={tr("PIC Signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
           <SignaturePad onChange={setSignature} />
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Signer's name")}</span>

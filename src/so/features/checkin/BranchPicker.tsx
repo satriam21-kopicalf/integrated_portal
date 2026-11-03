@@ -59,7 +59,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
           : <span className="inline-flex items-center gap-1"><MapPinOff size={12} />{tr("Turn on the location to see the nearest outlet")}</span>}
       </div>
       {groups.length > 1 && (
-        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Branch group")}>
+        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Branch Group")}>
           {["", ...groups].map((g) => {
             const n = g ? rows.filter((r) => r.group === g).length : rows.length;
             return (
@@ -76,7 +76,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet name or code")} aria-label={tr("Search outlet name or code")} className={cx(inputClass, "h-10 pl-9")} />
         </div>
       )}
-      <ul role="radiogroup" aria-label={tr("Outlet visited")} className="max-h-[22rem] space-y-2 overflow-y-auto overscroll-contain pr-0.5">
+      <ul role="radiogroup" aria-label={tr("Outlet Visited")} className="max-h-[22rem] space-y-2 overflow-y-auto overscroll-contain pr-0.5">
         {shown.map((r) => {
           const on = r.code === value;
           const locked = !!r.state?.locked;

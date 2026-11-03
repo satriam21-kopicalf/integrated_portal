@@ -29,7 +29,7 @@ export default function MenusCard({ query }: { query: string }) {
       onOpen={() => drill.open({ kind: 'menus' })}
       actions={
         <Segmented
-          label={tr('Menu view')}
+          label={tr('Menu View')}
           value={tab}
           options={[{ value: 'top', label: tr('Top 10') }, { value: 'categories', label: tr('Categories') }, { value: 'addons', label: tr('Add-ons') }]}
           onChange={setTab}

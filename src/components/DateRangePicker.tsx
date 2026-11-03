@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { Popover, PopoverButton } from '@/components/kc/Popover';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate, toIsoDate } from '@/lib/format';
 import { useClickOutside } from '@/lib/useClickOutside';
@@ -38,11 +39,11 @@ function defaultPresets(): DatePreset[] {
   return [
     { label: tr('Today'), from: d(0), to: d(0) },
     { label: tr('Yesterday'), from: d(-1), to: d(-1) },
-    { label: tr('Last 7 days'), from: d(-6), to: d(0) },
-    { label: tr('Last 30 days'), from: d(-29), to: d(0) },
-    { label: tr('Month to date'), from: toIsoDate(firstOfMonth), to: d(0) },
-    { label: tr('Last month'), from: toIsoDate(firstOfLastMonth), to: toIsoDate(lastOfLastMonth) },
-    { label: tr('Year to date'), from: toIsoDate(new Date(today.getFullYear(), 0, 1)), to: d(0) },
+    { label: tr('Last 7 Days'), from: d(-6), to: d(0) },
+    { label: tr('Last 30 Days'), from: d(-29), to: d(0) },
+    { label: tr('Month to Date'), from: toIsoDate(firstOfMonth), to: d(0) },
+    { label: tr('Last Month'), from: toIsoDate(firstOfLastMonth), to: toIsoDate(lastOfLastMonth) },
+    { label: tr('Year to Date'), from: toIsoDate(new Date(today.getFullYear(), 0, 1)), to: d(0) },
   ];
 }
 
@@ -100,44 +101,17 @@ export default function DateRangePicker({
 
   return (
     <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => (isOpen ? close() : setIsOpen(true))}
-        className={`relative inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
-          active || isOpen
-            ? 'bg-brand-50 text-brand-700 hover:bg-brand-100'
-            : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-        }`}
-        title={label}
-        aria-label={label}
-        aria-expanded={isOpen}
-      >
-        <CalendarDays size={18} strokeWidth={1.75} />
-      </button>
+      <PopoverButton icon={<CalendarDays />} label={label} value={label} active={active} open={isOpen} onClick={() => (isOpen ? close() : setIsOpen(true))} />
 
-      {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-xl">
-          <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
-            <div>
-              <p className="text-sm font-semibold text-neutral-900">{tr('Date range')}</p>
-              <p className="text-xs text-neutral-500">
-                {pendingFrom ? tr('From {0} — select end date', formatDate(pendingFrom)) : active ? label : tr('Default: {0}', defaultLabel)}
-              </p>
-            </div>
-            {active && (
-              <button
-                type="button"
-                onClick={() => { onChange('', ''); close(); }}
-                className="rounded-md px-2 py-1 text-xs font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
-              >
-                {tr('Clear')}
-              </button>
-            )}
-          </div>
-
+      <Popover open={isOpen} onClose={close} title={tr('Date range')} width="sm:w-[26rem]"
+        subtitle={pendingFrom ? tr('From {0} — select end date', formatDate(pendingFrom)) : active ? label : tr('Default: {0}', defaultLabel)}
+        actions={active && (
+          <button type="button" onClick={() => { onChange('', ''); close(); }}
+            className="rounded-md px-2 py-1 text-xs font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">{tr('Clear')}</button>
+        )}>
           <div className="flex flex-col sm:flex-row">
             {/* Presets */}
-            <div className="flex gap-1 overflow-x-auto border-b border-neutral-100 p-2 sm:w-32 sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r">
+            <div className="flex gap-1.5 overflow-x-auto border-b border-neutral-100 p-2.5 sm:w-36 sm:flex-col sm:gap-0.5 sm:overflow-visible sm:border-b-0 sm:border-r">
               {ranges.map(r => {
                 const selected = r.from === dateFrom && r.to === dateTo;
                 return (
@@ -145,8 +119,8 @@ export default function DateRangePicker({
                     key={r.label}
                     type="button"
                     onClick={() => applyPreset(r.from, r.to)}
-                    className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-left text-xs font-medium transition-colors ${
-                      selected ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                    className={`whitespace-nowrap rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors sm:px-2.5 sm:py-1.5 ${
+                      selected ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 sm:bg-transparent sm:text-neutral-600 sm:hover:bg-neutral-100'
                     }`}
                   >
                     {r.label}
@@ -162,7 +136,7 @@ export default function DateRangePicker({
                   type="button"
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
                   className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
-                  aria-label={tr('Previous month')}
+                  aria-label={tr('Previous Month')}
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -173,7 +147,7 @@ export default function DateRangePicker({
                   type="button"
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
                   className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
-                  aria-label={tr('Next month')}
+                  aria-label={tr('Next Month')}
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -193,12 +167,12 @@ export default function DateRangePicker({
                       key={value}
                       type="button"
                       onClick={() => pick(day)}
-                      className={`h-9 text-sm transition-colors ${
+                      className={`h-11 text-sm transition-colors sm:h-9 ${
                         isEdge
-                          ? 'rounded-md bg-neutral-900 font-semibold text-white'
+                          ? 'rounded-lg bg-brand-700 font-semibold text-white'
                           : inRange
-                          ? 'bg-neutral-100 text-neutral-900'
-                          : `rounded-md hover:bg-neutral-100 ${value === today ? 'font-semibold text-brand-600' : 'text-neutral-700'}`
+                          ? 'bg-brand-50 text-brand-900'
+                          : `rounded-lg hover:bg-neutral-100 ${value === today ? 'font-semibold text-brand-700' : 'text-neutral-700'}`
                       }`}
                     >
                       {day}
@@ -208,8 +182,7 @@ export default function DateRangePicker({
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </Popover>
     </div>
   );
 }

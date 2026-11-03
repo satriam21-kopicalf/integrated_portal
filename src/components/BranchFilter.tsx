@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Check, Search, Store } from 'lucide-react';
+import { Popover, PopoverButton } from '@/components/kc/Popover';
+import { SearchInput, btn, cx } from '@/components/kc';
+import { Check, Store } from 'lucide-react';
 import { formatNumber } from '@/lib/format';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { tr } from '@/lib/i18n';
@@ -29,7 +31,7 @@ export function splitBranches(value: string | null | undefined): string[] {
 /** Text for the selected branches: "All branches", the name of one, or "3 branches". */
 export function branchesLabel(value: string, branches: Branch[]): string {
   const codes = splitBranches(value);
-  if (!codes.length) return tr('All branches');
+  if (!codes.length) return tr('All Branches');
   if (codes.length === 1) return branches.find(b => b.branch_code === codes[0])?.branch_name ?? codes[0];
   return tr('{0} branches', codes.length);
 }
@@ -80,77 +82,42 @@ export default function BranchFilter({ branches, loading, value, onChange }: Bra
 
   return (
     <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => (isOpen ? close() : open())}
-        className={`relative inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
-          current.length || isOpen
-            ? 'bg-brand-50 text-brand-700 hover:bg-brand-100'
-            : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-        }`}
-        title={label}
-        aria-label={label}
-        aria-expanded={isOpen}
-      >
-        <Store size={18} strokeWidth={1.75} />
-        {current.length > 1 && (
-          <span className="absolute -right-1.5 -top-1.5 min-w-[18px] rounded-full bg-brand-600 px-1 text-center text-[10px] font-semibold leading-[18px] text-white ring-2 ring-white">
-            {current.length}
-          </span>
-        )}
-      </button>
+      <PopoverButton icon={<Store />} label={label} value={label} active={current.length > 0} open={isOpen} badge={current.length}
+        onClick={() => (isOpen ? close() : open())} />
 
-      {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-xl">
-          <div className="border-b border-neutral-100 p-2">
-            <div className="relative">
-              <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input
-                autoFocus
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder={tr('Search branch or code…')}
-                className="h-9 w-full rounded-md border border-neutral-200 pl-8 pr-2 text-sm placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none"
-              />
-            </div>
-            <div className="mt-2 flex items-center justify-between gap-2 px-0.5 text-xs">
-              <span className="text-neutral-500">{draft.size ? tr('{0} selected', draft.size) : tr('All branches')}</span>
-              <span className="flex gap-3">
-                <button type="button" className="font-medium text-brand-700 hover:underline disabled:text-neutral-300 disabled:no-underline"
-                  disabled={!filtered.length} onClick={() => setDraft(d => new Set([...d, ...filtered.map(b => b.branch_code)]))}>
-                  {tr('Select')} {query ? tr('shown') : tr('all')}
-                </button>
-                <button type="button" className="font-medium text-neutral-600 hover:underline disabled:text-neutral-300 disabled:no-underline"
-                  disabled={!draft.size} onClick={() => setDraft(new Set())}>
-                  {tr('Clear')}
-                </button>
-              </span>
-            </div>
-          </div>
-          <div className="max-h-80 overflow-y-auto p-1" role="listbox" aria-multiselectable="true" aria-label={tr('Branches')}>
-            {loading && <p className="px-3 py-6 text-center text-sm text-neutral-400">{tr('Loading branches…')}</p>}
-            {!loading && filtered.length === 0 && (
-              <p className="px-3 py-6 text-center text-sm text-neutral-400">{tr('No branch matches “')}{query}”</p>
-            )}
-            {filtered.map(b => (
-              <BranchOption
-                key={b.branch_code}
-                label={b.branch_name}
-                hint={tr('{0} · {1} sales (65 days)', b.branch_code, formatNumber(b.count))}
-                checked={draft.has(b.branch_code)}
-                onClick={() => toggle(b.branch_code)}
-              />
-            ))}
-          </div>
-          <div className="flex items-center justify-end gap-2 border-t border-neutral-100 bg-neutral-50/60 p-2">
-            <button type="button" onClick={close} className="h-8 rounded-md px-3 text-sm font-medium text-neutral-600 hover:bg-neutral-100">{tr('Cancel')}</button>
-            <button type="button" onClick={() => apply(draft)}
-              className="h-8 rounded-md bg-neutral-900 px-3 text-sm font-semibold text-white hover:bg-neutral-800">
+      <Popover open={isOpen} onClose={close} title={tr('Branches')} subtitle={draft.size ? tr('{0} selected', draft.size) : tr('All Branches')}
+        actions={draft.size > 0 && <button type="button" className="rounded-md px-2 py-1 text-xs font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900" onClick={() => setDraft(new Set())}>{tr('Clear')}</button>}
+        footer={
+          <>
+            <button type="button" onClick={close} className={cx(btn('outline'), 'h-10 flex-1 sm:h-9 sm:flex-none')}>{tr('Cancel')}</button>
+            <button type="button" onClick={() => apply(draft)} className={cx(btn('solid'), 'h-10 flex-1 sm:h-9 sm:flex-none')}>
               {draft.size ? tr('Apply ({0})', draft.size) : tr('Show all branches')}
             </button>
-          </div>
+          </>
+        }>
+        <div className="sticky top-0 z-10 space-y-2 border-b border-neutral-100 bg-white p-3">
+          <SearchInput value={query} onChange={setQuery} placeholder={tr('Search branch or code…')} />
+          <button type="button" className="text-xs font-medium text-brand-700 hover:underline disabled:text-neutral-300 disabled:no-underline"
+            disabled={!filtered.length} onClick={() => setDraft(d => new Set([...d, ...filtered.map(b => b.branch_code)]))}>
+            {tr('Select')} {query ? tr('shown') : tr('all')}
+          </button>
         </div>
-      )}
+        <div className="p-1.5" role="listbox" aria-multiselectable="true" aria-label={tr('Branches')}>
+          {loading && <p className="px-3 py-6 text-center text-sm text-neutral-400">{tr('Loading branches…')}</p>}
+          {!loading && filtered.length === 0 && (
+            <p className="px-3 py-6 text-center text-sm text-neutral-400">{tr('No branch matches “')}{query}”</p>
+          )}
+          {filtered.map(b => (
+            <BranchOption
+              key={b.branch_code}
+              label={b.branch_name}
+              hint={tr('{0} · {1} sales (65 days)', b.branch_code, formatNumber(b.count))}
+              checked={draft.has(b.branch_code)}
+              onClick={() => toggle(b.branch_code)}
+            />
+          ))}
+        </div>
+      </Popover>
     </div>
   );
 }
@@ -162,9 +129,9 @@ function BranchOption({ label, hint, checked, onClick }: { label: string; hint: 
       role="option"
       aria-selected={checked}
       onClick={onClick}
-      className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors ${checked ? 'bg-neutral-100' : 'hover:bg-neutral-50'}`}
+      className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors ${checked ? 'bg-brand-50' : 'hover:bg-neutral-50'}`}
     >
-      <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${checked ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 bg-white'}`} aria-hidden>
+      <span className={`flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded border ${checked ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-300 bg-white'}`} aria-hidden>
         {checked && <Check size={12} strokeWidth={3} />}
       </span>
       <div className="min-w-0 flex-1">

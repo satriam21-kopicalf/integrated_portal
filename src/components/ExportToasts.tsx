@@ -56,7 +56,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
   const remaining = job && job.daysDone > 0 && !done ? (elapsed / job.daysDone) * (job.totalDays - job.daysDone) : null;
 
   let statusText = tr('Starting export…');
-  if (failed) statusText = tr('Export failed');
+  if (failed) statusText = tr('Export Failed');
   else if (empty) statusText = tr('No data for this selection');
   else if (done) statusText = tr('Export complete');
   else if (job?.status === 'queued') statusText = tr('Waiting in queue…');
@@ -122,14 +122,14 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
             <Stat label={report === 'daily' ? tr('Bills') : tr('Transactions')} value={formatNumber(job.headers)} />
             {done ? (
               <>
-                {job.fileSize ? <Stat label={tr('File size')} value={formatBytes(job.fileSize)} /> : <Stat label={tr('Google Sheets')} value={formatNumber(parts.length || 1)} />}
+                {job.fileSize ? <Stat label={tr('File Size')} value={formatBytes(job.fileSize)} /> : <Stat label={tr('Google Sheets')} value={formatNumber(parts.length || 1)} />}
                 {parts.length > 1 ? <Stat label={tr('Days')} value={formatNumber(job.totalDays)} /> : <Stat label={tr('Sheets')} value={formatNumber(job.sheets)} />}
               </>
             ) : (
               <>
                 <Stat label={tr('Elapsed')} value={formatDuration(elapsed)} />
                 {inParts
-                  ? <Stat label={tr('Sheets ready')} value={formatNumber(parts.length)} />
+                  ? <Stat label={tr('Sheets Ready')} value={formatNumber(parts.length)} />
                   : uploading
                   ? <Stat label={tr('Uploaded')} value={`${job.uploadPct ?? 0}%`} />
                   : <Stat label={tr('Remaining')} value={remaining === null ? 'Estimating…' : `~${formatDuration(remaining)}`} />}
@@ -170,8 +170,8 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
               {tr('Dismiss')}
             </button>
             {failed && (
-              <button type="button" onClick={onRetry} className="inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800">
-                <RotateCcw size={14} /> {tr('Try again')}
+              <button type="button" onClick={onRetry} className="inline-flex items-center gap-1.5 rounded-lg bg-brand-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-800">
+                <RotateCcw size={14} /> {tr('Try Again')}
               </button>
             )}
             {done && !empty && job?.downloadUrl && job.fileName && (
@@ -180,7 +180,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
                 download={job.fileName}
                 className={gsheet
                   ? 'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100'
-                  : 'inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800'}
+                  : 'inline-flex items-center gap-1.5 rounded-lg bg-brand-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-800'}
                 title={gsheet ? tr('The same data as an Excel file') : undefined}
               >
                 <Download size={14} /> {gsheet ? tr('.xlsx') : tr('Download again')}

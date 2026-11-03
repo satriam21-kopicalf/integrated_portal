@@ -79,8 +79,8 @@ export function BatchesTab() {
   };
   const name = (code: string) => menus.find((m) => m.code === code)?.name ?? code;
   const STATES: { value: BatchFilter; label: string }[] = [
-    { value: '', label: tr('Every batch') }, { value: 'hub', label: tr('Still at the hub') }, { value: 'expiring', label: tr('Expires within 2 days') },
-    { value: 'expired', label: tr('Expired') }, { value: 'out', label: tr('Fully sent') },
+    { value: '', label: tr('Every Batch') }, { value: 'hub', label: tr('Still at the Hub') }, { value: 'expiring', label: tr('Expires Within 2 Days') },
+    { value: 'expired', label: tr('Expired') }, { value: 'out', label: tr('Fully Sent') },
   ];
   const matchState = (b: Batch, f: BatchFilter) => {
     const left = daysLeft(b.expiresOn);
@@ -92,21 +92,21 @@ export function BatchesTab() {
   return (
     <>
       <ScopeBar onOpen={() => { setDraft({ hub: fHub, state }); setSheet(true); }} onRefresh={load}
-        right={<div className="flex items-center gap-2"><SearchInput value={q} onChange={setQ} placeholder={tr('Search menu or batch')} /><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr('New batch')}</Button></div>}
+        right={<div className="flex items-center gap-2"><SearchInput value={q} onChange={setQ} placeholder={tr('Search menu or batch')} /><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr('New Batch')}</Button></div>}
         scopes={[
-          { key: 'hub', icon: <Building2 />, label: tr('Production hub'), value: fHub ? hubName(fHub) : tr('Every hub'), active: !!fHub },
+          { key: 'hub', icon: <Building2 />, label: tr('Production Hub'), value: fHub ? hubName(fHub) : tr('Every hub'), active: !!fHub },
           { key: 'state', icon: <PackageCheck />, label: tr('Status'), value: STATES.find((x) => x.value === state)!.label, active: !!state },
         ]} />
-      <StatGrid label={tr('Batches & distribution')} cols={4}>
+      <StatGrid label={tr('Batches & Distribution')} cols={4}>
         <StatCard label={tr('Batches')} icon={<Factory />} value={rows ? listed.length : <ValueSkeleton />} sub={tr('Last 14 days')} />
         <StatCard label={tr('Produced')} icon={<CookingPot />} value={rows ? listed.reduce((a, b) => a + b.qty, 0).toLocaleString(locale()) : <ValueSkeleton />} sub={rows && tr('{0} sent', listed.reduce((a, b) => a + b.sent, 0).toLocaleString(locale()))} />
-        <StatCard label={tr('At the hub')} tone="brand" icon={<PackageCheck />} value={rows ? listed.reduce((a, b) => a + b.atHub, 0).toLocaleString(locale()) : <ValueSkeleton />} />
-        <StatCard label={tr('Expires within 2 days')} icon={<AlarmClock />} tone={listed.some((b) => b.atHub > 0 && matchState(b, 'expiring')) ? 'warn' : 'default'} value={rows ? listed.filter((b) => b.atHub > 0 && matchState(b, 'expiring')).length : <ValueSkeleton />} sub={tr('still at the hub')} />
+        <StatCard label={tr('At the Hub')} tone="brand" icon={<PackageCheck />} value={rows ? listed.reduce((a, b) => a + b.atHub, 0).toLocaleString(locale()) : <ValueSkeleton />} />
+        <StatCard label={tr('Expires Within 2 Days')} icon={<AlarmClock />} tone={listed.some((b) => b.atHub > 0 && matchState(b, 'expiring')) ? 'warn' : 'default'} value={rows ? listed.filter((b) => b.atHub > 0 && matchState(b, 'expiring')).length : <ValueSkeleton />} sub={tr('still at the hub')} />
       </StatGrid>
       {sheet && (
         <MonitorFilterSheet active={[draft.hub, draft.state].filter(Boolean).length} onClose={() => setSheet(false)} onReset={() => setDraft({ hub: '', state: '' })}
           onApply={() => { setFHub(draft.hub); setState(draft.state); setSheet(false); }}>
-          <FilterRow icon={<Building2 size={15} />} label={tr('Production hub')} value={draft.hub ? hubName(draft.hub) : null} onClear={() => setDraft({ ...draft, hub: '' })}>
+          <FilterRow icon={<Building2 size={15} />} label={tr('Production Hub')} value={draft.hub ? hubName(draft.hub) : null} onClear={() => setDraft({ ...draft, hub: '' })}>
             <ComboFilter value={draft.hub} onChange={(v) => setDraft({ ...draft, hub: v })} allLabel={tr('Every hub')} placeholder={tr('Search pool')}
               options={hubs.map((p) => ({ value: p.code, label: p.name, hint: p.is_production ? tr('production hub') : p.city }))} />
           </FilterRow>
@@ -115,12 +115,12 @@ export function BatchesTab() {
           </FilterRow>
         </MonitorFilterSheet>
       )}
-      <Drawer open={adding} onClose={() => setAdding(false)} title={tr('New production batch')} icon={<Factory size={18} />}
+      <Drawer open={adding} onClose={() => setAdding(false)} title={tr('New Production Batch')} icon={<Factory size={18} />}
         description={tr('Made at the main hub: the production date and the expiry date of every batch (the shelf life of the menu by default)')}
         footer={<><Button variant="ghost" onClick={() => setAdding(false)}>{tr('Cancel')}</Button>
-          <Button loading={busy} disabled={!hub || !form.menu || !Number(form.qty) || !(form.expiresOn || defaultExpiry)} onClick={() => void add()}><Plus size={16} /> {tr('Save batch')}</Button></>}>
+          <Button loading={busy} disabled={!hub || !form.menu || !Number(form.qty) || !(form.expiresOn || defaultExpiry)} onClick={() => void add()}><Plus size={16} /> {tr('Save Batch')}</Button></>}>
         <DrawerSection title={tr('Batch')}>
-          <Field label={tr('Production hub')}>
+          <Field label={tr('Production Hub')}>
             <Select value={hub} onChange={(e) => setForm({ ...form, hub: e.target.value })}>
               {hubs.map((p) => <option key={p.code} value={p.code}>{p.name}{p.is_production ? ` · ${tr('production hub')}` : ''}</option>)}
             </Select>
@@ -133,17 +133,17 @@ export function BatchesTab() {
           <Field label={tr('Quantity')}><Input inputMode="numeric" value={form.qty} onChange={(e) => setForm({ ...form, qty: e.target.value.replace(/\D/g, '') })} placeholder="0" /></Field>
         </DrawerSection>
         <DrawerSection title={tr('Dates')}>
-          <Field label={tr('Production date')}><Input type="date" value={form.producedOn} max={today} onChange={(e) => setForm({ ...form, producedOn: e.target.value || today })} /></Field>
-          <Field label={tr('Expiry date')} hint={menu?.shelf_life_days ? tr('{0} days of shelf life', menu.shelf_life_days) : tr('Fill the shelf life in Master Menu to set it by itself')}>
+          <Field label={tr('Production Date')}><Input type="date" value={form.producedOn} max={today} onChange={(e) => setForm({ ...form, producedOn: e.target.value || today })} /></Field>
+          <Field label={tr('Expiry Date')} hint={menu?.shelf_life_days ? tr('{0} days of shelf life', menu.shelf_life_days) : tr('Fill the shelf life in Master Menu to set it by itself')}>
             <Input type="date" value={form.expiresOn || defaultExpiry} min={form.producedOn} onChange={(e) => setForm({ ...form, expiresOn: e.target.value })} />
           </Field>
         </DrawerSection>
       </Drawer>
 
-      <Panel title={tr('Batches & distribution')} description={tr('Batches of the last 14 days: what was sent to each pool and what is left at the hub')}>
+      <Panel title={tr('Batches & Distribution')} description={tr('Batches of the last 14 days: what was sent to each pool and what is left at the hub')}>
         {error ? <ErrorState message={error} onRetry={load} /> : !rows ? <div className="p-4"><SkeletonCards count={4} /></div> : listed.length === 0 ? (
           rows.length === 0
-            ? <Empty icon={<Factory size={26} />} title={tr('No batch yet')}>{tr('Save the first production batch.')}<div className="mt-3"><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr('New batch')}</Button></div></Empty>
+            ? <Empty icon={<Factory size={26} />} title={tr('No batch yet')}>{tr('Save the first production batch.')}<div className="mt-3"><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr('New Batch')}</Button></div></Empty>
             : <Empty icon={<Factory size={26} />} title={tr('Nothing matches the filters')} />
         ) : (
           <ul className="grid gap-3 p-3 sm:p-4 xl:grid-cols-2">
@@ -164,7 +164,7 @@ export function BatchesTab() {
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('Produced')}</p><p className="font-semibold">{dmy(b.producedOn)}</p></div>
                       <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('Expires')}</p><p className="font-semibold">{dmy(b.expiresOn)}</p></div>
-                      <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('At the hub')}</p><p className="font-semibold tabular-nums">{b.atHub}</p></div>
+                      <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('At the Hub')}</p><p className="font-semibold tabular-nums">{b.atHub}</p></div>
                     </div>
                     <div>
                       <div className="mb-1 flex justify-between text-[11px] text-neutral-500"><span>{tr('Sent {0} of {1}', b.sent, b.qty)}</span><span>{tr('{0} received', b.received)}</span></div>
@@ -180,7 +180,7 @@ export function BatchesTab() {
                     )}
                     {b.atHub > 0 && (sending === b.id
                       ? <SendForm batch={b} pools={(pools.rows ?? []).filter((p) => p.code !== b.hub)} onClose={() => setSending(null)} onSent={() => { setSending(null); setTick((t) => t + 1); }} />
-                      : <Button size="sm" variant="secondary" className="w-full" onClick={() => setSending(b.id)}><Send size={14} /> {tr('Send to a pool')}</Button>)}
+                      : <Button size="sm" variant="secondary" className="w-full" onClick={() => setSending(b.id)}><Send size={14} /> {tr('Send to a Pool')}</Button>)}
                   </div>
                 </li>
               );

@@ -199,7 +199,7 @@ function Recipes() {
       toolbar={<div className="relative sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" /><input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search card")} /></div>}>
       {error ? <ErrorState message={error} onRetry={load} /> : !rows ? <SkeletonRows cols={4} /> : shown.length === 0 ? (
         <Empty icon={<BookOpen size={26} />} title={rows.length ? tr("No card matches") : tr("No recipe card yet")}>
-          {!rows.length && <Button className="mt-3" onClick={() => setEdit("new")}><Plus size={14} />{tr("Make the first card")}</Button>}
+          {!rows.length && <Button className="mt-3" onClick={() => setEdit("new")}><Plus size={14} />{tr("Make the First Card")}</Button>}
         </Empty>
       ) : (
         <ul className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -493,7 +493,7 @@ function MenuAssign() {
   const free = all.filter((m) => !m.recipe).length;
   const recipeName = (code: string) => recipes.find((r) => r.code === code)?.name ?? code;
   const chips: ActiveFilter[] = [
-    ...(f.status ? [{ key: "s", label: f.status === "with" ? tr("With a card") : tr("Without a card"), onRemove: () => setF({ ...f, status: "" }) }] : []),
+    ...(f.status ? [{ key: "s", label: f.status === "with" ? tr("With a Card") : tr("Without a Card"), onRemove: () => setF({ ...f, status: "" }) }] : []),
     ...(f.brand ? [{ key: "b", label: brandList.find((b) => b.value === f.brand)?.label ?? f.brand, onRemove: () => setF({ ...f, brand: "" }) }] : []),
     ...(f.category ? [{ key: "c", label: f.category, onRemove: () => setF({ ...f, category: "" }) }] : []),
     ...(f.recipe ? [{ key: "r", label: recipeName(f.recipe), onRemove: () => setF({ ...f, recipe: "" }) }] : []),
@@ -554,9 +554,9 @@ function AssignFilterSheet({ value, brands: brandOpts, categories, recipes, onAp
   const active = [d.status, d.brand, d.category, d.recipe].filter(Boolean).length;
   return (
     <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_AF)}>
-      <FilterRow icon={<ListChecks size={15} />} label={tr("Recipe card")} value={d.status === "with" ? tr("With a card") : d.status === "without" ? tr("Without a card") : null} onClear={() => setD({ ...d, status: "" })}>
+      <FilterRow icon={<ListChecks size={15} />} label={tr("Recipe Card")} value={d.status === "with" ? tr("With a Card") : d.status === "without" ? tr("Without a Card") : null} onClear={() => setD({ ...d, status: "" })}>
         <Segments value={d.status} onChange={(v) => setD({ ...d, status: v as AssignFilters["status"] })}
-          choices={[{ value: "", label: tr("All") }, { value: "with", label: tr("With a card") }, { value: "without", label: tr("Without a card") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "with", label: tr("With a Card") }, { value: "without", label: tr("Without a Card") }]} />
       </FilterRow>
       {brandOpts.length > 1 && (
         <FilterRow icon={<Store size={15} />} label={tr("Brand")} value={brandOpts.find((b) => b.value === d.brand)?.label ?? null} onClear={() => setD({ ...d, brand: "" })}>
@@ -566,7 +566,7 @@ function AssignFilterSheet({ value, brands: brandOpts, categories, recipes, onAp
       <FilterRow icon={<Layers size={15} />} label={tr("Category")} value={d.category || null} onClear={() => setD({ ...d, category: "" })}>
         <ComboFilter value={d.category} onChange={(v) => setD({ ...d, category: v })} options={categories} allLabel={tr("All categories")} placeholder={tr("Search category")} />
       </FilterRow>
-      <FilterRow icon={<BookOpen size={15} />} label={tr("Uses the card")} value={recipes.find((r) => r.value === d.recipe)?.label ?? null} onClear={() => setD({ ...d, recipe: "" })}>
+      <FilterRow icon={<BookOpen size={15} />} label={tr("Uses the Card")} value={recipes.find((r) => r.value === d.recipe)?.label ?? null} onClear={() => setD({ ...d, recipe: "" })}>
         <ComboFilter value={d.recipe} onChange={(v) => setD({ ...d, recipe: v })} options={recipes} allLabel={tr("Any card")} placeholder={tr("Search card")} />
       </FilterRow>
     </MonitorFilterSheet>
@@ -776,7 +776,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
         <div className="space-y-3">
           <FilterToolbar filters={chips} onOpen={() => setSheet(true)}
             onClear={() => { setPeriod(null); setData(null); setBranch(""); setHorizon(""); setBuffer(""); }}
-            extra={<div className="ml-auto"><ExcelExportMenu footer={period ? <>{branch ? branchName : tr("All branches")} · {dmy(period.from)} – {dmy(period.to)}</> : tr("Choose the sales period in Filters first")} choices={[
+            extra={<div className="ml-auto"><ExcelExportMenu footer={period ? <>{branch ? branchName : tr("All Branches")} · {dmy(period.from)} – {dmy(period.to)}</> : tr("Choose the sales period in Filters first")} choices={[
               { key: "cogs", label: tr("COGS Bahan Baku"), hint: tr("Per menu: sold, sales, HPP per portion, COGS and ratio"), icon: <Calculator size={16} />, tone: "bg-brand-50 text-brand-600", count: data ? data.menus.length : null,
                 run: guard((d) => downloadXlsx({ fileName: file("COGS Bahan Baku"), sheet: "COGS", title: file("COGS Bahan Baku"), header: ["Menu", "Kartu Resep", "Terjual", "Sales", "HPP / Porsi", "COGS", "Rasio"],
                   rows: d.menus.map((m) => [m.name, m.recipeName, m.qty, m.sales, m.hpp, m.cogs, m.ratio]) })) },
@@ -796,12 +796,12 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
         </div>
       }>
         {!period ? (
-          <Empty icon={<Calculator size={28} />} title={tr("Choose the sales period")}>
+          <Empty icon={<Calculator size={28} />} title={tr("Choose the Sales Period")}>
             <p className="max-w-md">{tr("The calculator reads the POS transactions of the period and branch you choose; fill the planned days for the Material Required Planning.")}</p>
             <Button className="mt-3" onClick={() => setSheet(true)}>{tr("Open Filters")}</Button>
           </Empty>
         ) : view === "mrp" && !planned ? (
-          <Empty icon={<Package size={28} />} title={tr("Fill the planned days")}>
+          <Empty icon={<Package size={28} />} title={tr("Fill the Planned Days")}>
             <p className="max-w-md">{tr("Material Required Planning needs the days to plan for (and a buffer, optional) in Filters.")}</p>
             <Button className="mt-3" onClick={() => setSheet(true)}>{tr("Open Filters")}</Button>
           </Empty>
@@ -909,7 +909,7 @@ function CalcFilterSheet({ value, branches, onApply, onClose }: { value: CalcFil
         <p className="mt-2 text-[11px] text-neutral-500">{tr("The POS transactions of the branches in this period")}</p>
       </FilterRow>
       <FilterRow icon={<Store size={15} />} label={tr("Branch")} value={branches.find((x) => x.branch_code === d.branch)?.branch_name ?? null} onClear={() => setD({ ...d, branch: "" })}>
-        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} options={branchOpts} allLabel={tr("All branches")} placeholder={tr("Search branch")} />
+        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} options={branchOpts} allLabel={tr("All Branches")} placeholder={tr("Search Branch")} />
       </FilterRow>
       <FilterRow icon={<Package size={15} />} label={tr("Material Required Planning")} value={d.horizon ? tr("{0} days + {1}%", h, b) : null}
         onClear={() => setD({ ...d, horizon: "", buffer: "" })}>

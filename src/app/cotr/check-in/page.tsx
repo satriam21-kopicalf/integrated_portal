@@ -28,7 +28,7 @@ const DriverMap = dynamic(() => import("@/cotr/DriverMap"), { ssr: false, loadin
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 type ShiftFilter = "" | "open" | "closed" | "difference" | "short";
 const SHIFT_FILTER: Record<Exclude<ShiftFilter, "">, () => string> = {
-  open: () => tr("On the road"), closed: () => tr("Shift ended"), difference: () => tr("Stock difference"), short: () => tr("Cash short"),
+  open: () => tr("On the road"), closed: () => tr("Shift ended"), difference: () => tr("Stock difference"), short: () => tr("Cash Short"),
 };
 const matchShift = (s: Shift, f: ShiftFilter) => !f || (f === "open" ? s.status === "open" : f === "closed" ? s.status === "closed"
   : f === "difference" ? !!(s.recap.difference && Object.keys(s.recap.difference).length) : (s.recap.balance ?? 0) < 0);
@@ -80,11 +80,11 @@ export default function CotrCheckInPage() {
             { key: "state", icon: <LogIn />, label: tr("Shift"), value: state ? SHIFT_FILTER[state]() : tr("All"), active: !!state },
           ]} />
         <StatStrip label={tr("Summary")} columns={5}>
-          <Stat label={tr("Drivers checked in")} icon={<LogIn size={16} />} value={view ? `${view.shifts.length} / ${view.shifts.length + view.notStarted.length}` : <StatSkeleton />} />
-          <Stat label={tr("Cups sold")} icon={<Check size={16} />} value={view ? view.shifts.reduce((a, s) => a + s.recap.cups, 0) : <StatSkeleton />} />
-          <Stat label={tr("Cash to hand over")} icon={<Wallet size={16} />} value={view ? rupiah(view.shifts.reduce((a, s) => a + s.recap.cashExpected, 0)) : <StatSkeleton />} />
-          <Stat label={tr("To decide")} icon={<PackagePlus size={16} />} value={view ? pendingReloads + pendingRequests : <StatSkeleton />} emphasis={pendingReloads + pendingRequests > 0} />
-          <Stat label={tr("Cash short")} icon={<TriangleAlert size={16} />} value={view ? rupiah(view.shifts.reduce((a, s) => a + Math.min(0, s.recap.balance ?? 0), 0)) : <StatSkeleton />} />
+          <Stat label={tr("Drivers Checked in")} icon={<LogIn size={16} />} value={view ? `${view.shifts.length} / ${view.shifts.length + view.notStarted.length}` : <StatSkeleton />} />
+          <Stat label={tr("Cups Sold")} icon={<Check size={16} />} value={view ? view.shifts.reduce((a, s) => a + s.recap.cups, 0) : <StatSkeleton />} />
+          <Stat label={tr("Cash to Hand Over")} icon={<Wallet size={16} />} value={view ? rupiah(view.shifts.reduce((a, s) => a + s.recap.cashExpected, 0)) : <StatSkeleton />} />
+          <Stat label={tr("To Decide")} icon={<PackagePlus size={16} />} value={view ? pendingReloads + pendingRequests : <StatSkeleton />} emphasis={pendingReloads + pendingRequests > 0} />
+          <Stat label={tr("Cash Short")} icon={<TriangleAlert size={16} />} value={view ? rupiah(view.shifts.reduce((a, s) => a + Math.min(0, s.recap.balance ?? 0), 0)) : <StatSkeleton />} />
         </StatStrip>
       </>}>
       <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={[
@@ -106,7 +106,7 @@ export default function CotrCheckInPage() {
           </FilterRow>
           <FilterRow icon={<LogIn size={15} />} label={tr("Shift")} value={draft.state ? SHIFT_FILTER[draft.state]() : null} onClear={() => setDraft({ ...draft, state: "" })}>
             <OptionList value={draft.state} onChange={(v) => setDraft({ ...draft, state: v as ShiftFilter })}
-              choices={[{ value: "", label: tr("Every shift") }, ...(Object.keys(SHIFT_FILTER) as Exclude<ShiftFilter, "">[]).map((k) => ({ value: k, label: SHIFT_FILTER[k]() }))]} />
+              choices={[{ value: "", label: tr("Every Shift") }, ...(Object.keys(SHIFT_FILTER) as Exclude<ShiftFilter, "">[]).map((k) => ({ value: k, label: SHIFT_FILTER[k]() }))]} />
           </FilterRow>
         </MonitorFilterSheet>
       )}
@@ -127,9 +127,9 @@ function Shifts({ data }: { data: Monitor }) {
             <table className="w-full text-sm">
               <thead className={kcTable.thead}>
                 <tr>
-                  <th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-4 py-2.5">{tr("Pool / fleet")}</th>
+                  <th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-4 py-2.5">{tr("Pool / Fleet")}</th>
                   <th className="px-4 py-2.5">{tr("Start")}</th><th className="px-4 py-2.5">{tr("End")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Sold")}</th><th className="px-4 py-2.5 text-right">{tr("On the fleet")}</th>
+                  <th className="px-4 py-2.5 text-right">{tr("Sold")}</th><th className="px-4 py-2.5 text-right">{tr("On the Fleet")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Cash")}</th><th className="px-4 py-2.5 text-right">{tr("QRIS")}</th><th className="px-4 py-2.5 text-right">{tr("Balance")}</th>
                   <th className="px-4 py-2.5">{tr("Check")}</th><th className="w-10" />
                 </tr>
@@ -213,7 +213,7 @@ function ShiftDetail({ s }: { s: Shift }) {
           <li className="flex justify-between"><span>{tr("Waste")} · {tr("Cupping")}</span><span className="tabular-nums">{s.recap.waste} · {s.recap.cupping} {tr("cups")}</span></li>
           {s.recap.cashActual !== null && <>
             <li className="flex justify-between"><span>{tr("Spent from the cash")}</span><span className="tabular-nums">{rupiah(s.recap.cashSpent)}</span></li>
-            <li className="flex justify-between"><span>{tr("Cash to hand over")}</span><span className="tabular-nums">{rupiah(s.recap.cashExpected)}</span></li>
+            <li className="flex justify-between"><span>{tr("Cash to Hand Over")}</span><span className="tabular-nums">{rupiah(s.recap.cashExpected)}</span></li>
             <li className="flex justify-between"><span>{tr("Cash counted")}</span><span className="tabular-nums">{rupiah(s.recap.cashActual)}</span></li>
             <li className={cx("flex justify-between font-semibold", (s.recap.balance ?? 0) < 0 ? "text-red-600" : "text-neutral-900")}><span>{tr("Balance")}</span><span className="tabular-nums">{rupiah(s.recap.balance ?? 0)}</span></li>
           </>}
@@ -234,7 +234,7 @@ function ShiftDetail({ s }: { s: Shift }) {
 const RELOAD: Record<Reload["status"], { label: () => string; tone: "amber" | "violet" | "red" | "green" }> = {
   requested: { label: () => tr("Waiting"), tone: "amber" }, approved: { label: () => tr("Approved"), tone: "violet" },
   rejected: { label: () => tr("Rejected"), tone: "red" }, received: { label: () => tr("Received"), tone: "green" },
-  disputed: { label: () => tr("Difference reported"), tone: "red" },
+  disputed: { label: () => tr("Difference Reported"), tone: "red" },
 };
 
 function Decide({ url, onDone, needNote }: { url: string; onDone: () => Promise<void>; needNote?: boolean }) {

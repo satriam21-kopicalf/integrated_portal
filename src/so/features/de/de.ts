@@ -80,7 +80,7 @@ export const KIND_LABEL: Record<Kind, () => string> = {
 };
 export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), PENDING: () => "Pending", VALIDATION: () => tr("Validation"), REVIEW: () => "Review", ON_HOLD: () => "On hold",
-  ACCEPTED: () => "Accept", IN_PROGRESS: () => tr("In progress"), HANDOVER: () => tr("Handover"), DONE: () => "Done", REJECTED: () => "Reject",
+  ACCEPTED: () => "Accept", IN_PROGRESS: () => tr("In Progress"), HANDOVER: () => tr("Handover"), DONE: () => "Done", REJECTED: () => "Reject",
 };
 export const STATUS_TONE: Record<Status, Tone> = {
   DRAFT: "slate", PENDING: "slate", VALIDATION: "blue", REVIEW: "violet", ON_HOLD: "amber", ACCEPTED: "blue", IN_PROGRESS: "blue",
@@ -95,8 +95,8 @@ export const URGENCY_LABEL: Record<Urgency, () => string> = {
 };
 export const URGENCY_TONE: Record<Urgency, Tone> = { CRITICAL: "red", HIGH: "amber", NORMAL: "blue", LOW: "slate", PLANNED: "violet" };
 export const CAUSES: { value: string; label: () => string }[] = [
-  { value: "WEAR", label: () => tr("Normal wear") }, { value: "MISUSE", label: () => tr("Wrong use") },
-  { value: "AGE", label: () => tr("Age of the item") }, { value: "OTHER", label: () => tr("Other") },
+  { value: "WEAR", label: () => tr("Normal Wear") }, { value: "MISUSE", label: () => tr("Wrong Use") },
+  { value: "AGE", label: () => tr("Age of the Item") }, { value: "OTHER", label: () => tr("Other") },
 ];
 
 /** 5.2 h → "5.2 jam", 50 h → "2.1 hari" */

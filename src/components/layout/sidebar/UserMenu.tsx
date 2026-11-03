@@ -67,7 +67,7 @@ export default function UserMenu({ collapsed }: { collapsed: boolean }) {
               {!user.profileComplete && <span className="ml-auto rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">{tr('Incomplete')}</span>}
             </button>
             <button type="button" role="menuitem" onClick={() => { setOpen(false); openPassword(); }} className={cx(item, 'text-neutral-700 hover:bg-neutral-100')}>
-              <KeyRound /> {tr('Change password')}
+              <KeyRound /> {tr('Change Password')}
             </button>
             <div className="my-1 h-px bg-neutral-200" />
             <div className="flex items-center gap-2 px-2 py-1 text-[13px] text-neutral-700">
@@ -84,7 +84,7 @@ export default function UserMenu({ collapsed }: { collapsed: boolean }) {
             </div>
             <div className="my-1 h-px bg-neutral-200" />
             <button type="button" role="menuitem" onClick={() => { setOpen(false); logout(); }} className={cx(item, 'text-red-600 hover:bg-red-50')}>
-              <LogOut /> {tr('Sign out')}
+              <LogOut /> {tr('Sign Out')}
             </button>
           </div>
         )}
@@ -92,7 +92,7 @@ export default function UserMenu({ collapsed }: { collapsed: boolean }) {
           className={cx('flex w-full items-center gap-2 rounded-lg p-1.5 text-left transition-colors hover:bg-neutral-200/60', open && 'bg-neutral-200/60', collapsed && 'justify-center')}>
           <span className="relative flex-shrink-0">
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
-            {!user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-neutral-50" title={tr('Profile incomplete')} />}
+            {!user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-neutral-50" title={tr('Profile Incomplete')} />}
           </span>
           {!collapsed && (
             <>

@@ -21,7 +21,7 @@ import { tr } from "@/lib/i18n";
 
 const STATUS: Record<Driver["status"], { label: () => string; tone: "green" | "amber" | "slate" }> = {
   active: { label: () => tr("Active"), tone: "green" },
-  leave: { label: () => tr("On leave"), tone: "amber" },
+  leave: { label: () => tr("On Leave"), tone: "amber" },
   inactive: { label: () => tr("Inactive"), tone: "slate" },
 };
 const EMPLOYMENT: Record<NonNullable<Driver["employment_status"]>, () => string> = {
@@ -48,7 +48,7 @@ export default function CotrDriversPage() {
         <IconButton label={tr("Import Excel")} onClick={() => setImporting(true)}>
           <span className="relative h-5 w-5"><Image src={assetUrl("assets/xlsx.png")} alt="" fill sizes="20px" className="object-contain" /></span>
         </IconButton>
-        <Link href="/users" title={tr("Driver accounts")} aria-label={tr("Driver accounts")}
+        <Link href="/users" title={tr("Driver Accounts")} aria-label={tr("Driver Accounts")}
           className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-900"><KeyRound size={17} /></Link>
       </>}>
       {importing && <ImportDrivers pools={pools.rows ?? []} onClose={() => setImporting(false)} onDone={() => { void master.load(); void fleet.load(); }} />}
@@ -60,10 +60,10 @@ export default function CotrDriversPage() {
       <MasterTable noun={tr("driver")} title={tr("Drivers")} master={master} filters={[
         { key: "pool", label: tr("Pool / HUB"), icon: <Building2 size={15} />, options: (pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => ({ value: p.code, label: p.name, test: (d: Driver) => d.pool_code === p.code })) },
         { key: "status", label: tr("Status"), icon: <UserRound size={15} />, options: (Object.keys(STATUS) as Driver["status"][]).map((k) => ({ value: k, label: STATUS[k].label(), test: (d: Driver) => d.status === k })) },
-        { key: "account", label: tr("Driver app account"), icon: <KeyRound size={15} />, options: [
-          { value: "with", label: tr("With an account"), test: (d: Driver) => !!d.user_id }, { value: "without", label: tr("No account yet"), test: (d: Driver) => !d.user_id }] },
+        { key: "account", label: tr("Driver App Account"), icon: <KeyRound size={15} />, options: [
+          { value: "with", label: tr("With an Account"), test: (d: Driver) => !!d.user_id }, { value: "without", label: tr("No account yet"), test: (d: Driver) => !d.user_id }] },
         { key: "fleet", label: tr("Armada"), icon: <Bike size={15} />, options: [
-          { value: "with", label: tr("With an armada"), test: (d: Driver) => !!d.fleet_code }, { value: "without", label: tr("No armada"), test: (d: Driver) => !d.fleet_code }] },
+          { value: "with", label: tr("With an Armada"), test: (d: Driver) => !!d.fleet_code }, { value: "without", label: tr("No armada"), test: (d: Driver) => !d.fleet_code }] },
       ]}
         description={tr("Driver logins are made in User Accounts (role Driver (COTR)); pick the account here to tie it to the driver.")}
         blank={(): Partial<Driver> => ({ code: `DRV-${String((master.rows?.length ?? 0) + 1).padStart(3, "0")}`, name: "", phone: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", fleet_code: null, status: "active", joined_on: new Date().toISOString().slice(0, 10), user_id: null })}
@@ -81,12 +81,12 @@ export default function CotrDriversPage() {
           { label: tr("Pool / HUB"), render: (d) => poolName(d.pool_code) },
           { label: tr("Fleet"), render: (d) => (d.fleet_code || d.bike_code) ? <span className="text-xs">{d.fleet_code ?? "—"}{d.bike_code ? <span className="block text-[11px] text-neutral-400">{tr("Bike {0}", d.bike_code)}</span> : null}</span> : <span className="text-neutral-400">{tr("Not assigned")}</span> },
           { label: tr("Employment"), render: (d) => d.employment_status ? <span className="text-xs">{EMPLOYMENT[d.employment_status]()}{d.position ? ` · ${d.position}` : ""}</span> : <span className="text-neutral-400">—</span> },
-          ...(management ? [{ label: tr("Salary / month"), className: "text-right", render: (d: Driver) => d.salary_monthly ? <span className="tabular-nums">{rupiah(d.salary_monthly)}</span> : <span className="text-neutral-400">—</span> }] : []),
+          ...(management ? [{ label: tr("Salary / Month"), className: "text-right", render: (d: Driver) => d.salary_monthly ? <span className="tabular-nums">{rupiah(d.salary_monthly)}</span> : <span className="text-neutral-400">—</span> }] : []),
           { label: tr("Status"), render: (d) => <Badge tone={STATUS[d.status].tone} dot>{STATUS[d.status].label()}</Badge> },
           { label: tr("Account"), render: (d) => d.account ? <span className="font-mono text-xs">{d.account}</span> : <Badge tone="amber">{tr("No account yet")}</Badge> },
         ]}
         fields={[
-          { key: "photo", label: tr("Profile picture"), type: "image", image: { entity: "drivers", slot: "photo" }, section: sec.profile },
+          { key: "photo", label: tr("Profile Picture"), type: "image", image: { entity: "drivers", slot: "photo" }, section: sec.profile },
           { key: "code", label: tr("Code"), required: true, section: sec.profile },
           { key: "name", label: tr("Name"), required: true, section: sec.profile },
           { key: "nickname", label: tr("Nickname"), section: sec.profile, hint: tr("The name on the daily reports") },
@@ -109,16 +109,16 @@ export default function CotrDriversPage() {
           { key: "birth_place", label: tr("Place of birth"), section: sec.person },
           { key: "birth_date", label: tr("Date of birth"), type: "date", section: sec.person },
           { key: "address", label: tr("Address"), type: "textarea", section: sec.person },
-          { key: "emergency_name", label: tr("Emergency contact"), section: sec.person },
-          { key: "emergency_phone", label: tr("Emergency phone"), section: sec.person },
+          { key: "emergency_name", label: tr("Emergency Contact"), section: sec.person },
+          { key: "emergency_phone", label: tr("Emergency Phone"), section: sec.person },
 
-          { key: "employment_status", label: tr("Employment status"), type: "select", section: sec.work, options: (Object.keys(EMPLOYMENT) as NonNullable<Driver["employment_status"]>[]).map((k) => ({ value: k, label: EMPLOYMENT[k]() })) },
+          { key: "employment_status", label: tr("Employment Status"), type: "select", section: sec.work, options: (Object.keys(EMPLOYMENT) as NonNullable<Driver["employment_status"]>[]).map((k) => ({ value: k, label: EMPLOYMENT[k]() })) },
           { key: "position", label: tr("Position"), section: sec.work, placeholder: tr("e.g. Driver, Senior driver") },
           { key: "contract_end", label: tr("Contract ends"), type: "date", section: sec.work },
           { key: "note", label: tr("Note"), type: "textarea", section: sec.work },
 
           { key: "salary_monthly", label: tr("Fixed salary / month (Rp)"), type: "number", section: sec.pay, when: management },
-          { key: "allowance_monthly", label: tr("Allowance / month (Rp)"), type: "number", section: sec.pay, when: management },
+          { key: "allowance_monthly", label: tr("Allowance / Month (Rp)"), type: "number", section: sec.pay, when: management },
           { key: "bank_name", label: tr("Bank"), section: sec.bank, when: management, placeholder: "BNI / BRI / BCA …" },
           { key: "bank_account", label: tr("Account number"), section: sec.bank, when: management },
           { key: "bank_holder", label: tr("Account holder"), section: sec.bank, when: management },

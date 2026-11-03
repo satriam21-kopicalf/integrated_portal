@@ -133,7 +133,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
           </div>
         </div>
 
-        <DrawerSection title={tr('Profile photo')} description={tr('Shown in the sidebar and in User Accounts. Saved right away.')}>
+        <DrawerSection title={tr('Profile Photo')} description={tr('Shown in the sidebar and in User Accounts. Saved right away.')}>
           <AvatarEditor name={form.fullName || user.username} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser} />
         </DrawerSection>
 
@@ -156,7 +156,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
 
         <ProfileFields values={form} onChange={set} fieldError={fieldError} idPrefix="me" currentBranchName={user.workBranchName} />
 
-        <DrawerSection title={tr('Sign-in & access')} description={tr('Managed by an administrator.')}>
+        <DrawerSection title={tr('Sign-in & Access')} description={tr('Managed by an administrator.')}>
           <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100 text-sm">
             {([
               [tr('Username'), user.username],
@@ -170,7 +170,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
               </div>
             ))}
           </dl>
-          <button type="button" className={buttonSecondary} onClick={onChangePassword}><KeyRound size={16} /> {tr('Change password')}</button>
+          <button type="button" className={buttonSecondary} onClick={onChangePassword}><KeyRound size={16} /> {tr('Change Password')}</button>
         </DrawerSection>
       </form>
     </Drawer>
@@ -213,7 +213,7 @@ function ProfileNudge({ user, onOpen }: { user: AuthUser; onOpen: () => void }) 
             <p className="text-sm font-semibold text-neutral-900">{tr('Complete your profile')}</p>
             <p className="mt-0.5 text-sm text-neutral-500">{tr('Add your full name, phone number, job title and department.')}</p>
             <div className="mt-3 flex gap-2">
-              <button type="button" className={`${buttonPrimary} h-9 px-3`} onClick={onOpen}>{tr('Complete profile')}</button>
+              <button type="button" className={`${buttonPrimary} h-9 px-3`} onClick={onOpen}>{tr('Complete Profile')}</button>
               <button type="button" className={`${buttonSecondary} h-9 px-3`} onClick={dismiss}>{tr('Later')}</button>
             </div>
           </div>

@@ -54,7 +54,7 @@ export default function BranchAssign({ branches, loading, value, onChange, inval
         <div className="relative flex-1">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tr('Search outlet name or code')}
-            className={`${inputClass} h-9 pl-8 text-sm`} aria-label={tr('Search branches')} />
+            className={`${inputClass} h-9 pl-8 text-sm`} aria-label={tr('Search Branches')} />
         </div>
         <button type="button" onClick={selectShown} disabled={!shown.length} className="rounded-md px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-40">
           {query ? tr('Select shown') : tr('Select all')}

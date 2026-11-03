@@ -152,7 +152,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   return (
     <Page title={review ? tr("Waste Review") : tr("Waste Monitor")}
       subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${review ? tr("approve or reject the waste of the branches") : tr("Waste entered by every branch")}`}
-      actions={<>{review && <Button variant="secondary" size="sm" onClick={() => setCats(true)}><Tags size={14} />{tr("Categories")}</Button>}<ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
+      actions={<>{review && <Button variant="secondary" size="sm" onClick={() => setCats(true)}><Tags size={14} />{tr("Categories")}</Button>}<ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All Branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
         { key: "entries", label: tr("Waste Entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-brand-50 text-brand-600", count: res ? rows.length : null, run: safe(exportEntries) },
         { key: "items", label: tr("Totals per Item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
         { key: "daily", label: tr("Daily Report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
@@ -253,7 +253,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 [tr("Item"), `${open.itemName} (${open.itemCode})`],
                 [tr("Quantity"), `${fmtQty(open.qty)} ${open.unit}`],
                 [tr("Waste category"), open.category],
-                [tr("Production date"), open.productionDate || "—"], [tr("Expired date"), open.expiredDate || "—"],
+                [tr("Production Date"), open.productionDate || "—"], [tr("Expired Date"), open.expiredDate || "—"],
                 [tr("Note / reason"), open.note || "—"],
                 [tr("Entered by"), `${open.name} · @${open.username}`],
                 [tr("Entered at"), wibDateTime(open.createdAt)],
@@ -340,7 +340,7 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
       <FilterSection title={tr("Period")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={92} /></FilterSection>
       <FilterSection title={tr("Branch")}>
         <select className={inputClass} value={d.branch} onChange={(e) => setD({ ...d, branch: e.target.value })} aria-label={tr("Branch")}>
-          <option value="">{tr("All branches")}</option>
+          <option value="">{tr("All Branches")}</option>
           {branches.map((b) => <option key={b.branch_code} value={b.branch_code}>{b.branch_name}</option>)}
         </select>
       </FilterSection>

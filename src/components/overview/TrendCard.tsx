@@ -19,7 +19,7 @@ type View = 'trend' | 'daily' | 'growth' | 'monthly';
 
 const VIEWS: { value: View; label: string }[] = [
   { value: 'trend', get label() { return tr('Trend'); } },
-  { value: 'daily', get label() { return tr('Per day'); } },
+  { value: 'daily', get label() { return tr('Per Day'); } },
   { value: 'growth', get label() { return tr('Growth %'); } },
   { value: 'monthly', get label() { return tr('Monthly'); } },
 ];
@@ -67,13 +67,13 @@ export default function TrendCard({ query }: { query: string }) {
 
   return (
     <Card
-      title={tr('Sales trend & growth')}
+      title={tr('Sales Trend & Growth')}
       info={view === 'trend' ? 'trend' : view === 'monthly' ? 'monthly' : 'growth'}
       subtitle={subtitle}
       resource={shown}
       minHeight={380}
       onOpen={open}
-      tabs={<CardTabs label={tr('Sales trend view')} value={view} options={VIEWS} onChange={setView} />}
+      tabs={<CardTabs label={tr('Sales Trend View')} value={view} options={VIEWS} onChange={setView} />}
       actions={
         <>
           {view === 'trend' && <Segmented label={tr('Metric')} value={metric} options={TREND_METRICS} onChange={setMetric} />}
@@ -92,8 +92,8 @@ export default function TrendCard({ query }: { query: string }) {
               onChange={v => setTable(v === 'table')} />
           )}
           {view === 'growth' && (
-            <Segmented label={tr('Growth against')} value={sequential ? 'seq' : 'cmp'} onChange={v => setSequential(v === 'seq')}
-              options={[{ value: 'cmp', label: tr('Comparison period') }, { value: 'seq', label: tr('Previous {0}', tr(growthGran)) }]} />
+            <Segmented label={tr('Growth Against')} value={sequential ? 'seq' : 'cmp'} onChange={v => setSequential(v === 'seq')}
+              options={[{ value: 'cmp', label: tr('Comparison Period') }, { value: 'seq', label: tr('Previous {0}', tr(growthGran)) }]} />
           )}
         </>
       }
@@ -148,7 +148,7 @@ export function TrendTable({ data, metric, maxHeight = 340 }: { data: TrendRespo
       caption={tr('{0} per {1}', label, tr(g))}
       columns={[
         { key: 'date', label: g === 'hour' ? tr('Hour') : g === 'day' ? tr('Date') : g === 'week' ? tr('Week of') : tr('Month') },
-        { key: 'cur', label: tr('This period'), align: 'right' },
+        { key: 'cur', label: tr('This Period'), align: 'right' },
         { key: 'prev', label: tr('Previous'), align: 'right' },
         { key: 'delta', label: tr('Change'), align: 'right' },
         { key: 'disc', label: tr('Discount'), align: 'right' },

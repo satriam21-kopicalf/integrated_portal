@@ -14,7 +14,7 @@ import { tr } from "@/lib/i18n";
 
 const KIND: Record<Pool["kind"], { label: () => string; tone: "blue" | "violet" | "cyan"; icon: typeof Boxes }> = {
   main: { label: () => tr("Main HUB"), tone: "blue", icon: Building2 },
-  parent: { label: () => tr("Parent pool"), tone: "violet", icon: Warehouse },
+  parent: { label: () => tr("Parent Pool"), tone: "violet", icon: Warehouse },
   storage: { label: () => tr("Storage"), tone: "cyan", icon: Boxes },
 };
 
@@ -32,9 +32,9 @@ export default function CotrPoolsPage() {
   const located = (p: Pool) => p.latitude !== null && p.longitude !== null;
   const filters: MasterFilter<Pool>[] = [
     { key: "kind", label: tr("Type"), icon: <Building2 size={15} />, options: (Object.keys(KIND) as Pool["kind"][]).map((k) => ({ value: k, label: KIND[k].label(), test: (p) => p.kind === k })) },
-    { key: "under", label: tr("Under (main HUB)"), icon: <Network size={15} />, options: mains.map((m) => ({ value: m.code, label: m.name, test: (p) => p.parent_code === m.code || p.code === m.code })) },
+    { key: "under", label: tr("Under (Main HUB)"), icon: <Network size={15} />, options: mains.map((m) => ({ value: m.code, label: m.name, test: (p) => p.parent_code === m.code || p.code === m.code })) },
     { key: "coords", label: tr("Location"), icon: <MapPin size={15} />, options: [
-      { value: "with", label: tr("With coordinates"), test: located }, { value: "without", label: tr("No coordinates"), test: (p) => !located(p) }] },
+      { value: "with", label: tr("With Coordinates"), test: located }, { value: "without", label: tr("No coordinates"), test: (p) => !located(p) }] },
     { key: "active", label: tr("Status"), icon: <CheckCircle2 size={15} />, options: [
       { value: "on", label: tr("Active"), test: (p) => p.is_active }, { value: "off", label: tr("Inactive"), test: (p) => !p.is_active }] },
   ];
@@ -44,9 +44,9 @@ export default function CotrPoolsPage() {
         <StatGrid label={tr("Summary")} cols={4}>
           <StatCard label={tr("Main HUB")} tone="brand" icon={<Building2 />} value={loaded ? mains.length : <ValueSkeleton />}
             sub={loaded && tr("{0} producing", rows.filter((p) => p.is_production).length)} />
-          <StatCard label={tr("Parent pools")} icon={<Warehouse />} value={loaded ? rows.filter((p) => p.kind === "parent").length : <ValueSkeleton />}
+          <StatCard label={tr("Parent Pools")} icon={<Warehouse />} value={loaded ? rows.filter((p) => p.kind === "parent").length : <ValueSkeleton />}
             sub={loaded && tr("{0} storages", rows.filter((p) => p.kind === "storage").length)} />
-          <StatCard label={tr("Drivers & fleet")} icon={<Users />} value={drivers.rows ? (drivers.rows ?? []).filter((d) => d.status !== "inactive").length : <ValueSkeleton />}
+          <StatCard label={tr("Drivers & Fleet")} icon={<Users />} value={drivers.rows ? (drivers.rows ?? []).filter((d) => d.status !== "inactive").length : <ValueSkeleton />}
             sub={fleet.rows && tr("{0} armada in use", (fleet.rows ?? []).filter((f) => f.is_active).length)} />
           <StatCard label={tr("No coordinates")} icon={<MapPin />} tone={rows.some((p) => !located(p)) ? "warn" : "default"} value={loaded ? rows.filter((p) => !located(p)).length : <ValueSkeleton />}
             sub={tr("check-ins cannot be located there")} />
@@ -64,7 +64,7 @@ export default function CotrPoolsPage() {
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-700 text-white"><Building2 size={18} /></span>
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-neutral-900">{m.name}
-                      {m.is_production && <Pill tone="brand" icon={<Factory size={11} />}>{tr("Production hub")}</Pill>}
+                      {m.is_production && <Pill tone="brand" icon={<Factory size={11} />}>{tr("Production Hub")}</Pill>}
                       {!m.is_active && <Pill tone="gray">{tr("Inactive")}</Pill>}</p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-neutral-500">
                       <span className="font-mono">{m.code}</span>
@@ -111,7 +111,7 @@ export default function CotrPoolsPage() {
         })}
         {loaded && mains.length === 0 && <p className="rounded-xl border border-dashed border-neutral-300 px-4 py-8 text-center text-sm text-neutral-500">{tr("No main HUB yet: add one below.")}</p>}
       </div>
-      <MasterTable noun={tr("pool")} title={tr("Pools, HUBs & storages")} master={master} filters={filters}
+      <MasterTable noun={tr("pool")} title={tr("Pools, HUBs & Storages")} master={master} filters={filters}
         blank={(): Partial<Pool> => ({ code: "", name: "", kind: "parent", parent_code: mains[0]?.code ?? null, city: "", address: "", storage: [], is_active: true, latitude: null, longitude: null, radius_m: 100 })}
         toForm={(p) => ({ ...p, storage: (p.storage ?? []).join(", ") })}
         fromForm={(v) => ({ ...v, storage: String(v.storage ?? "").split(",").map((s) => s.trim()).filter(Boolean) }) as Partial<Pool>}
@@ -129,12 +129,12 @@ export default function CotrPoolsPage() {
           { key: "code", label: tr("Code"), required: true, placeholder: "POOL-XXX", section: tr("Pool / HUB") },
           { key: "name", label: tr("Name"), required: true, section: tr("Pool / HUB") },
           { key: "kind", label: tr("Type"), type: "select", required: true, section: tr("Pool / HUB"), options: (Object.keys(KIND) as Pool["kind"][]).map((k) => ({ value: k, label: KIND[k].label() })) },
-          { key: "parent_code", label: tr("Under (main HUB)"), type: "search", hint: tr("Empty for a main HUB"), section: tr("Pool / HUB"), options: mains.map((m) => ({ value: m.code, label: m.name, hint: m.city })) },
+          { key: "parent_code", label: tr("Under (Main HUB)"), type: "search", hint: tr("Empty for a main HUB"), section: tr("Pool / HUB"), options: mains.map((m) => ({ value: m.code, label: m.name, hint: m.city })) },
           { key: "storage", label: tr("Stores"), hint: tr("Separate with commas: menus, raw materials, packaging …"), section: tr("Pool / HUB") },
           { key: "is_active", label: tr("Active"), type: "bool", section: tr("Pool / HUB") },
 
           { key: "city", label: tr("City"), required: true, section: tr("Location") },
-          { key: "radius_m", label: tr("Check-in radius (m)"), type: "number", section: tr("Location"), hint: tr("A check in further than this is flagged") },
+          { key: "radius_m", label: tr("Check-in Radius (M)"), type: "number", section: tr("Location"), hint: tr("A check in further than this is flagged") },
           { key: "address", label: tr("Address"), type: "textarea", section: tr("Location") },
           { key: "coords", label: tr("Coordinates"), type: "coords", coords: ["latitude", "longitude"], section: tr("Location") },
 
@@ -143,7 +143,7 @@ export default function CotrPoolsPage() {
           { key: "open_time", label: tr("Opens"), type: "time", section: tr("Contact & hours") },
           { key: "close_time", label: tr("Closes"), type: "time", section: tr("Contact & hours") },
           { key: "note", label: tr("Note"), type: "textarea", section: tr("Contact & hours") },
-          { key: "is_production", label: tr("Production hub"), type: "bool", hint: tr("The main hub where the products are made and sent to the pools") },
+          { key: "is_production", label: tr("Production Hub"), type: "bool", hint: tr("The main hub where the products are made and sent to the pools") },
         ]} />
     </Page>
   );

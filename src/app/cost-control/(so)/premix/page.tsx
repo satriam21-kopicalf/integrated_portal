@@ -53,7 +53,7 @@ export default function PremixPage() {
   const drafts = all.filter(r => r.drafts > 0).length;
   return (
     <Page title={tr("Production Calculator")} subtitle={tr("Premix recipes of Cost Control: grams of every ingredient, and the WIP form of the stock opname")}
-      actions={manage && tab === "recipes" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New recipe")}</Button> : undefined}
+      actions={manage && tab === "recipes" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Recipe")}</Button> : undefined}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Recipes")} icon={<FlaskConical size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>

@@ -107,7 +107,7 @@ export default function ProfileFields({
 
   return (
     <>
-      <DrawerSection title={tr('Personal information')}>
+      <DrawerSection title={tr('Personal Information')}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={tr('Full name')} htmlFor={id('name')} required={required('fullName')} error={fieldError('fullName')} className="sm:col-span-2">
             <input id={id('name')} className={inputClass} value={values.fullName} onChange={e => onChange('fullName', e.target.value)}
@@ -123,7 +123,7 @@ export default function ProfileFields({
             <input id={id('birth')} type="date" className={inputClass} value={values.birthDate} onChange={e => onChange('birthDate', e.target.value)}
               min="1900-01-01" max={today()} autoComplete="bday" />
           </Field>
-          <Field label={tr('Phone number')} htmlFor={id('phone')} required={required('phoneNumber')} error={fieldError('phoneNumber')} className="sm:col-span-2"
+          <Field label={tr('Phone Number')} htmlFor={id('phone')} required={required('phoneNumber')} error={fieldError('phoneNumber')} className="sm:col-span-2"
             hint={tr('Digits, spaces, + ( ) and - only')}>
             <input id={id('phone')} type="tel" inputMode="tel" className={inputClass} value={values.phoneNumber} onChange={e => onChange('phoneNumber', e.target.value)}
               maxLength={32} autoComplete="tel" placeholder="0812 3456 7890" />
@@ -138,9 +138,9 @@ export default function ProfileFields({
         </div>
       </DrawerSection>
 
-      <DrawerSection title={tr('Work information')}>
+      <DrawerSection title={tr('Work Information')}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={tr('Employee number')} htmlFor={id('employee')} error={fieldError('employeeNumber')} hint={tr('Letters, numbers, . / -')}>
+          <Field label={tr('Employee Number')} htmlFor={id('employee')} error={fieldError('employeeNumber')} hint={tr('Letters, numbers, . / -')}>
             <input id={id('employee')} className={inputClass} value={values.employeeNumber} onChange={e => onChange('employeeNumber', e.target.value)}
               maxLength={32} autoCapitalize="characters" spellCheck={false} />
           </Field>
@@ -152,7 +152,7 @@ export default function ProfileFields({
             <MasterCombobox kind="department" id={id('dept')} value={values.department} onChange={v => onChange('department', v)}
               canAdd={me?.role === 'superadmin'} />
           </Field>
-          <Field label={tr('Work location')} htmlFor={id('branch')} error={fieldError('workBranchCode')}>
+          <Field label={tr('Work Location')} htmlFor={id('branch')} error={fieldError('workBranchCode')}>
             <select id={id('branch')} className={inputClass} value={values.workBranchCode} onChange={e => onChange('workBranchCode', e.target.value)}>
               <option value="">{tr('Not specified')}</option>
               {savedBranchMissing && <option value={values.workBranchCode}>{currentBranchName || values.workBranchCode}</option>}

@@ -109,8 +109,8 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   const status: { tone: Tone; text: string } = !fix ? { tone: "muted", text: "—" }
     : !b ? { tone: "muted", text: tr("Choose the outlet") }
     : !where?.located ? { tone: "muted", text: tr("No coordinates") }
-    : where.outside ? { tone: "warn", text: tr("Outside radius") }
-    : { tone: "ok", text: tr("At the outlet") };
+    : where.outside ? { tone: "warn", text: tr("Outside Radius") }
+    : { tone: "ok", text: tr("At the Outlet") };
 
   const takePhoto = async (s: Selfie) => {
     setCamera(false);
@@ -155,7 +155,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   const steps = [
     { label: tr("Outlet"), ok: !!b },
     { label: tr("Location"), ok: !!fix },
-    { label: tr("Face photo"), ok: faceOk },
+    { label: tr("Face Photo"), ok: faceOk },
   ];
   const current = steps.findIndex((s) => !s.ok);
 
@@ -219,7 +219,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
         ) : (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
             <div className="space-y-4">
-              <Card n={1} ok={!!b} active={current === 0} title={tr("Outlet visited")} hint={tr("The outlet where you are now")}>
+              <Card n={1} ok={!!b} active={current === 0} title={tr("Outlet Visited")} hint={tr("The outlet where you are now")}>
                 <BranchPicker branches={data.branches} value={branch} fix={fix} stateOf={stateOf}
                   onChange={(code) => { setBranch(code); setPhoto(null); setFaces(null); }} />
                 {doneToday && (
@@ -278,16 +278,16 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                   <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-3 text-sm text-red-800">
                     <p className="flex items-center gap-2 font-semibold"><MapPinOff size={16} className="flex-shrink-0" /> {locError}</p>
                     <p className="mt-1 text-xs leading-relaxed">{tr("Turn on Location (GPS) and allow it for this site (padlock in the address bar), then try again.")}</p>
-                    <Button variant="secondary" size="sm" className="mt-2.5" onClick={() => void findMe()}><RotateCcw size={13} /> {tr("Try again")}</Button>
+                    <Button variant="secondary" size="sm" className="mt-2.5" onClick={() => void findMe()}><RotateCcw size={13} /> {tr("Try Again")}</Button>
                   </div>
                 )}
               </Card>
 
-              <Card n={3} ok={faceOk} active={current === 2} title={tr("Face photo")} hint={tr("Front camera; the time, the outlet and the location are printed on the photo")}>
+              <Card n={3} ok={faceOk} active={current === 2} title={tr("Face Photo")} hint={tr("Front camera; the time, the outlet and the location are printed on the photo")}>
                 {photo ? (
                   <div className="grid gap-3 sm:grid-cols-[16rem_minmax(0,1fr)]">
                     {/* eslint-disable-next-line @next/next/no-img-element -- the photo just taken (data URL) */}
-                    <img src={photo.image} alt={tr("Face photo")} className="max-h-72 w-full rounded-lg bg-neutral-100 object-contain" />
+                    <img src={photo.image} alt={tr("Face Photo")} className="max-h-72 w-full rounded-lg bg-neutral-100 object-contain" />
                     <div className="flex flex-col gap-3">
                       {checking ? (
                         <p className="flex items-center gap-2 text-sm text-neutral-600"><Loader2 size={15} className="animate-spin" /> {tr("Checking the face…")}</p>
@@ -336,10 +336,10 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 <dl className="mt-3 divide-y divide-neutral-100 text-sm">
                   <Row k={tr("Outlet")} v={b?.name ?? "—"} />
                   <Row k={tr("Location")} v={<span className={TONE[status.tone]}>{status.text}{where?.distance != null ? ` · ${where.distance} m` : ""}</span>} />
-                  <Row k={tr("Face photo")} v={faceOk ? tr("Face detected") : "—"} />
-                  <Row k={tr("Visit time")} v={tr("Server time when sent")} />
+                  <Row k={tr("Face Photo")} v={faceOk ? tr("Face detected") : "—"} />
+                  <Row k={tr("Visit Time")} v={tr("Server time when sent")} />
                 </dl>
-                <Button loading={sending} disabled={!ready} onClick={() => void send()} className="mt-4 w-full"><Send size={15} /> {tr("Send check in")}</Button>
+                <Button loading={sending} disabled={!ready} onClick={() => void send()} className="mt-4 w-full"><Send size={15} /> {tr("Send Check in")}</Button>
                 {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-red-600" : "text-neutral-400")}>{pending}</p>}
               </section>
 
@@ -376,7 +376,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
           <p className="mb-2 truncate text-xs text-neutral-500">
             {ready ? `${b?.name} · ${status.text}${where?.distance != null ? ` · ${where.distance} m` : ""}` : pending}
           </p>
-          <Button loading={sending} disabled={!ready} onClick={() => void send()} className="w-full"><Send size={15} /> {tr("Send check in")}</Button>
+          <Button loading={sending} disabled={!ready} onClick={() => void send()} className="w-full"><Send size={15} /> {tr("Send Check in")}</Button>
         </div>
       )}
 
@@ -419,23 +419,23 @@ function ReviewBadge({ c }: { c: CheckIn }) {
   if (c.review?.status === "valid") return <Badge tone="green" icon={<ShieldCheck size={11} />}>{tr("Valid · reviewed")}</Badge>;
   if (c.review?.status === "invalid") return <Badge tone="red" icon={<ShieldX size={11} />}>{tr("Not valid · reviewed")}</Badge>;
   if (c.outsideRadius) return <Badge tone="amber">{tr("Outside radius · waiting for review")}</Badge>;
-  return <Badge tone="slate">{c.distanceM !== null ? tr("At the outlet · {0} m", c.distanceM) : tr("Outlet has no coordinates")}</Badge>;
+  return <Badge tone="slate">{c.distanceM !== null ? tr("At the outlet · {0} m", c.distanceM) : tr("Outlet Has No Coordinates")}</Badge>;
 }
 
 /** Full screen after sending (phones / PWA; a centred card on a desktop), then back to the form. */
 function SuccessScreen({ c, onClose, onDetail }: { c: CheckIn; onClose: () => void; onDetail: () => void }) {
   // on the body: above the app frame (a transformed ancestor would clip a fixed layer)
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-stretch justify-center bg-neutral-900/50 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Check in sent")}>
+    <div className="fixed inset-0 z-[90] flex items-stretch justify-center bg-neutral-900/50 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Check in Sent")}>
       <div className="flex w-full flex-col overflow-y-auto bg-white sm:max-h-[92vh] sm:max-w-md sm:rounded-xl sm:shadow-2xl">
         <div className={cx("flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center", c.outsideRadius ? "bg-gradient-to-b from-amber-50 to-white" : "bg-gradient-to-b from-emerald-50 to-white", "sm:rounded-t-2xl")}>
           <span className={cx("flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg", c.outsideRadius ? "bg-amber-500 shadow-amber-200" : "bg-emerald-500 shadow-emerald-200")}>
             {c.outsideRadius ? <AlertTriangle size={38} /> : <Check size={42} strokeWidth={3} />}
           </span>
-          <h2 className="mt-5 text-2xl font-semibold text-neutral-900">{tr("Check in successful")}</h2>
+          <h2 className="mt-5 text-2xl font-semibold text-neutral-900">{tr("Check in Successful")}</h2>
           <p className="mt-1 text-sm text-neutral-600">{c.branchName}</p>
           {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-          <img src={thumb(photoUrl(c.id), 320)} decoding="async" loading="lazy" alt={tr("Face photo")} className="mt-6 h-36 w-28 rounded-xl object-cover shadow-md ring-4 ring-white" />
+          <img src={thumb(photoUrl(c.id), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-xl object-cover shadow-md ring-4 ring-white" />
           <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-neutral-100 rounded-xl border border-neutral-200/80 bg-white text-left">
             <div className="px-3 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Time")}</dt>
               <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Clock size={13} className="text-neutral-400" />{wibTime(c.visitedAt)} WIB</dd></div>
@@ -448,7 +448,7 @@ function SuccessScreen({ c, onClose, onDetail }: { c: CheckIn; onClose: () => vo
         </div>
         <div className="space-y-2 border-t border-neutral-100 px-6 pt-4 sm:rounded-b-2xl" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
           <Button className="h-12 w-full text-base" onClick={onClose}>{tr("Done")}</Button>
-          <button type="button" onClick={onDetail} className="w-full py-1 text-sm font-medium text-neutral-500 hover:text-neutral-800">{tr("See the details")}</button>
+          <button type="button" onClick={onDetail} className="w-full py-1 text-sm font-medium text-neutral-500 hover:text-neutral-800">{tr("See the Details")}</button>
         </div>
       </div>
     </div>,
@@ -464,11 +464,11 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
         <div className="grid gap-4 sm:grid-cols-[11rem_minmax(0,1fr)]">
           <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="block">
             {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-            <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face photo")} className="aspect-[3/4] w-full rounded-xl bg-neutral-100 object-cover ring-1 ring-neutral-200" />
+            <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="aspect-[3/4] w-full rounded-xl bg-neutral-100 object-cover ring-1 ring-neutral-200" />
           </a>
           <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
             <Row k={tr("Outlet")} v={c.branchName} />
-            <Row k={tr("Visit time")} v={wibDateTime(c.visitedAt)} />
+            <Row k={tr("Visit Time")} v={wibDateTime(c.visitedAt)} />
             <Row k={tr("Distance")} v={<span className={c.outsideRadius ? "text-amber-700" : undefined}>{c.distanceM !== null ? `${c.distanceM} m` : "—"}{c.radiusM != null ? ` / ${tr("radius {0} m", c.radiusM)}` : ""}</span>} />
             <Row k={tr("Accuracy")} v={c.accuracyM != null ? `±${Math.round(c.accuracyM)} m` : "—"} />
             <Row k={tr("Position")} v={<a href={mapsUrl(c.latitude, c.longitude)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-700 hover:underline">{tr("Open map")} <ExternalLink size={11} /></a>} />

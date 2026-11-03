@@ -49,9 +49,9 @@ export function Balances({ p, out }: { p: Pengajuan; out?: number }) {
   const total = out ?? p.totalOut ?? 0;
   const closing = p.openingBalance === null ? null : p.openingBalance + (p.incomeAmount ?? 0) - total;
   const cells: [string, number | null, React.ReactNode, string][] = [
-    [tr("Opening balance"), p.openingBalance, <Wallet key="o" size={13} />, "text-neutral-900"],
+    [tr("Opening Balance"), p.openingBalance, <Wallet key="o" size={13} />, "text-neutral-900"],
     [tr("Money in"), p.incomeAmount, <ArrowDownLeft key="i" size={13} />, "text-emerald-700"],
-    [tr("Money out"), total, <ArrowUpRight key="u" size={13} />, "text-red-700"],
+    [tr("Money Out"), total, <ArrowUpRight key="u" size={13} />, "text-red-700"],
     [tr("Closing balance"), closing, <Wallet key="c" size={13} />, closing !== null && closing < 0 ? "text-red-700" : "text-neutral-900"],
   ];
   return (
@@ -82,7 +82,7 @@ export function FileChip({ f, onRemove }: { f: PgFile; onRemove?: () => void }) 
         <span className="absolute left-0.5 top-0.5 rounded bg-amber-500 p-0.5 text-white" title={tr("Same file as in {0}", f.usedIn.join(", "))}><Copy size={10} /></span>
       )}
       {onRemove && (
-        <button type="button" onClick={onRemove} aria-label={tr("Remove attachment")}
+        <button type="button" onClick={onRemove} aria-label={tr("Remove Attachment")}
           className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-900 p-0.5 text-white shadow"><X size={11} /></button>
       )}
     </span>
@@ -99,7 +99,7 @@ function LineReview({ line, onReview }: { line: Line; onReview: (review: "OK" | 
     try { await onReview(review, note.trim()); setOpen(false); setNote(""); } finally { setBusy(false); }
   };
   if (line.review === "REJECTED") {
-    return <Button variant="secondary" loading={busy} onClick={() => void run("OK")}><Check size={14} /> {tr("Accept again")}</Button>;
+    return <Button variant="secondary" loading={busy} onClick={() => void run("OK")}><Check size={14} /> {tr("Accept Again")}</Button>;
   }
   return open ? (
     <div className="flex w-full flex-wrap items-center gap-2">
@@ -108,7 +108,7 @@ function LineReview({ line, onReview }: { line: Line; onReview: (review: "OK" | 
       <Button variant="danger" loading={busy} disabled={!note.trim()} onClick={() => void run("REJECTED")}>{tr("Reject")}</Button>
       <Button variant="secondary" onClick={() => setOpen(false)}>{tr("Cancel")}</Button>
     </div>
-  ) : <Button variant="secondary" onClick={() => setOpen(true)}><X size={14} /> {tr("Reject expense")}</Button>;
+  ) : <Button variant="secondary" onClick={() => setOpen(true)}><X size={14} /> {tr("Reject Expense")}</Button>;
 }
 
 export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?: (lineId: number, review: "OK" | "REJECTED", note: string) => Promise<void> }) {
@@ -133,7 +133,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
             : NEEDED_LABEL[p.kind] ? <Info k={NEEDED_LABEL[p.kind]!()} v={p.neededOn ? wibDay(p.neededOn) : "—"} /> : null}
           <Info k={tr("Sent by")} v={`${p.requesterName ?? p.name}${p.requesterPhone ? ` · ${p.requesterPhone}` : ""} (@${p.username})`} />
           <Info k={tr("Lines accepted")} v={`${fmtRp(acceptedTotal(lines))}${rejected.length ? ` · ${tr("{0} rejected", rejected.length)}` : ""}`} />
-          <Info k={petty ? tr("Top-up asked") : tr("Amount asked")} v={`${fmtRp(p.requestedAmount ?? p.totalOut)}${petty && p.plafon !== null ? ` · ${tr("plafon {0}", fmtRp(p.plafon))}` : ""}`} />
+          <Info k={petty ? tr("Top-up asked") : tr("Amount Asked")} v={`${fmtRp(p.requestedAmount ?? p.totalOut)}${petty && p.plafon !== null ? ` · ${tr("plafon {0}", fmtRp(p.plafon))}` : ""}`} />
           {p.approvedAmount !== null && <Info k={tr("Approved amount")} v={fmtRp(p.approvedAmount)} />}
           {p.paidAmount !== null && <Info k={tr("Paid")} v={`${fmtRp(p.paidAmount)}${p.paidOn ? ` · ${wibDay(p.paidOn)}` : ""}`} />}
         </div>

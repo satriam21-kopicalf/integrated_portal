@@ -44,14 +44,14 @@ const planOf = (d: Dispatch | null): Plan => {
 /** the drivers listed: by where their assignment is */
 type DriverFilter = "" | "none" | "assigned" | "disputed" | "accepted" | "road";
 const FILTER_STATUS: Record<Exclude<DriverFilter, "">, () => string> = {
-  none: () => tr("Not assigned"), assigned: () => tr("Waiting for the driver's check"), disputed: () => tr("Difference reported"),
+  none: () => tr("Not assigned"), assigned: () => tr("Waiting for the driver's check"), disputed: () => tr("Difference Reported"),
   accepted: () => tr("Accepted"), road: () => tr("On the road or shift ended"),
 };
 const matchStatus = (r: Row, f: DriverFilter) => !f || (f === "road" ? !!r.shift : f === "none" ? !r.dispatch && !r.shift : !r.shift && r.dispatch?.status === f);
 
 const STATUS: Record<Dispatch["status"], { label: () => string; tone: "blue" | "red" | "green" }> = {
   assigned: { label: () => tr("Waiting for the driver's check"), tone: "blue" },
-  disputed: { label: () => tr("Difference reported"), tone: "red" },
+  disputed: { label: () => tr("Difference Reported"), tone: "red" },
   accepted: { label: () => tr("Accepted"), tone: "green" },
 };
 
@@ -142,8 +142,8 @@ export default function CotrStoragePage() {
           <Stat label={tr("Drivers")} icon={<Warehouse size={16} />} value={data ? rows.length : <StatSkeleton />} />
           <Stat label={tr("Assigned")} icon={<Send size={16} />} value={data ? rows.filter((r) => r.dispatch).length : <StatSkeleton />} />
           <Stat label={tr("Accepted")} icon={<Check size={16} />} value={data ? rows.filter((r) => r.dispatch?.status === "accepted").length : <StatSkeleton />} />
-          <Stat label={tr("Differences to settle")} icon={<AlertTriangle size={16} />} value={data ? disputes.length : <StatSkeleton />} emphasis={disputes.length > 0} />
-          <Stat label={tr("Reloads to decide")} icon={<PackagePlus size={16} />} value={data ? reloads.length : <StatSkeleton />} emphasis={reloads.length > 0} />
+          <Stat label={tr("Differences to Settle")} icon={<AlertTriangle size={16} />} value={data ? disputes.length : <StatSkeleton />} emphasis={disputes.length > 0} />
+          <Stat label={tr("Reloads to Decide")} icon={<PackagePlus size={16} />} value={data ? reloads.length : <StatSkeleton />} emphasis={reloads.length > 0} />
         </StatStrip>
       </>}>
       {sheet && (
@@ -158,7 +158,7 @@ export default function CotrStoragePage() {
           </FilterRow>
           <FilterRow icon={<UserRound size={15} />} label={tr("Drivers")} value={draftF.status ? FILTER_STATUS[draftF.status]() : null} onClear={() => setDraftF({ ...draftF, status: "" })}>
             <OptionList value={draftF.status} onChange={(v) => setDraftF({ ...draftF, status: v as DriverFilter })}
-              choices={[{ value: "", label: tr("Every driver") }, ...(Object.keys(FILTER_STATUS) as Exclude<DriverFilter, "">[]).map((k) => ({ value: k, label: FILTER_STATUS[k]() }))]} />
+              choices={[{ value: "", label: tr("Every Driver") }, ...(Object.keys(FILTER_STATUS) as Exclude<DriverFilter, "">[]).map((k) => ({ value: k, label: FILTER_STATUS[k]() }))]} />
           </FilterRow>
         </MonitorFilterSheet>
       )}
@@ -198,7 +198,7 @@ export default function CotrStoragePage() {
             </div>
           </Panel>
 
-          <Panel title={tr("Assignment of the day")} description={tr("Products every driver carries, set per driver from his sales: what to sell and what is for cupping")}
+          <Panel title={tr("Assignment of the Day")} description={tr("Products every driver carries, set per driver from his sales: what to sell and what is for cupping")}
             toolbar={rows.length > 0 ? <div className="flex flex-wrap items-center gap-2">
               <SearchInput value={q} onChange={setQ} placeholder={tr("Search driver or armada")} />
               <span className="text-xs tabular-nums text-neutral-500">{tr("{0} of {1}", listed.length, rows.length)}</span>

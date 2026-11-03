@@ -90,7 +90,7 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
     <div className="space-y-3">
       {!readOnly && categories.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <select value="" disabled={adding} onChange={(e) => void addCategory(e.target.value)} aria-label={tr("Add a whole category")}
+          <select value="" disabled={adding} onChange={(e) => void addCategory(e.target.value)} aria-label={tr("Add a Whole Category")}
             className={`${inputClass} h-9 max-w-xs flex-1 text-sm`}>
             <option value="">{adding ? tr("Adding…") : tr("+ Add a whole category")}</option>
             {categories.map((c) => (
@@ -108,7 +108,7 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
       {!readOnly && (
         <div className="relative">
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Add item: type a name or code")} aria-label={tr("Add item")}
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Add item: type a name or code")} aria-label={tr("Add Item")}
             className={`${inputClass} pl-9`} />
           {searching && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-neutral-400" />}
           {q.trim().length >= 2 && !searching && (
@@ -154,7 +154,7 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <input value={i.area} disabled={readOnly} onChange={(e) => set(i.item_id, { area: e.target.value.toUpperCase() })}
                 className={`${inputClass} h-8 text-xs`} aria-label={tr("Area")} placeholder={tr("Area")} />
-              <select value={i.pack_uom ?? ""} disabled={readOnly} aria-label={tr("Package unit")}
+              <select value={i.pack_uom ?? ""} disabled={readOnly} aria-label={tr("Package Unit")}
                 onChange={(e) => (e.target.value === "__new" ? setUnitFor(i) : set(i.item_id, { pack_uom: e.target.value || null }))}
                 className={`${inputClass} h-8 text-xs`}>
                 <option value="">{tr("No package")}</option>
@@ -162,7 +162,7 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
                 {!readOnly && <option value="__new">{tr("+ Add unit…")}</option>}
               </select>
               <select value={i.esb_uom ?? ""} disabled={readOnly} onChange={(e) => set(i.item_id, { esb_uom: e.target.value || null })}
-                className={`${inputClass} h-8 text-xs`} aria-label={tr("ESB unit")}>
+                className={`${inputClass} h-8 text-xs`} aria-label={tr("ESB Unit")}>
                 <option value="">{tr("ESB unit: {0}", i.base_uom)}</option>
                 {i.units.filter((u) => u !== i.base_uom).map((u) => <option key={u} value={u}>{tr("ESB unit: {0}", u)}</option>)}
               </select>

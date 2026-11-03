@@ -39,7 +39,7 @@ export default function SheetTools({ count, open, onImported }: { count: Count; 
     <>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {open ? <>
-          <Button size="sm" variant="secondary" loading={downloading} onClick={() => void download()}><Download size={14} /> {tr("Import format")}</Button>
+          <Button size="sm" variant="secondary" loading={downloading} onClick={() => void download()}><Download size={14} /> {tr("Import Format")}</Button>
           <Button size="sm" variant="secondary" onClick={() => setImporting(true)}><Upload size={14} /> {tr("Import Excel")}</Button>
         </> : <ExcelIconButton label={tr("Export Excel")} loading={downloading} onClick={() => void download()} />}
       </div>
@@ -106,7 +106,7 @@ function ImportDrawer({ count, onClose, onDownload, onImported }: { count: Count
             {recount && <li>{tr("Recount: only the items marked RECOUNT can be filled (the same quantity confirms one).")}</li>}
             <li>{tr("Upload it here, check the preview, then save. Photos, the WIP and the signature are still done on the form.")}</li>
           </ol>
-          <Button size="sm" variant="secondary" className="mt-2" onClick={onDownload}><Download size={14} /> {tr("Import format")}</Button>
+          <Button size="sm" variant="secondary" className="mt-2" onClick={onDownload}><Download size={14} /> {tr("Import Format")}</Button>
         </div>
         <input ref={input} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="hidden"
           onChange={(e) => void pick(e.target.files?.[0])} />

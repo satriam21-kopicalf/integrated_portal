@@ -54,20 +54,20 @@ function presets(): { label: string; from: string; to: string }[] {
   return [
     { label: tr('Today'), from: today, to: today },
     { label: tr('Yesterday'), from: shiftDay(today, -1), to: shiftDay(today, -1) },
-    { label: tr('Last 7 days'), from: shiftDay(today, -7), to: shiftDay(today, -1) },
-    { label: tr('Last 30 days'), from: shiftDay(today, -30), to: shiftDay(today, -1) },
-    { label: tr('Last 90 days'), from: shiftDay(today, -90), to: shiftDay(today, -1) },
-    { label: tr('This month'), from: toIsoDate(new Date(y, m, 1)), to: today },
-    { label: tr('Last month'), from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
-    { label: tr('This year'), from: toIsoDate(new Date(y, 0, 1)), to: today },
+    { label: tr('Last 7 Days'), from: shiftDay(today, -7), to: shiftDay(today, -1) },
+    { label: tr('Last 30 Days'), from: shiftDay(today, -30), to: shiftDay(today, -1) },
+    { label: tr('Last 90 Days'), from: shiftDay(today, -90), to: shiftDay(today, -1) },
+    { label: tr('This Month'), from: toIsoDate(new Date(y, m, 1)), to: today },
+    { label: tr('Last Month'), from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
+    { label: tr('This Year'), from: toIsoDate(new Date(y, 0, 1)), to: today },
   ];
 }
 
 const COMPARE: { mode: CompareMode; label: string }[] = [
-  { mode: 'auto', get label() { return tr('Same weekday last week'); } },
-  { mode: 'month', get label() { return tr('Same dates last month'); } },
-  { mode: 'year', get label() { return tr('Same dates last year'); } },
-  { mode: 'custom', get label() { return tr('Custom dates'); } },
+  { mode: 'auto', get label() { return tr('Same Weekday Last Week'); } },
+  { mode: 'month', get label() { return tr('Same Dates Last Month'); } },
+  { mode: 'year', get label() { return tr('Same Dates Last Year'); } },
+  { mode: 'custom', get label() { return tr('Custom Dates'); } },
 ];
 
 const DAY_PICKS: [string, number][] = [['Last week', -7], ['4 weeks ago', -28], ['Day before', -1], ['Last year', -364]];
@@ -140,7 +140,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
       <div className="space-y-7">
         {/* ---------------------------------------------------------------- dates */}
         <Group title={tr('Dates')}>
-          <div role="radiogroup" aria-label={tr('Date view')} className="grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1">
+          <div role="radiogroup" aria-label={tr('Date View')} className="grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1">
             {([['period', tr('Date range'), CalendarRange], ['day', tr('Compare two days'), GitCompareArrows]] as const).map(([v, l, Icon]) => (
               <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
                 className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -228,7 +228,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
         </Group>
 
         {/* ---------------------------------------------------------------- branches */}
-        <Group title={tr('Branches')} status={codes.length ? tr('{0} selected', codes.length) : tr('All branches')}
+        <Group title={tr('Branches')} status={codes.length ? tr('{0} selected', codes.length) : tr('All Branches')}
           action={codes.length > 0 && <TextButton onClick={() => set({ branch: '' })}>{tr('Clear')}</TextButton>}>
           {codes.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
@@ -243,7 +243,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
           <div className="relative">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input value={branchQuery} onChange={e => setBranchQuery(e.target.value)} placeholder={tr('Search branch name or code')}
-              className={`${inputClass} pl-9`} aria-label={tr('Search branch')} />
+              className={`${inputClass} pl-9`} aria-label={tr('Search Branch')} />
           </div>
           <div className="overflow-hidden rounded-lg border border-neutral-200">
             {branchQuery.trim() && shown.length > 0 && (
@@ -271,7 +271,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
         </Group>
 
         {/* ---------------------------------------------------------------- channels */}
-        <Group title={tr('Channels')} status={draft.channels.length ? tr('{0} selected', draft.channels.length) : tr('All channels')}
+        <Group title={tr('Channels')} status={draft.channels.length ? tr('{0} selected', draft.channels.length) : tr('All Channels')}
           action={draft.channels.length > 0 && <TextButton onClick={() => set({ channels: [] })}>{tr('Clear')}</TextButton>}>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
             {channels.map(ch => {

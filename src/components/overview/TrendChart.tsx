@@ -24,7 +24,7 @@ export const TREND_CHARTS: { value: TrendChartType; label: string; hint: string 
   { value: 'area', get label() { return tr('Area'); }, get hint() { return tr('Volume over time from zero, previous period as a dashed line'); } },
   { value: 'bar', get label() { return tr('Bars'); }, get hint() { return tr('Side-by-side bars: this period and the previous period per bucket'); } },
   { value: 'cumulative', get label() { return tr('Cumulative'); }, get hint() { return tr('Running total: are we ahead of or behind the previous period?'); } },
-  { value: 'average', get label() { return tr('Moving average'); }, get hint() { return tr('7-bucket moving average smooths out weekday swings'); } },
+  { value: 'average', get label() { return tr('Moving Average'); }, get hint() { return tr('7-bucket moving average smooths out weekday swings'); } },
 ];
 
 export function metricOf(p: { subtotal: number; bills: number; nettSales?: number | null }, m: TrendMetric): number | null {
@@ -64,7 +64,7 @@ export default function TrendChart({
   const s = data.series;
   const hasPrev = data.filters.previous.complete;
   const money = metric !== 'bills';
-  const label = TREND_METRICS.find(m => m.value === metric)?.label ?? tr('Nett sales');
+  const label = TREND_METRICS.find(m => m.value === metric)?.label ?? tr('Nett Sales');
   const fmt = (v: number) => (money ? formatCurrency(Math.round(v)) : formatNumber(Math.round(v)));
   const compact = (v: number) => (money ? compactRupiah(v) : compactNumber(v));
 
@@ -124,7 +124,7 @@ export default function TrendChart({
             html += tipRow(INK.previous, prev[i] === null || prev[i] === undefined ? '-' : fmt(prev[i]!),
               g === 'day' && !cumulative ? tr('Previous ({0})', prevDate(i))
                 : g === 'hour' ? tr('Comparison ({0} {1})', new Date(`${data.filters.previous.from}T00:00:00`).toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' }), hh(s[i].hour))
-                : tr('Previous period'), asBars ? 'square' : 'line');
+                : tr('Previous Period'), asBars ? 'square' : 'line');
             html += tipFooter(`${cumulative ? tr('Ahead / behind') : tr('Change')} ${changeHtml(pct(cur[i], prev[i] ?? null))}`);
           }
           return html;
@@ -140,7 +140,7 @@ export default function TrendChart({
           itemStyle: { color: '#e8f1fd', borderRadius: [3, 3, 0, 0] },
         }] : []),
         ...(hasPrev ? [{
-          name: tr('Previous period'),
+          name: tr('Previous Period'),
           type: asBars ? 'bar' : 'line',
           data: prev,
           symbol: 'none',
@@ -151,7 +151,7 @@ export default function TrendChart({
           z: 1,
         }] : []),
         {
-          name: tr('This period'),
+          name: tr('This Period'),
           type: asBars ? 'bar' : 'line',
           data: cur,
           barMaxWidth: 14,
@@ -191,7 +191,7 @@ export default function TrendChart({
   const legend = [
       ...(chart === 'average' ? [{ key: 'act', label: tr('Actual'), color: '#cde2fb', shape: 'square' as const }] : []),
       { key: 'cur', label: `${label} · ${chart === 'cumulative' ? tr('running total') : chart === 'average' ? tr('7-bucket average') : tr('this period')}`, color: INK.accent, shape: chart === 'bar' ? 'square' as const : 'line' as const },
-      ...(hasPrev ? [{ key: 'prev', label: g === 'hour' ? tr('Comparison day') : tr('Previous period'), color: INK.previous, shape: chart === 'bar' ? 'square' as const : 'line' as const }] : []),
+      ...(hasPrev ? [{ key: 'prev', label: g === 'hour' ? tr('Comparison day') : tr('Previous Period'), color: INK.previous, shape: chart === 'bar' ? 'square' as const : 'line' as const }] : []),
     ];
 
   return (

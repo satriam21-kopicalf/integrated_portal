@@ -92,7 +92,7 @@ export default function ReviewDetailPage() {
       setPicked(new Set());
       setPickedWip(new Set());
       setAction(null);
-      toast(action === "APPROVE" ? tr("Count approved") : action === "RECOUNT" ? tr("Recount requested") : tr("Count cancelled"));
+      toast(action === "APPROVE" ? tr("Count approved") : action === "RECOUNT" ? tr("Recount Requested") : tr("Count cancelled"));
     } catch (e) {
       toast(errorText(e), "error");
       // the count may have moved on meanwhile (e.g. reviewed in another tab): show its current status
@@ -140,7 +140,7 @@ export default function ReviewDetailPage() {
               <Badge tone={st.tone} dot>{st.label()}</Badge>
               {count.entry_source && count.entry_source !== "CREW" && <Badge tone="violet">{ENTRY_SOURCE[count.entry_source]?.()}</Badge>}
               {count.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
-              {count.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside radius")}</Badge>}
+              {count.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>}
             </div>
           </div>
           <div className="hidden lg:flex"><ReviewActions {...actions} /></div>
@@ -151,7 +151,7 @@ export default function ReviewDetailPage() {
         <StatGrid label={tr("Summary")} cols={4}>
           <StatCard label={tr("Counted")} icon={<ClipboardList />} value={`${count.progress.counted}/${count.progress.lines}`}
             sub={<span className="flex items-center gap-2"><span className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${pct}%` }} /></span>{pct}%</span>} />
-          <StatCard label={tr("To check")} icon={<AlertTriangle />} tone={count.progress.flagged ? "warn" : "default"} value={count.progress.flagged}
+          <StatCard label={tr("To Check")} icon={<AlertTriangle />} tone={count.progress.flagged ? "warn" : "default"} value={count.progress.flagged}
             onClick={() => setOnlyFlagged((v) => !v)} active={onlyFlagged} sub={onlyFlagged ? tr("Showing the lines to check") : tr("Tap to show only them")} />
           <StatCard label={tr("Started")} value={<span className="text-base sm:text-lg">{fmtDate(count.started_at)}</span>} sub={count.started_by_name ?? "—"} />
           <StatCard label={tr("Submitted")} value={<span className="text-base sm:text-lg">{count.submitted_at ? fmtDate(count.submitted_at) : "—"}</span>}
@@ -213,7 +213,7 @@ export default function ReviewDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
               <SearchInput value={q} onChange={setQ} placeholder={tr("Search item")} />
               <button type="button" onClick={() => setOnlyFlagged((v) => !v)} aria-pressed={onlyFlagged} className={cx(btn(onlyFlagged ? "solid" : "outline"))}>
-                <AlertTriangle size={14} /> {tr("To check")}{count.progress.flagged ? ` (${count.progress.flagged})` : ""}
+                <AlertTriangle size={14} /> {tr("To Check")}{count.progress.flagged ? ` (${count.progress.flagged})` : ""}
               </button>
               <button type="button" onClick={() => setHistory((v) => !v)} aria-pressed={history} className={cx(btn(history ? "solid" : "outline"))}>
                 <History size={14} /> {tr("History")}
@@ -328,7 +328,7 @@ export default function ReviewDetailPage() {
         </div>
       )}
 
-      <Drawer open={!!fix && !!fixing} onClose={() => !busy && setFix(null)} size="sm" icon={<Pencil size={18} />} title={tr("Correct quantity")}
+      <Drawer open={!!fix && !!fixing} onClose={() => !busy && setFix(null)} size="sm" icon={<Pencil size={18} />} title={tr("Correct Quantity")}
         description={fixing ? ("item_name" in fixing ? fixing.item_name : fixing.name) : undefined}
         footer={fix && (
           <>
@@ -363,7 +363,7 @@ export default function ReviewDetailPage() {
               )}
             </DrawerSection>
             <DrawerSection title={tr("Reason")}>
-              <Field label={tr("Reason (required)")} required>
+              <Field label={tr("Reason (Required)")} required>
                 <textarea value={fix.note} onChange={(e) => setFix({ ...fix, note: e.target.value })} maxLength={500} rows={3} className={cx(inputClass, "h-auto py-2.5")} />
               </Field>
               <p className="text-xs text-neutral-500">{tr("The branch's figure stays in the history with who corrected it, when and why.")}</p>
@@ -373,11 +373,11 @@ export default function ReviewDetailPage() {
       </Drawer>
 
       <ConfirmDialog open={!!action} busy={busy} onClose={() => setAction(null)} onConfirm={run} danger={action === "CANCEL"} reasonRequired={action !== "APPROVE"}
-        reasonLabel={action === "APPROVE" ? tr("Note (optional)") : tr("Reason (required)")}
+        reasonLabel={action === "APPROVE" ? tr("Note (optional)") : tr("Reason (Required)")}
         title={action === "APPROVE" ? tr("Approve this count?") : action === "RECOUNT" ? (selected ? tr("Ask to recount {0} lines?", selected) : tr("Ask to recount every line?")) : tr("Cancel this count?")}
         description={action === "APPROVE" ? tr("Approved counts become the final quantities for the ESB import and the comparison.")
           : action === "RECOUNT" ? tr("The crew counts these lines again; the first values stay in the history.") : tr("The count is cancelled and can be started again.")}
-        confirmLabel={action === "APPROVE" ? tr("Approve") : action === "RECOUNT" ? tr("Request recount") : tr("Cancel count")} />
+        confirmLabel={action === "APPROVE" ? tr("Approve") : action === "RECOUNT" ? tr("Request recount") : tr("Cancel Count")} />
     </div>
   );
 }
@@ -406,7 +406,7 @@ function FlowBanner({ count, reviewable }: { count: Count; reviewable: boolean }
   };
   const t = text[count.status] ?? text.IN_PROGRESS;
   return (
-    <section className={cx("rounded-xl border px-4 py-3.5", t.tone)} aria-label={tr("Flow of the count")}>
+    <section className={cx("rounded-xl border px-4 py-3.5", t.tone)} aria-label={tr("Flow of the Count")}>
       <p className="text-sm font-semibold">{t.title}</p>
       <p className="mt-0.5 text-[13px] opacity-90">{t.body}</p>
       {at >= 0 && (
@@ -431,12 +431,12 @@ function ReviewActions({ reviewable, cancellable, selected, onAction, onClear, b
   return (
     <div className={cx("flex items-center gap-2", bar && "w-full")}>
       {cancellable && (
-        <button type="button" onClick={() => onAction("CANCEL")} className={cx(btn("ghost"), size, "text-red-600 hover:bg-red-50 hover:text-red-700", bar && "w-11 px-0")} aria-label={tr("Cancel count")} title={tr("Cancel count")}>
+        <button type="button" onClick={() => onAction("CANCEL")} className={cx(btn("ghost"), size, "text-red-600 hover:bg-red-50 hover:text-red-700", bar && "w-11 px-0")} aria-label={tr("Cancel Count")} title={tr("Cancel Count")}>
           <XCircle size={bar ? 18 : 16} />{!bar && tr("Cancel")}
         </button>
       )}
       {reviewable && selected > 0 && (
-        <button type="button" onClick={onClear} className={cx(btn("ghost"), size, "px-2 text-xs")} title={tr("Clear the selection")}>{tr("{0} selected", selected)} ✕</button>
+        <button type="button" onClick={onClear} className={cx(btn("ghost"), size, "px-2 text-xs")} title={tr("Clear the Selection")}>{tr("{0} selected", selected)} ✕</button>
       )}
       {reviewable && (
         <button type="button" onClick={() => onAction("RECOUNT")} className={cx(btn("outline"), size, bar && "flex-1")}>

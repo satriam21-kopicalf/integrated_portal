@@ -83,7 +83,7 @@ export default function PricelistPage() {
           <label className="flex h-10 items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={onlyMissing} onChange={(e) => setOnlyMissing(e.target.checked)} />{tr("Without a price only")}</label>
           <span className="flex-1" />
           <label className="text-xs text-neutral-500">{tr("Valid from")}<input type="date" className={cx(inputClass, "mt-1 w-40")} value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-          <Button variant="secondary" onClick={usePurchase} title={tr("Fill the items without a price with the average purchase price")}>{tr("Use purchase average")}</Button>
+          <Button variant="secondary" onClick={usePurchase} title={tr("Fill the items without a price with the average purchase price")}>{tr("Use Purchase Average")}</Button>
           <Button loading={busy} disabled={!changed.length} onClick={() => void save()}><Save size={15} />{tr("Save {0} prices", changed.length)}</Button>
         </div>
       } footer={data ? <><span>{tr("{0} of {1} shown", rows.length, data.data.length)}</span><PageNav paged={paged} /></> : undefined}>

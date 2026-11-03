@@ -116,7 +116,7 @@ function Work() {
           )}
           {expired && !sent && <PublicError message={tr("The link has expired. Ask the maintenance team for a new link.")} />}
 
-          <FormCard n={1} title={tr("The job")} hint={`${w.kindLabel} · ${w.branchName} (${w.branchCode})`}>
+          <FormCard n={1} title={tr("The Job")} hint={`${w.kindLabel} · ${w.branchName} (${w.branchCode})`}>
             <ul className="divide-y divide-neutral-100">
               {w.items.map((it, i) => (
                 <li key={i} className="flex items-start gap-3 py-2 first:pt-0 last:pb-0">
@@ -151,17 +151,17 @@ function Work() {
                 <li>
                   <button type="button" onClick={() => setCamera(true)}
                     className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-brand-300 bg-brand-50/50 text-sm font-medium text-brand-700 hover:bg-brand-50">
-                    {w.photos.length ? <ImagePlus size={22} /> : <Camera size={22} />}{w.photos.length ? tr("Add photo") : tr("Take photo")}
+                    {w.photos.length ? <ImagePlus size={22} /> : <Camera size={22} />}{w.photos.length ? tr("Add photo") : tr("Take Photo")}
                   </button>
                 </li>
               )}
             </ul>
           </FormCard>
 
-          <FormCard n={3} title={tr("Note for the team")} hint={tr("Optional: what was done, parts replaced, anything to follow up")}>
+          <FormCard n={3} title={tr("Note for the Team")} hint={tr("Optional: what was done, parts replaced, anything to follow up")}>
             {sent ? <p className="whitespace-pre-line text-sm text-neutral-700">{w.note || "—"}</p> : (
               <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} disabled={locked}
-                placeholder={tr("e.g. burr replaced, tested 30 minutes, works normally")} className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note for the team")} />
+                placeholder={tr("e.g. burr replaced, tested 30 minutes, works normally")} className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note for the Team")} />
             )}
           </FormCard>
 
@@ -176,7 +176,7 @@ function Work() {
           <p className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-400"><Wrench size={12} /> {tr("Link for {0} · valid until {1}", w.technician, wibDateTime(w.expiresAt))}</p>
         </div>
       )}
-      {w && <CameraCapture open={camera} title={tr("Work done")} branch={w.branchName} countNumber={w.number} onClose={() => setCamera(false)} onShot={add} />}
+      {w && <CameraCapture open={camera} title={tr("Work Done")} branch={w.branchName} countNumber={w.number} onClose={() => setCamera(false)} onShot={add} />}
     </PublicShell>
   );
 }

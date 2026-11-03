@@ -62,21 +62,21 @@ export default function DeductionsCard({ resource }: { resource: Resource<Deduct
         return (
           <div className="space-y-4">
             <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <Stat label={tr('Void & cancelled')} value={compactRupiah(t.void.subtotal)} detail={tr('{0} bills · {1}%', formatNumber(t.void.bills), fixed(data.voidRate, 2))} title={formatCurrency(t.void.subtotal)} />
+              <Stat label={tr('Void & Cancelled')} value={compactRupiah(t.void.subtotal)} detail={tr('{0} bills · {1}%', formatNumber(t.void.bills), fixed(data.voidRate, 2))} title={formatCurrency(t.void.subtotal)} />
               <Stat
                 label={tr('Other cost')}
                 value={compactRupiah(t.otherCost.subtotal)}
                 detail={data.otherCostByMethod.length ? data.otherCostByMethod.map(m => `${m.method} ${formatNumber(m.bills)}`).join(' · ') : 'none'}
                 title={formatCurrency(t.otherCost.subtotal)}
               />
-              <Stat label={tr('Open bills')} value={compactRupiah(t.open.subtotal)} detail={tr('{0} bills', formatNumber(t.open.bills))} title={formatCurrency(t.open.subtotal)} />
+              <Stat label={tr('Open Bills')} value={compactRupiah(t.open.subtotal)} detail={tr('{0} bills', formatNumber(t.open.bills))} title={formatCurrency(t.open.subtotal)} />
             </dl>
 
             <ChannelGroups data={data} />
 
             {data.daily.length > 1 && (
               <div>
-                <p className="mb-1 text-xs font-medium text-neutral-500">{tr('Void rate per day')}</p>
+                <p className="mb-1 text-xs font-medium text-neutral-500">{tr('Void Rate per Day')}</p>
                 <VoidRateChart data={data} />
               </div>
             )}
@@ -146,7 +146,7 @@ export function ChannelGroups({ data }: { data: DeductionsResponse }) {
             </div>
             <dl className="mt-1 grid grid-cols-2 gap-x-3 text-[11px] text-neutral-500">
               <div><dt className="inline">{tr('Void')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{formatNumber(g.voidBills)} · {compactRupiah(g.voidSubtotal)}</dd></div>
-              <div><dt className="inline">{tr('Share of voids')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{fixed((g.voidShare ?? 0), 1)}%</dd></div>
+              <div><dt className="inline">{tr('Share of Voids')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{fixed((g.voidShare ?? 0), 1)}%</dd></div>
               <div><dt className="inline">{tr('Other cost')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{formatNumber(g.otherCostBills)} · {compactRupiah(g.otherCostSubtotal)}</dd></div>
               <div><dt className="inline">{tr('Open')} </dt><dd className="inline font-medium tabular-nums text-neutral-700">{formatNumber(g.openBills)}</dd></div>
             </dl>

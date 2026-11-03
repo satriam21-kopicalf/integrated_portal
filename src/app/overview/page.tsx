@@ -131,10 +131,10 @@ export default function OverviewPage() {
   return (
     <DashboardLayout>
       <div className="min-h-full bg-neutral-50">
-        <header className="px-4 pt-1 sm:px-6 lg:pt-6">
+        <header className="px-4 pt-4 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-neutral-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Dashboard')}</h1>
+              <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{tr('Dashboard')}</h1>
               <p className="text-xs text-neutral-500 sm:text-sm">{tr('Sales Analytics')}</p>
             </div>
             <CompanySwitch className="order-last w-full sm:order-none sm:w-auto" extra={EXTRA_TABS}
@@ -213,7 +213,7 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
 
   const f = kpis.data?.filters;
   const branchName = branchesLabel(filters.branch, branches);
-  const channelText = filters.channels.length ? filters.channels.map(channelLabel).join(', ') : tr('All channels');
+  const channelText = filters.channels.length ? filters.channels.map(channelLabel).join(', ') : tr('All Channels');
 
   return (
     <DrillProvider baseQuery={query} filters={filters} branches={branches}>
@@ -252,7 +252,7 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
 
       {/* Cost Control is left off the Overview until its figures are final (see the Cost Control page) */}
 
-      <Section title={tr('How customers buy')}>
+      <Section title={tr('How Customers Buy')}>
         <div className="grid gap-4 xl:grid-cols-2">
           <div className="min-w-0"><ChannelMixCard resource={channels} /></div>
           <div className="min-w-0"><PaymentsCard resource={payments} /></div>
@@ -263,14 +263,14 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
         <BranchLeaderboard resource={branchBoard} query={query} />
       </Section>
 
-      <Section title={tr('When & what sells')}>
+      <Section title={tr('When & What Sells')}>
         <div className="grid gap-4 xl:grid-cols-2">
           <div className="min-w-0"><BusyHoursCard resource={hourly} query={query} /></div>
           <div className="min-w-0"><MenusCard query={query} /></div>
         </div>
       </Section>
 
-      <Section title={tr('Basket & deductions')}>
+      <Section title={tr('Basket & Deductions')}>
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="min-w-0"><BasketCard resource={basket} /></div>
           <div className="min-w-0"><DeductionsCard resource={deductions} /></div>

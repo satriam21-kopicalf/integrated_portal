@@ -129,7 +129,7 @@ export default function LoginPage() {
               )}
 
               <form onSubmit={submit} className="space-y-5" noValidate>
-                <Field id="identifier" label={tr('Username or email')} error={fields.identifier}>
+                <Field id="identifier" label={tr('Username or Email')} error={fields.identifier}>
                   <User size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input
                     id="identifier"
@@ -344,7 +344,7 @@ function FarewellCard({ farewell }: { farewell: Farewell }) {
         <p className="text-sm font-semibold text-neutral-900">{farewell.title}</p>
         <p className="mt-0.5 text-sm leading-relaxed text-neutral-600">{farewell.message}</p>
         <p className="mt-1.5 flex items-center gap-1 text-xs text-neutral-500">
-          <Clock size={12} /> {tr('Signed out')}{farewell.duration ? tr(' · session {0}', farewell.duration) : ''}
+          <Clock size={12} /> {tr('Signed Out')}{farewell.duration ? tr(' · session {0}', farewell.duration) : ''}
         </p>
       </div>
     </div>

@@ -33,7 +33,7 @@ export function Loaded<T>({ resource, height = 160, children }: { resource: Reso
     return (
       <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
         {tr('Could not load:')} {resource.error}{' '}
-        <button type="button" onClick={resource.retry} className="font-medium underline">{tr('Try again')}</button>
+        <button type="button" onClick={resource.retry} className="font-medium underline">{tr('Try Again')}</button>
       </p>
     );
   }

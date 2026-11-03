@@ -73,7 +73,7 @@ export function MonthField({ value, onChange }: { value: string; onChange: (v: s
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-2 gap-1.5">
-        {[{ label: tr('This month'), v: now }, { label: tr('Last month'), v: prev }].map((p) => (
+        {[{ label: tr('This Month'), v: now }, { label: tr('Last Month'), v: prev }].map((p) => (
           <button key={p.label} type="button" onClick={() => onChange(p.v)} aria-pressed={value === p.v} className={quick(value === p.v)}>{p.label}</button>
         ))}
       </div>

@@ -91,8 +91,8 @@ export default function DeMonitor() {
     ...(f.urgency ? [{ key: "u", label: URGENCY_LABEL[f.urgency as Urgency](), onRemove: () => setF({ ...f, urgency: "" }) }] : []),
     ...(f.group ? [{ key: "g", label: f.group, onRemove: () => setF({ ...f, group: "" }) }] : []),
     ...(f.tech ? [{ key: "t", label: f.tech, onRemove: () => setF({ ...f, tech: "" }) }] : []),
-    ...(f.overdue ? [{ key: "o", label: tr("Past target"), onRemove: () => setF({ ...f, overdue: false }) }] : []),
-    ...(f.bgroup ? [{ key: "bg", label: `${tr("Group")} ${f.bgroup === "none" ? tr("Without a group") : bgroups.find((g) => g.id === f.bgroup)?.code ?? ""}`, onRemove: () => setF({ ...f, bgroup: "" }) }] : []),
+    ...(f.overdue ? [{ key: "o", label: tr("Past Target"), onRemove: () => setF({ ...f, overdue: false }) }] : []),
+    ...(f.bgroup ? [{ key: "bg", label: `${tr("Group")} ${f.bgroup === "none" ? tr("Without a Group") : bgroups.find((g) => g.id === f.bgroup)?.code ?? ""}`, onRemove: () => setF({ ...f, bgroup: "" }) }] : []),
     ...(f.branch ? [{ key: "b", label: all.find((r) => r.branchCode === f.branch)?.branchName ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
     ...(f.pic ? [{ key: "pic", label: all.find((r) => r.username === f.pic)?.picName ?? f.pic, onRemove: () => setF({ ...f, pic: "" }) }] : []),
     ...(f.by !== "branch" ? [{ key: "by", label: f.by === "pic" ? tr("Per PIC") : tr("List"), onRemove: () => setF({ ...f, by: "branch" }) }] : []),
@@ -124,7 +124,7 @@ export default function DeMonitor() {
           <Stat label={tr("Critical")} icon={<AlertTriangle size={13} />} value={res ? <span className={openRows.some((r) => r.urgency === "CRITICAL") ? "text-red-600" : undefined}>{fmtNumber(openRows.filter((r) => r.urgency === "CRITICAL").length)}</span> : <StatSkeleton />}>
             {res && <p>{tr("open, operations affected")}</p>}
           </Stat>
-          <Stat label={tr("Past target")} icon={<Clock size={13} />} onClick={res ? () => setF({ ...f, overdue: !f.overdue }) : undefined} active={f.overdue}
+          <Stat label={tr("Past Target")} icon={<Clock size={13} />} onClick={res ? () => setF({ ...f, overdue: !f.overdue }) : undefined} active={f.overdue}
             value={res ? fmtNumber(openRows.filter((r) => r.tracker?.overdue).length) : <StatSkeleton />}>
             {res && <p>{tr("open longer than the urgency target")}</p>}
           </Stat>
@@ -158,7 +158,7 @@ export default function DeMonitor() {
                   className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
                   {t && t !== "OPEN" && <span className={cx("h-2 w-2 rounded-full", DOT[t])} aria-hidden />}
                   {t === "OPEN" ? tr("Open") : t ? STATUS_LABEL[t]() : tr("All")}
-                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-neutral-900 text-white" : "bg-white text-neutral-700")}>{fmtNumber(count(t))}</span>
+                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-brand-700 text-white" : "bg-white text-neutral-700")}>{fmtNumber(count(t))}</span>
                 </button>
               );
             })}
@@ -283,18 +283,18 @@ function MonitorFilters({ value, groups, bgroups, branches, pics, technicians, o
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_F())}>
       <FilterSection title={tr("View")} hint={tr("Group the requests to see at once what one outlet or PIC already asked")}>
         <Segmented label={tr("View")} value={d.by} onChange={(by) => setD({ ...d, by })}
-          options={[{ value: "branch", label: tr("Per branch") }, { value: "pic", label: tr("Per PIC") }, { value: "none", label: tr("List") }]} />
+          options={[{ value: "branch", label: tr("Per Branch") }, { value: "pic", label: tr("Per PIC") }, { value: "none", label: tr("List") }]} />
       </FilterSection>
       <FilterSection title={tr("Sent in")} hint={tr("Open requests are always shown")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={366} /></FilterSection>
       {bgroups.length > 0 && (
-        <FilterSection title={tr("Branch group")}>
+        <FilterSection title={tr("Branch Group")}>
           <ChoiceGroup label="" value={d.bgroup} onChange={(v) => setD({ ...d, bgroup: v })}
-            choices={[{ value: "", label: tr("All") }, ...bgroups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a group") }]} />
+            choices={[{ value: "", label: tr("All") }, ...bgroups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a Group") }]} />
         </FilterSection>
       )}
       {branches.length > 0 && (
         <FilterSection title={tr("Branch")}>
-          <SearchChoice label="" anyLabel={tr("All branches")} value={d.branch} onChange={(v) => setD({ ...d, branch: v })} placeholder={tr("Search branch")} options={branches} />
+          <SearchChoice label="" anyLabel={tr("All Branches")} value={d.branch} onChange={(v) => setD({ ...d, branch: v })} placeholder={tr("Search Branch")} options={branches} />
         </FilterSection>
       )}
       {pics.length > 0 && (
@@ -310,7 +310,7 @@ function MonitorFilters({ value, groups, bgroups, branches, pics, technicians, o
         <ChoiceGroup label="" value={d.urgency} onChange={(v) => setD({ ...d, urgency: v })}
           choices={[{ value: "", label: tr("All") }, ...URGENCIES.map((u) => ({ value: u, label: URGENCY_LABEL[u]() }))]} />
       </FilterSection>
-      <FilterSection title={tr("Category group")}>
+      <FilterSection title={tr("Category Group")}>
         <ChoiceGroup label="" value={d.group} onChange={(v) => setD({ ...d, group: v })} choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g, label: g }))]} />
       </FilterSection>
       {technicians.length > 0 && (
@@ -319,7 +319,7 @@ function MonitorFilters({ value, groups, bgroups, branches, pics, technicians, o
             options={technicians.map((t) => ({ value: t, label: t }))} />
         </FilterSection>
       )}
-      <FilterSection title={tr("Target time")}>
+      <FilterSection title={tr("Target Time")}>
         <Switch checked={d.overdue} onChange={(v) => setD({ ...d, overdue: v })} label={tr("Only requests past their target")} />
       </FilterSection>
     </FilterSheet>
@@ -469,7 +469,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
           {tab === "history" && <RequestView r={r} urls={PORTAL_URLS} part="history" />}
           {tab === "handle" && (closed ? <RequestView r={r} urls={PORTAL_URLS} part="handling" /> : (
             <div className="space-y-4">
-              <FormCard n={next()} title={tr("Next step")} hint={tr("A note is required to put on hold or reject; the PIC sees every note")}>
+              <FormCard n={next()} title={tr("Next Step")} hint={tr("A note is required to put on hold or reject; the PIC sees every note")}>
                 <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Note / reason for the PIC")}
                   className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note")} />
                 {approval && (
@@ -492,14 +492,14 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 </div>
               </FormCard>
 
-              <FormCard n={next()} title={tr("Estimated finish")} hint={tr("From the urgency; adjust it with a reason — the PIC sees the new time")}
+              <FormCard n={next()} title={tr("Estimated Finish")} hint={tr("From the urgency; adjust it with a reason — the PIC sees the new time")}
                 aside={r.tracker?.targetAdjusted ? <Badge tone="violet">{tr("Adjusted {0}×", r.target?.changes ?? 1)}</Badge> : <Badge>{tr("From the urgency")}</Badge>}>
                 <p className={cx("flex items-center gap-2 text-sm font-semibold", r.tracker?.overdue ? "text-red-600" : "text-neutral-900")}>
-                  <CalendarClock size={15} /> {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : tr("No target (planned)")}{r.tracker?.overdue && <Badge tone="red">{tr("Past target")}</Badge>}</p>
+                  <CalendarClock size={15} /> {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : tr("No target (planned)")}{r.tracker?.overdue && <Badge tone="red">{tr("Past Target")}</Badge>}</p>
                 {r.target?.note && <p className="text-xs text-neutral-500">{tr("Reason")}: {r.target.note} · {r.target.by}</p>}
                 <div className="grid gap-2 rounded-lg bg-neutral-50 p-3 sm:grid-cols-[13rem_1fr_auto]">
-                  <input type="datetime-local" value={target.at} onChange={(e) => setTarget({ ...target, at: e.target.value })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("New estimated finish")} />
-                  <input value={target.note} onChange={(e) => setTarget({ ...target, note: e.target.value })} maxLength={500} placeholder={tr("Reason (required), e.g. waiting for parts")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Reason of the adjustment")} />
+                  <input type="datetime-local" value={target.at} onChange={(e) => setTarget({ ...target, at: e.target.value })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("New Estimated Finish")} />
+                  <input value={target.note} onChange={(e) => setTarget({ ...target, note: e.target.value })} maxLength={500} placeholder={tr("Reason (required), e.g. waiting for parts")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Reason of the Adjustment")} />
                   <Button size="sm" variant="secondary" disabled={busy || !target.at || !target.note.trim()}
                     onClick={async () => { if (await act(`/api/de/monitor/${id}/target`, { dueAt: `${target.at}:00+07:00`, note: target.note }, tr("Estimated finish adjusted"))) setTarget({ at: "", note: "" }); }}>
                     <Save size={14} /> {tr("Adjust")}</Button>
@@ -543,7 +543,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
               </FormCard>
 
               {r.mode === "VENDOR" ? (
-                <FormCard n={next()} title={tr("Photos of the work")} hint={tr("Vendor work: the PIC photographs the result at the handover; photos the PIC adds while the work runs appear here")}>
+                <FormCard n={next()} title={tr("Photos of the Work")} hint={tr("Vendor work: the PIC photographs the result at the handover; photos the PIC adds while the work runs appear here")}>
                   <Gallery r={r} urls={PORTAL_URLS} kind="MONITOR" empty={tr("No photo from the PIC yet")} />
                 </FormCard>
               ) : (
@@ -590,7 +590,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 </FormCard>
               )}
 
-              <FormCard n={next()} title={tr("Cost & invoices")} hint={r.mode === "VENDOR" ? tr("Vendor work: an estimate before work starts, the actual cost and an invoice before Done")
+              <FormCard n={next()} title={tr("Cost & Invoices")} hint={r.mode === "VENDOR" ? tr("Vendor work: an estimate before work starts, the actual cost and an invoice before Done")
                 : tr("Cost lines with a description (materials, service, transport) and the labour of the technicians; attach the invoices")}
                 aside={r.mode === "VENDOR" ? <Badge tone="red">{tr("Required for vendor")}</Badge> : undefined}>
                 <CostLines r={r} busy={busy} act={act} />
@@ -598,7 +598,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                   <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-neutral-700"><Paperclip size={13} /> {tr("Invoices / receipts")} <span className="font-normal text-neutral-400">({tr("PDF or photo, at most {0} each", "10 MB")})</span></p>
                   <Invoices list={(r.media ?? []).filter((m) => m.kind === "INVOICE")} urls={PORTAL_URLS} onRemove={(mid) => void removeInvoice(mid)} />
                   <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
-                    <input value={invNote} onChange={(e) => setInvNote(e.target.value)} maxLength={200} placeholder={tr("Note, e.g. invoice number or what it pays")} className={cx(inputClass, "h-9 text-sm")} aria-label={tr("Invoice note")} />
+                    <input value={invNote} onChange={(e) => setInvNote(e.target.value)} maxLength={200} placeholder={tr("Note, e.g. invoice number or what it pays")} className={cx(inputClass, "h-9 text-sm")} aria-label={tr("Invoice Note")} />
                     <label className={cx("inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50", uploading && "pointer-events-none opacity-60")}>
                       <Upload size={14} /> {uploading ? tr("Uploading…") : tr("Attach invoice")}
                       <input type="file" accept="application/pdf,image/*" className="hidden" onChange={(e) => { void uploadInvoice(e.target.files?.[0]); e.target.value = ""; }} />
@@ -627,7 +627,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                       <option value="">{tr("Duplicate of …")}</option>
                       {r.related!.filter((o) => o.status !== "REJECTED").map((o) => <option key={o.id} value={o.id}>{o.number}</option>)}
                     </select>
-                    <input value={dup.note} onChange={(e) => setDup({ ...dup, note: e.target.value })} maxLength={2000} placeholder={tr("Reason (required)")} className={cx(inputClass, "h-9 text-sm")} />
+                    <input value={dup.note} onChange={(e) => setDup({ ...dup, note: e.target.value })} maxLength={2000} placeholder={tr("Reason (Required)")} className={cx(inputClass, "h-9 text-sm")} />
                     <Button size="sm" variant="danger" disabled={busy || !dup.of || !dup.note.trim()} onClick={() => void act(`/api/de/monitor/${id}/duplicate`, { ofId: dup.of, note: dup.note }, tr("Marked as duplicate"))}>{tr("Mark duplicate")}</Button>
                   </div>
                 </FormCard>
@@ -636,15 +636,15 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
           ))}
         </div>
       )}
-      <CameraCapture open={camera} title={tr("Work done")} branch={r?.branchName ?? ""} countNumber={r?.number ?? ""} onClose={() => setCamera(false)} onShot={addAfter} />
+      <CameraCapture open={camera} title={tr("Work Done")} branch={r?.branchName ?? ""} countNumber={r?.number ?? ""} onClose={() => setCamera(false)} onShot={addAfter} />
       {swap && r && (
-        <Drawer open onClose={() => setSwap(null)} size="md" icon={<Shuffle size={18} />} title={tr("Move the technician")} description={tr("To a request that needs them first; this request waits for another technician")}
+        <Drawer open onClose={() => setSwap(null)} size="md" icon={<Shuffle size={18} />} title={tr("Move the Technician")} description={tr("To a request that needs them first; this request waits for another technician")}
           footer={<><Button variant="secondary" onClick={() => setSwap(null)}>{tr("Cancel")}</Button>
             <Button disabled={busy || !swap.to || !swap.note.trim()} onClick={async () => {
               if (await act(`/api/de/assignments/${swap.assignmentId}/swap`, { toRequestId: swap.to, scheduledFor: swap.scheduledFor || null, note: swap.note }, tr("Technician moved"))) { setSwap(null); onOpen(swap.to); }
             }}><Shuffle size={15} /> {tr("Move")}</Button></>}>
-          <FormCard title={tr("Move the technician")}>
-            <Field label={tr("Priority request")} required>
+          <FormCard title={tr("Move the Technician")}>
+            <Field label={tr("Priority Request")} required>
               <select value={swap.to} onChange={(e) => setSwap({ ...swap, to: e.target.value })} className={cx(inputClass, "h-10 text-sm")}>
                 <option value="">{tr("Choose the request")}</option>
                 {targets.sort((a, b) => urgRank(a.urgency) - urgRank(b.urgency)).map((t) => <option key={t.id} value={t.id}>{t.number} · {t.branchName} · {URGENCY_LABEL[t.urgency]()} · {STATUS_LABEL[t.status]()}</option>)}
@@ -656,10 +656,10 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
         </Drawer>
       )}
       {release && (
-        <Drawer open onClose={() => setRelease(null)} size="sm" icon={<X size={18} />} title={tr("Release the technician")}
+        <Drawer open onClose={() => setRelease(null)} size="sm" icon={<X size={18} />} title={tr("Release the Technician")}
           footer={<><Button variant="secondary" onClick={() => setRelease(null)}>{tr("Cancel")}</Button>
             <Button variant="danger" disabled={busy || !release.note.trim()} onClick={async () => { if (await act(`/api/de/assignments/${release.assignmentId}/release`, { note: release.note }, tr("Technician released"))) setRelease(null); }}>{tr("Release")}</Button></>}>
-          <FormCard title={tr("Release the technician")}>
+          <FormCard title={tr("Release the Technician")}>
             <Field label={tr("Reason")} required><textarea value={release.note} onChange={(e) => setRelease({ ...release, note: e.target.value })} rows={3} maxLength={500} className={cx(inputClass, "h-auto py-2 text-sm")} /></Field>
           </FormCard>
         </Drawer>
@@ -697,7 +697,7 @@ function WorkLinks({ r, busy, tech, setTech, onCreate, onCloseLink }: {
           <Link2 size={16} className="text-brand-700" />
           <span className="min-w-0 flex-1 text-xs text-brand-900">{live ? tr("A link is open; a new one replaces it.") : tr("Create a link for the technician on site.")}</span>
           {active.length > 1 && (
-            <select value={tech} onChange={(e) => setTech(e.target.value)} className={cx(inputClass, "h-9 w-auto bg-white text-sm")} aria-label={tr("Technician of the link")}>
+            <select value={tech} onChange={(e) => setTech(e.target.value)} className={cx(inputClass, "h-9 w-auto bg-white text-sm")} aria-label={tr("Technician of the Link")}>
               {active.map((a) => <option key={a.id} value={a.technicianId}>{a.name}</option>)}
             </select>
           )}
@@ -768,7 +768,7 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
             {edit.kind === "VENDOR" && <Field label={tr("Company")}><Input value={edit.company ?? ""} onChange={(e) => setEdit({ ...edit, company: e.target.value })} maxLength={120} /></Field>}
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={tr("Phone")}><Input value={edit.phone ?? ""} onChange={(e) => setEdit({ ...edit, phone: e.target.value })} maxLength={40} inputMode="tel" /></Field>
-              <Field label={tr("City / area")}><Input value={edit.city ?? ""} onChange={(e) => setEdit({ ...edit, city: e.target.value })} maxLength={80} /></Field>
+              <Field label={tr("City / Area")}><Input value={edit.city ?? ""} onChange={(e) => setEdit({ ...edit, city: e.target.value })} maxLength={80} /></Field>
             </div>
           </FormCard>
           <FormCard n={2} title={tr("Skills")} hint={tr("Category groups the technician handles")}>
@@ -787,7 +787,7 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
               {edit.wageAmount && edit.wageType !== "PER_JOB" ? <span className="block font-medium text-neutral-800">{tr("≈ {0} per month", fmtRp(monthlyPay({ wageType: edit.wageType ?? "DAILY", wageAmount: edit.wageAmount })))}</span> : null}
             </p>
           </FormCard>
-          <FormCard n={4} title={tr("Status & notes")}>
+          <FormCard n={4} title={tr("Status & Notes")}>
             <Field label={tr("Notes")}><textarea value={edit.notes ?? ""} onChange={(e) => setEdit({ ...edit, notes: e.target.value })} rows={2} maxLength={500} className={cx(inputClass, "h-auto py-2 text-sm")} /></Field>
             <Switch checked={edit.isActive ?? true} onChange={(isActive) => setEdit({ ...edit, isActive })} label={tr("Active")} hint={tr("Inactive technicians cannot be assigned")} />
           </FormCard>
@@ -838,7 +838,7 @@ function ChoiceGroupMulti({ options, value, onChange }: { options: string[]; val
       {options.map((o) => {
         const on = value.includes(o);
         return <button key={o} type="button" aria-pressed={on} onClick={() => onChange(on ? value.filter((x) => x !== o) : [...value, o])}
-          className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{o}</button>;
+          className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{o}</button>;
       })}
     </div>
   );
@@ -878,7 +878,7 @@ function CategoriesDrawer({ bgroups, onClose }: { bgroups: GroupOpt[]; /** after
             <datalist id="de-groups">{groups.map((g) => <option key={g} value={g} />)}</datalist>
           </Field>
           <Field label={tr("Category")} required><Input value={edit.name ?? ""} onChange={(e) => setEdit({ ...edit, name: e.target.value })} maxLength={80} /></Field>
-          <Field label={tr("Default urgency")}>
+          <Field label={tr("Default Urgency")}>
             <select value={edit.defaultUrgency} onChange={(e) => setEdit({ ...edit, defaultUrgency: e.target.value as Urgency })} className={cx(inputClass, "h-10 text-sm")}>
               {URGENCIES.map((u) => <option key={u} value={u}>{URGENCY_LABEL[u]()}</option>)}
             </select>
@@ -893,7 +893,7 @@ function CategoriesDrawer({ bgroups, onClose }: { bgroups: GroupOpt[]; /** after
               {!(edit.branchGroups ?? []).length && <span className="self-center text-xs text-neutral-500">· {tr("every outlet")}</span>}
             </div>
           </Field>
-          <Field label={tr("Example items")} hint={tr("Separated by commas; offered while typing the item name")}>
+          <Field label={tr("Example Items")} hint={tr("Separated by commas; offered while typing the item name")}>
             <textarea value={edit.examplesText ?? ""} onChange={(e) => setEdit({ ...edit, examplesText: e.target.value })} rows={2} className={cx(inputClass, "h-auto py-2 text-sm")} />
           </Field>
           <Field label={tr("Order")}><Input type="number" value={edit.sort ?? 0} onChange={(e) => setEdit({ ...edit, sort: Number(e.target.value) || 0 })} /></Field>
@@ -910,7 +910,7 @@ function CategoriesDrawer({ bgroups, onClose }: { bgroups: GroupOpt[]; /** after
                     <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{c.name} {!c.isActive && <Badge>{tr("Inactive")}</Badge>}</span>
                       <span className="block truncate text-xs text-neutral-500">{c.examples.join(", ") || "—"}</span></span>
                     <span className="hidden flex-wrap justify-end gap-1 sm:flex">{c.branchGroups?.length ? c.branchGroups.map((id) => <Badge key={id} tone="blue">{bgroups.find((g) => g.id === id)?.code ?? "?"}</Badge>)
-                      : <Badge>{tr("All outlets")}</Badge>}</span>
+                      : <Badge>{tr("All Outlets")}</Badge>}</span>
                     <UrgencyBadge u={c.defaultUrgency} />
                     <Button size="sm" variant="ghost" onClick={() => setEdit({ ...c, examplesText: c.examples.join(", ") })}>{tr("Edit")}</Button>
                   </li>
@@ -952,7 +952,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   const form = line && (
     <div className="space-y-2 rounded-xl border border-brand-200 bg-brand-50/40 p-3">
       <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_5rem]">
-        <select value={line.kind} onChange={(e) => setLine({ ...line, kind: e.target.value as CostKind })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Kind of cost")}>
+        <select value={line.kind} onChange={(e) => setLine({ ...line, kind: e.target.value as CostKind })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Kind of Cost")}>
           {(Object.keys(COST_KIND_LABEL) as CostKind[]).map((k) => <option key={k} value={k}>{COST_KIND_LABEL[k]()}</option>)}
         </select>
         <input value={line.description} onChange={(e) => setLine({ ...line, description: e.target.value })} maxLength={200} autoFocus
@@ -1041,7 +1041,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
           )}
         </div>
       )}
-      {form ?? <Button size="sm" variant="secondary" className="self-start" onClick={() => setLine(blankLine())}><Plus size={14} /> {tr("Add cost line")}</Button>}
+      {form ?? <Button size="sm" variant="secondary" className="self-start" onClick={() => setLine(blankLine())}><Plus size={14} /> {tr("Add Cost Line")}</Button>}
     </div>
   );
 }

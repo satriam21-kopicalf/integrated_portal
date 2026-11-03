@@ -119,7 +119,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
         <div className="flex flex-wrap justify-end gap-2">
           <a href={printUrl(id)} target="_blank" rel="noreferrer" className="mr-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50"><Printer size={15} />{tr("Print / PDF")}<ExternalLink size={12} /></a>
           {inv.status === "open"
-            ? <Button variant="secondary" disabled={busy} onClick={() => void save("closed")}>{tr("Save & close")}</Button>
+            ? <Button variant="secondary" disabled={busy} onClick={() => void save("closed")}>{tr("Save & Close")}</Button>
             : <Button variant="secondary" disabled={busy} onClick={() => void save("open")}>{tr("Reopen")}</Button>}
           <Button loading={busy} onClick={() => void save()}><Save size={15} />{tr("Save")}</Button>
         </div>

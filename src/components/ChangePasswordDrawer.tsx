@@ -8,8 +8,8 @@ import { useAuth } from '@/lib/auth';
 import { tr, serverMsg } from '@/lib/i18n';
 
 const RULES: { label: string; test: (pw: string) => boolean }[] = [
-  { get label() { return tr('At least 8 characters'); }, test: pw => pw.length >= 8 },
-  { get label() { return tr('Letters and numbers'); }, test: pw => /[A-Za-z]/.test(pw) && /\d/.test(pw) },
+  { get label() { return tr('At Least 8 Characters'); }, test: pw => pw.length >= 8 },
+  { get label() { return tr('Letters and Numbers'); }, test: pw => /[A-Za-z]/.test(pw) && /\d/.test(pw) },
 ];
 
 /** Change your own password; `forced` when the account must change it before continuing. */
@@ -65,12 +65,12 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
       locked={forced}
       size="sm"
       icon={<KeyRound size={18} />}
-      title={forced ? tr('Set a new password') : tr('Change password')}
+      title={forced ? tr('Set a new password') : tr('Change Password')}
       description={forced ? tr('Your account requires a new password before you continue.') : tr('Other devices will be signed out.')}
       footer={
         <>
           {forced
-            ? <button type="button" className={buttonSecondary} onClick={() => logout()}>{tr('Sign out')}</button>
+            ? <button type="button" className={buttonSecondary} onClick={() => logout()}>{tr('Sign Out')}</button>
             : <button type="button" className={buttonSecondary} onClick={close}>{tr('Cancel')}</button>}
           <button type="submit" form="change-password" className={buttonPrimary} disabled={saving || !current || !next || !confirm}>
             {saving ? <Loader2 size={16} className="animate-spin" /> : done ? <Check size={16} /> : null}
@@ -80,13 +80,13 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
       }
     >
       <form id="change-password" onSubmit={submit}>
-        <DrawerSection title={tr('Current password')}>
-        <Field label={tr('Current password')} htmlFor="pw-current" required>
+        <DrawerSection title={tr('Current Password')}>
+        <Field label={tr('Current Password')} htmlFor="pw-current" required>
           <input id="pw-current" type={type} autoComplete="current-password" className={inputClass} value={current} onChange={e => setCurrent(e.target.value)} />
         </Field>
         </DrawerSection>
-        <DrawerSection title={tr('New password')}>
-        <Field label={tr('New password')} htmlFor="pw-new" required>
+        <DrawerSection title={tr('New Password')}>
+        <Field label={tr('New Password')} htmlFor="pw-new" required>
           <div className="relative">
             <input id="pw-new" type={type} autoComplete="new-password" className={`${inputClass} pr-10`} value={next} onChange={e => setNext(e.target.value)} />
             <button type="button" onClick={() => setShow(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700"
@@ -102,7 +102,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
             </li>
           ))}
         </ul>
-        <Field label={tr('Confirm new password')} htmlFor="pw-confirm" required error={confirm && next !== confirm ? tr('Does not match') : null}>
+        <Field label={tr('Confirm New Password')} htmlFor="pw-confirm" required error={confirm && next !== confirm ? tr('Does not match') : null}>
           <input id="pw-confirm" type={type} autoComplete="new-password" className={inputClass} value={confirm} onChange={e => setConfirm(e.target.value)} />
         </Field>
         </DrawerSection>

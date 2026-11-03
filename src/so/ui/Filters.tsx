@@ -100,7 +100,7 @@ const chip = (on: boolean) => cx('h-9 rounded-lg border px-2 text-xs font-medium
 
 /** One day with quick picks (today, yesterday …). */
 export function DayField({ value, onChange, picks }: { value: string; onChange: (v: string) => void; picks?: { label: string; value: string }[] }) {
-  const quick = picks ?? [{ label: tr('Today'), value: wibDay(0) }, { label: tr('Yesterday'), value: wibDay(-1) }, { label: tr('2 days ago'), value: wibDay(-2) }];
+  const quick = picks ?? [{ label: tr('Today'), value: wibDay(0) }, { label: tr('Yesterday'), value: wibDay(-1) }, { label: tr('2 Days Ago'), value: wibDay(-2) }];
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-3 gap-1.5">
@@ -124,11 +124,11 @@ export function PeriodField({ value, onChange, presets, maxDays }: {
   const prevLast = new Date(Date.UTC(y, m - 1, 0)).toISOString().slice(0, 10);
   const list = presets ?? [
     { label: tr('Today'), value: { from: today, to: today } },
-    { label: tr('Last 7 days'), value: { from: wibDay(-6), to: today } },
-    { label: tr('Last 30 days'), value: { from: wibDay(-29), to: today } },
-    { label: tr('This month'), value: { from: first, to: today } },
-    { label: tr('Last month'), value: { from: prevFirst, to: prevLast } },
-    { label: tr('Last 90 days'), value: { from: wibDay(-89), to: today } },
+    { label: tr('Last 7 Days'), value: { from: wibDay(-6), to: today } },
+    { label: tr('Last 30 Days'), value: { from: wibDay(-29), to: today } },
+    { label: tr('This Month'), value: { from: first, to: today } },
+    { label: tr('Last Month'), value: { from: prevFirst, to: prevLast } },
+    { label: tr('Last 90 Days'), value: { from: wibDay(-89), to: today } },
   ];
   const days = Math.round((Date.parse(value.to) - Date.parse(value.from)) / 864e5) + 1;
   return (

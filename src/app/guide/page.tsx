@@ -43,7 +43,7 @@ export default function GuidePage() {
             <div className="mt-3 flex gap-1 overflow-x-auto" role="tablist">
               {parts.map(p => (
                 <button key={p.key} type="button" role="tab" aria-selected={tab === p.key} onClick={() => setTab(p.key)}
-                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${tab === p.key ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}>
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${tab === p.key ? 'bg-brand-700 text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}>
                   {p.icon}{p.label}
                 </button>
               ))}

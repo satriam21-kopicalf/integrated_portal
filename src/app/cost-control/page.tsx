@@ -25,7 +25,7 @@ export default function CostPage() {
         <div className="p-4 sm:p-6">
           <section className="mx-auto max-w-3xl rounded-xl border border-neutral-200 bg-white p-6 text-center shadow-sm sm:p-10">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Calculator size={26} /></span>
-            <h2 className="mt-4 text-lg font-semibold text-neutral-900">{tr('Coming soon')}</h2>
+            <h2 className="mt-4 text-lg font-semibold text-neutral-900">{tr('Coming Soon')}</h2>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-neutral-600">
               {tr('This page is being rebuilt. Its figures will follow the ones already in Outlet ratio, so COGS & usage and the outlet ratios always agree.')}
             </p>
@@ -39,7 +39,7 @@ export default function CostPage() {
               ))}
             </div>
             <Link href="/cost-control/ratio"
-              className="mt-6 inline-flex h-10 items-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-medium text-white hover:bg-neutral-800">
+              className="mt-6 inline-flex h-10 items-center gap-2 rounded-lg bg-brand-700 px-4 text-sm font-medium text-white hover:bg-brand-800">
               {tr('Open Outlet ratio')} <ArrowRight size={16} />
             </Link>
           </section>

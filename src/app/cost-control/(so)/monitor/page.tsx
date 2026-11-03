@@ -32,7 +32,7 @@ type Row = {
 type F = { day: string; status: string; type: string; facilityType: string; loc: string };
 const NO_F: () => F = () => ({ day: wibDay(0), status: "", type: "", facilityType: "", loc: "" });
 const LOC: Record<string, () => string> = {
-  late: () => tr("Submitted late"), outside: () => tr("Outside radius"), low: () => tr("Low GPS accuracy"), unlocated: () => tr("Outlet has no coordinates"),
+  late: () => tr("Submitted late"), outside: () => tr("Outside Radius"), low: () => tr("Low GPS accuracy"), unlocated: () => tr("Outlet Has No Coordinates"),
 };
 const locMatch = (r: Row, loc: string) => !loc || (loc === "late" ? !!r.session?.is_late : loc === "outside" ? !!r.session?.outside_radius
   : loc === "low" ? !!r.session?.low_accuracy : r.facility_located === false);
@@ -235,7 +235,7 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
             return (
               <button key={t.key || "all"} type="button" role="tab" aria-selected={on} onClick={() => onStatus(t.key)} disabled={!!t.key && !count && !on}
                 className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-40",
-                  on ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100")}>
+                  on ? "bg-brand-700 text-white" : "text-neutral-600 hover:bg-neutral-100")}>
                 {t.key && <span className={cx("h-2 w-2 rounded-full", t.color)} aria-hidden />}
                 {t.key ? STATUS[t.key].label() : tr("All")}
                 <span className={cx("tabular-nums", on ? "text-white/80" : "font-semibold text-neutral-900")}>{fmtNumber(count)}</span>

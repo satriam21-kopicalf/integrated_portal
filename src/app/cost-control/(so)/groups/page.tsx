@@ -29,8 +29,8 @@ type Facility = { id: string; code: string; name: string; facility_type: string;
 type CountType = { code: string; name: string; frequency: string; is_active: boolean };
 /** the date asked for a group's items (count_item_group.date_field); "" = follow the count type */
 const GROUP_DATE_OPTIONS: { value: string; label: () => string }[] = [
-  { value: "", label: () => tr("Follow count type") }, { value: "NONE", label: () => tr("No date") },
-  { value: "roasted_date", label: () => tr("Roasted date") }, { value: "expired_date", label: () => tr("Expired date") },
+  { value: "", label: () => tr("Follow Count Type") }, { value: "NONE", label: () => tr("No date") },
+  { value: "roasted_date", label: () => tr("Roasted Date") }, { value: "expired_date", label: () => tr("Expired Date") },
 ];
 
 /** Branches and count types for the branch picker (loaded once per page). */
@@ -88,8 +88,8 @@ export default function GroupsPage() {
 
   return (
     <Page title={tr("Items Groups")} subtitle={tr("Reusable sets of items to assign to the count lists of many branches")}
-      actions={<div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import template")}</Button>
-        <Button onClick={() => setCreating(true)}><Plus size={16} /> {tr("New group")}</Button></div>}
+      actions={<div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={16} /> {tr("Import Template")}</Button>
+        <Button onClick={() => setCreating(true)}><Plus size={16} /> {tr("New Group")}</Button></div>}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Groups")} icon={<Boxes size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
@@ -224,7 +224,7 @@ function BranchPicker({ facilities, types, usedBy, countTypes, setCountTypes, pi
           {ftypes.map((t) => <button key={t} type="button" className={chip(ftype === t)} onClick={() => setFtype(t)}>{t}</button>)}
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_12rem]">
-          <SearchBox value={q} onChange={setQ} placeholder={tr("Search branch")} />
+          <SearchBox value={q} onChange={setQ} placeholder={tr("Search Branch")} />
           {cities.length > 1 && (
             <select value={city} onChange={(e) => setCity(e.target.value)} aria-label={tr("City")}
               className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700">
@@ -290,7 +290,7 @@ const defaultTypes = (types: CountType[]) => types.filter((t) => t.frequency ===
 // New group wizard
 
 const STEPS = [() => tr("Details"), () => tr("Items"), () => tr("Branches")];
-const STEP_HINTS = [() => tr("Name and purpose"), () => tr("What is counted"), () => tr("Who counts it (optional)")];
+const STEP_HINTS = [() => tr("Name and purpose"), () => tr("What is Counted"), () => tr("Who counts it (optional)")];
 
 function Stepper({ step, onStep, maxStep }: { step: number; onStep: (n: number) => void; maxStep: number }) {
   return (
@@ -474,9 +474,9 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
   ];
   const footer = tab === "items" ? (
     <><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button>
-      <Button loading={busy} disabled={!dirty} onClick={saveItems}><Save size={16} /> {tr("Save items")}</Button></>
+      <Button loading={busy} disabled={!dirty} onClick={saveItems}><Save size={16} /> {tr("Save Items")}</Button></>
   ) : tab === "branches" ? (
-    <><Button variant="ghost" className="mr-auto text-red-600" disabled={!picked.size || !countTypes.length || busy} onClick={() => applyBranches(true)}>{tr("Remove from selected")}</Button>
+    <><Button variant="ghost" className="mr-auto text-red-600" disabled={!picked.size || !countTypes.length || busy} onClick={() => applyBranches(true)}>{tr("Remove from Selected")}</Button>
       <Button variant="secondary" onClick={onClose}>{tr("Close")}</Button>
       <Button loading={busy} disabled={!picked.size || !countTypes.length} onClick={() => applyBranches(false)}>{tr("Add to {0} branches", picked.size)}</Button></>
   ) : (
@@ -518,7 +518,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
                       <span className="block truncate text-[11px] text-neutral-500"><span className="font-mono">{p.code}</span>{p.category ? ` · ${p.category}` : ""}{p.unit ? ` · ${p.unit}` : ""}</span>
                     </span>
                     <Button variant="secondary" onClick={() => setNewItem({ code: p.code, name: p.name, category_id: p.suggested_category_id, unit: p.unit })}>
-                      <PackagePlus size={15} /> {tr("Create item")}
+                      <PackagePlus size={15} /> {tr("Create Item")}
                     </Button>
                   </li>
                 ))}

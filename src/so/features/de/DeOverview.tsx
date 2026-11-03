@@ -58,14 +58,14 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
         <p className="text-xs text-neutral-500">{d ? tr("Requests sent {0} – {1}", dmy(d.period.from), dmy(d.period.to)) : tr("Loading…")}</p>
         <div className="flex flex-wrap items-center gap-2">
           {bgroups.length > 0 && (
-            <select value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Branch group")}
+            <select value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Branch Group")}
               className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm text-neutral-700">
               <option value="">{tr("All branch groups")}</option>
               {bgroups.map((g) => <option key={g.id} value={g.id}>{g.code}</option>)}
             </select>
           )}
           <Segmented label={tr("Period")} value={range} onChange={setRange}
-            options={[{ value: "30", label: tr("30 days") }, { value: "90", label: tr("90 days") }, { value: "180", label: tr("6 months") }, { value: "365", label: tr("1 year") }]} />
+            options={[{ value: "30", label: tr("30 days") }, { value: "90", label: tr("90 Days") }, { value: "180", label: tr("6 Months") }, { value: "365", label: tr("1 Year") }]} />
         </div>
       </div>
 
@@ -78,7 +78,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
             <Stat label={tr("Done")} icon={<CheckCircle2 size={13} />} value={k ? fmtNumber(k.done) : <StatSkeleton />}>
               {k && <p>{tr("average {0} · {1} still open", fmtHours(k.avgHours), fmtNumber(k.open))}</p>}
             </Stat>
-            <Stat label={tr("On target")} icon={<Clock size={13} />} value={k ? (k.onTimePct === null ? "—" : `${k.onTimePct}%`) : <StatSkeleton />}>
+            <Stat label={tr("On Target")} icon={<Clock size={13} />} value={k ? (k.onTimePct === null ? "—" : `${k.onTimePct}%`) : <StatSkeleton />}>
               {k && <p>{tr("of the done requests · {0} open past target · {1} targets adjusted", fmtNumber(k.overdue), fmtNumber(k.targetAdjusted))}</p>}
             </Stat>
             <Stat label={tr("Cost")} icon={<Wallet size={13} />} value={k ? fmtRp(k.cost) : <StatSkeleton />}>
@@ -91,23 +91,23 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
           ) : (
             <>
               <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-                <Panel title={tr("Weekly trend")} description={tr("Requests in vs done per week")}
+                <Panel title={tr("Weekly Trend")} description={tr("Requests in vs done per week")}
                   actions={<span className="flex items-center gap-3 text-[11px] text-neutral-500"><Legend color="bg-brand-600" label={tr("In")} /><Legend color="bg-emerald-500" label={tr("Done")} /></span>}>
                   {!d ? <Skel /> : <Trend rows={d.trend} />}
                 </Panel>
-                <Panel title={tr("Where the requests stand")} description={tr("Current status of the requests of the period")}>
+                <Panel title={tr("Where the Requests Stand")} description={tr("Current status of the requests of the period")}>
                   {!d ? <Skel /> : <StatusMix rows={d.status} total={d.kpi.total} />}
                 </Panel>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title={tr("Average time per stage")} description={tr("Where the requests wait longest")}>
+                <Panel title={tr("Average Time per Stage")} description={tr("Where the requests wait longest")}>
                   {!d ? <Skel /> : <Bars rows={d.stages.map((s) => ({ key: s.status, label: s.label, value: s.avgHours ?? 0, text: fmtHours(s.avgHours), bar: DOT[s.status] ?? "bg-brand-600" }))} />}
                 </Panel>
-                <Panel title={tr("Urgency vs target")} description={tr("Done on target per urgency")}>
+                <Panel title={tr("Urgency vs Target")} description={tr("Done on target per urgency")}>
                   {!d ? <Skel /> : (
                     <table className="w-full text-sm">
-                      <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-2">{tr("Urgency")}</th><th className="px-2 py-2 text-right">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Done")}</th><th className="px-2 py-2">{tr("On target")}</th><th className="px-4 py-2 text-right">{tr("Average")}</th></tr></thead>
+                      <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-2">{tr("Urgency")}</th><th className="px-2 py-2 text-right">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Done")}</th><th className="px-2 py-2">{tr("On Target")}</th><th className="px-4 py-2 text-right">{tr("Average")}</th></tr></thead>
                       <tbody className="divide-y divide-neutral-100">
                         {d.urgency.map((u) => (
                           <tr key={u.urgency}>
@@ -125,16 +125,16 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
               </div>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title={tr("Category groups")} description={tr("Requests with an item of the group, average time and cost")}>
+                <Panel title={tr("Category Groups")} description={tr("Requests with an item of the group, average time and cost")}>
                   {!d ? <Skel /> : <RowTable rows={d.groups} />}
                 </Panel>
-                <Panel title={tr("Top categories")} description={tr("The 10 categories asked most")}>
+                <Panel title={tr("Top Categories")} description={tr("The 10 categories asked most")}>
                   {!d ? <Skel /> : <RowTable rows={d.categories} />}
                 </Panel>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-                <Panel title={tr("Internal vs vendor")} description={tr("Jobs, average time and cost per kind of technician")}>
+                <Panel title={tr("Internal vs Vendor")} description={tr("Jobs, average time and cost per kind of technician")}>
                   {!d ? <Skel /> : (
                     <div className="grid grid-cols-2 divide-x divide-neutral-100">
                       {(["INTERNAL", "VENDOR"] as const).map((m) => (
@@ -166,12 +166,12 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
               </div>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <Panel title={tr("Outlets with most requests")} description={tr("Top 10 in the period")}>
+                <Panel title={tr("Outlets with Most Requests")} description={tr("Top 10 in the period")}>
                   {!d ? <Skel /> : (
                     <Bars rows={d.branches.map((b) => ({ key: b.code, label: b.name, value: b.count, text: `${b.count}${b.open ? ` · ${tr("{0} open", b.open)}` : ""}`, bar: "bg-brand-600" }))} />
                   )}
                 </Panel>
-                <Panel title={tr("Repeated damage")} description={tr("The same item of an outlet asked again within 90 days")}>
+                <Panel title={tr("Repeated Damage")} description={tr("The same item of an outlet asked again within 90 days")}>
                   {!d ? <Skel /> : d.repeats.length === 0 ? <p className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-neutral-400"><CheckCircle2 size={15} /> {tr("No repeated damage")}</p> : (
                     <ul className="divide-y divide-neutral-100">
                       {d.repeats.map((x) => (

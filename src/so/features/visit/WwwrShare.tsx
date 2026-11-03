@@ -81,8 +81,8 @@ function View() {
           ))}
         </div>
 
-        <Block title={tr("General evaluation")}><p className="whitespace-pre-line text-sm text-neutral-700">{a.summary || "—"}</p></Block>
-        <Block title={tr("Action plans")}>
+        <Block title={tr("General Evaluation")}><p className="whitespace-pre-line text-sm text-neutral-700">{a.summary || "—"}</p></Block>
+        <Block title={tr("Action Plans")}>
           <table className="w-full text-sm">
             <thead><tr className="border-b border-neutral-200 text-left text-[11px] uppercase tracking-wide text-neutral-500"><th className="py-2 pr-2">#</th><th className="py-2 pr-2">{tr("Action")}</th><th className="py-2 pr-2">{tr("Handled by")}</th><th className="py-2 pr-2">{tr("Due")}</th><th className="py-2">{tr("Status")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
@@ -121,7 +121,7 @@ function View() {
           )}
         </Block>
 
-        <Block title={tr("Every item")}>
+        <Block title={tr("Every Item")}>
           {d.definition.groups.map((g) => g.sections.filter((s) => !s.retired).map((s) => (
             <div key={s.key} className="avoid mb-4 last:mb-0">
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-700">{tl(g, "title")} · {tl(s, "title")}</p>

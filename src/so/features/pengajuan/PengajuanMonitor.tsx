@@ -86,7 +86,7 @@ export default function PengajuanMonitor() {
   const FLAG_LABEL = { reused: tr("Same receipt used twice"), negative: tr("Negative closing balance"), opening: tr("Opening balance differs"), rejected: tr("With rejected expenses"), aboveRef: tr("Far above the outlet's purchases") };
   const chips: ActiveFilter[] = [
     ...(f.period.from !== def.period.from || f.period.to !== def.period.to ? [{ key: "p", label: `${dmy(f.period.from)} – ${dmy(f.period.to)}`, onRemove: () => setF({ ...f, period: def.period }) }] : []),
-    ...(f.bgroup ? [{ key: "bg", label: `${tr("Group")} ${f.bgroup === "none" ? tr("Without a group") : bgroups.find((g) => g.id === f.bgroup)?.code ?? ""}`, onRemove: () => setF({ ...f, bgroup: "" }) }] : []),
+    ...(f.bgroup ? [{ key: "bg", label: `${tr("Group")} ${f.bgroup === "none" ? tr("Without a Group") : bgroups.find((g) => g.id === f.bgroup)?.code ?? ""}`, onRemove: () => setF({ ...f, bgroup: "" }) }] : []),
     ...(f.branch ? [{ key: "b", label: all.find((p) => p.branchCode === f.branch)?.branchName ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
     ...(f.kind ? [{ key: "k", label: kindLabel(f.kind), onRemove: () => setF({ ...f, kind: "" }) }] : []),
     ...(f.account ? [{ key: "a", label: `@${f.account}`, onRemove: () => setF({ ...f, account: "" }) }] : []),
@@ -99,7 +99,7 @@ export default function PengajuanMonitor() {
   const exportCsv = () => {
     const head = [tr("Number"), tr("Kind"), tr("Status"), tr("Step waiting"), tr("Outlet"), tr("Code"), tr("Account"), tr("Submitted by"), tr("Phone"),
       tr("Bank"), tr("Account number"), tr("Account holder"), tr("Purpose"), tr("Date needed"), tr("Baristas"), tr("Period from"), tr("Period to"),
-      tr("Opening balance"), tr("Money in"), tr("Total money out"), tr("Closing balance"), tr("Plafon"), tr("Amount asked"), tr("Approved amount"), tr("Paid"),
+      tr("Opening Balance"), tr("Money in"), tr("Total money out"), tr("Closing balance"), tr("Plafon"), tr("Amount Asked"), tr("Approved amount"), tr("Paid"),
       tr("Transfer date"), tr("Line date"), tr("Category"), tr("Description"), tr("Amount"), tr("Line check"), tr("Check note")];
     const out: XlsxCell[][] = [];
     for (const p of rows) {
@@ -110,7 +110,7 @@ export default function PengajuanMonitor() {
       for (const l of lines) out.push([...common, l?.spentOn, l ? categoryLabel(l.category) : "", l?.description, l?.amount, l?.review === "REJECTED" ? tr("Rejected") : l ? "OK" : "", l?.reviewNote]);
     }
     setExporting(true);
-    downloadXlsx({ fileName: `${tr("Fund requests")} ${f.period.from} - ${f.period.to}`, sheet: tr("Fund requests"),
+    downloadXlsx({ fileName: `${tr("Fund Request")} ${f.period.from} - ${f.period.to}`, sheet: tr("Fund Request"),
       title: `${tr("Monitoring Fund Requests")} · ${dmy(f.period.from)} – ${dmy(f.period.to)}`, header: head, rows: out })
       .catch((e) => toast((e as Error).message, "error")).finally(() => setExporting(false));
   };
@@ -118,12 +118,12 @@ export default function PengajuanMonitor() {
   return (
     <Page title={tr("Monitoring Fund Requests")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("petty cash and budget requests of every outlet")}`}
       actions={<div className="flex gap-2">
-        <Button variant="secondary" onClick={() => setSettings(true)}><Settings2 size={15} /> {tr("Approvals & plafon")}</Button>
+        <Button variant="secondary" onClick={() => setSettings(true)}><Settings2 size={15} /> {tr("Approvals & Plafon")}</Button>
         <ExcelIconButton label={tr("Export to Excel")} loading={exporting} disabled={!rows.length} onClick={exportCsv} />
       </div>}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
-          <Stat label={tr("My turn")} emphasis onClick={res ? () => setStatus("MINE") : undefined} active={status === "MINE"} icon={<UserCheck size={13} />}
+          <Stat label={tr("My Turn")} emphasis onClick={res ? () => setStatus("MINE") : undefined} active={status === "MINE"} icon={<UserCheck size={13} />}
             value={res ? fmtNumber(base.filter(mine).length) : <StatSkeleton />}>
             {res && <p className="tabular-nums">{fmtRp(sum(base.filter(mine), (p) => p.approvedAmount ?? p.requestedAmount))}</p>}
           </Stat>
@@ -136,7 +136,7 @@ export default function PengajuanMonitor() {
           ))}
         </StatStrip>
       }>
-      <Panel title={tr("Fund requests")} description={tr("Oldest waiting first; tap one to check it")}
+      <Panel title={tr("Fund Request")} description={tr("Oldest waiting first; tap one to check it")}
         toolbar={<>
           <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist" aria-label={tr("Status")}>
             {TABS.map((t) => {
@@ -145,8 +145,8 @@ export default function PengajuanMonitor() {
                 <button key={t || "all"} type="button" role="tab" aria-selected={on} onClick={() => setStatus(t)}
                   className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
                   {t && t !== "OPEN" && t !== "MINE" && <span className={cx("h-2 w-2 rounded-full", DOT[t])} aria-hidden />}
-                  {t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My turn") : t ? STATUS_LABEL[t as Status]() : tr("All")}
-                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-neutral-900 text-white" : "bg-white text-neutral-700")}>{fmtNumber(base.filter((p) => inTab(p, t)).length)}</span>
+                  {t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My Turn") : t ? STATUS_LABEL[t as Status]() : tr("All")}
+                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-brand-700 text-white" : "bg-white text-neutral-700")}>{fmtNumber(base.filter((p) => inTab(p, t)).length)}</span>
                 </button>
               );
             })}
@@ -180,7 +180,7 @@ export default function PengajuanMonitor() {
                 <thead className={theadClass}>
                   <tr className="whitespace-nowrap">
                     <th className="px-4 py-2.5">{tr("Number")}</th><th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5">{tr("Kind")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Money out")}</th><th className="px-4 py-2.5 text-right">{tr("Amount asked")}</th>
+                    <th className="px-4 py-2.5 text-right">{tr("Money Out")}</th><th className="px-4 py-2.5 text-right">{tr("Amount Asked")}</th>
                     <th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5">{tr("Sent")}</th>
                   </tr>
                 </thead>
@@ -240,21 +240,21 @@ function MonitorFilters({ value, bgroups, branches, accounts, categories, flagLa
   return (
     <FilterSheet title={tr("Filters")} onClose={onClose} onReset={() => setV(NO_F())} onApply={() => onApply(v)}>
       <FilterSection title={tr("Sent in")} hint={tr("Open fund requests always show")}><PeriodField value={v.period} onChange={(period) => setV({ ...v, period })} maxDays={366} /></FilterSection>
-      <FilterSection title={tr("Branch group")}>
+      <FilterSection title={tr("Branch Group")}>
         <ChoiceGroup label="" value={v.bgroup} onChange={(bgroup) => setV({ ...v, bgroup })}
-          choices={[{ value: "", label: tr("All") }, ...bgroups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a group") }]} />
+          choices={[{ value: "", label: tr("All") }, ...bgroups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a Group") }]} />
       </FilterSection>
       <FilterSection title={tr("Kind")}>
         <ChoiceGroup label="" value={v.kind} onChange={(kind) => setV({ ...v, kind: kind as F["kind"] })}
           choices={[{ value: "", label: tr("All") }, ...KINDS.map((k) => ({ value: k, label: kindLabel(k) }))]} />
       </FilterSection>
-      <FilterSection title={tr("Outlet")}><SearchChoice label="" anyLabel={tr("Every outlet")} options={branches} value={v.branch} onChange={(branch) => setV({ ...v, branch })} placeholder={tr("Search outlet")} /></FilterSection>
+      <FilterSection title={tr("Outlet")}><SearchChoice label="" anyLabel={tr("Every Outlet")} options={branches} value={v.branch} onChange={(branch) => setV({ ...v, branch })} placeholder={tr("Search outlet")} /></FilterSection>
       <FilterSection title={tr("Account")}><SearchChoice label="" anyLabel={tr("Every account")} options={accounts} value={v.account} onChange={(account) => setV({ ...v, account })} placeholder={tr("Search account")} /></FilterSection>
-      <FilterSection title={tr("Expense category")}>
+      <FilterSection title={tr("Expense Category")}>
         <ChoiceGroup label="" value={v.category} onChange={(category) => setV({ ...v, category })}
           choices={[{ value: "", label: tr("All") }, ...categories.map((c) => ({ value: c, label: (CATEGORY_LABEL[c] ?? (() => c))() }))]} />
       </FilterSection>
-      <FilterSection title={tr("To check")}>
+      <FilterSection title={tr("To Check")}>
         <ChoiceGroup label="" value={v.flag} onChange={(flag) => setV({ ...v, flag: flag as F["flag"] })}
           choices={[{ value: "", label: tr("All") }, ...Object.entries(flagLabel).map(([value, label]) => ({ value, label }))]} />
       </FilterSection>
@@ -315,7 +315,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
   const payment: PgFile[] = (p?.files ?? []).filter((x) => x.kind === "PAYMENT");
   const needNote = action === "REVISION" || action === "REJECTED";
   return (
-    <Drawer open onClose={onClose} size="xl" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund requests")}
+    <Drawer open onClose={onClose} size="xl" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund Request")}
       description={p ? `${p.branchName} · @${p.username} · ${wibDateTime(p.submittedAt)}` : undefined}
       titleExtra={p ? <StatusBadge s={p.status} /> : undefined}
       footer={p && next.length > 0 ? (
@@ -363,7 +363,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Wallet size={15} /> {tr("Payment: approved {0}", fmtRp(p.approvedAmount))}</p>
               <div className="flex flex-wrap items-end gap-2">
                 {payment.map((x) => <FileChip key={x.id} f={x} onRemove={() => void removeProof(x.id)} />)}
-                <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-neutral-900 px-3 text-xs font-medium text-white hover:bg-neutral-800">
+                <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-700 px-3 text-xs font-medium text-white hover:bg-brand-800">
                   <Paperclip size={13} /> {tr("Attach transfer proof")}
                   <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={(e) => void proof(e.target.files)} />
                 </label>
@@ -441,10 +441,10 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   };
   const edit = !!data?.canEdit;
   return (
-    <Drawer open onClose={onClose} size="xl" icon={<Settings2 size={18} />} title={tr("Approvals & plafon")}
+    <Drawer open onClose={onClose} size="xl" icon={<Settings2 size={18} />} title={tr("Approvals & Plafon")}
       description={tr("Who approves each kind of request, in order, and the petty cash plafon")}
       footer={edit ? <div className="flex w-full flex-wrap justify-end gap-2">
-        <Button variant="secondary" disabled={busy} onClick={() => void copyToAll()}>{tr("Use for every kind")}</Button>
+        <Button variant="secondary" disabled={busy} onClick={() => void copyToAll()}>{tr("Use for Every Kind")}</Button>
         <Button loading={busy} onClick={() => void save()}>{tr("Save approvals of {0}", kindLabel(kind))}</Button>
       </div> : undefined}>
       {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : (
@@ -481,7 +481,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
               <p className="text-xs text-neutral-500">{tr("The weekly top-up brings the cash of the outlet back to its plafon. An outlet without its own plafon uses the one of every outlet.")}</p>
             </div>
             {data.canPlafon && <Suggestions onApplied={(pl) => setData((d) => (d ? { ...d, plafon: pl } : d))} />}
-            <PlafonRow label={tr("Every outlet")} amount={data.plafon.default} edit={data.canPlafon} onSave={(a) => void savePlafon("*", a)} />
+            <PlafonRow label={tr("Every Outlet")} amount={data.plafon.default} edit={data.canPlafon} onSave={(a) => void savePlafon("*", a)} />
             {data.plafon.branches.map((b) => (
               <PlafonRow key={b.branchCode} label={branchName(b.branchCode)} amount={b.amount} edit={data.canPlafon} onSave={(a) => void savePlafon(b.branchCode, a)} removable />
             ))}
@@ -508,12 +508,12 @@ export function StepRow({ n, step, users, names, edit, payment, onChange, onUp, 
     <li className={cx("rounded-xl border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-neutral-200 bg-white")}>
       <div className="flex items-center gap-2">
         <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-cyan-600" : "bg-brand-600")}>{n}</span>
-        {edit ? <input value={step.label} maxLength={60} onChange={(e) => onChange({ ...step, label: e.target.value })} aria-label={tr("Step name")}
+        {edit ? <input value={step.label} maxLength={60} onChange={(e) => onChange({ ...step, label: e.target.value })} aria-label={tr("Step Name")}
           className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm font-semibold")} /> : <p className="flex-1 text-sm font-semibold text-neutral-900">{step.label}</p>}
         {payment && <Badge tone="cyan">{tr("Payment")}</Badge>}
-        {edit && onUp && <button type="button" onClick={onUp} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move up")}><ArrowUp size={15} /></button>}
-        {edit && onDown && <button type="button" onClick={onDown} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move down")}><ArrowDown size={15} /></button>}
-        {edit && onRemove && <button type="button" onClick={onRemove} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove step")}><Trash2 size={15} /></button>}
+        {edit && onUp && <button type="button" onClick={onUp} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move Up")}><ArrowUp size={15} /></button>}
+        {edit && onDown && <button type="button" onClick={onDown} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move Down")}><ArrowDown size={15} /></button>}
+        {edit && onRemove && <button type="button" onClick={onRemove} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Step")}><Trash2 size={15} /></button>}
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {step.userIds.map((id) => (
@@ -527,7 +527,7 @@ export function StepRow({ n, step, users, names, edit, payment, onChange, onUp, 
       {edit && (
         <div className="mt-2">
           {/* a compact dropdown (2026-10-30: the open list made the panel long); typing the first letters jumps to a name */}
-          <select value={pick} aria-label={tr("Add an approver")} className={cx(inputClass, "h-10 text-sm")}
+          <select value={pick} aria-label={tr("Add an Approver")} className={cx(inputClass, "h-10 text-sm")}
             onChange={(e) => { const id = e.target.value; if (id) onChange({ ...step, userIds: [...step.userIds, id] }); setPick(""); }}>
             <option value="">{tr("+ Add an approver ({0} users)", users.filter((u) => !step.userIds.includes(u.id)).length)}</option>
             {users.filter((u) => !step.userIds.includes(u.id)).map((u) => (
@@ -605,7 +605,7 @@ function Suggestions({ onApplied }: { onApplied: (p: Settings["plafon"]) => void
         <div className="max-h-72 overflow-auto rounded-lg border border-neutral-200 bg-white">
           <table className="w-full text-xs">
             <thead className={theadClass}><tr><th className="w-8 px-2 py-1.5" /><th className="px-2 py-1.5 text-left">{tr("Outlet")}</th>
-              <th className="px-2 py-1.5 text-right">{tr("Average / week")}</th><th className="px-2 py-1.5 text-right">{tr("Suggested")}</th><th className="px-2 py-1.5 text-right">{tr("Now")}</th></tr></thead>
+              <th className="px-2 py-1.5 text-right">{tr("Average / Week")}</th><th className="px-2 py-1.5 text-right">{tr("Suggested")}</th><th className="px-2 py-1.5 text-right">{tr("Now")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {rows.map((x) => (
                 <tr key={x.code} className={cx(!x.suggested && "text-neutral-400")}>

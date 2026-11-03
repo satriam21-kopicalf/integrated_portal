@@ -34,8 +34,8 @@ type GroupOpt = { id: string; code: string; name: string };
 const NO_F = (): F => ({ period: { from: wibDay(-6), to: wibDay(0) }, group: "", branch: "", user: "", location: "" });
 const LOC: Record<string, () => string> = {
   unreviewed: () => tr("Needs review"), alert: () => tr("Outside radius or suspicious location"),
-  suspect: () => tr("Suspicious location"), outside: () => tr("Outside radius"), low: () => tr("Low GPS accuracy"),
-  unlocated: () => tr("Outlet has no coordinates"),
+  suspect: () => tr("Suspicious Location"), outside: () => tr("Outside Radius"), low: () => tr("Low GPS accuracy"),
+  unlocated: () => tr("Outlet Has No Coordinates"),
 };
 const REFRESH_MS = 60_000;
 
@@ -43,7 +43,7 @@ function RiskTags({ c }: { c: CheckIn }) {
   return (
     <>
       {suspect(c) && <Badge tone={c.riskLevel === "high" ? "red" : "amber"} icon={<ShieldAlert size={11} />}
-        title={(c.riskSignals ?? []).map((x) => x.text).join("\n")}>{tr("Suspicious location")}</Badge>}
+        title={(c.riskSignals ?? []).map((x) => x.text).join("\n")}>{tr("Suspicious Location")}</Badge>}
       {c.review && (c.review.status === "valid"
         ? <Badge tone="green" icon={<CheckCircle2 size={11} />}>{tr("Reviewed: valid")}</Badge>
         : <Badge tone="red" icon={<XCircle size={11} />}>{tr("Reviewed: not valid")}</Badge>)}
@@ -54,9 +54,9 @@ function RiskTags({ c }: { c: CheckIn }) {
 function LocationTags({ c, distance = true }: { c: CheckIn; distance?: boolean }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-1">
-      {!c.outletLocated ? <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet has no coordinates")}</Badge>
-        : c.outsideRadius ? <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside radius")}</Badge>
-        : <Badge tone="green">{tr("At the outlet")}</Badge>}
+      {!c.outletLocated ? <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet Has No Coordinates")}</Badge>
+        : c.outsideRadius ? <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>
+        : <Badge tone="green">{tr("At the Outlet")}</Badge>}
       {c.lowAccuracy && <Badge tone="slate" icon={<SignalLow size={11} />}>{tr("Low GPS accuracy")}</Badge>}
       <RiskTags c={c} />
       {distance && c.distanceM !== null && <span className="text-[11px] tabular-nums text-neutral-500">{c.distanceM} m{c.accuracyM !== null ? ` ±${Math.round(c.accuracyM)}` : ""}</span>}
@@ -124,13 +124,13 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
           <Stat label={tr("PICs")} icon={<UsersRound size={13} />} onClick={s ? () => setDetail("pics") : undefined} active={detail === "pics"} value={s ? fmtNumber(s.pics) : <StatSkeleton />}>
             {s && <p>{tr("who checked in")}</p>}
           </Stat>
-          <Stat label={tr("Outlets visited")} icon={<Store size={13} />} onClick={s ? () => setDetail("outlets") : undefined} active={detail === "outlets"} value={s ? fmtNumber(s.branches) : <StatSkeleton />}>
+          <Stat label={tr("Outlets Visited")} icon={<Store size={13} />} onClick={s ? () => setDetail("outlets") : undefined} active={detail === "outlets"} value={s ? fmtNumber(s.branches) : <StatSkeleton />}>
             {s && <p>{tr("different outlets")}</p>}
           </Stat>
-          <Stat label={tr("Outside radius")} icon={<MapPin size={13} />} onClick={s ? () => setDetail("outside") : undefined} active={detail === "outside"} value={s ? fmtNumber(s.outside) : <StatSkeleton />}>
+          <Stat label={tr("Outside Radius")} icon={<MapPin size={13} />} onClick={s ? () => setDetail("outside") : undefined} active={detail === "outside"} value={s ? fmtNumber(s.outside) : <StatSkeleton />}>
             {s && <p>{tr("{0} low GPS accuracy · {1} outlet without coordinates", fmtNumber(s.low), fmtNumber(s.unlocated))}</p>}
           </Stat>
-          <Stat label={tr("Suspicious location")} icon={<ShieldAlert size={13} />} active={f.location === "suspect"}
+          <Stat label={tr("Suspicious Location")} icon={<ShieldAlert size={13} />} active={f.location === "suspect"}
             onClick={s ? () => setF({ ...f, location: f.location === "suspect" ? "" : "suspect" }) : undefined}
             value={s ? <span className={s.suspect ? "text-red-600" : undefined}>{fmtNumber(s.suspect)}</span> : <StatSkeleton />}>
             {s && <p>{tr("{0} high risk · signs of fake GPS", fmtNumber(s.suspect_high))}</p>}
@@ -180,7 +180,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                     <th className="w-16 px-4 py-2.5">{tr("Photo")}</th>
                     <th className="px-4 py-2.5">{tr("PIC")}</th>
                     <th className="px-4 py-2.5">{tr("Outlet")}</th>
-                    <th className="px-4 py-2.5">{tr("Visit time")}</th>
+                    <th className="px-4 py-2.5">{tr("Visit Time")}</th>
                     <th className="px-4 py-2.5">{tr("Location")}</th>
                   </tr>
                 </thead>
@@ -189,7 +189,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                     <tr key={c.id} onClick={() => setOpen(c)} className={cx("cursor-pointer", (c.outsideRadius || suspect(c)) && !c.review ? "bg-red-50/50 hover:bg-red-50" : "hover:bg-neutral-50/70")}>
                       <td className="px-4 py-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                        <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face photo")} loading="lazy" className="h-11 w-11 rounded-lg bg-neutral-100 object-cover" />
+                        <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face Photo")} loading="lazy" className="h-11 w-11 rounded-lg bg-neutral-100 object-cover" />
                       </td>
                       <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{c.name}</span><span className="text-xs text-neutral-400">@{c.username}</span></td>
                       <td className="max-w-[16rem] px-4 py-2.5"><span className="block truncate text-neutral-800">{c.branchName}</span><span className="text-xs text-neutral-400">{c.branchCode}</span></td>
@@ -224,11 +224,11 @@ function CheckInFilters({ value, groups, branches, pics, onApply, onClose }: {
   const active = [period, d.group, d.branch, d.user, d.location].filter(Boolean).length;
   return (
     <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(def)} applyDisabled={days > 93}>
-      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 7 days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
+      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 7 Days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
         <QuickPeriod value={d.period} onChange={(p) => setD({ ...d, period: p })} maxDays={93} />
       </FilterRow>
       <FilterRow icon={<Store size={15} />} label={tr("Outlet")} value={branches.find((b) => b.branch_code === d.branch)?.branch_name ?? null} onClear={() => setD({ ...d, branch: "" })}>
-        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All outlets")} placeholder={tr("Search outlet")}
+        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All Outlets")} placeholder={tr("Search outlet")}
           options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code }))} />
       </FilterRow>
       <FilterRow icon={<UserRound size={15} />} label={tr("PIC")} value={pics.find((p) => p.id === d.user)?.name ?? null} onClear={() => setD({ ...d, user: "" })}>
@@ -237,10 +237,10 @@ function CheckInFilters({ value, groups, branches, pics, onApply, onClose }: {
       </FilterRow>
       <FilterRow icon={<MapPin size={15} />} label={tr("Location")} value={d.location ? LOC[d.location]() : null} onClear={() => setD({ ...d, location: "" })}>
         <OptionList value={d.location} onChange={(v) => setD({ ...d, location: v })}
-          choices={[{ value: "", label: tr("All check-ins") }, ...Object.keys(LOC).map((k) => ({ value: k, label: LOC[k]() }))]} />
+          choices={[{ value: "", label: tr("All Check-ins") }, ...Object.keys(LOC).map((k) => ({ value: k, label: LOC[k]() }))]} />
       </FilterRow>
       {groups.length > 0 && (
-        <FilterRow icon={<Layers size={15} />} label={tr("Branch group")} value={groupName} onClear={() => setD({ ...d, group: "" })}>
+        <FilterRow icon={<Layers size={15} />} label={tr("Branch Group")} value={groupName} onClear={() => setD({ ...d, group: "" })}>
           <Segments value={d.group} onChange={(v) => setD({ ...d, group: v })}
             choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code }))]} />
         </FilterRow>
@@ -253,9 +253,9 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
   const skew = c.deviceTime ? Math.round((Date.parse(c.deviceTime) - Date.parse(c.visitedAt)) / 60_000) : null;
   const risky = suspect(c);
   // the verdict at a glance: where the PIC was, the location check, the review
-  const verdict = !c.outletLocated ? { tone: "slate", icon: <MapPinOff size={20} />, title: tr("Outlet has no coordinates"), text: tr("Set the outlet's location in Cost Control → Outlet Locations") }
-    : c.outsideRadius ? { tone: "red", icon: <MapPin size={20} />, title: tr("Outside radius"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100) }
-    : { tone: "green", icon: <CheckCircle2 size={20} />, title: tr("At the outlet"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? 0, c.radiusM ?? 100) };
+  const verdict = !c.outletLocated ? { tone: "slate", icon: <MapPinOff size={20} />, title: tr("Outlet Has No Coordinates"), text: tr("Set the outlet's location in Cost Control → Outlet Locations") }
+    : c.outsideRadius ? { tone: "red", icon: <MapPin size={20} />, title: tr("Outside Radius"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100) }
+    : { tone: "green", icon: <CheckCircle2 size={20} />, title: tr("At the Outlet"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? 0, c.radiusM ?? 100) };
   const toneBox: Record<string, string> = { green: "border-emerald-200 bg-emerald-50 text-emerald-900", red: "border-red-200 bg-red-50 text-red-900", slate: "border-neutral-200 bg-neutral-50 text-neutral-800" };
   const toneIcon: Record<string, string> = { green: "bg-emerald-600", red: "bg-red-600", slate: "bg-neutral-500" };
   return (
@@ -264,7 +264,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
         <div className="grid gap-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
           <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
             {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-            <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face photo")} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
+            <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
             <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-lg bg-black/55 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">
               <ScanFace size={12} />{tr("{0} face(s) detected", c.faces)}
             </span>
@@ -276,7 +276,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <Fact icon={<Store size={14} />} label={tr("Outlet")} value={c.branchName} sub={c.branchCode} />
-              <Fact icon={<CalendarDays size={14} />} label={tr("Visit time")} value={wibDateTime(c.visitedAt)} />
+              <Fact icon={<CalendarDays size={14} />} label={tr("Visit Time")} value={wibDateTime(c.visitedAt)} />
             </div>
             <div className={cx("flex items-start gap-3 rounded-xl border px-3 py-2.5", toneBox[verdict.tone])}>
               <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-white", toneIcon[verdict.tone])}>{verdict.icon}</span>
@@ -296,19 +296,19 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
           <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-xl border border-neutral-200">
             <Figure label={tr("Distance")} value={c.distanceM !== null ? `${c.distanceM} m` : "—"} tone={c.outsideRadius ? "text-red-700" : undefined} />
             <Figure label={tr("Radius")} value={c.radiusM !== null ? `${c.radiusM} m` : "—"} />
-            <Figure label={tr("GPS accuracy")} value={c.accuracyM !== null ? `±${Math.round(c.accuracyM)} m` : "—"} tone={c.lowAccuracy ? "text-amber-700" : undefined} />
+            <Figure label={tr("GPS Accuracy")} value={c.accuracyM !== null ? `±${Math.round(c.accuracyM)} m` : "—"} tone={c.lowAccuracy ? "text-amber-700" : undefined} />
           </div>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <MapLink href={mapsUrl(c.latitude, c.longitude)} label={tr("PIC position")} value={`${c.latitude.toFixed(5)}, ${c.longitude.toFixed(5)}`} />
+            <MapLink href={mapsUrl(c.latitude, c.longitude)} label={tr("PIC Position")} value={`${c.latitude.toFixed(5)}, ${c.longitude.toFixed(5)}`} />
             {c.outletLatitude !== null && c.outletLongitude !== null
-              ? <MapLink href={mapsUrl(c.outletLatitude, c.outletLongitude)} label={tr("Outlet location")} value={`${c.outletLatitude.toFixed(5)}, ${c.outletLongitude.toFixed(5)}`} />
-              : <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-500">{tr("Outlet location")}: {tr("No coordinates yet")}</div>}
+              ? <MapLink href={mapsUrl(c.outletLatitude, c.outletLongitude)} label={tr("Outlet Location")} value={`${c.outletLatitude.toFixed(5)}, ${c.outletLongitude.toFixed(5)}`} />
+              : <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-500">{tr("Outlet Location")}: {tr("No coordinates yet")}</div>}
           </div>
         </DrawerBlock>
 
         <DrawerBlock title={tr("Time")}>
           <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
-            <DrawerRow k={tr("Visit time")} v={`${wibDateTime(c.visitedAt)} · ${tr("server time")}`} />
+            <DrawerRow k={tr("Visit Time")} v={`${wibDateTime(c.visitedAt)} · ${tr("server time")}`} />
             <DrawerRow k={tr("Phone clock")} v={c.deviceTime ? <>{wibDateTime(c.deviceTime)}{skew !== null && Math.abs(skew) >= 5 && <Badge tone="amber">{tr("differs {0} min", skew)}</Badge>}</> : "—"} />
           </dl>
         </DrawerBlock>
@@ -394,7 +394,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
   kind: Detail; data: CheckIn[]; summary: Summary; truncated: boolean; onClose: () => void;
   onPic: (id: string) => void; onOutlet: (code: string) => void; onOpen: (c: CheckIn) => void;
 }) {
-  const title = { checkins: tr("Check-ins"), pics: tr("PICs"), outlets: tr("Outlets visited"), outside: tr("Outside radius") }[kind];
+  const title = { checkins: tr("Check-ins"), pics: tr("PICs"), outlets: tr("Outlets Visited"), outside: tr("Outside Radius") }[kind];
   const groups = useMemo(() => {
     const key = (c: CheckIn) => kind === "checkins" ? dayOf(c.visitedAt) : kind === "pics" ? c.userId : c.branchCode;
     const m = new Map<string, { key: string; label: string; sub: string; n: number; outside: number; people: Set<string>; places: Set<string>; last: string }>();
@@ -421,9 +421,9 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
         {kind === "outside" && (
           <>
             <SegmentBar parts={[
-              { label: tr("At the outlet"), value: summary.inside, color: "bg-emerald-500" },
-              { label: tr("Outside radius"), value: summary.outside, color: "bg-amber-500" },
-              { label: tr("Outlet has no coordinates"), value: summary.unlocated, color: "bg-neutral-300" },
+              { label: tr("At the Outlet"), value: summary.inside, color: "bg-emerald-500" },
+              { label: tr("Outside Radius"), value: summary.outside, color: "bg-amber-500" },
+              { label: tr("Outlet Has No Coordinates"), value: summary.unlocated, color: "bg-neutral-300" },
             ]} />
             {summary.low > 0 && <p className="text-xs text-neutral-500">{tr("{0} with low GPS accuracy", fmtNumber(summary.low))}</p>}
           </>

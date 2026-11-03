@@ -197,7 +197,7 @@ export function RequestHero({ r, compact = false }: { r: Request; compact?: bool
   const facts: [React.ReactNode, string, React.ReactNode][] = [
     [<User key="u" size={13} />, "PIC", r.picName],
     [<Calendar key="c" size={13} />, tr("Sent"), wibDateTime(r.submittedAt)],
-    [<CalendarClock key="t" size={13} />, tr("Estimated finish"), <span key="v" className={r.tracker?.overdue || r.tracker?.late ? "text-red-600" : undefined}>
+    [<CalendarClock key="t" size={13} />, tr("Estimated Finish"), <span key="v" className={r.tracker?.overdue || r.tracker?.late ? "text-red-600" : undefined}>
       {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}{r.tracker?.targetAdjusted ? <span className="ml-1 rounded bg-violet-100 px-1 text-[10px] font-semibold text-violet-700">{tr("adjusted")}</span> : null}
       <span className="block text-[11px] font-normal text-neutral-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></span>],
     [<Wrench key="w" size={13} />, r.mode === "VENDOR" ? tr("Vendor") : tr("Technician"), <span key="w">{techs.join(", ") || "—"}
@@ -262,14 +262,14 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
   return (
     <div className="space-y-4">
       {part === "all" && (
-        <FormCard n={next()} title={tr("Status & progress")} hint={`${r.kindLabel} · ${r.branchName}`}
+        <FormCard n={next()} title={tr("Status & Progress")} hint={`${r.kindLabel} · ${r.branchName}`}
           aside={<span className="flex flex-wrap justify-end gap-1"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>}>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
             <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
             <div><dt className="text-[11px] text-neutral-400">{tr("Sent")}</dt><dd className="text-neutral-900">{wibDateTime(r.submittedAt)}</dd></div>
             <div><dt className="text-[11px] text-neutral-400">{tr("Location when sent")}</dt>
               <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-red-700" : "text-neutral-900")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
-            <div><dt className="text-[11px] text-neutral-400">{tr("Estimated finish")}</dt>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Estimated Finish")}</dt>
               <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-neutral-900")}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}
                 <span className="block text-[11px] font-normal text-neutral-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></dd></div>
           </dl>
@@ -281,7 +281,7 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
       {part === "all" && children}
 
       {show("history") && r.tracker && r.tracker.totalHours !== null && (
-        <FormCard n={next()} title={tr("Time tracker")} hint={tr("Time per stage from sending; on hold counted apart")}
+        <FormCard n={next()} title={tr("Time Tracker")} hint={tr("Time per stage from sending; on hold counted apart")}
           aside={r.tracker.slaHours !== null ? <Badge tone={r.tracker.overdue ? "red" : "green"}>{r.tracker.overdue ? tr("Past target ({0})", fmtHours(r.tracker.slaHours)) : tr("Target {0}", fmtHours(r.tracker.slaHours))}</Badge> : undefined}>
           <Tracker r={r} />
         </FormCard>
@@ -349,26 +349,26 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
       )}
 
       {show("handling") && ho?.at && (
-        <FormCard n={next()} title={tr("Handover at the outlet")} hint={`${wibDateTime(ho.at)}${ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}`}
+        <FormCard n={next()} title={tr("Handover at the Outlet")} hint={`${wibDateTime(ho.at)}${ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}`}
           aside={<Badge tone="green" icon={<Handshake size={11} />}>{tr("Received")}</Badge>}>
           <Gallery r={r} urls={urls} kind="HANDOVER" />
           {ho.note && <p className="rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{ho.note}</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             {ho.vendorName && <SignBox title={tr("Vendor")} name={ho.vendorName} src={urls.handover?.(r.id, "vendor")} />}
-            {ho.picName && <SignBox title={tr("PIC outlet")} name={ho.picName} src={urls.handover?.(r.id, "pic")} />}
+            {ho.picName && <SignBox title={tr("PIC Outlet")} name={ho.picName} src={urls.handover?.(r.id, "pic")} />}
           </div>
           {ho.approvedBy && <p className="text-xs text-neutral-500">{tr("Approved Done by {0}", ho.approvedBy)}</p>}
         </FormCard>
       )}
 
       {show("history") && (
-        <FormCard n={next()} title={tr("Progress & notes")} hint={tr("Every step of the team, newest first")}>
+        <FormCard n={next()} title={tr("Progress & Notes")} hint={tr("Every step of the team, newest first")}>
           <Timeline events={r.events ?? []} />
         </FormCard>
       )}
 
       {show("detail") && r.signature && (
-        <FormCard n={next()} title={tr("PIC signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")}>
+        <FormCard n={next()} title={tr("PIC Signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
             <img src={urls.signature(r.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-neutral-200" />

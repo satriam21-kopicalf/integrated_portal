@@ -50,7 +50,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
   const discount = Number(tx.discount_amount || 0);
 
   return (
-    <Drawer open onClose={onClose} title={tr('Transaction detail')} icon={<Receipt />} focusFirstField={false}
+    <Drawer open onClose={onClose} title={tr('Transaction Detail')} icon={<Receipt />} focusFirstField={false}
       description={<span className="font-mono">{tx.sales_num}</span>}>
           {/* Total */}
           <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4">
@@ -63,21 +63,21 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
                 <span className="truncate">{tx.branch_name || '-'}</span>
               </span>
             </div>
-            <p className="mt-3 text-xs text-neutral-500">{tr('Grand total')}</p>
+            <p className="mt-3 text-xs text-neutral-500">{tr('Grand Total')}</p>
             <p className="text-3xl font-semibold tabular-nums text-neutral-900">{formatCurrency(tx.total_amount)}</p>
           </div>
 
           {/* Information */}
           <Section title={tr('Information')}>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-              <Field label={tr('Bill number')} value={tx.bill_num || 'No bill number'} />
-              <Field label={tr('Sales date')} value={formatDate(tx.sales_date)} />
-              <Field label={tr('Payment method')} value={tx.payment_method || '-'} />
-              <Field label={tr('Visit purpose')} value={tx.visit_purpose ? channelLabel(tx.visit_purpose) : '-'} />
+              <Field label={tr('Bill Number')} value={tx.bill_num || 'No bill number'} />
+              <Field label={tr('Sales Date')} value={formatDate(tx.sales_date)} />
+              <Field label={tr('Payment Method')} value={tx.payment_method || '-'} />
+              <Field label={tr('Visit Purpose')} value={tx.visit_purpose ? channelLabel(tx.visit_purpose) : '-'} />
               <Field label={tr('Customer')} value={tx.customer_name && tx.customer_name !== '-' ? tx.customer_name : 'Walk-in'} />
               <Field label={tr('Cashier')} value={tx.cashier_id || '-'} />
               <Field label={tr('Time in')} value={formatDateTime(tx.sales_date_in)} />
-              <Field label={tr('Time out')} value={formatDateTime(tx.sales_date_out)} />
+              <Field label={tr('Time Out')} value={formatDateTime(tx.sales_date_out)} />
               <Field label={tr('Duration')} value={duration(tx.sales_date_in, tx.sales_date_out)} />
               <Field label={tr('Pax')} value={formatNumber(tx.pax_total)} />
             </dl>
@@ -113,14 +113,14 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
           </Section>
 
           {/* Payment summary */}
-          <Section title={tr('Payment summary')}>
+          <Section title={tr('Payment Summary')}>
             <dl className="space-y-1.5 text-sm">
               <Row label={tr('Subtotal')} value={formatCurrency(tx.subtotal)} />
               {discount > 0 && <Row label={tr('Discount')} value={`−${formatCurrency(discount)}`} tone="text-rose-600" />}
               {Number(tx.tax_amount) > 0 && <Row label={tr('Tax')} value={formatCurrency(tx.tax_amount)} />}
               <div className="my-2 border-t border-neutral-200" />
-              <Row label={tr('Grand total')} value={formatCurrency(tx.total_amount)} strong />
-              {tx.nett_sales !== undefined && <Row label={tr('Nett sales')} value={formatCurrency(tx.nett_sales)} />}
+              <Row label={tr('Grand Total')} value={formatCurrency(tx.total_amount)} strong />
+              {tx.nett_sales !== undefined && <Row label={tr('Nett Sales')} value={formatCurrency(tx.nett_sales)} />}
             </dl>
           </Section>
 

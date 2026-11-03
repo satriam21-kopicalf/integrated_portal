@@ -32,10 +32,10 @@ type CountType = {
 
 /** The "date per item" choices in the editor; null = keep the facility-type default (CK = roasted, WH = expired). */
 const DATE_FIELD_OPTIONS: { value: string; label: () => string }[] = [
-  { value: "", label: () => tr("Facility default") },
+  { value: "", label: () => tr("Facility Default") },
   { value: "NONE", label: () => tr("No date") },
-  { value: "roasted_date", label: () => tr("Roasted date") },
-  { value: "expired_date", label: () => tr("Expired date") },
+  { value: "roasted_date", label: () => tr("Roasted Date") },
+  { value: "expired_date", label: () => tr("Expired Date") },
 ];
 const dateFieldLabel = (v: CountType["date_field"]) =>
   (DATE_FIELD_OPTIONS.find((o) => o.value === (v ?? "")) ?? DATE_FIELD_OPTIONS[0]).label();
@@ -45,12 +45,12 @@ const dayName = (d: number, style: "long" | "short" = "long") => new Date(2024, 
 const fmtDate = (v: string) => new Date(`${v}T00:00:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" });
 const FREQUENCIES: { key: Frequency; label: () => string }[] = [
   { key: "DAILY", label: () => tr("Daily") }, { key: "WEEKLY", label: () => tr("Weekly") },
-  { key: "MONTHLY", label: () => tr("Monthly") }, { key: "DATES", label: () => tr("On chosen dates") },
-  { key: "ADHOC", label: () => tr("When needed") },
+  { key: "MONTHLY", label: () => tr("Monthly") }, { key: "DATES", label: () => tr("On Chosen Dates") },
+  { key: "ADHOC", label: () => tr("When Needed") },
 ];
 /** One-tap schedules Cost Control uses most. */
 const QUICK: { label: () => string; set: Partial<Draft> }[] = [
-  { label: () => tr("Every day"), set: { frequency: "DAILY", days_of_week: [] } },
+  { label: () => tr("Every Day"), set: { frequency: "DAILY", days_of_week: [] } },
   { label: () => tr("Monday to Saturday"), set: { frequency: "DAILY", days_of_week: [1, 2, 3, 4, 5, 6] } },
   { label: () => tr("Every Monday"), set: { frequency: "WEEKLY", weekday: 1 } },
   { label: () => tr("Last day of the month"), set: { frequency: "MONTHLY", month_day: 0 } },
@@ -67,7 +67,7 @@ export function scheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_
 function baseScheduleText(t: Pick<CountType, "frequency" | "weekday" | "days_of_week" | "month_day"> & { dates?: string[] }): string {
   if (t.frequency === "DAILY") {
     const days = t.days_of_week ?? [];
-    if (!days.length || days.length === 7) return tr("Every day");
+    if (!days.length || days.length === 7) return tr("Every Day");
     if (days.length === 6) return tr("Every day except {0}", dayName([1, 2, 3, 4, 5, 6, 7].find((d) => !days.includes(d))!));
     if (days.join() === "1,2,3,4,5") return tr("Monday to Friday");
     if (days.length === 1) return tr("Every {0}", dayName(days[0]));
@@ -143,7 +143,7 @@ export default function TypesPage() {
 
   return (
     <Page title={tr("Count Types")} subtitle={tr("Name, schedule and count window of each stock opname; the calendar follows automatically")}
-      actions={<Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New count type")}</Button>}
+      actions={<Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Count Type")}</Button>}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Active Count Types")} icon={<CalendarDays size={13} />} value={rows ? fmtNumber(all.filter((t) => t.is_active).length) : <StatSkeleton />}>
@@ -218,7 +218,7 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
       </span>
       <span className="mx-4 block divide-y divide-neutral-100 rounded-lg border border-neutral-100 text-sm">
         <Row icon={<CalendarDays size={14} />} k={tr("Schedule")} v={scheduleText(t)} />
-        <Row icon={<Clock size={14} />} k={tr("Count window")} v={t.frequency === "ADHOC" ? tr("Any time") : windowText(t.window_start, t.window_end)} />
+        <Row icon={<Clock size={14} />} k={tr("Count Window")} v={t.frequency === "ADHOC" ? tr("Any time") : windowText(t.window_start, t.window_end)} />
         <Row icon={<CalendarRange size={14} />} k={tr("Valid period")} v={validity} />
       </span>
       <span className="block px-4 pt-3">
@@ -337,7 +337,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
 
   return (
     <Drawer open onClose={onClose} size="lg" icon={<CalendarDays size={18} />}
-      title={creating ? tr("New count type") : countTypeLabel(type.code, type.name)}
+      title={creating ? tr("New Count Type") : countTypeLabel(type.code, type.name)}
       description={creating ? tr("Name it, choose when it is due and its count window") : type.code}
       footer={<>
         {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-red-600">{error}</p>}
@@ -416,7 +416,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
                   <button key={n} type="button" className={cx(dayBtn(d.month_day === n), "h-8 tabular-nums")} onClick={() => set("month_day", n)}>{n}</button>
                 ))}
-                <button type="button" className={cx(dayBtn(d.month_day === 0), "col-span-4 h-8")} onClick={() => set("month_day", 0)}>{tr("Last day")}</button>
+                <button type="button" className={cx(dayBtn(d.month_day === 0), "col-span-4 h-8")} onClick={() => set("month_day", 0)}>{tr("Last Day")}</button>
               </div>
               {d.month_day > 28 && <p className="mt-1.5 text-xs text-neutral-500">{tr("Months without day {0} use their last day.", d.month_day)}</p>}
             </div>
@@ -430,7 +430,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
                   <button key={x} type="button" onClick={() => pickDate(x)} className="rounded-md bg-brand-50 px-2 py-0.5 text-xs text-brand-800 hover:bg-red-50 hover:text-red-700"
                     title={tr("Remove")}>{fmtDate(x)} ×</button>
                 ))}
-                {d.dates.length > 0 && <button type="button" className="text-xs font-medium text-neutral-500 hover:underline" onClick={() => set("dates", [])}>{tr("Clear all")}</button>}
+                {d.dates.length > 0 && <button type="button" className="text-xs font-medium text-neutral-500 hover:underline" onClick={() => set("dates", [])}>{tr("Clear All")}</button>}
               </div>
             </div>
           )}

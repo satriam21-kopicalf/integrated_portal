@@ -90,10 +90,10 @@ export default function SelfieCamera({ pic, branch, position, onClose, onShot, t
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black" role="dialog" aria-modal="true" aria-label={tr("Face photo")}>
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black" role="dialog" aria-modal="true" aria-label={tr("Face Photo")}>
       <div className="flex items-center gap-3 px-4 py-3 text-white">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{tr("Face photo")} · {branch}</p>
+          <p className="truncate text-sm font-semibold">{tr("Face Photo")} · {branch}</p>
           <p className="truncate text-xs text-white/70">{tr("Front camera only: place your face in the oval, in good light")}</p>
         </div>
         <button type="button" onClick={() => { stop(); onClose(); }} className="rounded-full p-2 hover:bg-white/10" aria-label={tr("Close")}><X size={20} /></button>
@@ -101,12 +101,12 @@ export default function SelfieCamera({ pic, branch, position, onClose, onShot, t
       <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden">
         {shot ? (
           // eslint-disable-next-line @next/next/no-img-element -- the photo just taken (data URL)
-          <img src={shot.image} alt={tr("Face photo")} className="max-h-full max-w-full object-contain" />
+          <img src={shot.image} alt={tr("Face Photo")} className="max-h-full max-w-full object-contain" />
         ) : error ? (
           <div className="max-w-sm px-6 text-center text-sm text-white">
             <Camera size={32} className="mx-auto mb-3 text-white/60" />
             <p>{error}</p>
-            <Button variant="secondary" className="mt-4" onClick={() => void start()}><RefreshCw size={16} /> {tr("Try again")}</Button>
+            <Button variant="secondary" className="mt-4" onClick={() => void start()}><RefreshCw size={16} /> {tr("Try Again")}</Button>
           </div>
         ) : (
           <>
@@ -122,10 +122,10 @@ export default function SelfieCamera({ pic, branch, position, onClose, onShot, t
         {shot ? (
           <>
             <Button variant="secondary" onClick={() => setShot(null)}><RotateCcw size={16} /> {tr("Retake")}</Button>
-            <Button onClick={() => onShot(shot)}><Camera size={16} /> {tr("Use photo")}</Button>
+            <Button onClick={() => onShot(shot)}><Camera size={16} /> {tr("Use Photo")}</Button>
           </>
         ) : (
-          <button type="button" onClick={capture} disabled={!ready} aria-label={tr("Take the photo")}
+          <button type="button" onClick={capture} disabled={!ready} aria-label={tr("Take the Photo")}
             className="h-16 w-16 rounded-full border-4 border-white bg-white/20 transition active:scale-95 disabled:opacity-40" />
         )}
       </div>

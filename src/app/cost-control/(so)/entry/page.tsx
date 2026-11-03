@@ -53,9 +53,9 @@ export default function EntryPage() {
         <span>{tr("What you enter or import goes to Review as Submitted. Another Cost Control member approves it (you cannot approve your own entry).")}</span>
       </p>
       <div className="inline-flex rounded-lg border border-neutral-200 bg-white p-1" role="tablist">
-        {([["form", tr("Fill in a form"), ClipboardEdit], ["import", tr("Import a file"), FileUp]] as const).map(([k, label, Icon]) => (
+        {([["form", tr("Fill in a Form"), ClipboardEdit], ["import", tr("Import a file"), FileUp]] as const).map(([k, label, Icon]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium", tab === k ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-50")}>
+            className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium", tab === k ? "bg-brand-700 text-white" : "text-neutral-600 hover:bg-neutral-50")}>
             <Icon size={15} /> {label}
           </button>
         ))}
@@ -95,7 +95,7 @@ function FormEntry({ facilities, types }: { facilities: Facility[]; types: Count
   };
 
   return (
-    <Panel title={tr("Fill in a form")} description={tr("Opens the count form of the branch with its list (items, units, premix in grams). No photos or location are needed.")}>
+    <Panel title={tr("Fill in a Form")} description={tr("Opens the count form of the branch with its list (items, units, premix in grams). No photos or location are needed.")}>
       <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-[1fr_220px_180px]">
         <div className="space-y-2">
           <Field label={tr("Branch")} required>
@@ -120,7 +120,7 @@ function FormEntry({ facilities, types }: { facilities: Facility[]; types: Count
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-neutral-100 px-4 py-3 sm:px-5">
         <p className="min-w-0 truncate text-sm text-neutral-600">{facility ? facilities.find((f) => f.id === facility)?.name : tr("Choose a branch")}</p>
-        <Button loading={busy} disabled={!facility} onClick={open}><ClipboardEdit size={16} /> {tr("Open the form")}</Button>
+        <Button loading={busy} disabled={!facility} onClick={open}><ClipboardEdit size={16} /> {tr("Open the Form")}</Button>
       </div>
     </Panel>
   );
@@ -171,7 +171,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
         </Field>
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-100 px-4 py-3 sm:px-5">
-        <Button variant="secondary" loading={busy === "check"} disabled={!file || !!busy} onClick={() => send(false)}><FileSpreadsheet size={16} /> {tr("Check the file")}</Button>
+        <Button variant="secondary" loading={busy === "check"} disabled={!file || !!busy} onClick={() => send(false)}><FileSpreadsheet size={16} /> {tr("Check the File")}</Button>
         <Button loading={busy === "apply"} disabled={!result || result.applied || ready.length === 0 || !!busy} onClick={() => send(true)}>
           <FileUp size={16} /> {tr("Import {0} branches", ready.length)}
         </Button>

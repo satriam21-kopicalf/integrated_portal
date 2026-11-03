@@ -14,7 +14,7 @@ export function Steps({ items }: { items: ReactNode[] }) {
     <ol className="space-y-2">
       {items.map((it, i) => (
         <li key={i} className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">{i + 1}</span>
+          <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-xs font-semibold text-white">{i + 1}</span>
           <div className="min-w-0 text-sm leading-relaxed text-neutral-700">{it}</div>
         </li>
       ))}

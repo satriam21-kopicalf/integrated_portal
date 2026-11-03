@@ -93,7 +93,7 @@ export default function WwwrForm() {
             <span>{tr("Only the members of an audit open it. Everyone in the team fills the same form (each item shows who filled it); the lead reviews and sends it.")}</span>
           </p>
 
-          <Section title={tr("To do")} count={active.length}>
+          <Section title={tr("To Do")} count={active.length}>
             {active.length === 0 ? <Empty icon={<ClipboardCheck size={26} />} title={tr("No audit for today")}>{tr("Audits appear here when the management assigns you to one.")}</Empty>
               : active.map((a) => card(a, () => void open(a)))}
           </Section>
@@ -179,11 +179,11 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
     try { await call(`/api/forms/wwwr/audits/${audit.id}/members/${p.id}`, { method: "DELETE" }); onChanged(); } catch (e) { toast((e as Error).message, "error"); }
   };
   return (
-    <Drawer open onClose={onClose} size="md" icon={<UsersRound size={18} />} title={tr("Audit team")} description={"branchName" in audit ? audit.branchName : undefined} focusFirstField={false}
+    <Drawer open onClose={onClose} size="md" icon={<UsersRound size={18} />} title={tr("Audit Team")} description={"branchName" in audit ? audit.branchName : undefined} focusFirstField={false}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button><Button disabled={!pick.size} loading={busy} onClick={() => void add()}><UserPlus size={15} /> {tr("Add {0}", pick.size)}</Button></>}>
       <div className="space-y-4 text-sm">
         <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("In the team")} ({audit.members.length})</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("In the Team")} ({audit.members.length})</h3>
           <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
             {audit.members.map((m) => (
               <li key={m.id} className="flex items-center gap-2.5 px-3 py-2">
@@ -195,7 +195,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
           </ul>
         </section>
         <section>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Add colleagues")}</h3>
+          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Add Colleagues")}</h3>
           <p className="mb-2 text-xs text-neutral-500">{tr("SWAT / Operations accounts. They see this audit in Form WW-WR and fill it with you; only you send it.")}</p>
           <div className="overflow-hidden rounded-xl border border-neutral-200">
             <div className="relative border-b border-neutral-100 p-2"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -251,7 +251,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
     <div className="space-y-4">
       <div className="px-1">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-700">{tr("Before sending")}</p>
-        <p className="text-lg font-semibold text-neutral-900">{tr("Evaluation & action plan")}</p>
+        <p className="text-lg font-semibold text-neutral-900">{tr("Evaluation & Action Plan")}</p>
         <p className="text-xs text-neutral-500">{tr("The team writes what it found, what the outlet must do, who of the team follows it and when the team comes back.")}</p>
       </div>
       {!dirty && missing.length > 0 && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Still needed before the lead sends: {0}", missing.join(", "))}</p>}
@@ -259,20 +259,20 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
       <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-neutral-900">{tr("Team")}</h3>
-          {audit.lead.id === me && <Button size="sm" variant="secondary" onClick={() => setTeamOpen(true)}><UserPlus size={14} /> {tr("Add colleagues")}</Button>}
+          {audit.lead.id === me && <Button size="sm" variant="secondary" onClick={() => setTeamOpen(true)}><UserPlus size={14} /> {tr("Add Colleagues")}</Button>}
         </div>
         <p className="flex flex-wrap gap-1.5">{members.map((m) => <Badge key={m.id} tone={m.id === audit.lead.id ? "amber" : "slate"}>{m.name}{m.id === audit.lead.id ? ` · ${tr("lead")}` : ""}</Badge>)}</p>
       </section>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-        <label className="block text-sm font-semibold text-neutral-900">{tr("General evaluation")} <span className="text-red-500">*</span>
+        <label className="block text-sm font-semibold text-neutral-900">{tr("General Evaluation")} <span className="text-red-500">*</span>
           <textarea rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={4000} className={cx(inputClass, "mt-2 py-2 font-normal")}
             placeholder={tr("e.g. Bar clean, but the stock of premix is under par and two shelf-life labels are missing …")} /></label>
       </section>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <div><h3 className="text-sm font-semibold text-neutral-900">{tr("Action plans")} <span className="text-red-500">*</span></h3><p className="text-xs text-neutral-500">{tr("What must be done, who of the team handles it and by when")}</p></div>
+          <div><h3 className="text-sm font-semibold text-neutral-900">{tr("Action Plans")} <span className="text-red-500">*</span></h3><p className="text-xs text-neutral-500">{tr("What must be done, who of the team handles it and by when")}</p></div>
           <Button size="sm" variant="secondary" onClick={() => setActions((a) => [...a, { title: "", detail: "", assigneeId: "", dueOn: revisit }])}><Plus size={14} /> {tr("Action plan")}</Button>
         </div>
         <ol className="space-y-2">
@@ -306,7 +306,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
 
       <div className="flex items-center justify-end gap-3">
         <span className={cx("text-xs", dirty ? "text-amber-700" : "text-emerald-700")}>{dirty ? tr("Not saved yet") : tr("Saved")}</span>
-        <Button loading={busy} disabled={!dirty} onClick={() => void save()}><ClipboardList size={15} /> {tr("Save evaluation")}</Button>
+        <Button loading={busy} disabled={!dirty} onClick={() => void save()}><ClipboardList size={15} /> {tr("Save Evaluation")}</Button>
       </div>
       {teamOpen && <TeamDrawer audit={{ ...audit, members }} me={me} onClose={() => setTeamOpen(false)}
         onChanged={() => { void call<WwwrState>("/api/forms/wwwr").then((d) => { const a = d.audits.find((x) => x.id === audit.id); if (a) { setMembers(a.members); onSaved({ members: a.members }); } }); }} />}
@@ -343,7 +343,7 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
     <Drawer open onClose={onClose} size="lg" icon={<ClipboardCheck size={18} />} title={audit.branchName} description={`${tr("SWAT audit")} · ${dayShort(audit.day)}`} focusFirstField={false}
       footer={<>
         {audit.shareToken && <>
-          <Button variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy link")}</Button>
+          <Button variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy Link")}</Button>
           <a href={`/share/wwwr/${audit.shareToken}?print=1`} target="_blank" rel="noreferrer"><Button variant="secondary"><Printer size={14} /> {tr("Print / PDF")}</Button></a>
         </>}
         <Button onClick={onClose}>{tr("Close")}</Button>
@@ -353,9 +353,9 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
           <p className="font-semibold">{done ? tr("Completed {0}", wibDateTime(audit.completedAt)) : tr("Follow-up: {0} of {1} action plans open", left, audit.actions.length)}</p>
           <p className="text-xs">{tr("Revisit {0}", dayShort(audit.revisitOn))}{audit.revisitNote ? ` · ${audit.revisitNote}` : ""}</p>
         </div>
-        {audit.summary && <section><h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("General evaluation")}</h3><p className="whitespace-pre-line rounded-xl bg-neutral-50 p-3 text-neutral-700">{audit.summary}</p></section>}
+        {audit.summary && <section><h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("General Evaluation")}</h3><p className="whitespace-pre-line rounded-xl bg-neutral-50 p-3 text-neutral-700">{audit.summary}</p></section>}
         <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Action plans")}</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Action Plans")}</h3>
           <ul className="space-y-2">
             {audit.actions.map((x) => (
               <li key={x.id} className={cx("flex items-start gap-3 rounded-xl border p-3", x.status === "done" ? "border-emerald-200 bg-emerald-50/50" : "border-neutral-200")}>
@@ -375,7 +375,7 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
         </section>
         {!done && lead && (
           <section className="rounded-xl border border-neutral-200 p-3">
-            <h3 className="text-sm font-semibold text-neutral-900">{tr("Close the revisit")}</h3>
+            <h3 className="text-sm font-semibold text-neutral-900">{tr("Close the Revisit")}</h3>
             <p className="mb-2 text-xs text-neutral-500">{left ? tr("Mark every action plan done first ({0} open)", left) : tr("Every action plan is done: close the revisit to complete the audit")}</p>
             <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Result of the revisit (optional)")} className={cx(inputClass, "py-2")} />
             <div className="mt-2 flex justify-end"><Button disabled={left > 0} loading={busy === "complete"} onClick={() => void complete()}><CheckCircle2 size={15} /> {tr("Complete the audit")}</Button></div>

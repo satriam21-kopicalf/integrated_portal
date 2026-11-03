@@ -118,7 +118,7 @@ export function ActiveFilters({ filters, onClear }: { filters: ActiveFilter[]; o
           </button>
         </span>
       ))}
-      <button type="button" onClick={onClear} className="text-xs font-medium text-neutral-500 hover:text-neutral-900">{tr('Clear all')}</button>
+      <button type="button" onClick={onClear} className="text-xs font-medium text-neutral-500 hover:text-neutral-900">{tr('Clear All')}</button>
     </div>
   );
 }

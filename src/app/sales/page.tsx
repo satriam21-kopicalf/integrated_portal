@@ -8,12 +8,13 @@ import ExportButton from '@/components/ExportButton';
 import { useFilterLog } from '@/lib/activity';
 import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
 import BranchFilter, { Branch, branchesLabel, splitBranches } from '@/components/BranchFilter';
-import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Search, Tag, Wallet, X } from 'lucide-react';
+import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Tag, Wallet, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate, fixed } from '@/lib/format';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { useRealtime } from '@/lib/realtime';
 import { tr, serverMsg } from '@/lib/i18n';
+import { SearchInput, btn } from '@/components/kc';
 
 interface PaginationInfo {
   cursor: string | null;
@@ -69,13 +70,13 @@ function salesPresets(): DatePreset[] {
   return [
     { label: tr('Today'), from: d(0), to: d(0) },
     { label: tr('Yesterday'), from: d(-1), to: d(-1) },
-    { label: tr('Last 7 days'), from: d(-7), to: d(-1) },
-    { label: tr('Last 30 days'), from: d(-30), to: d(-1) },
-    { label: tr('Last 90 days'), from: d(-90), to: d(-1) },
+    { label: tr('Last 7 Days'), from: d(-7), to: d(-1) },
+    { label: tr('Last 30 Days'), from: d(-30), to: d(-1) },
+    { label: tr('Last 90 Days'), from: d(-90), to: d(-1) },
     // running period: from the 1st (of the month / year) up to and including today
-    { label: tr('Month to date'), from: toIsoDate(new Date(y, m, 1)), to: d(0) },
-    { label: tr('Last month'), from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
-    { label: tr('Year to date'), from: toIsoDate(new Date(y, 0, 1)), to: d(0) },
+    { label: tr('Month to Date'), from: toIsoDate(new Date(y, m, 1)), to: d(0) },
+    { label: tr('Last Month'), from: toIsoDate(new Date(y, m - 1, 1)), to: toIsoDate(new Date(y, m, 0)) },
+    { label: tr('Year to Date'), from: toIsoDate(new Date(y, 0, 1)), to: d(0) },
   ];
 }
 
@@ -281,10 +282,10 @@ export default function SalesPage() {
   return (
     <DashboardLayout>
       <div className="min-h-full bg-neutral-50">
-        <header className="px-4 pt-1 sm:px-6 lg:pt-6">
+        <header className="px-4 pt-4 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-neutral-900 sm:text-2xl lg:text-xl lg:font-semibold">{tr('Sales Transactions')}</h1>
+              <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{tr('Sales Transactions')}</h1>
               <p className="truncate text-xs text-neutral-500 sm:text-sm">
                 {periodLabel} · {branchLabel}
               </p>
@@ -297,25 +298,11 @@ export default function SalesPage() {
           <SummaryStrip summary={summary} loading={summaryLoading} />
 
           {/* Transactions card */}
-          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+          <section className="rounded-xl border border-neutral-200 bg-white">
             {/* Toolbar */}
-            <div className="flex flex-col gap-3 border-b border-neutral-200 p-3 sm:flex-row sm:items-center sm:p-4">
-              <div className="relative flex-1">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                <input
-                  type="text"
-                  placeholder={tr('Search sales no., bill no. or branch')}
-                  value={search}
-                  onChange={e => handleSearchChange(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/5"
-                />
-                {search && (
-                  <button type="button" onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700" aria-label={tr('Clear search')}>
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center justify-end gap-2">
+            <div className="flex flex-col gap-2.5 border-b border-neutral-200 p-3 sm:flex-row sm:items-center sm:px-5 sm:py-3.5">
+              <SearchInput value={search} onChange={(v) => (v ? handleSearchChange(v) : clearSearch())} placeholder={tr('Search sales no., bill no. or branch')} />
+              <div className="flex items-center gap-2 sm:justify-end">
                 <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel={tr('today')} />
                 <BranchFilter branches={branches} loading={branchesLoading} value={branch} onChange={setBranch} />
                 <ExportButton
@@ -340,14 +327,14 @@ export default function SalesPage() {
                     role="tab"
                     aria-selected={active}
                     onClick={() => setTxType(t.value)}
-                    className={`-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
-                      active ? 'border-neutral-900 text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-800'
+                    className={`-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13px] font-medium transition-colors ${
+                      active ? 'border-brand-700 text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-800'
                     }`}
                   >
                     <span className="sm:hidden">{t.short}</span>
                     <span className="hidden sm:inline">{t.label}</span>
                     {typeCounts[t.value] !== undefined && (
-                      <span className={`rounded-full px-1.5 py-0.5 text-[11px] tabular-nums ${active ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500'}`}>
+                      <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${active ? 'bg-brand-50 text-brand-700' : 'bg-neutral-100 text-neutral-500'}`}>
                         {formatNumber(typeCounts[t.value])}
                       </span>
                     )}
@@ -367,7 +354,7 @@ export default function SalesPage() {
                 {txType !== 'sales' && <Chip label={tr('Type: {0}', typeInfo.label)} onRemove={() => setTxType('sales')} />}
                 {debouncedSearch && <Chip label={tr('Search: “{0}”', debouncedSearch)} onRemove={clearSearch} />}
                 <button type="button" onClick={clearFilters} className="text-xs font-medium text-neutral-500 hover:text-neutral-900">
-                  {tr('Clear all')}
+                  {tr('Clear All')}
                 </button>
               </div>
             )}
@@ -401,7 +388,7 @@ export default function SalesPage() {
                   <p className="text-sm font-medium text-neutral-800">{tr('Couldn’t load transactions')}</p>
                   <p className="text-xs text-neutral-500">{loadError}</p>
                   <button type="button" onClick={() => fetchData(null)} className="mt-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
-                    {tr('Try again')}
+                    {tr('Try Again')}
                   </button>
                 </div>
               )}
@@ -447,7 +434,7 @@ export default function SalesPage() {
                     type="button"
                     onClick={() => pagination.cursor && fetchData(pagination.cursor)}
                     disabled={loadingMore}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-60 sm:w-auto"
+                    className={`${btn('solid')} h-10 w-full sm:h-9 sm:w-auto`}
                   >
                     {loadingMore ? <><Loader2 size={15} className="animate-spin" /> {tr('Loading…')}</> : <>{tr('Load more')} <ChevronRight size={15} /></>}
                   </button>
@@ -477,20 +464,20 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
   const parts = t && t.gross.subtotal
     ? [
         { key: 'sales', label: tr('Gross sales'), value: t.sales.subtotal, color: '#2a78d6' },
-        { key: 'void', label: tr('Void & cancelled'), value: t.void.subtotal, color: '#e34948' },
+        { key: 'void', label: tr('Void & Cancelled'), value: t.void.subtotal, color: '#e34948' },
         { key: 'other', label: tr('Other cost'), value: t.other_cost.subtotal, color: '#eda100' },
-        { key: 'open', label: tr('Open bills'), value: t.open.subtotal, color: '#a8a29e' },
+        { key: 'open', label: tr('Open Bills'), value: t.open.subtotal, color: '#a8a29e' },
       ].filter(p => p.value > 0)
     : [];
   const money = (v: number | undefined) => formatCurrency(v);
 
   return (
-    <StatStrip label={tr('Sales summary')}>
+    <StatStrip label={tr('Sales Summary')}>
       <Stat label={tr('Gross sales')} icon={<Wallet size={13} aria-hidden />} emphasis
         value={pending ? <StatSkeleton /> : money(t?.sales.subtotal)} title={formatCurrency(t?.sales.subtotal)}>
         {t && <p>{formatNumber(t.sales.transactions)} {tr('transactions · avg')} {formatCurrency(avg)}</p>}
       </Stat>
-      <Stat label={tr('Nett sales')} icon={<Tag size={13} aria-hidden />}
+      <Stat label={tr('Nett Sales')} icon={<Tag size={13} aria-hidden />}
         value={pending ? <StatSkeleton /> : money(t?.sales.nettSales)} title={formatCurrency(t?.sales.nettSales)}>
         {t && (
           <p>
@@ -499,7 +486,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
           </p>
         )}
       </Stat>
-      <Stat label={tr('All transactions')} icon={<Layers size={13} aria-hidden />}
+      <Stat label={tr('All Transactions')} icon={<Layers size={13} aria-hidden />}
         value={pending ? <StatSkeleton /> : money(t?.gross.subtotal)} title={formatCurrency(t?.gross.subtotal)}>
         {t && (
           <>
@@ -522,9 +509,9 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
         title={deductions !== undefined ? `−${formatCurrency(deductions)}` : undefined}>
         {t && (
           <dl className="space-y-0.5">
-            <DeductionRow label={tr('Void & cancelled')} color="#e34948" value={t.void.subtotal} count={t.void.transactions} />
+            <DeductionRow label={tr('Void & Cancelled')} color="#e34948" value={t.void.subtotal} count={t.void.transactions} />
             <DeductionRow label={tr('Other cost')} color="#eda100" value={t.other_cost.subtotal} count={t.other_cost.transactions} hint={methods.join(', ')} />
-            {!!t.open.transactions && <DeductionRow label={tr('Open bills')} color="#a8a29e" value={t.open.subtotal} count={t.open.transactions} />}
+            {!!t.open.transactions && <DeductionRow label={tr('Open Bills')} color="#a8a29e" value={t.open.subtotal} count={t.open.transactions} />}
           </dl>
         )}
       </Stat>
@@ -572,11 +559,11 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
             <th className={TH}>{tr('Sales / Bill')}</th>
             <th className={TH}>{tr('Date')}</th>
             <th className={TH}>{tr('Branch / Payment')}</th>
-            <th className={`${TH} min-w-[220px]`}>{tr('Menu item')}</th>
+            <th className={`${TH} min-w-[220px]`}>{tr('Menu Item')}</th>
             <th className={`${TH} text-right`}>{tr('Qty')}</th>
             <th className={`${TH} hidden text-right 2xl:table-cell`}>{tr('Price')}</th>
-            <th className={`${TH} text-right`}>{tr('Item total')}</th>
-            <th className={`${TH} text-right`}>{tr('Bill total / Status')}</th>
+            <th className={`${TH} text-right`}>{tr('Item Total')}</th>
+            <th className={`${TH} text-right`}>{tr('Bill Total / Status')}</th>
           </tr>
         </thead>
         <tbody>

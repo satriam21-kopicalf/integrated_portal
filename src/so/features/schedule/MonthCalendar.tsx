@@ -49,11 +49,11 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
         {onMonth && (
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => onMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-              className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Previous month")}><ChevronLeft size={16} /></button>
+              className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Previous Month")}><ChevronLeft size={16} /></button>
             <button type="button" onClick={() => onMonth(wibMonthStart())}
               className="rounded-md px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100">{tr("Today")}</button>
             <button type="button" onClick={() => onMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-              className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Next month")}><ChevronRight size={16} /></button>
+              className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Next Month")}><ChevronRight size={16} /></button>
           </div>
         )}
       </div>
@@ -72,7 +72,7 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
               className={cx("bg-white px-1 py-1", compact ? "min-h-9" : "min-h-12 sm:min-h-[5.5rem]", !inMonth && "bg-neutral-50/70", marked && "bg-brand-50",
                 pickable && "cursor-pointer hover:bg-brand-50/60", onPick && !pickable && "opacity-50")}>
               <span className={cx("mb-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] tabular-nums",
-                key === today ? "bg-neutral-900 font-semibold text-white" : inMonth ? "text-neutral-700" : "text-neutral-300",
+                key === today ? "bg-brand-700 font-semibold text-white" : inMonth ? "text-neutral-700" : "text-neutral-300",
                 marked && key !== today && "bg-brand-600 font-semibold text-white")}>{d.getDate()}</span>
               {!compact && counts.length > 0 && (
                 <span className="flex flex-wrap gap-0.5 px-0.5 sm:hidden" aria-label={counts.map((c) => labelOf(c.code, c.name)).join(", ")}>

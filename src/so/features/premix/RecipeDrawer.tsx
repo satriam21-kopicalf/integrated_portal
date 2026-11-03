@@ -145,7 +145,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
                   const on = head.facility_types.includes(t);
                   return (
                     <button key={t} type="button" aria-pressed={on} onClick={() => setHead({ ...head, facility_types: on ? head.facility_types.filter(x => x !== t) : [...head.facility_types, t] })}
-                      className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{t}</button>
+                      className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{t}</button>
                   );
                 })}
               </div>
@@ -210,7 +210,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               <div className="flex flex-wrap items-center gap-1.5">
                 {r.versions.map(v => (
                   <button key={v.id} type="button" onClick={() => { setVersionId(v.id); setDraft(v.status === "DRAFT" ? { batch: String(num(v.output_qty_base)), note: v.note ?? "", lines: v.lines.map(toDraft) } : null); }}
-                    className={cx("rounded-lg border px-2.5 py-1 text-xs font-medium", v.id === versionId ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>
+                    className={cx("rounded-lg border px-2.5 py-1 text-xs font-medium", v.id === versionId ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>
                     v{v.version_no} · {v.status === "ACTIVE" ? tr("Active") : v.status === "DRAFT" ? tr("Draft") : tr("Retired")}
                   </button>
                 ))}

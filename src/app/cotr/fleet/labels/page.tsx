@@ -91,7 +91,7 @@ function Labels() {
   };
 
   return (
-    <Page eyebrow="Monitoring COTR" media={<Printer size={19} />} title={tr("Armada labels")} subtitle={tr("Information label of the armada: code, vehicle and a QR that opens its details and driver (the QRIS is not printed)")}
+    <Page eyebrow="Monitoring COTR" media={<Printer size={19} />} title={tr("Armada Labels")} subtitle={tr("Information label of the armada: code, vehicle and a QR that opens its details and driver (the QRIS is not printed)")}
       actions={<Button disabled={!chosen.length || !origin} onClick={() => window.print()}><Printer size={16} /> {tr("Print {0}", chosen.length * copies)}</Button>}>
       <style>{`@media print {
         body * { visibility: hidden !important; }
@@ -107,8 +107,8 @@ function Labels() {
       <div className="grid items-start gap-5 lg:grid-cols-[22rem_minmax(0,1fr)]">
         {/* the settings: model, print, which armada (a short scrolling list, not every code open at once) */}
         <aside className="space-y-4 lg:sticky lg:top-4">
-          <Panel title={tr("Label model")} description={tr("Choose the model of the label and how it is printed")}>
-            <ul className="divide-y divide-neutral-100" role="radiogroup" aria-label={tr("Label model")}>
+          <Panel title={tr("Label Model")} description={tr("Choose the model of the label and how it is printed")}>
+            <ul className="divide-y divide-neutral-100" role="radiogroup" aria-label={tr("Label Model")}>
               {(Object.keys(LAYOUTS) as Layout[]).map((k) => {
                 const l = LAYOUTS[k];
                 const on = layout === k;
@@ -139,7 +139,7 @@ function Labels() {
                   <option value="roll">{tr("Label printer (one label per page)")}</option>
                 </Select>
               </Field>
-              <Field label={tr("Copies per armada")}>
+              <Field label={tr("Copies per Armada")}>
                 <Select value={copies} onChange={(e) => setCopies(Number(e.target.value))}>
                   {[1, 2, 3, 4, 6].map((n) => <option key={n} value={n}>{n}</option>)}
                 </Select>
@@ -266,8 +266,8 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
   }
   if (layout === "card") {
     const facts: [string, string | number | null | undefined][] = [
-      [tr("Type"), x.type], [tr("Make / model"), vehicle || null], [tr("Plate number"), f.plate], [tr("Colour"), f.color],
-      [tr("Pool / HUB"), x.pool], [tr("Asset number"), f.asset_no], [tr("Capacity"), f.capacity ? tr("{0} cups", f.capacity) : null], [tr("Year made"), f.year_made],
+      [tr("Type"), x.type], [tr("Make / model"), vehicle || null], [tr("Plate Number"), f.plate], [tr("Colour"), f.color],
+      [tr("Pool / HUB"), x.pool], [tr("Asset Number"), f.asset_no], [tr("Capacity"), f.capacity ? tr("{0} cups", f.capacity) : null], [tr("Year Made"), f.year_made],
     ];
     return (
       <section className={cx(shell, "flex-col rounded-[4mm]")} style={{ ...box, border: `0.4mm solid #cbd5e1` }}>

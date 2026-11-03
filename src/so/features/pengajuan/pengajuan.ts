@@ -66,7 +66,7 @@ export const KIND_HINT: Record<Kind, () => string> = {
 export const NEEDED_LABEL: Partial<Record<Kind, () => string>> = { MARKETING: () => tr("Date needed"), EVENT: () => tr("Event date"), BILL: () => tr("Due date") };
 export const kindLabel = (k: Kind) => KIND_LABEL[k]?.() ?? k;
 export const CATEGORY_LABEL: Record<string, () => string> = {
-  RAW: () => tr("Raw materials"), OPERATIONAL: () => tr("Outlet operations"), GAS_WATER: () => tr("Gas & gallon water"),
+  RAW: () => tr("Raw Materials"), OPERATIONAL: () => tr("Outlet operations"), GAS_WATER: () => tr("Gas & gallon water"),
   TRANSPORT: () => tr("Transport & delivery"), CLEANING: () => tr("Cleaning & stationery"), REPAIR: () => tr("Small repairs"),
   PARKING: () => tr("Parking & security"), MEAL: () => tr("Meals"), OTHER: () => tr("Other"),
   PACKAGING: () => tr("Packaging & cups"), ICE: () => tr("Ice cubes"), PRINT: () => tr("Printing (banner, flyer, menu)"), VOUCHER: () => tr("Vouchers & discounts"),

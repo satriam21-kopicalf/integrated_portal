@@ -61,7 +61,7 @@ export default function InfoTip({ info }: { info: InfoKey | MetricInfo }) {
               {data.formula.map(f => <li key={f} className="rounded bg-neutral-50 px-2 py-1 font-mono text-[11px] text-neutral-800">{tr(f)}</li>)}
             </Part>
           )}
-          <Part title={tr('What is counted')}>{data.definition.map(d => <li key={d}>{tr(d)}</li>)}</Part>
+          <Part title={tr('What is Counted')}>{data.definition.map(d => <li key={d}>{tr(d)}</li>)}</Part>
           <Part title={tr('Source')}>{data.source.map(s => <li key={s}>{tr(s)}</li>)}</Part>
         </div>,
         document.body,

@@ -74,7 +74,7 @@ export default function LocationsPage() {
   const types = Array.from(new Set(all.map((r) => r.facility_type))).sort();
 
   const chips: ActiveFilter[] = [
-    ...(f.state ? [{ key: "s", label: f.state === "set" ? tr("With coordinates") : tr("Without coordinates"), onRemove: () => setF({ ...f, state: "" }) }] : []),
+    ...(f.state ? [{ key: "s", label: f.state === "set" ? tr("With Coordinates") : tr("Without coordinates"), onRemove: () => setF({ ...f, state: "" }) }] : []),
     ...(f.type ? [{ key: "t", label: f.type, onRemove: () => setF({ ...f, type: "" }) }] : []),
   ];
 

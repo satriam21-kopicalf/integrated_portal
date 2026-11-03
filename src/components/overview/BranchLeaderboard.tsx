@@ -17,10 +17,10 @@ type SortKey = 'subtotal' | 'deltaPct' | 'bills' | 'avgTicket' | 'subtotalPerDay
 const COLUMNS: { key: SortKey; label: string; title: string }[] = [
   { key: 'subtotal', get label() { return tr('Gross sales'); }, get title() { return tr('Gross sales in the period'); } },
   { key: 'deltaPct', get label() { return tr('Change'); }, get title() { return tr('vs the previous period'); } },
-  { key: 'bills', get label() { return tr('Bills'); }, get title() { return tr('Sales transactions'); } },
-  { key: 'avgTicket', get label() { return tr('Average Order Value'); }, get title() { return tr('Gross sales ÷ bills'); } },
-  { key: 'subtotalPerDay', get label() { return tr('Gross sales / day'); }, get title() { return tr('Gross sales per day with sales'); } },
-  { key: 'voidRate', get label() { return tr('Void rate'); }, get title() { return tr('Void & cancelled ÷ all transactions'); } },
+  { key: 'bills', get label() { return tr('Bills'); }, get title() { return tr('Sales Transactions'); } },
+  { key: 'avgTicket', get label() { return tr('Average Order Value'); }, get title() { return tr('Gross Sales ÷ Bills'); } },
+  { key: 'subtotalPerDay', get label() { return tr('Gross Sales / Day'); }, get title() { return tr('Gross sales per day with sales'); } },
+  { key: 'voidRate', get label() { return tr('Void Rate'); }, get title() { return tr('Void & cancelled ÷ all transactions'); } },
 ];
 const PAGE = 10;
 
@@ -51,18 +51,18 @@ export default function BranchLeaderboard({ resource, query: baseQuery }: { reso
       resource={shown}
       minHeight={360}
       onOpen={() => drill.open({ kind: 'branches' })}
-      tabs={<CardTabs label={tr('Branches view')} value={tab} onChange={setTab}
-        options={[{ value: 'board', label: tr('Leaderboard') }, { value: 'weekday', label: tr('Average per weekday') }]} />}
+      tabs={<CardTabs label={tr('Branches View')} value={tab} onChange={setTab}
+        options={[{ value: 'board', label: tr('Leaderboard') }, { value: 'weekday', label: tr('Average per Weekday') }]} />}
       actions={tab === 'weekday' ? undefined :
         <>
         <Segmented label={tr('View')} value={view} options={[{ value: 'table', label: tr('Table') }, { value: 'chart', label: tr('Top 10') }]} onChange={setView} />
         <label className="relative">
-          <span className="sr-only">{tr('Search branch')}</span>
+          <span className="sr-only">{tr('Search Branch')}</span>
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder={tr('Search branch')}
+            placeholder={tr('Search Branch')}
             className="h-8 w-40 rounded-lg border border-neutral-200 pl-8 pr-2 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none sm:w-48"
           />
         </label>
@@ -205,8 +205,8 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
       formatter: (items: { dataIndex: number }[]) => {
         const b = rows[items[0]?.dataIndex ?? 0];
         return tipTitle(b.branchName)
-          + tipRow(INK.accent, formatCurrency(b.subtotal), tr('This period'))
-          + (hasPrev ? tipRow(INK.previous, formatCurrency(b.previousSubtotal), tr('Previous period')) : '')
+          + tipRow(INK.accent, formatCurrency(b.subtotal), tr('This Period'))
+          + (hasPrev ? tipRow(INK.previous, formatCurrency(b.previousSubtotal), tr('Previous Period')) : '')
           + tipFooter(tr('Change {0} · {1} bills · void {2}%', changeHtml(b.deltaPct), formatNumber(b.bills), fixed(b.voidRate, 2) ?? '-'));
       },
     }),
@@ -220,11 +220,11 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
     },
     series: [
       ...(hasPrev ? [{
-        name: tr('Previous period'), type: 'bar', data: rows.map(b => b.previousSubtotal), barWidth: 6, barGap: '20%',
+        name: tr('Previous Period'), type: 'bar', data: rows.map(b => b.previousSubtotal), barWidth: 6, barGap: '20%',
         itemStyle: { color: INK.previous, borderRadius: [0, 3, 3, 0] }, silent: true,
       }] : []),
       {
-        name: tr('This period'), type: 'bar', data: rows.map(b => b.subtotal), barWidth: 12,
+        name: tr('This Period'), type: 'bar', data: rows.map(b => b.subtotal), barWidth: 12,
         itemStyle: { color: INK.accent, borderRadius: [0, 4, 4, 0] },
         label: {
           show: true, position: 'right', fontSize: 11,
@@ -242,8 +242,8 @@ function TopChart({ data, query }: { data: BranchesResponse; query: string }) {
   return (
     <div className="space-y-2">
       <Legend items={[
-        { key: 'cur', label: tr('This period'), color: INK.accent },
-        ...(hasPrev ? [{ key: 'prev', label: tr('Previous period'), color: INK.previous }] : []),
+        { key: 'cur', label: tr('This Period'), color: INK.accent },
+        ...(hasPrev ? [{ key: 'prev', label: tr('Previous Period'), color: INK.previous }] : []),
       ]} />
       <EChart option={option} height={Math.max(220, rows.length * 34)} ariaLabel={tr('Top 10 branches by gross sales, this period and previous period')}
         onClick={p => { const b = rows[p.dataIndex]; if (b) drill.open(to.branch(b.branchCode, b.branchName)); }} />

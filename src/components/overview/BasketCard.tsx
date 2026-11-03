@@ -21,17 +21,17 @@ export default function BasketCard({ resource }: { resource: Resource<BasketResp
         return (
           <div className="space-y-4">
             <dl className="grid grid-cols-2 gap-2">
-              <Stat label={tr('Menu lines / bill')} value={fixed(t.linesPerBill, 2) ?? '-'} delta={change(t.linesPerBill, p?.linesPerBill ?? null)} />
-              <Stat label={tr('Items / bill')} value={fixed(t.qtyPerBill, 2) ?? '-'} delta={change(t.qtyPerBill, p?.qtyPerBill ?? null)} />
+              <Stat label={tr('Menu Lines / Bill')} value={fixed(t.linesPerBill, 2) ?? '-'} delta={change(t.linesPerBill, p?.linesPerBill ?? null)} />
+              <Stat label={tr('Items / Bill')} value={fixed(t.qtyPerBill, 2) ?? '-'} delta={change(t.qtyPerBill, p?.qtyPerBill ?? null)} />
               <Stat
-                label={tr('Bills with food')}
+                label={tr('Bills with Food')}
                 value={t.foodSharePct === null ? '-' : `${fixed(t.foodSharePct, 1)}%`}
                 delta={p && t.foodSharePct !== null && p.foodSharePct !== null ? t.foodSharePct - p.foodSharePct : null}
                 unit=" pp"
                 hint={tr('{0} of {1} bills', formatNumber(t.foodBills), formatNumber(t.bills))}
               />
               <Stat
-                label={tr('Food attach rate')}
+                label={tr('Food Attach Rate')}
                 value={t.foodAttachPct === null ? '-' : `${fixed(t.foodAttachPct, 1)}%`}
                 delta={p && t.foodAttachPct !== null && p.foodAttachPct !== null ? t.foodAttachPct - p.foodAttachPct : null}
                 unit=" pp"
@@ -43,8 +43,8 @@ export default function BasketCard({ resource }: { resource: Resource<BasketResp
               <thead className="text-neutral-500">
                 <tr>
                   <th scope="col" className="py-1.5 text-left font-medium">{tr('Channel')}</th>
-                  <th scope="col" className="py-1.5 text-right font-medium">{tr('Items / bill')}</th>
-                  <th scope="col" className="py-1.5 text-right font-medium">{tr('With food')}</th>
+                  <th scope="col" className="py-1.5 text-right font-medium">{tr('Items / Bill')}</th>
+                  <th scope="col" className="py-1.5 text-right font-medium">{tr('With Food')}</th>
                   <th scope="col" className="py-1.5 text-right font-medium">{tr('Attach')}</th>
                 </tr>
               </thead>

@@ -171,7 +171,7 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
             key: j.id,
             params: {
               dateFrom: j.dateFrom, dateTo: j.dateTo, branch: j.branch ?? undefined, txType: j.type ?? 'sales',
-              report: j.report ?? 'detail', format: j.format ?? 'xlsx', branchLabel: j.branch ? j.branch.split(',').join(', ') : tr('All branches'),
+              report: j.report ?? 'detail', format: j.format ?? 'xlsx', branchLabel: j.branch ? j.branch.split(',').join(', ') : tr('All Branches'),
               typeLabel: j.type ?? 'sales',
             },
             startedAt: j.createdAt ? Date.parse(j.createdAt) : Date.now(),

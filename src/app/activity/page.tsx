@@ -61,10 +61,10 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: '', get label() { return tr('All'); } },
   { value: 'export', get label() { return tr('Exports'); } },
   { value: 'auth', get label() { return tr('Sign-in'); } },
-  { value: 'page,filter', get label() { return tr('Pages & filters'); } },
+  { value: 'page,filter', get label() { return tr('Pages & Filters'); } },
   { value: 'transaction', get label() { return tr('Transactions'); } },
   { value: 'user,profile', get label() { return tr('Accounts'); } },
-  { value: 'access', get label() { return tr('Access denied'); } },
+  { value: 'access', get label() { return tr('Access Denied'); } },
   { value: 'form', get label() { return tr('Forms'); } },
   { value: 'system', get label() { return tr('System'); } },
 ];
@@ -72,24 +72,24 @@ const CATEGORIES: { value: string; label: string }[] = [
 /** label = title in the detail panel, verb = how the timeline sentence reads */
 const ACTIONS: Record<string, { label: string; verb: string; icon: ReactNode }> = {
   'auth.login': { get label() { return tr('Signed in'); }, get verb() { return tr('signed in'); }, icon: <LogIn size={15} /> },
-  'auth.login_failed': { get label() { return tr('Failed sign-in'); }, get verb() { return tr('failed to sign in'); }, icon: <KeyRound size={15} /> },
-  'auth.logout': { get label() { return tr('Signed out'); }, get verb() { return tr('signed out'); }, icon: <LogOut size={15} /> },
-  'auth.password_change': { get label() { return tr('Changed own password'); }, get verb() { return tr('changed their password'); }, icon: <KeyRound size={15} /> },
-  'profile.update': { get label() { return tr('Updated own profile'); }, get verb() { return tr('updated their profile'); }, icon: <UserRound size={15} /> },
-  'page.view': { get label() { return tr('Opened page'); }, get verb() { return tr('opened'); }, icon: <Monitor size={15} /> },
-  'filter.change': { get label() { return tr('Changed filters'); }, get verb() { return tr('changed filters'); }, icon: <SlidersHorizontal size={15} /> },
-  'transaction.view': { get label() { return tr('Opened transaction'); }, get verb() { return tr('opened a transaction'); }, icon: <Eye size={15} /> },
-  'export.create': { get label() { return tr('Requested export'); }, get verb() { return tr('requested an export'); }, icon: <FileSpreadsheet size={15} /> },
-  'export.done': { get label() { return tr('Export finished'); }, get verb() { return tr('\'s export finished'); }, icon: <FileSpreadsheet size={15} /> },
-  'export.failed': { get label() { return tr('Export failed'); }, get verb() { return tr('\'s export failed'); }, icon: <FileSpreadsheet size={15} /> },
-  'export.download': { get label() { return tr('Downloaded export'); }, get verb() { return tr('downloaded an export'); }, icon: <Download size={15} /> },
-  'user.create': { get label() { return tr('Created user'); }, get verb() { return tr('created a user'); }, icon: <UserCog size={15} /> },
-  'user.update': { get label() { return tr('Updated user'); }, get verb() { return tr('updated a user'); }, icon: <UserCog size={15} /> },
-  'user.delete': { get label() { return tr('Deleted user'); }, get verb() { return tr('deleted a user'); }, icon: <UserCog size={15} /> },
-  'user.unlock': { get label() { return tr('Unlocked user'); }, get verb() { return tr('unlocked a user'); }, icon: <UserCog size={15} /> },
-  'access.denied': { get label() { return tr('Access denied'); }, get verb() { return tr('was denied access'); }, icon: <ShieldAlert size={15} /> },
-  'form.pic_check_in': { get label() { return tr('PIC check in'); }, get verb() { return tr('checked in at an outlet'); }, icon: <MapPin size={15} /> },
-  'system.logs_reset': { get label() { return tr('Reset activity logs'); }, get verb() { return tr('reset the activity logs'); }, icon: <Trash2 size={15} /> },
+  'auth.login_failed': { get label() { return tr('Failed Sign-in'); }, get verb() { return tr('failed to sign in'); }, icon: <KeyRound size={15} /> },
+  'auth.logout': { get label() { return tr('Signed Out'); }, get verb() { return tr('signed out'); }, icon: <LogOut size={15} /> },
+  'auth.password_change': { get label() { return tr('Changed Own Password'); }, get verb() { return tr('changed their password'); }, icon: <KeyRound size={15} /> },
+  'profile.update': { get label() { return tr('Updated Own Profile'); }, get verb() { return tr('updated their profile'); }, icon: <UserRound size={15} /> },
+  'page.view': { get label() { return tr('Opened Page'); }, get verb() { return tr('opened'); }, icon: <Monitor size={15} /> },
+  'filter.change': { get label() { return tr('Changed Filters'); }, get verb() { return tr('changed filters'); }, icon: <SlidersHorizontal size={15} /> },
+  'transaction.view': { get label() { return tr('Opened Transaction'); }, get verb() { return tr('opened a transaction'); }, icon: <Eye size={15} /> },
+  'export.create': { get label() { return tr('Requested Export'); }, get verb() { return tr('requested an export'); }, icon: <FileSpreadsheet size={15} /> },
+  'export.done': { get label() { return tr('Export Finished'); }, get verb() { return tr('\'s export finished'); }, icon: <FileSpreadsheet size={15} /> },
+  'export.failed': { get label() { return tr('Export Failed'); }, get verb() { return tr('\'s export failed'); }, icon: <FileSpreadsheet size={15} /> },
+  'export.download': { get label() { return tr('Downloaded Export'); }, get verb() { return tr('downloaded an export'); }, icon: <Download size={15} /> },
+  'user.create': { get label() { return tr('Created User'); }, get verb() { return tr('created a user'); }, icon: <UserCog size={15} /> },
+  'user.update': { get label() { return tr('Updated User'); }, get verb() { return tr('updated a user'); }, icon: <UserCog size={15} /> },
+  'user.delete': { get label() { return tr('Deleted User'); }, get verb() { return tr('deleted a user'); }, icon: <UserCog size={15} /> },
+  'user.unlock': { get label() { return tr('Unlocked User'); }, get verb() { return tr('unlocked a user'); }, icon: <UserCog size={15} /> },
+  'access.denied': { get label() { return tr('Access Denied'); }, get verb() { return tr('was denied access'); }, icon: <ShieldAlert size={15} /> },
+  'form.pic_check_in': { get label() { return tr('PIC Check in'); }, get verb() { return tr('checked in at an outlet'); }, icon: <MapPin size={15} /> },
+  'system.logs_reset': { get label() { return tr('Reset Activity Logs'); }, get verb() { return tr('reset the activity logs'); }, icon: <Trash2 size={15} /> },
 };
 
 const PAGES: Record<string, string> = {
@@ -103,9 +103,9 @@ const TONES: Record<string, { tile: string; bar: string; label: string }> = {
   page: { tile: 'bg-neutral-100 text-neutral-600', bar: 'bg-neutral-400', get label() { return tr('Pages'); } },
   filter: { tile: 'bg-neutral-100 text-neutral-600', bar: 'bg-neutral-300', get label() { return tr('Filters'); } },
   transaction: { tile: 'bg-violet-50 text-violet-700', bar: 'bg-violet-500', get label() { return tr('Transactions'); } },
-  user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', get label() { return tr('User accounts'); } },
-  profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', get label() { return tr('Own profile'); } },
-  access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', get label() { return tr('Access denied'); } },
+  user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', get label() { return tr('User Accounts'); } },
+  profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', get label() { return tr('Own Profile'); } },
+  access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', get label() { return tr('Access Denied'); } },
   form: { tile: 'bg-teal-50 text-teal-700', bar: 'bg-teal-500', get label() { return tr('Forms'); } },
   system: { tile: 'bg-neutral-900 text-white', bar: 'bg-neutral-700', get label() { return tr('System'); } },
 };
@@ -327,7 +327,7 @@ export default function ActivityPage() {
                 setDateFrom(from || to || d.from);
                 setDateTo(to || from || d.to);
               }} />
-            <IconButton label={tr('Reset logs')} onClick={() => setResetting(true)}><Trash2 size={17} strokeWidth={1.75} /></IconButton>
+            <IconButton label={tr('Reset Logs')} onClick={() => setResetting(true)}><Trash2 size={17} strokeWidth={1.75} /></IconButton>
           </>} />
 
         {notice && (
@@ -337,12 +337,12 @@ export default function ActivityPage() {
           </div>
         )}
 
-        <StatGrid label={tr('Activity summary')} cols={5}>
+        <StatGrid label={tr('Activity Summary')} cols={5}>
           <StatCard label={tr('Activities')} icon={<History />} value={t ? formatNumber(t.total) : <ValueSkeleton />} sub={t && `${formatNumber(t.users)} ${tr('active users')}`} />
           <StatCard label={tr('Exports')} tone="brand" icon={<Download />} value={t ? formatNumber(t.exports) : <ValueSkeleton />} sub={t && `${formatNumber(t.downloads)} ${tr('downloads')}`} />
-          <StatCard label={tr('Transactions opened')} icon={<Receipt />} value={summary ? formatNumber(summary.byCategory.transaction ?? 0) : <ValueSkeleton />} />
-          <StatCard label={tr('Failed sign-ins')} icon={<LogIn />} tone={t?.failedLogins ? 'warn' : 'default'} value={t ? formatNumber(t.failedLogins) : <ValueSkeleton />} />
-          <StatCard label={tr('Access denied')} icon={<ShieldAlert />} tone={t?.denied ? 'bad' : 'default'} value={t ? formatNumber(t.denied) : <ValueSkeleton />} sub={t && tr('pages or data outside the user\'s access')} />
+          <StatCard label={tr('Transactions Opened')} icon={<Receipt />} value={summary ? formatNumber(summary.byCategory.transaction ?? 0) : <ValueSkeleton />} />
+          <StatCard label={tr('Failed Sign-ins')} icon={<LogIn />} tone={t?.failedLogins ? 'warn' : 'default'} value={t ? formatNumber(t.failedLogins) : <ValueSkeleton />} />
+          <StatCard label={tr('Access Denied')} icon={<ShieldAlert />} tone={t?.denied ? 'bad' : 'default'} value={t ? formatNumber(t.denied) : <ValueSkeleton />} sub={t && tr('pages or data outside the user\'s access')} />
         </StatGrid>
 
         <ActivityInsights data={summary} onPickDay={day => { setDateFrom(day); setDateTo(day); }} />
@@ -351,7 +351,7 @@ export default function ActivityPage() {
           <Card flush className="min-w-0 xl:col-span-8 2xl:col-span-9"
             toolbar={<div className="space-y-3">
               <Toolbar
-                search={<SearchInput value={search} onChange={onSearch} placeholder={tr('Search user, activity, file name, sales no.')} label={tr('Search activity')} />}
+                search={<SearchInput value={search} onChange={onSearch} placeholder={tr('Search user, activity, file name, sales no.')} label={tr('Search Activity')} />}
                 chips={<ActiveFilters filters={activeFilters} onClear={() => setFilters(NO_FILTERS)} />}>
                 <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
                 <div className="hidden rounded-lg bg-neutral-100 p-1 sm:flex" role="radiogroup" aria-label={tr('View')}>
@@ -370,9 +370,9 @@ export default function ActivityPage() {
               <span>{formatNumber(total ? (page - 1) * PAGE_SIZE + 1 : 0)}–{formatNumber((page - 1) * PAGE_SIZE + entries.length)} {tr('of')} {formatNumber(total)} {tr('activities')}{filtered ? tr(' matching') : ''}</span>
               {pages > 1 && (
                 <div className="flex items-center gap-2">
-                  <button type="button" className={btn('outline', 'sm')} disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous page')}><ChevronLeft size={15} /></button>
+                  <button type="button" className={btn('outline', 'sm')} disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous Page')}><ChevronLeft size={15} /></button>
                   <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
-                  <button type="button" className={btn('outline', 'sm')} disabled={page >= pages || loading} onClick={() => setPage(p => p + 1)} aria-label={tr('Next page')}><ChevronRight size={15} /></button>
+                  <button type="button" className={btn('outline', 'sm')} disabled={page >= pages || loading} onClick={() => setPage(p => p + 1)} aria-label={tr('Next Page')}><ChevronRight size={15} /></button>
                 </div>
               )}
             </>}>
@@ -410,7 +410,7 @@ export default function ActivityPage() {
           </Card>
 
           <aside className="min-w-0 space-y-5 xl:col-span-4 2xl:col-span-3">
-            <Card title={tr('Most active users')} flush>
+            <Card title={tr('Most Active Users')} flush>
               {!summary ? (
                 <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 skeleton rounded-lg" />)}</div>
               ) : summary.topUsers.length === 0 ? (
@@ -452,7 +452,7 @@ export default function ActivityPage() {
               </button>
             </Card>
 
-            <Card title={tr('By type')}>
+            <Card title={tr('By Type')}>
               {!summary ? (
                 <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 skeleton rounded" />)}</div>
               ) : !categoryTotal ? (
@@ -538,13 +538,13 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
     meta: <span className="text-[11px] text-neutral-400">{ROLE_LABELS[u.role]}</span>,
   })), [users]);
   return (
-    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter activity')}
+    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter Activity')}
       description={tr('Narrow the log by user, result and role. The type tabs and search stay on the page.')}
       footer={
         <>
           <button type="button" className={`${buttonSecondary} mr-auto`} onClick={() => setDraft(NO_FILTERS)}>{tr('Reset')}</button>
           <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Cancel')}</button>
-          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>{tr('Apply filters')}</button>
+          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>{tr('Apply Filters')}</button>
         </>
       }>
       <div className="space-y-6">
@@ -552,7 +552,7 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
           { value: '', label: tr('All') }, { value: 'ok', label: tr('Succeeded') }, { value: 'failed', label: tr('Failed') }, { value: 'denied', label: tr('Denied') },
         ]} />
         <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: tr('All roles') }, { value: 'user', label: tr('User') }, { value: 'superadmin', label: tr('Super Admin') },
+          { value: '', label: tr('All Roles') }, { value: 'user', label: tr('User') }, { value: 'superadmin', label: tr('Super Admin') },
         ]} />
         <SearchChoice label={tr('User')} anyLabel={tr('All users')} options={options} value={draft.user} onChange={set('user')} placeholder={tr('Search name or username')} />
       </div>
@@ -585,7 +585,7 @@ function value(v: unknown): ReactNode {
 
 function ExportDetails({ d }: { d: Record<string, unknown> }) {
   const s = (k: string) => (d[k] === null || d[k] === undefined ? null : String(d[k]));
-  const branches = d.branches === 'all' ? tr('All branches') : value(d.branches);
+  const branches = d.branches === 'all' ? tr('All Branches') : value(d.branches);
   return (
     <Rows rows={[
       [tr('Report'), REPORT_LABELS[s('report') ?? ''] ?? s('report')],
@@ -596,7 +596,7 @@ function ExportDetails({ d }: { d: Record<string, unknown> }) {
       [tr('File'), s('fileName')],
       [tr('Rows'), d.rows !== undefined && d.rows !== null ? formatNumber(Number(d.rows)) : null],
       [tr('Transactions'), d.headers !== undefined && d.headers !== null ? formatNumber(Number(d.headers)) : null],
-      [tr('File size'), d.fileSize ? formatBytes(Number(d.fileSize)) : null],
+      [tr('File Size'), d.fileSize ? formatBytes(Number(d.fileSize)) : null],
       [tr('Started'), d.createdAt ? formatDateTime(s('createdAt')) : null],
       [tr('Finished'), d.finishedAt ? formatDateTime(s('finishedAt')) : null],
       [tr('Error'), d.error ? s('error') : undefined],

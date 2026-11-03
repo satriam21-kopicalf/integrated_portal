@@ -154,7 +154,7 @@ function ReportFilters({ value, facilities, types, onApply, onClose }: {
           choices={[{ value: "", label: tr("All Types") }, ...types.map((t) => ({ value: t.code, label: countTypeLabel(t.code, t.name) }))]} />
       </FilterSection>
       <FilterSection title={tr("Branch")}>
-        <SearchChoice label="" anyLabel={tr("All branches")} value={d.facility} onChange={(v) => setD({ ...d, facility: v })} placeholder={tr("Search branch name or code")}
+        <SearchChoice label="" anyLabel={tr("All Branches")} value={d.facility} onChange={(v) => setD({ ...d, facility: v })} placeholder={tr("Search branch name or code")}
           options={facilities.map((x) => ({ value: x.id, label: x.name, meta: <span className="font-mono text-[10px] text-neutral-400">{x.code}</span> }))} />
       </FilterSection>
       <FilterSection title={tr("File")}>

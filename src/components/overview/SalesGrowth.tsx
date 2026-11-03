@@ -17,8 +17,8 @@ import { tr } from '@/lib/i18n';
    Busy hours (vs comparison) and the growth drawer. */
 
 export const BASES: { value: GrowthBasis; label: string }[] = [
-  { value: 'previous', get label() { return tr('Comparison period'); } },
-  { value: 'lastYear', get label() { return tr('Last year'); } },
+  { value: 'previous', get label() { return tr('Comparison Period'); } },
+  { value: 'lastYear', get label() { return tr('Last Year'); } },
   { value: 'sequential', get label() { return tr('Sequential'); } },
 ];
 
@@ -195,10 +195,10 @@ export function HourGrowthHeatmap({ current, compare }: { current: HoursProfile;
 
 export function HourGrowthTable({ rows }: { rows: HourGrowthRow[] }) {
   return (
-    <DetailTable caption={tr('Growth per hour')} csvName="sales-growth-per-hour" rows={rows} rowKey={r => String(r.hour)} initialSort={{ key: 'hour', desc: false }}
+    <DetailTable caption={tr('Growth per Hour')} csvName="sales-growth-per-hour" rows={rows} rowKey={r => String(r.hour)} initialSort={{ key: 'hour', desc: false }}
       columns={[
         { key: 'hour', label: tr('Hour'), value: r => r.hour, render: r => `${hourLabel(r.hour)}–${hourLabel(r.hour + 1)}` },
-        { key: 'cur', label: tr('Gross sales/day'), align: 'right', value: r => r.cur, render: r => rp(r.cur) },
+        { key: 'cur', label: tr('Gross Sales/day'), align: 'right', value: r => r.cur, render: r => rp(r.cur) },
         { key: 'cmp', label: tr('Comparison/day'), align: 'right', value: r => r.cmp, render: r => rp(r.cmp) },
         { key: 'abs', label: tr('Growth/day'), align: 'right', value: r => r.growthAbs, render: r => <GrowthText v={r.growthPct} abs={r.growthAbs} absOnly /> },
         { key: 'pct', label: tr('Growth'), align: 'right', value: r => r.growthPct, render: r => <Delta value={r.growthPct} /> },
@@ -245,7 +245,7 @@ export function GrowthSummary({ data }: { data: GrowthResponse }) {
         </p>
       </div>
       <Figure label={tr('Change')} value={signedRp(t.growthAbs)} />
-      <Figure label={tr('This period')} value={compactRupiah(t.subtotal)} title={formatCurrency(t.subtotal)} />
+      <Figure label={tr('This Period')} value={compactRupiah(t.subtotal)} title={formatCurrency(t.subtotal)} />
       <Figure label={tr('Comparison')} value={t.compareSubtotal === null ? '-' : compactRupiah(t.compareSubtotal)} title={t.compareSubtotal === null ? undefined : formatCurrency(t.compareSubtotal)} />
       <Figure label={tr('Bills')} value={pctLabel(t.billsGrowthPct) || '-'} />
       <Figure label={tr('Average Order Value')} value={pctLabel(t.avgTicketGrowthPct) || '-'} />

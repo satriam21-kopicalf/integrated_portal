@@ -41,7 +41,7 @@ export type CountLine = {
 };
 export type DateField = "roasted_date" | "expired_date";
 export type DateBatch = { date: string | null; qty: string | null };
-export const DATE_FIELD_LABEL: Record<DateField, () => string> = { roasted_date: () => tr("Roasted date"), expired_date: () => tr("Expired date") };
+export const DATE_FIELD_LABEL: Record<DateField, () => string> = { roasted_date: () => tr("Roasted Date"), expired_date: () => tr("Expired Date") };
 /** The date asked on a line (item group → count type → facility default); always optional. */
 export const lineDateField = (l: Pick<CountLine, "date_field">, count: { date_field?: DateField | null }): DateField | null =>
   (l.date_field !== undefined ? l.date_field : count.date_field) ?? null;
@@ -147,9 +147,9 @@ export type TodayFacility = {
 export const STATUS: Record<string, { tone: "slate" | "blue" | "amber" | "green" | "red" | "violet"; label: () => string }> = {
   NOT_STARTED: { tone: "slate", label: () => tr("Not started") },
   MISSED: { tone: "red", label: () => tr("Missed") },
-  IN_PROGRESS: { tone: "blue", label: () => tr("In progress") },
+  IN_PROGRESS: { tone: "blue", label: () => tr("In Progress") },
   SUBMITTED: { tone: "violet", label: () => tr("Submitted") },
-  RECOUNT_REQUESTED: { tone: "amber", label: () => tr("Recount requested") },
+  RECOUNT_REQUESTED: { tone: "amber", label: () => tr("Recount Requested") },
   APPROVED: { tone: "green", label: () => tr("Approved") },
   CANCELLED: { tone: "slate", label: () => tr("Cancelled") },
   EXPORTED: { tone: "green", label: () => tr("Exported") },

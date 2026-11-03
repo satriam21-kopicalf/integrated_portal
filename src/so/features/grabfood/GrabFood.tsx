@@ -130,7 +130,7 @@ function StorePhoto({ o, size = 36 }: { o: Pick<Outlet, "photoUrl" | "branchName
 }
 
 const MENU_TONE: Record<MenuItem["status"], Tone> = { AVAILABLE: "green", OUT_OF_STOCK: "amber", OFF: "red" };
-const menuLabel = (s: MenuItem["status"]) => (s === "AVAILABLE" ? tr("Available") : s === "OUT_OF_STOCK" ? tr("Out of stock today") : tr("Switched off"));
+const menuLabel = (s: MenuItem["status"]) => (s === "AVAILABLE" ? tr("Available") : s === "OUT_OF_STOCK" ? tr("Out of Stock Today") : tr("Switched Off"));
 
 /* ------------------------------------------------------------------- page */
 
@@ -181,26 +181,26 @@ export default function GrabFood() {
       subtitle={`${tr("Status, rating, reviews and menu of the outlets on GrabFood")}${sum.last ? ` · ${tr("status checked {0}", timeAgo(sum.last))}` : ""}`}
       actions={res?.canEdit ? (
         <button type="button" onClick={() => setSessionOpen(true)} className={cx(iconBtn, res.session && !res.session.valid && "text-amber-600")}
-          title={tr("Grab session")} aria-label={tr("Grab session")}><KeyRound size={19} /></button>
+          title={tr("Grab Session")} aria-label={tr("Grab Session")}><KeyRound size={19} /></button>
       ) : undefined}
       stats={
         <StatStrip label={tr("Summary")} columns={5} gridClassName="grid-cols-2 xl:grid-cols-5">
-          <Stat label={tr("Open now")} emphasis className="col-span-2 xl:col-span-1" valueClassName={VALUE} icon={<Store size={13} />} value={res ? `${fmtNumber(sum.open)} / ${fmtNumber(sum.outlets)}` : <StatSkeleton />}
+          <Stat label={tr("Open Now")} emphasis className="col-span-2 xl:col-span-1" valueClassName={VALUE} icon={<Store size={13} />} value={res ? `${fmtNumber(sum.open)} / ${fmtNumber(sum.outlets)}` : <StatSkeleton />}
             onClick={res ? () => { setOf(NO_OF); setView("outlets"); } : undefined} active={view === "outlets" && !of.status}>
             {res && <p>{tr("outlets on GrabFood")}</p>}
           </Stat>
-          <Stat label={tr("Closed in hours")} icon={<AlertTriangle size={13} />} valueClassName={VALUE} value={res ? fmtNumber(sum.inHours) : <StatSkeleton />}
+          <Stat label={tr("Closed in Hours")} icon={<AlertTriangle size={13} />} valueClassName={VALUE} value={res ? fmtNumber(sum.inHours) : <StatSkeleton />}
             onClick={res ? () => { setOf({ ...NO_OF, status: "inHours" }); setView("outlets"); } : undefined} active={view === "outlets" && of.status === "inHours"}>
             {res && <p>{tr("{0} paused / closed now · {1} today", fmtNumber(sum.notOpen), fmtDuration(sum.closedMinutes))}</p>}
           </Stat>
-          <Stat label={tr("Average rating")} valueClassName={VALUE} icon={<Star size={13} />} value={res ? (sum.rating === null ? "—" : sum.rating.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : <StatSkeleton />}>
+          <Stat label={tr("Average Rating")} valueClassName={VALUE} icon={<Star size={13} />} value={res ? (sum.rating === null ? "—" : sum.rating.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : <StatSkeleton />}>
             {res && <p>{tr("{0} ratings, weighted", fmtNumber(sum.ratings))}</p>}
           </Stat>
           <Stat label={tr("Reviews")} valueClassName={VALUE} icon={<MessageSquareText size={13} />} value={res ? fmtNumber(sum.reviews) : <StatSkeleton />}
             onClick={res ? () => { setRf(NO_RF); setView("reviews"); } : undefined} active={view === "reviews"}>
             {res && <p>{tr("{0} with photos", fmtNumber(sum.photos))}</p>}
           </Stat>
-          <Stat label={tr("Menu unavailable")} valueClassName={VALUE} icon={<PackageX size={13} />} value={res ? fmtNumber(sum.outOfStock + sum.off) : <StatSkeleton />}
+          <Stat label={tr("Menu Unavailable")} valueClassName={VALUE} icon={<PackageX size={13} />} value={res ? fmtNumber(sum.outOfStock + sum.off) : <StatSkeleton />}
             onClick={res ? () => { setMf(NO_MF); setView("menu"); } : undefined} active={view === "menu"}>
             {res && <p>{tr("{0} out of stock · {1} off", fmtNumber(sum.outOfStock), fmtNumber(sum.off))}</p>}
           </Stat>
@@ -266,7 +266,7 @@ const OUTLET_STATUS: Record<string, { label: () => string; test: (o: Outlet) => 
   busy: { label: () => tr("Busy"), test: (o) => !!o.status.isBusy },
   paused: { label: () => tr("Paused"), test: (o) => o.status.isOpen === false && (o.status.label || "").toLowerCase().includes("pause") },
   closed: { label: () => tr("Closed"), test: (o) => o.status.isOpen === false && !(o.status.label || "").toLowerCase().includes("pause") },
-  inHours: { label: () => tr("Closed in opening hours"), test: (o) => o.hours.closedInHours },
+  inHours: { label: () => tr("Closed in Opening Hours"), test: (o) => o.hours.closedInHours },
 };
 const OUTLET_RATING: Record<string, { label: () => string; test: (o: Outlet) => boolean }> = {
   low: { label: () => tr("Below {0}", LOW.toLocaleString()), test: (o) => scoreOf(o) !== null && scoreOf(o)! < LOW },
@@ -276,19 +276,19 @@ const OUTLET_RATING: Record<string, { label: () => string; test: (o: Outlet) => 
 };
 const OUTLET_ISSUES: Record<string, { label: () => string; test: (o: Outlet) => boolean }> = {
   downtime: { label: () => tr("Closed in opening hours today"), test: (o) => (o.hours.closedMinutesToday ?? 0) > 0 },
-  menu: { label: () => tr("Menu unavailable"), test: (o) => unavailable(o) > 0 },
-  stock: { label: () => tr("Out of stock today"), test: (o) => o.menu.outOfStock > 0 },
+  menu: { label: () => tr("Menu Unavailable"), test: (o) => unavailable(o) > 0 },
+  stock: { label: () => tr("Out of Stock Today"), test: (o) => o.menu.outOfStock > 0 },
   bad: { label: () => tr("≤2★ reviews in 30 days"), test: (o) => o.reviews30d.low > 0 },
   unreplied: { label: () => tr("Reviews not replied (30 days)"), test: (o) => o.reviews30d.unreplied > 0 },
 };
 const OUTLET_SORTS: Record<string, { label: () => string; cmp: (a: Outlet, b: Outlet) => number }> = {
-  name: { label: () => tr("Outlet name"), cmp: (a, b) => byName(a.branchName, b.branchName) },
+  name: { label: () => tr("Outlet Name"), cmp: (a, b) => byName(a.branchName, b.branchName) },
   downtime: { label: () => tr("Longest closed in opening hours"), cmp: (a, b) => (b.hours.closedMinutesToday ?? 0) - (a.hours.closedMinutesToday ?? 0) || byName(a.branchName, b.branchName) },
-  low: { label: () => tr("Lowest rating"), cmp: (a, b) => (scoreOf(a) ?? 9) - (scoreOf(b) ?? 9) || byName(a.branchName, b.branchName) },
-  high: { label: () => tr("Highest rating"), cmp: (a, b) => (scoreOf(b) ?? -1) - (scoreOf(a) ?? -1) || byName(a.branchName, b.branchName) },
+  low: { label: () => tr("Lowest Rating"), cmp: (a, b) => (scoreOf(a) ?? 9) - (scoreOf(b) ?? 9) || byName(a.branchName, b.branchName) },
+  high: { label: () => tr("Highest Rating"), cmp: (a, b) => (scoreOf(b) ?? -1) - (scoreOf(a) ?? -1) || byName(a.branchName, b.branchName) },
   bad: { label: () => tr("Most ≤2★ reviews (30 days)"), cmp: (a, b) => b.reviews30d.low - a.reviews30d.low || byName(a.branchName, b.branchName) },
-  menu: { label: () => tr("Most menu unavailable"), cmp: (a, b) => unavailable(b) - unavailable(a) || byName(a.branchName, b.branchName) },
-  reviews: { label: () => tr("Most reviews"), cmp: (a, b) => b.reviewsAll.count - a.reviewsAll.count || byName(a.branchName, b.branchName) },
+  menu: { label: () => tr("Most Menu Unavailable"), cmp: (a, b) => unavailable(b) - unavailable(a) || byName(a.branchName, b.branchName) },
+  reviews: { label: () => tr("Most Reviews"), cmp: (a, b) => b.reviewsAll.count - a.reviewsAll.count || byName(a.branchName, b.branchName) },
 };
 
 function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
@@ -311,7 +311,7 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
     ...(f.city ? [{ key: "c", label: f.city, onRemove: () => setF({ ...f, city: "" }) }] : []),
     ...(f.rating ? [{ key: "r", label: `${tr("Rating")}: ${OUTLET_RATING[f.rating].label()}`, onRemove: () => setF({ ...f, rating: "" }) }] : []),
     ...(f.issue ? [{ key: "i", label: OUTLET_ISSUES[f.issue].label(), onRemove: () => setF({ ...f, issue: "" }) }] : []),
-    ...(f.mapping ? [{ key: "m", label: f.mapping === "mapped" ? tr("Mapped to a branch") : tr("Not mapped to a branch"), onRemove: () => setF({ ...f, mapping: "" }) }] : []),
+    ...(f.mapping ? [{ key: "m", label: f.mapping === "mapped" ? tr("Mapped to a Branch") : tr("Not mapped to a branch"), onRemove: () => setF({ ...f, mapping: "" }) }] : []),
     ...(f.sort !== "name" ? [{ key: "s", label: tr("Sort: {0}", OUTLET_SORTS[f.sort].label()), onRemove: () => setF({ ...f, sort: "name" }) }] : []),
   ];
 
@@ -357,11 +357,11 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
                 <thead className={kcTable.thead}>
                   <tr>
                     <th className={TH}>{tr("Outlet")}</th>
-                    <th className={TH}>{tr("Status & hours today")}</th>
-                    <th className={cx(TH, "text-right")}>{tr("Closed in hours")}</th>
+                    <th className={TH}>{tr("Status & Hours Today")}</th>
+                    <th className={cx(TH, "text-right")}>{tr("Closed in Hours")}</th>
                     <th className={TH}>{tr("Rating")}</th>
                     <th className={cx(TH, "text-right")}>{tr("Reviews")}</th>
-                    <th className={cx(TH, "text-right")}>{tr("Menu unavailable")}</th>
+                    <th className={cx(TH, "text-right")}>{tr("Menu Unavailable")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
@@ -424,7 +424,7 @@ function OutletFilters({ cities, value, onApply, onClose }: { cities: string[]; 
   const [d, setD] = useState(value);
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_OF)}>
-      <FilterSection title={tr("Status now")} hint={tr("Closed in opening hours: paused or closed while its GrabFood hours say open")}>
+      <FilterSection title={tr("Status Now")} hint={tr("Closed in opening hours: paused or closed while its GrabFood hours say open")}>
         <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })} choices={choicesOf(OUTLET_STATUS, tr("All"))} />
       </FilterSection>
       <FilterSection title={tr("City")}>
@@ -434,12 +434,12 @@ function OutletFilters({ cities, value, onApply, onClose }: { cities: string[]; 
       <FilterSection title={tr("Rating")}>
         <ChoiceGroup label="" value={d.rating} onChange={(v) => setD({ ...d, rating: v })} choices={choicesOf(OUTLET_RATING, tr("All"))} />
       </FilterSection>
-      <FilterSection title={tr("Needs attention")}>
-        <ChoiceGroup label="" value={d.issue} onChange={(v) => setD({ ...d, issue: v })} choices={choicesOf(OUTLET_ISSUES, tr("All outlets"))} />
+      <FilterSection title={tr("Needs Attention")}>
+        <ChoiceGroup label="" value={d.issue} onChange={(v) => setD({ ...d, issue: v })} choices={choicesOf(OUTLET_ISSUES, tr("All Outlets"))} />
       </FilterSection>
-      <FilterSection title={tr("ESB branch")}>
+      <FilterSection title={tr("ESB Branch")}>
         <ChoiceGroup label="" value={d.mapping} onChange={(v) => setD({ ...d, mapping: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "mapped", label: tr("Mapped to a branch") }, { value: "unmapped", label: tr("Not mapped to a branch") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "mapped", label: tr("Mapped to a Branch") }, { value: "unmapped", label: tr("Not mapped to a branch") }]} />
       </FilterSection>
       <FilterSection title={tr("Sort")}>
         <ChoiceGroup label="" value={d.sort} onChange={(v) => setD({ ...d, sort: v })} choices={Object.keys(OUTLET_SORTS).map((k) => ({ value: k, label: OUTLET_SORTS[k].label() }))} />
@@ -486,7 +486,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         {o.hours.week.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Opening hours on GrabFood")}</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Opening Hours on GrabFood")}</h3>
             <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
               {o.hours.week.map((r, i) => {
                 const today = i === new Date(now + 7 * 3600e3).getUTCDay();
@@ -506,7 +506,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         {dist.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Rating distribution")}</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Rating Distribution")}</h3>
             <ul className="space-y-1 rounded-xl border border-neutral-200 p-3">
               {dist.map((d) => (
                 <li key={d.score} className="flex items-center gap-2 text-xs text-neutral-600">
@@ -521,8 +521,8 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Menu unavailable")} ({fmtNumber(unavailable(o))})</h3>
-            {unavailable(o) > 0 && <button type="button" onClick={onMenu} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show all")}</button>}
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Menu Unavailable")} ({fmtNumber(unavailable(o))})</h3>
+            {unavailable(o) > 0 && <button type="button" onClick={onMenu} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show All")}</button>}
           </div>
           {items === null ? <SkeletonList rows={3} /> : items.length === 0
             ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-5 text-center text-sm text-neutral-400">{o.menu.syncedAt ? tr("Everything on the menu is available") : tr("The menu has not been read yet")}</p>
@@ -544,8 +544,8 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Latest reviews")} ({fmtNumber(o.reviewsAll.count)})</h3>
-            {o.reviewsAll.count > 0 && <button type="button" onClick={onReviews} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show all")}</button>}
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Latest Reviews")} ({fmtNumber(o.reviewsAll.count)})</h3>
+            {o.reviewsAll.count > 0 && <button type="button" onClick={onReviews} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show All")}</button>}
           </div>
           {latest === null ? <SkeletonList rows={3} /> : latest.length === 0
             ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p>
@@ -578,14 +578,14 @@ function BranchPicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
     .map((b) => ({ value: b.code, label: `${b.name} (${b.code})` }));
   return (
     <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-      <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500"><Link2 size={13} /> {tr("ESB branch")}</h3>
+      <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500"><Link2 size={13} /> {tr("ESB Branch")}</h3>
       <p className="mt-1 text-xs text-neutral-500">{o.branchCode ? tr("The users of this branch see this outlet.") : tr("Not mapped: only super admins see this outlet. Choose its ESB branch.")}</p>
       <div className="mt-2">
-        <SearchChoice label={tr("ESB branch")} anyLabel={tr("Not mapped")} options={choices} value={value} onChange={setValue}
-          placeholder={tr("Search branch")} loading={options === null} />
+        <SearchChoice label={tr("ESB Branch")} anyLabel={tr("Not mapped")} options={choices} value={value} onChange={setValue}
+          placeholder={tr("Search Branch")} loading={options === null} />
       </div>
       <div className="mt-2 flex justify-end">
-        <Button size="sm" loading={busy} disabled={value === (o.branchCode ?? "")} onClick={() => void save()}>{tr("Save branch")}</Button>
+        <Button size="sm" loading={busy} disabled={value === (o.branchCode ?? "")} onClick={() => void save()}>{tr("Save Branch")}</Button>
       </div>
     </section>
   );
@@ -633,8 +633,8 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
     ...(f.merchant ? [{ key: "m", label: outletName(f.merchant), onRemove: () => setF({ ...f, merchant: "" }) }] : []),
     ...(f.city ? [{ key: "c", label: f.city, onRemove: () => setF({ ...f, city: "" }) }] : []),
     ...(f.stars ? [{ key: "s", label: STAR_CHOICES.find((c) => c.value === f.stars)?.label ?? f.stars, onRemove: () => setF({ ...f, stars: "" }) }] : []),
-    ...(f.photo ? [{ key: "p", label: f.photo === "true" ? tr("With photo") : tr("Without photo"), onRemove: () => setF({ ...f, photo: "" }) }] : []),
-    ...(f.text ? [{ key: "t", label: f.text === "true" ? tr("With written review") : tr("Stars only"), onRemove: () => setF({ ...f, text: "" }) }] : []),
+    ...(f.photo ? [{ key: "p", label: f.photo === "true" ? tr("With Photo") : tr("Without Photo"), onRemove: () => setF({ ...f, photo: "" }) }] : []),
+    ...(f.text ? [{ key: "t", label: f.text === "true" ? tr("With Written Review") : tr("Stars Only"), onRemove: () => setF({ ...f, text: "" }) }] : []),
     ...(f.reply ? [{ key: "r", label: f.reply === "false" ? tr("Not replied") : tr("Replied"), onRemove: () => setF({ ...f, reply: "" }) }] : []),
     ...(f.from || f.to ? [{ key: "d", label: `${f.from ? fmtDay(f.from) : "…"} – ${f.to ? fmtDay(f.to) : "…"}`, onRemove: () => setF({ ...f, from: "", to: "" }) }] : []),
     ...(f.sort !== "newest" ? [{ key: "o", label: tr("Sort: {0}", REVIEW_SORTS[f.sort]()), onRemove: () => setF({ ...f, sort: "newest" }) }] : []),
@@ -657,9 +657,9 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
           {pages > 1 && (
             <span className="flex items-center gap-2">
               <span className="tabular-nums">{tr("{0}–{1} of {2}", fmtNumber(first), fmtNumber(Math.min(res.page * res.size, res.total)), fmtNumber(res.total))}</span>
-              <Button variant="secondary" size="sm" className="px-2" disabled={res.page <= 1} onClick={() => setPage(res.page - 1)} aria-label={tr("Previous page")}><ChevronLeft size={16} /></Button>
+              <Button variant="secondary" size="sm" className="px-2" disabled={res.page <= 1} onClick={() => setPage(res.page - 1)} aria-label={tr("Previous Page")}><ChevronLeft size={16} /></Button>
               <span className="tabular-nums">{res.page} / {pages}</span>
-              <Button variant="secondary" size="sm" className="px-2" disabled={res.page >= pages} onClick={() => setPage(res.page + 1)} aria-label={tr("Next page")}><ChevronRight size={16} /></Button>
+              <Button variant="secondary" size="sm" className="px-2" disabled={res.page >= pages} onClick={() => setPage(res.page + 1)} aria-label={tr("Next Page")}><ChevronRight size={16} /></Button>
             </span>
           )}
         </> : undefined}>
@@ -734,7 +734,7 @@ function ReviewFilters({ outlets, cities, value, onApply, onClose }: { outlets: 
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_RF)}>
       <FilterSection title={tr("Outlet")}>
-        <SearchChoice label={tr("Outlet")} anyLabel={tr("All outlets")} value={d.merchant} onChange={(v) => setD({ ...d, merchant: v })}
+        <SearchChoice label={tr("Outlet")} anyLabel={tr("All Outlets")} value={d.merchant} onChange={(v) => setD({ ...d, merchant: v })}
           options={outletChoices(outlets, (o) => o.reviewsAll.count)}
           placeholder={tr("Search outlet")} />
       </FilterSection>
@@ -748,19 +748,19 @@ function ReviewFilters({ outlets, cities, value, onApply, onClose }: { outlets: 
       </FilterSection>
       <FilterSection title={tr("Content")}>
         <ChoiceGroup label="" value={d.text} onChange={(v) => setD({ ...d, text: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "true", label: tr("With written review") }, { value: "false", label: tr("Stars only") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "true", label: tr("With Written Review") }, { value: "false", label: tr("Stars Only") }]} />
         <div className="mt-3">
           <ChoiceGroup label="" value={d.photo} onChange={(v) => setD({ ...d, photo: v })}
-            choices={[{ value: "", label: tr("With or without photo") }, { value: "true", label: tr("With photo") }, { value: "false", label: tr("Without photo") }]} />
+            choices={[{ value: "", label: tr("With or Without Photo") }, { value: "true", label: tr("With Photo") }, { value: "false", label: tr("Without Photo") }]} />
         </div>
       </FilterSection>
       <FilterSection title={tr("Reply")}>
         <ChoiceGroup label="" value={d.reply} onChange={(v) => setD({ ...d, reply: v })}
-          choices={[{ value: "", label: tr("Replied or not") }, { value: "false", label: tr("Not replied") }, { value: "true", label: tr("Replied") }]} />
+          choices={[{ value: "", label: tr("Replied or Not") }, { value: "false", label: tr("Not replied") }, { value: "true", label: tr("Replied") }]} />
       </FilterSection>
       <FilterSection title={tr("Period")} hint={tr("Date of the review (WIB)")}>
         <div className="mb-2 flex flex-wrap gap-1.5">
-          {[[1, tr("Today")], [7, tr("7 days")], [30, tr("30 days")], [90, tr("90 days")]].map(([n, l]) => (
+          {[[1, tr("Today")], [7, tr("7 days")], [30, tr("30 days")], [90, tr("90 Days")]].map(([n, l]) => (
             <button key={String(n)} type="button" onClick={() => preset(Number(n))}
               className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 hover:border-brand-300 hover:text-brand-700">{l}</button>
           ))}
@@ -860,7 +860,7 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
 
         {aspects.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("What the customer mentions")}</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("What the Customer Mentions")}</h3>
             <p className="mb-2 text-[11px] text-neutral-400">{tr("Detected by Grab from the review: + positive, − negative")}</p>
             <div className="flex flex-wrap gap-1.5">
               {aspects.map((a, i) => <Badge key={`${a.aspectName}-${i}`} tone={a.rating < 0 ? "red" : a.rating > 0 ? "green" : "slate"}>{a.rating < 0 ? "− " : a.rating > 0 ? "+ " : ""}{a.aspectName}</Badge>)}
@@ -900,8 +900,8 @@ function Lightbox({ urls, index, onIndex, onClose }: { urls: string[]; index: nu
       <img src={urls[index]} alt="" className="max-h-full max-w-full rounded-lg object-contain" onClick={(e) => e.stopPropagation()} />
       <button type="button" onClick={onClose} aria-label={tr("Close")} className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"><X size={20} /></button>
       {urls.length > 1 && <>
-        <button type="button" disabled={index === 0} onClick={(e) => { e.stopPropagation(); onIndex(index - 1); }} aria-label={tr("Previous photo")} className={cx(nav, "left-3")}><ChevronLeft size={22} /></button>
-        <button type="button" disabled={index === urls.length - 1} onClick={(e) => { e.stopPropagation(); onIndex(index + 1); }} aria-label={tr("Next photo")} className={cx(nav, "right-3")}><ChevronRight size={22} /></button>
+        <button type="button" disabled={index === 0} onClick={(e) => { e.stopPropagation(); onIndex(index - 1); }} aria-label={tr("Previous Photo")} className={cx(nav, "left-3")}><ChevronLeft size={22} /></button>
+        <button type="button" disabled={index === urls.length - 1} onClick={(e) => { e.stopPropagation(); onIndex(index + 1); }} aria-label={tr("Next Photo")} className={cx(nav, "right-3")}><ChevronRight size={22} /></button>
         <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/15 px-3 py-1 text-xs text-white">{index + 1} / {urls.length}</span>
       </>}
     </div>
@@ -913,10 +913,10 @@ function Lightbox({ urls, index, onIndex, onClose }: { urls: string[]; index: nu
 type MF = { merchant: string; city: string; status: string; kind: string; category: string; sort: string };
 const NO_MF: MF = { merchant: "", city: "", status: "unavailable", kind: "", category: "", sort: "status" };
 const MENU_SORTS: Record<string, { label: () => string; cmp: (a: MenuItem, b: MenuItem) => number }> = {
-  status: { label: () => tr("Out of stock first"), cmp: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || byName(a.branchName, b.branchName) || a.name.localeCompare(b.name) },
-  outlet: { label: () => tr("Outlet name"), cmp: (a, b) => byName(a.branchName, b.branchName) || a.name.localeCompare(b.name) },
-  name: { label: () => tr("Menu name"), cmp: (a, b) => a.name.localeCompare(b.name) || byName(a.branchName, b.branchName) },
-  price: { label: () => tr("Highest price"), cmp: (a, b) => (b.price ?? 0) - (a.price ?? 0) || a.name.localeCompare(b.name) },
+  status: { label: () => tr("Out of Stock First"), cmp: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || byName(a.branchName, b.branchName) || a.name.localeCompare(b.name) },
+  outlet: { label: () => tr("Outlet Name"), cmp: (a, b) => byName(a.branchName, b.branchName) || a.name.localeCompare(b.name) },
+  name: { label: () => tr("Menu Name"), cmp: (a, b) => a.name.localeCompare(b.name) || byName(a.branchName, b.branchName) },
+  price: { label: () => tr("Highest Price"), cmp: (a, b) => (b.price ?? 0) - (a.price ?? 0) || a.name.localeCompare(b.name) },
 };
 const STATUS_RANK: Record<MenuItem["status"], number> = { OUT_OF_STOCK: 0, OFF: 1, AVAILABLE: 2 };
 
@@ -947,12 +947,12 @@ function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlet
   }, [items, search, f.city, f.category, f.sort, cityOf]);
   const paged = usePaged(rows, rows.length + search + JSON.stringify(f));
   const outletName = (id: string) => outlets.find((o) => o.merchantId === id)?.branchName ?? id;
-  const statusLabel = (s: string) => (s === "unavailable" ? tr("Unavailable") : s === "all" ? tr("Whole menu") : s === "price" ? tr("Different price") : menuLabel(s as MenuItem["status"]));
+  const statusLabel = (s: string) => (s === "unavailable" ? tr("Unavailable") : s === "all" ? tr("Whole Menu") : s === "price" ? tr("Different Price") : menuLabel(s as MenuItem["status"]));
   const chips: ActiveFilter[] = [
     ...(f.merchant ? [{ key: "m", label: outletName(f.merchant), onRemove: () => setF({ ...f, merchant: "", status: f.status === "all" ? "unavailable" : f.status }) }] : []),
     ...(f.city ? [{ key: "c", label: f.city, onRemove: () => setF({ ...f, city: "" }) }] : []),
     ...(f.status !== "unavailable" ? [{ key: "s", label: statusLabel(f.status), onRemove: () => setF({ ...f, status: "unavailable" }) }] : []),
-    ...(f.kind ? [{ key: "k", label: f.kind === "item" ? tr("Menu items") : tr("Add-ons"), onRemove: () => setF({ ...f, kind: "" }) }] : []),
+    ...(f.kind ? [{ key: "k", label: f.kind === "item" ? tr("Menu Items") : tr("Add-ons"), onRemove: () => setF({ ...f, kind: "" }) }] : []),
     ...(f.category ? [{ key: "g", label: f.category, onRemove: () => setF({ ...f, category: "" }) }] : []),
     ...(f.sort !== "status" ? [{ key: "o", label: tr("Sort: {0}", MENU_SORTS[f.sort].label()), onRemove: () => setF({ ...f, sort: "status" }) }] : []),
   ];
@@ -1005,7 +1005,7 @@ function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlet
                           <MenuPhoto i={i} />
                           <span className="min-w-0">
                             <span className="block truncate font-medium text-neutral-900">{i.name}</span>
-                            <span className="block truncate text-xs text-neutral-400">{[i.kind === "modifier" ? tr("Add-on") : tr("Menu item"), i.itemCode].filter(Boolean).join(" · ")}</span>
+                            <span className="block truncate text-xs text-neutral-400">{[i.kind === "modifier" ? tr("Add-on") : tr("Menu Item"), i.itemCode].filter(Boolean).join(" · ")}</span>
                           </span>
                         </span>
                       </td>
@@ -1056,7 +1056,7 @@ function MenuFilters({ outlets, cities, categories, value, onApply, onClose }: {
   return (
     <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_MF)}>
       <FilterSection title={tr("Outlet")}>
-        <SearchChoice label={tr("Outlet")} anyLabel={tr("All outlets")} value={d.merchant}
+        <SearchChoice label={tr("Outlet")} anyLabel={tr("All Outlets")} value={d.merchant}
           onChange={(v) => setD({ ...d, merchant: v, status: !v && d.status === "all" ? "unavailable" : d.status })}
           options={outletChoices(outlets, unavailable)}
           placeholder={tr("Search outlet")} />
@@ -1067,13 +1067,13 @@ function MenuFilters({ outlets, cities, categories, value, onApply, onClose }: {
       </FilterSection>
       <FilterSection title={tr("Status")} hint={tr("Out of stock today comes back by itself; switched off stays off until the outlet turns it on. Different price: not the price most outlets of the same city use.")}>
         <ChoiceGroup label="" value={d.status} onChange={(v) => setD({ ...d, status: v })}
-          choices={[{ value: "unavailable", label: tr("Unavailable") }, { value: "OUT_OF_STOCK", label: tr("Out of stock today") }, { value: "OFF", label: tr("Switched off") },
-            { value: "price", label: tr("Different price") },
-            ...(d.merchant ? [{ value: "all", label: tr("Whole menu") }] : [])]} />
+          choices={[{ value: "unavailable", label: tr("Unavailable") }, { value: "OUT_OF_STOCK", label: tr("Out of Stock Today") }, { value: "OFF", label: tr("Switched Off") },
+            { value: "price", label: tr("Different Price") },
+            ...(d.merchant ? [{ value: "all", label: tr("Whole Menu") }] : [])]} />
       </FilterSection>
       <FilterSection title={tr("Type")}>
         <ChoiceGroup label="" value={d.kind} onChange={(v) => setD({ ...d, kind: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "item", label: tr("Menu items") }, { value: "modifier", label: tr("Add-ons") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "item", label: tr("Menu Items") }, { value: "modifier", label: tr("Add-ons") }]} />
       </FilterSection>
       <FilterSection title={tr("Category")} hint={tr("Categories of the menu shown now")}>
         <SearchChoice label={tr("Category")} anyLabel={tr("All categories")} value={d.category} onChange={(v) => setD({ ...d, category: v })}
@@ -1102,11 +1102,11 @@ function SessionDrawer({ session, onClose, onSaved }: { session: Session; onClos
   };
   const ok = !!session?.present && !!session.valid;
   return (
-    <Drawer open onClose={onClose} size="md" icon={<KeyRound size={18} />} title={tr("Grab session")}
+    <Drawer open onClose={onClose} size="md" icon={<KeyRound size={18} />} title={tr("Grab Session")}
       description={tr("Super admin only: the merchant session the sync uses")} focusFirstField={false}
       footer={<>
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
-        <Button loading={saving} disabled={cookie.trim().length < 20} onClick={() => void save()}>{tr("Save session")}</Button>
+        <Button loading={saving} disabled={cookie.trim().length < 20} onClick={() => void save()}>{tr("Save Session")}</Button>
       </>}>
       <div className="space-y-4">
         <div className={cx("rounded-xl border px-3 py-2.5 text-sm", ok ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>

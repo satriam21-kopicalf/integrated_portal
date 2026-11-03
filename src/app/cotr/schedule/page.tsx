@@ -27,7 +27,7 @@ type Roster = { from: string; to: string; templates: Template[]; drivers: { code
 type Edit = { status: Status | null; template: string | null };
 
 const ATT: Record<Attendance, { label: () => string; tone: Tone } | null> = {
-  on_time: { label: () => tr("On time"), tone: "green" }, late: { label: () => tr("Late"), tone: "amber" },
+  on_time: { label: () => tr("On Time"), tone: "green" }, late: { label: () => tr("Late"), tone: "amber" },
   absent: { label: () => tr("Absent"), tone: "red" }, unscheduled: { label: () => tr("Unscheduled"), tone: "violet" },
   planned: null, off: null, leave: null, sick: null, none: null,
 };
@@ -51,7 +51,7 @@ export default function CotrSchedulePage() {
     <Page eyebrow="Monitoring COTR" media={<CalendarDays size={19} />} title={tr("Master Schedule")} subtitle={tr("Shifts of the drivers per day, attendance against the check in, and the recap for the incentives")}>
       <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={[
         { key: "roster", label: <span className="inline-flex items-center gap-1.5"><CalendarDays size={15} />{tr("Roster")}</span> },
-        { key: "templates", label: <span className="inline-flex items-center gap-1.5"><Clock size={15} />{tr("Shift templates")}</span> },
+        { key: "templates", label: <span className="inline-flex items-center gap-1.5"><Clock size={15} />{tr("Shift Templates")}</span> },
       ]} />
       {tab === "roster" ? <RosterView /> : <TemplatesView />}
     </Page>
@@ -131,11 +131,11 @@ function RosterView() {
   const poolList = (pools.rows ?? []).filter((p) => p.kind !== "storage");
   return (
     <>
-      <StatGrid label={tr("Recap of the week")} cols={4}>
+      <StatGrid label={tr("Recap of the Week")} cols={4}>
         <StatCard label={tr("People")} icon={<Users />} value={data ? people.length : <ValueSkeleton />} sub={data && tr("{0} with a shift today", people.filter((p) => valueOf(p.code, today).status === "work").length)} />
         <StatCard label={tr("Scheduled")} icon={<CalendarDays />} value={sum ? sum.scheduled : <ValueSkeleton />} sub={sum && tr("{0} worked", sum.worked)} />
         <StatCard label={tr("Late")} icon={<Clock />} tone={sum?.late ? "warn" : "default"} value={sum ? sum.late : <ValueSkeleton />} />
-        <StatCard label={tr("Base pay")} tone="brand" icon={<Wallet />} value={sum ? rupiah(sum.pay) : <ValueSkeleton />} sub={tr("reference of the incentives")} />
+        <StatCard label={tr("Base Pay")} tone="brand" icon={<Wallet />} value={sum ? rupiah(sum.pay) : <ValueSkeleton />} sub={tr("reference of the incentives")} />
       </StatGrid>
       {sheet && (
         <MonitorFilterSheet active={[draftF.pool, draftF.dept].filter(Boolean).length} onClose={() => setSheet(false)} onReset={() => setDraftF({ pool: "", dept: "" })}
@@ -146,7 +146,7 @@ function RosterView() {
           </FilterRow>
           {departments.length > 0 && (
             <FilterRow icon={<Users size={15} />} label={tr("Department")} value={draftF.dept || null} onClear={() => setDraftF({ ...draftF, dept: "" })}>
-              <OptionList value={draftF.dept} onChange={(v) => setDraftF({ ...draftF, dept: v })} choices={[{ value: "", label: tr("All departments") }, ...departments.map((d) => ({ value: d, label: d }))]} />
+              <OptionList value={draftF.dept} onChange={(v) => setDraftF({ ...draftF, dept: v })} choices={[{ value: "", label: tr("All Departments") }, ...departments.map((d) => ({ value: d, label: d }))]} />
             </FilterRow>
           )}
         </MonitorFilterSheet>
@@ -157,16 +157,16 @@ function RosterView() {
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center rounded-lg border border-neutral-200 bg-white shadow-sm">
-                <button type="button" aria-label={tr("Previous week")} onClick={() => setWeek(addDays(week, -7))} className="rounded-l-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronLeft size={16} /></button>
+                <button type="button" aria-label={tr("Previous Week")} onClick={() => setWeek(addDays(week, -7))} className="rounded-l-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronLeft size={16} /></button>
                 <span className="min-w-[9.5rem] px-1 text-center text-[13px] font-semibold tabular-nums text-neutral-800">{dayLabel(week, { day: "numeric", month: "short" })} – {dayLabel(addDays(week, 6), { day: "numeric", month: "short" })}</span>
-                <button type="button" aria-label={tr("Next week")} onClick={() => setWeek(addDays(week, 7))} className="rounded-r-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronRight size={16} /></button>
+                <button type="button" aria-label={tr("Next Week")} onClick={() => setWeek(addDays(week, 7))} className="rounded-r-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronRight size={16} /></button>
               </div>
               {week !== mondayOf(today) && <Button size="sm" variant="ghost" onClick={() => { setWeek(mondayOf(today)); setDay(today); }}>{tr("This week")}</Button>}
               <div role="radiogroup" aria-label={tr("View")} className="ml-auto flex rounded-lg bg-neutral-100 p-1">
                 {(["day", "week"] as const).map((m) => (
                   <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
                     className={cx("rounded-md px-3 py-1 text-xs font-semibold", mode === m ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500")}>
-                    {m === "day" ? tr("Per day") : tr("Weekly")}
+                    {m === "day" ? tr("Per Day") : tr("Weekly")}
                   </button>
                 ))}
               </div>
@@ -175,7 +175,7 @@ function RosterView() {
               right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search name or nickname")} />}
               scopes={[
                 { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolList.find((p) => p.code === pool)?.name ?? tr("All pools"), active: !!pool },
-                ...(departments.length ? [{ key: "dept", icon: <Users />, label: tr("Department"), value: dept || tr("All departments"), active: !!dept }] : []),
+                ...(departments.length ? [{ key: "dept", icon: <Users />, label: tr("Department"), value: dept || tr("All Departments"), active: !!dept }] : []),
               ]} />
           </div>
         }>
@@ -236,7 +236,7 @@ function RosterView() {
               <thead className={kcTable.thead}>
                 <tr><th className="sticky left-0 z-[1] bg-neutral-50 px-3 py-2">{tr("Name")}</th>
                   {days.map((d) => <th key={d} className={cx("px-2 py-2 text-center", d === today && "bg-brand-50 text-brand-800")}>{dayLabel(d, { weekday: "short", day: "numeric" })}</th>)}
-                  <th className="px-2 py-2 text-center">{tr("Whole week")}</th></tr>
+                  <th className="px-2 py-2 text-center">{tr("Whole Week")}</th></tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
                 {people.map((p) => (
@@ -266,7 +266,7 @@ function RosterView() {
                       );
                     })}
                     <td className="px-1.5 py-1.5 align-top">
-                      <select value="" onChange={(e) => e.target.value !== "#" && days.forEach((d) => setCell(p.code, d, e.target.value))} aria-label={tr("Whole week")} className="h-8 w-full rounded-lg border border-neutral-200 px-1.5 text-xs text-neutral-500 outline-none">
+                      <select value="" onChange={(e) => e.target.value !== "#" && days.forEach((d) => setCell(p.code, d, e.target.value))} aria-label={tr("Whole Week")} className="h-8 w-full rounded-lg border border-neutral-200 px-1.5 text-xs text-neutral-500 outline-none">
                         <option value="#">{tr("Fill…")}</option>
                         {templates.map((x) => <option key={x.code} value={x.code}>{x.code} · {x.name}</option>)}
                         <option value="@off">{tr("Off")}</option><option value="">{tr("Clear")}</option>
@@ -296,10 +296,10 @@ function RosterView() {
       )}
 
       {data && people.length > 0 && sum && (
-        <Panel title={tr("Recap of the week")} description={tr("Days scheduled and worked, on time, late and absent, base pay: the reference of the incentives")}>
+        <Panel title={tr("Recap of the Week")} description={tr("Days scheduled and worked, on time, late and absent, base pay: the reference of the incentives")}>
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Name")}</th>
-              {[tr("Scheduled"), tr("Worked"), tr("On time"), tr("Late"), tr("Absent"), tr("Off"), tr("Leave"), tr("Sick"), tr("Base pay")].map((h) => <th key={h} className="px-3 py-2.5 text-right">{h}</th>)}</tr></thead>
+              {[tr("Scheduled"), tr("Worked"), tr("On Time"), tr("Late"), tr("Absent"), tr("Off"), tr("Leave"), tr("Sick"), tr("Base Pay")].map((h) => <th key={h} className="px-3 py-2.5 text-right">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {people.map((p) => { const r = recap(p.code); return (
                 <tr key={p.code}><td className="px-4 py-2"><span className="font-medium text-neutral-900">{p.name}</span>{p.department && <span className="block text-[11px] text-neutral-400">{p.department}</span>}</td>
@@ -320,7 +320,7 @@ const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((
 function TemplatesView() {
   const master = useMaster<Template>("shift-templates");
   return (
-    <MasterTable noun={tr("shift")} title={tr("Shift templates")} master={master}
+    <MasterTable noun={tr("shift")} title={tr("Shift Templates")} master={master}
       description={tr("The working hours of a shift; a check in later than the start plus the tolerance is late")}
       blank={(): Partial<Template> => ({ code: "", name: "", start_time: "06:00", end_time: "14:00", break_min: 60, grace_min: 15, color: "blue", is_active: true, sort: 0 })}
       columns={[
@@ -328,7 +328,7 @@ function TemplatesView() {
         { label: tr("Hours"), render: (t) => <span className={cx("rounded-md border px-2 py-0.5 text-xs tabular-nums", TEMPLATE_TONE[t.color ?? ""] ?? "border-neutral-200")}>{t.start_time}–{t.end_time}</span> },
         { label: tr("Break"), render: (t) => `${t.break_min} ${tr("min")}` },
         { label: tr("Tolerance"), render: (t) => `${t.grace_min} ${tr("min")}` },
-        { label: tr("Day rate"), render: (t) => t.pay_rate != null ? <span className="tabular-nums">{rupiah(Number(t.pay_rate))}</span> : <span className="text-neutral-400">—</span> },
+        { label: tr("Day Rate"), render: (t) => t.pay_rate != null ? <span className="tabular-nums">{rupiah(Number(t.pay_rate))}</span> : <span className="text-neutral-400">—</span> },
         { label: tr("Status"), render: (t) => t.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge> },
       ]}
       fields={[
@@ -336,9 +336,9 @@ function TemplatesView() {
         { key: "name", label: tr("Name"), required: true },
         { key: "start_time", label: tr("Starts"), type: "time", required: true },
         { key: "end_time", label: tr("Ends"), type: "time", required: true },
-        { key: "break_min", label: tr("Break (minutes)"), type: "number" },
-        { key: "grace_min", label: tr("Late tolerance (minutes)"), type: "number" },
-        { key: "pay_rate", label: tr("Day rate (Rp)"), type: "number", hint: tr("Base pay of one day worked on this shift (N 85.000, H 75.000, LS 150.000 on the payroll sheets)") },
+        { key: "break_min", label: tr("Break (Minutes)"), type: "number" },
+        { key: "grace_min", label: tr("Late Tolerance (Minutes)"), type: "number" },
+        { key: "pay_rate", label: tr("Day Rate (Rp)"), type: "number", hint: tr("Base pay of one day worked on this shift (N 85.000, H 75.000, LS 150.000 on the payroll sheets)") },
         { key: "color", label: tr("Color"), type: "select", options: Object.keys(TEMPLATE_TONE).map((c) => ({ value: c, label: c })) },
         { key: "sort", label: tr("Order"), type: "number" },
         { key: "is_active", label: tr("Active"), type: "bool" },

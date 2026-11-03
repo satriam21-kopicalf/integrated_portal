@@ -51,7 +51,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
             <div className="space-y-4">
               <GrowthSummary data={d} />
               <Tiles tiles={[
-                { label: tr('This period'), value: rp(d.totals.subtotal), sub: tr('{0} bills', num(d.totals.bills)) },
+                { label: tr('This Period'), value: rp(d.totals.subtotal), sub: tr('{0} bills', num(d.totals.bills)) },
                 { label: tr('Comparison'), value: rp(d.totals.compareSubtotal), sub: d.compare.complete ? `${formatDate(d.compare.from)} – ${formatDate(d.compare.to)}` : tr('before complete history') },
                 { label: tr('Growth'), value: signedRp(d.totals.growthAbs), delta: d.totals.growthPct },
                 { label: tr('Average Order Value'), value: rp(d.totals.avgTicket), delta: d.totals.avgTicketGrowthPct, sub: tr('bills {0}', d.totals.billsGrowthPct === null ? '-' : `${d.totals.billsGrowthPct >= 0 ? '+' : '−'}${fixed(Math.abs(d.totals.billsGrowthPct), 1)}%`) },
@@ -81,8 +81,8 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
                   { key: 'sales', label: tr('Gross sales'), align: 'right', value: p => p.subtotal, render: p => rp(p.subtotal) },
                   { key: 'cmpFrom', label: tr('Compared with'), value: p => p.compareFrom, render: p => (p.compareFrom ? (basis === 'sequential' ? bucketLabel(p.compareFrom, d.granularity) : tr('from {0}', formatDate(p.compareFrom))) : '-') },
                   { key: 'cmp', label: tr('Comparison'), align: 'right', value: p => p.compareSubtotal, render: p => rp(p.compareSubtotal) },
-                  { key: 'perDay', label: tr('Per day'), align: 'right', value: p => p.avgPerDay, render: p => rp(p.avgPerDay) },
-                  { key: 'cmpPerDay', label: tr('Comp. per day'), align: 'right', value: p => p.compareAvgPerDay, render: p => rp(p.compareAvgPerDay) },
+                  { key: 'perDay', label: tr('Per Day'), align: 'right', value: p => p.avgPerDay, render: p => rp(p.avgPerDay) },
+                  { key: 'cmpPerDay', label: tr('Comp. per Day'), align: 'right', value: p => p.compareAvgPerDay, render: p => rp(p.compareAvgPerDay) },
                   { key: 'abs', label: basis === 'sequential' ? tr('Growth/day') : tr('Growth'), align: 'right', value: p => p.growthAbs, render: p => <GrowthText v={p.growthPct} abs={p.growthAbs} absOnly /> },
                   { key: 'pct', label: tr('Growth %'), align: 'right', value: p => p.growthPct, render: p => <Delta value={p.growthPct} /> },
                 ]} />
@@ -91,7 +91,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
         </Loaded>
       </Block>
 
-      <Block title={tr('Growth per hour')} subtitle={tr('Gross sales per day in each hour (outlet time){0}', basis === 'sequential' ? tr(' · compared with the previous period') : '')}>
+      <Block title={tr('Growth per Hour')} subtitle={tr('Gross sales per day in each hour (outlet time){0}', basis === 'sequential' ? tr(' · compared with the previous period') : '')}>
         {hours.res.error ? (
           <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{hours.res.error}</p>
         ) : !hours.data ? (
@@ -107,7 +107,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
         )}
       </Block>
 
-      <Block title={tr('Branches behind the growth')} subtitle={tr('Contribution = percentage points of the total growth; they add up to the total · click a branch for its profile')}>
+      <Block title={tr('Branches Behind the Growth')} subtitle={tr('Contribution = percentage points of the total growth; they add up to the total · click a branch for its profile')}>
         <Loaded resource={res} height={260}>
           {d => (
             <div className="space-y-3">
@@ -118,7 +118,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
         </Loaded>
       </Block>
 
-      <Block title={tr('Channels behind the growth')}>
+      <Block title={tr('Channels Behind the Growth')}>
         <Loaded resource={res} height={200}>
           {d => <SplitTable rows={d.channels} kind="channel" onOpen={r => drill.drill(to.channel(r.key))} />}
         </Loaded>

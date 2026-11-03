@@ -80,7 +80,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
               </Select>
             </Field>
           )}
-          <Field label={tr('Excel file (.xlsx)')} required>
+          <Field label={tr('Excel File (.xlsx)')} required>
             <label className="flex h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-neutral-300 px-3 text-sm text-neutral-600 hover:bg-neutral-50 lg:h-10">
               <Upload size={16} /> <span className="truncate">{name || tr('Choose a file')}</span>
               <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => void pick(e.target.files?.[0])} />

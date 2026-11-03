@@ -108,7 +108,7 @@ function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: bo
           </Link>
         )}
         {user && (
-          <button type="button" onClick={onMenu} className="relative flex-shrink-0 rounded-full p-0.5 ring-2 ring-white active:opacity-80" aria-label={tr('Open menu')}>
+          <button type="button" onClick={onMenu} className="relative flex-shrink-0 rounded-full p-0.5 ring-2 ring-white active:opacity-80" aria-label={tr('Open Menu')}>
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
             {!user.profileComplete && <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-maroon-600 ring-2 ring-white" />}
           </button>

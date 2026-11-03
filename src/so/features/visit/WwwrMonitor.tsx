@@ -20,7 +20,7 @@ import { SkeletonList } from "@/components/kc/Skeleton";
 
 type BranchOpt = { branch_code: string; branch_name: string };
 const STATUS: Record<AuditStatus, { tone: "slate" | "amber" | "green" | "red" | "blue"; label: () => string }> = {
-  scheduled: { tone: "blue", label: () => tr("Scheduled") }, in_progress: { tone: "amber", label: () => tr("In progress") },
+  scheduled: { tone: "blue", label: () => tr("Scheduled") }, in_progress: { tone: "amber", label: () => tr("In Progress") },
   follow_up: { tone: "amber", label: () => tr("Follow-up") }, completed: { tone: "green", label: () => tr("Completed") }, cancelled: { tone: "slate", label: () => tr("Cancelled") },
 };
 const dayShort = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short", year: "numeric" });
@@ -55,7 +55,7 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
     } catch (e) { toast((e as Error).message, "error"); }
   };
   return (
-    <Panel title={tr("Audit schedule")} description={tr("Plan the SWAT audits: outlet, day and team. Only the members open the form; the lead sends it.")}
+    <Panel title={tr("Audit Schedule")} description={tr("Plan the SWAT audits: outlet, day and team. Only the members open the form; the lead sends it.")}
       actions={<>
         <label className="flex items-center gap-1.5 text-xs text-neutral-500"><input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} /> {tr("Show cancelled")}</label>
         <Button size="sm" onClick={() => setEdit("new")} disabled={!team.length}><CalendarPlus size={14} /> {tr("New audit")}</Button>
@@ -95,7 +95,7 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
                       {a.status === "in_progress" && <span className="text-[11px] tabular-nums text-neutral-500">{tr("{0} of {1} rated", a.counts?.rated ?? 0, a.counts?.total ?? 0)}</span>}
                       {(a.status === "scheduled" || a.status === "in_progress") && <>
                         <button type="button" onClick={() => setEdit(a)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr("Edit")}><Pencil size={15} /></button>
-                        <button type="button" onClick={() => setCancel(a)} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Cancel the audit")}><Trash2 size={15} /></button>
+                        <button type="button" onClick={() => setCancel(a)} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Cancel the Audit")}><Trash2 size={15} /></button>
                       </>}
                     </div>
                   </li>
@@ -106,7 +106,7 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
         </div>
       )}
       {edit && <AuditDrawer audit={edit === "new" ? null : edit} team={team} branches={branches} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); void load(); }} />}
-      <ConfirmDialog open={!!cancel} onClose={() => setCancel(null)} onConfirm={() => void doCancel()} danger confirmLabel={tr("Cancel the audit")}
+      <ConfirmDialog open={!!cancel} onClose={() => setCancel(null)} onConfirm={() => void doCancel()} danger confirmLabel={tr("Cancel the Audit")}
         title={tr("Cancel the audit of {0}?", cancel?.branchName ?? "")} description={tr("What the team filled so far is removed.")} />
     </Panel>
   );
@@ -145,7 +145,7 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
         <Field label={tr("Outlet")} required>
           <ComboFilter value={branch} onChange={setBranch} options={outlets} allLabel={tr("Choose the outlet")} placeholder={tr("Search outlet")} />
         </Field>
-        <Field label={tr("Day of the audit")} required>
+        <Field label={tr("Day of the Audit")} required>
           <input type="date" value={day} onChange={(e) => setDay(e.target.value)} className={cx(inputClass, "h-10")} />
         </Field>
         <Field label={tr("Team")} required hint={tr("Tick the members, then crown the lead who sends the audit")}>
@@ -173,7 +173,7 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
           </div>
           <p className="mt-1 text-xs text-neutral-500">{tr("{0} members", new Set([...members, ...(lead ? [lead] : [])]).size)}{lead ? ` · ${tr("lead {0}", team.find((t) => t.id === lead)?.name ?? "")}` : ` · ${tr("choose the lead")}`}</p>
         </Field>
-        <Field label={tr("Note for the team")}>
+        <Field label={tr("Note for the Team")}>
           <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={500} className={cx(inputClass, "py-2")} placeholder={tr("e.g. focus on the bar and the stock")} />
         </Field>
       </div>
@@ -210,7 +210,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Tile label={tr("Audits compared")} value={fmtNumber(s.withPic)} note={tr("of {0} audits sent", fmtNumber(s.audits))} />
+        <Tile label={tr("Audits Compared")} value={fmtNumber(s.withPic)} note={tr("of {0} audits sent", fmtNumber(s.audits))} />
         <Tile label={tr("Conformity of the PICs")} value={<span className={scoreTone(s.conformity)}>{s.conformity === null ? "—" : `${s.conformity}%`}</span>} note={tr("items where the PIC and SWAT agree")} />
         <Tile label={tr("Overrated by the PIC")} value={<span className={s.overrated ? "text-red-600" : undefined}>{fmtNumber(s.overrated)}</span>} note={tr("PIC passed, SWAT found UNDER")} />
         <Tile label={tr("Underrated by the PIC")} value={fmtNumber(s.underrated)} note={tr("PIC UNDER, SWAT passed")} />
@@ -221,7 +221,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
           <div className="overflow-x-auto">
             <table className="m-cards w-full text-sm">
               <thead className={theadClass}><tr>
-                <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("Audits")}</th><th className="px-3 py-2.5 text-right">{tr("Items compared")}</th>
+                <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("Audits")}</th><th className="px-3 py-2.5 text-right">{tr("Items Compared")}</th>
                 <th className="px-3 py-2.5 text-right">{tr("Overrated")}</th><th className="px-3 py-2.5 text-right">{tr("Underrated")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Conformity")}</th>
               </tr></thead>
               <tbody className="divide-y divide-neutral-100">
@@ -229,7 +229,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
                   <tr key={p.id}>
                     <td className="py-2.5 pl-5 pr-3" data-label={tr("PIC")}><span className="block font-medium text-neutral-900">{p.name}</span><span className="block truncate text-[11px] text-neutral-400" title={p.branches.join(", ")}>{p.branches.join(", ")}</span></td>
                     <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Audits")}>{p.audits}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Items compared")}>{p.compared}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Items Compared")}>{p.compared}</td>
                     <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Underrated")}>{p.underrated}</td>
                     <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Conformity")}><Meter pct={p.conformity} /></td>
@@ -241,7 +241,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
         )}
       </Panel>
 
-      <Panel title={tr("Audits against the PIC")} description={tr("Tap an audit to see every item side by side")}>
+      <Panel title={tr("Audits Against the PIC")} description={tr("Tap an audit to see every item side by side")}>
         {res.audits.length === 0 ? <Empty icon={<Scale size={28} />} title={tr("No audit sent in this period")}>{tr("The comparison appears when the SWAT team sends its audits.")}</Empty> : (
           <ul className="divide-y divide-neutral-100">
             {res.audits.map((a) => (
@@ -362,12 +362,12 @@ export function AuditEvaluation({ audit }: { audit: AuditTeam }) {
     <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
         <div>
-          <h3 className="text-sm font-semibold text-neutral-900">{tr("Evaluation & action plan")}</h3>
+          <h3 className="text-sm font-semibold text-neutral-900">{tr("Evaluation & Action Plan")}</h3>
           <p className="text-xs text-neutral-500">{audit.status === "completed" ? tr("Completed {0}", wibDateTime(audit.completedAt ?? null)) : tr("Follow-up: {0} of {1} action plans open", open, actions.length)}
             {audit.revisitOn ? ` · ${tr("revisit {0}", dayShort(audit.revisitOn))}` : ""}</p>
         </div>
         {url && <div className="flex gap-1.5">
-          <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={13} /> {tr("Copy link")}</Button>
+          <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={13} /> {tr("Copy Link")}</Button>
           <a href={`${url}?print=1`} target="_blank" rel="noreferrer"><Button size="sm" variant="secondary"><Printer size={13} /> {tr("Print / PDF")}</Button></a>
         </div>}
       </header>

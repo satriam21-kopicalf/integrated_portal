@@ -19,18 +19,18 @@ export const navigation = [
  *  pages stay). */
 export type CcItem = { name: string; href: string; icon: typeof Users; description: string; soon?: boolean; badge?: 'review'; /** brand logo (public/assets) shown instead of the icon */ logo?: string };
 export const costControl: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
-  { get title() { return tr('Stock opname'); }, get hint() { return tr('Follow and close the counts of every branch'); }, icon: ClipboardCheck, items: [
+  { get title() { return tr('Stock Opname'); }, get hint() { return tr('Follow and close the counts of every branch'); }, icon: ClipboardCheck, items: [
     { get name() { return tr('Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Progress of every branch per day'); } },
     { get name() { return tr('Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); }, badge: 'review' },
     { get name() { return tr('Report Stock Opname'); }, href: '/cost-control/reports', icon: Download, get description() { return tr('Download reviewed stock opname'); } },
   ] },
-  { get title() { return tr('Stock opname settings'); }, get hint() { return tr('What, when and how the branches count'); }, icon: SlidersHorizontal, items: [
+  { get title() { return tr('Stock Opname Settings'); }, get hint() { return tr('What, when and how the branches count'); }, icon: SlidersHorizontal, items: [
     { get name() { return tr('Count Lists'); }, href: '/cost-control/lists', icon: ListChecks, get description() { return tr('Items per branch & type'); } },
     { get name() { return tr('Items Groups'); }, href: '/cost-control/groups', icon: Boxes, get description() { return tr('Templates assigned to branches'); } },
     { get name() { return tr('Count Types'); }, href: '/cost-control/types', icon: Settings2, get description() { return tr('Names, schedules & calendar'); } },
     { get name() { return tr('Outlet Locations'); }, href: '/cost-control/locations', icon: MapPin, get description() { return tr('Coordinates & check-in radius'); } },
   ] },
-  { get title() { return tr('Production & costing'); }, get hint() { return tr('Recipes, menu costing and raw material prices'); }, icon: FlaskConical, items: [
+  { get title() { return tr('Production & Costing'); }, get hint() { return tr('Recipes, menu costing and raw material prices'); }, icon: FlaskConical, items: [
     { get name() { return tr('Production Calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
     { get name() { return tr('Sales Calculator by Menu'); }, href: '/cost-control/sales-calculator', icon: Calculator, get description() { return tr('Menu recipe cards, MRP, usage & COGS'); } },
     { get name() { return tr('Pricelist Items'); }, href: '/cost-control/pricelist', icon: Receipt, get description() { return tr('Prices of the raw materials'); } },
@@ -58,7 +58,7 @@ export const forms: { title: string; hint: string; icon: typeof Users; items: Cc
     { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
     { get name() { return tr('Cost Control Check In'); }, href: '/forms/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Cost Control visit to the outlet'); } },
   ] },
-  { get title() { return tr('Product & outlet'); }, get hint() { return tr('Condition of the products and the outlet'); }, icon: Store, items: [
+  { get title() { return tr('Product & Outlet'); }, get hint() { return tr('Condition of the products and the outlet'); }, icon: Store, items: [
     { get name() { return 'Product'; }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },
     { get name() { return 'Outlet'; }, href: '/forms/outlet', icon: Store, get description() { return tr('Fill in the outlet checklist'); } },
     { get name() { return 'WW-WR'; }, href: '/forms/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audit of the outlet'); } },
@@ -67,7 +67,7 @@ export const forms: { title: string; hint: string; icon: typeof Users; items: Cc
     { get name() { return tr('Damaged Equipment'); }, href: '/forms/damaged-equipment', icon: Wrench, get description() { return tr('Repair & procurement requests'); } },
   ] },
   { get title() { return tr('Finance'); }, get hint() { return tr('Petty cash and other requests of the outlet'); }, icon: Wallet, items: [
-    { get name() { return tr('Fund requests'); }, href: '/forms/pengajuan', icon: Wallet, get description() { return tr('Petty cash with receipts'); } },
+    { get name() { return tr('Fund Request'); }, href: '/forms/pengajuan', icon: Wallet, get description() { return tr('Petty cash with receipts'); } },
   ] },
 ];
 
@@ -79,7 +79,7 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
   { get title() { return tr('Visit'); }, get hint() { return tr('Who checked in where and when'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/monitoring/pic-check-in', icon: MapPinCheck, get description() { return tr('Check-ins of every PIC'); } },
   ] },
-  { get title() { return tr('Product & outlet'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
+  { get title() { return tr('Product & Outlet'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
     { get name() { return tr('Monitoring Product'); }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },
     { get name() { return tr('Monitoring Outlet'); }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
     { get name() { return 'Monitoring WW-WR'; }, href: '/monitoring/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audits, comparison with the PIC & schedule'); } },
@@ -88,7 +88,7 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
     { get name() { return tr('Damaged Equipment'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },
   ] },
   { get title() { return tr('Finance'); }, get hint() { return tr('Requests of the outlets: verify, approve, pay'); }, icon: Wallet, items: [
-    { get name() { return tr('Fund requests'); }, href: '/monitoring/pengajuan', icon: Wallet, get description() { return tr('Petty cash, receipts & approvals'); } },
+    { get name() { return tr('Fund Request'); }, href: '/monitoring/pengajuan', icon: Wallet, get description() { return tr('Petty cash, receipts & approvals'); } },
   ] },
   { get title() { return tr('Settings'); }, get hint() { return tr('How the outlets are grouped'); }, icon: Boxes, items: [
     { get name() { return tr('Branch groups'); }, href: '/monitoring/branch-groups', icon: Boxes, get description() { return tr('CCI, CTG, CTGP … for the assessment'); } },
@@ -97,11 +97,11 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
 
 /** "Monitoring COTR" menu: Calf On The Road, configured by the COTR team (pages cotr.*, prototype 2026-11-01). */
 export const cotr: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
-  { get title() { return tr('Drivers on the road'); }, get hint() { return tr('Check-ins of the drivers from the COTR app'); }, icon: MapPinCheck, items: [
+  { get title() { return tr('Drivers on the Road'); }, get hint() { return tr('Check-ins of the drivers from the COTR app'); }, icon: MapPinCheck, items: [
     { get name() { return tr('Driver Check In'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Start, reload & end of shift'); } },
     { get name() { return tr('Storage & Assignment'); }, href: '/cotr/storage', icon: Warehouse, get description() { return tr('Products per driver, differences & reloads'); } },
   ] },
-  { get title() { return tr('Master data'); }, get hint() { return tr('Drivers, fleet, pools, menus and schedule'); }, icon: Boxes, items: [
+  { get title() { return tr('Master Data'); }, get hint() { return tr('Drivers, fleet, pools, menus and schedule'); }, icon: Boxes, items: [
     { get name() { return tr('Master Driver'); }, href: '/cotr/drivers', icon: Bike, get description() { return tr('Drivers, pool & fleet'); } },
     { get name() { return tr('Master Fleet'); }, href: '/cotr/fleet', icon: Truck, get description() { return tr('Motorbikes, carts & bicycles'); } },
     { get name() { return tr('Master Pool / HUB'); }, href: '/cotr/pools', icon: Building2, get description() { return tr('Main HUB, parent pools & storage'); } },
@@ -118,7 +118,7 @@ export const cotr: { title: string; hint: string; icon: typeof Users; items: CcI
 
 /** "Management" menu: super admins only (the pages and the API check the role too). */
 export const management: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
-  { get title() { return tr('Accounts & access'); }, get hint() { return tr('Who signs in and what they open'); }, icon: Users, items: [
+  { get title() { return tr('Accounts & Access'); }, get hint() { return tr('Who signs in and what they open'); }, icon: Users, items: [
     { get name() { return tr('User Accounts'); }, href: '/users', icon: Users, get description() { return tr('Logins, roles & branches'); } },
   ] },
   { get title() { return tr('Audit'); }, get hint() { return tr('Everything done in the portal'); }, icon: History, items: [
@@ -131,7 +131,7 @@ export const rating: { title: string; hint: string; icon: typeof Users; items: C
   { get title() { return tr('Maps'); }, get hint() { return tr('What guests say about the outlets'); }, icon: MapPin, items: [
     { get name() { return tr('Google Maps'); }, href: '/rating/google-maps', icon: MapPin, logo: '/assets/googlemaps.png', get description() { return tr('Rating & reviews per outlet'); } },
   ] },
-  { get title() { return tr('Online delivery'); }, get hint() { return tr('Ratings on the delivery apps'); }, icon: MessageSquareText, items: [
+  { get title() { return tr('Online Delivery'); }, get hint() { return tr('Ratings on the delivery apps'); }, icon: MessageSquareText, items: [
     { get name() { return tr('ShopeeFood'); }, href: '/rating/shopeefood', icon: Star, logo: '/assets/shopeefood.png', get description() { return tr('Rating & reviews per outlet'); } },
     { get name() { return tr('GoFood'); }, href: '/rating/gofood', icon: Star, logo: '/assets/gofood.png', get description() { return tr('Rating & reviews per outlet'); } },
     { get name() { return tr('GrabFood'); }, href: '/rating/grabfood', icon: Star, logo: '/assets/grabfood.svg', get description() { return tr('Rating & reviews per outlet'); } },

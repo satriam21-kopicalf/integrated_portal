@@ -34,7 +34,7 @@ export default function RecountNotice({ rows, basePath = "", multi }: { rows: Re
               <Link href={`${basePath}/stock-opname/${r.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-amber-100/60 sm:hover:bg-amber-100/40">
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-neutral-900">{countTypeLabel(r.count_type, r.name)} · {fmtDay(r.business_date)}{multi ? ` · ${r.facility}` : ""}</span>
-                  <span className="block truncate text-xs text-neutral-600">{asked || tr("Every item")}{r.reviewed_by_name ? ` · ${tr("asked by {0}", r.reviewed_by_name)}` : ""}</span>
+                  <span className="block truncate text-xs text-neutral-600">{asked || tr("Every Item")}{r.reviewed_by_name ? ` · ${tr("asked by {0}", r.reviewed_by_name)}` : ""}</span>
                   {r.review_note && <span className="mt-0.5 block text-xs text-amber-900">“{r.review_note}”</span>}
                 </span>
                 <span className="inline-flex h-9 flex-shrink-0 items-center gap-0.5 rounded-lg bg-amber-600 px-3 text-xs font-semibold text-white">{tr("Recount")}<ChevronRight size={14} /></span>

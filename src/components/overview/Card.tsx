@@ -59,7 +59,7 @@ export function Card<T>({
             <p className="text-sm text-neutral-600">{tr('Could not load this widget')}</p>
             <p className="max-w-xs text-xs text-neutral-400">{error}</p>
             <button type="button" onClick={retry} className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-              <RotateCw size={13} /> {tr('Try again')}
+              <RotateCw size={13} /> {tr('Try Again')}
             </button>
           </div>
         ) : data ? (

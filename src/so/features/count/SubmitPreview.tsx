@@ -49,16 +49,16 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
   const blocked = !signature || !name.trim();
 
   return (
-    <Drawer open={open} onClose={onClose} size="xl" icon={<ClipboardCheck size={18} />} title={tr("Check before submitting")}
+    <Drawer open={open} onClose={onClose} size="xl" icon={<ClipboardCheck size={18} />} title={tr("Check Before Submitting")}
       description={`${count.facility_name} · ${count.number}`} locked={busy} focusFirstField={false}
       footer={
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
           <p className={cx("text-xs sm:mr-auto", blocked ? "text-red-600" : "text-neutral-500")}>
             {nameMissing ? tr("Write the signer's name under the signature.") : signature ? tr("Signed · the quantities are locked after submitting.") : tr("Sign below to submit · the quantities are locked after submitting.")}
           </p>
-          <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the count")}</Button>
+          <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the Count")}</Button>
           <Button loading={busy} disabled={blocked} onClick={() => onSubmit(signature, name.trim())}>
-            <Send size={15} /> {tr("Sign & submit")}
+            <Send size={15} /> {tr("Sign & Submit")}
           </Button>
         </div>
       }>
@@ -99,7 +99,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
 
         {wip.length > 0 && (
           <section>
-            <h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("WIP / premix")}</h3>
+            <h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("WIP / Premix")}</h3>
             <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
               {wip.map((w) => (
                 <li key={w.id} className="flex justify-between gap-3 px-3 py-2">
@@ -112,7 +112,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         )}
 
         <section>
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Images size={16} className="text-neutral-500" /> {tr("Evidence photos")} <span className="font-normal text-neutral-500">({count.photos.length})</span></h3>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Images size={16} className="text-neutral-500" /> {tr("Evidence Photos")} <span className="font-normal text-neutral-500">({count.photos.length})</span></h3>
           {count.photos.length === 0 ? (
             <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No evidence photos. They are optional; go back to the count to take some.")}</p>
           ) : (
@@ -128,7 +128,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         </section>
 
         <section>
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Paperclip size={16} className="text-neutral-500" /> {tr("Evidence files")} <span className="font-normal text-neutral-500">({count.files?.length ?? 0})</span></h3>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Paperclip size={16} className="text-neutral-500" /> {tr("Evidence Files")} <span className="font-normal text-neutral-500">({count.files?.length ?? 0})</span></h3>
           {count.files?.length ? <CountFileList files={count.files} /> : (
             <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No files attached. They are optional; go back to the count to attach some.")}</p>
           )}

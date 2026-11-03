@@ -70,7 +70,7 @@ export default function HoursCompare({ query, mode, period, size = 'card' }: {
       {mode === 'period' ? (
         <>
           <Segmented label={tr('Compare with')} value={against} onChange={setAgainst} options={[
-            { value: 'previous', label: tr('Comparison period') }, { value: 'lastYear', label: tr('Last year') }, { value: 'custom', label: tr('Custom') },
+            { value: 'previous', label: tr('Comparison Period') }, { value: 'lastYear', label: tr('Last Year') }, { value: 'custom', label: tr('Custom') },
           ]} />
           {against === 'custom' && (
             <DateRangePicker dateFrom={custom.from} dateTo={custom.to} defaultLabel={tr('pick a period')}
@@ -81,7 +81,7 @@ export default function HoursCompare({ query, mode, period, size = 'card' }: {
         <BranchFilter branches={drill?.branches ?? []} loading={false} value={picked} onChange={v => setPicked(splitBranches(v).slice(0, 8).join(','))} />
       )}
       <Segmented label={tr('Measure')} value={measure} onChange={setMeasure} options={[
-        { value: 'avg', label: tr('Bills / day') }, { value: 'share', label: tr('Share of day') },
+        { value: 'avg', label: tr('Bills / Day') }, { value: 'share', label: tr('Share of Day') },
       ]} />
     </div>
   );
@@ -133,7 +133,7 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
     yAxis: valueAxis(measure === 'avg' ? compactNumber : (v: number) => `${v}%`, { splitNumber: 4 }),
     series: [
       { name: tr('Comparison'), type: 'bar', data: hours.map(h => val(compare, h)), barMaxWidth: 12, barGap: '15%', itemStyle: { color: INK.previous, borderRadius: [3, 3, 0, 0] } },
-      { name: tr('This period'), type: 'bar', data: hours.map(h => val(current, h)), barMaxWidth: 12, itemStyle: { color: INK.accent, borderRadius: [3, 3, 0, 0] } },
+      { name: tr('This Period'), type: 'bar', data: hours.map(h => val(current, h)), barMaxWidth: 12, itemStyle: { color: INK.accent, borderRadius: [3, 3, 0, 0] } },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [hours, current, compare, measure]);
@@ -145,11 +145,11 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
   return (
     <div className="space-y-3">
       <div className="grid gap-2 sm:grid-cols-2">
-        <Summary color={INK.accent} title={tr('This period')} range={curLabel} p={current} />
+        <Summary color={INK.accent} title={tr('This Period')} range={curLabel} p={current} />
         <Summary color={INK.previous} title={tr('Comparison')} range={cmpLabel} p={compare} vs={current} />
       </div>
       {!compare.complete && <p className="text-[11px] text-amber-700">{tr('The comparison period starts before complete history (Aug 2025); its days are counted from Aug 2025.')}</p>}
-      <Legend items={[{ key: 'c', label: tr('This period'), color: INK.accent }, { key: 'p', label: tr('Comparison'), color: INK.previous }]} />
+      <Legend items={[{ key: 'c', label: tr('This Period'), color: INK.accent }, { key: 'p', label: tr('Comparison'), color: INK.previous }]} />
       <EChart option={option} height={size === 'card' ? 200 : 280} ariaLabel={tr('Busy hours: {0} compared with {1}', curLabel, cmpLabel)} />
       {movers.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -169,9 +169,9 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
             { key: 'cur', label: tr('Bills/day'), align: 'right', value: r => r.cur?.avgBills ?? 0, render: r => formatNumber(Math.round(r.cur?.avgBills ?? 0)) },
             { key: 'cmp', label: tr('Comparison'), align: 'right', value: r => r.cmp?.avgBills ?? 0, render: r => formatNumber(Math.round(r.cmp?.avgBills ?? 0)) },
             { key: 'd', label: tr('Change'), align: 'right', value: r => r.d, render: r => <ChangeText v={r.d} /> },
-            { key: 'share', label: tr('Share of day'), align: 'right', value: r => r.cur?.share ?? 0, render: r => pctText(r.cur?.share ?? 0) },
-            { key: 'shareCmp', label: tr('Share (comp.)'), align: 'right', value: r => r.cmp?.share ?? 0, render: r => pctText(r.cmp?.share ?? 0) },
-            { key: 'sales', label: tr('Gross sales/day'), align: 'right', value: r => r.cur?.avgSubtotal ?? 0, render: r => compactRupiah(r.cur?.avgSubtotal ?? 0) },
+            { key: 'share', label: tr('Share of Day'), align: 'right', value: r => r.cur?.share ?? 0, render: r => pctText(r.cur?.share ?? 0) },
+            { key: 'shareCmp', label: tr('Share (Comp.)'), align: 'right', value: r => r.cmp?.share ?? 0, render: r => pctText(r.cmp?.share ?? 0) },
+            { key: 'sales', label: tr('Gross Sales/day'), align: 'right', value: r => r.cur?.avgSubtotal ?? 0, render: r => compactRupiah(r.cur?.avgSubtotal ?? 0) },
           ]}
           maxHeight={360}
         />
@@ -247,10 +247,10 @@ function BranchCompare({ branches, measure, size, picked }: { branches: BranchHo
             <span className="flex items-center gap-2"><span className="h-0.5 w-3 rounded-full" style={{ background: SERIES_COLORS[branches.indexOf(b)] }} />{short(b.branchName)}</span>) },
           { key: 'days', label: tr('Days'), align: 'right', value: b => b.activeDays },
           { key: 'avg', label: tr('Bills/day'), align: 'right', value: b => b.avgBillsPerDay, render: b => formatNumber(Math.round(b.avgBillsPerDay)) },
-          { key: 'peak', label: tr('Peak hour'), align: 'right', value: b => b.peakHour, render: b => (b.peakHour === null ? '-' : hourLabel(b.peakHour)) },
-          { key: 'peakShare', label: tr('Peak share'), align: 'right', value: b => b.hours.find(h => h.hour === b.peakHour)?.share ?? null,
+          { key: 'peak', label: tr('Peak Hour'), align: 'right', value: b => b.peakHour, render: b => (b.peakHour === null ? '-' : hourLabel(b.peakHour)) },
+          { key: 'peakShare', label: tr('Peak Share'), align: 'right', value: b => b.hours.find(h => h.hour === b.peakHour)?.share ?? null,
             render: b => pctText(b.hours.find(h => h.hour === b.peakHour)?.share ?? null) },
-          { key: 'sales', label: tr('Gross sales/day'), align: 'right', value: b => (b.activeDays ? b.subtotal / b.activeDays : 0),
+          { key: 'sales', label: tr('Gross Sales/day'), align: 'right', value: b => (b.activeDays ? b.subtotal / b.activeDays : 0),
             render: b => <span title={formatCurrency(b.subtotal)}>{compactRupiah(b.activeDays ? b.subtotal / b.activeDays : 0)}</span> },
         ]}
         maxHeight={size === 'card' ? 220 : 320}

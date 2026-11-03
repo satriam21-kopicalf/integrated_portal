@@ -84,7 +84,7 @@ export default function DriverMap({ day, live }: { day: string; live: boolean })
   };
 
   return (
-    <Panel title={tr('Driver location')} description={tr('Last position sent by the COTR app of every driver; pick a driver to see the route of the day')}
+    <Panel title={tr('Driver Location')} description={tr('Last position sent by the COTR app of every driver; pick a driver to see the route of the day')}
       actions={<Button size="sm" variant="secondary" onClick={() => void load()}><RefreshCw size={14} /> {tr('Refresh')}</Button>}>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : (
         <div className="grid lg:grid-cols-[1fr_20rem]">

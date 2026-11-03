@@ -51,7 +51,7 @@ export default function ResetLogsDrawer({ storage, retentionDays, onClose, onDon
   };
 
   return (
-    <Drawer open onClose={busy ? () => {} : onClose} size="sm" icon={<Trash2 size={18} />} title={tr('Reset activity logs')}
+    <Drawer open onClose={busy ? () => {} : onClose} size="sm" icon={<Trash2 size={18} />} title={tr('Reset Activity Logs')}
       description={tr('Remove log entries now instead of waiting for the automatic clean-up.')}
       footer={
         <>

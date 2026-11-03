@@ -25,7 +25,7 @@ export default function BusyHoursCard({ resource, query }: { resource: Resource<
   const drill = useDrill();
   return (
     <Card
-      title={tr('Busy hours')}
+      title={tr('Busy Hours')}
       info="hours"
       subtitle={mode === 'pattern' ? tr('Average bills per day, by hour of order (outlet time)')
         : mode === 'growth' ? tr('Growth of gross sales per day in each hour against the comparison period')
@@ -35,8 +35,8 @@ export default function BusyHoursCard({ resource, query }: { resource: Resource<
       onOpen={() => drill.open({ kind: 'hours' })}
       actions={
         <>
-          <Segmented label={tr('Busy hours view')} value={mode} onChange={setMode} options={[
-            { value: 'pattern', label: tr('Pattern') }, { value: 'growth', label: tr('vs comparison') }, { value: 'branches', label: tr('Compare branches') },
+          <Segmented label={tr('Busy Hours View')} value={mode} onChange={setMode} options={[
+            { value: 'pattern', label: tr('Pattern') }, { value: 'growth', label: tr('vs comparison') }, { value: 'branches', label: tr('Compare Branches') },
           ]} />
           {mode === 'pattern' && <Segmented label={tr('View')} value={view} options={[{ value: 'chart', label: tr('Chart') }, { value: 'table', label: tr('Table') }]} onChange={setView} />}
         </>
@@ -176,7 +176,7 @@ export function BusyBody({ data, view, large = false }: { data: HourlyResponse; 
     return (
       <DataTable
         caption={tr('Average bills per day by hour and weekday')}
-        columns={[{ key: 'hour', label: tr('Hour') }, ...DOW_LABELS.map(d => ({ key: d, label: d, align: 'right' as const })), { key: 'all', label: tr('All days'), align: 'right' as const }]}
+        columns={[{ key: 'hour', label: tr('Hour') }, ...DOW_LABELS.map(d => ({ key: d, label: d, align: 'right' as const })), { key: 'all', label: tr('All Days'), align: 'right' as const }]}
         rows={model.hours.map((h, i) => ({
           key: String(h),
           cells: {
@@ -217,7 +217,7 @@ function HoursVs({ data }: { data: HourlyResponse }) {
   return (
     <p className="mb-2 flex flex-wrap gap-x-4 gap-y-1 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
       <span>{tr('Peak')} <b className="text-neutral-900">{peak !== undefined ? hourLabel(peak) : '–'}</b> {tr('vs')} {prev.peakHour !== null ? hourLabel(prev.peakHour) : '–'}</span>
-      <span>{tr('Bills per day')} <b className="tabular-nums text-neutral-900">{formatNumber(Math.round(perDay))}</b> {tr('vs')} {formatNumber(Math.round(prev.avgBillsPerDay))}
+      <span>{tr('Bills per Day')} <b className="tabular-nums text-neutral-900">{formatNumber(Math.round(perDay))}</b> {tr('vs')} {formatNumber(Math.round(prev.avgBillsPerDay))}
         {delta !== null && <b className={delta >= 0 ? ' text-emerald-700' : ' text-red-700'}> {delta >= 0 ? '+' : '−'}{fixed(Math.abs(delta), 1)}%</b>}</span>
       <span className="text-neutral-400">{tr('comparison')} {prev.from === prev.to ? prev.from : `${prev.from} – ${prev.to}`}</span>
     </p>

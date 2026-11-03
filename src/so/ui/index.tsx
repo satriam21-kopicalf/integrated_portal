@@ -117,7 +117,7 @@ export function SearchBox({ value, onChange, placeholder }: { value: string; onC
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder}
         className={`${inputClass} pl-9 pr-9`} />
       {value && (
-        <button type="button" onClick={() => onChange("")} aria-label={tr("Clear search")}
+        <button type="button" onClick={() => onChange("")} aria-label={tr("Clear Search")}
           className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700">
           <X size={14} />
         </button>
@@ -146,7 +146,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
     <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
       <AlertCircle className="text-red-500" />
       <p className="text-sm text-neutral-700">{message}</p>
-      {onRetry && <Button variant="secondary" onClick={onRetry}>{tr("Try again")}</Button>}
+      {onRetry && <Button variant="secondary" onClick={onRetry}>{tr("Try Again")}</Button>}
     </div>
   );
 }
@@ -173,11 +173,11 @@ export function PageNav({ paged }: { paged: { page: number; pages: number; total
   return (
     <div className="flex items-center gap-2">
       <span className="tabular-nums">{tr("{0}–{1} of {2}", fmtNumber(first), fmtNumber(Math.min(page * size, total)), fmtNumber(total))}</span>
-      <Button variant="secondary" size="sm" className="px-2" disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label={tr("Previous page")}>
+      <Button variant="secondary" size="sm" className="px-2" disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label={tr("Previous Page")}>
         <ChevronLeft size={16} />
       </Button>
       <span className="tabular-nums">{page} / {pages}</span>
-      <Button variant="secondary" size="sm" className="px-2" disabled={page >= pages} onClick={() => setPage(page + 1)} aria-label={tr("Next page")}>
+      <Button variant="secondary" size="sm" className="px-2" disabled={page >= pages} onClick={() => setPage(page + 1)} aria-label={tr("Next Page")}>
         <ChevronRight size={16} />
       </Button>
     </div>

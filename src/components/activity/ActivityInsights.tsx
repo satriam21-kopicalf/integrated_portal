@@ -25,14 +25,14 @@ const shortDay = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString
 /** What the period looks like at a glance: activity per day (failed/denied in red), busiest hours, top pages. */
 export default function ActivityInsights({ data, onPickDay }: { data: ActivityInsightsData | null; onPickDay: (day: string) => void }) {
   return (
-    <section aria-label={tr('Activity insights')} className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-12">
-      <Panel title={tr('Activity per day')} note={tr('Failed or denied in red · click a day to see only that day')} className="lg:col-span-2 2xl:col-span-6">
+    <section aria-label={tr('Activity Insights')} className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-12">
+      <Panel title={tr('Activity per Day')} note={tr('Failed or denied in red · click a day to see only that day')} className="lg:col-span-2 2xl:col-span-6">
         {data ? <DayChart data={data} onPickDay={onPickDay} /> : <Skeleton />}
       </Panel>
-      <Panel title={tr('Busiest hours')} note={tr('All activity in the period, WIB')} className="2xl:col-span-3">
+      <Panel title={tr('Busiest Hours')} note={tr('All activity in the period, WIB')} className="2xl:col-span-3">
         {data ? <HourChart data={data} /> : <Skeleton />}
       </Panel>
-      <Panel title={tr('Most visited pages')} note={tr('Page views and other activity per page')} className="2xl:col-span-3">
+      <Panel title={tr('Most Visited Pages')} note={tr('Page views and other activity per page')} className="2xl:col-span-3">
         {data ? <TopPages data={data} /> : <Skeleton />}
       </Panel>
     </section>
@@ -80,7 +80,7 @@ function DayChart({ data, onPickDay }: { data: ActivityInsightsData; onPickDay: 
   if (!days.length) return <p className="py-16 text-center text-sm text-neutral-400">{tr('No activity in this period')}</p>;
   return (
     <>
-      <EChart option={option} height={180} ariaLabel={tr('Activity per day')} onClick={p => days[p.dataIndex] && onPickDay(days[p.dataIndex].day)} />
+      <EChart option={option} height={180} ariaLabel={tr('Activity per Day')} onClick={p => days[p.dataIndex] && onPickDay(days[p.dataIndex].day)} />
       <div className="mt-1 flex gap-4 text-[11px] text-neutral-500">
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: OK }} />{tr('Succeeded')}</span>
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: ISSUE }} />{tr('Failed or denied')}</span>

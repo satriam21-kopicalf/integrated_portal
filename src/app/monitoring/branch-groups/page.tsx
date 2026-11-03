@@ -39,7 +39,7 @@ export default function BranchGroupsPage() {
 
   return (
     <Page title={tr("Branch groups")} subtitle={tr("Classes of outlets the forms are assessed by (CCI, CTG, CTGP …); one group per branch")}
-      actions={canEdit ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New group")}</Button> : undefined}>
+      actions={canEdit ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Group")}</Button> : undefined}>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : !data ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-40 rounded-xl" />)}</div>
       ) : (

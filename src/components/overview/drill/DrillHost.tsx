@@ -19,18 +19,18 @@ import { GrowthDrawer } from './GrowthDrawer';
 import { rangeText } from './parts';
 import { tr } from '@/lib/i18n';
 
-const KPI_TITLES = { get sales() { return tr('Gross sales'); }, get nettSales() { return tr('Nett sales'); }, get bills() { return tr('Bills'); }, get avgTicket() { return tr('Average ticket'); } };
+const KPI_TITLES = { get sales() { return tr('Gross sales'); }, get nettSales() { return tr('Nett Sales'); }, get bills() { return tr('Bills'); }, get avgTicket() { return tr('Average ticket'); } };
 
 function head(t: DrillTarget): { title: string; icon: ReactNode } {
   switch (t.kind) {
     case 'kpi': return { title: KPI_TITLES[t.metric], icon: <Gauge size={18} /> };
     case 'trend': return { title: tr('Sales trend'), icon: <LineChart size={18} /> };
     case 'growth': return { title: tr('Gross sales growth'), icon: <TrendingUp size={18} /> };
-    case 'channels': return { title: tr('Channel mix'), icon: <BarChart3 size={18} /> };
+    case 'channels': return { title: tr('Channel Mix'), icon: <BarChart3 size={18} /> };
     case 'branches': return { title: tr('Branches'), icon: <Store size={18} /> };
-    case 'hours': return { title: tr('Busy hours'), icon: <Clock size={18} /> };
+    case 'hours': return { title: tr('Busy Hours'), icon: <Clock size={18} /> };
     case 'menus': return { title: tr('Menus'), icon: <UtensilsCrossed size={18} /> };
-    case 'payments': return { title: tr('Payment methods'), icon: <CreditCard size={18} /> };
+    case 'payments': return { title: tr('Payment Methods'), icon: <CreditCard size={18} /> };
     case 'basket': return { title: tr('Basket'), icon: <ShoppingBasket size={18} /> };
     case 'deductions': return { title: tr('Deductions'), icon: <MinusCircle size={18} /> };
     case 'monthly': return { title: tr('Monthly growth'), icon: <TrendingUp size={18} /> };
@@ -87,7 +87,7 @@ export default function DrillHost() {
   const context = [
     from ? rangeText(from, until!) : tr('Last 30 days to yesterday'),
     branchesLabel(branch, branches),
-    channels.length ? channels.map(channelLabel).join(', ') : tr('All channels'),
+    channels.length ? channels.map(channelLabel).join(', ') : tr('All Channels'),
   ].join(' · ');
   const { title, icon } = head(t);
   const trail = stack.length > 1 ? stack.slice(0, -1).map(s => head(s).title).join(' › ') : null;

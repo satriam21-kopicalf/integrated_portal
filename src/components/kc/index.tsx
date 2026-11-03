@@ -164,7 +164,7 @@ export function SearchInput({ value, onChange, placeholder, label }: { value: st
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={label ?? placeholder}
         className="h-9 w-full rounded-lg border border-transparent bg-neutral-100 pl-9 pr-8 text-[13px] text-neutral-900 placeholder:text-neutral-400 transition-colors hover:bg-neutral-200/70 focus:border-neutral-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100" />
       {value && (
-        <button type="button" onClick={() => onChange('')} aria-label={tr('Clear search')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700"><X size={14} /></button>
+        <button type="button" onClick={() => onChange('')} aria-label={tr('Clear Search')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700"><X size={14} /></button>
       )}
     </div>
   );
@@ -215,7 +215,7 @@ export function ErrorBlock({ message, onRetry }: { message: string; onRetry?: ()
     <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
       <AlertCircle className="text-red-500" />
       <p className="text-sm text-neutral-700">{message}</p>
-      {onRetry && <button type="button" className={btn('outline', 'sm')} onClick={onRetry}>{tr('Try again')}</button>}
+      {onRetry && <button type="button" className={btn('outline', 'sm')} onClick={onRetry}>{tr('Try Again')}</button>}
     </div>
   );
 }

@@ -24,7 +24,7 @@ import { Block, bucketRange, DetailTable, Loaded, num, pctText, rp, ShareBar, Ti
 import { tr } from '@/lib/i18n';
 
 const KPI_METRIC: Record<KpiKey, TrendMetric> = { sales: 'subtotal', nettSales: 'nettSales', bills: 'bills', avgTicket: 'avgTicket' };
-const KPI_LABEL: Record<KpiKey, string> = { get sales() { return tr('Gross sales'); }, get nettSales() { return tr('Nett sales'); }, get bills() { return tr('Bills'); }, get avgTicket() { return tr('Average Order Value'); } };
+const KPI_LABEL: Record<KpiKey, string> = { get sales() { return tr('Gross sales'); }, get nettSales() { return tr('Nett Sales'); }, get bills() { return tr('Bills'); }, get avgTicket() { return tr('Average Order Value'); } };
 const short = (name: string) => name.replace(/^Kopi Calf (To Go )?/, '');
 
 /* ------------------------------------------------------------------ KPI */
@@ -53,10 +53,10 @@ export function KpiDrawer({ q, metric: initial }: { q: string; metric: KpiKey })
             return (
               <Tiles columns={5} tiles={[
                 { label: KPI_LABEL[key], value: fmt(k.value), delta: k.deltaPct, sub: tr('vs previous period') },
-                { label: tr('Previous period'), value: d.filters.previous.complete ? fmt(k.previous) : '-', sub: d.filters.previous.complete ? `${d.filters.previous.from} – ${d.filters.previous.to}` : tr('before Aug 2025') },
-                { label: key === 'avgTicket' ? tr('Period average') : tr('Per day'), value: fmt(perDay), sub: tr('{0} days · {1} with sales', d.filters.days, withSales.length) },
-                { label: tr('Best day'), value: best ? fmt(best.v) : '-', sub: best ? longDate(best.date) : '' },
-                { label: tr('Weakest day'), value: worst ? fmt(worst.v) : '-', sub: worst ? longDate(worst.date) : '' },
+                { label: tr('Previous Period'), value: d.filters.previous.complete ? fmt(k.previous) : '-', sub: d.filters.previous.complete ? `${d.filters.previous.from} – ${d.filters.previous.to}` : tr('before Aug 2025') },
+                { label: key === 'avgTicket' ? tr('Period average') : tr('Per Day'), value: fmt(perDay), sub: tr('{0} days · {1} with sales', d.filters.days, withSales.length) },
+                { label: tr('Best Day'), value: best ? fmt(best.v) : '-', sub: best ? longDate(best.date) : '' },
+                { label: tr('Weakest Day'), value: worst ? fmt(worst.v) : '-', sub: worst ? longDate(worst.date) : '' },
               ]} />
             );
           }}
@@ -69,23 +69,23 @@ export function KpiDrawer({ q, metric: initial }: { q: string; metric: KpiKey })
         </Loaded>
       </Block>
 
-      <Block title={tr('By weekday')} subtitle={tr('Average per weekday over the period (days without sales count as zero)')}>
+      <Block title={tr('By Weekday')} subtitle={tr('Average per weekday over the period (days without sales count as zero)')}>
         <Loaded resource={trend} height={180}>
           {d => <WeekdayBars data={d} metric={metric} />}
         </Loaded>
       </Block>
 
-      <Block title={tr('Every day')}>
+      <Block title={tr('Every Day')}>
         <Loaded resource={trend} height={260}>
           {d => (
             <DetailTable
-              caption={tr('Per day')} csvName={`${key}-per-day`} rows={d.series} rowKey={p => p.date}
+              caption={tr('Per Day')} csvName={`${key}-per-day`} rows={d.series} rowKey={p => p.date}
               onRowClick={p => drill.drill(to.period(p.date, p.date, longDate(p.date)))}
               initialSort={{ key: 'date', desc: false }}
               columns={[
                 { key: 'date', label: tr('Date'), value: p => p.date, render: p => longDate(p.date) },
                 { key: 'sales', label: tr('Gross sales'), align: 'right', value: p => p.subtotal, render: p => rp(p.subtotal) },
-                { key: 'nett', label: tr('Nett sales'), align: 'right', value: p => p.nettSales, render: p => rp(p.nettSales) },
+                { key: 'nett', label: tr('Nett Sales'), align: 'right', value: p => p.nettSales, render: p => rp(p.nettSales) },
                 { key: 'bills', label: tr('Bills'), align: 'right', value: p => p.bills },
                 { key: 'avg', label: tr('Average Order Value'), align: 'right', value: p => metricOf(p, 'avgTicket'), render: p => rp(metricOf(p, 'avgTicket')) },
                 { key: 'disc', label: tr('Discount'), align: 'right', value: p => p.discountPct, render: p => pctText(p.discountPct) },
@@ -133,7 +133,7 @@ function WeekdayBars({ data, metric }: { data: TrendResponse; metric: TrendMetri
       }],
     };
   }, [data, metric]);
-  return <EChart option={option} height={200} ariaLabel={tr('Average per weekday')} />;
+  return <EChart option={option} height={200} ariaLabel={tr('Average per Weekday')} />;
 }
 
 /* ------------------------------------------------------------------ Sales trend */
@@ -152,7 +152,7 @@ export function TrendDrawer({ q }: { q: string }) {
         {d => (
           <Tiles tiles={[
             { label: tr('Gross sales'), value: rp(d.kpis.sales.value), delta: d.kpis.sales.deltaPct, sub: tr('prev. {0}', compactRupiah(d.kpis.sales.previous)) },
-            { label: tr('Nett sales'), value: rp(d.kpis.nettSales.value), delta: d.kpis.nettSales.deltaPct },
+            { label: tr('Nett Sales'), value: rp(d.kpis.nettSales.value), delta: d.kpis.nettSales.deltaPct },
             { label: tr('Bills'), value: num(d.kpis.bills.value), delta: d.kpis.bills.deltaPct },
             { label: tr('Average Order Value'), value: rp(d.kpis.avgTicket.value), delta: d.kpis.avgTicket.deltaPct },
           ]} />
@@ -176,7 +176,7 @@ export function TrendDrawer({ q }: { q: string }) {
           )}
         </Loaded>
       </Block>
-      <Block title={tr('All buckets')}>
+      <Block title={tr('All Buckets')}>
         <Loaded resource={trend} height={260}>
           {d => {
             const prevOk = d.filters.previous.complete;
@@ -198,7 +198,7 @@ export function TrendDrawer({ q }: { q: string }) {
                   { key: 'bills', label: tr('Bills'), align: 'right', value: p => p.bills },
                   { key: 'avg', label: tr('Average Order Value'), align: 'right', value: p => metricOf(p, 'avgTicket'), render: p => rp(metricOf(p, 'avgTicket')) },
                   { key: 'disc', label: tr('Discount'), align: 'right', value: p => p.discountPct, render: p => pctText(p.discountPct) },
-                  { key: 'top', label: tr('Top channel'), value: p => topChannel(p), render: p => channelLabel(topChannel(p)) },
+                  { key: 'top', label: tr('Top Channel'), value: p => topChannel(p), render: p => channelLabel(topChannel(p)) },
                 ]}
               />
             );
@@ -225,13 +225,13 @@ export function ChannelsDrawer({ q }: { q: string }) {
             <Tiles tiles={[
               { label: tr('Channels'), value: num(d.channels.length), sub: tr('{0} gross sales', compactRupiah(total)) },
               { label: tr('Largest'), value: top ? channelLabel(top.channel) : '-', sub: top ? tr('{0} of sales', pctText(top.share)) : '' },
-              { label: tr('Delivery apps'), value: pctText(total ? (apps / total) * 100 : null), sub: tr('GoFood, GrabFood, ShopeeFood') },
+              { label: tr('Delivery Apps'), value: pctText(total ? (apps / total) * 100 : null), sub: tr('GoFood, GrabFood, ShopeeFood') },
               { label: tr('Bills'), value: num(d.channels.reduce((s, c) => s + c.bills, 0)) },
             ]} />
-            <Block title={tr('Share over time')} subtitle={tr('Each bar = 100% of that bucket\'s gross sales')}>
+            <Block title={tr('Share Over Time')} subtitle={tr('Each bar = 100% of that bucket\'s gross sales')}>
               <ShareOverTime data={d} />
             </Block>
-            <Block title={tr('All channels')} subtitle={tr('Click a channel for its branches, hours, menus and payments')}>
+            <Block title={tr('All Channels')} subtitle={tr('Click a channel for its branches, hours, menus and payments')}>
               <DetailTable
                 caption={tr('Channels')} csvName="channels" rows={d.channels} rowKey={c => c.channel}
                 onRowClick={c => drill.drill(to.channel(c.channel))}
@@ -305,9 +305,9 @@ export function BranchesDrawer({ q }: { q: string }) {
         return (
           <>
             <Tiles columns={5} tiles={[
-              { label: tr('Branches with sales'), value: num(withSales.length), sub: tr('{0} new', d.branches.filter(b => b.isNew).length) },
+              { label: tr('Branches with Sales'), value: num(withSales.length), sub: tr('{0} new', d.branches.filter(b => b.isNew).length) },
               { label: tr('Gross sales'), value: compactRupiah(total), title: formatCurrency(total) },
-              { label: tr('Per branch'), value: compactRupiah(withSales.length ? total / withSales.length : null), sub: tr('average') },
+              { label: tr('Per Branch'), value: compactRupiah(withSales.length ? total / withSales.length : null), sub: tr('average') },
               { label: tr('Growing'), value: num(up), sub: tr('vs previous period') },
               { label: tr('Declining'), value: num(down), sub: tr('vs previous period') },
             ]} />
@@ -317,7 +317,7 @@ export function BranchesDrawer({ q }: { q: string }) {
                   tip: { rows: [[formatCurrency(b.subtotal), 'sales'], [formatNumber(b.bills), 'bills']], footer: b.branchCode } }))}
                 onSelect={code => { const b = d.branches.find(x => x.branchCode === code); if (b) drill.drill(to.branch(b.branchCode, b.branchName)); }} />
             </Block>
-            <Block title={tr('All branches')} subtitle={tr('Click a branch for channels, hours, menus, payments and deductions')}>
+            <Block title={tr('All Branches')} subtitle={tr('Click a branch for channels, hours, menus, payments and deductions')}>
               <DetailTable
                 caption={tr('Branches')} csvName="branches" rows={d.branches.map((b, i) => ({ ...b, rank: i + 1 }))} rowKey={b => b.branchCode}
                 search={b => `${b.branchName} ${b.branchCode}`}
@@ -333,10 +333,10 @@ export function BranchesDrawer({ q }: { q: string }) {
                   { key: 'nett', label: tr('Nett'), align: 'right', value: b => b.nettSales, render: b => rp(b.nettSales) },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: b => b.bills },
                   { key: 'avg', label: tr('Average Order Value'), align: 'right', value: b => b.avgTicket, render: b => rp(b.avgTicket) },
-                  { key: 'perDay', label: tr('Gross sales/day'), align: 'right', value: b => b.subtotalPerDay, render: b => rp(b.subtotalPerDay) },
-                  { key: 'days', label: tr('Days open'), align: 'right', value: b => b.activeDays },
-                  { key: 'void', label: tr('Void bills'), align: 'right', value: b => b.voidBills },
-                  { key: 'voidRate', label: tr('Void rate'), align: 'right', value: b => b.voidRate, render: b => pctText(b.voidRate, 2) },
+                  { key: 'perDay', label: tr('Gross Sales/day'), align: 'right', value: b => b.subtotalPerDay, render: b => rp(b.subtotalPerDay) },
+                  { key: 'days', label: tr('Days Open'), align: 'right', value: b => b.activeDays },
+                  { key: 'void', label: tr('Void Bills'), align: 'right', value: b => b.voidBills },
+                  { key: 'voidRate', label: tr('Void Rate'), align: 'right', value: b => b.voidRate, render: b => pctText(b.voidRate, 2) },
                 ]}
                 maxHeight={520}
               />
@@ -378,10 +378,10 @@ export function HoursDrawer({ q }: { q: string }) {
         return (
           <>
             <Tiles tiles={[
-              { label: tr('Bills per day'), value: num(totalBills / days), sub: tr('{0} days', days) },
-              { label: tr('Busiest slot'), value: d.peak ? `${DOW_LABELS[d.peak.dow - 1]} ${hourLabel(d.peak.hour)}` : '-', sub: d.peak ? tr('{0} bills/day', num(d.peak.avgBills)) : '' },
-              { label: tr('Top 3 hours'), value: top3.map(h => hourLabel(h.hour).slice(0, 2)).join(' · ') || '-', sub: tr('{0} of bills', pctText(top3.reduce((s, h) => s + h.share, 0))) },
-              { label: tr('Busiest weekday'), value: [...weekdays].sort((a, b) => b.avgBills - a.avgBills)[0]?.label ?? '-', sub: tr('{0} bills/day', num([...weekdays].sort((a, b) => b.avgBills - a.avgBills)[0]?.avgBills)) },
+              { label: tr('Bills per Day'), value: num(totalBills / days), sub: tr('{0} days', days) },
+              { label: tr('Busiest Slot'), value: d.peak ? `${DOW_LABELS[d.peak.dow - 1]} ${hourLabel(d.peak.hour)}` : '-', sub: d.peak ? tr('{0} bills/day', num(d.peak.avgBills)) : '' },
+              { label: tr('Top 3 Hours'), value: top3.map(h => hourLabel(h.hour).slice(0, 2)).join(' · ') || '-', sub: tr('{0} of bills', pctText(top3.reduce((s, h) => s + h.share, 0))) },
+              { label: tr('Busiest Weekday'), value: [...weekdays].sort((a, b) => b.avgBills - a.avgBills)[0]?.label ?? '-', sub: tr('{0} bills/day', num([...weekdays].sort((a, b) => b.avgBills - a.avgBills)[0]?.avgBills)) },
             ]} />
             <Block title={tr('Pattern')} subtitle={tr('Average bills per day by hour, and by weekday x hour')}>
               <BusyBody data={d} view="chart" large />
@@ -390,25 +390,25 @@ export function HoursDrawer({ q }: { q: string }) {
               actions={<Segmented label={tr('Compare')} value={mode} onChange={setMode} options={[{ value: 'period', label: tr('Periods') }, { value: 'branches', label: tr('Branches') }]} />}>
               <HoursCompare query={q} mode={mode} period={{ from: d.filters.from, to: d.filters.to }} size="drawer" />
             </Block>
-            <Block title={tr('Per hour')}>
-              <DetailTable caption={tr('Per hour')} csvName="busy-hours-per-hour" rows={hours} rowKey={h => String(h.hour)} initialSort={{ key: 'hour', desc: false }}
+            <Block title={tr('Per Hour')}>
+              <DetailTable caption={tr('Per Hour')} csvName="busy-hours-per-hour" rows={hours} rowKey={h => String(h.hour)} initialSort={{ key: 'hour', desc: false }}
                 columns={[
                   { key: 'hour', label: tr('Hour'), value: h => h.hour, render: h => `${hourLabel(h.hour)}–${hourLabel(h.hour + 1)}` },
                   { key: 'avg', label: tr('Bills/day'), align: 'right', value: h => h.avgBills, render: h => num(h.avgBills) },
-                  { key: 'sales', label: tr('Gross sales/day'), align: 'right', value: h => h.avgSales, render: h => rp(h.avgSales) },
-                  { key: 'share', label: tr('Share of bills'), align: 'right', value: h => h.share, render: h => <ShareBar value={h.share} /> },
-                  { key: 'bills', label: tr('Bills (period)'), align: 'right', value: h => h.bills },
-                  { key: 'total', label: tr('Gross sales (period)'), align: 'right', value: h => h.subtotal, render: h => rp(h.subtotal) },
+                  { key: 'sales', label: tr('Gross Sales/day'), align: 'right', value: h => h.avgSales, render: h => rp(h.avgSales) },
+                  { key: 'share', label: tr('Share of Bills'), align: 'right', value: h => h.share, render: h => <ShareBar value={h.share} /> },
+                  { key: 'bills', label: tr('Bills (Period)'), align: 'right', value: h => h.bills },
+                  { key: 'total', label: tr('Gross Sales (Period)'), align: 'right', value: h => h.subtotal, render: h => rp(h.subtotal) },
                 ]} />
             </Block>
-            <Block title={tr('Per weekday')}>
-              <DetailTable caption={tr('Per weekday')} csvName="busy-hours-per-weekday" rows={weekdays} rowKey={w => w.label} initialSort={{ key: 'dow', desc: false }}
+            <Block title={tr('Per Weekday')}>
+              <DetailTable caption={tr('Per Weekday')} csvName="busy-hours-per-weekday" rows={weekdays} rowKey={w => w.label} initialSort={{ key: 'dow', desc: false }}
                 columns={[
                   { key: 'dow', label: tr('Weekday'), value: w => w.dow, render: w => w.label },
                   { key: 'days', label: tr('Days'), align: 'right', value: w => w.days },
                   { key: 'avg', label: tr('Bills/day'), align: 'right', value: w => w.avgBills, render: w => num(w.avgBills) },
-                  { key: 'sales', label: tr('Gross sales/day'), align: 'right', value: w => w.avgSales, render: w => rp(w.avgSales) },
-                  { key: 'peak', label: tr('Peak hour'), align: 'right', value: w => w.peak, render: w => (w.peak === null ? '-' : hourLabel(w.peak)) },
+                  { key: 'sales', label: tr('Gross Sales/day'), align: 'right', value: w => w.avgSales, render: w => rp(w.avgSales) },
+                  { key: 'peak', label: tr('Peak Hour'), align: 'right', value: w => w.peak, render: w => (w.peak === null ? '-' : hourLabel(w.peak)) },
                 ]} />
             </Block>
           </>
@@ -433,14 +433,14 @@ export function MenusDrawer({ q }: { q: string }) {
         return (
           <>
             <Tiles columns={5} tiles={[
-              { label: tr('Menus sold'), value: num(d.top.length), sub: tr('distinct menus') },
-              { label: tr('Menu sales'), value: compactRupiah(d.totals.subtotal), title: formatCurrency(d.totals.subtotal) },
+              { label: tr('Menus Sold'), value: num(d.top.length), sub: tr('distinct menus') },
+              { label: tr('Menu Sales'), value: compactRupiah(d.totals.subtotal), title: formatCurrency(d.totals.subtotal) },
               { label: tr('Items'), value: num(d.totals.qty), sub: tr('pcs ordered') },
-              { label: tr('Avg price'), value: rp(avgPrice), sub: tr('per item') },
-              { label: tr('Top 10 share'), value: pctText(d.top.slice(0, 10).reduce((s, m) => s + (m.share ?? 0), 0)), sub: tr('of menu sales') },
+              { label: tr('Avg Price'), value: rp(avgPrice), sub: tr('per item') },
+              { label: tr('Top 10 Share'), value: pctText(d.top.slice(0, 10).reduce((s, m) => s + (m.share ?? 0), 0)), sub: tr('of menu sales') },
             ]} />
-            <Block title={tr('Breakdown')} actions={<Segmented label={tr('Menus view')} value={tab} onChange={setTab} options={[
-              { value: 'menus', label: tr('All menus') }, { value: 'categories', label: tr('Categories') }, { value: 'addons', label: tr('Add-ons') },
+            <Block title={tr('Breakdown')} actions={<Segmented label={tr('Menus View')} value={tab} onChange={setTab} options={[
+              { value: 'menus', label: tr('All Menus') }, { value: 'categories', label: tr('Categories') }, { value: 'addons', label: tr('Add-ons') },
             ]} />}>
               {tab === 'menus' && (
                 <DetailTable
@@ -457,7 +457,7 @@ export function MenusDrawer({ q }: { q: string }) {
                     { key: 'sales', label: tr('Gross sales'), align: 'right', value: m => m.subtotal, render: m => rp(m.subtotal) },
                     { key: 'share', label: tr('Share'), align: 'right', value: m => m.share, render: m => pctText(m.share, 2) },
                     { key: 'bills', label: tr('Bills'), align: 'right', value: m => m.bills },
-                    { key: 'price', label: tr('Avg price'), align: 'right', value: m => (m.qty ? m.subtotal / m.qty : null), render: m => rp(m.qty ? m.subtotal / m.qty : null) },
+                    { key: 'price', label: tr('Avg Price'), align: 'right', value: m => (m.qty ? m.subtotal / m.qty : null), render: m => rp(m.qty ? m.subtotal / m.qty : null) },
                     { key: 'disc', label: tr('Discount'), align: 'right', value: m => m.discount, render: m => rp(m.discount) },
                   ]}
                 />
@@ -493,7 +493,7 @@ export function MenusDrawer({ q }: { q: string }) {
                     { key: 'group', label: tr('Group'), value: o => o.group },
                     { key: 'name', label: tr('Option'), value: o => o.name },
                     { key: 'qty', label: tr('Qty'), align: 'right', value: o => o.qty },
-                    { key: 'share', label: tr('Share of group'), align: 'right', value: o => o.share, render: o => <ShareBar value={o.share} /> },
+                    { key: 'share', label: tr('Share of Group'), align: 'right', value: o => o.share, render: o => <ShareBar value={o.share} /> },
                     { key: 'sales', label: tr('Gross sales'), align: 'right', value: o => o.subtotal, render: o => (o.subtotal ? rp(o.subtotal) : '-') },
                   ]} />
               )}
@@ -519,13 +519,13 @@ export function PaymentsDrawer({ q }: { q: string }) {
         return (
           <>
             <Tiles tiles={[
-              { label: tr('Methods used'), value: num(d.methods.length), sub: tr('{0} types', d.types.length) },
-              { label: tr('Top method'), value: d.methods[0] ? paymentLabel(d.methods[0].method) : '-', sub: d.methods[0] ? tr('{0} of sales', pctText(d.methods[0].share)) : '' },
+              { label: tr('Methods Used'), value: num(d.methods.length), sub: tr('{0} types', d.types.length) },
+              { label: tr('Top Method'), value: d.methods[0] ? paymentLabel(d.methods[0].method) : '-', sub: d.methods[0] ? tr('{0} of sales', pctText(d.methods[0].share)) : '' },
               { label: tr('Cashless'), value: pctText(total ? ((total - cash) / total) * 100 : null), sub: tr('of gross sales') },
               { label: tr('Bills'), value: num(bills), sub: compactRupiah(total) },
             ]} />
-            <Block title={tr('Payment types')}>
-              <DetailTable caption={tr('Payment types')} csvName="payment-types" rows={d.types} rowKey={t => t.type} initialSort={{ key: 'sales', desc: true }}
+            <Block title={tr('Payment Types')}>
+              <DetailTable caption={tr('Payment Types')} csvName="payment-types" rows={d.types} rowKey={t => t.type} initialSort={{ key: 'sales', desc: true }}
                 columns={[
                   { key: 'type', label: tr('Type'), value: t => t.type },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: t => t.bills },
@@ -533,15 +533,15 @@ export function PaymentsDrawer({ q }: { q: string }) {
                   { key: 'share', label: tr('Share'), align: 'right', value: t => t.share, render: t => <ShareBar value={t.share} /> },
                 ]} />
             </Block>
-            <Block title={tr('All payment methods')} subtitle={tr('First payment of each bill · click a method for its branches, channels and days')}>
-              <DetailTable caption={tr('Payment methods')} csvName="payment-methods" rows={d.methods} rowKey={m => `${m.type}-${m.method}`}
+            <Block title={tr('All Payment Methods')} subtitle={tr('First payment of each bill · click a method for its branches, channels and days')}>
+              <DetailTable caption={tr('Payment Methods')} csvName="payment-methods" rows={d.methods} rowKey={m => `${m.type}-${m.method}`}
                 search={m => `${m.method} ${paymentLabel(m.method)} ${m.type}`} initialSort={{ key: 'sales', desc: true }}
                 onRowClick={m => drill.drill({ kind: 'payment', method: m.method, label: paymentLabel(m.method) })}
                 columns={[
                   { key: 'method', label: tr('Method'), value: m => paymentLabel(m.method) },
                   { key: 'type', label: tr('Type'), value: m => m.type },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: m => m.bills },
-                  { key: 'billShare', label: tr('Bill share'), align: 'right', value: m => m.billShare, render: m => pctText(m.billShare) },
+                  { key: 'billShare', label: tr('Bill Share'), align: 'right', value: m => m.billShare, render: m => pctText(m.billShare) },
                   { key: 'sales', label: tr('Gross sales'), align: 'right', value: m => m.subtotal, render: m => rp(m.subtotal) },
                   { key: 'share', label: tr('Share'), align: 'right', value: m => m.share, render: m => <ShareBar value={m.share} /> },
                   { key: 'avg', label: tr('Average Order Value'), align: 'right', value: m => (m.bills ? m.subtotal / m.bills : null), render: m => rp(m.bills ? m.subtotal / m.bills : null) },
@@ -558,10 +558,10 @@ export function PaymentsDrawer({ q }: { q: string }) {
 
 type BasketMeasure = 'qtyPerBill' | 'linesPerBill' | 'foodSharePct' | 'foodAttachPct';
 const BASKET_MEASURES: { value: BasketMeasure; label: string; pct: boolean }[] = [
-  { value: 'qtyPerBill', get label() { return tr('Items / bill'); }, pct: false },
-  { value: 'linesPerBill', get label() { return tr('Lines / bill'); }, pct: false },
-  { value: 'foodSharePct', get label() { return tr('With food'); }, pct: true },
-  { value: 'foodAttachPct', get label() { return tr('Attach rate'); }, pct: true },
+  { value: 'qtyPerBill', get label() { return tr('Items / Bill'); }, pct: false },
+  { value: 'linesPerBill', get label() { return tr('Lines / Bill'); }, pct: false },
+  { value: 'foodSharePct', get label() { return tr('With Food'); }, pct: true },
+  { value: 'foodAttachPct', get label() { return tr('Attach Rate'); }, pct: true },
 ];
 
 export function BasketDrawer({ q }: { q: string }) {
@@ -578,15 +578,15 @@ export function BasketDrawer({ q }: { q: string }) {
         return (
           <>
             <Tiles tiles={[
-              { label: tr('Items / bill'), value: num(t.qtyPerBill, 2), delta: ch(t.qtyPerBill, p?.qtyPerBill) },
-              { label: tr('Menu lines / bill'), value: num(t.linesPerBill, 2), delta: ch(t.linesPerBill, p?.linesPerBill) },
-              { label: tr('Bills with food'), value: pctText(t.foodSharePct), delta: p && t.foodSharePct !== null && p.foodSharePct !== null ? t.foodSharePct - p.foodSharePct : null, deltaUnit: ' pp', sub: tr('{0} bills', num(t.foodBills)) },
-              { label: tr('Food attach rate'), value: pctText(t.foodAttachPct), delta: p && t.foodAttachPct !== null && p.foodAttachPct !== null ? t.foodAttachPct - p.foodAttachPct : null, deltaUnit: ' pp', sub: tr('beverage bills with food') },
+              { label: tr('Items / Bill'), value: num(t.qtyPerBill, 2), delta: ch(t.qtyPerBill, p?.qtyPerBill) },
+              { label: tr('Menu Lines / Bill'), value: num(t.linesPerBill, 2), delta: ch(t.linesPerBill, p?.linesPerBill) },
+              { label: tr('Bills with Food'), value: pctText(t.foodSharePct), delta: p && t.foodSharePct !== null && p.foodSharePct !== null ? t.foodSharePct - p.foodSharePct : null, deltaUnit: ' pp', sub: tr('{0} bills', num(t.foodBills)) },
+              { label: tr('Food Attach Rate'), value: pctText(t.foodAttachPct), delta: p && t.foodAttachPct !== null && p.foodAttachPct !== null ? t.foodAttachPct - p.foodAttachPct : null, deltaUnit: ' pp', sub: tr('beverage bills with food') },
             ]} />
-            <Block title={tr('Over time')} actions={<Segmented label={tr('Measure')} value={measure} onChange={setMeasure} options={BASKET_MEASURES.map(x => ({ value: x.value, label: x.label }))} />}>
+            <Block title={tr('Over Time')} actions={<Segmented label={tr('Measure')} value={measure} onChange={setMeasure} options={BASKET_MEASURES.map(x => ({ value: x.value, label: x.label }))} />}>
               <BasketChart data={d} measure={measure} isPct={m.pct} />
             </Block>
-            <Block title={tr('Per channel')} subtitle={tr('Click a channel for its profile')}>
+            <Block title={tr('Per Channel')} subtitle={tr('Click a channel for its profile')}>
               <DetailTable caption={tr('Basket per channel')} csvName="basket-per-channel" rows={d.channels} rowKey={c => c.channel}
                 onRowClick={c => drill.drill(to.channel(c.channel))} initialSort={{ key: 'bills', desc: true }}
                 columns={[
@@ -594,18 +594,18 @@ export function BasketDrawer({ q }: { q: string }) {
                   { key: 'bills', label: tr('Bills'), align: 'right', value: c => c.bills },
                   { key: 'qty', label: tr('Items/bill'), align: 'right', value: c => c.qtyPerBill, render: c => num(c.qtyPerBill, 2) },
                   { key: 'lines', label: tr('Lines/bill'), align: 'right', value: c => c.linesPerBill, render: c => num(c.linesPerBill, 2) },
-                  { key: 'food', label: tr('With food'), align: 'right', value: c => c.foodSharePct, render: c => pctText(c.foodSharePct) },
+                  { key: 'food', label: tr('With Food'), align: 'right', value: c => c.foodSharePct, render: c => pctText(c.foodSharePct) },
                   { key: 'attach', label: tr('Attach'), align: 'right', value: c => c.foodAttachPct, render: c => pctText(c.foodAttachPct) },
                 ]} />
             </Block>
-            <Block title={tr('Per bucket')}>
+            <Block title={tr('Per Bucket')}>
               <DetailTable caption={tr('Basket per bucket')} csvName="basket-per-bucket" rows={d.series} rowKey={s => s.date} initialSort={{ key: 'date', desc: false }}
                 columns={[
                   { key: 'date', label: tr('Date'), value: s => s.date, render: s => bucketLabel(s.date, d.granularity) },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: s => s.bills },
                   { key: 'qty', label: tr('Items/bill'), align: 'right', value: s => s.qtyPerBill, render: s => num(s.qtyPerBill, 2) },
                   { key: 'lines', label: tr('Lines/bill'), align: 'right', value: s => s.linesPerBill, render: s => num(s.linesPerBill, 2) },
-                  { key: 'food', label: tr('With food'), align: 'right', value: s => s.foodSharePct, render: s => pctText(s.foodSharePct) },
+                  { key: 'food', label: tr('With Food'), align: 'right', value: s => s.foodSharePct, render: s => pctText(s.foodSharePct) },
                   { key: 'attach', label: tr('Attach'), align: 'right', value: s => s.foodAttachPct, render: s => pctText(s.foodAttachPct) },
                 ]} />
             </Block>
@@ -649,13 +649,13 @@ export function DeductionsDrawer({ q }: { q: string }) {
         return (
           <>
             <Tiles columns={5} tiles={[
-              { label: tr('All transactions'), value: num(t.gross.bills), sub: compactRupiah(t.gross.subtotal) },
-              { label: tr('Void & cancelled'), value: compactRupiah(t.void.subtotal), sub: tr('{0} bills · {1}', num(t.void.bills), pctText(d.voidRate, 2)), title: formatCurrency(t.void.subtotal) },
+              { label: tr('All Transactions'), value: num(t.gross.bills), sub: compactRupiah(t.gross.subtotal) },
+              { label: tr('Void & Cancelled'), value: compactRupiah(t.void.subtotal), sub: tr('{0} bills · {1}', num(t.void.bills), pctText(d.voidRate, 2)), title: formatCurrency(t.void.subtotal) },
               { label: tr('Other cost'), value: compactRupiah(t.otherCost.subtotal), sub: tr('{0} bills', num(t.otherCost.bills)), title: formatCurrency(t.otherCost.subtotal) },
-              { label: tr('Open bills'), value: compactRupiah(t.open.subtotal), sub: tr('{0} bills', num(t.open.bills)) },
-              { label: tr('Branches to review'), value: num(flagged.length), sub: d.threshold === null ? tr('too few branches for P90') : tr('void rate above {0}', pctText(d.threshold, 2)) },
+              { label: tr('Open Bills'), value: compactRupiah(t.open.subtotal), sub: tr('{0} bills', num(t.open.bills)) },
+              { label: tr('Branches to Review'), value: num(flagged.length), sub: d.threshold === null ? tr('too few branches for P90') : tr('void rate above {0}', pctText(d.threshold, 2)) },
             ]} />
-            <Block title={tr('Offline vs online')} subtitle={tr('Offline = Dine In, Takeaway · Online = GoFood, GrabFood, ShopeeFood, Online Order · change in percentage points vs the comparison period')}>
+            <Block title={tr('Offline vs Online')} subtitle={tr('Offline = Dine In, Takeaway · Online = GoFood, GrabFood, ShopeeFood, Online Order · change in percentage points vs the comparison period')}>
               <div className="space-y-4">
                 <ChannelGroups data={d} />
                 {d.dailyGroups.length > 1 && (
@@ -669,34 +669,34 @@ export function DeductionsDrawer({ q }: { q: string }) {
                   columns={[
                     { key: 'group', label: tr('Group'), value: c => c.group, render: c => <span className="flex items-center gap-1.5"><SeriesKey color={GROUP_COLORS[c.group]} />{GROUP_LABELS[c.group]}</span> },
                     { key: 'channel', label: tr('Channel'), value: c => c.channel, render: c => <ChannelLogo channel={c.channel} height={14} /> },
-                    { key: 'bills', label: tr('All bills'), align: 'right', value: c => c.bills },
-                    { key: 'void', label: tr('Void bills'), align: 'right', value: c => c.voidBills },
-                    { key: 'voidRp', label: tr('Void value'), align: 'right', value: c => c.voidSubtotal, render: c => rp(c.voidSubtotal) },
-                    { key: 'rate', label: tr('Void rate'), align: 'right', value: c => c.voidRate, render: c => pctText(c.voidRate, 2) },
+                    { key: 'bills', label: tr('All Bills'), align: 'right', value: c => c.bills },
+                    { key: 'void', label: tr('Void Bills'), align: 'right', value: c => c.voidBills },
+                    { key: 'voidRp', label: tr('Void Value'), align: 'right', value: c => c.voidSubtotal, render: c => rp(c.voidSubtotal) },
+                    { key: 'rate', label: tr('Void Rate'), align: 'right', value: c => c.voidRate, render: c => pctText(c.voidRate, 2) },
                     { key: 'prev', label: tr('Comparison'), align: 'right', value: c => c.previousVoidRate ?? null, render: c => pctText(c.previousVoidRate ?? null, 2) },
                     { key: 'chg', label: tr('Change'), align: 'right', value: c => voidChange(c),
                       render: c => <Delta value={voidChange(c)} upIsGood={false} unit=" pp" /> },
-                    { key: 'share', label: tr('Share of voids'), align: 'right', value: c => c.voidShare ?? null, render: c => pctText(c.voidShare ?? null) },
+                    { key: 'share', label: tr('Share of Voids'), align: 'right', value: c => c.voidShare ?? null, render: c => pctText(c.voidShare ?? null) },
                     { key: 'oc', label: tr('Other cost'), align: 'right', value: c => c.otherCostSubtotal, render: c => (c.otherCostBills ? `${num(c.otherCostBills)} · ${compactRupiah(c.otherCostSubtotal)}` : '-') },
-                    { key: 'open', label: tr('Open bills'), align: 'right', value: c => c.openBills },
+                    { key: 'open', label: tr('Open Bills'), align: 'right', value: c => c.openBills },
                   ]} />
                 <DetailTable caption={tr('Offline and online deductions per branch')} csvName="deductions-offline-online-per-branch" rows={d.branchGroups} rowKey={b => b.branchCode}
                   search={b => `${b.branchName} ${b.branchCode}`} initialSort={{ key: 'offRate', desc: true }}
                   onRowClick={b => drill.drill(to.branch(b.branchCode, b.branchName))}
                   columns={[
                     { key: 'branch', label: tr('Branch'), value: b => b.branchName, render: b => short(b.branchName) },
-                    { key: 'offRate', label: tr('Offline void rate'), align: 'right', value: b => b.offline.voidRate, render: b => pctText(b.offline.voidRate, 2) },
-                    { key: 'offVoid', label: tr('Offline voids'), align: 'right', value: b => b.offline.voidBills, render: b => `${num(b.offline.voidBills)} / ${num(b.offline.bills)}` },
-                    { key: 'onRate', label: tr('Online void rate'), align: 'right', value: b => b.online.voidRate, render: b => pctText(b.online.voidRate, 2) },
-                    { key: 'onVoid', label: tr('Online voids'), align: 'right', value: b => b.online.voidBills, render: b => `${num(b.online.voidBills)} / ${num(b.online.bills)}` },
-                    { key: 'voidRp', label: tr('Void value'), align: 'right', value: b => b.offline.voidSubtotal + b.online.voidSubtotal, render: b => rp(b.offline.voidSubtotal + b.online.voidSubtotal) },
-                    { key: 'offOc', label: tr('Offline other cost'), align: 'right', value: b => b.offline.otherCostSubtotal, render: b => rp(b.offline.otherCostSubtotal) },
-                    { key: 'onOc', label: tr('Online other cost'), align: 'right', value: b => b.online.otherCostSubtotal, render: b => rp(b.online.otherCostSubtotal) },
+                    { key: 'offRate', label: tr('Offline Void Rate'), align: 'right', value: b => b.offline.voidRate, render: b => pctText(b.offline.voidRate, 2) },
+                    { key: 'offVoid', label: tr('Offline Voids'), align: 'right', value: b => b.offline.voidBills, render: b => `${num(b.offline.voidBills)} / ${num(b.offline.bills)}` },
+                    { key: 'onRate', label: tr('Online Void Rate'), align: 'right', value: b => b.online.voidRate, render: b => pctText(b.online.voidRate, 2) },
+                    { key: 'onVoid', label: tr('Online Voids'), align: 'right', value: b => b.online.voidBills, render: b => `${num(b.online.voidBills)} / ${num(b.online.bills)}` },
+                    { key: 'voidRp', label: tr('Void Value'), align: 'right', value: b => b.offline.voidSubtotal + b.online.voidSubtotal, render: b => rp(b.offline.voidSubtotal + b.online.voidSubtotal) },
+                    { key: 'offOc', label: tr('Offline Other Cost'), align: 'right', value: b => b.offline.otherCostSubtotal, render: b => rp(b.offline.otherCostSubtotal) },
+                    { key: 'onOc', label: tr('Online Other Cost'), align: 'right', value: b => b.online.otherCostSubtotal, render: b => rp(b.online.otherCostSubtotal) },
                   ]} />
               </div>
             </Block>
             {d.daily.length > 1 && (
-              <Block title={tr('Void rate per day')} subtitle={tr('Click a day for everything that happened that day')}>
+              <Block title={tr('Void Rate per Day')} subtitle={tr('Click a day for everything that happened that day')}>
                 <VoidChart data={d} onSelect={date => drill.drill(to.period(date, date, longDate(date)))} />
               </Block>
             )}
@@ -710,30 +710,30 @@ export function DeductionsDrawer({ q }: { q: string }) {
                     : <span className="inline-flex items-center gap-1 text-neutral-500"><CheckCircle2 size={12} /> {tr('Normal')}</span>) },
                   { key: 'branch', label: tr('Branch'), value: b => b.branchName, render: b => short(b.branchName) },
                   { key: 'bills', label: tr('Transactions'), align: 'right', value: b => b.bills },
-                  { key: 'void', label: tr('Void bills'), align: 'right', value: b => b.voidBills },
-                  { key: 'voidRp', label: tr('Void value'), align: 'right', value: b => b.voidSubtotal, render: b => rp(b.voidSubtotal) },
-                  { key: 'rate', label: tr('Void rate'), align: 'right', value: b => b.voidRate, render: b => pctText(b.voidRate, 2) },
-                  { key: 'oc', label: tr('Other cost bills'), align: 'right', value: b => b.otherCostBills },
+                  { key: 'void', label: tr('Void Bills'), align: 'right', value: b => b.voidBills },
+                  { key: 'voidRp', label: tr('Void Value'), align: 'right', value: b => b.voidSubtotal, render: b => rp(b.voidSubtotal) },
+                  { key: 'rate', label: tr('Void Rate'), align: 'right', value: b => b.voidRate, render: b => pctText(b.voidRate, 2) },
+                  { key: 'oc', label: tr('Other Cost Bills'), align: 'right', value: b => b.otherCostBills },
                   { key: 'ocRp', label: tr('Other cost'), align: 'right', value: b => b.otherCostSubtotal, render: b => rp(b.otherCostSubtotal) },
                 ]} />
             </Block>
-            <Block title={tr('Other cost by method')} subtitle={tr('Finished without a bill number (CUPPING, WASTE, …) — not sales')}>
-              <DetailTable caption={tr('Other cost by method')} csvName="other-cost-methods" rows={d.otherCostByMethod} rowKey={m => m.method} initialSort={{ key: 'value', desc: true }}
+            <Block title={tr('Other Cost by Method')} subtitle={tr('Finished without a bill number (CUPPING, WASTE, …) — not sales')}>
+              <DetailTable caption={tr('Other Cost by Method')} csvName="other-cost-methods" rows={d.otherCostByMethod} rowKey={m => m.method} initialSort={{ key: 'value', desc: true }}
                 columns={[
                   { key: 'method', label: tr('Method'), value: m => m.method },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: m => m.bills },
                   { key: 'value', label: tr('Value'), align: 'right', value: m => m.subtotal, render: m => rp(m.subtotal) },
                 ]} />
             </Block>
-            <Block title={tr('Per day')}>
+            <Block title={tr('Per Day')}>
               <DetailTable caption={tr('Deductions per day')} csvName="deductions-per-day" rows={d.daily} rowKey={x => x.date} initialSort={{ key: 'date', desc: false }}
                 onRowClick={x => drill.drill(to.period(x.date, x.date, longDate(x.date)))}
                 columns={[
                   { key: 'date', label: tr('Date'), value: x => x.date, render: x => longDate(x.date) },
                   { key: 'bills', label: tr('Transactions'), align: 'right', value: x => x.bills },
-                  { key: 'void', label: tr('Void bills'), align: 'right', value: x => x.voidBills },
-                  { key: 'voidRp', label: tr('Void value'), align: 'right', value: x => x.voidSubtotal, render: x => rp(x.voidSubtotal) },
-                  { key: 'rate', label: tr('Void rate'), align: 'right', value: x => x.voidRate, render: x => pctText(x.voidRate, 2) },
+                  { key: 'void', label: tr('Void Bills'), align: 'right', value: x => x.voidBills },
+                  { key: 'voidRp', label: tr('Void Value'), align: 'right', value: x => x.voidSubtotal, render: x => rp(x.voidSubtotal) },
+                  { key: 'rate', label: tr('Void Rate'), align: 'right', value: x => x.voidRate, render: x => pctText(x.voidRate, 2) },
                   { key: 'oc', label: tr('Other cost'), align: 'right', value: x => x.otherCostSubtotal, render: x => rp(x.otherCostSubtotal) },
                 ]} />
             </Block>
@@ -797,7 +797,7 @@ function VoidChart({ data, onSelect }: { data: DeductionsResponse; onSelect: (da
       markLine: { symbol: 'none', silent: true, lineStyle: { color: '#64748b', type: 'dotted' }, label: { formatter: tr('Period {0}%', fixed(data.voidRate, 2)), color: INK.secondary, fontSize: 11, position: 'insideEndTop' }, data: [{ yAxis: data.voidRate }] },
     }],
   }), [data]);
-  return <EChart option={option} height={200} ariaLabel={tr('Void rate per day')} onClick={p => { const x = data.daily[p.dataIndex]; if (x) onSelect(x.date); }} />;
+  return <EChart option={option} height={200} ariaLabel={tr('Void Rate per Day')} onClick={p => { const x = data.daily[p.dataIndex]; if (x) onSelect(x.date); }} />;
 }
 
 /* ------------------------------------------------------------------ Monthly */
@@ -817,14 +817,14 @@ export function MonthlyDrawer({ q }: { q: string }) {
           <>
             <Tiles tiles={[
               { label: tr('Months'), value: num(d.months.length), sub: d.months.some(m => m.partial) ? tr('incl. partial months') : tr('complete months') },
-              { label: tr('Latest per day'), value: rp(last?.avgDaily ?? null), sub: last ? monthLabel(last.month, 'long') : '' },
-              { label: tr('MoM (latest)'), value: pctText(last?.momPct ?? null), delta: last?.momPct ?? null },
-              { label: tr('Same-store (latest)'), value: pctText(last?.sameStore.growthPct ?? null), sub: last ? tr('{0} branches', last.sameStore.branches) : '' },
+              { label: tr('Latest per Day'), value: rp(last?.avgDaily ?? null), sub: last ? monthLabel(last.month, 'long') : '' },
+              { label: tr('MoM (Latest)'), value: pctText(last?.momPct ?? null), delta: last?.momPct ?? null },
+              { label: tr('Same-store (Latest)'), value: pctText(last?.sameStore.growthPct ?? null), sub: last ? tr('{0} branches', last.sameStore.branches) : '' },
             ]} />
             <Block title={tr('Average gross sales per day')} subtitle={tr('Click a month for its profile')}>
               <MonthlyChart months={d.months} onSelect={open} height={300} />
             </Block>
-            <Block title={tr('All months')}>
+            <Block title={tr('All Months')}>
               <DetailTable caption={tr('Months')} csvName="monthly-growth" rows={d.months} rowKey={m => m.month} initialSort={{ key: 'month', desc: true }} onRowClick={open}
                 columns={[
                   { key: 'month', label: tr('Month'), value: m => m.month, render: m => <>{monthLabel(m.month, 'long')}{m.partial && <span className="ml-1 text-neutral-400">({m.days} d)</span>}</> },
@@ -832,7 +832,7 @@ export function MonthlyDrawer({ q }: { q: string }) {
                   { key: 'nett', label: tr('Nett'), align: 'right', value: m => m.nettSales, render: m => rp(m.nettSales) },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: m => m.bills },
                   { key: 'branches', label: tr('Branches'), align: 'right', value: m => m.branches },
-                  { key: 'avg', label: tr('Per day'), align: 'right', value: m => m.avgDaily, render: m => rp(m.avgDaily) },
+                  { key: 'avg', label: tr('Per Day'), align: 'right', value: m => m.avgDaily, render: m => rp(m.avgDaily) },
                   { key: 'mom', label: tr('MoM'), align: 'right', value: m => m.momPct, render: m => delta(m.momPct) },
                   { key: 'yoy', label: tr('YoY'), align: 'right', value: m => m.yoyPct, render: m => delta(m.yoyPct) },
                   { key: 'ss', label: tr('Same-store'), align: 'right', value: m => m.sameStore.growthPct, render: m => <span title={tr('{0} branches', m.sameStore.branches)}>{delta(m.sameStore.growthPct)}</span> },

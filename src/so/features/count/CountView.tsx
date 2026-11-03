@@ -309,7 +309,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           <SearchInput value={q} onChange={setQ} placeholder={tr("Search item")} />
           {open && (
             <button type="button" onClick={() => setOnlyOpen((v) => !v)} aria-pressed={onlyOpen} className={btn(onlyOpen ? "solid" : "outline")}>
-              {count.status === "RECOUNT_REQUESTED" ? tr("To recount") : tr("To do")} ({todo})
+              {count.status === "RECOUNT_REQUESTED" ? tr("To recount") : tr("To Do")} ({todo})
             </button>
           )}
         </div>

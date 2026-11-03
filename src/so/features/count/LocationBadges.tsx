@@ -31,9 +31,9 @@ export default function LocationBadges({ s, showDistance = true }: { s: Location
   const dist = showDistance ? distanceText(s.start_distance_m, s.start_accuracy_m) : null;
   return (
     <>
-      {s.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside radius")}</Badge>}
+      {s.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>}
       {s.low_accuracy && <Badge tone="slate" icon={<SignalLow size={11} />}>{tr("Low GPS accuracy")}</Badge>}
-      {s.facility_located === false && <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet has no coordinates")}</Badge>}
+      {s.facility_located === false && <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet Has No Coordinates")}</Badge>}
       {dist && <span className="text-[11px] tabular-nums text-neutral-500">{dist}</span>}
     </>
   );

@@ -152,7 +152,7 @@ export function EvidenceFiles({ count, open, onChange }: { count: Count; open: b
       <div className="flex flex-wrap items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">
         <Paperclip size={18} className="text-neutral-500" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-neutral-900">{tr("Evidence files")} <span className="font-normal text-neutral-500">({files.length}/{MAX_FILES})</span></h2>
+          <h2 className="text-sm font-semibold text-neutral-900">{tr("Evidence Files")} <span className="font-normal text-neutral-500">({files.length}/{MAX_FILES})</span></h2>
           <p className="text-xs text-neutral-500">{open ? tr("Optional: PDF, Excel, Word, PowerPoint, CSV or images, up to 10 MB each.") : tr("Files attached to the count.")}</p>
         </div>
         {open && (
@@ -216,7 +216,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
       <div className="flex flex-wrap items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">
         <Images size={18} className="text-neutral-500" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-neutral-900">{tr("Evidence photos")} <span className="font-normal text-neutral-500">({photos.length}/{MAX_PHOTOS})</span></h2>
+          <h2 className="text-sm font-semibold text-neutral-900">{tr("Evidence Photos")} <span className="font-normal text-neutral-500">({photos.length}/{MAX_PHOTOS})</span></h2>
           <p className="text-xs text-neutral-500">{open ? tr("Optional: up to 15 photos of the count, taken with the camera.") : tr("Photos taken during the count.")}</p>
         </div>
         <EvidenceDownloads count={count} />
@@ -231,7 +231,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
                   <img src={photoUrl(p.id)} alt={tr("Photo")} className="aspect-square w-full rounded-lg object-cover ring-1 ring-neutral-200" loading="lazy" />
                 </a>
                 {open && p.uploaded_by === me?.id && (
-                  <button type="button" onClick={() => remove(p.id)} aria-label={tr("Remove photo")}
+                  <button type="button" onClick={() => remove(p.id)} aria-label={tr("Remove Photo")}
                     className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-900 p-1 text-white shadow"><X size={12} /></button>
                 )}
               </li>
@@ -242,7 +242,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
                   className={cx("flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed text-xs font-medium",
                     "border-neutral-300 text-neutral-500 hover:border-brand-400 hover:text-brand-700")}>
                   {busy ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
-                  {tr("Take photo")}
+                  {tr("Take Photo")}
                 </button>
               </li>
             )}

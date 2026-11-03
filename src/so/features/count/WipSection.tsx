@@ -91,7 +91,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
         className="flex w-full items-center gap-3 bg-violet-50/70 px-4 py-3 text-left">
         <FlaskConical size={18} className="flex-shrink-0 text-violet-700" />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-neutral-900">{tr("WIP / premix")}</span>
+          <span className="block text-sm font-semibold text-neutral-900">{tr("WIP / Premix")}</span>
           <span className="block text-xs text-neutral-500">{tr("Enter each WIP in its unit (grams, portions or pieces); the ingredients are calculated and filled into the items")}</span>
         </span>
         {toConfirm > 0 && <Badge tone="amber">{tr("{0} to recount", toConfirm)}</Badge>}

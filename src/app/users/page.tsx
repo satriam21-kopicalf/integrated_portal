@@ -213,10 +213,10 @@ export default function UsersPage() {
   const actionsFor = (u: AuthUser): ActionItem[] => {
     const isMe = u.id === me?.id;
     return [
-      { label: tr('View details'), icon: <Eye size={16} />, onSelect: () => setViewing(u) },
+      { label: tr('View Details'), icon: <Eye size={16} />, onSelect: () => setViewing(u) },
       { label: tr('Edit'), icon: <Pencil size={16} />, onSelect: () => setEditing(u) },
       ...(u.isLocked ? [{ label: tr('Unlock'), icon: <Unlock size={16} />, onSelect: () => unlock(u) }] : []),
-      { label: tr('Activity log'), icon: <History size={16} />, onSelect: () => router.push(`/activity?user=${u.id}`) },
+      { label: tr('Activity Log'), icon: <History size={16} />, onSelect: () => router.push(`/activity?user=${u.id}`) },
       {
         label: tr('Delete'), icon: <Trash2 size={16} />, onSelect: () => setDeleting(u), danger: true, separated: true,
         disabled: isMe, hint: isMe ? tr('You cannot delete your own account') : undefined,
@@ -252,39 +252,39 @@ export default function UsersPage() {
       <PageShell>
         <PageHeader title={tr('User Accounts')} subtitle={tr('Sign-in, role and branch access of every dashboard user')} eyebrow={tr('Management')}
           actions={<>
-            <IconButton label={tr('Roles & pages')} onClick={() => setPanel('roles')}><LayoutGrid size={17} strokeWidth={1.75} /></IconButton>
-            <IconButton label={tr('Menus per platform')} onClick={() => setPanel('platforms')}><MonitorSmartphone size={17} strokeWidth={1.75} /></IconButton>
-            <IconButton label={tr('Job titles & departments')} onClick={() => setPanel('masters')}><Briefcase size={17} strokeWidth={1.75} /></IconButton>
-            <button type="button" className={btn('solid')} onClick={() => setEditing('new')}><Plus size={15} /> {tr('New user')}</button>
+            <IconButton label={tr('Roles & Pages')} onClick={() => setPanel('roles')}><LayoutGrid size={17} strokeWidth={1.75} /></IconButton>
+            <IconButton label={tr('Menus per Platform')} onClick={() => setPanel('platforms')}><MonitorSmartphone size={17} strokeWidth={1.75} /></IconButton>
+            <IconButton label={tr('Job Titles & Departments')} onClick={() => setPanel('masters')}><Briefcase size={17} strokeWidth={1.75} /></IconButton>
+            <button type="button" className={btn('solid')} onClick={() => setEditing('new')}><Plus size={15} /> {tr('New User')}</button>
           </>} />
 
-        <Tabs label={tr('Business line')} tabs={lineTabs} value={line} onChange={k => { setLine(k as BusinessLine); setPage(1); applyFilters(NO_FILTERS); }} />
+        <Tabs label={tr('Business Line')} tabs={lineTabs} value={line} onChange={k => { setLine(k as BusinessLine); setPage(1); applyFilters(NO_FILTERS); }} />
 
-        <StatGrid label={tr('User summary')} cols={5}>
+        <StatGrid label={tr('User Summary')} cols={5}>
           <StatCard label={tr('Users')} icon={<Users />} value={s ? formatNumber(s.total) : <ValueSkeleton />}
             sub={s && tr('{0} super admin · {1} PIC · {2} outlet / hub', formatNumber(s.superadmins), formatNumber(s.users), formatNumber(s.outlets ?? 0))} />
           <StatCard label={tr('Active')} tone="brand" icon={<UserCheck />} value={s ? formatNumber(s.active) : <ValueSkeleton />}
             sub={s && `${formatNumber(s.inactive)} ${tr('inactive ·')} ${formatNumber(s.locked)} ${tr('locked')}`} />
-          <StatCard label={tr('Signed in, 7 days')} icon={<LogIn />} value={s ? formatNumber(s.active7d) : <ValueSkeleton />}
+          <StatCard label={tr('Signed In, 7 Days')} icon={<LogIn />} value={s ? formatNumber(s.active7d) : <ValueSkeleton />}
             sub={s && `${formatNumber(s.neverSignedIn)} ${tr('never signed in')}`} />
-          <StatCard label={tr('Branches covered')} icon={<Store />} value={s ? formatNumber(s.branchesCovered) : <ValueSkeleton />}
+          <StatCard label={tr('Branches Covered')} icon={<Store />} value={s ? formatNumber(s.branchesCovered) : <ValueSkeleton />}
             sub={s && `${tr('of')} ${formatNumber(branches.filter(b => b.count > 0).length)} ${tr('branches with recent sales')}`} />
-          <StatCard label={tr('Without branch')} icon={<CircleAlert />} tone={s?.withoutBranch ? 'warn' : 'default'} value={s ? formatNumber(s.withoutBranch) : <ValueSkeleton />}
+          <StatCard label={tr('Without Branch')} icon={<CircleAlert />} tone={s?.withoutBranch ? 'warn' : 'default'} value={s ? formatNumber(s.withoutBranch) : <ValueSkeleton />}
             sub={s && (s.withoutBranch ? tr('PIC / outlet accounts see no data until assigned') : tr('every PIC and outlet account has a branch'))} />
         </StatGrid>
 
         <Card flush
           toolbar={<Toolbar
-            search={<SearchInput value={search} onChange={onSearch} placeholder={tr('Search name, username, email, phone or job title')} label={tr('Search users')} />}
+            search={<SearchInput value={search} onChange={onSearch} placeholder={tr('Search name, username, email, phone or job title')} label={tr('Search Users')} />}
             chips={<ActiveFilters filters={activeFilters} onClear={() => applyFilters(NO_FILTERS)} />}>
             <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
           </Toolbar>}
           footer={<>
             <span>{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
             <div className="flex items-center gap-2">
-              <button type="button" className={btn('outline', 'sm')} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous page')}><ChevronLeft size={15} /></button>
+              <button type="button" className={btn('outline', 'sm')} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous Page')}><ChevronLeft size={15} /></button>
               <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
-              <button type="button" className={btn('outline', 'sm')} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next page')}><ChevronRight size={15} /></button>
+              <button type="button" className={btn('outline', 'sm')} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next Page')}><ChevronRight size={15} /></button>
             </div>
           </>}>
           {error ? <ErrorBlock message={error} onRetry={load} /> : !loading && rows.length === 0 ? (
@@ -298,9 +298,9 @@ export default function UsersPage() {
                       <th scope="col" className={kcTable.th}>{tr('User')}</th>
                       <th scope="col" className={`${kcTable.th} hidden lg:table-cell`}>{tr('Contact')}</th>
                       <th scope="col" className={kcTable.th}>{tr('Role')}</th>
-                      <th scope="col" className={kcTable.th}>{tr('Branch access')}</th>
+                      <th scope="col" className={kcTable.th}>{tr('Branch Access')}</th>
                       <th scope="col" className={kcTable.th}>{tr('Status')}</th>
-                      <th scope="col" className={`${kcTable.th} hidden xl:table-cell`}>{tr('Last sign-in')}</th>
+                      <th scope="col" className={`${kcTable.th} hidden xl:table-cell`}>{tr('Last Sign-in')}</th>
                       <th scope="col" className="w-14 px-3 py-2.5"><span className="sr-only">{tr('Actions')}</span></th>
                     </tr>
                   </thead>
@@ -379,24 +379,24 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
     value: b.branch_code, label: b.branch_name, meta: <span className="font-mono text-[11px] text-neutral-400">{b.branch_code}</span>,
   })), [branches]);
   return (
-    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter users')}
+    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter Users')}
       description={tr('Combine role, status and branch.')}
       footer={
         <>
           <button type="button" className={`${buttonSecondary} mr-auto`} onClick={() => setDraft(NO_FILTERS)}>{tr('Reset')}</button>
           <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Cancel')}</button>
-          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>{tr('Apply filters')}</button>
+          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>{tr('Apply Filters')}</button>
         </>
       }>
       <div className="space-y-6">
         <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: tr('All roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User (PIC)') }, { value: 'outlet', label: tr('Outlet / Hub') }, { value: 'driver', label: tr('Driver (COTR)') },
+          { value: '', label: tr('All Roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User (PIC)') }, { value: 'outlet', label: tr('Outlet / Hub') }, { value: 'driver', label: tr('Driver (COTR)') },
         ]} />
         <ChoiceGroup label={tr('Status')} value={draft.status} onChange={set('status')} choices={[
           { value: '', label: tr('All') }, { value: 'active', label: tr('Active') }, { value: 'inactive', label: tr('Inactive') },
           { value: 'locked', label: tr('Locked'), hint: tr('Too many failed sign-ins') },
         ]} />
-        <SearchChoice label={tr('Branch')} anyLabel={tr('All branches')} options={options} value={draft.branch} onChange={set('branch')}
+        <SearchChoice label={tr('Branch')} anyLabel={tr('All Branches')} options={options} value={draft.branch} onChange={set('branch')}
           placeholder={tr('Search outlet name or code')} loading={branchesLoading} />
         <p className="text-xs text-neutral-500">{tr('A branch shows the users assigned to it; super admins see every branch and are always included.')}</p>
       </div>
@@ -423,7 +423,7 @@ function StatusBadge({ user }: { user: AuthUser }) {
 
 /** Branches the account may see: superadmins every branch; a user without branches sees no data. */
 function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code: string) => string }) {
-  if (!branchScoped(user.role)) return <span className="whitespace-nowrap text-xs text-neutral-500">{tr('All branches')}</span>;
+  if (!branchScoped(user.role)) return <span className="whitespace-nowrap text-xs text-neutral-500">{tr('All Branches')}</span>;
   const codes = user.branches ?? [];
   if (!codes.length) return <Pill tone="red" icon={<CircleAlert size={11} />} title={tr('This user sees no data until branches are assigned')}>{tr('No branch')}</Pill>;
   const label = codes.length === 1 ? branchName(codes[0]) : tr('{0} branches', codes.length);
@@ -432,7 +432,7 @@ function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code
 
 /** the user has not filled in their own profile yet */
 function ProfileBadge() {
-  return <Pill tone="amber" icon={<CircleAlert size={11} />} title={tr('Full name, phone number, job title or department is missing')}>{tr('Profile incomplete')}</Pill>;
+  return <Pill tone="amber" icon={<CircleAlert size={11} />} title={tr('Full name, phone number, job title or department is missing')}>{tr('Profile Incomplete')}</Pill>;
 }
 
 function UserRow({ user, isMe, branchName, onView, actions }: {
@@ -549,7 +549,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
   return (
     <Drawer open onClose={onClose} size={creating ? 'md' : 'lg'}
       icon={creating ? <UserPlus size={18} /> : <UserRoundPen size={18} />}
-      title={creating ? tr('New user') : tr('Edit {0}', user!.username)}
+      title={creating ? tr('New User') : tr('Edit {0}', user!.username)}
       description={creating ? tr('Identity, sign-in, role and branches. The user completes the rest of the profile after signing in.') : tr('Leave the password empty to keep the current one.')}
       footer={
         <>
@@ -566,7 +566,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         )}
 
         {!creating && (
-          <DrawerSection title={tr('Profile photo')}>
+          <DrawerSection title={tr('Profile Photo')}>
             <AvatarEditor name={user!.displayName} src={user!.avatarUrl} endpoint={`/api/users/${user!.id}/avatar`}
               onSaved={u => { if (u.id === me?.id) setMe(u); }} />
             {error?.field === 'avatar' && <p className="text-xs text-red-600">{error.text}</p>}
@@ -583,7 +583,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                     if (!usernameTouched) set('username', suggestUsername(e.target.value));
                   }} />
               </Field>
-              <Field label={tr('Phone number')} htmlFor="f-phoneNumber" error={fieldError('phoneNumber')} hint="e.g. 0812-3456-7890">
+              <Field label={tr('Phone Number')} htmlFor="f-phoneNumber" error={fieldError('phoneNumber')} hint="e.g. 0812-3456-7890">
                 <input id="f-phoneNumber" type="tel" className={inputClass} value={profile.phoneNumber} maxLength={32} autoComplete="off"
                   onChange={e => setProfileField('phoneNumber', e.target.value)} />
               </Field>
@@ -608,7 +608,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             <Field label={tr('Email')} htmlFor="f-email" required error={fieldError('email')}>
               <input id="f-email" type="email" className={inputClass} value={form.email} onChange={e => set('email', e.target.value)} maxLength={254} required autoComplete="off" />
             </Field>
-            <Field label={creating ? tr('Password') : tr('New password')} htmlFor="f-password" required={creating} error={fieldError('password')}
+            <Field label={creating ? tr('Password') : tr('New Password')} htmlFor="f-password" required={creating} error={fieldError('password')}
               hint={creating ? tr('Generated for you — share it with the user privately. At least 8 characters with letters and numbers.') : tr('At least 8 characters with letters and numbers')}>
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -620,7 +620,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <button type="button" className={buttonSecondary} onClick={() => { set('password', generatePassword()); setShowPassword(true); }} title={tr('Generate a strong password')}>
+                <button type="button" className={buttonSecondary} onClick={() => { set('password', generatePassword()); setShowPassword(true); }} title={tr('Generate a Strong Password')}>
                   <Wand2 size={16} /><span className="hidden sm:inline">{tr('Generate')}</span>
                 </button>
               </div>
@@ -635,7 +635,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={tr('Business line')} htmlFor="f-line" error={fieldError('businessLine')} hint={tr('The tab of User Accounts the account is listed in; its branches are of this line')}>
+            <Field label={tr('Business Line')} htmlFor="f-line" error={fieldError('businessLine')} hint={tr('The tab of User Accounts the account is listed in; its branches are of this line')}>
               <select id="f-line" value={businessLine} onChange={e => { setBusinessLine(e.target.value as BusinessLine); setBranchCodes([]); }} className={inputClass}>
                 {LINES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
               </select>
@@ -659,14 +659,14 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         </DrawerSection>
 
         {form.role !== 'driver' && (
-          <DrawerSection title={tr('Page access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
+          <DrawerSection title={tr('Page Access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
             <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} hidden={hiddenPages} onHiddenChange={setHiddenPages} />
             {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
           </DrawerSection>
         )}
 
         {branchScoped(form.role) ? (
-          <DrawerSection title={tr('Branch access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User (PIC) and Outlet / Hub.')}>
+          <DrawerSection title={tr('Branch Access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User (PIC) and Outlet / Hub.')}>
             <BranchAssign branches={lineBranches(branches, businessLine)} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
@@ -678,7 +678,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
 
         {creating ? (
           <>
-            <DrawerSection title={tr('Administrator notes')} description={tr('Only visible to super admins, e.g. area or outlet group.')}>
+            <DrawerSection title={tr('Administrator Notes')} description={tr('Only visible to super admins, e.g. area or outlet group.')}>
               <Field label={tr('Notes')} htmlFor="f-notes" error={fieldError('notes')}>
                 <textarea id="f-notes" rows={2} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
               </Field>
@@ -699,7 +699,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             )}
             <ProfileFields values={profile} onChange={setProfileField} fieldError={fieldError} idPrefix="f" markRequired={false}
               currentBranchName={user!.workBranchName} />
-            <DrawerSection title={tr('Administrator notes')} description={tr('Only visible to super admins.')}>
+            <DrawerSection title={tr('Administrator Notes')} description={tr('Only visible to super admins.')}>
               <Field label={tr('Notes')} htmlFor="f-notes" error={fieldError('notes')}>
                 <textarea id="f-notes" rows={3} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
               </Field>
@@ -807,7 +807,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
   const branchCodes = user.branches ?? [];
 
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<UserRound size={18} />} title={tr('User details')} description={isMe ? tr('This is your account') : `@${user.username}`}
+    <Drawer open onClose={onClose} size="lg" icon={<UserRound size={18} />} title={tr('User Details')} description={isMe ? tr('This is your account') : `@${user.username}`}
       footer={
         <>
           <button type="button" className={`${buttonSecondary} mr-auto`} onClick={onDelete} disabled={isMe} title={isMe ? tr('You cannot delete your own account') : undefined}>
@@ -832,18 +832,18 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       {/* at a glance */}
       <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-4">
-        <Glance label={tr('Last sign-in')} value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('has not signed in')} />
-        <Glance label={tr('Branch access')} value={!branchScoped(user.role) ? 'All' : formatNumber(branchCodes.length)}
+        <Glance label={tr('Last Sign-in')} value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('has not signed in')} />
+        <Glance label={tr('Branch Access')} value={!branchScoped(user.role) ? 'All' : formatNumber(branchCodes.length)}
           sub={!branchScoped(user.role) ? ROLE_LABELS[user.role] : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}
           tone={branchScoped(user.role) && !branchCodes.length ? 'bad' : undefined} />
         <Glance label={tr('Profile')} value={`${filled}/${PROFILE_REQUIRED.length}`} sub={missing.length ? tr('missing: {0}', missing.join(', ')) : tr('complete')}
           tone={missing.length ? 'warn' : 'good'} />
-        <Glance label={tr('Activity, 30 days')} value={counts ? formatNumber(counts.total) : '…'} sub={counts ? tr('{0} exports', formatNumber(counts.exports)) : ''} />
+        <Glance label={tr('Activity, 30 Days')} value={counts ? formatNumber(counts.total) : '…'} sub={counts ? tr('{0} exports', formatNumber(counts.exports)) : ''} />
       </div>
 
-      <DrawerSection title={tr('Branch access')} description={!branchScoped(user.role) ? tr('Super admins and Cost Control see every branch') : tr('Overview, Sales Transactions and exports are limited to these branches')}>
+      <DrawerSection title={tr('Branch Access')} description={!branchScoped(user.role) ? tr('Super admins and Cost Control see every branch') : tr('Overview, Sales Transactions and exports are limited to these branches')}>
         {!branchScoped(user.role) ? (
-          <p className="flex items-center gap-2 text-sm text-neutral-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All branches')}</p>
+          <p className="flex items-center gap-2 text-sm text-neutral-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All Branches')}</p>
         ) : branchCodes.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {branchCodes.map(code => (
@@ -869,7 +869,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
             );
           })}
           {Object.entries(user.pageOverrides ?? {}).filter(([, on]) => !on).map(([key]) => (
-            <li key={key} className="rounded-full bg-rose-50 px-2.5 py-1 text-xs text-rose-700 line-through" title={tr('Removed for this user')}>
+            <li key={key} className="rounded-full bg-rose-50 px-2.5 py-1 text-xs text-rose-700 line-through" title={tr('Removed for This User')}>
               {PAGES.find(p => p.key === key)?.label ?? key}
             </li>
           ))}
@@ -894,8 +894,8 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
         <InfoGrid items={[
           [tr('Job title'), user.jobTitle],
           [tr('Department'), user.department],
-          [tr('Employee number'), user.employeeNumber],
-          [tr('Work location'), user.workBranchName || user.workBranchCode],
+          [tr('Employee Number'), user.employeeNumber],
+          [tr('Work Location'), user.workBranchName || user.workBranchCode],
         ]} />
       </DrawerSection>
 
@@ -909,7 +909,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       <DrawerSection title={tr('Security')}>
         <InfoGrid items={[
           [tr('Username'), <span key="u" className="font-mono">{user.username}</span>],
-          [tr('Last sign-in'), user.lastLoginAt ? `${formatDateTime(user.lastLoginAt)}${user.lastLoginIp ? ` · ${user.lastLoginIp}` : ''}` : tr('Never')],
+          [tr('Last Sign-in'), user.lastLoginAt ? `${formatDateTime(user.lastLoginAt)}${user.lastLoginIp ? ` · ${user.lastLoginIp}` : ''}` : tr('Never')],
           [tr('Password changed'), user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : null],
           [tr('Must change password'), user.mustChangePassword ? tr('Yes, at the next sign-in') : tr('No')],
           [tr('Failed sign-in attempts'), formatNumber(user.failedLoginAttempts)],
@@ -917,7 +917,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
         ]} />
       </DrawerSection>
 
-      <DrawerSection title={tr('Recent activity')} description={tr('Last 30 days')}>
+      <DrawerSection title={tr('Recent Activity')} description={tr('Last 30 Days')}>
         {recent === null ? (
           <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 skeleton rounded-lg" />)}</div>
         ) : recent.length === 0 ? (
@@ -938,11 +938,11 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
         </button>
       </DrawerSection>
 
-      <DrawerSection title={tr('Account history')}>
+      <DrawerSection title={tr('Account History')}>
         <InfoGrid items={[
           [tr('Created'), `${user.createdAt ? formatDateTime(user.createdAt) : '—'}${user.createdBy ? ` by ${user.createdBy}` : ''}`],
           [tr('Updated'), `${user.updatedAt ? formatDateTime(user.updatedAt) : '—'}${user.updatedBy ? ` by ${user.updatedBy}` : ''}`],
-          [tr('Administrator notes'), user.notes],
+          [tr('Administrator Notes'), user.notes],
         ]} />
       </DrawerSection>
     </Drawer>
@@ -1003,7 +1003,7 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
           <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><BranchesBadge user={user} branchName={branchName} /></div>
         </div>
       </div>
-      <DrawerSection title={tr('Login details')}>
+      <DrawerSection title={tr('Login Details')}>
         <DetailList rows={[
           [tr('Username'), <span key="u" className="font-mono">{user.username}</span>],
           [tr('Email'), user.email],
@@ -1015,7 +1015,7 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
               </button>
             </span>
           )],
-          [tr('Branch access'), branches],
+          [tr('Branch Access'), branches],
           [tr('First sign-in'), user.mustChangePassword ? tr('Must change the password') : tr('Password can be kept')],
         ]} />
       </DrawerSection>

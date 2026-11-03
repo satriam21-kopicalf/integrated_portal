@@ -158,8 +158,8 @@ export function QuickPeriod({ value, onChange, maxDays }: { value: Period; onCha
     { key: 'today', label: tr('Today'), value: { from: today, to: today } },
     { key: '7', label: tr('7 days'), value: { from: wibDay(-6), to: today } },
     { key: '30', label: tr('30 days'), value: { from: wibDay(-29), to: today } },
-    { key: 'month', label: tr('This month'), value: { from: first, to: today } },
-    { key: 'last', label: tr('Last month'), value: { from: prevFirst, to: prevLast } },
+    { key: 'month', label: tr('This Month'), value: { from: first, to: today } },
+    { key: 'last', label: tr('Last Month'), value: { from: prevFirst, to: prevLast } },
   ];
   const match = presets.find((p) => p.value.from === value.from && p.value.to === value.to);
   const [custom, setCustom] = useState(!match);

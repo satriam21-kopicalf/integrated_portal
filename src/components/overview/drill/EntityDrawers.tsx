@@ -60,7 +60,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
         {d => (
           <Tiles tiles={[
             { label: tr('Gross sales'), value: rp(d.kpis.sales.value), delta: d.kpis.sales.deltaPct, sub: d.filters.previous.complete ? tr('prev. {0}', compactRupiah(d.kpis.sales.previous)) : tr('no comparison') },
-            { label: tr('Nett sales'), value: rp(d.kpis.nettSales.value), delta: d.kpis.nettSales.deltaPct },
+            { label: tr('Nett Sales'), value: rp(d.kpis.nettSales.value), delta: d.kpis.nettSales.deltaPct },
             { label: tr('Bills'), value: num(d.kpis.bills.value), delta: d.kpis.bills.deltaPct },
             { label: tr('Average Order Value'), value: rp(d.kpis.avgTicket.value), delta: d.kpis.avgTicket.deltaPct },
           ]} />
@@ -68,7 +68,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
       </Loaded>
 
       {singleDay ? (
-        <Block title={tr('Hour by hour')} subtitle={tr('Bills and gross sales per hour of that day')}>
+        <Block title={tr('Hour by Hour')} subtitle={tr('Bills and gross sales per hour of that day')}>
           <Loaded resource={hourly} height={220}>{d => <DayHours data={d} />}</Loaded>
         </Block>
       ) : (
@@ -86,7 +86,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
       )}
 
       {!oneChannel && (
-        <Block title={tr('Channels')} actions={<MoreButton label={tr('All channel details')} onClick={() => drill.drill({ kind: 'channels' })} />}>
+        <Block title={tr('Channels')} actions={<MoreButton label={tr('All Channel Details')} onClick={() => drill.drill({ kind: 'channels' })} />}>
           <Loaded resource={channels} height={160}>
             {d => (
               <DetailTable caption={tr('Channels')} rows={d.channels} rowKey={c => c.channel} initialSort={{ key: 'sales', desc: true }} maxHeight={260}
@@ -105,7 +105,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
       )}
 
       {!oneBranch && (
-        <Block title={tr('Branches')} actions={<MoreButton label={tr('All branch details')} onClick={() => drill.drill({ kind: 'branches' })} />}>
+        <Block title={tr('Branches')} actions={<MoreButton label={tr('All Branch Details')} onClick={() => drill.drill({ kind: 'branches' })} />}>
           <Loaded resource={branches} height={200}>
             {d => (
               <DetailTable caption={tr('Branches')} rows={d.branches.filter(b => b.subtotal > 0)} rowKey={b => b.branchCode} initialSort={{ key: 'sales', desc: true }} maxHeight={300}
@@ -116,7 +116,7 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
                   { key: 'chg', label: tr('Change'), align: 'right', value: b => b.deltaPct, render: b => delta(b.deltaPct) },
                   { key: 'bills', label: tr('Bills'), align: 'right', value: b => b.bills },
                   { key: 'avg', label: tr('Average Order Value'), align: 'right', value: b => b.avgTicket, render: b => rp(b.avgTicket) },
-                  { key: 'void', label: tr('Void rate'), align: 'right', value: b => b.voidRate, render: b => pctText(b.voidRate, 2) },
+                  { key: 'void', label: tr('Void Rate'), align: 'right', value: b => b.voidRate, render: b => pctText(b.voidRate, 2) },
                 ]} />
             )}
           </Loaded>
@@ -124,15 +124,15 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
       )}
 
       {!singleDay && (
-        <Block title={tr('Busy hours')} actions={<MoreButton label={tr('Heatmap & compare')} onClick={() => drill.drill({ kind: 'hours' })} />}>
+        <Block title={tr('Busy Hours')} actions={<MoreButton label={tr('Heatmap & Compare')} onClick={() => drill.drill({ kind: 'hours' })} />}>
           <Loaded resource={hourly} height={180}>{d => <DayHours data={d} perDay />}</Loaded>
         </Block>
       )}
 
-      <Block title={tr('Top menus')} actions={<MoreButton label={tr('All menus')} onClick={() => drill.drill({ kind: 'menus' })} />}>
+      <Block title={tr('Top Menus')} actions={<MoreButton label={tr('All Menus')} onClick={() => drill.drill({ kind: 'menus' })} />}>
         <Loaded resource={menus} height={200}>
           {d => (
-            <DetailTable caption={tr('Top menus')} rows={d.top} rowKey={m => m.menuId} initialSort={{ key: 'sales', desc: true }} maxHeight={320}
+            <DetailTable caption={tr('Top Menus')} rows={d.top} rowKey={m => m.menuId} initialSort={{ key: 'sales', desc: true }} maxHeight={320}
               onRowClick={m => drill.drill({ kind: 'menu', menuId: m.menuId, menuKind: 'menu', name: m.name })}
               columns={[
                 { key: 'name', label: tr('Menu'), value: m => m.name },
@@ -146,10 +146,10 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
       </Block>
 
       <div className="grid gap-x-6 lg:grid-cols-2">
-        <Block title={tr('Payments')} actions={<MoreButton label={tr('All methods')} onClick={() => drill.drill({ kind: 'payments' })} />}>
+        <Block title={tr('Payments')} actions={<MoreButton label={tr('All Methods')} onClick={() => drill.drill({ kind: 'payments' })} />}>
           <Loaded resource={payments} height={160}>
             {d => (
-              <DetailTable caption={tr('Payment methods')} rows={d.methods.slice(0, 8)} rowKey={m => `${m.type}-${m.method}`} maxHeight={260}
+              <DetailTable caption={tr('Payment Methods')} rows={d.methods.slice(0, 8)} rowKey={m => `${m.type}-${m.method}`} maxHeight={260}
                 onRowClick={m => drill.drill({ kind: 'payment', method: m.method, label: paymentLabel(m.method) })}
                 columns={[
                   { key: 'method', label: tr('Method'), value: m => paymentLabel(m.method) },
@@ -159,20 +159,20 @@ export function ProfileDrawer({ q, focus }: { q: string; focus: 'branch' | 'chan
             )}
           </Loaded>
         </Block>
-        <Block title={tr('Basket & deductions')} actions={<MoreButton label={tr('Deductions')} onClick={() => drill.drill({ kind: 'deductions' })} />}>
+        <Block title={tr('Basket & Deductions')} actions={<MoreButton label={tr('Deductions')} onClick={() => drill.drill({ kind: 'deductions' })} />}>
           <div className="space-y-3">
             <Loaded resource={basket} height={70}>
               {d => (
                 <Tiles columns={2} tiles={[
-                  { label: tr('Items / bill'), value: num(d.totals.qtyPerBill, 2), sub: tr('{0} lines', num(d.totals.linesPerBill, 2)) },
-                  { label: tr('Food attach'), value: pctText(d.totals.foodAttachPct), sub: tr('{0} bills with food', pctText(d.totals.foodSharePct)) },
+                  { label: tr('Items / Bill'), value: num(d.totals.qtyPerBill, 2), sub: tr('{0} lines', num(d.totals.linesPerBill, 2)) },
+                  { label: tr('Food Attach'), value: pctText(d.totals.foodAttachPct), sub: tr('{0} bills with food', pctText(d.totals.foodSharePct)) },
                 ]} />
               )}
             </Loaded>
             <Loaded resource={deductions} height={70}>
               {d => (
                 <Tiles columns={2} tiles={[
-                  { label: tr('Void rate'), value: pctText(d.voidRate, 2), sub: tr('{0} bills · {1}', num(d.totals.void.bills), compactRupiah(d.totals.void.subtotal)), upIsGood: false },
+                  { label: tr('Void Rate'), value: pctText(d.voidRate, 2), sub: tr('{0} bills · {1}', num(d.totals.void.bills), compactRupiah(d.totals.void.subtotal)), upIsGood: false },
                   { label: tr('Other cost'), value: compactRupiah(d.totals.otherCost.subtotal), sub: tr('{0} bills', num(d.totals.otherCost.bills)) },
                 ]} />
               )}
@@ -238,8 +238,8 @@ export function MenuDrawer({ q, menuId, menuKind }: { q: string; menuId: string;
               { label: tr('Qty'), value: num(t.qty), delta: t.qtyDeltaPct, sub: t.previousQty !== null ? tr('prev. {0}', num(t.previousQty)) : tr('no comparison') },
               { label: tr('Gross sales'), value: compactRupiah(t.subtotal), title: formatCurrency(t.subtotal), sub: t.previousSubtotal !== null ? tr('prev. {0}', compactRupiah(t.previousSubtotal)) : '' },
               { label: tr('Bills'), value: num(t.bills), sub: t.bills ? tr('{0} per bill', num(t.qty / t.bills, 2)) : '' },
-              { label: tr('Avg price'), value: rp(t.avgPrice), sub: t.discount ? tr('{0} discount', compactRupiah(t.discount)) : tr('no discount') },
-              { label: tr('Share of menus'), value: pctText(t.shareOfMenus, 2), sub: tr('of menu sales') },
+              { label: tr('Avg Price'), value: rp(t.avgPrice), sub: t.discount ? tr('{0} discount', compactRupiah(t.discount)) : tr('no discount') },
+              { label: tr('Share of Menus'), value: pctText(t.shareOfMenus, 2), sub: tr('of menu sales') },
             ]} />
             <Block title={tr('Per {0}', tr(d.granularity))} actions={<Segmented label={tr('Measure')} value={measure} onChange={setMeasure} options={[{ value: 'qty', label: tr('Qty') }, { value: 'subtotal', label: tr('Gross sales') }]} />}>
               <MenuSeries data={d} measure={measure} onSelect={date => {
@@ -323,7 +323,7 @@ export function PaymentDrawer({ q, method }: { q: string; method: string }) {
           );
         }}
       </Loaded>
-      <Block title={tr('Per day')} subtitle={tr('Click a day for its profile')}>
+      <Block title={tr('Per Day')} subtitle={tr('Click a day for its profile')}>
         <Loaded resource={byDate} height={220}>
           {d => <BreakdownDays data={d} onSelect={date => drill.drill(to.period(date, date, longDate(date)))} />}
         </Loaded>
@@ -332,7 +332,7 @@ export function PaymentDrawer({ q, method }: { q: string; method: string }) {
         <Block title={tr('Branches')}>
           <Loaded resource={byBranch} height={200}>
             {d => (
-              <DetailTable caption={tr('Per branch')} csvName={`payment-${method}-branches`} rows={d.rows} rowKey={r => r.key} initialSort={{ key: 'sales', desc: true }}
+              <DetailTable caption={tr('Per Branch')} csvName={`payment-${method}-branches`} rows={d.rows} rowKey={r => r.key} initialSort={{ key: 'sales', desc: true }}
                 search={r => `${r.label} ${r.key}`} onRowClick={r => drill.drill(to.branch(r.key, r.label))} maxHeight={360}
                 columns={[
                   { key: 'branch', label: tr('Branch'), value: r => r.label, render: r => short(r.label) },
@@ -347,7 +347,7 @@ export function PaymentDrawer({ q, method }: { q: string; method: string }) {
         <Block title={tr('Channels')}>
           <Loaded resource={byChannel} height={160}>
             {d => (
-              <DetailTable caption={tr('Per channel')} csvName={`payment-${method}-channels`} rows={d.rows} rowKey={r => r.key} initialSort={{ key: 'sales', desc: true }}
+              <DetailTable caption={tr('Per Channel')} csvName={`payment-${method}-channels`} rows={d.rows} rowKey={r => r.key} initialSort={{ key: 'sales', desc: true }}
                 onRowClick={r => drill.drill(to.channel(r.key))}
                 columns={[
                   { key: 'channel', label: tr('Channel'), value: r => r.label, render: r => <span className="flex items-center gap-2"><SeriesKey color={channelColor(r.key)} /><ChannelLogo channel={r.key} height={14} /></span> },

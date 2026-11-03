@@ -112,7 +112,7 @@ export default function CameraCapture({ open, title, branch, countNumber, onClos
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black" role="dialog" aria-modal="true" aria-label={tr("Take a photo")}>
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black" role="dialog" aria-modal="true" aria-label={tr("Take a Photo")}>
       <div className="flex items-center gap-3 px-4 py-3 text-white">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{title}</p>
@@ -128,7 +128,7 @@ export default function CameraCapture({ open, title, branch, countNumber, onClos
           <div className="max-w-sm px-6 text-center text-sm text-white">
             <Camera size={32} className="mx-auto mb-3 text-white/60" />
             <p>{error}</p>
-            <Button variant="secondary" className="mt-4" onClick={() => void start()}><RefreshCw size={16} /> {tr("Try again")}</Button>
+            <Button variant="secondary" className="mt-4" onClick={() => void start()}><RefreshCw size={16} /> {tr("Try Again")}</Button>
           </div>
         ) : (
           <>
@@ -141,13 +141,13 @@ export default function CameraCapture({ open, title, branch, countNumber, onClos
         {shot ? (
           <>
             <Button variant="secondary" disabled={busy} onClick={() => setShot(null)}><RotateCcw size={16} /> {tr("Retake")}</Button>
-            <Button loading={busy} onClick={use}><Camera size={16} /> {tr("Use photo")}</Button>
+            <Button loading={busy} onClick={use}><Camera size={16} /> {tr("Use Photo")}</Button>
           </>
         ) : (
           <>
             <button type="button" onClick={() => setFacing((f) => (f === "environment" ? "user" : "environment"))} disabled={!!error}
-              className="rounded-full p-3 text-white hover:bg-white/10 disabled:opacity-40" aria-label={tr("Switch camera")}><SwitchCamera size={22} /></button>
-            <button type="button" onClick={capture} disabled={!ready || busy} aria-label={tr("Take the photo")}
+              className="rounded-full p-3 text-white hover:bg-white/10 disabled:opacity-40" aria-label={tr("Switch Camera")}><SwitchCamera size={22} /></button>
+            <button type="button" onClick={capture} disabled={!ready || busy} aria-label={tr("Take the Photo")}
               className="h-16 w-16 rounded-full border-4 border-white bg-white/20 transition active:scale-95 disabled:opacity-40" />
             <span className="w-12" />
           </>

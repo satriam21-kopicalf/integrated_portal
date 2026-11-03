@@ -95,7 +95,7 @@ export default function InstallApp() {
   };
 
   return (
-    <div role="dialog" aria-label={tr('Install the app')}
+    <div role="dialog" aria-label={tr('Install the App')}
       className="fixed inset-x-3 z-[60] mx-auto max-w-md rounded-xl border border-neutral-200 bg-white p-4 shadow-xl sm:inset-x-auto sm:right-4"
       style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
       <div className="flex items-start gap-3">

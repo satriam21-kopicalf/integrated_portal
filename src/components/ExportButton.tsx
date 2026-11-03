@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { Popover, PopoverButton } from '@/components/kc/Popover';
+import { btn } from '@/components/kc';
 import Image from 'next/image';
 import { AlertTriangle, FileSpreadsheet, Loader2, Sheet } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
@@ -42,7 +44,7 @@ function rangeDays(dateFrom?: string, dateTo?: string): number {
 }
 
 export default function ExportButton({
-  dateFrom, dateTo, branch, branchLabel = tr('All branches'), txType = 'sales', typeLabel = tr('Sales'),
+  dateFrom, dateTo, branch, branchLabel = tr('All Branches'), txType = 'sales', typeLabel = tr('Sales'),
 }: ExportButtonProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmReport, setConfirmReport] = useState<ReportKind | null>(null);
@@ -93,25 +95,12 @@ export default function ExportButton({
   return (
     <>
       <div className="relative" ref={menuRef}>
-        <button
-          type="button"
-          onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
-          disabled={running}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
-          title={running ? tr('Export in progress') : tr('Export to Excel or Google Sheets')}
-          aria-label={tr('Export')}
-        >
-          {running ? (
-            <Loader2 size={18} className="animate-spin text-neutral-600" />
-          ) : (
-            <span className="relative h-6 w-6">
-              <Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="24px" className="object-contain" />
-            </span>
-          )}
-        </button>
+        <PopoverButton label={tr('Export')} value={running ? tr('Exporting…') : tr('Export')} open={menuOpen} disabled={running}
+          title={running ? tr('Export in progress') : tr('Export to Excel or Google Sheets')} onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
+          icon={running ? <Loader2 className="animate-spin text-neutral-600" /> : <span className="relative block h-[18px] w-[18px]"><Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="18px" className="object-contain" /></span>} />
 
-        {menuOpen && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-xl">
+        <Popover open={menuOpen} onClose={closeMenu} title={confirmReport ? (splitInParts ? tr('Split into several Google Sheets') : tr('Large export')) : tr('Export')} width="sm:w-[22rem]"
+          subtitle={`${typeLabel} · ${branchLabel} · ${dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Last 65 days')}`}>
             {confirmReport ? (
               <div className="p-4">
                 <div className="flex gap-3">
@@ -128,17 +117,17 @@ export default function ExportButton({
                   </div>
                 </div>
                 <div className="mt-4 flex justify-end gap-2">
-                  <button type="button" onClick={() => setConfirmReport(null)} className="rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100">
+                  <button type="button" onClick={() => setConfirmReport(null)} className={btn('outline')}>
                     {tr('Cancel')}
                   </button>
-                  <button type="button" onClick={() => runExport(confirmReport)} className="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800">
+                  <button type="button" onClick={() => runExport(confirmReport)} className={btn('solid')}>
                     {tr('Continue')}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="p-1.5">
-                <div role="radiogroup" aria-label={tr('Export format')} className="mb-1.5 grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1">
+                <div role="radiogroup" aria-label={tr('Export Format')} className="mb-1.5 grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1">
                   {FORMATS.map(f => {
                     const unavailable = f.value === 'gsheet' && !googleSheets;
                     return (
@@ -172,7 +161,7 @@ export default function ExportButton({
                       type="button"
                       disabled={tooLong}
                       onClick={() => requestExport(r.value)}
-                      className="flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
+                      className="flex w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left transition-colors hover:bg-neutral-50 active:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent sm:py-2"
                     >
                       <FileSpreadsheet size={18} className="mt-0.5 flex-shrink-0 text-neutral-400" />
                       <span>
@@ -189,8 +178,7 @@ export default function ExportButton({
                 </p>
               </div>
             )}
-          </div>
-        )}
+        </Popover>
       </div>
     </>
   );

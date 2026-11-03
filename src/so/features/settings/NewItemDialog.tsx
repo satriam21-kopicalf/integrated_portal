@@ -52,10 +52,10 @@ export default function NewItemDialog({ draft, onClose, onCreated }: { draft: It
   };
 
   return (
-    <Dialog open size="md" onClose={onClose} title={tr("New item")}
+    <Dialog open size="md" onClose={onClose} title={tr("New Item")}
       description={tr("For a product that is not in the item master yet. Use the ESB product code so the ESB export matches.")}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
-        <Button loading={busy} disabled={!code.trim() || !name.trim() || !base.trim()} onClick={save}>{tr("Create item")}</Button></>}>
+        <Button loading={busy} disabled={!code.trim() || !name.trim() || !base.trim()} onClick={save}>{tr("Create Item")}</Button></>}>
       <div className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
           <Field label={tr("Code")} required><Input value={code} onChange={e => setCode(e.target.value.toUpperCase())} className="font-mono" placeholder="RMSY-00034" /></Field>
@@ -67,7 +67,7 @@ export default function NewItemDialog({ draft, onClose, onCreated }: { draft: It
             {cats.map(c => <option key={c.id} value={c.id}>{c.parent_name ? `${c.parent_name} › ${c.name}` : c.name}</option>)}
           </Select>
         </Field>
-        <Field label={tr("Base unit")} required hint={tr("The unit the stock is counted in (GR, ML, PCS …)")}>
+        <Field label={tr("Base Unit")} required hint={tr("The unit the stock is counted in (GR, ML, PCS …)")}>
           <input list="base-units" className={inputClass} value={base} onChange={e => setBase(e.target.value.toUpperCase())} />
           <datalist id="base-units">{BASE_UNITS.map(u => <option key={u} value={u} />)}</datalist>
         </Field>
@@ -114,8 +114,8 @@ export function NewUnitDialog({ item, unit, onClose, onAdded }: {
     }
   };
   return (
-    <Dialog open size="sm" onClose={onClose} title={tr("Add unit")} description={item.item_name}
-      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!uom.trim() || !(Number(factor) > 0)} onClick={save}>{tr("Add unit")}</Button></>}>
+    <Dialog open size="sm" onClose={onClose} title={tr("Add Unit")} description={item.item_name}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!uom.trim() || !(Number(factor) > 0)} onClick={save}>{tr("Add Unit")}</Button></>}>
       <div className="grid grid-cols-2 gap-3">
         <Field label={tr("Unit")} required><Input value={uom} onChange={e => setUom(e.target.value.toUpperCase())} placeholder="PACK@100PCS" /></Field>
         <Field label={tr("= {0} {1}", "…", item.base_uom)} required hint={tr("Base units in one {0}", uom || tr("unit"))}>

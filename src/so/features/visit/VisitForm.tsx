@@ -120,7 +120,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
               </div>
             </div>
             <div className="space-y-3 p-4 sm:p-5">
-              <p className="text-sm font-semibold text-neutral-900">{tr("Outlet visited")}</p>
+              <p className="text-sm font-semibold text-neutral-900">{tr("Outlet Visited")}</p>
               {data.branches.length === 0 ? (
                 <p className="rounded-lg bg-neutral-50 px-3 py-3 text-sm text-neutral-500">{tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}</p>
               ) : (
@@ -343,7 +343,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
       {evaluation && evalOpen ? (
         <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
           {evaluation.node}
-          <Button variant="secondary" onClick={() => go(parts[parts.length - 1].key)}><ChevronLeft size={15} /> {tr("Back to the items")}</Button>
+          <Button variant="secondary" onClick={() => go(parts[parts.length - 1].key)}><ChevronLeft size={15} /> {tr("Back to the Items")}</Button>
         </div>
       ) : (
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
@@ -371,7 +371,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
             <ChevronLeft size={15} /> <span className="truncate">{si > 0 ? tl(parts[si - 1], "title") : tr("Previous")}</span>
           </Button>
           {si >= parts.length - 1 && evaluation ? (
-            <Button onClick={openEval} className="justify-end"><span className="truncate">{tr("Evaluation & action plan")}</span> <ChevronRight size={15} /></Button>
+            <Button onClick={openEval} className="justify-end"><span className="truncate">{tr("Evaluation & Action Plan")}</span> <ChevronRight size={15} /></Button>
           ) : (
           <Button variant={si < parts.length - 1 ? "primary" : "secondary"} disabled={si >= parts.length - 1} onClick={() => go(parts[si + 1].key)} className="justify-end">
             <span className="truncate">{si < parts.length - 1 ? tl(parts[si + 1], "title") : tr("Last category")}</span> <ChevronRight size={15} />
@@ -399,7 +399,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
             </p>
           </button>
           {canSend ? (evaluation && !evaluation.ready && blocking === 0 && done > 0
-            ? <Button variant="secondary" onClick={openEval}><ClipboardList size={15} /> {tr("Fill the evaluation")}</Button>
+            ? <Button variant="secondary" onClick={openEval}><ClipboardList size={15} /> {tr("Fill the Evaluation")}</Button>
             : <Button disabled={blocking > 0 || done === 0 || saving > 0 || (!!evaluation && !evaluation.ready)} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>)
             : <span className="max-w-[9rem] text-right text-[11px] leading-tight text-neutral-500">{tr("The lead {0} sends the audit", visit.audit?.lead.name ?? "")}</span>}
         </div>
@@ -445,14 +445,14 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
   const [name, setName] = useState(visit.name);
   const nameMissing = !!signature && !name.trim();
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<ClipboardCheck size={18} />} title={tr("Check before sending")}
+    <Drawer open onClose={onClose} size="lg" icon={<ClipboardCheck size={18} />} title={tr("Check Before Sending")}
       description={`${title} · ${visit.branchName}`} locked={busy} focusFirstField={false}
       footer={
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
           <p className={cx("text-xs sm:mr-auto", nameMissing ? "text-red-600" : "text-neutral-500")}>
             {nameMissing ? tr("Write the signer's name under the signature.") : tr("After sending the visit cannot be changed; your location is recorded.")}
           </p>
-          <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the form")}</Button>
+          <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the Form")}</Button>
           <Button loading={busy} disabled={nameMissing} onClick={() => onSend(signature, name.trim())}>
             <Send size={15} /> {signature ? tr("Sign & send") : tr("Send")}
           </Button>
@@ -652,7 +652,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
                     <img src={thumb(visitPhotoUrl(p.id), 160)} decoding="async" alt={tr("Photo")} loading="lazy" className="h-14 w-14 rounded-lg object-cover ring-1 ring-neutral-200" />
                   </a>
                   {p.outsideRadius && <span className="absolute bottom-0.5 left-0.5 rounded bg-amber-500 p-0.5 text-white" title={tr("Taken outside the outlet radius")}><MapPin size={9} /></span>}
-                  <button type="button" onClick={() => onRemovePhoto(p.id)} aria-label={tr("Remove photo")}
+                  <button type="button" onClick={() => onRemovePhoto(p.id)} aria-label={tr("Remove Photo")}
                     className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-900 p-0.5 text-white shadow"><X size={11} /></button>
                 </span>
               ))}

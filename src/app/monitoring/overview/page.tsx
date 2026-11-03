@@ -60,19 +60,19 @@ export default function MonitoringOverviewPage() {
     ...(f.group ? [{ key: "g", label: `${tr("Group")} ${res?.groupOptions.find((g) => g.id === f.group)?.code ?? ""}`, onRemove: () => setF({ ...f, group: "" }) }] : []),
   ];
   return (
-    <Page title={tr("Monitoring overview")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("the assessment of every PIC: daily forms against the SWAT audits")}`}
+    <Page title={tr("Monitoring Overview")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("the assessment of every PIC: daily forms against the SWAT audits")}`}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
-          <Stat label={tr("Outlets visited")} emphasis icon={<MapPinCheck size={13} />} value={s ? `${fmtNumber(s.visited)}/${fmtNumber(s.outlets)}` : <StatSkeleton />}>
+          <Stat label={tr("Outlets Visited")} emphasis icon={<MapPinCheck size={13} />} value={s ? `${fmtNumber(s.visited)}/${fmtNumber(s.outlets)}` : <StatSkeleton />}>
             {s && <p>{tr("{0} check-ins · {1} PICs", fmtNumber(s.checkins), fmtNumber(s.pics))}</p>}
           </Stat>
-          <Stat label={tr("PIC scores")} icon={<Package size={13} />} value={s ? <span><span className={scoreTone(s.productScore)}>{pct(s.productScore)}</span> <span className="text-neutral-300">·</span> <span className={scoreTone(s.outletScore)}>{pct(s.outletScore)}</span></span> : <StatSkeleton />}>
+          <Stat label={tr("PIC Scores")} icon={<Package size={13} />} value={s ? <span><span className={scoreTone(s.productScore)}>{pct(s.productScore)}</span> <span className="text-neutral-300">·</span> <span className={scoreTone(s.outletScore)}>{pct(s.outletScore)}</span></span> : <StatSkeleton />}>
             <p>{tr("Product · Outlet, own visits")}</p>
           </Stat>
           <Stat label={tr("Agreement with SWAT")} icon={<Scale size={13} />} value={w ? <span className={scoreTone(w.conformity)}>{pct(w.conformity)}</span> : <StatSkeleton />}>
             {w && <p>{tr("{0} audits · {1} overrated", fmtNumber(w.audits), fmtNumber(w.overrated))}</p>}
           </Stat>
-          <Stat label={tr("Open action plans")} icon={<ClipboardCheck size={13} />} value={w ? <span className={w.openActions ? "text-amber-700" : undefined}>{fmtNumber(w.openActions)}</span> : <StatSkeleton />}>
+          <Stat label={tr("Open Action Plans")} icon={<ClipboardCheck size={13} />} value={w ? <span className={w.openActions ? "text-amber-700" : undefined}>{fmtNumber(w.openActions)}</span> : <StatSkeleton />}>
             <p>{tr("from the SWAT audits, until the revisit")}</p>
           </Stat>
         </StatStrip>
@@ -95,8 +95,8 @@ export default function MonitoringOverviewPage() {
                   <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("PIC Score")}</th>
                   <th className="px-3 py-2.5 text-right">{tr("Check-Ins")}</th><th className="px-3 py-2.5 text-right">{tr("On Time")}</th>
                   <th className="px-3 py-2.5 text-right">Product</th><th className="px-3 py-2.5 text-right">Outlet</th><th className="px-3 py-2.5 text-right">UNDER</th>
-                  <th className="px-3 py-2.5 text-right">{tr("SWAT audits")}</th><th className="px-3 py-2.5 text-right">{tr("Overrated")}</th>
-                  <th className="px-3 py-2.5 text-right">{tr("Open plans")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Agreement with SWAT")}</th>
+                  <th className="px-3 py-2.5 text-right">{tr("SWAT Audits")}</th><th className="px-3 py-2.5 text-right">{tr("Overrated")}</th>
+                  <th className="px-3 py-2.5 text-right">{tr("Open Plans")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Agreement with SWAT")}</th>
                 </tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {pagedPics.rows.map((p) => (
@@ -112,9 +112,9 @@ export default function MonitoringOverviewPage() {
                       <td className="px-3 py-2.5 text-right" data-label="Product"><Score v={p.productScore} n={p.productVisits} /></td>
                       <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={p.outletScore} n={p.outletVisits} /></td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{p.under}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT audits")}>{p.swatAudits || <span className="text-neutral-300">0</span>}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT Audits")}>{p.swatAudits || <span className="text-neutral-300">0</span>}</td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
-                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open plans")}>{p.openActions}</td>
+                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{p.openActions}</td>
                       <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Agreement with SWAT")}>{p.conformity === null ? <span className="text-xs text-neutral-400">{tr("Not audited yet")}</span> : <Meter v={p.conformity} />}</td>
                     </tr>
                   ))}
@@ -128,7 +128,7 @@ export default function MonitoringOverviewPage() {
               <thead className={theadClass}><tr>
                 <th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Check-ins")}</th>
                 <th className="px-3 py-2.5 text-right">Product</th><th className="px-3 py-2.5 text-right">Outlet</th><th className="px-3 py-2.5 text-right">UNDER</th>
-                <th className="px-3 py-2.5 text-right">{tr("SWAT audits")}</th><th className="px-3 py-2.5 text-right">{tr("SWAT score")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Open plans")}</th>
+                <th className="px-3 py-2.5 text-right">{tr("SWAT Audits")}</th><th className="px-3 py-2.5 text-right">{tr("SWAT Score")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Open Plans")}</th>
               </tr></thead>
               <tbody className="divide-y divide-neutral-100">
                 {pagedOutlets.rows.map((o) => (
@@ -138,9 +138,9 @@ export default function MonitoringOverviewPage() {
                     <td className="px-3 py-2.5 text-right" data-label="Product"><Score v={o.productScore} n={o.productVisits} /></td>
                     <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={o.outletScore} n={o.outletVisits} /></td>
                     <td className={cx("px-3 py-2.5 text-right tabular-nums", o.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{o.under}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT audits")}>{o.swatAudits}</td>
-                    <td className="px-3 py-2.5 text-right" data-label={tr("SWAT score")}><span className={cx("font-semibold tabular-nums", scoreTone(o.swatScore))}>{pct(o.swatScore)}</span></td>
-                    <td className={cx("px-3 py-2.5 pr-5 text-right tabular-nums", o.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open plans")}>{o.openActions}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT Audits")}>{o.swatAudits}</td>
+                    <td className="px-3 py-2.5 text-right" data-label={tr("SWAT Score")}><span className={cx("font-semibold tabular-nums", scoreTone(o.swatScore))}>{pct(o.swatScore)}</span></td>
+                    <td className={cx("px-3 py-2.5 pr-5 text-right tabular-nums", o.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{o.openActions}</td>
                   </tr>
                 ))}
               </tbody>
@@ -212,11 +212,11 @@ function OverviewFilters({ value, groups, onApply, onClose }: { value: F; groups
   const period = periodLabel(d.period, def.period);
   return (
     <MonitorFilterSheet active={[period, d.group].filter(Boolean).length} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(def)}>
-      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 30 days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
+      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 30 Days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
         <QuickPeriod value={d.period} onChange={(p) => setD({ ...d, period: p })} maxDays={366} />
       </FilterRow>
       {groups.length > 0 && (
-        <FilterRow icon={<Layers size={15} />} label={tr("Branch group")} value={groups.find((g) => g.id === d.group)?.code ?? null} onClear={() => setD({ ...d, group: "" })}>
+        <FilterRow icon={<Layers size={15} />} label={tr("Branch Group")} value={groups.find((g) => g.id === d.group)?.code ?? null} onClear={() => setD({ ...d, group: "" })}>
           <Segments value={d.group} onChange={(v) => setD({ ...d, group: v })} choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code }))]} />
         </FilterRow>
       )}

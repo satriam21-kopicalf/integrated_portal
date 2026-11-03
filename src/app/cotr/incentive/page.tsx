@@ -92,14 +92,14 @@ function RecapView() {
         right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
         scopes={[
           { key: "month", icon: <CalendarDays />, label: tr("Month"), value: monthLabel },
-          { key: "scheme", icon: <Layers />, label: tr("Scheme"), value: (schemes.rows ?? []).find((x) => x.code === scheme)?.name ?? tr("Scheme of the month"), active: !!scheme },
+          { key: "scheme", icon: <Layers />, label: tr("Scheme"), value: (schemes.rows ?? []).find((x) => x.code === scheme)?.name ?? tr("Scheme of the Month"), active: !!scheme },
           { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolList.find((p) => p.code === pool)?.name ?? tr("All pools"), active: !!pool },
-          ...(only ? [{ key: "only", icon: <Users />, label: tr("Drivers"), value: only === "eligible" ? tr("Eligible") : tr("Below minimum"), active: true }] : []),
+          ...(only ? [{ key: "only", icon: <Users />, label: tr("Drivers"), value: only === "eligible" ? tr("Eligible") : tr("Below Minimum"), active: true }] : []),
         ]} />
       <StatGrid label={tr("Summary")} cols={4}>
         <StatCard label={tr("Drivers")} icon={<Users />} value={data ? data.rows.length : <ValueSkeleton />} sub={data && tr("{0} below the minimum attendance", data.rows.filter((r) => !r.eligible).length)} />
-        <StatCard label={tr("Cups sold")} icon={<Coffee />} value={data ? num(data.cups) : <ValueSkeleton />} />
-        <StatCard label={tr("Total incentive")} tone="brand" icon={<Wallet />} value={data ? rupiah(data.total) : <ValueSkeleton />} sub={data && `${tr("Scheme")}: ${data.scheme.name}`} />
+        <StatCard label={tr("Cups Sold")} icon={<Coffee />} value={data ? num(data.cups) : <ValueSkeleton />} />
+        <StatCard label={tr("Total Incentive")} tone="brand" icon={<Wallet />} value={data ? rupiah(data.total) : <ValueSkeleton />} sub={data && `${tr("Scheme")}: ${data.scheme.name}`} />
         <StatCard label={tr("Deductions")} icon={<TriangleAlert />} tone={data && data.rows.some((r) => r.deduction) ? "warn" : "default"}
           value={data ? rupiah(data.rows.reduce((a, r) => a + r.deduction, 0)) : <ValueSkeleton />} />
       </StatGrid>
@@ -112,15 +112,15 @@ function RecapView() {
           </FilterRow>
           <FilterRow icon={<Layers size={15} />} label={tr("Scheme")} value={(schemes.rows ?? []).find((x) => x.code === draft.scheme)?.name ?? null} onClear={() => setDraft({ ...draft, scheme: "" })}>
             <OptionList value={draft.scheme} onChange={(v) => setDraft({ ...draft, scheme: v })}
-              choices={[{ value: "", label: tr("Scheme of the month") }, ...(schemes.rows ?? []).map((x) => ({ value: x.code, label: x.name }))]} />
+              choices={[{ value: "", label: tr("Scheme of the Month") }, ...(schemes.rows ?? []).map((x) => ({ value: x.code, label: x.name }))]} />
           </FilterRow>
           <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={poolList.find((p) => p.code === draft.pool)?.name ?? null} onClear={() => setDraft({ ...draft, pool: "" })}>
             <ComboFilter value={draft.pool} onChange={(v) => setDraft({ ...draft, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
               options={poolList.map((p) => ({ value: p.code, label: p.name, hint: p.city }))} />
           </FilterRow>
-          <FilterRow icon={<Users size={15} />} label={tr("Drivers")} value={draft.only === "eligible" ? tr("Eligible") : draft.only === "below" ? tr("Below minimum") : null} onClear={() => setDraft({ ...draft, only: "" })}>
+          <FilterRow icon={<Users size={15} />} label={tr("Drivers")} value={draft.only === "eligible" ? tr("Eligible") : draft.only === "below" ? tr("Below Minimum") : null} onClear={() => setDraft({ ...draft, only: "" })}>
             <Segments value={draft.only} onChange={(v) => setDraft({ ...draft, only: v as typeof only })}
-              choices={[{ value: "", label: tr("All") }, { value: "eligible", label: tr("Eligible") }, { value: "below", label: tr("Below minimum") }]} />
+              choices={[{ value: "", label: tr("All") }, { value: "eligible", label: tr("Eligible") }, { value: "below", label: tr("Below Minimum") }]} />
           </FilterRow>
         </MonitorFilterSheet>
       )}
@@ -130,7 +130,7 @@ function RecapView() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-3 py-2.5 text-right">{tr("Attendance")}</th>
-              <th className="px-3 py-2.5 text-right">{tr("Tiers")}</th><th className="px-3 py-2.5 text-right">{tr("Product bonus")}</th><th className="px-3 py-2.5 text-right">{tr("Deduction")}</th><th className="px-4 py-2.5 text-right">{tr("Incentive")}</th></tr></thead>
+              <th className="px-3 py-2.5 text-right">{tr("Tiers")}</th><th className="px-3 py-2.5 text-right">{tr("Product Bonus")}</th><th className="px-3 py-2.5 text-right">{tr("Deduction")}</th><th className="px-4 py-2.5 text-right">{tr("Incentive")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {rows.map((r) => (
                 <Fragment key={r.driver}>
@@ -139,7 +139,7 @@ function RecapView() {
                     <td className="px-3 py-2 text-right tabular-nums">{num(r.cups)}</td>
                     <td className="px-3 py-2 text-right text-xs">
                       <span className="tabular-nums">{r.attendance.worked}/{r.attendance.scheduled}{r.attendancePct !== null ? ` · ${r.attendancePct}%` : ""}</span>
-                      {!r.eligible && <Badge tone="red">{tr("Below minimum")}</Badge>}
+                      {!r.eligible && <Badge tone="red">{tr("Below Minimum")}</Badge>}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.tiers.reduce((a, t) => a + t.pay, 0))}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.bonus.reduce((a, b) => a + b.pay, 0))}</td>
@@ -173,7 +173,7 @@ function Breakdown({ row }: { row: Pick<Row, "tiers" | "bonus" | "deduction" | "
         ))}
       </div>
       <div>
-        <p className="mb-1 font-semibold text-neutral-700">{tr("Product bonus")}</p>
+        <p className="mb-1 font-semibold text-neutral-700">{tr("Product Bonus")}</p>
         {row.bonus.length === 0 ? <p className="text-neutral-400">—</p> : row.bonus.map((b) => (
           <p key={b.menu} className="flex justify-between gap-3 tabular-nums"><span>{b.menu}: {num(b.cups)} × {rupiah(b.rate)}</span><span>{rupiah(b.pay)}</span></p>
         ))}
@@ -207,7 +207,7 @@ function Simulator() {
       <div className="grid gap-4 p-4 lg:grid-cols-[20rem_1fr]">
         <div className="space-y-3">
           <Field label={tr("Scheme")}><Select value={s?.code ?? ""} onChange={(e) => setCode(e.target.value)}>{(schemes.rows ?? []).map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}</Select></Field>
-          <Field label={tr("Cups in the month")}><Input type="number" min={0} value={cups} onChange={(e) => setCups(Math.max(0, Number(e.target.value)))} /></Field>
+          <Field label={tr("Cups in the Month")}><Input type="number" min={0} value={cups} onChange={(e) => setCups(Math.max(0, Number(e.target.value)))} /></Field>
           <div className="grid grid-cols-2 gap-3">
             {(["scheduled", "worked", "late", "absent"] as const).map((k) => (
               <Field key={k} label={{ scheduled: tr("Scheduled"), worked: tr("Worked"), late: tr("Late"), absent: tr("Absent") }[k]}>
@@ -301,10 +301,10 @@ function Schemes() {
         fields={[
           { key: "code", label: tr("Code"), required: true, placeholder: "PROGRESIF-2027" },
           { key: "name", label: tr("Name"), required: true },
-          { key: "valid_from", label: tr("Applies from (month)"), type: "date", required: true },
+          { key: "valid_from", label: tr("Applies from (Month)"), type: "date", required: true },
           { key: "late_penalty", label: tr("Deduction per late day (Rp)"), type: "number" },
           { key: "absent_penalty", label: tr("Deduction per absent day (Rp)"), type: "number" },
-          { key: "min_attendance_pct", label: tr("Minimum attendance (%)"), type: "number", hint: tr("0: no minimum") },
+          { key: "min_attendance_pct", label: tr("Minimum Attendance (%)"), type: "number", hint: tr("0: no minimum") },
           { key: "is_active", label: tr("Active"), type: "bool" },
           { key: "note", label: tr("Note"), type: "textarea" },
         ]} />

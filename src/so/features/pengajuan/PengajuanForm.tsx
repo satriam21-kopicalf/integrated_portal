@@ -79,7 +79,7 @@ export default function PengajuanForm() {
   const mine = (data?.requests ?? []).filter((r) => r.status !== "DRAFT");
   const shown = mine.filter((r) => show === "all" || (show === "open" ? OPEN.includes(r.status) : show === "paid" ? r.status === "PAID" : r.status === "REJECTED"));
   return (
-    <Page title={tr("Fund requests")} actions={<LiveClock />}
+    <Page title={tr("Fund Request")} actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
       {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
@@ -91,7 +91,7 @@ export default function PengajuanForm() {
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{tr("Fund request {0} sent", sent.number ?? "")}</p>
                 <p className="text-xs">{kindLabel(sent.kind)} · {sent.branchName} · {fmtRp(sent.requestedAmount ?? sent.totalOut)} · {tr("Management approves it, then Finance transfers")}</p>
-                <button type="button" onClick={() => setView(sent.id)} className="mt-1 text-xs font-semibold underline-offset-2 hover:underline">{tr("See the progress")}</button>
+                <button type="button" onClick={() => setView(sent.id)} className="mt-1 text-xs font-semibold underline-offset-2 hover:underline">{tr("See the Progress")}</button>
               </div>
               <button type="button" onClick={() => setSent(null)} className="rounded-md p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
             </div>
@@ -120,8 +120,8 @@ export default function PengajuanForm() {
                 )}
               </div>
               <div>
-                <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Kind of request")}</p>
-                <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={tr("Kind of request")}>
+                <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Kind of Request")}</p>
+                <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={tr("Kind of Request")}>
                   {KINDS.map((k) => (
                     <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
                       className={cx("rounded-xl border px-3 py-2.5 text-left transition-colors", k === "PETTY_CASH" && "sm:col-span-2",
@@ -165,7 +165,7 @@ export default function PengajuanForm() {
                 <p className="text-xs text-neutral-500">{tr("Tap one to see every step and note of the team")}</p>
               </div>
               <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
-                { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In progress")} ${mine.filter((r) => OPEN.includes(r.status)).length}` },
+                { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In Progress")} ${mine.filter((r) => OPEN.includes(r.status)).length}` },
                 { value: "paid", label: `${tr("Paid")} ${mine.filter((r) => r.status === "PAID").length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.filter((r) => r.status === "REJECTED").length}` }]} />
             </div>
             {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{mine.length ? tr("Nothing in this view") : tr("No fund request sent yet")}</p> : (
@@ -201,9 +201,9 @@ function MineDrawer({ id, onClose, onEdit }: { id: string; onClose: () => void; 
   const [error, setError] = useState<string | null>(null);
   useEffect(() => { call<Pengajuan>(`/api/pengajuan/requests/${id}`).then(setP).catch((e) => setError((e as Error).message)); }, [id]);
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund requests")}
+    <Drawer open onClose={onClose} size="lg" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund Request")}
       description={p ? `${p.branchName} · ${STATUS_LABEL[p.status]()}` : undefined}
-      footer={p?.status === "REVISION" ? <Button onClick={() => onEdit(p.id)}>{tr("Correct and send again")}</Button> : undefined}>
+      footer={p?.status === "REVISION" ? <Button onClick={() => onEdit(p.id)}>{tr("Correct and Send Again")}</Button> : undefined}>
       {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : <PengajuanView p={p} />}
     </Drawer>
   );
@@ -401,8 +401,8 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
         <FormCard n={1} title={tr("Submitted by & bank account")} hint={tr("The transfer goes to this account")}>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Field label={tr("Name (barista / PIC)")} value={local.requesterName} onChange={(v) => update({ requesterName: v })} max={80} />
-            <Field label={tr("Personal phone number")} value={local.requesterPhone} onChange={(v) => update({ requesterPhone: v })} max={30} inputMode="tel" />
+            <Field label={tr("Name (Barista / PIC)")} value={local.requesterName} onChange={(v) => update({ requesterName: v })} max={80} />
+            <Field label={tr("Personal Phone Number")} value={local.requesterPhone} onChange={(v) => update({ requesterPhone: v })} max={30} inputMode="tel" />
             <Field label={tr("Bank")} value={local.payeeBank} onChange={(v) => update({ payeeBank: v })} max={60} placeholder="BCA" />
             <Field label={tr("Account number")} value={local.payeeAccount} onChange={(v) => update({ payeeAccount: v })} max={40} inputMode="numeric" />
             <div className="sm:col-span-2"><Field label={tr("Account holder")} value={local.payeeName} onChange={(v) => update({ payeeName: v })} max={80} /></div>
@@ -423,8 +423,8 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           </div>
         </FormCard>
 
-        <FormCard n={4} title={tr("Opening balance")} hint={server.openingExpected !== null ? tr("Previous closing balance: {0}", fmtRp(server.openingExpected)) : tr("Cash of the outlet at the start of the period")}>
-          <RpInput value={local.opening} onChange={(v) => update({ opening: v })} label={tr("Opening balance")} allowNegative />
+        <FormCard n={4} title={tr("Opening Balance")} hint={server.openingExpected !== null ? tr("Previous closing balance: {0}", fmtRp(server.openingExpected)) : tr("Cash of the outlet at the start of the period")}>
+          <RpInput value={local.opening} onChange={(v) => update({ opening: v })} label={tr("Opening Balance")} allowNegative />
           {server.openingExpected !== null && opening !== null && opening !== server.openingExpected && (
             <textarea value={local.openingNote} onChange={(e) => update({ openingNote: e.target.value })} rows={2} maxLength={1000}
               placeholder={tr("Why is it different from the previous closing balance? (required)")} className={cx(inputClass, "mt-2 h-auto py-2 text-sm", !local.openingNote.trim() && "border-red-300")} />
@@ -455,7 +455,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </FormCard>
         )}
 
-        <FormCard n={petty ? 6 : 3} title={petty || kind === "EMERGENCY" ? tr("Money out") : tr("Cost details")}
+        <FormCard n={petty ? 6 : 3} title={petty || kind === "EMERGENCY" ? tr("Money Out") : tr("Cost details")}
           hint={receipts ? tr("Every line with its proof (bill, receipt, invoice …)") : tr("Every cost with its estimate; attach a quotation if there is one")}
           aside={<span className="text-sm font-semibold tabular-nums text-neutral-900">{fmtRp(totalOut)}</span>}>
           <ul className="space-y-3">
@@ -463,7 +463,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
               <li key={l.key} className="rounded-xl border border-neutral-200 p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-semibold text-neutral-500">{lineWord} {i + 1}</span>
-                  <button type="button" onClick={() => removeLine(l.key)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove expense")}><Trash2 size={15} /></button>
+                  <button type="button" onClick={() => removeLine(l.key)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Expense")}><Trash2 size={15} /></button>
                 </div>
                 <div className={cx("grid gap-2", lineDate ? "sm:grid-cols-[9.5rem_minmax(0,1fr)_10rem]" : "sm:grid-cols-[minmax(0,1fr)_10rem]")}>
                   {lineDate && <input type="date" value={l.spentOn ?? ""} max={wibDate()} onChange={(e) => setLine(l.key, { spentOn: e.target.value })} aria-label={tr("Date")} className={cx(inputClass, "h-10 text-sm")} />}
@@ -481,14 +481,14 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
               </li>
             ))}
           </ul>
-          <Button variant="secondary" className="mt-3 w-full" onClick={addLine}><Plus size={15} /> {petty || kind === "EMERGENCY" ? tr("Add expense") : tr("Add cost line")}</Button>
+          <Button variant="secondary" className="mt-3 w-full" onClick={addLine}><Plus size={15} /> {petty || kind === "EMERGENCY" ? tr("Add expense") : tr("Add Cost Line")}</Button>
         </FormCard>
 
         <FormCard n={petty ? 7 : 4} title={petty ? tr("Closing balance & top-up") : tr("Total & note")}
           hint={petty ? (server.plafon !== null ? tr("Plafon {0}: the top-up brings the cash back to it", fmtRp(server.plafon)) : tr("No plafon set: the money spent is asked")) : tr("The amount asked is the total of the lines")}>
           {petty && <Balances p={{ ...server, openingBalance: opening, incomeAmount: income }} out={totalOut} />}
           <div className="mt-3 flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2.5 ring-1 ring-brand-200">
-            <span className="text-sm font-semibold text-brand-900">{petty ? tr("Top-up asked") : tr("Amount asked")}</span>
+            <span className="text-sm font-semibold text-brand-900">{petty ? tr("Top-up asked") : tr("Amount Asked")}</span>
             <span className="text-base font-bold tabular-nums text-brand-900">{fmtRp(asked)}</span>
           </div>
           <textarea value={local.note} onChange={(e) => update({ note: e.target.value })} rows={2} maxLength={1000}
@@ -580,7 +580,7 @@ function Baristas({ value, options, onChange }: { value: Barista[]; options: { i
         </div>
       )}
       {options.filter((o) => !has(o.name)).length > 0 && (
-        <select value="" aria-label={tr("Accounts of the branch")} className={cx(inputClass, "h-10 text-sm")}
+        <select value="" aria-label={tr("Accounts of the Branch")} className={cx(inputClass, "h-10 text-sm")}
           onChange={(e) => { const o = options.find((x) => x.id === e.target.value); if (o) onChange([...value, { name: o.name, userId: o.id }]); }}>
           <option value="">{tr("Pick from the accounts of the branch ({0})", options.filter((o) => !has(o.name)).length)}</option>
           {options.filter((o) => !has(o.name)).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
@@ -615,12 +615,12 @@ function Attachments({ files, docTypes, required, onAdd, onRemove }: { files: Pg
     <div className="flex flex-wrap items-end gap-2">
       {files.map((f) => <FileChip key={f.id} f={f} onRemove={() => onRemove(f.id)} />)}
       <div className={cx("flex items-center gap-1 rounded-lg border p-1", required && !files.length ? "border-red-300 bg-red-50/40" : "border-neutral-200 bg-white")}>
-        <select value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Kind of document")} className="h-8 rounded-md border-0 bg-transparent pl-1.5 pr-6 text-xs font-medium text-neutral-700 focus:ring-0">
+        <select value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Kind of Document")} className="h-8 rounded-md border-0 bg-transparent pl-1.5 pr-6 text-xs font-medium text-neutral-700 focus:ring-0">
           {docTypes.map((d) => <option key={d} value={d}>{(DOC_LABEL[d] ?? (() => d))()}</option>)}
         </select>
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={(e) => void pick(e.target.files)} />
         <button type="button" disabled={busy} onClick={() => input.current?.click()}
-          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-neutral-900 px-2.5 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-60">
+          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand-700 px-2.5 text-xs font-medium text-white hover:bg-brand-800 disabled:opacity-60">
           {busy ? <Loader2 size={13} className="animate-spin" /> : <Paperclip size={13} />} {tr("Attach file")}
         </button>
       </div>

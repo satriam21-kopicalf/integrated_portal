@@ -142,7 +142,7 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
     }
   };
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<LayoutGrid size={18} />} title={tr('Roles & pages')}
+    <Drawer open onClose={onClose} size="lg" icon={<LayoutGrid size={18} />} title={tr('Roles & Pages')}
       description={tr('The pages every role opens. A single user can get pages added or removed in their account.')}
       footer={<>
         <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Close')}</button>
@@ -278,7 +278,7 @@ export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
     return out;
   }, [pages]);
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<Smartphone size={18} />} title={tr('Menus per platform')}
+    <Drawer open onClose={onClose} size="lg" icon={<Smartphone size={18} />} title={tr('Menus per Platform')}
       description={tr('Where every page is shown in the menu: the portal, Operations or the Calf On The Road app. Only the menu changes; the access and the flows stay as they are.')}
       footer={<>
         <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Close')}</button>
@@ -309,7 +309,7 @@ export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
                       ))}
                       <td className="px-1 text-center">
                         {custom(p) && (
-                          <button type="button" title={tr('Back to the default')} aria-label={tr('Back to the default')} onClick={() => setDraft(d => ({ ...d, [p.key]: null }))} className="rounded p-1 text-neutral-400 hover:text-brand-700"><RotateCcw size={13} /></button>
+                          <button type="button" title={tr('Back to the Default')} aria-label={tr('Back to the Default')} onClick={() => setDraft(d => ({ ...d, [p.key]: null }))} className="rounded p-1 text-neutral-400 hover:text-brand-700"><RotateCcw size={13} /></button>
                         )}
                       </td>
                     </tr>
@@ -371,7 +371,7 @@ export function MastersDrawer({ onClose }: { onClose: () => void }) {
   const [kind, setKind] = useState<MasterKind>('jobTitle');
   return (
     <Drawer open onClose={onClose} size="md" icon={kind === 'jobTitle' ? <Briefcase size={18} /> : <Building2 size={18} />}
-      title={tr('Job titles & departments')} description={tr('The names offered in the user forms. New names can also be added straight from a form.')}
+      title={tr('Job Titles & Departments')} description={tr('The names offered in the user forms. New names can also be added straight from a form.')}
       footer={<button type="button" className={buttonSecondary} onClick={onClose}>{tr('Close')}</button>}>
       <div className="mb-4 flex gap-1 border-b border-neutral-200" role="tablist">
         {(['jobTitle', 'department'] as MasterKind[]).map(k => (
@@ -409,7 +409,7 @@ function MasterList({ kind }: { kind: MasterKind }) {
     <DrawerSection>
       <form className="flex gap-2" onSubmit={e => { e.preventDefault(); if (name.trim()) void run(async () => { await addMaster(kind, name.trim()); setName(''); }); }}>
         <input className={inputClass} value={name} onChange={e => setName(e.target.value)} maxLength={80}
-          placeholder={kind === 'jobTitle' ? tr('New job title') : tr('New department')} aria-label={tr('New name')} />
+          placeholder={kind === 'jobTitle' ? tr('New job title') : tr('New department')} aria-label={tr('New Name')} />
         <button type="submit" className={buttonPrimary} disabled={!name.trim()}><Plus size={16} /> {tr('Add')}</button>
       </form>
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}

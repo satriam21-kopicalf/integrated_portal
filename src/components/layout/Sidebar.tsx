@@ -65,7 +65,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen: boo
       <aside className={cx('fixed inset-y-0 left-0 z-[65] flex w-72 max-w-[85vw] bg-neutral-50 shadow-2xl transition-transform duration-200 lg:hidden', mobileOpen ? 'translate-x-0' : '-translate-x-full')}
         aria-hidden={!mobileOpen}>
         <SidebarContent collapsed={false} pathname={pathname} onNavigate={onMobileClose}>
-          <button type="button" onClick={onMobileClose} className={headerButton} aria-label={tr('Close menu')}><X size={17} /></button>
+          <button type="button" onClick={onMobileClose} className={headerButton} aria-label={tr('Close Menu')}><X size={17} /></button>
         </SidebarContent>
       </aside>
     </>

@@ -85,7 +85,7 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
             {tr('{0} waiting for review', waiting)}
           </Link>
         )}
-        <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Close menu')}><X size={16} /></button>
+        <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Close Menu')}><X size={16} /></button>
       </div>
       {/* sections one under the other (as kopicalf-hrms), their pages as a grid of cards: no uneven columns */}
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain border-t border-neutral-100 px-5 py-4">
