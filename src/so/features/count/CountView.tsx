@@ -10,7 +10,7 @@
 // Several roasted / expired dates of one item (2026-10-28): (+) beside the date adds rows, each a date and its quantity;
 // the item then counts their sum (the quantity field shows the total) and the report lists every row.
 
-import { AlertTriangle, ArrowLeft, CalendarDays, Check, CheckCircle2, CloudUpload, Loader2, MapPin, Plus, RotateCcw, Search, Send, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CalendarDays, Check, CheckCircle2, CloudUpload, Loader2, MapPin, Plus, RotateCcw, Send, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, ErrorState, cx, fmtDate, fmtDay, inputClass, useToast } from "@/so/ui";
@@ -26,6 +26,7 @@ import SheetTools from "./SheetTools";
 import SectionPicker from "@/so/ui/SectionPicker";
 import { useFocusMode } from "@/components/layout/BottomNav";
 import { PageSkeleton } from '@/components/kc/Skeleton';
+import { Pill, SearchInput, btn } from "@/components/kc";
 
 type Draft = { qty: string };
 
@@ -281,7 +282,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
     <div className="flex min-h-full flex-col bg-neutral-50">
       <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white px-4 py-2.5 sm:px-6 sm:py-3">
         <div className="flex items-start gap-2 sm:gap-3">
-          <Link href={backHref} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></Link>
+          <Link href={backHref} className={cx(btn("outline"), "w-9 flex-shrink-0 px-0")} aria-label={tr("Back")}><ArrowLeft size={16} /></Link>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-base font-semibold text-neutral-900 sm:text-lg">{countTypeLabel(count.count_type, count.count_type_name)}</h1>
             <p className="truncate text-xs text-neutral-500">{count.facility_name} · {fmtDay(count.business_date)} · {count.number}</p>
@@ -294,27 +295,21 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
             </div>
             {count.status !== "CANCELLED" && <SheetTools count={count} open={open} onImported={() => void load()} />}
           </div>
-          <span className="flex-shrink-0 text-xs text-neutral-400" aria-live="polite">
-            {busy ? <span className="inline-flex items-center gap-1"><CloudUpload size={13} /> {tr("Saving…")}</span> : <span className="inline-flex items-center gap-1"><Check size={13} /> {tr("Saved")}</span>}
+          <span className="flex-shrink-0" aria-live="polite">
+            {busy ? <Pill tone="brand" icon={<CloudUpload size={12} />}>{tr("Saving…")}</Pill> : <Pill tone="green" icon={<Check size={12} />}>{tr("Saved")}</Pill>}
           </span>
         </div>
         <div className="mt-2.5 flex items-center gap-2.5">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-100" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
             <div className={cx("h-full rounded-full transition-all", pct === 100 ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-xs font-semibold tabular-nums text-neutral-600">{count.progress.counted}/{count.progress.lines}</span>
+          <span className="text-xs font-semibold tabular-nums text-neutral-600">{count.progress.counted}/{count.progress.lines} · {pct}%</span>
         </div>
         <div className="mt-2.5 flex gap-2">
-          <div className="relative flex-1">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search item")} aria-label={tr("Search item")}
-              className={`${inputClass} h-9 pl-8 pr-8`} />
-            {q && <button type="button" onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-neutral-400" aria-label={tr("Clear search")}><X size={14} /></button>}
-          </div>
+          <SearchInput value={q} onChange={setQ} placeholder={tr("Search item")} />
           {open && (
-            <button type="button" onClick={() => setOnlyOpen((v) => !v)} aria-pressed={onlyOpen}
-              className={cx("h-9 whitespace-nowrap rounded-lg border px-3 text-xs font-medium", onlyOpen ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 bg-white text-neutral-700")}>
-              {tr("To do")} ({todo})
+            <button type="button" onClick={() => setOnlyOpen((v) => !v)} aria-pressed={onlyOpen} className={btn(onlyOpen ? "solid" : "outline")}>
+              {count.status === "RECOUNT_REQUESTED" ? tr("To recount") : tr("To do")} ({todo})
             </button>
           )}
         </div>
@@ -327,12 +322,23 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
       </header>
 
       <div className="mx-auto w-full max-w-5xl flex-1 space-y-4 px-3 py-4 sm:p-6">
-        {count.status === "RECOUNT_REQUESTED" && (
-          <p className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            <RotateCcw size={16} className="mt-0.5 flex-shrink-0" />
-            <span>{tr("Recount requested by {0}", count.reviewed_by_name ?? tr("the reviewer"))}{count.review_note ? `: ${count.review_note}` : ""}</span>
-          </p>
-        )}
+        {count.status === "RECOUNT_REQUESTED" && (() => {
+          const items = count.lines.filter((l) => l.flags.includes("RECOUNT")).length;
+          const premixes = count.wip?.lines.filter((w) => w.flags?.includes("RECOUNT")).length ?? 0;
+          return (
+            <section className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-amber-900" role="status">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700"><RotateCcw size={18} /></span>
+              <div className="min-w-0 text-[13px]">
+                <p className="text-sm font-semibold">{tr("Recount requested by {0}", count.reviewed_by_name ?? tr("the reviewer"))}</p>
+                {count.review_note && <p className="mt-0.5">“{count.review_note}”</p>}
+                <p className="mt-1 text-amber-800">
+                  {[items ? tr("{0} items to count again", items) : "", premixes ? tr("{0} premixes to count again", premixes) : ""].filter(Boolean).join(" · ")}
+                  {items || premixes ? ". " : ""}{tr("Only the lines marked Recount are open; the others stay as they were sent. Sign and send again when done.")}
+                </p>
+              </div>
+            </section>
+          );
+        })()}
         {!open && (
           <p className="flex items-start gap-2 rounded-xl border border-neutral-200/80 bg-white px-4 py-3 text-sm text-neutral-600">
             <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
@@ -344,9 +350,14 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
 
         {areas.filter((a) => shown.some((l) => l.area === a)).map((a) => (
           <section key={a} className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
-            <div className="flex items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50 px-4 py-2">
-              <h2 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{a}</h2>
-              {areaDone[a] && <span className="text-[11px] tabular-nums text-neutral-400">{areaDone[a][0]}/{areaDone[a][1]}</span>}
+            <div className="flex items-center justify-between gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2.5">
+              <h2 className="truncate text-[11px] font-semibold uppercase tracking-wide text-neutral-600">{a}</h2>
+              {areaDone[a] && (
+                <span className="flex flex-shrink-0 items-center gap-2">
+                  <span className="h-1 w-14 overflow-hidden rounded-full bg-neutral-200"><span className={cx("block h-full rounded-full", areaDone[a][0] >= areaDone[a][1] ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${areaDone[a][1] ? (areaDone[a][0] / areaDone[a][1]) * 100 : 0}%` }} /></span>
+                  <span className="text-[11px] font-semibold tabular-nums text-neutral-500">{areaDone[a][0]}/{areaDone[a][1]}</span>
+                </span>
+              )}
             </div>
             <ul className="divide-y divide-neutral-100">
               {shown.filter((l) => l.area === a).map((l) => {
@@ -448,12 +459,15 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         <div className="action-bar sticky bottom-0 z-30 border-t border-neutral-200/70 bg-white/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-5xl items-center gap-3">
             <div className="min-w-0 flex-1 text-sm">
-              <p className="font-semibold text-neutral-900">{tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}</p>
-              <p className="truncate text-xs text-neutral-500">
-                {wipDirty ? tr("Save the WIP first") : todo ? tr("Enter 0 for items that are not there") : tr("Everything is counted")}
+              <p className="font-semibold text-neutral-900">
+                {count.status === "RECOUNT_REQUESTED" ? (todo ? tr("{0} left to recount", todo) : tr("Recount done")) : tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}
               </p>
+              <p className="truncate text-xs text-neutral-500">
+                {wipDirty ? tr("Save the WIP first") : todo ? (count.status === "RECOUNT_REQUESTED" ? tr("Count the lines marked Recount") : tr("Enter 0 for items that are not there")) : tr("Ready to send")}
+              </p>
+              <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", pct === 100 ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${pct}%` }} /></span>
             </div>
-            <Button disabled={todo > 0 || busy || wipDirty} onClick={() => setConfirming(true)}><Send size={16} /> {crew ? tr("Review & submit") : tr("Submit")}</Button>
+            <Button className="h-11 px-4" disabled={todo > 0 || busy || wipDirty} onClick={() => setConfirming(true)}><Send size={16} /> {crew ? tr("Review & submit") : tr("Submit")}</Button>
           </div>
         </div>
       )}

@@ -12,6 +12,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { Tabs } from "@/components/kc";
+import { SkeletonList } from "@/components/kc/Skeleton";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, PeriodField, Period, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
 import { ENTRY_SOURCE, STATUS, countTypeLabel } from "@/so/lib/counts";
@@ -27,6 +29,13 @@ type F = { period: Period; status: string; type: string; facilityType: string; s
 
 const DEFAULT: () => F = () => ({ period: { from: wibDay(-6), to: wibDay(0) }, status: "", type: "", facilityType: "", source: "" });
 const STATUSES = ["SUBMITTED", "RECOUNT_REQUESTED", "IN_PROGRESS", "APPROVED", "EXPORTED", "CANCELLED"];
+/** the tabs above the list (2026-11-04): what waits for Cost Control first; "Approved" holds the exported ones too */
+const TABS = ["SUBMITTED", "RECOUNT_REQUESTED", "IN_PROGRESS", "APPROVED", ""];
+const FLOW_LABEL: Record<string, () => string> = {
+  SUBMITTED: () => tr("Waiting for review"), RECOUNT_REQUESTED: () => tr("Branch recounting"), IN_PROGRESS: () => tr("Branch counting"),
+  APPROVED: () => tr("Approved"),
+};
+const statusMatch = (r: Row, st: string) => !st || r.status === st || (st === "APPROVED" && r.status === "EXPORTED");
 
 export default function ReviewsPage() {
   const toast = useToast();
@@ -51,7 +60,7 @@ export default function ReviewsPage() {
   const all = useMemo(() => rows ?? [], [rows]);
   const shown = useMemo(() => {
     const s = search.trim().toLowerCase();
-    return all.filter((r) => (!f.status || r.status === f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType)
+    return all.filter((r) => statusMatch(r, f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType)
       && (!f.source || (r.entry_source ?? "CREW") === f.source)
       && (!s || [r.facility_name, r.facility_code, r.number].some((v) => v.toLowerCase().includes(s))));
   }, [all, search, f]);
@@ -115,8 +124,12 @@ export default function ReviewsPage() {
           </Stat>
         </StatStrip>
       }>
-      <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search facility or count number")} filters={chips}
-        onOpen={() => setSheet(true)} onClear={() => setF({ ...DEFAULT(), status: "" })} />}
+      <Panel toolbar={<>
+        <Tabs label={tr("Status")} value={f.status} onChange={(status) => setF({ ...f, status })}
+          tabs={TABS.map((k) => ({ key: k, label: k ? FLOW_LABEL[k]() : tr("All"), count: rows ? fmtNumber(all.filter((r) => statusMatch(r, k)).length) : undefined }))} />
+        <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search facility or count number")} filters={chips.filter((c) => c.key !== "s")}
+          onOpen={() => setSheet(true)} onClear={() => setF({ ...DEFAULT(), status: f.status })} />
+      </>}
         footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<ClipboardCheck size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No counts in this period")}>
@@ -124,22 +137,34 @@ export default function ReviewsPage() {
           </Empty>
         ) : (
           <>
-            <ul className="divide-y divide-neutral-100 md:hidden">
-              {paged.rows.map((r) => {
+            {/* phones: one card per count; the whole card opens it */}
+            <ul className="space-y-2.5 p-3 md:hidden">
+              {rows === null ? <li><SkeletonList rows={4} /></li> : paged.rows.map((r) => {
                 const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
+                const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                 return (
                   <li key={r.id}>
-                    <Link href={`/cost-control/reviews/${r.id}`} className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-neutral-50">
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-neutral-900">{r.facility_name}</span>
-                        <span className="block truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {dmy(r.business_date)} · {r.counted}/{r.lines}</span>
-                        <span className="mt-1 flex flex-wrap gap-1">
+                    <Link href={`/cost-control/reviews/${r.id}`} className="block rounded-xl border border-neutral-200 bg-white p-3.5 shadow-sm active:bg-neutral-50">
+                      <span className="flex items-start justify-between gap-3">
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-neutral-900">{r.facility_name}</span>
+                          <span className="block truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {dmy(r.business_date)}</span>
+                        </span>
+                        <Badge tone={st.tone} dot>{st.label()}</Badge>
+                      </span>
+                      <span className="mt-3 flex items-center gap-2 text-xs text-neutral-500">
+                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${p}%` }} /></span>
+                        <span className="tabular-nums">{r.counted}/{r.lines}</span>
+                      </span>
+                      <span className="mt-2.5 flex items-center justify-between gap-2">
+                        <span className="flex min-w-0 flex-wrap gap-1">
                           {r.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} to check", r.flagged)}</Badge>}
                           {r.entry_source && r.entry_source !== "CREW" && <Badge tone="violet">{ENTRY_SOURCE[r.entry_source]?.()}</Badge>}
                           {r.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
+                          <LocationBadges s={r} />
                         </span>
+                        <span className="flex flex-shrink-0 items-center gap-0.5 text-xs font-semibold text-brand-700">{r.submitted_at ? fmtDate(r.submitted_at) : tr("Open")}<ChevronRight size={14} /></span>
                       </span>
-                      <Badge tone={st.tone} dot>{st.label()}</Badge>
                     </Link>
                   </li>
                 );

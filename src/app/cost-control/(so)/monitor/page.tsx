@@ -12,6 +12,8 @@ import { ActiveFilter, ChoiceGroup, DayField, FilterSection, FilterSheet, Filter
 import { api, errorText } from "@/so/lib/api";
 import { STATUS, countTypeLabel } from "@/so/lib/counts";
 import LocationBadges from "@/so/features/count/LocationBadges";
+import { btn } from "@/components/kc";
+import { SkeletonList } from "@/components/kc/Skeleton";
 import { locale, tr } from "@/lib/i18n";
 
 type Row = {
@@ -45,6 +47,12 @@ const TABS: { key: string; color: string }[] = [
   { key: "RECOUNT_REQUESTED", color: "bg-amber-500" }, { key: "IN_PROGRESS", color: "bg-brand-500" },
   { key: "NOT_STARTED", color: "bg-neutral-300" }, { key: "MISSED", color: "bg-red-500" },
 ];
+/** what happens next, per status of the day (who acts) */
+const NEXT: Record<string, () => string> = {
+  NOT_STARTED: () => tr("The branch has not started"), IN_PROGRESS: () => tr("The branch is counting"),
+  SUBMITTED: () => tr("Waiting for the review of Cost Control"), RECOUNT_REQUESTED: () => tr("The branch is recounting"),
+  APPROVED: () => tr("Approved · ready for the ESB export"), EXPORTED: () => tr("Exported to ESB"), MISSED: () => tr("Not counted on the day"),
+};
 const weekday = (iso: string) => new Date(`${iso}T12:00:00+07:00`).toLocaleDateString(locale(), { timeZone: "Asia/Jakarta", weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const timeOf = (v: string | null) => (v ? new Date(v).toLocaleTimeString(locale(), { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit" }) : "");
 
@@ -140,8 +148,8 @@ export default function MonitorPage() {
           </Empty>
         ) : (
           <>
-            <ul className="divide-y divide-neutral-100 md:hidden">
-              {paged.rows.map((r) => <MobileRow key={`${r.facility_id}:${r.count_type}`} r={r} />)}
+            <ul className="space-y-2.5 p-3 md:hidden">
+              {rows === null ? <li><SkeletonList rows={4} /></li> : paged.rows.map((r) => <MobileRow key={`${r.facility_id}:${r.count_type}`} r={r} />)}
             </ul>
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[760px] text-sm">
@@ -165,7 +173,7 @@ export default function MonitorPage() {
                           <span className="block truncate text-xs text-neutral-400">{r.facility_code} · {r.facility_type}</span>
                         </td>
                         <td className="px-4 py-3 text-neutral-700">{countTypeLabel(r.count_type)}</td>
-                        <td className="px-4 py-3"><Badge tone={st.tone} dot>{st.label()}</Badge></td>
+                        <td className="px-4 py-3"><Badge tone={st.tone} dot>{st.label()}</Badge><span className="mt-1 block text-[11px] text-neutral-500">{NEXT[r.status]?.()}</span></td>
                         <td className="px-4 py-3 text-xs tabular-nums text-neutral-500">{timeOf(r.session?.submitted_at ?? null) ? `${timeOf(r.session!.submitted_at)} WIB` : "—"}</td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
@@ -178,8 +186,8 @@ export default function MonitorPage() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           {r.session && (
-                            <Link href={`/cost-control/reviews/${r.session.id}`} className="inline-flex items-center gap-0.5 text-xs font-semibold text-brand-700 hover:underline">
-                              {tr("Open")} <ChevronRight size={13} />
+                            <Link href={`/cost-control/reviews/${r.session.id}`} className={cx(btn(r.status === "SUBMITTED" ? "solid" : "outline", "sm"))}>
+                              {r.status === "SUBMITTED" ? tr("Review") : tr("Open")} <ChevronRight size={13} />
                             </Link>
                           )}
                         </td>
@@ -272,22 +280,30 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
 
 function MobileRow({ r }: { r: Row }) {
   const st = STATUS[r.status] ?? STATUS.NOT_STARTED;
+  const sent = timeOf(r.session?.submitted_at ?? null);
   const body = (
-    <div className="flex items-start justify-between gap-3 px-4 py-3">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-neutral-900">{r.facility_name}</p>
-        <p className="truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {r.facility_code}</p>
-        {(r.session || r.facility_located === false) && (
-          <p className="mt-1 flex flex-wrap items-center gap-1">
-            {r.session?.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
-            <LocationBadges s={{ ...(r.session ?? {}), facility_located: r.facility_located }} />
-          </p>
-        )}
-      </div>
-      <Badge tone={st.tone} dot>{st.label()}</Badge>
-    </div>
+    <>
+      <span className="flex items-start justify-between gap-3">
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-semibold text-neutral-900">{r.facility_name}</span>
+          <span className="block truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {r.facility_code}</span>
+        </span>
+        <Badge tone={st.tone} dot>{st.label()}</Badge>
+      </span>
+      <span className="mt-2.5 flex items-center justify-between gap-2">
+        <span className="min-w-0 text-xs text-neutral-600">{NEXT[r.status]?.()}{sent ? ` · ${sent} WIB` : ""}</span>
+        {r.session && <span className="flex flex-shrink-0 items-center gap-0.5 text-xs font-semibold text-brand-700">{r.status === "SUBMITTED" ? tr("Review") : tr("Open")}<ChevronRight size={14} /></span>}
+      </span>
+      {(r.session?.is_late || r.session || r.facility_located === false) && (
+        <span className="mt-2 flex flex-wrap items-center gap-1">
+          {r.session?.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
+          <LocationBadges s={{ ...(r.session ?? {}), facility_located: r.facility_located }} />
+        </span>
+      )}
+    </>
   );
-  return <li>{r.session ? <Link href={`/cost-control/reviews/${r.session.id}`} className="block hover:bg-neutral-50">{body}</Link> : body}</li>;
+  const cls = "block rounded-xl border border-neutral-200 bg-white p-3.5 shadow-sm";
+  return <li>{r.session ? <Link href={`/cost-control/reviews/${r.session.id}`} className={cx(cls, "active:bg-neutral-50")}>{body}</Link> : <div className={cls}>{body}</div>}</li>;
 }
 
 function MonitorFilters({ value, types, facilityTypes, onApply, onClose }: {

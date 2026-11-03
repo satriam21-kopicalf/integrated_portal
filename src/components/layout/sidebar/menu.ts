@@ -71,7 +71,7 @@ export const forms: { title: string; hint: string; icon: typeof Users; items: Cc
   ] },
 ];
 
-/** "Monitoring" menu: what the outlets / PICs filled in, for the teams that follow them (pages mon.*). */
+/** "Monitoring OPS" menu: what the outlets / PICs filled in, for the teams that follow them (pages mon.*). */
 export const monitoring: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Analysis'); }, get hint() { return tr('Every form together, per branch group'); }, icon: BarChart3, items: [
     { get name() { return tr('Overview'); }, href: '/monitoring/overview', icon: BarChart3, get description() { return tr('Check-ins, products & outlets per group'); } },
@@ -153,7 +153,7 @@ export const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'r
     icon: Calculator, sections: costControl, review: true,
   },
   monitoring: {
-    get label() { return tr('Monitoring'); }, get idle() { return tr('Check ins, outlets, products & maintenance'); }, get title() { return tr('Monitoring'); },
+    get label() { return tr('Monitoring OPS'); }, get idle() { return tr('Check ins, outlets, products & maintenance'); }, get title() { return tr('Monitoring OPS'); },
     get subtitle() { return tr('What the outlets and PICs filled in'); }, get footer() { return tr('All times in WIB · from the forms of the outlets'); },
     icon: Gauge, sections: monitoring,
   },

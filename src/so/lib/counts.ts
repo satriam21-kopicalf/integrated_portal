@@ -138,6 +138,9 @@ export type TodayFacility = {
   business_date: string;
   server_time: string;
   counts: TodayCount[];
+  /** counts Cost Control sent back for a recount, of any recent day (2026-11-04) */
+  recounts?: { id: string; number: string; count_type: string; name: string; business_date: string; review_note: string | null;
+    reviewed_at: string | null; reviewed_by_name: string | null; items: number; premixes: number }[];
   upcoming: { date: string; period_end?: string; count_type: string; name: string; window_start: string; window_end: string; items?: number; areas?: string[] }[];
 };
 

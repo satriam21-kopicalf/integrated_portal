@@ -7,6 +7,7 @@
 
 import { CalendarClock, CalendarDays, ChevronRight, ClipboardList, History, Layers, Loader2, MapPin, Search, Store, X } from "lucide-react";
 import NextCount from "./NextCount";
+import RecountNotice, { recountsOf } from "./RecountNotice";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Page, Panel, fmtDay, inputClass, useToast } from "@/so/ui";
@@ -90,6 +91,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
           <Panel><Empty icon={<Store size={28} />} title={tr("No facility assigned to you")}>{tr("Ask your administrator to assign your outlet or hub in Access Center.")}</Empty></Panel>
         ) : (
           <>
+            <RecountNotice rows={recountsOf(rows)} basePath={basePath} multi={rows.length > 1} />
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
               <label className="relative block w-full sm:max-w-md">
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
