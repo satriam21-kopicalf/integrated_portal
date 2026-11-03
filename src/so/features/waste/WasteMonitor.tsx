@@ -23,6 +23,7 @@ import { tr } from "@/lib/i18n";
 import { DailyReport, UsageReport } from "./WasteDaily";
 import { CategoriesDrawer, Ingredients, InvestigationDrawer, InvestigationList } from "./Investigation";
 import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, SCOPES, fmtQty, photoUrl, usagePhotoUrl, scopeLabel, signatureUrl, statusLabel, statusTone } from "./waste";
+import { thumb } from "@/lib/assets";
 
 const DEFAULT_PERIOD = (): Period => ({ from: wibDay(-6), to: wibDay(0) });
 type Filters = { period: Period; branch: string; scope: Scope | ""; category: string; status: Status | "" };
@@ -210,7 +211,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                   {review && (e.status === "submitted" || e.status === "investigating") && <input type="checkbox" className="mt-4" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}
                   <button type="button" onClick={() => setOpen(e)} className="flex min-w-0 flex-1 items-start gap-3 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoUrl(e.id)} alt="" loading="lazy" className="h-14 w-14 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
+                    <img src={thumb(photoUrl(e.id), 160)} decoding="async" alt="" loading="lazy" className="h-14 w-14 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-1.5">
                         <span className="truncate text-sm font-semibold text-neutral-900">{e.itemName}</span>
@@ -243,7 +244,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           <div className="space-y-4">
             <a href={photoUrl(open.id)} target="_blank" rel="noreferrer">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photoUrl(open.id)} alt={tr("Photo evidence")} className="w-full rounded-xl bg-neutral-100 object-contain" />
+              <img src={thumb(photoUrl(open.id), 640)} decoding="async" loading="lazy" alt={tr("Photo evidence")} className="w-full rounded-xl bg-neutral-100 object-contain" />
             </a>
             <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
               {([

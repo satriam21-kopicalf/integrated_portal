@@ -20,6 +20,7 @@ import { tr } from "@/lib/i18n";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { type XlsxCell, downloadXlsx } from "@/lib/xlsx";
 import PengajuanView, { FileChip, StatusBadge } from "./PengajuanView";
+import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTION_LABEL, CATEGORY_LABEL, KINDS, OPEN, STATUS_LABEL, acceptedTotal,
   categoryLabel, fmtRp, kindLabel, parseRp, typeRp, upload } from "./pengajuan";
 
@@ -29,7 +30,7 @@ const NO_F = (): F => ({ period: { from: wibOffset(-89), to: wibOffset(0) }, bgr
 type GroupOpt = { id: string; code: string; name: string };
 type Tab = Status | "" | "OPEN" | "MINE";
 const TABS: Tab[] = ["MINE", "OPEN", "", "SUBMITTED", "APPROVED", "REVISION", "PAID", "REJECTED"];
-const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-blue-500", APPROVED: "bg-cyan-500", REVISION: "bg-amber-500",
+const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-brand-500", APPROVED: "bg-cyan-500", REVISION: "bg-amber-500",
   PAID: "bg-emerald-500", REJECTED: "bg-red-500" };
 const sum = (rows: Pengajuan[], f: (p: Pengajuan) => number | null | undefined) => rows.reduce((a, p) => a + (f(p) ?? 0), 0);
 const flagged = (p: Pengajuan) => ({
@@ -137,15 +138,15 @@ export default function PengajuanMonitor() {
       }>
       <Panel title={tr("Fund requests")} description={tr("Oldest waiting first; tap one to check it")}
         toolbar={<>
-          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="tablist" aria-label={tr("Status")}>
+          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist" aria-label={tr("Status")}>
             {TABS.map((t) => {
               const on = status === t;
               return (
                 <button key={t || "all"} type="button" role="tab" aria-selected={on} onClick={() => setStatus(t)}
-                  className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:text-slate-900")}>
+                  className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
                   {t && t !== "OPEN" && t !== "MINE" && <span className={cx("h-2 w-2 rounded-full", DOT[t])} aria-hidden />}
                   {t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My turn") : t ? STATUS_LABEL[t as Status]() : tr("All")}
-                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-slate-900 text-white" : "bg-white text-slate-700")}>{fmtNumber(base.filter((p) => inTab(p, t)).length)}</span>
+                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-neutral-900 text-white" : "bg-white text-neutral-700")}>{fmtNumber(base.filter((p) => inTab(p, t)).length)}</span>
                 </button>
               );
             })}
@@ -160,14 +161,14 @@ export default function PengajuanMonitor() {
           </Empty>
         ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table> : (
           <>
-            <ul className="divide-y divide-slate-100 md:hidden">
+            <ul className="divide-y divide-neutral-100 md:hidden">
               {paged.rows.map((p) => (
                 <li key={p.id}>
-                  <button type="button" onClick={() => setOpen(p.id)} className="w-full px-4 py-3 text-left hover:bg-slate-50">
-                    <span className="flex items-center justify-between gap-2"><span className="font-mono text-xs font-semibold text-slate-500">{p.number}</span><StatusBadge s={p.status} /></span>
-                    <span className="mt-1 flex items-baseline justify-between gap-2"><span className="truncate text-sm font-semibold text-slate-900">{p.branchName}</span>
+                  <button type="button" onClick={() => setOpen(p.id)} className="w-full px-4 py-3 text-left hover:bg-neutral-50">
+                    <span className="flex items-center justify-between gap-2"><span className="font-mono text-xs font-semibold text-neutral-500">{p.number}</span><StatusBadge s={p.status} /></span>
+                    <span className="mt-1 flex items-baseline justify-between gap-2"><span className="truncate text-sm font-semibold text-neutral-900">{p.branchName}</span>
                       <span className="flex-shrink-0 text-sm font-semibold tabular-nums">{fmtRp(p.requestedAmount ?? p.totalOut)}</span></span>
-                    <span className="block truncate text-xs text-slate-500">{kindLabel(p.kind)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</span>
+                    <span className="block truncate text-xs text-neutral-500">{kindLabel(p.kind)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</span>
                     <StepWaiting p={p} />
                     <Flags p={p} />
                   </button>
@@ -183,18 +184,18 @@ export default function PengajuanMonitor() {
                     <th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5">{tr("Sent")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {paged.rows.map((p) => (
-                    <tr key={p.id} onClick={() => setOpen(p.id)} className="cursor-pointer hover:bg-slate-50">
-                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs font-semibold text-slate-600">{p.number}</td>
-                      <td className="max-w-[16rem] px-4 py-2.5"><p className="truncate font-medium text-slate-900">{p.branchName}</p>
-                        <p className="truncate text-xs text-slate-500">@{p.username} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</p><Flags p={p} /></td>
-                      <td className="max-w-[14rem] px-4 py-2.5 text-xs text-slate-600"><p className="font-medium text-slate-800">{kindLabel(p.kind)}</p>
+                    <tr key={p.id} onClick={() => setOpen(p.id)} className="cursor-pointer hover:bg-neutral-50">
+                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs font-semibold text-neutral-600">{p.number}</td>
+                      <td className="max-w-[16rem] px-4 py-2.5"><p className="truncate font-medium text-neutral-900">{p.branchName}</p>
+                        <p className="truncate text-xs text-neutral-500">@{p.username} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</p><Flags p={p} /></td>
+                      <td className="max-w-[14rem] px-4 py-2.5 text-xs text-neutral-600"><p className="font-medium text-neutral-800">{kindLabel(p.kind)}</p>
                         <p className="truncate">{p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</p></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-slate-700">{fmtRp(p.totalOut)}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900">{fmtRp(p.approvedAmount ?? p.requestedAmount)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-neutral-700">{fmtRp(p.totalOut)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold tabular-nums text-neutral-900">{fmtRp(p.approvedAmount ?? p.requestedAmount)}</td>
                       <td className="px-4 py-2.5"><StatusBadge s={p.status} /><StepWaiting p={p} /></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-xs tabular-nums text-slate-500">{wibDateTime(p.submittedAt)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-xs tabular-nums text-neutral-500">{wibDateTime(p.submittedAt)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -214,7 +215,7 @@ export default function PengajuanMonitor() {
 
 function StepWaiting({ p }: { p: Pengajuan }) {
   if (!p.step || (p.status !== "SUBMITTED" && p.status !== "APPROVED")) return null;
-  return <span className="mt-0.5 block truncate text-[11px] text-slate-500">{p.step.label} · {p.step.users.length ? p.step.users.join(", ") : "Superadmin"}</span>;
+  return <span className="mt-0.5 block truncate text-[11px] text-neutral-500">{p.step.label} · {p.step.users.length ? p.step.users.join(", ") : "Superadmin"}</span>;
 }
 
 function Flags({ p }: { p: Pengajuan }) {
@@ -323,9 +324,9 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
             <div className="space-y-2">
               {action === "PAID" && (
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <label className="block"><span className="mb-1 block text-xs font-medium text-slate-600">{tr("Amount transferred")}</span>
+                  <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Amount transferred")}</span>
                     <input value={paid.amount} inputMode="numeric" onChange={(e) => setPaid({ ...paid, amount: typeRp(parseRp(e.target.value)) })} className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} /></label>
-                  <label className="block"><span className="mb-1 block text-xs font-medium text-slate-600">{tr("Transfer date")}</span>
+                  <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Transfer date")}</span>
                     <input type="date" value={paid.on} max={wibDate()} onChange={(e) => setPaid({ ...paid, on: e.target.value })} className={cx(inputClass, "h-10")} /></label>
                 </div>
               )}
@@ -347,22 +348,22 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
           </div>
         </div>
       ) : undefined}>
-      {error ? <ErrorState message={error} /> : !p ? <div className="skeleton h-96 rounded-xl" /> : (
+      {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : (
         <div className="space-y-5">
           {p.can?.step && (p.status === "SUBMITTED" || p.status === "APPROVED") && (
-            <p className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700 ring-1 ring-slate-200"><UserCheck size={14} className="flex-shrink-0 text-slate-500" />
+            <p className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 ring-1 ring-neutral-200"><UserCheck size={14} className="flex-shrink-0 text-neutral-500" />
               {tr("Waiting at {0}: {1}", p.can.step, p.can.stepUsers.length ? p.can.stepUsers.join(", ") : "Superadmin")}{!p.can.next.length && ` · ${tr("not your step")}`}</p>
           )}
           {p.can?.reviewLines && (
-            <p className="flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-900"><AlertTriangle size={14} className="mt-px flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900"><AlertTriangle size={14} className="mt-px flex-shrink-0" />
               {tr("Check every line and its receipt. A rejected line is left out of the approved amount (lines accepted {0} now).", fmtRp(acceptedTotal(p.lines ?? [])))}</p>
           )}
           {p.can?.payment && (
             <section className="rounded-xl border border-cyan-200 bg-cyan-50/40 p-3">
-              <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-900"><Wallet size={15} /> {tr("Payment: approved {0}", fmtRp(p.approvedAmount))}</p>
+              <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Wallet size={15} /> {tr("Payment: approved {0}", fmtRp(p.approvedAmount))}</p>
               <div className="flex flex-wrap items-end gap-2">
                 {payment.map((x) => <FileChip key={x.id} f={x} onRemove={() => void removeProof(x.id)} />)}
-                <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-slate-900 px-3 text-xs font-medium text-white hover:bg-slate-800">
+                <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-neutral-900 px-3 text-xs font-medium text-white hover:bg-neutral-800">
                   <Paperclip size={13} /> {tr("Attach transfer proof")}
                   <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={(e) => void proof(e.target.files)} />
                 </label>
@@ -371,7 +372,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
           )}
           <PengajuanView p={p} onReview={p.can?.reviewLines ? review : undefined} />
           <section>
-            <p className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-slate-900"><MessageSquareText size={15} className="text-slate-500" /> {tr("Add a note to the history")}</p>
+            <p className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><MessageSquareText size={15} className="text-neutral-500" /> {tr("Add a note to the history")}</p>
             <div className="flex gap-2">
               <input value={comment} onChange={(e) => setComment(e.target.value)} maxLength={2000} placeholder={tr("Seen by the team and the outlet")} className={cx(inputClass, "h-10 min-w-0 flex-1 text-sm")} />
               <Button variant="secondary" disabled={!comment.trim()} onClick={() => void addComment()}>{tr("Add")}</Button>
@@ -446,16 +447,16 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
         <Button variant="secondary" disabled={busy} onClick={() => void copyToAll()}>{tr("Use for every kind")}</Button>
         <Button loading={busy} onClick={() => void save()}>{tr("Save approvals of {0}", kindLabel(kind))}</Button>
       </div> : undefined}>
-      {error ? <ErrorState message={error} /> : !data ? <div className="skeleton h-72 rounded-xl" /> : (
+      {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : (
         <div className="space-y-6">
           <section className="space-y-3">
-            <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="tablist" aria-label={tr("Kind")}>
+            <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist" aria-label={tr("Kind")}>
               {KINDS.map((k) => (
                 <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-                  className={cx("flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium", kind === k ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:text-slate-900")}>{kindLabel(k)}</button>
+                  className={cx("flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium", kind === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>{kindLabel(k)}</button>
               ))}
             </div>
-            {!edit && <p className="text-xs text-slate-500">{tr("Only a superadmin changes the approvals.")}</p>}
+            {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin changes the approvals.")}</p>}
             <ol className="space-y-2">
               {approvals.map((st, i) => (
                 <StepRow key={i} n={i + 1} step={st} users={data.users} names={names} edit={edit}
@@ -471,13 +472,13 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
               <StepRow n={approvals.length + 1} step={pay} users={data.users} names={names} edit={edit} payment
                 onChange={(x) => setSteps([...approvals, x])} />
             </ol>
-            <p className="text-xs text-slate-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Fund requests page.")}</p>
+            <p className="text-xs text-neutral-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Fund requests page.")}</p>
           </section>
 
-          <section className="space-y-3 border-t border-slate-100 pt-5">
+          <section className="space-y-3 border-t border-neutral-100 pt-5">
             <div>
-              <p className="text-sm font-semibold text-slate-900">{tr("Petty cash plafon")}</p>
-              <p className="text-xs text-slate-500">{tr("The weekly top-up brings the cash of the outlet back to its plafon. An outlet without its own plafon uses the one of every outlet.")}</p>
+              <p className="text-sm font-semibold text-neutral-900">{tr("Petty cash plafon")}</p>
+              <p className="text-xs text-neutral-500">{tr("The weekly top-up brings the cash of the outlet back to its plafon. An outlet without its own plafon uses the one of every outlet.")}</p>
             </div>
             {data.canPlafon && <Suggestions onApplied={(pl) => setData((d) => (d ? { ...d, plafon: pl } : d))} />}
             <PlafonRow label={tr("Every outlet")} amount={data.plafon.default} edit={data.canPlafon} onSave={(a) => void savePlafon("*", a)} />
@@ -485,7 +486,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
               <PlafonRow key={b.branchCode} label={branchName(b.branchCode)} amount={b.amount} edit={data.canPlafon} onSave={(a) => void savePlafon(b.branchCode, a)} removable />
             ))}
             {data.canPlafon && (
-              <div className="grid gap-2 rounded-xl border border-dashed border-slate-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
+              <div className="grid gap-2 rounded-xl border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
                 <SearchChoice label="" anyLabel={tr("Choose the outlet")} options={outletOpts.filter((b) => !data.plafon.branches.some((x) => x.branchCode === b.value))}
                   value={plafon.branch} onChange={(branch) => setPlafon({ ...plafon, branch })} placeholder={tr("Search outlet")} />
                 <input value={plafon.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setPlafon({ ...plafon, amount: typeRp(parseRp(e.target.value)) })}
@@ -504,24 +505,24 @@ export function StepRow({ n, step, users, names, edit, payment, onChange, onUp, 
   names: Map<string, string>; edit: boolean; payment?: boolean; onChange: (s: StepEdit) => void; onUp?: () => void; onDown?: () => void; onRemove?: () => void }) {
   const [pick, setPick] = useState("");
   return (
-    <li className={cx("rounded-xl border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-slate-200 bg-white")}>
+    <li className={cx("rounded-xl border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-neutral-200 bg-white")}>
       <div className="flex items-center gap-2">
-        <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-cyan-600" : "bg-blue-600")}>{n}</span>
+        <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-cyan-600" : "bg-brand-600")}>{n}</span>
         {edit ? <input value={step.label} maxLength={60} onChange={(e) => onChange({ ...step, label: e.target.value })} aria-label={tr("Step name")}
-          className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm font-semibold")} /> : <p className="flex-1 text-sm font-semibold text-slate-900">{step.label}</p>}
+          className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm font-semibold")} /> : <p className="flex-1 text-sm font-semibold text-neutral-900">{step.label}</p>}
         {payment && <Badge tone="cyan">{tr("Payment")}</Badge>}
-        {edit && onUp && <button type="button" onClick={onUp} className="rounded-md p-1 text-slate-400 hover:bg-slate-100" aria-label={tr("Move up")}><ArrowUp size={15} /></button>}
-        {edit && onDown && <button type="button" onClick={onDown} className="rounded-md p-1 text-slate-400 hover:bg-slate-100" aria-label={tr("Move down")}><ArrowDown size={15} /></button>}
-        {edit && onRemove && <button type="button" onClick={onRemove} className="rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove step")}><Trash2 size={15} /></button>}
+        {edit && onUp && <button type="button" onClick={onUp} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move up")}><ArrowUp size={15} /></button>}
+        {edit && onDown && <button type="button" onClick={onDown} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move down")}><ArrowDown size={15} /></button>}
+        {edit && onRemove && <button type="button" onClick={onRemove} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove step")}><Trash2 size={15} /></button>}
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {step.userIds.map((id) => (
-          <span key={id} className="inline-flex items-center gap-1 rounded-full bg-slate-100 py-1 pl-2.5 pr-1 text-xs font-medium text-slate-700">
+          <span key={id} className="inline-flex items-center gap-1 rounded-full bg-neutral-100 py-1 pl-2.5 pr-1 text-xs font-medium text-neutral-700">
             {names.get(id) ?? id}
             {edit && <button type="button" onClick={() => onChange({ ...step, userIds: step.userIds.filter((x) => x !== id) })} className="rounded-full p-0.5 hover:bg-white" aria-label={tr("Remove {0}", names.get(id) ?? "")}>×</button>}
           </span>
         ))}
-        {!step.userIds.length && <span className="text-xs text-slate-400">{tr("No user yet: a superadmin takes this step")}</span>}
+        {!step.userIds.length && <span className="text-xs text-neutral-400">{tr("No user yet: a superadmin takes this step")}</span>}
       </div>
       {edit && (
         <div className="mt-2">
@@ -544,14 +545,14 @@ function PlafonRow({ label, amount, edit, removable, onSave }: { label: string; 
   useEffect(() => setV(typeRp(amount)), [amount]);
   const changed = parseRp(v) !== amount;
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
-      <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">{label}</p>
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2">
+      <p className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-800">{label}</p>
       {edit ? <>
         <input value={v} inputMode="numeric" placeholder={tr("No plafon")} onChange={(e) => setV(typeRp(parseRp(e.target.value)))} aria-label={tr("Plafon {0}", label)}
           className={cx(inputClass, "h-9 w-36 text-right font-semibold tabular-nums")} />
         {changed && <Button onClick={() => onSave(parseRp(v))}>{tr("Save")}</Button>}
-        {removable && <button type="button" onClick={() => onSave(null)} className="rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>}
-      </> : <span className="text-sm font-semibold tabular-nums text-slate-900">{fmtRp(amount)}</span>}
+        {removable && <button type="button" onClick={() => onSave(null)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>}
+      </> : <span className="text-sm font-semibold tabular-nums text-neutral-900">{fmtRp(amount)}</span>}
     </div>
   );
 }
@@ -591,23 +592,23 @@ function Suggestions({ onApplied }: { onApplied: (p: Settings["plafon"]) => void
   }
   const withSug = (rows ?? []).filter((x) => x.suggested);
   return (
-    <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/40 p-3">
-      <p className="text-sm font-semibold text-slate-900">{tr("Plafon from Simple Purchase")}</p>
-      <p className="text-xs text-slate-600">{tr("Weekly average of what the outlet bought itself in ESB (13 weeks) × the factor, rounded up to Rp 50.000. Outlets without a plafon are ticked; adjust any of them afterwards.")}</p>
-      <label className="flex items-center gap-2 text-xs text-slate-700">{tr("Factor")}
+    <div className="space-y-2 rounded-xl border border-brand-200 bg-brand-50/40 p-3">
+      <p className="text-sm font-semibold text-neutral-900">{tr("Plafon from Simple Purchase")}</p>
+      <p className="text-xs text-neutral-600">{tr("Weekly average of what the outlet bought itself in ESB (13 weeks) × the factor, rounded up to Rp 50.000. Outlets without a plafon are ticked; adjust any of them afterwards.")}</p>
+      <label className="flex items-center gap-2 text-xs text-neutral-700">{tr("Factor")}
         <select value={factor} onChange={(e) => setFactor(e.target.value)} className={cx(inputClass, "h-8 w-24 text-xs")}>
           {["1", "1.1", "1.2", "1.3", "1.5", "2"].map((x) => <option key={x} value={x}>× {x}</option>)}
         </select>
         <span className="ml-auto">{tr("{0} of {1} ticked", picked.size, withSug.length)}</span>
       </label>
-      {!rows ? <div className="skeleton h-40 rounded-lg" /> : (
-        <div className="max-h-72 overflow-auto rounded-lg border border-slate-200 bg-white">
+      {!rows ? <SkeletonList rows={4} /> : (
+        <div className="max-h-72 overflow-auto rounded-lg border border-neutral-200 bg-white">
           <table className="w-full text-xs">
             <thead className={theadClass}><tr><th className="w-8 px-2 py-1.5" /><th className="px-2 py-1.5 text-left">{tr("Outlet")}</th>
               <th className="px-2 py-1.5 text-right">{tr("Average / week")}</th><th className="px-2 py-1.5 text-right">{tr("Suggested")}</th><th className="px-2 py-1.5 text-right">{tr("Now")}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-neutral-100">
               {rows.map((x) => (
-                <tr key={x.code} className={cx(!x.suggested && "text-slate-400")}>
+                <tr key={x.code} className={cx(!x.suggested && "text-neutral-400")}>
                   <td className="px-2 py-1.5"><input type="checkbox" disabled={!x.suggested} checked={picked.has(x.code)} aria-label={x.name}
                     onChange={() => setPicked((s) => { const n = new Set(s); if (n.has(x.code)) n.delete(x.code); else n.add(x.code); return n; })} /></td>
                   <td className="max-w-[12rem] truncate px-2 py-1.5">{x.name}</td>

@@ -12,6 +12,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 import { type DailyData, type UsageRow, fmtQty, usagePhotoUrl } from "./waste";
+import { thumb } from "@/lib/assets";
 
 const query = (period: Period, branch: string) =>
   new URLSearchParams({ dateFrom: period.from, dateTo: period.to, ...(branch ? { branch } : {}) });
@@ -113,7 +114,7 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
                   <td className="px-4 py-2">{r.hasPhoto ? (
                     <a href={usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)} target="_blank" rel="noreferrer">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)} alt="" loading="lazy" className="h-10 w-10 rounded-md bg-neutral-100 object-cover" />
+                      <img src={thumb(usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode), 96)} decoding="async" alt="" loading="lazy" className="h-10 w-10 rounded-md bg-neutral-100 object-cover" />
                     </a>) : <span className="text-xs text-neutral-400">—</span>}</td>
                   <td className="px-4 py-2 text-xs text-neutral-500">{r.by} · {wibDateTime(r.updatedAt)}</td>
                 </tr>

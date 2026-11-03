@@ -12,6 +12,7 @@ import { cx } from "@/so/ui";
 import { wibDateTime } from "@/so/lib/wib";
 import { LANG_KEY, locale, tr, useLang } from "@/lib/i18n";
 import { type ActionPlan, type Answer, type Audit, type Definition, type Rating, type VisitPhoto, RATING_STYLE, allItems, ratingLabel, tl } from "./visit";
+import { thumb } from "@/lib/assets";
 
 type Shared = { audit: Omit<Audit, "counts"> & { counts: Record<"product" | "outlet", { under: number; meet: number; exceed: number }> };
   definition: Definition; answers: Record<string, Answer>; photos: VisitPhoto[]; submittedAt: string | null; signedName: string | null };
@@ -39,21 +40,21 @@ function View() {
   useEffect(() => { if (d && printing) setTimeout(() => window.print(), 600); }, [d, printing]);
   const items = useMemo(() => (d ? allItems(d.definition) : []), [d]);
   const photo = (id: string) => `/api/public/wwwr/${encodeURIComponent(token)}/photos/${id}`;
-  if (error) return <div className="flex min-h-screen items-center justify-center bg-slate-100 p-6 text-sm text-slate-600">{error}</div>;
-  if (!d) return <div className="flex min-h-screen items-center justify-center gap-2 bg-slate-100 text-sm text-slate-500"><Loader2 size={16} className="animate-spin" /> {tr("Loading…")}</div>;
+  if (error) return <div className="flex min-h-screen items-center justify-center bg-neutral-100 p-6 text-sm text-neutral-600">{error}</div>;
+  if (!d) return <div className="flex min-h-screen items-center justify-center gap-2 bg-neutral-100 text-sm text-neutral-500"><Loader2 size={16} className="animate-spin" /> {tr("Loading…")}</div>;
   const a = d.audit;
   const under = items.filter((it) => d.answers[it.key]?.rating === "UNDER");
   return (
-    <div className="min-h-screen bg-slate-100 print:bg-white">
+    <div className="min-h-screen bg-neutral-100 print:bg-white">
       <style>{`@media print { .no-print { display: none !important; } @page { size: A4; margin: 12mm; } .avoid { break-inside: avoid; } }`}</style>
-      <header className="bg-[#0b1f4d] text-white print:bg-white print:text-slate-900">
+      <header className="bg-[#0b1f4d] text-white print:bg-white print:text-neutral-900">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-4 sm:px-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/calf-logo.png" alt="Kopi Calf" className="h-11 w-11 flex-shrink-0 rounded-xl bg-white object-contain p-1 print:ring-1 print:ring-slate-200" />
+          <img src="/assets/calf-logo.png" alt="Kopi Calf" className="h-11 w-11 flex-shrink-0 rounded-xl bg-white object-contain p-1 print:ring-1 print:ring-neutral-200" />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-200 print:text-slate-500">{tr("WW-WR audit result")}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-200 print:text-neutral-500">{tr("WW-WR audit result")}</p>
             <h1 className="truncate text-lg font-semibold">{a.branchName}</h1>
-            <p className="text-xs text-blue-100/80 print:text-slate-500">{dayLong(a.day)} · {tr("SWAT team")}: {a.members.map((m) => m.name).join(", ")}</p>
+            <p className="text-xs text-brand-100/80 print:text-neutral-500">{dayLong(a.day)} · {tr("SWAT team")}: {a.members.map((m) => m.name).join(", ")}</p>
           </div>
           <div className="no-print flex items-center gap-2">
             <button type="button" onClick={() => window.print()} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-semibold text-[#0b1f4d]"><Printer size={14} /> {tr("Print / PDF")}</button>
@@ -62,7 +63,7 @@ function View() {
             </div>
           </div>
         </div>
-        <div className="h-1 bg-blue-600 print:hidden" />
+        <div className="h-1 bg-brand-600 print:hidden" />
       </header>
 
       <main className="mx-auto max-w-4xl space-y-4 px-4 py-5 sm:px-6">
@@ -73,24 +74,24 @@ function View() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {(["product", "outlet"] as const).map((p) => (
-            <div key={p} className="avoid rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{p === "product" ? "Product" : "Outlet"}</p>
+            <div key={p} className="avoid rounded-xl border border-neutral-200 bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{p === "product" ? "Product" : "Outlet"}</p>
               <p className="mt-1 flex gap-4 text-sm">{(["UNDER", "MEET", "EXCEED"] as Rating[]).map((r) => <span key={r} className={RATING_STYLE[r].text}><b className="tabular-nums">{a.counts[p][r.toLowerCase() as "under"]}</b> {ratingLabel(r)}</span>)}</p>
             </div>
           ))}
         </div>
 
-        <Block title={tr("General evaluation")}><p className="whitespace-pre-line text-sm text-slate-700">{a.summary || "—"}</p></Block>
+        <Block title={tr("General evaluation")}><p className="whitespace-pre-line text-sm text-neutral-700">{a.summary || "—"}</p></Block>
         <Block title={tr("Action plans")}>
           <table className="w-full text-sm">
-            <thead><tr className="border-b border-slate-200 text-left text-[11px] uppercase tracking-wide text-slate-500"><th className="py-2 pr-2">#</th><th className="py-2 pr-2">{tr("Action")}</th><th className="py-2 pr-2">{tr("Handled by")}</th><th className="py-2 pr-2">{tr("Due")}</th><th className="py-2">{tr("Status")}</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+            <thead><tr className="border-b border-neutral-200 text-left text-[11px] uppercase tracking-wide text-neutral-500"><th className="py-2 pr-2">#</th><th className="py-2 pr-2">{tr("Action")}</th><th className="py-2 pr-2">{tr("Handled by")}</th><th className="py-2 pr-2">{tr("Due")}</th><th className="py-2">{tr("Status")}</th></tr></thead>
+            <tbody className="divide-y divide-neutral-100">
               {a.actions.map((x: ActionPlan, i: number) => (
                 <tr key={x.id} className="avoid align-top">
-                  <td className="py-2 pr-2 text-slate-400">{i + 1}</td>
-                  <td className="py-2 pr-2"><span className="font-medium text-slate-900">{x.title}</span>{x.detail && <span className="block text-xs text-slate-500">{x.detail}</span>}{x.doneNote && <span className="block text-xs text-emerald-700">“{x.doneNote}”</span>}</td>
-                  <td className="py-2 pr-2 text-slate-700">{x.assignee ?? "—"}</td>
-                  <td className="whitespace-nowrap py-2 pr-2 text-slate-700">{dayLong(x.dueOn)}</td>
+                  <td className="py-2 pr-2 text-neutral-400">{i + 1}</td>
+                  <td className="py-2 pr-2"><span className="font-medium text-neutral-900">{x.title}</span>{x.detail && <span className="block text-xs text-neutral-500">{x.detail}</span>}{x.doneNote && <span className="block text-xs text-emerald-700">“{x.doneNote}”</span>}</td>
+                  <td className="py-2 pr-2 text-neutral-700">{x.assignee ?? "—"}</td>
+                  <td className="whitespace-nowrap py-2 pr-2 text-neutral-700">{dayLong(x.dueOn)}</td>
                   <td className="py-2">{x.status === "done" ? <span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 size={13} /> {tr("Done")}</span> : <span className="text-amber-700">{tr("Open")}</span>}</td>
                 </tr>
               ))}
@@ -106,12 +107,12 @@ function View() {
                 const ph = d.photos.filter((p) => p.item === it.key);
                 return (
                   <li key={it.key} className="avoid rounded-xl border border-red-100 bg-red-50/40 p-3">
-                    <p className="text-sm font-medium text-slate-900">{tl(it)}</p>
-                    <p className="text-[11px] text-slate-500">{tl(it, "section")}</p>
-                    {d.answers[it.key]?.note && <p className="mt-1 text-sm text-slate-700">{d.answers[it.key]?.note}</p>}
+                    <p className="text-sm font-medium text-neutral-900">{tl(it)}</p>
+                    <p className="text-[11px] text-neutral-500">{tl(it, "section")}</p>
+                    {d.answers[it.key]?.note && <p className="mt-1 text-sm text-neutral-700">{d.answers[it.key]?.note}</p>}
                     {ph.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{ph.map((p) => (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <a key={p.id} href={photo(p.id)} target="_blank" rel="noreferrer"><img src={photo(p.id)} alt="" className="h-24 w-24 rounded-lg object-cover ring-1 ring-slate-200" loading="lazy" /></a>
+                      <a key={p.id} href={photo(p.id)} target="_blank" rel="noreferrer"><img src={thumb(photo(p.id), 240)} decoding="async" alt="" className="h-24 w-24 rounded-lg object-cover ring-1 ring-neutral-200" loading="lazy" /></a>
                     ))}</div>}
                   </li>
                 );
@@ -123,14 +124,14 @@ function View() {
         <Block title={tr("Every item")}>
           {d.definition.groups.map((g) => g.sections.filter((s) => !s.retired).map((s) => (
             <div key={s.key} className="avoid mb-4 last:mb-0">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">{tl(g, "title")} · {tl(s, "title")}</p>
-              <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-700">{tl(g, "title")} · {tl(s, "title")}</p>
+              <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
                 {s.items.map((it) => {
                   const ans = d.answers[it.key];
                   return (
                     <li key={it.key} className="flex items-start gap-3 px-3 py-1.5 text-xs">
-                      <span className="min-w-0 flex-1"><span className="text-slate-800">{it.no}. {tl(it)}</span>{ans?.note && <span className="block text-slate-500">{ans.note}</span>}</span>
-                      {ans?.rating ? <span className={cx("flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold", RATING_STYLE[ans.rating].on)}>{ratingLabel(ans.rating)}</span> : <span className="text-slate-300">—</span>}
+                      <span className="min-w-0 flex-1"><span className="text-neutral-800">{it.no}. {tl(it)}</span>{ans?.note && <span className="block text-neutral-500">{ans.note}</span>}</span>
+                      {ans?.rating ? <span className={cx("flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] font-semibold", RATING_STYLE[ans.rating].on)}>{ratingLabel(ans.rating)}</span> : <span className="text-neutral-300">—</span>}
                     </li>
                   );
                 })}
@@ -138,20 +139,20 @@ function View() {
             </div>
           )))}
         </Block>
-        <p className="flex items-center justify-center gap-1.5 pb-4 text-center text-[11px] text-slate-400"><ShieldCheck size={12} /> {tr("Read-only copy of the SWAT audit for the PIC of the outlet; it always shows the latest follow-up.")}</p>
+        <p className="flex items-center justify-center gap-1.5 pb-4 text-center text-[11px] text-neutral-400"><ShieldCheck size={12} /> {tr("Read-only copy of the SWAT audit for the PIC of the outlet; it always shows the latest follow-up.")}</p>
       </main>
     </div>
   );
 }
 
 function Fact({ k, v }: { k: string; v: React.ReactNode }) {
-  return <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{k}</p><p className="mt-0.5 text-sm font-medium text-slate-900">{v}</p></div>;
+  return <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{k}</p><p className="mt-0.5 text-sm font-medium text-neutral-900">{v}</p></div>;
 }
 
 function Block({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm print:shadow-none">
-      <h2 className="mb-3 flex items-baseline justify-between text-sm font-semibold text-slate-900">{title}{subtitle && <span className="text-xs font-normal text-slate-500">{subtitle}</span>}</h2>
+    <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm print:shadow-none">
+      <h2 className="mb-3 flex items-baseline justify-between text-sm font-semibold text-neutral-900">{title}{subtitle && <span className="text-xs font-normal text-neutral-500">{subtitle}</span>}</h2>
       {children}
     </section>
   );

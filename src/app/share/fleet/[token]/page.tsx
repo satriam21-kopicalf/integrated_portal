@@ -10,6 +10,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { FleetCard } from "@/cotr/types";
 import { LANG_KEY, tr, useLang } from "@/lib/i18n";
 import { wibDate, wibDateTime } from "@/so/lib/wib";
+import { thumb } from "@/lib/assets";
 
 const BLUE = "#1e2bd6";
 
@@ -42,7 +43,7 @@ export default function FleetSharePage() {
   const f = card?.fleet;
   const base = `/api/public/fleet/${encodeURIComponent(token)}`;
   return (
-    <div className="flex min-h-screen flex-col bg-slate-100">
+    <div className="flex min-h-screen flex-col bg-neutral-100">
       <header className="text-white" style={{ background: BLUE }}>
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -64,23 +65,23 @@ export default function FleetSharePage() {
 
       <main className="mx-auto w-full max-w-2xl flex-1 space-y-4 px-4 py-5">
         {error ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 shadow-sm">{error}</div>
+          <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-600 shadow-sm">{error}</div>
         ) : !card || !f ? (
-          <div className="flex items-center justify-center gap-2 py-24 text-sm text-slate-500"><Loader2 size={16} className="animate-spin" /> {tr("Loading…")}</div>
+          <div className="flex items-center justify-center gap-2 py-24 text-sm text-neutral-500"><Loader2 size={16} className="animate-spin" /> {tr("Loading…")}</div>
         ) : (
           <>
-            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="relative flex aspect-[16/9] items-center justify-center bg-slate-100 text-slate-300">
+            <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+              <div className="relative flex aspect-[16/9] items-center justify-center bg-neutral-100 text-neutral-300">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {f.has_photo ? <img src={`${base}/photo?v=${encodeURIComponent(f.updated_at ?? "")}`} alt="" className="h-full w-full object-cover" /> : <Bike size={56} />}
-                <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${f.is_active === false ? "bg-slate-800 text-white" : f.condition === "service" ? "bg-amber-500 text-white" : "bg-emerald-600 text-white"}`}>
+                {f.has_photo ? <img src={thumb(`${base}/photo?v=${encodeURIComponent(f.updated_at ?? "")}`, 640)} decoding="async" loading="lazy" alt="" className="h-full w-full object-cover" /> : <Bike size={56} />}
+                <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${f.is_active === false ? "bg-neutral-800 text-white" : f.condition === "service" ? "bg-amber-500 text-white" : "bg-emerald-600 text-white"}`}>
                   {f.is_active === false ? tr("Not in use") : f.condition === "service" ? <><Wrench size={12} /> {tr("In service")}</> : <><CheckCircle2 size={12} /> {tr("Ready to sell")}</>}
                 </span>
               </div>
               <div className="p-4">
-                <p className="text-3xl font-black tracking-tight text-slate-900">{f.code}</p>
-                {f.name && <p className="text-sm font-semibold text-slate-700">{f.name}</p>}
-                <p className="mt-0.5 text-xs text-slate-500">{[f.type_name ?? f.type, [f.brand, f.model].filter(Boolean).join(" "), f.color].filter(Boolean).join(" · ")}</p>
+                <p className="text-3xl font-black tracking-tight text-neutral-900">{f.code}</p>
+                {f.name && <p className="text-sm font-semibold text-neutral-700">{f.name}</p>}
+                <p className="mt-0.5 text-xs text-neutral-500">{[f.type_name ?? f.type, [f.brand, f.model].filter(Boolean).join(" "), f.color].filter(Boolean).join(" · ")}</p>
                 <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                   <Fact label={tr("Plate number")} value={f.plate} />
                   <Fact label={tr("Year made")} value={f.year_made} />
@@ -109,34 +110,34 @@ export default function FleetSharePage() {
                   <Fact label={tr("QRIS")} value={[f.qris_bank, f.qris_nmid].filter(Boolean).join(" · ") || null} />
                   <Fact label={tr("Merchant name")} value={f.qris_merchant} />
                 </dl>
-                {f.note && <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">{f.note}</p>}
+                {f.note && <p className="mt-3 rounded-lg bg-neutral-50 p-3 text-xs text-neutral-600">{f.note}</p>}
               </Section>
             )}
 
             <Section icon={<UserRound size={16} />} title={tr("Driver")}>
               {card.today && (
-                <p className={`mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${card.today.status === "open" ? "bg-emerald-50 text-emerald-800" : "bg-slate-50 text-slate-600"}`}>
+                <p className={`mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${card.today.status === "open" ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-600"}`}>
                   <Clock size={14} /> {card.today.status === "open"
                     ? tr("On the road today with {0} since {1}", card.today.name, wibDateTime(card.today.startedAt).slice(-5))
                     : tr("Shift of {0} closed at {1}", card.today.name, wibDateTime(card.today.endedAt).slice(-5))}
                 </p>
               )}
-              {card.drivers.length === 0 ? <p className="text-sm text-slate-500">{tr("No driver on this armada yet.")}</p> : (
+              {card.drivers.length === 0 ? <p className="text-sm text-neutral-500">{tr("No driver on this armada yet.")}</p> : (
                 <ul className="space-y-3">
                   {card.drivers.map((d) => (
                     <li key={d.code} className="flex gap-3">
-                      <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-slate-300">
+                      <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-100 text-neutral-300">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        {d.has_photo ? <img src={`${base}/driver/${encodeURIComponent(d.code)}/photo?v=${encodeURIComponent(d.updated_at ?? "")}`} alt="" className="h-full w-full object-cover" /> : <UserRound size={24} />}
+                        {d.has_photo ? <img src={thumb(`${base}/driver/${encodeURIComponent(d.code)}/photo?v=${encodeURIComponent(d.updated_at ?? "")}`, 96)} decoding="async" loading="lazy" alt="" className="h-full w-full object-cover" /> : <UserRound size={24} />}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-slate-900">{d.name}{d.nickname ? <span className="font-normal text-slate-500"> ({d.nickname})</span> : null}</p>
-                        <p className="text-xs text-slate-500">{[d.employee_id, d.position ?? d.department, d.pool_name].filter(Boolean).join(" · ")}</p>
+                        <p className="font-semibold text-neutral-900">{d.name}{d.nickname ? <span className="font-normal text-neutral-500"> ({d.nickname})</span> : null}</p>
+                        <p className="text-xs text-neutral-500">{[d.employee_id, d.position ?? d.department, d.pool_name].filter(Boolean).join(" · ")}</p>
                         <p className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
                           <span className={`rounded-full px-2 py-0.5 font-medium ${d.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{d.status === "active" ? tr("Active") : tr("On leave")}</span>
-                          {d.joined_on && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">{tr("Joined {0}", day(d.joined_on) ?? "")}</span>}
+                          {d.joined_on && <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-600">{tr("Joined {0}", day(d.joined_on) ?? "")}</span>}
                         </p>
-                        {card.full && d.phone && <a href={`tel:${d.phone}`} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-blue-700"><Phone size={12} /> {d.phone}</a>}
+                        {card.full && d.phone && <a href={`tel:${d.phone}`} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-700"><Phone size={12} /> {d.phone}</a>}
                       </div>
                     </li>
                   ))}
@@ -146,26 +147,26 @@ export default function FleetSharePage() {
 
             {card.pool && (
               <Section icon={<Building2 size={16} />} title={tr("Pool / HUB")}>
-                <p className="font-semibold text-slate-900">{card.pool.name}</p>
-                {(card.pool.address || card.pool.city) && <p className="mt-0.5 flex items-start gap-1 text-xs text-slate-500"><MapPin size={12} className="mt-0.5 flex-shrink-0" /> {[card.pool.address, card.pool.city].filter(Boolean).join(", ")}</p>}
-                <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                <p className="font-semibold text-neutral-900">{card.pool.name}</p>
+                {(card.pool.address || card.pool.city) && <p className="mt-0.5 flex items-start gap-1 text-xs text-neutral-500"><MapPin size={12} className="mt-0.5 flex-shrink-0" /> {[card.pool.address, card.pool.city].filter(Boolean).join(", ")}</p>}
+                <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">
                   {card.pool.pic_name && <span>PIC: {card.pool.pic_name}</span>}
                   {card.pool.open_time && <span className="inline-flex items-center gap-1"><CalendarClock size={12} /> {card.pool.open_time}–{card.pool.close_time ?? ""}</span>}
-                  {card.pool.phone && <a href={`tel:${card.pool.phone}`} className="inline-flex items-center gap-1 font-medium text-blue-700"><Phone size={12} /> {card.pool.phone}</a>}
+                  {card.pool.phone && <a href={`tel:${card.pool.phone}`} className="inline-flex items-center gap-1 font-medium text-brand-700"><Phone size={12} /> {card.pool.phone}</a>}
                 </p>
               </Section>
             )}
 
             {!card.full && (
-              <p className="flex items-start justify-center gap-1.5 text-center text-[11px] text-slate-400">
+              <p className="flex items-start justify-center gap-1.5 text-center text-[11px] text-neutral-400">
                 <Lock size={12} className="mt-px flex-shrink-0" /> {tr("Papers, tracker and contacts are shown to the COTR team after signing in to the portal.")}
               </p>
             )}
           </>
         )}
       </main>
-      <footer className="border-t border-slate-200 bg-white">
-        <p className="mx-auto max-w-2xl px-4 py-3 text-center text-[11px] text-slate-400">{tr("Property of Kopi Calf · Calf On The Road")}</p>
+      <footer className="border-t border-neutral-200 bg-white">
+        <p className="mx-auto max-w-2xl px-4 py-3 text-center text-[11px] text-neutral-400">{tr("Property of Kopi Calf · Calf On The Road")}</p>
       </footer>
     </div>
   );
@@ -183,16 +184,16 @@ function soon(v: string | null | undefined): boolean {
 function Fact({ label, value, warn }: { label: string; value: ReactNode; warn?: boolean }) {
   return (
     <div className="min-w-0">
-      <dt className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</dt>
-      <dd className={`truncate font-medium ${warn ? "text-red-600" : "text-slate-800"}`}>{value === null || value === undefined || value === "" ? "—" : value}</dd>
+      <dt className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{label}</dt>
+      <dd className={`truncate font-medium ${warn ? "text-red-600" : "text-neutral-800"}`}>{value === null || value === undefined || value === "" ? "—" : value}</dd>
     </div>
   );
 }
 
 function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900"><span style={{ color: BLUE }}>{icon}</span> {title}</h2>
+    <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-neutral-900"><span style={{ color: BLUE }}>{icon}</span> {title}</h2>
       {children}
     </section>
   );

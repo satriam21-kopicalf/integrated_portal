@@ -22,6 +22,7 @@ import Drawer from "@/so/ui/Drawer";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, wibDay } from "@/so/ui/Filters";
 import { SearchChoice } from "@/so/ui/FilterControls";
 import { tr } from "@/lib/i18n";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 /* ------------------------------------------------------------------ types */
 
@@ -331,7 +332,7 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
         ) : (
           <>
             <ul className="divide-y divide-neutral-100 md:hidden">
-              {!res ? Array.from({ length: 6 }, (_, i) => <li key={i} className="px-4 py-3"><div className="skeleton h-12 rounded" /></li>) : paged.rows.map((o) => (
+              {!res ? Array.from({ length: 6 }, (_, i) => <li key={i} className="px-4 py-3"><SkeletonList rows={3} /></li>) : paged.rows.map((o) => (
                 <li key={o.merchantId}>
                   <button type="button" onClick={() => onOpen(o.merchantId)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50">
                     <StorePhoto o={o} size={40} />
@@ -523,7 +524,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
             <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Menu unavailable")} ({fmtNumber(unavailable(o))})</h3>
             {unavailable(o) > 0 && <button type="button" onClick={onMenu} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show all")}</button>}
           </div>
-          {items === null ? <div className="skeleton h-16 rounded-xl" /> : items.length === 0
+          {items === null ? <SkeletonList rows={3} /> : items.length === 0
             ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-5 text-center text-sm text-neutral-400">{o.menu.syncedAt ? tr("Everything on the menu is available") : tr("The menu has not been read yet")}</p>
             : (
               <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
@@ -546,7 +547,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
             <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Latest reviews")} ({fmtNumber(o.reviewsAll.count)})</h3>
             {o.reviewsAll.count > 0 && <button type="button" onClick={onReviews} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show all")}</button>}
           </div>
-          {latest === null ? <div className="skeleton h-24 rounded-xl" /> : latest.length === 0
+          {latest === null ? <SkeletonList rows={3} /> : latest.length === 0
             ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p>
             : <ul className="space-y-2">{latest.map((r) => <li key={r.reviewId}><ReviewItem r={r} onOpen={() => onPreview(r)} /></li>)}</ul>}
         </section>
@@ -667,7 +668,7 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
         ) : (
           <>
             <ul className="divide-y divide-neutral-100 md:hidden">
-              {!res ? Array.from({ length: 5 }, (_, i) => <li key={i} className="px-4 py-3"><div className="skeleton h-14 rounded" /></li>)
+              {!res ? Array.from({ length: 5 }, (_, i) => <li key={i} className="px-4 py-3"><SkeletonList rows={3} /></li>)
                 : res.data.map((r) => <li key={r.reviewId}><ReviewRow r={r} showOutlet={!f.merchant} onOpen={() => onPreview(r)} /></li>)}
             </ul>
             <div className="hidden overflow-x-auto md:block">
@@ -970,7 +971,7 @@ function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlet
         ) : (
           <>
             <ul className="divide-y divide-neutral-100 md:hidden">
-              {!items ? Array.from({ length: 6 }, (_, i) => <li key={i} className="px-4 py-3"><div className="skeleton h-10 rounded" /></li>) : paged.rows.map((i) => (
+              {!items ? Array.from({ length: 6 }, (_, i) => <li key={i} className="px-4 py-3"><SkeletonList rows={3} /></li>) : paged.rows.map((i) => (
                 <li key={`${i.merchantId}-${i.itemId}`} className="flex items-center gap-3 px-4 py-3">
                   <MenuPhoto i={i} />
                   <span className="min-w-0 flex-1">

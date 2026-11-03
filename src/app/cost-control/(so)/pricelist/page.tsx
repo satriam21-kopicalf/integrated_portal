@@ -12,6 +12,7 @@ import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 type Item = { code: string; name: string; unit: string; category: string | null; price: number | null; validFrom: string | null; note: string | null; purchaseAvg: number | null };
 type Data = { day: string; categories: string[]; data: Item[] };
@@ -119,7 +120,7 @@ function HistoryDrawer({ item, onClose }: { item: Item; onClose: () => void }) {
   useEffect(() => { void call<{ data: Hist[] }>(`/api/cost-control/pricelist/${encodeURIComponent(item.code)}/history`).then((r) => setRows(r.data)); }, [item.code]);
   return (
     <Drawer open onClose={onClose} icon={<Tags size={18} />} title={item.name} description={`${item.code} · ${tr("price per {0}", item.unit)}`}>
-      {!rows ? <div className="skeleton h-40 rounded-xl" /> : rows.length === 0 ? <Empty title={tr("No price yet")} /> : (
+      {!rows ? <SkeletonList rows={4} /> : rows.length === 0 ? <Empty title={tr("No price yet")} /> : (
         <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
           {rows.map((r) => (
             <li key={r.validFrom} className="flex items-center justify-between gap-3 px-3 py-2">

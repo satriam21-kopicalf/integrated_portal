@@ -119,7 +119,7 @@ export function StatCard({ label, value, sub, icon, tone = 'default', onClick, a
         <span className="truncate text-xs font-medium text-neutral-500">{label}</span>
         {icon && <span className="text-neutral-400 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
       </span>
-      <span className={cx('block text-2xl font-semibold leading-tight tabular-nums', VALUE_TONE[tone])}>{value}</span>
+      <span className={cx('block truncate text-xl font-semibold leading-tight tabular-nums sm:text-2xl', VALUE_TONE[tone])}>{value}</span>
       {sub && <span className="block truncate text-xs text-neutral-500">{sub}</span>}
     </>
   );
@@ -231,5 +231,3 @@ export const kcTable = {
   row: 'group transition-colors hover:bg-neutral-50',
   td: 'px-4 py-3 align-middle',
 };
-
-export { PageSkeleton, Skeleton, SkeletonCards, SkeletonList, SkeletonRows, SkeletonValue } from './Skeleton';

@@ -19,14 +19,14 @@ export const SO: Part = {
       id: 'so-jadwal', title: 'When stock opname is done',
       body: (
         <>
-          <p className="text-sm text-slate-700">The Cost Control team sets the schedules. The usual ones:</p>
+          <p className="text-sm text-neutral-700">The Cost Control team sets the schedules. The usual ones:</p>
           <Table head={['Count type', 'Schedule', 'What is counted']} rows={[
             ['Daily packaging count', 'Every day', 'Packaging & kitchen supplies: cups, lids, straws, bags, etc.'],
             ['Weekly raw material count', 'Every Monday', 'Raw materials, beans, WIP/premix'],
             ['Monthly raw material count', 'Last day of the month', 'All raw materials, WIP/premix'],
             ['Ad hoc count', 'When needed', 'Audit / handover, on request'],
           ]} />
-          <p className="text-sm text-slate-700">The standard count window is <b>07:00–08:00 WIB</b> (before the outlet opens). <b>Every stock opname schedule uses WIB</b> for all outlets, hubs and kitchens, Bali included; the portal always shows WIB even when the phone clock differs. A count submitted after the window is accepted but marked <b>Late</b>. The exact names and times are on the <Go href="/stock-opname">Stock Opname</Go> page.</p>
+          <p className="text-sm text-neutral-700">The standard count window is <b>07:00–08:00 WIB</b> (before the outlet opens). <b>Every stock opname schedule uses WIB</b> for all outlets, hubs and kitchens, Bali included; the portal always shows WIB even when the phone clock differs. A count submitted after the window is accepted but marked <b>Late</b>. The exact names and times are on the <Go href="/stock-opname">Stock Opname</Go> page.</p>
         </>
       ),
     },
@@ -148,7 +148,7 @@ export const CC: Part = {
       id: 'cc-daftar', title: 'Count lists',
       body: (
         <>
-          <p className="text-sm text-slate-700">Every branch has its own list per count type. A branch without its own list uses its type’s <b>default list</b> (OUTLET, HUB_WH, …). The <b>weekly</b> lists of outlets and HUB WH follow the <i>Stock Opname Report of 07 Oct 2026</i> (items & units, including items with qty 0); the other lists come from the latest stock opname document in ESB.</p>
+          <p className="text-sm text-neutral-700">Every branch has its own list per count type. A branch without its own list uses its type’s <b>default list</b> (OUTLET, HUB_WH, …). The <b>weekly</b> lists of outlets and HUB WH follow the <i>Stock Opname Report of 07 Oct 2026</i> (items & units, including items with qty 0); the other lists come from the latest stock opname document in ESB.</p>
           <Steps items={[
             <>Open <Go href="/cost-control/lists">Count lists</Go>, pick a branch or a default, then the count type.</>,
             <>Add items (search a name/code or a whole category), set the <b>area</b>, the <b>pack unit</b> (the crew counts packs + loose), the <b>ESB unit</b> (the unit in the import file) and <b>photo required</b>. Save.</>,
@@ -162,14 +162,14 @@ export const CC: Part = {
       id: 'cc-grup', title: 'Item groups',
       body: (
         <>
-          <p className="text-sm text-slate-700">A group is a set of items made once and assigned to many branches (e.g. “Bar espresso”, “Packaging to go”). Changing a group changes every branch that uses it.</p>
+          <p className="text-sm text-neutral-700">A group is a set of items made once and assigned to many branches (e.g. “Bar espresso”, “Packaging to go”). Changing a group changes every branch that uses it.</p>
           <Steps items={[
             <>Open <Go href="/cost-control/groups">Item groups</Go> → <Menu>New group</Menu>. Step 1 <b>Details</b>: name & description.</>,
             <>Step 2 <b>Items</b>: add a whole category or search items one by one; set area, pack, ESB unit, photo.</>,
             <>Step 3 <b>Branches</b>: pick the count types (one or more), filter by type & city, tick branches or <b>select all</b>. Create & assign.</>,
             <>An existing group: tabs <b>Items</b>, <b>Branches</b> (assign/unassign; a tick = assigned) and <b>Details</b> (name, inactive).</>,
           ]} />
-          <p className="text-sm font-semibold text-slate-900">From the Cost Control template</p>
+          <p className="text-sm font-semibold text-neutral-900">From the Cost Control template</p>
           <Steps items={[
             <><Menu>Import template</Menu> → choose the <i>TEMPLATE SO PER CATEGORY</i> file → <Menu>Check</Menu> (nothing saved yet) → <Menu>Import</Menu>. Every sheet becomes a group “Template SO …”, not assigned to branches. Importing again replaces the group’s items; branch assignments stay.</>,
             <>Products not in the item master show in the group as <b>Not in the item master</b>. Click <Menu>Create item</Menu> (code, name, category & unit come from the template), check and save: the item joins that group and every other group that lists it.</>,
@@ -184,7 +184,7 @@ export const CC: Part = {
       id: 'cc-premix', title: 'Production calculator & WIP recipes',
       body: (
         <>
-          <p className="text-sm text-slate-700">Replaces the <i>Kalkulator Premix WIP – SO BAR KITCHEN</i> workbook. Active recipes are used by the calculator and the WIP form of the count.</p>
+          <p className="text-sm text-neutral-700">Replaces the <i>Kalkulator Premix WIP – SO BAR KITCHEN</i> workbook. Active recipes are used by the calculator and the WIP form of the count.</p>
           <Steps items={[
             <><b>First import</b>: <Go href="/cost-control/premix">Production calculator</Go> → tab <Menu>Import workbook</Menu> → choose the file → <Menu>Check</Menu> (nothing saved yet) → read the result (new/changed recipes, unmapped ingredients, recipes whose ingredients do not add up to 100%) → <Menu>Import</Menu>.</>,
             <><b>Map ingredients</b>: tab <Menu>WIP recipes</Menu> → open a recipe marked “needs fixing” → pick the <b>stock item</b> (ESB code) for every ingredient. For water choose “Not a stock item”. The choice is remembered for the next import.</>,
@@ -225,7 +225,7 @@ export const CC: Part = {
       id: 'cc-rasio', title: 'Outlet ratio',
       body: (
         <>
-          <p className="text-sm text-slate-700"><Go href="/cost-control/ratio">Outlet ratio</Go> builds the columns of the <i>CALF – Rasio Outlet</i> workbook from ESB data. Pick the month and period (W1 1–7, W2 1–14, W3 1–21, W4 1–28, whole month); download Excel.</p>
+          <p className="text-sm text-neutral-700"><Go href="/cost-control/ratio">Outlet ratio</Go> builds the columns of the <i>CALF – Rasio Outlet</i> workbook from ESB data. Pick the month and period (W1 1–7, W2 1–14, W3 1–21, W4 1–28, whole month); download Excel.</p>
           <Table head={['Column', 'Source / formula']} rows={[
             ['Gross sales', 'Subtotal of the POS sales transactions (as the workbook)'],
             ['Revenue / net', 'Gross × (1 − MDR) when the month’s MDR is set; otherwise ESB net sales'],

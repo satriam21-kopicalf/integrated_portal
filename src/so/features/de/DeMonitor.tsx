@@ -23,6 +23,7 @@ import DeOverview from "./DeOverview";
 import { DocActions } from "./DeForm";
 import { type Approver, type StepEdit, StepRow } from "@/so/features/pengajuan/PengajuanMonitor";
 import { useAuth } from "@/lib/auth";
+import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, KIND_LABEL, OPEN, PORTAL_URLS,
   STATUS_LABEL, STEPS, URGENCIES, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, workUrl } from "./de";
 
@@ -33,9 +34,9 @@ type F = { period: Period; kind: string; urgency: string; group: string; tech: s
 const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "", urgency: "", group: "", tech: "", overdue: false, by: "branch",
   bgroup: "", branch: "", pic: "" });
 type GroupOpt = { id: string; code: string; name: string };
-const DOT: Partial<Record<Status, string>> = { PENDING: "bg-slate-400", VALIDATION: "bg-sky-500", REVIEW: "bg-violet-500", ON_HOLD: "bg-amber-500",
-  ACCEPTED: "bg-blue-500", IN_PROGRESS: "bg-blue-700", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
-const STRIPE: Record<Urgency, string> = { CRITICAL: "border-l-red-500", HIGH: "border-l-amber-400", NORMAL: "border-l-blue-400", LOW: "border-l-slate-300", PLANNED: "border-l-violet-400" };
+const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", VALIDATION: "bg-sky-500", REVIEW: "bg-violet-500", ON_HOLD: "bg-amber-500",
+  ACCEPTED: "bg-brand-500", IN_PROGRESS: "bg-brand-700", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
+const STRIPE: Record<Urgency, string> = { CRITICAL: "border-l-red-500", HIGH: "border-l-amber-400", NORMAL: "border-l-brand-400", LOW: "border-l-neutral-300", PLANNED: "border-l-violet-400" };
 const TABS: (Status | "" | "OPEN")[] = ["OPEN", "", "PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "DONE", "REJECTED"];
 const OPEN_SET = new Set<Status>(OPEN);
 const urgRank = (u: Urgency) => URGENCIES.indexOf(u);
@@ -132,13 +133,13 @@ export default function DeMonitor() {
           </Stat>
         </StatStrip>
       }>
-      <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-slate-200 px-1" role="tablist" aria-label={tr("Sections")}>
+      <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1" role="tablist" aria-label={tr("Sections")}>
         {([["requests", tr("Requests"), <ListChecks key="r" size={15} />], ["overview", "Overview", <BarChart3 key="o" size={15} />],
           ["tech", tr("Technicians"), <Users key="t" size={15} />], ["cat", tr("Categories"), <Tags key="c" size={15} />]] as [PageTab, string, React.ReactNode][]).map(([k, label, icon]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("-mb-px inline-flex flex-shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
-              tab === k ? "border-blue-700 text-blue-700" : "border-transparent text-slate-500 hover:text-slate-800")}>
-            {icon}{label}{k === "requests" && res ? <span className="rounded-full bg-slate-100 px-1.5 text-[11px] tabular-nums text-slate-600">{fmtNumber(openRows.length)}</span> : null}
+              tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800")}>
+            {icon}{label}{k === "requests" && res ? <span className="rounded-full bg-neutral-100 px-1.5 text-[11px] tabular-nums text-neutral-600">{fmtNumber(openRows.length)}</span> : null}
           </button>
         ))}
       </div>
@@ -149,15 +150,15 @@ export default function DeMonitor() {
 
       {tab === "requests" && <Panel title={tr("Requests")} description={tr("Most urgent first; tap a request to handle it")}
         toolbar={<>
-          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="tablist" aria-label={tr("Status")}>
+          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist" aria-label={tr("Status")}>
             {TABS.map((t) => {
               const on = status === t;
               return (
                 <button key={t || "all"} type="button" role="tab" aria-selected={on} onClick={() => setStatus(t)}
-                  className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:text-slate-900")}>
+                  className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
                   {t && t !== "OPEN" && <span className={cx("h-2 w-2 rounded-full", DOT[t])} aria-hidden />}
                   {t === "OPEN" ? tr("Open") : t ? STATUS_LABEL[t]() : tr("All")}
-                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-slate-900 text-white" : "bg-white text-slate-700")}>{fmtNumber(count(t))}</span>
+                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-neutral-900 text-white" : "bg-white text-neutral-700")}>{fmtNumber(count(t))}</span>
                 </button>
               );
             })}
@@ -171,7 +172,7 @@ export default function DeMonitor() {
             {!all.length && tr("Requests appear here as soon as the PICs send them from Form → Damaged Equipment.")}
           </Empty>
         ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table> : grouped ? (
-          <ul className="divide-y divide-slate-200">
+          <ul className="divide-y divide-neutral-200">
             {grouped.map((g) => <Group key={g.key} g={g} onOpen={setOpen} />)}
           </ul>
         ) : <RequestTable rows={paged.rows} onOpen={setOpen} />}
@@ -191,17 +192,17 @@ function Group({ g, onOpen }: { g: { key: string; title: string; sub: string; ro
   const critical = g.rows.filter((r) => OPEN_SET.has(r.status) && r.urgency === "CRITICAL").length;
   return (
     <li>
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-3 bg-slate-50 px-4 py-3 text-left hover:bg-slate-100/80">
-        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-3 bg-neutral-50 px-4 py-3 text-left hover:bg-neutral-100/80">
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white text-xs font-bold text-neutral-600 ring-1 ring-neutral-200">
           {g.title.replace(/^Kopi Calf( To Go)?\s*/i, "").slice(0, 2).toUpperCase()}</span>
-        <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-slate-900">{g.title}</span>
-          <span className="text-[11px] text-slate-500">{g.sub}</span></span>
+        <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-neutral-900">{g.title}</span>
+          <span className="text-[11px] text-neutral-500">{g.sub}</span></span>
         <span className="hidden flex-wrap items-center gap-1.5 sm:flex">
           {critical > 0 && <Badge tone="red">{tr("{0} critical", critical)}</Badge>}
           {live > 0 && <Badge tone="blue">{tr("{0} open", live)}</Badge>}
-          <span className="text-xs tabular-nums text-slate-500">{tr("{0} requests", g.rows.length)}</span>
+          <span className="text-xs tabular-nums text-neutral-500">{tr("{0} requests", g.rows.length)}</span>
         </span>
-        {open ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
+        {open ? <ChevronDown size={16} className="text-neutral-400" /> : <ChevronRight size={16} className="text-neutral-400" />}
       </button>
       {open && <RequestTable rows={g.rows} onOpen={onOpen} />}
     </li>
@@ -215,16 +216,16 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
   };
   return (
     <>
-      <ul className="divide-y divide-slate-100 md:hidden">
+      <ul className="divide-y divide-neutral-100 md:hidden">
         {rows.map((r) => (
           <li key={r.id} className={cx("border-l-4", STRIPE[r.urgency])}>
-            <button type="button" onClick={() => onOpen(r.id)} className="w-full px-4 py-3 text-left hover:bg-slate-50">
-              <span className="flex items-center justify-between gap-2"><span className="font-mono text-xs font-semibold text-slate-500">{r.number}</span><StatusBadge r={r} /></span>
-              <span className="mt-1 block truncate text-sm font-semibold text-slate-900">{items(r)}</span>
-              <span className="block truncate text-xs text-slate-500">{r.branchName} · {r.picName}</span>
+            <button type="button" onClick={() => onOpen(r.id)} className="w-full px-4 py-3 text-left hover:bg-neutral-50">
+              <span className="flex items-center justify-between gap-2"><span className="font-mono text-xs font-semibold text-neutral-500">{r.number}</span><StatusBadge r={r} /></span>
+              <span className="mt-1 block truncate text-sm font-semibold text-neutral-900">{items(r)}</span>
+              <span className="block truncate text-xs text-neutral-500">{r.branchName} · {r.picName}</span>
               <span className="mt-2 flex items-center gap-2">
-                <span className="h-1 flex-1 overflow-hidden rounded-full bg-slate-100"><span className={cx("block h-full rounded-full", r.status === "REJECTED" ? "bg-red-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-blue-600")} style={{ width: `${r.status === "REJECTED" ? 100 : r.tracker?.progress ?? 0}%` }} /></span>
-                <span className={cx("text-[11px] tabular-nums", r.tracker?.overdue ? "font-semibold text-red-600" : "text-slate-500")}>{fmtHours(r.tracker?.workHours)}</span>
+                <span className="h-1 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", r.status === "REJECTED" ? "bg-red-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${r.status === "REJECTED" ? 100 : r.tracker?.progress ?? 0}%` }} /></span>
+                <span className={cx("text-[11px] tabular-nums", r.tracker?.overdue ? "font-semibold text-red-600" : "text-neutral-500")}>{fmtHours(r.tracker?.workHours)}</span>
               </span>
             </button>
           </li>
@@ -238,31 +239,31 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
               <th className="px-3 py-2.5">{tr("Status")}</th><th className="px-3 py-2.5 text-right">{tr("Time")}</th><th className="px-3 py-2.5">{tr("Technician")}</th><th className="w-8" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-neutral-100">
             {rows.map((r) => (
-              <tr key={r.id} onClick={() => onOpen(r.id)} className="group cursor-pointer hover:bg-blue-50/40">
+              <tr key={r.id} onClick={() => onOpen(r.id)} className="group cursor-pointer hover:bg-brand-50/40">
                 <td className={cx("whitespace-nowrap border-l-4 py-3 pl-4 pr-3", STRIPE[r.urgency])}>
-                  <span className="block font-mono text-xs font-semibold text-slate-800">{r.number}</span>
-                  <span className="mt-0.5 flex items-center gap-1.5"><UrgencyBadge u={r.urgency} /><span className="text-[11px] text-slate-500">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}</span></span>
+                  <span className="block font-mono text-xs font-semibold text-neutral-800">{r.number}</span>
+                  <span className="mt-0.5 flex items-center gap-1.5"><UrgencyBadge u={r.urgency} /><span className="text-[11px] text-neutral-500">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}</span></span>
                 </td>
                 <td className="max-w-[16rem] px-3 py-3">
-                  <span className="block truncate font-medium text-slate-900">{items(r)}</span>
-                  <span className="block truncate text-[11px] text-slate-500">{[...new Set((r.items ?? []).map((i) => i.category))].join(" · ")}</span>
+                  <span className="block truncate font-medium text-neutral-900">{items(r)}</span>
+                  <span className="block truncate text-[11px] text-neutral-500">{[...new Set((r.items ?? []).map((i) => i.category))].join(" · ")}</span>
                 </td>
-                <td className="max-w-[14rem] px-3 py-3"><span className="block truncate text-slate-800">{r.branchName}</span><span className="block truncate text-[11px] text-slate-500">{r.picName} · {wibDateTime(r.submittedAt)}</span></td>
+                <td className="max-w-[14rem] px-3 py-3"><span className="block truncate text-neutral-800">{r.branchName}</span><span className="block truncate text-[11px] text-neutral-500">{r.picName} · {wibDateTime(r.submittedAt)}</span></td>
                 <td className="px-3 py-3">
                   <StatusBadge r={r} />
                   <span className="mt-1.5 flex items-center gap-1.5">
-                    <span className="flex gap-0.5">{STEPS.map((s, i) => <span key={s} className={cx("h-1 w-3.5 rounded-full", r.status === "REJECTED" ? "bg-red-300" : i < stepOf(r) ? (r.status === "DONE" ? "bg-emerald-500" : r.status === "ON_HOLD" ? "bg-amber-400" : "bg-blue-600") : "bg-slate-200")} />)}</span>
-                    <span className="text-[10px] tabular-nums text-slate-400">{stepOf(r)}/{STEPS.length}</span>
+                    <span className="flex gap-0.5">{STEPS.map((s, i) => <span key={s} className={cx("h-1 w-3.5 rounded-full", r.status === "REJECTED" ? "bg-red-300" : i < stepOf(r) ? (r.status === "DONE" ? "bg-emerald-500" : r.status === "ON_HOLD" ? "bg-amber-400" : "bg-brand-600") : "bg-neutral-200")} />)}</span>
+                    <span className="text-[10px] tabular-nums text-neutral-400">{stepOf(r)}/{STEPS.length}</span>
                   </span>
                 </td>
                 <td className="whitespace-nowrap px-3 py-3 text-right text-xs">
-                  <span className={cx("block font-semibold tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-slate-800")}>{fmtHours(r.tracker?.workHours)}</span>
-                  <span className="text-slate-400">{r.tracker?.slaHours ? tr("target {0}", fmtHours(r.tracker.slaHours)) : "—"}</span>
+                  <span className={cx("block font-semibold tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-neutral-800")}>{fmtHours(r.tracker?.workHours)}</span>
+                  <span className="text-neutral-400">{r.tracker?.slaHours ? tr("target {0}", fmtHours(r.tracker.slaHours)) : "—"}</span>
                 </td>
-                <td className="max-w-[10rem] px-3 py-3 text-xs text-slate-600"><span className="block truncate">{(r.technicians ?? []).join(", ") || <span className="text-slate-300">{tr("Not assigned")}</span>}</span></td>
-                <td className="pr-3 text-slate-300 group-hover:text-blue-600"><ChevronRight size={16} /></td>
+                <td className="max-w-[10rem] px-3 py-3 text-xs text-neutral-600"><span className="block truncate">{(r.technicians ?? []).join(", ") || <span className="text-neutral-300">{tr("Not assigned")}</span>}</span></td>
+                <td className="pr-3 text-neutral-300 group-hover:text-brand-600"><ChevronRight size={16} /></td>
               </tr>
             ))}
           </tbody>
@@ -450,15 +451,15 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   return (
     <Drawer open onClose={onClose} size="xl" icon={<Wrench size={18} />} title={r ? `${r.number} · ${r.branchName}` : tr("Request")}
       description={r ? `${r.kindLabel} · ${r.picName}` : undefined} focusFirstField={false} footer={r ? <DocActions r={r} /> : undefined}>
-      {error ? <ErrorState message={error} /> : !r ? <div className="skeleton h-72 rounded-xl" /> : (
+      {error ? <ErrorState message={error} /> : !r ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
           <RequestHero r={r} compact />
           <div role="tablist" aria-label={tr("Sections")}>
-            <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-neutral-100 p-1">
               {tabs.map(([k, label, count]) => (
                 <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-                  className={cx("inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium", tab === k ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:text-slate-900")}>
-                  {label}{count !== null && <span className="rounded-full bg-slate-200 px-1.5 text-[11px] tabular-nums text-slate-600">{count}</span>}
+                  className={cx("inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium", tab === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
+                  {label}{count !== null && <span className="rounded-full bg-neutral-200 px-1.5 text-[11px] tabular-nums text-neutral-600">{count}</span>}
                 </button>
               ))}
             </div>
@@ -472,7 +473,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Note / reason for the PIC")}
                   className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note")} />
                 {approval && (
-                  <p className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-900"><ListChecks size={13} />
+                  <p className="flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900"><ListChecks size={13} />
                     {tr("Approval {0} of {1}: {2}", approval.position, approval.total, approval.label)} · {approval.users.join(", ") || "Superadmin"}</p>
                 )}
                 {[...new Set((r.allowed ?? []).map(blocker).filter(Boolean))].map((b) => (
@@ -493,10 +494,10 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
 
               <FormCard n={next()} title={tr("Estimated finish")} hint={tr("From the urgency; adjust it with a reason — the PIC sees the new time")}
                 aside={r.tracker?.targetAdjusted ? <Badge tone="violet">{tr("Adjusted {0}×", r.target?.changes ?? 1)}</Badge> : <Badge>{tr("From the urgency")}</Badge>}>
-                <p className={cx("flex items-center gap-2 text-sm font-semibold", r.tracker?.overdue ? "text-red-600" : "text-slate-900")}>
+                <p className={cx("flex items-center gap-2 text-sm font-semibold", r.tracker?.overdue ? "text-red-600" : "text-neutral-900")}>
                   <CalendarClock size={15} /> {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : tr("No target (planned)")}{r.tracker?.overdue && <Badge tone="red">{tr("Past target")}</Badge>}</p>
-                {r.target?.note && <p className="text-xs text-slate-500">{tr("Reason")}: {r.target.note} · {r.target.by}</p>}
-                <div className="grid gap-2 rounded-lg bg-slate-50 p-3 sm:grid-cols-[13rem_1fr_auto]">
+                {r.target?.note && <p className="text-xs text-neutral-500">{tr("Reason")}: {r.target.note} · {r.target.by}</p>}
+                <div className="grid gap-2 rounded-lg bg-neutral-50 p-3 sm:grid-cols-[13rem_1fr_auto]">
                   <input type="datetime-local" value={target.at} onChange={(e) => setTarget({ ...target, at: e.target.value })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("New estimated finish")} />
                   <input value={target.note} onChange={(e) => setTarget({ ...target, note: e.target.value })} maxLength={500} placeholder={tr("Reason (required), e.g. waiting for parts")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Reason of the adjustment")} />
                   <Button size="sm" variant="secondary" disabled={busy || !target.at || !target.note.trim()}
@@ -508,12 +509,12 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
               <FormCard n={next()} title={tr("Technicians")} hint={tr("Assign after review; move a technician to a request that needs them first, with the reason")}
                 aside={active.length ? <Badge tone={r.mode === "VENDOR" ? "amber" : "blue"}>{r.mode === "VENDOR" ? tr("Vendor") : tr("Internal")} · {tr("{0} assigned", active.length)}</Badge> : undefined}>
                 {active.length > 0 && (
-                  <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                  <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
                     {active.map((a) => (
                       <li key={a.id} className="flex flex-wrap items-center gap-2 px-3 py-2.5 text-sm">
-                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">{a.name.slice(0, 1).toUpperCase()}</span>
-                        <span className="min-w-0 flex-1"><span className="block font-medium text-slate-900">{a.name}</span>
-                          <span className="text-xs text-slate-500">{a.kind === "VENDOR" ? a.company ?? tr("Vendor") : tr("Internal")}{a.phone ? ` · ${a.phone}` : ""}{a.scheduledFor ? ` · ${tr("scheduled {0}", a.scheduledFor)}` : ""}</span></span>
+                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">{a.name.slice(0, 1).toUpperCase()}</span>
+                        <span className="min-w-0 flex-1"><span className="block font-medium text-neutral-900">{a.name}</span>
+                          <span className="text-xs text-neutral-500">{a.kind === "VENDOR" ? a.company ?? tr("Vendor") : tr("Internal")}{a.phone ? ` · ${a.phone}` : ""}{a.scheduledFor ? ` · ${tr("scheduled {0}", a.scheduledFor)}` : ""}</span></span>
                         <Button size="sm" variant="secondary" onClick={() => setSwap({ assignmentId: a.id, to: "", scheduledFor: "", note: "" })}><Shuffle size={13} /> {tr("Move")}</Button>
                         <Button size="sm" variant="ghost" onClick={() => setRelease({ assignmentId: a.id, note: "" })}>{tr("Release")}</Button>
                       </li>
@@ -521,7 +522,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                   </ul>
                 )}
                 {["REVIEW", "ACCEPTED", "IN_PROGRESS", "ON_HOLD"].includes(r.status) ? (
-                  <div className="grid gap-2 rounded-lg bg-slate-50 p-3 sm:grid-cols-[1fr_10rem]">
+                  <div className="grid gap-2 rounded-lg bg-neutral-50 p-3 sm:grid-cols-[1fr_10rem]">
                     <select value={assign.technicianId} onChange={(e) => setAssign({ ...assign, technicianId: e.target.value })} className={cx(inputClass, "h-10 bg-white text-sm")} aria-label={tr("Technician")}>
                       <option value="">{tr("Choose a technician")}</option>
                       {(["INTERNAL", "VENDOR"] as const).filter((k) => !active.length || r.mode === k).map((k) => (
@@ -536,8 +537,8 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                       onClick={async () => { if (await act(`/api/de/monitor/${id}/assignments`, { technicianId: Number(assign.technicianId), scheduledFor: assign.scheduledFor || null, note: assign.note || null }, tr("Technician assigned"))) setAssign({ technicianId: "", scheduledFor: "", note: "" }); }}>
                       <Plus size={14} /> {tr("Assign")}</Button>
                   </div>
-                ) : <p className="text-xs text-slate-500">{tr("Technicians are assigned once the request is in review.")}</p>}
-                {active.length > 0 && <p className="text-[11px] text-slate-500">{tr("One request is handled by internal technicians or by a vendor; release them to switch.")}</p>}
+                ) : <p className="text-xs text-neutral-500">{tr("Technicians are assigned once the request is in review.")}</p>}
+                {active.length > 0 && <p className="text-[11px] text-neutral-500">{tr("One request is handled by internal technicians or by a vendor; release them to switch.")}</p>}
                 {technicians.length === 0 && <p className="text-xs text-amber-700">{tr("No technician yet: add them in the Technicians tab.")}</p>}
               </FormCard>
 
@@ -552,9 +553,9 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                     onCreate={() => void act(`/api/de/monitor/${id}/work-links`, { technicianId: linkTech ? Number(linkTech) : null }, tr("Photo link created"))}
                     onCloseLink={(lid) => void act(`/api/de/monitor/${id}/work-links/${lid}`, undefined, tr("Link closed"), "DELETE")} />
                   <Gallery r={r} urls={PORTAL_URLS} kind="AFTER" />
-                  {(r.media ?? []).some((m) => m.kind === "MONITOR") && <><p className="text-xs font-semibold text-slate-500">{tr("PIC photos while the work ran")}</p><Gallery r={r} urls={PORTAL_URLS} kind="MONITOR" /></>}
+                  {(r.media ?? []).some((m) => m.kind === "MONITOR") && <><p className="text-xs font-semibold text-neutral-500">{tr("PIC photos while the work ran")}</p><Gallery r={r} urls={PORTAL_URLS} kind="MONITOR" /></>}
                   {["ACCEPTED", "IN_PROGRESS"].includes(r.status) && (
-                    <button type="button" onClick={() => setCamera(true)} className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-slate-500 hover:text-slate-800">
+                    <button type="button" onClick={() => setCamera(true)} className="inline-flex items-center gap-1.5 self-start text-xs font-medium text-neutral-500 hover:text-neutral-800">
                       <Camera size={13} /> {tr("Or take the photo yourself on site")}</button>
                   )}
                 </FormCard>
@@ -565,14 +566,14 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                   aside={<Badge tone={ho?.at ? "green" : "amber"}>{ho?.at ? tr("Received") : tr("Waiting for the PIC")}</Badge>}>
                   {ho?.at ? (
                     <>
-                      <p className="text-xs text-slate-600">{tr("Sent {0}", wibDateTime(ho.at))}{ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}{ho.outsideRadius ? ` · ${tr("outside the radius")}` : ""}</p>
+                      <p className="text-xs text-neutral-600">{tr("Sent {0}", wibDateTime(ho.at))}{ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}{ho.outsideRadius ? ` · ${tr("outside the radius")}` : ""}</p>
                       <Gallery r={r} urls={PORTAL_URLS} kind="HANDOVER" />
-                      {ho.note && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">{ho.note}</p>}
+                      {ho.note && <p className="rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{ho.note}</p>}
                       <div className="grid gap-2 sm:grid-cols-2">
-                        {ho.vendorName && <div className="rounded-lg border border-slate-200 p-2"><p className="text-[10px] font-semibold uppercase text-slate-400">{tr("Vendor")}</p>
+                        {ho.vendorName && <div className="rounded-lg border border-neutral-200 p-2"><p className="text-[10px] font-semibold uppercase text-neutral-400">{tr("Vendor")}</p>
                           {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
                           <img src={PORTAL_URLS.handover!(r.id, "vendor")} alt={tr("Signature")} className="h-14 object-contain" /><p className="text-sm font-semibold">{ho.vendorName}</p></div>}
-                        {ho.picName && <div className="rounded-lg border border-slate-200 p-2"><p className="text-[10px] font-semibold uppercase text-slate-400">PIC</p>
+                        {ho.picName && <div className="rounded-lg border border-neutral-200 p-2"><p className="text-[10px] font-semibold uppercase text-neutral-400">PIC</p>
                           {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
                           <img src={PORTAL_URLS.handover!(r.id, "pic")} alt={tr("Signature")} className="h-14 object-contain" /><p className="text-sm font-semibold">{ho.picName}</p></div>}
                       </div>
@@ -593,12 +594,12 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 : tr("Cost lines with a description (materials, service, transport) and the labour of the technicians; attach the invoices")}
                 aside={r.mode === "VENDOR" ? <Badge tone="red">{tr("Required for vendor")}</Badge> : undefined}>
                 <CostLines r={r} busy={busy} act={act} />
-                <div className="border-t border-slate-100 pt-3">
-                  <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700"><Paperclip size={13} /> {tr("Invoices / receipts")} <span className="font-normal text-slate-400">({tr("PDF or photo, at most {0} each", "10 MB")})</span></p>
+                <div className="border-t border-neutral-100 pt-3">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-neutral-700"><Paperclip size={13} /> {tr("Invoices / receipts")} <span className="font-normal text-neutral-400">({tr("PDF or photo, at most {0} each", "10 MB")})</span></p>
                   <Invoices list={(r.media ?? []).filter((m) => m.kind === "INVOICE")} urls={PORTAL_URLS} onRemove={(mid) => void removeInvoice(mid)} />
                   <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
                     <input value={invNote} onChange={(e) => setInvNote(e.target.value)} maxLength={200} placeholder={tr("Note, e.g. invoice number or what it pays")} className={cx(inputClass, "h-9 text-sm")} aria-label={tr("Invoice note")} />
-                    <label className={cx("inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50", uploading && "pointer-events-none opacity-60")}>
+                    <label className={cx("inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50", uploading && "pointer-events-none opacity-60")}>
                       <Upload size={14} /> {uploading ? tr("Uploading…") : tr("Attach invoice")}
                       <input type="file" accept="application/pdf,image/*" className="hidden" onChange={(e) => { void uploadInvoice(e.target.files?.[0]); e.target.value = ""; }} />
                     </label>
@@ -608,15 +609,15 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
 
               {(r.related ?? []).length > 0 && (
                 <FormCard n={next()} title={tr("Other requests of this outlet / PIC ({0})", r.related!.length)} hint={tr("Check for double requests; mark this one as a duplicate if needed")}>
-                  <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                  <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
                     {r.related!.map((o) => (
                       <li key={o.id}>
-                        <button type="button" onClick={() => onOpen(o.id)} className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-slate-50">
+                        <button type="button" onClick={() => onOpen(o.id)} className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-neutral-50">
                           <span className="min-w-0 flex-1">
-                            <span className="flex flex-wrap items-center gap-1.5 text-xs"><span className="font-mono font-semibold text-slate-600">{o.number}</span><StatusBadge r={o} /><span className="text-slate-500">{o.picName} · {wibDateTime(o.submittedAt)}</span></span>
-                            <span className="mt-0.5 block truncate text-sm text-slate-800">{(o.items ?? []).map((i) => i.name).join(", ")}</span>
+                            <span className="flex flex-wrap items-center gap-1.5 text-xs"><span className="font-mono font-semibold text-neutral-600">{o.number}</span><StatusBadge r={o} /><span className="text-neutral-500">{o.picName} · {wibDateTime(o.submittedAt)}</span></span>
+                            <span className="mt-0.5 block truncate text-sm text-neutral-800">{(o.items ?? []).map((i) => i.name).join(", ")}</span>
                           </span>
-                          <ChevronRight size={15} className="mt-1 text-slate-300" />
+                          <ChevronRight size={15} className="mt-1 text-neutral-300" />
                         </button>
                       </li>
                     ))}
@@ -692,9 +693,9 @@ function WorkLinks({ r, busy, tech, setTech, onCreate, onCloseLink }: {
   return (
     <div className="space-y-2">
       {r.status === "IN_PROGRESS" ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/60 p-3">
-          <Link2 size={16} className="text-blue-700" />
-          <span className="min-w-0 flex-1 text-xs text-blue-900">{live ? tr("A link is open; a new one replaces it.") : tr("Create a link for the technician on site.")}</span>
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-100 bg-brand-50/60 p-3">
+          <Link2 size={16} className="text-brand-700" />
+          <span className="min-w-0 flex-1 text-xs text-brand-900">{live ? tr("A link is open; a new one replaces it.") : tr("Create a link for the technician on site.")}</span>
           {active.length > 1 && (
             <select value={tech} onChange={(e) => setTech(e.target.value)} className={cx(inputClass, "h-9 w-auto bg-white text-sm")} aria-label={tr("Technician of the link")}>
               {active.map((a) => <option key={a.id} value={a.technicianId}>{a.name}</option>)}
@@ -702,17 +703,17 @@ function WorkLinks({ r, busy, tech, setTech, onCreate, onCloseLink }: {
           )}
           <Button size="sm" disabled={busy || !active.length} onClick={onCreate}><Link2 size={14} /> {live ? tr("New link") : tr("Create link")}</Button>
         </div>
-      ) : <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">{tr("The photo link is created once the request is In progress.")}</p>}
+      ) : <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">{tr("The photo link is created once the request is In progress.")}</p>}
       {links.length > 0 && (
-        <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+        <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
           {links.slice(0, 4).map((l) => (
             <li key={l.id} className="flex flex-wrap items-center gap-2 px-3 py-2.5">
               <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-slate-900">{l.technician} <Badge tone={LINK_TONE[l.state]}>{LINK_LABEL[l.state]()}</Badge></span>
-                <span className="block text-[11px] text-slate-500">
+                <span className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-neutral-900">{l.technician} <Badge tone={LINK_TONE[l.state]}>{LINK_LABEL[l.state]()}</Badge></span>
+                <span className="block text-[11px] text-neutral-500">
                   {l.state === "OPEN" ? tr("{0} min left · {1} photo(s) so far", minutes(l), l.photos) : l.state === "SENT" ? tr("{0} photo(s) sent {1}", l.photos, wibDateTime(l.submittedAt)) : `${tr("Created {0}", wibDateTime(l.createdAt))}${l.createdBy ? ` · ${l.createdBy}` : ""}`}
                 </span>
-                {l.note && <span className="mt-0.5 block text-xs text-slate-700">“{l.note}”</span>}
+                {l.note && <span className="mt-0.5 block text-xs text-neutral-700">“{l.note}”</span>}
               </span>
               {l.state === "OPEN" && (
                 <>
@@ -779,11 +780,11 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
             <Field label={tr("Rate (Rp) per {0}", WAGE_PER[edit.wageType ?? "DAILY"]())}>
               <Input inputMode="numeric" value={edit.wageAmount ?? ""} onChange={(e) => setEdit({ ...edit, wageAmount: e.target.value ? Number(e.target.value.replace(/[^0-9]/g, "")) : null })} />
             </Field>
-            <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">
+            <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs leading-relaxed text-neutral-600">
               {(edit.wageType ?? "DAILY") === "PER_JOB" ? tr("Paid once per request (borongan), whatever the time worked.")
                 : (edit.wageType ?? "DAILY") === "MONTHLY" ? tr("Counted per working day of the job: monthly ÷ 26 × days.")
                 : tr("Counted from In progress to the handover, rounded up to the next {0}.", WAGE_PER[edit.wageType ?? "DAILY"]())}
-              {edit.wageAmount && edit.wageType !== "PER_JOB" ? <span className="block font-medium text-slate-800">{tr("≈ {0} per month", fmtRp(monthlyPay({ wageType: edit.wageType ?? "DAILY", wageAmount: edit.wageAmount })))}</span> : null}
+              {edit.wageAmount && edit.wageType !== "PER_JOB" ? <span className="block font-medium text-neutral-800">{tr("≈ {0} per month", fmtRp(monthlyPay({ wageType: edit.wageType ?? "DAILY", wageAmount: edit.wageAmount })))}</span> : null}
             </p>
           </FormCard>
           <FormCard n={4} title={tr("Status & notes")}>
@@ -791,34 +792,34 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
             <Switch checked={edit.isActive ?? true} onChange={(isActive) => setEdit({ ...edit, isActive })} label={tr("Active")} hint={tr("Inactive technicians cannot be assigned")} />
           </FormCard>
         </div>
-      ) : !rows ? <div className="skeleton h-48 rounded-xl" /> : rows.length === 0 ? (
+      ) : !rows ? <SkeletonList rows={5} /> : rows.length === 0 ? (
         <Empty icon={<Users size={28} />} title={tr("No technician yet")}>{tr("Add the internal and vendor technicians who do the work.")}</Empty>
       ) : (
         <div className="space-y-3">
-        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 text-center">
-          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Active")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.filter((t) => t.isActive).length}</dd></div>
-          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Jobs in progress")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.reduce((a, t) => a + t.activeJobs, 0)}</dd></div>
-          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Pay per month")}</dt>
+        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 text-center">
+          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Active")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.filter((t) => t.isActive).length}</dd></div>
+          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Jobs in progress")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.reduce((a, t) => a + t.activeJobs, 0)}</dd></div>
+          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Pay per month")}</dt>
             <dd className="text-sm font-semibold tabular-nums">{fmtRp(rows.filter((t) => t.isActive).reduce((a, t) => a + monthlyPay(t), 0))}</dd></div>
         </dl>
-        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
+        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
           {rows.map((t) => (
-            <li key={t.id} className={cx("px-4 py-3", !t.isActive && "bg-slate-50 opacity-70")}>
+            <li key={t.id} className={cx("px-4 py-3", !t.isActive && "bg-neutral-50 opacity-70")}>
               <div className="flex items-start gap-3">
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-slate-900">{t.name} {!t.isActive && <Badge>{tr("Inactive")}</Badge>}</span>
-                  <span className="block text-xs text-slate-500">{t.kind === "VENDOR" ? `${tr("Vendor")}${t.company ? ` · ${t.company}` : ""}` : tr("Internal")}{t.city ? ` · ${t.city}` : ""}{t.phone ? ` · ${t.phone}` : ""}</span>
+                  <span className="block text-sm font-semibold text-neutral-900">{t.name} {!t.isActive && <Badge>{tr("Inactive")}</Badge>}</span>
+                  <span className="block text-xs text-neutral-500">{t.kind === "VENDOR" ? `${tr("Vendor")}${t.company ? ` · ${t.company}` : ""}` : tr("Internal")}{t.city ? ` · ${t.city}` : ""}{t.phone ? ` · ${t.phone}` : ""}</span>
                   {t.skills.length > 0 && <span className="mt-1 flex flex-wrap gap-1">{t.skills.map((s) => <Badge key={s}>{s}</Badge>)}</span>}
                 </span>
                 <span className="text-right text-xs">
-                  <span className="block font-semibold tabular-nums text-slate-900">{t.wageAmount ? `${fmtRp(t.wageAmount)} / ${WAGE_PER[t.wageType]()}` : tr("Pay not set")}</span>
-                  <span className="text-slate-400">{tr("{0} active", t.activeJobs)} · {tr("{0} done", t.doneJobs)}</span>
+                  <span className="block font-semibold tabular-nums text-neutral-900">{t.wageAmount ? `${fmtRp(t.wageAmount)} / ${WAGE_PER[t.wageType]()}` : tr("Pay not set")}</span>
+                  <span className="text-neutral-400">{tr("{0} active", t.activeJobs)} · {tr("{0} done", t.doneJobs)}</span>
                 </span>
                 <Button size="sm" variant="ghost" onClick={() => setEdit(t)}>{tr("Edit")}</Button>
               </div>
               {t.jobs.length > 0 && (
                 <ul className="mt-2 space-y-1">
-                  {t.jobs.map((j) => <li key={j.requestId} className="flex flex-wrap items-center gap-1.5 text-xs text-slate-600"><span className="font-mono">{j.number}</span> · {j.branchName} <UrgencyBadge u={j.urgency} />{j.scheduledFor ? ` · ${j.scheduledFor}` : ""}</li>)}
+                  {t.jobs.map((j) => <li key={j.requestId} className="flex flex-wrap items-center gap-1.5 text-xs text-neutral-600"><span className="font-mono">{j.number}</span> · {j.branchName} <UrgencyBadge u={j.urgency} />{j.scheduledFor ? ` · ${j.scheduledFor}` : ""}</li>)}
                 </ul>
               )}
             </li>
@@ -837,7 +838,7 @@ function ChoiceGroupMulti({ options, value, onChange }: { options: string[]; val
       {options.map((o) => {
         const on = value.includes(o);
         return <button key={o} type="button" aria-pressed={on} onClick={() => onChange(on ? value.filter((x) => x !== o) : [...value, o])}
-          className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{o}</button>;
+          className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{o}</button>;
       })}
     </div>
   );
@@ -887,9 +888,9 @@ function CategoriesDrawer({ bgroups, onClose }: { bgroups: GroupOpt[]; /** after
               {bgroups.map((g) => {
                 const on = (edit.branchGroups ?? []).includes(g.id);
                 return <button key={g.id} type="button" aria-pressed={on} onClick={() => setEdit({ ...edit, branchGroups: on ? (edit.branchGroups ?? []).filter((x) => x !== g.id) : [...(edit.branchGroups ?? []), g.id] })}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-semibold", on ? "border-blue-700 bg-blue-700 text-white" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{g.code}</button>;
+                  className={cx("rounded-full border px-3 py-1 text-xs font-semibold", on ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{g.code}</button>;
               })}
-              {!(edit.branchGroups ?? []).length && <span className="self-center text-xs text-slate-500">· {tr("every outlet")}</span>}
+              {!(edit.branchGroups ?? []).length && <span className="self-center text-xs text-neutral-500">· {tr("every outlet")}</span>}
             </div>
           </Field>
           <Field label={tr("Example items")} hint={tr("Separated by commas; offered while typing the item name")}>
@@ -898,16 +899,16 @@ function CategoriesDrawer({ bgroups, onClose }: { bgroups: GroupOpt[]; /** after
           <Field label={tr("Order")}><Input type="number" value={edit.sort ?? 0} onChange={(e) => setEdit({ ...edit, sort: Number(e.target.value) || 0 })} /></Field>
           <Switch checked={edit.isActive ?? true} onChange={(isActive) => setEdit({ ...edit, isActive })} label={tr("Active")} hint={tr("Inactive categories are not offered on the form")} />
         </FormCard>
-      ) : !rows ? <div className="skeleton h-48 rounded-xl" /> : (
+      ) : !rows ? <SkeletonList rows={5} /> : (
         <div className="space-y-3">
           {groups.map((g) => (
-            <section key={g} className="rounded-xl border border-slate-200">
-              <p className="border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{g}</p>
-              <ul className="divide-y divide-slate-100">
+            <section key={g} className="rounded-xl border border-neutral-200">
+              <p className="border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{g}</p>
+              <ul className="divide-y divide-neutral-100">
                 {rows.filter((c) => c.group === g).map((c) => (
                   <li key={c.id} className={cx("flex items-center gap-3 px-4 py-2.5", !c.isActive && "opacity-60")}>
-                    <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-slate-900">{c.name} {!c.isActive && <Badge>{tr("Inactive")}</Badge>}</span>
-                      <span className="block truncate text-xs text-slate-500">{c.examples.join(", ") || "—"}</span></span>
+                    <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{c.name} {!c.isActive && <Badge>{tr("Inactive")}</Badge>}</span>
+                      <span className="block truncate text-xs text-neutral-500">{c.examples.join(", ") || "—"}</span></span>
                     <span className="hidden flex-wrap justify-end gap-1 sm:flex">{c.branchGroups?.length ? c.branchGroups.map((id) => <Badge key={id} tone="blue">{bgroups.find((g) => g.id === id)?.code ?? "?"}</Badge>)
                       : <Badge>{tr("All outlets")}</Badge>}</span>
                     <UrgencyBadge u={c.defaultUrgency} />
@@ -949,7 +950,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   const laborTotal = work.reduce((a, x) => a + (x.amount ?? 0), 0);
   const diff = r.estCost !== null && r.actualCost !== null ? r.actualCost - r.estCost : null;
   const form = line && (
-    <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50/40 p-3">
+    <div className="space-y-2 rounded-xl border border-brand-200 bg-brand-50/40 p-3">
       <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_5rem]">
         <select value={line.kind} onChange={(e) => setLine({ ...line, kind: e.target.value as CostKind })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Kind of cost")}>
           {(Object.keys(COST_KIND_LABEL) as CostKind[]).map((k) => <option key={k} value={k}>{COST_KIND_LABEL[k]()}</option>)}
@@ -959,9 +960,9 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
         <input value={line.qty} onChange={(e) => setLine({ ...line, qty: e.target.value.replace(/[^0-9.]/g, "") })} inputMode="decimal" className={cx(inputClass, "h-9 bg-white text-right text-sm")} aria-label="Qty" />
       </div>
       <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">{tr("Estimate")}</span>
+        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400">{tr("Estimate")}</span>
           <input value={line.est} onChange={(e) => setLine({ ...line, est: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white pl-20 text-right text-sm tabular-nums")} aria-label={tr("Estimated (Rp)")} /></label>
-        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">{tr("Actual")}</span>
+        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400">{tr("Actual")}</span>
           <input value={line.actual} onChange={(e) => setLine({ ...line, actual: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white pl-20 text-right text-sm tabular-nums")} aria-label={tr("Actual (Rp)")} /></label>
         <span className="flex gap-2">
           <Button size="sm" variant="secondary" onClick={() => setLine(null)}>{tr("Cancel")}</Button>
@@ -972,52 +973,52 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   );
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-xl border border-slate-200">
+      <div className="overflow-hidden rounded-xl border border-neutral-200">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <thead className="bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
             <tr><th className="px-3 py-2">{tr("Description")}</th><th className="hidden px-2 py-2 text-right sm:table-cell">Qty</th>
               <th className="px-2 py-2 text-right">{tr("Estimate")}</th><th className="px-2 py-2 text-right">{tr("Actual")}</th><th className="w-16" /></tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
-            {items.length === 0 && work.length === 0 && <tr><td colSpan={5} className="px-3 py-5 text-center text-sm text-slate-400">{tr("No cost yet")}</td></tr>}
+          <tbody className="divide-y divide-neutral-100">
+            {items.length === 0 && work.length === 0 && <tr><td colSpan={5} className="px-3 py-5 text-center text-sm text-neutral-400">{tr("No cost yet")}</td></tr>}
             {items.map((i) => (
-              <tr key={i.id} className={cx(line?.id === i.id && "bg-blue-50/50")}>
-                <td className="px-3 py-2"><span className="block font-medium text-slate-900">{i.description}</span>
-                  <span className="text-[11px] text-slate-500">{COST_KIND_LABEL[i.kind]()}<span className="sm:hidden"> · {i.qty} ×</span></span></td>
-                <td className="hidden px-2 py-2 text-right tabular-nums text-slate-600 sm:table-cell">{i.qty}</td>
-                <td className="px-2 py-2 text-right tabular-nums text-slate-700">{fmtRp(i.estAmount)}</td>
-                <td className="px-2 py-2 text-right font-semibold tabular-nums text-slate-900">{fmtRp(i.actualAmount)}</td>
+              <tr key={i.id} className={cx(line?.id === i.id && "bg-brand-50/50")}>
+                <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{i.description}</span>
+                  <span className="text-[11px] text-neutral-500">{COST_KIND_LABEL[i.kind]()}<span className="sm:hidden"> · {i.qty} ×</span></span></td>
+                <td className="hidden px-2 py-2 text-right tabular-nums text-neutral-600 sm:table-cell">{i.qty}</td>
+                <td className="px-2 py-2 text-right tabular-nums text-neutral-700">{fmtRp(i.estAmount)}</td>
+                <td className="px-2 py-2 text-right font-semibold tabular-nums text-neutral-900">{fmtRp(i.actualAmount)}</td>
                 <td className="px-2 py-2 text-right">
                   <span className="inline-flex gap-0.5">
-                    <button type="button" onClick={() => edit(i)} aria-label={tr("Edit {0}", i.description)} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><PenLine size={14} /></button>
+                    <button type="button" onClick={() => edit(i)} aria-label={tr("Edit {0}", i.description)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><PenLine size={14} /></button>
                     <button type="button" disabled={busy} onClick={() => void act(`${base}/cost-items/${i.id}`, undefined, tr("Cost line removed"), "DELETE")} aria-label={tr("Remove {0}", i.description)}
-                      className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button>
+                      className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button>
                   </span>
                 </td>
               </tr>
             ))}
             {work.map((x) => (
-              <tr key={`l${x.assignmentId}`} className="bg-slate-50/50">
+              <tr key={`l${x.assignmentId}`} className="bg-neutral-50/50">
                 <td className="px-3 py-2" colSpan={2}>
-                  <span className="flex items-center gap-1.5 font-medium text-slate-900"><Users size={13} className="text-slate-400" />{tr("Labour")} · {x.technician}</span>
-                  <span className="text-[11px] text-slate-500">{x.adjust !== null ? `${tr("adjusted")}: ${x.note ?? ""}`
+                  <span className="flex items-center gap-1.5 font-medium text-neutral-900"><Users size={13} className="text-neutral-400" />{tr("Labour")} · {x.technician}</span>
+                  <span className="text-[11px] text-neutral-500">{x.adjust !== null ? `${tr("adjusted")}: ${x.note ?? ""}`
                     : x.wageType === "PER_JOB" ? tr("per job · {0}", fmtRp(x.rate)) : `${x.units} ${x.unit} × ${fmtRp(x.rate)}${x.wageType === "MONTHLY" ? " ÷ 26" : ""} · ${tr("{0} worked", fmtHours(x.hours))}`}</span>
                 </td>
-                <td className="px-2 py-2 text-right text-slate-400">—</td>
-                <td className="px-2 py-2 text-right font-semibold tabular-nums text-slate-900">{fmtRp(x.amount)}
-                  {x.adjust !== null && <span className="block text-[10px] font-normal text-slate-400 line-through">{fmtRp(x.computed)}</span>}</td>
+                <td className="px-2 py-2 text-right text-neutral-400">—</td>
+                <td className="px-2 py-2 text-right font-semibold tabular-nums text-neutral-900">{fmtRp(x.amount)}
+                  {x.adjust !== null && <span className="block text-[10px] font-normal text-neutral-400 line-through">{fmtRp(x.computed)}</span>}</td>
                 <td className="px-2 py-2 text-right">
                   <button type="button" onClick={() => setLabor({ id: x.assignmentId, amount: (x.adjust ?? x.computed).toString(), note: x.note ?? "" })} aria-label={tr("Adjust the labour of {0}", x.technician)}
-                    className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><PenLine size={14} /></button>
+                    className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><PenLine size={14} /></button>
                 </td>
               </tr>
             ))}
           </tbody>
           {(items.length > 0 || work.length > 0) && (
-            <tfoot className="border-t-2 border-slate-200 bg-slate-50 text-sm">
-              <tr><td className="px-3 py-2 font-semibold text-slate-900" colSpan={2}>{tr("Total")}{laborTotal ? <span className="block text-[11px] font-normal text-slate-500">{tr("incl. labour {0}", fmtRp(laborTotal))}</span> : null}</td>
-                <td className="px-2 py-2 text-right font-semibold tabular-nums text-slate-900">{fmtRp(r.estCost)}</td>
-                <td className="px-2 py-2 text-right font-bold tabular-nums text-slate-900">{fmtRp(r.actualCost)}
+            <tfoot className="border-t-2 border-neutral-200 bg-neutral-50 text-sm">
+              <tr><td className="px-3 py-2 font-semibold text-neutral-900" colSpan={2}>{tr("Total")}{laborTotal ? <span className="block text-[11px] font-normal text-neutral-500">{tr("incl. labour {0}", fmtRp(laborTotal))}</span> : null}</td>
+                <td className="px-2 py-2 text-right font-semibold tabular-nums text-neutral-900">{fmtRp(r.estCost)}</td>
+                <td className="px-2 py-2 text-right font-bold tabular-nums text-neutral-900">{fmtRp(r.actualCost)}
                   {diff !== null && <span className={cx("block text-[10px] font-semibold", diff > 0 ? "text-red-600" : "text-emerald-600")}>{diff > 0 ? "+" : ""}{fmtRp(diff)}</span>}</td><td /></tr>
             </tfoot>
           )}
@@ -1073,16 +1074,16 @@ function DeApprovals({ onClose }: { onClose: () => void }) {
     <Drawer open onClose={onClose} size="lg" icon={<ListChecks size={18} />} title={tr("Approvals")}
       description={tr("Who approves Review → Accept, in order; without a step any monitoring account accepts")}
       footer={edit ? <Button loading={busy} onClick={() => void save()}>{tr("Save")}</Button> : undefined}>
-      {!data ? <div className="skeleton h-60 rounded-xl" /> : (
+      {!data ? <SkeletonList rows={5} /> : (
         <div className="space-y-3">
-          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1" role="tablist">
+          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist">
             {Object.entries(data.kinds).map(([k, label]) => (
               <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-                className={cx("flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium", kind === k ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-600")}>
+                className={cx("flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium", kind === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600")}>
                 {(KIND_LABEL as Record<string, () => string>)[k]?.() ?? label}</button>
             ))}
           </div>
-          {!edit && <p className="text-xs text-slate-500">{tr("Only a superadmin changes the approvals.")}</p>}
+          {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin changes the approvals.")}</p>}
           <ol className="space-y-2">
             {steps.map((st, i) => (
               <StepRow key={i} n={i + 1} step={st} users={data.users} names={names} edit={edit}
@@ -1091,13 +1092,13 @@ function DeApprovals({ onClose }: { onClose: () => void }) {
                 onDown={i < steps.length - 1 ? () => { const l = [...steps]; [l[i + 1], l[i]] = [l[i], l[i + 1]]; setSteps(l); } : undefined}
                 onRemove={() => setSteps(steps.filter((_, j) => j !== i))} />
             ))}
-            {!steps.length && <li className="rounded-xl border border-dashed border-slate-300 px-3 py-4 text-center text-sm text-slate-500">{tr("No approval step: any monitoring account accepts")}</li>}
+            {!steps.length && <li className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-center text-sm text-neutral-500">{tr("No approval step: any monitoring account accepts")}</li>}
             {edit && steps.length < 8 && (
               <li><Button variant="secondary" className="w-full" onClick={() => setSteps([...steps, { label: tr("Approval {0}", steps.length + 1), type: "APPROVE", userIds: [] }])}>
                 {tr("Add approval step")}</Button></li>
             )}
           </ol>
-          <p className="text-xs text-slate-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Damaged Equipment page.")}</p>
+          <p className="text-xs text-neutral-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Damaged Equipment page.")}</p>
         </div>
       )}
     </Drawer>

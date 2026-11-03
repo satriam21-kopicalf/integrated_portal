@@ -66,7 +66,7 @@ export default function MonitoringOverviewPage() {
           <Stat label={tr("Outlets visited")} emphasis icon={<MapPinCheck size={13} />} value={s ? `${fmtNumber(s.visited)}/${fmtNumber(s.outlets)}` : <StatSkeleton />}>
             {s && <p>{tr("{0} check-ins · {1} PICs", fmtNumber(s.checkins), fmtNumber(s.pics))}</p>}
           </Stat>
-          <Stat label={tr("PIC scores")} icon={<Package size={13} />} value={s ? <span><span className={scoreTone(s.productScore)}>{pct(s.productScore)}</span> <span className="text-slate-300">·</span> <span className={scoreTone(s.outletScore)}>{pct(s.outletScore)}</span></span> : <StatSkeleton />}>
+          <Stat label={tr("PIC scores")} icon={<Package size={13} />} value={s ? <span><span className={scoreTone(s.productScore)}>{pct(s.productScore)}</span> <span className="text-neutral-300">·</span> <span className={scoreTone(s.outletScore)}>{pct(s.outletScore)}</span></span> : <StatSkeleton />}>
             <p>{tr("Product · Outlet, own visits")}</p>
           </Stat>
           <Stat label={tr("Agreement with SWAT")} icon={<Scale size={13} />} value={w ? <span className={scoreTone(w.conformity)}>{pct(w.conformity)}</span> : <StatSkeleton />}>
@@ -79,10 +79,10 @@ export default function MonitoringOverviewPage() {
       }>
       <Panel title={view === "pics" ? tr("Assessment per PIC") : tr("Per outlet")}
         description={view === "pics" ? tr("Lowest PIC score first; tap a row to see how the score is made") : tr("Daily forms and SWAT audits of every outlet")}
-        actions={<div className="flex rounded-lg bg-slate-100 p-1">
+        actions={<div className="flex rounded-lg bg-neutral-100 p-1">
           {([["pics", tr("PIC"), UsersRound], ["outlets", tr("Outlet"), Store]] as const).map(([k, label, Icon]) => (
             <button key={k} type="button" onClick={() => setView(k)} aria-pressed={view === k}
-              className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium", view === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500")}><Icon size={13} /> {label}</button>
+              className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium", view === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500")}><Icon size={13} /> {label}</button>
           ))}
         </div>}
         toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={view === "pics" ? tr("Search PIC") : tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
@@ -98,24 +98,24 @@ export default function MonitoringOverviewPage() {
                   <th className="px-3 py-2.5 text-right">{tr("SWAT audits")}</th><th className="px-3 py-2.5 text-right">{tr("Overrated")}</th>
                   <th className="px-3 py-2.5 text-right">{tr("Open plans")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Agreement with SWAT")}</th>
                 </tr></thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {pagedPics.rows.map((p) => (
-                    <tr key={p.id} onClick={() => setOpen(p)} className="cursor-pointer hover:bg-blue-50/40">
-                      <td className="py-2.5 pl-5 pr-3" data-label={tr("PIC")}><span className="block font-medium text-slate-900">{p.name}</span><span className="text-[11px] text-slate-400">{tr("{0} outlets", p.branches)}</span></td>
+                    <tr key={p.id} onClick={() => setOpen(p)} className="cursor-pointer hover:bg-brand-50/40">
+                      <td className="py-2.5 pl-5 pr-3" data-label={tr("PIC")}><span className="block font-medium text-neutral-900">{p.name}</span><span className="text-[11px] text-neutral-400">{tr("{0} outlets", p.branches)}</span></td>
                       <td className="px-3 py-2.5 text-right" data-label={tr("PIC Score")}><span className={cx("text-base font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</span></td>
                       <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Check-Ins")}>
                         <span className={cx("font-semibold", scoreTone(p.checkinRate))}>{pct(p.checkinRate)}</span>
-                        <span className="block text-[10px] text-slate-400">{p.checkins}/{p.checkinTarget}{p.outside ? ` · ${tr("{0} outside radius", p.outside)}` : ""}</span></td>
+                        <span className="block text-[10px] text-neutral-400">{p.checkins}/{p.checkinTarget}{p.outside ? ` · ${tr("{0} outside radius", p.outside)}` : ""}</span></td>
                       <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("On Time")}>
                         <span className={cx("font-semibold", scoreTone(p.punctuality))}>{pct(p.punctuality)}</span>
-                        <span className="block text-[10px] text-slate-400">{tr("{0} of {1} days", p.punctualDays, p.checkinDays)}</span></td>
+                        <span className="block text-[10px] text-neutral-400">{tr("{0} of {1} days", p.punctualDays, p.checkinDays)}</span></td>
                       <td className="px-3 py-2.5 text-right" data-label="Product"><Score v={p.productScore} n={p.productVisits} /></td>
                       <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={p.outletScore} n={p.outletVisits} /></td>
-                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.under ? "text-red-600" : "text-slate-400")} data-label="UNDER">{p.under}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT audits")}>{p.swatAudits || <span className="text-slate-300">0</span>}</td>
-                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-slate-400")} data-label={tr("Overrated")}>{p.overrated}</td>
-                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.openActions ? "text-amber-700" : "text-slate-400")} data-label={tr("Open plans")}>{p.openActions}</td>
-                      <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Agreement with SWAT")}>{p.conformity === null ? <span className="text-xs text-slate-400">{tr("Not audited yet")}</span> : <Meter v={p.conformity} />}</td>
+                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{p.under}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT audits")}>{p.swatAudits || <span className="text-neutral-300">0</span>}</td>
+                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
+                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open plans")}>{p.openActions}</td>
+                      <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Agreement with SWAT")}>{p.conformity === null ? <span className="text-xs text-neutral-400">{tr("Not audited yet")}</span> : <Meter v={p.conformity} />}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -130,17 +130,17 @@ export default function MonitoringOverviewPage() {
                 <th className="px-3 py-2.5 text-right">Product</th><th className="px-3 py-2.5 text-right">Outlet</th><th className="px-3 py-2.5 text-right">UNDER</th>
                 <th className="px-3 py-2.5 text-right">{tr("SWAT audits")}</th><th className="px-3 py-2.5 text-right">{tr("SWAT score")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Open plans")}</th>
               </tr></thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {pagedOutlets.rows.map((o) => (
-                  <tr key={o.code} className={o.visited ? undefined : "text-slate-400"}>
-                    <td className="py-2.5 pl-5 pr-3" data-label={tr("Outlet")}><span className="block font-medium text-slate-900">{o.name}</span><span className="text-[11px] text-slate-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
+                  <tr key={o.code} className={o.visited ? undefined : "text-neutral-400"}>
+                    <td className="py-2.5 pl-5 pr-3" data-label={tr("Outlet")}><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
                     <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Check-ins")}>{o.checkins}</td>
                     <td className="px-3 py-2.5 text-right" data-label="Product"><Score v={o.productScore} n={o.productVisits} /></td>
                     <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={o.outletScore} n={o.outletVisits} /></td>
-                    <td className={cx("px-3 py-2.5 text-right tabular-nums", o.under ? "text-red-600" : "text-slate-400")} data-label="UNDER">{o.under}</td>
+                    <td className={cx("px-3 py-2.5 text-right tabular-nums", o.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{o.under}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT audits")}>{o.swatAudits}</td>
                     <td className="px-3 py-2.5 text-right" data-label={tr("SWAT score")}><span className={cx("font-semibold tabular-nums", scoreTone(o.swatScore))}>{pct(o.swatScore)}</span></td>
-                    <td className={cx("px-3 py-2.5 pr-5 text-right tabular-nums", o.openActions ? "text-amber-700" : "text-slate-400")} data-label={tr("Open plans")}>{o.openActions}</td>
+                    <td className={cx("px-3 py-2.5 pr-5 text-right tabular-nums", o.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open plans")}>{o.openActions}</td>
                   </tr>
                 ))}
               </tbody>
@@ -148,9 +148,9 @@ export default function MonitoringOverviewPage() {
           </div>
         )}
       </Panel>
-      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-neutral-500">
         <span className="inline-flex items-center gap-1"><AlertTriangle size={12} /> {tr("Overrated: items the PIC passed and the SWAT team found UNDER")}</span>
-        <Link href="/monitoring/wwwr" className="text-blue-700 hover:underline">Monitoring WW-WR →</Link>
+        <Link href="/monitoring/wwwr" className="text-brand-700 hover:underline">Monitoring WW-WR →</Link>
       </p>
       {open && res && <ScoreDrawer p={open} weights={res.weights} workingDays={res.workingDays} onClose={() => setOpen(null)} />}
       {sheet && res && <OverviewFilters value={f} groups={res.groupOptions} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
@@ -171,20 +171,20 @@ function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Re
   return (
     <Drawer open onClose={onClose} size="md" icon={<Scale size={18} />} title={p.name} description={tr("How the PIC score is made")} focusFirstField={false}>
       <div className="space-y-4 text-sm">
-        <div className="rounded-2xl bg-slate-50 p-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{tr("PIC Score")}</p>
+        <div className="rounded-xl bg-neutral-50 p-4 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("PIC Score")}</p>
           <p className={cx("text-4xl font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</p>
-          <p className="mt-1 text-xs text-slate-500">{tr("Weighted over the parts with data; net sales will join later")}</p>
+          <p className="mt-1 text-xs text-neutral-500">{tr("Weighted over the parts with data; net sales will join later")}</p>
         </div>
-        <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200">
+        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
           {parts.map((x) => (
             <li key={x.key} className={cx("px-4 py-3", x.value === null && "opacity-60")}>
               <div className="flex items-baseline justify-between gap-3">
-                <span className="font-medium text-slate-900">{x.label} <span className="text-xs font-normal text-slate-400">· {weights[x.key]}%</span></span>
+                <span className="font-medium text-neutral-900">{x.label} <span className="text-xs font-normal text-neutral-400">· {weights[x.key]}%</span></span>
                 <span className={cx("font-semibold tabular-nums", scoreTone(x.value))}>{pct(x.value)}</span>
               </div>
-              <div className="mt-1.5 h-1.5 rounded-full bg-slate-100"><span className="block h-full rounded-full bg-blue-600" style={{ width: `${x.value ?? 0}%` }} /></div>
-              <p className="mt-1 text-[11px] text-slate-500">{x.how}</p>
+              <div className="mt-1.5 h-1.5 rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${x.value ?? 0}%` }} /></div>
+              <p className="mt-1 text-[11px] text-neutral-500">{x.how}</p>
             </li>
           ))}
         </ul>
@@ -194,13 +194,13 @@ function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Re
 }
 
 function Score({ v, n }: { v: number | null; n: number }) {
-  return <span><span className={cx("font-semibold tabular-nums", scoreTone(v))}>{pct(v)}</span><span className="block text-[10px] text-slate-400">{tr("{0} visits", n)}</span></span>;
+  return <span><span className={cx("font-semibold tabular-nums", scoreTone(v))}>{pct(v)}</span><span className="block text-[10px] text-neutral-400">{tr("{0} visits", n)}</span></span>;
 }
 
 function Meter({ v }: { v: number }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="hidden h-1.5 w-20 rounded-full bg-slate-100 sm:block"><span className="block h-full rounded-full bg-blue-600" style={{ width: `${v}%` }} /></span>
+      <span className="hidden h-1.5 w-20 rounded-full bg-neutral-100 sm:block"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${v}%` }} /></span>
       <span className={cx("w-12 text-right font-semibold tabular-nums", scoreTone(v))}>{v}%</span>
     </span>
   );

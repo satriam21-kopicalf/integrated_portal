@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Badge, Button, Empty, ErrorState, Panel, cx } from '@/so/ui';
 import { call } from '@/so/features/checkin/checkin';
 import { locale, tr } from '@/lib/i18n';
+import { SkeletonList } from '@/components/kc/Skeleton';
 
 export type Position = { driver: string; name: string; fleet: string | null; shift: 'open' | 'closed'; at: string; lat: number; lng: number; accuracy: number | null; speed: number | null; battery: number | null };
 type Point = Omit<Position, 'driver' | 'name' | 'fleet' | 'shift'>;
@@ -89,7 +90,7 @@ export default function DriverMap({ day, live }: { day: string; live: boolean })
         <div className="grid lg:grid-cols-[1fr_20rem]">
           <div ref={box} className="h-[480px] w-full bg-neutral-100" />
           <div className="max-h-[480px] overflow-y-auto border-t border-neutral-100 lg:border-l lg:border-t-0">
-            {!rows ? <div className="skeleton m-4 h-24 rounded-xl" /> : rows.length === 0 ? (
+            {!rows ? <SkeletonList rows={3} /> : rows.length === 0 ? (
               <Empty icon={<LocateFixed size={26} />} title={tr('No position yet')}>{tr('Positions arrive once a driver has checked in with the location allowed.')}</Empty>
             ) : (
               <ul className="divide-y divide-neutral-100">

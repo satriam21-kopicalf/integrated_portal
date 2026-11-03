@@ -49,7 +49,7 @@ export function StatStrip({ children, columns = 4, label, gridClassName }: { chi
 }
 
 /** A number card: label (+ icon / info), value, the lines under it; a quick filter when `onClick` is given. */
-export function Stat({ label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-2xl', info, onClick, active = false }: {
+export function Stat({ label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-xl sm:text-2xl', info, onClick, active = false }: {
   label: string; icon?: ReactNode; info?: ReactNode; value: ReactNode; title?: string; children?: ReactNode; emphasis?: boolean;
   className?: string; valueClassName?: string; onClick?: () => void; active?: boolean;
 }) {

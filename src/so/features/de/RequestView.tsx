@@ -37,13 +37,13 @@ export function Steps({ r }: { r: Request }) {
           const here = i === idx && r.status !== "DONE";
           return (
             <li key={s} className="relative flex flex-1 flex-col items-center text-center">
-              {i > 0 && <span className={cx("absolute right-1/2 top-3 h-0.5 w-full", done || here ? "bg-blue-600" : "bg-slate-200")} aria-hidden />}
+              {i > 0 && <span className={cx("absolute right-1/2 top-3 h-0.5 w-full", done || here ? "bg-brand-600" : "bg-neutral-200")} aria-hidden />}
               <span className={cx("relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold",
-                done ? "bg-blue-600 text-white" : here ? (r.status === "ON_HOLD" ? "bg-amber-500 text-white" : r.status === "REJECTED" ? "bg-red-600 text-white" : "bg-blue-600 text-white ring-4 ring-blue-100")
-                  : "bg-slate-200 text-slate-500")}>
+                done ? "bg-brand-600 text-white" : here ? (r.status === "ON_HOLD" ? "bg-amber-500 text-white" : r.status === "REJECTED" ? "bg-red-600 text-white" : "bg-brand-600 text-white ring-4 ring-brand-100")
+                  : "bg-neutral-200 text-neutral-500")}>
                 {done ? <Check size={13} /> : here && r.status === "ON_HOLD" ? <PauseCircle size={13} /> : here && r.status === "REJECTED" ? <XCircle size={13} /> : i + 1}
               </span>
-              <span className={cx("mt-1 text-[10px] font-medium leading-tight sm:text-[11px]", done || here ? "text-slate-900" : "text-slate-400")}>{STATUS_LABEL[s]()}</span>
+              <span className={cx("mt-1 text-[10px] font-medium leading-tight sm:text-[11px]", done || here ? "text-neutral-900" : "text-neutral-400")}>{STATUS_LABEL[s]()}</span>
             </li>
           );
         })}
@@ -62,18 +62,18 @@ function Tracker({ r }: { r: Request }) {
   const max = Math.max(1, ...t.stages.map((s) => s.hours));
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 divide-x divide-slate-100 rounded-lg border border-slate-100 text-center">
+      <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-lg border border-neutral-100 text-center">
         {[[tr("Total"), t.totalHours], [tr("Handled"), t.workHours], [tr("On hold"), t.holdHours]].map(([k, v]) => (
-          <div key={String(k)} className="px-2 py-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{k}</p>
-            <p className="text-sm font-semibold tabular-nums text-slate-900">{fmtHours(v as number)}</p></div>
+          <div key={String(k)} className="px-2 py-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{k}</p>
+            <p className="text-sm font-semibold tabular-nums text-neutral-900">{fmtHours(v as number)}</p></div>
         ))}
       </div>
       <ul className="space-y-1.5">
         {t.stages.map((s) => (
           <li key={s.status} className="grid grid-cols-[6.5rem_1fr_4.5rem] items-center gap-2 text-xs">
-            <span className="truncate text-slate-600">{STATUS_LABEL[s.status]()}</span>
-            <span className="h-1.5 overflow-hidden rounded-full bg-slate-100"><span className={cx("block h-full rounded-full", s.status === "ON_HOLD" ? "bg-amber-400" : "bg-blue-500")} style={{ width: `${(s.hours / max) * 100}%` }} /></span>
-            <span className="text-right tabular-nums text-slate-700">{fmtHours(s.hours)}</span>
+            <span className="truncate text-neutral-600">{STATUS_LABEL[s.status]()}</span>
+            <span className="h-1.5 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", s.status === "ON_HOLD" ? "bg-amber-400" : "bg-brand-500")} style={{ width: `${(s.hours / max) * 100}%` }} /></span>
+            <span className="text-right tabular-nums text-neutral-700">{fmtHours(s.hours)}</span>
           </li>
         ))}
       </ul>
@@ -85,12 +85,12 @@ function Tracker({ r }: { r: Request }) {
 export function EvidenceGrid({ list, urls, onRemove, add, empty, by = false }: {
   list: Media[]; urls: MediaUrls; onRemove?: (id: string) => void; add?: React.ReactNode; empty?: string; by?: boolean;
 }) {
-  if (!list.length && !add) return <p className="rounded-xl border border-dashed border-slate-200 px-3 py-5 text-center text-sm text-slate-400">{empty ?? tr("No photo")}</p>;
+  if (!list.length && !add) return <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-5 text-center text-sm text-neutral-400">{empty ?? tr("No photo")}</p>;
   return (
     <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
       {list.map((m, i) => (
         <li key={m.id}>
-          <figure className="group relative overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200">
+          <figure className="group relative overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
             <a href={urls.media(m.id)} target="_blank" rel="noreferrer" title={wibDateTime(m.takenAt ?? m.uploadedAt)}>
               {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
               <img src={urls.media(m.id)} alt={tr("Photo {0}", i + 1)} loading="lazy" className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-[1.02]" />
@@ -116,7 +116,7 @@ export function AddPhotoTile({ onClick, label, tone = "slate" }: { onClick: () =
   return (
     <button type="button" onClick={onClick}
       className={cx("flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed text-xs font-medium transition-colors",
-        tone === "blue" ? "border-blue-300 bg-blue-50/50 text-blue-700 hover:bg-blue-50" : "border-slate-300 bg-slate-50/60 text-slate-500 hover:border-blue-400 hover:text-blue-700")}>
+        tone === "blue" ? "border-brand-300 bg-brand-50/50 text-brand-700 hover:bg-brand-50" : "border-neutral-300 bg-neutral-50/60 text-neutral-500 hover:border-brand-400 hover:text-brand-700")}>
       <Camera size={20} />{label}
     </button>
   );
@@ -129,20 +129,20 @@ export function Gallery({ r, urls, kind, empty }: { r: Request; urls: MediaUrls;
 
 /** Invoices / receipts of the cost (team), each one a download. */
 export function Invoices({ list, urls, onRemove }: { list: Media[]; urls: MediaUrls; onRemove?: (id: string) => void }) {
-  if (!list.length) return <p className="text-sm text-slate-400">{tr("No invoice attached yet")}</p>;
+  if (!list.length) return <p className="text-sm text-neutral-400">{tr("No invoice attached yet")}</p>;
   return (
-    <ul className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200">
+    <ul className="divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200">
       {list.map((m) => (
         <li key={m.id} className="flex items-center gap-3 px-3 py-2">
-          <span className={cx("flex h-8 w-10 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-bold uppercase", m.mime === "application/pdf" ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700")}>
+          <span className={cx("flex h-8 w-10 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-bold uppercase", m.mime === "application/pdf" ? "bg-red-50 text-red-700" : "bg-brand-50 text-brand-700")}>
             {m.mime === "application/pdf" ? "PDF" : <FileText size={14} />}
           </span>
-          <a href={urls.media(m.id)} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:text-blue-700">
-            <span className="block truncate text-sm font-medium text-slate-900">{m.fileName ?? tr("Invoice")}</span>
-            <span className="block truncate text-[11px] text-slate-500">{m.note ? `${m.note} · ` : ""}{fmtMb(m.bytes)} · {m.uploadedBy ?? "—"} · {wibDateTime(m.uploadedAt)}</span>
+          <a href={urls.media(m.id)} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:text-brand-700">
+            <span className="block truncate text-sm font-medium text-neutral-900">{m.fileName ?? tr("Invoice")}</span>
+            <span className="block truncate text-[11px] text-neutral-500">{m.note ? `${m.note} · ` : ""}{fmtMb(m.bytes)} · {m.uploadedBy ?? "—"} · {wibDateTime(m.uploadedAt)}</span>
           </a>
-          <a href={urls.media(m.id)} download={m.fileName ?? undefined} aria-label={tr("Download {0}", m.fileName ?? tr("Invoice"))} className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><Download size={15} /></a>
-          {onRemove && <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove {0}", m.fileName ?? tr("Invoice"))} className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"><XCircle size={15} /></button>}
+          <a href={urls.media(m.id)} download={m.fileName ?? undefined} aria-label={tr("Download {0}", m.fileName ?? tr("Invoice"))} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><Download size={15} /></a>
+          {onRemove && <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove {0}", m.fileName ?? tr("Invoice"))} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><XCircle size={15} /></button>}
         </li>
       ))}
     </ul>
@@ -151,7 +151,7 @@ export function Invoices({ list, urls, onRemove }: { list: Media[]; urls: MediaU
 
 export function Timeline({ events }: { events: DeEvent[] }) {
   return (
-    <ol className="relative space-y-4 border-l border-slate-200 pl-5">
+    <ol className="relative space-y-4 border-l border-neutral-200 pl-5">
       {[...events].reverse().map((e) => {
         const tech = e.details?.technician as string | undefined;
         const what = e.kind === "STATUS" ? `${e.from ? STATUS_LABEL[e.from]() : ""} → ${e.to ? STATUS_LABEL[e.to]() : ""}`
@@ -165,12 +165,12 @@ export function Timeline({ events }: { events: DeEvent[] }) {
         return (
           <li key={e.id} className="relative">
             <span className={cx("absolute -left-[1.6rem] top-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-white",
-              e.to === "REJECTED" ? "bg-red-500" : e.to === "ON_HOLD" ? "bg-amber-500" : e.to === "DONE" || e.kind === "HANDOVER" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-emerald-500" : e.kind === "TARGET" ? "bg-violet-500" : e.kind === "NOTE" ? "bg-slate-400" : "bg-blue-500")}>
+              e.to === "REJECTED" ? "bg-red-500" : e.to === "ON_HOLD" ? "bg-amber-500" : e.to === "DONE" || e.kind === "HANDOVER" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-emerald-500" : e.kind === "TARGET" ? "bg-violet-500" : e.kind === "NOTE" ? "bg-neutral-400" : "bg-brand-500")}>
               <CircleDot size={10} className="text-white" />
             </span>
-            <p className="text-sm font-medium text-slate-900">{what}</p>
-            <p className="text-[11px] text-slate-500">{wibDateTime(e.at)}{e.actor ? ` · ${e.actor}` : ""}</p>
-            {e.note && <p className="mt-1 whitespace-pre-line rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">{e.note}</p>}
+            <p className="text-sm font-medium text-neutral-900">{what}</p>
+            <p className="text-[11px] text-neutral-500">{wibDateTime(e.at)}{e.actor ? ` · ${e.actor}` : ""}</p>
+            {e.note && <p className="mt-1 whitespace-pre-line rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{e.note}</p>}
           </li>
         );
       })}
@@ -199,26 +199,26 @@ export function RequestHero({ r, compact = false }: { r: Request; compact?: bool
     [<Calendar key="c" size={13} />, tr("Sent"), wibDateTime(r.submittedAt)],
     [<CalendarClock key="t" size={13} />, tr("Estimated finish"), <span key="v" className={r.tracker?.overdue || r.tracker?.late ? "text-red-600" : undefined}>
       {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}{r.tracker?.targetAdjusted ? <span className="ml-1 rounded bg-violet-100 px-1 text-[10px] font-semibold text-violet-700">{tr("adjusted")}</span> : null}
-      <span className="block text-[11px] font-normal text-slate-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></span>],
+      <span className="block text-[11px] font-normal text-neutral-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></span>],
     [<Wrench key="w" size={13} />, r.mode === "VENDOR" ? tr("Vendor") : tr("Technician"), <span key="w">{techs.join(", ") || "—"}
-      {r.mode && <span className="block text-[11px] font-normal text-slate-400">{r.mode === "VENDOR" ? tr("Vendor work") : tr("Internal technician")}</span>}</span>],
+      {r.mode && <span className="block text-[11px] font-normal text-neutral-400">{r.mode === "VENDOR" ? tr("Vendor work") : tr("Internal technician")}</span>}</span>],
   ];
   return (
-    <section className={cx("overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm", compact && "rounded-xl")}>
+    <section className={cx("overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm", compact && "rounded-xl")}>
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-4 sm:px-5">
         <div className="min-w-0">
-          <p className="font-mono text-xs font-semibold text-blue-700">{r.number}</p>
-          <h2 className={cx("font-semibold text-slate-900", compact ? "text-base" : "text-lg sm:text-xl")}>{r.kindLabel}</h2>
-          <p className="flex items-center gap-1 text-xs text-slate-500"><MapPin size={12} /> {r.branchName} ({r.branchCode})
+          <p className="font-mono text-xs font-semibold text-brand-700">{r.number}</p>
+          <h2 className={cx("font-semibold text-neutral-900", compact ? "text-base" : "text-lg sm:text-xl")}>{r.kindLabel}</h2>
+          <p className="flex items-center gap-1 text-xs text-neutral-500"><MapPin size={12} /> {r.branchName} ({r.branchCode})
             {r.distanceM !== null && <span className={r.outsideRadius ? "text-red-600" : undefined}> · {tr("sent {0} m from the outlet", r.distanceM)}</span>}</p>
         </div>
         <span className="flex flex-wrap gap-1.5"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>
       </div>
-      <dl className="grid grid-cols-2 border-y border-slate-100 bg-slate-50/60 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 border-y border-neutral-100 bg-neutral-50/60 sm:grid-cols-4">
         {facts.map(([icon, k, v], i) => (
-          <div key={k} className={cx("px-4 py-2.5 sm:px-5", i % 2 === 1 && "border-l border-slate-100", i >= 2 && "border-t border-slate-100 sm:border-t-0", i === 2 && "sm:border-l")}>
-            <dt className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{icon}{k}</dt>
-            <dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{v}</dd>
+          <div key={k} className={cx("px-4 py-2.5 sm:px-5", i % 2 === 1 && "border-l border-neutral-100", i >= 2 && "border-t border-neutral-100 sm:border-t-0", i === 2 && "sm:border-l")}>
+            <dt className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{icon}{k}</dt>
+            <dd className="mt-0.5 truncate text-sm font-medium text-neutral-900">{v}</dd>
           </div>
         ))}
       </dl>
@@ -233,11 +233,11 @@ export function RequestHero({ r, compact = false }: { r: Request; compact?: bool
 
 function SignBox({ title, name, src }: { title: string; name: string; src?: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{title}</p>
+    <div className="rounded-lg border border-neutral-200 p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{title}</p>
       {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
       {src ? <img src={src} alt={tr("Signature")} className="my-1 h-16 w-auto max-w-full object-contain" /> : <div className="my-1 h-4" />}
-      <p className="text-sm font-semibold text-slate-900">{name}</p>
+      <p className="text-sm font-semibold text-neutral-900">{name}</p>
     </div>
   );
 }
@@ -265,13 +265,13 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
         <FormCard n={next()} title={tr("Status & progress")} hint={`${r.kindLabel} · ${r.branchName}`}
           aside={<span className="flex flex-wrap justify-end gap-1"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>}>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
-            <div><dt className="text-[11px] text-slate-400">PIC</dt><dd className="font-medium text-slate-900">{r.picName}</dd></div>
-            <div><dt className="text-[11px] text-slate-400">{tr("Sent")}</dt><dd className="text-slate-900">{wibDateTime(r.submittedAt)}</dd></div>
-            <div><dt className="text-[11px] text-slate-400">{tr("Location when sent")}</dt>
-              <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-red-700" : "text-slate-900")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
-            <div><dt className="text-[11px] text-slate-400">{tr("Estimated finish")}</dt>
-              <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-slate-900")}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}
-                <span className="block text-[11px] font-normal text-slate-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></dd></div>
+            <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Sent")}</dt><dd className="text-neutral-900">{wibDateTime(r.submittedAt)}</dd></div>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Location when sent")}</dt>
+              <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-red-700" : "text-neutral-900")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Estimated finish")}</dt>
+              <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-neutral-900")}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}
+                <span className="block text-[11px] font-normal text-neutral-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></dd></div>
           </dl>
           <Steps r={r} />
           <TargetNote r={r} />
@@ -290,14 +290,14 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
       {show("detail") && (
         <>
           <FormCard n={next()} title={tr("Items ({0})", r.items?.length ?? 0)} hint={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}>
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-neutral-100">
               {(r.items ?? []).map((it, i) => (
                 <li key={it.id ?? i} className="flex items-start gap-3 py-2 first:pt-0 last:pb-0">
-                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-500">{i + 1}</span>
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-semibold text-neutral-500">{i + 1}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium text-slate-900">{it.name} <span className="font-normal text-slate-500">× {it.qty}</span></span>
-                    <span className="block text-xs text-slate-500">{it.category} · {it.group}{it.location ? ` · ${it.location}` : ""}</span>
-                    {it.note && <span className="mt-0.5 block text-xs text-slate-600">{it.note}</span>}
+                    <span className="block text-sm font-medium text-neutral-900">{it.name} <span className="font-normal text-neutral-500">× {it.qty}</span></span>
+                    <span className="block text-xs text-neutral-500">{it.category} · {it.group}{it.location ? ` · ${it.location}` : ""}</span>
+                    {it.note && <span className="mt-0.5 block text-xs text-neutral-600">{it.note}</span>}
                   </span>
                   <UrgencyBadge u={it.urgency} />
                 </li>
@@ -307,14 +307,14 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
 
           <FormCard n={next()} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
             hint={r.kind === "REPAIR" && r.cause ? `${tr("Cause")}: ${CAUSES.find((c) => c.value === r.cause)?.label() ?? r.cause}` : undefined}>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{r.analysis || "—"}</p>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-700">{r.analysis || "—"}</p>
           </FormCard>
 
           <FormCard n={next()} title={tr("Evidence")} hint={`${tr("{0} photos", photos)}${video ? ` · ${tr("1 video")}` : ""}`}>
             <Gallery r={r} urls={urls} kind="PHOTO" />
             {video && (
               <div>
-                <p className="mb-1 flex items-center gap-1 text-xs text-slate-500"><Video size={13} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</p>
+                <p className="mb-1 flex items-center gap-1 text-xs text-neutral-500"><Video size={13} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</p>
                 <video src={urls.media(video.id)} controls preload="metadata" className="max-h-80 w-full rounded-lg bg-black" />
               </div>
             )}
@@ -326,25 +326,25 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
         <FormCard n={next()} title={tr("Handling")} hint={tr("Technicians, cost, invoices and photos of the work done")}
           aside={r.mode ? <Badge tone={r.mode === "VENDOR" ? "amber" : "blue"}>{r.mode === "VENDOR" ? tr("Vendor") : tr("Internal")}</Badge> : undefined}>
           {active.length > 0 && (
-            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
               {active.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-x-2 px-3 py-2 text-sm">
-                  <span className="font-medium text-slate-900">{a.name}</span>
-                  <span className="text-xs text-slate-500">{a.kind === "VENDOR" ? a.company ?? tr("Vendor") : tr("Internal")}{a.scheduledFor ? ` · ${tr("scheduled {0}", a.scheduledFor)}` : ""}</span>
+                  <span className="font-medium text-neutral-900">{a.name}</span>
+                  <span className="text-xs text-neutral-500">{a.kind === "VENDOR" ? a.company ?? tr("Vendor") : tr("Internal")}{a.scheduledFor ? ` · ${tr("scheduled {0}", a.scheduledFor)}` : ""}</span>
                 </li>
               ))}
             </ul>
           )}
           {(r.estCost !== null || r.actualCost !== null || r.vendor) && (
-            <dl className="grid grid-cols-3 gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs">
-              <div><dt className="text-slate-400">{tr("Estimated cost")}</dt><dd className="font-semibold tabular-nums text-slate-900">{fmtRp(r.estCost)}</dd></div>
-              <div><dt className="text-slate-400">{tr("Actual cost")}</dt><dd className="font-semibold tabular-nums text-slate-900">{fmtRp(r.actualCost)}</dd></div>
-              <div><dt className="text-slate-400">{tr("Vendor")}</dt><dd className="truncate font-semibold text-slate-900">{r.vendor ?? "—"}</dd></div>
+            <dl className="grid grid-cols-3 gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs">
+              <div><dt className="text-neutral-400">{tr("Estimated cost")}</dt><dd className="font-semibold tabular-nums text-neutral-900">{fmtRp(r.estCost)}</dd></div>
+              <div><dt className="text-neutral-400">{tr("Actual cost")}</dt><dd className="font-semibold tabular-nums text-neutral-900">{fmtRp(r.actualCost)}</dd></div>
+              <div><dt className="text-neutral-400">{tr("Vendor")}</dt><dd className="truncate font-semibold text-neutral-900">{r.vendor ?? "—"}</dd></div>
             </dl>
           )}
-          {invoices.length > 0 && <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("Invoices / receipts")}</p><Invoices list={invoices} urls={urls} /></div>}
-          {r.mode !== "VENDOR" && <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("Photos of the work done")}</p><Gallery r={r} urls={urls} kind="AFTER" /></div>}
-          {(r.media ?? []).some((m) => m.kind === "MONITOR") && <div><p className="mb-1.5 text-xs font-semibold text-slate-500">{tr("PIC photos while the work ran")}</p><Gallery r={r} urls={urls} kind="MONITOR" /></div>}
+          {invoices.length > 0 && <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("Invoices / receipts")}</p><Invoices list={invoices} urls={urls} /></div>}
+          {r.mode !== "VENDOR" && <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("Photos of the work done")}</p><Gallery r={r} urls={urls} kind="AFTER" /></div>}
+          {(r.media ?? []).some((m) => m.kind === "MONITOR") && <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("PIC photos while the work ran")}</p><Gallery r={r} urls={urls} kind="MONITOR" /></div>}
         </FormCard>
       )}
 
@@ -352,12 +352,12 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
         <FormCard n={next()} title={tr("Handover at the outlet")} hint={`${wibDateTime(ho.at)}${ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}`}
           aside={<Badge tone="green" icon={<Handshake size={11} />}>{tr("Received")}</Badge>}>
           <Gallery r={r} urls={urls} kind="HANDOVER" />
-          {ho.note && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">{ho.note}</p>}
+          {ho.note && <p className="rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{ho.note}</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             {ho.vendorName && <SignBox title={tr("Vendor")} name={ho.vendorName} src={urls.handover?.(r.id, "vendor")} />}
             {ho.picName && <SignBox title={tr("PIC outlet")} name={ho.picName} src={urls.handover?.(r.id, "pic")} />}
           </div>
-          {ho.approvedBy && <p className="text-xs text-slate-500">{tr("Approved Done by {0}", ho.approvedBy)}</p>}
+          {ho.approvedBy && <p className="text-xs text-neutral-500">{tr("Approved Done by {0}", ho.approvedBy)}</p>}
         </FormCard>
       )}
 
@@ -371,8 +371,8 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
         <FormCard n={next()} title={tr("PIC signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
-            <img src={urls.signature(r.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-slate-200" />
-            <div className="text-sm"><p className="font-semibold text-slate-900">{r.signature.name}</p><p className="text-xs text-slate-500">{wibDateTime(r.signature.signedAt)}</p></div>
+            <img src={urls.signature(r.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-neutral-200" />
+            <div className="text-sm"><p className="font-semibold text-neutral-900">{r.signature.name}</p><p className="text-xs text-neutral-500">{wibDateTime(r.signature.signedAt)}</p></div>
           </div>
         </FormCard>
       )}

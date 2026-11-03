@@ -73,7 +73,7 @@ export default function HBarChart({
     };
   }, [signature, color, rowHeight, labelWidth, max]);
 
-  if (!items.length) return <p className="py-6 text-center text-sm text-slate-400">{tr('No data')}</p>;
+  if (!items.length) return <p className="py-6 text-center text-sm text-neutral-400">{tr('No data')}</p>;
   const pick = onSelect ? (p: { dataIndex: number; componentType?: string; value?: unknown }) => {
     const rows = [...items].reverse();
     const i = p.componentType === 'yAxis' ? rows.findIndex(r => r.label === p.value) : p.dataIndex;

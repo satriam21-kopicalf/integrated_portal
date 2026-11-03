@@ -16,6 +16,7 @@ import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } 
 import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 type Group = { id: string; code: string; name: string; description: string | null; is_active: boolean; updated_at: string;
   /** date asked for this group's items: null = follow the count type, "NONE" = no date */
@@ -245,7 +246,7 @@ function BranchPicker({ facilities, types, usedBy, countTypes, setCountTypes, pi
         </span>
       </div>
       <ul className="max-h-[22rem] divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200">
-        {facilities === null ? <li className="skeleton m-2 h-24 rounded" /> : shown.map((f) => {
+        {facilities === null ? <li><SkeletonList rows={3} /></li> : shown.map((f) => {
           const has = assigned.get(f.id) ?? [];
           return (
             <li key={f.id}>
@@ -486,7 +487,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
   return (
     <Drawer open onClose={onClose} size="xl" icon={<Boxes size={18} />} title={g?.name ?? tr("Item group")}
       description={g ? `${g.code} · ${tr("{0} items", items.length)}` : undefined} footer={footer}>
-      {!g ? <div className="skeleton h-64 rounded-lg" /> : (
+      {!g ? <SkeletonList rows={5} /> : (
         <div className="space-y-5">
           <dl className="grid grid-cols-3 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-neutral-50 text-center">
             <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Items")}</dt><dd className="text-lg font-semibold tabular-nums text-neutral-900">{items.length}</dd></div>

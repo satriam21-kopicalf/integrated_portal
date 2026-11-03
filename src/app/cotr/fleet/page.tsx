@@ -14,6 +14,7 @@ import { Page } from "@/components/kc/compat";
 import { Driver, Fleet, FleetType, Pool } from "@/cotr/types";
 import { MasterTable, imageUrl, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
+import { thumb } from "@/lib/assets";
 
 const DUE_DAYS = 30;
 /** the papers and the service of an armada due within DUE_DAYS (or past) */
@@ -64,7 +65,7 @@ export default function CotrFleetPage() {
             <span className="flex items-center gap-3">
               <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-100 text-neutral-400">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {f.has_photo ? <img src={imageUrl("fleet", f.code, "photo", f.updated_at)} alt="" className="h-full w-full object-cover" loading="lazy" /> : <Bike size={16} />}
+                {f.has_photo ? <img src={thumb(imageUrl("fleet", f.code, "photo", f.updated_at), 96)} decoding="async" alt="" className="h-full w-full object-cover" loading="lazy" /> : <Bike size={16} />}
               </span>
               <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{f.code}{f.name ? ` · ${f.name}` : ""}</span>
                 <span className="text-[11px] text-neutral-400">{typeName(f.type)}{f.brand ? ` · ${f.brand} ${f.model ?? ""}` : ""}{f.plate ? ` · ${f.plate}` : ""}{f.color ? ` · ${f.color}` : ""}</span></span>

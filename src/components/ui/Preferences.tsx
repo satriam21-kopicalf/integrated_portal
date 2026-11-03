@@ -1,59 +1,13 @@
 'use client';
 
-import { Languages, Monitor, Moon, Sun } from 'lucide-react';
+import { Languages, Moon, Sun } from 'lucide-react';
 import { Lang, useLang, tr } from '@/lib/i18n';
-import { ThemeMode, useTheme } from '@/lib/theme';
-
-const THEMES: { value: ThemeMode; icon: typeof Sun; label: string }[] = [
-  { value: 'light', icon: Sun, get label() { return tr('Light'); } },
-  { value: 'dark', icon: Moon, get label() { return tr('Dark'); } },
-  { value: 'system', icon: Monitor, get label() { return tr('System'); } },
-];
+import { useTheme } from '@/lib/theme';
 
 const LANGS: { value: Lang; short: string; label: string }[] = [
   { value: 'en', get short() { return tr('EN'); }, get label() { return tr('English'); } },
   { value: 'id', get short() { return tr('ID'); }, get label() { return tr('Indonesia'); } },
 ];
-
-function Choice<V extends string>({ value, options, onChange, label }: {
-  value: V; label: string;
-  options: { value: V; label: string; icon?: typeof Sun }[];
-  onChange: (v: V) => void;
-}) {
-  return (
-    <div role="radiogroup" aria-label={label} className="grid gap-1 rounded-lg bg-neutral-100 p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
-      {options.map(o => {
-        const on = o.value === value;
-        const Icon = o.icon;
-        return (
-          <button key={o.value} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.value)}
-            className={`inline-flex h-7 items-center justify-center gap-1 rounded-md text-xs font-medium transition-colors ${
-              on ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-800'}`}>
-            {Icon && <Icon size={13} aria-hidden />}{o.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Appearance and language, in the user menu. */
-export function PreferenceControls() {
-  const { mode, setMode } = useTheme();
-  const { lang, setLang } = useLang();
-  return (
-    <div className="space-y-2.5 border-b border-neutral-100 px-3 py-3">
-      <div>
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tr('Appearance')}</p>
-        <Choice label={tr('Appearance')} value={mode} onChange={setMode} options={THEMES.map(o => ({ ...o, label: tr(o.label) }))} />
-      </div>
-      <div>
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tr('Language')}</p>
-        <Choice label={tr('Language')} value={lang} onChange={setLang} options={LANGS.map(o => ({ value: o.value, label: o.label }))} />
-      </div>
-    </div>
-  );
-}
 
 /** Compact theme and language switches (login page). */
 export function PreferenceSwitches({ className = '' }: { className?: string }) {

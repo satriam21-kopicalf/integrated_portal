@@ -11,7 +11,7 @@ export function SeriesKey({ color, shape = 'square' }: { color: string; shape?: 
 
 export function Legend({ items }: { items: { key: string; label: string; color: string; shape?: 'line' | 'square' }[] }) {
   return (
-    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-600">
       {items.map(i => (
         <li key={i.key} className="flex items-center gap-1.5">
           <SeriesKey color={i.color} shape={i.shape} />

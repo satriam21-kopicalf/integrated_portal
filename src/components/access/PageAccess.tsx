@@ -11,6 +11,7 @@ import { addMaster, loadMaster, MasterKind, MasterName } from '@/components/Mast
 import { OPERATIONS_PAGES, OPERATIONS_URL, operationsOnly, Role, ROLE_LABELS } from '@/lib/auth';
 import { serverMsg, tr } from '@/lib/i18n';
 import { PageInfo, PageKey, PAGES, STATE_LABEL } from '@/lib/pages';
+import { SkeletonList } from '@/components/kc/Skeleton';
 
 type EditableRole = 'cost_control' | 'user' | 'outlet';
 type RolePages = Record<EditableRole, PageKey[]>;
@@ -58,7 +59,7 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
       </div>
     );
   }
-  if (!roles) return <div className="skeleton h-40 rounded-lg" />;
+  if (!roles) return <SkeletonList rows={4} />;
   const base = new Set<string>(roles[role as EditableRole] ?? []);
   const effective = (k: PageKey) => (k in overrides ? overrides[k] : base.has(k));
   const toggle = (k: PageKey) => {
@@ -149,7 +150,7 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
           {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} {tr('Save')}
         </button>
       </>}>
-      {!draft ? <div className="skeleton h-72 rounded-lg" /> : (
+      {!draft ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
           <div className="overflow-x-auto rounded-xl border border-neutral-200">
             <table className="w-full min-w-[600px] text-sm">
@@ -286,7 +287,7 @@ export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
         </button>
       </>}>
       {message && <p className={`mb-3 rounded-lg px-3 py-2 text-xs ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
-      {!pages ? <div className="skeleton h-72 rounded-lg" /> : (
+      {!pages ? <SkeletonList rows={5} /> : (
         <div className="overflow-x-auto rounded-xl border border-neutral-200">
           <table className="w-full min-w-[560px] text-sm">
             <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
@@ -412,7 +413,7 @@ function MasterList({ kind }: { kind: MasterKind }) {
         <button type="submit" className={buttonPrimary} disabled={!name.trim()}><Plus size={16} /> {tr('Add')}</button>
       </form>
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-      {!rows ? <div className="skeleton h-40 rounded-lg" /> : rows.length === 0 ? (
+      {!rows ? <SkeletonList rows={4} /> : rows.length === 0 ? (
         <p className="py-6 text-center text-sm text-neutral-400">{tr('No names yet')}</p>
       ) : (
         <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">

@@ -15,6 +15,7 @@ import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, S
 import { api, errorText } from "@/so/lib/api";
 import { countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 type Facility = { id: string; code: string; name: string; facility_type: string; legal_entity_code: string; own_lists: number; city?: string | null };
 type LF = { type: string; lists: string; city: string };
@@ -133,7 +134,7 @@ export default function ListsPage() {
           footer={facilities ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(facilities.length))}</span><PageNav paged={paged} /></> : undefined}>
           {error ? <ErrorState message={error} onRetry={loadFacilities} /> : (
             <ul className="max-h-[32rem] divide-y divide-neutral-100 overflow-y-auto lg:max-h-[calc(100dvh-16rem)]">
-              {facilities === null ? [0, 1, 2, 3].map((i) => <li key={i} className="p-3"><div className="skeleton h-9 rounded" /></li>) : paged.rows.map((f) => (
+              {facilities === null ? [0, 1, 2, 3].map((i) => <li key={i} className="p-3"><SkeletonList rows={3} /></li>) : paged.rows.map((f) => (
                 <li key={f.id}>
                   <button type="button" onClick={() => {
                     setSelected(f);
@@ -241,7 +242,7 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
       title={d ? `${d.facility_name ?? `${d.facility_type} (${tr("default")})`} · ${countTypeLabel(d.count_type)}` : tr("Count list")}
       description={d ? (d.groups_only ? tr("Counts its item groups only: {0} items", d.effective_items) : tr("{0} own items + groups = {1} items counted", d.items.length, d.effective_items)) : undefined}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button><Button loading={busy} disabled={!dirty} onClick={save}><Save size={16} /> {tr("Save")}</Button></>}>
-      {!d ? <div className="skeleton h-64 rounded-lg" /> : (
+      {!d ? <SkeletonList rows={5} /> : (
         <div className="space-y-6">
           <DrawerSection title={tr("Item Groups")} description={tr("When a group is assigned, the count shows the items of the assigned groups only (the branch template). This list's own settings still apply to those items.")}>
             {groups.length === 0 ? <p className="text-sm text-neutral-500">{tr("No item groups yet. Create them under Items Groups.")}</p> : (

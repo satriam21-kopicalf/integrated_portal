@@ -72,7 +72,7 @@ function ShareView() {
             </div>
             <RequestView r={r} urls={urls} part="history" numbered={false} />
           </div>
-          <p className="flex items-start justify-center gap-1.5 text-center text-[11px] text-slate-400">
+          <p className="flex items-start justify-center gap-1.5 text-center text-[11px] text-neutral-400">
             <Info size={12} className="mt-px flex-shrink-0" />
             {tr("Read-only copy for sharing; it always shows the latest progress.")}{r.shareExpiresAt ? ` ${tr("Link valid until {0}.", wibDateTime(r.shareExpiresAt))}` : ""}
           </p>

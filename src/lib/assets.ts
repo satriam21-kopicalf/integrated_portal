@@ -9,3 +9,6 @@ export const ASSETS_BASE_URL = (
 export function assetUrl(path: string): string {
   return `${ASSETS_BASE_URL}/${path.replace(/^\//, '')}`;
 }
+
+/** The URL of a photo route asking for a copy at most `w` px wide (backend app/thumbs.py); the original without it. */
+export const thumb = (url: string, w: number) => `${url}${url.includes('?') ? '&' : '?'}w=${w}`;

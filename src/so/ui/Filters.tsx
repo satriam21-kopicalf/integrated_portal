@@ -39,7 +39,7 @@ export function FilterToolbar({ search, onSearch, placeholder, filters, onOpen, 
       <div className="flex flex-wrap items-center gap-2">
         {onSearch && (
           <div className="relative min-w-0 flex-1 basis-56">
-            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
             </svg>
             <input value={search ?? ''} onChange={(e) => onSearch(e.target.value)} placeholder={placeholder} aria-label={placeholder}
@@ -156,16 +156,16 @@ export function PeriodField({ value, onChange, presets, maxDays }: {
 /** A stacked bar of parts (status distribution) with a legend; shares of the total. */
 export function SegmentBar({ parts, total }: { parts: { label: string; value: number; color: string }[]; total?: number }) {
   const sum = total ?? parts.reduce((a, p) => a + p.value, 0);
-  if (!sum) return <div className="h-2 rounded-full bg-slate-100" />;
+  if (!sum) return <div className="h-2 rounded-full bg-neutral-100" />;
   return (
     <div className="space-y-2">
-      <div className="flex h-2 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={parts.map((p) => `${p.label} ${p.value}`).join(', ')}>
+      <div className="flex h-2 overflow-hidden rounded-full bg-neutral-100" role="img" aria-label={parts.map((p) => `${p.label} ${p.value}`).join(', ')}>
         {parts.filter((p) => p.value > 0).map((p) => <span key={p.label} className={p.color} style={{ width: `${(p.value / sum) * 100}%` }} />)}
       </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">
         {parts.map((p) => (
           <span key={p.label} className="inline-flex items-center gap-1.5">
-            <span className={cx('h-2 w-2 rounded-full', p.color)} />{p.label} <span className="font-semibold tabular-nums text-slate-900">{p.value}</span>
+            <span className={cx('h-2 w-2 rounded-full', p.color)} />{p.label} <span className="font-semibold tabular-nums text-neutral-900">{p.value}</span>
           </span>
         ))}
       </div>

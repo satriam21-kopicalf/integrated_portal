@@ -22,6 +22,7 @@ import { TZ, wibDate, wibDateTime, wibDay } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import PengajuanView, { Balances, FileChip, StatusBadge } from "./PengajuanView";
+import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Barista, type FileKind, type FormState, type Kind, type Line, type Pengajuan, type PgFile, CATEGORY_LABEL, DOC_LABEL, KINDS, KIND_HINT,
   NEEDED_LABEL, OPEN, STATUS_LABEL, fmtRp, kindLabel, parseRp, typeRp, upload } from "./pengajuan";
 
@@ -80,8 +81,8 @@ export default function PengajuanForm() {
   return (
     <Page title={tr("Fund requests")} actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
-      {error ? <div className="rounded-2xl border border-slate-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
-        <div className="mx-auto max-w-4xl space-y-4"><div className="skeleton h-48 rounded-xl" /><div className="skeleton h-64 rounded-xl" /></div>
+      {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+        <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && (
@@ -96,21 +97,21 @@ export default function PengajuanForm() {
             </div>
           )}
 
-          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-5">
+          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+            <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-900">{data.user.name}</p>
-                <p className="truncate text-xs text-slate-500">@{data.user.username} · {tr("Petty cash and budget requests of the outlet")}</p>
+                <p className="truncate text-sm font-semibold text-neutral-900">{data.user.name}</p>
+                <p className="truncate text-xs text-neutral-500">@{data.user.username} · {tr("Petty cash and budget requests of the outlet")}</p>
               </div>
             </div>
             <div className="space-y-4 p-4 sm:p-5">
               <div>
-                <p className="mb-2 text-sm font-semibold text-slate-900">{tr("Branch")}</p>
+                <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Branch")}</p>
                 {data.branches.length === 0 ? (
-                  <p className="rounded-lg bg-slate-50 px-3 py-3 text-sm text-slate-500">{tr("No branch is assigned to your account. Ask your administrator to assign your outlets.")}</p>
+                  <p className="rounded-lg bg-neutral-50 px-3 py-3 text-sm text-neutral-500">{tr("No branch is assigned to your account. Ask your administrator to assign your outlets.")}</p>
                 ) : data.branches.length === 1 ? (
-                  <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-900">{data.branches[0].name}</p>
+                  <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm font-medium text-neutral-900">{data.branches[0].name}</p>
                 ) : (
                   <select value={branch} onChange={(e) => setBranch(e.target.value)} className={cx(inputClass, "h-11")} aria-label={tr("Branch")}>
                     <option value="">{tr("Choose the branch")}</option>
@@ -119,18 +120,18 @@ export default function PengajuanForm() {
                 )}
               </div>
               <div>
-                <p className="mb-2 text-sm font-semibold text-slate-900">{tr("Kind of request")}</p>
+                <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Kind of request")}</p>
                 <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={tr("Kind of request")}>
                   {KINDS.map((k) => (
                     <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
                       className={cx("rounded-xl border px-3 py-2.5 text-left transition-colors", k === "PETTY_CASH" && "sm:col-span-2",
-                        kind === k ? "border-blue-500 bg-blue-50/60 ring-1 ring-blue-500" : "border-slate-200 bg-white hover:bg-slate-50")}>
-                      <span className="block text-sm font-semibold text-slate-900">{kindLabel(k)}{k !== "PETTY_CASH" && <span className="ml-1.5 text-[11px] font-medium text-slate-400">{tr("Budget")}</span>}</span>
-                      <span className="block text-xs text-slate-500">{KIND_HINT[k]()}</span>
+                        kind === k ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500" : "border-neutral-200 bg-white hover:bg-neutral-50")}>
+                      <span className="block text-sm font-semibold text-neutral-900">{kindLabel(k)}{k !== "PETTY_CASH" && <span className="ml-1.5 text-[11px] font-medium text-neutral-400">{tr("Budget")}</span>}</span>
+                      <span className="block text-xs text-neutral-500">{KIND_HINT[k]()}</span>
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-xs text-slate-500">{tr("Maintenance and new equipment, decoration or merchandise: use Form → Damaged Equipment.")}</p>
+                <p className="mt-2 text-xs text-neutral-500">{tr("Maintenance and new equipment, decoration or merchandise: use Form → Damaged Equipment.")}</p>
               </div>
               <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create: {0}", kindLabel(kind))}</Button>
             </div>
@@ -139,17 +140,17 @@ export default function PengajuanForm() {
           {editable.length > 0 && (
             <section className="rounded-xl border border-amber-200 bg-white shadow-sm">
               <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("To finish ({0})", editable.length)}</p>
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-neutral-100">
                 {editable.map((d) => (
                   <li key={d.id}>
-                    <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 sm:px-5">
+                    <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
                       <ClipboardList size={18} className={cx("flex-shrink-0", d.status === "REVISION" ? "text-red-600" : "text-amber-600")} />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-slate-900">{d.number ?? tr("Draft")} · {kindLabel(d.kind)} · {d.branchName}</span>
-                        <span className="block text-xs text-slate-500">{d.status === "REVISION" ? tr("Sent back for a revision: see the team's note") : tr("saved {0}", wibDateTime(d.updatedAt))}</span>
+                        <span className="block truncate text-sm font-medium text-neutral-900">{d.number ?? tr("Draft")} · {kindLabel(d.kind)} · {d.branchName}</span>
+                        <span className="block text-xs text-neutral-500">{d.status === "REVISION" ? tr("Sent back for a revision: see the team's note") : tr("saved {0}", wibDateTime(d.updatedAt))}</span>
                       </span>
                       <StatusBadge s={d.status} />
-                      <ChevronRight size={16} className="text-slate-300" />
+                      <ChevronRight size={16} className="text-neutral-300" />
                     </button>
                   </li>
                 ))}
@@ -157,29 +158,29 @@ export default function PengajuanForm() {
             </section>
           )}
 
-          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
+          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3 sm:px-5">
               <div>
-                <p className="text-sm font-semibold text-slate-900">{tr("My fund requests")}</p>
-                <p className="text-xs text-slate-500">{tr("Tap one to see every step and note of the team")}</p>
+                <p className="text-sm font-semibold text-neutral-900">{tr("My fund requests")}</p>
+                <p className="text-xs text-neutral-500">{tr("Tap one to see every step and note of the team")}</p>
               </div>
               <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
                 { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In progress")} ${mine.filter((r) => OPEN.includes(r.status)).length}` },
                 { value: "paid", label: `${tr("Paid")} ${mine.filter((r) => r.status === "PAID").length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.filter((r) => r.status === "REJECTED").length}` }]} />
             </div>
-            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{mine.length ? tr("Nothing in this view") : tr("No fund request sent yet")}</p> : (
-              <ul className="divide-y divide-slate-100">
+            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{mine.length ? tr("Nothing in this view") : tr("No fund request sent yet")}</p> : (
+              <ul className="divide-y divide-neutral-100">
                 {shown.map((r) => (
                   <li key={r.id}>
-                    <button type="button" onClick={() => setView(r.id)} className="w-full px-4 py-3 text-left hover:bg-slate-50 sm:px-5">
+                    <button type="button" onClick={() => setView(r.id)} className="w-full px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-mono text-xs font-semibold text-slate-500">{r.number}</span>
+                        <span className="font-mono text-xs font-semibold text-neutral-500">{r.number}</span>
                         <StatusBadge s={r.status} />
-                        <span className="ml-auto text-[11px] tabular-nums text-slate-400">{wibDateTime(r.submittedAt)}</span>
+                        <span className="ml-auto text-[11px] tabular-nums text-neutral-400">{wibDateTime(r.submittedAt)}</span>
                       </span>
                       <span className="mt-1 flex items-baseline justify-between gap-2">
-                        <span className="truncate text-sm font-medium text-slate-900">{kindLabel(r.kind)} · {r.branchName}{r.kind === "PETTY_CASH" && r.periodFrom && r.periodTo ? ` · ${wibDay(r.periodFrom)} – ${wibDay(r.periodTo)}` : ""}</span>
-                        <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-slate-900">{fmtRp(r.requestedAmount ?? r.totalOut)}</span>
+                        <span className="truncate text-sm font-medium text-neutral-900">{kindLabel(r.kind)} · {r.branchName}{r.kind === "PETTY_CASH" && r.periodFrom && r.periodTo ? ` · ${wibDay(r.periodFrom)} – ${wibDay(r.periodTo)}` : ""}</span>
+                        <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-neutral-900">{fmtRp(r.requestedAmount ?? r.totalOut)}</span>
                       </span>
                     </button>
                   </li>
@@ -203,7 +204,7 @@ function MineDrawer({ id, onClose, onEdit }: { id: string; onClose: () => void; 
     <Drawer open onClose={onClose} size="lg" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund requests")}
       description={p ? `${p.branchName} · ${STATUS_LABEL[p.status]()}` : undefined}
       footer={p?.status === "REVISION" ? <Button onClick={() => onEdit(p.id)}>{tr("Correct and send again")}</Button> : undefined}>
-      {error ? <ErrorState message={error} /> : !p ? <div className="skeleton h-72 rounded-xl" /> : <PengajuanView p={p} />}
+      {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : <PengajuanView p={p} />}
     </Drawer>
   );
 }
@@ -374,15 +375,15 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   const options = data.baristas[server.branchCode] ?? [];
   const lineFiles = (id?: number) => files.filter((f) => f.kind === "LINE" && id !== undefined && f.lineId === id);
   return (
-    <div className="min-h-full bg-slate-50 pb-40">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
+    <div className="min-h-full bg-neutral-50 pb-40">
+      <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white px-4 py-2.5 sm:px-6">
         <div className="mx-auto flex max-w-3xl items-center gap-2">
-          <button type="button" onClick={() => void close()} className="-ml-1.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
+          <button type="button" onClick={() => void close()} className="-ml-1.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-semibold text-slate-900">{server.number ?? tr("New fund request")} · {kindLabel(kind)}</p>
-            <p className="truncate text-xs text-slate-500">{server.branchName}</p>
+            <p className="truncate text-base font-semibold text-neutral-900">{server.number ?? tr("New fund request")} · {kindLabel(kind)}</p>
+            <p className="truncate text-xs text-neutral-500">{server.branchName}</p>
           </div>
-          <span className="flex items-center gap-1 text-xs text-slate-500" aria-live="polite">
+          <span className="flex items-center gap-1 text-xs text-neutral-500" aria-live="polite">
             {saving === "saving" ? <><Loader2 size={13} className="animate-spin" /> {tr("Saving")}</> : saving === "pending" ? tr("Not saved yet")
               : saving === "error" ? <span className="text-red-600">{tr("Not saved")}</span> : <><CloudUpload size={13} /> {tr("Saved")}</>}
           </span>
@@ -415,9 +416,9 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
         <FormCard n={3} title={tr("Period")} hint={tr("The week the expenses belong to: one petty cash per period")}>
           <div className="grid grid-cols-2 gap-3">
-            <label className="block"><span className="mb-1 block text-xs font-medium text-slate-600">{tr("From")}</span>
+            <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("From")}</span>
               <input type="date" value={local.periodFrom} max={wibDate()} onChange={(e) => update({ periodFrom: e.target.value })} className={cx(inputClass, "h-11")} /></label>
-            <label className="block"><span className="mb-1 block text-xs font-medium text-slate-600">{tr("To")}</span>
+            <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("To")}</span>
               <input type="date" value={local.periodTo} max={wibDate()} min={local.periodFrom || undefined} onChange={(e) => update({ periodTo: e.target.value })} className={cx(inputClass, "h-11")} /></label>
           </div>
         </FormCard>
@@ -448,7 +449,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             placeholder={kind === "EVENT" ? tr("Name and place of the event, target sales …") : kind === "BILL" ? tr("Which bill and period, e.g. PLN October") : tr("What it is for and why it is needed")}
             className={cx(inputClass, "h-auto py-2 text-sm", !local.purpose.trim() && "border-red-300")} />
           {NEEDED_LABEL[kind] && (
-            <label className="mt-2 block"><span className="mb-1 block text-xs font-medium text-slate-600">{NEEDED_LABEL[kind]!()}</span>
+            <label className="mt-2 block"><span className="mb-1 block text-xs font-medium text-neutral-600">{NEEDED_LABEL[kind]!()}</span>
               <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-red-300")} /></label>
           )}
         </FormCard>
@@ -456,13 +457,13 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
         <FormCard n={petty ? 6 : 3} title={petty || kind === "EMERGENCY" ? tr("Money out") : tr("Cost details")}
           hint={receipts ? tr("Every line with its proof (bill, receipt, invoice …)") : tr("Every cost with its estimate; attach a quotation if there is one")}
-          aside={<span className="text-sm font-semibold tabular-nums text-slate-900">{fmtRp(totalOut)}</span>}>
+          aside={<span className="text-sm font-semibold tabular-nums text-neutral-900">{fmtRp(totalOut)}</span>}>
           <ul className="space-y-3">
             {local.lines.map((l, i) => (
-              <li key={l.key} className="rounded-xl border border-slate-200 p-3">
+              <li key={l.key} className="rounded-xl border border-neutral-200 p-3">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500">{lineWord} {i + 1}</span>
-                  <button type="button" onClick={() => removeLine(l.key)} className="rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove expense")}><Trash2 size={15} /></button>
+                  <span className="text-xs font-semibold text-neutral-500">{lineWord} {i + 1}</span>
+                  <button type="button" onClick={() => removeLine(l.key)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove expense")}><Trash2 size={15} /></button>
                 </div>
                 <div className={cx("grid gap-2", lineDate ? "sm:grid-cols-[9.5rem_minmax(0,1fr)_10rem]" : "sm:grid-cols-[minmax(0,1fr)_10rem]")}>
                   {lineDate && <input type="date" value={l.spentOn ?? ""} max={wibDate()} onChange={(e) => setLine(l.key, { spentOn: e.target.value })} aria-label={tr("Date")} className={cx(inputClass, "h-10 text-sm")} />}
@@ -486,15 +487,15 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         <FormCard n={petty ? 7 : 4} title={petty ? tr("Closing balance & top-up") : tr("Total & note")}
           hint={petty ? (server.plafon !== null ? tr("Plafon {0}: the top-up brings the cash back to it", fmtRp(server.plafon)) : tr("No plafon set: the money spent is asked")) : tr("The amount asked is the total of the lines")}>
           {petty && <Balances p={{ ...server, openingBalance: opening, incomeAmount: income }} out={totalOut} />}
-          <div className="mt-3 flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2.5 ring-1 ring-blue-200">
-            <span className="text-sm font-semibold text-blue-900">{petty ? tr("Top-up asked") : tr("Amount asked")}</span>
-            <span className="text-base font-bold tabular-nums text-blue-900">{fmtRp(asked)}</span>
+          <div className="mt-3 flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2.5 ring-1 ring-brand-200">
+            <span className="text-sm font-semibold text-brand-900">{petty ? tr("Top-up asked") : tr("Amount asked")}</span>
+            <span className="text-base font-bold tabular-nums text-brand-900">{fmtRp(asked)}</span>
           </div>
           <textarea value={local.note} onChange={(e) => update({ note: e.target.value })} rows={2} maxLength={1000}
             placeholder={petty && closing !== null && closing < 0 ? tr("Negative closing balance: explain it (required)") : tr("Note for management / Finance (optional)")}
             className={cx(inputClass, "mt-3 h-auto py-2 text-sm", petty && closing !== null && closing < 0 && !local.note.trim() && "border-red-300")} />
           <div className="mt-3">
-            <p className="mb-1 text-xs font-medium text-slate-600">{tr("Other attachments (optional)")}</p>
+            <p className="mb-1 text-xs font-medium text-neutral-600">{tr("Other attachments (optional)")}</p>
             <Attachments files={files.filter((f) => f.kind === "OTHER")} docTypes={["OTHER", "QUOTE", "INVOICE", "KWITANSI", "FOTO"]}
               onAdd={(f, d) => attach("OTHER", f, d)} onRemove={removeFile} />
           </div>
@@ -505,7 +506,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         )}
       </div>
 
-      <div className="action-bar fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+      <div className="action-bar fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <div className="mx-auto max-w-3xl space-y-2">
           {todo.length > 0 && (
             <details className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
@@ -514,8 +515,8 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             </details>
           )}
           <div className="flex items-center gap-3">
-            <div className="min-w-0 flex-1 text-xs text-slate-500">
-              <p className="font-semibold tabular-nums text-slate-900">{tr("Asked {0}", fmtRp(asked))}</p>
+            <div className="min-w-0 flex-1 text-xs text-neutral-500">
+              <p className="font-semibold tabular-nums text-neutral-900">{tr("Asked {0}", fmtRp(asked))}</p>
               <p className="tabular-nums">{petty ? tr("Closing {0}", fmtRp(closing)) : tr("{0} lines", local.lines.length)}</p>
             </div>
             <Button disabled={todo.length > 0 || saving === "saving"} onClick={() => setConfirm(true)}><Send size={15} /> {server.status === "REVISION" ? tr("Send again") : tr("Send")}</Button>
@@ -535,7 +536,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 function Field({ label, value, onChange, max, placeholder, inputMode }: { label: string; value: string; onChange: (v: string) => void; max: number;
   placeholder?: string; inputMode?: "tel" | "numeric" }) {
   return (
-    <label className="block"><span className="mb-1 block text-xs font-medium text-slate-600">{label}</span>
+    <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{label}</span>
       <input value={value} onChange={(e) => onChange(e.target.value)} maxLength={max} placeholder={placeholder} inputMode={inputMode}
         className={cx(inputClass, "h-11 text-sm", !value.trim() && "border-red-300")} /></label>
   );
@@ -545,7 +546,7 @@ function Field({ label, value, onChange, max, placeholder, inputMode }: { label:
 function RpInput({ value, onChange, label, allowNegative, compact }: { value: string; onChange: (v: string) => void; label: string; allowNegative?: boolean; compact?: boolean }) {
   return (
     <span className="relative block">
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">Rp</span>
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-neutral-400">Rp</span>
       <input value={value} inputMode="numeric" aria-label={label} placeholder="0"
         onChange={(e) => {
           const raw = e.target.value;
@@ -571,7 +572,7 @@ function Baristas({ value, options, onChange }: { value: Barista[]; options: { i
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {value.map((b) => (
-            <span key={b.name} className={cx("inline-flex items-center gap-1 rounded-full py-1 pl-2.5 pr-1 text-xs font-medium", b.userId ? "bg-blue-50 text-blue-800" : "bg-slate-100 text-slate-700")}>
+            <span key={b.name} className={cx("inline-flex items-center gap-1 rounded-full py-1 pl-2.5 pr-1 text-xs font-medium", b.userId ? "bg-brand-50 text-brand-800" : "bg-neutral-100 text-neutral-700")}>
               {b.name}
               <button type="button" onClick={() => onChange(value.filter((x) => x.name !== b.name))} className="rounded-full p-0.5 hover:bg-white" aria-label={tr("Remove {0}", b.name)}><X size={12} /></button>
             </span>
@@ -613,13 +614,13 @@ function Attachments({ files, docTypes, required, onAdd, onRemove }: { files: Pg
   return (
     <div className="flex flex-wrap items-end gap-2">
       {files.map((f) => <FileChip key={f.id} f={f} onRemove={() => onRemove(f.id)} />)}
-      <div className={cx("flex items-center gap-1 rounded-lg border p-1", required && !files.length ? "border-red-300 bg-red-50/40" : "border-slate-200 bg-white")}>
-        <select value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Kind of document")} className="h-8 rounded-md border-0 bg-transparent pl-1.5 pr-6 text-xs font-medium text-slate-700 focus:ring-0">
+      <div className={cx("flex items-center gap-1 rounded-lg border p-1", required && !files.length ? "border-red-300 bg-red-50/40" : "border-neutral-200 bg-white")}>
+        <select value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Kind of document")} className="h-8 rounded-md border-0 bg-transparent pl-1.5 pr-6 text-xs font-medium text-neutral-700 focus:ring-0">
           {docTypes.map((d) => <option key={d} value={d}>{(DOC_LABEL[d] ?? (() => d))()}</option>)}
         </select>
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={(e) => void pick(e.target.files)} />
         <button type="button" disabled={busy} onClick={() => input.current?.click()}
-          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-slate-900 px-2.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-60">
+          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-neutral-900 px-2.5 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-60">
           {busy ? <Loader2 size={13} className="animate-spin" /> : <Paperclip size={13} />} {tr("Attach file")}
         </button>
       </div>

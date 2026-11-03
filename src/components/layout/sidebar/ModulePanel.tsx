@@ -70,7 +70,7 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
   const wide = sections.reduce((n, s) => n + s.items.length, 0) > 10;
   const menu = (
     <div ref={panel} role="menu" aria-label={config.title}
-      className={cx('fixed z-[80] flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl',
+      className={cx('fixed z-[80] flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xl',
         wide ? 'w-[min(56rem,calc(100vw-2rem))]' : 'w-[min(38rem,calc(100vw-2rem))]',
         !pos && 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2')}
       style={pos ? { left: pos.left, top: pos.top } : undefined}>

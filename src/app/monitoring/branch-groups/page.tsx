@@ -47,21 +47,21 @@ export default function BranchGroupsPage() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {data.groups.map((g) => (
               <button key={g.id} type="button" onClick={() => canEdit && setOpen(g)} disabled={!canEdit}
-                className="group flex flex-col rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-sm transition hover:border-blue-300 hover:shadow disabled:cursor-default">
+                className="group flex flex-col rounded-xl border border-neutral-200/80 bg-white p-4 text-left shadow-sm transition hover:border-brand-300 hover:shadow disabled:cursor-default">
                 <span className="flex items-start justify-between gap-3">
                   <span className="min-w-0">
-                    <span className="block text-lg font-semibold text-slate-900 group-hover:text-blue-700">{g.code}</span>
-                    <span className="block truncate text-xs text-slate-500">{g.name !== g.code ? g.name : g.description ?? ""}</span>
+                    <span className="block text-lg font-semibold text-neutral-900 group-hover:text-brand-700">{g.code}</span>
+                    <span className="block truncate text-xs text-neutral-500">{g.name !== g.code ? g.name : g.description ?? ""}</span>
                   </span>
-                  <span className="rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold tabular-nums text-blue-700">{g.branches.length}</span>
+                  <span className="rounded-full bg-brand-50 px-2.5 py-1 text-sm font-semibold tabular-nums text-brand-700">{g.branches.length}</span>
                 </span>
                 <span className="mt-3 flex flex-wrap gap-1">
-                  {g.branches.slice(0, 6).map((b) => <span key={b.code} className="max-w-full truncate rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-600">{b.name.replace(/^Kopi Calf (To Go )?/, "")}</span>)}
-                  {g.branches.length > 6 && <span className="rounded-md px-1.5 py-0.5 text-[11px] text-slate-400">+{g.branches.length - 6}</span>}
+                  {g.branches.slice(0, 6).map((b) => <span key={b.code} className="max-w-full truncate rounded-md bg-neutral-100 px-1.5 py-0.5 text-[11px] text-neutral-600">{b.name.replace(/^Kopi Calf (To Go )?/, "")}</span>)}
+                  {g.branches.length > 6 && <span className="rounded-md px-1.5 py-0.5 text-[11px] text-neutral-400">+{g.branches.length - 6}</span>}
                   {g.branches.length === 0 && <span className="text-xs text-amber-700">{tr("No branch yet")}</span>}
                 </span>
-                {g.description && g.name !== g.code && <span className="mt-3 text-xs text-slate-500">{g.description}</span>}
-                <span className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate-600"><MapPinCheck size={13} className="text-slate-400" />{tr("PIC check-in: {0}× per outlet per day", g.checkin_max_per_day ?? 1)}</span>
+                {g.description && g.name !== g.code && <span className="mt-3 text-xs text-neutral-500">{g.description}</span>}
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs text-neutral-600"><MapPinCheck size={13} className="text-neutral-400" />{tr("PIC check-in: {0}× per outlet per day", g.checkin_max_per_day ?? 1)}</span>
               </button>
             ))}
           </div>
@@ -153,7 +153,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
               <Input value={maxCheckin} onChange={(e) => setMaxCheckin(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1" className="w-24 text-right tabular-nums" />
               {[1, 2, 3].map((n) => (
                 <button key={n} type="button" onClick={() => setMaxCheckin(String(n))}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", Number(maxCheckin || 1) === n ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{tr("{0}× a day", n)}</button>
+                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", Number(maxCheckin || 1) === n ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{tr("{0}× a day", n)}</button>
               ))}
             </div>
           </Field>
@@ -167,20 +167,20 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
             </Button>
           </div>
           {moving > 0 && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("{0} branches move from another group", moving)}</p>}
-          <ul className="max-h-[24rem] divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
+          <ul className="max-h-[24rem] divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200">
             {shown.map((b) => (
               <li key={b.code}>
-                <label className={cx("flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-slate-50", picked.has(b.code) && "bg-blue-50/60")}>
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(b.code)} onChange={() => toggle(b.code)} />
+                <label className={cx("flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-neutral-50", picked.has(b.code) && "bg-brand-50/60")}>
+                  <input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(b.code)} onChange={() => toggle(b.code)} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-slate-900">{b.name}</span>
-                    <span className="text-[11px] text-slate-400">{b.code}</span>
+                    <span className="block truncate text-neutral-900">{b.name}</span>
+                    <span className="text-[11px] text-neutral-400">{b.code}</span>
                   </span>
                   {b.group && <Badge tone={picked.has(b.code) ? "amber" : "slate"}>{picked.has(b.code) ? tr("moves from {0}", b.group) : b.group}</Badge>}
                 </label>
               </li>
             ))}
-            {shown.length === 0 && <li className="px-3 py-8 text-center text-sm text-slate-400">{tr("No branch matches")}</li>}
+            {shown.length === 0 && <li className="px-3 py-8 text-center text-sm text-neutral-400">{tr("No branch matches")}</li>}
           </ul>
         </FormCard>
       </div>

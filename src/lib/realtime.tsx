@@ -178,7 +178,7 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
     ? { dot: 'bg-emerald-500', ring: 'bg-emerald-400', text: 'text-emerald-700', label: tr('Live') }
     : status === 'connecting'
     ? { dot: 'bg-amber-400', ring: 'bg-amber-300', text: 'text-amber-700', label: tr('Connecting') }
-    : { dot: 'bg-slate-400', ring: '', text: 'text-slate-500', label: tr('Reconnecting') };
+    : { dot: 'bg-neutral-400', ring: '', text: 'text-neutral-500', label: tr('Reconnecting') };
   return (
     <span
       className={`inline-flex items-center gap-2 px-1 text-xs ${className}`}
@@ -191,7 +191,7 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
         <span className={`relative inline-flex h-2 w-2 rounded-full ${tone.dot}`} />
       </span>
       <span className={`font-semibold ${tone.text}`}>{tone.label}</span>
-      {synced && <span className="hidden text-slate-500 sm:inline">{tr('· last sync')} {synced}</span>}
+      {synced && <span className="hidden text-neutral-500 sm:inline">{tr('· last sync')} {synced}</span>}
     </span>
   );
 }

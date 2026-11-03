@@ -20,6 +20,7 @@ import { wibDateTime } from "@/so/lib/wib";
 import { type CheckIn, call, photoUrl, suspect } from "@/so/features/checkin/checkin";
 import { type Kind, kindSlug, setKind, swapKind } from "@/so/features/checkin/checkin";
 import { tr as baseTr } from "@/lib/i18n";
+import { thumb } from "@/lib/assets";
 const tr = (key: string, ...args: (string | number | null | undefined)[]) => baseTr(swapKind(key), ...args);
 
 type Summary = { total: number; pics: number; branches: number; outside: number; low: number; unlocated: number; inside: number;
@@ -58,7 +59,7 @@ function LocationTags({ c, distance = true }: { c: CheckIn; distance?: boolean }
         : <Badge tone="green">{tr("At the outlet")}</Badge>}
       {c.lowAccuracy && <Badge tone="slate" icon={<SignalLow size={11} />}>{tr("Low GPS accuracy")}</Badge>}
       <RiskTags c={c} />
-      {distance && c.distanceM !== null && <span className="text-[11px] tabular-nums text-slate-500">{c.distanceM} m{c.accuracyM !== null ? ` ±${Math.round(c.accuracyM)}` : ""}</span>}
+      {distance && c.distanceM !== null && <span className="text-[11px] tabular-nums text-neutral-500">{c.distanceM} m{c.accuracyM !== null ? ` ±${Math.round(c.accuracyM)}` : ""}</span>}
     </span>
   );
 }
@@ -157,15 +158,15 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
           </Empty>
         ) : (
           <>
-            <ul className="divide-y divide-slate-100 md:hidden">
+            <ul className="divide-y divide-neutral-100 md:hidden">
               {paged.rows.map((c) => (
                 <li key={c.id}>
-                  <button type="button" onClick={() => setOpen(c)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-slate-50">
+                  <button type="button" onClick={() => setOpen(c)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-neutral-50">
                     {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                    <img src={photoUrl(c.id)} alt="" loading="lazy" className="h-12 w-12 flex-shrink-0 rounded-lg bg-slate-100 object-cover" />
+                    <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-12 w-12 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-slate-900">{c.name}</span>
-                      <span className="block truncate text-xs text-slate-500">{c.branchName} · {wibDateTime(c.visitedAt)}</span>
+                      <span className="block truncate text-sm font-medium text-neutral-900">{c.name}</span>
+                      <span className="block truncate text-xs text-neutral-500">{c.branchName} · {wibDateTime(c.visitedAt)}</span>
                       <span className="mt-1 block"><LocationTags c={c} /></span>
                     </span>
                   </button>
@@ -183,16 +184,16 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                     <th className="px-4 py-2.5">{tr("Location")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-100">
                   {!res ? <SkeletonRows cols={5} /> : paged.rows.map((c) => (
-                    <tr key={c.id} onClick={() => setOpen(c)} className={cx("cursor-pointer", (c.outsideRadius || suspect(c)) && !c.review ? "bg-red-50/50 hover:bg-red-50" : "hover:bg-slate-50/70")}>
+                    <tr key={c.id} onClick={() => setOpen(c)} className={cx("cursor-pointer", (c.outsideRadius || suspect(c)) && !c.review ? "bg-red-50/50 hover:bg-red-50" : "hover:bg-neutral-50/70")}>
                       <td className="px-4 py-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                        <img src={photoUrl(c.id)} alt={tr("Face photo")} loading="lazy" className="h-11 w-11 rounded-lg bg-slate-100 object-cover" />
+                        <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face photo")} loading="lazy" className="h-11 w-11 rounded-lg bg-neutral-100 object-cover" />
                       </td>
-                      <td className="px-4 py-2.5"><span className="block font-medium text-slate-900">{c.name}</span><span className="text-xs text-slate-400">@{c.username}</span></td>
-                      <td className="max-w-[16rem] px-4 py-2.5"><span className="block truncate text-slate-800">{c.branchName}</span><span className="text-xs text-slate-400">{c.branchCode}</span></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-slate-700">{wibDateTime(c.visitedAt)}</td>
+                      <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{c.name}</span><span className="text-xs text-neutral-400">@{c.username}</span></td>
+                      <td className="max-w-[16rem] px-4 py-2.5"><span className="block truncate text-neutral-800">{c.branchName}</span><span className="text-xs text-neutral-400">{c.branchCode}</span></td>
+                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-neutral-700">{wibDateTime(c.visitedAt)}</td>
                       <td className="px-4 py-2.5"><LocationTags c={c} /></td>
                     </tr>
                   ))}
@@ -255,23 +256,23 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
   const verdict = !c.outletLocated ? { tone: "slate", icon: <MapPinOff size={20} />, title: tr("Outlet has no coordinates"), text: tr("Set the outlet's location in Cost Control → Outlet Locations") }
     : c.outsideRadius ? { tone: "red", icon: <MapPin size={20} />, title: tr("Outside radius"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100) }
     : { tone: "green", icon: <CheckCircle2 size={20} />, title: tr("At the outlet"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? 0, c.radiusM ?? 100) };
-  const toneBox: Record<string, string> = { green: "border-emerald-200 bg-emerald-50 text-emerald-900", red: "border-red-200 bg-red-50 text-red-900", slate: "border-slate-200 bg-slate-50 text-slate-800" };
-  const toneIcon: Record<string, string> = { green: "bg-emerald-600", red: "bg-red-600", slate: "bg-slate-500" };
+  const toneBox: Record<string, string> = { green: "border-emerald-200 bg-emerald-50 text-emerald-900", red: "border-red-200 bg-red-50 text-red-900", slate: "border-neutral-200 bg-neutral-50 text-neutral-800" };
+  const toneIcon: Record<string, string> = { green: "bg-emerald-600", red: "bg-red-600", slate: "bg-neutral-500" };
   return (
     <Drawer open onClose={onClose} size="lg" icon={<ScanFace size={18} />} title={c.name} description={`${c.branchName} · ${wibDateTime(c.visitedAt)}`}>
       <div className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
-          <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+          <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
             {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-            <img src={photoUrl(c.id)} alt={tr("Face photo")} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
+            <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face photo")} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
             <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-lg bg-black/55 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">
               <ScanFace size={12} />{tr("{0} face(s) detected", c.faces)}
             </span>
           </a>
           <div className="flex min-w-0 flex-col gap-3">
             <div>
-              <p className="text-base font-semibold text-slate-900">{c.name}</p>
-              <p className="text-xs text-slate-500">@{c.username}</p>
+              <p className="text-base font-semibold text-neutral-900">{c.name}</p>
+              <p className="text-xs text-neutral-500">@{c.username}</p>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <Fact icon={<Store size={14} />} label={tr("Outlet")} value={c.branchName} sub={c.branchCode} />
@@ -292,7 +293,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
         </div>
 
         <DrawerBlock title={tr("Location")}>
-          <div className="grid grid-cols-3 divide-x divide-slate-100 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-xl border border-neutral-200">
             <Figure label={tr("Distance")} value={c.distanceM !== null ? `${c.distanceM} m` : "—"} tone={c.outsideRadius ? "text-red-700" : undefined} />
             <Figure label={tr("Radius")} value={c.radiusM !== null ? `${c.radiusM} m` : "—"} />
             <Figure label={tr("GPS accuracy")} value={c.accuracyM !== null ? `±${Math.round(c.accuracyM)} m` : "—"} tone={c.lowAccuracy ? "text-amber-700" : undefined} />
@@ -301,12 +302,12 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
             <MapLink href={mapsUrl(c.latitude, c.longitude)} label={tr("PIC position")} value={`${c.latitude.toFixed(5)}, ${c.longitude.toFixed(5)}`} />
             {c.outletLatitude !== null && c.outletLongitude !== null
               ? <MapLink href={mapsUrl(c.outletLatitude, c.outletLongitude)} label={tr("Outlet location")} value={`${c.outletLatitude.toFixed(5)}, ${c.outletLongitude.toFixed(5)}`} />
-              : <div className="rounded-xl border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-500">{tr("Outlet location")}: {tr("No coordinates yet")}</div>}
+              : <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-500">{tr("Outlet location")}: {tr("No coordinates yet")}</div>}
           </div>
         </DrawerBlock>
 
         <DrawerBlock title={tr("Time")}>
-          <dl className="divide-y divide-slate-100 rounded-xl border border-slate-200 text-sm">
+          <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
             <DrawerRow k={tr("Visit time")} v={`${wibDateTime(c.visitedAt)} · ${tr("server time")}`} />
             <DrawerRow k={tr("Phone clock")} v={c.deviceTime ? <>{wibDateTime(c.deviceTime)}{skew !== null && Math.abs(skew) >= 5 && <Badge tone="amber">{tr("differs {0} min", skew)}</Badge>}</> : "—"} />
           </dl>
@@ -314,17 +315,17 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
 
         {c.note && (
           <DrawerBlock title={tr("Note")}>
-            <p className="rounded-xl bg-slate-50 px-3 py-2.5 text-sm leading-relaxed text-slate-700">{c.note}</p>
+            <p className="rounded-xl bg-neutral-50 px-3 py-2.5 text-sm leading-relaxed text-neutral-700">{c.note}</p>
           </DrawerBlock>
         )}
 
         {(c.riskSignals ?? []).length > 0 && (
           <DrawerBlock title={`${tr("Location check")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
-            <ul className={cx("space-y-1.5 rounded-xl border p-3 text-xs", risky ? "border-red-200 bg-red-50" : "border-slate-200 bg-slate-50")}>
+            <ul className={cx("space-y-1.5 rounded-xl border p-3 text-xs", risky ? "border-red-200 bg-red-50" : "border-neutral-200 bg-neutral-50")}>
               {(c.riskSignals ?? []).map((x) => (
                 <li key={x.code} className="flex gap-2">
-                  <span className={cx("mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full", x.level === "high" ? "bg-red-500" : x.level === "medium" ? "bg-amber-500" : "bg-slate-400")} />
-                  <span className="text-slate-700">{x.text}</span>
+                  <span className={cx("mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full", x.level === "high" ? "bg-red-500" : x.level === "medium" ? "bg-amber-500" : "bg-neutral-400")} />
+                  <span className="text-neutral-700">{x.text}</span>
                 </li>
               ))}
             </ul>
@@ -358,10 +359,10 @@ export function DrawerRow({ k, v }: { k: string; v: React.ReactNode }) {
 
 function Fact({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
-    <div className="min-w-0 rounded-xl border border-slate-200 px-3 py-2">
-      <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{icon}{label}</p>
-      <p className="mt-0.5 truncate text-sm font-semibold text-slate-900" title={value}>{value}</p>
-      {sub && <p className="font-mono text-[10px] text-slate-400">{sub}</p>}
+    <div className="min-w-0 rounded-xl border border-neutral-200 px-3 py-2">
+      <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{icon}{label}</p>
+      <p className="mt-0.5 truncate text-sm font-semibold text-neutral-900" title={value}>{value}</p>
+      {sub && <p className="font-mono text-[10px] text-neutral-400">{sub}</p>}
     </div>
   );
 }
@@ -369,21 +370,21 @@ function Fact({ icon, label, value, sub }: { icon: React.ReactNode; label: strin
 function Figure({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className="px-3 py-2.5 text-center">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-      <p className={cx("mt-0.5 text-base font-semibold tabular-nums text-slate-900", tone)}>{value}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{label}</p>
+      <p className={cx("mt-0.5 text-base font-semibold tabular-nums text-neutral-900", tone)}>{value}</p>
     </div>
   );
 }
 
 function MapLink({ href, label, value }: { href: string; label: string; value: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 hover:border-blue-300 hover:bg-blue-50/40">
-      <MapPin size={15} className="flex-shrink-0 text-blue-700" />
+    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2 hover:border-brand-300 hover:bg-brand-50/40">
+      <MapPin size={15} className="flex-shrink-0 text-brand-700" />
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-medium text-slate-700">{label}</span>
-        <span className="block truncate font-mono text-[11px] text-slate-500">{value}</span>
+        <span className="block text-xs font-medium text-neutral-700">{label}</span>
+        <span className="block truncate font-mono text-[11px] text-neutral-500">{value}</span>
       </span>
-      <ExternalLink size={13} className="flex-shrink-0 text-slate-400" />
+      <ExternalLink size={13} className="flex-shrink-0 text-neutral-400" />
     </a>
   );
 }
@@ -422,23 +423,23 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
             <SegmentBar parts={[
               { label: tr("At the outlet"), value: summary.inside, color: "bg-emerald-500" },
               { label: tr("Outside radius"), value: summary.outside, color: "bg-amber-500" },
-              { label: tr("Outlet has no coordinates"), value: summary.unlocated, color: "bg-slate-300" },
+              { label: tr("Outlet has no coordinates"), value: summary.unlocated, color: "bg-neutral-300" },
             ]} />
-            {summary.low > 0 && <p className="text-xs text-slate-500">{tr("{0} with low GPS accuracy", fmtNumber(summary.low))}</p>}
+            {summary.low > 0 && <p className="text-xs text-neutral-500">{tr("{0} with low GPS accuracy", fmtNumber(summary.low))}</p>}
           </>
         )}
-        <div className="overflow-hidden rounded-xl border border-slate-200">
+        <div className="overflow-hidden rounded-xl border border-neutral-200">
           {kind === "outside" ? (
-            outside.length === 0 ? <p className="px-4 py-8 text-center text-sm text-slate-400">{tr("No check in outside the radius")}</p> : (
-              <ul className="divide-y divide-slate-100">
+            outside.length === 0 ? <p className="px-4 py-8 text-center text-sm text-neutral-400">{tr("No check in outside the radius")}</p> : (
+              <ul className="divide-y divide-neutral-100">
                 {outside.map((c) => (
                   <li key={c.id}>
-                    <button type="button" onClick={() => onOpen(c)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50">
+                    <button type="button" onClick={() => onOpen(c)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-neutral-50">
                       {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                      <img src={photoUrl(c.id)} alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-full bg-slate-100 object-cover" />
+                      <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-full bg-neutral-100 object-cover" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-slate-900">{c.name} · {c.branchName}</span>
-                        <span className="block text-xs text-slate-500">{wibDateTime(c.visitedAt)}</span>
+                        <span className="block truncate text-sm font-medium text-neutral-900">{c.name} · {c.branchName}</span>
+                        <span className="block text-xs text-neutral-500">{wibDateTime(c.visitedAt)}</span>
                       </span>
                       <span className="text-xs font-semibold tabular-nums text-amber-700">{c.distanceM} m</span>
                     </button>
@@ -456,15 +457,15 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
                   <th className="px-3 py-2 text-right">{tr("Outside")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-neutral-100">
                 {groups.map((g) => {
                   const click = kind === "pics" ? () => onPic(g.key) : kind === "outlets" ? () => onOutlet(g.key) : undefined;
                   return (
-                    <tr key={g.key} onClick={click} className={click ? "cursor-pointer hover:bg-slate-50" : ""}>
-                      <td className="px-3 py-2"><span className="block font-medium text-slate-900">{g.label}</span>{g.sub && <span className="text-xs text-slate-400">{g.sub}</span>}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-900">{fmtNumber(g.n)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-600">{fmtNumber(kind === "pics" ? g.places.size : g.people.size)}</td>
-                      <td className={`px-3 py-2 text-right tabular-nums ${g.outside ? "font-semibold text-amber-700" : "text-slate-400"}`}>{fmtNumber(g.outside)}</td>
+                    <tr key={g.key} onClick={click} className={click ? "cursor-pointer hover:bg-neutral-50" : ""}>
+                      <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{g.label}</span>{g.sub && <span className="text-xs text-neutral-400">{g.sub}</span>}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-neutral-900">{fmtNumber(g.n)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{fmtNumber(kind === "pics" ? g.places.size : g.people.size)}</td>
+                      <td className={`px-3 py-2 text-right tabular-nums ${g.outside ? "font-semibold text-amber-700" : "text-neutral-400"}`}>{fmtNumber(g.outside)}</td>
                     </tr>
                   );
                 })}
@@ -472,7 +473,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
             </table>
           )}
         </div>
-        {truncated && <p className="text-xs text-slate-400">{tr("From the latest 1,000 check-ins of the period")}</p>}
+        {truncated && <p className="text-xs text-neutral-400">{tr("From the latest 1,000 check-ins of the period")}</p>}
       </div>
     </Drawer>
   );
@@ -500,13 +501,13 @@ function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
     }
   };
   return (
-    <section className="rounded-xl border border-blue-200 bg-blue-50/40 p-3">
-      <p className="text-sm font-semibold text-slate-900">{tr("Management review")}</p>
+    <section className="rounded-xl border border-brand-200 bg-brand-50/40 p-3">
+      <p className="text-sm font-semibold text-neutral-900">{tr("Management review")}</p>
       {c.review ? (
-        <p className="mt-1 text-xs text-slate-600">
+        <p className="mt-1 text-xs text-neutral-600">
           {c.review.status === "valid" ? tr("Valid") : tr("Not valid")} · {c.review.by ?? "—"}{c.review.at ? ` · ${wibDateTime(c.review.at)}` : ""}
         </p>
-      ) : <p className="mt-1 text-xs text-slate-500">{tr("Check the photo, the note and the location, then decide.")}</p>}
+      ) : <p className="mt-1 text-xs text-neutral-500">{tr("Check the photo, the note and the location, then decide.")}</p>}
       <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder={tr("Review note (optional)")}
         className={cx(inputClass, "mt-2 h-auto py-2")} />
       <div className="mt-2 flex gap-2">

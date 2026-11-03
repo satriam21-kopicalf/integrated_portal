@@ -17,6 +17,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { Monitor, Reload, Request, Shift, Stock } from "@/cotr/types";
 import { rupiah } from "@/cotr/ui";
 import { locale, tr } from "@/lib/i18n";
+import { thumb } from "@/lib/assets";
 
 const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
 const cups = (s: Stock) => Object.values(s ?? {}).reduce((a, v) => a + v, 0);
@@ -188,7 +189,7 @@ function ShiftDetail({ s }: { s: Shift }) {
           {c.hasPhoto ? (
             <a href={photoUrl("check-in", c.id)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-lg">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photoUrl("check-in", c.id)} alt={tr("Photo")} className="h-36 w-full object-cover" loading="lazy" />
+              <img src={thumb(photoUrl("check-in", c.id), 320)} decoding="async" alt={tr("Photo")} className="h-36 w-full object-cover" loading="lazy" />
             </a>
           ) : <p className="mt-2 flex items-center gap-1 text-xs text-red-600"><Camera size={12} />{tr("Missing")}</p>}
           {c.lat !== null && c.lng !== null && (
@@ -291,7 +292,7 @@ function Requests({ data, onDone }: { data: Monitor; onDone: () => Promise<void>
               <span className="flex min-w-0 items-center gap-3">
                 <a href={photoUrl("request", r.id)} target="_blank" rel="noreferrer" className="flex-shrink-0 overflow-hidden rounded-lg ring-1 ring-neutral-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoUrl("request", r.id)} alt={tr("Receipt")} className="h-14 w-14 object-cover" loading="lazy" />
+                  <img src={thumb(photoUrl("request", r.id), 160)} decoding="async" alt={tr("Receipt")} className="h-14 w-14 object-cover" loading="lazy" />
                 </a>
                 <span className="min-w-0">
                   <span className="block font-medium text-neutral-900">{r.driverName ?? r.driverCode} · {(KINDS[r.kind] ?? (() => r.kind))()} · {rupiah(r.amount)}</span>

@@ -15,6 +15,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
 import { MasterTable, useMaster } from "@/cotr/ui";
 import { locale, tr } from "@/lib/i18n";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 type Status = "work" | "off" | "leave" | "sick";
 type Attendance = "on_time" | "late" | "absent" | "planned" | "unscheduled" | "off" | "leave" | "sick" | "none";
@@ -178,7 +179,7 @@ function RosterView() {
               ]} />
           </div>
         }>
-        {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <div className="skeleton m-4 h-40 rounded-xl" /> : people.length === 0 ? (
+        {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonList rows={4} /> : people.length === 0 ? (
           <Empty icon={<CalendarDays size={26} />} title={data.drivers.length ? tr("No one matches") : tr("No drivers in this pool")} />
         ) : mode === "day" ? (
           <div>

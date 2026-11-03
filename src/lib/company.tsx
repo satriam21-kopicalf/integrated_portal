@@ -73,7 +73,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 
   if (user && !loaded) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-slate-50 text-slate-400" aria-busy="true">
+      <div className="flex h-dvh items-center justify-center bg-neutral-50 text-neutral-400" aria-busy="true">
         <Loader2 size={22} className="animate-spin" />
       </div>
     );
@@ -97,18 +97,18 @@ export function CompanySwitch({ className = '', extra = [], value, onChange }: {
   if (tabs.length < 2) return null;
   const shown = value ?? company;
   return (
-    <div role="radiogroup" aria-label="Brand" className={`flex max-w-full rounded-xl bg-slate-100 p-1 sm:inline-flex ${className}`}>
+    <div role="radiogroup" aria-label="Brand" className={`flex max-w-full rounded-xl bg-neutral-100 p-1 sm:inline-flex ${className}`}>
       {tabs.map(c => {
         const on = c.code === shown;
         return (
           <button key={c.code} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
             className={`flex h-9 min-w-0 flex-1 items-center justify-center rounded-lg px-3 transition-colors sm:w-24 sm:flex-none ${
-              on ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'hover:bg-white/60'}`}>
+              on ? 'bg-white shadow-sm ring-1 ring-neutral-200' : 'hover:bg-white/60'}`}>
             {/* the logo only (2026-11-02); the name is the label */}
             {LOGOS[c.code]
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`max-h-5 max-w-full object-contain transition ${on ? '' : 'opacity-60 grayscale'}`} />
-              : <span className="truncate text-xs font-semibold text-slate-600">{c.name}</span>}
+              : <span className="truncate text-xs font-semibold text-neutral-600">{c.name}</span>}
           </button>
         );
       })}

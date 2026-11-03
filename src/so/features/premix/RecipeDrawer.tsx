@@ -16,6 +16,7 @@ import { fmtDate } from "@/so/ui";
 import { tr } from "@/lib/i18n";
 import ComponentSources, { PickedComponent } from "./ComponentSources";
 import { num, RecipeDetail, RecipeLine, Unit, unitGrams } from "./types";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 const FACILITY_TYPES = ["OUTLET", "HUB_WH", "HUB_CK", "CK_ESPRESSO", "CK_FOOD", "VIRTUAL"];
 const TYPES = ["WIP", "PREMIX", "FOOD"];
@@ -130,7 +131,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
         <Button variant="secondary" loading={busy} disabled={!head.name.trim()} onClick={() => void saveAll()}><Save size={16} /> {draft ? tr("Save draft") : tr("Save")}</Button>
         {draft && <Button loading={busy} disabled={!head.name.trim() || !draft.lines.length} onClick={() => void activate()}><CheckCircle2 size={16} /> {tr("Save & activate")}</Button>}
       </>}>
-      {!creating && !r ? <div className="skeleton h-72 rounded-lg" /> : (
+      {!creating && !r ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
           <FormCard n={1} title={tr("Recipe")} hint={tr("Name, type and where this WIP is counted")}>
             <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">

@@ -107,53 +107,8 @@ export function Badge({ tone = "slate", dot, icon, title, wrap, children }: {
   );
 }
 
-/** Page title (no header band since 2026-10-21: on the page background) like the portal pages; `stats` sits under it. */
-export function Page({ title, subtitle, actions, stats, children }: {
-  /** text, or e.g. a brand logo (with its alt text) */ title: ReactNode; subtitle?: string; actions?: ReactNode; stats?: ReactNode; children: ReactNode;
-}) {
-  return (
-    <div className="min-h-full bg-neutral-50">
-      {/* phones / tablets: a large title under the app bar (the bar shows it once the page scrolls) */}
-      <header className="px-4 pt-1 sm:px-6 lg:pt-6">
-        <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
-          <div className="min-w-0">
-            <h1 className="text-[22px] font-bold leading-tight tracking-tight text-neutral-900 sm:text-2xl lg:text-xl lg:font-semibold">{title}</h1>
-            {subtitle && <p className="mt-1 text-[13px] text-neutral-500 sm:truncate sm:text-sm">{subtitle}</p>}
-          </div>
-          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
-        </div>
-      </header>
-      {/* the summary sits in the content, with its margins, like Sales Transactions */}
-      <div className="space-y-4 p-4 sm:p-6">{stats}{children}</div>
-    </div>
-  );
-}
-
-/** White card holding a toolbar and a table (portal list pages). */
-export function Panel({ title, description, actions, toolbar, footer, children, className }: {
-  title?: string; description?: string; actions?: ReactNode; toolbar?: ReactNode; footer?: ReactNode; children: ReactNode; className?: string;
-}) {
-  return (
-    <section className={cx("overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm", className)}>
-      {(title || actions) && (
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 px-4 py-3 sm:px-5">
-          <div className="min-w-0">
-            {title && <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>}
-            {description && <p className="mt-0.5 text-xs text-neutral-500">{description}</p>}
-          </div>
-          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
-        </div>
-      )}
-      {toolbar && <div className="space-y-3 border-b border-neutral-200 p-3 sm:p-4">{toolbar}</div>}
-      {children}
-      {footer && (
-        <div className="flex flex-col items-center justify-between gap-2 border-t border-neutral-200 bg-neutral-50/60 px-4 py-3 text-xs text-neutral-500 sm:flex-row">
-          {footer}
-        </div>
-      )}
-    </section>
-  );
-}
+// the page frame and the cards of the new design (after kopicalf-hrms): every form and monitor shares them
+export { Page, Panel } from "@/components/kc/compat";
 
 export function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (

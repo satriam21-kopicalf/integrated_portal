@@ -54,7 +54,7 @@ function Gate({ children }: { children: ReactNode }) {
   if (isPublic) return <>{children}</>;
   if (status !== 'authenticated' || !user || !allowed) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-slate-50 text-slate-400" aria-busy="true">
+      <div className="flex h-dvh items-center justify-center bg-neutral-50 text-neutral-400" aria-busy="true">
         <Loader2 size={22} className="animate-spin" />
         <span className="sr-only">{tr('Checking your session…')}</span>
       </div>

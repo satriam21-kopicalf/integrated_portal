@@ -16,6 +16,8 @@ import { wibDateTime } from "@/so/lib/wib";
 import { dmy } from "@/so/ui/Filters";
 import { tr } from "@/lib/i18n";
 import { CHECKS, type Entry, fmtQty, type Investigation, type Report, SIGNERS, type Signer, SOURCES, WASTE_KINDS, scopeLabel } from "./waste";
+import { SkeletonList } from "@/components/kc/Skeleton";
+import { thumb } from "@/lib/assets";
 
 export const printUrl = (id: string) => `/cost-control/waste/reviews/investigation?id=${id}`;
 
@@ -122,7 +124,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
           <Button loading={busy} onClick={() => void save()}><Save size={15} />{tr("Save")}</Button>
         </div>
       ) : undefined}>
-      {error ? <ErrorState message={error} /> : !inv || !report ? <div className="skeleton h-96 rounded-xl" /> : (
+      {error ? <ErrorState message={error} /> : !inv || !report ? <SkeletonList rows={5} /> : (
         <div className="space-y-5 text-sm">
           <section className="space-y-2">
             <h3 className="font-semibold text-neutral-900">{tr("Waste Entries")}</h3>
@@ -131,7 +133,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
                 <li key={e.id} className="rounded-xl border border-neutral-200 p-3">
                   <div className="flex items-start gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/api/waste/entries/${e.id}/photo`} alt="" className="h-14 w-14 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
+                    <img src={thumb(`/api/waste/entries/${e.id}/photo`, 160)} decoding="async" loading="lazy" alt="" className="h-14 w-14 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
                     <div className="min-w-0 flex-1 text-xs">
                       <p className="text-sm font-semibold text-neutral-900">{e.itemName}</p>
                       <p className="text-neutral-600">{fmtQty(e.qty)} {e.unit} · {scopeLabel(e.scope)} · {e.category}</p>
@@ -274,7 +276,7 @@ export function CategoriesDrawer({ onClose }: { onClose: () => void }) {
             onKeyDown={(e) => { if (e.key === "Enter" && draft.name.trim()) void add(); }} />
           <Button disabled={!draft.name.trim()} onClick={() => void add()}><Plus size={15} />{tr("Add")}</Button>
         </div>
-        {!rows ? <div className="skeleton h-40 rounded-xl" /> : (["waste", "usage"] as const).map((sc) => (
+        {!rows ? <SkeletonList rows={4} /> : (["waste", "usage"] as const).map((sc) => (
           <div key={sc}>
             <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400"><Tags size={12} />{sc === "waste" ? tr("Form Waste") : tr("Usage Management")}</p>
             <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">

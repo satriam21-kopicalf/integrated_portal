@@ -19,14 +19,14 @@ export const SO: Part = {
       id: 'so-jadwal', title: 'Kapan stock opname dilakukan',
       body: (
         <>
-          <p className="text-sm text-slate-700">Jadwal dibuat oleh tim Cost Control. Yang umum dipakai:</p>
+          <p className="text-sm text-neutral-700">Jadwal dibuat oleh tim Cost Control. Yang umum dipakai:</p>
           <Table head={['Jenis SO', 'Jadwal', 'Isi yang dihitung']} rows={[
             ['SO harian (packaging)', 'Setiap hari', 'Packaging & kitchen supplies: cup, lid, sedotan, kantong, dll.'],
             ['SO mingguan (bahan baku)', 'Setiap Senin', 'Bahan baku, beans, WIP/premix'],
             ['SO bulanan (bahan baku)', 'Hari terakhir bulan', 'Bahan baku lengkap, WIP/premix'],
             ['SO insidental', 'Saat diperlukan', 'Audit / serah terima, dibuat atas permintaan'],
           ]} />
-          <p className="text-sm text-slate-700">Jam hitung standar <b>07:00–08:00 WIB</b> (sebelum outlet buka). <b>Semua jadwal SO memakai WIB</b> untuk semua outlet, HUB dan dapur, termasuk di Bali; jam di portal selalu ditampilkan dalam WIB walau jam HP berbeda. SO yang dikirim lewat jam itu tetap diterima tetapi ditandai <b>Terlambat</b>. Nama dan jadwal persisnya terlihat di halaman <Go href="/stock-opname">Stock Opname</Go>.</p>
+          <p className="text-sm text-neutral-700">Jam hitung standar <b>07:00–08:00 WIB</b> (sebelum outlet buka). <b>Semua jadwal SO memakai WIB</b> untuk semua outlet, HUB dan dapur, termasuk di Bali; jam di portal selalu ditampilkan dalam WIB walau jam HP berbeda. SO yang dikirim lewat jam itu tetap diterima tetapi ditandai <b>Terlambat</b>. Nama dan jadwal persisnya terlihat di halaman <Go href="/stock-opname">Stock Opname</Go>.</p>
         </>
       ),
     },
@@ -148,7 +148,7 @@ export const CC: Part = {
       id: 'cc-daftar', title: 'Daftar hitung (Count lists)',
       body: (
         <>
-          <p className="text-sm text-slate-700">Setiap cabang punya daftar sendiri per jenis SO. Cabang tanpa daftar sendiri memakai <b>daftar default</b> tipenya (OUTLET, HUB_WH, …). Daftar <b>Mingguan</b> outlet & HUB WH mengikuti <i>Stock Opname Report 07 Okt 2026</i> (item & satuan, termasuk item yang qty-nya 0); daftar lain dari dokumen stock opname terakhir di ESB.</p>
+          <p className="text-sm text-neutral-700">Setiap cabang punya daftar sendiri per jenis SO. Cabang tanpa daftar sendiri memakai <b>daftar default</b> tipenya (OUTLET, HUB_WH, …). Daftar <b>Mingguan</b> outlet & HUB WH mengikuti <i>Stock Opname Report 07 Okt 2026</i> (item & satuan, termasuk item yang qty-nya 0); daftar lain dari dokumen stock opname terakhir di ESB.</p>
           <Steps items={[
             <>Buka <Go href="/cost-control/lists">Daftar hitung</Go>, pilih cabang atau default, lalu jenis SO.</>,
             <>Tambah item (cari nama/kode atau satu kategori sekaligus), atur <b>area</b>, <b>satuan kemasan</b> (kru menghitung pack + sisa), <b>satuan ESB</b> (satuan di file impor) dan <b>wajib foto</b>. Simpan.</>,
@@ -162,14 +162,14 @@ export const CC: Part = {
       id: 'cc-grup', title: 'Grup item',
       body: (
         <>
-          <p className="text-sm text-slate-700">Grup = kumpulan item yang dibuat sekali lalu dipasang ke banyak cabang (mis. “Bar espresso”, “Packaging to go”). Mengubah grup langsung mengubah semua cabang pemakainya.</p>
+          <p className="text-sm text-neutral-700">Grup = kumpulan item yang dibuat sekali lalu dipasang ke banyak cabang (mis. “Bar espresso”, “Packaging to go”). Mengubah grup langsung mengubah semua cabang pemakainya.</p>
           <Steps items={[
             <>Buka <Go href="/cost-control/groups">Grup item</Go> → <Menu>Grup baru</Menu>. Langkah 1 <b>Detail</b>: nama & keterangan.</>,
             <>Langkah 2 <b>Item</b>: tambah satu kategori sekaligus atau cari item satu per satu; atur area, kemasan, satuan ESB, foto.</>,
             <>Langkah 3 <b>Cabang</b>: pilih jenis SO (boleh lebih dari satu), saring tipe & kota, centang cabang atau <b>pilih semua</b>. Buat & pasang.</>,
             <>Grup yang ada: tab <b>Item</b>, <b>Cabang</b> (tambah/hapus pemasangan; tanda centang = sudah terpasang) dan <b>Detail</b> (nama, nonaktif).</>,
           ]} />
-          <p className="text-sm font-semibold text-slate-900">Dari template Cost Control</p>
+          <p className="text-sm font-semibold text-neutral-900">Dari template Cost Control</p>
           <Steps items={[
             <><Menu>Impor template</Menu> → pilih file <i>TEMPLATE SO PER CATEGORY</i> → <Menu>Periksa</Menu> (belum menyimpan) → <Menu>Impor</Menu>. Setiap sheet menjadi grup “Template SO …”, belum dipasang ke cabang. Impor ulang mengganti item grup itu; pemasangan cabang tetap.</>,
             <>Produk yang belum ada di master item muncul di grup sebagai <b>Belum ada di master item</b>. Klik <Menu>Buat item</Menu> (kode, nama, kategori & satuan sudah terisi dari template), periksa lalu simpan: item langsung masuk ke grup itu dan grup lain yang mencantumkannya.</>,
@@ -184,7 +184,7 @@ export const CC: Part = {
       id: 'cc-premix', title: 'Kalkulator Produksi & resep WIP',
       body: (
         <>
-          <p className="text-sm text-slate-700">Pengganti workbook <i>Kalkulator Premix WIP – SO BAR KITCHEN</i>. Resep yang aktif dipakai kalkulator dan form WIP di SO.</p>
+          <p className="text-sm text-neutral-700">Pengganti workbook <i>Kalkulator Premix WIP – SO BAR KITCHEN</i>. Resep yang aktif dipakai kalkulator dan form WIP di SO.</p>
           <Steps items={[
             <><b>Impor awal</b>: <Go href="/cost-control/premix">Kalkulator Produksi</Go> → tab <Menu>Impor workbook</Menu> → pilih file → <Menu>Periksa</Menu> (belum menyimpan) → baca hasil (resep baru/berubah, bahan yang belum dipetakan, resep yang total bahannya ≠ 100%) → <Menu>Impor</Menu>.</>,
             <><b>Petakan bahan</b>: tab <Menu>Resep WIP</Menu> → buka resep bertanda “perlu diperbaiki” → pada setiap bahan pilih <b>item stok</b> (kode ESB). Air pilih “Bukan item stok”. Pilihan diingat untuk impor berikutnya.</>,
@@ -225,7 +225,7 @@ export const CC: Part = {
       id: 'cc-rasio', title: 'Rasio Outlet',
       body: (
         <>
-          <p className="text-sm text-slate-700"><Go href="/cost-control/ratio">Rasio Outlet</Go> menyusun kolom workbook <i>CALF – Rasio Outlet</i> dari data ESB. Pilih bulan dan periode (W1 1–7, W2 1–14, W3 1–21, W4 1–28, sebulan); unduh Excel.</p>
+          <p className="text-sm text-neutral-700"><Go href="/cost-control/ratio">Rasio Outlet</Go> menyusun kolom workbook <i>CALF – Rasio Outlet</i> dari data ESB. Pilih bulan dan periode (W1 1–7, W2 1–14, W3 1–21, W4 1–28, sebulan); unduh Excel.</p>
           <Table head={['Kolom', 'Sumber / rumus']} rows={[
             ['Gross sales', 'Subtotal transaksi Sales POS (sama dengan workbook)'],
             ['Pendapatan / net', 'Gross × (1 − MDR) bila MDR bulan itu diisi; selain itu Nett Sales ESB'],

@@ -17,6 +17,7 @@ import { Menu, Pool, Stock } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
 import { PoolBatches } from "@/cotr/Batches";
 import { locale, tr } from "@/lib/i18n";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 type Dispatch = { id: string; lines: Stock; note: string | null; status: "assigned" | "disputed" | "accepted"; driverCounts: Stock | null; driverNote: string | null; finalLines: Stock | null; resolutionNote: string | null;
   /** migration 061: the part of the lines for tasting */ cupping?: Stock };
@@ -161,7 +162,7 @@ export default function CotrStoragePage() {
           </FilterRow>
         </MonitorFilterSheet>
       )}
-      {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? <div className="skeleton h-64 rounded-xl" /> : (
+      {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? <SkeletonList rows={5} /> : (
         <>
           {disputes.length > 0 && (
             <Panel title={tr("Differences reported by the drivers")} description={tr("Set the final cups: they become the start stock of the shift")}>

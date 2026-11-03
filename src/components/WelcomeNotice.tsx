@@ -50,29 +50,29 @@ export default function WelcomeNotice({ user }: { user: AuthUser }) {
     <div className="fixed inset-x-4 top-4 z-[75] sm:left-auto sm:right-4 sm:w-[380px]" role="status" aria-live="polite"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
-      <div className="notice-in overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl">
+      <div className="notice-in overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-xl">
         <div className="flex items-start gap-3 p-4">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-brand-800 text-white">
             <Icon size={20} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-900">{greeting.title}</p>
-            <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{greeting.message}</p>
+            <p className="text-sm font-semibold text-neutral-900">{greeting.title}</p>
+            <p className="mt-0.5 text-sm leading-relaxed text-neutral-600">{greeting.message}</p>
           </div>
-          <button type="button" onClick={close} className="-mr-1 -mt-1 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={tr('Dismiss')}>
+          <button type="button" onClick={close} className="-mr-1 -mt-1 rounded-md p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Dismiss')}>
             <X size={16} />
           </button>
         </div>
 
-        <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-3">
-          <p className="mb-2 text-xs font-medium text-slate-500">
+        <div className="border-t border-neutral-100 bg-neutral-50/70 px-4 py-3">
+          <p className="mb-2 text-xs font-medium text-neutral-500">
             {answered ? tr('Thanks for sharing — you can change it any time today.') : mood ? tr('Your mood today') : tr('How are you feeling today?')}
           </p>
           <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label={tr('Your mood today')}>
             {MOODS.map(m => (
               <button key={m.key} type="button" role="radio" aria-checked={mood === m.key} onClick={() => choose(m.key)}
                 className={`flex flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5 text-[11px] font-medium transition-colors ${
-                  mood === m.key ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'}`}>
+                  mood === m.key ? 'border-brand-600 bg-brand-50 text-brand-800' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'}`}>
                 <span className="text-lg leading-none" aria-hidden>{m.emoji}</span>
                 {m.label}
               </button>
@@ -81,8 +81,8 @@ export default function WelcomeNotice({ user }: { user: AuthUser }) {
         </div>
 
         {/* countdown; restarts after a mood is picked */}
-        <div className="h-0.5 bg-slate-100">
-          <div key={mood ?? 'asking'} className="notice-countdown h-full bg-blue-600/70" onAnimationEnd={close}
+        <div className="h-0.5 bg-neutral-100">
+          <div key={mood ?? 'asking'} className="notice-countdown h-full bg-brand-600/70" onAnimationEnd={close}
             style={{ animationDuration: `${mood ? DISMISS_AFTER_S : DISMISS_ASKING_S}s`, animationPlayState: paused ? 'paused' : 'running' }} />
         </div>
       </div>

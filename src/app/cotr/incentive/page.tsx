@@ -15,6 +15,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool } from "@/cotr/types";
 import { MasterTable, rupiah, useMaster } from "@/cotr/ui";
 import { locale, tr } from "@/lib/i18n";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 type Tier = { from: number; to: number | null; rate: number };
 type Bonus = { menu: string; rate: number };
@@ -125,7 +126,7 @@ function RecapView() {
       )}
     <Panel title={tr("Incentives of {0}", monthLabel)} description={data ? tr("{0} of {1} drivers · tap a driver for the breakdown", rows.length, data.rows.length) : undefined}
       actions={<Button size="sm" variant="secondary" disabled={!rows.length} onClick={exportCsv}><Download size={14} /> {tr("Export CSV")}</Button>}>
-      {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <div className="skeleton m-4 h-40 rounded-xl" /> : (
+      {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonList rows={4} /> : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-3 py-2.5 text-right">{tr("Attendance")}</th>

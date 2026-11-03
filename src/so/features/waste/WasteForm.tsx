@@ -27,6 +27,8 @@ import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import { TZ, wibDateTime } from "@/so/lib/wib";
 import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, explodePremix, usagePhotoUrl, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone, unitText } from "./waste";
+import { SkeletonList } from "@/components/kc/Skeleton";
+import { thumb } from "@/lib/assets";
 
 /** uom: the unit a premix is entered in ("" = its count unit) */
 type Row = { qty: string; uom: string; category: string; note: string; made: string; expires: string; photo: Shot | null };
@@ -215,7 +217,7 @@ export default function WasteForm() {
     return (
       <Page title={tr("Waste")} subtitle={subtitle} actions={<LiveClock />}>
         {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={() => void load(branch, day)} /></div>
-          : <div className="mx-auto max-w-5xl space-y-4"><div className="skeleton h-24 rounded-xl" /><div className="skeleton h-72 rounded-xl" /></div>}
+          : <div className="mx-auto max-w-5xl space-y-4"><SkeletonList rows={3} /><SkeletonList rows={5} /></div>}
       </Page>
     );
   }
@@ -469,7 +471,7 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
             <li key={e.id} className="flex gap-3 px-4 py-3">
               <a href={photoUrl(e.id)} target="_blank" rel="noreferrer" className="flex-shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photoUrl(e.id)} alt="" loading="lazy" className="h-14 w-14 rounded-lg bg-neutral-100 object-cover" />
+                <img src={thumb(photoUrl(e.id), 160)} decoding="async" alt="" loading="lazy" className="h-14 w-14 rounded-lg bg-neutral-100 object-cover" />
               </a>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">

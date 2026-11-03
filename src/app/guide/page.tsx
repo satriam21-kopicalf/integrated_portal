@@ -35,15 +35,15 @@ export default function GuidePage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-slate-50">
+      <div className="min-h-full bg-neutral-50">
         <header className="px-4 pt-5 sm:px-6 sm:pt-6">
-          <h1 className="flex items-center gap-2 text-lg font-semibold text-slate-900 sm:text-xl"><BookOpen size={20} /> {text.PAGE.title}</h1>
-          <p className="text-xs text-slate-500 sm:text-sm">{text.PAGE.subtitle}</p>
+          <h1 className="flex items-center gap-2 text-lg font-semibold text-neutral-900 sm:text-xl"><BookOpen size={20} /> {text.PAGE.title}</h1>
+          <p className="text-xs text-neutral-500 sm:text-sm">{text.PAGE.subtitle}</p>
           {parts.length > 1 && (
             <div className="mt-3 flex gap-1 overflow-x-auto" role="tablist">
               {parts.map(p => (
                 <button key={p.key} type="button" role="tab" aria-selected={tab === p.key} onClick={() => setTab(p.key)}
-                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${tab === p.key ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${tab === p.key ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}>
                   {p.icon}{p.label}
                 </button>
               ))}
@@ -53,17 +53,17 @@ export default function GuidePage() {
         <div className="mx-auto grid max-w-6xl gap-6 p-4 sm:p-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
           <nav className="hidden lg:block" aria-label={text.PAGE.toc}>
             <div className="sticky top-4 space-y-1">
-              <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{text.PAGE.toc}</p>
+              <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{text.PAGE.toc}</p>
               {part.sections.map((s, i) => (
-                <a key={s.id} href={`#${s.id}`} className="block rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-white hover:text-slate-900">{i + 1}. {s.title}</a>
+                <a key={s.id} href={`#${s.id}`} className="block rounded-md px-2 py-1 text-sm text-neutral-600 hover:bg-white hover:text-neutral-900">{i + 1}. {s.title}</a>
               ))}
             </div>
           </nav>
           <div className="min-w-0 space-y-4">
-            <p className="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-700">{part.intro}</p>
+            <p className="rounded-xl border border-neutral-200/80 bg-white px-4 py-3 text-sm text-neutral-700">{part.intro}</p>
             {part.sections.map((s, i) => (
-              <section key={s.id} id={s.id} className="scroll-mt-4 space-y-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
-                <h2 className="text-base font-semibold text-slate-900">{i + 1}. {s.title}</h2>
+              <section key={s.id} id={s.id} className="scroll-mt-4 space-y-3 rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm sm:p-5">
+                <h2 className="text-base font-semibold text-neutral-900">{i + 1}. {s.title}</h2>
                 {s.body}
               </section>
             ))}

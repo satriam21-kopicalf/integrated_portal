@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/so/ui";
 import { Page } from "@/components/kc/compat";
 import { IconButton } from "@/components/kc";
-import { assetUrl } from "@/lib/assets";
+import { assetUrl, thumb } from "@/lib/assets";
 import Image from "next/image";
 import { call } from "@/so/features/checkin/checkin";
 import { Driver, DriverAccount, Fleet, Pool } from "@/cotr/types";
@@ -72,7 +72,7 @@ export default function CotrDriversPage() {
             <span className="flex items-center gap-3">
               <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-neutral-400">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {d.has_photo ? <img src={imageUrl("drivers", d.code, "photo", d.updated_at)} alt="" className="h-full w-full object-cover" loading="lazy" /> : <UserRound size={16} />}
+                {d.has_photo ? <img src={thumb(imageUrl("drivers", d.code, "photo", d.updated_at), 96)} decoding="async" alt="" className="h-full w-full object-cover" loading="lazy" /> : <UserRound size={16} />}
               </span>
               <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{d.name || "—"}</span><span className="text-[11px] text-neutral-400">{d.employee_id ?? d.code}{d.nickname ? ` · ${d.nickname}` : ""}{d.phone ? ` · ${d.phone}` : ""}</span></span>
             </span>

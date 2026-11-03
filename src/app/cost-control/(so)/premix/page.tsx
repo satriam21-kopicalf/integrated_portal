@@ -18,6 +18,7 @@ import { tr } from "@/lib/i18n";
 
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { downloadXlsx } from "@/lib/xlsx";
+import { SkeletonList } from "@/components/kc/Skeleton";
 type Tab = "calculator" | "recipes";
 const fmtG = (v: number, d = 0) => v.toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: 0 });
 /** Grams of one unit, 0 when the recipe gives no conversion. */
@@ -411,7 +412,7 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
                 <th className="px-4 py-2.5 text-right">{tr("Components")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {recipes === null ? Array.from({ length: 6 }, (_, i) => <tr key={i}><td colSpan={5} className="px-4 py-3"><div className="skeleton h-8 rounded" /></td></tr>) : paged.rows.map(r => {
+              {recipes === null ? Array.from({ length: 6 }, (_, i) => <tr key={i}><td colSpan={5} className="px-4 py-3"><SkeletonList rows={3} /></td></tr>) : paged.rows.map(r => {
                 const errors = r.active?.issues.filter(i => i.level === "error").length ?? 0;
                 const warnings = r.active?.issues.filter(i => i.level === "warning") ?? [];
                 return (

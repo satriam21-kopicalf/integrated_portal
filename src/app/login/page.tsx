@@ -100,7 +100,7 @@ export default function LoginPage() {
     <main className="flex min-h-dvh bg-white">
       <BrandPanel />
 
-      <div className="relative flex min-h-dvh flex-1 flex-col bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 lg:bg-none">
+      <div className="relative flex min-h-dvh flex-1 flex-col bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 lg:bg-none">
         {/* phones and tablets: the blue header of the app, the logo as a watermark (the brand panel is hidden) */}
         <div className="relative overflow-hidden px-6 pb-16 text-white lg:hidden" style={{ paddingTop: 'max(3.5rem, calc(env(safe-area-inset-top) + 2.5rem))' }}>
           <GridPattern />
@@ -117,20 +117,20 @@ export default function LoginPage() {
         <PreferenceSwitches className="absolute right-4 top-4 sm:right-6 sm:top-6" />
         <div className="relative z-10 -mt-8 flex flex-1 justify-center rounded-t-[28px] bg-white px-5 pb-10 pt-8 sm:px-8 lg:mt-0 lg:items-center lg:rounded-none lg:py-12">
           <div className="w-full max-w-[420px] lg:max-w-[380px]">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 lg:font-semibold">{tr('Sign in')}</h1>
-            <p className="mt-1.5 text-sm text-slate-500">{tr('Kopi Calf Integration Platform')}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 lg:font-semibold">{tr('Sign in')}</h1>
+            <p className="mt-1.5 text-sm text-neutral-500">{tr('Kopi Calf Integration Platform')}</p>
 
             <div className="mt-8 space-y-6">
               {farewell && <FarewellCard farewell={farewell} />}
               {notice && (
-                <p className="flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5 text-sm text-blue-800" role="status">
+                <p className="flex items-start gap-2 rounded-lg bg-brand-50 px-3 py-2.5 text-sm text-brand-800" role="status">
                   <Info size={16} className="mt-0.5 flex-shrink-0" /> {notice}
                 </p>
               )}
 
               <form onSubmit={submit} className="space-y-5" noValidate>
                 <Field id="identifier" label={tr('Username or email')} error={fields.identifier}>
-                  <User size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <User size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input
                     id="identifier"
                     type="text"
@@ -149,7 +149,7 @@ export default function LoginPage() {
 
                 <Field id="password" label={tr('Password')} error={fields.password}
                   hint={capsLock && !fields.password ? tr('Caps Lock is on') : undefined}>
-                  <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -166,7 +166,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40"
                     aria-label={showPassword ? tr('Hide password') : tr('Show password')}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -174,18 +174,18 @@ export default function LoginPage() {
                 </Field>
 
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <label className="flex cursor-pointer select-none items-center gap-2 text-slate-600">
+                  <label className="flex cursor-pointer select-none items-center gap-2 text-neutral-600">
                     <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
+                      className="h-4 w-4 rounded border-neutral-300 text-brand-600 focus:ring-brand-600" />
                     {tr('Keep me signed in')}
                   </label>
                   <button type="button" onClick={() => setShowForgot(s => !s)} aria-expanded={showForgot}
-                    className="rounded font-medium text-blue-600 hover:text-blue-800 dark:hover:text-white hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40">
+                    className="rounded font-medium text-brand-600 hover:text-brand-800 dark:hover:text-white hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40">
                     {tr('Forgot password?')}
                   </button>
                 </div>
                 {showForgot && (
-                  <p className="-mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600" role="status">
+                  <p className="-mt-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600" role="status">
                     {tr('Ask your administrator to reset it.')}
                   </p>
                 )}
@@ -196,7 +196,7 @@ export default function LoginPage() {
                   </p>
                 )}
                 {operations && (
-                  <a href={operations} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 text-sm font-semibold text-blue-800 hover:bg-blue-100">
+                  <a href={operations} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-brand-200 bg-brand-50 text-sm font-semibold text-brand-800 hover:bg-brand-100">
                     {tr('Open Operations')} <ArrowRight size={16} />
                   </a>
                 )}
@@ -204,7 +204,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 lg:h-11 lg:rounded-lg text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition-colors hover:bg-blue-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-600/25 disabled:cursor-wait disabled:bg-blue-600/80"
+                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 lg:h-11 lg:rounded-lg text-sm font-semibold text-white shadow-sm shadow-brand-600/20 transition-colors hover:bg-brand-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/25 disabled:cursor-wait disabled:bg-brand-600/80"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
                   {submitting ? tr('Signing in…') : tr('Sign in')}
@@ -215,7 +215,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <footer className="bg-white pb-6 text-center text-xs text-slate-400" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <footer className="bg-white pb-6 text-center text-xs text-neutral-400" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
           © {new Date().getFullYear()} {tr('Kopi Calf · PT Yuda Prawira Group')}
         </footer>
       </div>
@@ -225,11 +225,11 @@ export default function LoginPage() {
 
 function inputClass(invalid: boolean) {
   return (
-    'h-12 w-full rounded-xl border bg-white pl-10 pr-3 text-base text-slate-900 lg:h-11 lg:rounded-lg lg:text-sm placeholder:text-slate-400 transition-colors ' +
+    'h-12 w-full rounded-xl border bg-white pl-10 pr-3 text-base text-neutral-900 lg:h-11 lg:rounded-lg lg:text-sm placeholder:text-neutral-400 transition-colors ' +
     'focus:outline-none focus:ring-4 ' +
     (invalid
       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
-      : 'border-slate-200 hover:border-slate-300 focus:border-blue-600 focus:ring-blue-600/10')
+      : 'border-neutral-200 hover:border-neutral-300 focus:border-brand-600 focus:ring-brand-600/10')
   );
 }
 
@@ -238,7 +238,7 @@ function Field({ id, label, error, hint, children }: {
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-neutral-700">{label}</label>
       <div className="relative">{children}</div>
       {error && <p id={`${id}-error`} className="mt-1.5 text-xs text-red-600">{error}</p>}
       {hint && <p id={`${id}-hint`} className="mt-1.5 text-xs text-amber-700">{hint}</p>}
@@ -251,9 +251,9 @@ function Field({ id, label, error, hint, children }: {
 /** Large screens: the brand side, the blue of the logo with white and a touch of dark red; decorative, no real figures. */
 function BrandPanel() {
   return (
-    <aside className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 p-10 text-white lg:flex xl:p-14">
+    <aside className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-10 text-white lg:flex xl:p-14">
       <GridPattern />
-      <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-blue-500/40 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-brand-500/40 blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-maroon-700/45 blur-3xl" aria-hidden />
 
       <BrandWatermark className="-bottom-10 -right-40 w-[760px] -rotate-[8deg] opacity-[0.08]" />
@@ -292,14 +292,14 @@ function DashboardIllustration() {
   const bars = [38, 56, 46, 70, 60, 84, 66];
   return (
     <div className="relative w-full max-w-[460px]" aria-hidden>
-      <div className="rounded-2xl bg-white p-5 shadow-2xl shadow-blue-950/30">
+      <div className="rounded-xl bg-white p-5 shadow-2xl shadow-brand-950/30">
         <div className="flex items-center justify-between">
           <span className="space-y-1.5">
-            <span className="block h-2 w-20 rounded-full bg-slate-200" />
-            <span className="block h-3 w-32 rounded-full bg-blue-600" />
+            <span className="block h-2 w-20 rounded-full bg-neutral-200" />
+            <span className="block h-3 w-32 rounded-full bg-brand-600" />
           </span>
           <span className="flex gap-1.5">
-            <span className="h-6 w-12 rounded-md bg-blue-50" /><span className="h-6 w-12 rounded-md bg-blue-600" />
+            <span className="h-6 w-12 rounded-md bg-brand-50" /><span className="h-6 w-12 rounded-md bg-brand-600" />
           </span>
         </div>
         <svg viewBox="0 0 300 110" className="mt-4 h-32 w-full">
@@ -316,16 +316,16 @@ function DashboardIllustration() {
         </svg>
         <div className="mt-4 flex h-16 items-end gap-2">
           {bars.map((h, i) => (
-            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-blue-600' : 'bg-blue-100'}`} style={{ height: `${h}%` }} />
+            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-brand-600' : 'bg-brand-100'}`} style={{ height: `${h}%` }} />
           ))}
         </div>
       </div>
       {/* floating KPI chip */}
-      <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-xl bg-white px-3 py-2.5 shadow-xl shadow-blue-950/25">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><TrendingUp size={16} /></span>
+      <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-xl bg-white px-3 py-2.5 shadow-xl shadow-brand-950/25">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-600"><TrendingUp size={16} /></span>
         <span className="space-y-1.5">
-          <span className="block h-1.5 w-12 rounded-full bg-slate-200" />
-          <span className="block h-2.5 w-16 rounded-full bg-blue-600" />
+          <span className="block h-1.5 w-12 rounded-full bg-neutral-200" />
+          <span className="block h-2.5 w-16 rounded-full bg-brand-600" />
         </span>
       </div>
     </div>
@@ -336,14 +336,14 @@ function DashboardIllustration() {
 function FarewellCard({ farewell }: { farewell: Farewell }) {
   const Icon = DAY_PART_ICONS[farewell.part] ?? Info;
   return (
-    <div className="notice-in flex items-start gap-3 rounded-xl bg-blue-50 px-4 py-3.5" role="status">
-      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+    <div className="notice-in flex items-start gap-3 rounded-xl bg-brand-50 px-4 py-3.5" role="status">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-600 text-white">
         <Icon size={18} />
       </span>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-slate-900">{farewell.title}</p>
-        <p className="mt-0.5 text-sm leading-relaxed text-slate-600">{farewell.message}</p>
-        <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-500">
+        <p className="text-sm font-semibold text-neutral-900">{farewell.title}</p>
+        <p className="mt-0.5 text-sm leading-relaxed text-neutral-600">{farewell.message}</p>
+        <p className="mt-1.5 flex items-center gap-1 text-xs text-neutral-500">
           <Clock size={12} /> {tr('Signed out')}{farewell.duration ? tr(' · session {0}', farewell.duration) : ''}
         </p>
       </div>

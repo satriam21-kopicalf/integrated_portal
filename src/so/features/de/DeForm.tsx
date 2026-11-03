@@ -26,6 +26,7 @@ import { TZ, wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import RequestView, { AddPhotoTile, EvidenceGrid, StatusBadge, UrgencyBadge } from "./RequestView";
+import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, STEPS, URGENCIES, URGENCY_LABEL,
   alreadyAsked, download, fmtHours, fmtMb } from "./de";
 
@@ -92,45 +93,45 @@ export default function DeForm() {
   return (
     <Page title="Damaged Equipment" actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
-      {error ? <div className="rounded-2xl border border-slate-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
-        <div className="mx-auto max-w-4xl space-y-4"><div className="skeleton h-48 rounded-xl" /><div className="skeleton h-64 rounded-xl" /></div>
+      {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+        <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && <SentCard r={sent} onClose={() => setSent(null)} onOpen={() => setView(sent.id)} />}
 
-          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-5">
+          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+            <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-900">{data.user.name}</p>
-                <p className="truncate text-xs text-slate-500">{me?.username ? `@${me.username} · ` : ""}{tr("PIC of the request")}</p>
+                <p className="truncate text-sm font-semibold text-neutral-900">{data.user.name}</p>
+                <p className="truncate text-xs text-neutral-500">{me?.username ? `@${me.username} · ` : ""}{tr("PIC of the request")}</p>
               </div>
             </div>
             <div className="space-y-4 p-4 sm:p-5">
               <div>
-                <p className="mb-2 text-sm font-semibold text-slate-900">{tr("Type of request")}</p>
+                <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Type of request")}</p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {(["REPAIR", "PROCUREMENT"] as Kind[]).map((k) => (
                     <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k}
                       className={cx("flex items-start gap-3 rounded-xl border p-3 text-left transition-colors",
-                        kind === k ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600" : "border-slate-200 hover:border-slate-300")}>
-                      <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg", kind === k ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500")}>
+                        kind === k ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+                      <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg", kind === k ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-500")}>
                         {k === "REPAIR" ? <Hammer size={18} /> : <PackagePlus size={18} />}
                       </span>
                       <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-slate-900">{KIND_LABEL[k]()}</span>
-                        <span className="block text-xs text-slate-500">{k === "REPAIR" ? tr("Damage to the building, furniture, tools or heavy tools") : tr("Decoration, tools or heavy tools to add to the outlet")}</span>
+                        <span className="block text-sm font-semibold text-neutral-900">{KIND_LABEL[k]()}</span>
+                        <span className="block text-xs text-neutral-500">{k === "REPAIR" ? tr("Damage to the building, furniture, tools or heavy tools") : tr("Decoration, tools or heavy tools to add to the outlet")}</span>
                       </span>
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="mb-2 text-sm font-semibold text-slate-900">{tr("Branch")}</p>
+                <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Branch")}</p>
                 {data.branches.length === 0 ? (
-                  <p className="rounded-lg bg-slate-50 px-3 py-3 text-sm text-slate-500">{tr("No branch is assigned to your account. Ask your administrator to assign your outlets.")}</p>
+                  <p className="rounded-lg bg-neutral-50 px-3 py-3 text-sm text-neutral-500">{tr("No branch is assigned to your account. Ask your administrator to assign your outlets.")}</p>
                 ) : data.branches.length === 1 ? (
-                  <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-900">{data.branches[0].name}</p>
+                  <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm font-medium text-neutral-900">{data.branches[0].name}</p>
                 ) : (
                   <select value={branch} onChange={(e) => setBranch(e.target.value)} className={cx(inputClass, "h-11")} aria-label={tr("Branch")}>
                     <option value="">{tr("Choose the branch")}</option>
@@ -138,7 +139,7 @@ export default function DeForm() {
                   </select>
                 )}
               </div>
-              <p className="text-xs text-slate-500">{tr("Date and time = server time when sent; PIC and branch come from your account.")}</p>
+              <p className="text-xs text-neutral-500">{tr("Date and time = server time when sent; PIC and branch come from your account.")}</p>
               <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create request")}</Button>
             </div>
           </section>
@@ -146,16 +147,16 @@ export default function DeForm() {
           {drafts.length > 0 && (
             <section className="rounded-xl border border-amber-200 bg-white shadow-sm">
               <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("Drafts saved ({0})", drafts.length)}</p>
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-neutral-100">
                 {drafts.map((d) => (
                   <li key={d.id}>
-                    <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 sm:px-5">
+                    <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
                       <ClipboardList size={18} className="flex-shrink-0 text-amber-600" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-slate-900">{d.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {d.branchName}</span>
-                        <span className="block text-xs text-slate-500">{tr("saved {0}", wibDateTime(d.updatedAt))}</span>
+                        <span className="block truncate text-sm font-medium text-neutral-900">{d.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {d.branchName}</span>
+                        <span className="block text-xs text-neutral-500">{tr("saved {0}", wibDateTime(d.updatedAt))}</span>
                       </span>
-                      <ChevronRight size={16} className="text-slate-300" />
+                      <ChevronRight size={16} className="text-neutral-300" />
                     </button>
                   </li>
                 ))}
@@ -163,18 +164,18 @@ export default function DeForm() {
             </section>
           )}
 
-          <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
+          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3 sm:px-5">
               <div>
-                <p className="text-sm font-semibold text-slate-900">{tr("My requests")}</p>
-                <p className="text-xs text-slate-500">{tr("Tap a request to see every step and note of the team")}</p>
+                <p className="text-sm font-semibold text-neutral-900">{tr("My requests")}</p>
+                <p className="text-xs text-neutral-500">{tr("Tap a request to see every step and note of the team")}</p>
               </div>
               <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
                 { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In progress")} ${live.length}` },
                 { value: "done", label: `${tr("Done")} ${done.length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.length - live.length - done.length}` }]} />
             </div>
-            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-slate-400">{mine.length ? tr("No request in this view") : tr("No request sent yet")}</p> : (
-              <ul className="divide-y divide-slate-100">
+            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{mine.length ? tr("No request in this view") : tr("No request sent yet")}</p> : (
+              <ul className="divide-y divide-neutral-100">
                 {shown.map((r) => <MineRow key={r.id} r={r} onOpen={() => setView(r.id)} />)}
               </ul>
             )}
@@ -192,21 +193,21 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
   const idx = r.status === "DONE" ? STEPS.length - 1 : at ? STEPS.indexOf(at) : 0;
   return (
     <li>
-      <button type="button" onClick={onOpen} className="w-full px-4 py-3 text-left hover:bg-slate-50 sm:px-5">
+      <button type="button" onClick={onOpen} className="w-full px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-mono text-xs font-semibold text-slate-500">{r.number}</span>
+          <span className="font-mono text-xs font-semibold text-neutral-500">{r.number}</span>
           <StatusBadge r={r} /><UrgencyBadge u={r.urgency} />
           {r.status === "HANDOVER" && !r.handover?.at && <Badge tone="red" icon={<Handshake size={11} />}>{tr("Your handover needed")}</Badge>}
           {r.tracker?.targetAdjusted && OPEN.includes(r.status) && <Badge tone="violet">{tr("Estimate adjusted")}</Badge>}
-          <span className="ml-auto text-[11px] tabular-nums text-slate-400">{wibDateTime(r.submittedAt)}</span>
+          <span className="ml-auto text-[11px] tabular-nums text-neutral-400">{wibDateTime(r.submittedAt)}</span>
         </span>
-        <span className="mt-1 block truncate text-sm font-medium text-slate-900">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {r.branchName}</span>
+        <span className="mt-1 block truncate text-sm font-medium text-neutral-900">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {r.branchName}</span>
         <span className="mt-2 flex items-center gap-1" aria-label={tr("Progress")}>
           {STEPS.map((st, i) => (
-            <span key={st} title={st} className={cx("h-1.5 flex-1 rounded-full", r.status === "REJECTED" ? "bg-red-200" : i <= idx ? (r.status === "ON_HOLD" && i === idx ? "bg-amber-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-blue-600") : "bg-slate-100")} />
+            <span key={st} title={st} className={cx("h-1.5 flex-1 rounded-full", r.status === "REJECTED" ? "bg-red-200" : i <= idx ? (r.status === "ON_HOLD" && i === idx ? "bg-amber-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-brand-600") : "bg-neutral-100")} />
           ))}
         </span>
-        <span className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+        <span className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-neutral-500">
           <span className="truncate">{r.lastNote?.note ? `“${r.lastNote.note}” — ${r.lastNote.actor}` : tr("No note from the team yet")}</span>
           <span className="flex-shrink-0 tabular-nums">{fmtHours(r.tracker?.workHours)}</span>
         </span>
@@ -276,7 +277,7 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
       <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><Download size={14} /> PDF</Button>
       {url && <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy link")}</Button>}
       {url && <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"
-        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50">
+        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
         <MessageCircle size={14} className="text-emerald-600" /> WhatsApp</a>}
     </div>
   );
@@ -309,7 +310,7 @@ function MyRequest({ id, onClose }: { id: string; onClose: () => void }) {
   return (
     <Drawer open onClose={onClose} size="lg" icon={<FileText size={18} />} title={r ? `${r.number} · ${r.branchName}` : tr("Request")}
       description={r ? r.kindLabel : undefined} focusFirstField={false} footer={r ? <DocActions r={r} /> : undefined}>
-      {error ? <ErrorState message={error} /> : !r ? <div className="skeleton h-64 rounded-xl" /> : (
+      {error ? <ErrorState message={error} /> : !r ? <SkeletonList rows={5} /> : (
         <RequestView r={r} urls={PORTAL_URLS}>
           {handoverDue && <HandoverCard r={r} onCamera={() => setCamera("HANDOVER")} onRemove={(mid) => void removePhoto(mid)} onSent={(out) => { setR(out); toast(tr("Handover sent to the maintenance team")); }} />}
           {working && (
@@ -359,12 +360,12 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
   };
   let n = 0;
   return (
-    <section className="space-y-3 rounded-2xl border-2 border-cyan-200 bg-cyan-50/40 p-3 sm:p-4">
+    <section className="space-y-3 rounded-xl border-2 border-cyan-200 bg-cyan-50/40 p-3 sm:p-4">
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-cyan-600 text-white"><Handshake size={18} /></span>
         <div>
-          <p className="font-semibold text-slate-900">{tr("Handover at the outlet")}</p>
-          <p className="text-xs text-slate-600">{vendor ? tr("The maintenance team asks you to check the vendor's work: photos of the result, the vendor's signature and yours.")
+          <p className="font-semibold text-neutral-900">{tr("Handover at the outlet")}</p>
+          <p className="text-xs text-neutral-600">{vendor ? tr("The maintenance team asks you to check the vendor's work: photos of the result, the vendor's signature and yours.")
             : tr("The maintenance team asks you to check the work: photos of the result and your signature.")}</p>
         </div>
       </div>
@@ -375,7 +376,7 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
         <FormCard n={++n} title={tr("Vendor's signature")} hint={tr("The vendor's officer signs on this phone")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
           <SignaturePad onChange={setVendorSign} />
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">{tr("Vendor officer's name")}{vendorName0 ? ` · ${vendorName0}` : ""}</span>
+            <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Vendor officer's name")}{vendorName0 ? ` · ${vendorName0}` : ""}</span>
             <input value={vendorName} onChange={(e) => setVendorName(e.target.value)} maxLength={120} className={inputClass} placeholder={tr("Full name")} />
           </label>
         </FormCard>
@@ -383,14 +384,14 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
       <FormCard n={++n} title={tr("Your signature (PIC)")} hint={tr("By signing I confirm the work has been done and received at the outlet.")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
         <SignaturePad onChange={setPicSign} />
         <label className="block">
-          <span className="mb-1 block text-xs font-medium text-slate-600">{tr("Signer's name")}</span>
+          <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Signer's name")}</span>
           <input value={picName} onChange={(e) => setPicName(e.target.value)} maxLength={120} className={inputClass} />
         </label>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={1000} placeholder={tr("Note (optional), e.g. anything still to follow up")}
           className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note")} />
       </FormCard>
       <Button className="w-full" loading={busy} disabled={!ready} onClick={() => void send()}><Send size={15} /> {tr("Send the handover")}</Button>
-      {!ready && <p className="text-center text-[11px] text-slate-500">{vendor ? tr("Photos, the vendor's signature and name, and your signature are needed.") : tr("Photos and your signature are needed.")}</p>}
+      {!ready && <p className="text-center text-[11px] text-neutral-500">{vendor ? tr("Photos, the vendor's signature and name, and your signature are needed.") : tr("Photos and your signature are needed.")}</p>}
     </section>
   );
 }
@@ -499,15 +500,15 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   ];
 
   return (
-    <div className="flex min-h-full flex-col bg-slate-50">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+    <div className="flex min-h-full flex-col bg-neutral-50">
+      <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white px-4 py-3 sm:px-6">
         <div className="mx-auto flex max-w-4xl items-start gap-2">
-          <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
+          <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-semibold text-slate-900 sm:text-lg">{KIND_LABEL[r.kind]()}</h1>
-            <p className="truncate text-xs text-slate-500">{r.picName} · {r.branchName}</p>
+            <h1 className="truncate text-base font-semibold text-neutral-900 sm:text-lg">{KIND_LABEL[r.kind]()}</h1>
+            <p className="truncate text-xs text-neutral-500">{r.picName} · {r.branchName}</p>
           </div>
-          <span className="flex-shrink-0 pt-1 text-xs text-slate-400" aria-live="polite">
+          <span className="flex-shrink-0 pt-1 text-xs text-neutral-400" aria-live="polite">
             {saving > 0 ? <span className="inline-flex items-center gap-1"><CloudUpload size={13} /> {tr("Saving…")}</span> : <span className="inline-flex items-center gap-1"><Check size={13} /> {tr("Saved")}</span>}
           </span>
         </div>
@@ -516,15 +517,15 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
         <FormCard n={1} title={tr("Request data")} hint={tr("Filled automatically from your account")}>
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
-            <div><dt className="text-[11px] text-slate-400">{tr("Date & time")}</dt><dd className="font-medium text-slate-900"><LiveClock /></dd></div>
-            <div><dt className="text-[11px] text-slate-400">PIC</dt><dd className="font-medium text-slate-900">{r.picName}</dd></div>
-            <div><dt className="text-[11px] text-slate-400">{tr("Branch")}</dt>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Date & time")}</dt><dd className="font-medium text-neutral-900"><LiveClock /></dd></div>
+            <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Branch")}</dt>
               <dd>{data.branches.length > 1 ? (
                 <select value={r.branchCode} onChange={(e) => { setR({ ...r, branchCode: e.target.value }); save({ branchCode: e.target.value }, true); }}
                   className={cx(inputClass, "h-9 text-sm")} aria-label={tr("Branch")}>
                   {data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
                 </select>
-              ) : <span className="font-medium text-slate-900">{r.branchName}</span>}</dd></div>
+              ) : <span className="font-medium text-neutral-900">{r.branchName}</span>}</dd></div>
           </dl>
         </FormCard>
 
@@ -535,9 +536,9 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             <ul className="mt-2 space-y-1.5">
               {r.openInBranch!.map((o) => (
                 <li key={o.id} className="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-amber-100">
-                  <span className="flex flex-wrap items-center gap-2"><span className="font-mono font-semibold text-slate-600">{o.number}</span> <StatusBadge r={o} />
-                    <span className="text-slate-500">{o.picName} · {wibDateTime(o.submittedAt)}</span></span>
-                  <span className="mt-1 block text-slate-700">{(o.items ?? []).map((i) => `${i.name} (${i.category})`).join(", ")}</span>
+                  <span className="flex flex-wrap items-center gap-2"><span className="font-mono font-semibold text-neutral-600">{o.number}</span> <StatusBadge r={o} />
+                    <span className="text-neutral-500">{o.picName} · {wibDateTime(o.submittedAt)}</span></span>
+                  <span className="mt-1 block text-neutral-700">{(o.items ?? []).map((i) => `${i.name} (${i.category})`).join(", ")}</span>
                 </li>
               ))}
             </ul>
@@ -547,16 +548,16 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         <FormCard n={2} title={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}
           hint={r.kind === "REPAIR" ? tr("Building & furniture, heavy tools … one line per item") : tr("Decoration, tools & heavy tools … one line per item")}
           aside={<Badge tone={filled.length ? "blue" : "slate"}>{filled.length}</Badge>}>
-          {items.length === 0 && <p className="text-sm text-slate-500">{tr("No item yet.")}</p>}
+          {items.length === 0 && <p className="text-sm text-neutral-500">{tr("No item yet.")}</p>}
           {items.map((it, idx) => {
             const cat = cats.find((c) => c.id === it.categoryId);
             const dup = alreadyAsked(it, r.openInBranch);
             const upd = (patch: Partial<ItemDraft>, now = false) => setItemsAndSave(items.map((x) => (x.key === it.key ? { ...x, ...patch } : x)), now);
             return (
-              <div key={it.key} className={cx("space-y-2 rounded-lg border p-3", dup ? "border-amber-300 bg-amber-50/40" : "border-slate-200")}>
+              <div key={it.key} className={cx("space-y-2 rounded-lg border p-3", dup ? "border-amber-300 bg-amber-50/40" : "border-neutral-200")}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-500">{tr("Item {0}", idx + 1)}</span>
-                  <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove item")}><Trash2 size={15} /></button>
+                  <span className="text-xs font-semibold text-neutral-500">{tr("Item {0}", idx + 1)}</span>
+                  <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove item")}><Trash2 size={15} /></button>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <select value={it.categoryId || ""} aria-label={tr("Category")} className={cx(inputClass, "h-10 text-sm")}
@@ -598,7 +599,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Cause")}>
               {CAUSES.map((c) => (
                 <button key={c.value} type="button" role="radio" aria-checked={cause === c.value} onClick={() => { const v = cause === c.value ? "" : c.value; setCause(v); save({ cause: v || null }, true); }}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", cause === c.value ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{c.label()}</button>
+                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", cause === c.value ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{c.label()}</button>
               ))}
             </div>
           )}
@@ -609,19 +610,19 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           aside={<Badge tone={photos.length ? "blue" : "slate"}>{photos.length}/{data.limits.photos}</Badge>}>
           <EvidenceGrid list={photos} urls={PORTAL_URLS} onRemove={(id) => void removeMedia(id)}
             add={photos.length < data.limits.photos ? <AddPhotoTile onClick={() => setCamera(true)} label={photos.length ? tr("Add photo") : tr("Take photo")} tone={photos.length ? "slate" : "blue"} /> : undefined} />
-          <div className="rounded-lg border border-slate-200 p-3">
+          <div className="rounded-lg border border-neutral-200 p-3">
             {video ? (
               <div className="space-y-2">
-                <p className="flex items-center justify-between gap-2 text-xs text-slate-600"><span className="inline-flex min-w-0 items-center gap-1 truncate"><Video size={14} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</span>
-                  <button type="button" onClick={() => void removeMedia(video.id)} className="rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove video")}><Trash2 size={14} /></button></p>
+                <p className="flex items-center justify-between gap-2 text-xs text-neutral-600"><span className="inline-flex min-w-0 items-center gap-1 truncate"><Video size={14} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</span>
+                  <button type="button" onClick={() => void removeMedia(video.id)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove video")}><Trash2 size={14} /></button></p>
                 <video src={PORTAL_URLS.media(video.id)} controls preload="metadata" className="max-h-64 w-full rounded-lg bg-black" />
               </div>
             ) : upload !== null ? (
-              <div className="space-y-1.5"><p className="flex items-center gap-1.5 text-xs text-slate-600"><Loader2 size={13} className="animate-spin" /> {tr("Uploading the video… {0}%", upload)}</p>
-                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${upload}%` }} /></div></div>
+              <div className="space-y-1.5"><p className="flex items-center gap-1.5 text-xs text-neutral-600"><Loader2 size={13} className="animate-spin" /> {tr("Uploading the video… {0}%", upload)}</p>
+                <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full bg-brand-600" style={{ width: `${upload}%` }} /></div></div>
             ) : (
-              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
-                <Video size={16} className="text-slate-500" /> {tr("Record or choose a video (optional)")}
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-neutral-700">
+                <Video size={16} className="text-neutral-500" /> {tr("Record or choose a video (optional)")}
                 <input type="file" accept="video/*" capture="environment" className="hidden" onChange={(e) => { addVideo(e.target.files?.[0]); e.target.value = ""; }} />
               </label>
             )}
@@ -630,13 +631,13 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Button variant="ghost" className="text-red-600" onClick={() => setDiscarding(true)}><Trash2 size={15} /> {tr("Delete draft")}</Button>
-          <span className="text-xs text-slate-500">{tr("Saved automatically; you can continue later.")}</span>
+          <span className="text-xs text-neutral-500">{tr("Saved automatically; you can continue later.")}</span>
         </div>
       </div>
 
-      <div className="action-bar sticky bottom-0 z-20 border-t border-slate-200/70 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+      <div className="action-bar sticky bottom-0 z-20 border-t border-neutral-200/70 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
         <div className="mx-auto flex max-w-4xl items-center gap-3">
-          <p className="min-w-0 flex-1 text-xs text-slate-600">{todo.length ? <span className="text-amber-700">{todo.join(" · ")}</span> : tr("Everything is ready.")}</p>
+          <p className="min-w-0 flex-1 text-xs text-neutral-600">{todo.length ? <span className="text-amber-700">{todo.join(" · ")}</span> : tr("Everything is ready.")}</p>
           <Button disabled={todo.length > 0 || saving > 0} onClick={() => { void flush(); setPreview(true); }}><Send size={15} /> {tr("Preview & send")}</Button>
         </div>
       </div>
@@ -680,18 +681,18 @@ function SendSheet({ r, onClose, onSent }: { r: Request; onClose: () => void; on
       <div className="space-y-4">
         <FormCard n={1} title={tr("Request data")} hint={tr("Filled automatically from your account")}>
           <dl className="grid grid-cols-2 gap-3 text-sm">
-            <div><dt className="text-[11px] text-slate-400">PIC</dt><dd className="font-medium text-slate-900">{r.picName}</dd></div>
-            <div><dt className="text-[11px] text-slate-400">{tr("Branch")}</dt><dd className="font-medium text-slate-900">{r.branchName}</dd></div>
-            <div><dt className="text-[11px] text-slate-400">{tr("Type of request")}</dt><dd className="text-slate-900">{r.kindLabel}</dd></div>
-            <div><dt className="text-[11px] text-slate-400">{tr("Date & time")}</dt><dd className="text-slate-900"><LiveClock /></dd></div>
+            <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Branch")}</dt><dd className="font-medium text-neutral-900">{r.branchName}</dd></div>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Type of request")}</dt><dd className="text-neutral-900">{r.kindLabel}</dd></div>
+            <div><dt className="text-[11px] text-neutral-400">{tr("Date & time")}</dt><dd className="text-neutral-900"><LiveClock /></dd></div>
           </dl>
         </FormCard>
         <FormCard n={2} title={tr("Items ({0})", r.items?.length ?? 0)} hint={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}>
-          <ul className="divide-y divide-slate-100 text-sm">
+          <ul className="divide-y divide-neutral-100 text-sm">
             {(r.items ?? []).map((it, i) => (
               <li key={i} className="flex items-start justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
-                <span className="min-w-0"><span className="block text-slate-900">{it.name} × {it.qty}</span>
-                  <span className="block text-xs text-slate-500">{it.category}{it.location ? ` · ${it.location}` : ""}{it.note ? ` · ${it.note}` : ""}</span></span>
+                <span className="min-w-0"><span className="block text-neutral-900">{it.name} × {it.qty}</span>
+                  <span className="block text-xs text-neutral-500">{it.category}{it.location ? ` · ${it.location}` : ""}{it.note ? ` · ${it.note}` : ""}</span></span>
                 <UrgencyBadge u={it.urgency} />
               </li>
             ))}
@@ -699,22 +700,22 @@ function SendSheet({ r, onClose, onSent }: { r: Request; onClose: () => void; on
         </FormCard>
         <FormCard n={3} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
           hint={`${tr("{0} photos", (r.media ?? []).filter((m) => m.kind === "PHOTO").length)}${(r.media ?? []).some((m) => m.kind === "VIDEO") ? ` · ${tr("1 video")}` : ""}`}>
-          <p className="whitespace-pre-line text-sm text-slate-700">{r.analysis}</p>
+          <p className="whitespace-pre-line text-sm text-neutral-700">{r.analysis}</p>
           <ul className="grid grid-cols-5 gap-1.5">
             {(r.media ?? []).filter((m) => m.kind === "PHOTO").map((m) => (
               // eslint-disable-next-line @next/next/no-img-element -- private photo through the API
-              <li key={m.id}><img src={PORTAL_URLS.media(m.id)} alt={tr("Photo")} className="aspect-square w-full rounded-md object-cover ring-1 ring-slate-200" /></li>
+              <li key={m.id}><img src={PORTAL_URLS.media(m.id)} alt={tr("Photo")} className="aspect-square w-full rounded-md object-cover ring-1 ring-neutral-200" /></li>
             ))}
           </ul>
         </FormCard>
         <FormCard n={4} title={tr("PIC signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
           <SignaturePad onChange={setSignature} />
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-slate-600">{tr("Signer's name")}</span>
+            <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Signer's name")}</span>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={inputClass} />
           </label>
         </FormCard>
-        <p className="text-xs text-slate-500">{tr("After sending: the status is Pending, the team checks it; you get a PDF and a link to share, and follow every step under My requests.")}</p>
+        <p className="text-xs text-neutral-500">{tr("After sending: the status is Pending, the team checks it; you get a PDF and a link to share, and follow every step under My requests.")}</p>
       </div>
     </Drawer>
   );
