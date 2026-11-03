@@ -8,6 +8,7 @@
 // photo it asks for; an optional item may be skipped. Stock Preparation, Espresso and Beans also take the stock in grams
 // (net weight, 2026-10-28; required with the rating of a required item). One visit per branch per day, the next one tomorrow. Labels in the
 // UI language (Indonesian or English). Mobile first: one item per row, the progress stays on top, send at the bottom.
+// The PIC never sees a score (the API leaves it out): it is for the management in monitoring.
 
 import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, ClipboardList, CloudUpload, ExternalLink, MapPin, MessageSquareText, PenLine, Send, Star, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -27,7 +28,7 @@ import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import LiveClock from "@/so/ui/LiveClock";
 import { type Answer, type AutoStars, type FormState, type Item, type Rating, type Visit, type VisitFormKey, type VisitPhoto, PLATFORM_LABEL, RATINGS, RATING_STYLE,
-  allItems, evidenceOf, fmtStars, isRequired, missingOf, needLabel, ratingLabel, scoreTone, tl, visitPhotoUrl } from "./visit";
+  allItems, evidenceOf, fmtStars, isRequired, missingOf, needLabel, ratingLabel, tl, visitPhotoUrl } from "./visit";
 
 const MAX_PHOTOS = 3;
 
@@ -102,7 +103,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
               <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{tr("{0} sent for {1}", title, done.branchName)}</p>
-                <p className="text-xs">{wibDateTime(done.submittedAt)} · {done.counts.under} UNDER · {done.counts.meet} MEET · {done.counts.exceed} EXCEED · {tr("score {0}%", done.score ?? "—")}</p>
+                <p className="text-xs">{wibDateTime(done.submittedAt)} · {tr("{0} items rated", done.counts.rated)}</p>
               </div>
               <button type="button" onClick={() => setDone(null)} className="rounded-md p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
             </div>
@@ -166,10 +167,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
                       <span className="block truncate text-sm font-medium text-slate-900">{v.branchName}</span>
                       <span className="block text-xs text-slate-500">{wibDateTime(v.submittedAt)}</span>
                     </span>
-                    <span className="text-right text-xs">
-                      <span className={cx("block text-sm font-semibold tabular-nums", scoreTone(v.score))}>{v.score ?? "—"}%</span>
-                      <span className="text-slate-400">{v.counts.under} UNDER</span>
-                    </span>
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700"><CheckCircle2 size={14} /> {tr("Sent")}</span>
                   </li>
                 ))}
               </ul>
