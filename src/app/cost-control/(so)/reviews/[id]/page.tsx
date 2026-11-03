@@ -269,8 +269,10 @@ export default function ReviewDetailPage() {
                       )}
                       {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
                       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-neutral-400">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
-                      {correctable && l.is_current && l.source !== "WIP_EXPLODED" && (fix?.wip || fix?.id !== l.id) && (
-                        <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(2)),
+                      {/* also a material that only comes from a premix (2026-11-04): the figure is its hand count, starting
+                          empty (its 0 is not counted); its premix grams stay */}
+                      {correctable && l.is_current && (fix?.wip || fix?.id !== l.id) && (
+                        <button type="button" onClick={() => setFix({ id: l.id, qty: l.qty_base === null || l.source === "WIP_EXPLODED" ? "" : String(+(Number(l.qty_base) / (Number(l.esb_factor || 1) || 1)).toFixed(2)),
                           field: lineDateField(l, count), date: (() => { const df = lineDateField(l, count); return df ? l[df] ?? "" : ""; })(), note: "" })}
                           className="mt-1 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-brand-700 hover:bg-brand-50" aria-label={tr("Correct {0}", l.item_name)}>
                           <Pencil size={11} /> {tr("Correct")}
@@ -283,6 +285,7 @@ export default function ReviewDetailPage() {
                               className={cx(inputClass, "h-9 w-28 text-right text-sm font-semibold tabular-nums")} />
                             <span className="text-xs text-neutral-500">{l.esb_uom || l.base_uom}</span>
                           </div>
+                          {Number(l.qty_wip ?? 0) > 0 && <p className="text-[11px] text-violet-700">{tr("Counted by hand; the {0} {1} from the WIP stay", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>}
                           {fix.field && (
                             <label className="block"><span className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{DATE_FIELD_LABEL[fix.field]()}</span>
                               <input type="date" value={fix.date ?? ""} onChange={(e) => setFix({ ...fix, date: e.target.value })} aria-label={DATE_FIELD_LABEL[fix.field]()}

@@ -4911,4 +4911,6 @@ export const ID: Record<string, string> = {
   "{0} with a shift today": "{0} punya shift hari ini",
   // Stock opname review: premix-only lines
   "Recount it through its premix": "Hitung ulang lewat premix-nya",
+  // Stock opname: correction of a premix-only material
+  "Counted by hand; the {0} {1} from the WIP stay": "Hitungan manual; {0} {1} dari WIP tetap",
 };
