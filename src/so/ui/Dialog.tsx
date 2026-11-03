@@ -76,7 +76,7 @@ export default function Dialog({
  * handed to onConfirm.
  */
 export function ConfirmDialog({
-  open, title, description, confirmLabel, danger = false, reasonLabel, busy, onConfirm, onClose,
+  open, title, description, confirmLabel, danger = false, reasonLabel, reasonRequired = false, busy, onConfirm, onClose,
 }: {
   open: boolean;
   title: string;
@@ -84,6 +84,8 @@ export function ConfirmDialog({
   confirmLabel: string;
   danger?: boolean;
   reasonLabel?: string;
+  /** the confirm button waits for a reason (the server refuses an empty one) */
+  reasonRequired?: boolean;
   busy?: boolean;
   onConfirm: (reason: string) => void;
   onClose: () => void;
@@ -97,11 +99,11 @@ export function ConfirmDialog({
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
-          <Button variant={danger ? "danger" : "primary"} loading={busy} onClick={() => onConfirm(reason.trim())}>{confirmLabel}</Button>
+          <Button variant={danger ? "danger" : "primary"} loading={busy} disabled={reasonRequired && !reason.trim()} onClick={() => onConfirm(reason.trim())}>{confirmLabel}</Button>
         </>
       }>
       {reasonLabel && (
-        <Field label={reasonLabel}>
+        <Field label={reasonLabel} required={reasonRequired}>
           <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} className={`${inputClass} h-auto py-2`} />
         </Field>
       )}

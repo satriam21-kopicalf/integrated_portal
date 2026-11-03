@@ -85,6 +85,9 @@ export default function ReviewDetailPage() {
       toast(action === "APPROVE" ? tr("Count approved") : action === "RECOUNT" ? tr("Recount requested") : tr("Count cancelled"));
     } catch (e) {
       toast(errorText(e), "error");
+      // the count may have moved on meanwhile (e.g. reviewed in another tab): show its current status
+      setAction(null);
+      void load();
     } finally {
       setBusy(false);
     }
@@ -319,7 +322,7 @@ export default function ReviewDetailPage() {
         </Panel>
       </div>
 
-      <ConfirmDialog open={!!action} busy={busy} onClose={() => setAction(null)} onConfirm={run} danger={action === "CANCEL"}
+      <ConfirmDialog open={!!action} busy={busy} onClose={() => setAction(null)} onConfirm={run} danger={action === "CANCEL"} reasonRequired={action !== "APPROVE"}
         reasonLabel={action === "APPROVE" ? tr("Note (optional)") : tr("Reason (required)")}
         title={action === "APPROVE" ? tr("Approve this count?") : action === "RECOUNT" ? (picked.size + pickedWip.size ? tr("Ask to recount {0} lines?", picked.size + pickedWip.size) : tr("Ask to recount every line?")) : tr("Cancel this count?")}
         description={action === "APPROVE" ? tr("Approved counts become the final quantities for the ESB import and the comparison.")
