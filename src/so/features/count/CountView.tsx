@@ -34,7 +34,8 @@ const unitOf = (l: CountLine) => l.esb_uom || l.base_uom;
 const factorOf = (l: CountLine) => Number(l.esb_factor || 1) || 1;
 /** A line the premix filled (grams from the WIP): it needs no manual entry (2026-10-16). */
 const fromWip = (l: CountLine) => Number(l.qty_wip ?? 0) > 0;
-const draftOf = (l: CountLine): Draft => ({ qty: l.qty_base === null ? "" : fmtQty(Number(l.qty_base) / factorOf(l)) });
+// a material from the premix only has no hand count yet (its 0 is not counted): a recount of it starts empty
+const draftOf = (l: CountLine): Draft => ({ qty: l.qty_base === null || l.source === "WIP_EXPLODED" ? "" : fmtQty(Number(l.qty_base) / factorOf(l)) });
 
 /** Typed quantities not yet confirmed by the server, kept on the phone (2026-10-31): closing the app, a locked screen
  * or a weak signal no longer loses them; they are restored and sent again when the count is opened. */
@@ -369,13 +370,15 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                           {l.flags.includes("SPIKE") && <Badge tone="amber" title={tr("More than 3 times higher or lower than the last approved count")}>{tr("Check")}</Badge>}
                         </span>
                       )}
-                      {l.source !== "WIP_EXPLODED" && Number(l.qty_wip ?? 0) > 0 && (
+                      {(l.source !== "WIP_EXPLODED" || l.flags.includes("RECOUNT")) && Number(l.qty_wip ?? 0) > 0 && (
                         <p className="mt-0.5 text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                       )}
                       {unsaved.has(l.id) && <p className="mt-0.5 text-[11px] text-amber-700">{tr("Not saved yet, retrying automatically")}</p>}
                       {bad && <p className="mt-0.5 text-[11px] text-red-600">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
                     </div>
-                    {l.source === "WIP_EXPLODED" ? (
+                    {/* a material from the premix only is shown as its grams, unless Cost Control asked to count it by hand
+                        (2026-11-04): then it is entered like any line and its premix grams stay */}
+                    {l.source === "WIP_EXPLODED" && !l.flags.includes("RECOUNT") ? (
                       <p className="flex-shrink-0 text-right text-xs font-medium text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom}<span className="block text-[10px] font-normal">{tr("from the WIP")}</span></p>
                     ) : (
                       <div className="flex flex-shrink-0 items-start gap-1.5">
