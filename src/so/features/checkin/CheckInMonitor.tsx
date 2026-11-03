@@ -7,12 +7,13 @@
 // stand out (banner, badges, a figure of their own); a manager reviews them (valid / not valid). Refreshes every minute
 // while the period includes today.
 
-import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, MapPin, MapPinOff, ScanFace, ShieldAlert, SignalLow, Store, UsersRound, XCircle } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, Layers, MapPin, MapPinOff, ScanFace, ShieldAlert, SignalLow, Store, UserRound, UsersRound, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, inputClass, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
+import { ActiveFilter, FilterToolbar, Period, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
+import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
 import { wibDay as dayOf } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
@@ -215,29 +216,35 @@ function CheckInFilters({ value, groups, branches, pics, onApply, onClose }: {
   value: F; groups: GroupOpt[]; branches: BranchOpt[]; pics: { id: string; name: string }[]; onApply: (v: F) => void; onClose: () => void;
 }) {
   const [d, setD] = useState(value);
+  const def = NO_F();
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
+  const period = periodLabel(d.period, def.period);
+  const groupName = groups.find((g) => g.id === d.group)?.code ?? null;
+  const active = [period, d.group, d.branch, d.user, d.location].filter(Boolean).length;
   return (
-    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_F())} applyDisabled={days > 93}>
-      <FilterSection title={tr("Visit day")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={93} /></FilterSection>
-      {groups.length > 0 && (
-        <FilterSection title={tr("Branch group")}>
-          <ChoiceGroup label="" value={d.group} onChange={(v) => setD({ ...d, group: v })}
-            choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a group") }]} />
-        </FilterSection>
-      )}
-      <FilterSection title={tr("Outlet")}>
-        <SearchChoice label="" anyLabel={tr("All outlets")} value={d.branch} onChange={(v) => setD({ ...d, branch: v })} placeholder={tr("Search outlet")}
-          options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name }))} />
-      </FilterSection>
-      <FilterSection title={tr("PIC")}>
-        <SearchChoice label="" anyLabel={tr("All PICs")} value={d.user} onChange={(v) => setD({ ...d, user: v })} placeholder={tr("Search PIC")}
+    <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(def)} applyDisabled={days > 93}>
+      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 7 days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
+        <QuickPeriod value={d.period} onChange={(p) => setD({ ...d, period: p })} maxDays={93} />
+      </FilterRow>
+      <FilterRow icon={<Store size={15} />} label={tr("Outlet")} value={branches.find((b) => b.branch_code === d.branch)?.branch_name ?? null} onClear={() => setD({ ...d, branch: "" })}>
+        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All outlets")} placeholder={tr("Search outlet")}
+          options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code }))} />
+      </FilterRow>
+      <FilterRow icon={<UserRound size={15} />} label={tr("PIC")} value={pics.find((p) => p.id === d.user)?.name ?? null} onClear={() => setD({ ...d, user: "" })}>
+        <ComboFilter value={d.user} onChange={(v) => setD({ ...d, user: v })} allLabel={tr("All PICs")} placeholder={tr("Search PIC")}
           options={pics.map((p) => ({ value: p.id, label: p.name }))} />
-      </FilterSection>
-      <FilterSection title={tr("Location")}>
-        <ChoiceGroup label="" value={d.location} onChange={(v) => setD({ ...d, location: v })}
-          choices={[{ value: "", label: tr("All") }, ...Object.keys(LOC).map((k) => ({ value: k, label: LOC[k]() }))]} />
-      </FilterSection>
-    </FilterSheet>
+      </FilterRow>
+      <FilterRow icon={<MapPin size={15} />} label={tr("Location")} value={d.location ? LOC[d.location]() : null} onClear={() => setD({ ...d, location: "" })}>
+        <OptionList value={d.location} onChange={(v) => setD({ ...d, location: v })}
+          choices={[{ value: "", label: tr("All check-ins") }, ...Object.keys(LOC).map((k) => ({ value: k, label: LOC[k]() }))]} />
+      </FilterRow>
+      {groups.length > 0 && (
+        <FilterRow icon={<Layers size={15} />} label={tr("Branch group")} value={groupName} onClear={() => setD({ ...d, group: "" })}>
+          <Segments value={d.group} onChange={(v) => setD({ ...d, group: v })}
+            choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code }))]} />
+        </FilterRow>
+      )}
+    </MonitorFilterSheet>
   );
 }
 

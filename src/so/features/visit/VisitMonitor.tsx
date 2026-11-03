@@ -5,13 +5,14 @@
 // findings, the stars per platform) and Attendance (one visit per outlet per day: the days each PIC visited and the days
 // off — a day without any visit).
 
-import { AlertTriangle, BarChart3, CalendarDays, CalendarOff, Camera, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, MapPin, MessageSquareText, PenLine, Star,
-  UsersRound } from "lucide-react";
+import { AlertTriangle, BarChart3, CalendarDays, CalendarOff, Camera, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, Layers, MapPin, MessageSquareText, PenLine, Star,
+  Store, UserRound, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, dmy, wibDay } from "@/so/ui/Filters";
+import { ActiveFilter, FilterToolbar, Period, dmy, wibDay } from "@/so/ui/Filters";
+import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
 import { Segmented } from "@/so/ui/Simple";
 import { mapsUrl } from "@/so/lib/counts";
 import { wibDateTime } from "@/so/lib/wib";
@@ -133,6 +134,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
         <Panel><Empty icon={<BarChart3 size={28} />} title={tr("No visit in this period")}>{tr("The analysis appears as soon as the PICs send their visits.")}</Empty></Panel>
       ) : (
         <div className="space-y-4">
+          <Analysis res={res} onOutlet={(code) => { setF({ ...f, branch: code }); setTab("visits"); }} />
           {!!res.platforms?.length && (
             <Panel title={tr("Outlet rating per platform")} description={tr("Average stars of the visits of the period: Google Maps automatic, delivery apps typed by the PIC")}>
               <ul className="grid grid-cols-2 gap-px bg-slate-100 lg:grid-cols-4">
@@ -148,40 +150,6 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
               </ul>
             </Panel>
           )}
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Panel title={tr("Performance per section")} description={tr("Ratings of every visit of the period")}
-              actions={<span className="flex items-center gap-2.5 text-[11px] text-slate-500">{RATINGS.map((r) => <span key={r} className="inline-flex items-center gap-1"><span className={cx("h-2 w-2 rounded-full", RATING_STYLE[r].dot)} />{ratingLabel(r)}</span>)}</span>}>
-              <ul className="divide-y divide-slate-100">
-                {res.sections.map((sec) => {
-                  const total = sec.under + sec.meet + sec.exceed;
-                  const pct = total ? Math.round(((sec.meet + sec.exceed) / total) * 1000) / 10 : null;
-                  return (
-                    <li key={sec.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 py-2.5">
-                      <span className="min-w-0 truncate text-sm font-medium text-slate-800">{tl(sec, "title")}</span>
-                      <span className={cx("row-span-2 text-sm font-semibold tabular-nums", scoreTone(pct))}>{pct === null ? "—" : `${pct}%`}</span>
-                      <span className="flex items-center gap-2"><Bar c={sec} className="flex-1" /><span className="w-24 text-right text-[11px] tabular-nums text-slate-500">{sec.under}/{sec.meet}/{sec.exceed}</span></span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Panel>
-            <Panel title={tr("Most frequent findings")} description={tr("Items rated UNDER most often")}>
-              {res.findings.length === 0 ? <p className="px-4 py-8 text-center text-sm text-slate-400">{tr("No UNDER in this period")}</p> : (
-                <ul className="divide-y divide-slate-100">
-                  {res.findings.map((x, i) => (
-                    <li key={x.key} className="flex items-start gap-3 px-4 py-2.5">
-                      <span className="mt-0.5 w-4 text-right text-xs font-semibold tabular-nums text-slate-400">{i + 1}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium text-slate-900">{tl(x)}</span>
-                        <span className="block truncate text-[11px] text-slate-500" title={x.branches.join(", ")}>{tl(x, "section")} · {tr("{0} outlets", x.branches.length)}</span>
-                      </span>
-                      <Badge tone="red">{x.count}×</Badge>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Panel>
-          </div>
         </div>
       ))}
 
@@ -348,33 +316,154 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
   );
 }
 
+const TARGET = 90;
+const pctOf = (c: { under: number; meet: number; exceed: number }) => {
+  const t = c.under + c.meet + c.exceed;
+  return t ? Math.round(((c.meet + c.exceed) / t) * 1000) / 10 : null;
+};
+
+/** The Analysis tab for the management: four headline facts, the score per section against the target (worst first),
+ * the findings rated UNDER most often and the outlets with the lowest average score (tap one: its visits). */
+function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => void }) {
+  const sections = useMemo(() => res.sections.map((s) => ({ ...s, pct: pctOf(s), n: s.under + s.meet + s.exceed }))
+    .filter((s) => s.n > 0).sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0)), [res.sections]);
+  const outlets = useMemo(() => {
+    const per = new Map<string, { code: string; name: string; visits: number; sum: number; scored: number; under: number; last: string }>();
+    for (const v of res.data) {
+      const o = per.get(v.branchCode) ?? { code: v.branchCode, name: v.branchName, visits: 0, sum: 0, scored: 0, under: 0, last: "" };
+      o.visits += 1;
+      o.under += v.counts.under;
+      if (v.score !== null) { o.sum += v.score; o.scored += 1; }
+      if ((v.submittedAt ?? "") > o.last) o.last = v.submittedAt ?? "";
+      per.set(v.branchCode, o);
+    }
+    return [...per.values()].map((o) => ({ ...o, avg: o.scored ? Math.round((o.sum / o.scored) * 10) / 10 : null }))
+      .sort((a, b) => (a.avg ?? 101) - (b.avg ?? 101) || b.under - a.under);
+  }, [res.data]);
+  const s = res.summary;
+  const weakest = sections[0];
+  const top = res.findings[0];
+  const below = outlets.filter((o) => o.avg !== null && o.avg < 75).length;
+  const maxFinding = Math.max(1, ...res.findings.map((x) => x.count));
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Insight label={tr("Average score")} value={<span className={scoreTone(s.score)}>{s.score === null ? "—" : `${s.score}%`}</span>}
+          note={tr("{0} visits · target {1}%", fmtNumber(s.visits), TARGET)} />
+        <Insight label={tr("Weakest section")} value={weakest ? <span className={scoreTone(weakest.pct)}>{weakest.pct}%</span> : "—"} note={weakest ? tl(weakest, "title") : tr("No rating yet")} />
+        <Insight label={tr("Top finding")} value={top ? <span className="text-red-600">{top.count}×</span> : "0"} note={top ? tl(top) : tr("No UNDER in this period")} />
+        <Insight label={tr("Outlets below 75%")} value={<span className={below ? "text-red-600" : "text-emerald-600"}>{below}</span>} note={tr("of {0} outlets visited", fmtNumber(outlets.length))} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel title={tr("Performance per section")} description={tr("Share of items rated MEET or EXCEED, weakest first; the line is the target {0}%", TARGET)}>
+          <ul className="space-y-3 px-4 py-4 sm:px-5">
+            {sections.map((sec) => (
+              <li key={sec.key} title={`${sec.under} UNDER · ${sec.meet} MEET · ${sec.exceed} EXCEED`}>
+                <div className="mb-1 flex items-baseline justify-between gap-3">
+                  <span className="min-w-0 truncate text-sm text-slate-700">{tl(sec, "title")}</span>
+                  <span className={cx("flex-shrink-0 text-sm font-semibold tabular-nums", scoreTone(sec.pct))}>{sec.pct}%</span>
+                </div>
+                <div className="relative h-2 rounded-full bg-slate-100">
+                  <span className="absolute inset-y-0 left-0 rounded-full bg-blue-600" style={{ width: `${sec.pct ?? 0}%` }} />
+                  <span className="absolute -inset-y-1 w-0.5 rounded bg-slate-400" style={{ left: `${TARGET}%` }} aria-hidden />
+                </div>
+                {sec.under > 0 && <p className="mt-1 text-[11px] text-slate-500">{tr("{0} UNDER of {1} ratings", sec.under, sec.n)}</p>}
+              </li>
+            ))}
+          </ul>
+        </Panel>
+
+        <Panel title={tr("Most frequent findings")} description={tr("Items rated UNDER most often in the period")}>
+          {res.findings.length === 0 ? <p className="px-4 py-10 text-center text-sm text-slate-400">{tr("No UNDER in this period")}</p> : (
+            <ol className="space-y-3 px-4 py-4 sm:px-5">
+              {res.findings.slice(0, 8).map((x, i) => (
+                <li key={x.key} className="flex gap-3">
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold tabular-nums text-slate-600">{i + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="min-w-0 truncate text-sm font-medium text-slate-800">{tl(x)}</span>
+                      <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-slate-900">{x.count}×</span>
+                    </div>
+                    <div className="mt-1 h-1.5 rounded-full bg-slate-100"><span className="block h-full rounded-full bg-red-500" style={{ width: `${(x.count / maxFinding) * 100}%` }} /></div>
+                    <p className="mt-1 truncate text-[11px] text-slate-500" title={x.branches.join(", ")}>{tl(x, "section")} · {tr("{0} outlets", x.branches.length)}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </Panel>
+      </div>
+
+      <Panel title={tr("Outlets needing attention")} description={tr("Lowest average score first; tap an outlet to see its visits")}>
+        <div className="overflow-x-auto">
+          <table className="m-cards w-full text-sm">
+            <thead className={theadClass}>
+              <tr><th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Visits")}</th>
+                <th className="px-3 py-2.5 text-right">{tr("UNDER")}</th><th className="px-3 py-2.5">{tr("Last visit")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Average score")}</th></tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {outlets.slice(0, 10).map((o) => (
+                <tr key={o.code} onClick={() => onOutlet(o.code)} className="cursor-pointer hover:bg-blue-50/40">
+                  <td className="py-2.5 pl-5 pr-3" data-label={tr("Outlet")}><span className="block font-medium text-slate-900">{o.name}</span><span className="text-[11px] text-slate-400">{o.code}</span></td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-slate-700" data-label={tr("Visits")}>{o.visits}</td>
+                  <td className={cx("px-3 py-2.5 text-right tabular-nums", o.under ? "font-semibold text-red-600" : "text-slate-400")} data-label={tr("UNDER")}>{o.under}</td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-xs text-slate-500" data-label={tr("Last visit")}>{o.last ? wibDateTime(o.last) : "—"}</td>
+                  <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Average score")}><ScorePill score={o.avg} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function Insight({ label, value, note }: { label: string; value: React.ReactNode; note: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{value}</p>
+      <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{note}</p>
+    </div>
+  );
+}
+
 function VisitFilters({ value, groups, branches, pics, onApply, onClose }: {
   value: F; groups: GroupOpt[]; branches: BranchOpt[]; pics: { id: string; name: string }[]; onApply: (v: F) => void; onClose: () => void;
 }) {
   const [d, setD] = useState(value);
+  const def = NO_F();
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
+  const period = periodLabel(d.period, def.period);
+  const groupName = d.group === "none" ? tr("Without a group") : groups.find((g) => g.id === d.group)?.code ?? null;
+  const only = { "": null, under: tr("With UNDER findings"), outside: tr("Outside radius") }[d.only];
+  const active = [period, d.group, d.branch, d.user, d.only].filter(Boolean).length;
   return (
-    <FilterSheet onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_F())} applyDisabled={days > 366}>
-      <FilterSection title={tr("Visit day")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={366} /></FilterSection>
-      {groups.length > 0 && (
-        <FilterSection title={tr("Branch group")}>
-          <ChoiceGroup label="" value={d.group} onChange={(v) => setD({ ...d, group: v })}
-            choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("Without a group") }]} />
-        </FilterSection>
-      )}
-      <FilterSection title={tr("Outlet")}>
-        <SearchChoice label="" anyLabel={tr("All outlets")} value={d.branch} onChange={(v) => setD({ ...d, branch: v })} placeholder={tr("Search outlet")}
-          options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name }))} />
-      </FilterSection>
-      <FilterSection title={tr("PIC")}>
-        <SearchChoice label="" anyLabel={tr("All PICs")} value={d.user} onChange={(v) => setD({ ...d, user: v })} placeholder={tr("Search PIC")}
+    <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(def)} applyDisabled={days > 366}>
+      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 30 days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
+        <QuickPeriod value={d.period} onChange={(p) => setD({ ...d, period: p })} maxDays={366} />
+      </FilterRow>
+      <FilterRow icon={<Store size={15} />} label={tr("Outlet")} value={branches.find((b) => b.branch_code === d.branch)?.branch_name ?? null} onClear={() => setD({ ...d, branch: "" })}>
+        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All outlets")} placeholder={tr("Search outlet")}
+          options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code }))} />
+      </FilterRow>
+      <FilterRow icon={<UserRound size={15} />} label={tr("PIC")} value={pics.find((p) => p.id === d.user)?.name ?? null} onClear={() => setD({ ...d, user: "" })}>
+        <ComboFilter value={d.user} onChange={(v) => setD({ ...d, user: v })} allLabel={tr("All PICs")} placeholder={tr("Search PIC")}
           options={pics.map((p) => ({ value: p.id, label: p.name }))} />
-      </FilterSection>
-      <FilterSection title={tr("Show only")}>
-        <ChoiceGroup label="" value={d.only} onChange={(v) => setD({ ...d, only: v as F["only"] })}
-          choices={[{ value: "", label: tr("All visits") }, { value: "under", label: tr("With UNDER findings") }, { value: "outside", label: tr("Outside radius") }]} />
-      </FilterSection>
-    </FilterSheet>
+      </FilterRow>
+      {groups.length > 0 && (
+        <FilterRow icon={<Layers size={15} />} label={tr("Branch group")} value={groupName} onClear={() => setD({ ...d, group: "" })}>
+          <Segments value={d.group} onChange={(v) => setD({ ...d, group: v })}
+            choices={[{ value: "", label: tr("All") }, ...groups.map((g) => ({ value: g.id, label: g.code })), { value: "none", label: tr("No group") }]} />
+        </FilterRow>
+      )}
+      <FilterRow icon={<AlertTriangle size={15} />} label={tr("Show only")} value={only} onClear={() => setD({ ...d, only: "" })}>
+        <Segments value={d.only} onChange={(v) => setD({ ...d, only: v as F["only"] })}
+          choices={[{ value: "", label: tr("All visits") }, { value: "under", label: tr("With UNDER") }, { value: "outside", label: tr("Outside radius") }]} />
+      </FilterRow>
+    </MonitorFilterSheet>
   );
 }
 
