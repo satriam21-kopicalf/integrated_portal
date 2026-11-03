@@ -101,6 +101,14 @@ export default function ReviewDetailPage() {
   const correctable = ["SUBMITTED", "APPROVED"].includes(count.status) && can("inventory.count.review");
   const cancellable = ["IN_PROGRESS", "SUBMITTED", "RECOUNT_REQUESTED"].includes(count.status) && can("inventory.count.review");
   const toggle = (lineId: number) => setPicked((s) => { const n = new Set(s); if (n.has(lineId)) n.delete(lineId); else n.add(lineId); return n; });
+  // an item that only comes from a premix: the premixes (WIP lines) that hold it are what the crew counts again
+  const premixesOf = (itemId: string) => (count.wip?.lines ?? []).filter((w) => w.exploded?.some((c) => c.item_id === itemId)).map((w) => w.id);
+  const togglePremixItem = (itemId: string) => setPickedWip((s) => {
+    const ids = premixesOf(itemId);
+    const n = new Set(s);
+    if (ids.length && ids.every((i) => n.has(i))) ids.forEach((i) => n.delete(i)); else ids.forEach((i) => n.add(i));
+    return n;
+  });
 
   return (
     <div className="min-h-full bg-neutral-50">
@@ -249,10 +257,17 @@ export default function ReviewDetailPage() {
                   <tr key={l.id} className={cx(!l.is_current && "bg-neutral-50 text-neutral-400", picked.has(l.id) && "bg-brand-50/50")}>
                     {reviewable && (
                       <td className="px-3 py-2.5">
-                        {/* an item that only comes from a premix is recounted through its premix (WIP / Premix above): the
-                            backend never marks it, so it cannot be ticked here */}
+                        {/* an item that only comes from a premix is recounted through its premix: ticking it picks the
+                            premixes that hold it (WIP / Premix above), the core never marks the item line itself */}
                         {l.is_current && l.source !== "WIP_EXPLODED" && <input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(l.id)} onChange={() => toggle(l.id)} aria-label={tr("Select {0}", l.item_name)} />}
-                        {l.is_current && l.source === "WIP_EXPLODED" && <span title={tr("Recount it through its premix")} className="block h-4 w-4 rounded border border-dashed border-violet-300" aria-label={tr("Recount it through its premix")} />}
+                        {l.is_current && l.source === "WIP_EXPLODED" && (() => {
+                          const ids = premixesOf(l.item_id);
+                          return ids.length > 0 && (
+                            <input type="checkbox" className="h-4 w-4 rounded border-violet-300 accent-violet-600" title={tr("Recount it through its premix")}
+                              checked={ids.every((i) => pickedWip.has(i))} onChange={() => togglePremixItem(l.item_id)}
+                              aria-label={tr("Select {0}", l.item_name)} />
+                          );
+                        })()}
                       </td>
                     )}
                     <td className="max-w-[18rem] px-3 py-2.5">
