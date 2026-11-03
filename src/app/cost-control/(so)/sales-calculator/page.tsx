@@ -7,12 +7,13 @@
 // bill, portion or outlet-day; 4. Calculator — from the POS transactions of the branches: Material Required Planning,
 // Usage Actual vs System (ESB stock opname + purchases) and COGS Bahan Baku (Pricelist Items).
 
-import { BookOpen, Calculator, ChevronDown, FlaskConical, ListChecks, Package, PenLine, Plus, Save, Search, Trash2 } from "lucide-react";
+import { BookOpen, CalendarDays, Calculator, Check, ChevronDown, ChevronRight, CupSoda, FlaskConical, Layers, ListChecks, Package, PenLine, Plus, Receipt, Save, Search, Store, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, Panel, SkeletonRows, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatStrip } from "@/so/ui/StatStrip";
-import { type ActiveFilter, FilterSection, FilterSheet, FilterToolbar, PeriodField, type Period, dmy, wibDay } from "@/so/ui/Filters";
+import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
+import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { downloadXlsx } from "@/lib/xlsx";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
@@ -61,33 +62,43 @@ export default function SalesCalculatorPage() {
       .then(([r, m, e]) => setProgress({ cards: r.data.length, menus: m.data.length, mapped: m.data.filter((x) => x.recipe).length, extras: e.data.filter((x) => x.isActive).length }))
       .catch(() => setProgress(null));
   }, [step]);
-  const status: Record<Step, string | null> = progress ? {
-    recipes: tr("{0} cards", progress.cards), menus: tr("{0} of {1} menus", progress.mapped, progress.menus),
-    extras: tr("{0} active", progress.extras), report: null,
-  } : { recipes: null, menus: null, extras: null, report: null };
-  const steps: { key: Step; label: string; hint: string; icon: typeof BookOpen }[] = [
-    { key: "recipes", label: tr("Recipe Cards"), hint: tr("Components per portion"), icon: BookOpen },
-    { key: "menus", label: tr("Assign Menus"), hint: tr("ESB menus to a card"), icon: ListChecks },
-    { key: "extras", label: tr("Additional Items"), hint: tr("Outside the cards"), icon: Package },
-    { key: "report", label: tr("Calculator"), hint: tr("MRP, usage & COGS"), icon: Calculator },
+  const p = progress;
+  const steps: { key: Step; label: string; hint: string; icon: typeof BookOpen; status: string | null; done: boolean; share?: number }[] = [
+    { key: "recipes", label: tr("Recipe Cards"), hint: tr("Components per portion"), icon: BookOpen, status: p ? tr("{0} cards", p.cards) : null, done: !!p?.cards },
+    { key: "menus", label: tr("Assign Menus"), hint: tr("ESB menus to a card"), icon: ListChecks, status: p ? tr("{0} of {1} menus", p.mapped, p.menus) : null,
+      done: !!p && p.menus > 0 && p.mapped === p.menus, share: p && p.menus ? p.mapped / p.menus : undefined },
+    { key: "extras", label: tr("Additional Items"), hint: tr("Outside the cards"), icon: Package, status: p ? tr("{0} active", p.extras) : null, done: !!p?.extras },
+    { key: "report", label: tr("Calculator"), hint: tr("MRP, usage & COGS"), icon: Calculator, status: null, done: false },
   ];
   return (
     <Page title={tr("Sales Calculator by Menu")} subtitle={tr("Recipe cards per menu and, from the POS transactions of every branch: material planning, actual vs system usage and COGS")}>
-      <nav aria-label={tr("Steps")} className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        {steps.map((s, i) => {
-          const on = step === s.key;
-          return (
-            <button key={s.key} type="button" onClick={() => setStep(s.key)} aria-current={on ? "step" : undefined}
-              className={cx("flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-colors",
-                on ? "border-blue-600 bg-blue-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300")}>
-              <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm font-bold", on ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-500")}>{i + 1}</span>
-              <span className="min-w-0">
-                <span className={cx("block truncate text-sm font-semibold", on ? "text-blue-800" : "text-slate-800")}>{s.label}</span>
-                <span className="block truncate text-[11px] text-slate-500">{status[s.key] ?? s.hint}</span>
-              </span>
-            </button>
-          );
-        })}
+      <nav aria-label={tr("Steps")} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <ol className="flex overflow-x-auto">
+          {steps.map((s, i) => {
+            const on = step === s.key;
+            const Icon = s.icon;
+            return (
+              <li key={s.key} className="relative min-w-[12.5rem] flex-1 border-r border-slate-100 last:border-r-0">
+                <button type="button" onClick={() => setStep(s.key)} aria-current={on ? "step" : undefined}
+                  className={cx("flex h-full w-full items-center gap-3 px-4 py-3.5 text-left transition-colors", on ? "bg-blue-50/70" : "hover:bg-slate-50")}>
+                  <span className={cx("relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold transition",
+                    on ? "bg-blue-700 text-white ring-4 ring-blue-100" : s.done ? "bg-emerald-600 text-white" : "border-2 border-slate-200 bg-white text-slate-500")}>
+                    {s.done && !on ? <Check size={18} strokeWidth={3} /> : <Icon size={17} />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className={cx("block text-[10px] font-semibold uppercase tracking-[0.14em]", on ? "text-blue-700" : "text-slate-400")}>{tr("Step {0}", i + 1)}</span>
+                    <span className={cx("block truncate text-sm font-semibold", on ? "text-blue-900" : "text-slate-800")}>{s.label}</span>
+                    <span className="block truncate text-[11px] text-slate-500">{s.status ?? s.hint}</span>
+                    {s.share !== undefined && (
+                      <span className="mt-1 block h-1 overflow-hidden rounded-full bg-slate-100"><span className={cx("block h-full rounded-full", s.done ? "bg-emerald-500" : "bg-blue-600")} style={{ width: `${Math.round(s.share * 100)}%` }} /></span>
+                    )}
+                  </span>
+                </button>
+                {on && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-blue-700" aria-hidden />}
+              </li>
+            );
+          })}
+        </ol>
       </nav>
       {step === "recipes" && <Recipes />}
       {step === "menus" && <MenuAssign />}
@@ -157,14 +168,31 @@ function useCatalog() {
 
 // ---------------------------------------------------------------- 1. recipe cards
 
+/** cost of one portion line (null while a price is missing); WIP / premix through the grams of its components */
+function lineCost(l: { type: Kind; code: string; qty: number; price?: number | null }, price: Map<string, number | null>, wips: Wip[]): number | null {
+  if (l.type === "other") return l.price == null ? null : l.price * l.qty;
+  if (l.type === "item") { const p = price.get(l.code); return p == null ? null : p * l.qty; }
+  const w = wips.find((x) => x.code === l.code);
+  if (!w) return null;
+  let total = 0;
+  for (const c of w.components) { if (!c.code) continue; const p = price.get(c.code); if (p == null) return null; total += p * l.qty * c.perGram; }
+  return total;
+}
+const KIND_DOT: Record<Kind, string> = { item: "bg-blue-500", wip: "bg-violet-500", other: "bg-amber-500" };
+const KIND_ICON: Record<Kind, typeof Package> = { item: Package, wip: FlaskConical, other: PenLine };
+const KIND_CHIP: Record<Kind, string> = { item: "bg-blue-50 text-blue-700", wip: "bg-violet-50 text-violet-700", other: "bg-amber-50 text-amber-700" };
+
 function Recipes() {
+  const { items, wips } = useCatalog();
   const [rows, setRows] = useState<Recipe[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [edit, setEdit] = useState<Recipe | "new" | null>(null);
   const [q, setQ] = useState("");
   const load = useCallback(() => { call<{ data: Recipe[] }>("/api/cost-control/sales-calc/recipes").then((r) => setRows(r.data)).catch((e: Error) => setError(e.message)); }, []);
   useEffect(() => { load(); }, [load]);
-  const shown = (rows ?? []).filter((r) => !q || `${r.name} ${r.code} ${r.category ?? ""}`.toLowerCase().includes(q.toLowerCase()));
+  const price = useMemo(() => new Map(items.map((i) => [i.code, i.price])), [items]);
+  const hppOf = (r: Recipe) => { if (!r.lines.length || !items.length) return null; const c = r.lines.map((l) => lineCost(l, price, wips)); return c.every((x) => x !== null) ? c.reduce<number>((a, x) => a + (x ?? 0), 0) : null; };
+  const shown = (rows ?? []).filter((r) => !q || matches(`${r.name} ${r.code} ${r.category ?? ""}`, q));
   return (
     <Panel title={tr("Recipe Cards")} description={tr("What one portion of a menu uses: raw materials, packaging, WIP / premix and other items")}
       actions={<Button size="sm" onClick={() => setEdit("new")}><Plus size={14} />{tr("New Card")}</Button>}
@@ -174,25 +202,8 @@ function Recipes() {
           {!rows.length && <Button className="mt-3" onClick={() => setEdit("new")}><Plus size={14} />{tr("Make the first card")}</Button>}
         </Empty>
       ) : (
-        <ul className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
-          {shown.map((r) => (
-            <li key={r.code}>
-              <button type="button" onClick={() => setEdit(r)} className="h-full w-full rounded-2xl border border-slate-200 p-4 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/30">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-900">{r.name}</p>
-                    <p className="text-[11px] text-slate-400">{r.code}{r.category ? ` · ${r.category}` : ""}</p>
-                  </div>
-                  {!r.isActive ? <Badge tone="slate">{tr("Inactive")}</Badge> : r.menus.length ? <Badge tone="green">{tr("{0} menus", r.menus.length)}</Badge> : <Badge tone="amber">{tr("No Menu Yet")}</Badge>}
-                </div>
-                <ul className="mt-3 space-y-0.5 text-xs text-slate-600">
-                  {r.lines.slice(0, 4).map((l, i) => <li key={i} className="flex justify-between gap-2"><span className="truncate">{l.name}</span><span className="flex-shrink-0 tabular-nums text-slate-500">{num(l.qty)} {l.unit}</span></li>)}
-                  {r.lines.length > 4 && <li className="text-slate-400">{tr("+{0} more", r.lines.length - 4)}</li>}
-                  {!r.lines.length && <li className="text-amber-700">{tr("No component yet")}</li>}
-                </ul>
-              </button>
-            </li>
-          ))}
+        <ul className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
+          {shown.map((r) => <RecipeCard key={r.code} r={r} hpp={hppOf(r)} priced={!!items.length} onOpen={() => setEdit(r)} />)}
         </ul>
       )}
       {edit && <RecipeDrawer recipe={edit === "new" ? null : edit} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
@@ -200,9 +211,90 @@ function Recipes() {
   );
 }
 
+/** One recipe card: a band with the Kopi Calf mark, the name and code, then HPP / components / menus and the first lines. */
+function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null; priced: boolean; onOpen: () => void }) {
+  return (
+    <li>
+      <button type="button" onClick={onOpen}
+        className={cx("group flex h-full w-full flex-col overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
+          r.isActive ? "border-slate-200 hover:border-blue-300" : "border-slate-200 opacity-75")}>
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#0b1f4d] via-[#12307a] to-blue-600 px-4 pb-4 pt-3.5 text-white">
+          {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
+          <img src="/assets/calf-logo.png" alt="" aria-hidden className="pointer-events-none absolute -bottom-6 -right-5 h-32 w-32 rotate-[-12deg] object-contain opacity-[0.13] brightness-0 invert" />
+          <span className="pointer-events-none absolute -left-10 -top-12 h-28 w-28 rounded-full bg-white/5" aria-hidden />
+          <div className="relative flex items-center justify-between gap-2">
+            <span className="truncate rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-50">{r.category || tr("Recipe Card")}</span>
+            {!r.isActive ? <span className="rounded-full bg-slate-900/40 px-2 py-0.5 text-[10px] font-semibold">{tr("Inactive")}</span>
+              : r.menus.length ? <span className="rounded-full bg-emerald-400/90 px-2 py-0.5 text-[10px] font-semibold text-emerald-950">{tr("{0} menus", r.menus.length)}</span>
+              : <span className="rounded-full bg-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-950">{tr("No Menu Yet")}</span>}
+          </div>
+          <p className="relative mt-2.5 line-clamp-2 text-base font-semibold leading-snug">{r.name}</p>
+          <p className="relative mt-0.5 font-mono text-[11px] text-blue-100/80">{r.code}</p>
+        </div>
+        <div className="flex flex-1 flex-col px-4 py-3">
+          <div className="grid grid-cols-3 divide-x divide-slate-200 rounded-xl bg-slate-50 py-2 text-center">
+            <span><span className="block text-[10px] uppercase tracking-wide text-slate-400">{tr("HPP")}</span>
+              <span className={cx("block text-sm font-semibold tabular-nums", hpp === null ? "text-amber-700" : "text-slate-900")}>{hpp !== null ? rp(hpp) : priced && r.lines.length ? tr("Price missing") : "—"}</span></span>
+            <span><span className="block text-[10px] uppercase tracking-wide text-slate-400">{tr("Components")}</span><span className="block text-sm font-semibold tabular-nums text-slate-900">{r.lines.length}</span></span>
+            <span><span className="block text-[10px] uppercase tracking-wide text-slate-400">{tr("Menus")}</span><span className="block text-sm font-semibold tabular-nums text-slate-900">{r.menus.length}</span></span>
+          </div>
+          <ul className="mt-3 flex-1 space-y-1.5 text-xs text-slate-600">
+            {r.lines.slice(0, 4).map((l, i) => (
+              <li key={i} className="flex items-center gap-2"><span className={cx("h-1.5 w-1.5 flex-shrink-0 rounded-full", KIND_DOT[l.type])} />
+                <span className="min-w-0 flex-1 truncate">{l.name}</span><span className="flex-shrink-0 tabular-nums text-slate-500">{num(l.qty)} {l.unit}</span></li>
+            ))}
+            {r.lines.length > 4 && <li className="pl-3.5 text-slate-400">{tr("+{0} more", r.lines.length - 4)}</li>}
+            {!r.lines.length && <li className="text-amber-700">{tr("No component yet")}</li>}
+          </ul>
+          <span className="mt-3 inline-flex items-center gap-1 self-end text-[11px] font-medium text-blue-700 opacity-0 transition group-hover:opacity-100">{tr("Open the card")} <ChevronRight size={13} /></span>
+        </div>
+      </button>
+    </li>
+  );
+}
+
 /** A line being edited: the quantity (and the price of an other item) kept as typed, so "0,5" can be entered. */
 type Draft = Line & { qtyText: string; priceText: string };
 const toDraft = (l: Line): Draft => ({ ...l, qtyText: l.qty ? String(l.qty).replace(".", ",") : "", priceText: l.price != null ? String(l.price).replace(".", ",") : "" });
+
+/** A numbered block of a drawer form. */
+function FormBlock({ n, title, hint, aside, children }: { n: number; title: string; hint?: string; aside?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
+        <div className="flex items-start gap-3">
+          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-700 text-[11px] font-bold text-white">{n}</span>
+          <div><h3 className="text-sm font-semibold text-slate-900">{title}</h3>{hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}</div>
+        </div>
+        {aside}
+      </header>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+/** On / off as a switch. */
+function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="inline-flex items-center gap-2.5 text-sm text-slate-700">
+      <span className={cx("relative h-6 w-10 rounded-full transition", on ? "bg-blue-600" : "bg-slate-300")}>
+        <span className={cx("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all", on ? "left-[1.125rem]" : "left-0.5")} />
+      </span>{label}
+    </button>
+  );
+}
+
+/** A number typed as text ("0,5") with its unit inside the box. */
+function UnitInput({ value, onChange, unit, placeholder, label, className }: { value: string; onChange: (v: string) => void; unit: string; placeholder?: string; label: string; className?: string }) {
+  return (
+    <span className={cx("relative block", className)}>
+      <input inputMode="decimal" className={cx(inputClass, "h-9 pr-12 text-right tabular-nums")} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder ?? "0"} aria-label={label} />
+      <span className="pointer-events-none absolute right-3 top-1/2 max-w-[2.5rem] -translate-y-1/2 truncate text-[11px] font-medium uppercase text-slate-400">{unit || "—"}</span>
+    </span>
+  );
+}
+
+const fieldLabel = "block text-xs font-medium text-slate-600";
 
 function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
@@ -212,33 +304,26 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
   const [lines, setLines] = useState<Draft[]>(() => (recipe?.lines ?? []).map(toDraft));
   const [assigned, setAssigned] = useState(() => recipe?.menus ?? []);
   const [menuQ, setMenuQ] = useState("");
+  const [onlyTicked, setOnlyTicked] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [tried, setTried] = useState(false);
   useEffect(() => { void call<{ data: Menu[] }>("/api/cost-control/sales-calc/menus").then((r) => setMenus(r.data)).catch(() => setMenus([])); }, []);
   const price = useMemo(() => new Map(items.map((i) => [i.code, i.price])), [items]);
   const itemOptions = useMemo(() => items.map((i) => ({ value: i.code, label: i.name, hint: `${i.code} · ${i.unit}` })), [items]);
   const wipOptions = useMemo(() => wips.map((w) => ({ value: w.code, label: w.name, hint: "gram" })), [wips]);
-
-  /** cost of one line (null while a price is missing) */
-  const cost = useCallback((l: Draft): number | null => {
-    const qty = parse(l.qtyText) ?? 0;
-    if (l.type === "other") { const p = parse(l.priceText); return p === null ? null : p * qty; }
-    if (l.type === "item") { const p = price.get(l.code); return p == null ? null : p * qty; }
-    const w = wips.find((x) => x.code === l.code);
-    if (!w) return null;
-    let total = 0;
-    for (const c of w.components) { if (!c.code) continue; const p = price.get(c.code); if (p == null) return null; total += p * qty * c.perGram; }
-    return total;
-  }, [price, wips]);
+  const cost = useCallback((l: Draft) => lineCost({ ...l, qty: parse(l.qtyText) ?? 0, price: parse(l.priceText) }, price, wips), [price, wips]);
   const costs = lines.map(cost);
   const hpp = lines.length && costs.every((c) => c !== null) ? costs.reduce<number>((a, c) => a + (c ?? 0), 0) : null;
   const invalid = lines.findIndex((l) => !l.code || !l.name.trim() || (parse(l.qtyText) ?? 0) <= 0);
+  const per = (k: Kind) => lines.filter((l) => l.type === k).length;
 
   const setLine = (i: number, patch: Partial<Draft>) => setLines((all) => all.map((l, j) => (j === i ? { ...l, ...patch } : l)));
-  const add = (type: Kind) => setLines((all) => [...all, { type, code: type === "other" ? `other-${all.length + 1}` : "", name: "", qty: 0, unit: type === "wip" ? "GR" : type === "other" ? "PCS" : "", price: null, qtyText: "", priceText: "" }]);
+  const add = (type: Kind) => setLines((all) => [...all, { type, code: type === "other" ? `other-${Date.now().toString(36)}` : "", name: "", qty: 0, unit: type === "wip" ? "GR" : type === "other" ? "PCS" : "", price: null, qtyText: "", priceText: "" }]);
   const pickItem = (i: number, code: string) => { const it = items.find((x) => x.code === code); setLine(i, { code, name: it?.name ?? code, unit: it?.unit ?? "" }); };
   const pickWip = (i: number, code: string) => { const w = wips.find((x) => x.code === code); setLine(i, { code, name: w?.name ?? code, unit: "GR" }); };
 
   const save = async () => {
+    setTried(true);
     if (invalid >= 0) { toast(tr("Complete component {0}: choose it and fill a quantity above 0", invalid + 1), "error"); return; }
     setBusy(true);
     try {
@@ -254,93 +339,117 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
     try { await call(`/api/cost-control/sales-calc/recipes/${encodeURIComponent(recipe.code)}`, { method: "DELETE" }); onSaved(); } catch (e) { toast((e as Error).message, "error"); }
   };
   const ids = new Set(assigned.map((m) => m.id));
-  const menuShown = menus.filter((m) => !menuQ || matches(`${m.name} ${m.category} ${m.detail ?? ""} ${brands(m)}`, menuQ)).slice(0, 400);
+  const menuShown = menus.filter((m) => (!onlyTicked || ids.has(m.id)) && (!menuQ || matches(`${m.name} ${m.category} ${m.detail ?? ""} ${brands(m)}`, menuQ))).slice(0, 400);
 
   return (
-    <Drawer open onClose={onClose} size="lg" title={recipe ? recipe.name : tr("New Card")} description={tr("One portion of the menu")}
-      footer={<div className="flex flex-wrap items-center justify-end gap-2">
-        {recipe && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => void remove()}><Trash2 size={14} />{tr("Delete")}</Button>}
+    <Drawer open onClose={onClose} size="xl" icon={<BookOpen size={18} />} title={recipe ? recipe.name : tr("New Card")} description={tr("What one portion of the menu uses")} focusFirstField={false}
+      footer={<div className="flex w-full flex-wrap items-center gap-2">
+        <div className="mr-auto min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("HPP per Portion")}</p>
+          <p className="text-lg font-bold tabular-nums text-slate-900">{hpp === null ? <span className="text-sm font-medium text-amber-700">{lines.length ? tr("Price missing") : "—"}</span> : rp(hpp)}</p>
+        </div>
+        {recipe && <Button variant="ghost" className="text-red-600" onClick={() => void remove()}><Trash2 size={14} />{tr("Delete")}</Button>}
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!head.code.trim() || !head.name.trim()} onClick={() => void save()}><Save size={15} />{tr("Save Card")}</Button>
       </div>}>
-      <div className="space-y-6 text-sm">
-        <section className="grid gap-3 sm:grid-cols-6">
-          <label className="text-xs font-medium text-slate-600 sm:col-span-2">{tr("Code")}<input className={cx(inputClass, "mt-1 uppercase")} value={head.code} onChange={(e) => setHead({ ...head, code: e.target.value })} placeholder="MN-MATCHA-ICE" /></label>
-          <label className="text-xs font-medium text-slate-600 sm:col-span-4">{tr("Name")}<input className={cx(inputClass, "mt-1")} value={head.name} onChange={(e) => setHead({ ...head, name: e.target.value })} placeholder={tr("e.g. Iced Matcha Latte")} /></label>
-          <label className="text-xs font-medium text-slate-600 sm:col-span-3">{tr("Category")}<input className={cx(inputClass, "mt-1")} value={head.category} onChange={(e) => setHead({ ...head, category: e.target.value })} placeholder={tr("e.g. Non Coffee")} /></label>
-          <label className="flex items-end gap-2 pb-2.5 text-xs font-medium text-slate-600 sm:col-span-3"><input type="checkbox" checked={head.isActive} onChange={(e) => setHead({ ...head, isActive: e.target.checked })} />{tr("Active")}</label>
-        </section>
-
-        <section>
-          <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h3 className="font-semibold text-slate-900">{tr("Components per Portion")}</h3>
-              <p className="text-xs text-slate-500">{tr("Quantities in the unit of the item; WIP / premix in grams")}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] uppercase tracking-wide text-slate-400">{tr("HPP per Portion")}</p>
-              <p className="text-lg font-bold tabular-nums text-slate-900">{hpp === null ? <span className="text-sm font-medium text-amber-700">{lines.length ? tr("Price missing") : "—"}</span> : rp(hpp)}</p>
-            </div>
+      <div className="space-y-4 text-sm">
+        <FormBlock n={1} title={tr("Card Details")} hint={tr("The name the team knows the menu by; the code stays unique")}
+          aside={<Switch on={head.isActive} onChange={(v) => setHead({ ...head, isActive: v })} label={head.isActive ? tr("Active") : tr("Inactive")} />}>
+          <div className="grid gap-3 sm:grid-cols-6">
+            <label className={cx(fieldLabel, "sm:col-span-2")}>{tr("Code")} <span className="text-red-500">*</span>
+              <input className={cx(inputClass, "mt-1 font-mono uppercase")} value={head.code} onChange={(e) => setHead({ ...head, code: e.target.value })} placeholder="MN-MATCHA-ICE" /></label>
+            <label className={cx(fieldLabel, "sm:col-span-4")}>{tr("Name")} <span className="text-red-500">*</span>
+              <input className={cx(inputClass, "mt-1")} value={head.name} onChange={(e) => setHead({ ...head, name: e.target.value })} placeholder={tr("e.g. Iced Matcha Latte")} /></label>
+            <label className={cx(fieldLabel, "sm:col-span-2")}>{tr("Category")}
+              <input className={cx(inputClass, "mt-1")} value={head.category} onChange={(e) => setHead({ ...head, category: e.target.value })} placeholder={tr("e.g. Non Coffee")} /></label>
+            <label className={cx(fieldLabel, "sm:col-span-4")}>{tr("Note")}
+              <input className={cx(inputClass, "mt-1")} value={head.note} onChange={(e) => setHead({ ...head, note: e.target.value })} placeholder={tr("e.g. size 16 oz, with foam")} /></label>
           </div>
-          {error && <p className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{tr("The item list could not be loaded: {0}", error)}</p>}
-          <div className="rounded-xl border border-slate-200">
-            <table className="w-full text-sm">
-              <thead className={theadClass}><tr><th className="w-8 px-2 py-2">#</th><th className="px-2 py-2">{tr("Component")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th><th className="w-14 px-2 py-2">{tr("Unit")}</th><th className="w-28 px-2 py-2 text-right">{tr("Cost")}</th><th className="w-8" /></tr></thead>
-              <tbody className="divide-y divide-slate-100">
-                {lines.map((l, i) => (
-                  <tr key={i} className={cx(i === invalid && busy && "bg-red-50")}>
-                    <td className="px-2 py-2 align-top text-xs text-slate-400">{i + 1}</td>
-                    <td className="px-2 py-2">
-                      <div className="mb-1"><Badge tone={KIND[l.type].tone}>{KIND[l.type].label()}</Badge></div>
-                      {l.type === "item" && <Picker value={l.code} options={itemOptions} onPick={(v) => pickItem(i, v)} placeholder={loading ? tr("Loading items…") : tr("Choose raw material / packaging")} />}
-                      {l.type === "wip" && <Picker value={l.code} options={wipOptions} onPick={(v) => pickWip(i, v)} placeholder={tr("Choose WIP / premix")} />}
-                      {l.type === "other" && (
-                        <div className="grid gap-2 sm:grid-cols-[1fr_5rem_7rem]">
-                          <input className={cx(inputClass, "h-9")} value={l.name} onChange={(e) => setLine(i, { name: e.target.value })} placeholder={tr("Item name, e.g. Sticker")} />
-                          <input className={cx(inputClass, "h-9")} value={l.unit} onChange={(e) => setLine(i, { unit: e.target.value })} aria-label={tr("Unit")} />
-                          <input inputMode="decimal" className={cx(inputClass, "h-9 text-right")} value={l.priceText} onChange={(e) => setLine(i, { priceText: e.target.value })} placeholder={tr("Price / unit")} aria-label={tr("Price / Unit")} />
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-2 py-2 align-bottom"><input inputMode="decimal" className={cx(inputClass, "h-9 text-right")} value={l.qtyText} onChange={(e) => setLine(i, { qtyText: e.target.value })} placeholder="0" aria-label={`${tr("Qty")} ${i + 1}`} /></td>
-                    <td className="px-2 py-2 align-bottom text-xs text-slate-500"><span className="inline-block pb-2.5">{l.type === "other" ? "" : l.unit || "—"}</span></td>
-                    <td className="px-2 py-2 text-right align-bottom text-xs tabular-nums text-slate-600"><span className="inline-block pb-2.5">{costs[i] === null ? <span className="text-amber-700">{tr("No price")}</span> : rp(costs[i])}</span></td>
-                    <td className="px-1 py-2 align-bottom"><button type="button" aria-label={tr("Delete")} onClick={() => setLines((all) => all.filter((_, j) => j !== i))} className="mb-1.5 rounded p-1.5 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button></td>
-                  </tr>
-                ))}
-                {!lines.length && <tr><td colSpan={6} className="px-3 py-6 text-center text-xs text-slate-400">{tr("No component yet: add one below")}</td></tr>}
-              </tbody>
-            </table>
-            <div className="flex flex-wrap gap-2 border-t border-slate-100 p-2">
-              <Button size="sm" variant="secondary" onClick={() => add("item")}><Package size={14} />{tr("Raw Material / Packaging")}</Button>
-              <Button size="sm" variant="secondary" onClick={() => add("wip")}><FlaskConical size={14} />{tr("WIP / Premix")}</Button>
-              <Button size="sm" variant="secondary" onClick={() => add("other")}><PenLine size={14} />{tr("Other Item")}</Button>
-            </div>
-          </div>
-          <p className="mt-1.5 text-[11px] text-slate-400">{tr("A missing price is filled in Pricelist Items; an other item carries its own price")}</p>
-        </section>
+        </FormBlock>
 
-        <section>
-          <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h3 className="font-semibold text-slate-900">{tr("ESB Menus with This Card")} <span className="font-normal text-slate-500">({assigned.length})</span></h3>
-              <p className="text-xs text-slate-500">{tr("Every menu of the POS transactions; a menu on another card moves here when ticked")}</p>
+        <FormBlock n={2} title={tr("Components per Portion")} hint={tr("Quantities in the unit of the item; WIP / premix in grams")}
+          aside={<span className="flex flex-wrap gap-1.5 text-[11px]">{(["item", "wip", "other"] as Kind[]).map((k) => <span key={k} className={cx("rounded-full px-2 py-0.5 font-medium", KIND_CHIP[k])}>{KIND[k].label()} {per(k)}</span>)}</span>}>
+          {error && <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{tr("The item list could not be loaded: {0}", error)}</p>}
+          <ol className="space-y-2">
+            {lines.map((l, i) => {
+              const Icon = KIND_ICON[l.type];
+              const bad = tried && (!l.code || !l.name.trim() || (parse(l.qtyText) ?? 0) <= 0);
+              return (
+                <li key={i} className={cx("rounded-xl border p-3", bad ? "border-red-300 bg-red-50/40" : "border-slate-200 bg-slate-50/40")}>
+                  <div className="flex items-start gap-3">
+                    <span className={cx("mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg", KIND_CHIP[l.type])} title={KIND[l.type].label()}><Icon size={15} /></span>
+                    <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[minmax(0,1fr)_8.5rem_7rem] sm:items-center">
+                      <div className="min-w-0">
+                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{i + 1}. {KIND[l.type].label()}</p>
+                        {l.type === "item" && <Picker value={l.code} options={itemOptions} onPick={(v) => pickItem(i, v)} placeholder={loading ? tr("Loading items…") : tr("Choose raw material / packaging")} />}
+                        {l.type === "wip" && <Picker value={l.code} options={wipOptions} onPick={(v) => pickWip(i, v)} placeholder={tr("Choose WIP / premix")} />}
+                        {l.type === "other" && (
+                          <div className="grid gap-2 sm:grid-cols-[1fr_4.5rem_7rem]">
+                            <input className={cx(inputClass, "h-9")} value={l.name} onChange={(e) => setLine(i, { name: e.target.value })} placeholder={tr("Item name, e.g. Sticker")} />
+                            <input className={cx(inputClass, "h-9 uppercase")} value={l.unit} onChange={(e) => setLine(i, { unit: e.target.value })} aria-label={tr("Unit")} placeholder="PCS" />
+                            <UnitInput value={l.priceText} onChange={(v) => setLine(i, { priceText: v })} unit="Rp" label={tr("Price / Unit")} placeholder={tr("Price")} />
+                          </div>
+                        )}
+                      </div>
+                      <label className="block"><span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Qty")}</span>
+                        <UnitInput value={l.qtyText} onChange={(v) => setLine(i, { qtyText: v })} unit={l.unit} label={`${tr("Qty")} ${i + 1}`} /></label>
+                      <div className="text-right">
+                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Cost")}</span>
+                        <span className="inline-block py-2 text-sm font-semibold tabular-nums text-slate-800">{costs[i] === null ? <span className="text-xs font-medium text-amber-700">{tr("No price")}</span> : rp(costs[i])}</span>
+                      </div>
+                    </div>
+                    <button type="button" aria-label={tr("Delete")} onClick={() => setLines((all) => all.filter((_, j) => j !== i))} className="mt-0.5 rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+          {!lines.length && <p className="rounded-xl border border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-400">{tr("No component yet: add one below")}</p>}
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {([["item", tr("From the item master")], ["wip", tr("In grams, from the Production Calculator")], ["other", tr("Typed by hand with its price")]] as [Kind, string][]).map(([k, hint]) => {
+              const Icon = KIND_ICON[k];
+              return (
+                <button key={k} type="button" onClick={() => add(k)} className="flex items-center gap-2.5 rounded-xl border border-dashed border-slate-300 px-3 py-2.5 text-left hover:border-blue-400 hover:bg-blue-50/40">
+                  <span className={cx("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg", KIND_CHIP[k])}><Icon size={15} /></span>
+                  <span className="min-w-0"><span className="flex items-center gap-1 text-sm font-medium text-slate-800"><Plus size={13} /> {KIND[k].label()}</span><span className="block truncate text-[11px] text-slate-500">{hint}</span></span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-[11px] text-slate-400">{tr("A missing price is filled in Pricelist Items; an other item carries its own price")}</p>
+        </FormBlock>
+
+        <FormBlock n={3} title={tr("ESB Menus with This Card")} hint={tr("Every menu of the POS transactions; a menu on another card moves here when ticked")}
+          aside={<span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">{tr("{0} ticked", assigned.length)}</span>}>
+          {assigned.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {assigned.slice(0, 12).map((m) => (
+                <span key={m.id} className="inline-flex max-w-full items-center gap-1 rounded-full bg-blue-50 py-0.5 pl-2.5 pr-1 text-xs text-blue-800">
+                  <span className="truncate">{m.name}</span>
+                  <button type="button" onClick={() => setAssigned(assigned.filter((x) => x.id !== m.id))} className="rounded-full p-0.5 hover:bg-blue-100" aria-label={tr("Remove")}><X size={12} /></button>
+                </span>
+              ))}
+              {assigned.length > 12 && <span className="px-1 py-0.5 text-xs text-slate-500">{tr("+{0} more", assigned.length - 12)}</span>}
             </div>
-            <input className={cx(inputClass, "h-9 sm:max-w-[14rem]")} value={menuQ} onChange={(e) => setMenuQ(e.target.value)} placeholder={tr("Search menu")} />
+          )}
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <div className="relative min-w-0 flex-1 basis-48"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input className={cx(inputClass, "h-9 pl-8")} value={menuQ} onChange={(e) => setMenuQ(e.target.value)} placeholder={tr("Search menu")} /></div>
+            <label className="flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={onlyTicked} onChange={(e) => setOnlyTicked(e.target.checked)} />{tr("Ticked only")}</label>
           </div>
           <div className="max-h-72 overflow-auto rounded-xl border border-slate-200">
             {menuShown.map((m) => (
-              <label key={m.id} className={cx("flex cursor-pointer items-center gap-2 border-b border-slate-100 px-3 py-2 text-xs last:border-0", ids.has(m.id) ? "bg-blue-50/50" : "hover:bg-slate-50")}>
+              <label key={m.id} className={cx("flex cursor-pointer items-center gap-2.5 border-b border-slate-100 px-3 py-2 text-xs last:border-0", ids.has(m.id) ? "bg-blue-50/50" : "hover:bg-slate-50")}>
                 <input type="checkbox" checked={ids.has(m.id)}
                   onChange={(e) => setAssigned(e.target.checked ? [...assigned, { id: m.id, name: m.name }] : assigned.filter((x) => x.id !== m.id))} />
-                <span className="min-w-0 flex-1 truncate"><span className="font-medium text-slate-800">{m.name}</span> <span className="text-slate-400">· {m.category}{brands(m) ? ` · ${brands(m)}` : ""}</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-slate-800">{m.name}</span><span className="block truncate text-[11px] text-slate-400">{m.category}{brands(m) ? ` · ${brands(m)}` : ""}</span></span>
                 {m.recipe && m.recipe !== head.code && <Badge tone="amber">{m.recipe}</Badge>}
-                <span className="w-14 text-right tabular-nums text-slate-400">{num(m.qty, 0)}</span>
+                <span className="w-16 text-right tabular-nums text-slate-400" title={tr("Sold 90 Days")}>{num(m.qty, 0)}</span>
               </label>
             ))}
             {!menuShown.length && <p className="px-3 py-6 text-center text-xs text-slate-400">{tr("No menu matches")}</p>}
           </div>
-        </section>
+        </FormBlock>
       </div>
     </Drawer>
   );
@@ -348,16 +457,17 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
 
 // ---------------------------------------------------------------- 2. assign menus
 
+type AssignFilters = { status: "" | "with" | "without"; brand: string; category: string; recipe: string };
+const NO_AF: AssignFilters = { status: "", brand: "", category: "", recipe: "" };
+
 function MenuAssign() {
   const toast = useToast();
   const [menus, setMenus] = useState<Menu[] | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [q, setQ] = useState("");
-  const [brand, setBrand] = useState("");
-  const [category, setCategory] = useState("");
-  const [onlyFree, setOnlyFree] = useState(false);
+  const [f, setF] = useState<AssignFilters>(NO_AF);
+  const [sheet, setSheet] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
   const load = useCallback(() => {
     void call<{ data: Menu[] }>("/api/cost-control/sales-calc/menus").then((r) => setMenus(r.data));
     void call<{ data: Recipe[] }>("/api/cost-control/sales-calc/recipes").then((r) => setRecipes(r.data));
@@ -374,58 +484,53 @@ function MenuAssign() {
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(null); }
   };
   const all = useMemo(() => menus ?? [], [menus]);
-  const brandList = useMemo(() => [...new Map(all.flatMap((m) => m.companies ?? []).map((c) => [c.code, c.name])).entries()], [all]);
-  const categories = useMemo(() => [...new Set(all.map((m) => m.category).filter(Boolean))].sort(), [all]);
-  const shown = all.filter((m) => (!onlyFree || !m.recipe) && (!brand || (m.companies ?? []).some((c) => c.code === brand))
-    && (!category || m.category === category) && (!q || matches(`${m.name} ${m.category} ${m.detail ?? ""}`, q)));
-  const SIZE = 100;
-  const pages = Math.max(1, Math.ceil(shown.length / SIZE));
-  const at = Math.min(page, pages);
-  useEffect(() => { setPage(1); }, [q, brand, category, onlyFree]);
+  const brandList = useMemo(() => [...new Map(all.flatMap((m) => m.companies ?? []).map((c) => [c.code, c.name])).entries()].map(([value, label]) => ({ value, label })), [all]);
+  const categories = useMemo(() => [...new Set(all.map((m) => m.category).filter(Boolean))].sort().map((c) => ({ value: c, label: c })), [all]);
+  const shown = useMemo(() => all.filter((m) => (f.status !== "without" || !m.recipe) && (f.status !== "with" || !!m.recipe)
+    && (!f.brand || (m.companies ?? []).some((c) => c.code === f.brand)) && (!f.category || m.category === f.category)
+    && (!f.recipe || m.recipe === f.recipe) && (!q || matches(`${m.name} ${m.category} ${m.detail ?? ""}`, q))), [all, f, q]);
+  const paged = usePaged(shown, JSON.stringify(f) + q, 25);
   const free = all.filter((m) => !m.recipe).length;
+  const recipeName = (code: string) => recipes.find((r) => r.code === code)?.name ?? code;
+  const chips: ActiveFilter[] = [
+    ...(f.status ? [{ key: "s", label: f.status === "with" ? tr("With a card") : tr("Without a card"), onRemove: () => setF({ ...f, status: "" }) }] : []),
+    ...(f.brand ? [{ key: "b", label: brandList.find((b) => b.value === f.brand)?.label ?? f.brand, onRemove: () => setF({ ...f, brand: "" }) }] : []),
+    ...(f.category ? [{ key: "c", label: f.category, onRemove: () => setF({ ...f, category: "" }) }] : []),
+    ...(f.recipe ? [{ key: "r", label: recipeName(f.recipe), onRemove: () => setF({ ...f, recipe: "" }) }] : []),
+  ];
   return (
     <Panel title={tr("Assign Menus")} description={tr("Every menu of the POS transactions of the branches and the recipe card it uses; several menus may share a card")}
-      toolbar={<div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-0 flex-1 basis-56"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /><input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search menu, e.g. es kopi premium")} /></div>
-        <select className={cx(inputClass, "w-auto")} value={brand} onChange={(e) => setBrand(e.target.value)} aria-label={tr("Brand")}>
-          <option value="">{tr("All brands")}</option>{brandList.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
-        </select>
-        <select className={cx(inputClass, "w-auto max-w-[14rem]")} value={category} onChange={(e) => setCategory(e.target.value)} aria-label={tr("Category")}>
-          <option value="">{tr("All categories")}</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <label className="flex h-10 items-center gap-2 text-sm text-slate-600"><input type="checkbox" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />{tr("Without a card only")}</label>
-      </div>}
-      footer={menus ? <>
-        <span>{tr("{0} of {1} menus have a card", all.length - free, all.length)} · {tr("{0} shown", shown.length)}</span>
-        {pages > 1 && <span className="flex items-center gap-2">
-          <Button size="sm" variant="secondary" disabled={at <= 1} onClick={() => setPage(at - 1)}>‹</Button>
-          <span className="tabular-nums">{at} / {pages}</span>
-          <Button size="sm" variant="secondary" disabled={at >= pages} onClick={() => setPage(at + 1)}>›</Button>
-        </span>}
-      </> : undefined}>
+      actions={menus ? <span className="flex items-center gap-2 text-xs text-slate-500">
+        <span className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-emerald-500" style={{ width: `${all.length ? ((all.length - free) / all.length) * 100 : 0}%` }} /></span>
+        {tr("{0} of {1} menus have a card", all.length - free, all.length)}</span> : undefined}
+      toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search menu, e.g. es kopi premium")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_AF)} />}
+      footer={menus ? <><span>{tr("{0} shown", fmtNumber(shown.length))}</span><PageNav paged={paged} /></> : undefined}>
       {!menus ? <SkeletonRows cols={5} /> : (
         <>
           {!recipes.length && <p className="mx-4 mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No recipe card yet: make the cards in step 1, then choose them here.")}</p>}
           {shown.length === 0 ? <Empty title={tr("No menu matches")} /> : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5">{tr("Category")}</th><th className="px-4 py-2.5">{tr("Brand")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Sold 90 Days")}</th><th className="px-4 py-2.5">{tr("Recipe Card")}</th></tr></thead>
+              <table className="w-full min-w-[760px] text-sm">
+                <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr("Menu")}</th><th className="px-3 py-2.5">{tr("Category")}</th><th className="px-3 py-2.5">{tr("Brand")}</th>
+                  <th className="px-3 py-2.5 text-right">{tr("Sold 90 Days")}</th><th className="px-3 py-2.5 pr-5">{tr("Recipe Card")}</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
-                  {shown.slice((at - 1) * SIZE, at * SIZE).map((m) => (
-                    <tr key={m.id} className={busy === m.id ? "opacity-50" : ""}>
-                      <td className="px-4 py-2">
+                  {paged.rows.map((m) => (
+                    <tr key={m.id} className={cx("hover:bg-slate-50/60", busy === m.id && "opacity-50")}>
+                      <td className="py-2.5 pl-5 pr-3">
                         <span className="font-medium text-slate-900">{m.name}</span>
                         {(m.kinds ?? []).filter((k) => k !== "menu").map((k) => <Badge key={k} tone="slate">{k === "package" ? tr("Package") : tr("Extra")}</Badge>)}
                         {m.lastSold && <span className="block text-[11px] text-slate-400">{tr("last sold {0}", m.lastSold)}</span>}
                       </td>
-                      <td className="px-4 py-2 text-xs text-slate-600">{m.category}{m.detail && m.detail !== m.category ? <span className="block text-[11px] text-slate-400">{m.detail}</span> : null}</td>
-                      <td className="px-4 py-2 text-xs text-slate-600">{brands(m)}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{num(m.qty, 0)}</td>
-                      <td className="w-64 px-4 py-2">
-                        <select className={cx(inputClass, "h-9", !m.recipe && "text-slate-400")} value={m.recipe ?? ""} disabled={busy === m.id || !recipes.length} onChange={(e) => void assign(m, e.target.value)} aria-label={`${tr("Recipe Card")} ${m.name}`}>
-                          <option value="">{tr("— No card —")}</option>{recipes.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
-                        </select>
+                      <td className="px-3 py-2.5 text-xs text-slate-600">{m.category}{m.detail && m.detail !== m.category ? <span className="block text-[11px] text-slate-400">{m.detail}</span> : null}</td>
+                      <td className="px-3 py-2.5 text-xs text-slate-600">{brands(m)}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums">{num(m.qty, 0)}</td>
+                      <td className="w-72 px-3 py-2.5 pr-5">
+                        <div className="flex items-center gap-2">
+                          <span className={cx("h-2 w-2 flex-shrink-0 rounded-full", m.recipe ? "bg-emerald-500" : "bg-amber-400")} aria-hidden />
+                          <select className={cx(inputClass, "h-9", !m.recipe && "text-slate-400")} value={m.recipe ?? ""} disabled={busy === m.id || !recipes.length} onChange={(e) => void assign(m, e.target.value)} aria-label={`${tr("Recipe Card")} ${m.name}`}>
+                            <option value="">{tr("— No card —")}</option>{recipes.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
+                          </select>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -435,18 +540,55 @@ function MenuAssign() {
           )}
         </>
       )}
+      {sheet && <AssignFilterSheet value={f} brands={brandList} categories={categories} recipes={recipes.map((r) => ({ value: r.code, label: r.name, hint: r.code }))}
+        onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </Panel>
   );
 }
 
+function AssignFilterSheet({ value, brands: brandOpts, categories, recipes, onApply, onClose }: {
+  value: AssignFilters; brands: { value: string; label: string }[]; categories: { value: string; label: string }[]; recipes: { value: string; label: string; hint?: string }[];
+  onApply: (v: AssignFilters) => void; onClose: () => void;
+}) {
+  const [d, setD] = useState(value);
+  const active = [d.status, d.brand, d.category, d.recipe].filter(Boolean).length;
+  return (
+    <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_AF)}>
+      <FilterRow icon={<ListChecks size={15} />} label={tr("Recipe card")} value={d.status === "with" ? tr("With a card") : d.status === "without" ? tr("Without a card") : null} onClear={() => setD({ ...d, status: "" })}>
+        <Segments value={d.status} onChange={(v) => setD({ ...d, status: v as AssignFilters["status"] })}
+          choices={[{ value: "", label: tr("All") }, { value: "with", label: tr("With a card") }, { value: "without", label: tr("Without a card") }]} />
+      </FilterRow>
+      {brandOpts.length > 1 && (
+        <FilterRow icon={<Store size={15} />} label={tr("Brand")} value={brandOpts.find((b) => b.value === d.brand)?.label ?? null} onClear={() => setD({ ...d, brand: "" })}>
+          <Segments value={d.brand} onChange={(v) => setD({ ...d, brand: v })} choices={[{ value: "", label: tr("All") }, ...brandOpts]} />
+        </FilterRow>
+      )}
+      <FilterRow icon={<Layers size={15} />} label={tr("Category")} value={d.category || null} onClear={() => setD({ ...d, category: "" })}>
+        <ComboFilter value={d.category} onChange={(v) => setD({ ...d, category: v })} options={categories} allLabel={tr("All categories")} placeholder={tr("Search category")} />
+      </FilterRow>
+      <FilterRow icon={<BookOpen size={15} />} label={tr("Uses the card")} value={recipes.find((r) => r.value === d.recipe)?.label ?? null} onClear={() => setD({ ...d, recipe: "" })}>
+        <ComboFilter value={d.recipe} onChange={(v) => setD({ ...d, recipe: v })} options={recipes} allLabel={tr("Any card")} placeholder={tr("Search card")} />
+      </FilterRow>
+    </MonitorFilterSheet>
+  );
+}
+
 // ---------------------------------------------------------------- 3. additional items
+
+type ExtraDraft = Omit<Extra, "id"> & { id?: number; qtyText: string; priceText: string };
+const BASIS_HINT: Record<Extra["basis"], () => string> = {
+  bill: () => tr("Every receipt of the outlet uses it, e.g. a take-away bag"),
+  portion: () => tr("Every portion sold uses it, e.g. a straw"),
+  day: () => tr("Once per day an outlet sells, e.g. cleaning plastic"),
+};
+const BASIS_ICON: Record<Extra["basis"], typeof Receipt> = { bill: Receipt, portion: CupSoda, day: CalendarDays };
 
 function Extras() {
   const toast = useToast();
   const { items } = useCatalog();
   const [rows, setRows] = useState<Extra[] | null>(null);
   const blank: Omit<Extra, "id"> = { code: null, name: "", unit: "PCS", price: null, basis: "bill", qty: 1, note: null, isActive: true };
-  const [edit, setEdit] = useState<(Omit<Extra, "id"> & { id?: number; qtyText: string; priceText: string }) | null>(null);
+  const [edit, setEdit] = useState<ExtraDraft | null>(null);
   const load = useCallback(() => { void call<{ data: Extra[] }>("/api/cost-control/sales-calc/extras").then((r) => setRows(r.data)); }, []);
   useEffect(() => { load(); }, [load]);
   const open = (x: Omit<Extra, "id"> & { id?: number }) => setEdit({ ...x, qtyText: String(x.qty).replace(".", ","), priceText: x.price != null ? String(x.price).replace(".", ",") : "" });
@@ -463,8 +605,7 @@ function Extras() {
     if (!window.confirm(tr("Delete {0}?", x.name))) return;
     try { await call(`/api/cost-control/sales-calc/extras/${x.id}`, { method: "DELETE" }); load(); } catch (e) { toast((e as Error).message, "error"); }
   };
-  const price = (x: Extra) => (x.code ? items.find((i) => i.code === x.code)?.price ?? null : x.price);
-  const options = useMemo(() => items.map((i) => ({ value: i.code, label: i.name, hint: `${i.code} · ${i.unit}` })), [items]);
+  const price = (x: Pick<Extra, "code" | "price">) => (x.code ? items.find((i) => i.code === x.code)?.price ?? null : x.price);
   return (
     <Panel title={tr("Additional Items")} description={tr("Items no menu records (cable ties, plastic bags …): counted per bill, per portion sold or per day of an outlet, and added to the planning, the usage and the COGS")}
       actions={<Button size="sm" onClick={() => open({ ...blank })}><Plus size={14} />{tr("Add Item")}</Button>}>
@@ -473,55 +614,108 @@ function Extras() {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[620px] text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Usage")}</th><th className="px-4 py-2.5 text-right">{tr("Price / Unit")}</th><th className="px-4 py-2.5">{tr("Status")}</th><th /></tr></thead>
+            <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr("Item")}</th><th className="px-3 py-2.5">{tr("Usage")}</th><th className="px-3 py-2.5 text-right">{tr("Price / Unit")}</th><th className="px-3 py-2.5">{tr("Status")}</th><th /></tr></thead>
             <tbody className="divide-y divide-slate-100">
-              {rows.map((x) => (
-                <tr key={x.id} className="cursor-pointer hover:bg-slate-50" onClick={() => open(x)}>
-                  <td className="px-4 py-2"><span className="block font-medium text-slate-900">{x.name}</span><span className="text-[11px] text-slate-400">{x.code ?? tr("Typed by hand")}</span></td>
-                  <td className="px-4 py-2 text-xs">{num(x.qty)} {x.unit} · {BASIS[x.basis]()}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{price(x) === null ? <Badge tone="amber">{tr("No price")}</Badge> : rp(price(x))}</td>
-                  <td className="px-4 py-2">{x.isActive ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge>}</td>
-                  <td className="px-2"><button type="button" onClick={(e) => { e.stopPropagation(); void remove(x); }} className="rounded p-1.5 text-slate-400 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={15} /></button></td>
-                </tr>
-              ))}
+              {rows.map((x) => {
+                const Icon = BASIS_ICON[x.basis];
+                return (
+                  <tr key={x.id} className="cursor-pointer hover:bg-slate-50" onClick={() => open(x)}>
+                    <td className="py-2.5 pl-5 pr-3"><span className="block font-medium text-slate-900">{x.name}</span><span className="text-[11px] text-slate-400">{x.code ?? tr("Typed by hand")}</span></td>
+                    <td className="px-3 py-2.5 text-xs"><span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-slate-700"><Icon size={12} /> {num(x.qty)} {x.unit} · {BASIS[x.basis]()}</span></td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{price(x) === null ? <Badge tone="amber">{tr("No price")}</Badge> : rp(price(x))}</td>
+                    <td className="px-3 py-2.5">{x.isActive ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge>}</td>
+                    <td className="px-2"><button type="button" onClick={(e) => { e.stopPropagation(); void remove(x); }} className="rounded p-1.5 text-slate-400 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={15} /></button></td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
-      {edit && (
-        <Drawer open onClose={() => setEdit(null)} title={edit.id ? edit.name : tr("Add Item")} description={tr("Additional Items")}
-          footer={<div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button><Button onClick={() => void save()}><Save size={15} />{tr("Save")}</Button></div>}>
-          <div className="space-y-4 text-sm">
-            <div className="inline-flex rounded-lg bg-slate-100 p-1">
-              {[{ manual: false, label: tr("From the Item Master") }, { manual: true, label: tr("Typed by Hand") }].map((o) => (
-                <button key={o.label} type="button" onClick={() => setEdit({ ...edit, code: o.manual ? null : edit.code ?? "" })}
-                  className={cx("rounded-md px-3 py-1.5 text-xs font-medium", (edit.code === null) === o.manual ? "bg-white text-slate-900 shadow-sm" : "text-slate-500")}>{o.label}</button>
-              ))}
-            </div>
-            {edit.code === null ? (
-              <div className="grid gap-3 sm:grid-cols-3">
-                <label className="text-xs font-medium text-slate-600 sm:col-span-2">{tr("Name")}<input className={cx(inputClass, "mt-1")} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder={tr("e.g. Cable ties")} /></label>
-                <label className="text-xs font-medium text-slate-600">{tr("Unit")}<input className={cx(inputClass, "mt-1")} value={edit.unit} onChange={(e) => setEdit({ ...edit, unit: e.target.value })} /></label>
-                <label className="text-xs font-medium text-slate-600">{tr("Price per Unit (Rp)")}<input inputMode="decimal" className={cx(inputClass, "mt-1")} value={edit.priceText} onChange={(e) => setEdit({ ...edit, priceText: e.target.value })} /></label>
-              </div>
-            ) : (
-              <div><p className="mb-1 text-xs font-medium text-slate-600">{tr("Item")}</p><Picker value={edit.code} options={options} placeholder={tr("Choose an item")}
-                onPick={(v) => { const it = items.find((i) => i.code === v); setEdit({ ...edit, code: v, name: it?.name ?? "", unit: it?.unit ?? edit.unit }); }} /></div>
-            )}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-xs font-medium text-slate-600">{tr("Quantity")} ({edit.unit || "—"})<input inputMode="decimal" className={cx(inputClass, "mt-1")} value={edit.qtyText} onChange={(e) => setEdit({ ...edit, qtyText: e.target.value })} /></label>
-              <label className="text-xs font-medium text-slate-600">{tr("Counted")}
-                <select className={cx(inputClass, "mt-1")} value={edit.basis} onChange={(e) => setEdit({ ...edit, basis: e.target.value as Extra["basis"] })}>
-                  {(["bill", "portion", "day"] as const).map((b) => <option key={b} value={b}>{BASIS[b]()}</option>)}
-                </select>
-              </label>
-            </div>
-            <label className="block text-xs font-medium text-slate-600">{tr("Note")}<input className={cx(inputClass, "mt-1")} value={edit.note ?? ""} onChange={(e) => setEdit({ ...edit, note: e.target.value || null })} /></label>
-            <label className="flex items-center gap-2 text-xs font-medium text-slate-600"><input type="checkbox" checked={edit.isActive} onChange={(e) => setEdit({ ...edit, isActive: e.target.checked })} />{tr("Active")}</label>
-          </div>
-        </Drawer>
-      )}
+      {edit && <ExtraDrawer edit={edit} setEdit={setEdit} items={items} unitPrice={price({ code: edit.code, price: parse(edit.priceText) })} onSave={() => void save()} />}
     </Panel>
+  );
+}
+
+function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraDraft; setEdit: (e: ExtraDraft | null) => void; items: Item[]; unitPrice: number | null; onSave: () => void }) {
+  const options = useMemo(() => items.map((i) => ({ value: i.code, label: i.name, hint: `${i.code} · ${i.unit}` })), [items]);
+  const qty = parse(edit.qtyText);
+  const manual = edit.code === null;
+  const each = qty !== null && unitPrice !== null ? qty * unitPrice : null;
+  const per = { bill: tr("per bill"), portion: tr("per portion sold"), day: tr("per outlet-day") }[edit.basis];
+  const ready = !!edit.name.trim() && (qty ?? 0) > 0;
+  return (
+    <Drawer open onClose={() => setEdit(null)} size="lg" icon={<Package size={18} />} title={edit.id ? edit.name : tr("Add Item")} description={tr("Additional Items")} focusFirstField={false}
+      footer={<div className="flex w-full flex-wrap items-center gap-2">
+        <div className="mr-auto min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{tr("Cost")} {per}</p>
+          <p className="text-lg font-bold tabular-nums text-slate-900">{each === null ? <span className="text-sm font-medium text-amber-700">{unitPrice === null ? tr("No price") : "—"}</span> : rp(each)}</p>
+        </div>
+        <Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button>
+        <Button disabled={!ready} onClick={onSave}><Save size={15} />{tr("Save")}</Button>
+      </div>}>
+      <div className="space-y-4 text-sm">
+        <FormBlock n={1} title={tr("Item")} hint={tr("Take it from the item master (the price follows Pricelist Items) or type it by hand")}
+          aside={<Switch on={edit.isActive} onChange={(v) => setEdit({ ...edit, isActive: v })} label={edit.isActive ? tr("Active") : tr("Inactive")} />}>
+          <div className="mb-4 grid gap-2 sm:grid-cols-2" role="radiogroup">
+            {[{ m: false, icon: Package, label: tr("From the Item Master"), hint: tr("Name, unit and price from Pricelist Items") },
+              { m: true, icon: PenLine, label: tr("Typed by Hand"), hint: tr("Your own name, unit and price") }].map((o) => {
+              const on = manual === o.m;
+              return (
+                <button key={o.label} type="button" role="radio" aria-checked={on} onClick={() => setEdit({ ...edit, code: o.m ? null : edit.code ?? "" })}
+                  className={cx("flex items-start gap-3 rounded-xl border p-3 text-left transition", on ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600" : "border-slate-200 hover:border-slate-300")}>
+                  <span className={cx("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg", on ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-500")}><o.icon size={15} /></span>
+                  <span><span className="block text-sm font-semibold text-slate-900">{o.label}</span><span className="block text-xs text-slate-500">{o.hint}</span></span>
+                </button>
+              );
+            })}
+          </div>
+          {manual ? (
+            <div className="grid gap-3 sm:grid-cols-6">
+              <label className={cx(fieldLabel, "sm:col-span-3")}>{tr("Name")} <span className="text-red-500">*</span><input className={cx(inputClass, "mt-1")} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder={tr("e.g. Cable ties")} /></label>
+              <label className={cx(fieldLabel, "sm:col-span-1")}>{tr("Unit")}<input className={cx(inputClass, "mt-1 uppercase")} value={edit.unit} onChange={(e) => setEdit({ ...edit, unit: e.target.value })} placeholder="PCS" /></label>
+              <label className={cx(fieldLabel, "sm:col-span-2")}>{tr("Price per Unit")}<span className="mt-1 block"><UnitInput value={edit.priceText} onChange={(v) => setEdit({ ...edit, priceText: v })} unit="Rp" label={tr("Price per Unit (Rp)")} /></span></label>
+            </div>
+          ) : (
+            <div>
+              <p className={cx(fieldLabel, "mb-1")}>{tr("Item")} <span className="text-red-500">*</span></p>
+              <Picker value={edit.code ?? ""} options={options} placeholder={tr("Choose an item")}
+                onPick={(v) => { const it = items.find((i) => i.code === v); setEdit({ ...edit, code: v, name: it?.name ?? "", unit: it?.unit ?? edit.unit }); }} />
+              {edit.code && <p className="mt-1.5 text-xs text-slate-500">{edit.unit} · {unitPrice === null ? <span className="text-amber-700">{tr("No price in Pricelist Items yet")}</span> : tr("{0} per {1}", rp(unitPrice), edit.unit)}</p>}
+            </div>
+          )}
+        </FormBlock>
+
+        <FormBlock n={2} title={tr("How It Is Counted")} hint={tr("What one use is: the calculator multiplies it by the bills, the portions or the days of the period")}>
+          <div className="grid gap-2 sm:grid-cols-3" role="radiogroup">
+            {(["bill", "portion", "day"] as const).map((b) => {
+              const on = edit.basis === b;
+              const Icon = BASIS_ICON[b];
+              return (
+                <button key={b} type="button" role="radio" aria-checked={on} onClick={() => setEdit({ ...edit, basis: b })}
+                  className={cx("rounded-xl border p-3 text-left transition", on ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600" : "border-slate-200 hover:border-slate-300")}>
+                  <span className={cx("mb-2 flex h-8 w-8 items-center justify-center rounded-lg", on ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-500")}><Icon size={15} /></span>
+                  <span className="block text-sm font-semibold text-slate-900">{BASIS[b]()}</span>
+                  <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">{BASIS_HINT[b]()}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className={fieldLabel}>{tr("Quantity")} {per} <span className="text-red-500">*</span>
+              <span className="mt-1 block"><UnitInput value={edit.qtyText} onChange={(v) => setEdit({ ...edit, qtyText: v })} unit={edit.unit} label={tr("Quantity")} /></span></label>
+            <div className="rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600">
+              <p className="font-semibold text-slate-800">{tr("Preview")}</p>
+              <p className="mt-0.5">{qty ? tr("{0} {1} {2}", num(qty), edit.unit || "—", per) : tr("Fill the quantity")}{each !== null ? ` · ${rp(each)}` : ""}</p>
+            </div>
+          </div>
+        </FormBlock>
+
+        <FormBlock n={3} title={tr("Note")} hint={tr("Optional: where or when it is used")}>
+          <textarea rows={2} className={cx(inputClass, "py-2")} value={edit.note ?? ""} onChange={(e) => setEdit({ ...edit, note: e.target.value || null })} placeholder={tr("e.g. only at the outlets with dine-in")} />
+        </FormBlock>
+      </div>
+    </Drawer>
   );
 }
 
@@ -702,23 +896,42 @@ type CalcFilters = { period: Period; branch: string; horizon: string; buffer: st
 /** The filters of the calculator in one sheet: the sales period, the branch and the planning of the MRP. */
 function CalcFilterSheet({ value, branches, onApply, onClose }: { value: CalcFilters; branches: Branch[]; onApply: (f: CalcFilters) => void; onClose: () => void }) {
   const [d, setD] = useState<CalcFilters>(value);
+  const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
+  const active = 1 + [d.branch, d.horizon].filter(Boolean).length;
+  const branchOpts = useMemo(() => branches.map((x) => ({ value: x.branch_code, label: x.branch_name, hint: x.branch_code })), [branches]);
+  const h = Number(d.horizon) || 0;
+  const b = Number(d.buffer) || 0;
   return (
-    <FilterSheet onClose={onClose} onApply={() => onApply(d)}
+    <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} applyDisabled={days > 92}
       onReset={() => setD({ period: { from: wibDay(-6), to: wibDay(0) }, branch: "", horizon: "", buffer: "" })}>
-      <FilterSection title={tr("Sales Period")} hint={tr("The POS transactions of the branches in this period")}>
-        <PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={92} />
-      </FilterSection>
-      <FilterSection title={tr("Branch")}>
-        <select className={inputClass} value={d.branch} onChange={(e) => setD({ ...d, branch: e.target.value })} aria-label={tr("Branch")}>
-          <option value="">{tr("All branches")}</option>{branches.map((x) => <option key={x.branch_code} value={x.branch_code}>{x.branch_name}</option>)}
-        </select>
-      </FilterSection>
-      <FilterSection title={tr("Material Required Planning")} hint={tr("Average daily sales × the days planned, plus a buffer")}>
+      <FilterRow icon={<CalendarDays size={15} />} label={tr("Sales Period")} value={`${dmy(d.period.from)} – ${dmy(d.period.to)}`}>
+        <QuickPeriod value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={92} />
+        <p className="mt-2 text-[11px] text-slate-500">{tr("The POS transactions of the branches in this period")}</p>
+      </FilterRow>
+      <FilterRow icon={<Store size={15} />} label={tr("Branch")} value={branches.find((x) => x.branch_code === d.branch)?.branch_name ?? null} onClear={() => setD({ ...d, branch: "" })}>
+        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} options={branchOpts} allLabel={tr("All branches")} placeholder={tr("Search branch")} />
+      </FilterRow>
+      <FilterRow icon={<Package size={15} />} label={tr("Material Required Planning")} value={d.horizon ? tr("{0} days + {1}%", h, b) : null}
+        onClear={() => setD({ ...d, horizon: "", buffer: "" })}>
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-xs font-medium text-slate-600">{tr("Plan for (days)")}<input inputMode="numeric" className={cx(inputClass, "mt-1")} value={d.horizon} placeholder={tr("e.g. 7")} onChange={(e) => setD({ ...d, horizon: e.target.value.replace(/[^0-9]/g, "") })} /></label>
-          <label className="text-xs font-medium text-slate-600">{tr("Buffer (%)")}<input inputMode="numeric" className={cx(inputClass, "mt-1")} value={d.buffer} placeholder={tr("e.g. 10")} onChange={(e) => setD({ ...d, buffer: e.target.value.replace(/[^0-9]/g, "") })} /></label>
+          <label className={fieldLabel}>{tr("Plan for")}
+            <span className="relative mt-1 block"><input inputMode="numeric" className={cx(inputClass, "h-10 pr-14 text-right tabular-nums")} value={d.horizon} placeholder="7"
+              onChange={(e) => setD({ ...d, horizon: e.target.value.replace(/[^0-9]/g, "") })} />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{tr("days")}</span></span></label>
+          <label className={fieldLabel}>{tr("Buffer")}
+            <span className="relative mt-1 block"><input inputMode="numeric" className={cx(inputClass, "h-10 pr-8 text-right tabular-nums")} value={d.buffer} placeholder="10"
+              onChange={(e) => setD({ ...d, buffer: e.target.value.replace(/[^0-9]/g, "") })} />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">%</span></span></label>
         </div>
-      </FilterSection>
-    </FilterSheet>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {[[7, 10], [14, 10], [30, 15]].map(([dd, bb]) => (
+            <button key={dd} type="button" onClick={() => setD({ ...d, horizon: String(dd), buffer: String(bb) })}
+              className={cx("rounded-full border px-2.5 py-1 text-[11px] font-medium", h === dd && b === bb ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
+              {tr("{0} days + {1}%", dd, bb)}</button>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] text-slate-500">{tr("Average daily sales × the days planned, plus a buffer")}{h ? ` · ${tr("e.g. 100 portions a day → {0} portions", Math.ceil(100 * h * (1 + b / 100)))}` : ""}</p>
+      </FilterRow>
+    </MonitorFilterSheet>
   );
 }
