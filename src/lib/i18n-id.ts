@@ -5155,4 +5155,15 @@ export const ID: Record<string, string> = {
   "The outlets of the PIC have no sales in this period or none in the 3 months before": "Outlet PIC belum ada penjualan pada periode ini atau pada 3 bulan sebelumnya",
   "{0} outlets vs their months before": "{0} outlet vs bulan sebelumnya",
   "{0} selling days": "{0} hari berjualan",
+  // Monitoring OPS: Net Sales tab columns and info (2026-11-04)
+  "Against 3 Months Before": "Dibanding 3 Bulan Sebelumnya",
+  "Average per Day": "Rata-rata per Hari",
+  "Average per Day (3 Months Before)": "Rata-rata per Hari (3 Bulan Sebelumnya)",
+  "No sales data yet": "Belum ada data penjualan",
+  "Sales Transactions (ESB POS, sales bills: Finished with a bill number), net sales after every discount.": "Sales Transactions (POS ESB, bill penjualan: Finished dengan nomor bill), net sales setelah semua diskon.",
+  "Selling days: the days of the month the outlet has net sales above 0. 0 selling days = no transaction of the outlet has come in from ESB this month (not open yet, closed, or recorded in ESB under another branch code).": "Hari berjualan: hari dalam bulan ini saat outlet memiliki net sales di atas 0. 0 hari berjualan = belum ada transaksi outlet yang masuk dari ESB bulan ini (belum buka, tutup, atau tercatat di ESB dengan kode cabang lain).",
+  "Average per Day: net sales this month ÷ its selling days.": "Rata-rata per Hari: net sales bulan ini ÷ jumlah hari berjualan.",
+  "Average per Day (3 Months Before): the same outlet's net sales ÷ its selling days in the 3 full months before.": "Rata-rata per Hari (3 Bulan Sebelumnya): net sales outlet yang sama ÷ jumlah hari berjualannya selama 3 bulan penuh sebelumnya.",
+  "Against 3 Months Before: Average per Day ÷ Average per Day (3 Months Before). 100% = selling as usual; above 100% = more than usual (green); 85–99% a little less (amber); below 85% much less (red).": "Dibanding 3 Bulan Sebelumnya: Rata-rata per Hari ÷ Rata-rata per Hari (3 Bulan Sebelumnya). 100% = penjualan seperti biasa; di atas 100% = lebih tinggi dari biasa (hijau); 85–99% sedikit di bawah (kuning); di bawah 85% jauh di bawah (merah).",
+  "PIC score, Net Sales part = Against 3 Months Before, at most 100, averaged over the outlets of the PIC. An outlet without sales in the 3 months before is left out.": "Skor PIC bagian Net Sales = Dibanding 3 Bulan Sebelumnya, maksimal 100, dirata-rata dari outlet PIC. Outlet tanpa penjualan 3 bulan sebelumnya tidak dihitung.",
 };

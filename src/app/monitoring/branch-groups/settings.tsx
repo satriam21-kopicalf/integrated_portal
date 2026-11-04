@@ -6,7 +6,8 @@
 
 import { Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, ErrorState, Input, Select, cx, fmtNumber, useToast } from "@/so/ui";
+import { Button, ErrorState, Input, PageNav, Select, cx, fmtNumber, usePaged, useToast } from "@/so/ui";
+import InfoTip from "@/components/ui/InfoTip";
 import { Card, EmptyState, Pill, SearchInput, kcTable } from "@/components/kc";
 import { SkeletonRows } from "@/components/kc/Skeleton";
 import { call } from "@/so/features/checkin/checkin";
@@ -29,6 +30,7 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
   }, []);
   useEffect(() => { void load(); }, [load]);
   const rows = useMemo(() => (res?.data ?? []).filter((o) => !q || `${o.name} ${o.code} ${o.groupCode ?? ""}`.toLowerCase().includes(q.toLowerCase())), [res, q]);
+  const paged = usePaged(rows, q, 25);  // edits are kept per outlet, so paging never loses them
   const valueOf = (o: OutletSetting) => draft[o.code] ?? { deadline: o.deadline ?? "", timezone: o.timezone };
   const dirty = (o: OutletSetting) => { const d = draft[o.code]; return !!d && (d.deadline !== (o.deadline ?? "") || d.timezone !== o.timezone); };
   const save = async (o: OutletSetting) => {
@@ -45,6 +47,7 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
   return (
     <Card flush title={tr("Check-In Deadlines")}
       subtitle={tr("The first check-in of the PIC's day is on time until the deadline of its outlet: its own, else its group's (default {0}). The deadline is in the outlet's own clock: an outlet in WITA is shown in WIB too.", res?.defaultDeadline ?? "11:00")}
+      footer={res && rows.length > 0 ? <><span>{tr("{0} outlets", rows.length)}</span><PageNav paged={paged} /></> : undefined}
       toolbar={<SearchInput value={q} onChange={setQ} placeholder={tr("Search outlet, code or group")} />}>
       {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={4} /></tbody></table> : rows.length === 0 ? (
         <EmptyState title={tr("No outlet matches")} />
@@ -57,7 +60,7 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
               {canEdit && <th className="w-28 px-4 py-2.5" />}
             </tr></thead>
             <tbody className={kcTable.tbody}>
-              {rows.map((o) => {
+              {paged.rows.map((o) => {
                 const v = valueOf(o);
                 const local = v.deadline || o.groupDeadline || res.defaultDeadline;
                 const shift = v.timezone === "Asia/Makassar" ? -60 : v.timezone === "Asia/Jayapura" ? -120 : 0;
@@ -200,6 +203,17 @@ type SalesOverview = { month: string; baselineFrom: string; baselineTo: string; 
     vsBaseline: number | null; score: number | null }[] };
 const rupiah = (n: number) => `Rp ${fmtNumber(Math.round(n))}`;
 const thisMonth = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 7);
+const SALES_INFO = {
+  title: "Net Sales of the Outlets",
+  source: ["Sales Transactions (ESB POS, sales bills: Finished with a bill number), net sales after every discount."],
+  definition: [
+    "Selling days: the days of the month the outlet has net sales above 0. 0 selling days = no transaction of the outlet has come in from ESB this month (not open yet, closed, or recorded in ESB under another branch code).",
+    "Average per Day: net sales this month ÷ its selling days.",
+    "Average per Day (3 Months Before): the same outlet's net sales ÷ its selling days in the 3 full months before.",
+    "Against 3 Months Before: Average per Day ÷ Average per Day (3 Months Before). 100% = selling as usual; above 100% = more than usual (green); 85–99% a little less (amber); below 85% much less (red).",
+  ],
+  formula: ["PIC score, Net Sales part = Against 3 Months Before, at most 100, averaged over the outlets of the PIC. An outlet without sales in the 3 months before is left out."],
+};
 const monthName = (iso: string) => new Date(`${iso.slice(0, 7)}-01T00:00:00`).toLocaleDateString(undefined, { month: "short", year: "numeric" });
 
 /** No target is set by hand: every outlet is compared with itself, its net sales per selling day (Sales Transactions)
@@ -215,9 +229,11 @@ export function SalesTargets() {
   }, [month]);
   useEffect(() => { void load(); }, [load]);
   const rows = useMemo(() => (res?.data ?? []).filter((o) => !q || `${o.name} ${o.code} ${o.groupCode ?? ""}`.toLowerCase().includes(q.toLowerCase())), [res, q]);
+  const paged = usePaged(rows, `${q}|${month}`, 25);
   const tone = (v: number | null | undefined) => (v == null ? "text-neutral-400" : v >= 100 ? "text-emerald-600" : v >= 85 ? "text-amber-600" : "text-red-600");
   return (
-    <Card flush title={tr("Net Sales of the Outlets")}
+    <Card flush title={<span className="inline-flex items-center gap-1.5">{tr("Net Sales of the Outlets")} <InfoTip info={SALES_INFO} /></span>}
+      footer={res && rows.length > 0 ? <><span>{tr("{0} outlets", rows.length)}</span><PageNav paged={paged} /></> : undefined}
       subtitle={res?.baselineFrom ? tr("From Sales Transactions. Each outlet is compared with itself: its net sales per selling day this month against its own per day in {0} – {1}. The PIC score takes this %, at most 100; an outlet without sales before (new) is left out.",
         monthName(res.baselineFrom), monthName(res.baselineTo)) : undefined}
       actions={<Input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="h-9 w-40" aria-label={tr("Month")} />}
@@ -229,17 +245,17 @@ export function SalesTargets() {
           <table className="m-cards w-full min-w-[820px] text-sm">
             <thead className={kcTable.thead}><tr>
               <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5 text-right">{tr("Net Sales This Month")}</th>
-              <th className="px-4 py-2.5 text-right">{tr("Per Day")}</th><th className="px-4 py-2.5 text-right">{tr("Per Day Before")}</th>
-              <th className="px-4 py-2.5 text-right">{tr("Against Before")}</th>
+              <th className="px-4 py-2.5 text-right">{tr("Average per Day")}</th><th className="px-4 py-2.5 text-right">{tr("Average per Day (3 Months Before)")}</th>
+              <th className="px-4 py-2.5 text-right">{tr("Against 3 Months Before")}</th>
             </tr></thead>
             <tbody className={kcTable.tbody}>
-              {rows.map((o) => (
+              {paged.rows.map((o) => (
                 <tr key={o.code}>
                   <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
                   <td className="px-4 py-2.5 text-right tabular-nums text-neutral-800" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-neutral-400">{tr("{0} selling days", o.days ?? 0)}</span></td>
-                  <td className="px-4 py-2.5 text-right tabular-nums" data-label={tr("Per Day")}>{o.perDay == null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Per Day Before")}>{o.baselinePerDay == null ? <Pill>{tr("New outlet")}</Pill> : rupiah(o.baselinePerDay)}</td>
-                  <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against Before")}>{o.vsBaseline == null ? "—" : `${o.vsBaseline}%`}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums" data-label={tr("Average per Day")}>{o.perDay == null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Average per Day (3 Months Before)")}>{o.baselinePerDay == null ? <Pill>{tr("No sales data yet")}</Pill> : rupiah(o.baselinePerDay)}</td>
+                  <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against 3 Months Before")}>{o.vsBaseline == null ? "—" : `${o.vsBaseline}%`}</td>
                 </tr>
               ))}
             </tbody>
