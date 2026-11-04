@@ -5,7 +5,8 @@
 // premix in grams through the Production Calculator, items typed by hand); 2. Assign Menus — the ESB POS menus sold by
 // the branches and the card each one uses; 3. Additional Items — supplies no menu records (cable ties, plastic …) per
 // bill, portion or outlet-day; 4. Calculator — from the POS transactions of the branches: Material Required Planning,
-// Usage Actual vs System (ESB stock opname + purchases) and COGS Bahan Baku (Pricelist Items).
+// Usage Actual vs System (SO awal + purchases − SO akhir: the portal stock opname from 28 Oct 2026, else the ESB
+// document) and COGS Material (Pricelist Items), system and actual.
 
 import { BookOpen, CalendarDays, Calculator, Check, ChevronDown, ChevronRight, CupSoda, FlaskConical, Layers, ListChecks, Package, PenLine, Plus, Receipt, Save, Search, Store, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -31,11 +32,16 @@ type Report = {
   period: { from: string; to: string; days: number; horizon: number; buffer: number };
   menus: { id: string; name: string; recipe: string; recipeName: string; qty: number; sales: number; hpp: number | null; cogs: number | null; ratio: number | null }[];
   unmapped: { id: string; name: string; category: string; qty: number; sales: number }[];
-  usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
-  mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; value: number | null; extra?: boolean }[];
+  usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; soStart?: number | null; purchased?: number | null; soEnd?: number | null;
+    actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
+  mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean }[];
+  stock?: { branches: { code: string; start: StockRef | null; end: StockRef | null }[]; covered: string[]; onHand: { branches: number; from: string | null; to: string | null } };
   extras?: (Extra & { count: number; used: number })[];
-  total: { sales: number; cogs: number; menuCogs?: number; extraCogs?: number; ratio: number | null; menusMapped: number; menusUnmapped: number; unpriced: number; systemValue: number; actualValue: number };
+  total: { sales: number; cogs: number; menuCogs?: number; extraCogs?: number; ratio: number | null; menusMapped: number; menusUnmapped: number; unpriced: number; systemValue: number; actualValue: number;
+    actualCogs?: number | null; actualSales?: number | null; actualRatio?: number | null; branchesCovered?: number };
 };
+/** the stock opname an SO awal / akhir comes from: counted in the portal (from 28 Oct 2026) or the ESB document */
+type StockRef = { source: "portal" | "esb"; date: string; refs: string[] };
 type Branch = { branch_code: string; branch_name: string };
 type Step = "recipes" | "menus" | "extras" | "report";
 
@@ -759,15 +765,17 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
     ...(branch ? [{ key: "b", label: branchName, onRemove: () => setBranch("") }] : []),
     ...(planned ? [{ key: "h", label: tr("Plan {0} days + {1}% buffer", h, b), onRemove: () => { setHorizon(""); setBuffer(""); } }] : []),
   ];
-  const outputs = [{ key: "cogs", label: tr("COGS Bahan Baku") }, { key: "mrp", label: tr("Material Required Planning") }, { key: "usage", label: tr("Usage Actual vs System") }] as const;
+  const outputs = [{ key: "cogs", label: tr("COGS Material") }, { key: "mrp", label: tr("Material Required Planning") }, { key: "usage", label: tr("Usage Actual vs System") }] as const;
   return (
     <>
       {t && (
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Sales of Mapped Menus")} value={rp(t.sales)}><p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}</p></Stat>
-          <Stat label={tr("COGS Bahan Baku")} emphasis value={rp(t.cogs)}><p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p></Stat>
-          <Stat label={tr("Usage System")} value={rp(t.systemValue)} />
-          <Stat label={tr("Usage Actual (ESB)")} value={rp(t.actualValue)}>{t.actualValue ? <p>{tr("difference {0}", rp(t.actualValue - t.systemValue))}</p> : <p>{tr("needs SO awal & akhir of the branch")}</p>}</Stat>
+          <Stat label={tr("COGS Material (System)")} emphasis value={rp(t.cogs)}><p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p></Stat>
+          <Stat label={tr("COGS Material (Actual)")} value={t.actualCogs == null ? "—" : rp(t.actualCogs)}>
+            {t.actualCogs == null ? <p>{tr("needs SO awal & akhir of the branch")}</p> : <p>{tr("Ratio {0} · {1} branches with SO awal & akhir", pct(t.actualRatio ?? null), t.branchesCovered ?? 0)}</p>}</Stat>
+          <Stat label={tr("Usage Actual − System")} value={t.actualCogs == null ? "—" : rp(t.actualValue - t.systemValue)}>
+            <p>{t.actualCogs == null ? tr("system {0}", rp(t.systemValue)) : tr("actual {0} · system {1}", rp(t.actualValue), rp(t.systemValue))}</p></Stat>
         </StatStrip>
       )}
       {sheet && <CalcFilterSheet value={{ period: period ?? { from: wibDay(-6), to: wibDay(0) }, branch, horizon, buffer }} branches={branches} onClose={() => setSheet(false)}
@@ -777,15 +785,15 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
           <FilterToolbar filters={chips} onOpen={() => setSheet(true)}
             onClear={() => { setPeriod(null); setData(null); setBranch(""); setHorizon(""); setBuffer(""); }}
             extra={<div className="ml-auto"><ExcelExportMenu footer={period ? <>{branch ? branchName : tr("All Branches")} · {dmy(period.from)} – {dmy(period.to)}</> : tr("Choose the sales period in Filters first")} choices={[
-              { key: "cogs", label: tr("COGS Bahan Baku"), hint: tr("Per menu: sold, sales, HPP per portion, COGS and ratio"), icon: <Calculator size={16} />, tone: "bg-brand-50 text-brand-600", count: data ? data.menus.length : null,
-                run: guard((d) => downloadXlsx({ fileName: file("COGS Bahan Baku"), sheet: "COGS", title: file("COGS Bahan Baku"), header: ["Menu", "Kartu Resep", "Terjual", "Sales", "HPP / Porsi", "COGS", "Rasio"],
+              { key: "cogs", label: tr("COGS Material"), hint: tr("Per menu: sold, sales, HPP per portion, COGS and ratio"), icon: <Calculator size={16} />, tone: "bg-brand-50 text-brand-600", count: data ? data.menus.length : null,
+                run: guard((d) => downloadXlsx({ fileName: file("COGS Material"), sheet: "COGS", title: file("COGS Material"), header: ["Menu", "Kartu Resep", "Terjual", "Sales", "HPP / Porsi", "COGS", "Rasio"],
                   rows: d.menus.map((m) => [m.name, m.recipeName, m.qty, m.sales, m.hpp, m.cogs, m.ratio]) })) },
               { key: "mrp", label: tr("Material Required Planning"), hint: tr("Materials to prepare for the planned days"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: data ? data.mrp.length : null,
-                run: guard((d) => downloadXlsx({ fileName: file("Material Required Planning"), sheet: "MRP", title: file("Material Required Planning"), header: ["Kode", "Bahan", "Qty", "Satuan", "Nilai"],
-                  rows: d.mrp.map((r) => [r.code, r.name, r.qty, r.unit, r.value]) })) },
-              { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: system, actual (ESB), difference and value"), icon: <ListChecks size={16} />, tone: "bg-emerald-50 text-emerald-600", count: data ? data.usage.length : null,
-                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "System", "Actual", "Selisih", "Harga", "Nilai System", "Nilai Actual"],
-                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.system, r.actual, r.variance, r.price, r.systemValue, r.actualValue]) })) },
+                run: guard((d) => downloadXlsx({ fileName: file("Material Required Planning"), sheet: "MRP", title: file("Material Required Planning"), header: ["Kode", "Bahan", "Satuan", "Kebutuhan", "Stok (SO Terakhir)", "Perlu Dipesan", "Nilai Kebutuhan", "Nilai Dipesan"],
+                  rows: d.mrp.map((r) => [r.code, r.name, r.unit, r.qty, r.onHand ?? null, r.toOrder ?? r.qty, r.value, r.orderValue ?? null]) })) },
+              { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: SO awal, purchases, SO akhir, actual, system, difference and value"), icon: <ListChecks size={16} />, tone: "bg-emerald-50 text-emerald-600", count: data ? data.usage.length : null,
+                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "Pembelian", "SO Akhir", "Actual", "System", "Selisih", "Harga", "Nilai System", "Nilai Actual"],
+                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, r.purchased ?? null, r.soEnd ?? null, r.actual, r.system, r.variance, r.price, r.systemValue, r.actualValue]) })) },
             ]} /></div>} />
           <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-neutral-200">
             {outputs.map((o) => (
@@ -814,40 +822,51 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
               </div>
             )}
             {view === "mrp" && (
-              <table className="m-cards w-full min-w-[640px] text-sm">
-                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Average daily sales of {0} days × {1} days + {2}% buffer, exploded through the cards (rounded up)", data.period.days, data.period.horizon, data.period.buffer)}</caption>
-                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("Required")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th></tr></thead>
+              <table className="m-cards w-full min-w-[760px] text-sm">
+                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Average daily sales of {0} days × {1} days + {2}% buffer, exploded through the cards (rounded up)", data.period.days, data.period.horizon, data.period.buffer)}
+                  {" · "}{data.stock?.onHand.branches ? tr("Stock = the latest SO of {0} branches ({1} – {2}); To Order = Required − Stock", data.stock.onHand.branches, dmy(data.stock.onHand.from ?? ""), dmy(data.stock.onHand.to ?? "")) : tr("No recent SO of the branches: To Order = Required")}</caption>
+                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("Required")}</th>
+                  <th className="px-4 py-2.5 text-right">{tr("Stock (Latest SO)")}</th><th className="px-4 py-2.5 text-right">{tr("To Order")}</th><th className="px-4 py-2.5 text-right">{tr("Order Value")}</th></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {data.mrp.map((r) => (
                     <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
                       <td className="px-4 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
-                      <td className="px-4 py-2 text-right font-semibold tabular-nums">{num(r.qty, 0)} {r.unit}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600">{rp(r.value)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums" data-label={tr("Required")}>{num(r.qty, 0)} {r.unit}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Stock (Latest SO)")}>{r.onHand == null ? "—" : num(r.onHand)}</td>
+                      <td className="px-4 py-2 text-right font-semibold tabular-nums" data-label={tr("To Order")}>{num(r.toOrder ?? r.qty, 0)} {r.unit}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Order Value")}>{rp(r.orderValue ?? r.value)}</td>
                     </tr>
                   ))}
-                  {!data.mrp.length && <tr><td colSpan={3}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
+                  {!data.mrp.length && <tr><td colSpan={5}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
                 </tbody>
               </table>
             )}
             {view === "usage" && (
-              <table className="m-cards w-full min-w-[820px] text-sm">
-                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("System = menus sold × recipe cards; Actual = SO awal + purchases − SO akhir of the branches with both ESB stock opname documents")}</caption>
-                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("System")}</th><th className="px-4 py-2.5 text-right">{tr("Actual")}</th>
+              <>
+              <StockCoverage stock={data.stock} names={branches} />
+              <table className="m-cards w-full min-w-[1080px] text-sm">
+                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Actual = SO awal + purchases − SO akhir; System = menus sold × recipe cards. Both over the branches with SO awal and SO akhir (the portal stock opname from 28 Oct 2026, else the ESB document).")}</caption>
+                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("SO Awal")}</th><th className="px-4 py-2.5 text-right">{tr("Purchases")}</th>
+                  <th className="px-4 py-2.5 text-right">{tr("SO Akhir")}</th><th className="px-4 py-2.5 text-right">{tr("Actual")}</th><th className="px-4 py-2.5 text-right">{tr("System")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Difference")}</th><th className="px-4 py-2.5 text-right">{tr("Value System")}</th><th className="px-4 py-2.5 text-right">{tr("Value Actual")}</th></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {data.usage.map((r) => (
                     <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
                       <td className="px-4 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{num(r.system)} {r.unit}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{num(r.actual)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Awal")}>{r.soStart == null ? "—" : num(r.soStart)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Purchases")}>{r.purchased == null ? "—" : num(r.purchased)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Akhir")}>{r.soEnd == null ? "—" : num(r.soEnd)}</td>
+                      <td className="px-4 py-2 text-right font-semibold tabular-nums" data-label={tr("Actual")}>{r.actual == null ? "—" : `${num(r.actual)} ${r.unit}`}</td>
+                      <td className="px-4 py-2 text-right tabular-nums" data-label={tr("System")}>{num(r.system)} {r.unit}</td>
                       <td className={cx("px-4 py-2 text-right tabular-nums", r.variance !== null && r.variance > 0 ? "text-red-700" : r.variance !== null && r.variance < 0 ? "text-emerald-700" : "")}>{r.variance === null ? "—" : `${r.variance > 0 ? "+" : ""}${num(r.variance)}`}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-neutral-600">{rp(r.systemValue)}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-neutral-600">{rp(r.actualValue)}</td>
                     </tr>
                   ))}
-                  {!data.usage.length && <tr><td colSpan={6}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
+                  {!data.usage.length && <tr><td colSpan={9}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
                 </tbody>
               </table>
+              </>
             )}
             {view === "cogs" && (
               <>
@@ -888,6 +907,31 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
         )}
       </Panel>
     </>
+  );
+}
+
+/** Which branches have SO awal and SO akhir in the period and where each comes from (portal count or ESB document). */
+function StockCoverage({ stock, names }: { stock?: Report["stock"]; names: Branch[] }) {
+  if (!stock) return null;
+  const name = (c: string) => names.find((x) => x.branch_code === c)?.branch_name ?? c;
+  const label = (r: StockRef | null) => (r ? `${r.source === "portal" ? tr("Portal SO") : tr("ESB SO")} ${dmy(r.date)}` : tr("none"));
+  const portal = stock.branches.filter((b) => stock.covered.includes(b.code) && (b.start?.source === "portal" || b.end?.source === "portal")).length;
+  const missing = stock.branches.filter((b) => !stock.covered.includes(b.code));
+  return (
+    <details className="mx-4 mt-3 rounded-xl border border-neutral-200 bg-neutral-50/60 px-3 py-2 text-xs text-neutral-700">
+      <summary className="cursor-pointer select-none font-medium">
+        {stock.covered.length ? tr("{0} branches with SO awal & akhir ({1} from the portal SO)", stock.covered.length, portal) : tr("No branch has both SO awal and SO akhir in this period")}
+        {missing.length > 0 && <span className="text-amber-700"> · {tr("{0} with one SO only (left out)", missing.length)}</span>}
+      </summary>
+      <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+        {stock.branches.map((b) => (
+          <li key={b.code} className={cx("flex flex-wrap justify-between gap-x-3", !stock.covered.includes(b.code) && "text-amber-700")}>
+            <span className="font-medium">{name(b.code)}</span>
+            <span className="tabular-nums text-neutral-500" title={[...(b.start?.refs ?? []), ...(b.end?.refs ?? [])].join(", ")}>{label(b.start)} → {label(b.end)}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
