@@ -222,6 +222,18 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
               <Card n={1} ok={!!b} active={current === 0} title={tr("Outlet Visited")} hint={tr("The outlet where you are now")}>
                 <BranchPicker branches={data.branches} value={branch} fix={fix} stateOf={stateOf}
                   onChange={(code) => { setBranch(code); setPhoto(null); setFaces(null); }} />
+                {b?.checkinDeadline && !doneToday && Object.keys(data.today ?? {}).length === 0 && (() => {
+                  // the first check in of the day counts for punctuality, by the deadline of its outlet (Monitoring OPS → Branch Groups)
+                  const d = b.checkinDeadline;
+                  const late = new Date(Date.now() + 7 * 3600e3).toISOString().slice(11, 16) > d.wib;
+                  return (
+                    <p className={cx("mt-2 flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm", late ? "border-amber-200 bg-amber-50 text-amber-900" : "border-neutral-200 bg-neutral-50 text-neutral-700")}>
+                      <Clock size={16} className={cx("mt-0.5 flex-shrink-0", late ? "text-amber-600" : "text-neutral-400")} />
+                      <span>{late ? tr("Past the on-time limit of this outlet ({0}): today's first check in is counted late.", `${d.deadline} ${d.zone}${d.zone !== "WIB" ? ` = ${d.wib} WIB` : ""}`)
+                        : tr("Today's first check in is on time until {0}.", `${d.deadline} ${d.zone}${d.zone !== "WIB" ? ` (${d.wib} WIB)` : ""}`)}</span>
+                    </p>
+                  );
+                })()}
                 {doneToday && (
                   <p className="mt-2 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
                     <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />

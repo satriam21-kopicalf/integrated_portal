@@ -5139,4 +5139,7 @@ export const ID: Record<string, string> = {
   "{0} of {1}: {2} outlets × check-ins per day of the branch group × {3} working days (6 on, 1 free day a week)": "{0} dari {1}: {2} outlet × check in per hari dari branch group × {3} hari kerja (6 masuk, 1 libur per minggu)",
   "{0} outlets with a target": "{0} outlet dengan target",
   "{0} recognized": "{0} dikenali",
+  // PIC Check In: the on-time deadline of the outlet (2026-11-04)
+  "Past the on-time limit of this outlet ({0}): today's first check in is counted late.": "Sudah lewat batas tepat waktu outlet ini ({0}): check in pertama hari ini dihitung terlambat.",
+  "Today's first check in is on time until {0}.": "Check in pertama hari ini tepat waktu sampai {0}.",
 };

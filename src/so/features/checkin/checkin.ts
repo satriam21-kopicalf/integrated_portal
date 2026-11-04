@@ -4,7 +4,9 @@
 import { useEffect, useRef } from "react";
 import { serverMsg, tr } from "@/lib/i18n";
 
-export type Branch = { code: string; name: string; latitude: number | null; longitude: number | null; radius_m: number | null };
+export type Branch = { code: string; name: string; latitude: number | null; longitude: number | null; radius_m: number | null;
+  /** PIC check in: on time until then, on the outlet's clock (Monitoring OPS → Branch Groups, 2026-11-04) */
+  checkinDeadline?: { deadline: string; zone: string; wib: string } | null };
 export type CheckIn = {
   id: string; userId: string; username: string; name: string; role: string; branchCode: string; branchName: string;
   visitedAt: string; deviceTime: string | null; latitude: number; longitude: number; accuracyM: number | null;
