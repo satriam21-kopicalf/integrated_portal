@@ -215,10 +215,10 @@ export function SalesTargets() {
   }, [month]);
   useEffect(() => { void load(); }, [load]);
   const rows = useMemo(() => (res?.data ?? []).filter((o) => !q || `${o.name} ${o.code} ${o.groupCode ?? ""}`.toLowerCase().includes(q.toLowerCase())), [res, q]);
-  const tone = (v: number | null) => (v === null ? "text-neutral-400" : v >= 100 ? "text-emerald-600" : v >= 85 ? "text-amber-600" : "text-red-600");
+  const tone = (v: number | null | undefined) => (v == null ? "text-neutral-400" : v >= 100 ? "text-emerald-600" : v >= 85 ? "text-amber-600" : "text-red-600");
   return (
     <Card flush title={tr("Net Sales of the Outlets")}
-      subtitle={res ? tr("From Sales Transactions. Each outlet is compared with itself: its net sales per selling day this month against its own per day in {0} – {1}. The PIC score takes this %, at most 100; an outlet without sales before (new) is left out.",
+      subtitle={res?.baselineFrom ? tr("From Sales Transactions. Each outlet is compared with itself: its net sales per selling day this month against its own per day in {0} – {1}. The PIC score takes this %, at most 100; an outlet without sales before (new) is left out.",
         monthName(res.baselineFrom), monthName(res.baselineTo)) : undefined}
       actions={<Input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="h-9 w-40" aria-label={tr("Month")} />}
       toolbar={<SearchInput value={q} onChange={setQ} placeholder={tr("Search outlet, code or group")} />}>
@@ -236,10 +236,10 @@ export function SalesTargets() {
               {rows.map((o) => (
                 <tr key={o.code}>
                   <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-800" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-neutral-400">{tr("{0} selling days", o.days)}</span></td>
-                  <td className="px-4 py-2.5 text-right tabular-nums" data-label={tr("Per Day")}>{o.perDay === null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Per Day Before")}>{o.baselinePerDay === null ? <Pill>{tr("New outlet")}</Pill> : rupiah(o.baselinePerDay)}</td>
-                  <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against Before")}>{o.vsBaseline === null ? "—" : `${o.vsBaseline}%`}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-800" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-neutral-400">{tr("{0} selling days", o.days ?? 0)}</span></td>
+                  <td className="px-4 py-2.5 text-right tabular-nums" data-label={tr("Per Day")}>{o.perDay == null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Per Day Before")}>{o.baselinePerDay == null ? <Pill>{tr("New outlet")}</Pill> : rupiah(o.baselinePerDay)}</td>
+                  <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against Before")}>{o.vsBaseline == null ? "—" : `${o.vsBaseline}%`}</td>
                 </tr>
               ))}
             </tbody>
