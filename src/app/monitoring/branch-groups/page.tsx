@@ -4,7 +4,7 @@
 // Check In, Monitoring Product and Monitoring Outlet are judged by. One group per branch; a branch picked for a group
 // moves out of its former group. Used by Monitoring → Overview and the group filter of the monitoring pages.
 
-import { Boxes, Check, MapPinCheck, Plus, Save, Store, Trash2 } from "lucide-react";
+import { AlarmClock, Boxes, Check, MapPinCheck, Plus, Save, Store, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, cx, inputClass, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -13,10 +13,13 @@ import { FormCard } from "@/so/ui/Simple";
 import { call } from "@/so/features/checkin/checkin";
 import { useAuth, hasPage } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
+import { Tabs } from "@/components/kc";
+import { CheckInDeadlines, FormItems, SalesTargets } from "./settings";
 
 type Branch = { code: string; name: string };
 type Group = { id: string; code: string; name: string; description: string | null; sort: number; branches: Branch[];
-  /** PIC check-ins an outlet of the group takes per day (null = once a day, migration 066) */ checkin_max_per_day: number | null };
+  /** PIC check-ins an outlet of the group takes per day (null = once a day, migration 066) */ checkin_max_per_day: number | null;
+  /** HH:MM, the first check-in of the PIC's day by then is on time (null = 11:00, migration 069) */ checkin_deadline: string | null };
 type Data = { groups: Group[]; unassigned: Branch[] };
 
 export default function BranchGroupsPage() {
@@ -25,6 +28,7 @@ export default function BranchGroupsPage() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<Group | "new" | null>(null);
+  const [tab, setTab] = useState("groups");
 
   const load = useCallback(async () => {
     setError(null);
@@ -39,8 +43,12 @@ export default function BranchGroupsPage() {
 
   return (
     <Page title={tr("Branch groups")} subtitle={tr("Classes of outlets the forms are assessed by (CCI, CTG, CTGP …); one group per branch")}
-      actions={canEdit ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Group")}</Button> : undefined}>
-      {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : !data ? (
+      actions={canEdit && tab === "groups" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Group")}</Button> : undefined}>
+      <Tabs label={tr("Branch groups")} value={tab} onChange={setTab} tabs={[
+        { key: "groups", label: tr("Groups") }, { key: "deadlines", label: tr("Check-In Deadlines") },
+        { key: "items", label: tr("Form Items") }, { key: "targets", label: tr("Net Sales Targets") }]} />
+      {tab === "deadlines" ? <CheckInDeadlines canEdit={canEdit} /> : tab === "items" ? <FormItems canEdit={canEdit} />
+        : tab === "targets" ? <SalesTargets canEdit={canEdit} /> : error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : !data ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-40 rounded-xl" />)}</div>
       ) : (
         <>
@@ -62,6 +70,7 @@ export default function BranchGroupsPage() {
                 </span>
                 {g.description && g.name !== g.code && <span className="mt-3 text-xs text-neutral-500">{g.description}</span>}
                 <span className="mt-3 inline-flex items-center gap-1.5 text-xs text-neutral-600"><MapPinCheck size={13} className="text-neutral-400" />{tr("PIC check-in: {0}× per outlet per day", g.checkin_max_per_day ?? 1)}</span>
+                <span className="mt-1 inline-flex items-center gap-1.5 text-xs text-neutral-600"><AlarmClock size={13} className="text-neutral-400" />{tr("On time until {0}", g.checkin_deadline ?? "11:00")}</span>
               </button>
             ))}
           </div>
@@ -85,6 +94,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
   const [name, setName] = useState(group?.name ?? "");
   const [description, setDescription] = useState(group?.description ?? "");
   const [maxCheckin, setMaxCheckin] = useState(group?.checkin_max_per_day ? String(group.checkin_max_per_day) : "");
+  const [deadline, setDeadline] = useState(group?.checkin_deadline ?? "");
   const [picked, setPicked] = useState<Set<string>>(new Set(group?.branches.map((b) => b.code) ?? []));
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
@@ -108,7 +118,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
     setError("");
     try {
       const body = { code: code.trim().toUpperCase(), name: name.trim(), description: description.trim() || null, sort: group?.sort ?? 50,
-        checkinMaxPerDay: maxCheckin ? Number(maxCheckin) : null };
+        checkinMaxPerDay: maxCheckin ? Number(maxCheckin) : null, checkinDeadline: deadline || null };
       const r = group ? await call<{ id: string }>(`/api/monitoring/branch-groups/${group.id}`, { method: "PATCH", json: body })
         : await call<{ id: string }>("/api/monitoring/branch-groups", { method: "POST", json: body });
       await call(`/api/monitoring/branch-groups/${r.id}/branches`, { method: "PUT", json: { branchCodes: [...picked] } });
@@ -154,6 +164,15 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
               {[1, 2, 3].map((n) => (
                 <button key={n} type="button" onClick={() => setMaxCheckin(String(n))}
                   className={cx("rounded-full border px-3 py-1 text-xs font-medium", Number(maxCheckin || 1) === n ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{tr("{0}× a day", n)}</button>
+              ))}
+            </div>
+          </Field>
+          <Field label={tr("Check-In Deadline")} hint={tr("The first check-in of the PIC's day by this time (on the outlet's clock) is on time. An outlet can have its own in the Check-In Deadlines tab. Empty = 11:00.")}>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input type="time" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="w-32 tabular-nums" aria-label={tr("Check-In Deadline")} />
+              {["10:00", "10:15", "10:30"].map((t) => (
+                <button key={t} type="button" onClick={() => setDeadline(t)}
+                  className={cx("rounded-full border px-3 py-1 text-xs font-medium tabular-nums", deadline === t ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{t}</button>
               ))}
             </div>
           </Field>

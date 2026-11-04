@@ -20,18 +20,21 @@ import { tr } from "@/lib/i18n";
 
 type Pic = { id: string; name: string; branches: number; checkins: number; checkinDays: number; outside: number; productVisits: number; productScore: number | null;
   outletVisits: number; outletScore: number | null; under: number; swatAudits: number; conformity: number | null; overrated: number; openActions: number;
-  /** the PIC score (2026-11-02): check-ins against the target, punctuality (before 11:00), visits, scores, SWAT */
-  outlets: number; checkinTarget: number; checkinRate: number | null; punctualDays: number; punctuality: number | null; visitTarget: number; visitRate: number | null; score: number | null };
+  /** the PIC score (2026-11-04): check-ins against the target (6-1 working days), punctuality by the deadline of the outlet
+   *  (punctualityLegacy: the workbook's 11:00 WIB), Product / Outlet (done and score), SWAT, net sales against the target */
+  outlets: number; checkinTarget: number; checkinRate: number | null; punctualDays: number; punctuality: number | null; punctualityLegacy: number | null;
+  visitTarget: number; visitRate: number | null; productDone: number | null; outletDone: number | null; productPart: number | null; outletPart: number | null;
+  salesScore: number | null; salesOutlets: number; score: number | null };
 type Outlet = { code: string; name: string; groupCode: string | null; checkins: number; pics: number; productVisits: number; productScore: number | null; outletVisits: number;
   outletScore: number | null; under: number; swatAudits: number; swatScore: number | null; openActions: number; visited: boolean };
 type Result = { period: { from: string; to: string }; summary: { outlets: number; visited: number; checkins: number; productScore: number | null; outletScore: number | null; pics: number; under: number };
   swat: { audits: number; conformity: number | null; overrated: number; openActions: number }; picAssessment: Pic[]; branches: Outlet[];
-  weights: Record<"checkin" | "punctuality" | "visits" | "product" | "outlet" | "swat", number>; workingDays: number;
+  weights: Record<"checkin" | "punctuality" | "product" | "outlet" | "swat" | "sales", number>; workingDays: number;
   groupOptions: { id: string; code: string; name: string }[] };
 type F = { period: Period; group: string };
 const NO_F = (): F => ({ period: { from: wibDay(-29), to: wibDay(0) }, group: "" });
 
-const pct = (n: number | null) => (n === null ? "—" : `${n}%`);
+const pct = (n: number | null) => (n == null ? "—" : `${n}%`);
 
 export default function MonitoringOverviewPage() {
   const [f, setF] = useState<F>(NO_F);
@@ -86,15 +89,16 @@ export default function MonitoringOverviewPage() {
           ))}
         </div>}
         toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={view === "pics" ? tr("Search PIC") : tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
-        footer={res ? <><span className="inline-flex items-center gap-1"><ShieldCheck size={12} /> {tr("Net sales of the outlets will join the assessment later")}</span><PageNav paged={view === "pics" ? pagedPics : pagedOutlets} /></> : undefined}>
+        footer={res ? <><span className="inline-flex items-center gap-1"><ShieldCheck size={12} /> {tr("Check-in deadlines, form items and net sales targets: Monitoring OPS → Branch Groups")}</span><PageNav paged={view === "pics" ? pagedPics : pagedOutlets} /></> : undefined}>
         {error ? <ErrorState message={error} /> : !res ? <SkeletonRows cols={8} /> : view === "pics" ? (
           pics.length === 0 ? <Empty icon={<UsersRound size={28} />} title={tr("No PIC activity in this period")} /> : (
             <div className="overflow-x-auto">
-              <table className="m-cards w-full min-w-[1180px] text-sm">
+              <table className="m-cards w-full min-w-[1260px] text-sm">
                 <thead className={theadClass}><tr>
                   <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("PIC Score")}</th>
                   <th className="px-3 py-2.5 text-right">{tr("Check-Ins")}</th><th className="px-3 py-2.5 text-right">{tr("On Time")}</th>
                   <th className="px-3 py-2.5 text-right">Product</th><th className="px-3 py-2.5 text-right">Outlet</th><th className="px-3 py-2.5 text-right">UNDER</th>
+                  <th className="px-3 py-2.5 text-right">{tr("Net Sales")}</th>
                   <th className="px-3 py-2.5 text-right">{tr("SWAT Audits")}</th><th className="px-3 py-2.5 text-right">{tr("Overrated")}</th>
                   <th className="px-3 py-2.5 text-right">{tr("Open Plans")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Agreement with SWAT")}</th>
                 </tr></thead>
@@ -108,10 +112,14 @@ export default function MonitoringOverviewPage() {
                         <span className="block text-[10px] text-neutral-400">{p.checkins}/{p.checkinTarget}{p.outside ? ` · ${tr("{0} outside radius", p.outside)}` : ""}</span></td>
                       <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("On Time")}>
                         <span className={cx("font-semibold", scoreTone(p.punctuality))}>{pct(p.punctuality)}</span>
-                        <span className="block text-[10px] text-neutral-400">{tr("{0} of {1} days", p.punctualDays, p.checkinDays)}</span></td>
+                        <span className="block text-[10px] text-neutral-400">{tr("{0} of {1} days", p.punctualDays, p.checkinDays)}</span>
+                        {p.punctualityLegacy != null && p.punctualityLegacy !== p.punctuality && <span className="block text-[10px] text-neutral-400">{tr("11:00 rule: {0}", pct(p.punctualityLegacy))}</span>}</td>
                       <td className="px-3 py-2.5 text-right" data-label="Product"><Score v={p.productScore} n={p.productVisits} /></td>
                       <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={p.outletScore} n={p.outletVisits} /></td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{p.under}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Net Sales")}>
+                        {p.salesScore == null ? <span className="text-xs text-neutral-400">{tr("No target")}</span> : <span className={cx("font-semibold", scoreTone(p.salesScore))}>{pct(p.salesScore)}</span>}
+                        {p.salesScore != null && <span className="block text-[10px] text-neutral-400">{tr("{0} outlets with a target", p.salesOutlets)}</span>}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT Audits")}>{p.swatAudits || <span className="text-neutral-300">0</span>}</td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{p.openActions}</td>
@@ -161,12 +169,17 @@ export default function MonitoringOverviewPage() {
 /** How the PIC score is made: each part, its weight and its value (parts without data are left out). */
 function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Result["weights"]; workingDays: number; onClose: () => void }) {
   const parts: { key: keyof Result["weights"]; label: string; value: number | null; how: string }[] = [
-    { key: "checkin", label: tr("PIC Check-In"), value: p.checkinRate, how: tr("{0} of {1}: {2} outlets × check-ins per day of the branch group × {3} working days", p.checkins, p.checkinTarget, p.outlets, workingDays) },
-    { key: "punctuality", label: tr("On Time"), value: p.punctuality, how: tr("First check-in of the day before 11:00 WIB: {0} of {1} days", p.punctualDays, p.checkinDays) },
-    { key: "visits", label: tr("Product & Outlet Visits"), value: p.visitRate, how: tr("{0} of {1} visits (both forms every working day)", p.productVisits + p.outletVisits, p.visitTarget) },
-    { key: "product", label: tr("Monitoring Product Score"), value: p.productScore, how: tr("Average of the visits of the PIC ({0})", p.productVisits) },
-    { key: "outlet", label: tr("Monitoring Outlet Score"), value: p.outletScore, how: tr("Average of the visits of the PIC ({0})", p.outletVisits) },
+    { key: "checkin", label: tr("PIC Check-In"), value: p.checkinRate, how: tr("{0} of {1}: {2} outlets × check-ins per day of the branch group × {3} working days (6 on, 1 free day a week)", p.checkins, p.checkinTarget, p.outlets, workingDays) },
+    { key: "punctuality", label: tr("On Time"), value: p.punctuality,
+      how: tr("First check-in of the day by the deadline of its outlet (CCI 10:00, CTGP 10:15, CTG 10:30, or the outlet's own, on the outlet's clock): {0} of {1} days", p.punctualDays, p.checkinDays)
+        + (p.punctualityLegacy != null ? ` · ${tr("11:00 rule: {0}", pct(p.punctualityLegacy))}` : "") },
+    { key: "product", label: tr("Monitoring Product"), value: p.productPart,
+      how: tr("Visits {0} ({1} of {2}) and score {3}, averaged", pct(p.productDone), p.productVisits, p.visitTarget / 2, pct(p.productScore)) },
+    { key: "outlet", label: tr("Monitoring Outlet"), value: p.outletPart,
+      how: tr("Visits {0} ({1} of {2}) and score {3}, averaged", pct(p.outletDone), p.outletVisits, p.visitTarget / 2, pct(p.outletScore)) },
     { key: "swat", label: tr("Agreement with SWAT"), value: p.conformity, how: p.swatAudits ? tr("{0} SWAT audits · {1} items overrated", p.swatAudits, p.overrated) : tr("Not audited yet") },
+    { key: "sales", label: tr("Net Sales"), value: p.salesScore,
+      how: p.salesScore == null ? tr("No net sales target for the outlets of the PIC in this period") : tr("Net sales against the monthly target of {0} outlets, prorated to the period", p.salesOutlets) },
   ];
   return (
     <Drawer open onClose={onClose} size="md" icon={<Scale size={18} />} title={p.name} description={tr("How the PIC score is made")} focusFirstField={false}>
@@ -174,11 +187,11 @@ function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Re
         <div className="rounded-xl bg-neutral-50 p-4 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("PIC Score")}</p>
           <p className={cx("text-4xl font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</p>
-          <p className="mt-1 text-xs text-neutral-500">{tr("Weighted over the parts with data; net sales will join later")}</p>
+          <p className="mt-1 text-xs text-neutral-500">{tr("Weighted over the parts with data")}</p>
         </div>
         <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
           {parts.map((x) => (
-            <li key={x.key} className={cx("px-4 py-3", x.value === null && "opacity-60")}>
+            <li key={x.key} className={cx("px-4 py-3", x.value == null && "opacity-60")}>
               <div className="flex items-baseline justify-between gap-3">
                 <span className="font-medium text-neutral-900">{x.label} <span className="text-xs font-normal text-neutral-400">· {weights[x.key]}%</span></span>
                 <span className={cx("font-semibold tabular-nums", scoreTone(x.value))}>{pct(x.value)}</span>
