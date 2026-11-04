@@ -89,7 +89,7 @@ export default function MonitoringOverviewPage() {
           ))}
         </div>}
         toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={view === "pics" ? tr("Search PIC") : tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
-        footer={res ? <><span className="inline-flex items-center gap-1"><ShieldCheck size={12} /> {tr("Check-in deadlines, form items and net sales targets: Monitoring OPS → Branch Groups")}</span><PageNav paged={view === "pics" ? pagedPics : pagedOutlets} /></> : undefined}>
+        footer={res ? <><span className="inline-flex items-center gap-1"><ShieldCheck size={12} /> {tr("Check-in deadlines, form items and net sales per outlet: Monitoring OPS → Branch Groups")}</span><PageNav paged={view === "pics" ? pagedPics : pagedOutlets} /></> : undefined}>
         {error ? <ErrorState message={error} /> : !res ? <SkeletonRows cols={8} /> : view === "pics" ? (
           pics.length === 0 ? <Empty icon={<UsersRound size={28} />} title={tr("No PIC activity in this period")} /> : (
             <div className="overflow-x-auto">
@@ -118,8 +118,8 @@ export default function MonitoringOverviewPage() {
                       <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={p.outletScore} n={p.outletVisits} /></td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{p.under}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Net Sales")}>
-                        {p.salesScore == null ? <span className="text-xs text-neutral-400">{tr("No target")}</span> : <span className={cx("font-semibold", scoreTone(p.salesScore))}>{pct(p.salesScore)}</span>}
-                        {p.salesScore != null && <span className="block text-[10px] text-neutral-400">{tr("{0} outlets with a target", p.salesOutlets)}</span>}</td>
+                        {p.salesScore == null ? <span className="text-xs text-neutral-400">{tr("No history")}</span> : <span className={cx("font-semibold", scoreTone(p.salesScore))}>{pct(p.salesScore)}</span>}
+                        {p.salesScore != null && <span className="block text-[10px] text-neutral-400">{tr("{0} outlets vs their months before", p.salesOutlets)}</span>}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT Audits")}>{p.swatAudits || <span className="text-neutral-300">0</span>}</td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{p.openActions}</td>
@@ -179,7 +179,7 @@ function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Re
       how: tr("Visits {0} ({1} of {2}) and score {3}, averaged", pct(p.outletDone), p.outletVisits, p.visitTarget / 2, pct(p.outletScore)) },
     { key: "swat", label: tr("Agreement with SWAT"), value: p.conformity, how: p.swatAudits ? tr("{0} SWAT audits · {1} items overrated", p.swatAudits, p.overrated) : tr("Not audited yet") },
     { key: "sales", label: tr("Net Sales"), value: p.salesScore,
-      how: p.salesScore == null ? tr("No net sales target for the outlets of the PIC in this period") : tr("Net sales against the monthly target of {0} outlets, prorated to the period", p.salesOutlets) },
+      how: p.salesScore == null ? tr("The outlets of the PIC have no sales in this period or none in the 3 months before") : tr("Net sales per selling day of {0} outlets against their own of the 3 months before (Sales Transactions), at most 100", p.salesOutlets) },
   ];
   return (
     <Drawer open onClose={onClose} size="md" icon={<Scale size={18} />} title={p.name} description={tr("How the PIC score is made")} focusFirstField={false}>

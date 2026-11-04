@@ -46,9 +46,9 @@ export default function BranchGroupsPage() {
       actions={canEdit && tab === "groups" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Group")}</Button> : undefined}>
       <Tabs label={tr("Branch groups")} value={tab} onChange={setTab} tabs={[
         { key: "groups", label: tr("Groups") }, { key: "deadlines", label: tr("Check-In Deadlines") },
-        { key: "items", label: tr("Form Items") }, { key: "targets", label: tr("Net Sales Targets") }]} />
+        { key: "items", label: tr("Form Items") }, { key: "targets", label: tr("Net Sales") }]} />
       {tab === "deadlines" ? <CheckInDeadlines canEdit={canEdit} /> : tab === "items" ? <FormItems canEdit={canEdit} />
-        : tab === "targets" ? <SalesTargets canEdit={canEdit} /> : error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : !data ? (
+        : tab === "targets" ? <SalesTargets /> : error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : !data ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-40 rounded-xl" />)}</div>
       ) : (
         <>

@@ -1,13 +1,12 @@
 "use client";
 
 // The settings of the PIC assessment kept with the branch groups (2026-11-04, integrated_portal_be migration 069):
-// the check-in deadline and time zone of every outlet, the Product / Outlet items each group is asked, and the monthly
-// net sales target of every outlet. Read by Monitoring → Overview (the PIC score) and the forms.
+// the check-in deadline and time zone of every outlet, the Product / Outlet items each group is asked, and the net sales
+// of every outlet against its own months before (no target set by hand). Read by Monitoring → Overview (the PIC score) and the forms.
 
-import { ClipboardPaste, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, ErrorState, Input, Select, cx, fmtNumber, inputClass, useToast } from "@/so/ui";
-import Drawer from "@/so/ui/Drawer";
+import { Button, ErrorState, Input, Select, cx, fmtNumber, useToast } from "@/so/ui";
 import { Card, EmptyState, Pill, SearchInput, kcTable } from "@/components/kc";
 import { SkeletonRows } from "@/components/kc/Skeleton";
 import { call } from "@/so/features/checkin/checkin";
@@ -194,118 +193,59 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
   );
 }
 
-/* ---------------------------------------------------------------- net sales targets */
+/* ---------------------------------------------------------------- net sales of the outlets */
 
-type Targets = { month: string; days: number; elapsed: number; data: { code: string; name: string; groupCode: string | null; target: number | null; netSales: number;
-  achievement: number | null; onPace: number | null }[] };
+type SalesOverview = { month: string; baselineFrom: string; baselineTo: string; baselineMonths: number; upTo: string | null;
+  data: { code: string; name: string; groupCode: string | null; netSales: number; days: number; perDay: number | null; baselinePerDay: number | null;
+    vsBaseline: number | null; score: number | null }[] };
 const rupiah = (n: number) => `Rp ${fmtNumber(Math.round(n))}`;
 const thisMonth = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 7);
+const monthName = (iso: string) => new Date(`${iso.slice(0, 7)}-01T00:00:00`).toLocaleDateString(undefined, { month: "short", year: "numeric" });
 
-export function SalesTargets({ canEdit }: { canEdit: boolean }) {
-  const toast = useToast();
+/** No target is set by hand: every outlet is compared with itself, its net sales per selling day (Sales Transactions)
+ *  against its own per day of the 3 months before. The PIC score takes the % (at most 100). */
+export function SalesTargets() {
   const [month, setMonth] = useState(thisMonth);
-  const [res, setRes] = useState<Targets | null>(null);
+  const [res, setRes] = useState<SalesOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [draft, setDraft] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
-  const [paste, setPaste] = useState(false);
   const load = useCallback(async () => {
     setRes(null);
-    try { setRes(await call<Targets>(`/api/monitoring/sales-targets?month=${month}`)); setError(null); } catch (e) { setError((e as Error).message); }
+    try { setRes(await call<SalesOverview>(`/api/monitoring/sales-targets?month=${month}`)); setError(null); } catch (e) { setError((e as Error).message); }
   }, [month]);
-  useEffect(() => { void load(); setDraft({}); }, [load]);
+  useEffect(() => { void load(); }, [load]);
   const rows = useMemo(() => (res?.data ?? []).filter((o) => !q || `${o.name} ${o.code} ${o.groupCode ?? ""}`.toLowerCase().includes(q.toLowerCase())), [res, q]);
-  const count = Object.keys(draft).length;
-  const withTarget = (res?.data ?? []).filter((o) => o.target).length;
-  const save = async () => {
-    setBusy(true);
-    try {
-      const list = Object.entries(draft).map(([code, v]) => ({ code, target: Number(v.replace(/\D/g, "")) || 0 }));
-      await call("/api/monitoring/sales-targets", { method: "PUT", json: { month, rows: list } });
-      toast(tr("Saved"));
-      setDraft({});
-      await load();
-    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
-  };
   const tone = (v: number | null) => (v === null ? "text-neutral-400" : v >= 100 ? "text-emerald-600" : v >= 85 ? "text-amber-600" : "text-red-600");
   return (
-    <Card flush title={tr("Net Sales Targets")}
-      subtitle={res ? tr("{0} of {1} outlets have a target · {2} of {3} days of the month passed. The PIC score compares the net sales with the target prorated to the working days of the period.", withTarget, res.data.length, res.elapsed, res.days) : undefined}
-      actions={<div className="flex flex-wrap items-center gap-2">
-        <Input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="h-9 w-40" aria-label={tr("Month")} />
-        {canEdit && <Button variant="secondary" onClick={() => setPaste(true)}><ClipboardPaste size={15} /> {tr("Paste from Excel")}</Button>}
-        {canEdit && count > 0 && <Button loading={busy} onClick={() => void save()}><Save size={15} /> {tr("Save {0} changes", count)}</Button>}
-      </div>}
+    <Card flush title={tr("Net Sales of the Outlets")}
+      subtitle={res ? tr("From Sales Transactions. Each outlet is compared with itself: its net sales per selling day this month against its own per day in {0} – {1}. The PIC score takes this %, at most 100; an outlet without sales before (new) is left out.",
+        monthName(res.baselineFrom), monthName(res.baselineTo)) : undefined}
+      actions={<Input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="h-9 w-40" aria-label={tr("Month")} />}
       toolbar={<SearchInput value={q} onChange={setQ} placeholder={tr("Search outlet, code or group")} />}>
-      {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table> : (
+      {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table> : rows.length === 0 ? (
+        <EmptyState title={tr("No outlet matches")} />
+      ) : (
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[820px] text-sm">
             <thead className={kcTable.thead}><tr>
-              <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5">{tr("Target")}</th>
-              <th className="px-4 py-2.5 text-right">{tr("Net Sales So Far")}</th><th className="px-4 py-2.5 text-right">{tr("Of the Target")}</th><th className="px-4 py-2.5 text-right">{tr("On Pace")}</th>
+              <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5 text-right">{tr("Net Sales This Month")}</th>
+              <th className="px-4 py-2.5 text-right">{tr("Per Day")}</th><th className="px-4 py-2.5 text-right">{tr("Per Day Before")}</th>
+              <th className="px-4 py-2.5 text-right">{tr("Against Before")}</th>
             </tr></thead>
             <tbody className={kcTable.tbody}>
-              {rows.map((o) => {
-                const v = draft[o.code] ?? (o.target ? fmtNumber(o.target) : "");
-                return (
-                  <tr key={o.code} className={cx(draft[o.code] !== undefined && "bg-brand-50/40")}>
-                    <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
-                    <td className="px-4 py-2.5">
-                      {canEdit ? (
-                        <div className="relative w-44"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">Rp</span>
-                          <input inputMode="numeric" value={v} placeholder="0" aria-label={tr("Target {0}", o.name)}
-                            onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); setDraft((x) => ({ ...x, [o.code]: raw ? fmtNumber(Number(raw)) : "" })); }}
-                            className={cx(inputClass, "h-9 pl-9 text-right tabular-nums")} /></div>
-                      ) : o.target ? rupiah(o.target) : <span className="text-neutral-400">—</span>}
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-neutral-800">{rupiah(o.netSales)}</td>
-                    <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.achievement))}>{o.achievement === null ? "—" : `${o.achievement}%`}</td>
-                    <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.onPace))}>{o.onPace === null ? "—" : `${o.onPace}%`}</td>
-                  </tr>
-                );
-              })}
+              {rows.map((o) => (
+                <tr key={o.code}>
+                  <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-800" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-neutral-400">{tr("{0} selling days", o.days)}</span></td>
+                  <td className="px-4 py-2.5 text-right tabular-nums" data-label={tr("Per Day")}>{o.perDay === null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Per Day Before")}>{o.baselinePerDay === null ? <Pill>{tr("New outlet")}</Pill> : rupiah(o.baselinePerDay)}</td>
+                  <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against Before")}>{o.vsBaseline === null ? "—" : `${o.vsBaseline}%`}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       )}
-      {paste && res && <PasteTargets outlets={res.data} onClose={() => setPaste(false)}
-        onApply={(got) => { setDraft((x) => ({ ...x, ...Object.fromEntries(Object.entries(got).map(([c, n]) => [c, fmtNumber(n)])) })); setPaste(false); }} />}
     </Card>
-  );
-}
-
-/** Two columns copied from Excel (outlet code or name, target) become the targets of the month, checked before saving. */
-function PasteTargets({ outlets, onClose, onApply }: { outlets: Targets["data"]; onClose: () => void; onApply: (got: Record<string, number>) => void }) {
-  const [text, setText] = useState("");
-  const parsed = useMemo(() => {
-    const byCode = new Map(outlets.map((o) => [o.code.toLowerCase(), o.code]));
-    const byName = new Map(outlets.map((o) => [o.name.toLowerCase(), o.code]));
-    const ok: Record<string, number> = {};
-    const bad: string[] = [];
-    for (const line of text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)) {
-      const cells = line.split(/\t|;/).map((c) => c.trim()).filter(Boolean);
-      if (cells.length < 2) { bad.push(line); continue; }
-      const who = cells[0].toLowerCase();
-      const code = byCode.get(who) ?? byName.get(who) ?? byName.get(`kopi calf ${who}`);
-      const n = Number(cells[cells.length - 1].replace(/[^\d]/g, ""));
-      if (!code || !n) bad.push(line); else ok[code] = n;
-    }
-    return { ok, bad };
-  }, [text, outlets]);
-  const n = Object.keys(parsed.ok).length;
-  return (
-    <Drawer open onClose={onClose} size="md" icon={<ClipboardPaste size={18} />} title={tr("Paste from Excel")}
-      description={tr("Copy two columns from Excel: the outlet code (or name) and the target")}
-      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button disabled={!n} onClick={() => onApply(parsed.ok)}>{tr("Use {0} targets", n)}</Button></>}>
-      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={12} placeholder={"CTG54\t150000000\nCCI01\t320000000"}
-        className={cx(inputClass, "h-auto py-2 font-mono text-xs")} aria-label={tr("Paste from Excel")} />
-      <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <Pill tone="green">{tr("{0} recognized", n)}</Pill>
-        {parsed.bad.length > 0 && <Pill tone="amber">{tr("{0} lines not recognized", parsed.bad.length)}</Pill>}
-      </div>
-      {parsed.bad.length > 0 && <ul className="mt-2 space-y-0.5 text-[11px] text-amber-800">{parsed.bad.slice(0, 8).map((l, i) => <li key={i} className="truncate font-mono">{l}</li>)}</ul>}
-      <p className="mt-3 text-xs text-neutral-500">{tr("Nothing is saved yet: the targets fill the table, then Save.")}</p>
-    </Drawer>
   );
 }

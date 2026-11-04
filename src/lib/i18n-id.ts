@@ -5142,4 +5142,17 @@ export const ID: Record<string, string> = {
   // PIC Check In: the on-time deadline of the outlet (2026-11-04)
   "Past the on-time limit of this outlet ({0}): today's first check in is counted late.": "Sudah lewat batas tepat waktu outlet ini ({0}): check in pertama hari ini dihitung terlambat.",
   "Today's first check in is on time until {0}.": "Check in pertama hari ini tepat waktu sampai {0}.",
+  // Monitoring OPS: net sales against the outlet itself (2026-11-04)
+  "Against Before": "Dibanding Sebelumnya",
+  "Check-in deadlines, form items and net sales per outlet: Monitoring OPS → Branch Groups": "Batas check in, butir form dan net sales per outlet: Monitoring OPS → Branch Groups",
+  "From Sales Transactions. Each outlet is compared with itself: its net sales per selling day this month against its own per day in {0} – {1}. The PIC score takes this %, at most 100; an outlet without sales before (new) is left out.": "Dari Sales Transactions. Setiap outlet dibandingkan dengan dirinya sendiri: net sales per hari berjualan bulan ini terhadap rata-rata per harinya pada {0} – {1}. Skor PIC memakai persentase ini, maksimal 100; outlet tanpa penjualan sebelumnya (baru) tidak dihitung.",
+  "Net Sales This Month": "Net Sales Bulan Ini",
+  "Net Sales of the Outlets": "Net Sales Outlet",
+  "Net sales per selling day of {0} outlets against their own of the 3 months before (Sales Transactions), at most 100": "Net sales per hari berjualan {0} outlet terhadap rata-rata 3 bulan sebelumnya masing-masing (Sales Transactions), maksimal 100",
+  "New outlet": "Outlet baru",
+  "No history": "Belum ada riwayat",
+  "Per Day Before": "Per Hari Sebelumnya",
+  "The outlets of the PIC have no sales in this period or none in the 3 months before": "Outlet PIC belum ada penjualan pada periode ini atau pada 3 bulan sebelumnya",
+  "{0} outlets vs their months before": "{0} outlet vs bulan sebelumnya",
+  "{0} selling days": "{0} hari berjualan",
 };
