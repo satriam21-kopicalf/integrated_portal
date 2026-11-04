@@ -42,9 +42,9 @@ interface Filters {
 const COTR = 'COTR';
 const EXTRA_TABS = [{ code: COTR, get name() { return 'Calf On The Road'; } }];
 
-/** channels the POS reports that the filter cannot narrow (user decision 2026-11-04): not offered, dropped from old links */
-const NO_FILTER_CHANNELS = new Set(['TAKEAWAY', 'GRABFOOD', 'GOFOOD', 'SHOPEEFOOD', 'ONLINE ORDER']);
-const filterable = (c: string) => !NO_FILTER_CHANNELS.has(c.trim().toUpperCase());
+/** the channel names the POS sends in capitals (DINE IN, TAKEAWAY, GRABFOOD, GOFOOD, SHOPEEFOOD …) narrow nothing: they are
+ *  not offered and dropped from old links; the working ones (Dine In, GrabFood, ShopeeFood …) stay (user decision 2026-11-04) */
+const filterable = (c: string) => { const t = c.trim(); return !(/[A-Z]/.test(t) && t === t.toUpperCase()); };
 
 const EMPTY: Filters = { from: '', to: '', branch: '', channels: [], cmp: 'auto', cmpFrom: '', cmpTo: '' };
 const CMP_MODES: CompareMode[] = ['auto', 'month', 'year', 'custom'];

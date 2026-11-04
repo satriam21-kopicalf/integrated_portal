@@ -192,7 +192,7 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
       <span className={`font-semibold ${tone.text}`}>{tone.label}</span>
       {syncTime && (
         <span className="hidden items-center gap-1.5 border-l border-neutral-200 pl-2 text-neutral-500 sm:inline-flex">
-          {tr('Last Sync')} <span className="font-semibold tabular-nums text-neutral-800">{syncTime}</span>
+          {tr('Data Synced')} <span className="font-semibold tabular-nums text-neutral-800">{syncTime}</span>
           {syncAgo && <span className="text-neutral-400">· {syncAgo}</span>}
         </span>
       )}

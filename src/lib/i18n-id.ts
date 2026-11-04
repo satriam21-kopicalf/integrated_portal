@@ -5096,4 +5096,6 @@ export const ID: Record<string, string> = {
   "Exporting…": "Mengekspor…",
   // Dashboard: live / last sync
   "Last Sync": "Sinkron Terakhir",
+  // Data synced pill
+  "Data Synced": "Data Masuk",
 };

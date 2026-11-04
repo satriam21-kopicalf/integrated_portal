@@ -300,9 +300,9 @@ export default function SalesPage() {
           {/* Transactions card */}
           <section className="rounded-xl border border-neutral-200 bg-white">
             {/* Toolbar */}
-            <div className="flex flex-col gap-2.5 border-b border-neutral-200 p-3 sm:flex-row sm:items-center sm:px-5 sm:py-3.5">
+            <div className="flex flex-wrap items-center gap-2 border-b border-neutral-200 p-3 sm:px-5 sm:py-3.5">
               <SearchInput value={search} onChange={(v) => (v ? handleSearchChange(v) : clearSearch())} placeholder={tr('Search sales no., bill no. or branch')} />
-              <div className="flex items-center gap-2 sm:justify-end">
+              <div className="flex min-w-0 items-center gap-2 sm:ml-auto">
                 <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel={tr('today')} />
                 <BranchFilter branches={branches} loading={branchesLoading} value={branch} onChange={setBranch} />
                 <ExportButton
@@ -473,7 +473,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
 
   return (
     // phones: a swipe row of full cards (the rupiah figures stay whole); tablets 2, desktop 4 columns
-    <StatStrip label={tr('Sales Summary')} gridClassName="grid-flow-col auto-cols-[minmax(15.5rem,86%)] snap-x snap-mandatory overflow-x-auto overscroll-x-contain -mx-4 px-4 pb-1 sm:mx-0 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-4 [&>*]:snap-start">
+    <StatStrip label={tr('Sales Summary')} gridClassName="grid-flow-col auto-cols-[minmax(15.5rem,86%)] items-start snap-x snap-mandatory scroll-px-4 overflow-x-auto overscroll-x-contain -mx-4 px-4 pb-1 sm:mx-0 sm:items-stretch sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:scroll-px-0 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-4 [&>*]:snap-start">
       <Stat label={tr('Gross sales')} icon={<Wallet size={13} aria-hidden />} emphasis
         value={pending ? <StatSkeleton /> : money(t?.sales.subtotal)} title={formatCurrency(t?.sales.subtotal)}>
         {t && <p>{formatNumber(t.sales.transactions)} {tr('transactions · avg')} {formatCurrency(avg)}</p>}
@@ -509,7 +509,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
         value={pending ? <StatSkeleton /> : <span className="text-rose-600">{deductions !== undefined ? <>−{money(deductions)}</> : '-'}</span>}
         title={deductions !== undefined ? `−${formatCurrency(deductions)}` : undefined}>
         {t && (
-          <dl className="space-y-0.5">
+          <dl className="hidden space-y-0.5 sm:block">
             <DeductionRow label={tr('Void & Cancelled')} color="#e34948" value={t.void.subtotal} count={t.void.transactions} />
             <DeductionRow label={tr('Other cost')} color="#eda100" value={t.other_cost.subtotal} count={t.other_cost.transactions} hint={methods.join(', ')} />
             {!!t.open.transactions && <DeductionRow label={tr('Open Bills')} color="#a8a29e" value={t.open.subtotal} count={t.open.transactions} />}

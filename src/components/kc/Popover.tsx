@@ -57,7 +57,8 @@ export function PopoverButton({ icon, label, value, active, open, badge, onClick
       className={cx('relative inline-flex h-10 flex-shrink-0 items-center justify-center gap-2 rounded-lg border px-2.5 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:h-9',
         active || open ? 'border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100' : 'border-neutral-200 bg-white text-neutral-700 shadow-sm hover:bg-neutral-50')}>
       <span className="flex-shrink-0 [&>svg]:h-[17px] [&>svg]:w-[17px]">{icon}</span>
-      {value !== undefined && <span className="hidden max-w-[11rem] truncate sm:inline">{value}</span>}
+      {/* the value from tablets up; a toolbar with room shows it on phones too ([&_.pb-value]:inline) */}
+      {value !== undefined && <span className="pb-value hidden max-w-[11rem] truncate sm:inline lg:max-w-[15rem]">{value}</span>}
       {!!badge && badge > 1 && (
         <span className="absolute -right-1.5 -top-1.5 min-w-[18px] rounded-full bg-brand-700 px-1 text-center text-[10px] font-semibold leading-[18px] text-white ring-2 ring-white sm:static sm:ring-0">{badge}</span>
       )}
