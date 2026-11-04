@@ -19,11 +19,12 @@ export default function GuidePage() {
   const { lang } = useLang();
   const text = lang === 'en' ? EN : ID;
   const parts = useMemo(() => {
-    const { SO, CC, ADMIN } = lang === 'en' ? EN : ID;
+    const { SO, CC, MON, ADMIN } = lang === 'en' ? EN : ID;
     if (!user) return [SO];
     const out: Part[] = [];
     if (hasPage(user, 'stock-opname')) out.push(SO);
     if (user.role === 'superadmin' || CC_PAGES.some(p => hasPage(user, p))) out.push(CC);
+    if (hasPage(user, 'mon.overview') || hasPage(user, 'mon.branch-groups')) out.push(MON);
     if (user.role === 'superadmin') out.push(ADMIN);
     return out.length ? out : [SO];
   }, [user, lang]);

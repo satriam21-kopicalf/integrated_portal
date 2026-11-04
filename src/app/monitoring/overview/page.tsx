@@ -4,7 +4,7 @@
 // of every PIC from their daily forms — PIC Check In days, the average score of their own Monitoring Product and
 // Monitoring Outlet visits — set against the SWAT audits (Form WW-WR): how far their ratings agree with the team, the
 // items they passed and the team found UNDER, the action plans still open at their outlets. Then the same per outlet.
-// The net sales of the outlets are to join the assessment later.
+// Net sales: the outlets against their own month before (Sales Transactions), no target set by hand.
 
 import { AlertTriangle, CalendarDays, ClipboardCheck, Layers, MapPinCheck, Package, Scale, ShieldCheck, Store, UsersRound } from "lucide-react";
 import Link from "next/link";
@@ -21,7 +21,7 @@ import { tr } from "@/lib/i18n";
 type Pic = { id: string; name: string; branches: number; checkins: number; checkinDays: number; outside: number; productVisits: number; productScore: number | null;
   outletVisits: number; outletScore: number | null; under: number; swatAudits: number; conformity: number | null; overrated: number; openActions: number;
   /** the PIC score (2026-11-04): check-ins against the target (6-1 working days), punctuality by the deadline of the outlet
-   *  (punctualityLegacy: the workbook's 11:00 WIB), Product / Outlet (done and score), SWAT, net sales against the target */
+   *  (punctualityLegacy: the workbook's 11:00 WIB), Product / Outlet (done and score), SWAT, net sales against the month before */
   outlets: number; checkinTarget: number; checkinRate: number | null; punctualDays: number; punctuality: number | null; punctualityLegacy: number | null;
   visitTarget: number; visitRate: number | null; productDone: number | null; outletDone: number | null; productPart: number | null; outletPart: number | null;
   salesScore: number | null; salesOutlets: number; score: number | null };
@@ -119,7 +119,7 @@ export default function MonitoringOverviewPage() {
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{p.under}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Net Sales")}>
                         {p.salesScore == null ? <span className="text-xs text-neutral-400">{tr("No history")}</span> : <span className={cx("font-semibold", scoreTone(p.salesScore))}>{pct(p.salesScore)}</span>}
-                        {p.salesScore != null && <span className="block text-[10px] text-neutral-400">{tr("{0} outlets vs their months before", p.salesOutlets)}</span>}</td>
+                        {p.salesScore != null && <span className="block text-[10px] text-neutral-400">{tr("{0} outlets vs the month before", p.salesOutlets)}</span>}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT Audits")}>{p.swatAudits || <span className="text-neutral-300">0</span>}</td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
                       <td className={cx("px-3 py-2.5 text-right tabular-nums", p.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{p.openActions}</td>

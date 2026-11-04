@@ -2,7 +2,7 @@
 
 // The settings of the PIC assessment kept with the branch groups (2026-11-04, integrated_portal_be migration 069):
 // the check-in deadline and time zone of every outlet, the Product / Outlet items each group is asked, and the net sales
-// of every outlet against its own months before (no target set by hand). Read by Monitoring → Overview (the PIC score) and the forms.
+// of every outlet against its own month before (no target set by hand). Read by Monitoring → Overview (the PIC score) and the forms.
 
 import { Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";

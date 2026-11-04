@@ -2,12 +2,12 @@
 
 // Panduan in Indonesian: stock opname for the PIC / crew, Cost Control, super admin.
 
-import { Calculator, ClipboardCheck, ShieldCheck } from 'lucide-react';
+import { Calculator, ClipboardCheck, Gauge, ShieldCheck } from 'lucide-react';
 import { Go, Menu, Note, Part, Steps, Table } from './ui';
 
 export const PAGE = {
   title: 'Panduan',
-  subtitle: 'Cara melakukan stock opname dan cost control di portal',
+  subtitle: 'Cara melakukan stock opname, cost control dan penilaian PIC (Monitoring OPS) di portal',
   toc: 'Daftar isi',
 };
 
@@ -243,6 +243,74 @@ export const CC: Part = {
             <><b>MDR</b>: isi persen MDR per outlet pada kolom MDR (periode dalam satu bulan) agar rasio net sama dengan workbook.</>,
           ]} />
         </>
+      ),
+    },
+  ],
+};
+
+export const MON: Part = {
+  key: 'mon', label: 'Monitoring OPS (penilaian PIC)', icon: <Gauge size={16} />,
+  intro: 'Untuk management dan Monitoring OPS: bagaimana skor PIC dihitung dan di mana pengaturannya. Semua pengaturan di Branch Groups langsung berlaku di form PIC pada aplikasi Operations.',
+  sections: [
+    {
+      id: 'mon-skor', title: 'Skor PIC',
+      body: (
+        <>
+          <p className="text-sm text-neutral-700"><Go href="/monitoring/overview">Monitoring → Overview</Go> → tab PIC. Setiap bagian bernilai 0–100%; skor = rata-rata berbobot dari bagian yang sudah ada datanya. Klik baris PIC untuk melihat rinciannya.</p>
+          <Table head={['Bagian', 'Bobot', 'Cara hitung']} rows={[
+            ['PIC Check In', '15%', 'Check in (dalam radius) ÷ outlet PIC × check in per hari grupnya × hari kerja'],
+            ['Tepat Waktu', '15%', 'Hari yang check in pertamanya sebelum batas outlet (jam outlet); sebelum 05:00 tidak dihitung'],
+            ['Monitoring Product', '15%', 'Rata-rata dari kunjungan yang dilakukan ÷ target dan skor kunjungannya'],
+            ['Monitoring Outlet', '15%', 'Sama seperti Monitoring Product'],
+            ['Kesesuaian dengan SWAT', '15%', 'Kesamaan nilai PIC dengan audit SWAT (Form WW-WR)'],
+            ['Net Sales', '25%', 'Rata-rata per hari bulan ini ÷ rata-rata per hari 1 bulan sebelumnya (maks. 100), dirata-rata dari outlet PIC'],
+          ]} />
+          <Note>Hari kerja memakai pola <b>6 masuk 1 libur</b>: jumlah hari − (jumlah hari ÷ 7, dibulatkan ke bawah). Bulan 28 hari = 24 hari kerja, 30 hari = 26, 31 hari = 27, sehingga bulan yang lebih panjang tidak merugikan PIC. Aturan lama (check in sebelum 11:00 WIB) tetap ditampilkan sebagai pembanding.</Note>
+        </>
+      ),
+    },
+    {
+      id: 'mon-batas', title: 'Batas check in & zona waktu',
+      body: (
+        <Steps items={[
+          <><Go href="/monitoring/branch-groups">Branch Groups</Go> → klik kartu grup → <b>Batas Check In</b> (standar: CCI 10:00, CTGP 10:15, CTG 10:30). Kosong = 11:00.</>,
+          <>Tab <Menu>Check-In Deadlines</Menu>: isi <b>batas khusus</b> untuk satu outlet (mengalahkan batas grup) dan <b>zona waktu</b> outlet (WIB, WITA, WIT). Batas dibaca menurut jam outlet; kolom terakhir menampilkan jamnya dalam WIB. “Kembali ke Grup” menghapus pengaturan khusus.</>,
+          <>PIC melihat batas ini di form PIC Check In sebelum check in pertama hari itu, dan peringatan bila sudah lewat.</>,
+        ]} />
+      ),
+    },
+    {
+      id: 'mon-butir', title: 'Butir form per grup',
+      body: (
+        <Steps items={[
+          <>Tab <Menu>Form Items</Menu>: pilih Form Product atau Form Outlet, lalu centang butir yang ditanyakan untuk tiap grup (CCI, CTG, CTGP).</>,
+          <>Butir yang tidak dicentang tidak muncul di form outlet grup itu (aplikasi Operations dan portal), termasuk di WW-WR, dan tidak ikut dinilai. Titik kuning = berbeda dari standar.</>,
+          <>Klik <b>Simpan</b>; perubahan berlaku untuk form yang dibuka sesudahnya.</>,
+        ]} />
+      ),
+    },
+    {
+      id: 'mon-sales', title: 'Net Sales outlet',
+      body: (
+        <>
+          <p className="text-sm text-neutral-700">Tab <Menu>Net Sales</Menu> hanya untuk dilihat, tidak ada target yang diisi. Data dari <Go href="/sales">Sales Transactions</Go> (ESB). Setiap outlet dibandingkan dengan dirinya sendiri.</p>
+          <Table head={['Kolom', 'Arti']} rows={[
+            ['Net Sales Bulan Ini', 'Total net sales bulan ini sampai hari ini; “hari berjualan” = hari dengan net sales di atas 0'],
+            ['Rata-rata per Hari', 'Net sales bulan ini ÷ hari berjualan'],
+            ['Rata-rata per Hari (1 Bulan Sebelumnya)', 'Net sales bulan sebelumnya ÷ hari berjualannya'],
+            ['Dibanding 1 Bulan Sebelumnya', 'Rata-rata per hari ÷ rata-rata per hari bulan sebelumnya. 100% = seperti biasa; hijau ≥ 100%, kuning 85–99%, merah < 85%'],
+          ]} />
+          <Note>0 hari berjualan atau “Belum ada data penjualan” = belum ada transaksi outlet yang masuk dari ESB (belum buka, tutup, atau tercatat dengan kode cabang lain). Outlet seperti ini tidak ikut dihitung di bagian Net Sales.</Note>
+        </>
+      ),
+    },
+    {
+      id: 'mon-grup', title: 'Klasifikasi outlet (branch group)',
+      body: (
+        <Steps items={[
+          <><Go href="/monitoring/branch-groups">Branch Groups</Go> → tab <Menu>Groups</Menu>: satu outlet hanya masuk satu grup. Memilih outlet di grup lain memindahkannya.</>,
+          <>Atur juga jumlah check in PIC per outlet per hari; angka ini menjadi target harian bagian PIC Check In.</>,
+        ]} />
       ),
     },
   ],

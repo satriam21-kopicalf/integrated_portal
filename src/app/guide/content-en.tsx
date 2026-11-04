@@ -2,12 +2,12 @@
 
 // The guide in English (same sections as content-id.tsx; menu names as the English portal shows them).
 
-import { Calculator, ClipboardCheck, ShieldCheck } from 'lucide-react';
+import { Calculator, ClipboardCheck, Gauge, ShieldCheck } from 'lucide-react';
 import { Go, Menu, Note, Part, Steps, Table } from './ui';
 
 export const PAGE = {
   title: 'Guide',
-  subtitle: 'How to run stock opname and cost control in the portal',
+  subtitle: 'How to run stock opname, cost control and the PIC score (Monitoring OPS) in the portal',
   toc: 'Contents',
 };
 
@@ -243,6 +243,74 @@ export const CC: Part = {
             <><b>MDR</b>: enter the MDR percent per outlet in the MDR column (period within one month) so the net ratios match the workbook.</>,
           ]} />
         </>
+      ),
+    },
+  ],
+};
+
+export const MON: Part = {
+  key: 'mon', label: 'Monitoring OPS (PIC score)', icon: <Gauge size={16} />,
+  intro: 'For management and Monitoring OPS: how the PIC score is made and where it is set. Everything set in Branch Groups applies at once to the PIC forms in the Operations app.',
+  sections: [
+    {
+      id: 'mon-skor', title: 'The PIC score',
+      body: (
+        <>
+          <p className="text-sm text-neutral-700"><Go href="/monitoring/overview">Monitoring → Overview</Go> → PIC tab. Each part is 0–100%; the score is the weighted average of the parts that have data. Tap a PIC row to see how it is made.</p>
+          <Table head={['Part', 'Weight', 'How it is counted']} rows={[
+            ['PIC Check-In', '15%', 'Check-ins (within the radius) ÷ outlets of the PIC × check-ins a day of their group × working days'],
+            ['On Time', '15%', 'Days whose first check-in was by the outlet deadline (outlet clock); before 05:00 never counts'],
+            ['Monitoring Product', '15%', 'The average of the visits done against the target and their score'],
+            ['Monitoring Outlet', '15%', 'As Monitoring Product'],
+            ['Agreement with SWAT', '15%', 'How far the PIC ratings agree with the SWAT audits (Form WW-WR)'],
+            ['Net Sales', '25%', 'Average per day this month ÷ average per day of the month before (at most 100), averaged over the outlets of the PIC'],
+          ]} />
+          <Note>Working days follow the <b>6 on, 1 off</b> schedule: days − (days ÷ 7, rounded down). A 28-day month = 24 working days, 30 = 26, 31 = 27, so a longer month never counts against the PIC. The old rule (check-in before 11:00 WIB) is still shown to compare.</Note>
+        </>
+      ),
+    },
+    {
+      id: 'mon-batas', title: 'Check-in deadlines & time zones',
+      body: (
+        <Steps items={[
+          <><Go href="/monitoring/branch-groups">Branch Groups</Go> → tap a group card → <b>Check-In Deadline</b> (standard: CCI 10:00, CTGP 10:15, CTG 10:30). Empty = 11:00.</>,
+          <><Menu>Check-In Deadlines</Menu> tab: set an <b>own deadline</b> for one outlet (it overrides the group) and the outlet&apos;s <b>time zone</b> (WIB, WITA, WIT). The deadline is read on the outlet&apos;s clock; the last column shows it in WIB. “Back to Group” removes the outlet setting.</>,
+          <>The PIC sees this deadline in the PIC Check In form before the first check-in of the day, and a warning once it has passed.</>,
+        ]} />
+      ),
+    },
+    {
+      id: 'mon-butir', title: 'Form items per group',
+      body: (
+        <Steps items={[
+          <><Menu>Form Items</Menu> tab: pick Form Product or Form Outlet, then tick the items asked for each group (CCI, CTG, CTGP).</>,
+          <>An unticked item does not appear in the form of that group&apos;s outlets (Operations app and portal), nor in WW-WR, and is left out of the score. An amber dot = different from the standard.</>,
+          <>Tap <b>Save</b>; the change applies to forms opened afterwards.</>,
+        ]} />
+      ),
+    },
+    {
+      id: 'mon-sales', title: 'Net sales of the outlets',
+      body: (
+        <>
+          <p className="text-sm text-neutral-700">The <Menu>Net Sales</Menu> tab is read-only, no target is entered. The data comes from <Go href="/sales">Sales Transactions</Go> (ESB). Each outlet is compared with itself.</p>
+          <Table head={['Column', 'Meaning']} rows={[
+            ['Net Sales This Month', 'Net sales of the month up to today; “selling days” = days with net sales above 0'],
+            ['Average per Day', 'Net sales this month ÷ selling days'],
+            ['Average per Day (1 Month Before)', 'Net sales of the month before ÷ its selling days'],
+            ['Against 1 Month Before', 'Average per day ÷ average per day of the month before. 100% = as usual; green ≥ 100%, amber 85–99%, red < 85%'],
+          ]} />
+          <Note>0 selling days or “No sales data yet” = no transaction of the outlet has come in from ESB (not open yet, closed, or recorded under another branch code). Such an outlet is left out of the Net Sales part.</Note>
+        </>
+      ),
+    },
+    {
+      id: 'mon-grup', title: 'Outlet classes (branch groups)',
+      body: (
+        <Steps items={[
+          <><Go href="/monitoring/branch-groups">Branch Groups</Go> → <Menu>Groups</Menu> tab: an outlet belongs to one group only; picking it in another group moves it.</>,
+          <>Set the PIC check-ins per outlet per day too; it is the daily target of the PIC Check-In part.</>,
+        ]} />
       ),
     },
   ],

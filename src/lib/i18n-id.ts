@@ -5166,4 +5166,5 @@ export const ID: Record<string, string> = {
   "Average per Day (1 Month Before): the same outlet's net sales ÷ its selling days in the full month before.": "Rata-rata per Hari (1 Bulan Sebelumnya): net sales outlet yang sama ÷ jumlah hari berjualannya selama 1 bulan penuh sebelumnya.",
   "Against 1 Month Before: Average per Day ÷ Average per Day (1 Month Before). 100% = selling as usual; above 100% = more than usual (green); 85–99% a little less (amber); below 85% much less (red).": "Dibanding 1 Bulan Sebelumnya: Rata-rata per Hari ÷ Rata-rata per Hari (1 Bulan Sebelumnya). 100% = penjualan seperti biasa; di atas 100% = lebih tinggi dari biasa (hijau); 85–99% sedikit di bawah (kuning); di bawah 85% jauh di bawah (merah).",
   "PIC score, Net Sales part = Against 1 Month Before, at most 100, averaged over the outlets of the PIC. An outlet without sales in the month before is left out.": "Skor PIC bagian Net Sales = Dibanding 1 Bulan Sebelumnya, maksimal 100, dirata-rata dari outlet PIC. Outlet tanpa penjualan 1 bulan sebelumnya tidak dihitung.",
+  "{0} outlets vs the month before": "{0} outlet vs bulan sebelumnya",
 };
