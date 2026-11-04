@@ -657,7 +657,7 @@ function EntryDrawer({ entry, onClose }: { entry: Entry; onClose: () => void }) 
 function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; fresh: Set<number>; loading: boolean; onOpen: (e: Entry) => void }) {
   return (
     <div className={`custom-scrollbar max-h-[70vh] overflow-auto ${loading ? 'opacity-60' : ''}`}>
-      <table className="w-full text-sm">
+      <table className="m-cards w-full text-sm">
         <thead className="sticky top-0 z-[1] bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
           <tr>
             {[tr('Time'), tr('User'), tr('Activity'), tr('Details'), tr('Page'), tr('Result'), tr('Device · IP')].map(h => <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5">{h}</th>)}

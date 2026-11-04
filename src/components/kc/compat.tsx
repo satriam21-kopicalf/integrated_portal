@@ -45,7 +45,8 @@ export function Panel({ title, description, actions, toolbar, footer, children, 
 
 const GRID = { 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4', 5: 'lg:grid-cols-5' } as const;
 export function StatStrip({ children, columns = 4, label, gridClassName }: { children: ReactNode; columns?: 3 | 4 | 5; label: string; gridClassName?: string }) {
-  return <section aria-label={label} className={cx('grid grid-cols-2 gap-3', gridClassName ?? GRID[columns])}>{children}</section>;
+  // gridClassName replaces the columns (phones included), e.g. a swipe row on phones
+  return <section aria-label={label} className={cx('grid gap-3', gridClassName ?? `grid-cols-2 ${GRID[columns]}`)}>{children}</section>;
 }
 
 /** A number card: label (+ icon / info), value, the lines under it; a quick filter when `onClick` is given. */

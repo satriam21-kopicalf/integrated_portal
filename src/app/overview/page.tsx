@@ -42,6 +42,10 @@ interface Filters {
 const COTR = 'COTR';
 const EXTRA_TABS = [{ code: COTR, get name() { return 'Calf On The Road'; } }];
 
+/** channels the POS reports that the filter cannot narrow (user decision 2026-11-04): not offered, dropped from old links */
+const NO_FILTER_CHANNELS = new Set(['TAKEAWAY', 'GRABFOOD', 'GOFOOD', 'SHOPEEFOOD', 'ONLINE ORDER']);
+const filterable = (c: string) => !NO_FILTER_CHANNELS.has(c.trim().toUpperCase());
+
 const EMPTY: Filters = { from: '', to: '', branch: '', channels: [], cmp: 'auto', cmpFrom: '', cmpTo: '' };
 const CMP_MODES: CompareMode[] = ['auto', 'month', 'year', 'custom'];
 
@@ -51,7 +55,7 @@ function readUrl(): Filters {
     from: p.get('from') ?? '',
     to: p.get('to') ?? '',
     branch: p.get('branch') ?? '',
-    channels: (p.get('channel') ?? '').split(',').map(c => c.trim()).filter(Boolean),
+    channels: (p.get('channel') ?? '').split(',').map(c => c.trim()).filter(Boolean).filter(filterable),
     cmp: (CMP_MODES as string[]).includes(p.get('cmp') ?? '') ? (p.get('cmp') as CompareMode) : 'auto',
     cmpFrom: p.get('cmpFrom') ?? '',
     cmpTo: p.get('cmpTo') ?? '',
@@ -141,12 +145,12 @@ export default function OverviewPage() {
               value={cotr ? COTR : company} onChange={pickTab} />
             {!cotr && <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
-                className={`inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${
-                  activeCount ? 'text-brand-700 hover:bg-brand-50' : 'text-neutral-700 hover:bg-neutral-100'}`}>
+                className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-[13px] font-medium transition-colors sm:h-9 ${
+                  activeCount ? 'border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100' : 'border-neutral-200 bg-white text-neutral-700 shadow-sm hover:bg-neutral-50'}`}>
                 <SlidersHorizontal size={16} /> {tr('Filters')}
                 {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
               </button>
-              <RealtimeIndicator className="h-10" />
+              <RealtimeIndicator className="h-10 sm:h-9" />
             </div>}
           </div>
         </header>
@@ -154,7 +158,7 @@ export default function OverviewPage() {
         {cotr ? <CotrEmpty /> : filters && <OverviewContent filters={filters} branches={branches} company={company} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
       </div>
       {filtersOpen && (
-        <OverviewFilterDrawer value={f} branches={branches} channels={(meta.data?.channels ?? []).map(c => c.channel)}
+        <OverviewFilterDrawer value={f} branches={branches} channels={(meta.data?.channels ?? []).map(c => c.channel).filter(filterable)}
           defaultPeriod={meta.data?.defaultPeriod ?? null} onClose={() => setFiltersOpen(false)}
           onApply={v => { update(v); setFiltersOpen(false); }} />
       )}

@@ -170,10 +170,9 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
     return () => clearInterval(t);
   }, []);
   const ago = salesSyncedAt ? Math.max(0, Math.round((now - Date.parse(salesSyncedAt)) / 60_000)) : null;
-  const synced = salesSyncedAt
-    ? `${new Date(salesSyncedAt).toLocaleTimeString(locale(), { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false })} WIB · ${
-      ago! < 1 ? tr('just now') : ago! < 60 ? tr('{0} min ago', ago!) : tr('{0} h ago', Math.floor(ago! / 60))}`
-    : null;
+  const syncTime = salesSyncedAt
+    ? `${new Date(salesSyncedAt).toLocaleTimeString(locale(), { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false })} WIB` : null;
+  const syncAgo = ago === null ? null : ago < 1 ? tr('just now') : ago < 60 ? tr('{0} min ago', ago) : tr('{0} h ago', Math.floor(ago / 60));
   const tone = status === 'live'
     ? { dot: 'bg-emerald-500', ring: 'bg-emerald-400', text: 'text-emerald-700', label: tr('Live') }
     : status === 'connecting'
@@ -181,7 +180,7 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
     : { dot: 'bg-neutral-400', ring: '', text: 'text-neutral-500', label: tr('Reconnecting') };
   return (
     <span
-      className={`inline-flex items-center gap-2 px-1 text-xs ${className}`}
+      className={`inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 text-xs shadow-sm ${className}`}
       title={status === 'live'
         ? tr('Connected: data updates automatically after every POS sync (every 15 minutes, 06:00-24:00 WIB)')
         : tr('Realtime connection lost: retrying, data still updates every minute')}
@@ -191,7 +190,12 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
         <span className={`relative inline-flex h-2 w-2 rounded-full ${tone.dot}`} />
       </span>
       <span className={`font-semibold ${tone.text}`}>{tone.label}</span>
-      {synced && <span className="hidden text-neutral-500 sm:inline">{tr('· last sync')} {synced}</span>}
+      {syncTime && (
+        <span className="hidden items-center gap-1.5 border-l border-neutral-200 pl-2 text-neutral-500 sm:inline-flex">
+          {tr('Last Sync')} <span className="font-semibold tabular-nums text-neutral-800">{syncTime}</span>
+          {syncAgo && <span className="text-neutral-400">· {syncAgo}</span>}
+        </span>
+      )}
     </span>
   );
 }

@@ -2086,7 +2086,6 @@ export const ID: Record<string, string> = {
   "Step {0}": "Langkah {0}",
   "Request failed ({0})": "Permintaan gagal ({0})",
   "just now": "baru saja",
-  "· last sync": "· sinkron terakhir",
   "Connected: data updates automatically after every POS sync (every 15 minutes, 06:00-24:00 WIB)": "Terhubung: data diperbarui otomatis setiap sinkron POS (tiap 15 menit, 06:00-24:00 WIB)",
   "The outlet where you are now": "Outlet tempat Anda berada sekarang",
   "Compared with the outlet's coordinates": "Dibandingkan dengan koordinat outlet",
@@ -5095,4 +5094,6 @@ export const ID: Record<string, string> = {
   "Confirm New Password": "Konfirmasi Password Baru",
   // Export button
   "Exporting…": "Mengekspor…",
+  // Dashboard: live / last sync
+  "Last Sync": "Sinkron Terakhir",
 };

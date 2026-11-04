@@ -232,7 +232,7 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
         ))}
       </ul>
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[960px] text-sm">
+        <table className="m-cards w-full min-w-[960px] text-sm">
           <thead className={theadClass}>
             <tr>
               <th className="py-2.5 pl-5 pr-3">{tr("Request")}</th><th className="px-3 py-2.5">{tr("Items")}</th><th className="px-3 py-2.5">{tr("Outlet & PIC")}</th>
@@ -974,7 +974,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-xl border border-neutral-200">
-        <table className="w-full text-sm">
+        <table className="m-cards w-full text-sm">
           <thead className="bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
             <tr><th className="px-3 py-2">{tr("Description")}</th><th className="hidden px-2 py-2 text-right sm:table-cell">Qty</th>
               <th className="px-2 py-2 text-right">{tr("Estimate")}</th><th className="px-2 py-2 text-right">{tr("Actual")}</th><th className="w-16" /></tr>

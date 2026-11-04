@@ -295,7 +295,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
 function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "investigations">; res: MonitorData; onBranch: (code: string) => void }) {
   if (view === "items") {
     return !res.byItem.length ? <Empty title={tr("No waste in this period")} /> : (
-      <div className="overflow-x-auto"><table className="w-full text-sm">
+      <div className="overflow-x-auto"><table className="m-cards w-full text-sm">
         <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Type")}</th>
           <th className="px-4 py-2.5 text-right">{tr("Quantity")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th><th className="px-4 py-2.5 text-right">{tr("Branches")}</th></tr></thead>
         <tbody className="divide-y divide-neutral-100">{res.byItem.map((i) => (
@@ -308,7 +308,7 @@ function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "inve
   }
   if (view === "branches") {
     return !res.byBranch.length ? <Empty title={tr("No waste in this period")} /> : (
-      <div className="overflow-x-auto"><table className="w-full text-sm">
+      <div className="overflow-x-auto"><table className="m-cards w-full text-sm">
         <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th>
           <th className="px-4 py-2.5 text-right">{tr("Waiting Review")}</th><th className="px-4 py-2.5 text-right">{tr("Days with Waste")}</th><th className="px-4 py-2.5">{tr("Last Entry")}</th></tr></thead>
         <tbody className="divide-y divide-neutral-100">{res.byBranch.map((b) => (

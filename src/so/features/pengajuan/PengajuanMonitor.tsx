@@ -176,7 +176,7 @@ export default function PengajuanMonitor() {
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[1040px] text-sm">
+              <table className="m-cards w-full min-w-[1040px] text-sm">
                 <thead className={theadClass}>
                   <tr className="whitespace-nowrap">
                     <th className="px-4 py-2.5">{tr("Number")}</th><th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5">{tr("Kind")}</th>

@@ -83,7 +83,7 @@ function View() {
 
         <Block title={tr("General Evaluation")}><p className="whitespace-pre-line text-sm text-neutral-700">{a.summary || "—"}</p></Block>
         <Block title={tr("Action Plans")}>
-          <table className="w-full text-sm">
+          <table className="m-cards w-full text-sm">
             <thead><tr className="border-b border-neutral-200 text-left text-[11px] uppercase tracking-wide text-neutral-500"><th className="py-2 pr-2">#</th><th className="py-2 pr-2">{tr("Action")}</th><th className="py-2 pr-2">{tr("Handled by")}</th><th className="py-2 pr-2">{tr("Due")}</th><th className="py-2">{tr("Status")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {a.actions.map((x: ActionPlan, i: number) => (

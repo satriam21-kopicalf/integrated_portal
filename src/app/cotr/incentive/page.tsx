@@ -128,7 +128,7 @@ function RecapView() {
       actions={<Button size="sm" variant="secondary" disabled={!rows.length} onClick={exportCsv}><Download size={14} /> {tr("Export CSV")}</Button>}>
       {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonList rows={4} /> : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] text-sm">
+          <table className="m-cards w-full min-w-[820px] text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-3 py-2.5 text-right">{tr("Attendance")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Tiers")}</th><th className="px-3 py-2.5 text-right">{tr("Product Bonus")}</th><th className="px-3 py-2.5 text-right">{tr("Deduction")}</th><th className="px-4 py-2.5 text-right">{tr("Incentive")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">

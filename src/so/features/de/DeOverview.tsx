@@ -106,7 +106,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
                 </Panel>
                 <Panel title={tr("Urgency vs Target")} description={tr("Done on target per urgency")}>
                   {!d ? <Skel /> : (
-                    <table className="w-full text-sm">
+                    <table className="m-cards w-full text-sm">
                       <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-2">{tr("Urgency")}</th><th className="px-2 py-2 text-right">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Done")}</th><th className="px-2 py-2">{tr("On Target")}</th><th className="px-4 py-2 text-right">{tr("Average")}</th></tr></thead>
                       <tbody className="divide-y divide-neutral-100">
                         {d.urgency.map((u) => (
@@ -241,7 +241,7 @@ function RowTable({ rows }: { rows: Row[] }) {
   if (!rows.length) return <p className="px-4 py-6 text-center text-sm text-neutral-400">—</p>;
   const max = Math.max(1, ...rows.map((r) => r.count));
   return (
-    <table className="w-full text-sm">
+    <table className="m-cards w-full text-sm">
       <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-2">{tr("Name")}</th><th className="px-2 py-2">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Average")}</th><th className="px-4 py-2 text-right">{tr("Cost")}</th></tr></thead>
       <tbody className="divide-y divide-neutral-100">
         {rows.map((r) => (

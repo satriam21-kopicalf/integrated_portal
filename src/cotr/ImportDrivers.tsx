@@ -106,7 +106,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
             )}
             <div className="max-h-[28rem] overflow-auto rounded-xl border border-neutral-200">
               {team ? (
-                <table className="w-full min-w-[720px] text-sm">
+                <table className="m-cards w-full min-w-[720px] text-sm">
                   <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Employee')}</th><th className="px-3 py-2">{tr('Department')}</th><th className="px-3 py-2">{tr('Pool / HUB')}</th>
                     <th className="px-3 py-2">{tr('Bike')}</th><th className="px-3 py-2">{tr('Armada (QRIS)')}</th><th className="px-3 py-2" /></tr></thead>
                   <tbody className="divide-y divide-neutral-100">
@@ -123,7 +123,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
                   </tbody>
                 </table>
               ) : (
-                <table className="w-full text-sm">
+                <table className="m-cards w-full text-sm">
                   <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Armada')}</th><th className="px-3 py-2">{tr('Name')}</th><th className="px-3 py-2">{tr('Phone')}</th><th className="px-3 py-2" /></tr></thead>
                   <tbody className="divide-y divide-neutral-100">
                     {(result.rows as ArmadaRow[]).map((r) => (

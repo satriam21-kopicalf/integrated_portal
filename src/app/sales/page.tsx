@@ -294,7 +294,7 @@ export default function SalesPage() {
           </div>
         </header>
 
-        <div className="space-y-4 p-4 sm:p-6">
+        <div className="space-y-4 px-4 py-4 sm:p-6">
           <SummaryStrip summary={summary} loading={summaryLoading} />
 
           {/* Transactions card */}
@@ -472,7 +472,8 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
   const money = (v: number | undefined) => formatCurrency(v);
 
   return (
-    <StatStrip label={tr('Sales Summary')}>
+    // phones: a swipe row of full cards (the rupiah figures stay whole); tablets 2, desktop 4 columns
+    <StatStrip label={tr('Sales Summary')} gridClassName="grid-flow-col auto-cols-[minmax(15.5rem,86%)] snap-x snap-mandatory overflow-x-auto overscroll-x-contain -mx-4 px-4 pb-1 sm:mx-0 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-4 [&>*]:snap-start">
       <Stat label={tr('Gross sales')} icon={<Wallet size={13} aria-hidden />} emphasis
         value={pending ? <StatSkeleton /> : money(t?.sales.subtotal)} title={formatCurrency(t?.sales.subtotal)}>
         {t && <p>{formatNumber(t.sales.transactions)} {tr('transactions · avg')} {formatCurrency(avg)}</p>}
@@ -661,12 +662,12 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
         const menus = group.rows.filter(r => r.menu_name && !r.menu_name.endsWith(')'));
         return (
           <li key={group.key}>
-            <button type="button" onClick={() => onSelect(tx)} className="block w-full min-w-0 p-4 text-left active:bg-neutral-50">
+            <button type="button" onClick={() => onSelect(tx)} className="block w-full min-w-0 px-4 py-3.5 text-left active:bg-neutral-50">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-neutral-900">{tx.sales_num}</p>
-                  <p className="truncate text-xs text-neutral-500">
-                    {formatDate(tx.sales_date)} · {formatTime(tx.sales_date_in)} · {tx.branch_name}
+                  <p className="truncate text-sm font-semibold text-neutral-900">{tx.branch_name || tx.sales_num}</p>
+                  <p className="mt-0.5 truncate text-xs text-neutral-500">
+                    <span className="font-mono">{tx.sales_num}</span> · {formatDate(tx.sales_date)} {formatTime(tx.sales_date_in)}
                   </p>
                 </div>
                 <div className="flex-shrink-0 text-right">
@@ -675,7 +676,7 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
                 </div>
               </div>
               {menus.length > 0 && (
-                <ul className="mt-2 space-y-0.5 text-xs text-neutral-600">
+                <ul className="mt-2.5 space-y-1 rounded-lg bg-neutral-50 px-2.5 py-2 text-xs text-neutral-600">
                   {menus.slice(0, 3).map((m, i) => (
                     <li key={i} className="flex justify-between gap-3">
                       <span className="truncate">{formatNumber(m.quantity)} × {m.menu_name}</span>
@@ -685,7 +686,10 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
                   {menus.length > 3 && <li className="text-neutral-400">+{menus.length - 3} {tr('more items')}</li>}
                 </ul>
               )}
-              <p className="mt-2 truncate text-[11px] text-neutral-400">{tx.payment_method || '-'} · {tx.bill_num || tr('No bill number')}</p>
+              <p className="mt-2 flex items-center justify-between gap-2 text-[11px] text-neutral-500">
+                <span className="truncate">{tx.payment_method || '-'} · {tx.bill_num || tr('No bill number')}</span>
+                <ChevronRight size={14} className="flex-shrink-0 text-neutral-300" />
+              </p>
             </button>
           </li>
         );

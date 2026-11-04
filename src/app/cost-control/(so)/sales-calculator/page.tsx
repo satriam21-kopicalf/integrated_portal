@@ -613,7 +613,7 @@ function Extras() {
         <Empty icon={<Package size={26} />} title={tr("No additional item yet")}><Button className="mt-3" onClick={() => open({ ...blank })}><Plus size={14} />{tr("Add Item")}</Button></Empty>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[620px] text-sm">
+          <table className="m-cards w-full min-w-[620px] text-sm">
             <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr("Item")}</th><th className="px-3 py-2.5">{tr("Usage")}</th><th className="px-3 py-2.5 text-right">{tr("Price / Unit")}</th><th className="px-3 py-2.5">{tr("Status")}</th><th /></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {rows.map((x) => {
@@ -814,7 +814,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
               </div>
             )}
             {view === "mrp" && (
-              <table className="w-full min-w-[640px] text-sm">
+              <table className="m-cards w-full min-w-[640px] text-sm">
                 <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Average daily sales of {0} days × {1} days + {2}% buffer, exploded through the cards (rounded up)", data.period.days, data.period.horizon, data.period.buffer)}</caption>
                 <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("Required")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
@@ -830,7 +830,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
               </table>
             )}
             {view === "usage" && (
-              <table className="w-full min-w-[820px] text-sm">
+              <table className="m-cards w-full min-w-[820px] text-sm">
                 <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("System = menus sold × recipe cards; Actual = SO awal + purchases − SO akhir of the branches with both ESB stock opname documents")}</caption>
                 <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("System")}</th><th className="px-4 py-2.5 text-right">{tr("Actual")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Difference")}</th><th className="px-4 py-2.5 text-right">{tr("Value System")}</th><th className="px-4 py-2.5 text-right">{tr("Value Actual")}</th></tr></thead>
@@ -851,7 +851,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
             )}
             {view === "cogs" && (
               <>
-                <table className="w-full min-w-[760px] text-sm">
+                <table className="m-cards w-full min-w-[760px] text-sm">
                   <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5">{tr("Recipe Card")}</th><th className="px-4 py-2.5 text-right">{tr("Sold")}</th>
                     <th className="px-4 py-2.5 text-right">{tr("Sales")}</th><th className="px-4 py-2.5 text-right">{tr("HPP / Portion")}</th><th className="px-4 py-2.5 text-right">COGS</th><th className="px-4 py-2.5 text-right">{tr("Ratio")}</th></tr></thead>
                   <tbody className="divide-y divide-neutral-100">
@@ -867,7 +867,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
                   </tbody>
                 </table>
                 {!!data.extras?.length && (
-                  <table className="mt-2 w-full min-w-[760px] text-sm">
+                  <table className="m-cards mt-2 w-full min-w-[760px] text-sm">
                     <caption className="px-4 py-2 text-left text-xs font-semibold text-neutral-700">{tr("Additional Items (Outside the Recipe Cards)")}</caption>
                     <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Basis")}</th><th className="px-4 py-2.5 text-right">{tr("Used")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th></tr></thead>
                     <tbody className="divide-y divide-neutral-100">

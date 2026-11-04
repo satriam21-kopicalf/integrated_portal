@@ -46,7 +46,7 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
         </p>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="m-cards w-full text-sm">
           <thead className={theadClass}>
             <tr>
               <th className="sticky left-0 bg-neutral-50 px-4 py-2">{tr("Branch")}</th>
@@ -98,7 +98,7 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
       </div>
       {!rows.length ? <Empty title={tr("No Usage Management list filled in this period")} /> : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="m-cards w-full text-sm">
             <thead className={theadClass}>
               <tr><th className="px-4 py-2">{tr("Day")}</th><th className="px-4 py-2">{tr("Branch")}</th><th className="px-4 py-2">{tr("Item")}</th>
                 <th className="px-4 py-2 text-right">{tr("Quantity")}</th><th className="px-4 py-2">{tr("Category")}</th><th className="px-4 py-2">{tr("Photo")}</th><th className="px-4 py-2">{tr("Filled by")}</th></tr>

@@ -199,7 +199,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                 ))}
               </ul>
               <div className="hidden overflow-x-auto md:block">
-                <table className="w-full min-w-[920px] text-sm">
+                <table className="m-cards w-full min-w-[920px] text-sm">
                   <thead className={theadClass}>
                     <tr>
                       <th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5">{audit ? tr("Lead") : tr("PIC")}</th><th className="px-3 py-2.5">{tr("Sent")}</th>
@@ -292,7 +292,7 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
         <Empty icon={<UsersRound size={28} />} title={tr("No PIC with this form")}>{tr("PICs appear here when their account has the form page and an outlet in scope.")}</Empty>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="m-cards w-full text-sm">
             <thead className={theadClass}>
               <tr>
                 <th className="sticky left-0 z-10 min-w-[14rem] bg-neutral-50 py-2.5 pl-5 pr-3">{tr("PIC")}</th>

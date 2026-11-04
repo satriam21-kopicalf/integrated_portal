@@ -124,7 +124,7 @@ function Shifts({ data }: { data: Monitor }) {
       <Panel title={tr("Shifts")}>
         {data.shifts.length === 0 ? <Empty title={tr("No driver has checked in on this day")} /> : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="m-cards w-full text-sm">
               <thead className={kcTable.thead}>
                 <tr>
                   <th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-4 py-2.5">{tr("Pool / Fleet")}</th>
