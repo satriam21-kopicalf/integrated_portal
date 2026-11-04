@@ -91,7 +91,7 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
     { get name() { return tr('Fund Request'); }, href: '/monitoring/pengajuan', icon: Wallet, get description() { return tr('Petty cash, receipts & approvals'); } },
   ] },
   { get title() { return tr('Settings'); }, get hint() { return tr('How the outlets are grouped'); }, icon: Boxes, items: [
-    { get name() { return tr('Branch groups'); }, href: '/monitoring/branch-groups', icon: Boxes, get description() { return tr('CCI, CTG, CTGP … for the assessment'); } },
+    { get name() { return tr('Branch Groups'); }, href: '/monitoring/branch-groups', icon: Boxes, get description() { return tr('CCI, CTG, CTGP … for the assessment'); } },
   ] },
 ];
 

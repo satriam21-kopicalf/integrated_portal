@@ -60,7 +60,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
           {bgroups.length > 0 && (
             <select value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Branch Group")}
               className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm text-neutral-700">
-              <option value="">{tr("All branch groups")}</option>
+              <option value="">{tr("All Branch Groups")}</option>
               {bgroups.map((g) => <option key={g.id} value={g.id}>{g.code}</option>)}
             </select>
           )}

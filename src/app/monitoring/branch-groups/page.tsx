@@ -42,9 +42,9 @@ export default function BranchGroupsPage() {
   const total = data ? data.groups.reduce((a, g) => a + g.branches.length, 0) + data.unassigned.length : 0;
 
   return (
-    <Page title={tr("Branch groups")} subtitle={tr("Classes of outlets the forms are assessed by (CCI, CTG, CTGP …); one group per branch")}
+    <Page title={tr("Branch Groups")} subtitle={tr("Classes of outlets the forms are assessed by (CCI, CTG, CTGP …); one group per branch")}
       actions={canEdit && tab === "groups" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Group")}</Button> : undefined}>
-      <Tabs label={tr("Branch groups")} value={tab} onChange={setTab} tabs={[
+      <Tabs label={tr("Branch Groups")} value={tab} onChange={setTab} tabs={[
         { key: "groups", label: tr("Groups") }, { key: "deadlines", label: tr("Check-In Deadlines") },
         { key: "items", label: tr("Form Items") }, { key: "targets", label: tr("Net Sales") }]} />
       {tab === "deadlines" ? <CheckInDeadlines canEdit={canEdit} /> : tab === "items" ? <FormItems canEdit={canEdit} />
@@ -141,7 +141,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
   };
 
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<Boxes size={18} />} title={group ? group.code : tr("New branch group")}
+    <Drawer open onClose={onClose} size="lg" icon={<Boxes size={18} />} title={group ? group.code : tr("New Branch Group")}
       description={tr("{0} branches selected", picked.size)} focusFirstField={!group}
       footer={<>
         {group && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => setDeleting(true)}><Trash2 size={15} /> {tr("Delete")}</Button>}

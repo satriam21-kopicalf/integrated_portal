@@ -883,7 +883,7 @@ function CategoriesDrawer({ bgroups, onClose }: { bgroups: GroupOpt[]; /** after
               {URGENCIES.map((u) => <option key={u} value={u}>{URGENCY_LABEL[u]()}</option>)}
             </select>
           </Field>
-          <Field label={tr("Branch groups")} hint={tr("Only the outlets of these groups see the category on the form; none = every outlet")}>
+          <Field label={tr("Branch Groups")} hint={tr("Only the outlets of these groups see the category on the form; none = every outlet")}>
             <div className="flex flex-wrap gap-1.5">
               {bgroups.map((g) => {
                 const on = (edit.branchGroups ?? []).includes(g.id);

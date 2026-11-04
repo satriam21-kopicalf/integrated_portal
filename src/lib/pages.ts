@@ -58,7 +58,7 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return tr('Monitoring Outlet'); }, get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.wwwr', href: '/monitoring/wwwr', label: 'Monitoring WW-WR', get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Damaged Equipment'); }, get group() { return tr('Monitoring OPS'); } },
-  { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch groups'); }, get group() { return tr('Monitoring OPS'); } },
+  { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch Groups'); }, get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Fund Request'); }, get group() { return tr('Monitoring OPS'); } },
   // the two approval steps of Pengajuan: rights inside /monitoring/pengajuan, not menu entries of their own
   { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Aggregator'); } },
