@@ -5190,4 +5190,6 @@ export const ID: Record<string, string> = {
   "system {0}": "system {0}",
   "{0} branches with SO awal & akhir ({1} from the portal SO)": "{0} cabang dengan SO awal & akhir ({1} dari SO portal)",
   "{0} with one SO only (left out)": "{0} hanya punya satu SO (tidak dihitung)",
+  "Bought in a unit with no conversion to {0} in the item master: not counted": "Dibeli dalam satuan yang belum punya konversi ke {0} di master item: tidak dihitung",
+  "not converted": "belum dikonversi",
 };

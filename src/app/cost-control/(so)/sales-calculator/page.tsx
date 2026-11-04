@@ -32,7 +32,7 @@ type Report = {
   period: { from: string; to: string; days: number; horizon: number; buffer: number };
   menus: { id: string; name: string; recipe: string; recipeName: string; qty: number; sales: number; hpp: number | null; cogs: number | null; ratio: number | null }[];
   unmapped: { id: string; name: string; category: string; qty: number; sales: number }[];
-  usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; soStart?: number | null; purchased?: number | null; soEnd?: number | null;
+  usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; soStart?: number | null; purchased?: number | null; soEnd?: number | null; purchasedOther?: { uom: string; qty: number }[];
     actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
   mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean }[];
   stock?: { branches: { code: string; start: StockRef | null; end: StockRef | null }[]; covered: string[]; onHand: { branches: number; from: string | null; to: string | null } };
@@ -854,7 +854,9 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
                     <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
                       <td className="px-4 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Awal")}>{r.soStart == null ? "—" : num(r.soStart)}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Purchases")}>{r.purchased == null ? "—" : num(r.purchased)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Purchases")}>{r.purchased == null ? "—" : num(r.purchased)}
+                        {!!r.purchasedOther?.length && <span className="block text-[11px] text-amber-700" title={tr("Bought in a unit with no conversion to {0} in the item master: not counted", r.unit)}>
+                          + {r.purchasedOther.map((o) => `${num(o.qty)} ${o.uom}`).join(", ")} {tr("not converted")}</span>}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Akhir")}>{r.soEnd == null ? "—" : num(r.soEnd)}</td>
                       <td className="px-4 py-2 text-right font-semibold tabular-nums" data-label={tr("Actual")}>{r.actual == null ? "—" : `${num(r.actual)} ${r.unit}`}</td>
                       <td className="px-4 py-2 text-right tabular-nums" data-label={tr("System")}>{num(r.system)} {r.unit}</td>
