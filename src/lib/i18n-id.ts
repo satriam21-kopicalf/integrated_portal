@@ -5195,4 +5195,5 @@ export const ID: Record<string, string> = {
   "Monitoring WW-WR": "Monitoring WW-WR",
   "WW-WR Team": "Tim WW-WR",
   "Mark it to show this super admin in the WW-WR team (lead and members of an audit).": "Centang agar super admin ini muncul di tim WW-WR (ketua dan anggota audit).",
+  "The weekly stock opname can be started once its window opens": "Stock opname mingguan baru bisa dimulai saat jadwalnya dibuka",
 };

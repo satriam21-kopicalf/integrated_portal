@@ -20,6 +20,9 @@ import LiveClock from "@/so/ui/LiveClock";
 
 // over several days the label names the day the window opens / closes
 const multiDay = (c: TodayCount) => !!c.period_start && !!c.period_end && c.period_start !== c.period_end;
+/** a scheduled weekly count starts once its window opens (the server refuses it before, 2026-11-04) */
+const opensDate = (c: TodayCount) => (c.period_start && c.window_start ? new Date(`${c.period_start}T${c.window_start}:00+07:00`) : null);
+const lockedUntilOpen = (c: TodayCount, now: number) => c.frequency === "WEEKLY" && (opensDate(c)?.getTime() ?? 0) > now;
 const opensAt = (c: TodayCount) => multiDay(c) ? periodText(c.period_start!, null, c.window_start) : windowText(c.window_start);
 const closesAt = (c: TodayCount) => multiDay(c) ? periodText(c.period_end!, null, c.window_end) : windowText(c.window_end);
 const WINDOW: Record<string, { tone: "slate" | "green" | "amber"; label: (c: TodayCount) => string }> = {
@@ -35,6 +38,9 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
   const [rows, setRows] = useState<TodayFacility[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState<string | null>(null);
+  // the clock of the Start buttons of the weekly counts: they open by themselves at the window start
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
   // the count being started waits for the position (06.9 §12.15)
   const [locating, setLocating] = useState<{ facilityId: string; countType: string } | null>(null);
   const [q, setQ] = useState("");
@@ -131,9 +137,15 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                               </div>
                             </div>
                             {!s ? (
+                              lockedUntilOpen(c, now) ? (
+                                <Button className="w-full sm:w-auto" variant="secondary" disabled title={tr("The weekly stock opname can be started once its window opens")}>
+                                  <CalendarClock size={16} /> {tr("Opens at {0}", opensAt(c))}
+                                </Button>
+                              ) : (
                               <Button className="w-full sm:w-auto" loading={starting === key} disabled={!!starting} onClick={() => start(f.facility.id, c.count_type)}>
                                 {tr("Start Stock Opname")} <span className="sr-only">{countTypeLabel(c.count_type, c.name)}</span>
                               </Button>
+                              )
                             ) : (
                               <Button variant={s.status === "IN_PROGRESS" || s.status === "RECOUNT_REQUESTED" ? "primary" : "secondary"} className="w-full sm:w-auto"
                                 onClick={() => router.push(`${basePath}/stock-opname/${s.id}`)}>
