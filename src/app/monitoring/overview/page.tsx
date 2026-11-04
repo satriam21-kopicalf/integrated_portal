@@ -179,7 +179,7 @@ function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Re
       how: tr("Visits {0} ({1} of {2}) and score {3}, averaged", pct(p.outletDone), p.outletVisits, p.visitTarget / 2, pct(p.outletScore)) },
     { key: "swat", label: tr("Agreement with SWAT"), value: p.conformity, how: p.swatAudits ? tr("{0} SWAT audits · {1} items overrated", p.swatAudits, p.overrated) : tr("Not audited yet") },
     { key: "sales", label: tr("Net Sales"), value: p.salesScore,
-      how: p.salesScore == null ? tr("The outlets of the PIC have no sales in this period or none in the 3 months before") : tr("Net sales per selling day of {0} outlets against their own of the 3 months before (Sales Transactions), at most 100", p.salesOutlets) },
+      how: p.salesScore == null ? tr("The outlets of the PIC have no sales in this period or none in the month before") : tr("Net sales per selling day of {0} outlets against their own of the month before (Sales Transactions), at most 100", p.salesOutlets) },
   ];
   return (
     <Drawer open onClose={onClose} size="md" icon={<Scale size={18} />} title={p.name} description={tr("How the PIC score is made")} focusFirstField={false}>

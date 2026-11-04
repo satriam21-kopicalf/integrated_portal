@@ -209,15 +209,15 @@ const SALES_INFO = {
   definition: [
     "Selling days: the days of the month the outlet has net sales above 0. 0 selling days = no transaction of the outlet has come in from ESB this month (not open yet, closed, or recorded in ESB under another branch code).",
     "Average per Day: net sales this month ÷ its selling days.",
-    "Average per Day (3 Months Before): the same outlet's net sales ÷ its selling days in the 3 full months before.",
-    "Against 3 Months Before: Average per Day ÷ Average per Day (3 Months Before). 100% = selling as usual; above 100% = more than usual (green); 85–99% a little less (amber); below 85% much less (red).",
+    "Average per Day (1 Month Before): the same outlet's net sales ÷ its selling days in the full month before.",
+    "Against 1 Month Before: Average per Day ÷ Average per Day (1 Month Before). 100% = selling as usual; above 100% = more than usual (green); 85–99% a little less (amber); below 85% much less (red).",
   ],
-  formula: ["PIC score, Net Sales part = Against 3 Months Before, at most 100, averaged over the outlets of the PIC. An outlet without sales in the 3 months before is left out."],
+  formula: ["PIC score, Net Sales part = Against 1 Month Before, at most 100, averaged over the outlets of the PIC. An outlet without sales in the month before is left out."],
 };
 const monthName = (iso: string) => new Date(`${iso.slice(0, 7)}-01T00:00:00`).toLocaleDateString(undefined, { month: "short", year: "numeric" });
 
 /** No target is set by hand: every outlet is compared with itself, its net sales per selling day (Sales Transactions)
- *  against its own per day of the 3 months before. The PIC score takes the % (at most 100). */
+ *  against its own per day of the month before. The PIC score takes the % (at most 100). */
 export function SalesTargets() {
   const [month, setMonth] = useState(thisMonth);
   const [res, setRes] = useState<SalesOverview | null>(null);
@@ -234,8 +234,8 @@ export function SalesTargets() {
   return (
     <Card flush title={<span className="inline-flex items-center gap-1.5">{tr("Net Sales of the Outlets")} <InfoTip info={SALES_INFO} /></span>}
       footer={res && rows.length > 0 ? <><span>{tr("{0} outlets", rows.length)}</span><PageNav paged={paged} /></> : undefined}
-      subtitle={res?.baselineFrom ? tr("From Sales Transactions. Each outlet is compared with itself: its net sales per selling day this month against its own per day in {0} – {1}. The PIC score takes this %, at most 100; an outlet without sales before (new) is left out.",
-        monthName(res.baselineFrom), monthName(res.baselineTo)) : undefined}
+      subtitle={res?.baselineFrom ? tr("From Sales Transactions. Each outlet is compared with itself: its net sales per selling day this month against its own per day in {0}. The PIC score takes this %, at most 100; an outlet without sales before (new) is left out.",
+        monthName(res.baselineFrom)) : undefined}
       actions={<Input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} className="h-9 w-40" aria-label={tr("Month")} />}
       toolbar={<SearchInput value={q} onChange={setQ} placeholder={tr("Search outlet, code or group")} />}>
       {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table> : rows.length === 0 ? (
@@ -245,8 +245,8 @@ export function SalesTargets() {
           <table className="m-cards w-full min-w-[820px] text-sm">
             <thead className={kcTable.thead}><tr>
               <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5 text-right">{tr("Net Sales This Month")}</th>
-              <th className="px-4 py-2.5 text-right">{tr("Average per Day")}</th><th className="px-4 py-2.5 text-right">{tr("Average per Day (3 Months Before)")}</th>
-              <th className="px-4 py-2.5 text-right">{tr("Against 3 Months Before")}</th>
+              <th className="px-4 py-2.5 text-right">{tr("Average per Day")}</th><th className="px-4 py-2.5 text-right">{tr("Average per Day (1 Month Before)")}</th>
+              <th className="px-4 py-2.5 text-right">{tr("Against 1 Month Before")}</th>
             </tr></thead>
             <tbody className={kcTable.tbody}>
               {paged.rows.map((o) => (
@@ -254,8 +254,8 @@ export function SalesTargets() {
                   <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
                   <td className="px-4 py-2.5 text-right tabular-nums text-neutral-800" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-neutral-400">{tr("{0} selling days", o.days ?? 0)}</span></td>
                   <td className="px-4 py-2.5 text-right tabular-nums" data-label={tr("Average per Day")}>{o.perDay == null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Average per Day (3 Months Before)")}>{o.baselinePerDay == null ? <Pill>{tr("No sales data yet")}</Pill> : rupiah(o.baselinePerDay)}</td>
-                  <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against 3 Months Before")}>{o.vsBaseline == null ? "—" : `${o.vsBaseline}%`}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Average per Day (1 Month Before)")}>{o.baselinePerDay == null ? <Pill>{tr("No sales data yet")}</Pill> : rupiah(o.baselinePerDay)}</td>
+                  <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against 1 Month Before")}>{o.vsBaseline == null ? "—" : `${o.vsBaseline}%`}</td>
                 </tr>
               ))}
             </tbody>
