@@ -187,7 +187,7 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
             </table>
           </div>
           <OperationsNote only={false} some />
-          <p className="text-xs text-neutral-500">{tr('Roles User (PIC) and Outlet / Hub see only their assigned branches; Cost Control pages show every branch. A new form is added to role User (PIC).')}</p>
+          <p className="text-xs text-neutral-500">{tr('Roles User and Outlet / Hub see only their assigned branches; Cost Control pages show every branch. A new form is added to role User.')}</p>
           <p className="text-xs text-neutral-500">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
           {message && <p role="status" className={`rounded-lg px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
         </div>

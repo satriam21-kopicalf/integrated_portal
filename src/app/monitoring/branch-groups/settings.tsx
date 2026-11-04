@@ -11,7 +11,7 @@ import InfoTip from "@/components/ui/InfoTip";
 import { Card, EmptyState, Pill, SearchInput, kcTable } from "@/components/kc";
 import { SkeletonRows } from "@/components/kc/Skeleton";
 import { call } from "@/so/features/checkin/checkin";
-import { tr } from "@/lib/i18n";
+import { tr, useLang } from "@/lib/i18n";
 
 /* ---------------------------------------------------------------- check-in deadlines */
 
@@ -106,11 +106,13 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
 /* ---------------------------------------------------------------- form items per group */
 
 type Cell = { shown: boolean; default: boolean; changed: boolean };
-type Matrix = { groups: string[]; forms: { form: "product" | "outlet"; sections: { key: string; title: string; titleEn: string; group: string;
+type Matrix = { groups: string[]; forms: { form: "product" | "outlet"; sections: { key: string; title: string; titleEn: string; group: string; groupTitle?: string;
   items: { key: string; no: number; label: string; labelEn: string; required: boolean; groups: Record<string, Cell> }[] }[] }[] };
 
 export function FormItems({ canEdit }: { canEdit: boolean }) {
   const toast = useToast();
+  const { lang } = useLang();
+  const en = lang === "en";
   const [res, setRes] = useState<Matrix | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<"product" | "outlet">("product");
@@ -165,10 +167,10 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
               if (!items.length) return null;
               return (
                 <tbody key={sec.key} className={kcTable.tbody}>
-                  <tr><td colSpan={res.groups.length + 1} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{sec.group} · {sec.titleEn}</td></tr>
+                  <tr><td colSpan={res.groups.length + 1} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{en ? `${sec.group} · ${sec.titleEn}` : `${sec.groupTitle ?? sec.group} · ${sec.title}`}</td></tr>
                   {items.map((it) => (
                     <tr key={it.key} className="hover:bg-neutral-50">
-                      <td className="px-4 py-2"><span className="text-neutral-900">{it.no}. {it.labelEn}</span>{!it.required && <span className="ml-1.5 text-[11px] text-neutral-400">({tr("optional")})</span>}</td>
+                      <td className="px-4 py-2"><span className="text-neutral-900">{it.no}. {en ? it.labelEn : it.label}</span>{!it.required && <span className="ml-1.5 text-[11px] text-neutral-400">({tr("optional")})</span>}</td>
                       {res.groups.map((g) => {
                         const c = it.groups[g];
                         const v = shown(it.key, g, c);
@@ -177,7 +179,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                           <td key={g} className="px-3 py-2 text-center">
                             <label className="relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg hover:bg-neutral-100">
                               <input type="checkbox" className="h-[18px] w-[18px] cursor-pointer rounded border-neutral-300 accent-brand-700" checked={v} disabled={!canEdit}
-                                aria-label={`${it.labelEn} · ${g}`}
+                                aria-label={`${en ? it.labelEn : it.label} · ${g}`}
                                 onChange={() => setChanges((x) => { const n = { ...x }; const key = k(it.key, g); if (!v === c.shown) delete n[key]; else n[key] = !v; return n; })} />
                               {changed && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden title={tr("Changed from the standard")} />}
                             </label>

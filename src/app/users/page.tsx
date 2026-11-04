@@ -390,7 +390,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
       }>
       <div className="space-y-6">
         <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: tr('All Roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User (PIC)') }, { value: 'outlet', label: tr('Outlet / Hub') }, { value: 'driver', label: tr('Driver (COTR)') },
+          { value: '', label: tr('All Roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User') }, { value: 'outlet', label: tr('Outlet / Hub') }, { value: 'driver', label: tr('Driver (COTR)') },
         ]} />
         <ChoiceGroup label={tr('Status')} value={draft.status} onChange={set('status')} choices={[
           { value: '', label: tr('All') }, { value: 'active', label: tr('Active') }, { value: 'inactive', label: tr('Inactive') },
@@ -642,7 +642,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             </Field>
             <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : tr('Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches')}>
               <select id="f-role" className={inputClass} value={form.role} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
-                <option value="user">{tr('User (PIC)')}</option>
+                <option value="user">{tr('User')}</option>
                 <option value="outlet">{tr('Outlet / Hub')}</option>
                 <option value="driver">{tr('Driver (COTR)')}</option>
                 <option value="cost_control">{tr('Cost Control')}</option>
@@ -666,7 +666,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         )}
 
         {branchScoped(form.role) ? (
-          <DrawerSection title={tr('Branch Access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User (PIC) and Outlet / Hub.')}>
+          <DrawerSection title={tr('Branch Access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User and Outlet / Hub.')}>
             <BranchAssign branches={lineBranches(branches, businessLine)} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>

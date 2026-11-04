@@ -102,7 +102,7 @@ export function operationsOnly(role: Role, pages: PageKey[]): boolean {
   return role !== 'superadmin' && pages.some(p => p.startsWith('form.')) && pages.every(p => OPERATIONS_PAGES.includes(p));
 }
 export const ROLE_LABELS: Record<Role, string> = {
-  get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User (PIC)'); }, get outlet() { return tr('Outlet / Hub'); },
+  get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User'); }, get outlet() { return tr('Outlet / Hub'); },
   get driver() { return tr('Driver (COTR)'); },
 };
 export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('Male'); }, get female() { return tr('Female'); } };

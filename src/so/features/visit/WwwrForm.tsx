@@ -3,7 +3,7 @@
 // Form → WW-WR (page form.wwwr, the SWAT team; integrated_portal_be app/wwwr.py): the audits the member is assigned to
 // (scheduled by the management in Monitoring WW-WR). From its day an audit opens the one shared visit of the team:
 // every item of Monitoring Product and Monitoring Outlet, each answer saved with who filled it. The lead adds colleagues
-// (SWAT / Operations) to the team. Before the lead sends it, the team writes the evaluation: the general evaluation, the
+// (accounts assigned Form WW-WR) to the team. Before the lead sends it, the team writes the evaluation: the general evaluation, the
 // action plans (who handles each, by when) and the day of the revisit. A sent audit is followed up here: the action
 // plans are marked done and the lead closes the revisit (then it is complete); its result is shared with the PIC by a
 // link (print / PDF). The team never sees a score.
@@ -196,7 +196,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
         </section>
         <section>
           <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Add Colleagues")}</h3>
-          <p className="mb-2 text-xs text-neutral-500">{tr("SWAT / Operations accounts. They see this audit in Form WW-WR and fill it with you; only you send it.")}</p>
+          <p className="mb-2 text-xs text-neutral-500">{tr("Accounts assigned Form WW-WR (User Accounts). They see this audit in Form WW-WR and fill it with you; only you send it.")}</p>
           <div className="overflow-hidden rounded-xl border border-neutral-200">
             <div className="relative border-b border-neutral-100 p-2"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search colleague")} className={cx(inputClass, "h-9 pl-8")} /></div>
