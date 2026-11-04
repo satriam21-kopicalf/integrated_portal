@@ -55,6 +55,20 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
     return (
       <div className="space-y-3">
         <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">{tr('Super admins open every page, including User Accounts and Activity Logs.')}</p>
+        {/* the WW-WR team (2026-11-04): a super admin shows in the team list only when marked here */}
+        <div className="rounded-lg border border-neutral-200 px-3 py-2.5">
+          <p className="text-sm font-medium text-neutral-900">{tr('WW-WR Team')}</p>
+          <p className="mt-0.5 text-xs text-neutral-500">{tr('Mark it to show this super admin in the WW-WR team (lead and members of an audit).')}</p>
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+            {([['form.wwwr', tr('Form WW-WR')], ['mon.wwwr', tr('Monitoring WW-WR')]] as const).map(([k, label]) => (
+              <label key={k} className="inline-flex cursor-pointer items-center gap-2 text-sm text-neutral-800">
+                <input type="checkbox" className="h-4 w-4 rounded border-neutral-300 accent-brand-700" checked={!!overrides[k]}
+                  onChange={() => { const next = { ...overrides }; if (next[k]) delete next[k]; else next[k] = true; onChange(next); }} />
+                {label}
+              </label>
+            ))}
+          </div>
+        </div>
         {onHiddenChange && <MenuDisplay hidden={hidden ?? []} onChange={onHiddenChange} />}
       </div>
     );

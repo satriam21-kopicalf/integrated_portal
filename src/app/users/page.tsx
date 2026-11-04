@@ -522,7 +522,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
     if (form.password) body.password = form.password;
     if (branchScoped(form.role)) body.branches = branchCodes;
     if (form.role !== 'superadmin') body.pageOverrides = pageOverrides;
-    else body.hiddenPages = hiddenPages;
+    else {
+      body.hiddenPages = hiddenPages;
+      // a super admin keeps only the WW-WR team markers (Form / Monitoring WW-WR)
+      body.pageOverrides = Object.fromEntries(Object.entries(pageOverrides).filter(([k, v]) => v && (k === 'form.wwwr' || k === 'mon.wwwr')));
+    }
     body.businessLine = businessLine;
     return body;
   }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages]);

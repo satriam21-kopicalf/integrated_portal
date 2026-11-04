@@ -5191,4 +5191,8 @@ export const ID: Record<string, string> = {
   "{0} with one SO only (left out)": "{0} hanya punya satu SO (tidak dihitung)",
   "Bought in a unit with no conversion to {0} in the item master: not counted": "Dibeli dalam satuan yang belum punya konversi ke {0} di master item: tidak dihitung",
   "not converted": "belum dikonversi",
+  "Form WW-WR": "Form WW-WR",
+  "Monitoring WW-WR": "Monitoring WW-WR",
+  "WW-WR Team": "Tim WW-WR",
+  "Mark it to show this super admin in the WW-WR team (lead and members of an audit).": "Centang agar super admin ini muncul di tim WW-WR (ketua dan anggota audit).",
 };
