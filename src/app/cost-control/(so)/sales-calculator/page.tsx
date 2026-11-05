@@ -8,8 +8,8 @@
 // Usage Actual vs System (SO awal + purchases − SO akhir: the portal stock opname from 28 Oct 2026, else the ESB
 // document) and COGS Material (Pricelist Items), system and actual.
 
-import { BookOpen, CalendarDays, Calculator, Check, ChevronDown, ChevronRight, CupSoda, FlaskConical, Layers, ListChecks, Package, PenLine, Plus, Receipt, Save, Search, Store, Trash2, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Layers, ListChecks, Package, PenLine, Plus, Receipt, Save, Search, Store, Trash2, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatStrip } from "@/so/ui/StatStrip";
@@ -19,6 +19,8 @@ import { call } from "@/so/features/checkin/checkin";
 import { downloadXlsx } from "@/lib/xlsx";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { tr } from "@/lib/i18n";
+import { type Item, type Wip, Picker, matches, num, rp, useCatalog } from "./parts";
+import { BomImport, OptionsStep } from "./options";
 
 type Kind = "item" | "wip" | "other";
 type Line = { type: Kind; code: string; name: string; qty: number; unit: string; price?: number | null };
@@ -26,11 +28,11 @@ type Extra = { id: number; code: string | null; name: string; unit: string; pric
 type Recipe = { code: string; name: string; category: string | null; lines: Line[]; note: string | null; isActive: boolean; menus: { id: string; name: string }[] };
 type Menu = { id: string; name: string; category: string; detail?: string; kinds?: string[]; companies?: { code: string; name: string }[];
   qty: number; lastSold?: string | null; recipe: string | null };
-type Item = { code: string; name: string; unit: string; category: string | null; price: number | null };
-type Wip = { code: string; name: string; components: { code: string | null; name: string; unit: string; perGram: number }[] };
 type Report = {
   period: { from: string; to: string; days: number; horizon: number; buffer: number };
-  menus: { id: string; name: string; recipe: string; recipeName: string; qty: number; sales: number; hpp: number | null; cogs: number | null; ratio: number | null }[];
+  menus: { id: string; name: string; recipe: string; recipeName: string; qty: number; sales: number; hpp: number | null; cogs: number | null; ratio: number | null; optionCogs?: number }[];
+  /** choices sold with mapped menus that have no rule yet, and the days of the period whose choices are still built */
+  options?: { unruled: { name: string; qty: number }[]; pendingDays: number };
   unmapped: { id: string; name: string; category: string; qty: number; sales: number }[];
   usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; soStart?: number | null; purchased?: number | null; soEnd?: number | null; purchasedOther?: { uom: string; qty: number }[];
     actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
@@ -43,18 +45,14 @@ type Report = {
 /** the stock opname an SO awal / akhir comes from: counted in the portal (from 28 Oct 2026) or the ESB document */
 type StockRef = { source: "portal" | "esb"; date: string; refs: string[] };
 type Branch = { branch_code: string; branch_name: string };
-type Step = "recipes" | "menus" | "extras" | "report";
+type Step = "recipes" | "menus" | "options" | "extras" | "report";
 
 const BASIS: Record<Extra["basis"], () => string> = { bill: () => tr("Per Bill"), portion: () => tr("Per Portion Sold"), day: () => tr("Per Outlet-Day") };
 const KIND: Record<Kind, { label: () => string; tone: "blue" | "violet" | "amber" }> = {
   item: { label: () => tr("Raw Material / Packaging"), tone: "blue" }, wip: { label: () => tr("WIP / Premix"), tone: "violet" }, other: { label: () => tr("Other Item"), tone: "amber" },
 };
-const num = (n: number | null | undefined, d = 2) => (n === null || n === undefined ? "—" : n.toLocaleString("id-ID", { maximumFractionDigits: d }));
-const rp = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `Rp ${Math.round(n).toLocaleString("id-ID")}`);
 const pct = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${(n * 100).toFixed(1)}%`);
 /** "1,5" / "1.5" → 1.5; an empty or unfinished value → null */
-/** every word of the search in the text, in any order ("es kopi premium" finds "ES KOPI CALF - PREMIUM") */
-const matches = (text: string, q: string) => { const t = text.toLowerCase(); return q.toLowerCase().split(/\s+/).filter(Boolean).every((w) => t.includes(w)); };
 const brands = (m: Menu) => (m.companies ?? []).map((c) => c.name).join(" · ");
 const parse = (v: string) => { const n = Number(v.replace(",", ".")); return v.trim() === "" || Number.isNaN(n) ? null : n; };
 
@@ -73,6 +71,7 @@ export default function SalesCalculatorPage() {
     { key: "recipes", label: tr("Recipe Cards"), hint: tr("Components per portion"), icon: BookOpen, status: p ? tr("{0} cards", p.cards) : null, done: !!p?.cards },
     { key: "menus", label: tr("Assign Menus"), hint: tr("ESB menus to a card"), icon: ListChecks, status: p ? tr("{0} of {1} menus", p.mapped, p.menus) : null,
       done: !!p && p.menus > 0 && p.mapped === p.menus, share: p && p.menus ? p.mapped / p.menus : undefined },
+    { key: "options", label: tr("Variants & Modifiers"), hint: tr("Less / No Sugar, Extra Shot …"), icon: SlidersHorizontal, status: null, done: false },
     { key: "extras", label: tr("Additional Items"), hint: tr("Outside the cards"), icon: Package, status: p ? tr("{0} active", p.extras) : null, done: !!p?.extras },
     { key: "report", label: tr("Calculator"), hint: tr("MRP, usage & COGS"), icon: Calculator, status: null, done: false },
   ];
@@ -108,68 +107,11 @@ export default function SalesCalculatorPage() {
       </nav>
       {step === "recipes" && <Recipes />}
       {step === "menus" && <MenuAssign />}
+      {step === "options" && <OptionsStep />}
       {step === "extras" && <Extras />}
       {step === "report" && <ReportView onGo={setStep} />}
     </Page>
   );
-}
-
-/** A searchable picker that renders the first matches only (the item master has thousands of items). */
-function Picker({ value, options, onPick, placeholder }: {
-  value: string; options: { value: string; label: string; hint?: string }[]; onPick: (v: string) => void; placeholder: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
-  const box = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
-  const current = options.find((o) => o.value === value);
-  const s = q.trim().toLowerCase();
-  const all = s ? options.filter((o) => `${o.label} ${o.value} ${o.hint ?? ""}`.toLowerCase().includes(s)) : options;
-  const shown = all.slice(0, 60);
-  return (
-    <div ref={box} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} className={cx(inputClass, "flex h-9 items-center justify-between gap-2 text-left")}>
-        <span className={cx("truncate", !current && "text-neutral-400")}>{current ? current.label : placeholder}</span>
-        <ChevronDown size={15} className="flex-shrink-0 text-neutral-400" />
-      </button>
-      {open && (
-        <div className="absolute left-0 z-30 mt-1 w-[min(26rem,85vw)] overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl">
-          <div className="relative border-b border-neutral-100 p-2">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search name or code")} className={cx(inputClass, "h-9 pl-8")} />
-          </div>
-          <ul className="max-h-72 overflow-y-auto py-1">
-            {shown.map((o) => (
-              <li key={o.value}>
-                <button type="button" onClick={() => { onPick(o.value); setOpen(false); setQ(""); }}
-                  className={cx("flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-neutral-50", o.value === value && "bg-brand-50 text-brand-800")}>
-                  <span className="truncate">{o.label}</span>{o.hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{o.hint}</span>}
-                </button>
-              </li>
-            ))}
-            {!shown.length && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr("No match")}</li>}
-            {all.length > shown.length && <li className="px-3 py-2 text-center text-[11px] text-neutral-400">{tr("{0} more — type to narrow down", all.length - shown.length)}</li>}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function useCatalog() {
-  const [items, setItems] = useState<Item[] | null>(null);
-  const [wips, setWips] = useState<Wip[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    call<{ data: Item[] }>("/api/cost-control/pricelist").then((r) => setItems(r.data)).catch((e: Error) => { setItems([]); setError(e.message); });
-    void call<{ data: Wip[] }>("/api/cost-control/sales-calc/wips").then((r) => setWips(r.data)).catch(() => setWips([]));
-  }, []);
-  return { items: items ?? [], loading: items === null, wips, error };
 }
 
 // ---------------------------------------------------------------- 1. recipe cards
@@ -193,6 +135,7 @@ function Recipes() {
   const [rows, setRows] = useState<Recipe[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [edit, setEdit] = useState<Recipe | "new" | null>(null);
+  const [bom, setBom] = useState(false);
   const [q, setQ] = useState("");
   const load = useCallback(() => { call<{ data: Recipe[] }>("/api/cost-control/sales-calc/recipes").then((r) => setRows(r.data)).catch((e: Error) => setError(e.message)); }, []);
   useEffect(() => { load(); }, [load]);
@@ -201,11 +144,15 @@ function Recipes() {
   const shown = (rows ?? []).filter((r) => !q || matches(`${r.name} ${r.code} ${r.category ?? ""}`, q));
   return (
     <Panel title={tr("Recipe Cards")} description={tr("What one portion of a menu uses: raw materials, packaging, WIP / premix and other items")}
-      actions={<Button size="sm" onClick={() => setEdit("new")}><Plus size={14} />{tr("New Card")}</Button>}
+      actions={<div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="secondary" onClick={() => setBom(true)}><ArrowDownToLine size={14} />{tr("Import from the ESB BOM")}</Button>
+        <Button size="sm" onClick={() => setEdit("new")}><Plus size={14} />{tr("New Card")}</Button></div>}
       toolbar={<div className="relative sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" /><input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search card")} /></div>}>
-      {error ? <ErrorState message={error} onRetry={load} /> : !rows ? <SkeletonRows cols={4} /> : shown.length === 0 ? (
+      {error ? <ErrorState message={error} onRetry={load} /> : !rows ? <table className="w-full"><tbody><SkeletonRows cols={4} /></tbody></table> : shown.length === 0 ? (
         <Empty icon={<BookOpen size={26} />} title={rows.length ? tr("No card matches") : tr("No recipe card yet")}>
-          {!rows.length && <Button className="mt-3" onClick={() => setEdit("new")}><Plus size={14} />{tr("Make the First Card")}</Button>}
+          {!rows.length && <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <Button onClick={() => setBom(true)}><ArrowDownToLine size={14} />{tr("Import from the ESB BOM")}</Button>
+            <Button variant="secondary" onClick={() => setEdit("new")}><Plus size={14} />{tr("Make the First Card")}</Button></div>}
         </Empty>
       ) : (
         <ul className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -213,6 +160,7 @@ function Recipes() {
         </ul>
       )}
       {edit && <RecipeDrawer recipe={edit === "new" ? null : edit} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
+      {bom && <BomImport onClose={() => setBom(false)} onDone={() => { setBom(false); load(); }} />}
     </Panel>
   );
 }
@@ -511,7 +459,7 @@ function MenuAssign() {
         {tr("{0} of {1} menus have a card", all.length - free, all.length)}</span> : undefined}
       toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search menu, e.g. es kopi premium")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_AF)} />}
       footer={menus ? <><span>{tr("{0} shown", fmtNumber(shown.length))}</span><PageNav paged={paged} /></> : undefined}>
-      {!menus ? <SkeletonRows cols={5} /> : (
+      {!menus ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table> : (
         <>
           {!recipes.length && <p className="mx-4 mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No recipe card yet: make the cards in step 1, then choose them here.")}</p>}
           {shown.length === 0 ? <Empty title={tr("No menu matches")} /> : (
@@ -615,7 +563,7 @@ function Extras() {
   return (
     <Panel title={tr("Additional Items")} description={tr("Items no menu records (cable ties, plastic bags …): counted per bill, per portion sold or per day of an outlet, and added to the planning, the usage and the COGS")}
       actions={<Button size="sm" onClick={() => open({ ...blank })}><Plus size={14} />{tr("Add Item")}</Button>}>
-      {!rows ? <SkeletonRows cols={5} /> : rows.length === 0 ? (
+      {!rows ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table> : rows.length === 0 ? (
         <Empty icon={<Package size={26} />} title={tr("No additional item yet")}><Button className="mt-3" onClick={() => open({ ...blank })}><Plus size={14} />{tr("Add Item")}</Button></Empty>
       ) : (
         <div className="overflow-x-auto">
@@ -813,8 +761,14 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
             <p className="max-w-md">{tr("Material Required Planning needs the days to plan for (and a buffer, optional) in Filters.")}</p>
             <Button className="mt-3" onClick={() => setSheet(true)}>{tr("Open Filters")}</Button>
           </Empty>
-        ) : error ? <ErrorState message={error} onRetry={() => setTick((x) => x + 1)} /> : !data ? <SkeletonRows cols={6} /> : (
+        ) : error ? <ErrorState message={error} onRetry={() => setTick((x) => x + 1)} /> : !data ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table> : (
           <div className="overflow-x-auto">
+            {!!data.options?.unruled.length && (
+              <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <span className="flex-1">{tr("{0} choices sold have no rule yet, so they are counted as the standard card: {1}", data.options.unruled.length, data.options.unruled.slice(0, 5).map((u) => `${u.name} (${num(u.qty, 0)})`).join(", "))}{data.options.unruled.length > 5 ? "…" : ""}</span>
+                <Button size="sm" variant="secondary" onClick={() => onGo("options")}>{tr("Set the Rules")}</Button>
+              </div>
+            )}
             {data.unmapped.length > 0 && (
               <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
                 <span className="flex-1">{tr("{0} menus sold have no recipe card yet and are not counted: {1}", data.unmapped.length, data.unmapped.slice(0, 6).map((m) => m.name).join(", "))}{data.unmapped.length > 6 ? "…" : ""}</span>
@@ -881,7 +835,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
                         <td className="px-4 py-2 font-medium text-neutral-900">{m.name}</td><td className="px-4 py-2 text-xs text-neutral-600">{m.recipeName}</td>
                         <td className="px-4 py-2 text-right tabular-nums">{num(m.qty, 0)}</td><td className="px-4 py-2 text-right tabular-nums">{rp(m.sales)}</td>
                         <td className="px-4 py-2 text-right tabular-nums">{m.hpp === null ? <Badge tone="amber">{tr("Price missing")}</Badge> : rp(m.hpp)}</td>
-                        <td className="px-4 py-2 text-right tabular-nums">{rp(m.cogs)}</td><td className="px-4 py-2 text-right tabular-nums">{pct(m.ratio)}</td>
+                        <td className="px-4 py-2 text-right tabular-nums">{rp(m.cogs)}{!!m.optionCogs && <span className="block text-[11px] text-neutral-400">{tr("choices {0}", `${m.optionCogs > 0 ? "+" : ""}${rp(m.optionCogs)}`)}</span>}</td><td className="px-4 py-2 text-right tabular-nums">{pct(m.ratio)}</td>
                       </tr>
                     ))}
                     {!data.menus.length && <tr><td colSpan={7}><Empty icon={<Calculator size={26} />} title={tr("No sales of menus with a card in this period")}>{tr("Make recipe cards (step 1) and assign the menus (step 2).")}</Empty></td></tr>}
