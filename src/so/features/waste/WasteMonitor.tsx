@@ -22,7 +22,7 @@ import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { DailyReport, UsageReport } from "./WasteDaily";
 import { CategoriesDrawer, Ingredients, InvestigationDrawer, InvestigationList } from "./Investigation";
-import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, SCOPES, fmtQty, photoUrl, usagePhotoUrl, scopeLabel, signatureUrl, statusLabel, statusTone } from "./waste";
+import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, PRICE_SOURCE, SCOPES, fmtQty, fmtRp, photoUrl, usagePhotoUrl, scopeLabel, signatureUrl, statusLabel, statusTone } from "./waste";
 import { thumb } from "@/lib/assets";
 
 const DEFAULT_PERIOD = (): Period => ({ from: wibDay(-6), to: wibDay(0) });
@@ -113,13 +113,13 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const file = (what: string) => `${what} ${period.from} - ${period.to}`;
   const exportEntries = () => downloadXlsx({ fileName: file("Waste"), sheet: "Waste", title: `Waste ${dmy(period.from)} – ${dmy(period.to)}`,
     header: ["Tanggal", "Cabang", "Jenis", "Kode", "Item", "Qty", "Satuan", "Kategori", "Production date", "Expired date", "Catatan", "Status",
-      "Diinput oleh", "Waktu input", "Catatan review", "Foto"],
+      "Diinput oleh", "Waktu input", "Catatan review", "Foto", "Harga satuan (Rp)", "Nilai (Rp)", "Sumber harga"],
     rows: rows.map((e) => [e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category,
       e.productionDate, e.expiredDate, e.note, statusLabel(e.status), e.name, wibDateTime(e.createdAt), e.review?.note,
-      `${location.origin}${photoUrl(e.id)}`]) });
+      `${location.origin}${photoUrl(e.id)}`, e.unitPrice ?? null, e.value ?? null, e.priceSource ? PRICE_SOURCE[e.priceSource]() : null]) });
   const exportItems = () => downloadXlsx({ fileName: file("Waste per item"), sheet: "Per item", title: `Waste per item ${dmy(period.from)} – ${dmy(period.to)}`,
-    header: ["Jenis", "Kode", "Item", "Qty", "Satuan", "Entri", "Cabang"],
-    rows: (res?.byItem ?? []).map((i) => [scopeLabel(i.scope), i.code, i.name, i.qty, i.unit, i.entries, i.branches]) });
+    header: ["Jenis", "Kode", "Item", "Qty", "Satuan", "Entri", "Cabang", "Nilai (Rp)"],
+    rows: (res?.byItem ?? []).map((i) => [scopeLabel(i.scope), i.code, i.name, i.qty, i.unit, i.entries, i.branches, i.value ?? null]) });
   const q = () => new URLSearchParams({ dateFrom: period.from, dateTo: period.to, ...(branch ? { branch } : {}) });
   const exportDaily = async () => {
     const d = await call<DailyData>(`/api/waste/daily?${q()}`);
@@ -164,9 +164,11 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             {sm && <p>{tr("{0} people entered", fmtNumber(sm.people))}</p>}
           </Stat>
           <Stat label={tr("Branches")} icon={<Store size={13} />} onClick={() => setView("branches")} active={view === "branches"} value={sm ? fmtNumber(sm.branches) : <StatSkeleton />} />
-          <Stat label={tr("Items")} icon={<Package size={13} />} onClick={() => setView("items")} active={view === "items"} value={sm ? fmtNumber(sm.items) : <StatSkeleton />} />
           <Stat label={tr("Waiting Review")} icon={<Tags size={13} />} onClick={() => setStatus(status === "submitted" ? "" : "submitted")} active={status === "submitted"}
             value={sm ? <span className={sm.submitted ? "text-amber-600" : undefined}>{fmtNumber(sm.submitted)}</span> : <StatSkeleton />} />
+          <Stat label={tr("Waste Value")} icon={<Package size={13} />} onClick={() => setView("items")} active={view === "items"} value={sm ? fmtRp(sm.value ?? 0) : <StatSkeleton />}>
+            {sm && <p>{sm.unpriced ? tr("{0} entries without a price", fmtNumber(sm.unpriced)) : tr("Without rejected entries")}</p>}
+          </Stat>
           <Stat label={tr("Approved / Rejected")} icon={<CheckCircle2 size={13} />} value={sm ? `${fmtNumber(sm.approved)} / ${fmtNumber(sm.rejected)}` : <StatSkeleton />} />
         </StatStrip>
       }>
@@ -217,7 +219,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                         <span className="truncate text-sm font-semibold text-neutral-900">{e.itemName}</span>
                         <Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge>
                       </span>
-                      <span className="block text-xs text-neutral-600">{fmtQty(e.qty)} {e.unit} · {scopeLabel(e.scope)} · {e.category}</span>
+                      <span className="block text-xs text-neutral-600">{fmtQty(e.qty)} {e.unit} · {fmtRp(e.value)} · {scopeLabel(e.scope)} · {e.category}</span>
                       <span className="block truncate text-xs text-neutral-500">{e.branchName} · {dmy(e.businessDate)} · {e.name}{e.note ? ` · “${e.note}”` : ""}</span>
                     </span>
                   </button>
@@ -252,6 +254,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 [tr("Type"), scopeLabel(open.scope)],
                 [tr("Item"), `${open.itemName} (${open.itemCode})`],
                 [tr("Quantity"), `${fmtQty(open.qty)} ${open.unit}`],
+                [tr("Value"), `${fmtRp(open.value)}${open.unitPrice != null ? ` (${fmtRp(open.unitPrice)} / ${open.unit})` : ""} · ${open.priceSource ? PRICE_SOURCE[open.priceSource]() : "—"}`],
                 [tr("Waste category"), open.category],
                 [tr("Production Date"), open.productionDate || "—"], [tr("Expired Date"), open.expiredDate || "—"],
                 [tr("Note / reason"), open.note || "—"],
@@ -297,10 +300,10 @@ function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "inve
     return !res.byItem.length ? <Empty title={tr("No waste in this period")} /> : (
       <div className="overflow-x-auto"><table className="m-cards w-full text-sm">
         <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Type")}</th>
-          <th className="px-4 py-2.5 text-right">{tr("Quantity")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th><th className="px-4 py-2.5 text-right">{tr("Branches")}</th></tr></thead>
+          <th className="px-4 py-2.5 text-right">{tr("Quantity")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th><th className="px-4 py-2.5 text-right">{tr("Branches")}</th></tr></thead>
         <tbody className="divide-y divide-neutral-100">{res.byItem.map((i) => (
           <tr key={`${i.scope}:${i.code}:${i.unit}`}><td className="px-4 py-2"><p className="font-medium text-neutral-800">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p></td>
-            <td className="px-4 py-2 text-neutral-600">{scopeLabel(i.scope)}</td><td className="px-4 py-2 text-right tabular-nums">{fmtQty(i.qty)} {i.unit}</td>
+            <td className="px-4 py-2 text-neutral-600">{scopeLabel(i.scope)}</td><td className="px-4 py-2 text-right tabular-nums">{fmtQty(i.qty)} {i.unit}</td><td className="px-4 py-2 text-right tabular-nums">{fmtRp(i.value)}</td>
             <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(i.entries)}</td><td className="px-4 py-2 text-right tabular-nums">{fmtNumber(i.branches)}</td></tr>
         ))}</tbody></table>
         <p className="px-4 py-2 text-[11px] text-neutral-400">{tr("Rejected entries are not counted")}</p></div>
@@ -309,10 +312,10 @@ function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "inve
   if (view === "branches") {
     return !res.byBranch.length ? <Empty title={tr("No waste in this period")} /> : (
       <div className="overflow-x-auto"><table className="m-cards w-full text-sm">
-        <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th>
+        <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th>
           <th className="px-4 py-2.5 text-right">{tr("Waiting Review")}</th><th className="px-4 py-2.5 text-right">{tr("Days with Waste")}</th><th className="px-4 py-2.5">{tr("Last Entry")}</th></tr></thead>
         <tbody className="divide-y divide-neutral-100">{res.byBranch.map((b) => (
-          <tr key={b.code} className="cursor-pointer hover:bg-neutral-50" onClick={() => onBranch(b.code)}><td className="px-4 py-2 font-medium text-neutral-800">{b.name}</td>
+          <tr key={b.code} className="cursor-pointer hover:bg-neutral-50" onClick={() => onBranch(b.code)}><td className="px-4 py-2 font-medium text-neutral-800">{b.name}</td><td className="px-4 py-2 text-right tabular-nums">{fmtRp(b.value)}</td>
             <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(b.entries)}</td><td className={cx("px-4 py-2 text-right tabular-nums", b.submitted > 0 && "text-amber-600")}>{fmtNumber(b.submitted)}</td>
             <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="px-4 py-2 text-neutral-600">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
         ))}</tbody></table></div>

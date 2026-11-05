@@ -6,6 +6,7 @@ import {
   Activity, BarChart3, CalendarDays, Bike, Warehouse, Building2, CookingPot, Coffee, Truck, Download, Boxes, Calculator, ClipboardPen,
   FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ClipboardCheck, ClipboardList, ListChecks,
   Settings2, History, LayoutDashboard, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, Users, Wallet, UserRoundCheck,
+  PackageCheck,
 } from 'lucide-react';
 import { tr } from '@/lib/i18n';
 
@@ -44,6 +45,7 @@ export const costControl: { title: string; hint: string; icon: typeof Users; ite
   ] },
   { get title() { return tr('Analytics'); }, get hint() { return tr('Cost ratios per outlet from ESB data'); }, icon: BarChart3, items: [
     { get name() { return tr('Outlet Ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
+    { get name() { return tr('Good Receipt'); }, href: '/cost-control/goods-receipt', icon: PackageCheck, get description() { return tr('GR of ESB, date & qty corrections with evidence'); } },
     { get name() { return tr('COGS & Usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Follows Outlet ratio'); }, soon: true },
   ] },
 ];

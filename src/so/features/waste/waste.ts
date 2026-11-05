@@ -3,6 +3,12 @@
 import { tr } from "@/lib/i18n";
 
 export type Scope = "waste" | "usage" | "premix";
+export type PriceSource = "pricelist" | "esb" | "mixed" | "partial" | "none";
+export const PRICE_SOURCE: Record<PriceSource, () => string> = {
+  pricelist: () => tr("Pricelist"), esb: () => tr("ESB HPP"), mixed: () => tr("Pricelist + ESB HPP"),
+  partial: () => tr("Some ingredients without a price"), none: () => tr("No price yet"),
+};
+export const fmtRp = (v: number | null | undefined) => (v == null ? "—" : `Rp ${Math.round(v).toLocaleString("id-ID")}`);
 export type Status = "submitted" | "investigating" | "approved" | "rejected";
 /** a premix: the units of the stock opname WIP (grams of one unit; `unit` = the count unit) and its ingredients */
 export type PremixUnit = { uom: string; grams: number };
@@ -18,6 +24,8 @@ export type Entry = {
   review: { note: string | null; by: string | null; at: string | null } | null; createdAt: string;
   /** migration 055: signed before submitting, the investigation the entry is part of */
   signed?: boolean; investigationId?: string | null;
+  /** value in Rp (2026-11-05): Pricelist of the day, else the ESB HPP; null = no price */
+  value?: number | null; unitPrice?: number | null; priceSource?: PriceSource;
 };
 export type FormData = {
   branches: { code: string; name: string }[]; days: { from: string; to: string };
@@ -36,9 +44,9 @@ export type UsageRow = { branchCode: string; branchName: string; businessDate: s
   category?: string | null; note?: string | null; hasPhoto?: boolean };
 export type MonitorData = {
   period: { from: string; to: string }; categories: string[]; data: Entry[]; truncated: boolean;
-  summary: { entries: number; branches: number; items: number; people: number; submitted: number; investigating?: number; approved: number; rejected: number };
-  byItem: { scope: Scope; code: string; name: string; unit: string; qty: number; entries: number; branches: number }[];
-  byBranch: { code: string; name: string; entries: number; submitted: number; days: number; last_at: string | null }[];
+  summary: { entries: number; branches: number; items: number; people: number; submitted: number; investigating?: number; approved: number; rejected: number; value?: number; unpriced?: number };
+  byItem: { scope: Scope; code: string; name: string; unit: string; qty: number; entries: number; branches: number; value?: number }[];
+  byBranch: { code: string; name: string; entries: number; submitted: number; days: number; last_at: string | null; value?: number }[];
   byCategory: { name: string; entries: number }[];
 };
 

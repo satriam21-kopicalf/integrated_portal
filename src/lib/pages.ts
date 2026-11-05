@@ -11,7 +11,7 @@ export type PageKey =
   | 'mon.pengajuan' | 'mon.wwwr'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
-  | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs'
+  | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs' | 'cc.goods-receipt'
   | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule' | 'cotr.incentive';
 
 /** How the page shows in the menu: 'header' = icon in the header (not the sidebar), 'hidden' = no menu entry for now
@@ -51,6 +51,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.waste-review', href: '/cost-control/waste/reviews', get label() { return tr('Waste Review'); }, get group() { return tr('Cost Control · Waste'); } },
   { key: 'cc.ratio', href: '/cost-control/ratio', get label() { return tr('Outlet Ratio'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.cogs', href: '/cost-control', get label() { return tr('COGS & Usage'); }, get group() { return tr('Cost Control · Analytics'); }, state: 'soon' },
+  { key: 'cc.goods-receipt', href: '/cost-control/goods-receipt', get label() { return tr('Good Receipt'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'mon.overview', href: '/monitoring/overview', get label() { return tr('Monitoring Overview'); }, get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.pic-check-in', href: '/monitoring/pic-check-in', get label() { return tr('PIC Check In'); }, get group() { return tr('Monitoring OPS'); } },
   { key: 'mon.surveyor-check-in', href: '/cost-control/check-in', get label() { return tr('Cost Control Check In'); }, get group() { return tr('Cost Control · Check In'); } },

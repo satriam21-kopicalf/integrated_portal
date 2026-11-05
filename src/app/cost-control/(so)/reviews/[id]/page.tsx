@@ -21,6 +21,7 @@ import { useMe } from "@/so/lib/me";
 import { photoUrl } from "@/so/lib/photos";
 import { CountFileList, EvidenceDownloads, SignatureCard } from "@/so/features/count/Evidence";
 import { PageSkeleton } from "@/components/kc/Skeleton";
+import CountLog from "@/so/features/count/CountLog";
 
 type Fix = { id: number; qty: string; note: string; wip?: boolean; field?: "roasted_date" | "expired_date" | null; date?: string };
 type Action = "APPROVE" | "RECOUNT" | "CANCEL";
@@ -173,6 +174,8 @@ export default function ReviewDetailPage() {
               : tr("No coordinates yet")} href={count.facility_lat != null ? mapsUrl(count.facility_lat, count.facility_lng ?? 0) : "/cost-control/locations"} />
           </dl>
         </Card>
+
+        <CountLog countId={id} reload={count.status} />
 
         {reviewable && (
           <p className="flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50/60 px-4 py-3 text-[13px] text-brand-900">
