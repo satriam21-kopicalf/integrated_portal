@@ -156,7 +156,7 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
                 </select>
                 {l.target === "item" ? <Picker value={l.code ?? ""} options={itemOpts} placeholder={tr("Pick an item")}
                   onPick={(v) => set(i, { code: v, name: items.find((x) => x.code === v)?.name })} />
-                  : <span className="text-xs text-neutral-500">{tr("Every sugar / syrup item of the card of the menu")}</span>}
+                  : <span className="text-xs text-neutral-500">{tr("Every gula / sugar item of the card of the menu (not the flavour syrups)")}</span>}
                 <select className={cx(inputClass, "h-9")} value={l.mode} disabled={l.target === "sugar"} aria-label={tr("How")}
                   onChange={(e) => set(i, { mode: e.target.value as RuleLine["mode"] })}>
                   <option value="pct">{tr("% of the card")}</option><option value="qty">{tr("Qty per choice")}</option>

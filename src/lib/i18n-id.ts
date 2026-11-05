@@ -5206,7 +5206,7 @@ export const ID: Record<string, string> = {
   "Choice": "Pilihan",
   "Choices sold with a menu (Less / No Sugar, Extra Shot …). The recipe card stays the standard portion (Normal Sugar); the rule of a choice says what it changes. One rule per name works for every menu.": "Pilihan yang terjual bersama menu (Less / No Sugar, Extra Shot …). Kartu resep tetap porsi standar (Normal Sugar); aturan sebuah pilihan menentukan apa yang berubah. Satu aturan per nama berlaku untuk semua menu.",
   "Effect": "Pengaruh",
-  "Every sugar / syrup item of the card of the menu": "Semua item gula / sirup di kartu menu tersebut",
+  "Every gula / sugar item of the card of the menu (not the flavour syrups)": "Semua item gula / sugar di kartu menu tersebut (bukan syrup rasa)",
   "How": "Cara",
   "Import from the ESB BOM": "Impor dari BOM ESB",
   "Less / No Sugar, Extra Shot …": "Less / No Sugar, Extra Shot …",
