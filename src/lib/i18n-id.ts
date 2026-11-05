@@ -5254,4 +5254,6 @@ export const ID: Record<string, string> = {
   "ESB HPP": "HPP ESB",
   "Median of {0} outlets": "Median {0} outlet",
   "Fill the items without a price with the average purchase price, else the ESB HPP": "Isi item tanpa harga dengan rata-rata harga beli, atau HPP ESB",
+  "all sales {0} · choices {1}": "semua penjualan {0} · pilihan {1}",
+  "Subtotal − menu discounts, as Sales Transactions (bill discounts, promotions and vouchers not deducted)": "Subtotal − diskon menu, sama seperti Sales Transactions (diskon bill, promo dan voucher belum dikurangi)",
 };

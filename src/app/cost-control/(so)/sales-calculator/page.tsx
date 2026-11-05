@@ -40,7 +40,8 @@ type Report = {
   stock?: { branches: { code: string; start: StockRef | null; end: StockRef | null }[]; covered: string[]; onHand: { branches: number; from: string | null; to: string | null } };
   extras?: (Extra & { count: number; used: number })[];
   total: { sales: number; cogs: number; menuCogs?: number; extraCogs?: number; ratio: number | null; menusMapped: number; menusUnmapped: number; unpriced: number; systemValue: number; actualValue: number;
-    actualCogs?: number | null; actualSales?: number | null; actualRatio?: number | null; branchesCovered?: number };
+    actualCogs?: number | null; actualSales?: number | null; actualRatio?: number | null; branchesCovered?: number;
+    /** every menu, choice and package sold (subtotal − menu discounts, as Sales Transactions) and the choices in it */ allSales?: number; choiceSales?: number };
 };
 /** the stock opname an SO awal / akhir comes from: counted in the portal (from 28 Oct 2026) or the ESB document */
 type StockRef = { source: "portal" | "esb"; date: string; refs: string[] };
@@ -718,7 +719,8 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
     <>
       {t && (
         <StatStrip label={tr("Summary")} columns={4}>
-          <Stat label={tr("Sales of Mapped Menus")} value={rp(t.sales)}><p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}</p></Stat>
+          <Stat label={tr("Sales of Mapped Menus")} value={rp(t.sales)}><p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}</p>
+            {t.allSales != null && <p title={tr("Subtotal − menu discounts, as Sales Transactions (bill discounts, promotions and vouchers not deducted)")}>{tr("all sales {0} · choices {1}", rp(t.allSales), rp(t.choiceSales ?? 0))}</p>}</Stat>
           <Stat label={tr("COGS Material (System)")} emphasis value={rp(t.cogs)}><p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p></Stat>
           <Stat label={tr("COGS Material (Actual)")} value={t.actualCogs == null ? "—" : rp(t.actualCogs)}>
             {t.actualCogs == null ? <p>{tr("needs SO awal & akhir of the branch")}</p> : <p>{tr("Ratio {0} · {1} branches with SO awal & akhir", pct(t.actualRatio ?? null), t.branchesCovered ?? 0)}</p>}</Stat>
