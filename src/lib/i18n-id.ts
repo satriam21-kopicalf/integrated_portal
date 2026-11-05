@@ -5251,4 +5251,7 @@ export const ID: Record<string, string> = {
   "{0} sold in 90 days": "{0} terjual dalam 90 hari",
   "{0} sold in 90 days with {1} menus": "{0} terjual dalam 90 hari bersama {1} menu",
   "{0} with a card": "{0} dengan kartu",
+  "ESB HPP": "HPP ESB",
+  "Median of {0} outlets": "Median {0} outlet",
+  "Fill the items without a price with the average purchase price, else the ESB HPP": "Isi item tanpa harga dengan rata-rata harga beli, atau HPP ESB",
 };

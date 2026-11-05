@@ -14,7 +14,8 @@ import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
 
-type Item = { code: string; name: string; unit: string; category: string | null; price: number | null; validFrom: string | null; note: string | null; purchaseAvg: number | null };
+type Item = { code: string; name: string; unit: string; category: string | null; price: number | null; validFrom: string | null; note: string | null; purchaseAvg: number | null;
+  /** median ESB HPP of one base unit over the outlets (inventory valuation, 2026-11-05) */ esbHpp?: number | null; esbHppLocations?: number };
 type Data = { day: string; categories: string[]; data: Item[] };
 type Hist = { validFrom: string; price: number; note: string | null; by: string | null; at: string };
 
@@ -59,7 +60,8 @@ export default function PricelistPage() {
   };
   const usePurchase = () => setDraft((d) => {
     const n = { ...d };
-    for (const i of rows) if (i.purchaseAvg !== null && i.price === null && !n[i.code]) n[i.code] = String(Math.round(i.purchaseAvg * 100) / 100);
+    // the purchase average, else the ESB HPP (a pack bought in another unit has no purchase average)
+    for (const i of rows) { const ref = i.purchaseAvg ?? i.esbHpp ?? null; if (ref !== null && i.price === null && !n[i.code]) n[i.code] = String(Math.round(ref * 100) / 100); }
     return n;
   });
 
@@ -83,7 +85,7 @@ export default function PricelistPage() {
           <label className="flex h-10 items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={onlyMissing} onChange={(e) => setOnlyMissing(e.target.checked)} />{tr("Without a price only")}</label>
           <span className="flex-1" />
           <label className="text-xs text-neutral-500">{tr("Valid from")}<input type="date" className={cx(inputClass, "mt-1 w-40")} value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-          <Button variant="secondary" onClick={usePurchase} title={tr("Fill the items without a price with the average purchase price")}>{tr("Use Purchase Average")}</Button>
+          <Button variant="secondary" onClick={usePurchase} title={tr("Fill the items without a price with the average purchase price, else the ESB HPP")}>{tr("Use Purchase Average")}</Button>
           <Button loading={busy} disabled={!changed.length} onClick={() => void save()}><Save size={15} />{tr("Save {0} prices", changed.length)}</Button>
         </div>
       } footer={data ? <><span>{tr("{0} of {1} shown", rows.length, data.data.length)}</span><PageNav paged={paged} /></> : undefined}>
@@ -91,7 +93,7 @@ export default function PricelistPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Category")}</th><th className="px-4 py-2.5">{tr("Unit")}</th>
-                <th className="px-4 py-2.5 text-right">{tr("Purchase Avg 90 Days")}</th><th className="px-4 py-2.5 text-right">{tr("Current Price")}</th><th className="px-4 py-2.5">{tr("New Price")}</th><th /></tr></thead>
+                <th className="px-4 py-2.5 text-right">{tr("Purchase Avg 90 Days")}</th><th className="px-4 py-2.5 text-right">{tr("ESB HPP")}</th><th className="px-4 py-2.5 text-right">{tr("Current Price")}</th><th className="px-4 py-2.5">{tr("New Price")}</th><th /></tr></thead>
               <tbody className="divide-y divide-neutral-100">
                 {paged.rows.map((i) => (
                   <tr key={i.code} className={draft[i.code] ? "bg-brand-50/40" : ""}>
@@ -99,6 +101,7 @@ export default function PricelistPage() {
                     <td className="px-4 py-2 text-xs text-neutral-600">{i.category ?? "—"}</td>
                     <td className="px-4 py-2 text-xs">{i.unit}</td>
                     <td className="px-4 py-2 text-right text-xs tabular-nums text-neutral-500">{rp(i.purchaseAvg, 4)}</td>
+                    <td className="px-4 py-2 text-right text-xs tabular-nums text-neutral-500" title={i.esbHppLocations ? tr("Median of {0} outlets", i.esbHppLocations) : undefined}>{rp(i.esbHpp ?? null, 4)}</td>
                     <td className="px-4 py-2 text-right tabular-nums">{i.price === null ? <Badge tone="amber">{tr("No price")}</Badge> : <>{rp(i.price, 4)}<span className="block text-[10px] text-neutral-400">{tr("from {0}", i.validFrom ?? "")}</span></>}</td>
                     <td className="w-40 px-4 py-2"><input inputMode="decimal" className={cx(inputClass, "h-9 text-right")} placeholder={i.price !== null ? String(i.price) : "0"} value={draft[i.code] ?? ""}
                       onChange={(e) => setDraft({ ...draft, [i.code]: e.target.value })} aria-label={`${tr("New price")} ${i.name}`} /></td>
