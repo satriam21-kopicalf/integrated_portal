@@ -42,10 +42,14 @@ type Report = {
     /** the moves in (+) and out (−) between the counts (integrated_portal_be app/stock_moves.py) */ moves?: Partial<Record<MoveKind, number>>;
     actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
   mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean }[];
+  /** the stock items of the cards counted at both ends (their share of the system value) and the ones missing */
+  coverage?: { items: number; counted: number; value: number; countedValue: number; missing: { code: string; name: string; systemValue: number }[] } | null;
   stock?: { branches: { code: string; start: StockRef | null; end: StockRef | null }[]; covered: string[]; onHand: { branches: number; from: string | null; to: string | null } };
   extras?: (Extra & { count: number; used: number })[];
   total: { sales: number; cogs: number; menuCogs?: number; extraCogs?: number; ratio: number | null; menusMapped: number; menusUnmapped: number; menusViaPackages?: number; unpriced: number; systemValue: number; actualValue: number;
     actualCogs?: number | null; actualSales?: number | null; actualRatio?: number | null; branchesCovered?: number;
+    /** waste recorded (not rejected) by the branches with both counts, and what it leaves unexplained of actual − system */
+    wasteValue?: number | null; unexplained?: number | null;
     /** every menu, choice and package sold (subtotal − menu discounts, as Sales Transactions) and the choices in it */ allSales?: number; choiceSales?: number };
 };
 /** the stock opname an SO awal / akhir comes from: counted in the portal (from 28 Oct 2026) or the ESB document */
@@ -938,7 +942,8 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
           <Stat label={tr("COGS Material (Actual)")} value={t.actualCogs == null ? "—" : rp(t.actualCogs)}>
             {t.actualCogs == null ? <p>{tr("needs SO awal & akhir of the branch")}</p> : <p>{tr("Ratio {0} · {1} branches with SO awal & akhir", pct(t.actualRatio ?? null), t.branchesCovered ?? 0)}</p>}</Stat>
           <Stat label={tr("Usage Actual − System")} value={t.actualCogs == null ? "—" : rp(t.actualValue - t.systemValue)}>
-            <p>{t.actualCogs == null ? tr("system {0}", rp(t.systemValue)) : tr("actual {0} · system {1}", rp(t.actualValue), rp(t.systemValue))}</p></Stat>
+            <p>{t.actualCogs == null ? tr("system {0}", rp(t.systemValue)) : tr("actual {0} · system {1}", rp(t.actualValue), rp(t.systemValue))}</p>
+            {t.actualCogs != null && t.wasteValue != null && <p>{tr("waste recorded {0} · unexplained {1}", rp(t.wasteValue), rp(t.unexplained ?? 0))}</p>}</Stat>
         </StatStrip>
       )}
       {sheet && <CalcFilterSheet value={{ period: period ?? { from: wibDay(-6), to: wibDay(0) }, branch, horizon, buffer }} branches={branches} onClose={() => setSheet(false)}
@@ -1019,8 +1024,18 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
             {view === "usage" && (
               <>
               <StockCoverage stock={data.stock} names={branches} />
+              {data.coverage && data.coverage.items > 0 && (() => {
+                const c = data.coverage;
+                const share = c.value ? c.countedValue / c.value : 1;
+                return (
+                  <div className={cx("mx-4 mt-3 rounded-xl border px-3 py-2.5 text-xs", share < 0.9 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900")}>
+                    <p className="font-semibold">{tr("SO coverage {0}: {1} of {2} materials the cards use are counted at both ends", pct(share), c.counted, c.items)}</p>
+                    {c.missing.length > 0 && <p className="mt-0.5">{tr("Not in the SO lists (no actual usage, left out of the actual COGS): {0}", c.missing.slice(0, 8).map((m) => `${m.name} (${rp(m.systemValue)})`).join(", "))}{c.missing.length > 8 ? "…" : ""}</p>}
+                  </div>
+                );
+              })()}
               <table className="m-cards w-full min-w-[1080px] text-sm">
-                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Actual = SO awal + purchases − SO akhir; System = menus sold × recipe cards. Both over the branches with SO awal and SO akhir (the portal stock opname from 28 Oct 2026, else the ESB document).")}</caption>
+                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Actual = SO awal + moves in − moves out − SO akhir; System = menus sold × recipe cards. Both over the branches with SO awal and SO akhir (the portal stock opname from 28 Oct 2026, else the ESB document).")}</caption>
                 <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("SO Awal")}</th><th className="px-4 py-2.5 text-right" title={tr("Goods receipts, outlet purchases and production in; deliveries, returns and production use out")}>{tr("In − Out")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("SO Akhir")}</th><th className="px-4 py-2.5 text-right">{tr("Actual")}</th><th className="px-4 py-2.5 text-right">{tr("System")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Difference")}</th><th className="px-4 py-2.5 text-right">{tr("Value System")}</th><th className="px-4 py-2.5 text-right">{tr("Value Actual")}</th></tr></thead>

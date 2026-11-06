@@ -5414,4 +5414,8 @@ export const ID: Record<string, string> = {
   "Returned": "Retur",
   "Sent out": "Dikirim keluar",
   "Used in production": "Dipakai produksi",
+  "Actual = SO awal + moves in − moves out − SO akhir; System = menus sold × recipe cards. Both over the branches with SO awal and SO akhir (the portal stock opname from 28 Oct 2026, else the ESB document).": "Actual = SO awal + masuk − keluar − SO akhir; System = menu terjual × kartu resep. Keduanya atas cabang yang punya SO awal dan SO akhir (SO portal mulai 28 Okt 2026, selain itu dokumen ESB).",
+  "Not in the SO lists (no actual usage, left out of the actual COGS): {0}": "Tidak ada di daftar SO (tanpa usage aktual, tidak masuk COGS aktual): {0}",
+  "SO coverage {0}: {1} of {2} materials the cards use are counted at both ends": "Cakupan SO {0}: {1} dari {2} bahan di kartu resep dihitung di SO awal dan akhir",
+  "waste recorded {0} · unexplained {1}": "waste tercatat {0} · tak terjelaskan {1}",
 };
