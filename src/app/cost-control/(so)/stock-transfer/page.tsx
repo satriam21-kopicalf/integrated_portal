@@ -74,14 +74,14 @@ function Transfers() {
     rows: rows.map((t) => [t.number, wibDateTime(t.requested.at), t.fromName, t.toName, STATUS[t.status].label(), t.lines, t.value, t.requested.by,
       t.source ? `${t.source.by} · ${t.source.note ?? ""}` : "", t.costControl ? `${t.costControl.by} · ${t.costControl.note ?? ""}` : "",
       t.received?.at ? wibDateTime(t.received.at) : "", t.esbLabel ? ESB_LABEL[t.esbLabel.value]() : ""]) });
-  const lines = async () => (await call<{ data: { id: string; code: string; name: string; unit: string; qty: number; price: number | null; value: number | null }[] }>(
+  const lines = async () => (await call<{ data: { id: string; code: string; name: string; unit: string; qty: number; requested: number; price: number | null; value: number | null }[] }>(
     `/api/monitoring/stock/transfers/lines?ids=${rows.map((t) => t.id).join(",")}`)).data;
   const exportLines = async () => {
     const by = new Map(rows.map((t) => [t.id, t]));
     const l = await lines();
     await downloadXlsx({ fileName: file("Transfer Stock per baris"), sheet: "Baris", title: file("Transfer Stock per baris"),
-      header: ["No", "Tanggal", "Dari", "Ke", "Status", "Kode", "Material", "Qty", "Satuan", "Harga", "Nilai"],
-      rows: l.map((x) => { const t = by.get(x.id)!; return [t.number, wibDateTime(t.requested.at), t.fromName, t.toName, STATUS[t.status].label(), x.code, x.name, x.qty, x.unit, x.price, x.value]; }) });
+      header: ["No", "Tanggal", "Dari", "Ke", "Status", "Kode", "Material", "Qty Diminta", "Qty Disetujui", "Satuan", "Harga", "Nilai"],
+      rows: l.map((x) => { const t = by.get(x.id)!; return [t.number, wibDateTime(t.requested.at), t.fromName, t.toName, STATUS[t.status].label(), x.code, x.name, x.requested, x.qty, x.unit, x.price, x.value]; }) });
   };
   const exportOutlets = async () => {
     const m = new Map<string, { name: string; inN: number; inV: number; outN: number; outV: number }>();

@@ -10,7 +10,8 @@ export type Transfer = {
   note: string | null; lines: number; requested: { by: string; at: string }; source: Step | null; costControl: Step | null;
   received: Step | null; value: number | null; estimate?: number;
   esbLabel: { value: "esb" | "portal"; note: string | null; by: string | null; at: string | null } | null;
-  items?: { code: string; name: string; unit: string; qty: number; available: number | null; price: number | null; value: number | null }[];
+  /** qty: approved by Cost Control (what moves); requested: what the outlet asked (migration 076) */
+  items?: { code: string; name: string; unit: string; qty: number; requested: number; available: number | null; price: number | null; value: number | null }[];
   canDecide?: boolean;
 };
 export type FormData = { branches: { code: string; name: string }[]; sources: { code: string; name: string }[];

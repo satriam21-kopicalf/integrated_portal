@@ -5556,4 +5556,10 @@ export const ID: Record<string, string> = {
   "To check first": "Perlu dicek dulu",
   "Date, earliest": "Tanggal, terlama",
   "Approved: counted in the COGS; QA can still investigate it": "Di-approve: sudah masuk COGS; QA tetap bisa investigasi",
+  "Approved Qty": "Qty Disetujui",
+  "asked {0}, adjusted by Cost Control": "diminta {0}, disesuaikan Cost Control",
+  "asked {0}": "diminta {0}",
+  "Approve with {0} adjusted": "Approve ({0} disesuaikan)",
+  "{0} quantities adjusted: the stock and the COGS follow the approved quantities.": "{0} qty disesuaikan: stok dan COGS mengikuti qty yang disetujui.",
+  "Reason of the adjustment (required)": "Alasan penyesuaian (wajib)",
 };

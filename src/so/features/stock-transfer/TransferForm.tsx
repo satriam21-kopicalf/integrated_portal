@@ -289,6 +289,8 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
   const [act, setAct] = useState<null | "accept" | "decline" | "cancel" | "approve" | "reject">(null);
   const [receiving, setReceiving] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Cost Control adjusts the quantities before approving (migration 076)
+  const [adjust, setAdjust] = useState<Record<string, string>>({});
   const load = useCallback(() => { call<Transfer>(`/api/stock-transfer/${id}`).then(setT).catch((e: Error) => toast(e.message, "error")); }, [id, toast]);
   useEffect(() => { load(); }, [load]);
   const run = async (path: string, json: unknown) => {
@@ -298,6 +300,15 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
   };
   if (!t) return <Drawer open onClose={onClose} size="lg" title={tr("Transfer Stock")}><SkeletonList rows={4} /></Drawer>;
   const isTo = mine.has(t.toBranch), isFrom = mine.has(t.fromBranch);
+  const deciding = monitor && !!t.canDecide && t.status === "accepted";
+  const numOf = (v: string) => { const n = Number(v.replace(",", ".")); return v.trim() && !Number.isNaN(n) ? n : null; };
+  const adjusted: Record<string, number> = {};
+  for (const i of t.items ?? []) {
+    const n = adjust[i.code] === undefined ? null : numOf(adjust[i.code]);
+    if (n !== null && Math.abs(n - i.qty) > 1e-9) adjusted[i.code] = n;
+  }
+  const nAdjusted = Object.keys(adjusted).length;
+  const badAdjust = (t.items ?? []).some((i) => adjust[i.code] !== undefined && (numOf(adjust[i.code]) ?? 0) <= 0);
   const steps: { label: string; s: { note: string | null; by: string | null; at: string | null } | null; tone?: string }[] = [
     { label: tr("Requested by {0}", shortBranch(t.toName)), s: { note: t.note, by: t.requested.by, at: t.requested.at } },
     { label: t.status === "declined" ? tr("Declined by {0}", shortBranch(t.fromName)) : tr("Checked by {0}", shortBranch(t.fromName)), s: t.source },
@@ -309,7 +320,8 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
       {!monitor && isFrom && t.status === "submitted" && <><Button variant="secondary" onClick={() => setAct("decline")}><XCircle size={14} />{tr("Decline")}</Button><Button onClick={() => setAct("accept")}><CheckCircle2 size={14} />{tr("Accept")}</Button></>}
       {!monitor && isTo && t.status === "submitted" && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => setAct("cancel")}><Trash2 size={14} />{tr("Cancel the request")}</Button>}
       {!monitor && isTo && t.status === "approved" && <Button onClick={() => setReceiving(true)}><PackageCheck size={15} />{tr("Receive the Goods")}</Button>}
-      {monitor && t.canDecide && t.status === "accepted" && <><Button variant="secondary" onClick={() => setAct("reject")}><XCircle size={14} />{tr("Reject")}</Button><Button onClick={() => setAct("approve")}><CheckCircle2 size={14} />{tr("Approve")}</Button></>}
+      {deciding && <><Button variant="secondary" onClick={() => setAct("reject")}><XCircle size={14} />{tr("Reject")}</Button>
+        <Button disabled={badAdjust} onClick={() => setAct("approve")}><CheckCircle2 size={14} />{nAdjusted ? tr("Approve with {0} adjusted", nAdjusted) : tr("Approve")}</Button></>}
     </div>
   );
   return (
@@ -320,10 +332,20 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           <span className="ml-auto font-semibold tabular-nums text-neutral-900">{t.value != null ? rpText(t.value) : t.estimate != null ? `± ${rpText(t.estimate)}` : ""}</span></div>
         <div className="overflow-hidden rounded-xl border border-neutral-200">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-[11px] uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
+            <thead className="bg-neutral-50 text-left text-[11px] uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">{(t.items ?? []).map((i) => (
               <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}{i.available != null ? ` · ${tr("stock when asked {0}", qtyText(i.available))}` : ""}</p></td>
-                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{qtyText(i.qty)} <span className="text-neutral-400">{i.unit}</span></td>
+                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
+                  {deciding ? (
+                    <span className="relative inline-block w-32">
+                      <input inputMode="decimal" className={cx(inputClass, "h-9 pr-10 text-right tabular-nums", adjusted[i.code] !== undefined && "border-amber-400 bg-amber-50")}
+                        value={adjust[i.code] ?? String(i.qty).replace(".", ",")} onChange={(e) => setAdjust({ ...adjust, [i.code]: e.target.value })} aria-label={`${tr("Approved Qty")} ${i.name}`} />
+                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] uppercase text-neutral-400">{i.unit}</span>
+                    </span>
+                  ) : <>{qtyText(i.qty)} <span className="text-neutral-400">{i.unit}</span></>}
+                  {Math.abs(i.requested - i.qty) > 1e-9 && <span className="block text-[11px] text-amber-700">{tr("asked {0}, adjusted by Cost Control", qtyText(i.requested))}</span>}
+                  {deciding && adjusted[i.code] !== undefined && <span className="block text-[11px] text-amber-700">{tr("asked {0}", qtyText(i.requested))}</span>}
+                </td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-neutral-700">{rpText(i.value)}</td></tr>))}</tbody>
           </table>
         </div>
@@ -349,15 +371,16 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
       </div>
       <ConfirmDialog open={!!act} busy={busy} danger={act === "decline" || act === "reject" || act === "cancel"}
         title={{ accept: tr("Accept the request?"), decline: tr("Decline the request?"), cancel: tr("Cancel the request?"), approve: tr("Approve the transfer?"), reject: tr("Reject the transfer?") }[act ?? "accept"]}
-        description={act === "accept" ? tr("Your stock does not change yet: it moves when the outlet receives the goods after Cost Control approves.") : undefined}
+        description={act === "accept" ? tr("Your stock does not change yet: it moves when the outlet receives the goods after Cost Control approves.")
+          : act === "approve" && nAdjusted ? tr("{0} quantities adjusted: the stock and the COGS follow the approved quantities.", nAdjusted) : undefined}
         confirmLabel={{ accept: tr("Accept"), decline: tr("Decline"), cancel: tr("Cancel the request"), approve: tr("Approve"), reject: tr("Reject") }[act ?? "accept"]}
-        reasonLabel={act === "cancel" ? undefined : act === "approve" ? tr("Note (optional)") : tr("Reason / note (required)")}
+        reasonLabel={act === "cancel" ? undefined : act === "approve" ? (nAdjusted ? tr("Reason of the adjustment (required)") : tr("Note (optional)")) : tr("Reason / note (required)")}
         onClose={() => setAct(null)}
         onConfirm={(note) => {
-          if ((act === "accept" || act === "decline" || act === "reject") && !note.trim()) { toast(tr("Write the reason / note"), "error"); return; }
+          if ((act === "accept" || act === "decline" || act === "reject" || (act === "approve" && nAdjusted > 0)) && !note.trim()) { toast(tr("Write the reason / note"), "error"); return; }
           if (act === "accept" || act === "decline") void run(`/api/stock-transfer/${t.id}/answer`, { accept: act === "accept", note });
           else if (act === "cancel") void run(`/api/stock-transfer/${t.id}/cancel`, {});
-          else if (act) void run(`/api/monitoring/stock/transfers/${t.id}/decide`, { approve: act === "approve", note });
+          else if (act) void run(`/api/monitoring/stock/transfers/${t.id}/decide`, { approve: act === "approve", note, ...(act === "approve" && nAdjusted ? { qty: adjusted } : {}) });
         }} />
       {receiving && <ReceiveDialog t={t} busy={busy} onClose={() => setReceiving(false)} onReceive={(photo, note) => void run(`/api/stock-transfer/${t.id}/receive`, { photo, note })} />}
     </Drawer>
