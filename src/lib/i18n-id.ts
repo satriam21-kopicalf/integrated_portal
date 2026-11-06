@@ -5535,4 +5535,7 @@ export const ID: Record<string, string> = {
   "{0} requests from other outlets to check": "{0} permintaan dari outlet lain perlu dicek",
   "{0} waiting for the outlet": "{0} menunggu outlet tujuan",
   "{0} {1} at {2} outlets · {3}": "{0} {1} di {2} outlet · {3}",
+  "Choose the outlet to take from": "Pilih outlet tujuan",
+  "Choose your outlet first": "Pilih outlet Anda terlebih dahulu",
+  "Search outlet, e.g. kemang": "Cari outlet, mis. kemang",
 };

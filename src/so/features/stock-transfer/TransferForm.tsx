@@ -9,7 +9,7 @@
 //              of both outlets moves); a request the outlet has not answered can be cancelled;
 //   Incoming   the requests to my outlets: accept (the stock does not move yet) or decline, with a note.
 
-import { ArrowRight, Camera, CheckCircle2, ClipboardList, Inbox, PackageCheck, PenLine, Search, Send, Trash2, Undo2, XCircle } from "lucide-react";
+import { ArrowDown, ArrowRight, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Inbox, PackageCheck, PenLine, Search, Send, Store, Trash2, Undo2, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
@@ -21,6 +21,7 @@ import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
 import { call } from "@/so/features/checkin/checkin";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { thumb } from "@/lib/assets";
+import { useFocusMode } from "@/components/layout/BottomNav";
 import { tr } from "@/lib/i18n";
 import { wibDateTime } from "@/so/lib/wib";
 import { type Available, type FormData, type Transfer, STATUS, fileUrl, qtyText, rpText, shortBranch } from "./transfer";
@@ -29,6 +30,7 @@ type Tab = "request" | "mine" | "incoming";
 
 export default function TransferForm() {
   const toast = useToast();
+  useFocusMode();  // the phone tab bar steps aside for the send bar of the form
   const [data, setData] = useState<FormData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("request");
@@ -80,7 +82,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
   const toast = useToast();
   const [to, setTo] = useState(data.branches.length === 1 ? data.branches[0].code : "");
   const [from, setFrom] = useState("");
-  const [fromQ, setFromQ] = useState("");
+  const [picking, setPicking] = useState(false);
   const [stock, setStock] = useState<Available | null>(null);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
@@ -96,7 +98,6 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
     setLoading(true);
     call<Available>(`/api/stock-transfer/available?branch=${encodeURIComponent(from)}`).then(setStock).catch((e: Error) => toast(e.message, "error")).finally(() => setLoading(false));
   }, [from, toast]);
-  const sources = data.sources.filter((s) => s.code !== to && (!fromQ || s.name.toLowerCase().includes(fromQ.toLowerCase())));
   const num = (v: string) => { const n = Number(v.replace(",", ".")); return v.trim() && !Number.isNaN(n) ? n : null; };
   const picked = useMemo(() => (stock?.items ?? []).filter((i) => (num(qty[i.code] ?? "") ?? 0) > 0), [stock, qty]);
   const over = picked.filter((i) => (num(qty[i.code] ?? "") ?? 0) > i.available);
@@ -116,25 +117,24 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
       <div className="space-y-4">
         <FormCard n={1} title={tr("Outlets")} hint={tr("Your outlet asks the outlet that has the material")}>
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-end sm:gap-3">
             <label className="block text-xs font-medium text-neutral-600">{tr("My outlet (receives)")}
-              <select className={cx(inputClass, "mt-1")} value={to} onChange={(e) => { setTo(e.target.value); if (e.target.value === from) setFrom(""); }}>
-                <option value="">{tr("Choose")}</option>{data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
-              </select></label>
-            <ArrowRight size={18} className="mx-auto hidden rotate-180 text-neutral-400 sm:block" />
-            <div className="text-xs font-medium text-neutral-600">{tr("Take from outlet")}
-              {from ? (
-                <div className="mt-1 flex items-center justify-between gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm text-brand-900">
-                  <span className="truncate">{fromName}</span><button type="button" className="text-xs font-medium underline" onClick={() => setFrom("")}>{tr("Change")}</button>
-                </div>
+              {data.branches.length === 1 ? (
+                <span className="mt-1 flex h-11 items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-900"><Store size={15} className="text-neutral-400" /><span className="truncate">{data.branches[0].name}</span></span>
               ) : (
-                <div className="mt-1 rounded-lg border border-neutral-200">
-                  <div className="relative border-b border-neutral-100"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                    <input className="h-9 w-full rounded-t-lg pl-8 pr-3 text-sm outline-none" value={fromQ} onChange={(e) => setFromQ(e.target.value)} placeholder={tr("Search outlet")} /></div>
-                  <ul className="max-h-48 overflow-auto">{sources.slice(0, 80).map((s) => (
-                    <li key={s.code}><button type="button" disabled={!to} onClick={() => setFrom(s.code)} className="w-full px-3 py-1.5 text-left text-sm hover:bg-neutral-50 disabled:opacity-50">{s.name}</button></li>))}</ul>
-                </div>
-              )}
+                <select className={cx(inputClass, "mt-1 h-11")} value={to} onChange={(e) => { setTo(e.target.value); if (e.target.value === from) setFrom(""); }}>
+                  <option value="">{tr("Choose")}</option>{data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
+                </select>
+              )}</label>
+            <span className="flex justify-center text-neutral-300 sm:pb-3" aria-hidden><ArrowDown size={18} className="sm:hidden" /><ArrowRight size={18} className="hidden rotate-180 sm:block" /></span>
+            <div className="text-xs font-medium text-neutral-600">{tr("Take from outlet")}
+              <button type="button" disabled={!to} onClick={() => setPicking(true)}
+                className={cx("mt-1 flex h-11 w-full items-center gap-2 rounded-lg border px-3 text-left text-sm transition disabled:opacity-50",
+                  from ? "border-brand-300 bg-brand-50 text-brand-900" : "border-neutral-200 bg-white text-neutral-500 hover:border-brand-300")}>
+                <Store size={15} className={from ? "text-brand-600" : "text-neutral-400"} />
+                <span className="min-w-0 flex-1 truncate">{from ? fromName : to ? tr("Choose the outlet to take from") : tr("Choose your outlet first")}</span>
+                <ChevronRight size={16} className="flex-shrink-0 text-neutral-400" />
+              </button>
             </div>
           </div>
         </FormCard>
@@ -153,11 +153,11 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
                     const v = num(qty[i.code] ?? "");
                     const bad = v != null && v > i.available;
                     return (
-                      <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2", v && !bad ? "bg-brand-50/50" : bad ? "bg-red-50" : "")}>
-                        <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-neutral-900">{i.name}</span>
+                      <li key={i.code} className={cx("flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5", v && !bad ? "bg-brand-50/50" : bad ? "bg-red-50" : "")}>
+                        <span className="min-w-0 flex-1 basis-48"><span className="block text-sm font-medium leading-snug text-neutral-900">{i.name}</span>
                           <span className="block text-[11px] text-neutral-500">{i.code}{i.category ? ` · ${i.category}` : ""} · {tr("available {0} {1}", qtyText(i.available), i.unit)}</span></span>
-                        <span className="relative w-32 flex-shrink-0">
-                          <input inputMode="decimal" className={cx(inputClass, "h-9 pr-11 text-right tabular-nums", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
+                        <span className="relative w-full flex-shrink-0 sm:w-32">
+                          <input inputMode="decimal" className={cx(inputClass, "h-10 pr-11 text-right tabular-nums", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
                             onChange={(e) => setQty({ ...qty, [i.code]: e.target.value })} aria-label={`${tr("Qty")} ${i.name}`} />
                           <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] uppercase text-neutral-400">{i.unit}</span>
                         </span>
@@ -183,7 +183,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
         </FormCard>
       </div>
       <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-        <section className="rounded-xl border border-neutral-200 bg-white p-4">
+        <section className="hidden rounded-xl border border-neutral-200 bg-white p-4 lg:block">
           <p className="text-sm font-semibold text-neutral-900">{tr("Summary")}</p>
           <dl className="mt-2 space-y-1.5 text-sm">
             <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("From")}</dt><dd className="truncate text-right">{fromName ? shortBranch(fromName) : "—"}</dd></div>
@@ -196,9 +196,53 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
         </section>
         <p className="px-1 text-[11px] leading-relaxed text-neutral-500">{tr("The outlet checks the request, Cost Control approves it, then you receive the goods with a photo: only then the stock of both outlets changes.")}</p>
       </aside>
+      {/* phones & tablets: what is ready and the send button, at the bottom */}
+      <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-neutral-200/70 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+        <p className="mb-2 truncate text-xs text-neutral-500">
+          {ready ? `${shortBranch(fromName)} → ${shortBranch(data.branches.find((b) => b.code === to)?.name ?? "")} · ${tr("{0} materials", picked.length)}` : tr("Choose the outlets, the materials and take the photo.")}
+        </p>
+        <Button className="h-11 w-full" disabled={!ready} loading={busy} onClick={() => setSigning(true)}><PenLine size={15} />{tr("Sign & Submit")}</Button>
+      </div>
+      {picking && <OutletPicker outlets={data.sources.filter((x) => x.code !== to)} value={from} onClose={() => setPicking(false)}
+        onPick={(code) => { setFrom(code); setPicking(false); }} />}
       <CameraCapture open={camera} title={tr("Transfer Stock")} branch={data.branches.find((b) => b.code === to)?.name ?? ""} countNumber={fromName ? `← ${shortBranch(fromName)}` : ""}
         onClose={() => setCamera(false)} onShot={async (s) => { setPhoto(s); setCamera(false); }} />
       {signing && <SignDialog busy={busy} onClose={() => setSigning(false)} onSign={(sig) => void send(sig)} />}
+    </div>
+  );
+}
+
+/** The outlet to take from: a sheet with a search, full screen on a phone, rows easy to tap. */
+function OutletPicker({ outlets, value, onPick, onClose }: { outlets: { code: string; name: string }[]; value: string; onPick: (code: string) => void; onClose: () => void }) {
+  const [q, setQ] = useState("");
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const shown = outlets.filter((o) => words.every((w) => `${o.name} ${o.code}`.toLowerCase().includes(w)));
+  return (
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-neutral-900/40 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Take from outlet")} onClick={onClose}>
+      <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+        <header className="flex items-center gap-2 border-b border-neutral-100 px-4 pb-3 pt-4">
+          <span className="min-w-0 flex-1"><span className="block text-base font-semibold text-neutral-900">{tr("Take from outlet")}</span>
+            <span className="block text-xs text-neutral-500">{tr("{0} outlets", outlets.length)}</span></span>
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Close")}><X size={18} /></button>
+        </header>
+        <div className="border-b border-neutral-100 p-3">
+          <div className="relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input autoFocus className={cx(inputClass, "h-11 pl-9 text-base sm:text-sm")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet, e.g. kemang")} /></div>
+        </div>
+        <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+          {shown.map((o) => (
+            <li key={o.code}>
+              <button type="button" onClick={() => onPick(o.code)} className={cx("flex min-h-12 w-full items-center gap-3 px-4 py-2.5 text-left active:bg-neutral-100", o.code === value ? "bg-brand-50" : "hover:bg-neutral-50")}>
+                <Store size={16} className="flex-shrink-0 text-neutral-400" />
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-neutral-900">{shortBranch(o.name)}</span><span className="block text-[11px] text-neutral-400">{o.code}</span></span>
+                {o.code === value && <Check size={16} className="text-brand-600" />}
+              </button>
+            </li>
+          ))}
+          {!shown.length && <li className="px-4 py-10 text-center text-sm text-neutral-400">{tr("No outlet matches")}</li>}
+        </ul>
+      </div>
     </div>
   );
 }
