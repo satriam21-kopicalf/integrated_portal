@@ -268,7 +268,7 @@ export default function WasteForm() {
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                       <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix name") : tr("Product name")}</th>
-                        <th className="hidden px-2 py-2 sm:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
+                        <th className="hidden whitespace-nowrap px-2 py-2 xl:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 whitespace-nowrap px-2 py-2 text-right">{tr("Qty")}</th></tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-100">
                       {items.slice(0, 250).map((i) => {
@@ -284,10 +284,10 @@ export default function WasteForm() {
                               <td className="px-2 py-1.5 text-right align-top text-xs tabular-nums text-neutral-400">{(data.items[scope] ?? []).indexOf(i) + 1}</td>
                               <td className="px-2 py-1.5 align-top">
                                 <span className="block text-neutral-800">{i.name}</span>
-                                <span className="text-[11px] text-neutral-400 sm:hidden">{i.code}</span>
+                                <span className="text-[11px] text-neutral-400 xl:hidden">{i.code}</span>
                                 {scope === "premix" && fixed.length > 0 && <span className="block text-[11px] text-neutral-500">{fixed.map((u) => `1 ${u.uom} = ${fmtQty(u.grams)} g`).join(" · ")}</span>}
                               </td>
-                              <td className="hidden px-2 py-1.5 align-top text-xs text-neutral-500 sm:table-cell">{i.code}</td>
+                              <td className="hidden whitespace-nowrap px-2 py-1.5 align-top text-xs text-neutral-500 xl:table-cell">{i.code}</td>
                               <td className="px-2 py-1.5 align-top text-xs text-neutral-500">
                                 {scope === "premix" && (i.units?.length ?? 0) > 1 ? (
                                   <select value={uom} onChange={(e) => setRow(i.code, { uom: e.target.value })} aria-label={tr("Unit of {0}", i.name)}
@@ -377,7 +377,7 @@ export default function WasteForm() {
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                           <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{tr("Product Name")}</th>
-                            <th className="hidden px-2 py-2 sm:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 px-2 py-2 text-right">{tr("Qty")}</th></tr>
+                            <th className="hidden whitespace-nowrap px-2 py-2 xl:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 whitespace-nowrap px-2 py-2 text-right">{tr("Qty")}</th></tr>
                         </thead>
                         <tbody className="divide-y divide-neutral-100">
                           {usageItems.map((i) => {
@@ -388,8 +388,8 @@ export default function WasteForm() {
                               <Fragment key={i.code}>
                                 <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-brand-50/40"))}>
                                   <td className="px-2 py-1.5 text-right text-xs tabular-nums text-neutral-400">{data.items.usage.indexOf(i) + 1}</td>
-                                  <td className="px-2 py-1.5"><span className="block text-neutral-800">{i.name}</span><span className="text-[11px] text-neutral-400 sm:hidden">{i.code}</span></td>
-                                  <td className="hidden px-2 py-1.5 text-xs text-neutral-500 sm:table-cell">{i.code}</td>
+                                  <td className="px-2 py-1.5"><span className="block text-neutral-800">{i.name}</span><span className="text-[11px] text-neutral-400 xl:hidden">{i.code}</span></td>
+                                  <td className="hidden whitespace-nowrap px-2 py-1.5 text-xs text-neutral-500 xl:table-cell">{i.code}</td>
                                   <td className="px-2 py-1.5 text-xs text-neutral-500">{i.unit}</td>
                                   <td className="px-2 py-1.5">
                                     <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={l.qty}
