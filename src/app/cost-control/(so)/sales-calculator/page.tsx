@@ -39,6 +39,7 @@ type Report = {
   /** viaPackages: a bundle without a card whose contents (ESB packages) are counted through their cards */
   unmapped: { id: string; name: string; category: string; qty: number; sales: number; viaPackages?: boolean }[];
   usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; soStart?: number | null; purchased?: number | null; soEnd?: number | null; purchasedOther?: { uom: string; qty: number }[];
+    /** the moves in (+) and out (−) between the counts (integrated_portal_be app/stock_moves.py) */ moves?: Partial<Record<MoveKind, number>>;
     actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
   mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean }[];
   stock?: { branches: { code: string; start: StockRef | null; end: StockRef | null }[]; covered: string[]; onHand: { branches: number; from: string | null; to: string | null } };
@@ -50,6 +51,11 @@ type Report = {
 /** the stock opname an SO awal / akhir comes from: counted in the portal (from 28 Oct 2026) or the ESB document */
 type StockRef = { source: "portal" | "esb"; date: string; refs: string[] };
 type Branch = { branch_code: string; branch_name: string };
+type MoveKind = "received" | "outletBuy" | "produced" | "consumed" | "delivered" | "returned";
+const MOVE: Record<MoveKind, () => string> = {
+  received: () => tr("Goods Receipt"), outletBuy: () => tr("Outlet purchase"), produced: () => tr("Produced"),
+  consumed: () => tr("Used in production"), delivered: () => tr("Sent out"), returned: () => tr("Returned"),
+};
 type Step = "recipes" | "menus" | "options" | "extras" | "report";
 
 const BASIS: Record<Extra["basis"], () => string> = { bill: () => tr("Per Bill"), portion: () => tr("Per Portion Sold"), day: () => tr("Per Outlet-Day") };
@@ -949,8 +955,9 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
                 run: guard((d) => downloadXlsx({ fileName: file("Material Required Planning"), sheet: "MRP", title: file("Material Required Planning"), header: ["Kode", "Bahan", "Satuan", "Kebutuhan", "Stok (SO Terakhir)", "Perlu Dipesan", "Nilai Kebutuhan", "Nilai Dipesan"],
                   rows: d.mrp.map((r) => [r.code, r.name, r.unit, r.qty, r.onHand ?? null, r.toOrder ?? r.qty, r.value, r.orderValue ?? null]) })) },
               { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: SO awal, purchases, SO akhir, actual, system, difference and value"), icon: <ListChecks size={16} />, tone: "bg-emerald-50 text-emerald-600", count: data ? data.usage.length : null,
-                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "Pembelian", "SO Akhir", "Actual", "System", "Selisih", "Harga", "Nilai System", "Nilai Actual"],
-                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, r.purchased ?? null, r.soEnd ?? null, r.actual, r.system, r.variance, r.price, r.systemValue, r.actualValue]) })) },
+                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "Good Receipt", "Belanja Outlet", "Hasil Produksi", "Dipakai Produksi", "Dikirim Keluar", "Retur", "Masuk − Keluar", "SO Akhir", "Actual", "System", "Selisih", "Harga", "Nilai System", "Nilai Actual"],
+                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, ...(["received", "outletBuy", "produced", "consumed", "delivered", "returned"] as MoveKind[]).map((k) => r.moves?.[k] ?? null),
+                    r.purchased ?? null, r.soEnd ?? null, r.actual, r.system, r.variance, r.price, r.systemValue, r.actualValue]) })) },
             ]} /></div>} />
           <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-neutral-200">
             {outputs.map((o) => (
@@ -1014,7 +1021,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
               <StockCoverage stock={data.stock} names={branches} />
               <table className="m-cards w-full min-w-[1080px] text-sm">
                 <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Actual = SO awal + purchases − SO akhir; System = menus sold × recipe cards. Both over the branches with SO awal and SO akhir (the portal stock opname from 28 Oct 2026, else the ESB document).")}</caption>
-                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("SO Awal")}</th><th className="px-4 py-2.5 text-right">{tr("Purchases")}</th>
+                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("SO Awal")}</th><th className="px-4 py-2.5 text-right" title={tr("Goods receipts, outlet purchases and production in; deliveries, returns and production use out")}>{tr("In − Out")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("SO Akhir")}</th><th className="px-4 py-2.5 text-right">{tr("Actual")}</th><th className="px-4 py-2.5 text-right">{tr("System")}</th>
                   <th className="px-4 py-2.5 text-right">{tr("Difference")}</th><th className="px-4 py-2.5 text-right">{tr("Value System")}</th><th className="px-4 py-2.5 text-right">{tr("Value Actual")}</th></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
@@ -1022,7 +1029,9 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
                     <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
                       <td className="px-4 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Awal")}>{r.soStart == null ? "—" : num(r.soStart)}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Purchases")}>{r.purchased == null ? "—" : num(r.purchased)}
+                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("In − Out")}>{r.purchased == null ? "—" : num(r.purchased)}
+                        {r.moves && Object.keys(r.moves).length > (r.moves.received !== undefined ? 1 : 0) && (
+                          <span className="block text-[11px] text-neutral-400">{(Object.entries(r.moves) as [MoveKind, number][]).map(([k, q]) => `${MOVE[k]()} ${q > 0 ? "+" : ""}${num(q)}`).join(" · ")}</span>)}
                         {!!r.purchasedOther?.length && <span className="block text-[11px] text-amber-700" title={tr("Bought in a unit with no conversion to {0} in the item master: not counted", r.unit)}>
                           + {r.purchasedOther.map((o) => `${num(o.qty)} ${o.uom}`).join(", ")} {tr("not converted")}</span>}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Akhir")}>{r.soEnd == null ? "—" : num(r.soEnd)}</td>

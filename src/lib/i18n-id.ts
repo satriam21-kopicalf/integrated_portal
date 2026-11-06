@@ -5407,4 +5407,11 @@ export const ID: Record<string, string> = {
   "{0} branches with a gap": "{0} cabang ada yang bolong",
   "{0} of {1} branch-days": "{0} dari {1} hari-cabang",
   "– = not reported": "– = belum lapor",
+  "Goods Receipt": "Good Receipt",
+  "Goods receipts, outlet purchases and production in; deliveries, returns and production use out": "Masuk: GR, belanja outlet, hasil produksi · Keluar: kirim keluar, retur, bahan produksi",
+  "In − Out": "Masuk − Keluar",
+  "Outlet purchase": "Belanja outlet",
+  "Returned": "Retur",
+  "Sent out": "Dikirim keluar",
+  "Used in production": "Dipakai produksi",
 };
