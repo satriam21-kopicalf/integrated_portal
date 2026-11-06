@@ -34,7 +34,7 @@ export default function ExcelExportMenu({ choices, footer, title }: { choices: E
   };
   return (
     <div className="relative" ref={ref}>
-      <PopoverButton label={tr('Export')} value={busy ? tr('Exporting…') : tr('Export')} open={open} disabled={!!busy}
+      <PopoverButton label={tr('Export to Excel')} open={open} disabled={!!busy}
         title={busy ? tr('Export in progress') : tr('Export to Excel')} onClick={() => setOpen(!open)}
         icon={busy ? <Loader2 className="animate-spin text-neutral-600" /> : <span className="relative block h-[18px] w-[18px]"><Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="18px" className="object-contain" /></span>} />
       <Popover open={open} onClose={() => setOpen(false)} title={title ?? `${tr('Export to')} Excel`} subtitle={footer}>

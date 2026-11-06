@@ -6,7 +6,8 @@
 // kept (replaced / cancelled). The COGS & Usage, the Sales Calculator and the Stock List use the corrected figures once
 // Cost Control marks the GR Finished (migration 077); a later correction puts it back to draft.
 
-import { CalendarDays, CheckCircle2, FileText, History, PackageCheck, Paperclip, Pencil, PenLine, Store, Truck, Undo2, X } from "lucide-react";
+import ExcelIconButton from "@/components/ExcelIconButton";
+import { CalendarDays, CheckCircle2, History, PackageCheck, Paperclip, Pencil, PenLine, Store, Truck, Undo2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
@@ -115,7 +116,7 @@ export default function GoodsReceiptPage() {
       <Panel toolbar={
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search GR, PO, branch or supplier")} filters={chips}
           onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
-          extra={<Button size="sm" variant="secondary" className="ml-auto" disabled={!rows.length} onClick={() => void exportList().catch((e) => toast((e as Error).message, "error"))}><FileText size={14} />{tr("Export")}</Button>} />
+          extra={<ExcelIconButton boxed className="ml-auto" label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportList().catch((e) => toast((e as Error).message, "error"))} />} />
       } footer={res ? <><span>{tr("{0} GR · {1} corrected", rows.length.toLocaleString("id-ID"), corrected)}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table>
           : !rows.length ? <Empty icon={<PackageCheck size={28} />} title={tr("No Good Receipt in this period")} />

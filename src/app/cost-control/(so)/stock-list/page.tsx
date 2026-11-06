@@ -7,9 +7,10 @@
 // (2026-11-07, app/running_stock.py): the estimate now = SO + goods received and the other moves − waste approved −
 // usage by the recipe cards since the count; an estimate below zero means the cards or the moves do not match.
 
-import { Boxes, CalendarDays, FileText, Package, Store } from "lucide-react";
+import ExcelIconButton from "@/components/ExcelIconButton";
+import { Boxes, CalendarDays, Package, Store } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
+import { Badge, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterToolbar, dmy } from "@/so/ui/Filters";
 import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
@@ -79,7 +80,7 @@ export default function StockListPage() {
       }>
       <Panel toolbar={<div className="space-y-3">
         <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search material or branch")} filters={chips} onOpen={() => setSheet(true)} onClear={() => { setBranch(""); setCategory(""); }}
-          extra={<Button size="sm" variant="secondary" className="ml-auto" disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))}><FileText size={14} />{tr("Export")}</Button>} />
+          extra={<ExcelIconButton boxed className="ml-auto" label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))} />} />
         <Segmented label={tr("View")} value={view} onChange={setView} options={[{ value: "branch", label: tr("Per Branch") }, { value: "material", label: tr("Per Material") }]} />
       </div>} footer={data ? <><span>{tr("{0} shown", fmtNumber(view === "branch" ? rows.length : materials.length))}</span><PageNav paged={view === "branch" ? paged : pagedM} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : !data ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table>

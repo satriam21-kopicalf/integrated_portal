@@ -4,7 +4,7 @@
 // of every raw material per base unit from a date, with the average purchase price of the last 90 days (ESB goods
 // received) as a reference. The price valid on a day costs the recipe cards of the Sales calculator by menu.
 
-import { History, Save, Tags } from "lucide-react";
+import { BadgeAlert, CalendarDays, History, Package, Save, Tags } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -13,6 +13,9 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
+import { type ActiveFilter, FilterToolbar } from "@/so/ui/Filters";
+import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
+import { Segmented } from "@/so/ui/Simple";
 
 type Item = { code: string; name: string; unit: string; category: string | null; price: number | null; validFrom: string | null; note: string | null; purchaseAvg: number | null;
   /** median ESB HPP of one base unit over the outlets (inventory valuation, 2026-11-05) */ esbHpp?: number | null; esbHppLocations?: number };
@@ -33,6 +36,7 @@ export default function PricelistPage() {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<Item | null>(null);
+  const [sheet, setSheet] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -58,6 +62,10 @@ export default function PricelistPage() {
       await load();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
+  const chips: ActiveFilter[] = [
+    ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
+    ...(onlyMissing ? [{ key: "m", label: tr("Without a price only"), onRemove: () => setOnlyMissing(false) }] : []),
+  ];
   const usePurchase = () => setDraft((d) => {
     const n = { ...d };
     // the purchase average, else the ESB HPP (a pack bought in another unit has no purchase average)
@@ -76,19 +84,20 @@ export default function PricelistPage() {
           <Stat label={tr("Not Saved Yet")} value={changed.length.toLocaleString("id-ID")} />
         </StatStrip>
       }>
-      <Panel toolbar={
-        <div className="flex flex-wrap items-end gap-2">
-          <input className={cx(inputClass, "sm:max-w-xs")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search item")} />
-          <select className={cx(inputClass, "sm:max-w-[14rem]")} value={category} onChange={(e) => setCategory(e.target.value)} aria-label={tr("Category")}>
-            <option value="">{tr("All categories")}</option>{data?.categories.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <label className="flex h-10 items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={onlyMissing} onChange={(e) => setOnlyMissing(e.target.checked)} />{tr("Without a price only")}</label>
-          <span className="flex-1" />
-          <label className="text-xs text-neutral-500">{tr("Valid from")}<input type="date" className={cx(inputClass, "mt-1 w-40")} value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-          <Button variant="secondary" onClick={usePurchase} title={tr("Fill the items without a price with the average purchase price, else the ESB HPP")}>{tr("Use Purchase Average")}</Button>
-          <Button loading={busy} disabled={!changed.length} onClick={() => void save()}><Save size={15} />{tr("Save {0} prices", changed.length)}</Button>
+      <Panel toolbar={<div className="space-y-3">
+        <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search item")} filters={chips} onOpen={() => setSheet(true)}
+          onClear={() => { setCategory(""); setOnlyMissing(false); }} />
+        {/* the new prices: from which day, filled from the purchase average, saved together */}
+        <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-neutral-50/60 p-2.5 sm:flex-row sm:items-center">
+          <label className="flex items-center gap-2 text-xs font-medium text-neutral-600"><CalendarDays size={14} className="text-neutral-400" />{tr("Valid from")}
+            <input type="date" className={cx(inputClass, "h-9 w-40 bg-white")} value={from} onChange={(e) => setFrom(e.target.value)} aria-label={tr("Valid from")} /></label>
+          <span className="hidden flex-1 sm:block" />
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <Button size="sm" variant="secondary" onClick={usePurchase} title={tr("Fill the items without a price with the average purchase price, else the ESB HPP")}>{tr("Use Purchase Average")}</Button>
+            <Button size="sm" loading={busy} disabled={!changed.length} onClick={() => void save()}><Save size={15} />{tr("Save {0} prices", changed.length)}</Button>
+          </div>
         </div>
-      } footer={data ? <><span>{tr("{0} of {1} shown", rows.length, data.data.length)}</span><PageNav paged={paged} /></> : undefined}>
+      </div>      } footer={data ? <><span>{tr("{0} of {1} shown", rows.length, data.data.length)}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !data ? <SkeletonRows cols={6} /> : rows.length === 0 ? <Empty title={tr("No item matches")} /> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
@@ -113,6 +122,8 @@ export default function PricelistPage() {
           </div>
         )}
       </Panel>
+      {sheet && <PriceFilters category={category} missing={onlyMissing} categories={data?.categories ?? []} onClose={() => setSheet(false)}
+        onApply={(c, m) => { setCategory(c); setOnlyMissing(m); setSheet(false); }} />}
       {history && <HistoryDrawer item={history} onClose={() => setHistory(null)} />}
     </Page>
   );
@@ -134,5 +145,23 @@ function HistoryDrawer({ item, onClose }: { item: Item; onClose: () => void }) {
         </ul>
       )}
     </Drawer>
+  );
+}
+
+function PriceFilters({ category, missing, categories, onApply, onClose }: {
+  category: string; missing: boolean; categories: string[]; onApply: (c: string, m: boolean) => void; onClose: () => void;
+}) {
+  const [c, setC] = useState(category);
+  const [m, setM] = useState(missing);
+  return (
+    <MonitorFilterSheet active={[c, m].filter(Boolean).length} onClose={onClose} onApply={() => onApply(c, m)} onReset={() => { setC(""); setM(false); }}>
+      <FilterRow icon={<Package size={15} />} label={tr("Category")} value={c || null} onClear={() => setC("")}>
+        <ComboFilter value={c} onChange={setC} allLabel={tr("All categories")} placeholder={tr("Search category")} options={categories.map((x) => ({ value: x, label: x }))} />
+      </FilterRow>
+      <FilterRow icon={<BadgeAlert size={15} />} label={tr("Price")} value={m ? tr("Without a price only") : null} onClear={() => setM(false)}>
+        <Segmented label={tr("Price")} value={m ? "missing" : "all"} onChange={(v) => setM(v === "missing")}
+          options={[{ value: "all", label: tr("All items") }, { value: "missing", label: tr("Without a price only") }]} />
+      </FilterRow>
+    </MonitorFilterSheet>
   );
 }

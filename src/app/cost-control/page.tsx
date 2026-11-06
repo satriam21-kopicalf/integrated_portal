@@ -6,11 +6,12 @@
 // what stays unexplained, with the checks of the data: SO approved, coverage of the materials, SO anomalies, prices.
 // The period starts on the day of a stock opname and ends the day before the next one (that count is the SO akhir).
 
-import { AlertTriangle, BarChart3, CalendarDays, CheckCircle2, FileText, Store } from 'lucide-react';
+import ExcelIconButton from '@/components/ExcelIconButton';
+import { AlertTriangle, BarChart3, CalendarDays, CheckCircle2, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from '@/so/ui';
+import { Badge, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from '@/so/ui';
 import { Stat, StatSkeleton, StatStrip } from '@/so/ui/StatStrip';
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from '@/so/ui/Filters';
 import { FilterRow, MonitorFilterSheet, QuickPeriod, periodLabel } from '@/so/ui/MonitorFilters';
@@ -90,7 +91,7 @@ function Cogs() {
         </div>
       )}
       <Panel className="mt-4" toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr('Search outlet')} filters={chips} onOpen={() => setSheet(true)} onClear={() => setPeriod(def)}
-        extra={<Button size="sm" variant="secondary" className="ml-auto" disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, 'error'))}><FileText size={14} />{tr('Export')}</Button>} />}
+        extra={<ExcelIconButton boxed className="ml-auto" label={tr('Export to Excel')} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, 'error'))} />} />}
         footer={res ? <><span>{tr('{0} outlets', fmtNumber(rows.length))}{noCards.length ? ` · ${tr('{0} without recipe cards left out', noCards.length)}` : ''}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={9} /></tbody></table>
           : !rows.length ? <Empty icon={<BarChart3 size={26} />} title={tr('No outlet to show for this period')} /> : (
