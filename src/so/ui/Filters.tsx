@@ -64,20 +64,20 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
   children: ReactNode;
   applyDisabled?: boolean;
 }) {
+  // the same drawer as the monitoring pages (MonitorFilters.tsx, 2026-11-07): sections in one list, Reset · Show results
   return (
     <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={title ?? tr('Filters')}
-      description={description ?? tr('Choose the filters, then apply them to the page')} focusFirstField={false}
+      description={description ?? tr('Narrow the data, then show the results')} focusFirstField={false}
       footer={
         <>
           <button type="button" onClick={onReset}
-            className="mr-auto inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">
-            <RotateCcw size={14} /> {tr('Reset')}
+            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">
+            <RotateCcw size={14} /> {tr('Reset all')}
           </button>
-          <Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button>
-          <Button onClick={onApply} disabled={applyDisabled}>{tr('Apply')}</Button>
+          <Button onClick={onApply} disabled={applyDisabled} className="min-w-[9rem]">{tr('Show results')}</Button>
         </>
       }>
-      <div className="space-y-3">{children}</div>
+      <div className="-mx-1 divide-y divide-neutral-100">{children}</div>
     </Drawer>
   );
 }
@@ -85,12 +85,12 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
 /** One filter of the drawer as a card, like the form cards of the edit drawers (Count types, Monitoring). */
 export function FilterSection({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white">
-      <header className="border-b border-neutral-100 px-4 py-2.5">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{title}</h3>
+    <section className="px-1 py-4 first:pt-1">
+      <header className="mb-2.5">
+        <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
         {hint && <p className="mt-0.5 text-xs text-neutral-500">{hint}</p>}
       </header>
-      <div className="p-4">{children}</div>
+      {children}
     </section>
   );
 }

@@ -5609,4 +5609,16 @@ export const ID: Record<string, string> = {
   "{0} outlets with an SO awal · {1} with an SO akhir": "{0} outlet punya SO awal · {1} punya SO akhir",
   "{0} with both SO approved": "{0} dengan kedua SO approved",
   "{0} without recipe cards left out": "{0} tanpa kartu resep tidak ditampilkan",
+  // UI polish (2026-11-07)
+  "Files": "File",
+  "Location & Log": "Lokasi & Log",
+  "Only {0} in the data": "Hanya {0} di data ini",
+  "Progress of the day": "Progress hari ini",
+  "Start {0} m": "Mulai {0} m",
+  "Submit {0} m": "Kirim {0} m",
+  "Where the count was started and sent, and every step with who and when": "Lokasi mulai dan kirim SO, serta setiap tahap beserta siapa dan kapan",
+  "signed": "ditandatangani",
+  "tap to download; also in the ZIP once approved": "klik untuk unduh; juga ada di ZIP setelah approved",
+  "{0} of {1} sent": "{0} dari {1} terkirim",
+  "{0} photos · {1} files{2} · time and position recorded by the server; SHA-256 proves the file is unchanged": "{0} foto · {1} file{2} · waktu dan posisi dicatat server; SHA-256 membuktikan file tidak berubah",
 };

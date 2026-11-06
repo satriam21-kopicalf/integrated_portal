@@ -112,11 +112,6 @@ export default function ReviewsPage() {
 
   return (
     <Page title={tr("Review Stock Opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("approve submitted counts or ask for a recount")}`}
-      actions={
-        <ExcelExportMenu choices={EXPORT_KINDS.map((k) => ({ key: k, label: EXPORT_LABEL[k](), hint: EXPORT_HINT[k](), icon: EXPORT_ICON[k],
-          tone: EXPORT_TONE[k], count: exportCount[k], run: () => download(k) }))}
-          footer={<>{f.type ? `${countTypeLabel(f.type)} · ` : ""}{tr("every branch, one sheet per branch")} · {dmy(f.period.from)} – {dmy(f.period.to)}</>} />
-      }
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Waiting for Review")} emphasis value={rows ? fmtNumber(n("SUBMITTED")) : <StatSkeleton />}>
@@ -137,7 +132,10 @@ export default function ReviewsPage() {
         <Tabs label={tr("Status")} value={f.status} onChange={(status) => setF({ ...f, status })}
           tabs={TABS.map((k) => ({ key: k, label: k ? FLOW_LABEL[k]() : tr("All"), count: rows ? fmtNumber(all.filter((r) => statusMatch(r, k)).length) : undefined }))} />
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search facility or count number")} filters={chips.filter((c) => c.key !== "s")}
-          onOpen={() => setSheet(true)} onClear={() => setF({ ...DEFAULT(), status: f.status })} />
+          onOpen={() => setSheet(true)} onClear={() => setF({ ...DEFAULT(), status: f.status })}
+          extra={<div className="ml-auto"><ExcelExportMenu choices={EXPORT_KINDS.map((k) => ({ key: k, label: EXPORT_LABEL[k](), hint: EXPORT_HINT[k](), icon: EXPORT_ICON[k],
+            tone: EXPORT_TONE[k], count: exportCount[k], run: () => download(k) }))}
+            footer={<>{f.type ? `${countTypeLabel(f.type)} · ` : ""}{tr("every branch, one sheet per branch")} · {dmy(f.period.from)} – {dmy(f.period.to)}</>} /></div>} />
       </>}
         footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (

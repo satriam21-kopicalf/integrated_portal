@@ -113,18 +113,21 @@ export type StatTone = keyof typeof VALUE_TONE;
 export function StatCard({ label, value, sub, icon, tone = 'default', onClick, active }: {
   label: ReactNode; value: ReactNode; sub?: ReactNode; icon?: ReactNode; tone?: StatTone; onClick?: () => void; active?: boolean;
 }) {
+  // the same card as Stat (compat.tsx): a faint Calf watermark, the icon in a chip (2026-11-07)
   const body = (
     <>
-      <span className="flex items-center justify-between gap-2">
-        <span className="truncate text-xs font-medium text-neutral-500">{label}</span>
-        {icon && <span className="text-neutral-400 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
+      {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
+      <img src="/assets/calf-logo.png" alt="" aria-hidden className="pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain opacity-[0.05] grayscale" />
+      <span className="relative flex items-center justify-between gap-2">
+        <span className="truncate text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}</span>
+        {icon && <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>}
       </span>
-      <span className={cx('block truncate text-xl font-semibold leading-tight tabular-nums sm:text-2xl', VALUE_TONE[tone])}>{value}</span>
-      {sub && <span className="block truncate text-xs text-neutral-500">{sub}</span>}
+      <span className={cx('relative block truncate text-xl font-semibold leading-tight tabular-nums sm:text-2xl', VALUE_TONE[tone])}>{value}</span>
+      {sub && <span className="relative block truncate text-xs text-neutral-500">{sub}</span>}
     </>
   );
-  const cls = cx('flex min-w-0 flex-col gap-1 rounded-xl border bg-white px-4 py-3.5 text-left transition',
-    active ? 'border-brand-300 ring-2 ring-brand-100' : 'border-neutral-200', onClick && 'hover:shadow-md');
+  const cls = cx('relative flex min-w-0 flex-col gap-1.5 overflow-hidden rounded-xl border bg-white px-4 py-3.5 text-left shadow-sm transition',
+    active ? 'border-brand-400 ring-2 ring-brand-100' : 'border-neutral-200', onClick && 'hover:-translate-y-px hover:shadow-md');
   return onClick ? <button type="button" onClick={onClick} aria-pressed={active} className={cls}>{body}</button> : <div className={cls}>{body}</div>;
 }
 

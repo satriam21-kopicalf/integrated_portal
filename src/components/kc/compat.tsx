@@ -49,23 +49,29 @@ export function StatStrip({ children, columns = 4, label, gridClassName }: { chi
   return <section aria-label={label} className={cx('grid gap-3', gridClassName ?? `grid-cols-2 ${GRID[columns]}`)}>{children}</section>;
 }
 
-/** A number card: label (+ icon / info), value, the lines under it; a quick filter when `onClick` is given. */
+/** A number card: label (+ icon / info), value, the lines under it; a quick filter when `onClick` is given. Every card
+ * carries the Calf mark as a faint watermark (2026-11-07); the emphasised one a light brand gradient. */
 export function Stat({ label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-xl sm:text-2xl', info, onClick, active = false }: {
   label: string; icon?: ReactNode; info?: ReactNode; value: ReactNode; title?: string; children?: ReactNode; emphasis?: boolean;
   className?: string; valueClassName?: string; onClick?: () => void; active?: boolean;
 }) {
   const body = (
     <>
-      <span className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1 truncate text-xs font-medium text-neutral-500">{label}{info}</span>
-        {icon && <span className="flex-shrink-0 text-neutral-400 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
+      {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
+      <img src="/assets/calf-logo.png" alt="" aria-hidden
+        className={cx('pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain grayscale', emphasis ? 'opacity-[0.1]' : 'opacity-[0.05]')} />
+      <span className="relative flex items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1 truncate text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}{info}</span>
+        {icon && <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg [&>svg]:h-3.5 [&>svg]:w-3.5',
+          emphasis ? 'bg-brand-100 text-brand-700' : 'bg-neutral-100 text-neutral-500')}>{icon}</span>}
       </span>
-      <span title={title} className={cx('block font-semibold leading-tight tabular-nums', valueClassName, emphasis ? 'text-brand-700' : 'text-neutral-900')}>{value}</span>
-      {children && <div className="space-y-0.5 text-xs text-neutral-500 [&_p]:truncate">{children}</div>}
+      <span title={title} className={cx('relative block font-semibold leading-tight tabular-nums', valueClassName, emphasis ? 'text-brand-800' : 'text-neutral-900')}>{value}</span>
+      {children && <div className="relative space-y-0.5 text-xs text-neutral-500 [&_p]:truncate">{children}</div>}
     </>
   );
-  const cls = cx('flex min-w-0 flex-col gap-1 rounded-xl border bg-white px-4 py-3.5 text-left transition', active ? 'border-brand-300 ring-2 ring-brand-100' : 'border-neutral-200',
-    onClick && 'hover:shadow-md', className);
+  const cls = cx('relative flex min-w-0 flex-col gap-1.5 overflow-hidden rounded-xl border px-4 py-3.5 text-left shadow-sm transition',
+    emphasis ? 'border-brand-200 bg-gradient-to-br from-brand-50 via-white to-white' : 'border-neutral-200 bg-white',
+    active && 'border-brand-400 ring-2 ring-brand-100', onClick && 'hover:-translate-y-px hover:shadow-md', className);
   return onClick ? <button type="button" onClick={onClick} aria-pressed={active} className={cls}>{body}</button> : <div className={cls}>{body}</div>;
 }
 

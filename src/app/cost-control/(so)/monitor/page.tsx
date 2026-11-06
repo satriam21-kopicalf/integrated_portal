@@ -53,6 +53,24 @@ const NEXT: Record<string, () => string> = {
   SUBMITTED: () => tr("Waiting for the review of Cost Control"), RECOUNT_REQUESTED: () => tr("The branch is recounting"),
   APPROVED: () => tr("Approved · ready for the ESB export"), EXPORTED: () => tr("Exported to ESB"), MISSED: () => tr("Not counted on the day"),
 };
+/** the four steps of a count (2026-11-07): started, sent, reviewed, approved; a recount goes back to the second */
+const STEP: Record<string, { n: number; tone: string }> = {
+  NOT_STARTED: { n: 0, tone: "bg-neutral-300" }, IN_PROGRESS: { n: 1, tone: "bg-brand-500" }, SUBMITTED: { n: 2, tone: "bg-violet-500" },
+  RECOUNT_REQUESTED: { n: 1, tone: "bg-amber-500" }, APPROVED: { n: 4, tone: "bg-emerald-500" }, EXPORTED: { n: 4, tone: "bg-emerald-500" }, MISSED: { n: 0, tone: "bg-red-500" },
+};
+function StatusSteps({ status }: { status: string }) {
+  const st = STATUS[status] ?? STATUS.NOT_STARTED;
+  const step = STEP[status] ?? STEP.NOT_STARTED;
+  const labels = [tr("Started"), tr("Sent"), tr("Reviewed"), tr("Approved")];
+  return (
+    <span className="inline-flex flex-col gap-1">
+      <Badge tone={st.tone} dot>{st.label()}</Badge>
+      <span className="flex gap-0.5" role="img" aria-label={labels.slice(0, step.n).join(" → ") || st.label()}>
+        {labels.map((l, i) => <span key={l} title={l} className={cx("h-1 w-5 rounded-full", status === "MISSED" ? "bg-red-200" : i < step.n ? step.tone : "bg-neutral-200")} />)}
+      </span>
+    </span>
+  );
+}
 const weekday = (iso: string) => new Date(`${iso}T12:00:00+07:00`).toLocaleDateString(locale(), { timeZone: "Asia/Jakarta", weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const timeOf = (v: string | null) => (v ? new Date(v).toLocaleTimeString(locale(), { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit" }) : "");
 
@@ -165,7 +183,6 @@ export default function MonitorPage() {
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {rows === null ? <SkeletonRows cols={6} /> : paged.rows.map((r) => {
-                    const st = STATUS[r.status] ?? STATUS.NOT_STARTED;
                     return (
                       <tr key={`${r.facility_id}:${r.count_type}`} className="hover:bg-neutral-50/70">
                         <td className="max-w-[20rem] px-4 py-3">
@@ -173,7 +190,7 @@ export default function MonitorPage() {
                           <span className="block truncate text-xs text-neutral-400">{r.facility_code} · {r.facility_type}</span>
                         </td>
                         <td className="px-4 py-3 text-neutral-700">{countTypeLabel(r.count_type)}</td>
-                        <td className="px-4 py-3"><Badge tone={st.tone} dot>{st.label()}</Badge><span className="mt-1 block text-[11px] text-neutral-500">{NEXT[r.status]?.()}</span></td>
+                        <td className="px-4 py-3"><StatusSteps status={r.status} /><span className="mt-1 block text-[11px] text-neutral-500">{NEXT[r.status]?.()}</span></td>
                         <td className="px-4 py-3 text-xs tabular-nums text-neutral-500">{timeOf(r.session?.submitted_at ?? null) ? `${timeOf(r.session!.submitted_at)} WIB` : "—"}</td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
@@ -221,24 +238,32 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
     { key: "low", n: alerts.low, icon: AlertTriangle, label: (n) => tr("{0} with low GPS accuracy", n) },
     { key: "unlocated", n: alerts.unlocated, icon: MapPin, label: (n) => tr("{0} facilities without coordinates", n) },
   ];
+  const done = TABS.filter((t) => ["APPROVED", "SUBMITTED"].includes(t.key)).reduce((n, t) => n + tabCount(t.key), 0);
   return (
     <div className="space-y-3">
-      <div>
-        <div className="flex h-1.5 overflow-hidden rounded-full bg-neutral-100" role="img"
-          aria-label={TABS.map((t) => `${STATUS[t.key].label()} ${tabCount(t.key)}`).join(", ")}>
-          {TABS.map((t) => tabCount(t.key) > 0 && <span key={t.key} className={t.color} style={{ width: `${(tabCount(t.key) / total) * 100}%` }} />)}
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
+        <div className="mb-2 flex items-baseline justify-between gap-2 text-xs">
+          <span className="font-semibold text-neutral-700">{tr("Progress of the day")}</span>
+          <span className="tabular-nums text-neutral-500">{tr("{0} of {1} sent", fmtNumber(done), fmtNumber(total))} · <span className="font-semibold text-neutral-900">{total ? Math.round((done / total) * 100) : 0}%</span></span>
         </div>
-        <div className="-mx-1 mt-2 flex gap-1 overflow-x-auto pb-1" role="tablist" aria-label={tr("Status of the Day")}>
+        <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-neutral-200" role="img"
+          aria-label={TABS.map((t) => `${STATUS[t.key].label()} ${tabCount(t.key)}`).join(", ")}>
+          {TABS.map((t) => tabCount(t.key) > 0 && <span key={t.key} className={cx(t.color, "first:rounded-l-full last:rounded-r-full")} style={{ width: `${(tabCount(t.key) / total) * 100}%` }} />)}
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-4 xl:grid-cols-7" role="tablist" aria-label={tr("Status of the Day")}>
           {[{ key: "", color: "bg-neutral-900" }, ...TABS].map((t) => {
             const on = status === t.key;
             const count = t.key ? tabCount(t.key) : total;
             return (
               <button key={t.key || "all"} type="button" role="tab" aria-selected={on} onClick={() => onStatus(t.key)} disabled={!!t.key && !count && !on}
-                className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-40",
-                  on ? "bg-brand-700 text-white" : "text-neutral-600 hover:bg-neutral-100")}>
-                {t.key && <span className={cx("h-2 w-2 rounded-full", t.color)} aria-hidden />}
-                {t.key ? STATUS[t.key].label() : tr("All")}
-                <span className={cx("tabular-nums", on ? "text-white/80" : "font-semibold text-neutral-900")}>{fmtNumber(count)}</span>
+                className={cx("flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition disabled:opacity-40",
+                  on ? "border-brand-600 bg-white shadow-sm ring-1 ring-brand-600" : "border-transparent bg-white/70 hover:border-neutral-200 hover:bg-white")}>
+                <span className={cx("h-2.5 w-2.5 flex-shrink-0 rounded-full", t.color)} aria-hidden />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[11px] font-medium text-neutral-600">{t.key ? STATUS[t.key].label() : tr("All")}</span>
+                  <span className="block text-sm font-semibold tabular-nums text-neutral-900">{fmtNumber(count)}
+                    {t.key && total > 0 && <span className="ml-1 text-[10px] font-medium text-neutral-400">{Math.round((count / total) * 100)}%</span>}</span>
+                </span>
               </button>
             );
           })}
@@ -251,13 +276,14 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
             const on = type === t;
             return (
               <button key={t} type="button" onClick={() => onType(t)} aria-pressed={on}
-                className={cx("rounded-lg border px-3 py-2 text-left transition-colors",
-                  on ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50")}>
-                <span className="flex items-baseline justify-between gap-2 text-xs">
-                  <span className="truncate font-medium text-neutral-800">{countTypeLabel(t)}</span>
-                  <span className="flex-shrink-0 tabular-nums text-neutral-500">{x.done}/{x.due} · <span className="font-semibold text-neutral-900">{p}%</span></span>
+                className={cx("rounded-xl border bg-white px-3 py-2.5 text-left shadow-sm transition",
+                  on ? "border-brand-600 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className="truncate text-xs font-semibold text-neutral-800">{countTypeLabel(t)}</span>
+                  <span className={cx("flex-shrink-0 text-sm font-semibold tabular-nums", p === 100 ? "text-emerald-700" : "text-neutral-900")}>{p}%</span>
                 </span>
-                <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${p}%` }} /></span>
+                <span className="mt-0.5 block text-[11px] tabular-nums text-neutral-500">{tr("{0} of {1} sent", x.done, x.due)}</span>
+                <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", p === 100 ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${p}%` }} /></span>
               </button>
             );
           })}
@@ -279,7 +305,6 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
 }
 
 function MobileRow({ r }: { r: Row }) {
-  const st = STATUS[r.status] ?? STATUS.NOT_STARTED;
   const sent = timeOf(r.session?.submitted_at ?? null);
   const body = (
     <>
@@ -288,7 +313,7 @@ function MobileRow({ r }: { r: Row }) {
           <span className="block truncate text-sm font-semibold text-neutral-900">{r.facility_name}</span>
           <span className="block truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {r.facility_code}</span>
         </span>
-        <Badge tone={st.tone} dot>{st.label()}</Badge>
+        <StatusSteps status={r.status} />
       </span>
       <span className="mt-2.5 flex items-center justify-between gap-2">
         <span className="min-w-0 text-xs text-neutral-600">{NEXT[r.status]?.()}{sent ? ` · ${sent} WIB` : ""}</span>

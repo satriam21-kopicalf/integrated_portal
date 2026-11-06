@@ -91,7 +91,6 @@ export default function ReportsPage() {
 
   return (
     <Page title={tr("Report Stock Opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("reviewed stock opname in the layout of the Stock Opname Report")}`}
-      actions={<ExcelIconButton label={tr("Download Report Stock Opname")} loading={busy} disabled={!rows?.length} onClick={download} />}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Counts")} emphasis icon={<ListChecks size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
@@ -103,13 +102,14 @@ export default function ReportsPage() {
           <Stat label={tr("Item Lines")} icon={<Layers size={13} />} value={rows ? fmtNumber(lines) : <StatSkeleton />}>
             {rows && <p>{tr("rows in the Stock Opname sheet")}</p>}
           </Stat>
-          <Stat label={tr("Count Types")} value={rows ? fmtNumber(typesIn.size) : <StatSkeleton />}>
+          <Stat label={tr("Count Types")} icon={<FileSpreadsheet size={13} />} value={rows ? fmtNumber(typesIn.size) : <StatSkeleton />}>
             {rows && <p className="truncate">{[...typesIn].map((t) => countTypeLabel(t)).join(", ") || "—"}</p>}
           </Stat>
         </StatStrip>
       }>
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search branch or count number")} filters={chips}
-        onOpen={() => setSheet(true)} onClear={() => setF(DEFAULT())} />}
+        onOpen={() => setSheet(true)} onClear={() => setF(DEFAULT())}
+        extra={<div className="ml-auto"><ExcelIconButton label={tr("Download Report Stock Opname")} loading={busy} disabled={!rows?.length} onClick={download} /></div>} />}
         footer={<><span className="flex items-center gap-1.5"><FileSpreadsheet size={13} /> {tr("Sheets: Stock Opname · Summary · WIP premix{0} · dates as 14/09/2026 · qty with two decimals", f.perBranch ? ` · ${tr("one per branch")}` : "")}</span><PageNav paged={paged} /></>}>
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[600px] text-sm">

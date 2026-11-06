@@ -26,15 +26,15 @@ const LABEL: Record<string, () => string> = {
 };
 const DOT: Record<string, string> = { START: "bg-brand-500", SUBMIT: "bg-emerald-500", RECOUNT: "bg-amber-500", APPROVE: "bg-emerald-600", CANCEL: "bg-red-500" };
 
-export default function CountLog({ countId, reload }: { countId: string; reload?: unknown }) {
+export default function CountLog({ countId, reload, bare = false }: { countId: string; reload?: unknown; /** without its card (inside another one) */ bare?: boolean }) {
   const [log, setLog] = useState<Log | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     api<Log>(`/api/so/counts/${countId}/log`).then(setLog, (e) => setError(errorText(e)));
   }, [countId, reload]);
 
-  return (
-    <Card title={tr("Log")} subtitle={tr("Start, submit, recount and review of this count, with the position of the device")}>
+  const body = (
+    <>
       {error ? <p className="text-sm text-red-600">{error}</p> : !log ? <p className="text-sm text-slate-400">{tr("Loading…")}</p> : (
         <ol className="relative space-y-4 border-l border-slate-200 pl-5">
           {log.events.map((e, i) => (
@@ -66,6 +66,7 @@ export default function CountLog({ countId, reload }: { countId: string; reload?
           {log.events.length === 0 && <li className="text-sm text-slate-400">{tr("Nothing logged yet")}</li>}
         </ol>
       )}
-    </Card>
+    </>
   );
+  return bare ? body : <Card title={tr("Log")} subtitle={tr("Start, submit, recount and review of this count, with the position of the device")}>{body}</Card>;
 }

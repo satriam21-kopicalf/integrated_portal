@@ -29,9 +29,21 @@ async function download(url: string, name: string) {
 }
 
 /** The crew's signature of a submitted count (06.9 §12.16, D-62), when they signed. */
-export function SignatureCard({ count }: { count: Count }) {
+export function SignatureCard({ count, bare = false }: { count: Count; /** the signature alone, inside another card */ bare?: boolean }) {
   const sig = count.signature;
   if (!sig) return null;
+  if (bare) {
+    return (
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
+        <img src={photoUrl(sig.id)} alt={tr("Signature")} className="h-28 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-neutral-200" />
+        <div className="text-sm">
+          <p className="font-semibold text-neutral-900">{sig.name ?? sig.signed_by_name ?? "—"}</p>
+          <p className="text-xs text-neutral-500">{wibDateTime(sig.signed_at)}{sig.signed_by_name && sig.signed_by_name !== sig.name ? ` · ${tr("account {0}", sig.signed_by_name)}` : ""}</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
       <div className="flex items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">

@@ -160,12 +160,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   return (
     <Page title={review ? tr("Waste Review") : tr("Waste Monitor")}
       subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${review ? tr("approve or reject the waste of the branches") : tr("Waste entered by every branch")}`}
-      actions={<>{review && <Button variant="secondary" size="sm" onClick={() => setCats(true)}><Tags size={14} />{tr("Categories")}</Button>}<ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All Branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
-        { key: "entries", label: tr("Waste Entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-brand-50 text-brand-600", count: res ? rows.length : null, run: safe(exportEntries) },
-        { key: "items", label: tr("Totals per Item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
-        { key: "daily", label: tr("Daily Report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
-        { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
-      ]} /></>}
+      actions={review ? <Button variant="secondary" size="sm" onClick={() => setCats(true)}><Tags size={14} />{tr("Categories")}</Button> : undefined}
       stats={
         <StatStrip label={tr("Summary")} columns={5}>
           <Stat label={tr("Entries")} emphasis icon={<Trash2 size={13} />} value={sm ? fmtNumber(sm.entries) : <StatSkeleton />}>
@@ -184,7 +179,13 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         <div className="space-y-3">
           <FilterToolbar search={view === "entries" ? search : undefined} onSearch={view === "entries" ? setSearch : undefined}
             placeholder={tr("Search item, branch or person")} filters={chips} onOpen={() => setSheet(true)}
-            onClear={() => { setPeriod(DEFAULT_PERIOD()); setBranch(""); setScope(""); setCategory(""); setStatus(review ? "submitted" : ""); }} />
+            onClear={() => { setPeriod(DEFAULT_PERIOD()); setBranch(""); setScope(""); setCategory(""); setStatus(review ? "submitted" : ""); }}
+            extra={<div className="ml-auto"><ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All Branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
+        { key: "entries", label: tr("Waste Entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-brand-50 text-brand-600", count: res ? rows.length : null, run: safe(exportEntries) },
+        { key: "items", label: tr("Totals per Item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
+        { key: "daily", label: tr("Daily Report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
+        { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
+      ]} /></div>} />
           <div role="tablist" aria-label={tr("View")} className="-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1">
             {VIEWS.map((v) => {
               const Icon = v.icon;

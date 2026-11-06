@@ -195,7 +195,6 @@ export default function RatioPage() {
   ];
   return (
     <Page title={tr("Outlet Ratio")} subtitle={`${monthLabel} · ${dmy(range.from)} – ${dmy(range.to)} · ${tr("COGS, BB, espresso and usage ratio per outlet, from ESB data")}`}
-      actions={<ExcelIconButton label={tr("Download Excel")} href={`/api/cost-control/ratio/export?${query}`} />}
       stats={error ? undefined : (
         <StatStrip label={tr("Summary")} columns={5} gridClassName="sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Stat label={basis === "gross" ? tr("Gross sales") : tr("Net sales")} icon={<Store size={13} />} value={t ? rp(basis === "gross" ? t.gross : t.net) : <StatSkeleton />}>
@@ -230,7 +229,7 @@ export default function RatioPage() {
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <>
           <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)}
-            extra={<BasisSwitch value={basis} onChange={setBasis} />}
+            extra={<div className="flex flex-1 flex-wrap items-center justify-end gap-2"><BasisSwitch value={basis} onChange={setBasis} /><ExcelIconButton label={tr("Download Excel")} href={`/api/cost-control/ratio/export?${query}`} /></div>}
             onClear={() => { const d = new Date(new Date().getFullYear(), new Date().getMonth(), 1); setMonth(d); setRange(presets(d).at(-1)!); setWatch({ cogs: "", so: "" }); }} />}
             footer={<><span>{data ? tr("SO awal {0}, SO akhir {1}", dmy(data.period.soStart), dmy(data.period.soEnd)) : ""}{" · "}{basis === "gross" ? tr("Ratios on gross sales (subtotal)") : tr("Ratios on net sales")}{" · "}{tr("Net = Pendapatan (gross × (1 − MDR)) when the MDR is filled in, otherwise ESB nett sales")}{data ? ` · ${tr("{0} of {1} shown", rows.length, data.outlets.length)}` : ""}</span><PageNav paged={paged} /></>}>
             <div className="overflow-auto md:max-h-[70vh]">

@@ -54,6 +54,16 @@ export function FilterRow({ icon, label, value, onClear, children }: {
   );
 }
 
+/** A filter of one option only (2026-11-07): nothing to choose, so it is told, not offered. */
+function OnlyOne({ label }: { label: string }) {
+  return (
+    <p className="flex items-center gap-2 rounded-lg border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-500">
+      <Check size={13} className="flex-shrink-0 text-neutral-400" />
+      <span className="min-w-0 truncate">{tr('Only {0} in the data', label)}</span>
+    </p>
+  );
+}
+
 /** A few choices side by side ('' = all). */
 export function Segments({ value, onChange, choices }: { value: string; onChange: (v: string) => void; choices: { value: string; label: string }[] }) {
   return (
@@ -111,6 +121,7 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
     return s ? options.filter((o) => o.label.toLowerCase().includes(s) || o.value.toLowerCase().includes(s) || (o.hint ?? '').toLowerCase().includes(s)) : options;
   }, [options, q]);
   const pick = (v: string) => { onChange(v); setOpen(false); setQ(''); };
+  if (options.length <= 1 && !value) return <OnlyOne label={options[0]?.label ?? '—'} />;
   const item = (v: string, label: string, hint?: string) => (
     <li key={v || 'all'}>
       <button type="button" onClick={() => pick(v)} aria-pressed={v === value}
@@ -133,7 +144,7 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
       {open && (
         <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg">
           <div className="relative border-b border-neutral-100 p-2">
-            <Search size={14} className="absolute left-4 top-1/2 -tranneutral-y-1/2 text-neutral-400" />
+            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={placeholder} className={cx(inputClass, 'h-9 pl-8 text-sm')} />
           </div>
           <ul className="max-h-60 overflow-y-auto py-1">

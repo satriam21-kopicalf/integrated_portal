@@ -42,6 +42,8 @@ export default function ReviewDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState(false);
   const [onlyFlagged, setOnlyFlagged] = useState(false);
+  // Location & Log folded by default: its summary stays in the header (2026-11-07)
+  const [places, setPlaces] = useState(false);
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState<Set<number>>(new Set());
   // premix lines for a recount (2026-10-29): only their grams are worked out again, not the items counted by hand
@@ -173,8 +175,26 @@ export default function ReviewDetailPage() {
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"><span className="font-semibold">{tr("Review Note")}:</span> {count.review_note}</p>
         )}
 
-        <Card title={tr("Location")} subtitle={tr("Where the count was started and sent, against the outlet location")}>
-          <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+        <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+          <button type="button" onClick={() => setPlaces((v) => !v)} aria-expanded={places}
+            className="flex w-full flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><MapPin size={16} /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-neutral-900">{tr("Location & Log")}</span>
+              <span className="block truncate text-xs text-neutral-500">{tr("Where the count was started and sent, and every step with who and when")}</span>
+            </span>
+            <span className="flex flex-wrap items-center gap-1.5 text-[11px]">
+              {count.start_distance_m != null && <Badge tone="slate">{tr("Start {0} m", count.start_distance_m)}</Badge>}
+              {count.submit_distance_m != null && <Badge tone="slate">{tr("Submit {0} m", count.submit_distance_m)}</Badge>}
+              {count.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>}
+            </span>
+            <ChevronRight size={16} className={cx("flex-shrink-0 text-neutral-400 transition", places && "rotate-90")} />
+          </button>
+          {places && (
+          <div className="grid gap-5 border-t border-neutral-100 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+          <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Location")}</p>
+          <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-1">
             <Position label={tr("Location at Start")} lat={count.start_lat} lng={count.start_lng} distance={count.start_distance_m}
               accuracy={count.start_accuracy_m} at={count.start_located_at} none={count.entry_source && count.entry_source !== "CREW" ? "—" : tr("No location")} />
             <Position label={tr("Location at Submit")} lat={count.submit_lat} lng={count.submit_lng} distance={count.submit_distance_m}
@@ -183,9 +203,14 @@ export default function ReviewDetailPage() {
               ? `${Number(count.facility_lat).toFixed(5)}, ${Number(count.facility_lng).toFixed(5)} · ${tr("radius {0} m", count.facility_radius_m ?? "")}`
               : tr("No coordinates yet")} href={count.facility_lat != null ? mapsUrl(count.facility_lat, count.facility_lng ?? 0) : "/cost-control/locations"} />
           </dl>
-        </Card>
-
-        <CountLog countId={id} reload={count.status} />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Log")}</p>
+            <CountLog countId={id} reload={count.status} bare />
+          </div>
+          </div>
+          )}
+        </section>
 
         {reviewable && (
           <p className="flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50/60 px-4 py-3 text-[13px] text-brand-900">
@@ -195,8 +220,11 @@ export default function ReviewDetailPage() {
         )}
 
         {(count.wip?.lines.length ?? 0) > 0 && (
-          <Card flush title={<span className="inline-flex items-center gap-2"><FlaskConical size={16} className="text-violet-600" />{tr("WIP / Premix")}</span>}
+          <Card flush title={<span className="inline-flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-50 text-violet-600"><FlaskConical size={15} /></span>{tr("WIP / Premix")}<Badge tone="violet">{count.wip!.lines.length}</Badge></span>}
             subtitle={correctable ? tr("Grams entered by the branch · correcting a premix changes only its grams on the materials") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
+            <div className="hidden border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 sm:flex sm:px-5">
+              {reviewable && <span className="w-11" />}<span className="flex-1">{tr("Premix")}</span><span>{tr("Counted")}</span>
+            </div>
             <ul className="divide-y divide-neutral-100">
               {count.wip!.lines.map((w) => (
                 <li key={w.id} className={cx("flex items-start gap-3 px-4 py-3 sm:px-5", w.flags?.includes("RECOUNT") && "bg-amber-50/50", pickedWip.has(w.id) && "bg-brand-50/50")}>
@@ -221,7 +249,8 @@ export default function ReviewDetailPage() {
           </Card>
         )}
 
-        <Card flush title={tr("Items")} subtitle={tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}
+        <Card flush title={<span className="inline-flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><ClipboardList size={15} /></span>{tr("Items")}<Badge tone="blue">{count.progress.lines}</Badge></span>}
+          subtitle={tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}
           toolbar={
             <div className="flex flex-wrap items-center gap-2">
               <SearchInput value={q} onChange={setQ} placeholder={tr("Search item")} />
@@ -308,10 +337,12 @@ export default function ReviewDetailPage() {
           )}
         </Card>
 
-        {(count.photos.length > 0 || count.status === "APPROVED" || count.status === "EXPORTED") && (
-          <Card flush title={tr("Evidence Photos")} actions={<EvidenceDownloads count={count} />}
-            subtitle={tr("{0} photos · time and position recorded by the server; SHA-256 proves the file is unchanged", count.photos.length)}>
-            {count.photos.length === 0 ? <p className="px-4 py-6 text-sm text-neutral-500 sm:px-5">{tr("No evidence photos were taken.")}</p> : (
+        {(count.photos.length > 0 || (count.files?.length ?? 0) > 0 || !!count.signature || count.status === "APPROVED" || count.status === "EXPORTED") && (
+          <Card flush title={tr("Evidence")} actions={<EvidenceDownloads count={count} />}
+            subtitle={tr("{0} photos · {1} files{2} · time and position recorded by the server; SHA-256 proves the file is unchanged",
+              count.photos.length, count.files?.length ?? 0, count.signature ? ` · ${tr("signed")}` : "")}>
+            <p className="px-4 pt-4 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 sm:px-5">{tr("Photos")}</p>
+            {count.photos.length === 0 ? <p className="px-4 py-3 text-sm text-neutral-500 sm:px-5">{tr("No evidence photos were taken.")}</p> : (
               <ul className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:p-5 lg:grid-cols-6">
                 {count.photos.map((ph) => {
                   const item = ph.subject.startsWith("ITEM:") ? count.lines.find((l) => l.item_id === ph.subject.slice(5))?.item_name : null;
@@ -329,16 +360,20 @@ export default function ReviewDetailPage() {
                 })}
               </ul>
             )}
+            {(count.files?.length ?? 0) > 0 && (
+              <div className="border-t border-neutral-100 px-4 py-4 sm:px-5">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Files")} · <span className="normal-case tracking-normal text-neutral-400">{tr("tap to download; also in the ZIP once approved")}</span></p>
+                <CountFileList files={count.files!} />
+              </div>
+            )}
+            {count.signature && (
+              <div className="border-t border-neutral-100 px-4 py-4 sm:px-5">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Signature")}</p>
+                <SignatureCard count={count} bare />
+              </div>
+            )}
           </Card>
         )}
-
-        {(count.files?.length ?? 0) > 0 && (
-          <Card title={tr("Evidence Files")} subtitle={tr("{0} files attached by the branch · tap to download; also in the ZIP once approved", count.files!.length)}>
-            <CountFileList files={count.files!} />
-          </Card>
-        )}
-
-        <SignatureCard count={count} />
       </div>
 
       {/* phones and tablets: the review actions in a bar above the bottom menu */}
@@ -408,11 +443,12 @@ export default function ReviewDetailPage() {
 function FlowBanner({ count, reviewable }: { count: Count; reviewable: boolean }) {
   const recountItems = count.lines.filter((l) => l.is_current && l.flags.includes("RECOUNT")).length;
   const recountWip = count.wip?.lines.filter((w) => w.flags?.includes("RECOUNT")).length ?? 0;
+  // four steps (2026-11-07: the ESB export is no step of the review any more)
   const STEPS = [
     { key: "IN_PROGRESS", label: tr("Counting") }, { key: "SUBMITTED", label: tr("Sent") }, { key: "REVIEW", label: tr("Review") },
-    { key: "APPROVED", label: tr("Approved") }, { key: "EXPORTED", label: tr("In ESB") },
+    { key: "APPROVED", label: tr("Approved") },
   ];
-  const at = { IN_PROGRESS: 0, SUBMITTED: 2, RECOUNT_REQUESTED: 0, APPROVED: 3, EXPORTED: 4, CANCELLED: -1 }[count.status] ?? 0;
+  const at = { IN_PROGRESS: 0, SUBMITTED: 2, RECOUNT_REQUESTED: 0, APPROVED: 4, EXPORTED: 4, CANCELLED: -1 }[count.status] ?? 0;
   const text: Record<string, { tone: string; title: string; body: string }> = {
     IN_PROGRESS: { tone: "border-brand-100 bg-brand-50/60 text-brand-900", title: tr("The branch is still counting"),
       body: tr("{0} of {1} lines counted so far. The review opens once the branch sends the count.", count.progress.counted, count.progress.lines) },
@@ -432,13 +468,23 @@ function FlowBanner({ count, reviewable }: { count: Count; reviewable: boolean }
       <p className="text-sm font-semibold">{t.title}</p>
       <p className="mt-0.5 text-[13px] opacity-90">{t.body}</p>
       {at >= 0 && (
-        <ol className="mt-3 grid grid-cols-5 gap-1.5" aria-hidden>
-          {STEPS.map((x, i) => (
-            <li key={x.key} className="min-w-0">
-              <span className={cx("block h-1.5 rounded-full", i < at ? "bg-current opacity-50" : i === at ? "bg-current" : "bg-current opacity-15")} />
-              <span className={cx("mt-1 block truncate text-[10px] font-semibold uppercase tracking-wide", i === at ? "" : "opacity-60")}>{x.label}</span>
-            </li>
-          ))}
+        <ol className="mt-3.5 flex items-start" aria-hidden>
+          {STEPS.map((x, i) => {
+            const done = i < at, now = i === at;
+            return (
+              <li key={x.key} className="flex min-w-0 flex-1 flex-col items-center text-center">
+                <span className="flex w-full items-center">
+                  <span className={cx("h-0.5 flex-1", i === 0 ? "opacity-0" : done || now ? "bg-current opacity-60" : "bg-current opacity-15")} />
+                  <span className={cx("flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold ring-2",
+                    done ? "bg-current ring-transparent" : now ? "bg-white ring-current" : "bg-white/60 ring-current/20 opacity-60")}>
+                    {done ? <Check size={14} className="text-white" strokeWidth={3} /> : <span>{i + 1}</span>}
+                  </span>
+                  <span className={cx("h-0.5 flex-1", i === STEPS.length - 1 ? "opacity-0" : done ? "bg-current opacity-60" : "bg-current opacity-15")} />
+                </span>
+                <span className={cx("mt-1.5 block w-full truncate px-1 text-[10px] font-semibold uppercase tracking-wide sm:text-[11px]", now ? "" : "opacity-60")}>{x.label}</span>
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>
