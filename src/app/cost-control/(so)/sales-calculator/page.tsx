@@ -9,7 +9,7 @@
 // document) and COGS Material (Pricelist Items), system and actual. A card may hold other cards (bundling, 2026-11-06)
 // and shows the list price of its menus (POS menu master, per channel) with the % HPP.
 
-import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, X } from "lucide-react";
+import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Wand2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -186,6 +186,7 @@ function Recipes() {
   const [error, setError] = useState<string | null>(null);
   const [edit, setEdit] = useState<Recipe | "new" | null>(null);
   const [bom, setBom] = useState(false);
+  const [auto, setAuto] = useState(false);
   const [q, setQ] = useState("");
   const [layout, setLayout] = useState<"cards" | "table">(() => { try { return localStorage.getItem("sc.recipes.layout") === "table" ? "table" : "cards"; } catch { return "cards"; } });
   const pickLayout = (v: "cards" | "table") => { setLayout(v); try { localStorage.setItem("sc.recipes.layout", v); } catch { /* private mode */ } };
@@ -198,6 +199,7 @@ function Recipes() {
   return (
     <Panel title={tr("Recipe Cards")} description={tr("What one portion of a menu uses: raw materials, packaging, WIP / premix and other items")}
       actions={<div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="secondary" onClick={() => setAuto(true)}><Wand2 size={14} />{tr("Make Cards for Every Menu")}</Button>
         <Button size="sm" variant="secondary" onClick={() => setBom(true)}><ArrowDownToLine size={14} />{tr("Import from the ESB BOM")}</Button>
         <Button size="sm" onClick={() => setEdit("new")}><Plus size={14} />{tr("New Card")}</Button></div>}
       toolbar={<div className="flex flex-wrap items-center gap-2">
@@ -223,7 +225,57 @@ function Recipes() {
       )}
       {edit && <RecipeDrawer recipe={edit === "new" ? null : edit} cards={rows ?? []} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
       {bom && <BomImport onClose={() => setBom(false)} onDone={() => { setBom(false); load(); }} />}
+      {auto && <AutoCards onClose={() => setAuto(false)} onDone={() => { setAuto(false); load(); }} />}
     </Panel>
+  );
+}
+
+type AutoResult = { dry: boolean; menus: number; created: { code: string; name: string; menus: string[] }[]; assigned: string[];
+  bundles: { code: string; name: string; contents: string[] }[]; skipped: { id: string; name: string; reason: string }[] };
+
+/** A card for every menu sold without one (ESB BOM of the menu; a bundle from its package contents): a preview first. */
+function AutoCards({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const toast = useToast();
+  const [plan, setPlan] = useState<AutoResult | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    call<AutoResult>("/api/cost-control/sales-calc/auto-cards", { method: "POST", json: { dry: true } }).then(setPlan).catch((e: Error) => { toast(e.message, "error"); onClose(); });
+  }, [toast, onClose]);
+  const run = async () => {
+    setBusy(true);
+    try {
+      const out = await call<AutoResult>("/api/cost-control/sales-calc/auto-cards", { method: "POST", json: { dry: false } });
+      toast(tr("{0} cards from the BOM, {1} bundles, {2} menus assigned", out.created.length, out.bundles.length, out.assigned.length));
+      onDone();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  const todo = plan ? plan.created.length + plan.bundles.length + plan.assigned.length : 0;
+  return (
+    <Drawer open onClose={onClose} size="lg" icon={<Wand2 size={18} />} title={tr("Make Cards for Every Menu")}
+      description={tr("Menus sold in the last 90 days without a card: from the ESB BOM of the menu, a bundle from the menus inside it")}
+      footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
+        <Button loading={busy} disabled={!plan || !todo} onClick={() => void run()}><Wand2 size={15} />{tr("Make {0} Cards", todo)}</Button></div>}>
+      {!plan ? <SkeletonRows cols={3} /> : (
+        <div className="space-y-4 text-sm">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {([[tr("From the BOM"), plan.created.length], [tr("Bundling"), plan.bundles.length], [tr("Added to a card"), plan.assigned.length], [tr("Skipped"), plan.skipped.length]] as const).map(([k, v]) => (
+              <div key={k} className="rounded-lg bg-neutral-50 px-3 py-2"><p className="text-[10px] uppercase tracking-wide text-neutral-400">{k}</p><p className="text-lg font-semibold tabular-nums">{v}</p></div>
+            ))}
+          </div>
+          {plan.bundles.length > 0 && <section><p className="mb-1 text-xs font-semibold text-neutral-700">{tr("Bundling")}</p>
+            <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">{plan.bundles.map((b) => (
+              <li key={b.code} className="px-3 py-2"><p className="font-medium text-neutral-900">{b.name}</p><p className="text-xs text-neutral-500">{b.contents.join(" + ")}</p></li>))}</ul></section>}
+          {plan.created.length > 0 && <section><p className="mb-1 text-xs font-semibold text-neutral-700">{tr("From the BOM")}</p>
+            <ul className="max-h-72 divide-y divide-neutral-100 overflow-auto rounded-xl border border-neutral-200">{plan.created.map((c) => (
+              <li key={c.code} className="flex items-start justify-between gap-3 px-3 py-2"><span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{c.name}</span>
+                <span className="block truncate text-xs text-neutral-500">{c.menus.join(", ")}</span></span><span className="font-mono text-[11px] text-neutral-400">{c.code}</span></li>))}</ul></section>}
+          {plan.skipped.length > 0 && <section><p className="mb-1 text-xs font-semibold text-amber-800">{tr("Skipped: fill these by hand")}</p>
+            <ul className="max-h-60 divide-y divide-amber-100 overflow-auto rounded-xl border border-amber-200 bg-amber-50/50">{plan.skipped.map((x) => (
+              <li key={x.id} className="px-3 py-2"><p className="font-medium text-neutral-900">{x.name}</p><p className="text-xs text-amber-800">{x.reason}</p></li>))}</ul></section>}
+          {!todo && <p className="text-neutral-500">{tr("Every menu sold already has a card.")}</p>}
+        </div>
+      )}
+    </Drawer>
   );
 }
 

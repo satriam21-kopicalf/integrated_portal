@@ -5384,4 +5384,13 @@ export const ID: Record<string, string> = {
   "no tax": "tanpa pajak",
   "{0} without tax": "{0} tanpa pajak",
   "{0}% of bills taxed": "{0}% bill kena pajak",
+  "Added to a card": "Dipasang ke kartu",
+  "Every menu sold already has a card.": "Semua menu yang terjual sudah punya kartu.",
+  "From the BOM": "Dari BOM",
+  "Make Cards for Every Menu": "Buat Kartu untuk Semua Menu",
+  "Make {0} Cards": "Buat {0} Kartu",
+  "Menus sold in the last 90 days without a card: from the ESB BOM of the menu, a bundle from the menus inside it": "Menu terjual 90 hari terakhir tanpa kartu: dari BOM ESB menu itu, bundling dari menu isinya",
+  "Skipped": "Dilewati",
+  "Skipped: fill these by hand": "Dilewati: isi manual",
+  "{0} cards from the BOM, {1} bundles, {2} menus assigned": "{0} kartu dari BOM, {1} bundling, {2} menu dipasang",
 };
