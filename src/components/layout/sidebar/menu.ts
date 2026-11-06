@@ -6,7 +6,7 @@ import {
   Activity, BarChart3, CalendarDays, Bike, Warehouse, Building2, CookingPot, Coffee, Truck, Download, Boxes, Calculator, ClipboardPen,
   FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ClipboardCheck, ClipboardList, ListChecks,
   Settings2, History, LayoutDashboard, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, Users, Wallet, UserRoundCheck,
-  PackageCheck,
+  PackageCheck, ArrowLeftRight,
 } from 'lucide-react';
 import { tr } from '@/lib/i18n';
 
@@ -40,6 +40,10 @@ export const costControl: { title: string; hint: string; icon: typeof Users; ite
     { get name() { return tr('Waste Monitor'); }, href: '/cost-control/waste/monitor', icon: Activity, get description() { return tr('Waste entered by every branch'); } },
     { get name() { return tr('Waste Review'); }, href: '/cost-control/waste/reviews', icon: ClipboardList, get description() { return tr('Approve or send back'); } },
   ] },
+  { get title() { return tr('Monitoring Stock'); }, get hint() { return tr('Stock of every branch and the transfers between outlets'); }, icon: Boxes, items: [
+    { get name() { return tr('Stock List'); }, href: '/cost-control/stock-list', icon: Boxes, get description() { return tr('Stock per branch from the latest SO'); } },
+    { get name() { return tr('Transfer Stock'); }, href: '/cost-control/stock-transfer', icon: ArrowLeftRight, get description() { return tr('Approve transfers, ESB label & export'); } },
+  ] },
   { get title() { return tr('Clock In'); }, get hint() { return tr('Outlet visits of the Cost Control team'); }, icon: UserRoundCheck, items: [
     { get name() { return tr('Cost Control Clock In'); }, href: '/cost-control/check-in', icon: UserRoundCheck, get description() { return tr('Clock in & clock out of every Cost Control surveyor'); } },
   ] },
@@ -55,6 +59,7 @@ export const forms: { title: string; hint: string; icon: typeof Users; items: Cc
   { get title() { return tr('Stock'); }, get hint() { return tr('Stock opname and waste of your branch'); }, icon: ClipboardCheck, items: [
     { get name() { return tr('Stock Opname'); }, href: '/stock-opname', icon: ClipboardCheck, get description() { return tr('Count stock of your branches'); } },
     { get name() { return tr('Waste'); }, href: '/waste', icon: Trash2, get description() { return tr('Enter the waste of your branch'); } },
+    { get name() { return tr('Transfer Stock'); }, href: '/forms/stock-transfer', icon: ArrowLeftRight, get description() { return tr('Take materials from another outlet'); } },
   ] },
   { get title() { return tr('Visit'); }, get hint() { return tr('Check in at the outlet you visit'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
