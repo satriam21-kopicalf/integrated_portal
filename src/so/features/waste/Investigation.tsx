@@ -15,7 +15,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { dmy } from "@/so/ui/Filters";
 import { tr } from "@/lib/i18n";
-import { CHECKS, type Entry, fmtQty, type Investigation, type Report, SIGNERS, type Signer, SOURCES, WASTE_KINDS, scopeLabel } from "./waste";
+import { CHECKS, DOC_DEFAULT, type Entry, fmtQty, type Investigation, type Report, SIGNERS, type Signer, SOURCES, WASTE_KINDS, scopeLabel } from "./waste";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { thumb } from "@/lib/assets";
 
@@ -147,6 +147,15 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
           </section>
 
           <section className="space-y-3">
+            <h3 className="font-semibold text-neutral-900">{tr("Letterhead")}</h3>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className={field}>{tr("Document number")}<input className={cx(inputClass, "mt-1")} value={report.docNo ?? DOC_DEFAULT.docNo} onChange={(e) => set("docNo", e.target.value)} /></label>
+              <label className={field}>{tr("Document date")}<input type="date" className={cx(inputClass, "mt-1")} value={report.docDate ?? DOC_DEFAULT.docDate} onChange={(e) => set("docDate", e.target.value)} /></label>
+              <label className={field}>{tr("Revision")}<input className={cx(inputClass, "mt-1")} value={report.docRev ?? DOC_DEFAULT.docRev} onChange={(e) => set("docRev", e.target.value)} /></label>
+            </div>
+          </section>
+
+          <section className="space-y-3">
             <h3 className="font-semibold text-neutral-900">A. {tr("Incident Category")}</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={field}>{tr("Investigation date")}<input type="date" className={cx(inputClass, "mt-1")} value={report.date} onChange={(e) => set("date", e.target.value)} /></label>
@@ -183,7 +192,8 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
               <label className={field}>{tr("Menu / raw material")}<input className={cx(inputClass, "mt-1")} value={report.object} onChange={(e) => set("object", e.target.value)} /></label>
               <label className={field}>{tr("Quantity")}<input className={cx(inputClass, "mt-1")} value={report.qty} onChange={(e) => set("qty", e.target.value)} /></label>
               <label className={field}>{tr("Batch / production code")}<input className={cx(inputClass, "mt-1")} value={report.batch ?? ""} onChange={(e) => set("batch", e.target.value || null)} /></label>
-              <label className={field}>{tr("Date & time of the incident")}<input className={cx(inputClass, "mt-1")} value={report.incidentAt} onChange={(e) => set("incidentAt", e.target.value)} /></label>
+              <label className={field}>{tr("Date & time of the incident")}<input type="datetime-local" className={cx(inputClass, "mt-1")}
+                value={report.incidentAt.length === 10 ? `${report.incidentAt}T00:00` : report.incidentAt.slice(0, 16)} onChange={(e) => set("incidentAt", e.target.value)} /></label>
               <label className={field}>{tr("Outlet")}<input className={cx(inputClass, "mt-1")} value={report.outlet} onChange={(e) => set("outlet", e.target.value)} /></label>
               <label className={field}>{tr("PIC / staff in charge")}<input className={cx(inputClass, "mt-1")} value={report.pic} onChange={(e) => set("pic", e.target.value)} /></label>
             </div>

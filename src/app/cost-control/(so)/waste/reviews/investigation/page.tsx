@@ -7,13 +7,20 @@ import { Printer } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { call } from "@/so/features/checkin/checkin";
-import { CHECKS, fmtQty, type Investigation, SIGNERS, SOURCES, WASTE_KINDS } from "@/so/features/waste/waste";
+import { CHECKS, DOC_DEFAULT, fmtQty, type Investigation, SIGNERS, SOURCES, WASTE_KINDS } from "@/so/features/waste/waste";
 import { tr } from "@/lib/i18n";
 
 const longDate = (v: string | null | undefined) => {
   if (!v) return "";
   const d = new Date(`${v.slice(0, 10)}T00:00:00`);
   return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+};
+
+/** "1 November 2026, 14.30" when a time was given ("YYYY-MM-DDTHH:mm"), else the date alone */
+const dateTime = (v: string | null | undefined) => {
+  if (!v) return "";
+  const time = v.length > 10 ? v.slice(11, 16) : "";
+  return time && time !== "00:00" ? `${longDate(v)}, ${time.replace(":", ".")}` : longDate(v);
 };
 
 function Line({ label, value }: { label: string; value: React.ReactNode }) {
@@ -47,11 +54,11 @@ function Sheet() {
               <img src="/assets/calf-logo.png" alt="Calf" className="mx-auto h-10 object-contain" />
             </td>
             <td className="border border-neutral-700 p-1 text-center font-semibold">FORM</td>
-            <td className="w-40 border border-neutral-700 p-1 text-[10px]">No : FM - QAQC - 03<br />Date : 19 Oktober 2026</td>
+            <td className="w-40 border border-neutral-700 p-1 text-[10px]">No : {r.docNo || DOC_DEFAULT.docNo}<br />Date : {longDate(r.docDate || DOC_DEFAULT.docDate)}</td>
           </tr>
           <tr>
             <td className="border border-neutral-700 p-1 text-center font-semibold">INVESTIGASI KOMPLAIN &amp; WASTE</td>
-            <td className="border border-neutral-700 p-1 text-[10px]">Rev : 00</td>
+            <td className="border border-neutral-700 p-1 text-[10px]">Rev : {r.docRev || DOC_DEFAULT.docRev}</td>
           </tr>
         </tbody>
       </table>
@@ -69,7 +76,7 @@ function Sheet() {
         <Line label="Nama Menu / Bahan Baku" value={r.object} />
         <Line label="No. Batch / Kode Produksi" value={r.batch || "-"} />
         <Line label="Quantity" value={r.qty} />
-        <Line label="Tanggal & Waktu Kejadian" value={longDate(r.incidentAt)} />
+        <Line label="Tanggal & Waktu Kejadian" value={dateTime(r.incidentAt)} />
         <Line label="Nama & Lokasi Outlet" value={r.outlet} />
         <Line label="PIC/Staff/Penanggung Jawab" value={r.pic} />
       </div>

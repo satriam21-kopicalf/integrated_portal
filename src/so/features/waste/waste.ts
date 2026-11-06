@@ -76,7 +76,10 @@ export type Report = {
   date: string; incident: "waste" | "complaint" | "both"; source: string | null; wasteKinds: string[]; categories?: string[];
   object: string; qty: string; batch: string | null; incidentAt: string; outlet: string; pic: string; chronology: string;
   checks: Record<string, Check>; rootCause: string; corrective: string; preventive: string;
+  /** the letterhead of the form (2026-11-07): document number, date and revision, as filled (defaults in DOC_DEFAULT) */
+  docNo?: string; docDate?: string; docRev?: string;
 };
+export const DOC_DEFAULT = { docNo: "FM - QAQC - 03", docDate: "2026-10-19", docRev: "00" };
 export type Signer = "made" | "checked" | "approved";
 export type Signature = { name: string; role: string; image: string | null; at: string };
 export type Investigation = {

@@ -18,6 +18,14 @@ import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, P
 import { api, errorText } from "@/so/lib/api";
 import { ENTRY_SOURCE, STATUS, countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
+import { SortTh, useSort } from "@/so/ui/Sort";
+
+type SortKey = "facility" | "type" | "date" | "status" | "counted" | "progress" | "flagged" | "submitted";
+const STATUS_ORDER = ["SUBMITTED", "RECOUNT_REQUESTED", "IN_PROGRESS", "APPROVED", "EXPORTED", "CANCELLED"];
+const sortValue = (r: Row, k: SortKey) => ({
+  facility: r.facility_name, type: countTypeLabel(r.count_type), date: r.business_date, status: STATUS_ORDER.indexOf(r.status),
+  counted: r.counted, progress: r.lines ? r.counted / r.lines : 0, flagged: r.flagged, submitted: r.submitted_at,
+}[k]);
 
 type Row = {
   id: string; number: string; facility_code: string; facility_name: string; facility_type: string; count_type: string; business_date: string;
@@ -64,7 +72,8 @@ export default function ReviewsPage() {
       && (!f.source || (r.entry_source ?? "CREW") === f.source)
       && (!s || [r.facility_name, r.facility_code, r.number].some((v) => v.toLowerCase().includes(s))));
   }, [all, search, f]);
-  const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
+  const { rows: ordered, sort, toggle, setSort } = useSort(shown, sortValue);
+  const paged = usePaged(ordered, shown.length + search + JSON.stringify(f) + JSON.stringify(sort));
   const n = (st: string) => all.filter((r) => r.status === st).length;
   const flaggedCounts = all.filter((r) => r.status === "SUBMITTED" && r.flagged > 0).length;
 
@@ -138,6 +147,16 @@ export default function ReviewsPage() {
         ) : (
           <>
             {/* phones: one card per count; the whole card opens it */}
+            <div className="flex items-center gap-2 px-3 pt-3 md:hidden">
+              <label className="text-xs text-neutral-500" htmlFor="review-sort">{tr("Sort")}</label>
+              <select id="review-sort" className="h-9 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-sm"
+                value={sort.key ? `${sort.key}:${sort.dir}` : ""}
+                onChange={(e) => { const [k, d] = e.target.value.split(":") as [SortKey, "asc" | "desc"]; setSort(e.target.value ? { key: k, dir: d } : { key: null, dir: "asc" }); }}>
+                <option value="">{tr("Default order")}</option>
+                {([["submitted:desc", tr("Submitted, newest")], ["submitted:asc", tr("Submitted, oldest")], ["facility:asc", tr("Facility A–Z")],
+                  ["flagged:desc", tr("Most lines to check")], ["progress:asc", tr("Least counted")], ["date:desc", tr("Count date, newest")]] as const).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
             <ul className="space-y-2.5 p-3 md:hidden">
               {rows === null ? <li><SkeletonList rows={4} /></li> : paged.rows.map((r) => {
                 const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
@@ -174,12 +193,12 @@ export default function ReviewsPage() {
               <table className="w-full min-w-[860px] text-sm">
                 <thead className={theadClass}>
                   <tr>
-                    <th className="px-4 py-2.5">{tr("Facility")}</th>
-                    <th className="px-4 py-2.5">{tr("Count")}</th>
-                    <th className="px-4 py-2.5">{tr("Status")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Counted")}</th>
-                    <th className="px-4 py-2.5">{tr("Checks")}</th>
-                    <th className="px-4 py-2.5">{tr("Submitted")}</th>
+                    <SortTh k="facility" sort={sort} onSort={toggle}>{tr("Facility")}</SortTh>
+                    <SortTh k="date" sort={sort} onSort={toggle} first="desc">{tr("Count")}</SortTh>
+                    <SortTh k="status" sort={sort} onSort={toggle}>{tr("Status")}</SortTh>
+                    <SortTh k="progress" sort={sort} onSort={toggle} align="right" first="desc">{tr("Counted")}</SortTh>
+                    <SortTh k="flagged" sort={sort} onSort={toggle} first="desc">{tr("Checks")}</SortTh>
+                    <SortTh k="submitted" sort={sort} onSort={toggle} first="desc">{tr("Submitted")}</SortTh>
                     <th className="w-16 px-4 py-2.5" />
                   </tr>
                 </thead>

@@ -22,6 +22,10 @@ import { photoUrl } from "@/so/lib/photos";
 import { CountFileList, EvidenceDownloads, SignatureCard } from "@/so/features/count/Evidence";
 import { PageSkeleton } from "@/components/kc/Skeleton";
 import CountLog from "@/so/features/count/CountLog";
+import { SortTh, useSort } from "@/so/ui/Sort";
+
+type LineSort = "item" | "area" | "counted" | "date" | "by" | "check";
+const counted = (l: CountLine) => (l.qty_base == null ? null : Number(l.qty_base) + Number(l.qty_wip ?? 0));
 
 type Fix = { id: number; qty: string; note: string; wip?: boolean; field?: "roasted_date" | "expired_date" | null; date?: string };
 type Action = "APPROVE" | "RECOUNT" | "CANCEL";
@@ -63,6 +67,12 @@ export default function ReviewDetailPage() {
   }, [count, q, onlyFlagged]);
   // the dates asked in this count (item groups can ask a different date than the count type)
   const dateFields = useMemo(() => count ? [...new Set(count.lines.map((l) => lineDateField(l, count)).filter((d) => d !== null))] : [], [count]);
+  // sortable item table (2026-11-07): by name, area, quantity, date, who counted or the checks
+  const lineValue = useCallback((l: CountLine, k: LineSort) => {
+    const df = count ? lineDateField(l, count) : null;
+    return { item: l.item_name, area: l.area, counted: counted(l), date: df ? l[df] ?? null : null, by: l.counted_by_name, check: l.flags.length }[k];
+  }, [count]);
+  const { rows: sortedLines, sort, toggle, setSort } = useSort(lines, lineValue);
 
   const saveFix = async () => {
     if (!fix) return;
@@ -226,8 +236,17 @@ export default function ReviewDetailPage() {
           {lines.length === 0 ? <EmptyState icon={<ClipboardList />} title={tr("No item matches")} /> : (
             <>
               {/* phones: one card per item, the tick and Correct big enough to tap */}
+              <div className="flex items-center gap-2 px-4 pt-3 md:hidden">
+                <label className="text-xs text-neutral-500" htmlFor="line-sort">{tr("Sort")}</label>
+                <select id="line-sort" className="h-9 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-sm" value={sort.key ? `${sort.key}:${sort.dir}` : ""}
+                  onChange={(e) => { const [k, d] = e.target.value.split(":") as [LineSort, "asc" | "desc"]; setSort(e.target.value ? { key: k, dir: d } : { key: null, dir: "asc" }); }}>
+                  <option value="">{tr("Count list order")}</option>
+                  {([["item:asc", tr("Item A–Z")], ["item:desc", tr("Item Z–A")], ["counted:desc", tr("Quantity, highest")], ["counted:asc", tr("Quantity, lowest")],
+                    ["area:asc", tr("Area")], ["check:desc", tr("To check first")], ["date:asc", tr("Date, earliest")]] as const).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
               <ul className="divide-y divide-neutral-100 md:hidden">
-                {lines.map((l) => (
+                {sortedLines.map((l) => (
                   <li key={l.id} className={cx("flex items-start gap-3 px-4 py-3.5", !l.is_current && "bg-neutral-50", picked.has(l.id) && "bg-brand-50/50")}>
                     {reviewable && (l.is_current ? <PickBox checked={picked.has(l.id)} onChange={() => togglePick(l.id)} label={tr("Select {0}", l.item_name)} /> : <span className="w-11 flex-shrink-0" />)}
                     <div className="min-w-0 flex-1">
@@ -247,17 +266,17 @@ export default function ReviewDetailPage() {
                   <thead className={kcTable.thead}>
                     <tr>
                       {reviewable && <th className="w-12 px-4 py-2.5"><span className="sr-only">{tr("Recount")}</span></th>}
-                      <th className="px-4 py-2.5">{tr("Item")}</th>
-                      <th className="px-4 py-2.5">{tr("Area")}</th>
-                      <th className="px-4 py-2.5 text-right">{tr("Counted")}</th>
-                      {dateFields.length > 0 && <th className="px-4 py-2.5">{dateFields.length === 1 ? DATE_FIELD_LABEL[dateFields[0]]() : tr("Date")}</th>}
-                      <th className="px-4 py-2.5">{tr("Counted by")}</th>
-                      <th className="px-4 py-2.5">{tr("Check")}</th>
+                      <SortTh k="item" sort={sort} onSort={toggle}>{tr("Item")}</SortTh>
+                      <SortTh k="area" sort={sort} onSort={toggle}>{tr("Area")}</SortTh>
+                      <SortTh k="counted" sort={sort} onSort={toggle} align="right" first="desc">{tr("Counted")}</SortTh>
+                      {dateFields.length > 0 && <SortTh k="date" sort={sort} onSort={toggle}>{dateFields.length === 1 ? DATE_FIELD_LABEL[dateFields[0]]() : tr("Date")}</SortTh>}
+                      <SortTh k="by" sort={sort} onSort={toggle}>{tr("Counted by")}</SortTh>
+                      <SortTh k="check" sort={sort} onSort={toggle} first="desc">{tr("Check")}</SortTh>
                       {correctable && <th className="w-24 px-4 py-2.5" />}
                     </tr>
                   </thead>
                   <tbody className={kcTable.tbody}>
-                    {lines.map((l) => {
+                    {sortedLines.map((l) => {
                       const df = lineDateField(l, count);
                       return (
                         <tr key={l.id} className={cx("align-top transition-colors hover:bg-neutral-50", !l.is_current && "bg-neutral-50 text-neutral-400", picked.has(l.id) && "bg-brand-50/50")}>
