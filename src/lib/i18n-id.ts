@@ -5418,4 +5418,8 @@ export const ID: Record<string, string> = {
   "Not in the SO lists (no actual usage, left out of the actual COGS): {0}": "Tidak ada di daftar SO (tanpa usage aktual, tidak masuk COGS aktual): {0}",
   "SO coverage {0}: {1} of {2} materials the cards use are counted at both ends": "Cakupan SO {0}: {1} dari {2} bahan di kartu resep dihitung di SO awal dan akhir",
   "waste recorded {0} · unexplained {1}": "waste tercatat {0} · tak terjelaskan {1}",
+  "Made without a sale (ESB bills without a bill number): {0}, counted in the system usage": "Dibuat tanpa penjualan (bill ESB tanpa nomor bill): {0}, masuk ke usage sistem",
+  "{0} bills · {1} portions · {2}": "{0} bill · {1} porsi · {2}",
+  "{0} portions without a card": "{0} porsi tanpa kartu",
+  "+ made without a sale {0}": "+ dibuat tanpa penjualan {0}",
 };

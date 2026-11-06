@@ -37,6 +37,8 @@ type Report = {
   /** choices sold with mapped menus that have no rule yet, and the days of the period whose choices are still built */
   options?: { unruled: { name: string; qty: number }[]; pendingDays: number };
   /** viaPackages: a bundle without a card whose contents (ESB packages) are counted through their cards */
+  /** menus made without a sale: ESB other-cost bills by payment method (CUPPING, WASTE, COMPLIMENT …) */
+  nonSales?: { reason: string; bills: number; portions: number; unmapped: number; cost: number; unpriced: number }[];
   unmapped: { id: string; name: string; category: string; qty: number; sales: number; viaPackages?: boolean }[];
   usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; soStart?: number | null; purchased?: number | null; soEnd?: number | null; purchasedOther?: { uom: string; qty: number }[];
     /** the moves in (+) and out (−) between the counts (integrated_portal_be app/stock_moves.py) */ moves?: Partial<Record<MoveKind, number>>;
@@ -49,7 +51,7 @@ type Report = {
   total: { sales: number; cogs: number; menuCogs?: number; extraCogs?: number; ratio: number | null; menusMapped: number; menusUnmapped: number; menusViaPackages?: number; unpriced: number; systemValue: number; actualValue: number;
     actualCogs?: number | null; actualSales?: number | null; actualRatio?: number | null; branchesCovered?: number;
     /** waste recorded (not rejected) by the branches with both counts, and what it leaves unexplained of actual − system */
-    wasteValue?: number | null; unexplained?: number | null;
+    wasteValue?: number | null; unexplained?: number | null; nonSalesCost?: number;
     /** every menu, choice and package sold (subtotal − menu discounts, as Sales Transactions) and the choices in it */ allSales?: number; choiceSales?: number };
 };
 /** the stock opname an SO awal / akhir comes from: counted in the portal (from 28 Oct 2026) or the ESB document */
@@ -938,7 +940,8 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Sales of Mapped Menus")} value={rp(t.sales)}><p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}{t.menusViaPackages ? ` · ${tr("{0} bundles through their contents", t.menusViaPackages)}` : ""}</p>
             {t.allSales != null && <p title={tr("Subtotal − menu discounts, as Sales Transactions (bill discounts, promotions and vouchers not deducted)")}>{tr("all sales {0} · choices {1}", rp(t.allSales), rp(t.choiceSales ?? 0))}</p>}</Stat>
-          <Stat label={tr("COGS Material (System)")} emphasis value={rp(t.cogs)}><p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p></Stat>
+          <Stat label={tr("COGS Material (System)")} emphasis value={rp(t.cogs)}><p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p>
+            {!!t.nonSalesCost && <p>{tr("+ made without a sale {0}", rp(t.nonSalesCost))}</p>}</Stat>
           <Stat label={tr("COGS Material (Actual)")} value={t.actualCogs == null ? "—" : rp(t.actualCogs)}>
             {t.actualCogs == null ? <p>{tr("needs SO awal & akhir of the branch")}</p> : <p>{tr("Ratio {0} · {1} branches with SO awal & akhir", pct(t.actualRatio ?? null), t.branchesCovered ?? 0)}</p>}</Stat>
           <Stat label={tr("Usage Actual − System")} value={t.actualCogs == null ? "—" : rp(t.actualValue - t.systemValue)}>
@@ -1064,6 +1067,17 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
             )}
             {view === "cogs" && (
               <>
+                {!!data.nonSales?.length && (
+                  <div className="mx-4 mt-3 rounded-xl border border-violet-200 bg-violet-50/60 px-3 py-2.5 text-xs text-violet-900">
+                    <p className="font-semibold">{tr("Made without a sale (ESB bills without a bill number): {0}, counted in the system usage", rp(data.total.nonSalesCost ?? 0))}</p>
+                    <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5">
+                      {data.nonSales.map((r) => (
+                        <li key={r.reason}><span className="font-medium">{r.reason}</span> · {tr("{0} bills · {1} portions · {2}", num(r.bills, 0), num(r.portions, 0), rp(r.cost))}
+                          {r.unmapped > 0 && <span className="text-amber-700"> · {tr("{0} portions without a card", num(r.unmapped, 0))}</span>}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <table className="m-cards w-full min-w-[760px] text-sm">
                   <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5">{tr("Recipe Card")}</th><th className="px-4 py-2.5 text-right">{tr("Sold")}</th>
                     <th className="px-4 py-2.5 text-right">{tr("Sales")}</th><th className="px-4 py-2.5 text-right">{tr("HPP / Portion")}</th><th className="px-4 py-2.5 text-right">COGS</th><th className="px-4 py-2.5 text-right">{tr("Ratio")}</th></tr></thead>
