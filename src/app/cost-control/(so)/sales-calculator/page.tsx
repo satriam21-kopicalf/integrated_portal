@@ -93,7 +93,10 @@ const brands = (m: Menu) => (m.companies ?? []).map((c) => c.name).join(" · ");
 const parse = (v: string) => { const n = Number(v.replace(",", ".")); return v.trim() === "" || Number.isNaN(n) ? null : n; };
 
 export default function SalesCalculatorPage() {
-  const [step, setStep] = useState<Step>("recipes");
+  // ?branch&dateFrom&dateTo (from COGS & Usage per outlet, 2026-11-07): the calculator of that outlet and period
+  const [link] = useState(() => { if (typeof window === "undefined") return null; const u = new URLSearchParams(window.location.search);
+    return u.get("dateFrom") && u.get("dateTo") ? { from: u.get("dateFrom")!, to: u.get("dateTo")!, branch: u.get("branch") ?? "" } : null; });
+  const [step, setStep] = useState<Step>(link ? "report" : "recipes");
   // progress of the steps, refreshed when a step is opened
   const [progress, setProgress] = useState<{ cards: number; menus: number; mapped: number; extras: number } | null>(null);
   useEffect(() => {
@@ -145,7 +148,7 @@ export default function SalesCalculatorPage() {
       {step === "menus" && <MenuAssign />}
       {step === "options" && <OptionsStep />}
       {step === "extras" && <Extras />}
-      {step === "report" && <ReportView onGo={setStep} />}
+      {step === "report" && <ReportView onGo={setStep} link={link} />}
     </Page>
   );
 }
@@ -940,11 +943,11 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
 
 // ---------------------------------------------------------------- 4. calculator
 
-function ReportView({ onGo }: { onGo: (s: Step) => void }) {
+function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: string; to: string; branch: string } | null }) {
   const toast = useToast();
   // no filter at first (2026-11-02): the calculator loads once the sales period is chosen
-  const [period, setPeriod] = useState<Period | null>(null);
-  const [branch, setBranch] = useState("");
+  const [period, setPeriod] = useState<Period | null>(link ? { from: link.from, to: link.to } : null);
+  const [branch, setBranch] = useState(link?.branch ?? "");
   const [branches, setBranches] = useState<Branch[]>([]);
   const [horizon, setHorizon] = useState("");
   const [buffer, setBuffer] = useState("");

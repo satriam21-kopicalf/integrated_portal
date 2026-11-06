@@ -50,7 +50,7 @@ export const costControl: { title: string; hint: string; icon: typeof Users; ite
   { get title() { return tr('Analytics'); }, get hint() { return tr('Cost ratios per outlet from ESB data'); }, icon: BarChart3, items: [
     { get name() { return tr('Outlet Ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
     { get name() { return tr('Good Receipt'); }, href: '/cost-control/goods-receipt', icon: PackageCheck, get description() { return tr('GR of ESB, date & qty corrections with evidence'); } },
-    { get name() { return tr('COGS & Usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Follows Outlet ratio'); }, soon: true },
+    { get name() { return tr('COGS & Usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Per outlet between two SO: COGS, usage ratio, waste'); } },
   ] },
 ];
 

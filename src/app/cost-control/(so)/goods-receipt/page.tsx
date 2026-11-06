@@ -3,9 +3,10 @@
 // Good Receipt (Cost Control, page cc.goods-receipt; integrated_portal_be app/goods_receipt.py, migration 072): the GRs
 // of ESB per outlet and period. Cost Control corrects the receipt date of a GR or the quantity of its lines with a reason
 // and evidence (photo of the delivery note, PDF); ESB's figures stay next to the corrected ones and every correction is
-// kept (replaced / cancelled). The COGS & Usage of the Sales Calculator and the Outlet Ratio use the corrected figures.
+// kept (replaced / cancelled). The COGS & Usage, the Sales Calculator and the Stock List use the corrected figures once
+// Cost Control marks the GR Finished (migration 077); a later correction puts it back to draft.
 
-import { CalendarDays, FileText, History, PackageCheck, Paperclip, Pencil, PenLine, Store, Truck, Undo2, X } from "lucide-react";
+import { CalendarDays, CheckCircle2, FileText, History, PackageCheck, Paperclip, Pencil, PenLine, Store, Truck, Undo2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
@@ -19,7 +20,8 @@ import { downloadXlsx } from "@/lib/xlsx";
 import { tr } from "@/lib/i18n";
 
 type Doc = { docNum: string; esbDate: string | null; date: string | null; poNum: string | null; branchCode: string | null; branchName: string | null;
-  location: string | null; supplier: string | null; status: string | null; lines: number; dateCorrected: boolean; qtyCorrected: number };
+  location: string | null; supplier: string | null; status: string | null; lines: number; dateCorrected: boolean; qtyCorrected: number;
+  /** the corrections are done and count in the stock and the COGS (migration 077) */ finished: { at: string; by: string; note: string | null } | null };
 type List = { data: Doc[]; suppliers: string[]; truncated: boolean };
 type Line = { lineNo: number; code: string | null; name: string | null; unit: string | null; category: string | null; esbQty: number | null; qty: number | null; corrected: boolean };
 type Correction = { id: number; kind: "date" | "qty"; lineNo: number | null; code: string | null; unit: string | null; oldDate: string | null; newDate: string | null;
@@ -133,6 +135,7 @@ export default function GoodsReceiptPage() {
                   <td className="px-3 py-2.5 text-right tabular-nums">{d.lines}</td>
                   <td className="px-3 py-2.5 pr-5">
                     {d.dateCorrected && <Badge tone="amber">{tr("Date")}</Badge>} {d.qtyCorrected > 0 && <Badge tone="amber">{tr("{0} qty", d.qtyCorrected)}</Badge>}
+                    {(d.dateCorrected || d.qtyCorrected > 0) && (d.finished ? <Badge tone="green">{tr("Finished")}</Badge> : <Badge tone="slate">{tr("Draft · not counted yet")}</Badge>)}
                     {!d.dateCorrected && !d.qtyCorrected && <span className="text-neutral-300">—</span>}
                   </td>
                 </tr>
@@ -187,6 +190,7 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
   const [files, setFiles] = useState<Pending[]>([]);
   const [busy, setBusy] = useState(false);
   const [undo, setUndo] = useState<Correction | null>(null);
+  const [finishing, setFinishing] = useState<"finish" | "reopen" | null>(null);
   const path = `/api/cost-control/goods-receipts/${encodeURIComponent(docNum)}`;
 
   const load = useCallback(async () => {
@@ -226,6 +230,16 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
       onChanged();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
+  const finish = async (note: string) => {
+    if (!finishing) return;
+    setBusy(true);
+    try {
+      setD(await call<Detail>(`${path}/${finishing}`, { method: "POST", json: finishing === "finish" ? { note: note.trim() || null } : {} }));
+      toast(finishing === "finish" ? tr("GR marked Finished: the corrections count now") : tr("GR back to draft"));
+      setFinishing(null);
+      onChanged();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
   const addFiles = async (list: FileList | null) => {
     try {
       const picked = await Promise.all([...(list ?? [])].slice(0, 5 - files.length).map(readFile));
@@ -242,9 +256,22 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
           <Button variant="secondary" onClick={() => setEditing(false)}>{tr("Cancel")}</Button>
           <Button loading={busy} disabled={(!dateChanged && !changedLines.length) || reason.trim().length < 3 || !files.length} onClick={() => void save()}>{tr("Save Correction")}</Button>
         </div>
-      ) : <div className="flex justify-end"><Button onClick={start}><Pencil size={14} />{tr("Correct Date / Qty")}</Button></div>)}>
+      ) : (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {(d.dateCorrected || d.qtyCorrected > 0) && (d.finished
+            ? <Button variant="ghost" className="mr-auto" onClick={() => setFinishing("reopen")}>{tr("Back to Draft")}</Button>
+            : <Button variant="secondary" className="mr-auto" onClick={() => setFinishing("finish")}><CheckCircle2 size={14} />{tr("Mark Finished")}</Button>)}
+          <Button onClick={start}><Pencil size={14} />{tr("Correct Date / Qty")}</Button>
+        </div>
+      ))}>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !d ? <p className="text-sm text-neutral-400">{tr("Loading…")}</p> : (
         <div className="space-y-4">
+          {(d.dateCorrected || d.qtyCorrected > 0) && (d.finished ? (
+            <p className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900"><CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
+              <span>{tr("Finished by {0} · {1}: the corrections count in the Stock List and the COGS.", d.finished.by, wibDateTime(d.finished.at))}{d.finished.note ? ` “${d.finished.note}”` : ""}</span></p>
+          ) : (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Draft: the corrections do not count yet. Mark the GR Finished once the date and quantities are right.")}</p>
+          ))}
           <dl className="grid grid-cols-2 gap-3 rounded-xl border border-neutral-200 p-3 text-sm sm:grid-cols-4">
             <div><dt className="text-xs text-neutral-500">{tr("Received")}</dt><dd className="font-medium">
               {editing ? <input type="date" className={inputClass + " mt-1"} value={date} onChange={(e) => setDate(e.target.value)} /> : d.date ? dmy(d.date) : "—"}</dd></div>
@@ -322,6 +349,10 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
           </section>
         </div>
       )}
+      <ConfirmDialog open={!!finishing} busy={busy} title={finishing === "finish" ? tr("Mark this GR Finished?") : tr("Back to draft?")}
+        description={finishing === "finish" ? tr("The corrected date and quantities count in the Stock List, the actual usage and the COGS from now on.") : tr("The corrections stop counting until the GR is marked Finished again.")}
+        confirmLabel={finishing === "finish" ? tr("Mark Finished") : tr("Back to Draft")} reasonLabel={finishing === "finish" ? tr("Note (optional)") : undefined}
+        onConfirm={(note) => void finish(note)} onClose={() => setFinishing(null)} />
       <ConfirmDialog open={!!undo} busy={busy} danger title={tr("Cancel this correction?")} description={tr("The figure goes back to ESB's")}
         confirmLabel={tr("Cancel Correction")} onConfirm={() => void cancel()} onClose={() => setUndo(null)} />
     </Drawer>

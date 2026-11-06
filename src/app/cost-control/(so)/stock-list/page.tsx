@@ -3,7 +3,9 @@
 // Monitoring Stock → Stock List (page cc.stock-list; integrated_portal_be app/stock_transfer.py stock_list): the stock of
 // every branch from its latest stock opname in the portal, with the transfers received since (in / out), the transfers
 // on their way out and what is available for a Transfer Stock; valued with the Pricelist (else the ESB HPP). Two views:
-// per branch (its count and value, then its materials) and per material (which outlets have it).
+// per branch (its count and value, then its materials) and per material (which outlets have it). The running stock
+// (2026-11-07, app/running_stock.py): the estimate now = SO + goods received and the other moves − waste approved −
+// usage by the recipe cards since the count; an estimate below zero means the cards or the moves do not match.
 
 import { Boxes, CalendarDays, FileText, Package, Store } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -18,8 +20,9 @@ import { tr } from "@/lib/i18n";
 import { qtyText, rpText, shortBranch } from "@/so/features/stock-transfer/transfer";
 
 type Row = { branch: string; branchName: string; code: string; name: string; category: string; unit: string; so: number; in: number; out: number;
-  pending: number; stock: number; available: number; price: number | null; value: number | null };
-type Head = { branch: string; branchName: string; soDate: string; refs: string[]; items: number; value: number };
+  pending: number; stock: number; available: number; price: number | null; value: number | null;
+  received: number; otherMoves: number; waste: number; used: number; estimate: number; estimateValue: number | null };
+type Head = { branch: string; branchName: string; soDate: string; refs: string[]; items: number; value: number; final?: boolean | null; estimateValue: number };
 type Data = { branches: Head[]; rows: Row[] };
 type View = "branch" | "material";
 
@@ -51,21 +54,26 @@ export default function StockListPage() {
   const heads = data?.branches ?? [];
   const categories = [...new Set((data?.rows ?? []).map((r) => r.category).filter(Boolean))].sort();
   const total = rows.reduce((a, r) => a + (r.value ?? 0), 0);
+  const estTotal = rows.reduce((a, r) => a + (r.estimateValue ?? 0), 0);
+  const negative = rows.filter((r) => r.estimate < -1e-6).length;
   const oldest = heads.length ? heads.map((h) => h.soDate).sort()[0] : null;
   const chips: ActiveFilter[] = [
     ...(branch ? [{ key: "b", label: heads.find((h) => h.branch === branch)?.branchName ?? branch, onRemove: () => setBranch("") }] : []),
     ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
   ];
   const exportRows = () => downloadXlsx({ fileName: "Stock List", sheet: "Stock", title: "Stock List (SO terakhir)",
-    header: ["Cabang", "Tanggal SO", "Kode", "Material", "Kategori", "Satuan", "SO", "Transfer Masuk", "Transfer Keluar", "Stok", "Dalam Proses Keluar", "Tersedia", "Harga", "Nilai"],
-    rows: rows.map((r) => [r.branchName, heads.find((h) => h.branch === r.branch)?.soDate ?? "", r.code, r.name, r.category, r.unit, r.so, r.in, r.out, r.stock, r.pending, r.available, r.price, r.value]) });
+    header: ["Cabang", "Tanggal SO", "SO Final", "Kode", "Material", "Kategori", "Satuan", "SO", "Transfer Masuk", "Transfer Keluar", "Good Receipt", "Pergerakan Lain",
+      "Waste Approved", "Terpakai (Resep)", "Estimasi Saat Ini", "Dalam Proses Keluar", "Tersedia (TITO)", "Harga", "Nilai SO", "Nilai Estimasi"],
+    rows: rows.map((r) => { const h = heads.find((x) => x.branch === r.branch); return [r.branchName, h?.soDate ?? "", h?.final ? "Ya" : "Belum", r.code, r.name, r.category, r.unit,
+      r.so, r.in, r.out, r.received, r.otherMoves, r.waste, r.used, r.estimate, r.pending, r.available, r.price, r.value, r.estimateValue]; }) });
   return (
     <Page title={tr("Stock List")} subtitle={tr("The stock of every branch from its latest stock opname, with the transfers since")}
       stats={
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Branches")} emphasis icon={<Store size={13} />} value={data ? fmtNumber(heads.length) : <StatSkeleton />}>{data && <p>{tr("with an SO in the last 60 days")}</p>}</Stat>
-          <Stat label={tr("Stock Value")} icon={<Boxes size={13} />} value={data ? rpText(total) : <StatSkeleton />}>{data && <p>{tr("{0} rows", fmtNumber(rows.length))}</p>}</Stat>
-          <Stat label={tr("Materials")} icon={<Package size={13} />} value={data ? fmtNumber(materials.length) : <StatSkeleton />} />
+          <Stat label={tr("Stock Value (SO)")} icon={<Boxes size={13} />} value={data ? rpText(total) : <StatSkeleton />}>{data && <p>{tr("{0} rows", fmtNumber(rows.length))}</p>}</Stat>
+          <Stat label={tr("Estimated Value Now")} icon={<Package size={13} />} value={data ? rpText(estTotal) : <StatSkeleton />}>
+            {data && <p className={negative ? "text-amber-700" : undefined}>{negative ? tr("{0} materials estimated below zero", fmtNumber(negative)) : tr("SO + moves − waste − usage since")}</p>}</Stat>
           <Stat label={tr("Oldest SO")} icon={<CalendarDays size={13} />} value={data ? (oldest ? dmy(oldest) : "—") : <StatSkeleton />} />
         </StatStrip>
       }>
@@ -77,22 +85,30 @@ export default function StockListPage() {
         {error ? <ErrorState message={error} onRetry={load} /> : !data ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table>
           : !rows.length ? <Empty icon={<Boxes size={26} />} title={tr("No stock matches")} />
           : view === "branch" ? (
-            <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[1180px] text-sm">
               <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr("Branch")}</th><th className="px-3 py-2.5">{tr("Material")}</th>
-                <th className="px-3 py-2.5 text-right">{tr("SO")}</th><th className="px-3 py-2.5 text-right">{tr("In")}</th><th className="px-3 py-2.5 text-right">{tr("Out")}</th>
-                <th className="px-3 py-2.5 text-right">{tr("Stock")}</th><th className="px-3 py-2.5 text-right">{tr("Available")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Value")}</th></tr></thead>
+                <th className="px-3 py-2.5 text-right">{tr("SO")}</th><th className="px-3 py-2.5 text-right" title={tr("Goods receipts, outlet purchases, production, deliveries, returns and transfers since the SO")}>{tr("In − Out")}</th>
+                <th className="px-3 py-2.5 text-right">{tr("Waste")}</th><th className="px-3 py-2.5 text-right" title={tr("Menus sold and made since the SO × recipe cards")}>{tr("Used")}</th>
+                <th className="px-3 py-2.5 text-right">{tr("Estimate Now")}</th><th className="px-3 py-2.5 text-right" title={tr("For Transfer Stock: the SO with the transfers, less the ones on their way out")}>{tr("Available")}</th>
+                <th className="px-3 py-2.5 pr-5 text-right">{tr("Value")}</th></tr></thead>
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => {
                 const h = heads.find((x) => x.branch === r.branch);
                 return (
                   <tr key={`${r.branch}:${r.code}`} className="hover:bg-neutral-50/70">
-                    <td className="max-w-[13rem] py-2 pl-5 pr-3"><p className="truncate text-neutral-800">{shortBranch(r.branchName)}</p><p className="text-[11px] text-neutral-400">{h ? tr("SO {0}", dmy(h.soDate)) : ""}</p></td>
+                    <td className="max-w-[13rem] py-2 pl-5 pr-3"><p className="truncate text-neutral-800">{shortBranch(r.branchName)}</p>
+                      <p className="text-[11px] text-neutral-400">{h ? tr("SO {0}", dmy(h.soDate)) : ""}{h && h.final === false ? <span className="ml-1 text-amber-700">· {tr("not approved")}</span> : null}</p></td>
                     <td className="max-w-[16rem] px-3 py-2"><p className="truncate font-medium text-neutral-900">{r.name}</p><p className="text-[11px] text-neutral-400">{r.code}{r.category ? ` · ${r.category}` : ""}</p></td>
                     <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{qtyText(r.so)} <span className="text-neutral-400">{r.unit}</span></td>
-                    <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{r.in ? `+${qtyText(r.in)}` : "—"}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-red-700">{r.out ? `−${qtyText(r.out)}` : "—"}</td>
-                    <td className={cx("whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums", r.stock < 0 && "text-red-700")}>{qtyText(r.stock)}</td>
+                    {(() => { const mv = r.received + r.otherMoves + r.in - r.out; return (
+                      <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", mv > 0 ? "text-emerald-700" : mv < 0 ? "text-red-700" : "text-neutral-300")}
+                        title={`${tr("Goods Receipt")} ${qtyText(r.received)} · ${tr("Transfer")} +${qtyText(r.in)} / −${qtyText(r.out)} · ${tr("Other")} ${qtyText(r.otherMoves)}`}>{mv ? `${mv > 0 ? "+" : ""}${qtyText(mv)}` : "—"}</td>); })()}
+                    <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{r.waste ? `−${qtyText(r.waste)}` : "—"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{r.used ? `−${qtyText(r.used)}` : "—"}</td>
+                    <td className={cx("whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-red-700" : "text-neutral-900")}
+                      title={r.estimate < -1e-6 ? tr("Below zero: the recipe cards, a move or the SO does not match") : undefined}>{qtyText(r.estimate)}</td>
                     <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{r.pending ? <span title={tr("{0} on its way out", qtyText(r.pending))}>{qtyText(r.available)}*</span> : qtyText(r.available)}</td>
-                    <td className="whitespace-nowrap px-3 py-2 pr-5 text-right tabular-nums">{r.value == null ? <Badge tone="amber">{tr("No price")}</Badge> : rpText(r.value)}</td>
+                    <td className="whitespace-nowrap px-3 py-2 pr-5 text-right tabular-nums">{r.estimateValue == null ? <Badge tone="amber">{tr("No price")}</Badge> : rpText(r.estimateValue)}
+                      {r.value != null && <span className="block text-[10px] text-neutral-400">{tr("SO {0}", rpText(r.value))}</span>}</td>
                   </tr>
                 );
               })}</tbody>
