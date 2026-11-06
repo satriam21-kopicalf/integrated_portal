@@ -5422,4 +5422,6 @@ export const ID: Record<string, string> = {
   "{0} bills · {1} portions · {2}": "{0} bill · {1} porsi · {2}",
   "{0} portions without a card": "{0} porsi tanpa kartu",
   "+ made without a sale {0}": "+ dibuat tanpa penjualan {0}",
+  "Materials without a Pricelist price valid by the end of the period": "Bahan tanpa harga Pricelist yang berlaku sampai akhir periode",
+  "{0} materials priced with the ESB HPP · {1} without any price": "{0} bahan memakai HPP ESB · {1} tanpa harga sama sekali",
 };
