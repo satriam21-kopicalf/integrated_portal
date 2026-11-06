@@ -5371,4 +5371,17 @@ export const ID: Record<string, string> = {
   "delivered": "yang mengirim",
   "received goods": "yang menerima barang",
   "{0} date · {1} qty lines": "{0} tanggal · {1} baris qty",
+  // Overview: Tax / PB1 (2026-11-06)
+  "Bills Taxed": "Bill Kena Pajak",
+  "Branches Charging": "Cabang Memungut",
+  "No tax in this period: {0}": "Tanpa pajak di periode ini: {0}",
+  "Rate on Gross Sales": "Rasio thd Gross Sales",
+  "Tax / PB1": "Pajak / PB1",
+  "Tax / PB1 per day and its rate on gross sales": "Pajak / PB1 per hari dan rasionya terhadap gross sales",
+  "Tax charged on the subtotal of dine-in and takeaway bills (ESB VAT + other tax)": "Pajak atas subtotal bill dine in dan takeaway (VAT + other tax ESB)",
+  "every branch": "semua cabang",
+  "gross sales {0}": "gross sales {0}",
+  "no tax": "tanpa pajak",
+  "{0} without tax": "{0} tanpa pajak",
+  "{0}% of bills taxed": "{0}% bill kena pajak",
 };

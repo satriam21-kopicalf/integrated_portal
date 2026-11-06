@@ -1,6 +1,6 @@
 'use client';
 
-import { Receipt, ShoppingBag, Tag, Wallet } from 'lucide-react';
+import { Landmark, Receipt, ShoppingBag, Tag, Wallet } from 'lucide-react';
 import Sparkline from '@/components/charts/Sparkline';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { formatCurrency, formatNumber } from '@/lib/format';
@@ -10,7 +10,7 @@ import { Delta } from './Card';
 import { useOptionalDrill } from './drill/DrillContext';
 import { tr } from '@/lib/i18n';
 
-type Key = keyof KpisResponse['kpis'];
+type Key = Exclude<keyof KpisResponse['kpis'], 'tax'>;
 
 const METRICS: {
   key: Key; label: string; hint: string; icon: typeof Wallet;
@@ -34,7 +34,7 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
   const custom = data?.filters.previous.custom;
   const hasPrev = data?.filters.previous.complete;
   return (
-    <StatStrip label={tr('Key figures for the selected period')}>
+    <StatStrip label={tr('Key figures for the selected period')} columns={5}>
       {METRICS.map((m, i) => {
         const k = data?.kpis[m.key];
         const Icon = m.icon;
@@ -82,6 +82,24 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
           </button>
         );
       })}
+      {/* Tax / PB1 (migration 074): ESB VAT + other tax on the subtotal, its rate and the bills taxed */}
+      {(() => {
+        const t = data?.kpis.tax;
+        return (
+          <Stat key="tax" label={tr('Tax / PB1')} icon={<Landmark size={13} strokeWidth={2} aria-hidden />}
+            value={t ? formatCurrency(t.value) : error ? '—' : <StatSkeleton />}
+            title={tr('Tax charged on the subtotal of dine-in and takeaway bills (ESB VAT + other tax)')}>
+            {t && (
+              <>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5"><Delta value={t.deltaPct} />
+                  <span className="tabular-nums text-neutral-600">{t.rate != null ? tr('{0}% of gross sales', t.rate.toLocaleString(undefined, { maximumFractionDigits: 2 })) : ''}</span></div>
+                <span className="truncate">{t.taxedPct != null ? tr('{0}% of bills taxed', Math.round(t.taxedPct)) : tr('no tax')}</span>
+                <Sparkline className="mt-2" values={data!.daily.map(d => d.tax ?? 0)} height={30} label={tr('{0} per day', tr('Tax / PB1'))} />
+              </>
+            )}
+          </Stat>
+        );
+      })()}
     </StatStrip>
   );
 }

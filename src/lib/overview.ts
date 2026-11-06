@@ -34,12 +34,26 @@ export interface Kpi {
 
 export interface KpisResponse {
   filters: OverviewFilters;
-  kpis: Record<'sales' | 'nettSales' | 'bills' | 'avgTicket', Kpi>;
-  daily: { date: string; subtotal: number; nettSales: number; bills: number; avgTicket: number | null }[];
+  /** tax: Tax / PB1 (migration 074) with its rate on gross sales and the share of the bills taxed */
+  kpis: Record<'sales' | 'nettSales' | 'bills' | 'avgTicket', Kpi> & { tax?: Kpi & { rate: number | null; taxedBills: number; taxedPct: number | null } };
+  daily: { date: string; subtotal: number; nettSales: number; bills: number; avgTicket: number | null; tax?: number | null }[];
   freshness: Freshness;
 }
 
 export type Granularity = 'hour' | 'day' | 'week' | 'month';
+
+/** /api/overview/tax: Tax / PB1 per channel, branch and over time */
+export interface TaxRow { key: string; name: string; tax: number | null; subtotal: number | null; bills: number; taxedBills: number;
+  rate: number | null; taxedPct: number | null; share: number | null }
+export interface TaxResponse {
+  filters: OverviewFilters;
+  granularity: Granularity;
+  total: { tax: number | null; subtotal: number | null; rate: number | null; bills: number; taxedBills: number; taxedPct: number | null;
+    previous: number | null; deltaPct: number | null; branches: number; untaxedBranches: number };
+  channels: TaxRow[];
+  branches: TaxRow[];
+  series: { date: string; days: number; tax: number | null; subtotal: number | null; rate: number | null }[];
+}
 
 export interface TrendPoint {
   date: string;

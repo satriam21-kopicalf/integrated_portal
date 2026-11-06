@@ -17,6 +17,7 @@ import DeductionsCard from '@/components/overview/DeductionsCard';
 import PaymentsCard from '@/components/overview/PaymentsCard';
 import BasketCard from '@/components/overview/BasketCard';
 import LiveSalesCard from '@/components/overview/LiveSalesCard';
+import TaxCard from '@/components/overview/TaxCard';
 import { useFilterLog } from '@/lib/activity';
 import { DrillProvider } from '@/components/overview/drill/DrillContext';
 import DrillHost from '@/components/overview/drill/DrillHost';
@@ -25,7 +26,7 @@ import { formatDate } from '@/lib/format';
 import { RealtimeIndicator } from '@/lib/realtime';
 import {
   BasketResponse, BranchesResponse, ChannelsResponse, DeductionsResponse, HourlyResponse, KpisResponse, MetaResponse,
-  PaymentsResponse, channelLabel, useOverview,
+  PaymentsResponse, TaxResponse, channelLabel, useOverview,
 } from '@/lib/overview';
 import { locale, tr } from '@/lib/i18n';
 
@@ -205,6 +206,7 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
   const deductions = useOverview<DeductionsResponse>('deductions', query);
   const payments = useOverview<PaymentsResponse>('payments', query);
   const basket = useOverview<BasketResponse>('basket', query);
+  const tax = useOverview<TaxResponse>('tax', query);
 
   // live feed: always today, follows the branch / channel filters
   const liveQuery = useMemo(() => {
@@ -261,6 +263,10 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
           <div className="min-w-0"><ChannelMixCard resource={channels} /></div>
           <div className="min-w-0"><PaymentsCard resource={payments} /></div>
         </div>
+      </Section>
+
+      <Section title={tr('Tax / PB1')}>
+        <TaxCard resource={tax} />
       </Section>
 
       <Section title={tr('Branches')}>
