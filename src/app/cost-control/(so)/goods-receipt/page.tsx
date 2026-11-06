@@ -5,12 +5,14 @@
 // and evidence (photo of the delivery note, PDF); ESB's figures stay next to the corrected ones and every correction is
 // kept (replaced / cancelled). The COGS & Usage of the Sales Calculator and the Outlet Ratio use the corrected figures.
 
-import { FileText, History, PackageCheck, Paperclip, Pencil, Undo2, X } from "lucide-react";
+import { CalendarDays, FileText, History, PackageCheck, Paperclip, Pencil, PenLine, Store, Truck, Undo2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
+import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
+import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
 import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
-import { type Period, PeriodField, dmy, wibDay } from "@/so/ui/Filters";
+import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { downloadXlsx } from "@/lib/xlsx";
@@ -47,13 +49,16 @@ async function readFile(f: File): Promise<Pending> {
   return { name: f.name.replace(/\.[^.]+$/, "") + ".jpg", data: await asDataUrl(blob ?? f) };
 }
 
+type F = { period: Period; branch: string; supplier: string; corrected: "" | "yes" };
+const NO_F = (): F => ({ period: { from: wibDay(-6), to: wibDay(0) }, branch: "", supplier: "", corrected: "" });
+
 export default function GoodsReceiptPage() {
   const toast = useToast();
-  const [period, setPeriod] = useState<Period>(() => ({ from: wibDay(-6), to: wibDay(0) }));
-  const [branch, setBranch] = useState("");
-  const [supplier, setSupplier] = useState("");
+  const [f, setF] = useState<F>(NO_F);
+  const { period, branch, supplier } = f;
+  const onlyCorrected = f.corrected === "yes";
   const [search, setSearch] = useState("");
-  const [onlyCorrected, setOnlyCorrected] = useState(false);
+  const [sheet, setSheet] = useState(false);
   const [branches, setBranches] = useState<BranchOpt[]>([]);
   const [res, setRes] = useState<List | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,49 +80,58 @@ export default function GoodsReceiptPage() {
   }, [res, search]);
   const paged = usePaged(rows, search + rows.length);
   const corrected = rows.filter((d) => d.dateCorrected || d.qtyCorrected).length;
+  const all = res?.data ?? [];
+  const def = NO_F();
+  const branchName = (code: string) => branches.find((b) => b.branch_code === code)?.branch_name ?? code;
+  const chips: ActiveFilter[] = [
+    ...(periodLabel(period, def.period) ? [{ key: "p", label: periodLabel(period, def.period)!, onRemove: () => setF({ ...f, period: def.period }) }] : []),
+    ...(branch ? [{ key: "b", label: branchName(branch), onRemove: () => setF({ ...f, branch: "" }) }] : []),
+    ...(supplier ? [{ key: "s", label: supplier, onRemove: () => setF({ ...f, supplier: "" }) }] : []),
+    ...(onlyCorrected ? [{ key: "c", label: tr("Corrected only"), onRemove: () => setF({ ...f, corrected: "" }) }] : []),
+  ];
 
   const exportList = () => downloadXlsx({ fileName: `Good Receipt ${period.from} - ${period.to}`, sheet: "GR", title: `Good Receipt ${dmy(period.from)} – ${dmy(period.to)}`,
     header: ["No GR", "Tanggal terima", "Tanggal ESB", "No PO", "Cabang", "Lokasi", "Supplier", "Status", "Baris", "Tanggal dikoreksi", "Baris qty dikoreksi"],
     rows: rows.map((d) => [d.docNum, d.date, d.esbDate, d.poNum, d.branchName, d.location, d.supplier, d.status, d.lines, d.dateCorrected ? "Ya" : "", d.qtyCorrected || ""]) });
 
   return (
-    <Page title={tr("Good Receipt")} subtitle={tr("Goods received by the outlets in ESB; correct the date and quantity with evidence for COGS & usage ratio")}
-      actions={<Button variant="secondary" disabled={!rows.length} onClick={() => void exportList().catch((e) => toast((e as Error).message, "error"))}><FileText size={14} />{tr("Export")}</Button>}>
+    <Page title={tr("Good Receipt")} subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${tr("Goods received by the outlets in ESB; correct the date and quantity with evidence for COGS & usage ratio")}`}
+      stats={
+        <StatStrip label={tr("Summary")} columns={4}>
+          <Stat label={tr("Good Receipt")} emphasis icon={<PackageCheck size={13} />} value={res ? fmtNumber(all.length) : <StatSkeleton />}>
+            {res && <p>{tr("{0} lines", fmtNumber(all.reduce((a, d) => a + d.lines, 0)))}</p>}</Stat>
+          <Stat label={tr("Branches")} icon={<Store size={13} />} value={res ? fmtNumber(new Set(all.map((d) => d.branchCode)).size) : <StatSkeleton />}>
+            {res && <p>{tr("received goods")}</p>}</Stat>
+          <Stat label={tr("Suppliers")} icon={<Truck size={13} />} value={res ? fmtNumber(new Set(all.map((d) => d.supplier).filter(Boolean)).size) : <StatSkeleton />}>
+            {res && <p>{tr("delivered")}</p>}</Stat>
+          <Stat label={tr("Corrected")} icon={<PenLine size={13} />} active={onlyCorrected}
+            onClick={res ? () => setF({ ...f, corrected: onlyCorrected ? "" : "yes" }) : undefined}
+            value={res ? <span className={all.some((d) => d.dateCorrected || d.qtyCorrected) ? "text-amber-700" : undefined}>{fmtNumber(all.filter((d) => d.dateCorrected || d.qtyCorrected).length)}</span> : <StatSkeleton />}>
+            {res && <p>{tr("{0} date · {1} qty lines", fmtNumber(all.filter((d) => d.dateCorrected).length), fmtNumber(all.reduce((a, d) => a + d.qtyCorrected, 0)))}</p>}</Stat>
+        </StatStrip>
+      }>
       <Panel toolbar={
-        <div className="flex flex-wrap items-end gap-3">
-          <PeriodField value={period} onChange={setPeriod} maxDays={93} />
-          <label className="text-xs font-medium text-neutral-600">{tr("Branch")}
-            <select className={inputClass + " mt-1 block max-w-[220px]"} value={branch} onChange={(e) => setBranch(e.target.value)}>
-              <option value="">{tr("All branches")}</option>
-              {branches.map((b) => <option key={b.branch_code} value={b.branch_code}>{b.branch_name}</option>)}
-            </select>
-          </label>
-          <label className="text-xs font-medium text-neutral-600">{tr("Supplier")}
-            <select className={inputClass + " mt-1 block max-w-[220px]"} value={supplier} onChange={(e) => setSupplier(e.target.value)}>
-              <option value="">{tr("All suppliers")}</option>
-              {[...new Set([...(res?.suppliers ?? []), ...(supplier ? [supplier] : [])])].map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </label>
-          <input className={inputClass + " min-w-[200px] flex-1"} placeholder={tr("Search GR, PO, branch or supplier")} value={search} onChange={(e) => setSearch(e.target.value)} />
-          <label className="flex items-center gap-2 text-sm text-neutral-700"><input type="checkbox" checked={onlyCorrected} onChange={(e) => setOnlyCorrected(e.target.checked)} />{tr("Corrected only")}</label>
-        </div>
+        <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search GR, PO, branch or supplier")} filters={chips}
+          onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
+          extra={<Button size="sm" variant="secondary" className="ml-auto" disabled={!rows.length} onClick={() => void exportList().catch((e) => toast((e as Error).message, "error"))}><FileText size={14} />{tr("Export")}</Button>} />
       } footer={res ? <><span>{tr("{0} GR · {1} corrected", rows.length.toLocaleString("id-ID"), corrected)}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table>
           : !rows.length ? <Empty icon={<PackageCheck size={28} />} title={tr("No Good Receipt in this period")} />
           : (
             <div className="overflow-x-auto"><table className="m-cards w-full text-sm">
               <thead className={theadClass}><tr>
-                <th className="px-4 py-2.5">{tr("GR")}</th><th className="px-4 py-2.5">{tr("Received")}</th><th className="px-4 py-2.5">{tr("Branch")}</th>
-                <th className="px-4 py-2.5">{tr("Supplier")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Correction")}</th>
+                <th className="py-2.5 pl-5 pr-3">{tr("GR")}</th><th className="px-3 py-2.5">{tr("Received")}</th><th className="px-3 py-2.5">{tr("Branch")}</th>
+                <th className="px-3 py-2.5">{tr("Supplier")}</th><th className="px-3 py-2.5">{tr("Status")}</th><th className="px-3 py-2.5 text-right">{tr("Lines")}</th><th className="px-3 py-2.5 pr-5">{tr("Correction")}</th>
               </tr></thead>
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((d) => (
-                <tr key={d.docNum} className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(d.docNum)}>
-                  <td className="px-4 py-2"><p className="font-medium text-neutral-900">{d.docNum}</p><p className="text-[11px] text-neutral-400">{d.poNum ?? "—"} · {d.status}</p></td>
-                  <td className="px-4 py-2 tabular-nums">{d.date ? dmy(d.date) : "—"}{d.dateCorrected && <p className="text-[11px] text-neutral-400 line-through">{d.esbDate ? dmy(d.esbDate) : ""}</p>}</td>
-                  <td className="px-4 py-2 text-neutral-700">{d.branchName ?? "—"}</td>
-                  <td className="px-4 py-2 text-neutral-700">{d.supplier ?? "—"}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{d.lines}</td>
-                  <td className="px-4 py-2">
+                <tr key={d.docNum} className={cx("cursor-pointer", d.dateCorrected || d.qtyCorrected ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-neutral-50/70")} onClick={() => setOpen(d.docNum)}>
+                  <td className="py-2.5 pl-5 pr-3"><p className="font-mono text-[13px] font-medium text-neutral-900">{d.docNum}</p><p className="text-[11px] text-neutral-400">{tr("PO")} {d.poNum ?? "—"}</p></td>
+                  <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">{d.date ? dmy(d.date) : "—"}{d.dateCorrected && <p className="text-[11px] text-neutral-400 line-through">{d.esbDate ? dmy(d.esbDate) : ""}</p>}</td>
+                  <td className="max-w-[14rem] px-3 py-2.5"><p className="truncate text-neutral-800">{d.branchName ?? "—"}</p>{d.location && <p className="truncate text-[11px] text-neutral-400">{d.location}</p>}</td>
+                  <td className="max-w-[14rem] px-3 py-2.5"><p className="truncate text-neutral-700">{d.supplier ?? "—"}</p></td>
+                  <td className="px-3 py-2.5">{d.status ? <Badge tone="slate">{d.status}</Badge> : "—"}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{d.lines}</td>
+                  <td className="px-3 py-2.5 pr-5">
                     {d.dateCorrected && <Badge tone="amber">{tr("Date")}</Badge>} {d.qtyCorrected > 0 && <Badge tone="amber">{tr("{0} qty", d.qtyCorrected)}</Badge>}
                     {!d.dateCorrected && !d.qtyCorrected && <span className="text-neutral-300">—</span>}
                   </td>
@@ -127,7 +141,38 @@ export default function GoodsReceiptPage() {
           )}
       </Panel>
       {open && <GrDrawer docNum={open} onClose={() => setOpen(null)} onChanged={() => void load()} />}
+      {sheet && <GrFilters value={f} branches={branches} suppliers={[...new Set([...(res?.suppliers ?? []), ...(supplier ? [supplier] : [])])]}
+        onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </Page>
+  );
+}
+
+function GrFilters({ value, branches, suppliers, onApply, onClose }: {
+  value: F; branches: BranchOpt[]; suppliers: string[]; onApply: (v: F) => void; onClose: () => void;
+}) {
+  const [d, setD] = useState(value);
+  const def = NO_F();
+  const period = periodLabel(d.period, def.period);
+  const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
+  const active = [period, d.branch, d.supplier, d.corrected].filter(Boolean).length;
+  return (
+    <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(def)} applyDisabled={days > 93}>
+      <FilterRow icon={<CalendarDays size={15} />} label={tr("Receipt Date")} value={period ?? tr("Last 7 Days")} onClear={period ? () => setD({ ...d, period: def.period }) : undefined}>
+        <QuickPeriod value={d.period} onChange={(p) => setD({ ...d, period: p })} maxDays={93} />
+      </FilterRow>
+      <FilterRow icon={<Store size={15} />} label={tr("Branch")} value={branches.find((b) => b.branch_code === d.branch)?.branch_name ?? null} onClear={() => setD({ ...d, branch: "" })}>
+        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All branches")} placeholder={tr("Search branch")}
+          options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code }))} />
+      </FilterRow>
+      <FilterRow icon={<Truck size={15} />} label={tr("Supplier")} value={d.supplier || null} onClear={() => setD({ ...d, supplier: "" })}>
+        <ComboFilter value={d.supplier} onChange={(v) => setD({ ...d, supplier: v })} allLabel={tr("All suppliers")} placeholder={tr("Search supplier")}
+          options={suppliers.map((s) => ({ value: s, label: s }))} />
+      </FilterRow>
+      <FilterRow icon={<PenLine size={15} />} label={tr("Correction")} value={d.corrected ? tr("Corrected only") : null} onClear={() => setD({ ...d, corrected: "" })}>
+        <Segments value={d.corrected} onChange={(v) => setD({ ...d, corrected: v as F["corrected"] })}
+          choices={[{ value: "", label: tr("All GR") }, { value: "yes", label: tr("Corrected only") }]} />
+      </FilterRow>
+    </MonitorFilterSheet>
   );
 }
 

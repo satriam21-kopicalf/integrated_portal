@@ -5,17 +5,19 @@
 // item, branch and category; each entry with its photo, note and author. In review mode the entries waiting for review
 // are ticked and approved or rejected (with a note), one by one or many at once. Export: Excel (entries, per item, daily report, Usage Management) from the Excel icon.
 // Daily report: the branches that reported their waste each day; Usage Management: the daily lists (WasteDaily.tsx).
+// Layout (2026-11-06): tabs with icons and counts; the entries as a table on a desktop (cards on a phone), the totals
+// ranked with their share of the value; the filters in the monitor filter sheet.
 
-import { CalendarCheck, CheckCircle2, ClipboardList, FileSearch, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
+import { CalendarCheck, CalendarDays, CheckCircle2, ClipboardList, FileSearch, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { downloadXlsx } from "@/lib/xlsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
-import { Segmented } from "@/so/ui/Simple";
+import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { type ActiveFilter, FilterSection, FilterSheet, FilterToolbar, PeriodField, type Period, dmy, wibDay } from "@/so/ui/Filters";
+import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
@@ -29,6 +31,12 @@ const DEFAULT_PERIOD = (): Period => ({ from: wibDay(-6), to: wibDay(0) });
 type Filters = { period: Period; branch: string; scope: Scope | ""; category: string; status: Status | "" };
 type View = "entries" | "items" | "branches" | "categories" | "daily" | "usage" | "investigations";
 type BranchOpt = { branch_code: string; branch_name: string };
+const VIEWS: { value: View; label: () => string; icon: typeof Trash2 }[] = [
+  { value: "entries", label: () => tr("Entries"), icon: Trash2 }, { value: "items", label: () => tr("Per Item"), icon: Package },
+  { value: "branches", label: () => tr("Per Branch"), icon: Store }, { value: "categories", label: () => tr("Per Category"), icon: Layers },
+  { value: "daily", label: () => tr("Daily Report"), icon: CalendarCheck }, { value: "usage", label: () => tr("Usage Management"), icon: ClipboardList },
+  { value: "investigations", label: () => tr("Investigations"), icon: FileSearch },
+];
 
 export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const toast = useToast();
@@ -177,13 +185,24 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           <FilterToolbar search={view === "entries" ? search : undefined} onSearch={view === "entries" ? setSearch : undefined}
             placeholder={tr("Search item, branch or person")} filters={chips} onOpen={() => setSheet(true)}
             onClear={() => { setPeriod(DEFAULT_PERIOD()); setBranch(""); setScope(""); setCategory(""); setStatus(review ? "submitted" : ""); }} />
-          <Segmented label={tr("View")} value={view} onChange={setView} options={[
-            { value: "entries", label: tr("Entries") }, { value: "items", label: tr("Per Item") },
-            { value: "branches", label: tr("Per Branch") }, { value: "categories", label: tr("Per Category") },
-            { value: "daily", label: tr("Daily Report") }, { value: "usage", label: tr("Usage Management") },
-            { value: "investigations", label: tr("Investigations") }]} />
+          <div role="tablist" aria-label={tr("View")} className="-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1">
+            {VIEWS.map((v) => {
+              const Icon = v.icon;
+              const count = !res ? null : v.value === "entries" ? res.data.length : v.value === "items" ? res.byItem.length
+                : v.value === "branches" ? res.byBranch.length : v.value === "categories" ? res.byCategory.length : null;
+              const on = view === v.value;
+              return (
+                <button key={v.value} type="button" role="tab" aria-selected={on} onClick={() => setView(v.value)}
+                  className={cx("-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
+                    on ? "border-brand-700 text-brand-800" : "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-800")}>
+                  <Icon size={15} className={on ? "text-brand-700" : "text-neutral-400"} />{v.label()}
+                  {count !== null && <span className={cx("rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums", on ? "bg-brand-100 text-brand-800" : "bg-neutral-100 text-neutral-500")}>{fmtNumber(count)}</span>}
+                </button>
+              );
+            })}
+          </div>
           {review && view === "entries" && waiting.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-brand-100 bg-brand-50/60 px-3 py-2 text-sm">
               <label className="flex items-center gap-2 text-neutral-700">
                 <input type="checkbox" checked={picked.size > 0 && picked.size === waiting.length}
                   onChange={(e) => setPicked(e.target.checked ? new Set(waiting.map((x) => x.id)) : new Set())} />
@@ -207,7 +226,42 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
               {!res.data.length && tr("Waste appears here as soon as the branches enter it from Waste (input).")}
             </Empty>
           ) : (
-            <ul className="divide-y divide-neutral-100">
+            <>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[960px] text-sm">
+                <thead className={theadClass}><tr>
+                  {review && <th className="w-10 py-2.5 pl-5"><span className="sr-only">{tr("Select")}</span></th>}
+                  <th className={cx("w-16 py-2.5 pr-3", review ? "pl-2" : "pl-5")}>{tr("Photo")}</th><th className="px-3 py-2.5">{tr("Item")}</th>
+                  <th className="px-3 py-2.5">{tr("Branch")}</th><th className="px-3 py-2.5">{tr("Date")}</th>
+                  <th className="px-3 py-2.5 text-right">{tr("Quantity")}</th><th className="px-3 py-2.5 text-right">{tr("Value")}</th>
+                  <th className="px-3 py-2.5">{tr("Waste category")}</th><th className="px-3 py-2.5">{tr("Entered by")}</th><th className="px-3 py-2.5 pr-5">{tr("Status")}</th>
+                </tr></thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {paged.rows.map((e) => {
+                    const pick = review && (e.status === "submitted" || e.status === "investigating");
+                    return (
+                      <tr key={e.id} onClick={() => setOpen(e)} className={cx("cursor-pointer", picked.has(e.id) ? "bg-brand-50/60" : "hover:bg-neutral-50/70")}>
+                        {review && <td className="py-2.5 pl-5" onClick={(x) => x.stopPropagation()}>{pick && <input type="checkbox" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}</td>}
+                        <td className={cx("py-2 pr-3", review ? "pl-2" : "pl-5")}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={thumb(photoUrl(e.id), 96)} decoding="async" alt="" loading="lazy" className="h-11 w-11 rounded-lg bg-neutral-100 object-cover" />
+                        </td>
+                        <td className="max-w-[16rem] px-3 py-2"><p className="truncate font-medium text-neutral-900">{e.itemName}</p>
+                          <p className="truncate text-[11px] text-neutral-400">{e.itemCode} · {scopeLabel(e.scope)}</p></td>
+                        <td className="max-w-[12rem] px-3 py-2"><p className="truncate text-neutral-700">{e.branchName}</p></td>
+                        <td className="whitespace-nowrap px-3 py-2 tabular-nums text-neutral-700">{dmy(e.businessDate)}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(e.qty)} <span className="text-neutral-400">{e.unit}</span></td>
+                        <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", e.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{e.value == null ? tr("No price") : fmtRp(e.value)}</td>
+                        <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-neutral-600">{e.category || "—"}</p>{e.note && <p className="truncate text-[11px] text-neutral-400" title={e.note}>“{e.note}”</p>}</td>
+                        <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-neutral-700">{e.name}</p><p className="text-[11px] text-neutral-400">{wibDateTime(e.createdAt)}</p></td>
+                        <td className="px-3 py-2 pr-5"><Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <ul className="divide-y divide-neutral-100 md:hidden">
               {paged.rows.map((e) => (
                 <li key={e.id} className="flex items-start gap-3 px-4 py-3 hover:bg-neutral-50">
                   {review && (e.status === "submitted" || e.status === "investigating") && <input type="checkbox" className="mt-4" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}
@@ -226,6 +280,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 </li>
               ))}
             </ul>
+            </>
           )
         ) : (
           <Totals view={view} res={res} onBranch={(c) => { setBranch(c); setView("entries"); }} />
@@ -295,38 +350,71 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   );
 }
 
+/** The share of a value in the total: a thin bar with the percentage. */
+function Share({ value, total }: { value: number | null | undefined; total: number }) {
+  const r = total > 0 && value ? value / total : 0;
+  return (
+    <span className="flex items-center justify-end gap-2">
+      <span className="h-1.5 w-20 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${Math.min(100, r * 100)}%` }} /></span>
+      <span className="w-11 text-right text-xs tabular-nums text-neutral-500">{(r * 100).toFixed(1)}%</span>
+    </span>
+  );
+}
+const rank = "w-10 py-2.5 pl-5 text-right text-xs tabular-nums text-neutral-400";
+
 function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "investigations">; res: MonitorData; onBranch: (code: string) => void }) {
   if (view === "items") {
-    return !res.byItem.length ? <Empty title={tr("No waste in this period")} /> : (
-      <div className="overflow-x-auto"><table className="m-cards w-full text-sm">
-        <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Type")}</th>
-          <th className="px-4 py-2.5 text-right">{tr("Quantity")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th><th className="px-4 py-2.5 text-right">{tr("Branches")}</th></tr></thead>
-        <tbody className="divide-y divide-neutral-100">{res.byItem.map((i) => (
-          <tr key={`${i.scope}:${i.code}:${i.unit}`}><td className="px-4 py-2"><p className="font-medium text-neutral-800">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p></td>
-            <td className="px-4 py-2 text-neutral-600">{scopeLabel(i.scope)}</td><td className="px-4 py-2 text-right tabular-nums">{fmtQty(i.qty)} {i.unit}</td><td className="px-4 py-2 text-right tabular-nums">{fmtRp(i.value)}</td>
-            <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(i.entries)}</td><td className="px-4 py-2 text-right tabular-nums">{fmtNumber(i.branches)}</td></tr>
-        ))}</tbody></table>
-        <p className="px-4 py-2 text-[11px] text-neutral-400">{tr("Rejected entries are not counted")}</p></div>
+    const items = [...res.byItem].sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
+    const total = items.reduce((a, i) => a + (i.value ?? 0), 0);
+    return !items.length ? <Empty title={tr("No waste in this period")} /> : (
+      <div className="overflow-x-auto"><table className="m-cards w-full min-w-[820px] text-sm">
+        <thead className={theadClass}><tr><th className={rank}>#</th><th className="px-3 py-2.5">{tr("Item")}</th><th className="px-3 py-2.5">{tr("Type")}</th>
+          <th className="px-3 py-2.5 text-right">{tr("Quantity")}</th><th className="px-3 py-2.5 text-right">{tr("Value")}</th><th className="px-3 py-2.5 text-right">{tr("Share of Value")}</th>
+          <th className="px-3 py-2.5 text-right">{tr("Entries")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Branches")}</th></tr></thead>
+        <tbody className="divide-y divide-neutral-100">{items.map((i, n) => (
+          <tr key={`${i.scope}:${i.code}:${i.unit}`} className="hover:bg-neutral-50/70"><td className={rank}>{n + 1}</td>
+            <td className="px-3 py-2"><p className="font-medium text-neutral-800">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p></td>
+            <td className="px-3 py-2"><Badge tone="slate">{scopeLabel(i.scope)}</Badge></td><td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(i.qty)} <span className="text-neutral-400">{i.unit}</span></td>
+            <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", i.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{i.value == null ? tr("No price") : fmtRp(i.value)}</td>
+            <td className="px-3 py-2"><Share value={i.value} total={total} /></td>
+            <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(i.entries)}</td><td className="px-3 py-2 pr-5 text-right tabular-nums">{fmtNumber(i.branches)}</td></tr>
+        ))}</tbody>
+        <tfoot className="border-t border-neutral-200 bg-neutral-50 text-sm font-semibold"><tr><td /><td className="px-3 py-2.5" colSpan={3}>{tr("Total")}</td>
+          <td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td /><td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(items.reduce((a, i) => a + i.entries, 0))}</td><td /></tr></tfoot>
+        </table>
+        <p className="px-5 py-2 text-[11px] text-neutral-400">{tr("Rejected entries are not counted")}</p></div>
     );
   }
   if (view === "branches") {
+    const total = res.byBranch.reduce((a, b) => a + (b.value ?? 0), 0);
     return !res.byBranch.length ? <Empty title={tr("No waste in this period")} /> : (
-      <div className="overflow-x-auto"><table className="m-cards w-full text-sm">
-        <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th><th className="px-4 py-2.5 text-right">{tr("Entries")}</th>
-          <th className="px-4 py-2.5 text-right">{tr("Waiting Review")}</th><th className="px-4 py-2.5 text-right">{tr("Days with Waste")}</th><th className="px-4 py-2.5">{tr("Last Entry")}</th></tr></thead>
-        <tbody className="divide-y divide-neutral-100">{res.byBranch.map((b) => (
-          <tr key={b.code} className="cursor-pointer hover:bg-neutral-50" onClick={() => onBranch(b.code)}><td className="px-4 py-2 font-medium text-neutral-800">{b.name}</td><td className="px-4 py-2 text-right tabular-nums">{fmtRp(b.value)}</td>
-            <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(b.entries)}</td><td className={cx("px-4 py-2 text-right tabular-nums", b.submitted > 0 && "text-amber-600")}>{fmtNumber(b.submitted)}</td>
-            <td className="px-4 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="px-4 py-2 text-neutral-600">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
-        ))}</tbody></table></div>
+      <div className="overflow-x-auto"><table className="m-cards w-full min-w-[860px] text-sm">
+        <thead className={theadClass}><tr><th className={rank}>#</th><th className="px-3 py-2.5">{tr("Branch")}</th><th className="px-3 py-2.5 text-right">{tr("Value")}</th><th className="px-3 py-2.5 text-right">{tr("Share of Value")}</th>
+          <th className="px-3 py-2.5 text-right">{tr("Entries")}</th><th className="px-3 py-2.5 text-right">{tr("Waiting Review")}</th><th className="px-3 py-2.5 text-right">{tr("Days with Waste")}</th><th className="px-3 py-2.5 pr-5">{tr("Last Entry")}</th></tr></thead>
+        <tbody className="divide-y divide-neutral-100">{res.byBranch.map((b, n) => (
+          <tr key={b.code} className="cursor-pointer hover:bg-neutral-50/70" onClick={() => onBranch(b.code)}><td className={rank}>{n + 1}</td>
+            <td className="px-3 py-2 font-medium text-neutral-800">{b.name}</td><td className="whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums">{fmtRp(b.value)}</td>
+            <td className="px-3 py-2"><Share value={b.value} total={total} /></td>
+            <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.entries)}</td>
+            <td className="px-3 py-2 text-right tabular-nums">{b.submitted > 0 ? <Badge tone="amber">{fmtNumber(b.submitted)}</Badge> : <span className="text-neutral-300">0</span>}</td>
+            <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="whitespace-nowrap px-3 py-2 pr-5 text-neutral-600">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
+        ))}</tbody>
+        <tfoot className="border-t border-neutral-200 bg-neutral-50 text-sm font-semibold"><tr><td /><td className="px-3 py-2.5">{tr("Total")}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td />
+          <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byBranch.reduce((a, b) => a + b.entries, 0))}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byBranch.reduce((a, b) => a + b.submitted, 0))}</td><td colSpan={2} /></tr></tfoot>
+        </table>
+        <p className="px-5 py-2 text-[11px] text-neutral-400">{tr("Open a branch to see its entries")}</p></div>
     );
   }
-  const max = Math.max(1, ...res.byCategory.map((c) => c.entries));
+  const total = res.byCategory.reduce((a, c) => a + c.entries, 0);
   return !res.byCategory.length ? <Empty title={tr("No waste in this period")} /> : (
-    <ul className="divide-y divide-neutral-100">{res.byCategory.map((c) => (
-      <li key={c.name} className="px-4 py-2.5">
-        <div className="flex items-center justify-between gap-3 text-sm"><span className="text-neutral-800">{c.name}</span><span className="tabular-nums text-neutral-600">{fmtNumber(c.entries)}</span></div>
-        <div className="mt-1 h-1.5 rounded-full bg-neutral-100"><div className="h-1.5 rounded-full bg-brand-500" style={{ width: `${(c.entries / max) * 100}%` }} /></div>
+    <ul className="divide-y divide-neutral-100">{res.byCategory.map((c, n) => (
+      <li key={c.name} className="flex items-center gap-3 px-5 py-3">
+        <span className="w-6 text-right text-xs tabular-nums text-neutral-400">{n + 1}</span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-medium text-neutral-800">{c.name}</span>
+            <span className="flex-shrink-0 tabular-nums text-neutral-600">{tr("{0} entries", fmtNumber(c.entries))} · {total ? ((c.entries / total) * 100).toFixed(1) : "0.0"}%</span></span>
+          <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${total ? (c.entries / total) * 100 : 0}%` }} /></span>
+        </span>
       </li>
     ))}</ul>
   );
@@ -337,34 +425,31 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
   value: Filters; branches: BranchOpt[]; categories: string[]; onApply: (f: Filters) => void; onClose: () => void; onReset: () => Filters;
 }) {
   const [d, setD] = useState<Filters>(value);
-  const pill = (on: boolean) => cx("rounded-full border px-3 py-1.5 text-xs font-medium", on ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50");
+  const def = DEFAULT_PERIOD();
+  const period = periodLabel(d.period, def);
+  const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
+  const active = [period, d.branch, d.scope, d.status, d.category].filter(Boolean).length;
   return (
-    <FilterSheet onClose={onClose} onReset={() => setD(onReset())} onApply={() => onApply(d)}>
-      <FilterSection title={tr("Period")}><PeriodField value={d.period} onChange={(period) => setD({ ...d, period })} maxDays={92} /></FilterSection>
-      <FilterSection title={tr("Branch")}>
-        <select className={inputClass} value={d.branch} onChange={(e) => setD({ ...d, branch: e.target.value })} aria-label={tr("Branch")}>
-          <option value="">{tr("All Branches")}</option>
-          {branches.map((b) => <option key={b.branch_code} value={b.branch_code}>{b.branch_name}</option>)}
-        </select>
-      </FilterSection>
-      <FilterSection title={tr("Type")}>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className={pill(!d.scope)} onClick={() => setD({ ...d, scope: "" })}>{tr("All types")}</button>
-          {SCOPES.map((s) => <button key={s} type="button" className={pill(d.scope === s)} onClick={() => setD({ ...d, scope: s })}>{scopeLabel(s)}</button>)}
-        </div>
-      </FilterSection>
-      <FilterSection title={tr("Status")}>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className={pill(!d.status)} onClick={() => setD({ ...d, status: "" })}>{tr("All statuses")}</button>
-          {(["submitted", "investigating", "approved", "rejected"] as Status[]).map((s) => <button key={s} type="button" className={pill(d.status === s)} onClick={() => setD({ ...d, status: s })}>{statusLabel(s)}</button>)}
-        </div>
-      </FilterSection>
-      <FilterSection title={tr("Waste Category")}>
-        <select className={inputClass} value={d.category} onChange={(e) => setD({ ...d, category: e.target.value })} aria-label={tr("Waste Category")}>
-          <option value="">{tr("All categories")}</option>
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </FilterSection>
-    </FilterSheet>
+    <MonitorFilterSheet active={active} onClose={onClose} onReset={() => setD(onReset())} onApply={() => onApply(d)} applyDisabled={days > 92}>
+      <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 7 Days")} onClear={period ? () => setD({ ...d, period: def }) : undefined}>
+        <QuickPeriod value={d.period} onChange={(p) => setD({ ...d, period: p })} maxDays={92} />
+      </FilterRow>
+      <FilterRow icon={<Store size={15} />} label={tr("Branch")} value={branches.find((b) => b.branch_code === d.branch)?.branch_name ?? null} onClear={() => setD({ ...d, branch: "" })}>
+        <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All Branches")} placeholder={tr("Search branch")}
+          options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code }))} />
+      </FilterRow>
+      <FilterRow icon={<Package size={15} />} label={tr("Type")} value={d.scope ? scopeLabel(d.scope) : null} onClear={() => setD({ ...d, scope: "" })}>
+        <Segments value={d.scope} onChange={(v) => setD({ ...d, scope: v as Filters["scope"] })}
+          choices={[{ value: "", label: tr("All types") }, ...SCOPES.map((x) => ({ value: x, label: scopeLabel(x) }))]} />
+      </FilterRow>
+      <FilterRow icon={<ListChecks size={15} />} label={tr("Status")} value={d.status ? statusLabel(d.status) : null} onClear={() => setD({ ...d, status: "" })}>
+        <Segments value={d.status} onChange={(v) => setD({ ...d, status: v as Filters["status"] })}
+          choices={[{ value: "", label: tr("All statuses") }, ...(["submitted", "investigating", "approved", "rejected"] as Status[]).map((x) => ({ value: x, label: statusLabel(x) }))]} />
+      </FilterRow>
+      <FilterRow icon={<Tags size={15} />} label={tr("Waste Category")} value={d.category || null} onClear={() => setD({ ...d, category: "" })}>
+        <ComboFilter value={d.category} onChange={(v) => setD({ ...d, category: v })} allLabel={tr("All categories")} placeholder={tr("Search category")}
+          options={categories.map((c) => ({ value: c, label: c }))} />
+      </FilterRow>
+    </MonitorFilterSheet>
   );
 }

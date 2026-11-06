@@ -5360,4 +5360,15 @@ export const ID: Record<string, string> = {
   "e.g. what was done during the visit": "mis. apa yang dikerjakan selama kunjungan",
   "{0} at the outlet (clock in {1})": "{0} di outlet (clock in {1})",
   "{0} not clocked out yet": "{0} belum clock out",
+  // Good Receipt & Waste layout (2026-11-06)
+  "All GR": "Semua GR",
+  "Open a branch to see its entries": "Buka cabang untuk melihat entrinya",
+  "PO": "PO",
+  "Receipt Date": "Tanggal Terima",
+  "Search supplier": "Cari supplier",
+  "Share of Value": "Porsi Nilai",
+  "Suppliers": "Supplier",
+  "delivered": "yang mengirim",
+  "received goods": "yang menerima barang",
+  "{0} date · {1} qty lines": "{0} tanggal · {1} baris qty",
 };
