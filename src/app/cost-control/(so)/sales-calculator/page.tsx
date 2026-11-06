@@ -6,9 +6,10 @@
 // the branches and the card each one uses; 3. Additional Items — supplies no menu records (cable ties, plastic …) per
 // bill, portion or outlet-day; 4. Calculator — from the POS transactions of the branches: Material Required Planning,
 // Usage Actual vs System (SO awal + purchases − SO akhir: the portal stock opname from 28 Oct 2026, else the ESB
-// document) and COGS Material (Pricelist Items), system and actual.
+// document) and COGS Material (Pricelist Items), system and actual. A card may hold other cards (bundling, 2026-11-06)
+// and shows the list price of its menus (POS menu master, per channel) with the % HPP.
 
-import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Layers, ListChecks, Package, PenLine, Plus, Receipt, Save, Search, Store, Trash2, X } from "lucide-react";
+import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -22,10 +23,12 @@ import { tr } from "@/lib/i18n";
 import { type Item, type Wip, Picker, matches, num, rp, useCatalog } from "./parts";
 import { BomImport, OptionsStep } from "./options";
 
-type Kind = "item" | "wip" | "other";
+type Kind = "item" | "wip" | "other" | "menu";
 type Line = { type: Kind; code: string; name: string; qty: number; unit: string; price?: number | null };
 type Extra = { id: number; code: string | null; name: string; unit: string; price: number | null; basis: "bill" | "portion" | "day"; qty: number; note: string | null; isActive: boolean };
-type Recipe = { code: string; name: string; category: string | null; lines: Line[]; note: string | null; isActive: boolean; menus: { id: string; name: string }[] };
+/** a list price of a menu per channel (the price templates of the POS menu master: DI dine-in, OL online) */
+type ListPrice = { channel: "dine-in" | "online" | "other"; price: number; min: number; max: number };
+type Recipe = { code: string; name: string; category: string | null; lines: Line[]; note: string | null; isActive: boolean; menus: { id: string; name: string; prices?: ListPrice[] }[] };
 type Menu = { id: string; name: string; category: string; detail?: string; kinds?: string[]; companies?: { code: string; name: string }[];
   qty: number; lastSold?: string | null; recipe: string | null };
 type Report = {
@@ -33,13 +36,14 @@ type Report = {
   menus: { id: string; name: string; recipe: string; recipeName: string; qty: number; sales: number; hpp: number | null; cogs: number | null; ratio: number | null; optionCogs?: number }[];
   /** choices sold with mapped menus that have no rule yet, and the days of the period whose choices are still built */
   options?: { unruled: { name: string; qty: number }[]; pendingDays: number };
-  unmapped: { id: string; name: string; category: string; qty: number; sales: number }[];
+  /** viaPackages: a bundle without a card whose contents (ESB packages) are counted through their cards */
+  unmapped: { id: string; name: string; category: string; qty: number; sales: number; viaPackages?: boolean }[];
   usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; soStart?: number | null; purchased?: number | null; soEnd?: number | null; purchasedOther?: { uom: string; qty: number }[];
     actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
   mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean }[];
   stock?: { branches: { code: string; start: StockRef | null; end: StockRef | null }[]; covered: string[]; onHand: { branches: number; from: string | null; to: string | null } };
   extras?: (Extra & { count: number; used: number })[];
-  total: { sales: number; cogs: number; menuCogs?: number; extraCogs?: number; ratio: number | null; menusMapped: number; menusUnmapped: number; unpriced: number; systemValue: number; actualValue: number;
+  total: { sales: number; cogs: number; menuCogs?: number; extraCogs?: number; ratio: number | null; menusMapped: number; menusUnmapped: number; menusViaPackages?: number; unpriced: number; systemValue: number; actualValue: number;
     actualCogs?: number | null; actualSales?: number | null; actualRatio?: number | null; branchesCovered?: number;
     /** every menu, choice and package sold (subtotal − menu discounts, as Sales Transactions) and the choices in it */ allSales?: number; choiceSales?: number };
 };
@@ -51,7 +55,19 @@ type Step = "recipes" | "menus" | "options" | "extras" | "report";
 const BASIS: Record<Extra["basis"], () => string> = { bill: () => tr("Per Bill"), portion: () => tr("Per Portion Sold"), day: () => tr("Per Outlet-Day") };
 const KIND: Record<Kind, { label: () => string; tone: "blue" | "violet" | "amber" }> = {
   item: { label: () => tr("Raw Material / Packaging"), tone: "blue" }, wip: { label: () => tr("WIP / Premix"), tone: "violet" }, other: { label: () => tr("Other Item"), tone: "amber" },
+  menu: { label: () => tr("Menu (Bundling)"), tone: "blue" },
 };
+const CHANNEL: Record<ListPrice["channel"], () => string> = { "dine-in": () => tr("Dine-in"), online: () => tr("Online"), other: () => tr("Other") };
+/** % HPP of the selling price: up to 30% healthy, up to 35% to watch, above it too high */
+const HPP_WARN = 0.3;
+const HPP_HIGH = 0.35;
+const hppTone = (r: number) => (r > HPP_HIGH ? "text-red-600" : r > HPP_WARN ? "text-amber-600" : "text-emerald-600");
+/** the list prices of the menus of a card, one per channel and price (two menus of a card may sell at other prices) */
+function cardPrices(menus: Recipe["menus"]): ListPrice[] {
+  const seen = new Map<string, ListPrice>();
+  for (const m of menus) for (const p of m.prices ?? []) { const k = `${p.channel}:${p.price}`; if (!seen.has(k)) seen.set(k, p); }
+  return [...seen.values()];
+}
 const pct = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${(n * 100).toFixed(1)}%`);
 /** "1,5" / "1.5" → 1.5; an empty or unfinished value → null */
 const brands = (m: Menu) => (m.companies ?? []).map((c) => c.name).join(" · ");
@@ -117,9 +133,17 @@ export default function SalesCalculatorPage() {
 
 // ---------------------------------------------------------------- 1. recipe cards
 
-/** cost of one portion line (null while a price is missing); WIP / premix through the grams of its components */
-function lineCost(l: { type: Kind; code: string; qty: number; price?: number | null }, price: Map<string, number | null>, wips: Wip[]): number | null {
+/** cost of one portion line (null while a price is missing); WIP / premix through the grams of its components, a
+ * menu of a bundle through the HPP of its card */
+function lineCost(l: { type: Kind; code: string; qty: number; price?: number | null }, price: Map<string, number | null>, wips: Wip[],
+  cards?: Map<string, Recipe>, seen: Set<string> = new Set()): number | null {
   if (l.type === "other") return l.price == null ? null : l.price * l.qty;
+  if (l.type === "menu") {
+    const c = cards?.get(l.code);
+    if (!c || seen.has(c.code)) return null;
+    const h = cardHpp(c, price, wips, cards, new Set([...seen, c.code]));
+    return h === null ? null : h * l.qty;
+  }
   if (l.type === "item") { const p = price.get(l.code); return p == null ? null : p * l.qty; }
   const w = wips.find((x) => x.code === l.code);
   if (!w) return null;
@@ -127,9 +151,34 @@ function lineCost(l: { type: Kind; code: string; qty: number; price?: number | n
   for (const c of w.components) { if (!c.code) continue; const p = price.get(c.code); if (p == null) return null; total += p * l.qty * c.perGram; }
   return total;
 }
-const KIND_DOT: Record<Kind, string> = { item: "bg-brand-500", wip: "bg-violet-500", other: "bg-amber-500" };
-const KIND_ICON: Record<Kind, typeof Package> = { item: Package, wip: FlaskConical, other: PenLine };
-const KIND_CHIP: Record<Kind, string> = { item: "bg-brand-50 text-brand-700", wip: "bg-violet-50 text-violet-700", other: "bg-amber-50 text-amber-700" };
+function cardHpp(r: Recipe, price: Map<string, number | null>, wips: Wip[], cards?: Map<string, Recipe>, seen: Set<string> = new Set([r.code])): number | null {
+  if (!r.lines.length) return null;
+  const c = r.lines.map((l) => lineCost(l, price, wips, cards, seen));
+  return c.every((x) => x !== null) ? c.reduce<number>((a, x) => a + (x ?? 0), 0) : null;
+}
+const KIND_DOT: Record<Kind, string> = { item: "bg-brand-500", wip: "bg-violet-500", other: "bg-amber-500", menu: "bg-emerald-500" };
+const KIND_ICON: Record<Kind, typeof Package> = { item: Package, wip: FlaskConical, other: PenLine, menu: Gift };
+const KIND_CHIP: Record<Kind, string> = { item: "bg-brand-50 text-brand-700", wip: "bg-violet-50 text-violet-700", other: "bg-amber-50 text-amber-700", menu: "bg-emerald-50 text-emerald-700" };
+
+/** The list prices of a card's menus with the % HPP of each. */
+function PriceRows({ prices, hpp, compact }: { prices: ListPrice[]; hpp: number | null; compact?: boolean }) {
+  if (!prices.length) return <p className="text-[11px] text-neutral-400">{tr("No selling price in the ESB menu master")}</p>;
+  return (
+    <ul className={cx("space-y-1", compact ? "text-[11px]" : "text-xs")}>
+      {prices.map((p) => {
+        const r = hpp !== null && p.price ? hpp / p.price : null;
+        return (
+          <li key={`${p.channel}:${p.price}`} className="flex items-center gap-2">
+            <span className="w-16 flex-shrink-0 text-neutral-500">{CHANNEL[p.channel]()}</span>
+            <span className="flex-1 tabular-nums text-neutral-800" title={p.min !== p.max ? tr("{0} – {1} over the price templates", rp(p.min), rp(p.max)) : undefined}>
+              {rp(p.price)}{p.min !== p.max ? "*" : ""}</span>
+            <span className={cx("font-semibold tabular-nums", r === null ? "text-neutral-400" : hppTone(r))}>{r === null ? "—" : pct(r)}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 function Recipes() {
   const { items, wips } = useCatalog();
@@ -138,31 +187,94 @@ function Recipes() {
   const [edit, setEdit] = useState<Recipe | "new" | null>(null);
   const [bom, setBom] = useState(false);
   const [q, setQ] = useState("");
+  const [layout, setLayout] = useState<"cards" | "table">(() => { try { return localStorage.getItem("sc.recipes.layout") === "table" ? "table" : "cards"; } catch { return "cards"; } });
+  const pickLayout = (v: "cards" | "table") => { setLayout(v); try { localStorage.setItem("sc.recipes.layout", v); } catch { /* private mode */ } };
   const load = useCallback(() => { call<{ data: Recipe[] }>("/api/cost-control/sales-calc/recipes").then((r) => setRows(r.data)).catch((e: Error) => setError(e.message)); }, []);
   useEffect(() => { load(); }, [load]);
   const price = useMemo(() => new Map(items.map((i) => [i.code, i.price])), [items]);
-  const hppOf = (r: Recipe) => { if (!r.lines.length || !items.length) return null; const c = r.lines.map((l) => lineCost(l, price, wips)); return c.every((x) => x !== null) ? c.reduce<number>((a, x) => a + (x ?? 0), 0) : null; };
+  const cards = useMemo(() => new Map((rows ?? []).map((r) => [r.code, r])), [rows]);
+  const hppOf = (r: Recipe) => (items.length ? cardHpp(r, price, wips, cards) : null);
   const shown = (rows ?? []).filter((r) => !q || matches(`${r.name} ${r.code} ${r.category ?? ""}`, q));
   return (
     <Panel title={tr("Recipe Cards")} description={tr("What one portion of a menu uses: raw materials, packaging, WIP / premix and other items")}
       actions={<div className="flex flex-wrap gap-2">
         <Button size="sm" variant="secondary" onClick={() => setBom(true)}><ArrowDownToLine size={14} />{tr("Import from the ESB BOM")}</Button>
         <Button size="sm" onClick={() => setEdit("new")}><Plus size={14} />{tr("New Card")}</Button></div>}
-      toolbar={<div className="relative sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" /><input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search card")} /></div>}>
+      toolbar={<div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-0 flex-1 sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" /><input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search card")} /></div>
+        <div role="group" aria-label={tr("View")} className="ml-auto inline-flex rounded-lg border border-neutral-200 bg-white p-0.5">
+          {([["cards", tr("Cards"), LayoutGrid], ["table", tr("Table"), Rows3]] as const).map(([v, label, Icon]) => (
+            <button key={v} type="button" aria-pressed={layout === v} onClick={() => pickLayout(v)}
+              className={cx("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium", layout === v ? "bg-brand-700 text-white" : "text-neutral-600 hover:bg-neutral-100")}><Icon size={14} />{label}</button>
+          ))}
+        </div></div>}>
       {error ? <ErrorState message={error} onRetry={load} /> : !rows ? <table className="w-full"><tbody><SkeletonRows cols={4} /></tbody></table> : shown.length === 0 ? (
         <Empty icon={<BookOpen size={26} />} title={rows.length ? tr("No card matches") : tr("No recipe card yet")}>
           {!rows.length && <div className="mt-3 flex flex-wrap justify-center gap-2">
             <Button onClick={() => setBom(true)}><ArrowDownToLine size={14} />{tr("Import from the ESB BOM")}</Button>
             <Button variant="secondary" onClick={() => setEdit("new")}><Plus size={14} />{tr("Make the First Card")}</Button></div>}
         </Empty>
+      ) : layout === "table" ? (
+        <RecipeTable rows={shown} hppOf={hppOf} priced={!!items.length} onOpen={setEdit} />
       ) : (
         <ul className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((r) => <RecipeCard key={r.code} r={r} hpp={hppOf(r)} priced={!!items.length} onOpen={() => setEdit(r)} />)}
         </ul>
       )}
-      {edit && <RecipeDrawer recipe={edit === "new" ? null : edit} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
+      {edit && <RecipeDrawer recipe={edit === "new" ? null : edit} cards={rows ?? []} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
       {bom && <BomImport onClose={() => setBom(false)} onDone={() => { setBom(false); load(); }} />}
     </Panel>
+  );
+}
+
+/** The cards as a table: one row per card with its HPP, the selling price and % HPP per channel (dine-in, online). */
+function RecipeTable({ rows, hppOf, priced, onOpen }: { rows: Recipe[]; hppOf: (r: Recipe) => number | null; priced: boolean; onOpen: (r: Recipe) => void }) {
+  const paged = usePaged(rows, String(rows.length), 25);
+  const cell = (prices: ListPrice[], ch: ListPrice["channel"], hpp: number | null) => {
+    const ps = prices.filter((p) => p.channel === ch);
+    if (!ps.length) return <><td className="px-3 py-2.5 text-right text-neutral-300">—</td><td className="px-3 py-2.5 text-right text-neutral-300">—</td></>;
+    const lo = Math.min(...ps.map((p) => p.price)), hi = Math.max(...ps.map((p) => p.price));
+    const r = hpp !== null && hi ? hpp / hi : null;
+    return (<>
+      <td className="px-3 py-2.5 text-right tabular-nums">{lo === hi ? rp(lo) : `${rp(lo)} – ${rp(hi)}`}</td>
+      <td className={cx("px-3 py-2.5 text-right font-semibold tabular-nums", r === null ? "text-neutral-400" : hppTone(r))}
+        title={lo !== hi ? tr("against the highest price") : undefined}>{pct(r)}</td>
+    </>);
+  };
+  return (
+    <>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] text-sm">
+          <thead className={theadClass}><tr>
+            <th className="py-2.5 pl-5 pr-3">{tr("Card")}</th><th className="px-3 py-2.5">{tr("Category")}</th>
+            <th className="px-3 py-2.5 text-right">{tr("Components")}</th><th className="px-3 py-2.5 text-right">{tr("Menus")}</th>
+            <th className="px-3 py-2.5 text-right">{tr("HPP")}</th>
+            <th className="px-3 py-2.5 text-right">{tr("Dine-in")}</th><th className="px-3 py-2.5 text-right">{tr("% HPP")}</th>
+            <th className="px-3 py-2.5 text-right">{tr("Online")}</th><th className="px-3 py-2.5 text-right">{tr("% HPP")}</th>
+            <th className="px-3 py-2.5 pr-5">{tr("Status")}</th></tr></thead>
+          <tbody className="divide-y divide-neutral-100">
+            {paged.rows.map((r) => {
+              const hpp = hppOf(r);
+              const prices = cardPrices(r.menus);
+              return (
+                <tr key={r.code} className="cursor-pointer hover:bg-neutral-50/70" onClick={() => onOpen(r)}>
+                  <td className="py-2.5 pl-5 pr-3"><span className="flex items-center gap-1.5 font-medium text-neutral-900">{r.lines.some((l) => l.type === "menu") && <Gift size={13} className="text-emerald-600" aria-label={tr("Bundling")} />}{r.name}</span>
+                    <span className="font-mono text-[11px] text-neutral-400">{r.code}</span></td>
+                  <td className="px-3 py-2.5 text-xs text-neutral-600">{r.category || "—"}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{r.lines.length}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{r.menus.length || <span className="text-amber-700">0</span>}</td>
+                  <td className={cx("px-3 py-2.5 text-right font-semibold tabular-nums", hpp === null && "text-amber-700")}>{hpp !== null ? rp(hpp) : priced && r.lines.length ? tr("Price missing") : "—"}</td>
+                  {cell(prices, "dine-in", hpp)}
+                  {cell(prices, "online", hpp)}
+                  <td className="px-3 py-2.5 pr-5">{r.isActive ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge>}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex items-center justify-between border-t border-neutral-100 px-4 py-2 text-xs text-neutral-500"><span>{tr("{0} shown", fmtNumber(rows.length))}</span><PageNav paged={paged} /></div>
+    </>
   );
 }
 
@@ -192,6 +304,10 @@ function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null;
               <span className={cx("block text-sm font-semibold tabular-nums", hpp === null ? "text-amber-700" : "text-neutral-900")}>{hpp !== null ? rp(hpp) : priced && r.lines.length ? tr("Price missing") : "—"}</span></span>
             <span><span className="block text-[10px] uppercase tracking-wide text-neutral-400">{tr("Components")}</span><span className="block text-sm font-semibold tabular-nums text-neutral-900">{r.lines.length}</span></span>
             <span><span className="block text-[10px] uppercase tracking-wide text-neutral-400">{tr("Menus")}</span><span className="block text-sm font-semibold tabular-nums text-neutral-900">{r.menus.length}</span></span>
+          </div>
+          <div className="mt-3 rounded-xl border border-neutral-100 px-3 py-2">
+            <p className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-neutral-400"><span>{tr("Selling Price")}</span><span>{tr("% HPP")}</span></p>
+            {r.menus.length ? <PriceRows prices={cardPrices(r.menus)} hpp={hpp} compact /> : <p className="text-[11px] text-neutral-400">{tr("Assign a menu to see its price")}</p>}
           </div>
           <ul className="mt-3 flex-1 space-y-1.5 text-xs text-neutral-600">
             {r.lines.slice(0, 4).map((l, i) => (
@@ -251,7 +367,7 @@ function UnitInput({ value, onChange, unit, placeholder, label, className }: { v
 
 const fieldLabel = "block text-xs font-medium text-neutral-600";
 
-function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onClose: () => void; onSaved: () => void }) {
+function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: Recipe | null; cards: Recipe[]; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
   const { items, loading, wips, error } = useCatalog();
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -266,14 +382,45 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
   const price = useMemo(() => new Map(items.map((i) => [i.code, i.price])), [items]);
   const itemOptions = useMemo(() => items.map((i) => ({ value: i.code, label: i.name, hint: `${i.code} · ${i.unit}` })), [items]);
   const wipOptions = useMemo(() => wips.map((w) => ({ value: w.code, label: w.name, hint: "gram" })), [wips]);
-  const cost = useCallback((l: Draft) => lineCost({ ...l, qty: parse(l.qtyText) ?? 0, price: parse(l.priceText) }, price, wips), [price, wips]);
+  const cardMap = useMemo(() => new Map(allCards.map((c) => [c.code, c])), [allCards]);
+  // a bundle holds the other cards, never itself or a bundle holding it
+  const cardOptions = useMemo(() => allCards.filter((c) => c.code !== recipe?.code && !c.lines.some((l) => l.type === "menu" && l.code === recipe?.code))
+    .map((c) => ({ value: c.code, label: c.name, hint: c.code })), [allCards, recipe]);
+  const cost = useCallback((l: Draft) => lineCost({ ...l, qty: parse(l.qtyText) ?? 0, price: parse(l.priceText) }, price, wips, cardMap,
+    new Set(recipe ? [recipe.code] : [])), [price, wips, cardMap, recipe]);
   const costs = lines.map(cost);
   const hpp = lines.length && costs.every((c) => c !== null) ? costs.reduce<number>((a, c) => a + (c ?? 0), 0) : null;
   const invalid = lines.findIndex((l) => !l.code || !l.name.trim() || (parse(l.qtyText) ?? 0) <= 0);
   const per = (k: Kind) => lines.filter((l) => l.type === k).length;
 
   const setLine = (i: number, patch: Partial<Draft>) => setLines((all) => all.map((l, j) => (j === i ? { ...l, ...patch } : l)));
-  const add = (type: Kind) => setLines((all) => [...all, { type, code: type === "other" ? `other-${Date.now().toString(36)}` : "", name: "", qty: 0, unit: type === "wip" ? "GR" : type === "other" ? "PCS" : "", price: null, qtyText: "", priceText: "" }]);
+  const add = (type: Kind) => setLines((all) => [...all, { type, code: type === "other" ? `other-${Date.now().toString(36)}` : "", name: "", qty: type === "menu" ? 1 : 0,
+    unit: type === "wip" ? "GR" : type === "other" ? "PCS" : type === "menu" ? "PORSI" : "", price: null, qtyText: type === "menu" ? "1" : "", priceText: "" }]);
+  const pickCard = (i: number, code: string) => setLine(i, { code, name: cardMap.get(code)?.name ?? code, unit: "PORSI" });
+  const [fetching, setFetching] = useState(false);
+  // the contents ESB records inside the menus of this card (its package groups): a group of one menu with a card
+  // becomes a line; the others are listed to fill by hand
+  const fromEsb = async () => {
+    setFetching(true);
+    try {
+      const got = await Promise.all(assigned.map((m) => call<{ name: string; groups: { name: string; min: number; menus: { id: string; name: string; card: string | null }[] }[] }>(
+        `/api/cost-control/sales-calc/menus/${encodeURIComponent(m.id)}/package`).catch(() => null)));
+      const groups = got.find((g) => g && g.groups.length)?.groups ?? [];
+      if (!groups.length) { toast(tr("ESB records no contents for the menus of this card"), "error"); return; }
+      const added: Draft[] = [];
+      const skipped: string[] = [];
+      for (const g of groups) {
+        const only = g.menus.length === 1 ? g.menus[0] : null;
+        const card = only?.card ? cardMap.get(only.card) : undefined;
+        if (only && card && card.code !== recipe?.code && g.min > 0) {
+          if (!lines.some((l) => l.type === "menu" && l.code === card.code)) added.push(toDraft({ type: "menu", code: card.code, name: card.name, qty: g.min, unit: "PORSI" }));
+        } else skipped.push(only ? tr("{0} (no card yet)", only.name) : tr("{0}: choice of {1}", g.name, g.menus.map((m) => m.name).join(" / ")));
+      }
+      if (added.length) setLines((all) => [...all, ...added]);
+      toast(added.length ? tr("{0} menus added from ESB", added.length) : tr("Nothing added from ESB"), added.length ? undefined : "error");
+      if (skipped.length) window.alert(tr("Fill by hand: {0}", skipped.join("; ")));
+    } finally { setFetching(false); }
+  };
   const pickItem = (i: number, code: string) => { const it = items.find((x) => x.code === code); setLine(i, { code, name: it?.name ?? code, unit: it?.unit ?? "" }); };
   const pickWip = (i: number, code: string) => { const w = wips.find((x) => x.code === code); setLine(i, { code, name: w?.name ?? code, unit: "GR" }); };
 
@@ -303,6 +450,9 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
           <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("HPP per Portion")}</p>
           <p className="text-lg font-bold tabular-nums text-neutral-900">{hpp === null ? <span className="text-sm font-medium text-amber-700">{lines.length ? tr("Price missing") : "—"}</span> : rp(hpp)}</p>
         </div>
+        {recipe && cardPrices(recipe.menus.filter((m) => ids.has(m.id))).length > 0 && (
+          <div className="min-w-[11rem]"><PriceRows prices={cardPrices(recipe.menus.filter((m) => ids.has(m.id)))} hpp={hpp} compact /></div>
+        )}
         {recipe && <Button variant="ghost" className="text-red-600" onClick={() => void remove()}><Trash2 size={14} />{tr("Delete")}</Button>}
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!head.code.trim() || !head.name.trim()} onClick={() => void save()}><Save size={15} />{tr("Save Card")}</Button>
@@ -322,8 +472,8 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
           </div>
         </FormBlock>
 
-        <FormBlock n={2} title={tr("Components per Portion")} hint={tr("Quantities in the unit of the item; WIP / premix in grams")}
-          aside={<span className="flex flex-wrap gap-1.5 text-[11px]">{(["item", "wip", "other"] as Kind[]).map((k) => <span key={k} className={cx("rounded-full px-2 py-0.5 font-medium", KIND_CHIP[k])}>{KIND[k].label()} {per(k)}</span>)}</span>}>
+        <FormBlock n={2} title={tr("Components per Portion")} hint={tr("Quantities in the unit of the item; WIP / premix in grams; a bundle in portions of other cards")}
+          aside={<span className="flex flex-wrap gap-1.5 text-[11px]">{(["item", "wip", "other", "menu"] as Kind[]).filter((k) => k !== "menu" || per(k)).map((k) => <span key={k} className={cx("rounded-full px-2 py-0.5 font-medium", KIND_CHIP[k])}>{KIND[k].label()} {per(k)}</span>)}</span>}>
           {error && <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{tr("The item list could not be loaded: {0}", error)}</p>}
           <ol className="space-y-2">
             {lines.map((l, i) => {
@@ -338,6 +488,7 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
                         <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{i + 1}. {KIND[l.type].label()}</p>
                         {l.type === "item" && <Picker value={l.code} options={itemOptions} onPick={(v) => pickItem(i, v)} placeholder={loading ? tr("Loading items…") : tr("Choose raw material / packaging")} />}
                         {l.type === "wip" && <Picker value={l.code} options={wipOptions} onPick={(v) => pickWip(i, v)} placeholder={tr("Choose WIP / premix")} />}
+                        {l.type === "menu" && <Picker value={l.code} options={cardOptions} onPick={(v) => pickCard(i, v)} placeholder={tr("Choose the card of a menu")} />}
                         {l.type === "other" && (
                           <div className="grid gap-2 sm:grid-cols-[1fr_4.5rem_7rem]">
                             <input className={cx(inputClass, "h-9")} value={l.name} onChange={(e) => setLine(i, { name: e.target.value })} placeholder={tr("Item name, e.g. Sticker")} />
@@ -360,8 +511,9 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
             })}
           </ol>
           {!lines.length && <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">{tr("No component yet: add one below")}</p>}
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
-            {([["item", tr("From the item master")], ["wip", tr("In grams, from the Production Calculator")], ["other", tr("Typed by hand with its price")]] as [Kind, string][]).map(([k, hint]) => {
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {([["item", tr("From the item master")], ["wip", tr("In grams, from the Production Calculator")], ["other", tr("Typed by hand with its price")],
+              ["menu", tr("Bundling: portions of another card")]] as [Kind, string][]).map(([k, hint]) => {
               const Icon = KIND_ICON[k];
               return (
                 <button key={k} type="button" onClick={() => add(k)} className="flex items-center gap-2.5 rounded-xl border border-dashed border-neutral-300 px-3 py-2.5 text-left hover:border-brand-400 hover:bg-brand-50/40">
@@ -371,7 +523,10 @@ function RecipeDrawer({ recipe, onClose, onSaved }: { recipe: Recipe | null; onC
               );
             })}
           </div>
-          <p className="mt-2 text-[11px] text-neutral-400">{tr("A missing price is filled in Pricelist Items; an other item carries its own price")}</p>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] text-neutral-400">{tr("A missing price is filled in Pricelist Items; an other item carries its own price")}</p>
+            {assigned.length > 0 && <Button size="sm" variant="secondary" loading={fetching} onClick={() => void fromEsb()}><Gift size={14} />{tr("Bundle Contents from ESB")}</Button>}
+          </div>
         </FormBlock>
 
         <FormBlock n={3} title={tr("ESB Menus with This Card")} hint={tr("Every menu of the POS transactions; a menu on another card moves here when ticked")}
@@ -719,7 +874,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
     <>
       {t && (
         <StatStrip label={tr("Summary")} columns={4}>
-          <Stat label={tr("Sales of Mapped Menus")} value={rp(t.sales)}><p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}</p>
+          <Stat label={tr("Sales of Mapped Menus")} value={rp(t.sales)}><p>{tr("{0} menus with a card · {1} without", t.menusMapped, t.menusUnmapped)}{t.menusViaPackages ? ` · ${tr("{0} bundles through their contents", t.menusViaPackages)}` : ""}</p>
             {t.allSales != null && <p title={tr("Subtotal − menu discounts, as Sales Transactions (bill discounts, promotions and vouchers not deducted)")}>{tr("all sales {0} · choices {1}", rp(t.allSales), rp(t.choiceSales ?? 0))}</p>}</Stat>
           <Stat label={tr("COGS Material (System)")} emphasis value={rp(t.cogs)}><p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p></Stat>
           <Stat label={tr("COGS Material (Actual)")} value={t.actualCogs == null ? "—" : rp(t.actualCogs)}>
@@ -771,9 +926,14 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
                 <Button size="sm" variant="secondary" onClick={() => onGo("options")}>{tr("Set the Rules")}</Button>
               </div>
             )}
-            {data.unmapped.length > 0 && (
+            {data.unmapped.some((m) => m.viaPackages) && (
+              <p className="mx-4 mt-3 rounded-xl bg-sky-50 px-3 py-2 text-xs text-sky-800">{tr("{0} bundles without a card are counted through the menus ESB records inside them: {1}",
+                data.unmapped.filter((m) => m.viaPackages).length, data.unmapped.filter((m) => m.viaPackages).slice(0, 4).map((m) => m.name).join(", "))}</p>
+            )}
+            {data.unmapped.some((m) => !m.viaPackages) && (
               <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                <span className="flex-1">{tr("{0} menus sold have no recipe card yet and are not counted: {1}", data.unmapped.length, data.unmapped.slice(0, 6).map((m) => m.name).join(", "))}{data.unmapped.length > 6 ? "…" : ""}</span>
+                <span className="flex-1">{tr("{0} menus sold have no recipe card yet and are not counted: {1}", data.unmapped.filter((m) => !m.viaPackages).length,
+                  data.unmapped.filter((m) => !m.viaPackages).slice(0, 6).map((m) => m.name).join(", "))}{data.unmapped.filter((m) => !m.viaPackages).length > 6 ? "…" : ""}</span>
                 <Button size="sm" variant="secondary" onClick={() => onGo("menus")}>{tr("Assign Menus")}</Button>
               </div>
             )}
