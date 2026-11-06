@@ -296,6 +296,13 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             <Button variant="secondary" onClick={() => { setPicked(new Set()); setVerdict("rejected"); }}><XCircle size={14} />{tr("Reject")}</Button>
             <Button onClick={() => { setPicked(new Set()); setVerdict("approved"); }}><CheckCircle2 size={14} />{tr("Approve")}</Button>
           </div>
+        ) : open && review && open.status === "approved" ? (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <span className="mr-auto text-xs text-neutral-500">{tr("Approved: counted in the COGS; QA can still investigate it")}</span>
+            {open.investigationId
+              ? <Button variant="secondary" onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={14} />{tr("Open the investigation")}</Button>
+              : <Button variant="secondary" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button>}
+          </div>
         ) : undefined}>
         {open && (
           <div className="space-y-4">
@@ -318,6 +325,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 [tr("Photo taken"), open.photoTakenAt ? wibDateTime(open.photoTakenAt) : "—"],
                 [tr("Position"), open.latitude !== null && open.longitude !== null
                   ? <a key="p" href={mapsUrl(open.latitude, open.longitude)} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">{open.latitude.toFixed(5)}, {open.longitude.toFixed(5)}</a> : "—"],
+                ...(open.investigationId ? [[tr("Investigation"), <button key="inv" type="button" className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline"
+                  onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={13} />{tr("Open the investigation")}</button>]] : []),
                 ...(open.review ? [[tr("Review"), `${open.review.by ?? ""} · ${open.review.at ? wibDateTime(open.review.at) : ""}${open.review.note ? ` · ${open.review.note}` : ""}`]] : []),
               ] as [string, React.ReactNode][]).map(([k, v]) => (
                 <div key={k} className="flex gap-3 px-3 py-2"><dt className="w-32 flex-shrink-0 text-neutral-500">{k}</dt><dd className="min-w-0 flex-1 text-neutral-800">{v}</dd></div>

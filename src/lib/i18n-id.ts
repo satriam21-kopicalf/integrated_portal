@@ -5555,4 +5555,5 @@ export const ID: Record<string, string> = {
   "Quantity, lowest": "Qty tersedikit",
   "To check first": "Perlu dicek dulu",
   "Date, earliest": "Tanggal, terlama",
+  "Approved: counted in the COGS; QA can still investigate it": "Di-approve: sudah masuk COGS; QA tetap bisa investigasi",
 };
