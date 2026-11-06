@@ -16,15 +16,19 @@ import { ActiveFilter, FilterToolbar, Period, SegmentBar, dmy, wibDay } from "@/
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
 import { wibDay as dayOf } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
-import { wibDateTime } from "@/so/lib/wib";
-import { type CheckIn, call, photoUrl, suspect } from "@/so/features/checkin/checkin";
-import { type Kind, kindSlug, setKind, swapKind } from "@/so/features/checkin/checkin";
-import { tr as baseTr } from "@/lib/i18n";
+import { TZ, wibDateTime } from "@/so/lib/wib";
+import { type CheckIn, call, duration, photoUrl, suspect } from "@/so/features/checkin/checkin";
+import { type Kind, kindSlug, setKind, swapClock, swapKind } from "@/so/features/checkin/checkin";
+import { locale, tr as baseTr } from "@/lib/i18n";
 import { thumb } from "@/lib/assets";
-const tr = (key: string, ...args: (string | number | null | undefined)[]) => baseTr(swapKind(key), ...args);
+const tr = (key: string, ...args: (string | number | null | undefined)[]) => swapClock(baseTr(swapKind(key), ...args));
+/** "07.42" in WIB */
+const wibClock = (iso: string) => new Date(iso).toLocaleTimeString(locale(), { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 
 type Summary = { total: number; pics: number; branches: number; outside: number; low: number; unlocated: number; inside: number;
-  suspect: number; suspect_high: number; unreviewed: number };
+  suspect: number; suspect_high: number; unreviewed: number;
+  /** Cost Control Clock Out (migration 073): visits not clocked out, clock outs outside the radius, average minutes */
+  open?: number; out_outside?: number; avg_minutes?: number | null };
 type Result = { period: { from: string; to: string }; data: CheckIn[]; summary: Summary; pics: { id: string; name: string; n: number }[]; truncated: boolean };
 type BranchOpt = { branch_code: string; branch_name: string };
 type Detail = "checkins" | "pics" | "outlets" | "outside";
@@ -35,7 +39,7 @@ const NO_F = (): F => ({ period: { from: wibDay(-6), to: wibDay(0) }, group: "",
 const LOC: Record<string, () => string> = {
   unreviewed: () => tr("Needs review"), alert: () => tr("Outside radius or suspicious location"),
   suspect: () => tr("Suspicious Location"), outside: () => tr("Outside Radius"), low: () => tr("Low GPS accuracy"),
-  unlocated: () => tr("Outlet Has No Coordinates"),
+  unlocated: () => tr("Outlet Has No Coordinates"), open: () => tr("Not clocked out yet"),
 };
 const REFRESH_MS = 60_000;
 
@@ -120,6 +124,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
         <StatStrip label={tr("Summary")} columns={5}>
           <Stat label={tr("Check-ins")} emphasis icon={<CalendarDays size={13} />} onClick={s ? () => setDetail("checkins") : undefined} active={detail === "checkins"} value={s ? fmtNumber(s.total) : <StatSkeleton />}>
             {s && <p>{tr("{0} days", Math.round((Date.parse(f.period.to) - Date.parse(f.period.from)) / 864e5) + 1)}</p>}
+            {s && kind === "surveyor" && <p>{tr("{0} not clocked out yet", fmtNumber(s.open ?? 0))}{s.avg_minutes != null ? ` · ${tr("average {0}", duration(s.avg_minutes))}` : ""}</p>}
           </Stat>
           <Stat label={tr("PICs")} icon={<UsersRound size={13} />} onClick={s ? () => setDetail("pics") : undefined} active={detail === "pics"} value={s ? fmtNumber(s.pics) : <StatSkeleton />}>
             {s && <p>{tr("who checked in")}</p>}
@@ -168,6 +173,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                       <span className="block truncate text-sm font-medium text-neutral-900">{c.name}</span>
                       <span className="block truncate text-xs text-neutral-500">{c.branchName} · {wibDateTime(c.visitedAt)}</span>
                       <span className="mt-1 block"><LocationTags c={c} /></span>
+                      {kind === "surveyor" && <span className="mt-1 block"><ClockOutCell c={c} /></span>}
                     </span>
                   </button>
                 </li>
@@ -182,10 +188,11 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                     <th className="px-4 py-2.5">{tr("Outlet")}</th>
                     <th className="px-4 py-2.5">{tr("Visit Time")}</th>
                     <th className="px-4 py-2.5">{tr("Location")}</th>
+                    {kind === "surveyor" && <th className="px-4 py-2.5">{tr("Clock Out")}</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {!res ? <SkeletonRows cols={5} /> : paged.rows.map((c) => (
+                  {!res ? <SkeletonRows cols={kind === "surveyor" ? 6 : 5} /> : paged.rows.map((c) => (
                     <tr key={c.id} onClick={() => setOpen(c)} className={cx("cursor-pointer", (c.outsideRadius || suspect(c)) && !c.review ? "bg-red-50/50 hover:bg-red-50" : "hover:bg-neutral-50/70")}>
                       <td className="px-4 py-2.5">
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
@@ -195,6 +202,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                       <td className="max-w-[16rem] px-4 py-2.5"><span className="block truncate text-neutral-800">{c.branchName}</span><span className="text-xs text-neutral-400">{c.branchCode}</span></td>
                       <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-neutral-700">{wibDateTime(c.visitedAt)}</td>
                       <td className="px-4 py-2.5"><LocationTags c={c} /></td>
+                      {kind === "surveyor" && <td className="px-4 py-2.5"><ClockOutCell c={c} /></td>}
                     </tr>
                   ))}
                 </tbody>
@@ -319,6 +327,36 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
           </DrawerBlock>
         )}
 
+        {c.clockOut !== undefined && (
+          <DrawerBlock title={tr("Clock Out")}>
+            {c.clockOut ? (
+              <div className="grid gap-3 sm:grid-cols-[7rem_minmax(0,1fr)]">
+                <a href={photoUrl(c.id, true)} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
+                  <img src={thumb(photoUrl(c.id, true), 320)} alt={tr("Face Photo")} loading="lazy" className="aspect-[3/4] w-full object-cover" />
+                </a>
+                <div className="min-w-0 space-y-2">
+                  <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-xl border border-neutral-200">
+                    <Figure label={tr("Time")} value={wibClock(c.clockOut.at)} />
+                    <Figure label={tr("At the Outlet")} value={duration(c.clockOut.durationMin)} />
+                    <Figure label={tr("Distance")} value={c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"} tone={c.clockOut.outsideRadius ? "text-red-700" : undefined} />
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {c.clockOut.outsideRadius && <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>}
+                    {c.clockOut.lowAccuracy && <Badge tone="slate" icon={<SignalLow size={11} />}>{tr("Low GPS accuracy")}</Badge>}
+                    {(c.clockOut.riskLevel === "high" || c.clockOut.riskLevel === "medium") && <Badge tone={c.clockOut.riskLevel === "high" ? "red" : "amber"} icon={<ShieldAlert size={11} />}
+                      title={(c.clockOut.riskSignals ?? []).map((x) => x.text).join("\n")}>{tr("Suspicious Location")}</Badge>}
+                  </div>
+                  {c.clockOut.latitude !== null && c.clockOut.longitude !== null && (
+                    <MapLink href={mapsUrl(c.clockOut.latitude, c.clockOut.longitude)} label={tr("Position at Clock Out")} value={`${c.clockOut.latitude.toFixed(5)}, ${c.clockOut.longitude.toFixed(5)}`} />
+                  )}
+                  {c.clockOut.note && <p className="rounded-xl bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{c.clockOut.note}</p>}
+                </div>
+              </div>
+            ) : <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-sm text-neutral-500">{tr("Not clocked out yet")}</p>}
+          </DrawerBlock>
+        )}
+
         {(c.riskSignals ?? []).length > 0 && (
           <DrawerBlock title={`${tr("Location check")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
             <ul className={cx("space-y-1.5 rounded-xl border p-3 text-xs", risky ? "border-red-200 bg-red-50" : "border-neutral-200 bg-neutral-50")}>
@@ -339,6 +377,18 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
 }
 
 /** A titled block of a detail drawer. */
+/** Cost Control: the clock out time and minutes at the outlet, or still open. */
+function ClockOutCell({ c }: { c: CheckIn }) {
+  if (!c.clockOut) return <Badge tone="blue">{tr("Not clocked out yet")}</Badge>;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5 whitespace-nowrap">
+      <span className="tabular-nums text-neutral-700">{wibClock(c.clockOut.at)}</span>
+      <span className="text-xs text-neutral-500">{duration(c.clockOut.durationMin)}</span>
+      {c.clockOut.outsideRadius && <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>}
+    </span>
+  );
+}
+
 export function DrawerBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>

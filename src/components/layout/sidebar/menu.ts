@@ -40,8 +40,8 @@ export const costControl: { title: string; hint: string; icon: typeof Users; ite
     { get name() { return tr('Waste Monitor'); }, href: '/cost-control/waste/monitor', icon: Activity, get description() { return tr('Waste entered by every branch'); } },
     { get name() { return tr('Waste Review'); }, href: '/cost-control/waste/reviews', icon: ClipboardList, get description() { return tr('Approve or send back'); } },
   ] },
-  { get title() { return tr('Check In'); }, get hint() { return tr('Outlet visits of the Cost Control team'); }, icon: UserRoundCheck, items: [
-    { get name() { return tr('Cost Control Check In'); }, href: '/cost-control/check-in', icon: UserRoundCheck, get description() { return tr('Check-ins of every Cost Control surveyor'); } },
+  { get title() { return tr('Clock In'); }, get hint() { return tr('Outlet visits of the Cost Control team'); }, icon: UserRoundCheck, items: [
+    { get name() { return tr('Cost Control Clock In'); }, href: '/cost-control/check-in', icon: UserRoundCheck, get description() { return tr('Clock in & clock out of every Cost Control surveyor'); } },
   ] },
   { get title() { return tr('Analytics'); }, get hint() { return tr('Cost ratios per outlet from ESB data'); }, icon: BarChart3, items: [
     { get name() { return tr('Outlet Ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
@@ -58,7 +58,7 @@ export const forms: { title: string; hint: string; icon: typeof Users; items: Cc
   ] },
   { get title() { return tr('Visit'); }, get hint() { return tr('Check in at the outlet you visit'); }, icon: MapPinCheck, items: [
     { get name() { return tr('PIC Check In'); }, href: '/forms/pic-check-in', icon: MapPinCheck, get description() { return tr('Check in at the outlet'); } },
-    { get name() { return tr('Cost Control Check In'); }, href: '/forms/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Cost Control visit to the outlet'); } },
+    { get name() { return tr('Cost Control Clock In'); }, href: '/forms/surveyor-check-in', icon: UserRoundCheck, get description() { return tr('Cost Control visit to the outlet'); } },
   ] },
   { get title() { return tr('Product & Outlet'); }, get hint() { return tr('Condition of the products and the outlet'); }, icon: Store, items: [
     { get name() { return 'Product'; }, href: '/forms/product', icon: Package, get description() { return tr('Fill in the product checklist'); } },

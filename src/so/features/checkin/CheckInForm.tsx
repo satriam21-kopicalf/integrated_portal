@@ -11,6 +11,9 @@
 // One check in per branch per day: a branch already checked in today is locked until tomorrow. After sending, a full
 // screen confirmation (phones / PWA), then the form is back to its start. "My latest check-ins" open in a drawer with the
 // photo, the position and the management's review (valid / not valid with its note) from Monitoring → PIC Check In.
+// Cost Control Clock In / Clock Out (kind surveyor, 2026-11-06): the check in is the clock in of a visit; while a visit
+// is open the form becomes its Clock Out (same location and face photo steps, the outlet of the visit), and a new clock
+// in waits for it.
 
 import { AlertTriangle, Camera, Check, Image as ImageIcon, Lightbulb, Smile, CheckCircle2, ChevronRight, Clock, Crosshair, ExternalLink, Loader2, MapPin, MapPinOff, MessageSquareText, RotateCcw, Send,
   ShieldCheck, ShieldX, XCircle } from "lucide-react";
@@ -23,15 +26,15 @@ import { useAuth } from "@/lib/auth";
 import { type Fix, locate, mapsUrl } from "@/so/lib/counts";
 import { TZ, wibDateTime } from "@/so/lib/wib";
 import SelfieCamera, { type Selfie } from "@/so/features/checkin/SelfieCamera";
-import { type CheckIn, type FormData, call, deviceSignals, judge, photoUrl, useGpsTrail } from "@/so/features/checkin/checkin";
-import { type Kind, kindSlug, setKind, swapKind } from "@/so/features/checkin/checkin";
+import { type CheckIn, type FormData, call, deviceSignals, duration, judge, photoUrl, useGpsTrail } from "@/so/features/checkin/checkin";
+import { type Kind, kindSlug, setKind, swapClock, swapKind } from "@/so/features/checkin/checkin";
 import { locale, tr as baseTr } from "@/lib/i18n";
 import LiveClock from "@/so/ui/LiveClock";
 import BranchPicker, { type BranchState } from "@/so/features/checkin/BranchPicker";
 import { useFocusMode } from "@/components/layout/BottomNav";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { thumb } from "@/lib/assets";
-const tr = (key: string, ...args: (string | number | null | undefined)[]) => baseTr(swapKind(key), ...args);
+const tr = (key: string, ...args: (string | number | null | undefined)[]) => swapClock(baseTr(swapKind(key), ...args));
 
 const FRESH_MS = 3 * 60_000; // a position older than this is taken again when sending
 
@@ -55,7 +58,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   const [checking, setChecking] = useState(false);
   const [note, setNote] = useState("");
   const [sending, setSending] = useState(false);
-  const [done, setDone] = useState<CheckIn | null>(null);
+  const [done, setDone] = useState<{ c: CheckIn; out: boolean } | null>(null);
   const [view, setView] = useState<CheckIn | null>(null);
   const [now, setNow] = useState<Date | null>(null);
   const trail = useGpsTrail();
@@ -73,7 +76,8 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
     try {
       const d = await call<FormData>(`/api/forms/${kindSlug()}`);
       setData(d);
-      if (d.branches.length === 1) setBranch(d.branches[0].code);
+      if (d.open) setBranch(d.open.branchCode);
+      else if (d.branches.length === 1) setBranch(d.branches[0].code);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -91,12 +95,15 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   }, []);
   useEffect(() => { void findMe(); }, [findMe]);
 
-  const b = data?.branches.find((x) => x.code === branch);
+  // Cost Control: the open visit is clocked out first (its outlet, the same steps)
+  const openVisit = kind === "surveyor" ? data?.open ?? null : null;
+  const outMode = !!openVisit;
+  const b = data?.branches.find((x) => x.code === (openVisit?.branchCode ?? branch));
   const stateOf = useCallback((code: string): BranchState | null => {
     const t = data?.today?.[code];
     return t ? { label: tr("Checked in {0}", wibTime(t.visitedAt)), tone: "done", locked: true } : null;
   }, [data]);
-  const doneToday = b ? data?.today?.[b.code] : undefined;
+  const doneToday = b && !outMode ? data?.today?.[b.code] : undefined;
   const allDone = !!data && data.branches.length > 0 && data.branches.every((x) => data.today?.[x.code]);
   const where = useMemo(() => (fix ? judge(fix.lat, fix.lng, fix.accuracy, b) : null), [fix, b]);
   const position = fix ? `${fix.lat.toFixed(5)}, ${fix.lng.toFixed(5)} ±${Math.round(fix.accuracy)} m` : "";
@@ -104,7 +111,8 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   const outside = !!where?.outside;
   const reasonMissing = outside && !note.trim();
   const ready = !!b && !doneToday && !!fix && !!photo && faceOk && !reasonMissing;
-  const pending = doneToday ? tr("Already checked in here today; the next one tomorrow.") : reasonMissing && b && fix && photo && faceOk ? tr("Outside the radius: write the reason first.") : tr("Complete the outlet, the location and the face photo.");
+  const pending = doneToday ? tr("Already checked in here today; the next one tomorrow.") : reasonMissing && b && fix && photo && faceOk ? tr("Outside the radius: write the reason first.")
+    : outMode ? tr("Complete the location and the face photo to clock out.") : tr("Complete the outlet, the location and the face photo.");
 
   const status: { tone: Tone; text: string } = !fix ? { tone: "muted", text: "—" }
     : !b ? { tone: "muted", text: tr("Choose the outlet") }
@@ -134,13 +142,16 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
       let f = fix;
       if (!f || Date.now() - Date.parse(f.at) > FRESH_MS) f = await findMe();
       if (!f) throw new Error(tr("A check in cannot be sent without the location."));
-      const out = await call<{ id: string }>(`/api/forms/${kindSlug()}`, { method: "POST", json: {
-        branchCode: b.code, photo: photo.image, latitude: f.lat, longitude: f.lng, accuracyM: f.accuracy, locatedAt: f.at,
-        deviceTime: photo.takenAt, note: note.trim() || null, sentAt: new Date().toISOString(),
-        samples: trail.current.slice(-30), ...deviceSignals() } });
+      const evidence = { photo: photo.image, latitude: f.lat, longitude: f.lng, accuracyM: f.accuracy, locatedAt: f.at,
+        deviceTime: photo.takenAt, note: note.trim() || null, sentAt: new Date().toISOString(), samples: trail.current.slice(-30), ...deviceSignals() };
+      const out = openVisit
+        ? await call<{ id: string }>(`/api/forms/${kindSlug()}/${openVisit.id}/clock-out`, { method: "POST", json: evidence })
+        : await call<{ id: string }>(`/api/forms/${kindSlug()}`, { method: "POST", json: { branchCode: b.code, ...evidence } });
       const d = await call<FormData>(`/api/forms/${kindSlug()}`);
       setData(d);
-      setDone(d.recent.find((r) => r.id === out.id) ?? null);
+      const c = d.recent.find((r) => r.id === out.id);
+      setDone(c ? { c, out: !!openVisit } : null);
+      if (d.open) setBranch(d.open.branchCode);
       setPhoto(null);
       setFaces(null);
       setNote("");
@@ -153,7 +164,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   };
 
   const steps = [
-    { label: tr("Outlet"), ok: !!b },
+    { label: outMode ? tr("Visit") : tr("Outlet"), ok: !!b },
     { label: tr("Location"), ok: !!fix },
     { label: tr("Face Photo"), ok: faceOk },
   ];
@@ -161,6 +172,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
 
   const clock = <LiveClock />;
   const subtitle = now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : tr("Check in at the outlet you visit");
+  const sendLabel = outMode ? tr("Send Clock Out") : tr("Send Check in");
 
   if (error || !data) {
     return (
@@ -201,7 +213,18 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
         </div>
       }>
       <div className="mx-auto max-w-5xl space-y-4">
-        {Object.keys(data.today ?? {}).length > 0 && (
+        {openVisit && (
+          <section className="flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+            <Clock size={18} className="mt-0.5 flex-shrink-0 text-brand-700" />
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">{tr("At {0} since {1}", openVisit.branchName, wibTime(openVisit.visitedAt))}</p>
+              <p className="text-xs opacity-90">{tr("Clock out when you leave the outlet: take the location and a face photo again. The next outlet can be clocked in after it.")}</p>
+            </div>
+            {now && <span className="flex-shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold tabular-nums text-brand-800 ring-1 ring-brand-200">
+              {duration(Math.max(0, Math.floor((now.getTime() - Date.parse(openVisit.visitedAt)) / 60_000)))}</span>}
+          </section>
+        )}
+        {!outMode && Object.keys(data.today ?? {}).length > 0 && (
           <section className={cx("flex items-start gap-3 rounded-xl border px-4 py-3 text-sm", allDone ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-neutral-200 bg-white text-neutral-700")}>
             <CheckCircle2 size={18} className={cx("mt-0.5 flex-shrink-0", allDone ? "text-emerald-600" : "text-emerald-500")} />
             <div className="min-w-0 flex-1">
@@ -219,10 +242,18 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
         ) : (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
             <div className="space-y-4">
-              <Card n={1} ok={!!b} active={current === 0} title={tr("Outlet Visited")} hint={tr("The outlet where you are now")}>
-                <BranchPicker branches={data.branches} value={branch} fix={fix} stateOf={stateOf}
-                  onChange={(code) => { setBranch(code); setPhoto(null); setFaces(null); }} />
-                {b?.checkinDeadline && !doneToday && Object.keys(data.today ?? {}).length === 0 && (() => {
+              <Card n={1} ok={!!b} active={current === 0} title={outMode ? tr("Visit to Clock Out") : tr("Outlet Visited")}
+                hint={outMode ? tr("Clocked in at {0}", wibDateTime(openVisit!.visitedAt)) : tr("The outlet where you are now")}>
+                {outMode ? (
+                  <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
+                    <img src={thumb(photoUrl(openVisit!.id), 96)} alt="" className="h-10 w-10 flex-shrink-0 rounded-full bg-neutral-100 object-cover ring-1 ring-neutral-200" />
+                    <span className="min-w-0"><span className="block truncate text-sm font-semibold text-neutral-900">{openVisit!.branchName}</span>
+                      <span className="block text-xs text-neutral-500">{tr("Clock in {0}", wibTime(openVisit!.visitedAt))}{openVisit!.distanceM !== null ? ` · ${openVisit!.distanceM} m` : ""}</span></span>
+                  </div>
+                ) : <BranchPicker branches={data.branches} value={branch} fix={fix} stateOf={stateOf}
+                  onChange={(code) => { setBranch(code); setPhoto(null); setFaces(null); }} />}
+                {b?.checkinDeadline && !outMode && !doneToday && Object.keys(data.today ?? {}).length === 0 && (() => {
                   // the first check in of the day counts for punctuality, by the deadline of its outlet (Monitoring OPS → Branch Groups)
                   const d = b.checkinDeadline;
                   const late = new Date(Date.now() + 7 * 3600e3).toISOString().slice(11, 16) > d.wib;
@@ -332,11 +363,11 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
 
               <section className={cx("rounded-xl border bg-white p-4 shadow-sm sm:p-5", outside ? "border-red-200" : "border-neutral-200")}>
                 <label htmlFor="pic-note" className="text-sm font-semibold text-neutral-900">
-                  {outside ? <>{tr("Reason for checking in outside the radius")} <span className="font-normal text-red-600">({tr("required")})</span></>
+                  {outside ? <>{outMode ? tr("Reason for clocking out outside the radius") : tr("Reason for checking in outside the radius")} <span className="font-normal text-red-600">({tr("required")})</span></>
                     : <>{tr("Note")} <span className="font-normal text-neutral-400">({tr("optional")})</span></>}
                 </label>
                 <textarea id="pic-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={outside ? 3 : 2}
-                  placeholder={outside ? tr("e.g. delivering stock to the warehouse next to the outlet") : tr("e.g. the purpose of the visit")}
+                  placeholder={outside ? tr("e.g. delivering stock to the warehouse next to the outlet") : outMode ? tr("e.g. what was done during the visit") : tr("e.g. the purpose of the visit")}
                   aria-invalid={reasonMissing || undefined}
                   className={cx(inputClass, "mt-2 py-2", reasonMissing && "border-red-300 focus:border-red-500 focus:ring-red-500/20")} />
               </section>
@@ -349,9 +380,9 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                   <Row k={tr("Outlet")} v={b?.name ?? "—"} />
                   <Row k={tr("Location")} v={<span className={TONE[status.tone]}>{status.text}{where?.distance != null ? ` · ${where.distance} m` : ""}</span>} />
                   <Row k={tr("Face Photo")} v={faceOk ? tr("Face detected") : "—"} />
-                  <Row k={tr("Visit Time")} v={tr("Server time when sent")} />
+                  <Row k={outMode ? tr("Clock Out Time") : tr("Visit Time")} v={tr("Server time when sent")} />
                 </dl>
-                <Button loading={sending} disabled={!ready} onClick={() => void send()} className="mt-4 w-full"><Send size={15} /> {tr("Send Check in")}</Button>
+                <Button loading={sending} disabled={!ready} onClick={() => void send()} className="mt-4 w-full"><Send size={15} /> {sendLabel}</Button>
                 {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-red-600" : "text-neutral-400")}>{pending}</p>}
               </section>
 
@@ -367,7 +398,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium text-neutral-900">{r.branchName}</span>
                             <span className="block text-xs text-neutral-500">{wibDateTime(r.visitedAt)}</span>
-                            <span className="mt-1 flex flex-wrap gap-1"><ReviewBadge c={r} /></span>
+                            <span className="mt-1 flex flex-wrap gap-1"><ReviewBadge c={r} />{kind === "surveyor" && <ClockOutBadge c={r} />}</span>
                           </span>
                           <ChevronRight size={16} className="flex-shrink-0 text-neutral-300" />
                         </button>
@@ -388,7 +419,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
           <p className="mb-2 truncate text-xs text-neutral-500">
             {ready ? `${b?.name} · ${status.text}${where?.distance != null ? ` · ${where.distance} m` : ""}` : pending}
           </p>
-          <Button loading={sending} disabled={!ready} onClick={() => void send()} className="w-full"><Send size={15} /> {tr("Send Check in")}</Button>
+          <Button loading={sending} disabled={!ready} onClick={() => void send()} className="w-full"><Send size={15} /> {sendLabel}</Button>
         </div>
       )}
 
@@ -396,7 +427,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
         <SelfieCamera pic={data.user.name} branch={b.name} position={position} onClose={() => setCamera(false)} onShot={(s) => void takePhoto(s)}
           tip={tr("Stand where the outlet's design or accessories are behind you (logo, signage, mural, menu board)")} />
       )}
-      {done && <SuccessScreen c={done} onClose={() => { setDone(null); window.scrollTo({ top: 0 }); }} onDetail={() => { setView(done); setDone(null); }} />}
+      {done && <SuccessScreen c={done.c} out={done.out} onClose={() => { setDone(null); window.scrollTo({ top: 0 }); }} onDetail={() => { setView(done.c); setDone(null); }} />}
       {view && <CheckInDrawer c={view} onClose={() => setView(null)} />}
     </Page>
   );
@@ -434,29 +465,40 @@ function ReviewBadge({ c }: { c: CheckIn }) {
   return <Badge tone="slate">{c.distanceM !== null ? tr("At the outlet · {0} m", c.distanceM) : tr("Outlet Has No Coordinates")}</Badge>;
 }
 
+/** Cost Control: clocked out (time and minutes at the outlet) or still at the outlet. */
+function ClockOutBadge({ c }: { c: CheckIn }) {
+  if (!c.clockOut) return <Badge tone="blue" icon={<Clock size={11} />}>{tr("Not clocked out yet")}</Badge>;
+  return <Badge tone={c.clockOut.outsideRadius ? "amber" : "slate"} icon={<Clock size={11} />}>{tr("Out {0} · {1}", wibTime(c.clockOut.at), duration(c.clockOut.durationMin))}</Badge>;
+}
+
 /** Full screen after sending (phones / PWA; a centred card on a desktop), then back to the form. */
-function SuccessScreen({ c, onClose, onDetail }: { c: CheckIn; onClose: () => void; onDetail: () => void }) {
+function SuccessScreen({ c, out = false, onClose, onDetail }: { c: CheckIn; out?: boolean; onClose: () => void; onDetail: () => void }) {
+  const o = out ? c.clockOut : null;
+  const outside = o ? o.outsideRadius : c.outsideRadius;
+  const distance = o ? o.distanceM : c.distanceM;
   // on the body: above the app frame (a transformed ancestor would clip a fixed layer)
   return createPortal(
     <div className="fixed inset-0 z-[90] flex items-stretch justify-center bg-neutral-900/50 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Check in Sent")}>
       <div className="flex w-full flex-col overflow-y-auto bg-white sm:max-h-[92vh] sm:max-w-md sm:rounded-xl sm:shadow-2xl">
-        <div className={cx("flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center", c.outsideRadius ? "bg-gradient-to-b from-amber-50 to-white" : "bg-gradient-to-b from-emerald-50 to-white", "sm:rounded-t-2xl")}>
-          <span className={cx("flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg", c.outsideRadius ? "bg-amber-500 shadow-amber-200" : "bg-emerald-500 shadow-emerald-200")}>
-            {c.outsideRadius ? <AlertTriangle size={38} /> : <Check size={42} strokeWidth={3} />}
+        <div className={cx("flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center", outside ? "bg-gradient-to-b from-amber-50 to-white" : "bg-gradient-to-b from-emerald-50 to-white", "sm:rounded-t-2xl")}>
+          <span className={cx("flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg", outside ? "bg-amber-500 shadow-amber-200" : "bg-emerald-500 shadow-emerald-200")}>
+            {outside ? <AlertTriangle size={38} /> : <Check size={42} strokeWidth={3} />}
           </span>
-          <h2 className="mt-5 text-2xl font-semibold text-neutral-900">{tr("Check in Successful")}</h2>
+          <h2 className="mt-5 text-2xl font-semibold text-neutral-900">{o ? tr("Clock Out Successful") : tr("Check in Successful")}</h2>
           <p className="mt-1 text-sm text-neutral-600">{c.branchName}</p>
           {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-          <img src={thumb(photoUrl(c.id), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-xl object-cover shadow-md ring-4 ring-white" />
+          <img src={thumb(photoUrl(c.id, !!o), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-xl object-cover shadow-md ring-4 ring-white" />
           <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-neutral-100 rounded-xl border border-neutral-200/80 bg-white text-left">
             <div className="px-3 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Time")}</dt>
-              <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Clock size={13} className="text-neutral-400" />{wibTime(c.visitedAt)} WIB</dd></div>
+              <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Clock size={13} className="text-neutral-400" />{wibTime(o ? o.at : c.visitedAt)} WIB</dd></div>
             <div className="px-3 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Location")}</dt>
-              <dd className={cx("mt-0.5 flex items-center gap-1.5 text-sm font-semibold", c.outsideRadius ? "text-amber-700" : "text-neutral-900")}><MapPin size={13} className="text-neutral-400" />
-                {c.distanceM !== null ? tr("{0} m from the outlet", c.distanceM) : tr("No coordinates")}</dd></div>
+              <dd className={cx("mt-0.5 flex items-center gap-1.5 text-sm font-semibold", outside ? "text-amber-700" : "text-neutral-900")}><MapPin size={13} className="text-neutral-400" />
+                {distance !== null ? tr("{0} m from the outlet", distance) : tr("No coordinates")}</dd></div>
           </dl>
-          {c.outsideRadius && <p className="mt-3 text-xs text-amber-800">{tr("Outside the radius: management reviews this check in. You can follow it under My latest check-ins.")}</p>}
-          <p className="mt-3 text-xs text-neutral-500">{tr("One check in per outlet per day: the next one for this outlet is tomorrow.")}</p>
+          {o && <p className="mt-3 text-sm font-medium text-neutral-700">{tr("{0} at the outlet (clock in {1})", duration(o.durationMin), wibTime(c.visitedAt))}</p>}
+          {!o && outside && <p className="mt-3 text-xs text-amber-800">{tr("Outside the radius: management reviews this check in. You can follow it under My latest check-ins.")}</p>}
+          {o ? <p className="mt-3 text-xs text-neutral-500">{tr("The visit is closed; the next outlet can be clocked in now.")}</p>
+            : getKindNote()}
         </div>
         <div className="space-y-2 border-t border-neutral-100 px-6 pt-4 sm:rounded-b-2xl" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
           <Button className="h-12 w-full text-base" onClick={onClose}>{tr("Done")}</Button>
@@ -466,6 +508,10 @@ function SuccessScreen({ c, onClose, onDetail }: { c: CheckIn; onClose: () => vo
     </div>,
     document.body,
   );
+}
+
+function getKindNote() {
+  return <p className="mt-3 text-xs text-neutral-500">{swapKind("PIC") === "PIC" ? tr("One check in per outlet per day: the next one for this outlet is tomorrow.") : tr("Clock out here when you leave the outlet.")}</p>;
 }
 
 /** One of the PIC's check-ins: the photo, the time, the position and the management's review. */
@@ -487,6 +533,25 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
           </dl>
         </div>
         {c.note && <p className="flex items-start gap-2 rounded-xl bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700"><MessageSquareText size={15} className="mt-0.5 flex-shrink-0 text-neutral-400" />{c.note}</p>}
+        {c.clockOut !== undefined && (
+          <section className="rounded-xl border border-neutral-200 px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Clock Out")}</p>
+            {c.clockOut ? (
+              <div className="mt-2 grid gap-3 sm:grid-cols-[6rem_minmax(0,1fr)]">
+                <a href={photoUrl(c.id, true)} target="_blank" rel="noreferrer">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
+                  <img src={thumb(photoUrl(c.id, true), 240)} alt={tr("Face Photo")} loading="lazy" className="aspect-[3/4] w-full rounded-lg bg-neutral-100 object-cover ring-1 ring-neutral-200" />
+                </a>
+                <dl className="divide-y divide-neutral-100 text-sm">
+                  <Row k={tr("Time")} v={wibDateTime(c.clockOut.at)} />
+                  <Row k={tr("At the Outlet")} v={duration(c.clockOut.durationMin)} />
+                  <Row k={tr("Distance")} v={<span className={c.clockOut.outsideRadius ? "text-amber-700" : undefined}>{c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"}</span>} />
+                  {c.clockOut.note && <Row k={tr("Note")} v={c.clockOut.note} />}
+                </dl>
+              </div>
+            ) : <p className="mt-1 text-sm text-neutral-600">{tr("Not clocked out yet")}</p>}
+          </section>
+        )}
         <section className={cx("rounded-xl border px-4 py-3",
           c.review?.status === "valid" ? "border-emerald-200 bg-emerald-50" : c.review?.status === "invalid" ? "border-red-200 bg-red-50" : "border-neutral-200 bg-white")}>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Management review")}</p>

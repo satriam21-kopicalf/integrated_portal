@@ -14,13 +14,19 @@ export type CheckIn = {
   outsideRadius: boolean; lowAccuracy: boolean; outletLocated: boolean; faces: number; note: string | null;
   /** signs of a faked position (Monitoring only) and the manager's review (also shown to the PIC on their own list) */
   riskLevel?: RiskLevel; riskSignals?: RiskSignal[]; review?: Review | null;
+  /** Cost Control Clock Out of the visit (migration 073; null while the surveyor is still at the outlet) */
+  clockOut?: ClockOut | null;
 };
+export type ClockOut = { at: string; durationMin: number; latitude: number | null; longitude: number | null; accuracyM: number | null;
+  distanceM: number | null; outsideRadius: boolean; lowAccuracy: boolean; faces: number | null; note: string | null;
+  riskLevel?: RiskLevel; riskSignals?: RiskSignal[] };
 export type RiskLevel = "none" | "low" | "medium" | "high";
 export type RiskSignal = { code: string; level: RiskLevel; text: string };
 export type Review = { status: "valid" | "invalid"; note: string | null; by: string | null; at: string | null };
 export const suspect = (c: CheckIn) => c.riskLevel === "high" || c.riskLevel === "medium";
 export type FormData = { user: { id: string; username: string; name: string }; branches: Branch[]; recent: CheckIn[];
-  /** branches already checked in today (one check in per branch per day) */ today: Record<string, { id: string; visitedAt: string }> };
+  /** branches already checked in today (one check in per branch per day) */ today: Record<string, { id: string; visitedAt: string }>;
+  /** Cost Control: the visit clocked in and not out yet (one open visit at a time) */ open?: CheckIn | null };
 
 export async function call<T>(path: string, init?: RequestInit & { json?: unknown }): Promise<T> {
   const { json, ...rest } = init ?? {};
@@ -34,7 +40,9 @@ export async function call<T>(path: string, init?: RequestInit & { json?: unknow
   return body as T;
 }
 
-export const photoUrl = (id: string) => `/api/pic-check-in/${id}/photo`;
+export const photoUrl = (id: string, out = false) => `/api/pic-check-in/${id}/photo${out ? "?out=1" : ""}`;
+/** 95 → "1 h 35 min" */
+export const duration = (min: number) => (min >= 60 ? `${Math.floor(min / 60)} h ${min % 60} min` : `${min} min`);
 
 /** PIC Check In or Cost Control Check In (2026-10-31, renamed from Surveyor 2026-11-01): the same screens, their own
  * endpoints and labels ("PIC" reads "Cost Control"; the kind and the endpoints keep the name surveyor). One kind per page, set by the page component before it renders. */
@@ -43,6 +51,10 @@ let currentKind: Kind = "pic";
 export const setKind = (k: Kind) => { currentKind = k; };
 export const kindSlug = () => (currentKind === "surveyor" ? "surveyor-check-in" : "pic-check-in");
 export const swapKind = (s: string) => (currentKind === "surveyor" ? s.replace(/PICs/g, "Cost Control").replace(/PIC/g, "Cost Control") : s);
+/** Cost Control Clock In (2026-11-06): the check in of a Cost Control visit reads clock in, on the translated text. */
+export const swapClock = (s: string) => (currentKind !== "surveyor" ? s : s
+  .replace(/Check([- ])(I|i)n/g, (_, sep: string, i: string) => `Clock${sep}${i}n`).replace(/check([- ])in/g, "clock$1in")
+  .replace(/Checked in/g, "Clocked in").replace(/checked in/g, "clocked in"));
 
 export function distanceM(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const r = 6371000, rad = Math.PI / 180;
