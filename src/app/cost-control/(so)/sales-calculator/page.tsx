@@ -45,6 +45,8 @@ type Report = {
     actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
   mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean }[];
   /** the stock items of the cards counted at both ends (their share of the system value) and the ones missing */
+  /** branch × item rows whose counts look wrong (negative usage, a count many times the other end) */
+  anomalies?: Anomaly[];
   coverage?: { items: number; counted: number; value: number; countedValue: number; missing: { code: string; name: string; systemValue: number }[] } | null;
   stock?: { branches: { code: string; start: StockRef | null; end: StockRef | null }[]; covered: string[]; onHand: { branches: number; from: string | null; to: string | null } };
   extras?: (Extra & { count: number; used: number })[];
@@ -57,6 +59,11 @@ type Report = {
 /** the stock opname an SO awal / akhir comes from: counted in the portal (from 28 Oct 2026) or the ESB document */
 type StockRef = { source: "portal" | "esb"; date: string; refs: string[] };
 type Branch = { branch_code: string; branch_name: string };
+type Anomaly = { branch: string; branchName: string; code: string; name: string; unit: string; start: number; moves: number; end: number; actual: number;
+  price: number; impact: number; reasons: ("negative" | "startHigh" | "endHigh")[]; refs: { start: string[]; end: string[]; startSource: string; endSource: string } };
+const REASON: Record<Anomaly["reasons"][number], () => string> = {
+  negative: () => tr("Negative usage: SO akhir above SO awal + what came in"), startHigh: () => tr("SO awal many times SO akhir"), endHigh: () => tr("SO akhir many times SO awal"),
+};
 type MoveKind = "received" | "outletBuy" | "produced" | "consumed" | "delivered" | "returned";
 const MOVE: Record<MoveKind, () => string> = {
   received: () => tr("Goods Receipt"), outletBuy: () => tr("Outlet purchase"), produced: () => tr("Produced"),
@@ -288,6 +295,44 @@ function AutoCards({ onClose, onDone }: { onClose: () => void; onDone: () => voi
         </div>
       )}
     </Drawer>
+  );
+}
+
+/** Branch × material rows whose counts look wrong: the largest value first, to check and correct in the stock opname. */
+function Anomalies({ rows }: { rows: Anomaly[] }) {
+  const [all, setAll] = useState(false);
+  const shown = all ? rows : rows.slice(0, 8);
+  const total = rows.reduce((a, r) => a + r.impact, 0);
+  return (
+    <section className="mx-4 mt-3 overflow-hidden rounded-xl border border-red-200">
+      <header className="flex flex-wrap items-center gap-2 bg-red-50 px-3 py-2.5 text-xs text-red-900">
+        <span className="font-semibold">{tr("{0} SO rows look wrong, {1} of value: check and correct them in the stock opname first", rows.length, rp(total))}</span>
+      </header>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[900px] text-xs">
+          <thead className="bg-white text-left text-[10px] uppercase tracking-wide text-neutral-400"><tr>
+            <th className="py-2 pl-3 pr-2">{tr("Branch")}</th><th className="px-2 py-2">{tr("Material")}</th><th className="px-2 py-2 text-right">{tr("SO Awal")}</th>
+            <th className="px-2 py-2 text-right">{tr("In − Out")}</th><th className="px-2 py-2 text-right">{tr("SO Akhir")}</th><th className="px-2 py-2 text-right">{tr("Usage")}</th>
+            <th className="px-2 py-2 text-right">{tr("Impact")}</th><th className="py-2 pl-2 pr-3">{tr("Why")}</th></tr></thead>
+          <tbody className="divide-y divide-red-100 bg-white">
+            {shown.map((a) => (
+              <tr key={`${a.branch}:${a.code}`}>
+                <td className="max-w-[12rem] truncate py-2 pl-3 pr-2 text-neutral-800" title={a.branchName}>{a.branchName.replace(/^Kopi Calf (To Go )?/, "")}</td>
+                <td className="max-w-[14rem] px-2 py-2"><p className="truncate font-medium text-neutral-900">{a.name}</p><p className="text-[10px] text-neutral-400">{a.code} · {a.unit}</p></td>
+                <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums" title={a.refs.start.join(", ")}>{num(a.start, 0)}</td>
+                <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums">{num(a.moves, 0)}</td>
+                <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums" title={a.refs.end.join(", ")}>{num(a.end, 0)}</td>
+                <td className={cx("whitespace-nowrap px-2 py-2 text-right tabular-nums", a.actual < 0 && "text-red-700")}>{num(a.actual, 0)}</td>
+                <td className="whitespace-nowrap px-2 py-2 text-right font-semibold tabular-nums text-red-700">{rp(a.impact)}</td>
+                <td className="py-2 pl-2 pr-3 text-neutral-600">{a.reasons.map((r) => REASON[r]()).join(" · ")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {rows.length > 8 && <button type="button" onClick={() => setAll(!all)} className="w-full border-t border-red-100 bg-white py-2 text-xs font-medium text-red-700 hover:bg-red-50">
+        {all ? tr("Show less") : tr("Show all {0}", rows.length)}</button>}
+    </section>
   );
 }
 
@@ -964,6 +1009,9 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
               { key: "mrp", label: tr("Material Required Planning"), hint: tr("Materials to prepare for the planned days"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: data ? data.mrp.length : null,
                 run: guard((d) => downloadXlsx({ fileName: file("Material Required Planning"), sheet: "MRP", title: file("Material Required Planning"), header: ["Kode", "Bahan", "Satuan", "Kebutuhan", "Stok (SO Terakhir)", "Perlu Dipesan", "Nilai Kebutuhan", "Nilai Dipesan"],
                   rows: d.mrp.map((r) => [r.code, r.name, r.unit, r.qty, r.onHand ?? null, r.toOrder ?? r.qty, r.value, r.orderValue ?? null]) })) },
+              { key: "anomalies", label: tr("SO Anomalies"), hint: tr("Branch × material rows whose counts look wrong, to check and correct"), icon: <ListChecks size={16} />, tone: "bg-red-50 text-red-600", count: data ? (data.anomalies ?? []).length : null,
+                run: guard((d) => downloadXlsx({ fileName: file("Anomali SO"), sheet: "Anomali", title: file("Anomali SO"), header: ["Cabang", "Kode", "Bahan", "Satuan", "SO Awal", "Masuk − Keluar", "SO Akhir", "Pemakaian", "Harga", "Dampak (Rp)", "Alasan", "SO Awal (dok)", "SO Akhir (dok)"],
+                  rows: (d.anomalies ?? []).map((a) => [a.branchName, a.code, a.name, a.unit, a.start, a.moves, a.end, a.actual, a.price, a.impact, a.reasons.map((r) => REASON[r]()).join("; "), a.refs.start.join(", "), a.refs.end.join(", ")]) })) },
               { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: SO awal, purchases, SO akhir, actual, system, difference and value"), icon: <ListChecks size={16} />, tone: "bg-emerald-50 text-emerald-600", count: data ? data.usage.length : null,
                 run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "Good Receipt", "Belanja Outlet", "Hasil Produksi", "Dipakai Produksi", "Dikirim Keluar", "Retur", "Masuk − Keluar", "SO Akhir", "Actual", "System", "Selisih", "Harga", "Nilai System", "Nilai Actual"],
                   rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, ...(["received", "outletBuy", "produced", "consumed", "delivered", "returned"] as MoveKind[]).map((k) => r.moves?.[k] ?? null),
@@ -1029,6 +1077,7 @@ function ReportView({ onGo }: { onGo: (s: Step) => void }) {
             {view === "usage" && (
               <>
               <StockCoverage stock={data.stock} names={branches} />
+              {!!data.anomalies?.length && <Anomalies rows={data.anomalies} />}
               {data.coverage && data.coverage.items > 0 && (() => {
                 const c = data.coverage;
                 const share = c.value ? c.countedValue / c.value : 1;

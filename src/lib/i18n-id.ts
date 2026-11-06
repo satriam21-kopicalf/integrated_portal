@@ -5424,4 +5424,13 @@ export const ID: Record<string, string> = {
   "+ made without a sale {0}": "+ dibuat tanpa penjualan {0}",
   "Materials without a Pricelist price valid by the end of the period": "Bahan tanpa harga Pricelist yang berlaku sampai akhir periode",
   "{0} materials priced with the ESB HPP · {1} without any price": "{0} bahan memakai HPP ESB · {1} tanpa harga sama sekali",
+  "Negative usage: SO akhir above SO awal + what came in": "Pemakaian negatif: SO akhir melebihi SO awal + barang masuk",
+  "SO awal many times SO akhir": "SO awal berkali lipat SO akhir",
+  "SO akhir many times SO awal": "SO akhir berkali lipat SO awal",
+  "SO Anomalies": "Anomali SO",
+  "Branch × material rows whose counts look wrong, to check and correct": "Baris cabang × bahan dengan angka SO janggal, untuk dicek dan dikoreksi",
+  "{0} SO rows look wrong, {1} of value: check and correct them in the stock opname first": "{0} baris SO janggal senilai {1}: cek dan koreksi di Stock Opname terlebih dahulu",
+  "Impact": "Dampak",
+  "Why": "Alasan",
+  "Show all {0}": "Tampilkan semua {0}",
 };
