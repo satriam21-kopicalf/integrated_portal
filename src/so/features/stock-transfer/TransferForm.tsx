@@ -25,6 +25,7 @@ import { useFocusMode } from "@/components/layout/BottomNav";
 import { tr } from "@/lib/i18n";
 import { wibDateTime } from "@/so/lib/wib";
 import { type Available, type FormData, type Transfer, STATUS, fileUrl, qtyText, rpText, shortBranch } from "./transfer";
+import { StockBadge, Tracker, transferSteps } from "./StockInfo";
 
 type Tab = "request" | "mine" | "incoming";
 
@@ -155,7 +156,8 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
                     return (
                       <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2.5", v && !bad ? "bg-brand-50/50" : bad ? "bg-red-50" : "")}>
                         <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug text-neutral-900">{i.name}</span>
-                          <span className="block text-[11px] text-neutral-500">{i.code}{i.category ? ` · ${i.category}` : ""} · {tr("available {0} {1}", qtyText(i.available), i.unit)}</span></span>
+                          <span className="block text-[11px] text-neutral-500">{i.code}{i.category ? ` · ${i.category}` : ""}</span>
+                          <span className="mt-1 block"><StockBadge available={i.available} unit={i.unit} taking={v} /></span></span>
                         <span className="relative w-28 flex-shrink-0 sm:w-32">
                           <input inputMode="decimal" className={cx(inputClass, "h-11 pr-11 text-right text-base tabular-nums sm:h-10 sm:text-sm", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
                             onChange={(e) => setQty({ ...qty, [i.code]: e.target.value })} aria-label={`${tr("Qty")} ${i.name}`} />
@@ -194,7 +196,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
           <Button className="mt-3 w-full" disabled={!ready} loading={busy} onClick={() => setSigning(true)}><PenLine size={15} />{tr("Sign & Submit")}</Button>
           {!ready && <p className="mt-2 text-center text-xs text-neutral-400">{tr("Choose the outlets, the materials and take the photo.")}</p>}
         </section>
-        <Note icon={<Info />}>{tr("The outlet checks the request, Cost Control approves it, then you receive the goods with a photo: only then the stock of both outlets changes.")}</Note>
+        <Note icon={<Info />}>{tr("The outlet checks the request and Cost Control approves it: the stock leaves that outlet. You receive the goods with a photo and the ESB GR: then the stock enters your outlet.")}</Note>
       </aside>
       {/* phones & tablets: what is ready and the send button, at the bottom */}
       <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-neutral-200/70 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden"
@@ -270,6 +272,7 @@ function List({ rows, side, onOpen }: { rows: Transfer[]; side: "mine" | "incomi
                 <span className="flex flex-wrap items-center gap-1.5"><span className="font-mono text-xs font-semibold text-neutral-900">{t.number}</span><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge></span>
                 <span className="mt-0.5 block truncate text-sm text-neutral-800">{shortBranch(t.fromName)} <ArrowRight size={12} className="inline text-neutral-400" /> {shortBranch(t.toName)}</span>
                 <span className="block text-xs text-neutral-500">{tr("{0} materials", t.lines)} · {wibDateTime(t.requested.at)} · {t.requested.by}</span>
+                <MiniProgress t={t} />
               </span>
               {todo && <span className="mt-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{side === "mine" ? tr("Receive") : tr("Check")}</span>}
             </button>
@@ -309,12 +312,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
   }
   const nAdjusted = Object.keys(adjusted).length;
   const badAdjust = (t.items ?? []).some((i) => adjust[i.code] !== undefined && (numOf(adjust[i.code]) ?? 0) <= 0);
-  const steps: { label: string; s: { note: string | null; by: string | null; at: string | null } | null; tone?: string }[] = [
-    { label: tr("Requested by {0}", shortBranch(t.toName)), s: { note: t.note, by: t.requested.by, at: t.requested.at } },
-    { label: t.status === "declined" ? tr("Declined by {0}", shortBranch(t.fromName)) : tr("Checked by {0}", shortBranch(t.fromName)), s: t.source },
-    { label: t.status === "rejected" ? tr("Rejected by Cost Control") : tr("Approved by Cost Control"), s: t.costControl },
-    { label: tr("Received"), s: t.received },
-  ];
+  const steps = transferSteps(t, shortBranch);
   const footer = (
     <div className="flex w-full flex-wrap justify-end gap-2">
       {!monitor && isFrom && t.status === "submitted" && <><Button variant="secondary" onClick={() => setAct("decline")}><XCircle size={14} />{tr("Decline")}</Button><Button onClick={() => setAct("accept")}><CheckCircle2 size={14} />{tr("Accept")}</Button></>}
@@ -334,7 +332,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-[11px] uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">{(t.items ?? []).map((i) => (
-              <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}{i.available != null ? ` · ${tr("stock when asked {0}", qtyText(i.available))}` : ""}</p></td>
+              <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p>{i.available != null && <p className="mt-1 text-[11px] text-neutral-500">{tr("Stock of the outlet when asked")}: <span className="font-semibold tabular-nums text-neutral-700">{qtyText(i.available)} {i.unit}</span></p>}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
                   {deciding ? (
                     <span className="relative inline-block w-28 sm:w-32">
@@ -349,16 +347,10 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-neutral-700">{rpText(i.value)}</td></tr>))}</tbody>
           </table>
         </div>
-        <ol className="space-y-2">
-          {steps.map((s, i) => (
-            <li key={i} className={cx("flex gap-3 rounded-xl border px-3 py-2", s.s ? "border-neutral-200 bg-white" : "border-dashed border-neutral-200 bg-neutral-50/60")}>
-              <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold", s.s ? "bg-emerald-500 text-white" : "bg-neutral-200 text-neutral-500")}>{i + 1}</span>
-              <span className="min-w-0 flex-1"><span className="block font-medium text-neutral-900">{s.label}</span>
-                {s.s ? <span className="block text-xs text-neutral-500">{[s.s.by, s.s.at ? wibDateTime(s.s.at) : null].filter(Boolean).join(" · ")}</span> : <span className="block text-xs text-neutral-400">{tr("Not yet")}</span>}
-                {s.s?.note && <span className="mt-0.5 block text-xs text-neutral-700">“{s.s.note}”</span>}</span>
-            </li>
-          ))}
-        </ol>
+        <section className="rounded-xl border border-neutral-200 bg-white p-4">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Process")}</p>
+          <Tracker steps={steps} />
+        </section>
         {t.gr && <GrStatus gr={t.gr} />}
         <div className="grid grid-cols-3 gap-2">
           {([["photo", tr("Request photo")], ["signature", tr("Signature")], ["receive", tr("Goods received")]] as const).filter(([k]) => k !== "receive" || t.received).map(([k, label]) => (
@@ -428,5 +420,18 @@ function GrStatus({ gr }: { gr: NonNullable<Transfer["gr"]> }) {
         <li key={d.code} className="flex justify-between gap-3"><span className="truncate">{d.name}</span>
           <span className="flex-shrink-0 tabular-nums">{tr("transfer {0} · GR {1}", d.transfer == null ? "—" : qtyText(d.transfer), d.gr == null ? "—" : qtyText(d.gr))}</span></li>))}</ul>
     </Note>
+  );
+}
+
+/** Four bars under a transfer of the lists: done green, the current step brand, a refusal red. */
+function MiniProgress({ t }: { t: Transfer }) {
+  const steps = transferSteps(t, shortBranch);
+  return (
+    <span className="mt-2 flex items-center gap-1" aria-label={tr("Process")}>
+      {steps.map((s, i) => (
+        <span key={i} title={s.label} className={cx("h-1.5 flex-1 rounded-full", s.state === "done" ? "bg-emerald-500" : s.state === "failed" ? "bg-red-500"
+          : s.state === "current" ? "bg-brand-400" : "bg-neutral-200")} />
+      ))}
+    </span>
   );
 }

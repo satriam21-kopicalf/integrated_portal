@@ -5,6 +5,7 @@
 // and its ESB purpose. Quick setups fill the usual schedules in one tap. A month calendar
 // shows the schedule the server computes from these rules; the editor previews an unsaved schedule live.
 
+import { SkeletonList } from "@/components/kc/Skeleton";
 import { CalendarClock, CalendarDays, CalendarRange, ChevronDown, ChevronRight, Clock, FlaskConical, ListChecks, Plus, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, Field, Input, Page, Panel, fmtNumber, useToast, PageNav, usePaged } from "@/so/ui";
@@ -168,7 +169,7 @@ export default function TypesPage() {
           </div>
           {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500">{tr("Nothing matches the search or filters")}</p>}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {rows === null ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton h-64 rounded-xl" />) : paged.rows.map((t) => (
+            {rows === null ? <SkeletonList rows={4} /> : paged.rows.map((t) => (
               <TypeCard key={t.code} t={t} color={colorOf(t.code)} onOpen={() => setOpen(t)} />
             ))}
           </div>

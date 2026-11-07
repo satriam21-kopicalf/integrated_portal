@@ -4,6 +4,7 @@
 // lists of many branches; a change to the group reaches every branch that uses it.
 // New group = a 3-step wizard (details → items → branches); an existing group opens on tabs (items, branches, details).
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { Boxes, Check, ChevronLeft, ChevronRight, FileSpreadsheet, MapPin, PackagePlus, Plus, Save, Search, Store, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -76,7 +77,8 @@ export default function GroupsPage() {
       && (!gf.pending || (gf.pending === "yes") === g.pending > 0)
       && (!gf.source || (gf.source === "template") === Boolean(g.source_ref)));
   }, [rows, search, gf]);
-  const paged = usePaged(shown, shown.length + search + JSON.stringify(gf));
+  const sorted = useSort<Group, "group" | "items" | "lists" | "updated">(shown, (g, k) => ({ group: g.name, items: g.items, lists: g.lists, updated: g.updated_at }[k]));
+  const paged = usePaged(sorted.rows, shown.length + search + JSON.stringify(gf) + JSON.stringify(sorted.sort));
   const all = rows ?? [];
   const label: Record<string, Record<string, () => string>> = {
     status: { active: () => tr("Active"), inactive: () => tr("Inactive") },
@@ -118,8 +120,8 @@ export default function GroupsPage() {
           <div className="overflow-x-auto">
             <table className="m-cards w-full min-w-[560px] text-sm">
               <thead className={theadClass}>
-                <tr><th className="px-4 py-2.5">{tr("Group")}</th><th className="px-4 py-2.5 text-right">{tr("Items")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Used by Lists")}</th><th className="px-4 py-2.5">{tr("Updated")}</th></tr>
+                <tr><SortTh k="group" sort={sorted.sort} onSort={sorted.toggle}>{tr("Group")}</SortTh><SortTh k="items" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Items")}</SortTh>
+                  <SortTh k="lists" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Used by Lists")}</SortTh><SortTh k="updated" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Updated")}</SortTh></tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
                 {rows === null ? <SkeletonRows cols={4} /> : paged.rows.map((g) => (

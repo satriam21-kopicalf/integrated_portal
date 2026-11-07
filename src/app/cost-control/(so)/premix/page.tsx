@@ -5,10 +5,11 @@
 // sheet, with the WIP entered, the share of each ingredient and the breakdown per WIP. Recipes: the recipes with
 // versions (what the count form uses). The workbook import tab was removed (2026-10-20: not used).
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { Calculator, ChevronDown, Copy, FlaskConical, Minus, Plus, RotateCcw, Scale, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, SkeletonRows, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import RecipeDrawer from "@/so/features/premix/RecipeDrawer";
@@ -187,7 +188,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
           </div>
         </div>
         {recipes === null ? (
-          <div className="space-y-2 p-4">{Array.from({ length: 6 }, (_, i) => <div key={i} className="skeleton h-16 rounded-lg" />)}</div>
+          <div className="p-4"><SkeletonList rows={6} /></div>
         ) : shown.length === 0 ? (
           <Empty icon={<Search size={26} />} title={onlyPicked ? tr("No quantity entered yet") : tr("Nothing matches the search")} />
         ) : (
@@ -383,7 +384,9 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
   const facilities = Array.from(new Set(all.flatMap(r => r.facility_types)));
   const shown = all.filter(r => (!q.trim() || `${r.name} ${r.code}`.toLowerCase().includes(q.trim().toLowerCase()))
     && (!f.status || recipeStatus(r) === f.status) && (!f.type || r.recipe_type === f.type) && (!f.facility || r.facility_types.includes(f.facility)));
-  const paged = usePaged(shown, shown.length + q);
+  const sorted = useSort<Recipe, "recipe" | "batch" | "components" | "status">(shown, (r, k) => ({ recipe: r.name, batch: r.active ? Number(r.active.output_qty_base) : null,
+    components: r.active?.lines.length ?? null, status: !r.is_active ? 2 : r.active ? 0 : 1 }[k]));
+  const paged = usePaged(sorted.rows, shown.length + q + JSON.stringify(sorted.sort));
   const chips: ActiveFilter[] = [
     ...(f.status ? [{ key: "s", label: RSTATUS[f.status](), onRemove: () => setF({ ...f, status: "" }) }] : []),
     ...(f.type ? [{ key: "t", label: f.type, onRemove: () => setF({ ...f, type: "" }) }] : []),
@@ -401,11 +404,11 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[720px] text-sm">
             <thead className={theadClass}>
-              <tr><th className="px-4 py-2.5">{tr("Recipe")}</th><th className="px-4 py-2.5">{tr("Units")}</th><th className="px-4 py-2.5 text-right">{tr("Batch")}</th>
-                <th className="px-4 py-2.5 text-right">{tr("Components")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr>
+              <tr><SortTh k="recipe" sort={sorted.sort} onSort={sorted.toggle}>{tr("Recipe")}</SortTh><th className="px-4 py-2.5">{tr("Units")}</th><SortTh k="batch" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Batch")}</SortTh>
+                <SortTh k="components" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Components")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh></tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {recipes === null ? Array.from({ length: 6 }, (_, i) => <tr key={i}><td colSpan={5} className="px-4 py-3"><SkeletonList rows={3} /></td></tr>) : paged.rows.map(r => {
+              {recipes === null ? <SkeletonRows cols={5} /> : paged.rows.map(r => {
                 const errors = r.active?.issues.filter(i => i.level === "error").length ?? 0;
                 const warnings = r.active?.issues.filter(i => i.level === "warning") ?? [];
                 return (

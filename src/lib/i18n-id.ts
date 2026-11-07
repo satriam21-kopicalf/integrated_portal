@@ -1,6 +1,16 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "The outlet checks the request and Cost Control approves it: the stock leaves that outlet. You receive the goods with a photo and the ESB GR: then the stock enters your outlet.": "Outlet tujuan mengecek permintaan dan Cost Control meng-approve: stok keluar dari outlet tersebut. Anda menerima barang dengan foto dan GR ESB: barulah stok masuk ke outlet Anda.",
+  "Stock unknown": "Stok tidak diketahui",
+  "Available {0} {1}": "Tersedia {0} {1}",
+  "{0} over the stock": "Lebih {0} dari stok",
+  "{0} left": "Sisa {0}",
+  "In process": "Sedang diproses",
+  "Process": "Proses",
+  "Approved by Cost Control · stock leaves {0}": "Di-approve Cost Control · stok keluar dari {0}",
+  "Received with the ESB GR · stock enters {0}": "Diterima dengan GR ESB · stok masuk ke {0}",
+  "Stock of the outlet when asked": "Stok outlet saat diminta",
   "Code {0}": "Kode {0}",
   "Enter the ESB Good Receipt number and take a clear photo of the goods; your stock changes when you confirm.": "Isi nomor Good Receipt ESB dan ambil foto barang yang jelas; stok outlet Anda berubah saat dikonfirmasi.",
   "ESB Good Receipt number": "Nomor Good Receipt ESB",

@@ -4,6 +4,7 @@
 // of every raw material per base unit from a date, with the average purchase price of the last 90 days (ESB goods
 // received) as a reference. The price valid on a day costs the recipe cards of the Sales calculator by menu.
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { BadgeAlert, CalendarDays, History, Package, Save, Tags } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
@@ -22,6 +23,8 @@ type Item = { code: string; name: string; unit: string; category: string | null;
 type Data = { day: string; categories: string[]; data: Item[] };
 type Hist = { validFrom: string; price: number; note: string | null; by: string | null; at: string };
 
+type SortKey = "item" | "category" | "unit" | "purchase" | "hpp" | "price";
+const sortValue = (i: Item, k: SortKey) => ({ item: i.name, category: i.category, unit: i.unit, purchase: i.purchaseAvg, hpp: i.esbHpp, price: i.price }[k]);
 const rp = (v: number | null | undefined, d = 2) => (v === null || v === undefined ? "—" : `Rp ${v.toLocaleString("id-ID", { maximumFractionDigits: d })}`);
 const today = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 
@@ -48,7 +51,8 @@ export default function PricelistPage() {
     const q = search.trim().toLowerCase();
     return (data?.data ?? []).filter((i) => (!q || i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)) && (!onlyMissing || i.price === null));
   }, [data, search, onlyMissing]);
-  const paged = usePaged(rows, rows.length + search + category + String(onlyMissing));
+  const sorted = useSort<Item, SortKey>(rows, sortValue);
+  const paged = usePaged(sorted.rows, rows.length + search + category + String(onlyMissing) + JSON.stringify(sorted.sort));
   const priced = (data?.data ?? []).filter((i) => i.price !== null).length;
   const changed = Object.entries(draft).filter(([, v]) => v.trim() !== "");
 
@@ -101,8 +105,14 @@ export default function PricelistPage() {
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !data ? <SkeletonRows cols={6} /> : rows.length === 0 ? <Empty title={tr("No item matches")} /> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
-              <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Category")}</th><th className="px-4 py-2.5">{tr("Unit")}</th>
-                <th className="px-4 py-2.5 text-right">{tr("Purchase Avg 90 Days")}</th><th className="px-4 py-2.5 text-right">{tr("ESB HPP")}</th><th className="px-4 py-2.5 text-right">{tr("Current Price")}</th><th className="px-4 py-2.5">{tr("New Price")}</th><th /></tr></thead>
+              <thead className={theadClass}><tr>
+                <SortTh k="item" sort={sorted.sort} onSort={sorted.toggle}>{tr("Item")}</SortTh>
+                <SortTh k="category" sort={sorted.sort} onSort={sorted.toggle}>{tr("Category")}</SortTh>
+                <SortTh k="unit" sort={sorted.sort} onSort={sorted.toggle}>{tr("Unit")}</SortTh>
+                <SortTh k="purchase" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Purchase Avg 90 Days")}</SortTh>
+                <SortTh k="hpp" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("ESB HPP")}</SortTh>
+                <SortTh k="price" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Current Price")}</SortTh>
+                <th className="px-4 py-2.5">{tr("New Price")}</th><th /></tr></thead>
               <tbody className="divide-y divide-neutral-100">
                 {paged.rows.map((i) => (
                   <tr key={i.code} className={draft[i.code] ? "bg-brand-50/40" : ""}>

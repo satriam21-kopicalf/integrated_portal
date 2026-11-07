@@ -3,6 +3,7 @@
 // Platform vs ESB (06.9 §7): exported counts, whether ESB already has the stock opname, whether the quantities match
 // what was exported, and the variance between ESB's system quantity and the counted one (value).
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { ArrowLeftRight } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -15,6 +16,9 @@ import { tr } from "@/lib/i18n";
 
 type Row = { count_id: string; number: string; facility_name: string; business_date: string; count_type: string; status: string;
   mismatches: number | null; variance_value: string | null; esb_doc: string | null };
+type CKey = "facility" | "count" | "doc" | "status" | "diff" | "variance";
+const cValue = (r: Row, k: CKey) => ({ facility: r.facility_name, count: r.business_date, doc: r.esb_doc, status: r.status, diff: r.mismatches,
+  variance: r.variance_value == null ? null : Math.abs(Number(r.variance_value)) }[k]);
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const rp = (v: string | number | null) => (v === null ? "—" : `Rp ${fmtNumber(Math.round(Number(v)))}`);
@@ -34,7 +38,8 @@ export default function ComparePage() {
     }
   }, [from, to]);
   useEffect(() => { void load(); }, [load]);
-  const all = useMemo(() => rows ?? [], [rows]);
+  const sorted = useSort<Row, CKey>(useMemo(() => rows ?? [], [rows]), cValue);
+  const all = sorted.rows;
   const n = (s: string) => all.filter((r) => r.status === s).length;
   const variance = all.reduce((t, r) => t + Number(r.variance_value ?? 0), 0);
 
@@ -75,8 +80,8 @@ export default function ComparePage() {
             <div className="hidden overflow-x-auto md:block">
               <table className="m-cards w-full min-w-[760px] text-sm">
                 <thead className={theadClass}>
-                  <tr><th className="px-4 py-2.5">{tr("Facility")}</th><th className="px-4 py-2.5">{tr("Count")}</th><th className="px-4 py-2.5">{tr("ESB Document")}</th>
-                    <th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5 text-right">{tr("Differences")}</th><th className="px-4 py-2.5 text-right">{tr("Variance Value")}</th></tr>
+                  <tr><SortTh k="facility" sort={sorted.sort} onSort={sorted.toggle}>{tr("Facility")}</SortTh><SortTh k="count" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Count")}</SortTh><SortTh k="doc" sort={sorted.sort} onSort={sorted.toggle}>{tr("ESB Document")}</SortTh>
+                    <SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh><SortTh k="diff" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Differences")}</SortTh><SortTh k="variance" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Variance Value")}</SortTh></tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {rows === null ? <SkeletonRows cols={6} /> : all.map((r) => (

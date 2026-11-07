@@ -7,6 +7,7 @@
 // stand out (banner, badges, a figure of their own); a manager reviews them (valid / not valid). Refreshes every minute
 // while the period includes today.
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, Layers, MapPin, MapPinOff, ScanFace, ShieldAlert, SignalLow, Store, UserRound, UsersRound, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, inputClass, theadClass, usePaged, useToast } from "@/so/ui";
@@ -31,6 +32,8 @@ type Summary = { total: number; pics: number; branches: number; outside: number;
   open?: number; out_outside?: number; avg_minutes?: number | null };
 type Result = { period: { from: string; to: string }; data: CheckIn[]; summary: Summary; pics: { id: string; name: string; n: number }[]; truncated: boolean };
 type BranchOpt = { branch_code: string; branch_name: string };
+type KKey = "pic" | "outlet" | "time" | "location" | "out";
+const kValue = (c: CheckIn, k: KKey) => ({ pic: c.name, outlet: c.branchName, time: c.visitedAt, location: c.distanceM, out: c.clockOut?.durationMin }[k]);
 type Detail = "checkins" | "pics" | "outlets" | "outside";
 type F = { period: Period; group: string; branch: string; user: string; location: string };
 type GroupOpt = { id: string; code: string; name: string };
@@ -106,7 +109,8 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
     const s = search.trim().toLowerCase();
     return (res?.data ?? []).filter((c) => !s || c.name.toLowerCase().includes(s) || c.username.toLowerCase().includes(s) || c.branchName.toLowerCase().includes(s));
   }, [res, search]);
-  const paged = usePaged(rows, rows.length + search + JSON.stringify(f));
+  const sorted = useSort<CheckIn, KKey>(rows, kValue);
+  const paged = usePaged(sorted.rows, rows.length + search + JSON.stringify(f) + JSON.stringify(sorted.sort));
   const s = res?.summary;
   const pics = res?.pics ?? [];
   const def = NO_F();
@@ -184,11 +188,11 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                 <thead className={theadClass}>
                   <tr>
                     <th className="w-16 px-4 py-2.5">{tr("Photo")}</th>
-                    <th className="px-4 py-2.5">{tr("PIC")}</th>
-                    <th className="px-4 py-2.5">{tr("Outlet")}</th>
-                    <th className="px-4 py-2.5">{tr("Visit Time")}</th>
-                    <th className="px-4 py-2.5">{tr("Location")}</th>
-                    {kind === "surveyor" && <th className="px-4 py-2.5">{tr("Clock Out")}</th>}
+                    <SortTh k="pic" sort={sorted.sort} onSort={sorted.toggle}>{tr("PIC")}</SortTh>
+                    <SortTh k="outlet" sort={sorted.sort} onSort={sorted.toggle}>{tr("Outlet")}</SortTh>
+                    <SortTh k="time" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Visit Time")}</SortTh>
+                    <SortTh k="location" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Location")}</SortTh>
+                    {kind === "surveyor" && <SortTh k="out" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Clock Out")}</SortTh>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">

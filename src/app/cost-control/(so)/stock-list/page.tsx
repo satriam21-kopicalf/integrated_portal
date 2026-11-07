@@ -7,6 +7,7 @@
 // (2026-11-07, app/running_stock.py): the estimate now = SO + goods received and the other moves − waste approved −
 // usage by the recipe cards since the count; an estimate below zero means the cards or the moves do not match.
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { Boxes, CalendarDays, Package, Store } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +27,9 @@ type Row = { branch: string; branchName: string; code: string; name: string; cat
 type Head = { branch: string; branchName: string; soDate: string; refs: string[]; items: number; value: number; final?: boolean | null; estimateValue: number };
 type Data = { branches: Head[]; rows: Row[] };
 type View = "branch" | "material";
+type SortKey = "branch" | "material" | "so" | "moves" | "waste" | "used" | "estimate" | "available" | "value";
+const sortValue = (r: Row, k: SortKey) => ({ branch: r.branchName, material: r.name, so: r.so, moves: r.received + r.otherMoves + r.in - r.out,
+  waste: r.waste, used: r.used, estimate: r.estimate, available: r.available, value: r.estimateValue }[k]);
 
 export default function StockListPage() {
   const toast = useToast();
@@ -50,7 +54,8 @@ export default function StockListPage() {
     }
     return [...m.values()].sort((a, b) => b.value - a.value);
   }, [rows]);
-  const paged = usePaged(rows, q + branch + category + view, 50);
+  const sorted = useSort<Row, SortKey>(rows, sortValue);
+  const paged = usePaged(sorted.rows, q + branch + category + view + JSON.stringify(sorted.sort), 50);
   const pagedM = usePaged(materials, q + branch + category + view, 50);
   const heads = data?.branches ?? [];
   const categories = [...new Set((data?.rows ?? []).map((r) => r.category).filter(Boolean))].sort();
@@ -87,11 +92,16 @@ export default function StockListPage() {
           : !rows.length ? <Empty icon={<Boxes size={26} />} title={tr("No stock matches")} />
           : view === "branch" ? (
             <div className="overflow-x-auto"><table className="w-full min-w-[1180px] text-sm">
-              <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr("Branch")}</th><th className="px-3 py-2.5">{tr("Material")}</th>
-                <th className="px-3 py-2.5 text-right">{tr("SO")}</th><th className="px-3 py-2.5 text-right" title={tr("Goods receipts, outlet purchases, production, deliveries, returns and transfers since the SO")}>{tr("In − Out")}</th>
-                <th className="px-3 py-2.5 text-right">{tr("Waste")}</th><th className="px-3 py-2.5 text-right" title={tr("Menus sold and made since the SO × recipe cards")}>{tr("Used")}</th>
-                <th className="px-3 py-2.5 text-right">{tr("Estimate Now")}</th><th className="px-3 py-2.5 text-right" title={tr("For Transfer Stock: the SO with the transfers, less the ones on their way out")}>{tr("Available")}</th>
-                <th className="px-3 py-2.5 pr-5 text-right">{tr("Value")}</th></tr></thead>
+              <thead className={theadClass}><tr>
+                <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("Branch")}</SortTh>
+                <SortTh k="material" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Material")}</SortTh>
+                <SortTh k="so" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("SO")}</SortTh>
+                <SortTh k="moves" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("In − Out")}</SortTh>
+                <SortTh k="waste" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Waste")}</SortTh>
+                <SortTh k="used" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Used")}</SortTh>
+                <SortTh k="estimate" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Estimate Now")}</SortTh>
+                <SortTh k="available" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Available")}</SortTh>
+                <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5" align="right" first="desc">{tr("Value")}</SortTh></tr></thead>
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => {
                 const h = heads.find((x) => x.branch === r.branch);
                 return (

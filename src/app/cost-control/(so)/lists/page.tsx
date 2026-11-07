@@ -158,7 +158,7 @@ export default function ListsPage() {
           <Panel><Empty icon={<Building2 size={28} />} title={tr("Choose a Branch")}>{tr("Its count lists per count type are shown here.")}</Empty></Panel>
         ) : (
           <Panel title={selected.name} description={`${selected.code} · ${selected.facility_type} · ${selected.legal_entity_code}`}>
-            {lists === null ? <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-14 rounded-lg" />)}</div> : (
+            {lists === null ? <div className="p-4"><SkeletonList rows={3} /></div> : (
               <ul className="divide-y divide-neutral-100">
                 {COUNT_TYPES.map((ct) => {
                   const own = lists.find((l) => l.facility_id === selected.id && l.count_type === ct);

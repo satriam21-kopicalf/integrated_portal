@@ -5,6 +5,7 @@
 // accepted, Cost Control labels the received ones whether they go to ESB; exports: the transfers, their lines, per
 // outlet (value in / out) and per material.
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { CalendarDays, CheckCircle2, ClipboardList, ListChecks, Package, Save, Settings2, Store, Tags, Truck } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
@@ -22,6 +23,9 @@ import { type Status, type Transfer, ESB_LABEL, STATUS, rpText, shortBranch } fr
 type Result = { period: { from: string; to: string }; canDecide: boolean; data: Transfer[]; truncated: boolean;
   summary: Record<Status, number> & { total: number; value: number; unlabelled: number } };
 type BranchOpt = { branch_code: string; branch_name: string };
+type TKey = "number" | "route" | "requested" | "lines" | "value" | "status" | "label";
+const tValue = (t: Transfer, k: TKey) => ({ number: t.number, route: `${t.fromName} ${t.toName}`, requested: t.requested.at, lines: t.lines,
+  value: t.value ?? t.estimate ?? null, status: t.status, label: t.esbLabel?.value ?? null }[k]);
 type F = { period: Period; branch: string; status: Status | "" };
 const NO_F = (): F => ({ period: { from: wibDay(-29), to: wibDay(0) }, branch: "", status: "" });
 const STATUSES: Status[] = ["submitted", "accepted", "approved", "received", "declined", "rejected", "cancelled"];
@@ -56,7 +60,8 @@ function Transfers() {
   }, [f]);
   useEffect(() => { void load(); }, [load]);
   const rows = useMemo(() => (res?.data ?? []).filter((t) => !q || `${t.number} ${t.toName} ${t.fromName} ${t.requested.by}`.toLowerCase().includes(q.toLowerCase())), [res, q]);
-  const paged = usePaged(rows, q + rows.length, 25);
+  const sorted = useSort<Transfer, TKey>(rows, tValue);
+  const paged = usePaged(sorted.rows, q + rows.length + JSON.stringify(sorted.sort), 25);
   const s = res?.summary;
   const def = NO_F();
   const chips: ActiveFilter[] = [
@@ -127,8 +132,10 @@ function Transfers() {
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table>
           : !rows.length ? <Empty icon={<Truck size={26} />} title={tr("No transfer in this period")} /> : (
             <div className="overflow-x-auto"><table className="w-full min-w-[1000px] text-sm">
-              <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr("Number")}</th><th className="px-3 py-2.5">{tr("From → To")}</th><th className="px-3 py-2.5">{tr("Requested")}</th>
-                <th className="px-3 py-2.5 text-right">{tr("Materials")}</th><th className="px-3 py-2.5 text-right">{tr("Value")}</th><th className="px-3 py-2.5">{tr("Status")}</th><th className="px-3 py-2.5 pr-5">{tr("ESB label")}</th></tr></thead>
+              <thead className={theadClass}><tr><SortTh k="number" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("Number")}</SortTh><SortTh k="route" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("From → To")}</SortTh>
+                <SortTh k="requested" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" first="desc">{tr("Requested")}</SortTh><SortTh k="lines" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Materials")}</SortTh>
+                <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Value")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Status")}</SortTh>
+                <SortTh k="label" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5">{tr("ESB label")}</SortTh></tr></thead>
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((t) => (
                 <tr key={t.id} className={cx("cursor-pointer", t.status === "accepted" && res.canDecide ? "bg-blue-50/40 hover:bg-blue-50" : "hover:bg-neutral-50/70")} onClick={() => setOpen(t.id)}>
                   <td className="py-2.5 pl-5 pr-3 font-mono text-[13px] font-medium text-neutral-900">{t.number}</td>

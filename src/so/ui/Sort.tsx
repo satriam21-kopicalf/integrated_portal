@@ -34,13 +34,14 @@ export function useSort<T, K extends string>(rows: T[], value: (row: T, key: K) 
   return { rows: sorted, sort, toggle, setSort };
 }
 
-export function SortTh<K extends string>({ k, sort, onSort, children, align = "left", first = "asc", className }: {
+export function SortTh<K extends string>({ k, sort, onSort, children, align = "left", first = "asc", className, pad = "px-4 py-2.5" }: {
   k: K; sort: SortState<K>; onSort: (k: K, first?: SortDir) => void; children: React.ReactNode; align?: "left" | "right"; first?: SortDir; className?: string;
+  /** the padding of the cell, as the other cells of the column */ pad?: string;
 }) {
   const on = sort.key === k;
   const Icon = !on ? ArrowUpDown : sort.dir === "asc" ? ArrowUp : ArrowDown;
   return (
-    <th className={cx("px-4 py-2.5", align === "right" && "text-right", className)} aria-sort={on ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
+    <th className={cx(pad, align === "right" && "text-right", className)} aria-sort={on ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
       <button type="button" onClick={() => onSort(k, first)} title={tr("Sort")}
         className={cx("group inline-flex items-center gap-1 uppercase tracking-wide hover:text-neutral-900", align === "right" && "flex-row-reverse", on ? "text-neutral-900" : "")}>
         {children}<Icon size={12} className={cx("flex-shrink-0", on ? "text-brand-600" : "text-neutral-300 group-hover:text-neutral-500")} />

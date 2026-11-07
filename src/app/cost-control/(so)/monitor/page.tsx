@@ -3,6 +3,7 @@
 // Cost Control monitor (06.9 §9): every outlet and hub in scope x count type due on a day, with its status, how far the
 // day is (completion; status and count type tabs above the table that filter it) and every filter in one drawer.
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { AlertTriangle, CalendarDays, ChevronRight, Clock, Gauge, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -30,6 +31,8 @@ type Row = {
 };
 /** loc: "" | late (submitted after the window) | outside (outside the radius) | low (weak GPS fix) | unlocated (facility without coordinates) */
 type F = { day: string; status: string; type: string; facilityType: string; loc: string };
+type MKey = "facility" | "count" | "status" | "submitted";
+const mValue = (r: Row, k: MKey) => ({ facility: r.facility_name, count: r.count_type, status: r.session?.status ?? r.status, submitted: r.session?.submitted_at }[k]);
 const NO_F: () => F = () => ({ day: wibDay(0), status: "", type: "", facilityType: "", loc: "" });
 const LOC: Record<string, () => string> = {
   late: () => tr("Submitted late"), outside: () => tr("Outside Radius"), low: () => tr("Low GPS accuracy"), unlocated: () => tr("Outlet Has No Coordinates"),
@@ -98,7 +101,8 @@ export default function MonitorPage() {
     return all.filter((r) => statusMatch(r, f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType) && locMatch(r, f.loc) &&
       (!s || r.facility_name.toLowerCase().includes(s) || r.facility_code.toLowerCase().includes(s)));
   }, [all, search, f]);
-  const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
+  const sorted = useSort<Row, MKey>(shown, mValue);
+  const paged = usePaged(sorted.rows, shown.length + search + JSON.stringify(f) + JSON.stringify(sorted.sort));
   const n = (st: string) => all.filter((r) => r.status === st).length;
   const tabCount = (st: string) => all.filter((r) => statusMatch(r, st)).length;
   const done = DONE.reduce((a, s) => a + n(s), 0);
@@ -173,10 +177,10 @@ export default function MonitorPage() {
               <table className="w-full min-w-[760px] text-sm">
                 <thead className={theadClass}>
                   <tr>
-                    <th className="px-4 py-2.5">{tr("Facility")}</th>
-                    <th className="px-4 py-2.5">{tr("Count")}</th>
-                    <th className="px-4 py-2.5">{tr("Status")}</th>
-                    <th className="px-4 py-2.5">{tr("Submitted")}</th>
+                    <SortTh k="facility" sort={sorted.sort} onSort={sorted.toggle}>{tr("Facility")}</SortTh>
+                    <SortTh k="count" sort={sorted.sort} onSort={sorted.toggle}>{tr("Count")}</SortTh>
+                    <SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh>
+                    <SortTh k="submitted" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Submitted")}</SortTh>
                     <th className="px-4 py-2.5">{tr("Evidence")}</th>
                     <th className="w-20 px-4 py-2.5" />
                   </tr>

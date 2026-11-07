@@ -8,6 +8,7 @@
 // Layout (2026-11-06): tabs with icons and counts; the entries as a table on a desktop (cards on a phone), the totals
 // ranked with their share of the value; the filters in the monitor filter sheet.
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { CalendarCheck, CalendarDays, CheckCircle2, ClipboardList, FileSearch, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
@@ -81,7 +82,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
     return (res?.data ?? []).filter((e) => !s || e.itemName.toLowerCase().includes(s) || e.branchName.toLowerCase().includes(s)
       || e.name.toLowerCase().includes(s) || e.itemCode.toLowerCase().includes(s));
   }, [res, search]);
-  const paged = usePaged(rows, rows.length + search);
+  const sorted = useSort<Entry, WKey>(rows, wValue);
+  const paged = usePaged(sorted.rows, rows.length + search + JSON.stringify(sorted.sort));
   const sm = res?.summary;
   // not decided yet: waiting review or under investigation
   const waiting = rows.filter((e) => e.status === "submitted" || e.status === "investigating");
@@ -223,10 +225,10 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
               <table className="w-full min-w-[960px] text-sm">
                 <thead className={theadClass}><tr>
                   {review && <th className="w-10 py-2.5 pl-5"><span className="sr-only">{tr("Select")}</span></th>}
-                  <th className={cx("w-16 py-2.5 pr-3", review ? "pl-2" : "pl-5")}>{tr("Photo")}</th><th className="px-3 py-2.5">{tr("Item")}</th>
-                  <th className="px-3 py-2.5">{tr("Branch")}</th><th className="px-3 py-2.5">{tr("Date")}</th>
-                  <th className="px-3 py-2.5 text-right">{tr("Quantity")}</th><th className="px-3 py-2.5 text-right">{tr("Value")}</th>
-                  <th className="px-3 py-2.5">{tr("Waste category")}</th><th className="px-3 py-2.5">{tr("Entered by")}</th><th className="px-3 py-2.5 pr-5">{tr("Status")}</th>
+                  <th className={cx("w-16 py-2.5 pr-3", review ? "pl-2" : "pl-5")}>{tr("Photo")}</th><SortTh k="item" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Item")}</SortTh>
+                  <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Branch")}</SortTh><SortTh k="date" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" first="desc">{tr("Date")}</SortTh>
+                  <SortTh k="qty" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Quantity")}</SortTh><SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Value")}</SortTh>
+                  <SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Waste category")}</SortTh><SortTh k="by" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Entered by")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5">{tr("Status")}</SortTh>
                 </tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {paged.rows.map((e) => {
@@ -362,6 +364,10 @@ function Share({ value, total }: { value: number | null | undefined; total: numb
   );
 }
 const rank = "w-10 py-2.5 pl-5 text-right text-xs tabular-nums text-neutral-400";
+
+type WKey = "item" | "branch" | "date" | "qty" | "value" | "category" | "by" | "status";
+const wValue = (e: Entry, k: WKey) => ({ item: e.itemName, branch: e.branchName, date: e.businessDate, qty: e.qty, value: e.value, category: e.category,
+  by: e.name, status: e.status }[k]);
 
 function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "investigations">; res: MonitorData; onBranch: (code: string) => void }) {
   if (view === "items") {

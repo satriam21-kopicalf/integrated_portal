@@ -6,6 +6,8 @@
 // kept (replaced / cancelled). The COGS & Usage, the Sales Calculator and the Stock List use the corrected figures once
 // Cost Control marks the GR Finished (migration 077); a later correction puts it back to draft.
 
+import { SkeletonList } from "@/components/kc/Skeleton";
+import { SortTh, useSort } from "@/so/ui/Sort";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { CalendarDays, CheckCircle2, History, PackageCheck, Paperclip, Pencil, PenLine, Store, Truck, Undo2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -23,6 +25,9 @@ import { tr } from "@/lib/i18n";
 type Doc = { docNum: string; esbDate: string | null; date: string | null; poNum: string | null; branchCode: string | null; branchName: string | null;
   location: string | null; supplier: string | null; status: string | null; lines: number; dateCorrected: boolean; qtyCorrected: number;
   /** the corrections are done and count in the stock and the COGS (migration 077) */ finished: { at: string; by: string; note: string | null } | null };
+type GrKey = "gr" | "date" | "branch" | "supplier" | "status" | "lines" | "correction";
+const grValue = (d: Doc, k: GrKey) => ({ gr: d.docNum, date: d.date, branch: d.branchName, supplier: d.supplier, status: d.status, lines: d.lines,
+  correction: (d.dateCorrected ? 1 : 0) + d.qtyCorrected }[k]);
 type List = { data: Doc[]; suppliers: string[]; truncated: boolean };
 type Line = { lineNo: number; code: string | null; name: string | null; unit: string | null; category: string | null; esbQty: number | null; qty: number | null; corrected: boolean };
 type Correction = { id: number; kind: "date" | "qty"; lineNo: number | null; code: string | null; unit: string | null; oldDate: string | null; newDate: string | null;
@@ -81,7 +86,8 @@ export default function GoodsReceiptPage() {
     const q = search.trim().toLowerCase();
     return (res?.data ?? []).filter((d) => !q || [d.docNum, d.poNum, d.branchName, d.supplier].some((v) => (v ?? "").toLowerCase().includes(q)));
   }, [res, search]);
-  const paged = usePaged(rows, search + rows.length);
+  const sorted = useSort<Doc, GrKey>(rows, grValue);
+  const paged = usePaged(sorted.rows, search + rows.length + JSON.stringify(sorted.sort));
   const corrected = rows.filter((d) => d.dateCorrected || d.qtyCorrected).length;
   const all = res?.data ?? [];
   const def = NO_F();
@@ -123,8 +129,10 @@ export default function GoodsReceiptPage() {
           : (
             <div className="overflow-x-auto"><table className="m-cards w-full text-sm">
               <thead className={theadClass}><tr>
-                <th className="py-2.5 pl-5 pr-3">{tr("GR")}</th><th className="px-3 py-2.5">{tr("Received")}</th><th className="px-3 py-2.5">{tr("Branch")}</th>
-                <th className="px-3 py-2.5">{tr("Supplier")}</th><th className="px-3 py-2.5">{tr("Status")}</th><th className="px-3 py-2.5 text-right">{tr("Lines")}</th><th className="px-3 py-2.5 pr-5">{tr("Correction")}</th>
+                <SortTh k="gr" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("GR")}</SortTh><SortTh k="date" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" first="desc">{tr("Received")}</SortTh>
+                <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Branch")}</SortTh><SortTh k="supplier" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Supplier")}</SortTh>
+                <SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Status")}</SortTh><SortTh k="lines" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Lines")}</SortTh>
+                <SortTh k="correction" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5" first="desc">{tr("Correction")}</SortTh>
               </tr></thead>
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((d) => (
                 <tr key={d.docNum} className={cx("cursor-pointer", d.dateCorrected || d.qtyCorrected ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-neutral-50/70")} onClick={() => setOpen(d.docNum)}>
@@ -265,7 +273,7 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
           <Button onClick={start}><Pencil size={14} />{tr("Correct Date / Qty")}</Button>
         </div>
       ))}>
-      {error ? <ErrorState message={error} onRetry={() => void load()} /> : !d ? <p className="text-sm text-neutral-400">{tr("Loading…")}</p> : (
+      {error ? <ErrorState message={error} onRetry={() => void load()} /> : !d ? <SkeletonList rows={4} /> : (
         <div className="space-y-4">
           {(d.dateCorrected || d.qtyCorrected > 0) && (d.finished ? (
             <p className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900"><CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />

@@ -5,6 +5,7 @@
 // from the start position of the facility's latest stock opname after checking it on the map, or from the device of a
 // Cost Control member on site. Every change is audited (kopicalf inventory.count.location).
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { Crosshair, ExternalLink, MapPin, MapPinOff, Pencil, Save, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -20,6 +21,8 @@ type LastStart = { number: string; started_at: string; start_lat: number; start_
 type Row = { id: string; code: string; name: string; facility_type: string; latitude: number | string | null; longitude: number | string | null;
   radius_m: number; last_start: LastStart | null };
 type F = { state: string; type: string };
+type LKey = "facility" | "coords" | "radius" | "start";
+const lValue = (r: Row, k: LKey) => ({ facility: r.name, coords: r.latitude == null ? null : 1, radius: r.radius_m, start: r.last_start?.started_at }[k]);
 
 const STANDARD_RADIUS = 50; // every Kopi Calf outlet (2026-11-02, migration 066)
 const located = (r: Row) => r.latitude !== null && r.longitude !== null;
@@ -67,7 +70,8 @@ export default function LocationsPage() {
       && (!s || r.name.toLowerCase().includes(s) || r.code.toLowerCase().includes(s)))
       .sort((a, b) => Number(located(a)) - Number(located(b)) || a.name.localeCompare(b.name));
   }, [all, search, f]);
-  const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
+  const sorted = useSort<Row, LKey>(shown, lValue);
+  const paged = usePaged(sorted.rows, shown.length + search + JSON.stringify(f) + JSON.stringify(sorted.sort));
   const withCoords = all.filter(located).length;
   const pct = all.length ? Math.round((withCoords / all.length) * 100) : 0;
   const fromSo = all.filter((r) => !located(r) && r.last_start).length;
@@ -109,10 +113,10 @@ export default function LocationsPage() {
             <table className="m-cards w-full min-w-[820px] text-sm">
               <thead className={theadClass}>
                 <tr>
-                  <th className="px-4 py-2.5">{tr("Facility")}</th>
-                  <th className="px-4 py-2.5">{tr("Coordinates")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Radius")}</th>
-                  <th className="px-4 py-2.5">{tr("Latest Stock Opname Start")}</th>
+                  <SortTh k="facility" sort={sorted.sort} onSort={sorted.toggle}>{tr("Facility")}</SortTh>
+                  <SortTh k="coords" sort={sorted.sort} onSort={sorted.toggle}>{tr("Coordinates")}</SortTh>
+                  <SortTh k="radius" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Radius")}</SortTh>
+                  <SortTh k="start" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Latest Stock Opname Start")}</SortTh>
                   <th className="w-24 px-4 py-2.5" />
                 </tr>
               </thead>

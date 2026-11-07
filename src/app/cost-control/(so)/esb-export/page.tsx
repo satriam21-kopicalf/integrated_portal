@@ -3,6 +3,7 @@
 // ESB export (06.9 §8): approved counts of one day and count type become one ESB "Stock Opname Template" file. The file
 // is kept, so downloading a batch again gives exactly the file that was imported (same SHA-256).
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { Download, FileOutput, FileSpreadsheet } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, Select, SkeletonRows, cx, fmtDate, fmtDay, fmtNumber, theadClass, useToast } from "@/so/ui";
@@ -12,6 +13,8 @@ import { countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 
 type Ready = { id: string; number: string; facility_name: string; facility_code: string; lines: number; counted: number; reviewed_at: string | null };
+type EKey = "facility" | "lines" | "approved";
+const eValue = (r: Ready, k: EKey) => ({ facility: r.facility_name, lines: r.lines, approved: r.reviewed_at }[k]);
 type Batch = { id: string; number: string; business_date: string; count_type: string; counts: number; lines: number; total_value: string | null;
   file_sha256: string; created_at: string; created_by_name: string | null };
 const TYPES = ["DAILY_PACKAGING", "WEEKLY_RAW", "MONTHLY_RAW", "ADHOC"];
@@ -67,6 +70,7 @@ export default function EsbExportPage() {
       setBusy(false);
     }
   };
+  const sorted = useSort<Ready, EKey>(ready ?? [], eValue);
   const all = (ready ?? []).length > 0 && (ready ?? []).every((r) => picked.has(r.id));
 
   return (
@@ -89,11 +93,11 @@ export default function EsbExportPage() {
                 <tr>
                   <th className="w-10 px-4 py-2.5"><input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={all} aria-label={tr("Select All Shown")}
                     onChange={() => setPicked(all ? new Set() : new Set((ready ?? []).map((r) => r.id)))} /></th>
-                  <th className="px-4 py-2.5">{tr("Facility")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Approved")}</th>
+                  <SortTh k="facility" sort={sorted.sort} onSort={sorted.toggle}>{tr("Facility")}</SortTh><SortTh k="lines" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Lines")}</SortTh><SortTh k="approved" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Approved")}</SortTh>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
-                {ready === null ? <SkeletonRows cols={4} rows={3} /> : ready.map((r) => (
+                {ready === null ? <SkeletonRows cols={4} rows={3} /> : sorted.rows.map((r) => (
                   <tr key={r.id} className={cx(picked.has(r.id) && "bg-brand-50/40")}>
                     <td className="px-4 py-3"><input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(r.id)} aria-label={r.facility_name}
                       onChange={() => setPicked((s) => { const n = new Set(s); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; })} /></td>

@@ -9,6 +9,7 @@
 // document) and COGS Material (Pricelist Items), system and actual. A card may hold other cards (bundling, 2026-11-06)
 // and shows the list price of its menus (POS menu master, per channel) with the % HPP.
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Wand2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -341,8 +342,13 @@ function Anomalies({ rows }: { rows: Anomaly[] }) {
 }
 
 /** The cards as a table: one row per card with its HPP, the selling price and % HPP per channel (dine-in, online). */
+type RecipeKey = "card" | "category" | "components" | "menus" | "hpp";
+type MenuKey = "menu" | "category" | "brand" | "sold" | "card";
+
 function RecipeTable({ rows, hppOf, priced, onOpen }: { rows: Recipe[]; hppOf: (r: Recipe) => number | null; priced: boolean; onOpen: (r: Recipe) => void }) {
-  const paged = usePaged(rows, String(rows.length), 25);
+  const value = useCallback((r: Recipe, k: RecipeKey) => ({ card: r.name, category: r.category, components: r.lines.length, menus: r.menus.length, hpp: hppOf(r) }[k]), [hppOf]);
+  const sorted = useSort<Recipe, RecipeKey>(rows, value);
+  const paged = usePaged(sorted.rows, String(rows.length) + JSON.stringify(sorted.sort), 25);
   const cell = (prices: ListPrice[], ch: ListPrice["channel"], hpp: number | null) => {
     const ps = prices.filter((p) => p.channel === ch);
     if (!ps.length) return <><td className="px-3 py-2.5 text-right text-neutral-300">—</td><td className="px-3 py-2.5 text-right text-neutral-300">—</td></>;
@@ -359,9 +365,9 @@ function RecipeTable({ rows, hppOf, priced, onOpen }: { rows: Recipe[]; hppOf: (
       <div className="overflow-x-auto">
         <table className="w-full min-w-[980px] text-sm">
           <thead className={theadClass}><tr>
-            <th className="py-2.5 pl-5 pr-3">{tr("Card")}</th><th className="px-3 py-2.5">{tr("Category")}</th>
-            <th className="px-3 py-2.5 text-right">{tr("Components")}</th><th className="px-3 py-2.5 text-right">{tr("Menus")}</th>
-            <th className="px-3 py-2.5 text-right">{tr("HPP")}</th>
+            <SortTh k="card" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("Card")}</SortTh><SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Category")}</SortTh>
+            <SortTh k="components" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Components")}</SortTh><SortTh k="menus" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Menus")}</SortTh>
+            <SortTh k="hpp" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("HPP")}</SortTh>
             <th className="px-3 py-2.5 text-right">{tr("Dine-in")}</th><th className="px-3 py-2.5 text-right">{tr("% HPP")}</th>
             <th className="px-3 py-2.5 text-right">{tr("Online")}</th><th className="px-3 py-2.5 text-right">{tr("% HPP")}</th>
             <th className="px-3 py-2.5 pr-5">{tr("Status")}</th></tr></thead>
@@ -712,7 +718,9 @@ function MenuAssign() {
   const shown = useMemo(() => all.filter((m) => (f.status !== "without" || !m.recipe) && (f.status !== "with" || !!m.recipe)
     && (!f.brand || (m.companies ?? []).some((c) => c.code === f.brand)) && (!f.category || m.category === f.category)
     && (!f.recipe || m.recipe === f.recipe) && (!q || matches(`${m.name} ${m.category} ${m.detail ?? ""}`, q))), [all, f, q]);
-  const paged = usePaged(shown, JSON.stringify(f) + q, 25);
+  const menuValue = useCallback((m: Menu, k: MenuKey) => ({ menu: m.name, category: m.category, brand: brands(m), sold: m.qty, card: m.recipe }[k]), []);
+  const sorted = useSort<Menu, MenuKey>(shown, menuValue);
+  const paged = usePaged(sorted.rows, JSON.stringify(f) + q + JSON.stringify(sorted.sort), 25);
   const free = all.filter((m) => !m.recipe).length;
   const recipeName = (code: string) => recipes.find((r) => r.code === code)?.name ?? code;
   const chips: ActiveFilter[] = [
@@ -734,8 +742,8 @@ function MenuAssign() {
           {shown.length === 0 ? <Empty title={tr("No menu matches")} /> : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-sm">
-                <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr("Menu")}</th><th className="px-3 py-2.5">{tr("Category")}</th><th className="px-3 py-2.5">{tr("Brand")}</th>
-                  <th className="px-3 py-2.5 text-right">{tr("Sold 90 Days")}</th><th className="px-3 py-2.5 pr-5">{tr("Recipe Card")}</th></tr></thead>
+                <thead className={theadClass}><tr><SortTh k="menu" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("Menu")}</SortTh><SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Category")}</SortTh><SortTh k="brand" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Brand")}</SortTh>
+                  <SortTh k="sold" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Sold 90 Days")}</SortTh><SortTh k="card" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5">{tr("Recipe Card")}</SortTh></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {paged.rows.map((m) => (
                     <tr key={m.id} className={cx("hover:bg-neutral-50/60", busy === m.id && "opacity-50")}>
@@ -944,6 +952,15 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
 
 // ---------------------------------------------------------------- 4. calculator
 
+const NONE: never[] = [];
+type UsageKey = "name" | "soStart" | "moves" | "soEnd" | "actual" | "system" | "variance" | "systemValue" | "actualValue";
+const mrpValue = (r: Report["mrp"][number], k: "name" | "qty" | "onHand" | "toOrder" | "value") =>
+  ({ name: r.name, qty: r.qty, onHand: r.onHand, toOrder: r.toOrder, value: r.orderValue ?? r.value }[k]);
+const usageValue = (r: Report["usage"][number], k: UsageKey) => ({ name: r.name, soStart: r.soStart, moves: r.purchased, soEnd: r.soEnd, actual: r.actual,
+  system: r.system, variance: r.variance, systemValue: r.systemValue, actualValue: r.actualValue }[k]);
+const menuValue = (m: Report["menus"][number], k: "name" | "card" | "qty" | "sales" | "hpp" | "cogs" | "ratio") =>
+  ({ name: m.name, card: m.recipeName, qty: m.qty, sales: m.sales, hpp: m.hpp, cogs: m.cogs, ratio: m.ratio }[k]);
+
 function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: string; to: string; branch: string } | null }) {
   const toast = useToast();
   // no filter at first (2026-11-02): the calculator loads once the sales period is chosen
@@ -954,6 +971,9 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
   const [buffer, setBuffer] = useState("");
   const [view, setView] = useState<"cogs" | "mrp" | "usage">("cogs");
   const [data, setData] = useState<Report | null>(null);
+  const mrpSort = useSort<Report["mrp"][number], "name" | "qty" | "onHand" | "toOrder" | "value">(data?.mrp ?? NONE, mrpValue);
+  const useSort_ = useSort<Report["usage"][number], UsageKey>(data?.usage ?? NONE, usageValue);
+  const menuSort = useSort<Report["menus"][number], "name" | "card" | "qty" | "sales" | "hpp" | "cogs" | "ratio">(data?.menus ?? NONE, menuValue);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const [sheet, setSheet] = useState(false);
@@ -1057,10 +1077,10 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
               <table className="m-cards w-full min-w-[760px] text-sm">
                 <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Average daily sales of {0} days × {1} days + {2}% buffer, exploded through the cards (rounded up)", data.period.days, data.period.horizon, data.period.buffer)}
                   {" · "}{data.stock?.onHand.branches ? tr("Stock = the latest SO of {0} branches ({1} – {2}); To Order = Required − Stock", data.stock.onHand.branches, dmy(data.stock.onHand.from ?? ""), dmy(data.stock.onHand.to ?? "")) : tr("No recent SO of the branches: To Order = Required")}</caption>
-                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("Required")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Stock (Latest SO)")}</th><th className="px-4 py-2.5 text-right">{tr("To Order")}</th><th className="px-4 py-2.5 text-right">{tr("Order Value")}</th></tr></thead>
+                <thead className={theadClass}><tr><SortTh k="name" sort={mrpSort.sort} onSort={mrpSort.toggle}>{tr("Material")}</SortTh><SortTh k="qty" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Required")}</SortTh>
+                  <SortTh k="onHand" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Stock (Latest SO)")}</SortTh><SortTh k="toOrder" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("To Order")}</SortTh><SortTh k="value" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Order Value")}</SortTh></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {data.mrp.map((r) => (
+                  {mrpSort.rows.map((r) => (
                     <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
                       <td className="px-4 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
                       <td className="px-4 py-2 text-right tabular-nums" data-label={tr("Required")}>{num(r.qty, 0)} {r.unit}</td>
@@ -1089,11 +1109,11 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
               })()}
               <table className="m-cards w-full min-w-[1080px] text-sm">
                 <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Actual = SO awal + moves in − moves out − SO akhir; System = menus sold × recipe cards. Both over the branches with SO awal and SO akhir (the portal stock opname from 28 Oct 2026, else the ESB document).")}</caption>
-                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Material")}</th><th className="px-4 py-2.5 text-right">{tr("SO Awal")}</th><th className="px-4 py-2.5 text-right" title={tr("Goods receipts, outlet purchases and production in; deliveries, returns and production use out")}>{tr("In − Out")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("SO Akhir")}</th><th className="px-4 py-2.5 text-right">{tr("Actual")}</th><th className="px-4 py-2.5 text-right">{tr("System")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Difference")}</th><th className="px-4 py-2.5 text-right">{tr("Value System")}</th><th className="px-4 py-2.5 text-right">{tr("Value Actual")}</th></tr></thead>
+                <thead className={theadClass}><tr><SortTh k="name" sort={useSort_.sort} onSort={useSort_.toggle}>{tr("Material")}</SortTh><SortTh k="soStart" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("SO Awal")}</SortTh><SortTh k="moves" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("In − Out")}</SortTh>
+                  <SortTh k="soEnd" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("SO Akhir")}</SortTh><SortTh k="actual" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Actual")}</SortTh><SortTh k="system" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("System")}</SortTh>
+                  <SortTh k="variance" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Difference")}</SortTh><SortTh k="systemValue" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Value System")}</SortTh><SortTh k="actualValue" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Value Actual")}</SortTh></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {data.usage.map((r) => (
+                  {useSort_.rows.map((r) => (
                     <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
                       <td className="px-4 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
                       <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Awal")}>{r.soStart == null ? "—" : num(r.soStart)}</td>
@@ -1129,10 +1149,10 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                   </div>
                 )}
                 <table className="m-cards w-full min-w-[760px] text-sm">
-                  <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-4 py-2.5">{tr("Recipe Card")}</th><th className="px-4 py-2.5 text-right">{tr("Sold")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Sales")}</th><th className="px-4 py-2.5 text-right">{tr("HPP / Portion")}</th><th className="px-4 py-2.5 text-right">COGS</th><th className="px-4 py-2.5 text-right">{tr("Ratio")}</th></tr></thead>
+                  <thead className={theadClass}><tr><SortTh k="name" sort={menuSort.sort} onSort={menuSort.toggle}>{tr("Menu")}</SortTh><SortTh k="card" sort={menuSort.sort} onSort={menuSort.toggle}>{tr("Recipe Card")}</SortTh><SortTh k="qty" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">{tr("Sold")}</SortTh>
+                    <SortTh k="sales" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">{tr("Sales")}</SortTh><SortTh k="hpp" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">{tr("HPP / Portion")}</SortTh><SortTh k="cogs" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">COGS</SortTh><SortTh k="ratio" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">{tr("Ratio")}</SortTh></tr></thead>
                   <tbody className="divide-y divide-neutral-100">
-                    {data.menus.map((m) => (
+                    {menuSort.rows.map((m) => (
                       <tr key={m.id}>
                         <td className="px-4 py-2 font-medium text-neutral-900">{m.name}</td><td className="px-4 py-2 text-xs text-neutral-600">{m.recipeName}</td>
                         <td className="px-4 py-2 text-right tabular-nums">{num(m.qty, 0)}</td><td className="px-4 py-2 text-right tabular-nums">{rp(m.sales)}</td>

@@ -5,6 +5,7 @@
 // qty, price, value), "Summary" with one row per count, "WIP premix" and one sheet per branch. Every filter sits in
 // one drawer; the figures show what the file will hold.
 
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { Building2, FileSpreadsheet, Layers, ListChecks } from "lucide-react";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { useEffect, useMemo, useState } from "react";
@@ -19,6 +20,8 @@ type Facility = { id: string; name: string; code: string; facility_type: string 
 type CountType = { code: string; name: string };
 type Row = { id: string; number: string; facility_id: string; facility_name: string; count_type: string; business_date: string; status: string; lines: number };
 type F = { period: Period; type: string; facility: string; status: string; perBranch: boolean };
+type RKey = "date" | "branch" | "type" | "lines" | "status";
+const rValue = (r: Row, k: RKey) => ({ date: r.business_date, branch: r.facility_name, type: r.count_type, lines: r.lines, status: r.status }[k]);
 
 const DEFAULT: () => F = () => ({ period: { from: wibDay(-6), to: wibDay(0) }, type: "", facility: "", status: "REVIEWED", perBranch: true });
 const STATUS_LABEL: Record<string, () => string> = {
@@ -53,7 +56,8 @@ export default function ReportsPage() {
     const s = search.trim().toLowerCase();
     return all.filter((r) => !s || r.facility_name.toLowerCase().includes(s) || r.number.toLowerCase().includes(s));
   }, [all, search]);
-  const paged = usePaged(shown, shown.length + search + JSON.stringify(f));
+  const sorted = useSort<Row, RKey>(shown, rValue);
+  const paged = usePaged(sorted.rows, shown.length + search + JSON.stringify(f) + JSON.stringify(sorted.sort));
   const branches = new Set(all.map((r) => r.facility_id)).size;
   const lines = all.reduce((a, r) => a + r.lines, 0);
   const typesIn = new Set(all.map((r) => r.count_type));
@@ -113,8 +117,8 @@ export default function ReportsPage() {
         footer={<><span className="flex items-center gap-1.5"><FileSpreadsheet size={13} /> {tr("Sheets: Stock Opname · Summary · WIP premix{0} · dates as 14/09/2026 · qty with two decimals", f.perBranch ? ` · ${tr("one per branch")}` : "")}</span><PageNav paged={paged} /></>}>
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[600px] text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Date")}</th><th className="px-4 py-2.5">{tr("Branch")}</th>
-              <th className="px-4 py-2.5">{tr("Count Type")}</th><th className="px-4 py-2.5 text-right">{tr("Lines")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
+            <thead className={theadClass}><tr><SortTh k="date" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Date")}</SortTh><SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle}>{tr("Branch")}</SortTh>
+              <SortTh k="type" sort={sorted.sort} onSort={sorted.toggle}>{tr("Count Type")}</SortTh><SortTh k="lines" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Lines")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {rows === null ? <SkeletonRows cols={5} rows={4} /> : shown.length === 0 ? (
                 <tr><td colSpan={5}><Empty icon={<FileSpreadsheet size={28} />} title={tr("No reviewed stock opname in this period")}>{tr("Change the period or the filters.")}</Empty></td></tr>
