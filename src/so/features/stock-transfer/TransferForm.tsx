@@ -139,7 +139,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
           </div>
         </FormCard>
 
-        <FormCard n={2} title={tr("Materials")} hint={stock?.so ? tr("Stock of {0} from its SO of {1}, less the transfers on their way out", shortBranch(fromName), stock.so.date) : tr("Choose the outlet to take from first")}
+        <FormCard n={2} title={tr("Materials")} hint={stock?.so ? tr("Stock of {0} from its SO of {1}, less the transfers on their way out", fromName, stock.so.date) : tr("Choose the outlet to take from first")}
           aside={picked.length ? <Badge tone="blue">{tr("{0} chosen", picked.length)}</Badge> : undefined}>
           {!from ? <p className="text-sm text-neutral-500">{tr("Choose the outlet to take from first")}</p>
             : loading ? <SkeletonList rows={3} />
@@ -186,8 +186,8 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
         <section className="hidden rounded-xl border border-neutral-200 bg-white p-4 lg:block">
           <p className="text-sm font-semibold text-neutral-900">{tr("Summary")}</p>
           <dl className="mt-2 space-y-1.5 text-sm">
-            <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("From")}</dt><dd className="truncate text-right">{fromName ? shortBranch(fromName) : "—"}</dd></div>
-            <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("To")}</dt><dd className="truncate text-right">{shortBranch(data.branches.find((b) => b.code === to)?.name ?? "—")}</dd></div>
+            <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("From")}</dt><dd className="truncate text-right">{fromName ? fromName : "—"}</dd></div>
+            <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("To")}</dt><dd className="truncate text-right">{(data.branches.find((b) => b.code === to)?.name ?? "—")}</dd></div>
             <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("Materials")}</dt><dd>{picked.length}</dd></div>
             <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("Photo")}</dt><dd>{photo ? tr("Attached") : "—"}</dd></div>
           </dl>
@@ -200,13 +200,13 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
       <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-neutral-200/70 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <p className="mb-2 truncate text-xs text-neutral-500">
-          {ready ? `${shortBranch(fromName)} → ${shortBranch(data.branches.find((b) => b.code === to)?.name ?? "")} · ${tr("{0} materials", picked.length)}` : tr("Choose the outlets, the materials and take the photo.")}
+          {ready ? `${fromName} → ${(data.branches.find((b) => b.code === to)?.name ?? "")} · ${tr("{0} materials", picked.length)}` : tr("Choose the outlets, the materials and take the photo.")}
         </p>
         <Button className="h-11 w-full" disabled={!ready} loading={busy} onClick={() => setSigning(true)}><PenLine size={15} />{tr("Sign & Submit")}</Button>
       </div>
       {picking && <OutletPicker outlets={data.sources.filter((x) => x.code !== to)} value={from} onClose={() => setPicking(false)}
         onPick={(code) => { setFrom(code); setPicking(false); }} />}
-      <CameraCapture open={camera} title={tr("Transfer Stock")} branch={data.branches.find((b) => b.code === to)?.name ?? ""} countNumber={fromName ? `← ${shortBranch(fromName)}` : ""}
+      <CameraCapture open={camera} title={tr("Transfer Stock")} branch={data.branches.find((b) => b.code === to)?.name ?? ""} countNumber={fromName ? `← ${fromName}` : ""}
         onClose={() => setCamera(false)} onShot={async (s) => { setPhoto(s); setCamera(false); }} />
       {signing && <SignDialog busy={busy} onClose={() => setSigning(false)} onSign={(sig) => void send(sig)} />}
     </div>
@@ -235,7 +235,7 @@ function OutletPicker({ outlets, value, onPick, onClose }: { outlets: { code: st
             <li key={o.code}>
               <button type="button" onClick={() => onPick(o.code)} className={cx("flex min-h-12 w-full items-center gap-3 px-4 py-2.5 text-left active:bg-neutral-100", o.code === value ? "bg-brand-50" : "hover:bg-neutral-50")}>
                 <Store size={16} className="flex-shrink-0 text-neutral-400" />
-                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-neutral-900">{shortBranch(o.name)}</span><span className="block text-[11px] text-neutral-400">{o.code}</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-neutral-900">{o.name}</span><span className="block text-[11px] text-neutral-400">{tr("Code {0}", o.code)}</span></span>
                 {o.code === value && <Check size={16} className="text-brand-600" />}
               </button>
             </li>

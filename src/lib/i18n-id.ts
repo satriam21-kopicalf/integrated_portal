@@ -1,6 +1,7 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Code {0}": "Kode {0}",
   "Enter the ESB Good Receipt number and take a clear photo of the goods; your stock changes when you confirm.": "Isi nomor Good Receipt ESB dan ambil foto barang yang jelas; stok outlet Anda berubah saat dikonfirmasi.",
   "ESB Good Receipt number": "Nomor Good Receipt ESB",
   "e.g. GR-CTG18-2611-0001": "mis. GR-CTG18-2611-0001",
