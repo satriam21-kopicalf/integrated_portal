@@ -153,11 +153,11 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
                     const v = num(qty[i.code] ?? "");
                     const bad = v != null && v > i.available;
                     return (
-                      <li key={i.code} className={cx("flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5", v && !bad ? "bg-brand-50/50" : bad ? "bg-red-50" : "")}>
-                        <span className="min-w-0 flex-1 basis-48"><span className="block text-sm font-medium leading-snug text-neutral-900">{i.name}</span>
+                      <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2.5", v && !bad ? "bg-brand-50/50" : bad ? "bg-red-50" : "")}>
+                        <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug text-neutral-900">{i.name}</span>
                           <span className="block text-[11px] text-neutral-500">{i.code}{i.category ? ` · ${i.category}` : ""} · {tr("available {0} {1}", qtyText(i.available), i.unit)}</span></span>
-                        <span className="relative w-full flex-shrink-0 sm:w-32">
-                          <input inputMode="decimal" className={cx(inputClass, "h-10 pr-11 text-right tabular-nums", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
+                        <span className="relative w-28 flex-shrink-0 sm:w-32">
+                          <input inputMode="decimal" className={cx(inputClass, "h-11 pr-11 text-right text-base tabular-nums sm:h-10 sm:text-sm", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
                             onChange={(e) => setQty({ ...qty, [i.code]: e.target.value })} aria-label={`${tr("Qty")} ${i.name}`} />
                           <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] uppercase text-neutral-400">{i.unit}</span>
                         </span>
@@ -337,8 +337,8 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
               <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}{i.available != null ? ` · ${tr("stock when asked {0}", qtyText(i.available))}` : ""}</p></td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
                   {deciding ? (
-                    <span className="relative inline-block w-32">
-                      <input inputMode="decimal" className={cx(inputClass, "h-9 pr-10 text-right tabular-nums", adjusted[i.code] !== undefined && "border-amber-400 bg-amber-50")}
+                    <span className="relative inline-block w-28 sm:w-32">
+                      <input inputMode="decimal" className={cx(inputClass, "h-10 pr-10 text-right text-base tabular-nums sm:h-9 sm:text-sm", adjusted[i.code] !== undefined && "border-amber-400 bg-amber-50")}
                         value={adjust[i.code] ?? String(i.qty).replace(".", ",")} onChange={(e) => setAdjust({ ...adjust, [i.code]: e.target.value })} aria-label={`${tr("Approved Qty")} ${i.name}`} />
                       <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] uppercase text-neutral-400">{i.unit}</span>
                     </span>
