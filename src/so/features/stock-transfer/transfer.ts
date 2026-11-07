@@ -13,6 +13,10 @@ export type Transfer = {
   /** qty: approved by Cost Control (what moves); requested: what the outlet asked (migration 076) */
   items?: { code: string; name: string; unit: string; qty: number; requested: number; available: number | null; price: number | null; value: number | null }[];
   canDecide?: boolean;
+  /** the ESB GR entered when receiving (migration 079), matched with the GR synced from ESB */
+  grNumber?: string | null;
+  gr?: { number: string; status: "waiting" | "matched" | "mismatch" | "otherBranch"; date?: string | null; branch?: string;
+    diffs?: { code: string; name: string; transfer: number | null; gr: number | null }[] };
 };
 export type FormData = { branches: { code: string; name: string }[]; sources: { code: string; name: string }[];
   requests: Transfer[]; incoming: Transfer[]; todo: { answer: number; receive: number } };

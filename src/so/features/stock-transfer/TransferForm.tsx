@@ -359,6 +359,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
             </li>
           ))}
         </ol>
+        {t.gr && <GrStatus gr={t.gr} />}
         <div className="grid grid-cols-3 gap-2">
           {([["photo", tr("Request photo")], ["signature", tr("Signature")], ["receive", tr("Goods received")]] as const).filter(([k]) => k !== "receive" || t.received).map(([k, label]) => (
             <a key={k} href={fileUrl(t.id, k)} target="_blank" rel="noreferrer" className="block">
@@ -382,19 +383,24 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           else if (act === "cancel") void run(`/api/stock-transfer/${t.id}/cancel`, {});
           else if (act) void run(`/api/monitoring/stock/transfers/${t.id}/decide`, { approve: act === "approve", note, ...(act === "approve" && nAdjusted ? { qty: adjusted } : {}) });
         }} />
-      {receiving && <ReceiveDialog t={t} busy={busy} onClose={() => setReceiving(false)} onReceive={(photo, note) => void run(`/api/stock-transfer/${t.id}/receive`, { photo, note })} />}
+      {receiving && <ReceiveDialog t={t} busy={busy} onClose={() => setReceiving(false)} onReceive={(photo, note, grNumber) => void run(`/api/stock-transfer/${t.id}/receive`, { photo, note, grNumber })} />}
     </Drawer>
   );
 }
 
-function ReceiveDialog({ t, busy, onReceive, onClose }: { t: Transfer; busy: boolean; onReceive: (photo: string, note: string) => void; onClose: () => void }) {
+function ReceiveDialog({ t, busy, onReceive, onClose }: { t: Transfer; busy: boolean; onReceive: (photo: string, note: string, grNumber: string) => void; onClose: () => void }) {
   const [photo, setPhoto] = useState<Shot | null>(null);
+  const [gr, setGr] = useState("");
   const [camera, setCamera] = useState(false);
   const [note, setNote] = useState("");
   return (
-    <Dialog open title={tr("Receive the Goods")} description={tr("Take a clear photo of the goods received first; the stock of both outlets changes when you confirm.")} onClose={onClose}
-      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!photo} onClick={() => photo && onReceive(photo.image, note)}><PackageCheck size={15} />{tr("Confirm Received")}</Button></>}>
+    <Dialog open title={tr("Receive the Goods")} description={tr("Enter the ESB Good Receipt number and take a clear photo of the goods; your stock changes when you confirm.")} onClose={onClose}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!photo || !gr.trim()} onClick={() => photo && onReceive(photo.image, note, gr.trim())}><PackageCheck size={15} />{tr("Confirm Received")}</Button></>}>
       <div className="space-y-3">
+        <label className="block text-xs font-medium text-neutral-600">{tr("ESB Good Receipt number")}
+          <input className={cx(inputClass, "mt-1 h-11 text-base uppercase sm:h-10 sm:text-sm")} value={gr} maxLength={60} onChange={(e) => setGr(e.target.value)}
+            placeholder={tr("e.g. GR-CTG18-2611-0001")} autoCapitalize="characters" /></label>
+        <Note icon={<Info />}>{tr("Make the Good Receipt of these goods in ESB first. The portal matches the materials and quantities with it once ESB syncs (every 30 minutes).")}</Note>
         {photo ? (
           <div className="flex items-start gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element -- the photo just taken */}
@@ -406,5 +412,21 @@ function ReceiveDialog({ t, busy, onReceive, onClose }: { t: Transfer; busy: boo
       </div>
       <CameraCapture open={camera} title={tr("Goods received")} branch={t.toName} countNumber={t.number} onClose={() => setCamera(false)} onShot={async (s) => { setPhoto(s); setCamera(false); }} />
     </Dialog>
+  );
+}
+
+/** The ESB GR of a received transfer against what ESB synced (app/stock_transfer.py gr_check). */
+function GrStatus({ gr }: { gr: NonNullable<Transfer["gr"]> }) {
+  const title = tr("Good Receipt {0}", gr.number);
+  if (gr.status === "waiting") return <Note tone="info" icon={<Info />} title={title}>{tr("Waiting for the ESB GR: not synced to the portal yet (every 30 minutes).")}</Note>;
+  if (gr.status === "otherBranch") return <Note tone="warn" icon={<Info />} title={title}>{tr("This GR belongs to another outlet ({0}). Check the number with Cost Control.", gr.branch ?? "—")}</Note>;
+  if (gr.status === "matched") return <Note tone="ok" icon={<CheckCircle2 />} title={title}>{tr("Matches the transfer: every material and quantity.")}</Note>;
+  return (
+    <Note tone="warn" icon={<Info />} title={title}>
+      <p>{tr("Differs from the transfer:")}</p>
+      <ul className="mt-1 space-y-0.5">{(gr.diffs ?? []).map((d) => (
+        <li key={d.code} className="flex justify-between gap-3"><span className="truncate">{d.name}</span>
+          <span className="flex-shrink-0 tabular-nums">{tr("transfer {0} · GR {1}", d.transfer == null ? "—" : qtyText(d.transfer), d.gr == null ? "—" : qtyText(d.gr))}</span></li>))}</ul>
+    </Note>
   );
 }

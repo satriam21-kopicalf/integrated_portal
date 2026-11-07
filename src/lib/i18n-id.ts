@@ -1,6 +1,16 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Enter the ESB Good Receipt number and take a clear photo of the goods; your stock changes when you confirm.": "Isi nomor Good Receipt ESB dan ambil foto barang yang jelas; stok outlet Anda berubah saat dikonfirmasi.",
+  "ESB Good Receipt number": "Nomor Good Receipt ESB",
+  "e.g. GR-CTG18-2611-0001": "mis. GR-CTG18-2611-0001",
+  "Make the Good Receipt of these goods in ESB first. The portal matches the materials and quantities with it once ESB syncs (every 30 minutes).": "Buat Good Receipt barang ini di ESB terlebih dahulu. Portal mencocokkan material dan qty-nya setelah ESB tersinkron (setiap 30 menit).",
+  "Good Receipt {0}": "Good Receipt {0}",
+  "Waiting for the ESB GR: not synced to the portal yet (every 30 minutes).": "Menunggu GR ESB: belum tersinkron ke portal (setiap 30 menit).",
+  "This GR belongs to another outlet ({0}). Check the number with Cost Control.": "GR ini milik outlet lain ({0}). Cek nomornya bersama Cost Control.",
+  "Matches the transfer: every material and quantity.": "Sesuai dengan transfer: semua material dan qty cocok.",
+  "Differs from the transfer:": "Berbeda dengan transfer:",
+  "transfer {0} · GR {1}": "transfer {0} · GR {1}",
   " · approx. {0} rows": " · sekitar {0} baris",
   " · compared with the previous period": " · dibandingkan dengan periode sebelumnya",
   " · disc. {0}": " · disk. {0}",
