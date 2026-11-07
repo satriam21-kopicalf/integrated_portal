@@ -46,7 +46,7 @@ export function Panel({ title, description, actions, toolbar, footer, children, 
 const GRID = { 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4', 5: 'lg:grid-cols-5' } as const;
 export function StatStrip({ children, columns = 4, label, gridClassName }: { children: ReactNode; columns?: 3 | 4 | 5; label: string; gridClassName?: string }) {
   // gridClassName replaces the columns (phones included), e.g. a swipe row on phones
-  return <section aria-label={label} className={cx('grid gap-3', gridClassName ?? `grid-cols-2 ${GRID[columns]}`)}>{children}</section>;
+  return <section aria-label={label} className={cx('grid gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1', gridClassName ?? `grid-cols-2 ${GRID[columns]}`)}>{children}</section>;
 }
 
 /** A number card: label (+ icon / info), value, the lines under it; a quick filter when `onClick` is given. Every card
@@ -61,7 +61,7 @@ export function Stat({ label, icon, value, title, children, emphasis = false, cl
       <img src="/assets/calf-logo.png" alt="" aria-hidden
         className={cx('pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain grayscale', emphasis ? 'opacity-[0.1]' : 'opacity-[0.05]')} />
       <span className="relative flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1 truncate text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}{info}</span>
+        <span className="flex min-w-0 items-center gap-1 text-[11px] font-semibold uppercase leading-snug tracking-wide text-neutral-500">{label}{info}</span>
         {icon && <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg [&>svg]:h-3.5 [&>svg]:w-3.5',
           emphasis ? 'bg-brand-100 text-brand-700' : 'bg-neutral-100 text-neutral-500')}>{icon}</span>}
       </span>

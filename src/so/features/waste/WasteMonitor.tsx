@@ -8,6 +8,7 @@
 // Layout (2026-11-06): tabs with icons and counts; the entries as a table on a desktop (cards on a phone), the totals
 // ranked with their share of the value; the filters in the monitor filter sheet.
 
+import { Tabs } from "@/components/kc";
 import { CalendarCheck, CalendarDays, CheckCircle2, ClipboardList, FileSearch, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { downloadXlsx } from "@/lib/xlsx";
@@ -186,22 +187,12 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         { key: "daily", label: tr("Daily Report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
         { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
       ]} /></div>} />
-          <div role="tablist" aria-label={tr("View")} className="-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1">
-            {VIEWS.map((v) => {
-              const Icon = v.icon;
-              const count = !res ? null : v.value === "entries" ? res.data.length : v.value === "items" ? res.byItem.length
-                : v.value === "branches" ? res.byBranch.length : v.value === "categories" ? res.byCategory.length : null;
-              const on = view === v.value;
-              return (
-                <button key={v.value} type="button" role="tab" aria-selected={on} onClick={() => setView(v.value)}
-                  className={cx("-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
-                    on ? "border-brand-700 text-brand-800" : "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-800")}>
-                  <Icon size={15} className={on ? "text-brand-700" : "text-neutral-400"} />{v.label()}
-                  {count !== null && <span className={cx("rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums", on ? "bg-brand-100 text-brand-800" : "bg-neutral-100 text-neutral-500")}>{fmtNumber(count)}</span>}
-                </button>
-              );
-            })}
-          </div>
+          <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={VIEWS.map((v) => {
+            const Icon = v.icon;
+            const count = !res ? null : v.value === "entries" ? res.data.length : v.value === "items" ? res.byItem.length
+              : v.value === "branches" ? res.byBranch.length : v.value === "categories" ? res.byCategory.length : null;
+            return { key: v.value, label: <><Icon size={15} className={view === v.value ? "text-brand-700" : "text-neutral-400"} />{v.label()}</>, count: count === null ? undefined : fmtNumber(count) };
+          })} />
           {review && view === "entries" && waiting.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 rounded-xl border border-brand-100 bg-brand-50/60 px-3 py-2 text-sm">
               <label className="flex items-center gap-2 text-neutral-700">

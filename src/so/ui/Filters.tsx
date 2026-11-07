@@ -38,7 +38,7 @@ export function FilterToolbar({ search, onSearch, placeholder, filters, onOpen, 
     <div className="space-y-2.5">
       <div className="flex flex-wrap items-center gap-2">
         {onSearch && (
-          <div className="relative min-w-0 flex-1 basis-56">
+          <div className="relative min-w-[8rem] flex-1 basis-32 sm:basis-56">
             <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
             </svg>

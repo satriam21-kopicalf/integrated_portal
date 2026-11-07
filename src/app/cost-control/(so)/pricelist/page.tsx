@@ -89,7 +89,7 @@ export default function PricelistPage() {
           onClear={() => { setCategory(""); setOnlyMissing(false); }} />
         {/* the new prices: from which day, filled from the purchase average, saved together */}
         <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-neutral-50/60 p-2.5 sm:flex-row sm:items-center">
-          <label className="flex items-center gap-2 text-xs font-medium text-neutral-600"><CalendarDays size={14} className="text-neutral-400" />{tr("Valid from")}
+          <label className="flex items-center gap-2 whitespace-nowrap text-xs font-medium text-neutral-600"><CalendarDays size={14} className="text-neutral-400" />{tr("Valid from")}
             <input type="date" className={cx(inputClass, "h-9 w-40 bg-white")} value={from} onChange={(e) => setFrom(e.target.value)} aria-label={tr("Valid from")} /></label>
           <span className="hidden flex-1 sm:block" />
           <div className="grid grid-cols-2 gap-2 sm:flex">

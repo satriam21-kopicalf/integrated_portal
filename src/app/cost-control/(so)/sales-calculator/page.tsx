@@ -9,6 +9,7 @@
 // document) and COGS Material (Pricelist Items), system and actual. A card may hold other cards (bundling, 2026-11-06)
 // and shows the list price of its menus (POS menu master, per channel) with the % HPP.
 
+import { Tabs } from "@/components/kc";
 import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Wand2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
@@ -241,7 +242,7 @@ function Recipes() {
       ) : layout === "table" ? (
         <RecipeTable rows={shown} hppOf={hppOf} priced={!!items.length} onOpen={setEdit} />
       ) : (
-        <ul className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((r) => <RecipeCard key={r.code} r={r} hpp={hppOf(r)} priced={!!items.length} onOpen={() => setEdit(r)} />)}
         </ul>
       )}
@@ -393,7 +394,7 @@ function RecipeTable({ rows, hppOf, priced, onOpen }: { rows: Recipe[]; hppOf: (
 /** One recipe card: a band with the Kopi Calf mark, the name and code, then HPP / components / menus and the first lines. */
 function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null; priced: boolean; onOpen: () => void }) {
   return (
-    <li>
+   <li className="min-w-0">
       <button type="button" onClick={onOpen}
         className={cx("group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
           r.isActive ? "border-neutral-200 hover:border-brand-300" : "border-neutral-200 opacity-75")}>
@@ -1020,12 +1021,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                   rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, ...(["received", "outletBuy", "produced", "consumed", "delivered", "returned"] as MoveKind[]).map((k) => r.moves?.[k] ?? null),
                     r.purchased ?? null, r.soEnd ?? null, r.actual, r.system, r.variance, r.price, r.systemValue, r.actualValue]) })) },
             ]} /></div>} />
-          <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-neutral-200">
-            {outputs.map((o) => (
-              <button key={o.key} type="button" role="tab" aria-selected={view === o.key} onClick={() => setView(o.key)}
-                className={cx("-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium", view === o.key ? "border-brand-700 text-brand-800" : "border-transparent text-neutral-500 hover:text-neutral-800")}>{o.label}</button>
-            ))}
-          </div>
+          <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={outputs.map((o) => ({ key: o.key, label: o.label }))} />
         </div>
       }>
         {!period ? (

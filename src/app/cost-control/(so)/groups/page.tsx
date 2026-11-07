@@ -4,6 +4,7 @@
 // lists of many branches; a change to the group reaches every branch that uses it.
 // New group = a 3-step wizard (details → items → branches); an existing group opens on tabs (items, branches, details).
 
+import { Tabs } from "@/components/kc";
 import { Boxes, Check, ChevronLeft, ChevronRight, FileSpreadsheet, MapPin, PackagePlus, Plus, Save, Search, Store, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ItemsEditor, { type EditorItem, toPayload } from "@/so/features/settings/ItemsEditor";
@@ -494,14 +495,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
             <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-neutral-900" : "text-amber-600")}>{g.used_by.length}</dd></div>
             <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Status")}</dt><dd className="mt-1">{g.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}</dd></div>
           </dl>
-          <div role="tablist" className="flex gap-1 border-b border-neutral-200">
-            {tabs.map((t) => (
-              <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
-                className={cx("-mb-px border-b-2 px-3 py-2 text-sm font-medium", tab === t.key ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800")}>
-                {t.label}{t.key === "items" && dirty ? " •" : ""}
-              </button>
-            ))}
-          </div>
+          <Tabs label={tr("View")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={tabs.map((t) => ({ key: t.key, label: <>{t.label}{t.key === "items" && dirty ? " •" : ""}</> }))} />
           {tab === "items" && (
             <DrawerSection description={tr("Area groups the items on the count screen; a package unit lets the crew count packs plus the rest.")}>
               <ItemsEditor items={items} onChange={(v) => { setItems(v); setDirty(true); }} />

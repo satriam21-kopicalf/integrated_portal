@@ -4,6 +4,7 @@
 // actual quantities of many branches from a file in the "Stock Opname Report" layout. Optional: every branch still
 // counts itself. What Cost Control enters goes to Review like a crew count, and someone else has to approve it.
 
+import { Tabs } from "@/components/kc";
 import { CheckCircle2, ClipboardEdit, FileSpreadsheet, FileUp, Info, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -52,14 +53,8 @@ export default function EntryPage() {
         <Info size={16} className="mt-0.5 flex-shrink-0" />
         <span>{tr("What you enter or import goes to Review as Submitted. Another Cost Control member approves it (you cannot approve your own entry).")}</span>
       </p>
-      <div className="inline-flex rounded-lg border border-neutral-200 bg-white p-1" role="tablist">
-        {([["form", tr("Fill in a Form"), ClipboardEdit], ["import", tr("Import a file"), FileUp]] as const).map(([k, label, Icon]) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium", tab === k ? "bg-brand-700 text-white" : "text-neutral-600 hover:bg-neutral-50")}>
-            <Icon size={15} /> {label}
-          </button>
-        ))}
-      </div>
+      <Tabs label={tr("Entry")} value={tab} onChange={(k) => setTab(k as typeof tab)}
+        tabs={([["form", tr("Fill in a Form"), ClipboardEdit], ["import", tr("Import a file"), FileUp]] as const).map(([k, label, Icon]) => ({ key: k, label: <><Icon size={15} />{label}</> }))} />
       {tab === "form" ? <FormEntry facilities={facilities} types={types} /> : <ImportEntry types={types} />}
     </Page>
   );

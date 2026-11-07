@@ -5,6 +5,7 @@
 // sheet, with the WIP entered, the share of each ingredient and the breakdown per WIP. Recipes: the recipes with
 // versions (what the count form uses). The workbook import tab was removed (2026-10-20: not used).
 
+import { Tabs } from "@/components/kc";
 import { Calculator, ChevronDown, Copy, FlaskConical, Minus, Plus, RotateCcw, Scale, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -70,15 +71,7 @@ export default function PremixPage() {
           </Stat>
         </StatStrip>
       }>
-      <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-neutral-200">
-        {tabs.map(t => (
-          <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
-            className={cx("-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium",
-              tab === t.key ? "border-brand-600 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800")}>
-            {t.icon}{t.label}
-          </button>
-        ))}
-      </div>
+      <Tabs label={tr("View")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={tabs.map((t) => ({ key: t.key, label: <>{t.icon}{t.label}</> }))} />
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel>
         : tab === "calculator" ? <CalculatorTab recipes={rows} />
         : <RecipesTab recipes={rows} onOpen={setOpen} />}
