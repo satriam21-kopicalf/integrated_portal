@@ -9,12 +9,12 @@
 //              of both outlets moves); a request the outlet has not answered can be cancelled;
 //   Incoming   the requests to my outlets: accept (the stock does not move yet) or decline, with a note.
 
-import { ArrowDown, ArrowRight, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Inbox, PackageCheck, PenLine, Search, Send, Store, Trash2, Undo2, X, XCircle } from "lucide-react";
+import { ArrowDown, ArrowRight, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Inbox, Info, PackageCheck, PenLine, Search, Send, Store, Trash2, Undo2, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
 import Drawer from "@/so/ui/Drawer";
-import { FormCard, Segmented } from "@/so/ui/Simple";
+import { FormCard, Note, Segmented } from "@/so/ui/Simple";
 import LiveClock from "@/so/ui/LiveClock";
 import SignaturePad from "@/so/features/count/SignaturePad";
 import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
@@ -143,7 +143,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
           aside={picked.length ? <Badge tone="blue">{tr("{0} chosen", picked.length)}</Badge> : undefined}>
           {!from ? <p className="text-sm text-neutral-500">{tr("Choose the outlet to take from first")}</p>
             : loading ? <SkeletonList rows={3} />
-            : !stock?.so ? <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{tr("This outlet has no stock opname in the portal in the last 60 days: its stock is unknown.")}</p>
+            : !stock?.so ? <Note tone="warn" icon={<Info />}>{tr("This outlet has no stock opname in the portal in the last 60 days: its stock is unknown.")}</Note>
             : !stock.items.length ? <p className="text-sm text-neutral-500">{tr("This outlet has no material in stock.")}</p> : (
               <>
                 <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -194,7 +194,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
           <Button className="mt-3 w-full" disabled={!ready} loading={busy} onClick={() => setSigning(true)}><PenLine size={15} />{tr("Sign & Submit")}</Button>
           {!ready && <p className="mt-2 text-center text-xs text-neutral-400">{tr("Choose the outlets, the materials and take the photo.")}</p>}
         </section>
-        <p className="px-1 text-[11px] leading-relaxed text-neutral-500">{tr("The outlet checks the request, Cost Control approves it, then you receive the goods with a photo: only then the stock of both outlets changes.")}</p>
+        <Note icon={<Info />}>{tr("The outlet checks the request, Cost Control approves it, then you receive the goods with a photo: only then the stock of both outlets changes.")}</Note>
       </aside>
       {/* phones & tablets: what is ready and the send button, at the bottom */}
       <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-neutral-200/70 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden"

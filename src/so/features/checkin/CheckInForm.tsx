@@ -17,6 +17,7 @@
 
 import { AlertTriangle, Camera, Check, Image as ImageIcon, Lightbulb, Smile, CheckCircle2, ChevronRight, Clock, Crosshair, ExternalLink, Loader2, MapPin, MapPinOff, MessageSquareText, RotateCcw, Send,
   ShieldCheck, ShieldX, XCircle } from "lucide-react";
+import { Note } from "@/so/ui/Simple";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
@@ -496,8 +497,8 @@ function SuccessScreen({ c, out = false, onClose, onDetail }: { c: CheckIn; out?
                 {distance !== null ? tr("{0} m from the outlet", distance) : tr("No coordinates")}</dd></div>
           </dl>
           {o && <p className="mt-3 text-sm font-medium text-neutral-700">{tr("{0} at the outlet (clock in {1})", duration(o.durationMin), wibTime(c.visitedAt))}</p>}
-          {!o && outside && <p className="mt-3 text-xs text-amber-800">{tr("Outside the radius: management reviews this check in. You can follow it under My latest check-ins.")}</p>}
-          {o ? <p className="mt-3 text-xs text-neutral-500">{tr("The visit is closed; the next outlet can be clocked in now.")}</p>
+          {!o && outside && <Note tone="warn" icon={<MapPin />} className="mt-3">{tr("Outside the radius: management reviews this check in. You can follow it under My latest check-ins.")}</Note>}
+          {o ? <Note tone="ok" icon={<CheckCircle2 />} className="mt-3">{tr("The visit is closed; the next outlet can be clocked in now.")}</Note>
             : getKindNote()}
         </div>
         <div className="space-y-2 border-t border-neutral-100 px-6 pt-4 sm:rounded-b-2xl" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>

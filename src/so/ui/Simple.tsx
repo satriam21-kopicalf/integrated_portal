@@ -42,6 +42,31 @@ export function FormCard({ n, title, hint, children, aside }: { n?: number; titl
   );
 }
 
+const NOTE_TONE = {
+  info: "border-sky-100 bg-sky-50/70 text-sky-900 [&_.note-icon]:text-sky-600",
+  muted: "border-neutral-200/80 bg-neutral-50 text-neutral-600 [&_.note-icon]:text-neutral-400",
+  warn: "border-amber-200/70 bg-amber-50 text-amber-900 [&_.note-icon]:text-amber-600",
+  ok: "border-emerald-200/70 bg-emerald-50 text-emerald-900 [&_.note-icon]:text-emerald-600",
+} as const;
+
+/** A note or a piece of information on a form: an icon, an optional title and the text, in one of four tones. */
+export function Note({ icon, title, children, tone = "muted", action, className }: {
+  icon?: ReactNode; title?: string; children: ReactNode; tone?: keyof typeof NOTE_TONE; action?: ReactNode; className?: string;
+}) {
+  return (
+    <div className={cx("flex flex-col gap-2 rounded-xl border px-3.5 py-3 text-xs leading-relaxed sm:flex-row sm:items-center", NOTE_TONE[tone], className)}>
+      <div className="flex min-w-0 flex-1 items-start gap-2.5">
+        {icon && <span className="note-icon mt-px flex-shrink-0 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
+        <div className="min-w-0">
+          {title && <p className="mb-0.5 text-[13px] font-semibold">{title}</p>}
+          <div>{children}</div>
+        </div>
+      </div>
+      {action && <div className="flex-shrink-0">{action}</div>}
+    </div>
+  );
+}
+
 /** Segmented choice (2–6 options). */
 export function Segmented<T extends string>({ value, options, onChange, label }: {
   value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label: string;
