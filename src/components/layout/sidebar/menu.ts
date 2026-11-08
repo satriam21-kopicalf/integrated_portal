@@ -3,7 +3,7 @@
 // added here, in lib/pages.ts and in the backend page catalog (integrated_portal_be app/access.py).
 
 import {
-  Activity, BarChart3, CalendarDays, Bike, Warehouse, Building2, CookingPot, Coffee, Truck, Download, Boxes, Calculator, ClipboardPen,
+  Activity, BarChart3, Bike, Warehouse, CookingPot, Download, Boxes, Calculator, ClipboardPen,
   FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ClipboardCheck, ClipboardList, ListChecks,
   Settings2, History, LayoutDashboard, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, Users, Wallet, UserRoundCheck,
   PackageCheck, ArrowLeftRight,
@@ -105,15 +105,11 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
 /** "Monitoring COTR" menu: Calf On The Road, configured by the COTR team (pages cotr.*, prototype 2026-11-01). */
 export const cotr: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Drivers on the Road'); }, get hint() { return tr('Check-ins of the drivers from the COTR app'); }, icon: MapPinCheck, items: [
-    { get name() { return tr('Driver Check In'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Start, reload & end of shift'); } },
+    { get name() { return tr('Monitoring Armada - Driver'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Shifts, sales, stock, cupping & waste of every driver'); } },
     { get name() { return tr('Storage & Assignment'); }, href: '/cotr/storage', icon: Warehouse, get description() { return tr('Products per driver, differences & reloads'); } },
   ] },
-  { get title() { return tr('Master Data'); }, get hint() { return tr('Drivers, fleet, pools, menus and schedule'); }, icon: Boxes, items: [
-    { get name() { return tr('Master Driver'); }, href: '/cotr/drivers', icon: Bike, get description() { return tr('Drivers, pool & fleet'); } },
-    { get name() { return tr('Master Fleet'); }, href: '/cotr/fleet', icon: Truck, get description() { return tr('Motorbikes, carts & bicycles'); } },
-    { get name() { return tr('Master Pool / HUB'); }, href: '/cotr/pools', icon: Building2, get description() { return tr('Main HUB, parent pools & storage'); } },
-    { get name() { return tr('Master Menu'); }, href: '/cotr/menu', icon: Coffee, get description() { return tr('Menus, prices & recipes'); } },
-    { get name() { return tr('Master Schedule'); }, href: '/cotr/schedule', icon: CalendarDays, get description() { return tr('Shifts, roster & attendance'); } },
+  { get title() { return tr('Master Data'); }, get hint() { return tr('Employees, areas, pools, fleet, menus and schedule'); }, icon: Boxes, items: [
+    { get name() { return tr('Master'); }, href: '/cotr/master', icon: Boxes, get description() { return tr('Employees, areas, pools, fleet & accessories, schedule, menus'); } },
   ] },
   { get title() { return tr('Production'); }, get hint() { return tr('What the HUB makes for the drivers'); }, icon: CookingPot, items: [
     { get name() { return tr('Storage & Production'); }, href: '/cotr/production', icon: CookingPot, get description() { return tr('Items, recipe cards, calculator, usage & waste'); } },

@@ -4,12 +4,26 @@
 // new design: a page moves to it by changing the import path only — its logic stays as it is. Used by the Aggregator
 // pages first (2026-11-02); the next pages follow the same way.
 
-import type { ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { PageHeader, PageShell, cx } from './index';
+
+/** Inside a tab of another page (Monitoring COTR → Master): no own shell and title, the actions stay on top. */
+export const EmbeddedPage = createContext(false);
 
 export function Page({ title, subtitle, actions, stats, children, eyebrow, media }: {
   title: ReactNode; subtitle?: string; actions?: ReactNode; stats?: ReactNode; children: ReactNode; eyebrow?: ReactNode; media?: ReactNode;
 }) {
+  if (useContext(EmbeddedPage)) {
+    return (
+      <div className="space-y-4">
+        {(subtitle || actions) && <div className="flex flex-wrap items-center justify-between gap-3">
+          {subtitle ? <p className="text-sm text-neutral-500">{subtitle}</p> : <span />}
+          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}</div>}
+        {stats}
+        {children}
+      </div>
+    );
+  }
   return (
     <PageShell>
       <PageHeader title={title} subtitle={subtitle} actions={actions} eyebrow={eyebrow} media={media} />

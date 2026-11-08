@@ -44,3 +44,12 @@ export type Shift = {
 export type Reload = { id: string; at: string; lines: Stock; note: string | null; status: 'requested' | 'approved' | 'rejected' | 'disputed' | 'received'; decisionNote: string | null; receivedAt: string | null; driver: string | null };
 export type Request = { id: string; at: string; kind: string; amount: number; note: string; status: 'sent' | 'approved' | 'rejected'; decisionNote: string | null; driverCode: string; driverName: string | null };
 export type Monitor = { day: string; shifts: Shift[]; notStarted: { code: string; name: string; pool: string }[]; reloads: Reload[]; requests: Request[] };
+
+/** A selling / standby place of the drivers (migration 080). */
+export type Area = { code: string; name: string; address: string; district: string; city: string; province: string; postal_code: string;
+  latitude: number | null; longitude: number | null; radius_m: number; pool_code: string | null; note: string | null; is_active: boolean };
+/** An accessory of the fleet (migration 080). */
+export type Accessory = { code: string; name: string; category: string; unit: string; serial_no: string | null;
+  condition: "good" | "service" | "broken" | "lost"; note: string | null; is_active: boolean };
+export type FleetAccessory = { id: number; fleet: string; code: string; name: string; category: string; unit: string; serialNo: string | null;
+  condition: Accessory["condition"]; qty: number; assignedOn: string; removedOn: string | null; note: string | null };

@@ -4,7 +4,8 @@
 // roster of the drivers (a shift, off, leave or sick per day), the attendance against the check in of the driver
 // app and a recap per driver — the administrative reference of the incentives.
 
-import { Building2, CalendarDays, ChevronLeft, ChevronRight, Clock, Copy, Save, Users, Wallet } from "lucide-react";
+import { type Slot, SlotsDrawer, slotsText } from "@/cotr/RosterSlots";
+import { Building2, CalendarDays, ChevronLeft, ChevronRight, Clock, Copy, MapPinned, Save, Users, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Tone, cx, useToast } from "@/so/ui";
 import { SearchInput, StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
@@ -20,7 +21,7 @@ import { SkeletonList } from "@/components/kc/Skeleton";
 type Status = "work" | "off" | "leave" | "sick";
 type Attendance = "on_time" | "late" | "absent" | "planned" | "unscheduled" | "off" | "leave" | "sick" | "none";
 type Template = { code: string; name: string; start_time: string; end_time: string; break_min: number; grace_min: number; color: string | null; is_active: boolean; sort: number; pay_rate?: number | null };
-type Cell = { driver: string; day: string; status: Status | null; template: string | null; pool: string | null; note: string | null; started: string | null; ended: string | null; attendance: Attendance };
+type Cell = { driver: string; day: string; status: Status | null; template: string | null; pool: string | null; note: string | null; started: string | null; ended: string | null; attendance: Attendance; slots?: Slot[] };
 type Recap = { driver: string; scheduled: number; worked: number; on_time: number; late: number; absent: number; off: number; leave: number; sick: number; unscheduled: number; pay?: number };
 const rupiah = (n: number) => `Rp ${Math.round(n).toLocaleString("id-ID")}`;
 type Roster = { from: string; to: string; templates: Template[]; drivers: { code: string; name: string; nickname?: string | null; department?: string | null; pool_code: string | null }[]; cells: Cell[]; recap: Recap[] };
@@ -37,6 +38,18 @@ const TEMPLATE_TONE: Record<string, string> = {
   violet: "bg-violet-50 text-violet-800 border-violet-200", green: "bg-emerald-50 text-emerald-800 border-emerald-200",
   cyan: "bg-cyan-50 text-cyan-800 border-cyan-200", red: "bg-red-50 text-red-800 border-red-200",
 };
+
+/** The assignments of a cell (several areas in a day): a line that opens the slot editor. */
+function SlotLine({ slots, onOpen, compact }: { slots?: Slot[]; onOpen: () => void; compact?: boolean }) {
+  const n = slots?.length ?? 0;
+  return (
+    <button type="button" onClick={onOpen} title={slotsText(slots) || tr("Assign areas and times")}
+      className={cx("mt-1 flex w-full items-center gap-1 rounded-md text-left text-[11px] font-medium", n ? "text-brand-700 hover:underline" : "text-neutral-400 hover:text-brand-700", compact ? "truncate" : "")}>
+      <MapPinned size={11} className="flex-shrink-0" />
+      <span className="truncate">{n ? (compact ? tr("{0} slots", n) : slotsText(slots)) : tr("Areas & times")}</span>
+    </button>
+  );
+}
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const addDays = (day: string, n: number) => iso(new Date(Date.parse(`${day}T00:00:00Z`) + n * 864e5));
@@ -69,6 +82,7 @@ function RosterView() {
   const [edits, setEdits] = useState<Record<string, Edit>>({});
   const [busy, setBusy] = useState(false);
   const [tick, setTick] = useState(0);
+  const [slotOf, setSlotOf] = useState<{ driver: string; day: string } | null>(null);
   const [q, setQ] = useState("");
   const [dept, setDept] = useState("");
   const [sheet, setSheet] = useState(false);
@@ -215,6 +229,7 @@ function RosterView() {
                       </div>
                       {att && !changed && <Badge tone={att.tone}>{att.label()}{c?.started ? ` ${c.started}` : ""}</Badge>}
                     </div>
+                    <SlotLine slots={c?.slots} onOpen={() => setSlotOf({ driver: p.code, day: shownDay })} />
                     <div className="mt-2 flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
                       {choices.map((o) => {
                         const on = keyOf(v) === o.key;
@@ -256,6 +271,7 @@ function RosterView() {
                             {templates.map((x) => <option key={x.code} value={x.code}>{x.code} · {x.start_time}–{x.end_time}</option>)}
                             {(Object.keys(OTHER) as (keyof typeof OTHER)[]).map((s) => <option key={s} value={`@${s}`}>{OTHER[s]()}</option>)}
                           </select>
+                          <SlotLine compact slots={c?.slots} onOpen={() => setSlotOf({ driver: p.code, day: d })} />
                           {(att || c?.started) && !changed && (
                             <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-neutral-500">
                               {att && <Badge tone={att.tone}>{att.label()}</Badge>}
@@ -286,6 +302,12 @@ function RosterView() {
         )}
       </Panel>
 
+      {slotOf && data && (() => {
+        const person = data.drivers.find((x) => x.code === slotOf.driver);
+        return <SlotsDrawer driver={slotOf.driver} driverName={person?.name ?? slotOf.driver} day={slotOf.day} dayLabel={dayLabel(slotOf.day, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          slots={cellOf(slotOf.driver, slotOf.day)?.slots ?? []} templates={templates} pool={person?.pool_code ?? null}
+          onClose={() => setSlotOf(null)} onSaved={() => { setSlotOf(null); setTick((t) => t + 1); }} />;
+      })()}
       {dirty > 0 && (
         <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-5 flex items-center gap-3 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mb-6 lg:px-8"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>

@@ -109,8 +109,12 @@ export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('M
 
 /** May the user open this path? Pages come from the backend (role pages ± exceptions, lib/pages.ts); User Accounts
  * and Activity Logs are superadmin-only. The backend enforces the same. */
+// Monitoring COTR → Master (2026-11-08): one page with a tab per master; it opens with any of their pages
+const COTR_MASTER: PageKey[] = ['cotr.drivers', 'cotr.pools', 'cotr.fleet', 'cotr.schedule', 'cotr.menu'];
+
 export function canAccess(user: Pick<AuthUser, 'role' | 'pages'>, pathname: string): boolean {
   if (user.role === 'superadmin') return true;
+  if (pathname === '/cotr/master' || pathname.startsWith('/cotr/master/')) return COTR_MASTER.some((k) => pagesOf(user).includes(k));
   const page = pageOf(pathname);
   return page !== null && page !== 'superadmin' && pagesOf(user).includes(page);
 }

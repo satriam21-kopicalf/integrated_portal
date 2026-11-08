@@ -7,7 +7,8 @@
 // labels (no QRIS: it is shown only for a payment) are printed from here; their QR opens /share/fleet/{token}.
 
 import Link from "next/link";
-import { Bike, Building2, CheckCircle2, ExternalLink, Printer, QrCode, Truck, Wrench } from "lucide-react";
+import { Bike, Building2, CheckCircle2, ExternalLink, Package, Printer, QrCode, Truck, Wrench } from "lucide-react";
+import { AccessoriesSection, FleetAccessoryDrawer, useFleetAccessories } from "@/cotr/Accessories";
 import { useState } from "react";
 import { Badge, Button } from "@/so/ui";
 import { Page } from "@/components/kc/compat";
@@ -39,6 +40,9 @@ export default function CotrFleetPage() {
   const typeName = (code: string) => types.rows?.find((t) => t.code === code)?.name ?? code;
   const sec = { main: tr("Armada"), unit: tr("Vehicle"), papers: tr("Papers & upkeep"), qris: tr("QRIS (payments only)") };
   const [now] = useState(() => Date.now());
+  const acc = useFleetAccessories();
+  const [accOf, setAccOf] = useState<Fleet | null>(null);
+  const accCount = (code: string) => (acc.rows ?? []).filter((r) => r.fleet === code && !r.removedOn).length;
   return (
     <Page eyebrow="Monitoring COTR" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
       actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print Labels")}</Button></Link>}>
@@ -55,6 +59,9 @@ export default function CotrFleetPage() {
       ]}
         blank={(): Partial<Fleet> => ({ code: "", name: "", type: types.rows?.[0]?.code ?? "sepeda", plate: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", capacity: 0, condition: "good", last_service: null, is_active: true })}
         rowActions={(f) => (<>
+          <button type="button" onClick={() => setAccOf(f)} aria-label={tr("Accessories")} title={tr("Accessories")}
+            className="inline-flex items-center gap-1 rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-brand-700"><Package size={15} />
+            {accCount(f.code) > 0 && <span className="text-[11px] font-semibold tabular-nums text-neutral-600">{accCount(f.code)}</span>}</button>
           {f.label_token && <a href={`/share/fleet/${f.label_token}`} target="_blank" rel="noreferrer" aria-label={tr("Information Page")} title={tr("Information page (what the QR opens)")}
             className="inline-flex rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><ExternalLink size={15} /></a>}
           <Link href={`/cotr/fleet/labels?codes=${encodeURIComponent(f.code)}`} aria-label={tr("Print Label")} title={tr("Print Label")}
@@ -131,6 +138,8 @@ export default function CotrFleetPage() {
           { key: "name", label: tr("Name"), required: true },
           { key: "sort", label: tr("Order"), type: "number" },
         ]} />
+      <AccessoriesSection onChanged={() => void acc.load()} />
+      {accOf && <FleetAccessoryDrawer fleet={accOf} onClose={() => setAccOf(null)} onChanged={() => void acc.load()} />}
     </Page>
   );
 }
