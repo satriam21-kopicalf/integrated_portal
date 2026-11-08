@@ -1,6 +1,7 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Waste, transfers and bills count from the time the SO was sent; goods receipts and other ESB documents from its day.": "Waste, transfer dan bill dihitung sejak jam SO dikirim; GR dan dokumen ESB lainnya sejak tanggal SO.",
   "Suspicious: high": "Mencurigakan: tinggi",
   "Suspicious: medium": "Mencurigakan: sedang",
   "Outside radius · {0} m": "Di luar radius · {0} m",

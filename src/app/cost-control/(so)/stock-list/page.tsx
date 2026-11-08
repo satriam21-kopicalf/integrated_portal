@@ -7,6 +7,7 @@
 // (2026-11-07, app/running_stock.py): the estimate now = SO + goods received and the other moves − waste approved −
 // usage by the recipe cards since the count; an estimate below zero means the cards or the moves do not match.
 
+import { wibDateTime } from "@/so/lib/wib";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { Boxes, Calculator, CalendarDays, Package, Store } from "lucide-react";
@@ -27,7 +28,7 @@ type Row = { branch: string; branchName: string; code: string; name: string; cat
   /** the quantity of the stock opname before the latest one (2026-11-08) */ prevSo?: number | null;
   received: number; otherMoves: number; waste: number; used: number; estimate: number; estimateValue: number | null };
 type Head = { branch: string; branchName: string; soDate: string; refs: string[]; items: number; value: number; final?: boolean | null; estimateValue: number;
-  prevSoDate?: string | null; prevRefs?: string[] };
+  prevSoDate?: string | null; prevRefs?: string[]; /** when the SO was sent: what happened before is in the count */ soAt?: string | null };
 type Data = { branches: Head[]; rows: Row[] };
 type View = "branch" | "material";
 type SortKey = "branch" | "material" | "so" | "moves" | "waste" | "used" | "estimate" | "available" | "value";
@@ -185,11 +186,12 @@ function CalcDrawer({ r, h, onClose }: { r: Row; h?: Head; onClose: () => void }
         <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
           <p className="border-b border-neutral-100 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Stock opname")}</p>
           {line(tr("Previous SO"), r.prevSo, h?.prevSoDate ? `${dmy(h.prevSoDate)}${h.prevRefs?.length ? ` · ${h.prevRefs.join(", ")}` : ""}` : tr("No earlier SO in the last 60 days"))}
-          {line(tr("Latest SO"), r.so, h ? `${dmy(h.soDate)}${h.refs.length ? ` · ${h.refs.join(", ")}` : ""}${h.final === false ? ` · ${tr("not approved")}` : ""}` : undefined, true)}
+          {line(tr("Latest SO"), r.so, h ? `${h.soAt ? tr("sent {0}", wibDateTime(h.soAt)) : dmy(h.soDate)}${h.refs.length ? ` · ${h.refs.join(", ")}` : ""}${h.final === false ? ` · ${tr("not approved")}` : ""}` : undefined, true)}
           {r.prevSo != null && line(tr("Change between the two SO"), r.so - r.prevSo, undefined, false, r.so - r.prevSo > 0 ? "+" : "")}
         </section>
         <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
           <p className="border-b border-neutral-100 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Since the latest SO")}</p>
+          <p className="border-b border-neutral-100 bg-sky-50/60 px-4 py-2 text-[11px] text-sky-900">{tr("Waste, transfers and bills count from the time the SO was sent; goods receipts and other ESB documents from its day.")}</p>
           {line(tr("Goods Receipt"), r.received, undefined, false, "+")}
           {line(tr("Transfer in"), r.in, undefined, false, "+")}
           {line(tr("Transfer out"), r.out, tr("From the Cost Control approval"), false, "−")}
