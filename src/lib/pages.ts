@@ -71,7 +71,7 @@ export const PAGES: PageInfo[] = [
   { key: 'rating.gofood', href: '/rating/gofood', get label() { return tr('GoFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
   { key: 'rating.grabfood', href: '/rating/grabfood', get label() { return tr('GrabFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
   // Calf On The Road (prototype 2026-11-01, sample data): configured by the COTR team
-  { key: 'cotr.check-in', href: '/cotr/check-in', get label() { return tr('Driver Check In'); }, get group() { return tr('Monitoring COTR'); } },
+  { key: 'cotr.check-in', href: '/cotr/check-in', get label() { return tr('Monitoring Armada - Driver'); }, get group() { return tr('Monitoring COTR'); } },
   // not a menu entry: salary, bank account and NIK of the drivers in Master Driver (backend migration 050)
   { key: 'cotr.management', href: '/cotr/management', get label() { return tr('COTR Management (salary & bank)'); }, get group() { return tr('Monitoring COTR'); }, state: 'hidden' },
   { key: 'cotr.storage', href: '/cotr/storage', get label() { return tr('Storage & Assignment'); }, get group() { return tr('Monitoring COTR'); } },

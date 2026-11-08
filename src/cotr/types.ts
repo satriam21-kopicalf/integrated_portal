@@ -40,6 +40,7 @@ export type ShiftCheckIn = { id: string; kind: 'start' | 'end'; at: string; lat:
 export type Shift = {
   id: string; driver: string; driverName: string | null; pool: string | null; poolName: string | null; fleet: string | null; status: 'open' | 'closed';
   startedAt: string; endedAt: string | null; startStock: Stock; stock: Stock; endNote: string | null; checkIns: ShiftCheckIn[]; recap: Recap;
+  /** 2026-11-08 */ deductions: Deductions; accessories: { name: string; qty: number }[]; slots: { start: string; end: string; area: string | null }[]; phone?: string | null;
 };
 export type Reload = { id: string; at: string; lines: Stock; note: string | null; status: 'requested' | 'approved' | 'rejected' | 'disputed' | 'received'; decisionNote: string | null; receivedAt: string | null; driver: string | null };
 export type Request = { id: string; at: string; kind: string; amount: number; note: string; status: 'sent' | 'approved' | 'rejected'; decisionNote: string | null; driverCode: string; driverName: string | null };
@@ -53,3 +54,7 @@ export type Accessory = { code: string; name: string; category: string; unit: st
   condition: "good" | "service" | "broken" | "lost"; note: string | null; is_active: boolean };
 export type FleetAccessory = { id: number; fleet: string; code: string; name: string; category: string; unit: string; serialNo: string | null;
   condition: Accessory["condition"]; qty: number; assignedOn: string; removedOn: string | null; note: string | null };
+
+/** The deductions of a shift (2026-11-08): cupping and waste per menu at its price. */
+export type Deductions = { lines: { kind: "cupping" | "waste"; code: string; name: string; qty: number; price: number; value: number; assigned: number | null }[];
+  cups: number; value: number; cupping: number; waste: number };

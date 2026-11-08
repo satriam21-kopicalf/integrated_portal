@@ -1,15 +1,16 @@
 "use client";
 
-// Monitoring COTR → Driver Check In (page cotr.check-in): the day of every COTR driver from the driver app — the shift
+// Monitoring COTR → Monitoring Armada - Driver (page cotr.check-in, renamed 2026-11-08): the day of every COTR driver from the driver app — the shift
 // (start / end check in with photo and location, the stock on the fleet, the cash to hand over, the stock difference at
 // the end), the reloads to approve or reject for the pool, the cost requests to approve or reject, and where the
 // drivers are (the GPS of their phone while the shift is open, on a map).
 
-import { Building2, CalendarDays, Camera, Check, ChevronDown, LogIn, LogOut, MapPin, MapPinCheck, PackagePlus, TriangleAlert, Wallet, X } from "lucide-react";
+import { Building2, CalendarDays, Camera, Check, LogIn, LogOut, MapPin, MapPinCheck, PackagePlus, TriangleAlert, Wallet, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Drawer from "@/so/ui/Drawer";
 import { Badge, Button, Empty, ErrorState, Input, cx, useToast } from "@/so/ui";
-import { SearchInput, Tabs, kcTable } from "@/components/kc";
+import { SearchInput, Tabs } from "@/components/kc";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { DayField, ScopeBar, dmyOf } from "@/components/kc/ScopeBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
@@ -70,7 +71,7 @@ export default function CotrCheckInPage() {
   const pendingRequests = view?.requests.filter((r) => r.status === "sent").length ?? 0;
 
   return (
-    <Page eyebrow="Monitoring COTR" media={<MapPinCheck size={19} />} title={tr("Driver Check In")} subtitle={tr("Shifts, reloads and requests of every COTR driver")}
+    <Page eyebrow="Monitoring COTR" media={<MapPinCheck size={19} />} title={tr("Monitoring Armada - Driver")} subtitle={tr("Shifts, sales, deductions, cash, stock, reloads and requests of every driver")}
       stats={<>
         <ScopeBar onOpen={() => { setDraft({ day, pool, state }); setSheet(true); }} onRefresh={() => void load()}
           right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
@@ -117,55 +118,68 @@ export default function CotrCheckInPage() {
   );
 }
 
+type Card = "all" | "open" | "closed" | "attention";
+
 function Shifts({ data }: { data: Monitor }) {
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<Shift | null>(null);
+  const [show, setShow] = useState<Card>("all");
+  const attention = (s: Shift) => !!(s.recap.difference && Object.keys(s.recap.difference).length) || (s.recap.balance ?? 0) < 0 || s.recap.voided > 0;
+  const list = data.shifts.filter((s) => show === "all" || (show === "open" ? s.status === "open" : show === "closed" ? s.status === "closed" : attention(s)))
+    .sort((x, y) => Number(attention(y)) - Number(attention(x)) || Number(y.status === "open") - Number(x.status === "open") || (x.driverName ?? "").localeCompare(y.driverName ?? ""));
+  const count = (c: Card) => data.shifts.filter((s) => c === "all" || (c === "open" ? s.status === "open" : c === "closed" ? s.status === "closed" : attention(s))).length;
   return (
     <>
-      <Panel title={tr("Shifts")}>
-        {data.shifts.length === 0 ? <Empty title={tr("No driver has checked in on this day")} /> : (
-          <div className="overflow-x-auto">
-            <table className="m-cards w-full text-sm">
-              <thead className={kcTable.thead}>
-                <tr>
-                  <th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-4 py-2.5">{tr("Pool / Fleet")}</th>
-                  <th className="px-4 py-2.5">{tr("Start")}</th><th className="px-4 py-2.5">{tr("End")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Sold")}</th><th className="px-4 py-2.5 text-right">{tr("On the Fleet")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Cash")}</th><th className="px-4 py-2.5 text-right">{tr("QRIS")}</th><th className="px-4 py-2.5 text-right">{tr("Balance")}</th>
-                  <th className="px-4 py-2.5">{tr("Check")}</th><th className="w-10" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {data.shifts.map((s) => {
-                  const diff = s.recap.difference && Object.keys(s.recap.difference).length;
-                  return (
-                    <Fragment key={s.id}>
-                      <tr className="cursor-pointer hover:bg-neutral-50/70" onClick={() => setOpen(open === s.id ? null : s.id)}>
-                        <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{s.driverName ?? s.driver}</span><span className="text-[11px] text-neutral-400">{s.driver}</span></td>
-                        <td className="px-4 py-2.5"><span className="block">{s.poolName ?? s.pool}</span><span className="text-[11px] text-neutral-400">{s.fleet ?? "—"}</span></td>
-                        <td className="px-4 py-2.5 tabular-nums">{time(s.startedAt)}</td>
-                        <td className="px-4 py-2.5 tabular-nums">{s.status === "open" ? <Badge tone="green" dot>{tr("On the road")}</Badge> : time(s.endedAt)}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums">{s.recap.cups}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums">{s.status === "open" ? cups(s.stock) : "—"}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(s.recap.cash)}</td>
-                        <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(s.recap.qris)}</td>
-                        <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", (s.recap.balance ?? 0) < 0 ? "text-red-600" : (s.recap.balance ?? 0) > 0 ? "text-amber-700" : "text-neutral-500")}>
-                          {s.recap.balance === null ? "—" : rupiah(s.recap.balance)}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          {diff ? <Badge tone="red" icon={<TriangleAlert size={11} />}>{tr("Stock difference")}</Badge>
-                            : s.recap.voided ? <Badge tone="amber">{tr("{0} voided", s.recap.voided)}</Badge> : <Badge tone="slate">OK</Badge>}
-                        </td>
-                        <td className="px-2"><ChevronDown size={16} className={cx("text-neutral-400 transition-transform", open === s.id && "rotate-180")} /></td>
-                      </tr>
-                      {open === s.id && <tr><td colSpan={11} className="bg-neutral-50/60 px-4 py-4"><ShiftDetail s={s} /></td></tr>}
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Panel>
+      <div role="radiogroup" aria-label={tr("Show")} className="flex max-w-full gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1 [scrollbar-width:none]">
+        {([["all", tr("All")], ["open", tr("On the road")], ["closed", tr("Shift ended")], ["attention", tr("Needs attention")]] as [Card, string][]).map(([k, label]) => (
+          <button key={k} type="button" role="radio" aria-checked={show === k} onClick={() => setShow(k)}
+            className={cx("flex h-9 flex-1 flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-xs font-semibold sm:text-sm",
+              show === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800")}>
+            {label}<span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", show === k ? "bg-brand-50 text-brand-700" : "bg-white/70 text-neutral-500")}>{count(k)}</span>
+          </button>
+        ))}
+      </div>
+      {list.length === 0 ? <Panel><Empty title={data.shifts.length ? tr("No shift matches") : tr("No driver has checked in on this day")} /></Panel> : (
+        <ul className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+          {list.map((s) => {
+            const diff = s.recap.difference && Object.keys(s.recap.difference).length;
+            const short = (s.recap.balance ?? 0) < 0;
+            return (
+              <li key={s.id}>
+                <button type="button" onClick={() => setOpen(s)}
+                  className={cx("group flex h-full w-full flex-col rounded-2xl border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
+                    attention(s) ? "border-red-200" : "border-neutral-200 hover:border-brand-200")}>
+                  <span className="flex items-start gap-3">
+                    <span className={cx("flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold", s.status === "open" ? "bg-emerald-50 text-emerald-700 ring-2 ring-emerald-200" : "bg-neutral-100 text-neutral-600")}>
+                      {(s.driverName ?? s.driver).split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-neutral-900">{s.driverName ?? s.driver}</span>
+                      <span className="block truncate text-[11px] text-neutral-500">{[s.poolName ?? s.pool, s.fleet].filter(Boolean).join(" · ")}</span>
+                    </span>
+                    {s.status === "open" ? <Badge tone="green" dot>{tr("On the road")}</Badge> : <Badge tone="slate">{tr("Ended")} {time(s.endedAt)}</Badge>}
+                  </span>
+                  {s.slots.length > 0 && (
+                    <span className="mt-2 flex flex-wrap gap-1">{s.slots.map((x, i) => <span key={i} className="rounded-md bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-800">{x.start}–{x.end} · {x.area ?? "—"}</span>)}</span>
+                  )}
+                  <span className="mt-3 grid grid-cols-4 gap-2 text-center">
+                    <Kpi label={tr("Sold")} value={String(s.recap.cups)} />
+                    <Kpi label={tr("On the Fleet")} value={s.status === "open" ? String(cups(s.stock)) : "—"} />
+                    <Kpi label={tr("Cupping / Waste")} value={`${s.recap.cupping}/${s.recap.waste}`} tone={s.deductions.cups ? "amber" : undefined} />
+                    <Kpi label={tr("Sales")} value={rupiah(s.recap.total).replace("Rp ", "")} />
+                  </span>
+                  <span className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-neutral-100 pt-2.5 text-[11px] text-neutral-500">
+                    <LogIn size={12} />{time(s.startedAt)}
+                    {diff ? <Badge tone="red" icon={<TriangleAlert size={11} />}>{tr("Stock difference")}</Badge> : null}
+                    {short ? <Badge tone="red">{tr("Cash short {0}", rupiah(Math.abs(s.recap.balance ?? 0)))}</Badge> : null}
+                    {s.recap.voided ? <Badge tone="amber">{tr("{0} voided", s.recap.voided)}</Badge> : null}
+                    {s.deductions.value > 0 && <Badge tone="amber">{tr("Deductions {0}", rupiah(s.deductions.value))}</Badge>}
+                    <span className="ml-auto text-brand-700 opacity-0 transition group-hover:opacity-100">{tr("Details")} →</span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
       {data.notStarted.length > 0 && (
         <Panel title={tr("Not checked in ({0})", data.notStarted.length)} description={tr("Active drivers without a shift on this day")}>
           <ul className="flex flex-wrap gap-1.5 p-4">
@@ -173,61 +187,132 @@ function Shifts({ data }: { data: Monitor }) {
           </ul>
         </Panel>
       )}
+      {open && <ShiftDrawer s={open} onClose={() => setOpen(null)} />}
     </>
   );
 }
 
-function ShiftDetail({ s }: { s: Shift }) {
+function Kpi({ label, value, tone }: { label: string; value: string; tone?: "amber" }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      {s.checkIns.map((c) => (
-        <section key={c.id} className="rounded-xl border border-neutral-200 bg-white p-3">
-          <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-            {c.kind === "start" ? <LogIn size={14} /> : <LogOut size={14} />}{c.kind === "start" ? tr("Start of shift") : tr("End of shift")}
-            <span className="font-normal text-neutral-400">{time(c.at)}</span>
-          </p>
-          {c.hasPhoto ? (
-            <a href={photoUrl("check-in", c.id)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-lg">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={thumb(photoUrl("check-in", c.id), 320)} decoding="async" alt={tr("Photo")} className="h-36 w-full object-cover" loading="lazy" />
-            </a>
-          ) : <p className="mt-2 flex items-center gap-1 text-xs text-red-600"><Camera size={12} />{tr("Missing")}</p>}
-          {c.lat !== null && c.lng !== null && (
-            <a href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-brand-700">
-              <MapPin size={12} />{c.lat.toFixed(5)}, {c.lng.toFixed(5)}
-            </a>
-          )}
-          <p className="mt-1 text-xs text-neutral-600">{Object.entries(c.stock).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"}</p>
-          {c.note && <p className="mt-1 text-xs text-neutral-500">{c.note}</p>}
-          {c.hasSignature && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={photoUrl("signature", c.id)} alt={tr("Signature")} className="mt-2 h-16 rounded-md border border-neutral-100 bg-white object-contain" loading="lazy" />
-          )}
-        </section>
-      ))}
-      <section className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
-        <p className="font-semibold text-neutral-900">{tr("Recap")}</p>
-        <ul className="mt-2 space-y-1 text-xs text-neutral-600">
-          {s.recap.perMenu.map((m) => <li key={m.code} className="flex justify-between"><span>{m.name} × {m.qty}</span><span className="tabular-nums">{rupiah(m.total)}</span></li>)}
-          <li className="flex justify-between border-t border-neutral-100 pt-1 font-semibold text-neutral-900"><span>{tr("Total")}</span><span className="tabular-nums">{rupiah(s.recap.total)}</span></li>
-          <li className="flex justify-between"><span>{tr("Waste")} · {tr("Cupping")}</span><span className="tabular-nums">{s.recap.waste} · {s.recap.cupping} {tr("cups")}</span></li>
-          {s.recap.cashActual !== null && <>
-            <li className="flex justify-between"><span>{tr("Spent from the cash")}</span><span className="tabular-nums">{rupiah(s.recap.cashSpent)}</span></li>
-            <li className="flex justify-between"><span>{tr("Cash to Hand Over")}</span><span className="tabular-nums">{rupiah(s.recap.cashExpected)}</span></li>
-            <li className="flex justify-between"><span>{tr("Cash counted")}</span><span className="tabular-nums">{rupiah(s.recap.cashActual)}</span></li>
-            <li className={cx("flex justify-between font-semibold", (s.recap.balance ?? 0) < 0 ? "text-red-600" : "text-neutral-900")}><span>{tr("Balance")}</span><span className="tabular-nums">{rupiah(s.recap.balance ?? 0)}</span></li>
-          </>}
-          <li className="flex justify-between"><span>{tr("Reloads received")}</span><span className="tabular-nums">{s.recap.reloaded} {tr("cups")}</span></li>
-          <li className="flex justify-between"><span>{tr("Requests")}</span><span className="tabular-nums">{rupiah(s.recap.requested)}</span></li>
-        </ul>
-        {s.recap.difference && Object.keys(s.recap.difference).length > 0 && (
-          <p className="mt-2 rounded-lg bg-red-50 px-2 py-1.5 text-xs text-red-700">
-            {tr("Stock difference")}: {Object.entries(s.recap.difference).map(([k, v]) => `${k} ${v > 0 ? "+" : ""}${v}`).join(", ")}
-            {s.endNote ? ` · ${s.endNote}` : ""}
-          </p>
+    <span className={cx("rounded-lg px-1.5 py-1.5", tone === "amber" ? "bg-amber-50" : "bg-neutral-50")}>
+      <span className="block truncate text-[15px] font-semibold tabular-nums text-neutral-900">{value}</span>
+      <span className="block truncate text-[10px] font-medium uppercase tracking-wide text-neutral-500">{label}</span>
+    </span>
+  );
+}
+
+function Row({ label, value, strong, tone }: { label: string; value: React.ReactNode; strong?: boolean; tone?: string }) {
+  return <li className={cx("flex justify-between gap-3 py-1", strong && "font-semibold text-neutral-900", tone)}><span>{label}</span><span className="tabular-nums">{value}</span></li>;
+}
+
+/** Everything of one shift: the check ins with photo, location and signature, the sales, the deductions (cupping and
+ * waste at the menu price), the cash, the stock difference, the accessories and the areas of the day. */
+function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
+  const diff = s.recap.difference && Object.keys(s.recap.difference).length ? s.recap.difference : null;
+  return (
+    <Drawer open onClose={onClose} size="xl" icon={<MapPinCheck size={18} />} title={s.driverName ?? s.driver}
+      description={`${[s.poolName ?? s.pool, s.fleet, s.phone].filter(Boolean).join(" · ")} · ${time(s.startedAt)}–${s.status === "open" ? tr("on the road") : time(s.endedAt)}`}>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Kpi label={tr("Sold")} value={`${s.recap.cups} ${tr("cups")}`} />
+          <Kpi label={tr("Sales")} value={rupiah(s.recap.total)} />
+          <Kpi label={tr("Deductions")} value={rupiah(s.deductions.value)} tone={s.deductions.value ? "amber" : undefined} />
+          <Kpi label={tr("Balance")} value={s.recap.balance === null ? "—" : rupiah(s.recap.balance)} />
+        </div>
+        {s.slots.length > 0 && (
+          <Block title={tr("Areas of the day")}>
+            <ul className="flex flex-wrap gap-1.5">{s.slots.map((x, i) => <li key={i} className="rounded-lg bg-brand-50 px-2 py-1 text-xs text-brand-800"><b className="tabular-nums">{x.start}–{x.end}</b> · {x.area ?? "—"}</li>)}</ul>
+          </Block>
         )}
-      </section>
-    </div>
+        <Block title={tr("Check In & Check Out")}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {s.checkIns.map((c) => (
+              <section key={c.id} className="rounded-xl border border-neutral-200 p-3">
+                <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                  {c.kind === "start" ? <LogIn size={14} /> : <LogOut size={14} />}{c.kind === "start" ? tr("Start of shift") : tr("End of shift")}
+                  <span className="ml-auto font-normal tabular-nums text-neutral-500">{time(c.at)}</span></p>
+                {c.hasPhoto ? (
+                  <a href={photoUrl("check-in", c.id)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-lg">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={thumb(photoUrl("check-in", c.id), 480)} decoding="async" alt={tr("Photo")} className="h-40 w-full bg-neutral-100 object-cover" loading="lazy" />
+                  </a>
+                ) : <p className="mt-2 flex items-center gap-1 text-xs text-red-600"><Camera size={12} />{tr("Missing")}</p>}
+                {c.lat !== null && c.lng !== null && (
+                  <a href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-brand-700"><MapPin size={12} />{tr("Open the map")}</a>
+                )}
+                <p className="mt-1 text-xs text-neutral-600">{tr("Stock")}: {Object.entries(c.stock).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"}</p>
+                {c.note && <p className="mt-1 text-xs text-neutral-500">“{c.note}”</p>}
+                {c.hasSignature && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photoUrl("signature", c.id)} alt={tr("Signature")} className="mt-2 h-14 rounded-md border border-neutral-100 bg-white object-contain" loading="lazy" />
+                )}
+              </section>
+            ))}
+            {s.checkIns.length === 1 && <p className="flex items-center justify-center rounded-xl border border-dashed border-neutral-200 p-3 text-xs text-neutral-400">{tr("Not checked out yet")}</p>}
+          </div>
+        </Block>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Block title={tr("Sales per menu")}>
+            {s.recap.perMenu.length === 0 ? <p className="text-xs text-neutral-400">{tr("No sale yet")}</p> : (
+              <ul className="divide-y divide-neutral-100 text-xs text-neutral-700">
+                {s.recap.perMenu.map((m) => <Row key={m.code} label={`${m.name} × ${m.qty}`} value={rupiah(m.total)} />)}
+                <Row strong label={tr("Total")} value={rupiah(s.recap.total)} />
+                <Row label={tr("Cash")} value={rupiah(s.recap.cash)} /><Row label="QRIS" value={rupiah(s.recap.qris)} />
+                {s.recap.voided > 0 && <Row label={tr("Voided bills")} value={s.recap.voided} tone="text-amber-700" />}
+              </ul>
+            )}
+          </Block>
+          <Block title={tr("Deductions (cupping & waste)")}>
+            {s.deductions.lines.length === 0 ? <p className="text-xs text-neutral-400">{tr("No cupping or waste")}</p> : (
+              <>
+                <table className="w-full text-xs">
+                  <thead className="text-left text-[10px] uppercase tracking-wide text-neutral-400"><tr><th className="py-1">{tr("Menu")}</th><th>{tr("Type")}</th><th className="text-right">{tr("Assigned")}</th><th className="text-right">{tr("Used")}</th><th className="text-right">{tr("Value")}</th></tr></thead>
+                  <tbody className="divide-y divide-neutral-100 text-neutral-700">
+                    {s.deductions.lines.map((d) => (
+                      <tr key={`${d.kind}:${d.code}`}><td className="py-1.5">{d.name}</td><td><Badge tone={d.kind === "cupping" ? "violet" : "amber"}>{d.kind === "cupping" ? tr("Cupping") : tr("Waste")}</Badge></td>
+                        <td className="text-right tabular-nums">{d.assigned ?? "—"}</td><td className="text-right tabular-nums">{d.qty}</td><td className="text-right tabular-nums">{rupiah(d.value)}</td></tr>))}
+                  </tbody>
+                </table>
+                <ul className="mt-2 border-t border-neutral-100 pt-1 text-xs text-neutral-700">
+                  <Row label={tr("Cupping")} value={rupiah(s.deductions.cupping)} /><Row label={tr("Waste")} value={rupiah(s.deductions.waste)} />
+                  <Row strong label={tr("Deducted from the sales")} value={rupiah(s.deductions.value)} />
+                </ul>
+                <p className="mt-1 text-[11px] text-neutral-400">{tr("Valued at the menu price; not counted as a sale, deducted as cupping / waste")}</p>
+              </>
+            )}
+          </Block>
+          <Block title={tr("Cash")}>
+            {s.recap.cashActual === null ? <p className="text-xs text-neutral-400">{tr("Counted at the end of the shift")}</p> : (
+              <ul className="divide-y divide-neutral-100 text-xs text-neutral-700">
+                <Row label={tr("Cash sales")} value={rupiah(s.recap.cash)} /><Row label={tr("Spent from the cash")} value={`− ${rupiah(s.recap.cashSpent)}`} />
+                <Row label={tr("Cash to Hand Over")} value={rupiah(s.recap.cashExpected)} /><Row label={tr("Cash counted")} value={rupiah(s.recap.cashActual)} />
+                <Row strong label={tr("Balance")} value={rupiah(s.recap.balance ?? 0)} tone={(s.recap.balance ?? 0) < 0 ? "text-red-600" : undefined} />
+              </ul>
+            )}
+          </Block>
+          <Block title={tr("Stock & accessories")}>
+            <ul className="divide-y divide-neutral-100 text-xs text-neutral-700">
+              <Row label={tr("Start stock")} value={`${cups(s.startStock)} ${tr("cups")}`} />
+              <Row label={tr("Reloads received")} value={`${s.recap.reloaded} ${tr("cups")}`} />
+              {s.status === "open" && <Row label={tr("On the Fleet")} value={`${cups(s.stock)} ${tr("cups")}`} />}
+              <Row label={tr("Requests")} value={rupiah(s.recap.requested)} />
+            </ul>
+            {diff && <p className="mt-2 rounded-lg bg-red-50 px-2 py-1.5 text-xs text-red-700">{tr("Stock difference")}: {Object.entries(diff).map(([k, v]) => `${k} ${v > 0 ? "+" : ""}${v}`).join(", ")}{s.endNote ? ` · ${s.endNote}` : ""}</p>}
+            <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Accessories carried")}</p>
+            <p className="text-xs text-neutral-700">{s.accessories.length ? s.accessories.map((x) => `${x.name} × ${x.qty}`).join(" · ") : "—"}</p>
+          </Block>
+        </div>
+      </div>
+    </Drawer>
+  );
+}
+
+function Block({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-xl border border-neutral-200 bg-white p-3.5">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{title}</p>
+      {children}
+    </section>
   );
 }
 
