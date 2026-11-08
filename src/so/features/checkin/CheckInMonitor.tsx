@@ -46,11 +46,17 @@ const LOC: Record<string, () => string> = {
 };
 const REFRESH_MS = 60_000;
 
+/** The three location checks of a check in, each with one badge (2026-11-08):
+ *  1. position: at the outlet (green) · outside the radius (red, with the distance) · outlet without coordinates (grey);
+ *  2. GPS accuracy: accurate (no badge) · low accuracy above LOW_ACCURACY_M (amber, ± metres);
+ *  3. suspicious location: signs of a faked position (fake GPS, a jump, a mocked device) — medium (amber) or high (red). */
+const LOW_ACCURACY_M = 100;
+
 function RiskTags({ c }: { c: CheckIn }) {
   return (
     <>
       {suspect(c) && <Badge tone={c.riskLevel === "high" ? "red" : "amber"} icon={<ShieldAlert size={11} />}
-        title={(c.riskSignals ?? []).map((x) => x.text).join("\n")}>{tr("Suspicious Location")}</Badge>}
+        title={(c.riskSignals ?? []).map((x) => x.text).join("\n")}>{c.riskLevel === "high" ? tr("Suspicious: high") : tr("Suspicious: medium")}</Badge>}
       {c.review && (c.review.status === "valid"
         ? <Badge tone="green" icon={<CheckCircle2 size={11} />}>{tr("Reviewed: valid")}</Badge>
         : <Badge tone="red" icon={<XCircle size={11} />}>{tr("Reviewed: not valid")}</Badge>)}
@@ -61,12 +67,14 @@ function RiskTags({ c }: { c: CheckIn }) {
 function LocationTags({ c, distance = true }: { c: CheckIn; distance?: boolean }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-1">
-      {!c.outletLocated ? <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet Has No Coordinates")}</Badge>
-        : c.outsideRadius ? <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>
-        : <Badge tone="green">{tr("At the Outlet")}</Badge>}
-      {c.lowAccuracy && <Badge tone="slate" icon={<SignalLow size={11} />}>{tr("Low GPS accuracy")}</Badge>}
+      {!c.outletLocated ? <Badge tone="slate" icon={<MapPinOff size={11} />} title={tr("Set the outlet's location in Cost Control → Outlet Locations")}>{tr("Outlet Has No Coordinates")}</Badge>
+        : c.outsideRadius ? <Badge tone="red" icon={<MapPin size={11} />} title={tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100)}>
+            {distance && c.distanceM !== null ? tr("Outside radius · {0} m", c.distanceM) : tr("Outside Radius")}</Badge>
+        : <Badge tone="green" icon={<CheckCircle2 size={11} />} title={tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? 0, c.radiusM ?? 100)}>
+            {distance && c.distanceM !== null ? tr("At the outlet · {0} m", c.distanceM) : tr("At the Outlet")}</Badge>}
+      {c.lowAccuracy && <Badge tone="amber" icon={<SignalLow size={11} />} title={tr("The phone reported its position within ±{0} m: above {1} m the position is not precise", Math.round(c.accuracyM ?? 0), LOW_ACCURACY_M)}>
+        {tr("GPS not precise · ±{0} m", Math.round(c.accuracyM ?? 0))}</Badge>}
       <RiskTags c={c} />
-      {distance && c.distanceM !== null && <span className="text-[11px] tabular-nums text-neutral-500">{c.distanceM} m{c.accuracyM !== null ? ` ±${Math.round(c.accuracyM)}` : ""}</span>}
     </span>
   );
 }
@@ -158,6 +166,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
         </div>
       )}
 
+      <LocationLegend />
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search PIC or outlet")} filters={chips}
         onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
         footer={res ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span><PageNav paged={paged} /></> : undefined}>
@@ -361,8 +370,22 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
           </DrawerBlock>
         )}
 
+        <DrawerBlock title={tr("Location check")}>
+          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
+            <Check ok={c.outletLocated ? !c.outsideRadius : null} title={tr("Position")}
+              text={!c.outletLocated ? tr("The outlet has no coordinates yet: the distance cannot be checked")
+                : tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100)}
+              verdict={!c.outletLocated ? tr("Not checked") : c.outsideRadius ? tr("Outside Radius") : tr("At the Outlet")} />
+            <Check ok={c.accuracyM == null ? null : !c.lowAccuracy} title={tr("GPS accuracy")}
+              text={c.accuracyM == null ? tr("The phone gave no accuracy") : tr("The phone reported its position within ±{0} m (precise up to {1} m)", Math.round(c.accuracyM), LOW_ACCURACY_M)}
+              verdict={c.accuracyM == null ? tr("Unknown") : c.lowAccuracy ? tr("Not precise") : tr("Precise")} warn />
+            <Check ok={!risky} title={tr("Signs of a faked location")}
+              text={risky ? tr("{0} signs found, see below", (c.riskSignals ?? []).filter((x) => x.level !== "low").length) : tr("No fake GPS, jump or mocked position found")}
+              verdict={RISK_LABEL[c.riskLevel ?? "none"]()} />
+          </ul>
+        </DrawerBlock>
         {(c.riskSignals ?? []).length > 0 && (
-          <DrawerBlock title={`${tr("Location check")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
+          <DrawerBlock title={`${tr("Signs found")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
             <ul className={cx("space-y-1.5 rounded-xl border p-3 text-xs", risky ? "border-red-200 bg-red-50" : "border-neutral-200 bg-neutral-50")}>
               {(c.riskSignals ?? []).map((x) => (
                 <li key={x.code} className="flex gap-2">
@@ -573,5 +596,43 @@ function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
         </Button>
       </div>
     </section>
+  );
+}
+
+/** One location check of the drawer: green ok, red (or amber when `warn`) not ok, grey not checked. */
+function Check({ ok, title, text, verdict, warn }: { ok: boolean | null; title: string; text: string; verdict: string; warn?: boolean }) {
+  const tone = ok === null ? "bg-neutral-100 text-neutral-500" : ok ? "bg-emerald-50 text-emerald-700" : warn ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700";
+  return (
+    <li className="flex items-start gap-3 px-3 py-2.5">
+      <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full", tone)}>
+        {ok === null ? <MapPinOff size={13} /> : ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={13} />}</span>
+      <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{title}</span>
+        <span className="block text-xs text-neutral-500">{text}</span></span>
+      <span className={cx("flex-shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold", tone)}>{verdict}</span>
+    </li>
+  );
+}
+
+/** What the location badges mean, once above the list (collapsed after the first look). */
+function LocationLegend() {
+  const items: { badge: React.ReactNode; text: string }[] = [
+    { badge: <Badge tone="green" icon={<CheckCircle2 size={11} />}>{tr("At the Outlet")}</Badge>, text: tr("The phone was inside the outlet's radius") },
+    { badge: <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>, text: tr("Further from the outlet than its radius: Cost Control reviews it") },
+    { badge: <Badge tone="amber" icon={<SignalLow size={11} />}>{tr("GPS not precise")}</Badge>, text: tr("The position is only known within more than {0} m (indoors, weak signal): the distance may be off", LOW_ACCURACY_M) },
+    { badge: <Badge tone="amber" icon={<ShieldAlert size={11} />}>{tr("Suspicious: medium")}</Badge>, text: tr("Some signs of a faked position (a jump, a mocked device); worth a look") },
+    { badge: <Badge tone="red" icon={<ShieldAlert size={11} />}>{tr("Suspicious: high")}</Badge>, text: tr("Strong signs of fake GPS: review it and mark valid or not valid") },
+    { badge: <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet Has No Coordinates")}</Badge>, text: tr("The distance cannot be checked until the outlet's location is set") },
+  ];
+  return (
+    <details className="group rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm">
+      <summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-neutral-800">
+        <MapPin size={15} className="text-neutral-400" />{tr("What the location badges mean")}
+        <span className="ml-auto text-xs text-neutral-400 group-open:hidden">{tr("Show")}</span></summary>
+      <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+        {items.map((x, i) => (
+          <li key={i} className="flex items-start gap-2 text-xs text-neutral-600"><span className="flex-shrink-0">{x.badge}</span><span className="pt-0.5">{x.text}</span></li>
+        ))}
+      </ul>
+    </details>
   );
 }

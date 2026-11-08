@@ -16,6 +16,7 @@ export type Item = { key: string; no: number; label: string; labelEn?: string; k
   /** asked only at the outlets of these branch groups (2026-11-02); the others do not see it */ onlyFor?: string[];
   /** "g": the PIC also types the stock in grams, net weight (Stock Preparation, Espresso and Beans, 2026-10-28) */
   qty?: "g";
+  /** the units the PIC may count the stock in (premixes: gram, pail, teko — 2026-11-08) */ units?: string[];
   /** Travel Path (Outlet Cleanliness, 2026-10-30): the photo points, the standard to see, the category */
   detail?: string; standard?: string; category?: "Kritikal" | "Mayor" | "Minor"; categoryEn?: string;
   /** the photo points and the standard in English (2026-11-02) */ detailEn?: string; standardEn?: string };
@@ -48,7 +49,7 @@ export const evidenceOf = (i: Item, group?: string | null) => {
   return { note: req && (i.note ?? "required") === "required", photo: req && (i.photo ?? "required") === "required", qty: req && !!i.qty };
 };
 /** rating null = cleared (tapping the chosen rating again); qty = grams (net weight) */
-export type Answer = { rating?: Rating | null; note?: string; qty?: number | null; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null;
+export type Answer = { rating?: Rating | null; note?: string; qty?: number | null; unit?: string | null; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null;
   /** WW-WR: the member of the team who filled it */ by?: string };
 /** 1250.5 → "1,250.5 g" in the UI language */
 export const fmtGrams = (n: number) => `${n.toLocaleString(numberLocale(), { maximumFractionDigits: 1 })} g`;

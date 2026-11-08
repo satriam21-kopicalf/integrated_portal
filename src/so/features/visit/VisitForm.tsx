@@ -568,8 +568,11 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
   );
 }
 
-/** The stock in whole grams, net weight (Stock Preparation, Espresso and Beans): saved when the field is left. */
-function QtyGrams({ answer, required, missing, label, onAnswer }: { answer: Answer; required: boolean; missing: boolean; label: string; onAnswer: (v: Answer, now?: boolean) => void }) {
+/** The stock in whole grams, net weight (Espresso and Beans), or for a premix a plain quantity in gram, pail or teko:
+ * saved when the field is left. */
+function QtyGrams({ answer, required, missing, label, units, onAnswer }: { answer: Answer; required: boolean; missing: boolean; label: string; units?: string[]; onAnswer: (v: Answer, now?: boolean) => void }) {
+  const unit = answer.unit ?? "gram";
+  const UNIT_LABEL: Record<string, string> = { gram: "g", pail: tr("pail"), teko: tr("teko") };
   const [text, setText] = useState(answer.qty != null ? String(Math.round(answer.qty)) : "");
   const [bad, setBad] = useState(false);
   const commit = () => {
@@ -586,10 +589,19 @@ function QtyGrams({ answer, required, missing, label, onAnswer }: { answer: Answ
           <input value={text} onChange={(e) => setText(e.target.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 7))} onBlur={commit}
             onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
             inputMode="numeric" placeholder="0" aria-label={tr("{0}: grams (net weight)", label)} aria-invalid={bad || missing || undefined}
-            className={cx(inputClass, "h-10 w-36 pr-9 text-right text-sm font-semibold tabular-nums", (bad || missing) && "border-red-300")} />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-neutral-400">g</span>
+            className={cx(inputClass, "h-11 w-32 pr-12 text-right text-base font-semibold tabular-nums sm:h-10 sm:text-sm", (bad || missing) && "border-red-300")} />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-neutral-400">{UNIT_LABEL[unit] ?? unit}</span>
         </span>
-        <span className="text-xs text-neutral-500">{tr("Qty in grams (net weight)")}{required ? "" : ` · ${tr("optional")}`}</span>
+        {units?.length ? (
+          <span role="radiogroup" aria-label={tr("Unit")} className="inline-flex rounded-lg bg-neutral-100 p-0.5">
+            {units.map((u) => (
+              <button key={u} type="button" role="radio" aria-checked={unit === u} onClick={() => unit !== u && onAnswer({ unit: u }, true)}
+                className={cx("h-9 rounded-md px-3 text-xs font-medium capitalize transition-colors sm:h-8",
+                  unit === u ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800")}>{u === "gram" ? tr("Gram") : UNIT_LABEL[u]}</button>
+            ))}
+          </span>
+        ) : null}
+        <span className="text-xs text-neutral-500">{units?.length ? tr("Stock quantity") : tr("Qty in grams (net weight)")}{required ? "" : ` · ${tr("optional")}`}</span>
       </label>
       {bad && <p className="mt-1 text-xs text-red-600">{tr("Type a number from 0 to 1,000,000 grams")}</p>}
     </div>
@@ -636,7 +648,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
               ))}
             </div>
           )}
-          {item.qty && <QtyGrams answer={answer} required={ev.qty} missing={needQty} label={tl(item)} onAnswer={onAnswer} />}
+          {item.qty && <QtyGrams answer={answer} required={ev.qty} missing={needQty} label={tl(item)} units={item.units} onAnswer={onAnswer} />}
           {showNote && (
             <textarea value={answer.note ?? ""} onChange={(e) => onAnswer({ note: e.target.value })} rows={2} maxLength={1000}
               placeholder={item.kind === "text" ? tr("Names, separated by commas") : rated && ev.note ? tr("What you see (required)") : tr("Note (optional)")}
