@@ -9,7 +9,7 @@ export class ApiError extends Error {
 
 export async function api<T>(path: string, init?: RequestInit & { json?: unknown }): Promise<T> {
   const { json, ...rest } = init ?? {};
-  const res = await fetch(path, {
+  const res = await fetch(ccUrl(path), {
     ...rest,
     credentials: "same-origin",
     headers: { ...(json !== undefined ? { "content-type": "application/json" } : {}), ...(rest.headers ?? {}) },
@@ -27,4 +27,5 @@ export async function api<T>(path: string, init?: RequestInit & { json?: unknown
   return body.data as T;
 }
 
-export const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
+export const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));import { ccUrl } from "@/lib/company";
+

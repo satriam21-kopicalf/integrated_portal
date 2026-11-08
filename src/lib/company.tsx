@@ -26,6 +26,21 @@ export function withCompany(url: string, company: string): string {
 let current = MAIN_COMPANY;
 export const currentCompany = () => current;
 
+// Cost Control (2026-11-08): every list, figure and export of a Cost Control page is about the brand chosen on top
+// (integrated_portal_be app/scope.py COST_CONTROL_PATHS, the stock opname through the gateway); the Operations forms
+// never are, since they are not under /cost-control.
+const CC_API = ['/api/cost-control/', '/api/monitoring/', '/api/so/', '/api/waste/monitor', '/api/waste/reviews', '/api/waste/daily',
+  '/api/waste/usage', '/api/waste/investigations'];
+
+/** `url` with the Cost Control brand when a Cost Control page asks one of its endpoints; the branch filters of a
+ * brand list that brand's branches only. */
+export function ccUrl(url: string): string {
+  if (typeof window === 'undefined' || !window.location.pathname.startsWith('/cost-control') || url.includes('company=')
+    && !url.startsWith('/api/branches')) return url;
+  if (url.startsWith('/api/branches')) return current === MAIN_COMPANY ? url : url.replace('company=all', `company=${current}`);
+  return CC_API.some((p) => url.startsWith(p)) ? withCompany(url, current) : url;
+}
+
 interface CompanyState { companies: Company[]; company: string; setCompany: (code: string) => void }
 
 const CompanyContext = createContext<CompanyState>({ companies: [], company: MAIN_COMPANY, setCompany: () => {} });

@@ -1,7 +1,8 @@
+import CostControlBrand from "@/components/CostControlBrand";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import CountTypeNames from "@/so/features/CountTypeNames";
 
 /** Stock opname screens (kopicalf stock-count API through /api/so, D-51) inside the portal shell. */
 export default function StockOpnameLayout({ children }: { children: React.ReactNode }) {
-  return <DashboardLayout><CountTypeNames>{children}</CountTypeNames></DashboardLayout>;
+  return <DashboardLayout><CostControlBrand><CountTypeNames>{children}</CountTypeNames></CostControlBrand></DashboardLayout>;
 }

@@ -5,6 +5,7 @@
 // for every branch — what the branches sent (approved or not), what waits for a review, everything incl. counts still in
 // progress, or the approved ones only; it follows the period and the count type filter.
 
+import { ccUrl } from "@/lib/company";
 import LocationBadges from "@/so/features/count/LocationBadges";
 import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCheck, Clock, Layers, RotateCcw, Send } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
@@ -81,7 +82,7 @@ export default function ReviewsPage() {
   const download = async (status: ExportKind) => {
     try {
       const qs = new URLSearchParams({ date_from: f.period.from, date_to: f.period.to, status, per_branch: "true", ...(f.type ? { count_type: f.type } : {}) });
-      const res = await fetch(`/api/so/count-reports/file?${qs}`, { credentials: "same-origin" });
+      const res = await fetch(ccUrl(`/api/so/count-reports/file?${qs}`), { credentials: "same-origin" });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(res.status === 404 ? tr("No count with this status in the period") : body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded"));

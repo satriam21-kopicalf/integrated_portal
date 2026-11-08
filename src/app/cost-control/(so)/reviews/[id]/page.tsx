@@ -6,6 +6,7 @@
 // Layout (2026-11-04): the correction opens in a drawer (full screen on phones, the Save button at the bottom), the
 // review actions sit in a bar above the bottom menu on phones and tablets, the lines are cards on phones.
 
+import { thumb } from "@/lib/assets";
 import { AlertTriangle, ArrowLeft, Check, ChevronRight, ClipboardList, FlaskConical, History, MapPin, Pencil, RotateCcw, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -350,7 +351,7 @@ export default function ReviewDetailPage() {
                     <li key={ph.id} className="min-w-0">
                       <a href={photoUrl(ph.id)} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg ring-1 ring-neutral-200">
                         {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
-                        <img src={photoUrl(ph.id)} alt={ph.subject} loading="lazy" decoding="async" className="aspect-square w-full object-cover" />
+                        <img src={thumb(photoUrl(ph.id), 320)} alt={ph.subject} loading="lazy" decoding="async" className="aspect-square w-full bg-neutral-100 object-cover" />
                       </a>
                       <p className="mt-1 truncate text-xs font-medium text-neutral-700">{item ?? (ph.subject === "GENERAL" ? tr("Count photo") : ph.subject.replace("AREA:", ""))}</p>
                       <p className="truncate text-[11px] text-neutral-400">{fmtDate(ph.uploaded_at)}{ph.uploaded_by_name ? ` · ${ph.uploaded_by_name}` : ""}</p>

@@ -1,6 +1,22 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "See the calculation": "Lihat kalkulasi",
+  "before {0}": "sebelumnya {0}",
+  "Previous SO": "SO sebelumnya",
+  "No earlier SO in the last 60 days": "Tidak ada SO sebelumnya dalam 60 hari",
+  "Latest SO": "SO terakhir",
+  "Change between the two SO": "Selisih kedua SO",
+  "Since the latest SO": "Sejak SO terakhir",
+  "Transfer in": "Transfer masuk",
+  "Transfer out": "Transfer keluar",
+  "From the Cost Control approval": "Sejak di-approve Cost Control",
+  "Other moves": "Pergerakan lain",
+  "Outlet purchases, production, deliveries, returns": "Pembelian outlet, produksi, pengiriman, retur",
+  "Waste approved": "Waste approved",
+  "Used by the recipe cards": "Terpakai menurut kartu resep",
+  "Menus sold × recipe cards": "Menu terjual × kartu resep",
+  "price {0} per {1}": "harga {0} per {1}",
   "The outlet checks the request and Cost Control approves it: the stock leaves that outlet. You receive the goods with a photo and the ESB GR: then the stock enters your outlet.": "Outlet tujuan mengecek permintaan dan Cost Control meng-approve: stok keluar dari outlet tersebut. Anda menerima barang dengan foto dan GR ESB: barulah stok masuk ke outlet Anda.",
   "Stock unknown": "Stok tidak diketahui",
   "Available {0} {1}": "Tersedia {0} {1}",

@@ -6,6 +6,7 @@
 // what stays unexplained, with the checks of the data: SO approved, coverage of the materials, SO anomalies, prices.
 // The period starts on the day of a stock opname and ends the day before the next one (that count is the SO akhir).
 
+import CostControlBrand from '@/components/CostControlBrand';
 import ExcelIconButton from '@/components/ExcelIconButton';
 import { AlertTriangle, BarChart3, CalendarDays, CheckCircle2, Store } from 'lucide-react';
 import Link from 'next/link';
@@ -41,7 +42,7 @@ const sortValue = (r: Row, k: Key) => ({ outlet: r.branchName, nett: r.nett, sys
   usage: r.usageRatio == null ? null : Math.abs(r.usageRatio - 1), difference: r.difference, unexplained: r.unexplained, anomalies: r.anomalies }[k]);
 
 export default function CogsPage() {
-  return <DashboardLayout><Cogs /></DashboardLayout>;
+  return <DashboardLayout><CostControlBrand><Cogs /></CostControlBrand></DashboardLayout>;
 }
 
 function Cogs() {

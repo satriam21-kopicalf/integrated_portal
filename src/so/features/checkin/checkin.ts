@@ -1,6 +1,7 @@
 // PIC Check In (integrated_portal_be app/pic_checkin.py): types, the fetch helper of its endpoints (plain JSON, errors
 // as {"error": "..."}) and the location rule shown before sending (the server applies the same rule).
 
+import { ccUrl } from "@/lib/company";
 import { useEffect, useRef } from "react";
 import { serverMsg, tr } from "@/lib/i18n";
 
@@ -30,7 +31,7 @@ export type FormData = { user: { id: string; username: string; name: string }; b
 
 export async function call<T>(path: string, init?: RequestInit & { json?: unknown }): Promise<T> {
   const { json, ...rest } = init ?? {};
-  const res = await fetch(path, {
+  const res = await fetch(ccUrl(path), {
     ...rest, credentials: "same-origin",
     headers: json !== undefined ? { "content-type": "application/json" } : undefined,
     body: json !== undefined ? JSON.stringify(json) : rest.body,

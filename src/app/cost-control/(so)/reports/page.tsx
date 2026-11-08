@@ -5,6 +5,7 @@
 // qty, price, value), "Summary" with one row per count, "WIP premix" and one sheet per branch. Every filter sits in
 // one drawer; the figures show what the file will hold.
 
+import { ccUrl } from "@/lib/company";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Building2, FileSpreadsheet, Layers, ListChecks } from "lucide-react";
 import ExcelIconButton from "@/components/ExcelIconButton";
@@ -67,7 +68,7 @@ export default function ReportsPage() {
     try {
       const qs = new URLSearchParams({ date_from: f.period.from, date_to: f.period.to, status: f.status, per_branch: String(f.perBranch),
         ...(f.type ? { count_type: f.type } : {}), ...(f.facility ? { facility_id: f.facility } : {}) });
-      const res = await fetch(`/api/so/count-reports/file?${qs}`, { credentials: "same-origin" });
+      const res = await fetch(ccUrl(`/api/so/count-reports/file?${qs}`), { credentials: "same-origin" });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded"));

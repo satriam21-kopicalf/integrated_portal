@@ -9,7 +9,8 @@
 
 import { SortTh, useSort } from "@/so/ui/Sort";
 import ExcelIconButton from "@/components/ExcelIconButton";
-import { Boxes, CalendarDays, Package, Store } from "lucide-react";
+import { Boxes, Calculator, CalendarDays, Package, Store } from "lucide-react";
+import Drawer from "@/so/ui/Drawer";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
@@ -19,12 +20,14 @@ import { Segmented } from "@/so/ui/Simple";
 import { call } from "@/so/features/checkin/checkin";
 import { downloadXlsx } from "@/lib/xlsx";
 import { tr } from "@/lib/i18n";
-import { qtyText, rpText, shortBranch } from "@/so/features/stock-transfer/transfer";
+import { qtyText, rpText } from "@/so/features/stock-transfer/transfer";
 
 type Row = { branch: string; branchName: string; code: string; name: string; category: string; unit: string; so: number; in: number; out: number;
   pending: number; stock: number; available: number; price: number | null; value: number | null;
+  /** the quantity of the stock opname before the latest one (2026-11-08) */ prevSo?: number | null;
   received: number; otherMoves: number; waste: number; used: number; estimate: number; estimateValue: number | null };
-type Head = { branch: string; branchName: string; soDate: string; refs: string[]; items: number; value: number; final?: boolean | null; estimateValue: number };
+type Head = { branch: string; branchName: string; soDate: string; refs: string[]; items: number; value: number; final?: boolean | null; estimateValue: number;
+  prevSoDate?: string | null; prevRefs?: string[] };
 type Data = { branches: Head[]; rows: Row[] };
 type View = "branch" | "material";
 type SortKey = "branch" | "material" | "so" | "moves" | "waste" | "used" | "estimate" | "available" | "value";
@@ -40,6 +43,7 @@ export default function StockListPage() {
   const [branch, setBranch] = useState("");
   const [category, setCategory] = useState("");
   const [sheet, setSheet] = useState(false);
+  const [calc, setCalc] = useState<Row | null>(null);
   const load = () => { setError(null); setData(null); call<Data>("/api/monitoring/stock/list").then(setData).catch((e: Error) => setError(e.message)); };
   useEffect(load, []);
   const rows = useMemo(() => (data?.rows ?? []).filter((r) => (!branch || r.branch === branch) && (!category || r.category === category)
@@ -68,9 +72,9 @@ export default function StockListPage() {
     ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
   ];
   const exportRows = () => downloadXlsx({ fileName: "Stock List", sheet: "Stock", title: "Stock List (SO terakhir)",
-    header: ["Cabang", "Tanggal SO", "SO Final", "Kode", "Material", "Kategori", "Satuan", "SO", "Transfer Masuk", "Transfer Keluar", "Good Receipt", "Pergerakan Lain",
+    header: ["Cabang", "Tanggal SO Sebelumnya", "SO Sebelumnya", "Tanggal SO", "SO Final", "Kode", "Material", "Kategori", "Satuan", "SO", "Transfer Masuk", "Transfer Keluar", "Good Receipt", "Pergerakan Lain",
       "Waste Approved", "Terpakai (Resep)", "Estimasi Saat Ini", "Dalam Proses Keluar", "Tersedia (TITO)", "Harga", "Nilai SO", "Nilai Estimasi"],
-    rows: rows.map((r) => { const h = heads.find((x) => x.branch === r.branch); return [r.branchName, h?.soDate ?? "", h?.final ? "Ya" : "Belum", r.code, r.name, r.category, r.unit,
+    rows: rows.map((r) => { const h = heads.find((x) => x.branch === r.branch); return [r.branchName, h?.prevSoDate ?? "", r.prevSo ?? "", h?.soDate ?? "", h?.final ? "Ya" : "Belum", r.code, r.name, r.category, r.unit,
       r.so, r.in, r.out, r.received, r.otherMoves, r.waste, r.used, r.estimate, r.pending, r.available, r.price, r.value, r.estimateValue]; }) });
   return (
     <Page title={tr("Stock List")} subtitle={tr("The stock of every branch from its latest stock opname, with the transfers since")}
@@ -105,11 +109,12 @@ export default function StockListPage() {
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => {
                 const h = heads.find((x) => x.branch === r.branch);
                 return (
-                  <tr key={`${r.branch}:${r.code}`} className="hover:bg-neutral-50/70">
-                    <td className="max-w-[13rem] py-2 pl-5 pr-3"><p className="truncate text-neutral-800">{shortBranch(r.branchName)}</p>
+                  <tr key={`${r.branch}:${r.code}`} className="cursor-pointer hover:bg-neutral-50/70" onClick={() => setCalc(r)} title={tr("See the calculation")}>
+                    <td className="max-w-[15rem] py-2 pl-5 pr-3"><p className="truncate text-neutral-800" title={r.branchName}>{r.branchName}</p>
                       <p className="text-[11px] text-neutral-400">{h ? tr("SO {0}", dmy(h.soDate)) : ""}{h && h.final === false ? <span className="ml-1 text-amber-700">· {tr("not approved")}</span> : null}</p></td>
                     <td className="max-w-[16rem] px-3 py-2"><p className="truncate font-medium text-neutral-900">{r.name}</p><p className="text-[11px] text-neutral-400">{r.code}{r.category ? ` · ${r.category}` : ""}</p></td>
-                    <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{qtyText(r.so)} <span className="text-neutral-400">{r.unit}</span></td>
+                    <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{qtyText(r.so)} <span className="text-neutral-400">{r.unit}</span>
+                      <span className="block text-[10px] text-neutral-400">{h ? dmy(h.soDate) : ""}{r.prevSo != null && h?.prevSoDate ? ` · ${tr("before {0}", qtyText(r.prevSo))}` : ""}</span></td>
                     {(() => { const mv = r.received + r.otherMoves + r.in - r.out; return (
                       <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", mv > 0 ? "text-emerald-700" : mv < 0 ? "text-red-700" : "text-neutral-300")}
                         title={`${tr("Goods Receipt")} ${qtyText(r.received)} · ${tr("Transfer")} +${qtyText(r.in)} / −${qtyText(r.out)} · ${tr("Other")} ${qtyText(r.otherMoves)}`}>{mv ? `${mv > 0 ? "+" : ""}${qtyText(mv)}` : "—"}</td>); })()}
@@ -132,11 +137,12 @@ export default function StockListPage() {
                   <span className="text-xs tabular-nums text-neutral-600">{tr("{0} {1} at {2} outlets · {3}", qtyText(m.available), m.unit, m.outlets.length, rpText(m.value))}</span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap gap-1">{m.outlets.sort((a, b) => b.available - a.available).slice(0, 12).map((o) => (
-                  <span key={o.branch} className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700">{shortBranch(o.branchName)} · {qtyText(o.available)}</span>))}
+                  <span key={o.branch} className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700">{o.branchName} · {qtyText(o.available)}</span>))}
                   {m.outlets.length > 12 && <span className="px-1 text-[11px] text-neutral-400">{tr("+{0} more", m.outlets.length - 12)}</span>}</div>
               </li>))}</ul>
           )}
       </Panel>
+      {calc && <CalcDrawer r={calc} h={heads.find((x) => x.branch === calc.branch)} onClose={() => setCalc(null)} />}
       {sheet && <StockFilters branch={branch} category={category} heads={heads} categories={categories} onClose={() => setSheet(false)}
         onApply={(b, c) => { setBranch(b); setCategory(c); setSheet(false); }} />}
     </Page>
@@ -158,5 +164,44 @@ function StockFilters({ branch, category, heads, categories, onApply, onClose }:
         <ComboFilter value={c} onChange={setC} allLabel={tr("All categories")} placeholder={tr("Search category")} options={categories.map((x) => ({ value: x, label: x }))} />
       </FilterRow>
     </MonitorFilterSheet>
+  );
+}
+
+/** How the stock now of one material of one branch is reached (2026-11-08): the previous SO, the latest SO, every move,
+ * waste and usage since the latest SO, the estimate and the available quantity. */
+function CalcDrawer({ r, h, onClose }: { r: Row; h?: Head; onClose: () => void }) {
+  const moves = r.received + r.otherMoves + r.in - r.out;
+  const line = (label: string, v: number | null | undefined, hint?: string, strong?: boolean, sign = "") => (
+    <div className={cx("flex items-start justify-between gap-3 px-4 py-2.5", strong && "bg-neutral-50")}>
+      <span className="min-w-0"><span className={cx("block text-sm", strong ? "font-semibold text-neutral-900" : "text-neutral-700")}>{label}</span>
+        {hint && <span className="block text-[11px] text-neutral-400">{hint}</span>}</span>
+      <span className={cx("whitespace-nowrap tabular-nums", strong ? "text-base font-semibold text-neutral-900" : "text-sm text-neutral-800")}>
+        {v == null ? "—" : `${sign}${qtyText(v)}`} <span className="text-xs text-neutral-400">{r.unit}</span></span>
+    </div>
+  );
+  return (
+    <Drawer open onClose={onClose} icon={<Calculator size={18} />} title={r.name} description={`${r.branchName} · ${r.code}`}>
+      <div className="space-y-4">
+        <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+          <p className="border-b border-neutral-100 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Stock opname")}</p>
+          {line(tr("Previous SO"), r.prevSo, h?.prevSoDate ? `${dmy(h.prevSoDate)}${h.prevRefs?.length ? ` · ${h.prevRefs.join(", ")}` : ""}` : tr("No earlier SO in the last 60 days"))}
+          {line(tr("Latest SO"), r.so, h ? `${dmy(h.soDate)}${h.refs.length ? ` · ${h.refs.join(", ")}` : ""}${h.final === false ? ` · ${tr("not approved")}` : ""}` : undefined, true)}
+          {r.prevSo != null && line(tr("Change between the two SO"), r.so - r.prevSo, undefined, false, r.so - r.prevSo > 0 ? "+" : "")}
+        </section>
+        <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+          <p className="border-b border-neutral-100 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Since the latest SO")}</p>
+          {line(tr("Goods Receipt"), r.received, undefined, false, "+")}
+          {line(tr("Transfer in"), r.in, undefined, false, "+")}
+          {line(tr("Transfer out"), r.out, tr("From the Cost Control approval"), false, "−")}
+          {line(tr("Other moves"), r.otherMoves, tr("Outlet purchases, production, deliveries, returns"), false, r.otherMoves > 0 ? "+" : "")}
+          {line(tr("Waste approved"), r.waste, undefined, false, "−")}
+          {line(tr("Used by the recipe cards"), r.used, tr("Menus sold × recipe cards"), false, "−")}
+          {line(tr("Estimate Now"), r.estimate, `${tr("SO")} ${qtyText(r.so)} ${moves >= 0 ? "+" : "−"} ${qtyText(Math.abs(moves))} − ${qtyText(r.waste)} − ${qtyText(r.used)}`, true)}
+          {line(tr("Available"), r.available, tr("For Transfer Stock: the SO with the transfers, less the ones on their way out"))}
+        </section>
+        <p className="px-1 text-xs text-neutral-500">{tr("Value")}: <span className="font-semibold text-neutral-800">{r.estimateValue == null ? tr("No price") : rpText(r.estimateValue)}</span>
+          {r.price != null && <> · {tr("price {0} per {1}", rpText(r.price), r.unit)}</>}</p>
+      </div>
+    </Drawer>
   );
 }
