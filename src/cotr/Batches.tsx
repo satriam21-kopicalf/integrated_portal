@@ -21,7 +21,7 @@ type BatchFilter = '' | 'hub' | 'expiring' | 'expired' | 'out';
 
 type Transfer = { id: string; pool: string; poolName: string; qty: number; status: 'sent' | 'received'; note: string | null; sentAt: string; receivedAt: string | null };
 type Batch = { id: string; batchNo: string; hub: string; menu: string; qty: number; producedOn: string; expiresOn: string; note: string | null;
-  sent: number; received: number; atHub: number; transfers: Transfer[] };
+  sent: number; received: number; atHub: number; transfers: Transfer[]; /** cups wasted in the production (migration 081) */ waste?: number; wasteReason?: string | null };
 type StockItem = { transfer: string; batchNo: string; menu: string; menuName: string; qty: number; status: 'sent' | 'received'; producedOn: string; expiresOn: string; daysLeft: number };
 
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
@@ -178,6 +178,8 @@ export function BatchesTab() {
                         ))}
                       </ul>
                     )}
+                    {(b.waste ?? 0) > 0 && <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800">{tr('Production waste: {0} cups', b.waste ?? 0)}{b.wasteReason ? ` · ${b.wasteReason}` : ''}</p>}
+                    <WasteLine batch={b} onSaved={() => setTick((t) => t + 1)} />
                     {b.atHub > 0 && (sending === b.id
                       ? <SendForm batch={b} pools={(pools.rows ?? []).filter((p) => p.code !== b.hub)} onClose={() => setSending(null)} onSent={() => { setSending(null); setTick((t) => t + 1); }} />
                       : <Button size="sm" variant="secondary" className="w-full" onClick={() => setSending(b.id)}><Send size={14} /> {tr('Send to a Pool')}</Button>)}
@@ -189,6 +191,29 @@ export function BatchesTab() {
         )}
       </Panel>
     </>
+  );
+}
+
+/** The cups of the batch wasted while making it: not sent, the materials are used anyway (migration 081). */
+function WasteLine({ batch, onSaved }: { batch: Batch; onSaved: () => void }) {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [qty, setQty] = useState(String(batch.waste ?? 0));
+  const [reason, setReason] = useState(batch.wasteReason ?? '');
+  const [busy, setBusy] = useState(false);
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className="text-xs font-medium text-amber-700 hover:underline">{(batch.waste ?? 0) > 0 ? tr('Change production waste') : tr('+ Production waste')}</button>;
+  const save = async () => {
+    setBusy(true);
+    try { await call(`/api/cotr/batches/${batch.id}/waste`, { method: 'POST', json: { qty: Number(qty) || 0, reason: reason || null } }); toast(tr('Saved')); setOpen(false); onSaved(); }
+    catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
+  };
+  return (
+    <div className="grid gap-2 rounded-xl border border-amber-200 bg-amber-50/50 p-2.5 sm:grid-cols-[6rem_1fr_auto]">
+      <Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="h-10 text-right" aria-label={tr('Cups wasted')} />
+      <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Reason (spilled, failed the taste …)')} className="h-10" />
+      <div className="flex gap-2"><Button size="sm" variant="ghost" onClick={() => setOpen(false)}>{tr('Cancel')}</Button>
+        <Button size="sm" loading={busy} onClick={() => void save()}>{tr('Save')}</Button></div>
+    </div>
   );
 }
 

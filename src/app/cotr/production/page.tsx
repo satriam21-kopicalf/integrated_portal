@@ -4,7 +4,8 @@
 // the premix calculator, the theoretical usage, the production plan from the drivers' sales of the last days (average + a buffer,
 // exploded through the BOMs down to raw materials: cup → premix → milk, espresso …) and the waste of the pools.
 
-import { BookOpen, Building2, Calculator, CalendarDays, ClipboardList, CookingPot, Factory, ListTree, Package, Percent, Plus, Trash2, TrendingDown, Truck } from "lucide-react";
+import { StockTab, ReceiptsTab, CountsTab } from "@/cotr/Stock";
+import { Boxes, ClipboardCheck, PackagePlus, BookOpen, Building2, Calculator, CalendarDays, ClipboardList, CookingPot, Factory, ListTree, Package, Percent, Plus, Trash2, TrendingDown, Truck } from "lucide-react";
 import { BatchesTab } from "@/cotr/Batches";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Field, Input, Select, useToast } from "@/so/ui";
@@ -20,11 +21,13 @@ import { useMaster } from "@/cotr/ui";
 import { CalculatorTab, ItemsTab, RecipesTab, UsageTab } from "@/cotr/Recipes";
 import { locale, tr } from "@/lib/i18n";
 
-type Tab = "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
+type Tab = "stock" | "receipts" | "counts" | "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 type Waste = { id: string; day: string; pool_code: string; item: string; qty: number; unit: string; reason: string };
 
 const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
+  { key: "stock", label: () => tr("Stock"), icon: Boxes }, { key: "receipts", label: () => tr("Goods In"), icon: PackagePlus },
+  { key: "counts", label: () => tr("Stock Opname"), icon: ClipboardCheck },
   { key: "items", label: () => tr("Items"), icon: Package }, { key: "recipes", label: () => tr("Recipe Cards"), icon: BookOpen },
   { key: "calc", label: () => tr("Calculator"), icon: Calculator }, { key: "batch", label: () => tr("Batches"), icon: Truck },
   { key: "plan", label: () => tr("Production Plan"), icon: Factory },
@@ -32,11 +35,14 @@ const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
 ];
 
 export default function CotrProductionPage() {
-  const [tab, setTab] = useState<Tab>("recipes");
+  const [tab, setTab] = useState<Tab>("stock");
   return (
-    <Page eyebrow="Monitoring COTR" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Items, recipe cards, premix calculator, production plan, theoretical usage and waste")}>
+    <Page eyebrow="Monitoring COTR" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Stock, goods in, stock opname, batches and their waste, recipe cards, production plan and usage")}>
       <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as Tab)}
         tabs={SECTIONS.map((x) => ({ key: x.key, label: <span className="inline-flex items-center gap-1.5"><x.icon size={15} />{x.label()}</span> }))} />
+      {tab === "stock" && <StockTab />}
+      {tab === "receipts" && <ReceiptsTab />}
+      {tab === "counts" && <CountsTab />}
       {tab === "items" && <ItemsTab />}
       {tab === "recipes" && <RecipesTab />}
       {tab === "calc" && <CalculatorTab />}
@@ -136,7 +142,8 @@ function WasteList() {
   const pools = useMaster<Pool>("pools");
   const [rows, setRows] = useState<Waste[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState(() => ({ day: today(), pool_code: "", item: "", qty: 0, unit: "g", reason: "" }));
+  const [form, setForm] = useState(() => ({ day: today(), pool_code: "", item: "", item_code: "", kind: "storage" as "storage" | "production", qty: 0, unit: "g", reason: "" }));
+  const items = useMaster<{ code: string; name: string; unit: string; pack_unit: string | null; is_stock: boolean; is_active: boolean }>("items");
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pool, setPool] = useState("");
@@ -151,7 +158,7 @@ function WasteList() {
   const poolName = (code: string) => pools.rows?.find((p) => p.code === code)?.name ?? code;
   const add = async () => {
     setBusy(true);
-    try { await call("/api/cotr/waste", { method: "POST", json: form }); setForm({ ...form, item: "", qty: 0, reason: "" }); setAdding(false); toast(tr("Saved")); await load(); }
+    try { await call("/api/cotr/waste", { method: "POST", json: { ...form, item_code: form.item_code || null } }); setForm({ ...form, item: "", item_code: "", qty: 0, reason: "" }); setAdding(false); toast(tr("Saved")); await load(); }
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   const remove = async (id: string) => {
@@ -191,10 +198,17 @@ function WasteList() {
           </Field>
         </DrawerSection>
         <DrawerSection title={tr("Item")}>
-          <Field label={tr("Item")}><Input value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} /></Field>
+          <Field label={tr("Where")}><Select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as "storage" | "production" })}>
+            <option value="storage">{tr("Storage (expired, damaged …)")}</option><option value="production">{tr("Production (while making a batch)")}</option></Select></Field>
+          <Field label={tr("Item")} hint={tr("Choose the item of the master so it deducts the stock; or type another thing")}>
+            <Select value={form.item_code} onChange={(e) => { const it = (items.rows ?? []).find((i) => i.code === e.target.value); setForm({ ...form, item_code: e.target.value, item: it?.name ?? form.item, unit: it?.unit ?? form.unit }); }}>
+              <option value="">{tr("Another item (not deducted from the stock)")}</option>
+              {(items.rows ?? []).filter((i) => i.is_stock && i.is_active).map((i) => <option key={i.code} value={i.code}>{i.name} · {i.code}</option>)}
+            </Select></Field>
+          {!form.item_code && <Field label={tr("Item name")}><Input value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} /></Field>}
           <div className="grid grid-cols-2 gap-3">
             <Field label={tr("Qty")}><Input type="number" value={form.qty || ""} onChange={(e) => setForm({ ...form, qty: Number(e.target.value) })} /></Field>
-            <Field label={tr("Unit")}><Select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })}>{["g", "ml", "pcs", "cup"].map((u) => <option key={u}>{u}</option>)}</Select></Field>
+            <Field label={tr("Unit")}><Select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })}>{[...new Set([...["g", "ml", "pcs", "cup"], ...((items.rows ?? []).filter((i) => i.code === form.item_code).flatMap((i) => [i.unit, i.pack_unit ?? ""]))])].filter(Boolean).map((u) => <option key={u}>{u}</option>)}</Select></Field>
           </div>
           <Field label={tr("Reason")}><Input value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} /></Field>
         </DrawerSection>
