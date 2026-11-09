@@ -1,10 +1,10 @@
 "use client";
 
 // Monitoring COTR → Master (2026-11-08): the masters of Calf On The Road on one page, a tab each — Employees (the former
-// Master Driver), Area (the selling / standby places, migration 080), Pool / HUB, Fleet & Accessories, Schedule and Menu.
+// Master Driver), Area (the selling / standby places, migration 080), Pool / HUB, Fleet & Accessories, Schedule, Menu and Pengajuan (the request kinds, migration 083).
 // The tab is kept in the address (?tab=) so a link opens it; a tab shows only with the page it belongs to.
 
-import { Bike, Building2, CalendarDays, Coffee, MapPinned, Truck } from "lucide-react";
+import { Bike, Building2, CalendarDays, Coffee, MapPinned, Truck, Wallet } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { Page, EmbeddedPage } from "@/components/kc/compat";
@@ -17,6 +17,7 @@ import FleetPage from "../fleet/page";
 import SchedulePage from "../schedule/page";
 import MenuPage from "../menu/page";
 import AreasTab from "@/cotr/Areas";
+import RequestKindsTab from "@/cotr/RequestKinds";
 
 type Tab = { key: string; href: string; label: () => string; icon: ReactNode; body: ReactNode };
 const TABS: Tab[] = [
@@ -26,6 +27,8 @@ const TABS: Tab[] = [
   { key: "fleet", href: "/cotr/fleet", label: () => tr("Fleet & Accessories"), icon: <Truck size={15} />, body: <FleetPage /> },
   { key: "schedule", href: "/cotr/schedule", label: () => tr("Schedule"), icon: <CalendarDays size={15} />, body: <SchedulePage /> },
   { key: "menu", href: "/cotr/menu", label: () => tr("Menu"), icon: <Coffee size={15} />, body: <MenuPage /> },
+  // migration 083: the kinds of a driver's request, with the requests they are decided in
+  { key: "requests", href: "/cotr/check-in", label: () => tr("Pengajuan"), icon: <Wallet size={15} />, body: <RequestKindsTab /> },
 ];
 
 function Master() {
@@ -35,7 +38,7 @@ function Master() {
   const tabs = TABS.filter((t) => user && canAccess(user, t.href));
   const tab = tabs.find((t) => t.key === params.get("tab")) ?? tabs[0];
   return (
-    <Page title={tr("Master")} subtitle={tr("The master data of Calf On The Road: employees, areas, pools, fleet & accessories, schedule and menus")}>
+    <Page title={tr("Master")} subtitle={tr("The master data of Calf On The Road: employees, areas, pools, fleet & accessories, schedule, menus and request kinds")}>
       <Tabs label={tr("Master")} value={tab?.key ?? ""} onChange={(k) => router.replace(`/cotr/master?tab=${k}`, { scroll: false })}
         tabs={tabs.map((t) => ({ key: t.key, label: <>{t.icon}{t.label()}</> }))} />
       <EmbeddedPage.Provider value>{tab?.body}</EmbeddedPage.Provider>

@@ -16,7 +16,8 @@ import { DayField, ScopeBar, dmyOf } from "@/components/kc/ScopeBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { Monitor, Reload, Request, Shift, Stock } from "@/cotr/types";
-import { rupiah } from "@/cotr/ui";
+import { rupiah, useMaster } from "@/cotr/ui";
+import type { RequestKind } from "@/cotr/RequestKinds";
 import { locale, tr } from "@/lib/i18n";
 import { thumb } from "@/lib/assets";
 
@@ -408,6 +409,9 @@ const REQUEST: Record<Request["status"], { label: () => string; tone: "amber" | 
 };
 
 function Requests({ data, onDone }: { data: Monitor; onDone: () => Promise<void> }) {
+  // the names come from Master → Pengajuan (migration 083); the built-in labels stay for the older codes
+  const kinds = useMaster<RequestKind>("request-kinds");
+  const kindName = (code: string) => kinds.rows?.find((k) => k.code === code)?.name ?? (KINDS[code] ?? (() => code))();
   return (
     <Panel title={tr("Requests")} description={tr("Costs on the road with the receipt; the ones still waiting are listed whatever their day")}>
       {data.requests.length === 0 ? <Empty title={tr("No request")} /> : (
@@ -420,7 +424,7 @@ function Requests({ data, onDone }: { data: Monitor; onDone: () => Promise<void>
                   <img src={thumb(photoUrl("request", r.id), 160)} decoding="async" alt={tr("Receipt")} className="h-14 w-14 object-cover" loading="lazy" />
                 </a>
                 <span className="min-w-0">
-                  <span className="block font-medium text-neutral-900">{r.driverName ?? r.driverCode} · {(KINDS[r.kind] ?? (() => r.kind))()} · {rupiah(r.amount)}</span>
+                  <span className="block font-medium text-neutral-900">{r.driverName ?? r.driverCode} · {kindName(r.kind)} · {rupiah(r.amount)}</span>
                   <span className="text-xs text-neutral-500">{new Date(r.at).toLocaleDateString(locale(), { day: "numeric", month: "short", timeZone: "Asia/Jakarta" })} {time(r.at)} · {r.note}</span>
                   {r.decisionNote && <span className="block text-xs text-neutral-400">{r.decisionNote}</span>}
                 </span>

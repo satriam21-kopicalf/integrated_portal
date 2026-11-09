@@ -17,7 +17,7 @@ import { ConfirmDialog } from '@/so/ui/Dialog';
 import { call } from '@/so/features/checkin/checkin';
 import { tr } from '@/lib/i18n';
 
-export type Entity = 'pools' | 'fleet' | 'fleet-types' | 'shift-templates' | 'incentive-schemes' | 'menus' | 'boms' | 'items' | 'drivers' | 'areas' | 'accessories' | 'menu-categories';
+export type Entity = 'pools' | 'fleet' | 'fleet-types' | 'shift-templates' | 'incentive-schemes' | 'menus' | 'boms' | 'items' | 'drivers' | 'areas' | 'accessories' | 'menu-categories' | 'request-kinds';
 type Row = Record<string, unknown> & { code: string };
 
 /** One master: rows, reload, save (create when `key` is null) and delete; the messages of a refusal are thrown. */

@@ -6,7 +6,7 @@
 // rounded up as the sheet does) and the theoretical usage of the drivers' sales, waste and cupping (backend 051).
 
 import { Segmented } from '@/so/ui/Simple';
-import { Building2, CalendarRange, Calculator, Coffee, FlaskConical, Package, Plus, Save, Trash2, Wallet } from 'lucide-react';
+import { Building2, CalendarRange, Calculator, Coffee, FlaskConical, Plus, Save, Trash2, Wallet } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Empty, ErrorState, Field, Input, Panel, Select, cx, theadClass, useToast } from '@/so/ui';
 import { call } from '@/so/features/checkin/checkin';
@@ -81,8 +81,9 @@ export function ItemsTab() {
 /** The recipe cards: premix batches and menu cards, edited line by line with the ratio per gram and the HPP. */
 export function RecipesTab() {
   const toast = useToast();
-  // one view at a time (2026-11-09): the menus and their cards, the card editor, the list of recipes
-  const [view, setView] = useState<'menus' | 'cards' | 'list'>('menus');
+  // one view at a time (2026-11-09): the menus and their cards, the recipes — a recipe's materials are edited right
+  // under the list (the separate Edit Recipe Card view is gone)
+  const [view, setView] = useState<'menus' | 'list'>('menus');
   const boms = useMaster<Bom>('boms');
   const items = useMaster<Item>('items');
   const menus = useMaster<Menu>('menus');
@@ -91,7 +92,7 @@ export function RecipesTab() {
   const [draft, setDraft] = useState<Bom | null>(null);
   const [busy, setBusy] = useState(false);
   const [making, setMaking] = useState<string | null>(null);
-  const current = code ?? rows[0]?.code ?? null;
+  const current = code;
   useEffect(() => { setDraft(rows.find((b) => b.code === current) ? { ...rows.find((b) => b.code === current)! } : null); }, [current, boms.rows]); // eslint-disable-line react-hooks/exhaustive-deps
   const itemList = items.rows ?? [];
   const itemOptions = itemList.map((i) => ({ value: i.code, label: i.name, hint: `${CATEGORY[i.category].label()} · ${i.unit}` }));
@@ -104,7 +105,6 @@ export function RecipesTab() {
     try { await boms.save(draft, draft.code); toast(tr('Saved')); } catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
   };
   if (boms.error) return <Panel><ErrorState message={boms.error} onRetry={() => void boms.load()} /></Panel>;
-  const group = (k: Bom['kind']) => rows.filter((b) => b.kind === k);
   const usedBy = (b: Bom) => (menus.rows ?? []).filter((m) => m.bom_code === b.code).map((m) => m.name);
   // a menu without a card: its card is made (one cup / can, linked to the menu) and opened in the editor
   const makeCard = async (m: Menu) => {
@@ -117,6 +117,7 @@ export function RecipesTab() {
       }
       await menus.save({ ...m, bom_code: card }, m.code);
       setCode(card);
+      setView('list');
       toast(tr('Recipe card of {0} made: add its components', m.name));
     } catch (e) { toast((e as Error).message, 'error'); } finally { setMaking(null); }
   };
@@ -125,7 +126,7 @@ export function RecipesTab() {
   return (
     <>
       <Segmented label={tr('View')} value={view} onChange={setView} options={[
-        { value: 'menus', label: tr('Per Menu ({0}/{1})', covered, active.length) }, { value: 'cards', label: tr('Edit Recipe Card') }, { value: 'list', label: tr('Recipes ({0})', rows.length) }]} />
+        { value: 'menus', label: tr('Per Menu ({0}/{1})', covered, active.length) }, { value: 'list', label: tr('Recipes ({0})', rows.length) }]} />
       {view === 'menus' && <Panel title={tr('Recipe Card per Menu')} description={tr('Every product the drivers sell needs its card: the sales become the usage of the raw materials, the production plan and the HPP')}
         actions={<Badge tone={covered === active.length ? 'green' : 'amber'}>{tr('{0} of {1} menus', covered, active.length)}</Badge>}>
         {active.length === 0 ? <Empty title={tr('No active menu yet')} /> : (
@@ -146,7 +147,7 @@ export function RecipesTab() {
                     <td className={cx('px-4 py-2.5 text-right tabular-nums', margin === null ? 'text-neutral-400' : margin < 0 ? 'text-red-700' : 'text-emerald-700')}>
                       {margin === null ? '—' : `${rupiah(margin)} · ${Math.round((margin / (m.price || 1)) * 100)}%`}</td>
                     <td className="px-4 py-2.5 text-right">{card
-                      ? <Button size="sm" variant="secondary" onClick={() => { setCode(card.code); setView('cards'); }}>{tr('Edit card')}</Button>
+                      ? <Button size="sm" variant="secondary" onClick={() => { setCode(card.code); setView('list'); }}>{tr('Edit card')}</Button>
                       : <Button size="sm" loading={making === m.code} onClick={() => void makeCard(m)}><Plus size={14} /> {tr('Make Card')}</Button>}</td>
                   </tr>
                 );
@@ -155,42 +156,12 @@ export function RecipesTab() {
           </table></div>
         )}
       </Panel>}
-      {view === 'cards' && <Panel title={tr('Recipe Cards')} description={tr('Premix per batch (Pail / Teko / Gram) as the premix calculator of Cost Control; menu cards per cup or can')}
-        actions={draft && <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr('Save Recipe')}</Button>}>
-        <div className="grid lg:grid-cols-[17rem_1fr]">
-          {/* phones and tablets: the recipe to edit from a list, the editor right under it */}
-          <div className="border-b border-neutral-100 p-4 lg:hidden">
-            <Field label={tr('Recipe to Edit')}>
-              <Select value={current ?? ''} onChange={(e) => setCode(e.target.value)} className="h-11">
-                {(['premix', 'menu'] as const).map((k) => (
-                  <optgroup key={k} label={k === 'premix' ? tr('Premix') : tr('Menu cards')}>
-                    {group(k).map((b) => <option key={b.code} value={b.code}>{b.name} · {num(b.yield_qty, 3)} {b.yield_unit}</option>)}
-                  </optgroup>
-                ))}
-              </Select>
-            </Field>
-          </div>
-          <div className="hidden border-b border-neutral-100 lg:block lg:max-h-[70vh] lg:overflow-y-auto lg:border-b-0 lg:border-r">
-            {(['premix', 'menu'] as const).map((k) => (
-              <div key={k}>
-                <p className="flex items-center gap-1.5 bg-neutral-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
-                  {k === 'premix' ? <FlaskConical size={12} /> : <Package size={12} />}{k === 'premix' ? tr('Premix') : tr('Menu cards')}
-                </p>
-                <ul className="divide-y divide-neutral-100">
-                  {group(k).map((b) => (
-                    <li key={b.code}>
-                      <button type="button" onClick={() => setCode(b.code)} className={cx('w-full px-4 py-2.5 text-left text-sm', b.code === current ? 'bg-brand-50 text-brand-800' : 'hover:bg-neutral-50')}>
-                        <span className="block font-medium">{b.name}</span>
-                        <span className="text-[11px] text-neutral-400">{b.code} · {tr('yields {0} {1}', num(b.yield_qty, 3), b.yield_unit)}</span>
-                      </button>
-                    </li>
-                  ))}
-                  {group(k).length === 0 && <li className="px-4 py-3 text-xs text-neutral-400">{k === 'menu' ? tr('No menu card yet: add one below') : '—'}</li>}
-                </ul>
-              </div>
-            ))}
-          </div>
-          {draft ? (
+      {view === 'list' && draft && (
+        <div id="recipe-editor" className="scroll-mt-20">
+        <Panel title={tr('Materials of {0}', draft.name)} description={draft.kind === 'premix' ? tr('Premix per batch (Pail / Teko / Gram) as the premix calculator of Cost Control') : tr('What one {0} uses: premix, packaging, ice', draft.yield_unit)}
+          actions={<div className="flex items-center gap-2"><Badge tone={draft.kind === 'premix' ? 'violet' : 'blue'}>{draft.kind === 'premix' ? tr('Premix') : tr('Menu card')}</Badge>
+            <Button size="sm" variant="ghost" onClick={() => setCode(null)}>{tr('Close')}</Button>
+            <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr('Save Recipe')}</Button></div>}>
             <div className="space-y-4 p-4">
               <div className="grid gap-3 sm:grid-cols-4">
                 <Field label={tr('Name')} className="sm:col-span-2"><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></Field>
@@ -247,11 +218,11 @@ export function RecipesTab() {
                 </p>
               </div>
               {draft.kind === 'menu' && usedBy(draft).length > 0 && <p className="text-xs text-neutral-500">{tr('Used by')}: {usedBy(draft).join(', ')}</p>}
-              <Button className="h-11 w-full lg:hidden" loading={busy} onClick={() => void save()}><Save size={16} /> {tr('Save Recipe')}</Button>
+              <Button className="h-11 w-full sm:hidden" loading={busy} onClick={() => void save()}><Save size={16} /> {tr('Save Recipe')}</Button>
             </div>
-          ) : <Empty title={tr('No recipe yet')} />}
+        </Panel>
         </div>
-      </Panel>}
+      )}
       {view === 'list' && <MasterTable noun={tr('recipe')} title={tr('Recipes')} master={boms}
         blank={(): Partial<Bom> => ({ code: 'BOM-', name: '', output: '', yield_qty: 1, yield_unit: 'cup', kind: 'menu', units: [], lines: [] })}
         columns={[
@@ -259,8 +230,11 @@ export function RecipesTab() {
           { label: tr('Kind'), render: (b) => <Badge tone={b.kind === 'premix' ? 'violet' : 'blue'}>{b.kind === 'premix' ? tr('Premix') : tr('Menu card')}</Badge> },
           { label: tr('Output'), render: (b) => itemList.find((i) => i.code === b.output)?.name ?? b.output },
           { label: tr('Yield'), render: (b) => `${num(b.yield_qty, 3)} ${b.yield_unit}` },
+          { label: tr('Materials'), render: (b) => b.lines.length ? <Badge tone="green" dot>{tr('{0} components', b.lines.length)}</Badge> : <Badge tone="amber">{tr('No material yet')}</Badge> },
           { label: tr('HPP'), className: 'text-right', render: (b) => { const c = costOf(rows, itemList, b.code); return c === null ? <span className="text-neutral-400">—</span> : <span className="tabular-nums">{rupiah(c)}</span>; } },
         ]}
+        rowActions={(b) => <Button size="sm" variant={b.code === current ? 'primary' : 'secondary'} onClick={() => { setCode(b.code); requestAnimationFrame(() => document.getElementById('recipe-editor')?.scrollIntoView({ behavior: 'smooth' })); }}>
+          <FlaskConical size={14} /> {tr('Materials')}</Button>}
         fields={[
           { key: 'code', label: tr('Code'), required: true, placeholder: 'BOM-XXX' },
           { key: 'name', label: tr('Name'), required: true },
