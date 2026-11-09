@@ -9,6 +9,7 @@ import { ccUrl } from "@/lib/company";
 import LocationBadges from "@/so/features/count/LocationBadges";
 import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCheck, Clock, Layers, RotateCcw, Send } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
+import { SoGroupTabs, soGroupOf, soGroupTypes, useSoGroup } from "@/so/ui/SoGroupTabs";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -53,6 +54,8 @@ export default function ReviewsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
+  const [group, setGroupOnly] = useSoGroup();
+  const setGroup = (g: typeof group) => { setGroupOnly(g); setF((x) => ({ ...x, type: "" })); };
 
   // every status of the period: the figures count all of them, the status filter only narrows the list
   const load = useCallback(async () => {
@@ -66,7 +69,8 @@ export default function ReviewsPage() {
   }, [f.period.from, f.period.to]);
   useEffect(() => { void load(); }, [load]);
 
-  const all = useMemo(() => rows ?? [], [rows]);
+  // Daily apart from Weekly - Monthly (2026-11-09): the list, the figures and the download follow the tab
+  const all = useMemo(() => (rows ?? []).filter((r) => soGroupOf(r.count_type) === group), [rows, group]);
   const shown = useMemo(() => {
     const s = search.trim().toLowerCase();
     return all.filter((r) => statusMatch(r, f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType)
@@ -81,14 +85,16 @@ export default function ReviewsPage() {
   // every branch of the period in one file, one sheet per branch; `status` = which counts (REPORT_STATUSES of the platform)
   const download = async (status: ExportKind) => {
     try {
-      const qs = new URLSearchParams({ date_from: f.period.from, date_to: f.period.to, status, per_branch: "true", ...(f.type ? { count_type: f.type } : {}) });
+      const types = f.type || soGroupTypes((rows ?? []).map((r) => r.count_type), group);
+      if (!types) throw new Error(tr("No count with this status in the period"));
+      const qs = new URLSearchParams({ date_from: f.period.from, date_to: f.period.to, status, per_branch: "true", count_type: types });
       const res = await fetch(ccUrl(`/api/so/count-reports/file?${qs}`), { credentials: "same-origin" });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(res.status === 404 ? tr("No count with this status in the period") : body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded"));
       }
       const href = URL.createObjectURL(await res.blob());
-      Object.assign(document.createElement("a"), { href, download: `Stock Opname ${EXPORT_FILE[status]} ${f.period.from} - ${f.period.to}.xlsx` }).click();
+      Object.assign(document.createElement("a"), { href, download: `Stock Opname ${group === "daily" ? "Daily" : "Weekly-Monthly"} ${EXPORT_FILE[status]} ${f.period.from} - ${f.period.to}.xlsx` }).click();
       URL.revokeObjectURL(href);
     } catch (e) {
       toast(errorText(e), "error");
@@ -113,7 +119,8 @@ export default function ReviewsPage() {
 
   return (
     <Page title={tr("Review Stock Opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("approve submitted counts or ask for a recount")}`}
-      stats={
+      stats={<>
+        <SoGroupTabs value={group} onChange={setGroup} counts={rows ? { daily: rows.filter((r) => soGroupOf(r.count_type) === "daily").length, periodic: rows.filter((r) => soGroupOf(r.count_type) === "periodic").length } : undefined} />
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Waiting for Review")} emphasis value={rows ? fmtNumber(n("SUBMITTED")) : <StatSkeleton />}>
             {rows && <p>{flaggedCounts ? tr("{0} with lines to check", fmtNumber(flaggedCounts)) : tr("No flagged lines")}</p>}
@@ -128,7 +135,7 @@ export default function ReviewsPage() {
             {rows && <p>{tr("{0} late · {1} outside radius", fmtNumber(all.filter((r) => r.is_late).length), fmtNumber(all.filter((r) => r.outside_radius).length))}</p>}
           </Stat>
         </StatStrip>
-      }>
+      </>}>
       <Panel toolbar={<>
         <Tabs label={tr("Status")} value={f.status} onChange={(status) => setF({ ...f, status })}
           tabs={TABS.map((k) => ({ key: k, label: k ? FLOW_LABEL[k]() : tr("All"), count: rows ? fmtNumber(all.filter((r) => statusMatch(r, k)).length) : undefined }))} />

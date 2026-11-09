@@ -14,6 +14,7 @@ import { api, errorText } from "@/so/lib/api";
 import { STATUS, countTypeLabel } from "@/so/lib/counts";
 import LocationBadges from "@/so/features/count/LocationBadges";
 import { btn } from "@/components/kc";
+import { SoGroupTabs, soGroupOf, useSoGroup } from "@/so/ui/SoGroupTabs";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { locale, tr } from "@/lib/i18n";
 
@@ -83,6 +84,8 @@ export default function MonitorPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
+  const [group, setGroupOnly] = useSoGroup();
+  const setGroup = (g: typeof group) => { setGroupOnly(g); setF((x) => ({ ...x, type: "" })); };
 
   const load = useCallback(async () => {
     setError(null);
@@ -95,7 +98,8 @@ export default function MonitorPage() {
   }, [f.day]);
   useEffect(() => { void load(); }, [load]);
 
-  const all = useMemo(() => rows ?? [], [rows]);
+  // Daily apart from Weekly - Monthly (2026-11-09)
+  const all = useMemo(() => (rows ?? []).filter((r) => soGroupOf(r.count_type) === group), [rows, group]);
   const shown = useMemo(() => {
     const s = search.trim().toLowerCase();
     return all.filter((r) => statusMatch(r, f.status) && (!f.type || r.count_type === f.type) && (!f.facilityType || r.facility_type === f.facilityType) && locMatch(r, f.loc) &&
@@ -133,7 +137,8 @@ export default function MonitorPage() {
 
   return (
     <Page title={tr("Monitoring Stock Opname")} subtitle={`${isToday ? `${tr("Today")} · ` : ""}${weekday(f.day)} · ${tr("every outlet and hub with a count due")}`}
-      stats={
+      stats={<>
+        <SoGroupTabs value={group} onChange={setGroup} counts={rows ? { daily: rows.filter((r) => soGroupOf(r.count_type) === "daily").length, periodic: rows.filter((r) => soGroupOf(r.count_type) === "periodic").length } : undefined} />
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Due")} icon={<CalendarDays size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
             {rows && <p>{tr("{0} facilities", fmtNumber(new Set(all.map((r) => r.facility_id)).size))}</p>}
@@ -153,7 +158,7 @@ export default function MonitorPage() {
             {rows && <p>{n("MISSED") > 0 ? tr("{0} missed", fmtNumber(n("MISSED"))) : tr("Nothing missed")}{late ? ` · ${tr("{0} late", fmtNumber(late))}` : ""}</p>}
           </Stat>
         </StatStrip>
-      }>
+      </>}>
       <Panel toolbar={<>
         {rows && all.length > 0 && (
           <DayOverview total={all.length} tabCount={tabCount} status={f.status} onStatus={(status) => setF({ ...f, status: f.status === status ? "" : status })}
@@ -161,7 +166,7 @@ export default function MonitorPage() {
             alerts={{ late, outside, low: weak, unlocated }} loc={f.loc} onLoc={(loc) => setF({ ...f, loc: f.loc === loc ? "" : loc })} />
         )}
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or hub")} filters={chips}
-          onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
+          onOpen={() => setSheet(true)} onClear={() => setF({ ...NO_F(), day: f.day })} />
       </>}
         footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (

@@ -1,6 +1,8 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Daily Stock Opname": "Daily Stock Opname",
+  "Weekly - Monthly Stock Opname": "Weekly - Monthly Stock Opname",
   "Recap at the pool {0} cups": "Rekap di pool {0} cup",
   "Recap at the pool (from the leftover)": "Rekap di pool (dari sisa produk)",
   "+ Production waste": "+ Waste produksi",

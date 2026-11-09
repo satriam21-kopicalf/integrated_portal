@@ -14,6 +14,7 @@ import { Badge, Checkbox, Empty, Page, Panel, SkeletonRows, fmtNumber, theadClas
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, dmy, wibDay } from "@/so/ui/Filters";
 import { api, errorText } from "@/so/lib/api";
+import { SoGroupTabs, soGroupOf, soGroupTypes, useSoGroup } from "@/so/ui/SoGroupTabs";
 import { STATUS, countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 
@@ -38,6 +39,8 @@ export default function ReportsPage() {
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [group, setGroupOnly] = useSoGroup();
+  const setGroup = (g: typeof group) => { setGroupOnly(g); setF((x) => ({ ...x, type: "" })); };
 
   useEffect(() => {
     void api<Facility[]>("/api/so/count-settings/facilities").then(setFacilities).catch(() => setFacilities([]));
@@ -52,7 +55,9 @@ export default function ReportsPage() {
       .catch((e) => { setRows([]); toast(errorText(e), "error"); });
   }, [f, toast]);
 
-  const all = useMemo(() => rows ?? [], [rows]);
+  // Daily apart from Weekly - Monthly (2026-11-09): the list, the figures and the download follow the tab
+  const all = useMemo(() => (rows ?? []).filter((r) => soGroupOf(r.count_type) === group), [rows, group]);
+  const groupTypes = types.filter((t) => soGroupOf(t.code) === group);
   const shown = useMemo(() => {
     const s = search.trim().toLowerCase();
     return all.filter((r) => !s || r.facility_name.toLowerCase().includes(s) || r.number.toLowerCase().includes(s));
@@ -66,15 +71,17 @@ export default function ReportsPage() {
   const download = async () => {
     setBusy(true);
     try {
+      const kinds = f.type || soGroupTypes([...groupTypes.map((t) => t.code), ...all.map((r) => r.count_type)], group);
+      if (!kinds) throw new Error(tr("No count with this status in the period"));
       const qs = new URLSearchParams({ date_from: f.period.from, date_to: f.period.to, status: f.status, per_branch: String(f.perBranch),
-        ...(f.type ? { count_type: f.type } : {}), ...(f.facility ? { facility_id: f.facility } : {}) });
+        count_type: kinds, ...(f.facility ? { facility_id: f.facility } : {}) });
       const res = await fetch(ccUrl(`/api/so/count-reports/file?${qs}`), { credentials: "same-origin" });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded"));
       }
       const href = URL.createObjectURL(await res.blob());
-      Object.assign(document.createElement("a"), { href, download: `Stock Opname Report ${f.period.from} - ${f.period.to}.xlsx` }).click();
+      Object.assign(document.createElement("a"), { href, download: `Stock Opname Report ${group === "daily" ? "Daily" : "Weekly-Monthly"} ${f.period.from} - ${f.period.to}.xlsx` }).click();
       URL.revokeObjectURL(href);
     } catch (e) {
       toast(errorText(e), "error");
@@ -96,7 +103,8 @@ export default function ReportsPage() {
 
   return (
     <Page title={tr("Report Stock Opname")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("reviewed stock opname in the layout of the Stock Opname Report")}`}
-      stats={
+      stats={<>
+        <SoGroupTabs value={group} onChange={setGroup} counts={rows ? { daily: rows.filter((r) => soGroupOf(r.count_type) === "daily").length, periodic: rows.filter((r) => soGroupOf(r.count_type) === "periodic").length } : undefined} />
         <StatStrip label={tr("Summary")} columns={4}>
           <Stat label={tr("Counts")} emphasis icon={<ListChecks size={13} />} value={rows ? fmtNumber(all.length) : <StatSkeleton />}>
             {rows && <p>{STATUS_LABEL[f.status]()}</p>}
@@ -111,10 +119,10 @@ export default function ReportsPage() {
             {rows && <p className="truncate">{[...typesIn].map((t) => countTypeLabel(t)).join(", ") || "—"}</p>}
           </Stat>
         </StatStrip>
-      }>
+      </>}>
       <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search branch or count number")} filters={chips}
         onOpen={() => setSheet(true)} onClear={() => setF(DEFAULT())}
-        extra={<div className="ml-auto"><ExcelIconButton label={tr("Download Report Stock Opname")} loading={busy} disabled={!rows?.length} onClick={download} /></div>} />}
+        extra={<div className="ml-auto"><ExcelIconButton label={tr("Download Report Stock Opname")} loading={busy} disabled={!all.length} onClick={download} /></div>} />}
         footer={<><span className="flex items-center gap-1.5"><FileSpreadsheet size={13} /> {tr("Sheets: Stock Opname · Summary · WIP premix{0} · dates as 14/09/2026 · qty with two decimals", f.perBranch ? ` · ${tr("one per branch")}` : "")}</span><PageNav paged={paged} /></>}>
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[600px] text-sm">
@@ -137,7 +145,7 @@ export default function ReportsPage() {
         </div>
       </Panel>
 
-      {sheet && <ReportFilters value={f} facilities={facilities} types={types} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
+      {sheet && <ReportFilters value={f} facilities={facilities} types={groupTypes} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </Page>
   );
 }
