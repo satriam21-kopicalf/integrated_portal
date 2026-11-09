@@ -5,6 +5,7 @@
 // cup or can uses: premix, packaging, ice), the calculator (recipe × unit × quantity → grams of every raw material,
 // rounded up as the sheet does) and the theoretical usage of the drivers' sales, waste and cupping (backend 051).
 
+import { Segmented } from '@/so/ui/Simple';
 import { Building2, CalendarRange, Calculator, Coffee, FlaskConical, Package, Plus, Save, Trash2, Wallet } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Empty, ErrorState, Field, Input, Panel, Select, cx, theadClass, useToast } from '@/so/ui';
@@ -12,7 +13,7 @@ import { call } from '@/so/features/checkin/checkin';
 import { Bom, BomLine, Item, ItemCategory, Menu, Pool } from '@/cotr/types';
 import { MasterTable, SearchSelect, rupiah, useMaster } from '@/cotr/ui';
 import { locale, tr } from '@/lib/i18n';
-import { StatCard, StatGrid, ValueSkeleton } from '@/components/kc';
+import { StatCard, StatGrid, ValueSkeleton, kcTable } from '@/components/kc';
 import { SkeletonRows } from '@/components/kc/Skeleton';
 import { ScopeBar, dmyOf } from '@/components/kc/ScopeBar';
 import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from '@/so/ui/MonitorFilters';
@@ -80,6 +81,8 @@ export function ItemsTab() {
 /** The recipe cards: premix batches and menu cards, edited line by line with the ratio per gram and the HPP. */
 export function RecipesTab() {
   const toast = useToast();
+  // one view at a time (2026-11-09): the menus and their cards, the card editor, the list of recipes
+  const [view, setView] = useState<'menus' | 'cards' | 'list'>('menus');
   const boms = useMaster<Bom>('boms');
   const items = useMaster<Item>('items');
   const menus = useMaster<Menu>('menus');
@@ -121,43 +124,38 @@ export function RecipesTab() {
   const covered = active.filter((m) => m.bom_code && rows.some((b) => b.code === m.bom_code)).length;
   return (
     <>
-      <Panel title={tr('Recipe Card per Menu')} description={tr('Every product the drivers sell needs its card: the sales become the usage of the raw materials, the production plan and the HPP')}
+      <Segmented label={tr('View')} value={view} onChange={setView} options={[
+        { value: 'menus', label: tr('Per Menu ({0}/{1})', covered, active.length) }, { value: 'cards', label: tr('Edit Recipe Card') }, { value: 'list', label: tr('Recipes ({0})', rows.length) }]} />
+      {view === 'menus' && <Panel title={tr('Recipe Card per Menu')} description={tr('Every product the drivers sell needs its card: the sales become the usage of the raw materials, the production plan and the HPP')}
         actions={<Badge tone={covered === active.length ? 'green' : 'amber'}>{tr('{0} of {1} menus', covered, active.length)}</Badge>}>
         {active.length === 0 ? <Empty title={tr('No active menu yet')} /> : (
-          <ul className="grid gap-2 p-4 sm:grid-cols-2 xl:grid-cols-3">
-            {active.map((m) => {
-              const card = rows.find((b) => b.code === m.bom_code);
-              const hpp = card ? costOf(rows, itemList, card.code) : null;
-              const margin = hpp !== null ? m.price - hpp : null;
-              return (
-                <li key={m.code} className={cx('flex flex-col rounded-xl border p-3', card ? 'border-neutral-200' : 'border-dashed border-amber-300 bg-amber-50/40')}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-neutral-900">{m.name}</p>
-                      <p className="text-[11px] text-neutral-400">{m.code} · {rupiah(m.price)}</p>
-                    </div>
-                    {card ? <Badge tone="green" dot>{tr('{0} components', card.lines.length)}</Badge> : <Badge tone="amber">{tr('No card yet')}</Badge>}
-                  </div>
-                  {card ? (
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                      <div className="rounded-lg bg-neutral-50 px-2.5 py-1.5"><p className="text-[10px] font-semibold uppercase text-neutral-400">HPP</p><p className="font-semibold tabular-nums text-neutral-900">{hpp === null ? '—' : rupiah(hpp)}</p></div>
-                      <div className="rounded-lg bg-neutral-50 px-2.5 py-1.5"><p className="text-[10px] font-semibold uppercase text-neutral-400">{tr('Margin')}</p>
-                        <p className={cx('font-semibold tabular-nums', margin === null ? 'text-neutral-400' : margin < 0 ? 'text-red-700' : 'text-emerald-700')}>{margin === null ? '—' : `${rupiah(margin)} · ${Math.round((margin / (m.price || 1)) * 100)}%`}</p></div>
-                    </div>
-                  ) : <p className="mt-2 text-xs text-amber-800">{tr('Sales of this menu are not turned into the usage of raw materials yet')}</p>}
-                  <div className="mt-auto pt-2.5">
-                    {card
-                      ? <Button size="sm" variant="secondary" className="w-full" onClick={() => { setCode(card.code); window.scrollTo({ top: document.getElementById('recipe-editor')?.offsetTop ?? 0, behavior: 'smooth' }); }}>{tr('Edit card')}</Button>
-                      : <Button size="sm" className="w-full" loading={making === m.code} onClick={() => void makeCard(m)}><Plus size={14} /> {tr('Make Card')}</Button>}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
+            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr('Menu')}</th><th className="px-4 py-2.5 text-right">{tr('Price')}</th><th className="px-4 py-2.5">{tr('Recipe Card')}</th>
+              <th className="px-4 py-2.5 text-right">HPP</th><th className="px-4 py-2.5 text-right">{tr('Margin')}</th><th className="w-32 px-4 py-2.5" /></tr></thead>
+            <tbody className="divide-y divide-neutral-100">
+              {active.map((m) => {
+                const card = rows.find((b) => b.code === m.bom_code);
+                const hpp = card ? costOf(rows, itemList, card.code) : null;
+                const margin = hpp !== null ? m.price - hpp : null;
+                return (
+                  <tr key={m.code} className={card ? '' : 'bg-amber-50/40'}>
+                    <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{m.name}</span><span className="text-[11px] text-neutral-400">{m.code}</span></td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(m.price)}</td>
+                    <td className="px-4 py-2.5">{card ? <Badge tone="green" dot>{tr('{0} components', card.lines.length)}</Badge> : <Badge tone="amber">{tr('No card yet')}</Badge>}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">{hpp === null ? '—' : rupiah(hpp)}</td>
+                    <td className={cx('px-4 py-2.5 text-right tabular-nums', margin === null ? 'text-neutral-400' : margin < 0 ? 'text-red-700' : 'text-emerald-700')}>
+                      {margin === null ? '—' : `${rupiah(margin)} · ${Math.round((margin / (m.price || 1)) * 100)}%`}</td>
+                    <td className="px-4 py-2.5 text-right">{card
+                      ? <Button size="sm" variant="secondary" onClick={() => { setCode(card.code); setView('cards'); }}>{tr('Edit card')}</Button>
+                      : <Button size="sm" loading={making === m.code} onClick={() => void makeCard(m)}><Plus size={14} /> {tr('Make Card')}</Button>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table></div>
         )}
-      </Panel>
-      <div id="recipe-editor" />
-      <Panel title={tr('Recipe Cards')} description={tr('Premix per batch (Pail / Teko / Gram) as the premix calculator of Cost Control; menu cards per cup or can')}
+      </Panel>}
+      {view === 'cards' && <Panel title={tr('Recipe Cards')} description={tr('Premix per batch (Pail / Teko / Gram) as the premix calculator of Cost Control; menu cards per cup or can')}
         actions={draft && <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} /> {tr('Save Recipe')}</Button>}>
         <div className="grid lg:grid-cols-[17rem_1fr]">
           {/* phones and tablets: the recipe to edit from a list, the editor right under it */}
@@ -172,7 +170,7 @@ export function RecipesTab() {
               </Select>
             </Field>
           </div>
-          <div className="hidden border-b border-neutral-100 lg:block lg:border-b-0 lg:border-r">
+          <div className="hidden border-b border-neutral-100 lg:block lg:max-h-[70vh] lg:overflow-y-auto lg:border-b-0 lg:border-r">
             {(['premix', 'menu'] as const).map((k) => (
               <div key={k}>
                 <p className="flex items-center gap-1.5 bg-neutral-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
@@ -253,8 +251,8 @@ export function RecipesTab() {
             </div>
           ) : <Empty title={tr('No recipe yet')} />}
         </div>
-      </Panel>
-      <MasterTable noun={tr('recipe')} title={tr('Recipes')} master={boms}
+      </Panel>}
+      {view === 'list' && <MasterTable noun={tr('recipe')} title={tr('Recipes')} master={boms}
         blank={(): Partial<Bom> => ({ code: 'BOM-', name: '', output: '', yield_qty: 1, yield_unit: 'cup', kind: 'menu', units: [], lines: [] })}
         columns={[
           { label: tr('Recipe'), render: (b) => <><span className="block font-medium text-neutral-900">{b.name}</span><span className="text-[11px] text-neutral-400">{b.code}</span></> },
@@ -273,7 +271,7 @@ export function RecipesTab() {
           { key: 'yield_qty', label: tr('Yield'), type: 'number', required: true },
           { key: 'yield_unit', label: tr('Unit'), type: 'select', required: true, options: ['cup', 'can', 'g', 'pcs'].map((u) => ({ value: u, label: u })) },
           { key: 'note', label: tr('Note'), type: 'textarea' },
-        ]} />
+        ]} />}
     </>
   );
 }
@@ -369,7 +367,7 @@ export function UsageTab() {
   const total = (k: 'sold' | 'waste' | 'cupping') => data?.menus.reduce((a, m) => a + m[k], 0) ?? 0;
   return (
     <>
-      <ScopeBar onOpen={() => { setDraft({ from, to, pool }); setSheet(true); }} onRefresh={() => setTick((t) => t + 1)}
+      <ScopeBar onOpen={() => { setDraft({ from, to, pool }); setSheet(true); }}
         scopes={[
           { key: 'period', icon: <CalendarRange />, label: tr('Period'), value: from === to ? dmyOf(from) : `${dmyOf(from)} – ${dmyOf(to)}`, active: quickOf(from, to) !== '6' },
           { key: 'pool', icon: <Building2 />, label: tr('Pool / HUB'), value: poolList.find((p) => p.code === pool)?.name ?? tr('All pools'), active: !!pool },

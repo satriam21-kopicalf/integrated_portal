@@ -108,13 +108,9 @@ export const cotr: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('Monitoring Armada - Driver'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Shifts, sales, stock, cupping & waste of every driver'); } },
     { get name() { return tr('Storage & Assignment'); }, href: '/cotr/storage', icon: Warehouse, get description() { return tr('Products per driver, differences & reloads'); } },
   ] },
-  { get title() { return tr('Master Data'); }, get hint() { return tr('Employees, areas, pools, fleet, menus and schedule'); }, icon: Boxes, items: [
+  { get title() { return tr('Master, Production & Incentives'); }, get hint() { return tr('The data of COTR, what the HUB makes and the monthly incentive'); }, icon: Boxes, items: [
     { get name() { return tr('Master'); }, href: '/cotr/master', icon: Boxes, get description() { return tr('Employees, areas, pools, fleet & accessories, schedule, menus'); } },
-  ] },
-  { get title() { return tr('Production'); }, get hint() { return tr('What the HUB makes for the drivers'); }, icon: CookingPot, items: [
-    { get name() { return tr('Storage & Production'); }, href: '/cotr/production', icon: CookingPot, get description() { return tr('Items, recipe cards, calculator, usage & waste'); } },
-  ] },
-  { get title() { return tr('Incentives'); }, get hint() { return tr('Monthly incentive of the drivers'); }, icon: Wallet, items: [
+    { get name() { return tr('Storage & Production'); }, href: '/cotr/production', icon: CookingPot, get description() { return tr('Stock, goods in, stock opname, batches & waste'); } },
     { get name() { return tr('Incentive Calculator'); }, href: '/cotr/incentive', icon: Calculator, get description() { return tr('Tiers per cup, bonus & attendance'); } },
   ] },
 ];
@@ -163,7 +159,7 @@ export const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'r
   cotr: {
     get label() { return tr('Monitoring COTR'); }, get idle() { return tr('Drivers, fleet, pools, menus & production'); }, get title() { return tr('Monitoring COTR'); },
     get subtitle() { return tr('Calf On The Road: drivers on the road and what the HUB produces'); },
-    get footer() { return tr('Prototype · sample data'); },
+    get footer() { return tr('Calf On The Road'); },
     icon: Bike, sections: cotr,
   },
   rating: {

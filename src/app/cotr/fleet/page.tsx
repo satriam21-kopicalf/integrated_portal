@@ -6,6 +6,8 @@
 // colour, year, battery, STNK, insurance, odometer, next service, GPS; migration 063) with a due warning. Information
 // labels (no QRIS: it is shown only for a payment) are printed from here; their QR opens /share/fleet/{token}.
 
+import { Segmented } from "@/so/ui/Simple";
+import { StatCard, StatGrid, ValueSkeleton } from "@/components/kc";
 import Link from "next/link";
 import { Bike, Building2, CheckCircle2, ExternalLink, Package, Printer, QrCode, Truck, Wrench } from "lucide-react";
 import { AccessoriesSection, FleetAccessoryDrawer, useFleetAccessories } from "@/cotr/Accessories";
@@ -43,10 +45,24 @@ export default function CotrFleetPage() {
   const acc = useFleetAccessories();
   const [accOf, setAccOf] = useState<Fleet | null>(null);
   const accCount = (code: string) => (acc.rows ?? []).filter((r) => r.fleet === code && !r.removedOn).length;
+  // one part at a time (2026-11-09): the fleet, its types, the accessories
+  const [part, setPart] = useState<"fleet" | "types" | "accessories">("fleet");
+  const fleetRows = master.rows ?? [];
   return (
     <Page eyebrow="Monitoring COTR" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
-      actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print Labels")}</Button></Link>}>
-      <MasterTable noun={tr("fleet")} title={tr("Fleet")} master={master} filters={[
+      actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print Labels")}</Button></Link>}
+      stats={
+        <StatGrid label={tr("Summary")} cols={4}>
+          <StatCard label={tr("Fleet")} tone="brand" icon={<Truck />} value={master.rows ? fleetRows.filter((f) => f.is_active).length : <ValueSkeleton />} sub={master.rows && tr("{0} inactive", fleetRows.filter((f) => !f.is_active).length)} />
+          <StatCard label={tr("In Service")} icon={<Wrench />} tone={fleetRows.some((f) => f.condition === "service") ? "warn" : "default"} value={master.rows ? fleetRows.filter((f) => f.condition === "service").length : <ValueSkeleton />} />
+          <StatCard label={tr("Papers or Service Due")} icon={<CheckCircle2 />} tone={fleetRows.some((f) => dues(f, now).length) ? "warn" : "default"} value={master.rows ? fleetRows.filter((f) => dues(f, now).length > 0).length : <ValueSkeleton />} />
+          <StatCard label={tr("Accessories on the fleet")} icon={<Package />} value={acc.rows ? acc.rows.filter((r) => !r.removedOn).length : <ValueSkeleton />} sub={acc.rows && tr("on {0} fleet", new Set(acc.rows.filter((r) => !r.removedOn).map((r) => r.fleet)).size)} />
+        </StatGrid>
+      }>
+      <Segmented label={tr("Part")} value={part} onChange={setPart} options={[
+        { value: "fleet", label: tr("Fleet ({0})", fleetRows.length) }, { value: "types", label: tr("Armada Types ({0})", types.rows?.length ?? 0) },
+        { value: "accessories", label: tr("Accessories") }]} />
+      {part === "fleet" && <MasterTable noun={tr("fleet")} title={tr("Fleet")} master={master} filters={[
         { key: "pool", label: tr("Pool / HUB"), icon: <Building2 size={15} />, options: (pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => ({ value: p.code, label: p.name, test: (f: Fleet) => f.pool_code === p.code })) },
         { key: "type", label: tr("Type"), icon: <Truck size={15} />, options: (types.rows ?? []).map((t) => ({ value: t.code, label: t.name, test: (f: Fleet) => f.type === t.code })) },
         { key: "condition", label: tr("Condition"), icon: <Wrench size={15} />, options: [
@@ -124,9 +140,9 @@ export default function CotrFleetPage() {
           { key: "qris_nmid", label: tr("NMID"), section: sec.qris, hint: tr("National Merchant ID printed under the QR") },
           { key: "qris_merchant", label: tr("Merchant Name"), section: sec.qris },
           { key: "qris", label: tr("QRIS Image"), type: "image", image: { entity: "fleet", slot: "qris" }, section: sec.qris, hint: tr("A photo or screenshot of the QRIS; shown to the customer only for a payment, never printed on the label") },
-        ]} />
+        ]} />}
 
-      <MasterTable noun={tr("type")} title={tr("Armada Types")} master={types}
+      {part === "types" && <MasterTable noun={tr("type")} title={tr("Armada Types")} master={types}
         description={tr("The kinds of armada the team uses; add one when a new kind of vehicle comes")}
         blank={(): Partial<FleetType> => ({ code: "", name: "", sort: (types.rows?.length ?? 0) + 1 })}
         columns={[
@@ -137,8 +153,8 @@ export default function CotrFleetPage() {
           { key: "code", label: tr("Code"), required: true, placeholder: "sepeda_listrik", hint: tr("Lowercase, no spaces") },
           { key: "name", label: tr("Name"), required: true },
           { key: "sort", label: tr("Order"), type: "number" },
-        ]} />
-      <AccessoriesSection onChanged={() => void acc.load()} />
+        ]} />}
+      {part === "accessories" && <AccessoriesSection onChanged={() => void acc.load()} />}
       {accOf && <FleetAccessoryDrawer fleet={accOf} onClose={() => setAccOf(null)} onChanged={() => void acc.load()} />}
     </Page>
   );

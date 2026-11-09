@@ -63,7 +63,7 @@ function PlanView() {
   const [draft, setDraft] = useState({ days: 7, buffer: 10 });
   const [plan, setPlan] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const load = useCallback(async () => {
     setError(null); setLoading(true);
     try { setPlan(await call<Plan>(`/api/cotr/production?days=${days}&buffer=${buffer}`)); } catch (e) { setError((e as Error).message); } finally { setLoading(false); }
@@ -72,7 +72,7 @@ function PlanView() {
   const cups = plan?.menus.reduce((t, r) => t + r.plan, 0) ?? 0;
   return (
     <>
-      <ScopeBar onOpen={() => { setDraft({ days, buffer }); setSheet(true); }} onRefresh={() => void load()} refreshing={loading}
+      <ScopeBar onOpen={() => { setDraft({ days, buffer }); setSheet(true); }}
         scopes={[
           { key: "days", icon: <CalendarDays />, label: tr("Days of Sales"), value: tr("Last {0} days", days), active: days !== 7 },
           { key: "buffer", icon: <Percent />, label: tr("Buffer"), value: `${buffer}%`, active: buffer !== 10 },
@@ -171,7 +171,7 @@ function WasteList() {
   const usedPools = new Set((rows ?? []).map((w) => w.pool_code));
   return (
     <>
-      <ScopeBar onOpen={() => { setDraft(pool); setSheet(true); }} onRefresh={() => void load()}
+      <ScopeBar onOpen={() => { setDraft(pool); setSheet(true); }}
         right={<div className="flex items-center gap-2"><SearchInput value={q} onChange={setQ} placeholder={tr("Search item or reason")} /><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr("Record Waste")}</Button></div>}
         scopes={[{ key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: pool ? poolName(pool) : tr("All pools"), active: !!pool }]} />
       <StatGrid label={tr("Waste of the Pools")} cols={3}>
@@ -201,11 +201,13 @@ function WasteList() {
           <Field label={tr("Where")}><Select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as "storage" | "production" })}>
             <option value="storage">{tr("Storage (expired, damaged …)")}</option><option value="production">{tr("Production (while making a batch)")}</option></Select></Field>
           <Field label={tr("Item")} hint={tr("Choose the item of the master so it deducts the stock; or type another thing")}>
-            <Select value={form.item_code} onChange={(e) => { const it = (items.rows ?? []).find((i) => i.code === e.target.value); setForm({ ...form, item_code: e.target.value, item: it?.name ?? form.item, unit: it?.unit ?? form.unit }); }}>
+            <Select value={form.item_code} onChange={(e) => { const it = (items.rows ?? []).find((i) => i.code === e.target.value); setForm({ ...form, item_code: e.target.value, item: it?.name ?? "", unit: it?.unit ?? form.unit }); }}>
               <option value="">{tr("Another item (not deducted from the stock)")}</option>
               {(items.rows ?? []).filter((i) => i.is_stock && i.is_active).map((i) => <option key={i.code} value={i.code}>{i.name} · {i.code}</option>)}
             </Select></Field>
-          {!form.item_code && <Field label={tr("Item name")}><Input value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} /></Field>}
+          <Field label={tr("Item name")} hint={form.item_code ? tr("Filled from the item chosen above") : tr("Type the name of the item")}>
+            <Input value={form.item} readOnly={!!form.item_code} className={form.item_code ? "bg-neutral-50 text-neutral-700" : undefined}
+              onChange={(e) => setForm({ ...form, item: e.target.value })} /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label={tr("Qty")}><Input type="number" value={form.qty || ""} onChange={(e) => setForm({ ...form, qty: Number(e.target.value) })} /></Field>
             <Field label={tr("Unit")}><Select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })}>{[...new Set([...["g", "ml", "pcs", "cup"], ...((items.rows ?? []).filter((i) => i.code === form.item_code).flatMap((i) => [i.unit, i.pack_unit ?? ""]))])].filter(Boolean).map((u) => <option key={u}>{u}</option>)}</Select></Field>

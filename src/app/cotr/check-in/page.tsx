@@ -44,6 +44,8 @@ export default function CotrCheckInPage() {
     try { setData(await call<Monitor>(`/api/cotr/monitor?day=${day}`)); } catch (e) { setError((e as Error).message); }
   }, [day]);
   useEffect(() => { void load(); }, [load]);
+  // no refresh button (2026-11-09): read again every 60 s while the page is shown
+  useEffect(() => { const t = setInterval(() => { if (document.visibilityState === "visible") void load(); }, 60_000); return () => clearInterval(t); }, [load]);
   // the filters (pool, state of the shift, a driver) narrow every tab
   const [pool, setPool] = useState("");
   const [state, setState] = useState<ShiftFilter>("");
@@ -73,7 +75,7 @@ export default function CotrCheckInPage() {
   return (
     <Page eyebrow="Monitoring COTR" media={<MapPinCheck size={19} />} title={tr("Monitoring Armada - Driver")} subtitle={tr("Shifts, sales, deductions, cash, stock, reloads and requests of every driver")}
       stats={<>
-        <ScopeBar onOpen={() => { setDraft({ day, pool, state }); setSheet(true); }} onRefresh={() => void load()}
+        <ScopeBar onOpen={() => { setDraft({ day, pool, state }); setSheet(true); }}
           right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
           scopes={[
             { key: "day", icon: <CalendarDays />, label: tr("Day"), value: day === todayWib() ? tr("Today") : dmyOf(day) },
@@ -180,15 +182,53 @@ function Shifts({ data }: { data: Monitor }) {
           })}
         </ul>
       )}
-      {data.notStarted.length > 0 && (
-        <Panel title={tr("Not checked in ({0})", data.notStarted.length)} description={tr("Active drivers without a shift on this day")}>
-          <ul className="flex flex-wrap gap-1.5 p-4">
-            {data.notStarted.map((d) => <li key={d.code}><Badge tone="amber">{d.name} · {d.code}</Badge></li>)}
-          </ul>
-        </Panel>
-      )}
+      {data.notStarted.length > 0 && <NotStarted people={data.notStarted} />}
       {open && <ShiftDrawer s={open} onClose={() => setOpen(null)} />}
     </>
+  );
+}
+
+/** The active employees without a shift on the day: per pool, searchable, a part shown until asked (2026-11-09). */
+function NotStarted({ people }: { people: { code: string; name: string; pool: string | null }[] }) {
+  const [q, setQ] = useState("");
+  const [all, setAll] = useState(false);
+  const words = q.trim().toLowerCase();
+  const shown = people.filter((p) => !words || `${p.name} ${p.code} ${p.pool ?? ""}`.toLowerCase().includes(words));
+  const pools = [...new Set(shown.map((p) => p.pool ?? "—"))].sort();
+  const LIMIT = 8;
+  return (
+    <Panel title={tr("Not checked in ({0})", people.length)} description={tr("Active employees without a shift on this day, per pool")}
+      toolbar={<SearchInput value={q} onChange={setQ} placeholder={tr("Search name, code or pool")} />}>
+      {shown.length === 0 ? <Empty title={tr("No one matches")} /> : (
+        <div className="divide-y divide-neutral-100">
+          {pools.map((pool) => {
+            const list = shown.filter((p) => (p.pool ?? "—") === pool);
+            const cut = all || words ? list : list.slice(0, LIMIT);
+            return (
+              <section key={pool} className="px-4 py-3">
+                <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-neutral-700"><Building2 size={13} className="text-neutral-400" />{pool}
+                  <span className="rounded-full bg-amber-50 px-1.5 text-[11px] font-semibold tabular-nums text-amber-700">{list.length}</span></p>
+                <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+                  {cut.map((d) => (
+                    <li key={d.code} className="flex min-w-0 items-center gap-2 rounded-lg bg-neutral-50 px-2.5 py-1.5 text-xs">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-bold text-neutral-500 ring-1 ring-neutral-200">
+                        {d.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}</span>
+                      <span className="min-w-0"><span className="block truncate font-medium text-neutral-800">{d.name}</span><span className="block truncate text-[10px] text-neutral-400">{d.code}</span></span>
+                    </li>
+                  ))}
+                </ul>
+                {cut.length < list.length && <p className="mt-1.5 text-[11px] text-neutral-400">{tr("+{0} more", list.length - cut.length)}</p>}
+              </section>
+            );
+          })}
+        </div>
+      )}
+      {!words && people.length > LIMIT && (
+        <div className="border-t border-neutral-100 px-4 py-2.5 text-center">
+          <Button size="sm" variant="ghost" onClick={() => setAll(!all)}>{all ? tr("Show less") : tr("Show all ({0})", people.length)}</Button>
+        </div>
+      )}
+    </Panel>
   );
 }
 

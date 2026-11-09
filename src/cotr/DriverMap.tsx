@@ -6,9 +6,9 @@
 
 import 'leaflet/dist/leaflet.css';
 import type { CircleMarker, LayerGroup, Map as LeafletMap } from 'leaflet';
-import { Battery, LocateFixed, Navigation, RefreshCw } from 'lucide-react';
+import { Battery, LocateFixed, Navigation } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Badge, Button, Empty, ErrorState, Panel, cx } from '@/so/ui';
+import { Badge, Empty, ErrorState, Panel, cx } from '@/so/ui';
 import { call } from '@/so/features/checkin/checkin';
 import { locale, tr } from '@/lib/i18n';
 import { SkeletonList } from '@/components/kc/Skeleton';
@@ -84,8 +84,7 @@ export default function DriverMap({ day, live }: { day: string; live: boolean })
   };
 
   return (
-    <Panel title={tr('Driver Location')} description={tr('Last position sent by the COTR app of every driver; pick a driver to see the route of the day')}
-      actions={<Button size="sm" variant="secondary" onClick={() => void load()}><RefreshCw size={14} /> {tr('Refresh')}</Button>}>
+    <Panel title={tr('Driver Location')} description={tr('Last position sent by the COTR app of every driver; pick a driver to see the route of the day')}>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : (
         <div className="grid lg:grid-cols-[1fr_20rem]">
           <div ref={box} className="h-[480px] w-full bg-neutral-100" />

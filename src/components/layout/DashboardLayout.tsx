@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <main ref={main} className={`min-w-0 flex-1 overflow-auto ${focus ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0'}`}>
+        <main ref={main} className={`relative min-w-0 flex-1 overflow-auto ${focus ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0'}`}>
           <AppBar pathname={pathname} scrolled={scrolled} onMenu={() => setMobileOpen(true)} />
           <FocusContext.Provider value={setFocus}><ToastProvider>{children}</ToastProvider></FocusContext.Provider>
         </main>

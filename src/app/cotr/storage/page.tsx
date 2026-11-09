@@ -133,7 +133,7 @@ export default function CotrStoragePage() {
   return (
     <Page eyebrow="Monitoring COTR" media={<Warehouse size={19} />} title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
       stats={<>
-        <ScopeBar onOpen={() => setSheet(true)} onRefresh={() => void load()} scopes={[
+        <ScopeBar onOpen={() => setSheet(true)} scopes={[
           { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: usable.find((p) => p.code === poolCode)?.name ?? "—" },
           { key: "day", icon: <CalendarDays />, label: tr("Day"), value: day === todayWib() ? tr("Today") : dmyOf(day) },
           { key: "status", icon: <UserRound />, label: tr("Drivers"), value: status ? FILTER_STATUS[status]() : tr("All"), active: !!status },

@@ -185,7 +185,7 @@ function RosterView() {
                 ))}
               </div>
             </div>
-            <ScopeBar onOpen={() => { setDraftF({ pool, dept }); setSheet(true); }} onRefresh={() => setTick((t) => t + 1)}
+            <ScopeBar onOpen={() => { setDraftF({ pool, dept }); setSheet(true); }}
               right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search name or nickname")} />}
               scopes={[
                 { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolList.find((p) => p.code === pool)?.name ?? tr("All pools"), active: !!pool },

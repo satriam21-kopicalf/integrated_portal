@@ -91,7 +91,7 @@ export function BatchesTab() {
   const hubName = (code: string) => hubs.find((p) => p.code === code)?.name ?? code;
   return (
     <>
-      <ScopeBar onOpen={() => { setDraft({ hub: fHub, state }); setSheet(true); }} onRefresh={load}
+      <ScopeBar onOpen={() => { setDraft({ hub: fHub, state }); setSheet(true); }}
         right={<div className="flex items-center gap-2"><SearchInput value={q} onChange={setQ} placeholder={tr('Search menu or batch')} /><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr('New Batch')}</Button></div>}
         scopes={[
           { key: 'hub', icon: <Building2 />, label: tr('Production Hub'), value: fHub ? hubName(fHub) : tr('Every hub'), active: !!fHub },

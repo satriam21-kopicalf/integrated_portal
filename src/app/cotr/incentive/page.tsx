@@ -88,7 +88,7 @@ function RecapView() {
   const monthLabel = new Date(`${month}-01T00:00:00`).toLocaleDateString(locale(), { month: "long", year: "numeric" });
   return (
     <div className="space-y-5">
-      <ScopeBar onOpen={() => { setDraft({ month, scheme, pool, only }); setSheet(true); }} onRefresh={() => setTick((t) => t + 1)}
+      <ScopeBar onOpen={() => { setDraft({ month, scheme, pool, only }); setSheet(true); }}
         right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
         scopes={[
           { key: "month", icon: <CalendarDays />, label: tr("Month"), value: monthLabel },
