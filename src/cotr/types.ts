@@ -34,7 +34,7 @@ export type Driver = { code: string; name: string; phone: string; pool_code: str
 export type DriverAccount = { id: string; username: string; name: string; driver: string | null };
 
 export type Stock = Record<string, number>;
-export type Recap = { cups: number; total: number; cash: number; qris: number; voided: number; perMenu: { code: string; name: string; qty: number; total: number }[]; reloaded: number; requested: number; difference: Record<string, number> | null;
+export type Recap = { cups: number; total: number; cash: number; qris: number; voided: number; /** migration 084 */ recapCups?: number; recapTotal?: number; perMenu: { code: string; name: string; qty: number; total: number }[]; reloaded: number; requested: number; difference: Record<string, number> | null;
   waste: number; cupping: number; cashSpent: number; cashActual: number | null; cashExpected: number; balance: number | null };
 export type ShiftCheckIn = { id: string; kind: 'start' | 'end'; at: string; lat: number | null; lng: number | null; stock: Stock; note: string | null; hasPhoto: boolean; hasSignature: boolean };
 export type Shift = {

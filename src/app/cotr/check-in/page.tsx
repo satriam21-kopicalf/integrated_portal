@@ -174,6 +174,7 @@ function Shifts({ data }: { data: Monitor }) {
                     {diff ? <Badge tone="red" icon={<TriangleAlert size={11} />}>{tr("Stock difference")}</Badge> : null}
                     {short ? <Badge tone="red">{tr("Cash short {0}", rupiah(Math.abs(s.recap.balance ?? 0)))}</Badge> : null}
                     {s.recap.voided ? <Badge tone="amber">{tr("{0} voided", s.recap.voided)}</Badge> : null}
+                    {s.recap.recapCups ? <Badge tone="blue">{tr("Recap at the pool {0} cups", s.recap.recapCups)}</Badge> : null}
                     {s.deductions.value > 0 && <Badge tone="amber">{tr("Deductions {0}", rupiah(s.deductions.value))}</Badge>}
                     <span className="ml-auto text-brand-700 opacity-0 transition group-hover:opacity-100">{tr("Details")} →</span>
                   </span>
@@ -300,6 +301,7 @@ function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
                 <Row strong label={tr("Total")} value={rupiah(s.recap.total)} />
                 <Row label={tr("Cash")} value={rupiah(s.recap.cash)} /><Row label="QRIS" value={rupiah(s.recap.qris)} />
                 {s.recap.voided > 0 && <Row label={tr("Voided bills")} value={s.recap.voided} tone="text-amber-700" />}
+                {!!s.recap.recapCups && <Row label={tr("Recap at the pool (from the leftover)")} value={tr("{0} cups", s.recap.recapCups) + " · " + rupiah(s.recap.recapTotal ?? 0)} tone="text-brand-700" />}
               </ul>
             )}
           </Block>
