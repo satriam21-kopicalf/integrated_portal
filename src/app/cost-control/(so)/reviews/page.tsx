@@ -9,7 +9,7 @@ import { ccUrl } from "@/lib/company";
 import LocationBadges from "@/so/features/count/LocationBadges";
 import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCheck, Clock, Layers, RotateCcw, Send } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
-import { SoGroupTabs, soGroupOf, soGroupTypes, useSoGroup } from "@/so/ui/SoGroupTabs";
+import { SoGroupTabs, soGroupOf, soGroupTypes, useGroupTypes, useSoGroup } from "@/so/ui/SoGroupTabs";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Empty, ErrorState, Page, Panel, SkeletonRows, fmtDate, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -56,6 +56,7 @@ export default function ReviewsPage() {
   const [sheet, setSheet] = useState(false);
   const [group, setGroupOnly] = useSoGroup();
   const setGroup = (g: typeof group) => { setGroupOnly(g); setF((x) => ({ ...x, type: "" })); };
+  const typeChoices = useGroupTypes(group, (rows ?? []).map((r) => r.count_type));
 
   // every status of the period: the figures count all of them, the status filter only narrows the list
   const load = useCallback(async () => {
@@ -247,7 +248,7 @@ export default function ReviewsPage() {
         )}
       </Panel>
 
-      {sheet && <ReviewFilters value={f} types={Array.from(new Set(all.map((r) => r.count_type)))} facilityTypes={Array.from(new Set(all.map((r) => r.facility_type)))}
+      {sheet && <ReviewFilters value={f} types={typeChoices} facilityTypes={Array.from(new Set(all.map((r) => r.facility_type)))}
         onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </Page>
   );

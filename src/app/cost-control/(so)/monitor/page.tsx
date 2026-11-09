@@ -14,7 +14,7 @@ import { api, errorText } from "@/so/lib/api";
 import { STATUS, countTypeLabel } from "@/so/lib/counts";
 import LocationBadges from "@/so/features/count/LocationBadges";
 import { btn } from "@/components/kc";
-import { SoGroupTabs, soGroupOf, useSoGroup } from "@/so/ui/SoGroupTabs";
+import { SoGroupTabs, soGroupOf, useGroupTypes, useSoGroup } from "@/so/ui/SoGroupTabs";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { locale, tr } from "@/lib/i18n";
 
@@ -86,6 +86,7 @@ export default function MonitorPage() {
   const [sheet, setSheet] = useState(false);
   const [group, setGroupOnly] = useSoGroup();
   const setGroup = (g: typeof group) => { setGroupOnly(g); setF((x) => ({ ...x, type: "" })); };
+  const typeChoices = useGroupTypes(group, (rows ?? []).map((r) => r.count_type));
 
   const load = useCallback(async () => {
     setError(null);
@@ -227,7 +228,7 @@ export default function MonitorPage() {
         )}
       </Panel>
 
-      {sheet && <MonitorFilters value={f} types={Array.from(new Set(all.map((r) => r.count_type)))}
+      {sheet && <MonitorFilters value={f} types={typeChoices}
         facilityTypes={Array.from(new Set(all.map((r) => r.facility_type)))} onClose={() => setSheet(false)}
         onApply={(v) => { setF(v); setSheet(false); }} />}
     </Page>

@@ -57,7 +57,7 @@ export default function ReportsPage() {
 
   // Daily apart from Weekly - Monthly (2026-11-09): the list, the figures and the download follow the tab
   const all = useMemo(() => (rows ?? []).filter((r) => soGroupOf(r.count_type) === group), [rows, group]);
-  const groupTypes = types.filter((t) => soGroupOf(t.code) === group);
+  const groupTypes = types.filter((t) => soGroupOf(t.code) === group && ((t as CountType & { is_active?: boolean }).is_active !== false || all.some((r) => r.count_type === t.code)));
   const shown = useMemo(() => {
     const s = search.trim().toLowerCase();
     return all.filter((r) => !s || r.facility_name.toLowerCase().includes(s) || r.number.toLowerCase().includes(s));

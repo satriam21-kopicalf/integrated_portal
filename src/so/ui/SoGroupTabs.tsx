@@ -5,7 +5,8 @@
 // with the weekly / monthly ones. The choice is kept in the address (?so=daily|periodic) so a link opens it.
 
 import { CalendarDays, CalendarRange } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { api } from "@/so/lib/api";
 import { cx } from "@/components/kc";
 import { tr } from "@/lib/i18n";
 
@@ -27,6 +28,18 @@ export function useSoGroup(): [SoGroup, (g: SoGroup) => void] {
     window.history.replaceState(null, "", url);
   }, []);
   return [group, choose];
+}
+
+/** the count types of a group for the filters: the active ones of the master (Count Types) and those in the data —
+ *  a type with no count in the period (Monthly - SO in a week without one) can still be chosen (2026-11-09) */
+export function useGroupTypes(group: SoGroup, inData: Iterable<string>): string[] {
+  const [master, setMaster] = useState<{ code: string; is_active?: boolean }[]>([]);
+  useEffect(() => {
+    void api<{ code: string; is_active?: boolean }[]>("/api/so/count-settings/types").then(setMaster).catch(() => setMaster([]));
+  }, []);
+  const data = [...new Set(inData)].join(",");
+  return useMemo(() => [...new Set([...master.filter((t) => t.is_active !== false).map((t) => t.code), ...data.split(",").filter(Boolean)])]
+    .filter((t) => soGroupOf(t) === group), [master, data, group]);
 }
 
 /** the count types of a group for the Excel download (comma separated); null when none of them is in the list */
