@@ -32,7 +32,7 @@ import { thumb } from "@/lib/assets";
 import { type Answer, type AutoStars, type FormState, type Item, type Rating, type Visit, type VisitFormKey, type VisitPhoto, PLATFORM_LABEL, RATINGS, RATING_STYLE,
   allItems, evidenceOf, forGroup, fmtStars, isRequired, missingOf, needLabel, ratingLabel, tl, visitPhotoUrl } from "./visit";
 
-const MAX_PHOTOS = 3;
+const MAX_PHOTOS = 5; // 2026-11-09
 
 export default function VisitForm({ form }: { form: VisitFormKey }) {
   const toast = useToast();
@@ -582,7 +582,7 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
  * saved when the field is left. */
 function QtyGrams({ answer, required, missing, label, units, onAnswer }: { answer: Answer; required: boolean; missing: boolean; label: string; units?: string[]; onAnswer: (v: Answer, now?: boolean) => void }) {
   const unit = answer.unit ?? "gram";
-  const UNIT_LABEL: Record<string, string> = { gram: "g", pail: tr("pail"), teko: tr("teko") };
+  const UNIT_LABEL: Record<string, string> = { gram: "g", pail: tr("pail"), teko: tr("teko"), porsi: tr("portion"), pax: "pax" };
   const [text, setText] = useState(answer.qty != null ? String(Math.round(answer.qty)) : "");
   const [bad, setBad] = useState(false);
   const commit = () => {
@@ -618,6 +618,27 @@ function QtyGrams({ answer, required, missing, label, units, onAnswer }: { answe
   );
 }
 
+/** The link of the request form (Raw Materials, 2026-11-09): saved when the field is left. */
+function LinkInput({ answer, missing, onAnswer }: { answer: Answer; missing: boolean; onAnswer: (v: Answer, now?: boolean) => void }) {
+  const [text, setText] = useState(answer.link ?? "");
+  const [bad, setBad] = useState(false);
+  const commit = () => {
+    const v = text.trim();
+    if (v && !/^https?:\/\//i.test(v)) { setBad(true); return; }
+    setBad(false);
+    if ((v || null) !== (answer.link ?? null)) onAnswer({ link: v || null }, true);
+  };
+  return (
+    <div className="mt-2">
+      <input type="url" inputMode="url" value={text} onChange={(e) => setText(e.target.value)} onBlur={commit}
+        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+        placeholder="https://…" aria-label={tr("Link of the request form")} aria-invalid={bad || missing || undefined}
+        className={cx(inputClass, "h-11 text-base sm:h-10 sm:text-sm", (bad || missing) && "border-red-300")} />
+      <p className={cx("mt-1 text-[11px]", bad ? "text-red-600" : "text-neutral-500")}>{bad ? tr("The link starts with http:// or https://") : tr("Link of the request form (spreadsheet, drive …)")}</p>
+    </div>
+  );
+}
+
 function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemovePhoto }: {
   item: Item; group: string | null; answer: Answer; auto: AutoStars | null; photos: VisitPhoto[]; onAnswer: (v: Answer, now?: boolean) => void; onCamera: () => void; onRemovePhoto: (id: string) => void;
 }) {
@@ -630,8 +651,11 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
   const needNote = rated && ev.note && !answer.note;
   const needPhoto = rated && ev.photo && photos.length === 0;
   const needQty = rated && ev.qty && answer.qty == null;
-  const hint = required && !item.platform && ev.note !== ev.photo ? (ev.note ? tr("Note required · photo optional") : tr("Photo required · note optional")) : null;
-  const needs = [needNote && "note", needPhoto && "photo", needQty && "qty"].filter(Boolean).join("+");
+  const needLink = rated && ev.link && !answer.link;
+  // Raw Materials (2026-11-09): neither a photo nor a note, the link of the request form
+  const noPhoto = item.photo === "none", noNote = item.note === "none";
+  const hint = required && !item.platform && !item.link && ev.note !== ev.photo ? (ev.note ? tr("Note required · photo optional") : tr("Photo required · note optional")) : null;
+  const needs = [needNote && "note", needPhoto && "photo", needQty && "qty", needLink && "link"].filter(Boolean).join("+");
   return (
     <li id={`item-${item.key}`} className={cx("px-4 py-3.5", under && "bg-red-50/40")}>
       <div className="flex items-start gap-2.5">
@@ -659,13 +683,14 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
             </div>
           )}
           {item.qty && <QtyGrams answer={answer} required={ev.qty} missing={needQty} label={tl(item)} units={item.units} onAnswer={onAnswer} />}
-          {showNote && (
+          {item.link && <LinkInput answer={answer} missing={needLink} onAnswer={onAnswer} />}
+          {showNote && !noNote && (
             <textarea value={answer.note ?? ""} onChange={(e) => onAnswer({ note: e.target.value })} rows={2} maxLength={1000}
               placeholder={item.kind === "text" ? tr("Names, separated by commas") : rated && ev.note ? tr("What you see (required)") : tr("Note (optional)")}
               aria-invalid={needNote || undefined}
               className={cx(inputClass, "mt-2 h-auto py-2 text-sm", needNote && "border-red-300")} />
           )}
-          {(photos.length > 0 || item.kind === "rating") && (
+          {(photos.length > 0 || (item.kind === "rating" && !(noPhoto && noNote)) || !!needs) && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {photos.map((p) => (
                 <span key={p.id} className="relative">
@@ -678,14 +703,14 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
                     className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-900 p-0.5 text-white shadow"><X size={11} /></button>
                 </span>
               ))}
-              {item.kind === "rating" && photos.length < MAX_PHOTOS && (
+              {item.kind === "rating" && !noPhoto && photos.length < MAX_PHOTOS && (
                 <button type="button" onClick={onCamera}
                   className={cx("inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium",
                     needPhoto ? "border-red-300 bg-white text-red-700" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300")}>
                   <Camera size={14} /> {photos.length ? tr("Photo ({0}/{1})", photos.length, MAX_PHOTOS) : tr("Photo")}
                 </button>
               )}
-              {item.kind === "rating" && !showNote && (
+              {item.kind === "rating" && !noNote && !showNote && (
                 <button type="button" onClick={() => setNoteOpen(true)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 text-xs font-medium text-neutral-600 hover:border-neutral-300">
                   <MessageSquareText size={14} /> {tr("Note")}
                 </button>

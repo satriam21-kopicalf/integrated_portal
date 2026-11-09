@@ -10,13 +10,14 @@ export type Platform = "google" | "gofood" | "grabfood" | "shopeefood";
 /** One item (2026-10-27): required = it must be rated before sending (requiredFor: only at the outlets of these branch
  * groups, e.g. Beans Specialty at CTGP and CCI); note / photo = what a rated required item needs. An optional item may be
  * skipped and needs neither. labelEn = the English text (the UI shows the one of its language). */
-export type Evidence = "required" | "optional";
+export type Evidence = "required" | "optional" | "none";
 export type Item = { key: string; no: number; label: string; labelEn?: string; kind: "rating" | "text"; platform?: Platform;
   required?: boolean; requiredFor?: string[]; note?: Evidence; photo?: Evidence;
   /** asked only at the outlets of these branch groups (2026-11-02); the others do not see it */ onlyFor?: string[];
   /** "g": the PIC also types the stock in grams, net weight (Stock Preparation, Espresso and Beans, 2026-10-28) */
   qty?: "g";
-  /** the units the PIC may count the stock in (premixes: gram, pail, teko — 2026-11-08) */ units?: string[];
+  /** the units the PIC may count the stock in (premixes: gram, pail, teko — 2026-11-08; food: porsi, pax) */ units?: string[];
+  /** Raw Materials (2026-11-09): the link of the request form, instead of a photo and a note */ link?: Evidence;
   /** Travel Path (Outlet Cleanliness, 2026-10-30): the photo points, the standard to see, the category */
   detail?: string; standard?: string; category?: "Kritikal" | "Mayor" | "Minor"; categoryEn?: string;
   /** the photo points and the standard in English (2026-11-02) */ detailEn?: string; standardEn?: string };
@@ -46,15 +47,16 @@ export const forGroup = (d: Definition, group?: string | null): Definition => ({
 /** What a rated item needs at this outlet: a required item its note / photo (both unless the item says otherwise). */
 export const evidenceOf = (i: Item, group?: string | null) => {
   const req = isRequired(i, group) && !i.platform;
-  return { note: req && (i.note ?? "required") === "required", photo: req && (i.photo ?? "required") === "required", qty: req && !!i.qty };
+  return { note: req && (i.note ?? "required") === "required", photo: req && (i.photo ?? "required") === "required", qty: req && !!i.qty,
+    link: req && i.link === "required" };
 };
 /** rating null = cleared (tapping the chosen rating again); qty = grams (net weight) */
-export type Answer = { rating?: Rating | null; note?: string; qty?: number | null; unit?: string | null; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null;
+export type Answer = { rating?: Rating | null; note?: string; link?: string | null; qty?: number | null; unit?: string | null; stars?: number | null; reviews?: number | null; source?: "google" | "manual"; fetchedAt?: string | null;
   /** WW-WR: the member of the team who filled it */ by?: string };
 /** 1250.5 → "1,250.5 g" in the UI language */
 export const fmtGrams = (n: number) => `${n.toLocaleString(numberLocale(), { maximumFractionDigits: 1 })} g`;
 /** "note+qty" → "note + grams" (what a rated item still needs) */
-export const needLabel = (what: string) => what.split("+").map((w) => ({ note: tr("note"), photo: tr("photo"), qty: tr("grams") })[w] ?? w).join(" + ");
+export const needLabel = (what: string) => what.split("+").map((w) => ({ note: tr("note"), photo: tr("photo"), qty: tr("grams"), link: tr("link") })[w] ?? w).join(" + ");
 export type Counts = { under: number; meet: number; exceed: number; rated: number; total: number; score: number | null };
 export type VisitPhoto = { id: string; item: string; takenAt: string | null; uploadedAt: string; latitude: number | null; longitude: number | null;
   distanceM: number | null; outsideRadius: boolean };
@@ -116,7 +118,8 @@ export function missingOf(d: Definition, answers: Record<string, Answer>, photos
     const a = answers[i.key] ?? {};
     if (!a.rating) return { item: i, need: (isRequired(i, group) ? "rating" : "optional") as "rating" | "optional", what: "" };
     const ev = evidenceOf(i, group);
-    const what = [ev.note && !a.note ? "note" : "", ev.photo && !withPhoto.has(i.key) ? "photo" : "", ev.qty && a.qty == null ? "qty" : ""].filter(Boolean).join("+");
+    const what = [ev.note && !a.note ? "note" : "", ev.photo && !withPhoto.has(i.key) ? "photo" : "", ev.qty && a.qty == null ? "qty" : "",
+      ev.link && !a.link ? "link" : ""].filter(Boolean).join("+");
     return what ? { item: i, need: "evidence" as const, what } : null;
   }).filter((x): x is NonNullable<typeof x> => !!x);
 }

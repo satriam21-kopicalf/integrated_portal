@@ -601,6 +601,10 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                                   <span className="ml-2 inline-flex items-center whitespace-nowrap rounded-md bg-neutral-100 px-1.5 py-0.5 align-middle text-[11px] font-semibold tabular-nums text-neutral-700"
                                     title={tr("Stock quantity")}>{a.unit && a.unit !== "gram" ? `${a.qty.toLocaleString("id-ID")} ${a.unit}` : fmtGrams(a.qty)}</span>
                                 )}
+                                {a.link && (
+                                  <a href={a.link} target="_blank" rel="noreferrer" className="ml-2 inline-flex items-center gap-1 align-middle text-[11px] font-medium text-brand-700 hover:underline" onClick={(e) => e.stopPropagation()}>
+                                    <ExternalLink size={11} />{tr("Open link")}</a>
+                                )}
                               </span>
                               {a.rating ? <span className={cx("min-w-[4.5rem] rounded-md px-2 py-0.5 text-center text-[11px] font-bold", RATING_STYLE[a.rating as Rating].on)}>{ratingLabel(a.rating as Rating)}</span>
                                 : it.kind === "text" ? <span /> : <span className="min-w-[4.5rem] text-center text-xs text-neutral-400">—</span>}
