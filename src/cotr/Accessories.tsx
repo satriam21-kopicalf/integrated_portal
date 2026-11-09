@@ -118,11 +118,11 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
       <div className="space-y-4">
         <section className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
           <p className="mb-2 text-xs font-medium text-neutral-600">{tr("Put an accessory on this fleet: the item, how many and the day it is used from")}</p>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="min-w-0 flex-1"><SearchSelect value={pick} onChange={(v) => setPick(v ?? "")} placeholder={tr("Choose the accessory")}
+          <div className="grid gap-2 sm:grid-cols-[5rem_minmax(0,1fr)_auto]">
+            <div className="min-w-0 sm:col-span-3"><SearchSelect value={pick} onChange={(v) => setPick(v ?? "")} placeholder={tr("Choose the accessory")}
               options={(all.rows ?? []).filter((a) => a.is_active && !on.some((r) => r.code === a.code)).map((a) => ({ value: a.code, label: a.name, hint: [a.code, a.category].filter(Boolean).join(" · ") }))} /></div>
-            <input className={cx(inputClass, "h-10 w-full bg-white text-right sm:w-20")} inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} aria-label={tr("Qty")} />
-            <input type="date" className={cx(inputClass, "h-10 w-full bg-white sm:w-40")} value={from} onChange={(e) => setFrom(e.target.value)} aria-label={tr("Used from")} title={tr("Used from")} />
+            <input className={cx(inputClass, "h-10 w-full bg-white text-right")} inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} aria-label={tr("Qty")} />
+            <input type="date" className={cx(inputClass, "h-10 w-full bg-white")} value={from} onChange={(e) => setFrom(e.target.value)} aria-label={tr("Used from")} title={tr("Used from")} />
             <Button disabled={!pick} loading={busy} onClick={() => void add()}><Plus size={15} />{tr("Add")}</Button>
           </div>
         </section>
