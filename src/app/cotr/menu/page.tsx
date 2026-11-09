@@ -4,19 +4,23 @@
 // this order), the price a sale takes and the recipe (BOM) each is made with (Storage & Production → BOM / recipes).
 // A summary on top (menus sold, without a recipe, price range), the list with its filters (category, status, recipe).
 
+import { Segmented } from "@/so/ui/Simple";
 import { BookOpen, CircleDollarSign, Coffee, Layers, ShoppingBag, TriangleAlert } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Page } from "@/components/kc/compat";
 import { Pill, StatCard, StatGrid, ValueSkeleton } from "@/components/kc";
 import { Bom, Menu } from "@/cotr/types";
 import { type MasterFilter, MasterTable, YesNo, rupiah, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 
-const CATEGORIES = ["Kopi susu", "Kopi hitam", "Non kopi", "Snack"];
+type Category = { code: string; name: string; sort: number; is_active: boolean };
 
 export default function CotrMenuPage() {
   const master = useMaster<Menu>("menus");
   const boms = useMaster<Bom>("boms");
+  // the categories are a master of their own (migration 082): added and renamed here
+  const cats = useMaster<Category>("menu-categories");
+  const [part, setPart] = useState<"menus" | "categories">("menus");
   const rows = master.rows;
   const s = useMemo(() => {
     if (!rows) return null;
@@ -26,7 +30,7 @@ export default function CotrMenuPage() {
       min: prices.length ? Math.min(...prices) : null, max: prices.length ? Math.max(...prices) : null,
       categories: new Set(rows.map((m) => m.category)).size };
   }, [rows]);
-  const categories = useMemo(() => [...new Set([...CATEGORIES, ...(rows ?? []).map((m) => m.category)].filter(Boolean))], [rows]);
+  const categories = useMemo(() => [...new Set([...(cats.rows ?? []).filter((c) => c.is_active).map((c) => c.name), ...(rows ?? []).map((m) => m.category)].filter(Boolean))], [rows, cats.rows]);
   const filters: MasterFilter<Menu>[] = [
     { key: "category", label: tr("Category"), icon: <Layers size={15} />, options: categories.map((c) => ({ value: c, label: c, test: (m) => m.category === c })) },
     { key: "status", label: tr("Status"), icon: <ShoppingBag size={15} />, options: [
@@ -45,9 +49,11 @@ export default function CotrMenuPage() {
           <StatCard label={tr("Highest Price")} icon={<CircleDollarSign />} value={s ? (s.max === null ? "—" : rupiah(s.max)) : <ValueSkeleton />} />
         </StatGrid>
       }>
-      <MasterTable noun={tr("menu")} title={tr("Menus")} master={master} filters={filters}
+      <Segmented label={tr("Part")} value={part} onChange={setPart} options={[
+        { value: "menus", label: tr("Menus ({0})", rows?.length ?? 0) }, { value: "categories", label: tr("Categories ({0})", cats.rows?.length ?? 0) }]} />
+      {part === "menus" && <MasterTable noun={tr("menu")} title={tr("Menus")} master={master} filters={filters}
         description={tr("Sold menus show in the driver app in this order; a sale takes the price of that moment.")}
-        blank={() => ({ code: "COTR-", name: "", category: "Kopi susu", price: 15000, bom_code: null, is_active: true, sort: (master.rows?.length ?? 0) + 1 })}
+        blank={() => ({ code: "COTR-", name: "", category: categories[0] ?? "", price: 15000, bom_code: null, is_active: true, sort: (master.rows?.length ?? 0) + 1 })}
         columns={[
           { label: tr("Menu"), render: (m) => (
             <span className="flex items-center gap-3">
@@ -72,7 +78,21 @@ export default function CotrMenuPage() {
           { key: "shelf_life_days", label: tr("Shelf Life (Days)"), type: "number", section: tr("Recipe & production"), hint: tr("The default expiry of a production batch") },
           { key: "sort", label: tr("Order in the App"), type: "number", section: tr("Driver app") },
           { key: "is_active", label: tr("Sold"), type: "bool", section: tr("Driver app") },
-        ]} />
+        ]} />}
+      {part === "categories" && <MasterTable noun={tr("category")} title={tr("Menu Categories")} master={cats}
+        description={tr("The categories the menus are grouped in; a category used by a menu cannot be deleted")}
+        blank={(): Partial<Category> => ({ code: "", name: "", sort: (cats.rows?.length ?? 0) + 1, is_active: true })}
+        columns={[
+          { label: tr("Category"), render: (c) => <><span className="block font-medium text-neutral-900">{c.name}</span><span className="text-[11px] text-neutral-400">{c.code}</span></> },
+          { label: tr("Menus"), className: "text-right", render: (c) => <span className="tabular-nums">{(rows ?? []).filter((m) => m.category === c.name).length}</span> },
+          { label: tr("Status"), render: (c) => <YesNo on={c.is_active} yes={tr("Active")} no={tr("Inactive")} /> },
+        ]}
+        fields={[
+          { key: "code", label: tr("Code"), required: true, placeholder: "KOPI-SUSU" },
+          { key: "name", label: tr("Name"), required: true, placeholder: tr("e.g. Kopi Susu") },
+          { key: "sort", label: tr("Order"), type: "number" },
+          { key: "is_active", label: tr("Active"), type: "bool" },
+        ]} />}
     </Page>
   );
 }

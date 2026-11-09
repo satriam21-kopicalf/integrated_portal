@@ -17,7 +17,7 @@ import { ConfirmDialog } from '@/so/ui/Dialog';
 import { call } from '@/so/features/checkin/checkin';
 import { tr } from '@/lib/i18n';
 
-export type Entity = 'pools' | 'fleet' | 'fleet-types' | 'shift-templates' | 'incentive-schemes' | 'menus' | 'boms' | 'items' | 'drivers' | 'areas' | 'accessories';
+export type Entity = 'pools' | 'fleet' | 'fleet-types' | 'shift-templates' | 'incentive-schemes' | 'menus' | 'boms' | 'items' | 'drivers' | 'areas' | 'accessories' | 'menu-categories';
 type Row = Record<string, unknown> & { code: string };
 
 /** One master: rows, reload, save (create when `key` is null) and delete; the messages of a refusal are thrown. */
@@ -248,6 +248,8 @@ function FieldInput({ f, v, set, code, picture, onPicture }: {
         <Select value={val === false ? '0' : '1'} onChange={(e) => set(f.key, e.target.value === '1')}>
           <option value="1">{tr('Yes')}</option><option value="0">{tr('No')}</option>
         </Select>
+      ) : f.type === 'time' ? (
+        <TimeInput value={str.slice(0, 5)} onChange={(v) => set(f.key, v || null)} />
       ) : f.type === 'textarea' ? (
         <textarea value={str} rows={3} onChange={(e) => set(f.key, e.target.value)} className={cx(inputClass, 'h-auto py-2')} placeholder={f.placeholder} />
       ) : (
@@ -367,3 +369,27 @@ export function YesNo({ on, yes, no }: { on: boolean; yes: string; no: string })
 }
 
 export const rupiah = (n: number) => `Rp ${Math.round(Number(n)).toLocaleString('id-ID')}`;
+
+/** A time in the 24-hour clock (WIB, 2026-11-09): the browser time field shows AM / PM on some phones; this one is
+ * typed HH:MM (the colon added), or picked from the hour and the minutes. */
+export function TimeInput({ value, onChange, invalid, className }: { value: string; onChange: (v: string) => void; invalid?: boolean; className?: string }) {
+  const [h, m] = (value || '').split(':');
+  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  const minutes = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+  const mins = m && !minutes.includes(m) ? [...minutes, m].sort() : minutes;
+  const pick = (hh: string, mm: string) => onChange(hh ? `${hh}:${mm || '00'}` : '');
+  return (
+    <span className={cx('flex items-center gap-1', className)}>
+      <select value={h ?? ''} onChange={(e) => pick(e.target.value, m ?? '00')} aria-label={tr('Hour')}
+        className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-red-300')}>
+        <option value="">--</option>{hours.map((x) => <option key={x} value={x}>{x}</option>)}
+      </select>
+      <span className="font-semibold text-neutral-500">:</span>
+      <select value={m ?? ''} onChange={(e) => pick(h || '00', e.target.value)} aria-label={tr('Minute')}
+        className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-red-300')}>
+        <option value="">--</option>{mins.map((x) => <option key={x} value={x}>{x}</option>)}
+      </select>
+      <span className="ml-1 text-xs text-neutral-400">WIB</span>
+    </span>
+  );
+}

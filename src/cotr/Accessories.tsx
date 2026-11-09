@@ -95,6 +95,7 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
   const [rows, setRows] = useState<FleetAccessory[] | null>(null);
   const [pick, setPick] = useState("");
   const [qty, setQty] = useState("1");
+  const [from, setFrom] = useState(() => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10));
   const [busy, setBusy] = useState(false);
   const load = useCallback(async () => {
     setRows((await call<{ data: FleetAccessory[] }>(`/api/cotr/fleet-accessories?fleet=${encodeURIComponent(fleet.code)}`)).data);
@@ -105,7 +106,7 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
   const add = async () => {
     setBusy(true);
     try {
-      await call(`/api/cotr/fleet/${encodeURIComponent(fleet.code)}/accessories`, { method: "POST", json: { code: pick, qty: Number(qty) || 1 } });
+      await call(`/api/cotr/fleet/${encodeURIComponent(fleet.code)}/accessories`, { method: "POST", json: { code: pick, qty: Number(qty) || 1, assignedOn: from } });
       setPick(""); setQty("1"); await load(); onChanged();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
@@ -116,11 +117,12 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
     <Drawer open onClose={onClose} icon={<Package size={18} />} title={tr("Accessories of {0}", fleet.code)} description={fleet.name || undefined}>
       <div className="space-y-4">
         <section className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
-          <p className="mb-2 text-xs font-medium text-neutral-600">{tr("Put an accessory on this fleet")}</p>
+          <p className="mb-2 text-xs font-medium text-neutral-600">{tr("Put an accessory on this fleet: the item, how many and the day it is used from")}</p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="min-w-0 flex-1"><SearchSelect value={pick} onChange={(v) => setPick(v ?? "")} placeholder={tr("Choose the accessory")}
               options={(all.rows ?? []).filter((a) => a.is_active && !on.some((r) => r.code === a.code)).map((a) => ({ value: a.code, label: a.name, hint: [a.code, a.category].filter(Boolean).join(" · ") }))} /></div>
-            <input className={cx(inputClass, "h-10 w-full bg-white text-right sm:w-24")} inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} aria-label={tr("Qty")} />
+            <input className={cx(inputClass, "h-10 w-full bg-white text-right sm:w-20")} inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} aria-label={tr("Qty")} />
+            <input type="date" className={cx(inputClass, "h-10 w-full bg-white sm:w-40")} value={from} onChange={(e) => setFrom(e.target.value)} aria-label={tr("Used from")} title={tr("Used from")} />
             <Button disabled={!pick} loading={busy} onClick={() => void add()}><Plus size={15} />{tr("Add")}</Button>
           </div>
         </section>
@@ -129,7 +131,7 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
             {on.map((r) => (
               <li key={r.id} className="flex items-center gap-3 px-3 py-2.5">
                 <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{r.name} <span className="tabular-nums text-neutral-500">× {r.qty} {r.unit}</span></span>
-                  <span className="block text-[11px] text-neutral-400">{r.code}{r.serialNo ? ` · SN ${r.serialNo}` : ""} · {tr("since {0}", r.assignedOn)}</span></span>
+                  <span className="block text-[11px] text-neutral-400">{r.code}{r.serialNo ? ` · SN ${r.serialNo}` : ""} · {tr("used since {0}", r.assignedOn)}</span></span>
                 <Badge tone={CONDITION[r.condition].tone} dot>{CONDITION[r.condition].label()}</Badge>
                 <button type="button" onClick={() => void remove(r.id)} title={tr("Take off")} aria-label={tr("Take off")}
                   className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>

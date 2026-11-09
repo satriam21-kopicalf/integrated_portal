@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Button, cx, inputClass, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { type Area, type Fleet } from "@/cotr/types";
-import { SearchSelect, useMaster } from "@/cotr/ui";
+import { SearchSelect, TimeInput, useMaster } from "@/cotr/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 
@@ -76,7 +76,7 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
                   <IconBtn label={tr("Delete")} danger onClick={() => setSlots((x) => x.filter((_, j) => j !== i))}><Trash2 size={14} /></IconBtn>
                 </span>
               </div>
-              <div className="grid gap-2 sm:grid-cols-[1fr_6.5rem_6.5rem]">
+              <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
                 <label className="text-[11px] font-medium text-neutral-500">{tr("Shift template")}
                   <select className={cx(inputClass, "mt-1 h-10")} value={s.template ?? ""} onChange={(e) => {
                     const t = active.find((x) => x.code === e.target.value);
@@ -86,9 +86,9 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
                     {active.map((t) => <option key={t.code} value={t.code}>{t.name} · {hm(t.start_time)}–{hm(t.end_time)}</option>)}
                   </select></label>
                 <label className="text-[11px] font-medium text-neutral-500">{tr("Start")}
-                  <input type="time" className={cx(inputClass, "mt-1 h-10")} value={s.start} onChange={(e) => set(i, { start: e.target.value })} /></label>
+                  <TimeInput className="mt-1" value={s.start} onChange={(v) => set(i, { start: v })} /></label>
                 <label className="text-[11px] font-medium text-neutral-500">{tr("End")}
-                  <input type="time" className={cx(inputClass, "mt-1 h-10", s.end <= s.start && "border-red-300")} value={s.end} onChange={(e) => set(i, { end: e.target.value })} /></label>
+                  <TimeInput className="mt-1" value={s.end} invalid={s.end <= s.start} onChange={(v) => set(i, { end: v })} /></label>
               </div>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <div className="text-[11px] font-medium text-neutral-500">{tr("Area")}

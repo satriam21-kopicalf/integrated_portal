@@ -1,6 +1,14 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Minute": "Menit",
+  "Used from": "Mulai digunakan",
+  "Put an accessory on this fleet: the item, how many and the day it is used from": "Pasang accessories ke fleet ini: item, jumlah dan tanggal mulai digunakan",
+  "used since {0}": "digunakan sejak {0}",
+  "Menu Categories": "Kategori Menu",
+  "Categories ({0})": "Kategori ({0})",
+  "Menus ({0})": "Menu ({0})",
+  "The categories the menus are grouped in; a category used by a menu cannot be deleted": "Kategori pengelompokan menu; kategori yang masih dipakai menu tidak bisa dihapus",
   "Open link": "Buka link",
   "link": "link",
   "Link of the request form": "Link form request",
