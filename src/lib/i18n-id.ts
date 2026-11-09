@@ -1,6 +1,7 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Add a premix not counted yet": "Tambah premix yang belum dihitung",
   "Change it only when the app shows another figure": "Ubah hanya jika aplikasi menampilkan angka lain",
   "{0}, automatic": "{0}, otomatis",
   "Use the automatic figure": "Pakai angka otomatis",

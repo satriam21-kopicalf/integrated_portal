@@ -67,8 +67,13 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
       // a recount sends the premixes not asked again as they are, and of those asked again the one confirmed and the
       // ones changed (0 = none there); one asked again and not sent stays to confirm
       const entries = recount
-        ? wip.lines.filter((l) => !l.flags?.includes("RECOUNT") || l.id === confirm || (values[keyOf(l.recipe_id, l.uom)] ?? "") !== saved[keyOf(l.recipe_id, l.uom)])
-          .map((l) => ({ recipe_id: l.recipe_id, uom: l.uom, qty: Number(values[keyOf(l.recipe_id, l.uom)] || 0) }))
+        ? [...wip.lines.filter((l) => !l.flags?.includes("RECOUNT") || l.id === confirm || (values[keyOf(l.recipe_id, l.uom)] ?? "") !== saved[keyOf(l.recipe_id, l.uom)])
+          .map((l) => ({ recipe_id: l.recipe_id, uom: l.uom, qty: Number(values[keyOf(l.recipe_id, l.uom)] || 0) })),
+          // a premix not in the count yet, added in the recount (2026-11-09: Cost Control asks the right WIP)
+          ...Object.entries(values).filter(([k, v]) => Number(v) > 0 && !wip.lines.some((l) => keyOf(l.recipe_id, l.uom) === k)).map(([k, v]) => {
+            const [recipe_id, uom] = k.split("|");
+            return { recipe_id, uom, qty: Number(v) };
+          })]
         : Object.entries(values).filter(([, v]) => Number(v) > 0).map(([k, v]) => {
           const [recipe_id, uom] = k.split("|");
           return { recipe_id, uom, qty: Number(v) };
@@ -83,7 +88,8 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
     }
   };
 
-  const recipes = open && !recount ? wip.recipes : [];
+  // in a recount: the premixes already counted above, and the ones not counted yet may be added
+  const recipes = !open ? [] : recount ? wip.recipes.filter((r) => !wip.lines.some((l) => l.recipe_id === r.id)) : wip.recipes;
   const entered = wip.lines.length;
   return (
     <section className="overflow-hidden rounded-xl border border-violet-200 bg-white shadow-sm">
@@ -131,8 +137,12 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                 );
               })}
             </ul>
-          ) : open ? (
-            recipes.length === 0 ? <p className="text-sm text-neutral-500">{tr("No WIP recipe is active for this location.")}</p> : (
+          ) : null}
+          {open && recount && recipes.length > 0 && (
+            <p className="pt-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Add a premix not counted yet")}</p>
+          )}
+          {open ? (
+            recipes.length === 0 ? (recount ? null : <p className="text-sm text-neutral-500">{tr("No WIP recipe is active for this location.")}</p>) : (
               <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
                 {recipes.map(r => {
                   const uom = unitFor(r);
