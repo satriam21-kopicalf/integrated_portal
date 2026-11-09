@@ -24,10 +24,17 @@ export default function CotrPoolsPage() {
   const fleet = useMaster<Fleet>("fleet");
   const rows = master.rows ?? [];
   const mains = rows.filter((p) => p.kind === "main");
+  // not every employee is a driver (2026-11-09): the employees of a pool per department
+  const people = (code: string) => (drivers.rows ?? []).filter((d) => d.pool_code === code && d.status !== "inactive");
   const count = (code: string) => ({
-    drivers: (drivers.rows ?? []).filter((d) => d.pool_code === code && d.status !== "inactive").length,
+    drivers: people(code).length,
     fleet: (fleet.rows ?? []).filter((f) => f.pool_code === code && f.is_active).length,
   });
+  const departments = (code: string) => {
+    const m = new Map<string, number>();
+    for (const d of people(code)) m.set(d.department || tr("No department"), (m.get(d.department || tr("No department")) ?? 0) + 1);
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  };
   const loaded = !!master.rows;
   const located = (p: Pool) => p.latitude !== null && p.longitude !== null;
   const filters: MasterFilter<Pool>[] = [
@@ -46,7 +53,7 @@ export default function CotrPoolsPage() {
             sub={loaded && tr("{0} producing", rows.filter((p) => p.is_production).length)} />
           <StatCard label={tr("Parent Pools")} icon={<Warehouse />} value={loaded ? rows.filter((p) => p.kind === "parent").length : <ValueSkeleton />}
             sub={loaded && tr("{0} storages", rows.filter((p) => p.kind === "storage").length)} />
-          <StatCard label={tr("Drivers & Fleet")} icon={<Users />} value={drivers.rows ? (drivers.rows ?? []).filter((d) => d.status !== "inactive").length : <ValueSkeleton />}
+          <StatCard label={tr("Employees & Fleet")} icon={<Users />} value={drivers.rows ? (drivers.rows ?? []).filter((d) => d.status !== "inactive").length : <ValueSkeleton />}
             sub={fleet.rows && tr("{0} armada in use", (fleet.rows ?? []).filter((f) => f.is_active).length)} />
           <StatCard label={tr("No coordinates")} icon={<MapPin />} tone={rows.some((p) => !located(p)) ? "warn" : "default"} value={loaded ? rows.filter((p) => !located(p)).length : <ValueSkeleton />}
             sub={tr("check-ins cannot be located there")} />
@@ -76,10 +83,15 @@ export default function CotrPoolsPage() {
                 </div>
                 <div className="flex gap-2 text-center">
                   <Mini label={tr("Pools")} value={children.length} />
-                  <Mini label={tr("Drivers")} value={c.drivers + children.reduce((a, p) => a + count(p.code).drivers, 0)} />
+                  <Mini label={tr("Employees")} value={c.drivers + children.reduce((a, p) => a + count(p.code).drivers, 0)} />
                   <Mini label={tr("Fleet")} value={c.fleet + children.reduce((a, p) => a + count(p.code).fleet, 0)} />
                 </div>
               </header>
+              {departments(m.code).length > 0 && (
+                <div className="flex flex-wrap gap-1.5 border-b border-neutral-100 px-4 py-2.5 sm:px-5">
+                  {departments(m.code).map(([dep, n]) => <span key={dep} className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700">{dep} · <b className="tabular-nums">{n}</b></span>)}
+                </div>
+              )}
               {children.length === 0 ? <p className="px-5 py-6 text-center text-xs text-neutral-400">{tr("No pool under this HUB yet")}</p> : (
                 <ul className="divide-y divide-neutral-100">
                   {children.map((p) => {
@@ -94,10 +106,13 @@ export default function CotrPoolsPage() {
                           <p className="truncate text-[11px] text-neutral-500">
                             {p.kind === "storage" ? (p.storage.join(", ") || "—") : [p.address, p.city].filter(Boolean).join(", ") || p.code}
                           </p>
+                          {p.kind !== "storage" && departments(p.code).length > 0 && (
+                            <p className="mt-0.5 truncate text-[11px] text-neutral-500">{departments(p.code).map(([dep, n]) => `${dep} ${n}`).join(" · ")}</p>
+                          )}
                         </div>
                         {p.kind !== "storage" && (
                           <span className="flex flex-shrink-0 items-center gap-3 text-xs tabular-nums text-neutral-600">
-                            <span className="inline-flex items-center gap-1" title={tr("Drivers")}><Users size={13} className="text-neutral-400" />{n.drivers}</span>
+                            <span className="inline-flex items-center gap-1" title={tr("Employees")}><Users size={13} className="text-neutral-400" />{n.drivers}</span>
                             <span className="inline-flex items-center gap-1" title={tr("Fleet")}><Truck size={13} className="text-neutral-400" />{n.fleet}</span>
                           </span>
                         )}
@@ -123,6 +138,8 @@ export default function CotrPoolsPage() {
           { label: tr("Type"), render: (p) => <Badge tone={KIND[p.kind].tone}>{KIND[p.kind].label()}</Badge> },
           { label: tr("Under"), render: (p) => (p.parent_code ? rows.find((x) => x.code === p.parent_code)?.name ?? p.parent_code : "—") },
           { label: tr("Address"), render: (p) => <><span className="block">{p.address}</span><span className="text-[11px] text-neutral-400">{p.city}</span></> },
+          { label: tr("Employees per Department"), render: (p) => departments(p.code).length
+            ? <span className="text-xs text-neutral-600">{departments(p.code).map(([dep, n]) => `${dep} ${n}`).join(" · ")}</span> : <span className="text-neutral-400">—</span> },
           { label: tr("Stores"), render: (p) => <span className="text-xs text-neutral-600">{p.storage.join(", ") || "—"}</span> },
         ]}
         fields={[

@@ -1,6 +1,9 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "No department": "Tanpa department",
+  "Employees & Fleet": "Employees & Fleet",
+  "Employees per Department": "Employees per Department",
   "Minute": "Menit",
   "Used from": "Mulai digunakan",
   "Put an accessory on this fleet: the item, how many and the day it is used from": "Pasang accessories ke fleet ini: item, jumlah dan tanggal mulai digunakan",
