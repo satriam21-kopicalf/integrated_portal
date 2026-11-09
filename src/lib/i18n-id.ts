@@ -1,6 +1,9 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Change it only when the app shows another figure": "Ubah hanya jika aplikasi menampilkan angka lain",
+  "{0}, automatic": "{0}, otomatis",
+  "Use the automatic figure": "Pakai angka otomatis",
   "Waste, transfers and bills count from the time the SO was sent; goods receipts and other ESB documents from its day.": "Waste, transfer dan bill dihitung sejak jam SO dikirim; GR dan dokumen ESB lainnya sejak tanggal SO.",
   "Suspicious: high": "Mencurigakan: tinggi",
   "Suspicious: medium": "Mencurigakan: sedang",

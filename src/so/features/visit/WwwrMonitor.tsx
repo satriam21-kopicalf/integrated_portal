@@ -121,7 +121,12 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
   const [note, setNote] = useState(audit?.note ?? "");
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
-  const shown = team.filter((t) => !q.trim() || t.name.toLowerCase().includes(q.trim().toLowerCase()) || (t.username ?? "").includes(q.trim().toLowerCase()));
+  // the SWAT team first, the others only when asked (2026-11-09); the members already chosen always show
+  const isSwat = (t: Person) => (t.jobTitle ?? "").trim().toUpperCase() === "SWAT";
+  const [swatOnly, setSwatOnly] = useState(() => team.some(isSwat));
+  const shown = team.filter((t) => (!swatOnly || isSwat(t) || members.has(t.id) || lead === t.id)
+      && (!q.trim() || t.name.toLowerCase().includes(q.trim().toLowerCase()) || (t.username ?? "").includes(q.trim().toLowerCase())))
+    .sort((a, b) => Number(isSwat(b)) - Number(isSwat(a)) || a.name.localeCompare(b.name));
   const toggle = (id: string) => setMembers((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const outlets = useMemo(() => branches.filter((b) => b.branch_name.startsWith("Kopi Calf")).map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code })), [branches]);
   const save = async () => {
@@ -150,9 +155,13 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
         </Field>
         <Field label={tr("Team")} required hint={tr("Tick the members, then crown the lead who sends the audit")}>
           <div className="overflow-hidden rounded-xl border border-neutral-200">
-            <div className="relative border-b border-neutral-100 p-2">
-              <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search member")} className={cx(inputClass, "h-9 pl-8 text-sm")} />
+            <div className="flex items-center gap-2 border-b border-neutral-100 p-2">
+              <div className="relative min-w-0 flex-1">
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search member")} className={cx(inputClass, "h-9 pl-8 text-sm")} />
+              </div>
+              <label className="flex flex-shrink-0 items-center gap-1.5 text-xs font-medium text-neutral-600">
+                <input type="checkbox" checked={swatOnly} onChange={(e) => setSwatOnly(e.target.checked)} />{tr("SWAT team only ({0})", team.filter(isSwat).length)}</label>
             </div>
             <ul className="max-h-64 divide-y divide-neutral-100 overflow-y-auto">
               {shown.map((t) => {
@@ -160,7 +169,8 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
                 return (
                   <li key={t.id} className={cx("flex items-center gap-2.5 px-3 py-2", on && "bg-brand-50/50")}>
                     <input type="checkbox" checked={on} onChange={() => { toggle(t.id); if (lead === t.id) setLead(""); }} aria-label={t.name} />
-                    <span className="min-w-0 flex-1"><span className="block truncate text-sm text-neutral-800">{t.name}</span><span className="text-[11px] text-neutral-400">@{t.username}</span></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm text-neutral-800">{t.name}</span><span className="text-[11px] text-neutral-400">@{t.username}{t.jobTitle ? ` · ${t.jobTitle}` : ""}</span></span>
+                    {isSwat(t) && <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">SWAT</span>}
                     <button type="button" onClick={() => { setLead(t.id); setMembers((s) => new Set(s).add(t.id)); }} aria-pressed={lead === t.id}
                       className={cx("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium", lead === t.id ? "bg-amber-100 text-amber-800" : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700")}>
                       <Crown size={12} /> {lead === t.id ? tr("Lead") : tr("Make lead")}

@@ -558,11 +558,21 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
           <Star size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 fill-amber-400 text-amber-400" />
           <input value={text} onChange={(e) => setText(e.target.value.replace(/[^0-9.,]/g, "").slice(0, 3))} onBlur={commit}
             onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-            inputMode="decimal" placeholder="4.5" aria-label={tr("{0} stars", name)} aria-invalid={bad || undefined}
+            inputMode="decimal" placeholder={auto ? fmtStars(auto.stars) : "4.5"} aria-label={tr("{0} stars", name)} aria-invalid={bad || undefined}
             className={cx(inputClass, "h-10 w-24 pl-8 text-sm font-semibold tabular-nums", bad && "border-red-300")} />
         </span>
-        <span className="text-xs text-neutral-500">{tr("{0} rating, typed from the app (1.0–5.0)", name)}</span>
+        <span className="text-xs text-neutral-500">{auto ? tr("Change it only when the app shows another figure") : tr("{0} rating, typed from the app (1.0–5.0)", name)}</span>
       </label>
+      {auto && (
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-neutral-500">
+          <span className="inline-flex items-center gap-1 font-semibold text-neutral-800"><Star size={12} className="fill-amber-400 text-amber-400" />{fmtStars(auto.stars)}</span>
+          {auto.reviews != null && <span>{tr("{0} reviews", auto.reviews.toLocaleString(locale()))}</span>}
+          <span className="text-neutral-400">{tr("{0}, automatic", name)}{auto.fetchedAt ? ` · ${auto.fetchedAt.slice(0, 10)}` : ""}</span>
+          {answer.stars != null && answer.stars !== auto.stars
+            ? <button type="button" className="font-medium text-brand-700 hover:underline" onClick={() => { setText(""); onAnswer({ stars: null }, true); }}>{tr("Use the automatic figure")}</button>
+            : null}
+        </p>
+      )}
       {bad && <p className="mt-1 text-xs text-red-600">{tr("Type a number from 1.0 to 5.0")}</p>}
     </div>
   );
