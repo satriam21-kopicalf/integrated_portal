@@ -49,6 +49,7 @@ export default function ReviewDetailPage() {
   const [picked, setPicked] = useState<Set<number>>(new Set());
   // premix lines for a recount (2026-10-29): only their grams are worked out again, not the items counted by hand
   const [pickedWip, setPickedWip] = useState<Set<number>>(new Set());
+  const [missingAsk, setMissingAsk] = useState(false); // a recount of the missing items only
   const [action, setAction] = useState<Action | null>(null);
   const [busy, setBusy] = useState(false);
   // the line being corrected: quantity in the line's unit, its roasted / expired date, and the reason (2026-10-29)
@@ -95,22 +96,27 @@ export default function ReviewDetailPage() {
 
   const run = async (note: string) => {
     if (!action) return;
+    const onlyMissing = action === "RECOUNT" && missingAsk && !picked.size && !pickedWip.size;
     setBusy(true);
     try {
       const c = await api<Count>(`/api/so/counts/${id}/review`, {
         method: "POST",
         json: { action, note: note || null, line_ids: action === "RECOUNT" && picked.size ? Array.from(picked) : null,
-          wip_line_ids: action === "RECOUNT" && pickedWip.size ? Array.from(pickedWip) : null },
+          wip_line_ids: action === "RECOUNT" && pickedWip.size ? Array.from(pickedWip) : null,
+          // the items of the list not in the count (activated after it was sent, 2026-11-09)
+          missing_items: action === "RECOUNT" && (missingAsk || (count?.missing_items?.length ?? 0) > 0) },
       });
       setCount(c);
       setPicked(new Set());
       setPickedWip(new Set());
       setAction(null);
-      toast(action === "APPROVE" ? tr("Count approved") : action === "RECOUNT" ? tr("Recount Requested") : tr("Count cancelled"));
+      setMissingAsk(false);
+      toast(action === "APPROVE" ? tr("Count approved") : onlyMissing ? tr("Recount of the missing items requested") : action === "RECOUNT" ? tr("Recount Requested") : tr("Count cancelled"));
     } catch (e) {
       toast(errorText(e), "error");
       // the count may have moved on meanwhile (e.g. reviewed in another tab): show its current status
       setAction(null);
+      setMissingAsk(false);
       void load();
     } finally {
       setBusy(false);
@@ -161,6 +167,28 @@ export default function ReviewDetailPage() {
         </header>
 
         <FlowBanner count={count} reviewable={reviewable} />
+
+        {/* items of the list / template the count does not have: inactive when it was counted, active now (2026-11-09) */}
+        {!!count.missing_items?.length && (
+          <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-900"><AlertTriangle size={15} />{tr("{0} items of the template are not in this count", count.missing_items.length)}</p>
+                <p className="mt-0.5 text-xs text-amber-800">{tr("They were inactive when the branch counted. Ask the branch to count them: the lines already counted stay locked.")}</p>
+              </div>
+              {reviewable && (
+                <Button size="sm" onClick={() => { clearPicks(); setMissingAsk(true); setAction("RECOUNT"); }}>{tr("Ask to count them")}</Button>
+              )}
+            </div>
+            <ul className="mt-3 flex flex-wrap gap-1.5">
+              {count.missing_items.map((m) => (
+                <li key={m.code} className="rounded-lg bg-white px-2.5 py-1 text-xs text-neutral-800 ring-1 ring-amber-200">
+                  <span className="font-medium">{m.name}</span> <span className="font-mono text-[10px] text-neutral-400">{m.code}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <StatGrid label={tr("Summary")} cols={4}>
           <StatCard label={tr("Counted")} icon={<ClipboardList />} value={`${count.progress.counted}/${count.progress.lines}`}
@@ -430,9 +458,9 @@ export default function ReviewDetailPage() {
         )}
       </Drawer>
 
-      <ConfirmDialog open={!!action} busy={busy} onClose={() => setAction(null)} onConfirm={run} danger={action === "CANCEL"} reasonRequired={action !== "APPROVE"}
+      <ConfirmDialog open={!!action} busy={busy} onClose={() => { setAction(null); setMissingAsk(false); }} onConfirm={run} danger={action === "CANCEL"} reasonRequired={action !== "APPROVE"}
         reasonLabel={action === "APPROVE" ? tr("Note (optional)") : tr("Reason (Required)")}
-        title={action === "APPROVE" ? tr("Approve this count?") : action === "RECOUNT" ? (selected ? tr("Ask to recount {0} lines?", selected) : tr("Ask to recount every line?")) : tr("Cancel this count?")}
+        title={action === "APPROVE" ? tr("Approve this count?") : action === "RECOUNT" && missingAsk && !selected ? tr("Ask to count {0} missing items?", count.missing_items?.length ?? 0) : action === "RECOUNT" ? (selected ? tr("Ask to recount {0} lines?", selected) : tr("Ask to recount every line?")) : tr("Cancel this count?")}
         description={action === "APPROVE" ? tr("Approved counts become the final quantities for the ESB import and the comparison.")
           : action === "RECOUNT" ? tr("The crew counts these lines again; the first values stay in the history.") : tr("The count is cancelled and can be started again.")}
         confirmLabel={action === "APPROVE" ? tr("Approve") : action === "RECOUNT" ? tr("Request recount") : tr("Cancel Count")} />

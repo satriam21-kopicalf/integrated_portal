@@ -101,6 +101,8 @@ export type Count = {
   entry_source?: "CREW" | "COST_CONTROL" | "IMPORT";
   source_ref?: string | null;
   lines: CountLine[];
+  /** the active items of the count's list it does not have (activated after it was sent, 2026-11-09) */
+  missing_items?: { code: string; name: string; area: string | null }[];
   photos: CountPhoto[];
   /** evidence documents (PDF, Excel …; 2026-10-21, optional, up to 15) */
   files?: CountFile[];
