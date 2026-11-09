@@ -1,6 +1,7 @@
 "use client";
 
-// Pricelist Items (Cost Control, page cc.pricelist; integrated_portal_be app/menu_costing.py, migration 056): the price
+// List & Pricelist Items (Cost Control, page cc.pricelist; the items active / inactive since 2026-11-09 — an inactive item
+// leaves the stock opname forms and the pickers; integrated_portal_be app/menu_costing.py, migration 056): the price
 // of every raw material per base unit from a date, with the average purchase price of the last 90 days (ESB goods
 // received) as a reference. The price valid on a day costs the recipe cards of the Sales calculator by menu.
 
@@ -9,6 +10,8 @@ import { BadgeAlert, CalendarDays, History, Package, Save, Tags } from "lucide-r
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
+import { ConfirmDialog } from "@/so/ui/Dialog";
+import { Tabs } from "@/components/kc";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
@@ -18,9 +21,10 @@ import { type ActiveFilter, FilterToolbar } from "@/so/ui/Filters";
 import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
 import { Segmented } from "@/so/ui/Simple";
 
-type Item = { code: string; name: string; unit: string; category: string | null; price: number | null; validFrom: string | null; note: string | null; purchaseAvg: number | null;
+type Item = { code: string; name: string; unit: string; active?: boolean; category: string | null; price: number | null; validFrom: string | null; note: string | null; purchaseAvg: number | null;
   /** median ESB HPP of one base unit over the outlets (inventory valuation, 2026-11-05) */ esbHpp?: number | null; esbHppLocations?: number };
-type Data = { day: string; categories: string[]; data: Item[] };
+type Data = { day: string; categories: string[]; data: Item[]; counts?: { active: number; inactive: number } };
+type Status = "active" | "inactive" | "all";
 type Hist = { validFrom: string; price: number; note: string | null; by: string | null; at: string };
 
 type SortKey = "item" | "category" | "unit" | "purchase" | "hpp" | "price";
@@ -40,11 +44,14 @@ export default function PricelistPage() {
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<Item | null>(null);
   const [sheet, setSheet] = useState(false);
+  const [status, setStatus] = useState<Status>("active");
+  const [toggling, setToggling] = useState<Item | null>(null);
+  const [toggleBusy, setToggleBusy] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
-    try { setData(await call<Data>(`/api/cost-control/pricelist?category=${encodeURIComponent(category)}`)); } catch (e) { setError((e as Error).message); }
-  }, [category]);
+    try { setData(await call<Data>(`/api/cost-control/pricelist?category=${encodeURIComponent(category)}&status=${status}`)); } catch (e) { setError((e as Error).message); }
+  }, [category, status]);
   useEffect(() => { void load(); }, [load]);
 
   const rows = useMemo(() => {
@@ -66,6 +73,15 @@ export default function PricelistPage() {
       await load();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
+  const toggle = async (i: Item) => {
+    setToggleBusy(true);
+    try {
+      await call(`/api/cost-control/pricelist/${encodeURIComponent(i.code)}/active`, { method: "PUT", json: { active: i.active === false } });
+      toast(i.active === false ? tr("{0} activated", i.name) : tr("{0} deactivated", i.name));
+      setToggling(null);
+      await load();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setToggleBusy(false); }
+  };
   const chips: ActiveFilter[] = [
     ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
     ...(onlyMissing ? [{ key: "m", label: tr("Without a price only"), onRemove: () => setOnlyMissing(false) }] : []),
@@ -78,7 +94,7 @@ export default function PricelistPage() {
   });
 
   return (
-    <Page title={tr("Pricelist Items")} subtitle={tr("The price of every raw material per base unit, used for the COGS of the menu recipe cards")}
+    <Page title={tr("List & Pricelist Items")} subtitle={tr("Every stock item: active or not (the stock opname forms show the active ones) and its price per base unit for the COGS")}
       stats={
         <StatStrip label={tr("Summary")} columns={3}>
           <Stat label={tr("Items")} icon={<Tags size={13} />} value={data ? data.data.length.toLocaleString("id-ID") : <StatSkeleton />} />
@@ -89,6 +105,10 @@ export default function PricelistPage() {
         </StatStrip>
       }>
       <Panel toolbar={<div className="space-y-3">
+        <Tabs label={tr("Status")} value={status} onChange={(k) => { setStatus(k as Status); setDraft({}); }} tabs={[
+          { key: "active", label: tr("Active"), count: data?.counts?.active },
+          { key: "inactive", label: tr("Inactive"), count: data?.counts?.inactive },
+          { key: "all", label: tr("All") }]} />
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search item")} filters={chips} onOpen={() => setSheet(true)}
           onClear={() => { setCategory(""); setOnlyMissing(false); }} />
         {/* the new prices: from which day, filled from the purchase average, saved together */}
@@ -112,10 +132,10 @@ export default function PricelistPage() {
                 <SortTh k="purchase" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Purchase Avg 90 Days")}</SortTh>
                 <SortTh k="hpp" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("ESB HPP")}</SortTh>
                 <SortTh k="price" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Current Price")}</SortTh>
-                <th className="px-4 py-2.5">{tr("New Price")}</th><th /></tr></thead>
+                <th className="px-4 py-2.5">{tr("New Price")}</th><th className="px-4 py-2.5">{tr("Status")}</th><th /></tr></thead>
               <tbody className="divide-y divide-neutral-100">
                 {paged.rows.map((i) => (
-                  <tr key={i.code} className={draft[i.code] ? "bg-brand-50/40" : ""}>
+                  <tr key={i.code} className={cx(draft[i.code] && "bg-brand-50/40", i.active === false && "bg-neutral-50/70")}>
                     <td className="px-4 py-2"><span className="block font-medium text-neutral-900">{i.name}</span><span className="text-[11px] text-neutral-400">{i.code}</span></td>
                     <td className="px-4 py-2 text-xs text-neutral-600">{i.category ?? "—"}</td>
                     <td className="px-4 py-2 text-xs">{i.unit}</td>
@@ -124,6 +144,16 @@ export default function PricelistPage() {
                     <td className="px-4 py-2 text-right tabular-nums">{i.price === null ? <Badge tone="amber">{tr("No price")}</Badge> : <>{rp(i.price, 4)}<span className="block text-[10px] text-neutral-400">{tr("from {0}", i.validFrom ?? "")}</span></>}</td>
                     <td className="w-40 px-4 py-2"><input inputMode="decimal" className={cx(inputClass, "h-9 text-right")} placeholder={i.price !== null ? String(i.price) : "0"} value={draft[i.code] ?? ""}
                       onChange={(e) => setDraft({ ...draft, [i.code]: e.target.value })} aria-label={`${tr("New price")} ${i.name}`} /></td>
+                    <td className="px-4 py-2">
+                      <button type="button" role="switch" aria-checked={i.active !== false} onClick={() => setToggling(i)}
+                        aria-label={i.active !== false ? tr("Deactivate {0}", i.name) : tr("Activate {0}", i.name)}
+                        className="inline-flex items-center gap-2 text-xs font-medium text-neutral-600">
+                        <span className={cx("relative h-5 w-9 rounded-full transition-colors", i.active !== false ? "bg-emerald-500" : "bg-neutral-300")}>
+                          <span className={cx("absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all", i.active !== false ? "left-[18px]" : "left-0.5")} />
+                        </span>
+                        {i.active !== false ? tr("Active") : tr("Inactive")}
+                      </button>
+                    </td>
                     <td className="px-2"><button type="button" onClick={() => setHistory(i)} className="rounded p-1.5 text-neutral-400 hover:text-brand-700" aria-label={tr("Price History")}><History size={15} /></button></td>
                   </tr>
                 ))}
@@ -135,6 +165,13 @@ export default function PricelistPage() {
       {sheet && <PriceFilters category={category} missing={onlyMissing} categories={data?.categories ?? []} onClose={() => setSheet(false)}
         onApply={(c, m) => { setCategory(c); setOnlyMissing(m); setSheet(false); }} />}
       {history && <HistoryDrawer item={history} onClose={() => setHistory(null)} />}
+      <ConfirmDialog open={!!toggling} busy={toggleBusy} danger={toggling?.active !== false}
+        title={toggling?.active !== false ? tr("Deactivate {0}?", toggling?.name ?? "") : tr("Activate {0}?", toggling?.name ?? "")}
+        description={toggling?.active !== false
+          ? tr("The item leaves the stock opname forms opened from now and the item pickers; its counts, prices and history stay.")
+          : tr("The item shows again in the stock opname forms opened from now (it must be in the count list or template of the branch).")}
+        confirmLabel={toggling?.active !== false ? tr("Deactivate") : tr("Activate")}
+        onConfirm={() => toggling && void toggle(toggling)} onClose={() => setToggling(null)} />
     </Page>
   );
 }

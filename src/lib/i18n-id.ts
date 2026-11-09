@@ -1,6 +1,19 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "List & Pricelist Items": "List & Pricelist Items",
+  "Items active / inactive and their prices": "Item aktif / nonaktif dan harganya",
+  "Every stock item: active or not (the stock opname forms show the active ones) and its price per base unit for the COGS": "Semua item stok: aktif atau tidak (form stock opname hanya menampilkan yang aktif) dan harganya per satuan dasar untuk COGS",
+  "{0} deactivated": "{0} dinonaktifkan",
+  "{0} activated": "{0} diaktifkan",
+  "Deactivate {0}": "Nonaktifkan {0}",
+  "Activate {0}": "Aktifkan {0}",
+  "Deactivate {0}?": "Nonaktifkan {0}?",
+  "Activate {0}?": "Aktifkan {0}?",
+  "Deactivate": "Nonaktifkan",
+  "Activate": "Aktifkan",
+  "The item leaves the stock opname forms opened from now and the item pickers; its counts, prices and history stay.": "Item tidak tampil lagi di form stock opname yang dibuka setelah ini dan di pilihan item; hitungan, harga dan riwayatnya tetap tersimpan.",
+  "The item shows again in the stock opname forms opened from now (it must be in the count list or template of the branch).": "Item tampil lagi di form stock opname yang dibuka setelah ini (item harus ada di count list atau template cabangnya).",
   "Daily Stock Opname": "Daily Stock Opname",
   "Weekly - Monthly Stock Opname": "Weekly - Monthly Stock Opname",
   "Recap at the pool {0} cups": "Rekap di pool {0} cup",

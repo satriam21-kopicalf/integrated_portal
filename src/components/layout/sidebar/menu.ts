@@ -34,7 +34,7 @@ export const costControl: { title: string; hint: string; icon: typeof Users; ite
   { get title() { return tr('Production & Costing'); }, get hint() { return tr('Recipes, menu costing and raw material prices'); }, icon: FlaskConical, items: [
     { get name() { return tr('Production Calculator'); }, href: '/cost-control/premix', icon: FlaskConical, get description() { return tr('WIP recipes & calculator'); } },
     { get name() { return tr('Sales Calculator by Menu'); }, href: '/cost-control/sales-calculator', icon: Calculator, get description() { return tr('Menu recipe cards, MRP, usage & COGS'); } },
-    { get name() { return tr('Pricelist Items'); }, href: '/cost-control/pricelist', icon: Receipt, get description() { return tr('Prices of the raw materials'); } },
+    { get name() { return tr('List & Pricelist Items'); }, href: '/cost-control/pricelist', icon: Receipt, get description() { return tr('Items active / inactive and their prices'); } },
   ] },
   { get title() { return tr('Waste'); }, get hint() { return tr('Follow and review the waste of every branch'); }, icon: Trash2, items: [
     { get name() { return tr('Waste Monitor'); }, href: '/cost-control/waste/monitor', icon: Activity, get description() { return tr('Waste entered by every branch'); } },
