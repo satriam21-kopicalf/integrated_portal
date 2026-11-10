@@ -260,8 +260,8 @@ export const MON: Part = {
           <Table head={['Bagian', 'Bobot', 'Cara hitung']} rows={[
             ['PIC Check In', '15%', 'Check in (dalam radius) ÷ outlet PIC × check in per hari grupnya × hari kerja'],
             ['Tepat Waktu', '15%', 'Hari yang check in pertamanya sebelum batas outlet (jam outlet); sebelum 05:00 tidak dihitung'],
-            ['Monitoring Product', '15%', 'Rata-rata dari kunjungan yang dilakukan ÷ target dan skor kunjungannya'],
-            ['Monitoring Outlet', '15%', 'Sama seperti Monitoring Product'],
+            ['Product', '15%', 'Rata-rata dari kunjungan yang dilakukan ÷ target dan skor kunjungannya'],
+            ['Outlet', '15%', 'Sama seperti Monitoring Product'],
             ['Kesesuaian dengan SWAT', '15%', 'Kesamaan nilai PIC dengan audit SWAT (Form WW-WR)'],
             ['Net Sales', '25%', 'Rata-rata per hari bulan ini ÷ rata-rata per hari 1 bulan sebelumnya (maks. 100), dirata-rata dari outlet PIC'],
           ]} />

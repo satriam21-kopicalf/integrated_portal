@@ -79,7 +79,7 @@ export default function CotrPoolsPage() {
       { value: "on", label: tr("Active"), test: (p) => p.is_active }, { value: "off", label: tr("Inactive"), test: (p) => !p.is_active }] },
   ];
   return (
-    <Page eyebrow="Monitoring COTR" media={<Building2 size={19} />} title={tr("Master Pool / HUB")} subtitle={tr("Main HUB, parent pools and the storage of menus and raw materials")}
+    <Page eyebrow="Calf On The Road" media={<Building2 size={19} />} title={tr("Master Pool / HUB")} subtitle={tr("Main HUB, parent pools and the storage of menus and raw materials")}
       stats={
         <StatGrid label={tr("Summary")} cols={4}>
           <StatCard label={tr("Main HUB")} tone="brand" icon={<Building2 />} value={loaded ? mains.length : <ValueSkeleton />}

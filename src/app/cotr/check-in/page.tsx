@@ -74,7 +74,7 @@ export default function CotrCheckInPage() {
   const pendingRequests = view?.requests.filter((r) => r.status === "sent").length ?? 0;
 
   return (
-    <Page eyebrow="Monitoring COTR" media={<MapPinCheck size={19} />} title={tr("Monitoring Armada - Driver")} subtitle={tr("Shifts, sales, deductions, cash, stock, reloads and requests of every driver")}
+    <Page eyebrow="Calf On The Road" media={<MapPinCheck size={19} />} title={tr("Monitoring Armada - Driver")} subtitle={tr("Shifts, sales, deductions, cash, stock, reloads and requests of every driver")}
       stats={<>
         <ScopeBar onOpen={() => { setDraft({ day, pool, state }); setSheet(true); }}
           right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}

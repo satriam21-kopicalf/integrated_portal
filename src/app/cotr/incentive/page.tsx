@@ -35,7 +35,7 @@ function tierPay(cups: number, tiers: Tier[]) {
 export default function CotrIncentivePage() {
   const [tab, setTab] = useState<"recap" | "simulate" | "schemes">("recap");
   return (
-    <Page eyebrow="Monitoring COTR" media={<Calculator size={19} />} title={tr("Incentive Calculator")} subtitle={tr("Monthly incentive of the drivers from cups sold and the attendance of Master Schedule")}>
+    <Page eyebrow="Calf On The Road" media={<Calculator size={19} />} title={tr("Incentive Calculator")} subtitle={tr("Monthly incentive of the drivers from cups sold and the attendance of Master Schedule")}>
       <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={[
         { key: "recap", label: <span className="inline-flex items-center gap-1.5"><Users size={15} />{tr("Monthly recap")}</span> },
         { key: "simulate", label: <span className="inline-flex items-center gap-1.5"><Calculator size={15} />{tr("Simulator")}</span> },

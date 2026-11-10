@@ -158,7 +158,7 @@ export default function MonitoringOverviewPage() {
       </Panel>
       <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-neutral-500">
         <span className="inline-flex items-center gap-1"><AlertTriangle size={12} /> {tr("Overrated: items the PIC passed and the SWAT team found UNDER")}</span>
-        <Link href="/monitoring/wwwr" className="text-brand-700 hover:underline">Monitoring WW-WR →</Link>
+        <Link href="/monitoring/wwwr" className="text-brand-700 hover:underline">WW-WR →</Link>
       </p>
       {open && res && <ScoreDrawer p={open} weights={res.weights} workingDays={res.workingDays} onClose={() => setOpen(null)} />}
       {sheet && res && <OverviewFilters value={f} groups={res.groupOptions} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
@@ -173,9 +173,9 @@ function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Re
     { key: "punctuality", label: tr("On Time"), value: p.punctuality,
       how: tr("First check-in of the day by the deadline of its outlet (CCI 10:00, CTGP 10:15, CTG 10:30, or the outlet's own, on the outlet's clock): {0} of {1} days", p.punctualDays, p.checkinDays)
         + (p.punctualityLegacy != null ? ` · ${tr("11:00 rule: {0}", pct(p.punctualityLegacy))}` : "") },
-    { key: "product", label: tr("Monitoring Product"), value: p.productPart,
+    { key: "product", label: tr("Product"), value: p.productPart,
       how: tr("Visits {0} ({1} of {2}) and score {3}, averaged", pct(p.productDone), p.productVisits, p.visitTarget / 2, pct(p.productScore)) },
-    { key: "outlet", label: tr("Monitoring Outlet"), value: p.outletPart,
+    { key: "outlet", label: tr("Outlet"), value: p.outletPart,
       how: tr("Visits {0} ({1} of {2}) and score {3}, averaged", pct(p.outletDone), p.outletVisits, p.visitTarget / 2, pct(p.outletScore)) },
     { key: "swat", label: tr("Agreement with SWAT"), value: p.conformity, how: p.swatAudits ? tr("{0} SWAT audits · {1} items overrated", p.swatAudits, p.overrated) : tr("Not audited yet") },
     { key: "sales", label: tr("Net Sales"), value: p.salesScore,

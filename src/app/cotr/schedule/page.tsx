@@ -61,7 +61,7 @@ function mondayOf(day: string) {
 export default function CotrSchedulePage() {
   const [tab, setTab] = useState<"roster" | "templates">("roster");
   return (
-    <Page eyebrow="Monitoring COTR" media={<CalendarDays size={19} />} title={tr("Master Schedule")} subtitle={tr("Shifts of the drivers per day, attendance against the check in, and the recap for the incentives")}>
+    <Page eyebrow="Calf On The Road" media={<CalendarDays size={19} />} title={tr("Master Schedule")} subtitle={tr("Shifts of the drivers per day, attendance against the check in, and the recap for the incentives")}>
       <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={[
         { key: "roster", label: <span className="inline-flex items-center gap-1.5"><CalendarDays size={15} />{tr("Roster")}</span> },
         { key: "templates", label: <span className="inline-flex items-center gap-1.5"><Clock size={15} />{tr("Shift Templates")}</span> },

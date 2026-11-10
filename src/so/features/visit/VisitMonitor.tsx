@@ -86,7 +86,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   useEffect(() => { void call<BranchOpt[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
   useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setGroups(r.groups)).catch(() => setGroups([])); }, []);
 
-  const title = audit ? "Monitoring WW-WR" : res ? tl(res.definition, "title") : (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
+  const title = audit ? "WW-WR" : res ? tl(res.definition, "title") : (form === "product" ? "Product" : "Outlet");
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
     return (res?.data ?? []).filter((v) => (!s || v.branchName.toLowerCase().includes(s) || v.name.toLowerCase().includes(s))

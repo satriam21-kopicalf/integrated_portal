@@ -91,7 +91,7 @@ function Labels() {
   };
 
   return (
-    <Page eyebrow="Monitoring COTR" media={<Printer size={19} />} title={tr("Armada Labels")} subtitle={tr("Information label of the armada: code, vehicle and a QR that opens its details and driver (the QRIS is not printed)")}
+    <Page eyebrow="Calf On The Road" media={<Printer size={19} />} title={tr("Armada Labels")} subtitle={tr("Information label of the armada: code, vehicle and a QR that opens its details and driver (the QRIS is not printed)")}
       actions={<Button disabled={!chosen.length || !origin} onClick={() => window.print()}><Printer size={16} /> {tr("Print {0}", chosen.length * copies)}</Button>}>
       <style>{`@media print {
         body * { visibility: hidden !important; }

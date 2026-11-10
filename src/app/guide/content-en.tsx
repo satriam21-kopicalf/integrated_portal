@@ -260,8 +260,8 @@ export const MON: Part = {
           <Table head={['Part', 'Weight', 'How it is counted']} rows={[
             ['PIC Check-In', '15%', 'Check-ins (within the radius) ÷ outlets of the PIC × check-ins a day of their group × working days'],
             ['On Time', '15%', 'Days whose first check-in was by the outlet deadline (outlet clock); before 05:00 never counts'],
-            ['Monitoring Product', '15%', 'The average of the visits done against the target and their score'],
-            ['Monitoring Outlet', '15%', 'As Monitoring Product'],
+            ['Product', '15%', 'The average of the visits done against the target and their score'],
+            ['Outlet', '15%', 'As Monitoring Product'],
             ['Agreement with SWAT', '15%', 'How far the PIC ratings agree with the SWAT audits (Form WW-WR)'],
             ['Net Sales', '25%', 'Average per day this month ÷ average per day of the month before (at most 100), averaged over the outlets of the PIC'],
           ]} />

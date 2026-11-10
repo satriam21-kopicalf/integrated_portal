@@ -49,7 +49,7 @@ export default function CotrFleetPage() {
   const [part, setPart] = useState<"fleet" | "types" | "accessories">("fleet");
   const fleetRows = master.rows ?? [];
   return (
-    <Page eyebrow="Monitoring COTR" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
+    <Page eyebrow="Calf On The Road" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
       actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print Labels")}</Button></Link>}
       stats={
         <StatGrid label={tr("Summary")} cols={4}>

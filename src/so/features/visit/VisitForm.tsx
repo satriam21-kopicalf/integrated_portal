@@ -80,7 +80,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
     }
   };
 
-  const title = data ? tl(data.definition, "title") : (form === "product" ? "Monitoring Product" : "Monitoring Outlet");
+  const title = data ? tl(data.definition, "title") : (form === "product" ? "Product" : "Outlet");
   const clock = <LiveClock />;
   const subtitle = now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "";
 

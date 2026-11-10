@@ -42,7 +42,7 @@ export default function CotrDriversPage() {
   const usedBy = useMemo(() => Object.fromEntries((master.rows ?? []).filter((d) => d.fleet_code).map((d) => [d.fleet_code!, d.name])), [master.rows]);
   const sec = { profile: tr("Profile"), job: tr("Assignment"), person: tr("Personal data"), work: tr("Employment"), pay: tr("Payroll"), bank: tr("Bank account") };
   return (
-    <Page eyebrow="Monitoring COTR" media={<Bike size={19} />} title={tr("Master Driver")} subtitle={tr("COTR drivers: profile, assignment, employment, payroll and bank account")}
+    <Page eyebrow="Calf On The Road" media={<Bike size={19} />} title={tr("Master Driver")} subtitle={tr("COTR drivers: profile, assignment, employment, payroll and bank account")}
       actions={<>
         {/* icons only (2026-11-02): the real Excel icon for the import, a key for the driver accounts (User Accounts) */}
         <IconButton label={tr("Import Excel")} onClick={() => setImporting(true)}>

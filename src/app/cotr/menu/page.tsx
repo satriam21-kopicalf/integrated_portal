@@ -39,7 +39,7 @@ export default function CotrMenuPage() {
       { value: "with", label: tr("With a Recipe"), test: (m) => !!m.bom_code }, { value: "without", label: tr("No recipe yet"), test: (m) => !m.bom_code }] },
   ];
   return (
-    <Page eyebrow="Monitoring COTR" media={<Coffee size={19} />} title={tr("Master Menu")} subtitle={tr("Menus the COTR drivers sell, price and recipe")}
+    <Page eyebrow="Calf On The Road" media={<Coffee size={19} />} title={tr("Master Menu")} subtitle={tr("Menus the COTR drivers sell, price and recipe")}
       stats={
         <StatGrid label={tr("Summary")} cols={4}>
           <StatCard label={tr("Menus Sold")} tone="brand" icon={<ShoppingBag />} value={s ? `${s.sold}/${s.total}` : <ValueSkeleton />} sub={s && tr("{0} categories", s.categories)} />

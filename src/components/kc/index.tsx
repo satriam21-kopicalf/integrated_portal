@@ -15,7 +15,7 @@
 //   kcTable                    the classes of a list table (thead, rows)
 
 import { AlertCircle, Search, X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { tr } from '@/lib/i18n';
 
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
@@ -139,8 +139,16 @@ export const ValueSkeleton = () => <span className="skeleton inline-block h-7 w-
 export type TabItem = { key: string; label: ReactNode; count?: ReactNode; title?: string };
 /** Underline tabs; a tab may be a logo (label = <img>) with its name as `title`. */
 export function Tabs({ tabs, value, onChange, label, className }: { tabs: TabItem[]; value: string; onChange: (k: string) => void; label: string; className?: string }) {
+  // the chosen tab stays in sight when the bar scrolls sideways (phones, 2026-11-10)
+  const bar = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = bar.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    const box = bar.current;
+    if (!el || !box || box.scrollWidth <= box.clientWidth) return;
+    box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2, behavior: 'smooth' });
+  }, [value]);
   return (
-    <div role="tablist" aria-label={label} className={cx('-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1', className)}>
+    <div ref={bar} role="tablist" aria-label={label} className={cx('-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1', className)}>
       {tabs.map((t) => {
         const on = t.key === value;
         return (

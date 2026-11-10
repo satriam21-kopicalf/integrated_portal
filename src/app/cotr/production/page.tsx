@@ -37,7 +37,7 @@ const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
 export default function CotrProductionPage() {
   const [tab, setTab] = useState<Tab>("stock");
   return (
-    <Page eyebrow="Monitoring COTR" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Stock, goods in, stock opname, batches and their waste, recipe cards, production plan and usage")}>
+    <Page eyebrow="Calf On The Road" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Stock, goods in, stock opname, batches and their waste, recipe cards, production plan and usage")}>
       <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as Tab)}
         tabs={SECTIONS.map((x) => ({ key: x.key, label: <span className="inline-flex items-center gap-1.5"><x.icon size={15} />{x.label()}</span> }))} />
       {tab === "stock" && <StockTab />}

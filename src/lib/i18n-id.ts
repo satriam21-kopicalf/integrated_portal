@@ -1,6 +1,10 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Product (form)": "Product (form)",
+  "Outlet (form)": "Outlet (form)",
+  "Calf On The Road": "Calf On The Road",
+  "WW-WR": "WW-WR",
   "At this HUB": "Di HUB ini",
   "{0} items of the template are not in this count": "{0} item template belum ada di SO ini",
   "They were inactive when the branch counted. Ask the branch to count them: the lines already counted stay locked.": "Item ini belum aktif saat outlet menghitung. Minta outlet menghitungnya: baris yang sudah dihitung tetap terkunci.",

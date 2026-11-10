@@ -6,6 +6,7 @@
 
 import { Camera, ChevronDown, ImageOff, MapPin, Pencil, Plus, Save, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { createPortal } from 'react-dom';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge, Button, ErrorState, Field, Input, PageNav, Select, SkeletonRows, cx, inputClass, usePaged, useToast } from '@/so/ui';
 import { EmptyState, SearchInput, kcTable } from '@/components/kc';
@@ -267,28 +268,55 @@ export function SearchSelect({ value, options, onChange, required, placeholder }
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const box = useRef<HTMLDivElement>(null);
+  const pop = useRef<HTMLDivElement>(null);
+  // the list floats above the page (2026-11-10): a card, a table that scrolls sideways or a drawer no longer cuts it;
+  // it follows the field while the page scrolls and opens upward when there is no room below
+  const [at, setAt] = useState<{ left: number; width: number; top?: number; bottom?: number; max: number } | null>(null);
+  const place = useCallback(() => {
+    const r = box.current?.getBoundingClientRect();
+    if (!r) return;
+    const below = window.innerHeight - r.bottom - 12, above = r.top - 12;
+    const up = below < 260 && above > below;
+    const width = Math.max(r.width, 240), left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8));
+    setAt(up ? { left, width, bottom: window.innerHeight - r.top + 4, max: Math.min(320, above) }
+      : { left, width, top: r.bottom + 4, max: Math.min(320, below) });
+  }, []);
   useEffect(() => {
     if (!open) return;
-    const close = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    place();
+    const close = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!box.current?.contains(t) && !pop.current?.contains(t)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [open]);
+    document.addEventListener('keydown', esc);
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', esc);
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open, place]);
   const current = options.find((o) => o.value === value);
   const s = q.trim().toLowerCase();
   const shown = options.filter((o) => !s || o.label.toLowerCase().includes(s) || o.value.toLowerCase().includes(s) || (o.hint ?? '').toLowerCase().includes(s));
   return (
     <div ref={box} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} className={cx(inputClass, 'flex items-center justify-between gap-2 text-left')}>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={cx(inputClass, 'flex items-center justify-between gap-2 text-left')}>
         <span className={cx('truncate', !current && 'text-neutral-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
         <span className="flex items-center gap-1">
           {current && !required && <X size={14} className="text-neutral-400 hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
-          <ChevronDown size={15} className="text-neutral-400" />
+          <ChevronDown size={15} className={cx('text-neutral-400 transition-transform', open && 'rotate-180')} />
         </span>
       </button>
-      {open && (
-        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg">
-          <div className="border-b border-neutral-100 p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search')} className={cx(inputClass, 'h-9')} /></div>
-          <ul className="max-h-64 overflow-y-auto py-1">
+      {open && at && createPortal(
+        <div ref={pop} className="fixed z-[90] flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
+          style={{ left: at.left, width: at.width, top: at.top, bottom: at.bottom, maxHeight: at.max }}>
+          <div className="flex-shrink-0 border-b border-neutral-100 p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search')} className={cx(inputClass, 'h-9')} /></div>
+          <ul className="min-h-0 flex-1 overflow-y-auto py-1">
             {shown.map((o) => (
               <li key={o.value}>
                 <button type="button" onClick={() => { onChange(o.value); setOpen(false); setQ(''); }}
@@ -299,7 +327,8 @@ export function SearchSelect({ value, options, onChange, required, placeholder }
             ))}
             {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr('No match')}</li>}
           </ul>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

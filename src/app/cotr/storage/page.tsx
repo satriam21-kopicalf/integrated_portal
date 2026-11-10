@@ -131,7 +131,7 @@ export default function CotrStoragePage() {
   const listed = rows.filter((r) => matchStatus(r, status) && (!q.trim() || `${r.name} ${r.nickname ?? ""} ${r.code} ${r.fleet ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())));
 
   return (
-    <Page eyebrow="Monitoring COTR" media={<Warehouse size={19} />} title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
+    <Page eyebrow="Calf On The Road" media={<Warehouse size={19} />} title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
       stats={<>
         <ScopeBar onOpen={() => setSheet(true)} scopes={[
           { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: usable.find((p) => p.code === poolCode)?.name ?? "—" },

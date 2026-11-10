@@ -78,7 +78,7 @@ export const forms: { title: string; hint: string; icon: typeof Users; items: Cc
   ] },
 ];
 
-/** "Monitoring OPS" menu: what the outlets / PICs filled in, for the teams that follow them (pages mon.*). */
+/** "Operations" menu: what the outlets / PICs filled in, for the teams that follow them (pages mon.*). */
 export const monitoring: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Analysis'); }, get hint() { return tr('Every form together, per branch group'); }, icon: BarChart3, items: [
     { get name() { return tr('Overview'); }, href: '/monitoring/overview', icon: BarChart3, get description() { return tr('Check-ins, products & outlets per group'); } },
@@ -87,9 +87,9 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
     { get name() { return tr('PIC Check In'); }, href: '/monitoring/pic-check-in', icon: MapPinCheck, get description() { return tr('Check-ins of every PIC'); } },
   ] },
   { get title() { return tr('Product & Outlet'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
-    { get name() { return tr('Monitoring Product'); }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },
-    { get name() { return tr('Monitoring Outlet'); }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
-    { get name() { return 'Monitoring WW-WR'; }, href: '/monitoring/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audits, comparison with the PIC & schedule'); } },
+    { get name() { return 'Product'; }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },
+    { get name() { return 'Outlet'; }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
+    { get name() { return 'WW-WR'; }, href: '/monitoring/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audits, comparison with the PIC & schedule'); } },
   ] },
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Requests of every outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Damaged Equipment'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },
@@ -102,7 +102,7 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
   ] },
 ];
 
-/** "Monitoring COTR" menu: Calf On The Road, configured by the COTR team (pages cotr.*, prototype 2026-11-01). */
+/** "Calf On The Road" menu: Calf On The Road, configured by the COTR team (pages cotr.*, prototype 2026-11-01). */
 export const cotr: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Drivers on the Road'); }, get hint() { return tr('Check-ins of the drivers from the COTR app'); }, icon: MapPinCheck, items: [
     { get name() { return tr('Monitoring Armada - Driver'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Shifts, sales, stock, cupping & waste of every driver'); } },
@@ -152,12 +152,12 @@ export const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'r
     icon: Calculator, sections: costControl, review: true,
   },
   monitoring: {
-    get label() { return tr('Monitoring OPS'); }, get idle() { return tr('Check ins, outlets, products & maintenance'); }, get title() { return tr('Monitoring OPS'); },
+    get label() { return tr('Operations'); }, get idle() { return tr('Check ins, outlets, products & maintenance'); }, get title() { return tr('Operations'); },
     get subtitle() { return tr('What the outlets and PICs filled in'); }, get footer() { return tr('All times in WIB · from the forms of the outlets'); },
     icon: Gauge, sections: monitoring,
   },
   cotr: {
-    get label() { return tr('Monitoring COTR'); }, get idle() { return tr('Drivers, fleet, pools, menus & production'); }, get title() { return tr('Monitoring COTR'); },
+    get label() { return tr('Calf On The Road'); }, get idle() { return tr('Drivers, fleet, pools, menus & production'); }, get title() { return tr('Calf On The Road'); },
     get subtitle() { return tr('Calf On The Road: drivers on the road and what the HUB produces'); },
     get footer() { return tr('Calf On The Road'); },
     icon: Bike, sections: cotr,
