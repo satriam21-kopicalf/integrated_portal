@@ -137,7 +137,13 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
           {p.approvedAmount !== null && <Info k={tr("Approved amount")} v={fmtRp(p.approvedAmount)} />}
           {p.paidAmount !== null && <Info k={tr("Paid")} v={`${fmtRp(p.paidAmount)}${p.paidOn ? ` · ${wibDay(p.paidOn)}` : ""}`} />}
         </div>
-        {petty && p.purchaseRef && (
+        {petty && p.purchaseRef && p.purchaseRef.docs === 0 && (
+          // no Simple Purchase of the outlet in ESB (Wasgee: its ESB purchases are not synced, 2026-11-10): no Rp 0 reference
+          <p className="rounded-lg bg-white px-3 py-2 text-xs text-neutral-500 ring-1 ring-neutral-200">
+            <span className="font-semibold text-neutral-700">{tr("Reference: Simple Purchase in ESB")}</span> · {tr("no purchase of this outlet in ESB in the last {0} weeks", p.purchaseRef.weeks)}
+          </p>
+        )}
+        {petty && p.purchaseRef && p.purchaseRef.docs > 0 && (
           <p className="rounded-lg bg-white px-3 py-2 text-xs text-neutral-600 ring-1 ring-neutral-200">
             <span className="font-semibold text-neutral-800">{tr("Reference: Simple Purchase in ESB")}</span> · {tr("{0} weeks up to {1}", p.purchaseRef.weeks, wibDay(p.purchaseRef.until))}:
             {" "}{tr("average {0} a week", fmtRp(p.purchaseRef.avgWeek))} · {tr("last 7 days {0}", fmtRp(p.purchaseRef.lastWeek))} · {tr("{0} documents", p.purchaseRef.docs)}

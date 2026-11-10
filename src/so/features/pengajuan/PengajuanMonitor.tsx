@@ -111,12 +111,12 @@ export default function PengajuanMonitor() {
     }
     setExporting(true);
     downloadXlsx({ fileName: `${tr("Fund Request")} ${f.period.from} - ${f.period.to}`, sheet: tr("Fund Request"),
-      title: `${tr("Monitoring Fund Requests")} · ${dmy(f.period.from)} – ${dmy(f.period.to)}`, header: head, rows: out })
+      title: `${tr("Fund Request")} · ${dmy(f.period.from)} – ${dmy(f.period.to)}`, header: head, rows: out })
       .catch((e) => toast((e as Error).message, "error")).finally(() => setExporting(false));
   };
 
   return (
-    <Page title={tr("Monitoring Fund Requests")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("petty cash and budget requests of every outlet")}`}
+    <Page title={tr("Fund Request")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("petty cash and budget requests of every outlet")}`}
       actions={<div className="flex gap-2">
         <Button variant="secondary" onClick={() => setSettings(true)}><Settings2 size={15} /> {tr("Approvals & Plafon")}</Button>
         <ExcelIconButton label={tr("Export to Excel")} loading={exporting} disabled={!rows.length} onClick={exportCsv} />

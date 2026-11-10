@@ -30,12 +30,15 @@ export const currentCompany = () => current;
 // (integrated_portal_be app/scope.py COST_CONTROL_PATHS, the stock opname through the gateway); the Operations forms
 // never are, since they are not under /cost-control.
 const CC_API = ['/api/cost-control/', '/api/monitoring/', '/api/so/', '/api/waste/monitor', '/api/waste/reviews', '/api/waste/daily',
-  '/api/waste/usage', '/api/waste/investigations'];
+  '/api/waste/usage', '/api/waste/investigations', '/api/de/monitor', '/api/pengajuan/monitor'];
+// the Operations monitors read one brand too (2026-11-10); Branch Groups is the setting of every brand and stays whole
+const BRAND_PAGES = ['/cost-control', '/monitoring'];
+export const brandPage = (path: string) => BRAND_PAGES.some((p) => path.startsWith(p)) && !path.startsWith('/monitoring/branch-groups');
 
 /** `url` with the Cost Control brand when a Cost Control page asks one of its endpoints; the branch filters of a
  * brand list that brand's branches only. */
 export function ccUrl(url: string): string {
-  if (typeof window === 'undefined' || !window.location.pathname.startsWith('/cost-control') || url.includes('company=')
+  if (typeof window === 'undefined' || !brandPage(window.location.pathname) || url.includes('company=')
     && !url.startsWith('/api/branches')) return url;
   if (url.startsWith('/api/branches')) return current === MAIN_COMPANY ? url : url.replace('company=all', `company=${current}`);
   return CC_API.some((p) => url.startsWith(p)) ? withCompany(url, current) : url;
