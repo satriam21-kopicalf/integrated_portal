@@ -9,6 +9,7 @@
 // document) and COGS Material (Pricelist Items), system and actual. A card may hold other cards (bundling, 2026-11-06)
 // and shows the list price of its menus (POS menu master, per channel) with the % HPP.
 
+import { SkeletonTable } from "@/components/kc/Skeleton";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Wand2, X } from "lucide-react";
@@ -279,7 +280,7 @@ function AutoCards({ onClose, onDone }: { onClose: () => void; onDone: () => voi
       description={tr("Menus sold in the last 90 days without a card: from the ESB BOM of the menu, a bundle from the menus inside it")}
       footer={<div className="flex w-full justify-end gap-2"><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!plan || !todo} onClick={() => void run()}><Wand2 size={15} />{tr("Make {0} Cards", todo)}</Button></div>}>
-      {!plan ? <SkeletonRows cols={3} /> : (
+      {!plan ? <SkeletonTable cols={3} /> : (
         <div className="space-y-4 text-sm">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {([[tr("From the BOM"), plan.created.length], [tr("Bundling"), plan.bundles.length], [tr("Added to a card"), plan.assigned.length], [tr("Skipped"), plan.skipped.length]] as const).map(([k, v]) => (

@@ -8,7 +8,7 @@
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { BadgeAlert, CalendarDays, History, Package, Save, Tags } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, PageNav, Panel, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { Tabs } from "@/components/kc";
@@ -16,7 +16,7 @@ import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import { SkeletonList } from "@/components/kc/Skeleton";
+import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
 import { type ActiveFilter, FilterToolbar } from "@/so/ui/Filters";
 import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
 import { Segmented } from "@/so/ui/Simple";
@@ -105,7 +105,7 @@ export default function PricelistPage() {
         </StatStrip>
       }>
       <Panel toolbar={<div className="space-y-3">
-        <Tabs label={tr("Status")} value={status} onChange={(k) => { setStatus(k as Status); setDraft({}); }} tabs={[
+        <Tabs label={tr("Status")} value={status} onChange={(k) => { setStatus(k as Status); setDraft({}); setData(null); }} tabs={[
           { key: "active", label: tr("Active"), count: data?.counts?.active },
           { key: "inactive", label: tr("Inactive"), count: data?.counts?.inactive },
           { key: "all", label: tr("All") }]} />
@@ -122,7 +122,7 @@ export default function PricelistPage() {
           </div>
         </div>
       </div>      } footer={data ? <><span>{tr("{0} of {1} shown", rows.length, data.data.length)}</span><PageNav paged={paged} /></> : undefined}>
-        {error ? <ErrorState message={error} onRetry={() => void load()} /> : !data ? <SkeletonRows cols={6} /> : rows.length === 0 ? <Empty title={tr("No item matches")} /> : (
+        {error ? <ErrorState message={error} onRetry={() => void load()} /> : !data ? <SkeletonTable cols={6} /> : rows.length === 0 ? <Empty title={tr("No item matches")} /> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead className={theadClass}><tr>

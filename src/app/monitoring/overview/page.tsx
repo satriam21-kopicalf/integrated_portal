@@ -6,10 +6,11 @@
 // items they passed and the team found UNDER, the action plans still open at their outlets. Then the same per outlet.
 // Net sales: the outlets against their own month before (Sales Transactions), no target set by hand.
 
+import { SkeletonTable } from "@/components/kc/Skeleton";
 import { AlertTriangle, CalendarDays, ClipboardCheck, Layers, MapPinCheck, Package, Scale, ShieldCheck, Store, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import { Empty, ErrorState, Page, PageNav, Panel, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
@@ -90,7 +91,7 @@ export default function MonitoringOverviewPage() {
         </div>}
         toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={view === "pics" ? tr("Search PIC") : tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
         footer={res ? <><span className="inline-flex items-center gap-1"><ShieldCheck size={12} /> {tr("Check-in deadlines, form items and net sales per outlet: Monitoring OPS → Branch Groups")}</span><PageNav paged={view === "pics" ? pagedPics : pagedOutlets} /></> : undefined}>
-        {error ? <ErrorState message={error} /> : !res ? <SkeletonRows cols={8} /> : view === "pics" ? (
+        {error ? <ErrorState message={error} /> : !res ? <SkeletonTable cols={8} /> : view === "pics" ? (
           pics.length === 0 ? <Empty icon={<UsersRound size={28} />} title={tr("No PIC activity in this period")} /> : (
             <div className="overflow-x-auto">
               <table className="m-cards w-full min-w-[1260px] text-sm">

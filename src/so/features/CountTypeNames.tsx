@@ -6,6 +6,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { api } from "@/so/lib/api";
 import { setCountTypeNames } from "@/so/lib/counts";
+import { PageSkeleton } from "@/components/kc/Skeleton";
 
 let loaded = false;
 
@@ -24,5 +25,6 @@ export default function CountTypeNames({ children }: { children: ReactNode }) {
     void reloadCountTypeNames().then(() => setReady(true));
     return () => clearTimeout(timer);
   }, []);
-  return ready ? <>{children}</> : null;
+  // the page in its loading shape meanwhile (2026-11-10), not a blank page
+  return ready ? <>{children}</> : <PageSkeleton />;
 }

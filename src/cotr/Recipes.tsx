@@ -14,7 +14,7 @@ import { Bom, BomLine, Item, ItemCategory, Menu, Pool } from '@/cotr/types';
 import { MasterTable, SearchSelect, rupiah, useMaster } from '@/cotr/ui';
 import { locale, tr } from '@/lib/i18n';
 import { StatCard, StatGrid, ValueSkeleton, kcTable } from '@/components/kc';
-import { SkeletonRows } from '@/components/kc/Skeleton';
+import { SkeletonTable } from '@/components/kc/Skeleton';
 import { ScopeBar, dmyOf } from '@/components/kc/ScopeBar';
 import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from '@/so/ui/MonitorFilters';
 
@@ -372,7 +372,7 @@ export function UsageTab() {
         </MonitorFilterSheet>
       )}
       <Panel title={tr('Theoretical Usage')} description={tr('Cups sold, wasted and given for tasting by the drivers, exploded through the recipe cards')}>
-        {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonRows cols={4} /> : (
+        {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonTable cols={4} /> : (
           <>
             {data.noRecipe.length > 0 && (
               <p className="mx-4 mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">

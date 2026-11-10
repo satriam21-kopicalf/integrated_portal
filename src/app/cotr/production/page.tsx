@@ -12,7 +12,7 @@ import { Badge, Button, Empty, ErrorState, Field, Input, Select, useToast } from
 import { Page, Panel } from "@/components/kc/compat";
 import { EmptyState, IconButton, SearchInput, StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
 import Drawer, { DrawerSection } from "@/components/kc/Drawer";
-import { SkeletonRows } from "@/components/kc/Skeleton";
+import { SkeletonTable } from "@/components/kc/Skeleton";
 import { ScopeBar, dmyOf } from "@/components/kc/ScopeBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
@@ -98,7 +98,7 @@ function PlanView() {
         </MonitorFilterSheet>
       )}
       <Panel title={tr("Production Plan for Tomorrow")} description={plan ? tr("Average cups sold per day by every driver over {0} days with sales, plus a buffer", plan.days) : undefined}>
-        {error ? <ErrorState message={error} onRetry={() => void load()} /> : !plan ? <SkeletonRows cols={4} /> : plan.days === 0 ? (
+        {error ? <ErrorState message={error} onRetry={() => void load()} /> : !plan ? <SkeletonTable cols={4} /> : plan.days === 0 ? (
           <Empty title={tr("No sales yet")}>{tr("The plan follows the sales the drivers record in the COTR app.")}</Empty>
         ) : (
           <table className="m-cards w-full text-sm">
@@ -216,7 +216,7 @@ function WasteList() {
         </DrawerSection>
       </Drawer>
       <Panel title={tr("Waste of the Pools")} description={tr("Last 30 Days")}>
-        {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <SkeletonRows cols={5} /> : listed.length === 0 ? (
+        {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <SkeletonTable cols={5} /> : listed.length === 0 ? (
           <EmptyState icon={<Trash2 />} title={rows.length ? tr("Nothing matches the filters") : tr("Nothing yet")}>{!rows.length && <div className="mt-3"><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr("Record Waste")}</Button></div>}</EmptyState>
         ) : (
           <table className="m-cards w-full text-sm">
