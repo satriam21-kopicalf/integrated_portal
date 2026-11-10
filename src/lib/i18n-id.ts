@@ -1,6 +1,15 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Correct the waste": "Koreksi waste",
+  "Waste corrected": "Waste berhasil dikoreksi",
+  "No change yet": "Belum ada perubahan",
+  "{0} changes": "{0} perubahan",
+  "Waste date": "Tanggal waste",
+  "Reason for the correction": "Alasan koreksi",
+  "Shown in the history of the entry": "Tampil di riwayat entry",
+  "e.g. the branch entered 50 instead of 5": "mis. outlet mengisi 50 seharusnya 5",
+  "The entry is changed in place; the value, COGS and Stock List follow. The old figures and the reason are kept in the history.": "Entry diubah langsung; nilai, COGS, dan Stock List ikut menyesuaikan. Angka lama dan alasannya tersimpan di riwayat.",
   "Raw Material Breakdown per Menu": "Breakdown Bahan Baku per Menu",
   "Raw materials per menu & additional": "Bahan baku per menu & additional",
   "All outlets combined": "Semua outlet digabung",

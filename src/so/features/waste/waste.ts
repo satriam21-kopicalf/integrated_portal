@@ -26,6 +26,8 @@ export type Entry = {
   signed?: boolean; investigationId?: string | null;
   /** value in Rp (2026-11-05): Pricelist of the day, else the ESB HPP; null = no price */
   value?: number | null; unitPrice?: number | null; priceSource?: PriceSource;
+  /** corrections made by Cost Control (migration 087) */
+  corrections?: number;
 };
 export type FormData = {
   branches: { code: string; name: string }[]; days: { from: string; to: string };

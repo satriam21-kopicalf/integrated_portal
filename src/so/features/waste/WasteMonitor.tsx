@@ -10,7 +10,7 @@
 
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
-import { BarChart3, CalendarCheck, CalendarDays, CheckCircle2, ClipboardList, FileSearch, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
+import { BarChart3, CalendarCheck, CalendarDays, CheckCircle2, ClipboardList, FileSearch, PencilLine, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { downloadXlsx } from "@/lib/xlsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -26,6 +26,7 @@ import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { DailyReport, UsageReport } from "./WasteDaily";
 import WasteAnalysis from "./WasteAnalysis";
+import WasteCorrect, { CorrectionHistory } from "./WasteCorrect";
 import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
 import { CategoriesDrawer, Ingredients, InvestigationDrawer, InvestigationList } from "./Investigation";
 import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, PRICE_SOURCE, SCOPES, fmtQty, fmtRp, photoUrl, usagePhotoUrl, scopeLabel, signatureUrl, statusLabel, statusTone } from "./waste";
@@ -65,6 +66,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   // migration 055: the investigation open in the editor, the categories of the forms
   const [investigation, setInvestigation] = useState<string | null>(null);
   const [cats, setCats] = useState(false);
+  // 2026-11-10 (migration 087): Cost Control corrects an entry
+  const [fixing, setFixing] = useState(false);
+  const [fixes, setFixes] = useState(0);
 
   const load = useCallback(async () => {
     setError(null);
@@ -254,7 +258,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                         <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", e.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{e.value == null ? tr("No price") : fmtRp(e.value)}</td>
                         <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-neutral-600">{e.category || "—"}</p>{e.note && <p className="truncate text-[11px] text-neutral-400" title={e.note}>“{e.note}”</p>}</td>
                         <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-neutral-700">{e.name}</p><p className="text-[11px] text-neutral-400">{wibDateTime(e.createdAt)}</p></td>
-                        <td className="px-3 py-2 pr-5"><Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge></td>
+                        <td className="px-3 py-2 pr-5"><span className="flex flex-wrap items-center gap-1"><Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge>
+                          {!!e.corrections && <Badge tone="amber" title={tr("Corrected by Cost Control")}><PencilLine size={11} />{tr("Corrected")}</Badge>}</span></td>
                       </tr>
                     );
                   })}
@@ -290,6 +295,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
       <Drawer open={!!open} onClose={() => setOpen(null)} icon={<Trash2 size={18} />} title={open?.itemName ?? ""} description={open ? `${open.branchName} · ${dmy(open.businessDate)}` : ""}
         footer={open && review && (open.status === "submitted" || open.status === "investigating") ? (
           <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
             {open.investigationId
               ? <Button variant="secondary" className="mr-auto" onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={14} />{tr("Open the investigation")}</Button>
               : <Button variant="secondary" className="mr-auto" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button>}
@@ -299,10 +305,13 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         ) : open && review && open.status === "approved" ? (
           <div className="flex flex-wrap items-center justify-end gap-2">
             <span className="mr-auto text-xs text-neutral-500">{tr("Approved: counted in the COGS; QA can still investigate it")}</span>
+            <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
             {open.investigationId
               ? <Button variant="secondary" onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={14} />{tr("Open the investigation")}</Button>
               : <Button variant="secondary" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button>}
           </div>
+        ) : open && review ? (
+          <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
         ) : undefined}>
         {open && (
           <div className="space-y-4">
@@ -332,6 +341,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 <div key={k} className="flex gap-3 px-3 py-2"><dt className="w-32 flex-shrink-0 text-neutral-500">{k}</dt><dd className="min-w-0 flex-1 text-neutral-800">{v}</dd></div>
               ))}
             </dl>
+            <CorrectionHistory entry={open} version={fixes} />
             <Ingredients entry={open} />
             {open.signed && (
               <div className="rounded-xl border border-neutral-200 p-3">
@@ -350,6 +360,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         onReset={() => ({ period: DEFAULT_PERIOD(), branch: "", scope: "", category: "", status: review ? "submitted" : "" })} />}
       {investigation && <InvestigationDrawer id={investigation} onClose={() => setInvestigation(null)} onChanged={() => void load()} />}
       {cats && <CategoriesDrawer onClose={() => setCats(false)} />}
+      {fixing && open && <WasteCorrect entry={open} onClose={() => setFixing(false)}
+        onSaved={(e) => { setFixing(false); setFixes((n) => n + 1); setOpen(e); setRes((r) => r && { ...r, data: r.data.map((x) => x.id === e.id ? e : x) }); }} />}
       <ConfirmDialog open={!!verdict} busy={busy} danger={verdict === "rejected"}
         title={verdict === "approved" ? tr("Approve the waste?") : tr("Reject the waste?")}
         description={tr("{0} entries", open && !picked.size ? 1 : picked.size)}
