@@ -7,7 +7,7 @@
 // Pages that list the branches of every brand (User Accounts, profile, monitoring) ask `?company=all`.
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
-import { PageSkeleton, Skeleton } from '@/components/kc/Skeleton';
+import { AppSkeleton } from '@/components/kc/Skeleton';
 import { useAuth } from '@/lib/auth';
 
 export type Company = { code: string; name: string; branches: number };
@@ -89,18 +89,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     if (cls) el.classList.add(cls);
   }, [company, user]);
 
-  if (user && !loaded) {
-    // the portal in its loading shape (2026-11-10): the sidebar and a page, not a lone spinner
-    return (
-      <div className="flex h-dvh bg-neutral-50" aria-busy="true">
-        <div className="hidden w-60 flex-shrink-0 space-y-3 border-r border-neutral-200 p-4 lg:block" aria-hidden>
-          <Skeleton className="h-9 w-36" />
-          {Array.from({ length: 7 }, (_, i) => <Skeleton key={i} className="h-7 w-full" />)}
-        </div>
-        <div className="min-w-0 flex-1 overflow-hidden"><PageSkeleton /></div>
-      </div>
-    );
-  }
+  if (user && !loaded) return <AppSkeleton />;  // the app in its loading shape (2026-11-10)
   return <CompanyContext.Provider value={{ companies, company, setCompany }}>{children}</CompanyContext.Provider>;
 }
 

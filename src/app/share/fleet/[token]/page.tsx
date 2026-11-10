@@ -4,7 +4,8 @@
 // condition, service, asset number), its pool and the driver(s) on it with today's shift. Without sign-in the papers,
 // the tracker, the QRIS and the phone numbers stay hidden; a signed-in COTR user gets them all (/api/cotr/fleet/{code}/card).
 
-import { Bike, Building2, CalendarClock, CheckCircle2, Clock, Loader2, Lock, MapPin, Phone, ShieldCheck, UserRound, Wrench } from "lucide-react";
+import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
+import { Bike, Building2, CalendarClock, CheckCircle2, Clock, Lock, MapPin, Phone, ShieldCheck, UserRound, Wrench } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { FleetCard } from "@/cotr/types";
@@ -67,7 +68,7 @@ export default function FleetSharePage() {
         {error ? (
           <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-600 shadow-sm">{error}</div>
         ) : !card || !f ? (
-          <div className="flex items-center justify-center gap-2 py-24 text-sm text-neutral-500"><Loader2 size={16} className="animate-spin" /> {tr("Loading…")}</div>
+          <div className="space-y-3 py-8"><Skeleton className="h-40 w-full rounded-2xl" /><SkeletonList rows={4} className="rounded-xl border border-neutral-200 bg-white" /></div>
         ) : (
           <>
             <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">

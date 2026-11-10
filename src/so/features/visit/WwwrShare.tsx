@@ -5,6 +5,7 @@
 // revisit, the findings (UNDER) with their notes and photos, then every item. No score. Print / save as PDF from the
 // browser (?print=1 opens the print dialog).
 
+import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
 import { CheckCircle2, Loader2, Printer, ShieldCheck } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -41,7 +42,7 @@ function View() {
   const items = useMemo(() => (d ? allItems(d.definition) : []), [d]);
   const photo = (id: string) => `/api/public/wwwr/${encodeURIComponent(token)}/photos/${id}`;
   if (error) return <div className="flex min-h-screen items-center justify-center bg-neutral-100 p-6 text-sm text-neutral-600">{error}</div>;
-  if (!d) return <div className="flex min-h-screen items-center justify-center gap-2 bg-neutral-100 text-sm text-neutral-500"><Loader2 size={16} className="animate-spin" /> {tr("Loading…")}</div>;
+  if (!d) return <div className="min-h-screen bg-neutral-100"><div className="mx-auto max-w-3xl space-y-3 px-4 py-8"><Skeleton className="h-6 w-64" /><SkeletonList rows={6} className="rounded-xl border border-neutral-200 bg-white" /></div></div>;
   const a = d.audit;
   const under = items.filter((it) => d.answers[it.key]?.rating === "UNDER");
   return (

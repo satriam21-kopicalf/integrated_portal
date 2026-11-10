@@ -19,7 +19,7 @@ import { wibDay } from "@/so/ui/Filters";
 import { locale, tr } from "@/lib/i18n";
 import { VisitEditor } from "./VisitForm";
 import { type ActionPlan, type Audit, type AuditTeam, type Person, type Visit, type WwwrState } from "./visit";
-import { SkeletonList } from "@/components/kc/Skeleton";
+import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
 
 const dayLabel = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const dayShort = (d: string | null | undefined) => (d ? new Date(`${d.slice(0, 10)}T00:00:00`).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" }) : "—");
@@ -201,7 +201,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
             <div className="relative border-b border-neutral-100 p-2"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search colleague")} className={cx(inputClass, "h-9 pl-8")} /></div>
             <ul className="max-h-72 divide-y divide-neutral-100 overflow-y-auto">
-              {colleagues === null ? <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr("Loading…")}</li> : shown.map((c) => (
+              {colleagues === null ? <li><SkeletonList rows={3} /></li> : shown.map((c) => (
                 <li key={c.id}>
                   <label className={cx("flex cursor-pointer items-center gap-2.5 px-3 py-2", pick.has(c.id) && "bg-brand-50/60")}>
                     <input type="checkbox" checked={pick.has(c.id)} onChange={() => setPick((s) => { const n = new Set(s); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })} />

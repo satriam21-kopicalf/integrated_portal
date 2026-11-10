@@ -3,6 +3,7 @@
 // Log of one count (2026-11-05): started, every submit (also after a recount), recount asked with its reason, approved,
 // corrected … with who, when and, for start and submit, where the device was against the outlet.
 
+import { SkeletonList } from "@/components/kc/Skeleton";
 import { AlertTriangle, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/kc";
@@ -35,7 +36,7 @@ export default function CountLog({ countId, reload, bare = false }: { countId: s
 
   const body = (
     <>
-      {error ? <p className="text-sm text-red-600">{error}</p> : !log ? <p className="text-sm text-slate-400">{tr("Loading…")}</p> : (
+      {error ? <p className="text-sm text-red-600">{error}</p> : !log ? <SkeletonList rows={4} /> : (
         <ol className="relative space-y-4 border-l border-slate-200 pl-5">
           {log.events.map((e, i) => (
             <li key={i} className="relative">

@@ -1,6 +1,5 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
 import { tr } from '@/lib/i18n';
 
 /** A shimmering placeholder line or block (same look everywhere). */
@@ -24,11 +23,6 @@ export default function LoadingState({ height = 200, label = 'data' }: { height?
           <span key={i} className="flex-1 rounded-t bg-white/60" style={{ height: `${h}%` }} />
         ))}
       </div>
-      <span className="absolute inset-0 flex items-center justify-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-neutral-500 shadow-sm ring-1 ring-neutral-200">
-          <Loader2 size={13} className="animate-spin text-brand-600" /> {tr('Loading')} {label}…
-        </span>
-      </span>
     </div>
   );
 }

@@ -104,3 +104,16 @@ export function PageSkeleton({ cards = 4, rows = 6 }: { cards?: number; rows?: n
     </div>
   );
 }
+
+/** The whole app while it starts (the session, the brand): the sidebar and a page (2026-11-10). */
+export function AppSkeleton() {
+  return (
+    <div className="flex h-dvh bg-neutral-50" role="status" aria-label={tr('Loading…')}>
+      <div className="hidden w-60 flex-shrink-0 space-y-3 border-r border-neutral-200 p-4 lg:block" aria-hidden>
+        <Skeleton className="h-9 w-36" />
+        {Array.from({ length: 7 }, (_, i) => <Skeleton key={i} className="h-7 w-full" />)}
+      </div>
+      <div className="min-w-0 flex-1 overflow-hidden"><PageSkeleton /></div>
+    </div>
+  );
+}

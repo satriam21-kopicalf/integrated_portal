@@ -1,5 +1,6 @@
 'use client';
 
+import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
 import { ReactNode, useMemo, useState } from 'react';
 import { Check, Search, SlidersHorizontal, X } from 'lucide-react';
 import { inputClass } from '@/so/ui';
@@ -106,7 +107,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
         </div>
         <ul className="max-h-72 overflow-y-auto py-1">
           {!q && row('', anyLabel)}
-          {loading ? <li className="px-3 py-4 text-center text-sm text-neutral-400">{tr('Loading…')}</li>
+          {loading ? <li><SkeletonList rows={3} /></li>
             : shown.length === 0 ? <li className="px-3 py-4 text-center text-sm text-neutral-400">{tr('No match for “')}{q}”</li>
             : shown.map(o => row(o.value, o.label, o.meta))}
         </ul>

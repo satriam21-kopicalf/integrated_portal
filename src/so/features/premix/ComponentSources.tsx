@@ -4,7 +4,8 @@
 // materials (take one line or the whole BOM) and the components other WIP recipes already use. Adding puts a line in
 // the draft with the stock item already chosen.
 
-import { ChevronRight, Layers, Loader2, Package, Plus, Search, Sparkles } from "lucide-react";
+import { SkeletonList } from "@/components/kc/Skeleton";
+import { ChevronRight, Layers, Package, Plus, Search, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cx, inputClass } from "@/so/ui";
 import { api } from "@/so/lib/api";
@@ -119,7 +120,7 @@ function BomTab({ have, onAdd }: { have: Set<string>; onAdd: (c: PickedComponent
             className="inline-flex items-center gap-1 rounded-md bg-brand-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-brand-700"><Plus size={11} /> {tr("Add all components")}</button>
         )}
       </div>
-      {open.lines === null ? <Loader2 size={14} className="mx-auto animate-spin text-neutral-400" /> : (
+      {open.lines === null ? <SkeletonList rows={3} /> : (
         <ul className="divide-y divide-neutral-100">
           {open.lines.map(l => (
             <li key={l.line_no} className="flex items-center gap-2 py-1.5 text-xs">
@@ -140,7 +141,7 @@ function BomTab({ have, onAdd }: { have: Set<string>; onAdd: (c: PickedComponent
         <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400" />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Search ESB BOM (e.g. premix, cream, sauce)")} className={cx(inputClass, "h-8 pl-7 text-xs")} />
       </div>
-      {boms === null ? <Loader2 size={14} className="mx-auto animate-spin text-neutral-400" /> : (
+      {boms === null ? <SkeletonList rows={3} /> : (
         <ul className="divide-y divide-neutral-100">
           {boms.map(b => (
             <li key={b.bom_id}>
@@ -168,7 +169,7 @@ function UsedTab({ have, onAdd }: { have: Set<string>; onAdd: (c: PickedComponen
         <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400" />
         <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Filter")} className={cx(inputClass, "h-8 pl-7 text-xs")} />
       </div>
-      {rows === null ? <Loader2 size={14} className="mx-auto animate-spin text-neutral-400" /> : shown.length === 0 ? (
+      {rows === null ? <SkeletonList rows={4} /> : shown.length === 0 ? (
         <p className="py-4 text-center text-xs text-neutral-400">{tr("No recipe components yet")}</p>
       ) : (
         <ul className="divide-y divide-neutral-100">

@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { AppSkeleton } from '@/components/kc/Skeleton';
 import { usePathname, useRouter } from 'next/navigation';
 import { AccountDrawersProvider } from '@/components/AccountDrawers';
 import AppUpdate from '@/components/AppUpdate';
@@ -12,7 +12,7 @@ import { AuthProvider, canAccess, homePath, isPublicPath, useAuth } from '@/lib/
 import { CompanyProvider } from '@/lib/company';
 import { ExportsProvider } from '@/lib/exports';
 import { RealtimeProvider } from '@/lib/realtime';
-import { LanguageProvider, tr } from '@/lib/i18n';
+import { LanguageProvider } from '@/lib/i18n';
 import { ThemeProvider } from '@/lib/theme';
 
 /**
@@ -54,10 +54,7 @@ function Gate({ children }: { children: ReactNode }) {
   if (isPublic) return <>{children}</>;
   if (status !== 'authenticated' || !user || !allowed) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-neutral-50 text-neutral-400" aria-busy="true">
-        <Loader2 size={22} className="animate-spin" />
-        <span className="sr-only">{tr('Checking your session…')}</span>
-      </div>
+      <AppSkeleton />
     );
   }
   return (

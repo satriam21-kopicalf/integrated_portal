@@ -206,7 +206,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                 <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />{tr('Same day last week')}</span>
               </span>
             </div>
-            {hourOption ? <EChart option={hourOption} height={120} ariaLabel={tr('Gross sales per hour today compared with the same day last week')} /> : <div className="h-[120px]" />}
+            {hourOption ? <EChart option={hourOption} height={120} ariaLabel={tr('Gross sales per hour today compared with the same day last week')} /> : <span className="skeleton mt-2 block h-[112px] rounded-lg" aria-hidden />}
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Channels today')}</p>
@@ -230,6 +230,9 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
                   ))}
                 </ul>
               </>
+            ) : !data ? (
+              // still loading: the bar and two lines, not "no sales" (2026-11-10)
+              <span className="mt-2 block space-y-2" aria-hidden><span className="skeleton block h-2.5 rounded-full" /><span className="skeleton block h-3 w-2/3 rounded" /><span className="skeleton block h-3 w-1/2 rounded" /></span>
             ) : (
               <p className="mt-2 text-xs text-neutral-400">{tr('No sales yet today')}</p>
             )}
@@ -272,6 +275,13 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
               );
             })}
             {data && !rows.length && <li className="py-8 text-center text-sm text-neutral-400">{tr('No sales yet today')}</li>}
+            {!data && [0, 1, 2, 3, 4].map((i) => (
+              <li key={i} className="flex items-center gap-3 py-2.5" aria-hidden>
+                <span className="skeleton block h-8 w-8 flex-shrink-0 rounded-lg" />
+                <span className="flex-1 space-y-1.5"><span className="skeleton block h-3 w-2/3 rounded" /><span className="skeleton block h-2.5 w-1/3 rounded" /></span>
+                <span className="skeleton block h-3 w-14 rounded" />
+              </li>
+            ))}
           </ol>
           <p className="border-t border-neutral-100 px-4 py-2 text-[11px] text-neutral-400 sm:px-5">
             {tr('Outlet local time · updates automatically after every POS sync (every 15 min, 06:00–24:00 WIB)')}

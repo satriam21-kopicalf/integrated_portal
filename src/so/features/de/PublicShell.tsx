@@ -3,7 +3,7 @@
 // The frame of the public Damaged Equipment pages (share link of a request, photo link of a technician): no sign-in, a
 // brand band with the document name, an ID / EN switch (Indonesian when the browser has no choice yet) and a footer.
 
-import { Loader2 } from "lucide-react";
+import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
 import { useEffect, type ReactNode } from "react";
 import { ErrorState } from "@/so/ui";
 import { assetUrl } from "@/lib/assets";
@@ -53,7 +53,7 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
 }
 
 export function PublicLoading() {
-  return <div className="flex items-center justify-center gap-2 py-24 text-sm text-neutral-500"><Loader2 size={16} className="animate-spin" /> {tr("Loading…")}</div>;
+  return <div className="mx-auto max-w-2xl space-y-3 px-4 py-8"><Skeleton className="h-6 w-56" /><SkeletonList rows={5} className="rounded-xl border border-neutral-200 bg-white" /></div>;
 }
 
 export function PublicError({ message }: { message: string }) {
