@@ -4,10 +4,12 @@
 // - Variants & Modifiers: the choices sold with the menus (Normal / Less / No / Extra Sugar, Extra Shot …, the ESB
 //   packages / extras of a line) and the rule of each: no effect, or a change to the card of the parent menu (a % of
 //   its sugar or of one item, or a quantity of an item per choice). The card stays the standard portion.
+// - Sugar per menu (2026-11-10, migration 086): the aren of No / Less / Extra Sugar in grams for each card, filled from
+//   the ESB BOMs "<menu> (<choice> Sugar)" or the % rule, adjusted by Cost Control; it comes before the % rule.
 // - Import from the ESB BOM: a recipe card from an ESB bill of material, its lines matched to the item master and the
 //   WIP recipes, with the POS menus of the same name.
 
-import { AlertTriangle, ArrowDownToLine, Check, Database, Plus, Save, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowDownToLine, Check, Database, Plus, RefreshCw, Save, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Panel, SkeletonRows, theadClass, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -50,6 +52,7 @@ export function OptionsStep() {
     && (only === "all" || (only === "todo" ? !c.rule : !!c.rule))), [res, q, only]);
   const todo = (res?.data ?? []).filter((c) => !c.rule).length;
   return (
+    <div className="space-y-5">
     <Panel title={tr("Variants & Modifiers")}
       description={tr("Choices sold with a menu (Less / No Sugar, Extra Shot …). The recipe card stays the standard portion (Normal Sugar); the rule of a choice says what it changes. One rule per name works for every menu.")}
       toolbar={
@@ -100,6 +103,91 @@ export function OptionsStep() {
         </>
       )}
       {edit && <RuleDrawer choice={edit} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
+    </Panel>
+    <SugarGrams />
+    </div>
+  );
+}
+
+type Level = "no" | "less" | "extra";
+type SugarCell = { grams: number; source: "esb" | "pct" | "check" | "manual" | "rule"; note?: string | null; updatedBy?: string | null };
+type SugarRow = { code: string; name: string; normal: number; choices: Record<Level, SugarCell> };
+const LEVELS: { key: Level; label: string }[] = [{ key: "no", label: "No Sugar" }, { key: "less", label: "Less Sugar" }, { key: "extra", label: "Extra Sugar" }];
+const SOURCE: Record<SugarCell["source"], { label: () => string; tone: "green" | "slate" | "amber" | "blue" | "violet" }> = {
+  esb: { label: () => "ESB", tone: "green" }, pct: { label: () => tr("From %"), tone: "slate" }, check: { label: () => tr("To check (ESB)"), tone: "amber" },
+  manual: { label: () => tr("Set by Cost Control"), tone: "blue" }, rule: { label: () => tr("% rule"), tone: "violet" },
+};
+
+/** Sugar per menu in grams (migration 086): the aren of one portion with No / Less / Extra Sugar, per recipe card. */
+function SugarGrams() {
+  const toast = useToast();
+  const [res, setRes] = useState<{ data: SugarRow[] } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<"save" | "fill" | null>(null);
+  const [q, setQ] = useState("");
+  const load = useCallback(() => { setError(null); call<{ data: SugarRow[] }>("/api/cost-control/sales-calc/options/sugar").then(setRes).catch((e: Error) => setError(e.message)); }, []);
+  useEffect(() => { load(); }, [load]);
+  const rows = (res?.data ?? []).filter((r) => !q || matches(r.name, q));
+  const changes = Object.entries(draft).filter(([, v]) => v.trim() !== "");
+  const checks = (res?.data ?? []).reduce((a, r) => a + LEVELS.filter((l) => r.choices[l.key].source === "check").length, 0);
+  const notFilled = (res?.data ?? []).some((r) => LEVELS.some((l) => r.choices[l.key].source === "rule"));
+  const save = async () => {
+    setBusy("save");
+    try {
+      await call("/api/cost-control/sales-calc/options/sugar", { method: "PUT", json: { changes: changes.map(([k, v]) => {
+        const [card, level] = k.split("|"); return { card, level, grams: Number(v.replace(",", ".")) }; }) } });
+      toast(tr("Saved")); setDraft({}); load();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(null); }
+  };
+  const fill = async () => {
+    setBusy("fill");
+    try { const out = await call<{ data: SugarRow[] }>("/api/cost-control/sales-calc/options/sugar/fill", { method: "POST" }); setRes(out); toast(tr("Filled from ESB and the % rule; rows you set stay")); }
+    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(null); }
+  };
+  return (
+    <Panel title={tr("Sugar per Menu (grams)")}
+      description={tr("The aren of ONE portion with each sugar choice, per recipe card; Normal = the card. It comes before the % rule. Filled from the ESB BOMs “<menu> (Less Sugar)” when the figure looks right, else from the % rule.")}
+      actions={<div className="flex gap-2">
+        <Button size="sm" variant="secondary" loading={busy === "fill"} onClick={() => void fill()} title={tr("Refill from ESB and the % rule; the grams you set stay")}><RefreshCw size={14} />{tr("Fill from ESB")}</Button>
+        <Button size="sm" loading={busy === "save"} disabled={!changes.length} onClick={() => void save()}><Save size={14} />{tr("Save {0} changes", changes.length)}</Button>
+      </div>}
+      toolbar={<div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search menu")} /></div>
+        {checks > 0 && <Badge tone="amber"><AlertTriangle size={12} />{tr("{0} to check", checks)}</Badge>}
+        {notFilled && <span className="text-xs text-neutral-500">{tr("Not filled yet: the grams shown follow the % rule. Choose Fill from ESB.")}</span>}
+      </div>}>
+      {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table>
+        : rows.length === 0 ? <Empty title={tr("No menu with a sugar choice")} /> : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu (recipe card)")}</th><th className="px-4 py-2.5 text-right">Normal</th>
+              {LEVELS.map((l) => <th key={l.key} className="px-4 py-2.5">{l.label}</th>)}</tr></thead>
+            <tbody className="divide-y divide-neutral-100">
+              {rows.map((r) => (
+                <tr key={r.code} className="hover:bg-neutral-50">
+                  <td className="px-4 py-2"><span className="font-medium text-neutral-900">{r.name}</span><span className="block text-[11px] text-neutral-400">{r.code}</span></td>
+                  <td className="px-4 py-2 text-right tabular-nums">{num(r.normal)} g</td>
+                  {LEVELS.map((l) => {
+                    const c = r.choices[l.key], k = `${r.code}|${l.key}`, src = SOURCE[c.source];
+                    return (
+                      <td key={l.key} className="px-4 py-2" title={c.note ?? undefined}>
+                        <span className="flex items-center gap-2">
+                          <input inputMode="decimal" aria-label={`${r.name} · ${l.label}`} className={cx(inputClass, "h-8 w-20 text-right tabular-nums", draft[k] && "border-brand-300 bg-brand-50/40")}
+                            placeholder={num(c.grams)} value={draft[k] ?? ""} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} />
+                          <span className="text-xs text-neutral-400">g</span>
+                          <Badge tone={src.tone}>{src.label()}</Badge>
+                        </span>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </Panel>
   );
 }

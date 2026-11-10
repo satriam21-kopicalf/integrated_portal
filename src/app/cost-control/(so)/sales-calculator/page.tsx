@@ -25,6 +25,7 @@ import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { tr } from "@/lib/i18n";
 import { type Item, type Wip, Picker, matches, num, rp, useCatalog } from "./parts";
 import { BomImport, OptionsStep } from "./options";
+import { BreakdownStep } from "./breakdown";
 
 type Kind = "item" | "wip" | "other" | "menu";
 type Line = { type: Kind; code: string; name: string; qty: number; unit: string; price?: number | null };
@@ -72,7 +73,7 @@ const MOVE: Record<MoveKind, () => string> = {
   received: () => tr("Goods Receipt"), outletBuy: () => tr("Outlet purchase"), produced: () => tr("Produced"),
   consumed: () => tr("Used in production"), delivered: () => tr("Sent out"), returned: () => tr("Returned"),
 };
-type Step = "recipes" | "menus" | "options" | "extras" | "report";
+type Step = "recipes" | "menus" | "options" | "extras" | "report" | "breakdown";
 
 const BASIS: Record<Extra["basis"], () => string> = { bill: () => tr("Per Bill"), portion: () => tr("Per Portion Sold"), day: () => tr("Per Outlet-Day") };
 const KIND: Record<Kind, { label: () => string; tone: "blue" | "violet" | "amber" }> = {
@@ -116,6 +117,7 @@ export default function SalesCalculatorPage() {
     { key: "options", label: tr("Variants & Modifiers"), hint: tr("Less / No Sugar, Extra Shot …"), icon: SlidersHorizontal, status: null, done: false },
     { key: "extras", label: tr("Additional Items"), hint: tr("Outside the cards"), icon: Package, status: p ? tr("{0} active", p.extras) : null, done: !!p?.extras },
     { key: "report", label: tr("Calculator"), hint: tr("MRP, usage & COGS"), icon: Calculator, status: null, done: false },
+    { key: "breakdown", label: tr("Breakdown"), hint: tr("Raw materials per menu & additional"), icon: Layers, status: null, done: false },
   ];
   return (
     <Page title={tr("Sales Calculator by Menu")} subtitle={tr("Recipe cards per menu and, from the POS transactions of every branch: material planning, actual vs system usage and COGS")}>
@@ -152,6 +154,7 @@ export default function SalesCalculatorPage() {
       {step === "options" && <OptionsStep />}
       {step === "extras" && <Extras />}
       {step === "report" && <ReportView onGo={setStep} link={link} />}
+      {step === "breakdown" && <BreakdownStep />}
     </Page>
   );
 }

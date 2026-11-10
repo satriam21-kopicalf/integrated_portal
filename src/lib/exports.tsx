@@ -14,7 +14,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { hasPage, useAuth } from '@/lib/auth';
 import { tr, serverMsg } from './i18n';
 
-export type ReportKind = 'detail' | 'menu' | 'daily';
+export type ReportKind = 'detail' | 'menu' | 'daily' | 'breakdown';
 export type ExportFormat = 'xlsx' | 'gsheet';
 /** Google Sheets holds at most 10 million cells per spreadsheet */
 export const GSHEET_MAX_CELLS = 10_000_000;
@@ -90,12 +90,14 @@ interface ExportsState {
   /** Google Sheets export is configured on the server */
   googleSheets: boolean;
   start: (params: ExportParams) => void;
+  /** follow a job another endpoint created (Sales Calculator → Breakdown, 2026-11-10): progress and download here too */
+  follow: (job: ExportJob, params: ExportParams) => void;
   retry: (key: string) => void;
   dismiss: (key: string) => void;
 }
 
 const ExportsContext = createContext<ExportsState>({
-  exports: [], busy: false, googleSheets: false, start: () => {}, retry: () => {}, dismiss: () => {},
+  exports: [], busy: false, googleSheets: false, start: () => {}, follow: () => {}, retry: () => {}, dismiss: () => {},
 });
 
 const POLL_INTERVAL_MS = 2000;
@@ -239,16 +241,20 @@ export function ExportsProvider({ children }: { children: ReactNode }) {
       .catch(error => update(temp, { error: error instanceof Error ? error.message : 'Unknown error' }));
   }, [update]);
 
+  const follow = useCallback((job: ExportJob, params: ExportParams) => {
+    setList(prev => [...prev.filter(t => t.key !== job.id), { key: job.id, params, startedAt: Date.now(), job, error: null, downloaded: false }]);
+  }, []);
+
   const dismiss = useCallback((key: string) => setList(prev => prev.filter(t => t.key !== key)), []);
   const retry = useCallback((key: string) => {
     const t = listRef.current.find(x => x.key === key);
-    if (!t) return;
+    if (!t || t.params.report === 'breakdown') return;  // a breakdown is exported again from its page
     dismiss(key);
     start(t.params);
   }, [dismiss, start]);
 
   const busy = list.some(isActive);
-  const value = useMemo(() => ({ exports: list, busy, googleSheets, start, retry, dismiss }), [list, busy, googleSheets, start, retry, dismiss]);
+  const value = useMemo(() => ({ exports: list, busy, googleSheets, start, follow, retry, dismiss }), [list, busy, googleSheets, start, follow, retry, dismiss]);
   return <ExportsContext.Provider value={value}>{children}</ExportsContext.Provider>;
 }
 

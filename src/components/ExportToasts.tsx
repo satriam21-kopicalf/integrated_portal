@@ -44,7 +44,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
   // a detail report to Google Sheets is written and uploaded part by part
   const inParts = gsheet && report !== 'daily';
   const parts = job?.sheetParts ?? [];
-  const reportLabel = REPORTS.find(r => r.value === report)?.label ?? tr('Export');
+  const reportLabel = report === 'breakdown' ? tr('Breakdown Bahan Baku per Menu') : REPORTS.find(r => r.value === report)?.label ?? tr('Export');
   const typeLabel = TYPE_LABELS[params.typeLabel] ?? params.typeLabel;
   const failed = Boolean(error || job?.status === 'error');
   const done = !failed && job?.status === 'done';
