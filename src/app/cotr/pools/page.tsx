@@ -18,6 +18,39 @@ const KIND: Record<Pool["kind"], { label: () => string; tone: "blue" | "violet" 
   storage: { label: () => tr("Storage"), tone: "cyan", icon: Boxes },
 };
 
+// the departments of the employees, one colour per kind of work (2026-11-10): the armada, the storage, the central
+// kitchen and the office, so a pool reads at a glance
+type Tone = "blue" | "cyan" | "amber" | "violet" | "slate";
+const deptTone = (dep: string): Tone => {
+  const d = dep.toLowerCase();
+  if (d.includes("armada") || d.includes("driver")) return "blue";
+  if (d.includes("storage") || d.includes("stockist")) return "cyan";
+  if (d.includes("kitchen")) return "amber";
+  if (d.includes("officer") || d.includes("leader") || d.includes("head") || d.includes("technician")) return "violet";
+  return "slate";
+};
+const TONE_CLASS: Record<Tone, string> = {
+  blue: "bg-blue-50 text-blue-800 ring-blue-200", cyan: "bg-cyan-50 text-cyan-800 ring-cyan-200", amber: "bg-amber-50 text-amber-800 ring-amber-200",
+  violet: "bg-violet-50 text-violet-800 ring-violet-200", slate: "bg-neutral-100 text-neutral-700 ring-neutral-200",
+};
+
+/** The employees of a pool per department: a badge each, its count in bold. */
+function DeptBadges({ items, limit }: { items: [string, number][]; limit?: number }) {
+  if (!items.length) return <span className="text-xs text-neutral-400">—</span>;
+  const shown = limit ? items.slice(0, limit) : items;
+  const rest = items.length - shown.length;
+  return (
+    <span className="flex flex-wrap gap-1">
+      {shown.map(([dep, n]) => (
+        <span key={dep} className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[11px] font-medium ring-1 ring-inset ${TONE_CLASS[deptTone(dep)]}`}>
+          {dep}<b className="tabular-nums">{n}</b>
+        </span>
+      ))}
+      {rest > 0 && <span className="inline-flex items-center rounded-md bg-neutral-50 px-1.5 py-0.5 text-[11px] text-neutral-500 ring-1 ring-inset ring-neutral-200">+{rest}</span>}
+    </span>
+  );
+}
+
 export default function CotrPoolsPage() {
   const master = useMaster<Pool>("pools");
   const drivers = useMaster<Driver>("drivers");
@@ -71,8 +104,10 @@ export default function CotrPoolsPage() {
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-700 text-white"><Building2 size={18} /></span>
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-neutral-900">{m.name}
+                      <Badge tone={KIND[m.kind].tone}>{KIND[m.kind].label()}</Badge>
                       {m.is_production && <Pill tone="brand" icon={<Factory size={11} />}>{tr("Production Hub")}</Pill>}
-                      {!m.is_active && <Pill tone="gray">{tr("Inactive")}</Pill>}</p>
+                      {!m.is_active && <Pill tone="gray">{tr("Inactive")}</Pill>}
+                      {!located(m) && <Pill tone="amber" icon={<MapPin size={10} />}>{tr("No coordinates")}</Pill>}</p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-neutral-500">
                       <span className="font-mono">{m.code}</span>
                       {m.city && <span className="inline-flex items-center gap-1"><MapPin size={11} />{m.city}</span>}
@@ -88,8 +123,9 @@ export default function CotrPoolsPage() {
                 </div>
               </header>
               {departments(m.code).length > 0 && (
-                <div className="flex flex-wrap gap-1.5 border-b border-neutral-100 px-4 py-2.5 sm:px-5">
-                  {departments(m.code).map(([dep, n]) => <span key={dep} className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-700">{dep} · <b className="tabular-nums">{n}</b></span>)}
+                <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 bg-neutral-50/60 px-4 py-2.5 sm:px-5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("At this HUB")}</span>
+                  <DeptBadges items={departments(m.code)} />
                 </div>
               )}
               {children.length === 0 ? <p className="px-5 py-6 text-center text-xs text-neutral-400">{tr("No pool under this HUB yet")}</p> : (
@@ -107,7 +143,7 @@ export default function CotrPoolsPage() {
                             {p.kind === "storage" ? (p.storage.join(", ") || "—") : [p.address, p.city].filter(Boolean).join(", ") || p.code}
                           </p>
                           {p.kind !== "storage" && departments(p.code).length > 0 && (
-                            <p className="mt-0.5 truncate text-[11px] text-neutral-500">{departments(p.code).map(([dep, n]) => `${dep} ${n}`).join(" · ")}</p>
+                            <div className="mt-1.5"><DeptBadges items={departments(p.code)} /></div>
                           )}
                         </div>
                         {p.kind !== "storage" && (
@@ -138,8 +174,7 @@ export default function CotrPoolsPage() {
           { label: tr("Type"), render: (p) => <Badge tone={KIND[p.kind].tone}>{KIND[p.kind].label()}</Badge> },
           { label: tr("Under"), render: (p) => (p.parent_code ? rows.find((x) => x.code === p.parent_code)?.name ?? p.parent_code : "—") },
           { label: tr("Address"), render: (p) => <><span className="block">{p.address}</span><span className="text-[11px] text-neutral-400">{p.city}</span></> },
-          { label: tr("Employees per Department"), render: (p) => departments(p.code).length
-            ? <span className="text-xs text-neutral-600">{departments(p.code).map(([dep, n]) => `${dep} ${n}`).join(" · ")}</span> : <span className="text-neutral-400">—</span> },
+          { label: tr("Employees per Department"), render: (p) => <DeptBadges items={departments(p.code)} limit={4} /> },
           { label: tr("Stores"), render: (p) => <span className="text-xs text-neutral-600">{p.storage.join(", ") || "—"}</span> },
         ]}
         fields={[
