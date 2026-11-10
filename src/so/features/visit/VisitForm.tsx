@@ -190,7 +190,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
   evaluation?: { node: React.ReactNode; ready: boolean };
 }) {
   const toast = useToast();
-  const def = useMemo(() => forGroup(data.definition, visit.branchGroup), [data.definition, visit.branchGroup]);
+  const def = useMemo(() => forGroup(data.definition, visit.branchGroup, visit.branchCode), [data.definition, visit.branchGroup, visit.branchCode]);
   const base = `/api/forms/${form}/visits/${visit.id}`;
   const [answers, setAnswers] = useState<Record<string, Answer>>(visit.answers ?? {});
   const [photos, setPhotos] = useState<VisitPhoto[]>(visit.photos ?? []);

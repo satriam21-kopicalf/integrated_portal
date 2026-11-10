@@ -4,7 +4,8 @@
 // the check-in deadline and time zone of every outlet, the Product / Outlet items each group is asked, and the net sales
 // of every outlet against its own month before (no target set by hand). Read by Monitoring → Overview (the PIC score) and the forms.
 
-import { Save } from "lucide-react";
+import { Save, Store } from "lucide-react";
+import Drawer from "@/so/ui/Drawer";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, ErrorState, Input, PageNav, Select, cx, fmtNumber, usePaged, useToast } from "@/so/ui";
 import InfoTip from "@/components/ui/InfoTip";
@@ -107,7 +108,78 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
 
 type Cell = { shown: boolean; default: boolean; changed: boolean };
 type Matrix = { groups: string[]; forms: { form: "product" | "outlet"; sections: { key: string; title: string; titleEn: string; group: string; groupTitle?: string;
-  items: { key: string; no: number; label: string; labelEn: string; required: boolean; groups: Record<string, Cell> }[] }[] }[] };
+  items: MatrixItem[] }[] }[] };
+/** migration 085: branches = {outlet code: shown} of the outlets set apart from their group */
+type MatrixItem = { key: string; no: number; label: string; labelEn: string; required: boolean; groups: Record<string, Cell>; branches?: Record<string, boolean> };
+
+/** The outlets of one item (migration 085): each follows its group or is set apart — shown or hidden at that outlet only. */
+function ItemOutlets({ form, item, canEdit, onClose, onSaved }: { form: "product" | "outlet"; item: MatrixItem; canEdit: boolean; onClose: () => void; onSaved: () => void }) {
+  const toast = useToast();
+  const { lang } = useLang();
+  const [outlets, setOutlets] = useState<OutletSetting[] | null>(null);
+  const [q, setQ] = useState("");
+  const [only, setOnly] = useState(Object.keys(item.branches ?? {}).length > 0);
+  const [draft, setDraft] = useState<Record<string, boolean | null>>({});
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { void call<Settings>("/api/monitoring/outlet-settings").then((r) => setOutlets(r.data)).catch(() => setOutlets([])); }, []);
+  const groupShown = (g: string | null) => (g ? item.groups[g]?.shown ?? true : true);
+  const state = (code: string): boolean | null => (code in draft ? draft[code] : item.branches?.[code] ?? null);
+  const s = q.trim().toLowerCase();
+  const list = (outlets ?? []).filter((o) => (!s || `${o.name} ${o.code}`.toLowerCase().includes(s)) && (!only || state(o.code) !== null));
+  const paged = usePaged(list, s + String(only), 50);
+  const changes = Object.entries(draft).filter(([code, v]) => v !== (item.branches?.[code] ?? null));
+  const save = async () => {
+    setBusy(true);
+    try {
+      await call("/api/monitoring/form-items/branches", { method: "PUT", json: { changes: changes.map(([branch, shown]) => ({ form, itemKey: item.key, branch, shown })) } });
+      toast(tr("Saved"));
+      onSaved();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  const OPTS: { v: boolean | null; label: string }[] = [{ v: null, label: tr("Group") }, { v: true, label: tr("Show") }, { v: false, label: tr("Hide") }];
+  return (
+    <Drawer open onClose={onClose} icon={<Store size={18} />} title={`${item.no}. ${lang === "en" ? item.labelEn : item.label}`}
+      description={tr("Per outlet: follow its group, or show / hide the item at that outlet only")}
+      footer={canEdit ? <Button className="w-full" loading={busy} disabled={!changes.length} onClick={() => void save()}><Save size={15} />{tr("Save {0} changes", changes.length)}</Button> : undefined}>
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="min-w-0 flex-1"><SearchInput value={q} onChange={setQ} placeholder={tr("Search outlet")} /></div>
+          <label className="flex items-center gap-2 text-xs text-neutral-600"><input type="checkbox" checked={only} onChange={(e) => setOnly(e.target.checked)} />{tr("Set apart only")}</label>
+        </div>
+        {!outlets ? <table className="w-full"><tbody><SkeletonRows cols={2} rows={6} /></tbody></table> : !list.length ? (
+          <EmptyState title={only ? tr("No outlet is set apart: every outlet follows its group") : tr("No outlet matches")} />
+        ) : (
+          <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+            {paged.rows.map((o) => {
+              const v = state(o.code);
+              const byGroup = groupShown(o.groupCode);
+              const effective = v === null ? byGroup : v;
+              return (
+                <li key={o.code} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-neutral-900">{o.name}</span>
+                    <span className="text-[11px] text-neutral-500">{o.code} · {o.groupCode ?? tr("Without a Group")} · {byGroup ? tr("group: asked") : tr("group: not asked")}
+                      {" · "}<b className={effective ? "text-emerald-700" : "text-neutral-500"}>{effective ? tr("asked here") : tr("not asked here")}</b></span>
+                  </span>
+                  <span role="radiogroup" aria-label={o.name} className="flex rounded-lg bg-neutral-100 p-0.5">
+                    {OPTS.map((x) => (
+                      <button key={String(x.v)} type="button" role="radio" aria-checked={v === x.v} disabled={!canEdit}
+                        onClick={() => setDraft((d) => ({ ...d, [o.code]: x.v }))}
+                        className={cx("rounded-md px-2.5 py-1 text-xs font-medium disabled:opacity-60", v === x.v
+                          ? x.v === null ? "bg-white text-neutral-900 shadow-sm" : x.v ? "bg-emerald-600 text-white" : "bg-neutral-700 text-white"
+                          : "text-neutral-500")}>{x.label}</button>
+                    ))}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <div className="flex justify-end"><PageNav paged={paged} /></div>
+      </div>
+    </Drawer>
+  );
+}
 
 export function FormItems({ canEdit }: { canEdit: boolean }) {
   const toast = useToast();
@@ -119,6 +191,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
   const [q, setQ] = useState("");
   const [changes, setChanges] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
+  const [outletsOf, setOutletsOf] = useState<MatrixItem | null>(null);
   const load = useCallback(async () => {
     try { setRes(await call<Matrix>("/api/monitoring/form-items")); setError(null); } catch (e) { setError((e as Error).message); }
   }, []);
@@ -161,13 +234,14 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
             <thead className={cx(kcTable.thead, "sticky top-0 z-[1]")}><tr>
               <th className="px-4 py-2.5">{tr("Item")}</th>
               {res.groups.map((g) => <th key={g} className="w-24 px-3 py-2.5 text-center">{g}</th>)}
+              <th className="w-32 px-3 py-2.5 text-center">{tr("Per Outlet")}</th>
             </tr></thead>
             {sections.map((sec) => {
               const items = sec.items.filter((it) => !s || `${it.label} ${it.labelEn}`.toLowerCase().includes(s));
               if (!items.length) return null;
               return (
                 <tbody key={sec.key} className={kcTable.tbody}>
-                  <tr><td colSpan={res.groups.length + 1} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{en ? `${sec.group} · ${sec.titleEn}` : `${sec.groupTitle ?? sec.group} · ${sec.title}`}</td></tr>
+                  <tr><td colSpan={res.groups.length + 2} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{en ? `${sec.group} · ${sec.titleEn}` : `${sec.groupTitle ?? sec.group} · ${sec.title}`}</td></tr>
                   {items.map((it) => (
                     <tr key={it.key} className="hover:bg-neutral-50">
                       <td className="px-4 py-2"><span className="text-neutral-900">{it.no}. {en ? it.labelEn : it.label}</span>{!it.required && <span className="ml-1.5 text-[11px] text-neutral-400">({tr("optional")})</span>}</td>
@@ -186,6 +260,19 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                           </td>
                         );
                       })}
+                      <td className="px-3 py-2 text-center">
+                        {(() => {
+                          const ex = Object.values(it.branches ?? {});
+                          const on = ex.filter(Boolean).length, off = ex.length - on;
+                          return (
+                            <button type="button" onClick={() => setOutletsOf(it)}
+                              className={cx("inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ring-1 ring-inset",
+                                ex.length ? "bg-amber-50 text-amber-800 ring-amber-200 hover:bg-amber-100" : "text-neutral-500 ring-neutral-200 hover:bg-neutral-50")}>
+                              <Store size={13} />{ex.length ? <>{on > 0 && `+${on}`}{on > 0 && off > 0 && " · "}{off > 0 && `−${off}`}</> : tr("Follow group")}
+                            </button>
+                          );
+                        })()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -194,6 +281,8 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
           </table>
         </div>
       )}
+      {outletsOf && <ItemOutlets form={form} item={outletsOf} canEdit={canEdit} onClose={() => setOutletsOf(null)}
+        onSaved={() => { setOutletsOf(null); void load(); }} />}
     </Card>
   );
 }

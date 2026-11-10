@@ -1,6 +1,14 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Follow group": "Ikut grup",
+  "Per outlet: follow its group, or show / hide the item at that outlet only": "Per outlet: ikut grupnya, atau tampilkan / sembunyikan butir ini di outlet itu saja",
+  "Set apart only": "Hanya yang dikecualikan",
+  "No outlet is set apart: every outlet follows its group": "Belum ada outlet yang dikecualikan: semua outlet ikut grupnya",
+  "group: asked": "grup: ditanyakan",
+  "group: not asked": "grup: tidak ditanyakan",
+  "asked here": "ditanyakan di sini",
+  "not asked here": "tidak ditanyakan di sini",
   "Waste value per day": "Nilai waste per hari",
   "Average {0} a day": "Rata-rata {0} per hari",
   "highest {0} on {1}": "tertinggi {0} pada {1}",

@@ -14,6 +14,8 @@ export type Evidence = "required" | "optional" | "none";
 export type Item = { key: string; no: number; label: string; labelEn?: string; kind: "rating" | "text"; platform?: Platform;
   required?: boolean; requiredFor?: string[]; note?: Evidence; photo?: Evidence;
   /** asked only at the outlets of these branch groups (2026-11-02); the others do not see it */ onlyFor?: string[];
+  /** migration 085: the outlets set apart from their group — asked although (addedAt) / not although (hiddenAt) */
+  addedAt?: string[]; hiddenAt?: string[];
   /** "g": the PIC also types the stock in grams, net weight (Stock Preparation, Espresso and Beans, 2026-10-28) */
   qty?: "g";
   /** the units the PIC may count the stock in (premixes: gram, pail, teko — 2026-11-08; food: porsi, pax) */ units?: string[];
@@ -40,9 +42,16 @@ export function tl(o: object, field: "label" | "title" | "subtitle" | "section" 
 /** Is the item asked at an outlet of this branch group? (an outlet without a group is asked everything) */
 export const appliesTo = (i: Item, group?: string | null) => !i.onlyFor?.length || !group || i.onlyFor.includes(group);
 export const isRequired = (i: Item, group?: string | null) => appliesTo(i, group) && ((i.required ?? true) || (!!group && (i.requiredFor ?? []).includes(group)));
-/** The definition as an outlet of this branch group is asked: its items only, empty sections left out. */
-export const forGroup = (d: Definition, group?: string | null): Definition => ({ ...d,
-  groups: d.groups.map((g) => ({ ...g, sections: g.sections.map((s) => ({ ...s, items: s.items.filter((i) => appliesTo(i, group)) })).filter((s) => s.items.length) }))
+/** The item as this outlet is asked it: null when hidden there; asked whatever its group when added there (migration 085). */
+const atOutlet = (i: Item, branch?: string | null): Item | null => {
+  if (!branch) return i;
+  if (i.hiddenAt?.includes(branch)) return null;
+  return i.addedAt?.includes(branch) ? { ...i, onlyFor: undefined } : i;
+};
+/** The definition as this outlet (of this branch group) is asked: its items only, empty sections left out. */
+export const forGroup = (d: Definition, group?: string | null, branch?: string | null): Definition => ({ ...d,
+  groups: d.groups.map((g) => ({ ...g, sections: g.sections.map((s) => ({ ...s,
+    items: s.items.map((i) => atOutlet(i, branch)).filter((i): i is Item => !!i && appliesTo(i, group)) })).filter((s) => s.items.length) }))
     .filter((g) => g.sections.length) });
 /** What a rated item needs at this outlet: a required item its note / photo (both unless the item says otherwise). */
 export const evidenceOf = (i: Item, group?: string | null) => {
