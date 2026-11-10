@@ -978,8 +978,11 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
   const [tick, setTick] = useState(0);
   const [sheet, setSheet] = useState(false);
   const planned = horizon.trim() !== "";
-  const h = Math.min(60, Math.max(1, Number(horizon) || 1));
-  const b = Math.min(200, Math.max(0, Number(buffer) || 0));
+  // the report is read again once the typing stops (2026-11-10), not at every digit of the horizon / buffer
+  const [typed, setTyped] = useState({ horizon, buffer });
+  useEffect(() => { const id = setTimeout(() => setTyped({ horizon, buffer }), 600); return () => clearTimeout(id); }, [horizon, buffer]);
+  const h = Math.min(60, Math.max(1, Number(typed.horizon) || 1));
+  const b = Math.min(200, Math.max(0, Number(typed.buffer) || 0));
   useEffect(() => { void call<Branch[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
   useEffect(() => {
     if (!period) return;
