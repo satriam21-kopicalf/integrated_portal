@@ -1,6 +1,22 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Waste value per day": "Nilai waste per hari",
+  "Average {0} a day": "Rata-rata {0} per hari",
+  "highest {0} on {1}": "tertinggi {0} pada {1}",
+  "Top items by value": "Item dengan nilai terbesar",
+  "Top branches by value": "Cabang dengan nilai terbesar",
+  "Per type": "Per jenis",
+  "To check": "Perlu dicek",
+  "entries": "entri",
+  "days with waste": "hari dengan waste",
+  "{0} entries of {1} branches still wait for review": "{0} entri dari {1} cabang masih menunggu review",
+  "the oldest from {0}": "yang paling lama dari {0}",
+  "{0} entries have no price: their value is not counted (set it in List & Pricelist Items)": "{0} entri belum ada harga: nilainya tidak terhitung (isi di List & Pricelist Items)",
+  "{0} of {1} entries rejected ({2}%)": "{0} dari {1} entri ditolak ({2}%)",
+  "Stock Opname Monitor": "Stock Opname Monitor",
+  "Stock Opname Review": "Stock Opname Review",
+  "Stock Opname Report": "Stock Opname Report",
   "no purchase of this outlet in ESB in the last {0} weeks": "belum ada pembelian outlet ini di ESB dalam {0} minggu terakhir",
   "Product (form)": "Product (form)",
   "Outlet (form)": "Outlet (form)",

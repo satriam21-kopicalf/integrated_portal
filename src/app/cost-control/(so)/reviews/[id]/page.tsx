@@ -153,7 +153,7 @@ export default function ReviewDetailPage() {
         <header className="flex flex-wrap items-start gap-3">
           <Link href="/cost-control/reviews" className={cx(btn("outline"), "w-9 px-0")} aria-label={tr("Back")}><ArrowLeft size={16} /></Link>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tr("Review Stock Opname")}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tr("Stock Opname Review")}</p>
             <h1 className="truncate text-xl font-semibold tracking-tight text-neutral-900">{count.facility_name}</h1>
             <p className="mt-0.5 text-[13px] text-neutral-500">{countTypeLabel(count.count_type, count.count_type_name)} · {fmtDay(count.business_date)} · <span className="font-mono">{count.number}</span></p>
             <div className="mt-2 flex flex-wrap gap-1.5">

@@ -36,10 +36,10 @@ export const PAGES: PageInfo[] = [
   // the SWAT audit (2026-11-03): given per account
   { key: 'form.stock-transfer', href: '/forms/stock-transfer', get label() { return tr('Transfer Stock (form, TITO)'); }, get group() { return tr('Form'); } },
   { key: 'form.wwwr', href: '/forms/wwwr', get label() { return tr('WW-WR (form, SWAT)'); }, get group() { return tr('Form'); } },
-  { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
-  { key: 'cc.reviews', href: '/cost-control/reviews', get label() { return tr('Review'); }, get group() { return tr('Cost Control · Stock opname'); } },
+  { key: 'cc.monitor', href: '/cost-control/monitor', get label() { return tr('Stock Opname Monitor'); }, get group() { return tr('Cost Control · Stock opname'); } },
+  { key: 'cc.reviews', href: '/cost-control/reviews', get label() { return tr('Stock Opname Review'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.entry', href: '/cost-control/entry', get label() { return tr('Enter / import SO'); }, get group() { return tr('Cost Control · Stock opname'); }, state: 'hidden' },
-  { key: 'cc.reports', href: '/cost-control/reports', get label() { return tr('Report Stock Opname'); }, get group() { return tr('Cost Control · Stock opname'); } },
+  { key: 'cc.reports', href: '/cost-control/reports', get label() { return tr('Stock Opname Report'); }, get group() { return tr('Cost Control · Stock opname'); } },
   { key: 'cc.esb-export', href: '/cost-control/esb-export', get label() { return tr('ESB export'); }, get group() { return tr('Cost Control · ESB'); }, state: 'hidden' },
   { key: 'cc.esb-compare', href: '/cost-control/esb-compare', get label() { return tr('ESB comparison'); }, get group() { return tr('Cost Control · ESB'); }, state: 'hidden' },
   { key: 'cc.lists', href: '/cost-control/lists', get label() { return tr('Count Lists'); }, get group() { return tr('Cost Control · Stock opname settings'); } },

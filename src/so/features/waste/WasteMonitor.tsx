@@ -10,11 +10,11 @@
 
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
-import { CalendarCheck, CalendarDays, CheckCircle2, ClipboardList, FileSearch, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
+import { BarChart3, CalendarCheck, CalendarDays, CheckCircle2, ClipboardList, FileSearch, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { downloadXlsx } from "@/lib/xlsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
@@ -25,15 +25,19 @@ import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { DailyReport, UsageReport } from "./WasteDaily";
+import WasteAnalysis from "./WasteAnalysis";
+import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
 import { CategoriesDrawer, Ingredients, InvestigationDrawer, InvestigationList } from "./Investigation";
 import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, PRICE_SOURCE, SCOPES, fmtQty, fmtRp, photoUrl, usagePhotoUrl, scopeLabel, signatureUrl, statusLabel, statusTone } from "./waste";
 import { thumb } from "@/lib/assets";
 
 const DEFAULT_PERIOD = (): Period => ({ from: wibDay(-6), to: wibDay(0) });
 type Filters = { period: Period; branch: string; scope: Scope | ""; category: string; status: Status | "" };
-type View = "entries" | "items" | "branches" | "categories" | "daily" | "usage" | "investigations";
+type View = "analysis" | "entries" | "items" | "branches" | "categories" | "daily" | "usage" | "investigations";
 type BranchOpt = { branch_code: string; branch_name: string };
-const VIEWS: { value: View; label: () => string; icon: typeof Trash2 }[] = [
+// the Monitor opens on its Analysis (2026-11-10); the Review on the entries to decide
+const VIEWS: { value: View; label: () => string; icon: typeof Trash2; monitor?: true }[] = [
+  { value: "analysis", label: () => tr("Analysis"), icon: BarChart3, monitor: true },
   { value: "entries", label: () => tr("Entries"), icon: Trash2 }, { value: "items", label: () => tr("Per Item"), icon: Package },
   { value: "branches", label: () => tr("Per Branch"), icon: Store }, { value: "categories", label: () => tr("Per Category"), icon: Layers },
   { value: "daily", label: () => tr("Daily Report"), icon: CalendarCheck }, { value: "usage", label: () => tr("Usage Management"), icon: ClipboardList },
@@ -48,7 +52,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const [scope, setScope] = useState<Scope | "">("");
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState<Status | "">(review ? "submitted" : "");
-  const [view, setView] = useState<View>("entries");
+  const [view, setView] = useState<View>(review ? "entries" : "analysis");
   const [res, setRes] = useState<MonitorData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [branches, setBranches] = useState<BranchOpt[]>([]);
@@ -189,7 +193,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         { key: "daily", label: tr("Daily Report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
         { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
       ]} /></div>} />
-          <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={VIEWS.map((v) => {
+          <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={VIEWS.filter((v) => !(review && v.monitor)).map((v) => {
             const Icon = v.icon;
             const count = !res ? null : v.value === "entries" ? res.data.length : v.value === "items" ? res.byItem.length
               : v.value === "branches" ? res.byBranch.length : v.value === "categories" ? res.byCategory.length : null;
@@ -214,7 +218,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         {view === "investigations" ? <InvestigationList key={String(investigation)} onOpen={setInvestigation} />
           : view === "daily" ? <DailyReport period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
           : view === "usage" ? <UsageReport period={period} branch={branch} />
-          : error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <SkeletonRows cols={6} /> : view === "entries" ? (
+          : error ? <ErrorState message={error} onRetry={() => void load()} />
+          : view === "analysis" ? <WasteAnalysis res={res} onBranch={(c) => { setBranch(c); setView("entries"); }} onItem={(n) => { setSearch(n); setView("entries"); }} />
+          : !res ? (view === "categories" ? <SkeletonList rows={6} /> : <SkeletonTable cols={view === "entries" ? (review ? 9 : 8) : 7} />) : view === "entries" ? (
           rows.length === 0 ? (
             <Empty icon={<Trash2 size={28} />} title={res.data.length ? tr("Nothing matches the search or filters") : tr("No waste in this period")}>
               {!res.data.length && tr("Waste appears here as soon as the branches enter it from Waste (input).")}
@@ -369,61 +375,111 @@ type WKey = "item" | "branch" | "date" | "qty" | "value" | "category" | "by" | "
 const wValue = (e: Entry, k: WKey) => ({ item: e.itemName, branch: e.branchName, date: e.businessDate, qty: e.qty, value: e.value, category: e.category,
   by: e.name, status: e.status }[k]);
 
-function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "investigations">; res: MonitorData; onBranch: (code: string) => void }) {
-  if (view === "items") {
-    const items = [...res.byItem].sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
-    const total = items.reduce((a, i) => a + (i.value ?? 0), 0);
-    return !items.length ? <Empty title={tr("No waste in this period")} /> : (
-      <div className="overflow-x-auto"><table className="m-cards w-full min-w-[820px] text-sm">
-        <thead className={theadClass}><tr><th className={rank}>#</th><th className="px-3 py-2.5">{tr("Item")}</th><th className="px-3 py-2.5">{tr("Type")}</th>
-          <th className="px-3 py-2.5 text-right">{tr("Quantity")}</th><th className="px-3 py-2.5 text-right">{tr("Value")}</th><th className="px-3 py-2.5 text-right">{tr("Share of Value")}</th>
-          <th className="px-3 py-2.5 text-right">{tr("Entries")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Branches")}</th></tr></thead>
-        <tbody className="divide-y divide-neutral-100">{items.map((i, n) => (
-          <tr key={`${i.scope}:${i.code}:${i.unit}`} className="hover:bg-neutral-50/70"><td className={rank}>{n + 1}</td>
-            <td className="px-3 py-2"><p className="font-medium text-neutral-800">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p></td>
-            <td className="px-3 py-2"><Badge tone="slate">{scopeLabel(i.scope)}</Badge></td><td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(i.qty)} <span className="text-neutral-400">{i.unit}</span></td>
-            <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", i.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{i.value == null ? tr("No price") : fmtRp(i.value)}</td>
-            <td className="px-3 py-2"><Share value={i.value} total={total} /></td>
-            <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(i.entries)}</td><td className="px-3 py-2 pr-5 text-right tabular-nums">{fmtNumber(i.branches)}</td></tr>
-        ))}</tbody>
-        <tfoot className="border-t border-neutral-200 bg-neutral-50 text-sm font-semibold"><tr><td /><td className="px-3 py-2.5" colSpan={3}>{tr("Total")}</td>
-          <td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td /><td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(items.reduce((a, i) => a + i.entries, 0))}</td><td /></tr></tfoot>
-        </table>
-        <p className="px-5 py-2 text-[11px] text-neutral-400">{tr("Rejected entries are not counted")}</p></div>
-    );
-  }
-  if (view === "branches") {
-    const total = res.byBranch.reduce((a, b) => a + (b.value ?? 0), 0);
-    return !res.byBranch.length ? <Empty title={tr("No waste in this period")} /> : (
-      <div className="overflow-x-auto"><table className="m-cards w-full min-w-[860px] text-sm">
-        <thead className={theadClass}><tr><th className={rank}>#</th><th className="px-3 py-2.5">{tr("Branch")}</th><th className="px-3 py-2.5 text-right">{tr("Value")}</th><th className="px-3 py-2.5 text-right">{tr("Share of Value")}</th>
-          <th className="px-3 py-2.5 text-right">{tr("Entries")}</th><th className="px-3 py-2.5 text-right">{tr("Waiting Review")}</th><th className="px-3 py-2.5 text-right">{tr("Days with Waste")}</th><th className="px-3 py-2.5 pr-5">{tr("Last Entry")}</th></tr></thead>
-        <tbody className="divide-y divide-neutral-100">{res.byBranch.map((b, n) => (
-          <tr key={b.code} className="cursor-pointer hover:bg-neutral-50/70" onClick={() => onBranch(b.code)}><td className={rank}>{n + 1}</td>
-            <td className="px-3 py-2 font-medium text-neutral-800">{b.name}</td><td className="whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums">{fmtRp(b.value)}</td>
-            <td className="px-3 py-2"><Share value={b.value} total={total} /></td>
-            <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.entries)}</td>
-            <td className="px-3 py-2 text-right tabular-nums">{b.submitted > 0 ? <Badge tone="amber">{fmtNumber(b.submitted)}</Badge> : <span className="text-neutral-300">0</span>}</td>
-            <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="whitespace-nowrap px-3 py-2 pr-5 text-neutral-600">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
-        ))}</tbody>
-        <tfoot className="border-t border-neutral-200 bg-neutral-50 text-sm font-semibold"><tr><td /><td className="px-3 py-2.5">{tr("Total")}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td />
-          <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byBranch.reduce((a, b) => a + b.entries, 0))}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byBranch.reduce((a, b) => a + b.submitted, 0))}</td><td colSpan={2} /></tr></tfoot>
-        </table>
-        <p className="px-5 py-2 text-[11px] text-neutral-400">{tr("Open a branch to see its entries")}</p></div>
-    );
-  }
-  const total = res.byCategory.reduce((a, c) => a + c.entries, 0);
-  return !res.byCategory.length ? <Empty title={tr("No waste in this period")} /> : (
-    <ul className="divide-y divide-neutral-100">{res.byCategory.map((c, n) => (
-      <li key={c.name} className="flex items-center gap-3 px-5 py-3">
-        <span className="w-6 text-right text-xs tabular-nums text-neutral-400">{n + 1}</span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-medium text-neutral-800">{c.name}</span>
-            <span className="flex-shrink-0 tabular-nums text-neutral-600">{tr("{0} entries", fmtNumber(c.entries))} · {total ? ((c.entries / total) * 100).toFixed(1) : "0.0"}%</span></span>
-          <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${total ? (c.entries / total) * 100 : 0}%` }} /></span>
-        </span>
-      </li>
-    ))}</ul>
+type ItemRow = MonitorData["byItem"][number];
+type BranchRow = MonitorData["byBranch"][number];
+type IKey = "item" | "type" | "qty" | "value" | "entries" | "branches";
+const iValue = (i: ItemRow, k: IKey) => ({ item: i.name, type: i.scope, qty: i.qty, value: i.value ?? -1, entries: i.entries, branches: i.branches }[k]);
+type BKey = "branch" | "value" | "entries" | "waiting" | "days" | "last";
+const bValue = (b: BranchRow, k: BKey) => ({ branch: b.name, value: b.value ?? 0, entries: b.entries, waiting: b.submitted, days: b.days, last: b.last_at }[k]);
+const th = "px-3 py-2.5";
+
+function Totals({ view, res, onBranch }: { view: Exclude<View, "entries" | "investigations" | "analysis">; res: MonitorData; onBranch: (code: string) => void }) {
+  if (view === "items") return <ItemsTable res={res} />;
+  if (view === "branches") return <BranchesTable res={res} onBranch={onBranch} />;
+  return <CategoriesList res={res} />;
+}
+
+/** Per item: sortable (value first), 50 a page; the rank follows the order shown. */
+function ItemsTable({ res }: { res: MonitorData }) {
+  const sorted = useSort<ItemRow, IKey>(res.byItem, iValue, { key: "value", dir: "desc" });
+  const paged = usePaged(sorted.rows, JSON.stringify(sorted.sort));
+  const total = res.byItem.reduce((a, i) => a + (i.value ?? 0), 0);
+  if (!res.byItem.length) return <Empty title={tr("No waste in this period")} />;
+  return (
+    <div className="overflow-x-auto"><table className="m-cards w-full min-w-[820px] text-sm">
+      <thead className={theadClass}><tr><th className={rank}>#</th>
+        <SortTh k="item" sort={sorted.sort} onSort={sorted.toggle} pad={th}>{tr("Item")}</SortTh>
+        <SortTh k="type" sort={sorted.sort} onSort={sorted.toggle} pad={th}>{tr("Type")}</SortTh>
+        <SortTh k="qty" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Quantity")}</SortTh>
+        <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Value")}</SortTh>
+        <th className="px-3 py-2.5 text-right">{tr("Share of Value")}</th>
+        <SortTh k="entries" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Entries")}</SortTh>
+        <SortTh k="branches" sort={sorted.sort} onSort={sorted.toggle} pad={`${th} pr-5`} align="right" first="desc">{tr("Branches")}</SortTh></tr></thead>
+      <tbody className="divide-y divide-neutral-100">{paged.rows.map((i, n) => (
+        <tr key={`${i.scope}:${i.code}:${i.unit}`} className="hover:bg-neutral-50/70"><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
+          <td className="px-3 py-2"><p className="font-medium text-neutral-800">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p></td>
+          <td className="px-3 py-2"><Badge tone="slate">{scopeLabel(i.scope)}</Badge></td><td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(i.qty)} <span className="text-neutral-400">{i.unit}</span></td>
+          <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", i.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{i.value == null ? tr("No price") : fmtRp(i.value)}</td>
+          <td className="px-3 py-2"><Share value={i.value} total={total} /></td>
+          <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(i.entries)}</td><td className="px-3 py-2 pr-5 text-right tabular-nums">{fmtNumber(i.branches)}</td></tr>
+      ))}</tbody>
+      <tfoot className="border-t border-neutral-200 bg-neutral-50 text-sm font-semibold"><tr><td /><td className="px-3 py-2.5" colSpan={3}>{tr("Total")}</td>
+        <td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td /><td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byItem.reduce((a, i) => a + i.entries, 0))}</td><td /></tr></tfoot>
+      </table>
+      <TableFoot note={tr("Rejected entries are not counted")} paged={paged} /></div>
+  );
+}
+
+/** Per branch: sortable (value first), 50 a page; a row opens the branch's entries. */
+function BranchesTable({ res, onBranch }: { res: MonitorData; onBranch: (code: string) => void }) {
+  const sorted = useSort<BranchRow, BKey>(res.byBranch, bValue, { key: "value", dir: "desc" });
+  const paged = usePaged(sorted.rows, JSON.stringify(sorted.sort));
+  const total = res.byBranch.reduce((a, b) => a + (b.value ?? 0), 0);
+  if (!res.byBranch.length) return <Empty title={tr("No waste in this period")} />;
+  return (
+    <div className="overflow-x-auto"><table className="m-cards w-full min-w-[860px] text-sm">
+      <thead className={theadClass}><tr><th className={rank}>#</th>
+        <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad={th}>{tr("Branch")}</SortTh>
+        <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Value")}</SortTh>
+        <th className="px-3 py-2.5 text-right">{tr("Share of Value")}</th>
+        <SortTh k="entries" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Entries")}</SortTh>
+        <SortTh k="waiting" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Waiting Review")}</SortTh>
+        <SortTh k="days" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Days with Waste")}</SortTh>
+        <SortTh k="last" sort={sorted.sort} onSort={sorted.toggle} pad={`${th} pr-5`} first="desc">{tr("Last Entry")}</SortTh></tr></thead>
+      <tbody className="divide-y divide-neutral-100">{paged.rows.map((b, n) => (
+        <tr key={b.code} className="cursor-pointer hover:bg-neutral-50/70" onClick={() => onBranch(b.code)}><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
+          <td className="px-3 py-2 font-medium text-neutral-800">{b.name}</td><td className="whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums">{fmtRp(b.value)}</td>
+          <td className="px-3 py-2"><Share value={b.value} total={total} /></td>
+          <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.entries)}</td>
+          <td className="px-3 py-2 text-right tabular-nums">{b.submitted > 0 ? <Badge tone="amber">{fmtNumber(b.submitted)}</Badge> : <span className="text-neutral-300">0</span>}</td>
+          <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="whitespace-nowrap px-3 py-2 pr-5 text-neutral-600">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
+      ))}</tbody>
+      <tfoot className="border-t border-neutral-200 bg-neutral-50 text-sm font-semibold"><tr><td /><td className="px-3 py-2.5">{tr("Total")}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td />
+        <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byBranch.reduce((a, b) => a + b.entries, 0))}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byBranch.reduce((a, b) => a + b.submitted, 0))}</td><td colSpan={2} /></tr></tfoot>
+      </table>
+      <TableFoot note={tr("Open a branch to see its entries")} paged={paged} /></div>
+  );
+}
+
+/** Per category: the share of the entries, most first, 50 a page. */
+function CategoriesList({ res }: { res: MonitorData }) {
+  const rows = useMemo(() => [...res.byCategory].sort((a, b) => b.entries - a.entries), [res.byCategory]);
+  const paged = usePaged(rows, rows.length);
+  const total = rows.reduce((a, c) => a + c.entries, 0);
+  if (!rows.length) return <Empty title={tr("No waste in this period")} />;
+  return (
+    <>
+      <ul className="divide-y divide-neutral-100">{paged.rows.map((c, n) => (
+        <li key={c.name} className="flex items-center gap-3 px-5 py-3">
+          <span className="w-6 text-right text-xs tabular-nums text-neutral-400">{(paged.page - 1) * paged.size + n + 1}</span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-medium text-neutral-800">{c.name}</span>
+              <span className="flex-shrink-0 tabular-nums text-neutral-600">{tr("{0} entries", fmtNumber(c.entries))} · {total ? ((c.entries / total) * 100).toFixed(1) : "0.0"}%</span></span>
+            <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${total ? (c.entries / total) * 100 : 0}%` }} /></span>
+          </span>
+        </li>
+      ))}</ul>
+      <TableFoot paged={paged} />
+    </>
+  );
+}
+
+/** Under a summary table: its note and, past one page, the pages (PageNav shows nothing on one page). */
+function TableFoot({ note, paged }: { note?: string; paged: ReturnType<typeof usePaged> }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 px-5 py-2 text-[11px] text-neutral-400">
+      <span>{note ?? ""}</span><PageNav paged={paged} />
+    </div>
   );
 }
 

@@ -4,12 +4,13 @@
 // globals.css), shaped like what is coming — a value, table rows, a list, number cards, a whole page. Every loading
 // state uses these (directly or through so/ui SkeletonRows, StatSkeleton and LoadingState).
 
+import type React from 'react';
 import { tr } from '@/lib/i18n';
 import { cx } from './index';
 
 /** A shimmering block; size it with classes (h-4 w-24 …). */
-export function Skeleton({ className }: { className?: string }) {
-  return <span className={cx('skeleton block rounded-md', className)} aria-hidden />;
+export function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return <span className={cx('skeleton block rounded-md', className)} style={style} aria-hidden />;
 }
 
 const WIDTHS = ['w-3/4', 'w-1/2', 'w-2/3', 'w-5/12', 'w-7/12'];
@@ -33,6 +34,21 @@ export function SkeletonRows({ cols, rows = 6 }: { cols: number; rows?: number }
         </tr>
       ))}
     </>
+  );
+}
+
+/** A whole table while loading (2026-11-10): rows inside a real table, the header as thin bars, so a tab that shows a
+ *  table loads in its shape (rows outside a table lose their columns). */
+export function SkeletonTable({ cols, rows = 8 }: { cols: number; rows?: number }) {
+  return (
+    <div className="overflow-hidden" role="status" aria-label={tr('Loading…')}>
+      <table className="w-full text-sm">
+        <thead className="border-b border-neutral-100 bg-neutral-50/70" aria-hidden><tr>
+          {Array.from({ length: Math.max(1, cols) }, (_, c) => <th key={c} className="px-4 py-3"><Skeleton className={cx('h-2.5', c === 0 ? 'w-24' : 'w-14')} /></th>)}
+        </tr></thead>
+        <tbody className="divide-y divide-neutral-100"><SkeletonRows cols={cols} rows={rows} /></tbody>
+      </table>
+    </div>
   );
 }
 

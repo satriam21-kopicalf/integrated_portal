@@ -8,7 +8,8 @@
 
 import { ExternalLink, FileSearch, Pencil, Plus, Printer, Save, Tags } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, inputClass, SkeletonRows, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, inputClass, PageNav, theadClass, usePaged, useToast } from "@/so/ui";
+import { SortTh, useSort } from "@/so/ui/Sort";
 import Drawer from "@/so/ui/Drawer";
 import SignaturePad from "@/so/features/count/SignaturePad";
 import { call } from "@/so/features/checkin/checkin";
@@ -16,7 +17,7 @@ import { wibDateTime } from "@/so/lib/wib";
 import { dmy } from "@/so/ui/Filters";
 import { tr } from "@/lib/i18n";
 import { CHECKS, DOC_DEFAULT, type Entry, fmtQty, type Investigation, type Report, SIGNERS, type Signer, SOURCES, WASTE_KINDS, scopeLabel } from "./waste";
-import { SkeletonList } from "@/components/kc/Skeleton";
+import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
 import { thumb } from "@/lib/assets";
 
 export const printUrl = (id: string) => `/cost-control/waste/reviews/investigation?id=${id}`;
@@ -53,6 +54,8 @@ export function InvestigationList({ onOpen }: { onOpen: (id: string) => void }) 
     call<{ data: Investigation[] }>(`/api/waste/investigations?status=${status}`).then((r) => setRows(r.data)).catch((e: Error) => setError(e.message));
   }, [status]);
   useEffect(() => { load(); }, [load]);
+  const sorted = useSort<Investigation, IKey>(rows ?? [], iValue, { key: "updated", dir: "desc" });
+  const paged = usePaged(sorted.rows, status + JSON.stringify(sorted.sort));
   if (error) return <ErrorState message={error} onRetry={load} />;
   return (
     <div>
@@ -64,12 +67,17 @@ export function InvestigationList({ onOpen }: { onOpen: (id: string) => void }) 
           </button>
         ))}
       </div>
-      {!rows ? <SkeletonRows cols={5} /> : rows.length === 0 ? <Empty title={tr("No investigation yet")}>{tr("Tick waste entries of one outlet in Entries and choose Investigate.")}</Empty> : (
+      {!rows ? <SkeletonTable cols={5} /> : rows.length === 0 ? <Empty title={tr("No investigation yet")}>{tr("Tick waste entries of one outlet in Entries and choose Investigate.")}</Empty> : (
+        <>
         <table className="w-full text-sm">
-          <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("No.")}</th><th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5">{tr("Object")}</th>
-            <th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5">{tr("Updated")}</th><th /></tr></thead>
+          <thead className={theadClass}><tr>
+            <SortTh k="no" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("No.")}</SortTh>
+            <SortTh k="outlet" sort={sorted.sort} onSort={sorted.toggle}>{tr("Outlet")}</SortTh>
+            <SortTh k="object" sort={sorted.sort} onSort={sorted.toggle}>{tr("Object")}</SortTh>
+            <SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh>
+            <SortTh k="updated" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Updated")}</SortTh><th /></tr></thead>
           <tbody className="divide-y divide-neutral-100">
-            {rows.map((r) => (
+            {paged.rows.map((r) => (
               <tr key={r.id} className="cursor-pointer hover:bg-neutral-50" onClick={() => onOpen(r.id)}>
                 <td className="px-4 py-2 font-mono text-xs">{String(r.reportNo).padStart(2, "0")}</td>
                 <td className="px-4 py-2">{r.branchName}</td>
@@ -81,10 +89,15 @@ export function InvestigationList({ onOpen }: { onOpen: (id: string) => void }) 
             ))}
           </tbody>
         </table>
+        <div className="flex justify-end border-t border-neutral-100 px-4 py-2"><PageNav paged={paged} /></div>
+        </>
       )}
     </div>
   );
 }
+
+type IKey = "no" | "outlet" | "object" | "status" | "updated";
+const iValue = (r: Investigation, k: IKey) => ({ no: r.reportNo, outlet: r.branchName, object: r.report.object ?? "", status: r.status, updated: r.updatedAt }[k]);
 
 const field = "block text-xs font-medium text-neutral-600";
 

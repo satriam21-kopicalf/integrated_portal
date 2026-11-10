@@ -7,7 +7,9 @@
 
 import { AlertTriangle, CheckCircle2, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Empty, ErrorState, PageNav, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import { Empty, ErrorState, PageNav, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import { SkeletonCards, SkeletonTable } from "@/components/kc/Skeleton";
+import { SortTh, useSort } from "@/so/ui/Sort";
 import { type Period, dmy } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
@@ -46,9 +48,10 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
       .filter((b) => show === "" || (show === "missing" ? last >= 0 && !b.days[last]?.reported : show === "late" ? b.missing > 0 : b.missing === 0))
       .sort((a, b) => b.missing - a.missing || a.name.localeCompare(b.name));
   }, [data, q, show]);
-  const paged = usePaged(rows, q + show + rows.length, 25);
+  const sorted = useSort<DailyRow, DKey>(rows, dValue);
+  const paged = usePaged(sorted.rows, q + show + rows.length + JSON.stringify(sorted.sort));
   if (error) return <ErrorState message={error} onRetry={retry} />;
-  if (!data) return <SkeletonRows cols={6} />;
+  if (!data) return <div className="space-y-3 p-4"><SkeletonCards count={4} /><SkeletonTable cols={8} /></div>;
   if (!data.dates.length) return <Empty title={tr("No day of this period has started yet")} />;
   const short = (d: string) => d.slice(8, 10) + "/" + d.slice(5, 7);
   const total = data.branches.length;
@@ -109,9 +112,9 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
           <table className="w-full text-sm">
             <thead className={theadClass}>
               <tr>
-                <th className="sticky left-0 z-10 min-w-[13rem] bg-neutral-50 py-2 pl-5 pr-3">{tr("Branch")}</th>
-                <th className="px-2 py-2 text-right">{tr("Reported")}</th>
-                <th className="px-2 py-2 text-right">{tr("Usage List")}</th>
+                <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="sticky left-0 z-10 min-w-[13rem] bg-neutral-50 py-2 pl-5 pr-3">{tr("Branch")}</SortTh>
+                <SortTh k="reported" sort={sorted.sort} onSort={sorted.toggle} pad="px-2 py-2" align="right">{tr("Reported")}</SortTh>
+                <SortTh k="usage" sort={sorted.sort} onSort={sorted.toggle} pad="px-2 py-2" align="right">{tr("Usage List")}</SortTh>
                 {data.dates.map((d) => <th key={d} className="px-1 py-2 text-center font-medium">{short(d)}</th>)}
               </tr>
             </thead>
@@ -153,6 +156,12 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
   );
 }
 
+type DailyRow = DailyData["branches"][number];
+type DKey = "branch" | "reported" | "usage";
+const dValue = (b: DailyRow, k: DKey) => ({ branch: b.name, reported: b.reported, usage: b.usageDays }[k]);
+type UKey = "day" | "branch" | "item" | "qty" | "category" | "by";
+const uValue = (r: UsageRow, k: UKey) => ({ day: r.businessDate, branch: r.branchName, item: r.itemName, qty: r.qty, category: r.category ?? "", by: r.by }[k]);
+
 export function UsageReport({ period, branch }: { period: Period; branch: string }) {
   const { data, error, retry } = useLoad<{ data: UsageRow[] }>(`/api/waste/usage?${query(period, branch)}`);
   const [search, setSearch] = useState("");
@@ -160,8 +169,10 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
     const s = search.trim().toLowerCase();
     return (data?.data ?? []).filter((r) => !s || r.itemName.toLowerCase().includes(s) || r.branchName.toLowerCase().includes(s));
   }, [data, search]);
+  const sorted = useSort<UsageRow, UKey>(rows, uValue, { key: "day", dir: "desc" });
+  const paged = usePaged(sorted.rows, search + rows.length + JSON.stringify(sorted.sort));
   if (error) return <ErrorState message={error} onRetry={retry} />;
-  if (!data) return <SkeletonRows cols={5} />;
+  if (!data) return <SkeletonTable cols={7} />;
   return (
     <div>
       <div className="flex flex-col gap-2 border-b border-neutral-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -171,11 +182,16 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
         <div className="overflow-x-auto">
           <table className="m-cards w-full text-sm">
             <thead className={theadClass}>
-              <tr><th className="px-4 py-2">{tr("Day")}</th><th className="px-4 py-2">{tr("Branch")}</th><th className="px-4 py-2">{tr("Item")}</th>
-                <th className="px-4 py-2 text-right">{tr("Quantity")}</th><th className="px-4 py-2">{tr("Category")}</th><th className="px-4 py-2">{tr("Photo")}</th><th className="px-4 py-2">{tr("Filled by")}</th></tr>
+              <tr><SortTh k="day" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2" first="desc">{tr("Day")}</SortTh>
+                <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2">{tr("Branch")}</SortTh>
+                <SortTh k="item" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2">{tr("Item")}</SortTh>
+                <SortTh k="qty" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2" align="right" first="desc">{tr("Quantity")}</SortTh>
+                <SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2">{tr("Category")}</SortTh>
+                <th className="px-4 py-2">{tr("Photo")}</th>
+                <SortTh k="by" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2">{tr("Filled by")}</SortTh></tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {rows.slice(0, 1000).map((r) => (
+              {paged.rows.map((r) => (
                 <tr key={`${r.branchCode}-${r.businessDate}-${r.itemCode}`}>
                   <td className="px-4 py-2 text-neutral-600">{dmy(r.businessDate)}</td>
                   <td className="px-4 py-2 text-neutral-800">{r.branchName}</td>
@@ -192,7 +208,9 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
               ))}
             </tbody>
           </table>
-          {rows.length > 1000 && <p className="px-4 py-2 text-xs text-neutral-500">{tr("{0} of {1} shown", fmtNumber(1000), fmtNumber(rows.length))}</p>}
+          <div className="flex items-center justify-between gap-2 border-t border-neutral-100 px-4 py-2 text-[11px] text-neutral-500">
+            <span>{tr("{0} lines", fmtNumber(rows.length))}</span><PageNav paged={paged} />
+          </div>
         </div>
       )}
     </div>
