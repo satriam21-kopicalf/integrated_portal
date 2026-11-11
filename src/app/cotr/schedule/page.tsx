@@ -4,6 +4,7 @@
 // roster of the drivers (a shift, off, leave or sick per day), the attendance against the check in of the driver
 // app and a recap per driver — the administrative reference of the incentives.
 
+import { AreaRequests } from "@/cotr/AreaRequests";
 import { type Slot, SlotsDrawer, slotsText } from "@/cotr/RosterSlots";
 import { Building2, CalendarDays, ChevronLeft, ChevronRight, Clock, Copy, MapPinned, Save, Users, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -59,14 +60,15 @@ function mondayOf(day: string) {
 }
 
 export default function CotrSchedulePage() {
-  const [tab, setTab] = useState<"roster" | "templates">("roster");
+  const [tab, setTab] = useState<"roster" | "templates" | "areas">("roster");
   return (
     <Page eyebrow="Calf On The Road" media={<CalendarDays size={19} />} title={tr("Master Schedule")} subtitle={tr("Shifts of the drivers per day, attendance against the check in, and the recap for the incentives")}>
       <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={[
         { key: "roster", label: <span className="inline-flex items-center gap-1.5"><CalendarDays size={15} />{tr("Roster")}</span> },
         { key: "templates", label: <span className="inline-flex items-center gap-1.5"><Clock size={15} />{tr("Shift Templates")}</span> },
+        { key: "areas", label: <span className="inline-flex items-center gap-1.5"><MapPinned size={15} />{tr("Area Requests")}</span> },
       ]} />
-      {tab === "roster" ? <RosterView /> : <TemplatesView />}
+      {tab === "roster" ? <RosterView /> : tab === "areas" ? <AreaRequests /> : <TemplatesView />}
     </Page>
   );
 }

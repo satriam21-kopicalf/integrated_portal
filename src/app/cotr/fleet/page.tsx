@@ -10,6 +10,7 @@ import { Segmented } from "@/so/ui/Simple";
 import { StatCard, StatGrid, ValueSkeleton } from "@/components/kc";
 import Link from "next/link";
 import { Bike, Building2, CheckCircle2, ExternalLink, Package, Printer, QrCode, Truck, Wrench } from "lucide-react";
+import { FleetIssues } from "@/cotr/FleetIssues";
 import { AccessoriesSection, FleetAccessoryDrawer, useFleetAccessories } from "@/cotr/Accessories";
 import { useState } from "react";
 import { Badge, Button } from "@/so/ui";
@@ -46,7 +47,7 @@ export default function CotrFleetPage() {
   const [accOf, setAccOf] = useState<Fleet | null>(null);
   const accCount = (code: string) => (acc.rows ?? []).filter((r) => r.fleet === code && !r.removedOn).length;
   // one part at a time (2026-11-09): the fleet, its types, the accessories
-  const [part, setPart] = useState<"fleet" | "types" | "accessories">("fleet");
+  const [part, setPart] = useState<"fleet" | "types" | "accessories" | "issues">("fleet");
   const fleetRows = master.rows ?? [];
   return (
     <Page eyebrow="Calf On The Road" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
@@ -61,7 +62,7 @@ export default function CotrFleetPage() {
       }>
       <Segmented label={tr("Part")} value={part} onChange={setPart} options={[
         { value: "fleet", label: tr("Fleet ({0})", fleetRows.length) }, { value: "types", label: tr("Armada Types ({0})", types.rows?.length ?? 0) },
-        { value: "accessories", label: tr("Accessories") }]} />
+        { value: "accessories", label: tr("Accessories") }, { value: "issues", label: tr("Issues") }]} />
       {part === "fleet" && <MasterTable noun={tr("fleet")} title={tr("Fleet")} master={master} filters={[
         { key: "pool", label: tr("Pool / HUB"), icon: <Building2 size={15} />, options: (pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => ({ value: p.code, label: p.name, test: (f: Fleet) => f.pool_code === p.code })) },
         { key: "type", label: tr("Type"), icon: <Truck size={15} />, options: (types.rows ?? []).map((t) => ({ value: t.code, label: t.name, test: (f: Fleet) => f.type === t.code })) },
@@ -154,6 +155,7 @@ export default function CotrFleetPage() {
           { key: "name", label: tr("Name"), required: true },
           { key: "sort", label: tr("Order"), type: "number" },
         ]} />}
+      {part === "issues" && <FleetIssues />}
       {part === "accessories" && <AccessoriesSection onChanged={() => void acc.load()} />}
       {accOf && <FleetAccessoryDrawer fleet={accOf} onClose={() => setAccOf(null)} onChanged={() => void acc.load()} />}
     </Page>

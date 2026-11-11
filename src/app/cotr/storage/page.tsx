@@ -16,6 +16,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool, Stock } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
 import { PoolBatches } from "@/cotr/Batches";
+import { PoolWaste } from "@/cotr/PoolWaste";
 import { locale, tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
 
@@ -185,6 +186,9 @@ export default function CotrStoragePage() {
           )}
 
           <PoolBatches pool={poolCode} />
+
+          {/* migration 088: the waste and the cupping of this pool / HUB */}
+          <PoolWaste pool={poolCode} day={day} />
 
           <Panel title={tr("What the pool prepares today")} description={tr("Total per product of the assignments below: to sell and for cupping")}>
             <div className="grid grid-cols-2 gap-px bg-neutral-100 sm:grid-cols-3 lg:grid-cols-6">
