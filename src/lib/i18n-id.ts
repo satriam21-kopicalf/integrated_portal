@@ -6165,4 +6165,10 @@ export const ID: Record<string, string> = {
   "every 30 minutes": "setiap 30 menit",
   "Save the WIP before submitting, even when there is none (leave it empty or 0).": "Simpan WIP sebelum submit, walaupun tidak ada WIP (biarkan kosong atau isi 0).",
   "Save the WIP first (empty or 0 when there is none)": "Simpan WIP dulu (kosong atau 0 jika tidak ada)",
+  "the quantity and category of every added category": "jumlah dan kategori setiap kategori tambahan",
+  "different categories": "kategori yang berbeda",
+  "Quantity of the category": "Jumlah untuk kategori ini",
+  "Remove the category": "Hapus kategori",
+  "Another category": "Kategori lain",
+  "The first quantity is for the first category; total {0} {1}": "Jumlah pertama untuk kategori pertama; total {0} {1}",
 };

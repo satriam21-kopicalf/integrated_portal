@@ -31,8 +31,11 @@ import { SkeletonList } from "@/components/kc/Skeleton";
 import { thumb } from "@/lib/assets";
 
 /** uom: the unit a premix is entered in ("" = its count unit) */
-type Row = { qty: string; uom: string; category: string; note: string; made: string; expires: string; photo: Shot | null };
-const EMPTY: Row = { qty: "", uom: "", category: "", note: "", made: "", expires: "", photo: null };
+/** more: other categories of the same SKU with their own quantity (2026-11-11: e.g. 2 expired + 1 spilled); each one is
+ *  saved as its own entry with the photo, note and dates of the SKU */
+type Split = { qty: string; category: string };
+type Row = { qty: string; uom: string; category: string; note: string; made: string; expires: string; photo: Shot | null; more: Split[] };
+const EMPTY: Row = { qty: "", uom: "", category: "", note: "", made: "", expires: "", photo: null, more: [] };
 /** a Usage Management SKU of the form: hasPhoto = a photo is saved already */
 type ULine = { qty: string; category: string; note: string; photo: Shot | null; hasPhoto: boolean };
 const UEMPTY: ULine = { qty: "", category: "", note: "", photo: null, hasPhoto: false };
@@ -41,8 +44,16 @@ const uLacks = (l: ULine) => [!l.category && tr("the category"), !l.photo && !l.
 const uomOf = (i: WasteItem, r: Row) => r.uom || i.unit;
 const qtyOf = (r: Row) => Number(r.qty.replace(",", "."));
 const isFilled = (r: Row) => qtyOf(r) > 0;
-const lacks = (r: Row) => [!r.category && tr("the category"), !r.photo && tr("the photo"),
-  r.made && r.expires && r.expires < r.made && tr("an expired date after the production date")].filter(Boolean) as string[];
+/** the quantity of each category of the SKU (the first one and the ones added) */
+const splitsOf = (r: Row): Split[] => [{ qty: r.qty, category: r.category }, ...(r.more ?? [])];
+const totalOf = (r: Row) => splitsOf(r).reduce((a, s) => a + (Number(s.qty.replace(",", ".")) || 0), 0);
+const lacks = (r: Row) => {
+  const more = r.more ?? [];
+  const cats = splitsOf(r).map((s) => s.category).filter(Boolean);
+  return [!r.category && tr("the category"), more.some((s) => !s.category || !(Number(s.qty.replace(",", ".")) > 0)) && tr("the quantity and category of every added category"),
+    new Set(cats).size < cats.length && tr("different categories"), !r.photo && tr("the photo"),
+    r.made && r.expires && r.expires < r.made && tr("an expired date after the production date")].filter(Boolean) as string[];
+};
 
 export default function WasteForm() {
   const toast = useToast();
@@ -131,17 +142,27 @@ export default function WasteForm() {
     let ok = 0;
     const failed: string[] = [];
     for (const { scope: s, item, row } of filled) {
-      try {
-        await call<Entry>("/api/waste/entries", { method: "POST", json: {
-          branchCode: b.code, businessDate: day, scope: s, itemCode: item.code, qty: qtyOf(row), category: row.category,
-          uom: s === "premix" ? uomOf(item, row) : undefined,
-          note: row.note.trim() || null, productionDate: row.made || null, expiredDate: row.expires || null,
-          photo: row.photo!.image, takenAt: row.photo!.taken_at, latitude: row.photo!.lat, longitude: row.photo!.lng, signature } });
-        ok += 1;
-        setRows((all) => { const n = { ...all }; delete n[item.code]; return n; });  // saved: the row is cleared
-      } catch (e) {
-        failed.push(`${item.name}: ${(e as Error).message}`);
+      // one entry per category of the SKU; the ones saved leave the row, a failed one stays to send again
+      const left: Split[] = [];
+      for (const split of splitsOf(row)) {
+        try {
+          await call<Entry>("/api/waste/entries", { method: "POST", json: {
+            branchCode: b.code, businessDate: day, scope: s, itemCode: item.code, qty: Number(split.qty.replace(",", ".")), category: split.category,
+            uom: s === "premix" ? uomOf(item, row) : undefined,
+            note: row.note.trim() || null, productionDate: row.made || null, expiredDate: row.expires || null,
+            photo: row.photo!.image, takenAt: row.photo!.taken_at, latitude: row.photo!.lat, longitude: row.photo!.lng, signature } });
+          ok += 1;
+        } catch (e) {
+          left.push(split);
+          failed.push(`${item.name} (${split.category}): ${(e as Error).message}`);
+        }
       }
+      setRows((all) => {  // saved: the row is cleared (or keeps the categories that failed)
+        const n = { ...all };
+        if (left.length) n[item.code] = { ...row, qty: left[0].qty, category: left[0].category, more: left.slice(1) };
+        else delete n[item.code];
+        return n;
+      });
     }
     if (ok) toast(tr("{0} SKUs saved", ok));
     if (failed.length) toast(failed.join(" · "), "error");
@@ -311,6 +332,26 @@ export default function WasteForm() {
                                       <option value="">{tr("Choose the category")}</option>
                                       {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
                                     </select>
+                                    {/* other categories of the same SKU, each with its own quantity (2026-11-11) */}
+                                    {(r.more ?? []).map((m, k) => (
+                                      <div key={k} className="flex items-center gap-2 sm:col-span-2">
+                                        <input className={cx(inputClass, "h-9 w-24 text-right tabular-nums")} inputMode="decimal" placeholder="0" value={m.qty}
+                                          aria-label={tr("Quantity of the category")}
+                                          onChange={(e) => setRow(i.code, { more: r.more.map((x, j) => (j === k ? { ...x, qty: e.target.value.replace(/[^0-9.,]/g, "") } : x)) })} />
+                                        <select className={cx(inputClass, "h-9 flex-1")} value={m.category} aria-label={tr("Waste Category")}
+                                          onChange={(e) => setRow(i.code, { more: r.more.map((x, j) => (j === k ? { ...x, category: e.target.value } : x)) })}>
+                                          <option value="">{tr("Choose the category")}</option>
+                                          {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                        <button type="button" aria-label={tr("Remove the category")} onClick={() => setRow(i.code, { more: r.more.filter((_, j) => j !== k) })}
+                                          className="rounded-lg px-2 py-2 text-xs font-medium text-neutral-500 hover:text-red-600">✕</button>
+                                      </div>
+                                    ))}
+                                    <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+                                      <button type="button" onClick={() => setRow(i.code, { more: [...(r.more ?? []), { qty: "", category: "" }] })}
+                                        className="rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">+ {tr("Another category")}</button>
+                                      {(r.more ?? []).length > 0 && <span className="text-[11px] text-neutral-500">{tr("The first quantity is for the first category; total {0} {1}", fmtQty(totalOf(r)), uom)}</span>}
+                                    </div>
                                     <input className={cx(inputClass, "h-9")} value={r.note} maxLength={500} onChange={(e) => setRow(i.code, { note: e.target.value })} placeholder={tr("Note / reason (optional)")} />
                                     <label className="text-[11px] text-neutral-500">{tr("Production Date")}
                                       <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.made} max={day} onChange={(e) => setRow(i.code, { made: e.target.value })} />
