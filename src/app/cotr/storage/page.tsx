@@ -69,7 +69,7 @@ export default function CotrStoragePage() {
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<string, Plan>>({});
   const [busy, setBusy] = useState<string | null>(null);
-  const poolCode = pool || usable[0]?.code || "";
+  const poolCode = pool;  // "" = every pool (the default)
   const [status, setStatus] = useState<DriverFilter>("");
   const [q, setQ] = useState("");
   const [sheet, setSheet] = useState(false);
@@ -79,10 +79,9 @@ export default function CotrStoragePage() {
   // a new pool / day, or `load()` after a change: read the day again
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    if (!poolCode) return;
     let alive = true;
     setError(null);
-    call<Day>(`/api/cotr/storage?day=${day}&pool=${encodeURIComponent(poolCode)}`)
+    call<Day>(`/api/cotr/storage?day=${day}${poolCode ? `&pool=${encodeURIComponent(poolCode)}` : ""}`)
       .then((d) => {
         if (!alive) return;
         setData(d);
@@ -136,7 +135,7 @@ export default function CotrStoragePage() {
     <Page eyebrow="Calf On The Road" media={<Warehouse size={19} />} title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
       stats={<>
         <ScopeBar onOpen={() => setSheet(true)} scopes={[
-          { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: usable.find((p) => p.code === poolCode)?.name ?? "—" },
+          { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: usable.find((p) => p.code === poolCode)?.name ?? tr("All pools"), active: !!poolCode },
           { key: "day", icon: <CalendarDays />, label: tr("Day"), value: day === todayWib() ? tr("Today") : dmyOf(day) },
           { key: "status", icon: <UserRound />, label: tr("Drivers"), value: status ? FILTER_STATUS[status]() : tr("All"), active: !!status },
         ]} />
@@ -149,10 +148,10 @@ export default function CotrStoragePage() {
         </StatStrip>
       </>}>
       {sheet && (
-        <MonitorFilterSheet active={status ? 1 : 0} onClose={() => setSheet(false)} onReset={() => setDraftF({ pool: poolCode, day: todayWib(), status: "" })}
+        <MonitorFilterSheet active={status ? 1 : 0} onClose={() => setSheet(false)} onReset={() => setDraftF({ pool: "", day: todayWib(), status: "" })}
           onApply={() => { setPool(draftF.pool); setDay(draftF.day); setStatus(draftF.status); setSheet(false); }}>
           <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={usable.find((p) => p.code === draftF.pool)?.name ?? null}>
-            <ComboFilter value={draftF.pool} onChange={(v) => setDraftF({ ...draftF, pool: v || poolCode })} allLabel={tr("Choose the pool")} placeholder={tr("Search pool")}
+            <ComboFilter value={draftF.pool} onChange={(v) => setDraftF({ ...draftF, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
               options={usable.map((p) => ({ value: p.code, label: p.name, hint: p.city }))} />
           </FilterRow>
           <FilterRow icon={<CalendarDays size={15} />} label={tr("Day")} value={dmyOf(draftF.day)}>
@@ -189,7 +188,7 @@ export default function CotrStoragePage() {
           <PoolBatches pool={poolCode} />
 
           {/* migration 089: the cups per menu at the pool, from the opening stock */}
-          <PoolLedger pool={poolCode} day={day} />
+          <PoolLedger pool={poolCode} day={day} embedded />
 
           {/* migration 088: the waste and the cupping of this pool / HUB */}
           <PoolWaste pool={poolCode} day={day} />

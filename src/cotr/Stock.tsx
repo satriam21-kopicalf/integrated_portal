@@ -35,11 +35,11 @@ function usePool() {
   const pools = useMaster<Pool>("pools");
   const list = useMemo(() => (pools.rows ?? []).filter((p) => p.kind !== "storage" && p.is_active)
     .sort((a, b) => Number(b.is_production) - Number(a.is_production) || a.name.localeCompare(b.name)), [pools.rows]);
-  const [pool, setPool] = useState("");
-  const code = pool || list[0]?.code || "";
+  const [pool, setPool] = useState("");  // "" = every pool / hub (the default)
+  const code = pool;
   const picker = (
-    <div className="w-full sm:w-72"><SearchSelect value={code} onChange={(v) => setPool(v ?? "")} placeholder={tr("Choose the pool / hub")}
-      options={list.map((p) => ({ value: p.code, label: p.name, hint: p.is_production ? tr("Production Hub") : p.city }))} /></div>
+    <div className="w-full sm:w-72"><SearchSelect value={code || "*"} onChange={(v) => setPool(!v || v === "*" ? "" : v)} placeholder={tr("Choose the pool / hub")}
+      options={[{ value: "*", label: tr("All pools"), hint: tr("added up") }, ...list.map((p) => ({ value: p.code, label: p.name, hint: p.is_production ? tr("Production Hub") : p.city }))]} /></div>
   );
   return { pool: code, picker, loaded: !!pools.rows };
 }
@@ -53,9 +53,8 @@ export function StockTab() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<Row | null>(null);
   useEffect(() => {
-    if (!pool) return;
     setData(null); setError(null);
-    call<Stock>(`/api/cotr/stock?pool=${encodeURIComponent(pool)}`).then(setData).catch((e: Error) => setError(e.message));
+    call<Stock>(`/api/cotr/stock${pool ? `?pool=${encodeURIComponent(pool)}` : ""}`).then(setData).catch((e: Error) => setError(e.message));
   }, [pool]);
   const rows = (data?.rows ?? []).filter((r) => !q || `${r.name} ${r.code} ${r.category}`.toLowerCase().includes(q.toLowerCase()));
   const sorted = useSort<Row, Key>(rows, (r, k) => (k === "name" ? r.name : r[k]));
@@ -119,8 +118,7 @@ export function ReceiptsTab() {
   const [form, setForm] = useState({ item: "", qty: "", unit: "", day: todayWib(), supplier: "", docNo: "", note: "" });
   const [busy, setBusy] = useState(false);
   const load = useCallback(() => {
-    if (!pool) return;
-    call<{ data: Receipt[] }>(`/api/cotr/receipts?pool=${encodeURIComponent(pool)}`).then((r) => setRows(r.data)).catch(() => setRows([]));
+    call<{ data: Receipt[] }>(`/api/cotr/receipts${pool ? `?pool=${encodeURIComponent(pool)}` : ""}`).then((r) => setRows(r.data)).catch(() => setRows([]));
   }, [pool]);
   useEffect(() => { setRows(null); load(); }, [load]);
   const it = (items.rows ?? []).find((i) => i.code === form.item);
@@ -180,8 +178,7 @@ export function CountsTab() {
   const [rows, setRows] = useState<Count[] | null>(null);
   const [open, setOpen] = useState<string | "new" | null>(null);
   const load = useCallback(() => {
-    if (!pool) return;
-    call<{ data: Count[] }>(`/api/cotr/counts?pool=${encodeURIComponent(pool)}`).then((r) => setRows(r.data)).catch(() => setRows([]));
+    call<{ data: Count[] }>(`/api/cotr/counts${pool ? `?pool=${encodeURIComponent(pool)}` : ""}`).then((r) => setRows(r.data)).catch(() => setRows([]));
   }, [pool]);
   useEffect(() => { setRows(null); load(); }, [load]);
   return (
@@ -222,7 +219,7 @@ function CountDrawer({ id, pool, onClose, onSaved }: { id: string | null; pool: 
   const save = async (submit: boolean) => {
     setBusy(true);
     try {
-      const out = await call<CountDetail>("/api/cotr/counts", { method: "POST", json: { id: detail?.id ?? null, pool, day, note: note || null, submit,
+      const out = await call<CountDetail>("/api/cotr/counts", { method: "POST", json: { id: detail?.id ?? null, pool: detail?.pool ?? pool, day, note: note || null, submit,
         lines: Object.fromEntries(filled.map(([k, v]) => [k, { qty: Number(v.replace(",", ".")) }])) } });
       setDetail(out); toast(submit ? tr("Sent for approval") : tr("Saved")); onSaved();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }

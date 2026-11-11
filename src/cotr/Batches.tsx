@@ -243,9 +243,8 @@ export function PoolBatches({ pool }: { pool: string }) {
   const [data, setData] = useState<{ received: StockItem[]; incoming: StockItem[] } | null>(null);
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    if (!pool) return;
     let alive = true;
-    call<{ received: StockItem[]; incoming: StockItem[] }>(`/api/cotr/pool-stock?pool=${encodeURIComponent(pool)}`).then((d) => { if (alive) setData(d); }).catch(() => { if (alive) setData(null); });
+    call<{ received: StockItem[]; incoming: StockItem[] }>(`/api/cotr/pool-stock${pool ? `?pool=${encodeURIComponent(pool)}` : ""}`).then((d) => { if (alive) setData(d); }).catch(() => { if (alive) setData(null); });
     return () => { alive = false; };
   }, [pool, tick]);
   const receive = async (id: string) => {

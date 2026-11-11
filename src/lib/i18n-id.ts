@@ -6115,4 +6115,6 @@ export const ID: Record<string, string> = {
   "The days from here are replaced by the workbook; the physical leftover of the day before becomes the opening stock": "Hari mulai tanggal ini diganti dengan isi workbook; Sisa Aktual Fisik hari sebelumnya menjadi Product Awal",
   "The pool workbooks downloaded from the spreadsheet (sheets Product and Report Armada); several at once": "Workbook pool yang diunduh dari spreadsheet (sheet Product dan Report Armada); bisa beberapa sekaligus",
   "{0} workbooks saved": "{0} workbook tersimpan",
+  "All pools added up; choose a pool to enter": "Semua pool dijumlahkan; pilih satu pool untuk mengisi data",
+  "added up": "dijumlahkan",
 };

@@ -40,7 +40,7 @@ const ACTION: Record<Status, () => string> = { open: () => tr("Open again"), in_
 export function FleetIssues({ onCount }: { onCount?: (open: number) => void }) {
   const [rows, setRows] = useState<Issue[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"active" | Status>("active");
+  const [filter, setFilter] = useState<"" | "active" | Status>("");
   const [open, setOpen] = useState<string | null>(null);
   const load = useCallback(async () => {
     setError(null);
@@ -48,7 +48,7 @@ export function FleetIssues({ onCount }: { onCount?: (open: number) => void }) {
     catch (e) { setError((e as Error).message); }
   }, [onCount]);
   useEffect(() => { void load(); }, [load]);
-  const listed = useMemo(() => (rows ?? []).filter((r) => filter === "active" ? r.status === "open" || r.status === "in_progress" : r.status === filter), [rows, filter]);
+  const listed = useMemo(() => (rows ?? []).filter((r) => !filter || (filter === "active" ? r.status === "open" || r.status === "in_progress" : r.status === filter)), [rows, filter]);
   const n = (f: (r: Issue) => boolean) => (rows ? rows.filter(f).length : <ValueSkeleton />);
   return (
     <>
@@ -60,7 +60,7 @@ export function FleetIssues({ onCount }: { onCount?: (open: number) => void }) {
         <StatCard label={tr("Repair cost")} icon={<CheckCircle2 />} value={rows ? rupiah(rows.reduce((a, r) => a + (r.cost ?? 0), 0)) : <ValueSkeleton />} sub={tr("Last 90 days")} />
       </StatGrid>
       <Segments value={filter} onChange={(v) => setFilter(v as typeof filter)} choices={[
-        { value: "active", label: tr("Need handling") }, { value: "open", label: tr("Reported") }, { value: "in_progress", label: tr("In progress") },
+        { value: "", label: tr("All") }, { value: "active", label: tr("Need handling") }, { value: "open", label: tr("Reported") }, { value: "in_progress", label: tr("In progress") },
         { value: "resolved", label: tr("Resolved") }, { value: "rejected", label: tr("Rejected") }]} />
       <Panel title={tr("Fleet issues")} description={tr("Reported by the drivers from the driver app; the urgent first")}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <SkeletonList rows={4} /> : listed.length === 0 ? (

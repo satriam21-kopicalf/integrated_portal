@@ -36,13 +36,13 @@ const FIGURES: { key: keyof Cell; label: () => string; strong?: boolean }[] = [
   { key: "balance", label: () => tr("Balance"), strong: true },
 ];
 
-export function PoolLedger({ pool: fixed, day: fixedDay }: { pool?: string; day?: string }) {
+export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: string; day?: string; embedded?: boolean }) {
   const pools = useMaster<Pool>("pools");
   const usable = (pools.rows ?? []).filter((p) => p.kind === "parent");
   const [poolSel, setPoolSel] = useState("");
   const [toSel, setToSel] = useState(todayWib());
-  const [span, setSpan] = useState(fixed ? 1 : 7);
-  const pool = fixed ?? (poolSel || usable[0]?.code || "");
+  const [span, setSpan] = useState(embedded ? 1 : 7);
+  const pool = embedded ? fixed ?? "" : poolSel;  // "" = every pool / HUB added up (the default)
   const to = fixedDay ?? toSel;
   const from = addDays(to, -(span - 1));
   const [data, setData] = useState<Ledger | null>(null);
@@ -53,10 +53,9 @@ export function PoolLedger({ pool: fixed, day: fixedDay }: { pool?: string; day?
   const [importing, setImporting] = useState(false);
   const reload = () => setTick((t) => t + 1);
   useEffect(() => {
-    if (!pool) return;
     let alive = true;
     setData(null); setError(null);
-    call<Ledger>(`/api/cotr/pool-ledger?pool=${encodeURIComponent(pool)}&dateFrom=${from}&dateTo=${to}`)
+    call<Ledger>(`/api/cotr/pool-ledger?dateFrom=${from}&dateTo=${to}${pool ? `&pool=${encodeURIComponent(pool)}` : ""}`)
       .then((r) => { if (alive) setData(r); }).catch((e: Error) => { if (alive) setError(e.message); });
     return () => { alive = false; };
   }, [pool, from, to, tick]);
@@ -65,9 +64,9 @@ export function PoolLedger({ pool: fixed, day: fixedDay }: { pool?: string; day?
   const menuName = (code: string) => data?.menus.find((m) => m.code === code)?.name ?? code;
   return (
     <>
-      {!fixed && (
+      {!embedded && (
         <div className="flex flex-wrap items-end gap-3">
-          <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPoolSel(e.target.value)}>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
+          <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPoolSel(e.target.value)}><option value="">{tr("All pools")}</option>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
           <Field label={tr("Until")}><Input type="date" value={toSel} max={todayWib()} onChange={(e) => setToSel(e.target.value)} /></Field>
           <Field label={tr("Days")}><Select value={String(span)} onChange={(e) => setSpan(Number(e.target.value))}>{[1, 3, 7, 14, 31].map((n) => <option key={n} value={n}>{tr("{0} days", n)}</option>)}</Select></Field>
           <Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={15} /> {tr("Import workbook")}</Button>
@@ -75,14 +74,14 @@ export function PoolLedger({ pool: fixed, day: fixedDay }: { pool?: string; day?
       )}
       <Panel title={tr("Product stock of the pool")}
         description={data?.start ? tr("Counted from {0}; the physical leftover of a day is the opening stock of the next", dmyOf(data.start)) : tr("Cups per menu at the pool / HUB, as the sheet Product")}
-        actions={<div className="flex flex-wrap gap-2">
+        actions={!pool ? <span className="text-xs text-neutral-500">{tr("All pools added up; choose a pool to enter")}</span> : <div className="flex flex-wrap gap-2">
           <Button variant="secondary" disabled={!pool} onClick={() => setMoves({ day: to, kind: "arrived" })}><Truck size={15} /> {tr("Arrived / Transfer")}</Button>
           <Button disabled={!pool} onClick={() => setCount(to)}><PackageOpen size={15} /> {data?.start ? tr("Physical leftover") : tr("Set opening stock")}</Button>
         </div>}>
         {error ? <ErrorState message={error} onRetry={reload} /> : !data ? <SkeletonTable cols={6} /> : !data.start ? (
           <EmptyState icon={<Boxes />} title={tr("No opening stock yet")}>
             <p className="mt-1 text-sm text-neutral-500">{tr("Count the pool once (per batch code); from the next day the stock of the pool runs by itself.")}</p>
-            <div className="mt-3"><Button onClick={() => setCount(addDays(to, -1))}><PackageOpen size={15} /> {tr("Set opening stock")}</Button></div>
+            <div className="mt-3"><Button disabled={!pool} onClick={() => setCount(addDays(to, -1))}><PackageOpen size={15} /> {tr("Set opening stock")}</Button></div>
           </EmptyState>
         ) : days.length === 0 ? <EmptyState icon={<Boxes />} title={tr("The stock starts the day after the opening count")} /> : (
           <div className="space-y-5 p-4">
@@ -94,10 +93,10 @@ export function PoolLedger({ pool: fixed, day: fixedDay }: { pool?: string; day?
                   <span className="text-sm font-semibold text-neutral-900">{dmyOf(d.day)}</span>
                   {d.source === "sheet" && <Badge tone="violet">{tr("From the workbook")}</Badge>}
                   {Object.values(d.rows).some((c) => c.actual === null) && <Badge tone="amber">{tr("Not counted yet")}</Badge>}
-                  <span className="ml-auto flex gap-1.5">
+                  {pool && <span className="ml-auto flex gap-1.5">
                     <Button variant="ghost" onClick={() => setMoves({ day: d.day, kind: "arrived" })}>{tr("Arrived / Transfer")}</Button>
                     <Button variant="ghost" onClick={() => setCount(d.day)}>{tr("Physical leftover")}</Button>
-                  </span>
+                  </span>}
                 </header>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[640px] text-sm">

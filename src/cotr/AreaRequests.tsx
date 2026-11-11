@@ -28,7 +28,7 @@ const LABEL = { sent: () => tr("Waiting"), approved: () => tr("Approved"), rejec
 export function AreaRequests({ onDecided }: { onDecided?: () => void }) {
   const [rows, setRows] = useState<Req[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"" | Req["status"]>("sent");
+  const [filter, setFilter] = useState<"" | Req["status"]>("");
   const [open, setOpen] = useState<Req | null>(null);
   const load = useCallback(async () => {
     setError(null);
@@ -41,7 +41,7 @@ export function AreaRequests({ onDecided }: { onDecided?: () => void }) {
     <Panel title={tr("Area requests of the drivers")} description={tr("A master area or a new place; approving puts it on the roster of that day")}
       actions={waiting ? <Badge tone="amber">{tr("{0} waiting", waiting)}</Badge> : undefined}>
       <div className="px-4 pb-3 pt-1"><Segments value={filter} onChange={(v) => setFilter(v as typeof filter)} choices={[
-        { value: "sent", label: tr("Waiting") }, { value: "approved", label: tr("Approved") }, { value: "rejected", label: tr("Rejected") }, { value: "", label: tr("All") }]} /></div>
+        { value: "", label: tr("All") }, { value: "sent", label: tr("Waiting") }, { value: "approved", label: tr("Approved") }, { value: "rejected", label: tr("Rejected") }]} /></div>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <SkeletonList rows={3} /> : listed.length === 0 ? (
         <EmptyState icon={<MapPinned />} title={tr("No area requests")} />
       ) : (

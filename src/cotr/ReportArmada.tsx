@@ -20,7 +20,7 @@ import { tr } from "@/lib/i18n";
 type Line = { b: number; s: number | null; c: number; w: number; t: number; total: number };
 type DayRow = { day: string; status: string; lines: Record<string, Line>; total: number; cash: number; qris: number; operational: number;
   operationalNote?: string | null; cashActual: number | null };
-type Driver = { code: string | null; name: string; nickname: string | null; label?: string; days: DayRow[] };
+type Driver = { code: string | null; name: string; nickname: string | null; label?: string; pool?: string; days: DayRow[] };
 type Report = { pool: string; from: string; to: string; menus: { code: string; name: string; price: number }[]; drivers: Driver[] };
 
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
@@ -32,15 +32,14 @@ export function ReportArmada() {
   const [from, setFrom] = useState(`${todayWib().slice(0, 8)}01`);
   const [to, setTo] = useState(todayWib());
   const [q, setQ] = useState("");
-  const pool = poolSel || usable[0]?.code || "";
+  const pool = poolSel;  // "" = every pool (the default)
   const [data, setData] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    if (!pool) return;
     let alive = true;
     setData(null); setError(null);
-    call<Report>(`/api/cotr/report-armada?pool=${encodeURIComponent(pool)}&dateFrom=${from}&dateTo=${to}`)
+    call<Report>(`/api/cotr/report-armada?dateFrom=${from}&dateTo=${to}${pool ? `&pool=${encodeURIComponent(pool)}` : ""}`)
       .then((r) => { if (alive) setData(r); }).catch((e: Error) => { if (alive) setError(e.message); });
     return () => { alive = false; };
   }, [pool, from, to, tick]);
@@ -54,7 +53,7 @@ export function ReportArmada() {
   return (
     <>
       <div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPoolSel(e.target.value)}>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
+        <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPoolSel(e.target.value)}><option value="">{tr("All pools")}</option>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
         <Field label={tr("From")}><Input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /></Field>
         <Field label={tr("Until")}><Input type="date" value={to} max={todayWib()} onChange={(e) => setTo(e.target.value)} /></Field>
         <label className="relative">
@@ -77,6 +76,7 @@ export function ReportArmada() {
               <section key={d.code ?? d.label ?? d.name} className="p-4">
                 <p className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-neutral-900">{d.name}
                   {d.label && <span className="text-xs font-normal text-neutral-500">{d.label}</span>}
+                  {!pool && d.pool && <Badge tone="slate">{usable.find((p) => p.code === d.pool)?.name ?? d.pool}</Badge>}
                   {!d.code && <Badge tone="amber">{tr("Not matched to a driver")}</Badge>}</p>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[760px] text-xs">
