@@ -28,7 +28,7 @@ const TABS: Tab[] = [
   { key: "schedule", href: "/cotr/schedule", label: () => tr("Schedule"), icon: <CalendarDays size={15} />, body: <SchedulePage /> },
   { key: "menu", href: "/cotr/menu", label: () => tr("Menu"), icon: <Coffee size={15} />, body: <MenuPage /> },
   // migration 083: the kinds of a driver's request, with the requests they are decided in
-  { key: "requests", href: "/cotr/check-in", label: () => tr("Pengajuan"), icon: <Wallet size={15} />, body: <RequestKindsTab /> },
+  { key: "requests", href: "/cotr/check-in", label: () => tr("Requests"), icon: <Wallet size={15} />, body: <RequestKindsTab /> },
 ];
 
 function Master() {
