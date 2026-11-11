@@ -4,11 +4,12 @@
 // day it was made, 0808 = batch 8 of the 8th) counted in the physical leftover of the pools, per menu: the day it was
 // made, its expiry (the shelf life of the menu), the days it was counted and the cups of its last count per pool.
 
-import { Download, Search, Tags } from "lucide-react";
+import { Download, PencilLine, Save, Search, Tags } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, Select, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid, kcTable } from "@/components/kc";
+import Drawer from "@/components/kc/Drawer";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
@@ -36,6 +37,7 @@ export function BatchCodes() {
   const [rows, setRows] = useState<Code[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const [adjust, setAdjust] = useState<{ code: Code; pool: PoolQty } | null>(null);
   useEffect(() => {
     let alive = true;
     setRows(null); setError(null);
@@ -86,13 +88,43 @@ export function BatchCodes() {
                     <Badge tone={r.status === "expired" ? "red" : "green"}>{r.status === "expired" ? tr("Expired") : tr("Active")}</Badge></td>
                   <td className="px-3 py-2.5 text-xs text-neutral-600">{r.firstCounted === r.lastCounted ? dmyOf(r.firstCounted) : `${dmyOf(r.firstCounted)} – ${dmyOf(r.lastCounted)}`}</td>
                   <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{r.left}</td>
-                  <td className="px-4 py-2.5"><span className="flex flex-wrap gap-1">{r.pools.map((p) => <Badge key={p.pool} tone="slate" title={dmyOf(p.day)}>{p.poolName.replace(/^COTR /, "").replace(/ HUB$/, "")} · {p.qty}</Badge>)}</span></td>
+                  <td className="px-4 py-2.5"><span className="flex flex-wrap gap-1">{r.pools.map((p) => (
+                    <button key={p.pool} type="button" onClick={() => setAdjust({ code: r, pool: p })} title={tr("Adjust the cups counted on {0}", dmyOf(p.day))}
+                      className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-700 hover:bg-brand-50 hover:text-brand-700">
+                      {p.poolName.replace(/^COTR /, "").replace(/ HUB$/, "")} · {p.qty}<PencilLine size={11} /></button>))}</span></td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </Panel>
+      {adjust && <AdjustDrawer {...adjust} onClose={() => setAdjust(null)} onSaved={() => { setAdjust(null); setTick((t) => t + 1); }} />}
     </>
+  );
+}
+
+/** The cups of one batch code in the physical leftover of a pool on its count day, corrected; the stock follows. */
+function AdjustDrawer({ code, pool, onClose, onSaved }: { code: Code; pool: PoolQty; onClose: () => void; onSaved: () => void }) {
+  const toast = useToast();
+  const [qty, setQty] = useState(String(pool.qty));
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    setBusy(true);
+    try {
+      await call("/api/cotr/batch-codes/qty", { method: "PUT", json: { pool: pool.pool, day: pool.day, menu: code.menu, batchNo: code.batchNo, qty: Number(qty) || 0, reason: reason.trim() } });
+      toast(tr("Saved")); onSaved();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  return (
+    <Drawer open onClose={onClose} icon={<PencilLine size={18} />} title={tr("Adjust batch {0}", code.batchNo)} description={`${code.menuName} · ${pool.poolName} · ${dmyOf(pool.day)}`}
+      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
+        <Button loading={busy} disabled={reason.trim().length < 3 || Number(qty) === pool.qty} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>}>
+      <div className="space-y-4">
+        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">{tr("The physical leftover of this pool on this day is corrected: its balance and the opening stock of the next day follow. 0 = none left.")}</p>
+        <Field label={tr("Cups")} hint={tr("Now {0}", pool.qty)}><Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} className="text-right tabular-nums" /></Field>
+        <Field label={tr("Reason")} required><Input value={reason} maxLength={300} placeholder={tr("e.g. counted again at the pool")} onChange={(e) => setReason(e.target.value)} /></Field>
+      </div>
+    </Drawer>
   );
 }

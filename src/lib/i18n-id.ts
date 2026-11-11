@@ -6132,4 +6132,9 @@ export const ID: Record<string, string> = {
   "SSDD: the batch of the day and the day it was made (0808 = batch 8 of the 8th); the expiry follows the shelf life of the menu": "SSDD: nomor batch hari itu dan tanggal produksinya (0808 = batch ke-8 tanggal 8); expired mengikuti masa simpan menu",
   "Search batch code": "Cari kode batch",
   "{0} cups at the last count": "{0} cup di hitungan terakhir",
+  "Adjust the cups counted on {0}": "Adjust cup yang dihitung pada {0}",
+  "Adjust batch {0}": "Adjust batch {0}",
+  "The physical leftover of this pool on this day is corrected: its balance and the opening stock of the next day follow. 0 = none left.": "Sisa Aktual Fisik pool ini di hari itu dikoreksi: Balance hari itu dan Product Awal hari berikutnya ikut menyesuaikan. 0 = habis.",
+  "Now {0}": "Saat ini {0}",
+  "e.g. counted again at the pool": "mis. dihitung ulang di pool",
 };
