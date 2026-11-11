@@ -71,6 +71,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
   const [confirming, setConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [wipDirty, setWipDirty] = useState(false);
+  // 2026-11-11: a count with the WIP form is not sent before the WIP is saved once (empty = no WIP)
   /** lines whose (+) was tapped: the date rows show before a second date is saved */
   const [multi, setMulti] = useState<Set<number>>(new Set());
   const pending = useRef<Record<number, Draft>>({});
@@ -271,6 +272,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
 
   const st = STATUS[count.status];
   const open = count.status === "IN_PROGRESS" || count.status === "RECOUNT_REQUESTED";
+  const wipUnsaved = !!count.wip?.enabled && (count.wip.recipes?.length ?? 0) > 0 && !count.wip.saved_at && !count.wip.lines.length;
   const todo = count.lines.filter((l) => (l.qty_base === null && !fromWip(l)) || l.flags.includes("RECOUNT")).length
     + (count.wip?.lines.filter((w) => w.flags?.includes("RECOUNT")).length ?? 0);
   const pct = count.progress.lines ? Math.round((count.progress.counted / count.progress.lines) * 100) : 0;
@@ -463,11 +465,11 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                 {count.status === "RECOUNT_REQUESTED" ? (todo ? tr("{0} left to recount", todo) : tr("Recount done")) : tr("{0} of {1} counted", count.progress.counted, count.progress.lines)}
               </p>
               <p className="truncate text-xs text-neutral-500">
-                {wipDirty ? tr("Save the WIP first") : todo ? (count.status === "RECOUNT_REQUESTED" ? tr("Count the lines marked Recount") : tr("Enter 0 for items that are not there")) : tr("Ready to send")}
+                {wipDirty || wipUnsaved ? tr("Save the WIP first (empty or 0 when there is none)") : todo ? (count.status === "RECOUNT_REQUESTED" ? tr("Count the lines marked Recount") : tr("Enter 0 for items that are not there")) : tr("Ready to send")}
               </p>
               <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", pct === 100 ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${pct}%` }} /></span>
             </div>
-            <Button className="h-11 px-4" disabled={todo > 0 || busy || wipDirty} onClick={() => setConfirming(true)}><Send size={16} /> {crew ? tr("Review & submit") : tr("Submit")}</Button>
+            <Button className="h-11 px-4" disabled={todo > 0 || busy || wipDirty || wipUnsaved} onClick={() => setConfirming(true)}><Send size={16} /> {crew ? tr("Review & submit") : tr("Submit")}</Button>
           </div>
         </div>
       )}

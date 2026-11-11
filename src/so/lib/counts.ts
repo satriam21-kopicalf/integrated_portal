@@ -261,4 +261,5 @@ export type WipLine = {
   flags?: string[]; recount_of?: number | null; previous_qty?: number | null;
   corrected_at?: string | null; corrected_by_name?: string | null; correction_note?: string | null;
 };
-export type CountWip = { enabled: boolean; recipes: WipRecipe[]; lines: WipLine[] };
+export type CountWip = { enabled: boolean; recipes: WipRecipe[]; lines: WipLine[];
+  /** 2026-11-11: when the WIP form was last saved (an empty save = no WIP); null = never, the count cannot be submitted */ saved_at?: string | null };

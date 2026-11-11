@@ -40,6 +40,8 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
 
   const clean = (v: Record<string, string>) => JSON.stringify(Object.entries(v).filter(([, x]) => Number(x) > 0).sort());
   const dirty = clean(values) !== clean(saved);
+  // 2026-11-11: the form must be saved once before the submit, empty when there is no WIP
+  const unsaved = !wip.saved_at && !wip.lines.length && wip.recipes.length > 0;
   useEffect(() => onDirty(dirty), [dirty, onDirty]);
 
   // grams per ingredient of what is typed (preview; the server rounds the totals per ingredient up)
@@ -102,7 +104,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
         </span>
         {toConfirm > 0 && <Badge tone="amber">{tr("{0} to recount", toConfirm)}</Badge>}
         {entered > 0 && <Badge tone="violet">{tr("{0} entered", entered)}</Badge>}
-        {dirty && <Badge tone="amber">{tr("Not saved")}</Badge>}
+        {(dirty || unsaved) && <Badge tone="amber">{tr("Not saved")}</Badge>}
         <ChevronDown size={16} className={cx("text-neutral-400 transition-transform", expanded && "rotate-180")} />
       </button>
       {expanded && (
@@ -191,11 +193,12 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                 ))}
               </ul>
               {dirty && <p className="mt-1.5 text-[11px] text-amber-700">{tr("Save the WIP to fill these grams into the item lines.")}</p>}
+              {!dirty && unsaved && <p className="mt-1.5 text-[11px] text-amber-700">{tr("Save the WIP before submitting, even when there is none (leave it empty or 0).")}</p>}
             </div>
           )}
           {open && (recipes.length > 0 || (recount && wip.lines.some(asked))) && (
             <div className="flex justify-end">
-              <Button loading={busy} disabled={!dirty} onClick={() => void save()}><Save size={16} /> {tr("Save WIP")}</Button>
+              <Button loading={busy} disabled={!dirty && !unsaved} onClick={() => void save()}><Save size={16} /> {tr("Save WIP")}</Button>
             </div>
           )}
         </div>
