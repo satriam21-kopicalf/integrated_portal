@@ -8,7 +8,7 @@
 // workbooks keep the figures of the sheet. On Storage & Production (any pool) and Storage & Assignment (the pool chosen).
 
 import { AlertTriangle, Boxes, FileSpreadsheet, PackageOpen, Plus, Save, Trash2, Truck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, Select, cx, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState } from "@/components/kc";
@@ -223,49 +223,87 @@ function MovesDrawer({ pool, day: first, kind: k0, ledger, onClose, onSaved }: {
 }
 
 type ImportSummary = { days: string[]; counts: number; figures: number; reports: number; unmatched: string[]; saved?: boolean };
+type Upload = { name: string; data: string; pool: string; check?: ImportSummary; error?: string; saved?: boolean; upload?: string };
 
-/** A pool workbook (sheets Product and Report Armada) into the app, from a day: checked first, then saved. */
-function ImportDrawer({ pools, pool: p0, onClose, onSaved }: { pools: Pool[]; pool: string; onClose: () => void; onSaved: () => void }) {
+const PART = 3_000_000; // base64 characters per request: a request through the portal carries a few MB at most
+/** sends a big file in parts; the id the import then takes */
+async function sendParts(data: string): Promise<string> {
+  const id = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+  const raw = data.split(",").pop() ?? "";
+  for (let i = 0, n = 0; i < raw.length; i += PART, n++) await call("/api/cotr/uploads", { method: "POST", json: { upload: id, index: n, data: raw.slice(i, i + PART) } });
+  return id;
+}
+
+/** the pool a workbook belongs to, by its file name ("Cipete - November.xlsx" → COTR CIPETE HUB) */
+const poolOfFile = (file: string, pools: Pool[]) => {
+  const f = file.toLowerCase();
+  const word = (p: Pool) => p.name.toLowerCase().replace(/\b(cotr|hub|pool)\b/g, "").trim();
+  return pools.find((p) => word(p) && f.includes(word(p)))?.code ?? "";
+};
+
+/** The pool workbooks (sheets Product and Report Armada), several at once, each to its pool: checked, then saved. */
+function ImportDrawer({ pools, onClose, onSaved }: { pools: Pool[]; pool: string; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
-  const [pool, setPool] = useState(p0);
   const [from, setFrom] = useState(`${todayWib().slice(0, 8)}01`);
-  const [file, setFile] = useState<{ name: string; data: string } | null>(null);
-  const [check, setCheck] = useState<ImportSummary | null>(null);
+  const [files, setFiles] = useState<Upload[]>([]);
   const [busy, setBusy] = useState(false);
-  const body = useMemo(() => ({ pool, dateFrom: from, file: file?.data ?? "" }), [pool, from, file]);
-  const pick = (f?: File) => {
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = () => { setFile({ name: f.name, data: String(r.result) }); setCheck(null); };
-    r.readAsDataURL(f);
+  const checked = files.length > 0 && files.every((f) => f.check || f.error);
+  const pick = (list: FileList | null) => {
+    for (const f of Array.from(list ?? [])) {
+      const r = new FileReader();
+      r.onload = () => setFiles((s) => [...s.filter((x) => x.name !== f.name), { name: f.name, data: String(r.result), pool: poolOfFile(f.name, pools) }]);
+      r.readAsDataURL(f);
+    }
   };
+  const set = (name: string, patch: Partial<Upload>) => setFiles((s) => s.map((x) => (x.name === name ? { ...x, ...patch } : x)));
   const run = async (apply: boolean) => {
     setBusy(true);
-    try {
-      const out = await call<ImportSummary>("/api/cotr/pool-ledger/import", { method: "POST", json: { ...body, apply } });
-      if (apply) { toast(tr("Saved")); onSaved(); } else setCheck(out);
-    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+    let ok = 0;
+    for (const f of files) {
+      if (!f.pool || (apply && (!f.check || f.saved))) continue;
+      try {
+        const upload = f.upload ?? await sendParts(f.data);
+        const out = await call<ImportSummary>("/api/cotr/pool-ledger/import", { method: "POST", json: { pool: f.pool, dateFrom: from, upload, apply } });
+        set(f.name, apply ? { saved: true, upload: undefined } : { check: out, error: undefined, upload });
+        ok++;
+      } catch (e) { set(f.name, { error: (e as Error).message, check: undefined }); }
+    }
+    setBusy(false);
+    if (apply) { toast(tr("{0} workbooks saved", ok)); onSaved(); }
   };
   return (
-    <Drawer open onClose={onClose} icon={<FileSpreadsheet size={18} />} title={tr("Import workbook")} description={tr("The sheets Product and Report Armada of a pool workbook")}
+    <Drawer open onClose={onClose} icon={<FileSpreadsheet size={18} />} title={tr("Import workbook")}
+      description={tr("The pool workbooks downloaded from the spreadsheet (sheets Product and Report Armada); several at once")}
       footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
-        {check ? <Button loading={busy} onClick={() => void run(true)}><Save size={15} /> {tr("Save")}</Button>
-          : <Button loading={busy} disabled={!file || !pool} onClick={() => void run(false)}>{tr("Check")}</Button>}</>}>
+        {checked ? <Button loading={busy} disabled={!files.some((f) => f.check && !f.saved)} onClick={() => void run(true)}><Save size={15} /> {tr("Save all")}</Button>
+          : <Button loading={busy} disabled={!files.length || files.some((f) => !f.pool)} onClick={() => void run(false)}>{tr("Check")}</Button>}</>}>
       <div className="space-y-4">
-        <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => { setPool(e.target.value); setCheck(null); }}>{pools.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-        <Field label={tr("From")} hint={tr("The physical leftover of the day before becomes the opening stock")}><Input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setCheck(null); }} /></Field>
+        <Field label={tr("From")} hint={tr("The days from here are replaced by the workbook; the physical leftover of the day before becomes the opening stock")}>
+          <Input type="date" value={from} max={todayWib()} onChange={(e) => { setFrom(e.target.value); setFiles((s) => s.map((x) => ({ ...x, check: undefined, saved: false }))); }} /></Field>
         <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-neutral-300 px-3 py-3 text-sm text-neutral-600">
-          <FileSpreadsheet size={16} />{file?.name ?? tr("Choose the .xlsx file")}
-          <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+          <FileSpreadsheet size={16} />{tr("Choose the .xlsx files (one per pool)")}
+          <input type="file" accept=".xlsx" multiple className="sr-only" onChange={(e) => { pick(e.target.files); e.target.value = ""; }} />
         </label>
-        {check && (
-          <DrawerSection title={tr("Found")}>
-            <p className="text-sm">{tr("Days: {0}", check.days.map(dmyOf).join(", ") || "—")}</p>
-            <p className="text-sm">{tr("{0} batch counts · {1} figures · {2} driver days", check.counts, check.figures, check.reports)}</p>
-            {check.unmatched.length > 0 && <p className="text-xs text-amber-700">{tr("Not matched to a driver (kept with the sheet's name): {0}", check.unmatched.join(", "))}</p>}
-            <p className="text-xs text-neutral-500">{tr("Saving replaces the earlier import of these days.")}</p>
+        {files.map((f) => (
+          <DrawerSection key={f.name} title={f.name}>
+            <div className="flex items-center gap-2">
+              <Select value={f.pool} onChange={(e) => set(f.name, { pool: e.target.value, check: undefined })} className="flex-1">
+                <option value="">{tr("Choose the pool")}</option>{pools.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
+              </Select>
+              <button type="button" aria-label={tr("Delete")} onClick={() => setFiles((s) => s.filter((x) => x.name !== f.name))} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={15} /></button>
+            </div>
+            {f.error && <p className="text-xs text-red-600">{f.error}</p>}
+            {f.saved && <Badge tone="green">{tr("Saved")}</Badge>}
+            {f.check && !f.saved && (
+              <>
+                <p className="text-sm">{tr("Days: {0}", f.check.days.map(dmyOf).join(", ") || "—")}</p>
+                <p className="text-xs text-neutral-600">{tr("{0} batch counts · {1} figures · {2} driver days", f.check.counts, f.check.figures, f.check.reports)}</p>
+                {f.check.unmatched.length > 0 && <p className="text-xs text-amber-700">{tr("Not matched to a driver (kept with the sheet's name): {0}", f.check.unmatched.join(", "))}</p>}
+              </>
+            )}
           </DrawerSection>
-        )}
+        ))}
+        {checked && <p className="text-xs text-neutral-500">{tr("Saving replaces the earlier import of these days.")}</p>}
       </div>
     </Drawer>
   );

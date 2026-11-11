@@ -6110,4 +6110,9 @@ export const ID: Record<string, string> = {
   "{0} batch counts · {1} figures · {2} driver days": "{0} hitungan batch · {1} angka · {2} hari driver",
   "{0} driver days": "{0} hari driver",
   "{0} expired: not carried over": "{0} expired: tidak dibawa ke hari berikutnya",
+  "Choose the .xlsx files (one per pool)": "Pilih file .xlsx (satu per pool, boleh sekaligus)",
+  "Save all": "Simpan semua",
+  "The days from here are replaced by the workbook; the physical leftover of the day before becomes the opening stock": "Hari mulai tanggal ini diganti dengan isi workbook; Sisa Aktual Fisik hari sebelumnya menjadi Product Awal",
+  "The pool workbooks downloaded from the spreadsheet (sheets Product and Report Armada); several at once": "Workbook pool yang diunduh dari spreadsheet (sheet Product dan Report Armada); bisa beberapa sekaligus",
+  "{0} workbooks saved": "{0} workbook tersimpan",
 };
