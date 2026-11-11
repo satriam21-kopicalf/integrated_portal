@@ -1,6 +1,18 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Form Stock Opname": "Form Stock Opname",
+  "Form PIC Check In": "Form PIC Check In",
+  "Form Cost Control Check In": "Form Cost Control Check In",
+  "Form Product": "Form Product",
+  "Form Outlet": "Form Outlet",
+  "Form Damaged Equipment": "Form Damaged Equipment",
+  "Form Fund Request": "Form Fund Request",
+  "Form Transfer Stock (TITO)": "Form Transfer Stock (TITO)",
+  "Form WW-WR (SWAT)": "Form WW-WR (SWAT)",
+  "Forms · Operations app": "Form · Aplikasi Operations",
+  "Aggregator · portal & Operations": "Aggregator · portal & Operations",
+  "Monitoring · Operations": "Monitoring · Operations",
   "Correct the waste": "Koreksi waste",
   "Waste corrected": "Waste berhasil dikoreksi",
   "No change yet": "Belum ada perubahan",

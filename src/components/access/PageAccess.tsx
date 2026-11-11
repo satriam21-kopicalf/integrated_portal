@@ -32,10 +32,27 @@ export function loadRolePages(fresh = false): Promise<RolePages> {
   return rolesPromise;
 }
 
-/** Pages grouped as in the menu. */
+// How a page is named where menus are assigned (2026-11-11): every form in one section "Forms · Operations app" named
+// "Form …", the monitoring of the forms apart from them, the Aggregator marked as in both apps.
+const PICK_LABEL: Partial<Record<PageKey, () => string>> = {
+  'stock-opname': () => tr('Form Stock Opname'), waste: () => tr('Form Waste'),
+  'form.pic-check-in': () => tr('Form PIC Check In'), 'form.surveyor-check-in': () => tr('Form Cost Control Check In'),
+  'form.product': () => tr('Form Product'), 'form.outlet': () => tr('Form Outlet'),
+  'form.damaged-equipment': () => tr('Form Damaged Equipment'), 'form.pengajuan': () => tr('Form Fund Request'),
+  'form.stock-transfer': () => tr('Form Transfer Stock (TITO)'), 'form.wwwr': () => tr('Form WW-WR (SWAT)'),
+};
+function pickGroup(p: PageInfo): string {
+  if (p.key in PICK_LABEL) return tr('Forms · Operations app');
+  if (p.key.startsWith('rating.')) return tr('Aggregator · portal & Operations');
+  if (p.key.startsWith('mon.') && p.group === tr('Operations')) return tr('Monitoring · Operations');
+  return p.group;
+}
+
+/** Pages grouped as in the menu, named for assigning them. */
 function groups(): { group: string; pages: typeof PAGES }[] {
   const out: { group: string; pages: typeof PAGES }[] = [];
-  for (const p of PAGES) {
+  for (const page of PAGES) {
+    const p = { ...page, group: pickGroup(page), label: PICK_LABEL[page.key]?.() ?? page.label } as PageInfo;
     const last = out[out.length - 1];
     if (last && last.group === p.group) last.pages.push(p);
     else out.push({ group: p.group, pages: [p] });
