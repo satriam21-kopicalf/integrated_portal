@@ -17,6 +17,7 @@ import { Menu, Pool, Stock } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
 import { PoolBatches } from "@/cotr/Batches";
 import { PoolWaste } from "@/cotr/PoolWaste";
+import { PoolLedger } from "@/cotr/PoolLedger";
 import { locale, tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
 
@@ -186,6 +187,9 @@ export default function CotrStoragePage() {
           )}
 
           <PoolBatches pool={poolCode} />
+
+          {/* migration 089: the cups per menu at the pool, from the opening stock */}
+          <PoolLedger pool={poolCode} day={day} />
 
           {/* migration 088: the waste and the cupping of this pool / HUB */}
           <PoolWaste pool={poolCode} day={day} />
