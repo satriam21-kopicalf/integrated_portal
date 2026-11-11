@@ -24,7 +24,7 @@ import { downloadXlsx } from "@/lib/xlsx";
 type Lot = { batchNo: string | null; qty: number; expiresOn: string | null };
 type Cell = { opening?: number; transfer?: number; arrived?: number; sold?: number; waste?: number; cupping?: number; calculated?: number;
   actual: number | null; balance?: number | null; expired: number; lots: Lot[] };
-type Day = { day: string; source: "opening" | "app" | "sheet" | "mixed"; rows: Record<string, Cell> };
+type Day = { day: string; source: "opening" | "app" | "sheet" | "esb" | "mixed"; rows: Record<string, Cell> };
 type Ledger = { pool: string; from: string; to: string; start: string | null; menus: { code: string; name: string }[]; days: Day[] };
 
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
@@ -71,7 +71,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
     const header = [tr("Day"), tr("Source"), tr("Menu"), ...FIGURES.map((f) => f.label()), tr("Expired"), tr("Batch & expiry")];
     const rows = days.flatMap((d) => data.menus.map((m) => {
       const c = d.rows[m.code];
-      return [d.day, d.source === "sheet" ? tr("From the workbook") : d.source === "mixed" ? tr("Mixed") : tr("App"), m.name,
+      return [d.day, d.source === "sheet" ? tr("From the workbook") : d.source === "esb" ? tr("From ESB COTR") : d.source === "mixed" ? tr("Mixed") : tr("App"), m.name,
         ...FIGURES.map((f) => (c?.[f.key] as number | null | undefined) ?? null), c?.expired || null,
         (c?.lots ?? []).map((l) => `${l.batchNo ?? "-"}: ${l.qty}${l.expiresOn ? ` (exp ${l.expiresOn})` : ""}`).join(", ") || null];
     }));
@@ -109,6 +109,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                 <header className="flex flex-wrap items-center gap-2 bg-neutral-50 px-3 py-2">
                   <span className="text-sm font-semibold text-neutral-900">{dmyOf(d.day)}</span>
                   {d.source === "sheet" && <Badge tone="violet">{tr("From the workbook")}</Badge>}
+                  {d.source === "esb" && <Badge tone="blue">{tr("From ESB COTR")}</Badge>}
                   {Object.values(d.rows).some((c) => c.actual === null) && <Badge tone="amber">{tr("Not counted yet")}</Badge>}
                   {pool && <span className="ml-auto flex gap-1.5">
                     <Button variant="ghost" onClick={() => setMoves({ day: d.day, kind: "arrived" })}>{tr("Arrived / Transfer")}</Button>

@@ -3,6 +3,7 @@
 
 export type Pool = { code: string; name: string; kind: 'main' | 'parent' | 'storage'; parent_code: string | null; city: string; address: string; storage: string[]; is_active: boolean;
   /** migration 062: the batches are produced here */ is_production?: boolean;
+  /** migration 090: the branch of the ESB company COTR */ esb_branch_code?: string | null;
   latitude: number | null; longitude: number | null; radius_m: number; pic_name: string | null; phone: string | null; open_time: string | null; close_time: string | null; note: string | null };
 export type Fleet = { code: string; name: string | null; type: string; plate: string | null; pool_code: string; capacity: number; condition: 'good' | 'service'; last_service: string | null; is_active: boolean;
   brand: string | null; model: string | null; frame_no: string | null; acquired_on: string | null; qris_bank: string | null; qris_nmid: string | null; qris_merchant: string | null; note: string | null;

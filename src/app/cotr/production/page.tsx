@@ -5,12 +5,13 @@
 // exploded through the BOMs down to raw materials: cup → premix → milk, espresso …) and the waste of the pools.
 
 import { StockTab, ReceiptsTab, CountsTab } from "@/cotr/Stock";
-import { Boxes, ClipboardCheck, PackagePlus, BookOpen, Calculator, CalendarDays, CookingPot, Factory, ListTree, Package, Percent, Trash2, TrendingDown, Truck } from "lucide-react";
+import { Boxes, Building2, ClipboardCheck, PackagePlus, BookOpen, Calculator, CalendarDays, CookingPot, Factory, ListTree, Package, Percent, Trash2, TrendingDown, Truck } from "lucide-react";
 import { BatchesTab } from "@/cotr/Batches";
 import { PoolWaste } from "@/cotr/PoolWaste";
 import { PoolLedger } from "@/cotr/PoolLedger";
 import { ReportArmada } from "@/cotr/ReportArmada";
 import { BatchCodes } from "@/cotr/BatchCodes";
+import { EsbCotr } from "@/cotr/EsbCotr";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Empty, ErrorState, Input } from "@/so/ui";
 import { Page, Panel } from "@/components/kc/compat";
@@ -22,11 +23,11 @@ import { call } from "@/so/features/checkin/checkin";
 import { CalculatorTab, ItemsTab, RecipesTab, UsageTab } from "@/cotr/Recipes";
 import { locale, tr } from "@/lib/i18n";
 
-type Tab = "pool" | "report" | "codes" | "stock" | "receipts" | "counts" | "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
+type Tab = "pool" | "report" | "codes" | "esb" | "stock" | "receipts" | "counts" | "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 
 const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
-  { key: "pool", label: () => tr("Pool Product Stock"), icon: Boxes }, { key: "report", label: () => tr("Report Armada"), icon: ClipboardCheck }, { key: "codes", label: () => tr("Batch Codes"), icon: ListTree },
+  { key: "pool", label: () => tr("Pool Product Stock"), icon: Boxes }, { key: "report", label: () => tr("Report Armada"), icon: ClipboardCheck }, { key: "codes", label: () => tr("Batch Codes"), icon: ListTree }, { key: "esb", label: () => tr("ESB COTR"), icon: Building2 },
   { key: "stock", label: () => tr("Stock"), icon: Boxes }, { key: "receipts", label: () => tr("Goods In"), icon: PackagePlus },
   { key: "counts", label: () => tr("Stock Opname"), icon: ClipboardCheck },
   { key: "items", label: () => tr("Items"), icon: Package }, { key: "recipes", label: () => tr("Recipe Cards"), icon: BookOpen },
@@ -44,6 +45,7 @@ export default function CotrProductionPage() {
       {tab === "pool" && <PoolLedger />}
       {tab === "report" && <ReportArmada />}
       {tab === "codes" && <BatchCodes />}
+      {tab === "esb" && <EsbCotr />}
       {tab === "stock" && <StockTab />}
       {tab === "receipts" && <ReceiptsTab />}
       {tab === "counts" && <CountsTab />}

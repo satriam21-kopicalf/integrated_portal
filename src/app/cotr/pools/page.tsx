@@ -196,6 +196,7 @@ export default function CotrPoolsPage() {
           { key: "close_time", label: tr("Closes"), type: "time", section: tr("Contact & hours") },
           { key: "note", label: tr("Note"), type: "textarea", section: tr("Contact & hours") },
           { key: "is_production", label: tr("Production Hub"), type: "bool", hint: tr("The main hub where the products are made and sent to the pools") },
+          { key: "esb_branch_code", label: tr("ESB branch code"), hint: tr("The branch of the ESB company COTR (e.g. COTR5, KTG, HOF): its sales, transfers and journals fill the product stock") },
         ]} />
     </Page>
   );
