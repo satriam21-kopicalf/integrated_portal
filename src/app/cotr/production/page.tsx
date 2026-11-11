@@ -10,6 +10,7 @@ import { BatchesTab } from "@/cotr/Batches";
 import { PoolWaste } from "@/cotr/PoolWaste";
 import { PoolLedger } from "@/cotr/PoolLedger";
 import { ReportArmada } from "@/cotr/ReportArmada";
+import { BatchCodes } from "@/cotr/BatchCodes";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Empty, ErrorState, Input } from "@/so/ui";
 import { Page, Panel } from "@/components/kc/compat";
@@ -21,11 +22,11 @@ import { call } from "@/so/features/checkin/checkin";
 import { CalculatorTab, ItemsTab, RecipesTab, UsageTab } from "@/cotr/Recipes";
 import { locale, tr } from "@/lib/i18n";
 
-type Tab = "pool" | "report" | "stock" | "receipts" | "counts" | "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
+type Tab = "pool" | "report" | "codes" | "stock" | "receipts" | "counts" | "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 
 const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
-  { key: "pool", label: () => tr("Pool Product Stock"), icon: Boxes }, { key: "report", label: () => tr("Report Armada"), icon: ClipboardCheck },
+  { key: "pool", label: () => tr("Pool Product Stock"), icon: Boxes }, { key: "report", label: () => tr("Report Armada"), icon: ClipboardCheck }, { key: "codes", label: () => tr("Batch Codes"), icon: ListTree },
   { key: "stock", label: () => tr("Stock"), icon: Boxes }, { key: "receipts", label: () => tr("Goods In"), icon: PackagePlus },
   { key: "counts", label: () => tr("Stock Opname"), icon: ClipboardCheck },
   { key: "items", label: () => tr("Items"), icon: Package }, { key: "recipes", label: () => tr("Recipe Cards"), icon: BookOpen },
@@ -42,6 +43,7 @@ export default function CotrProductionPage() {
         tabs={SECTIONS.map((x) => ({ key: x.key, label: <span className="inline-flex items-center gap-1.5"><x.icon size={15} />{x.label()}</span> }))} />
       {tab === "pool" && <PoolLedger />}
       {tab === "report" && <ReportArmada />}
+      {tab === "codes" && <BatchCodes />}
       {tab === "stock" && <StockTab />}
       {tab === "receipts" && <ReceiptsTab />}
       {tab === "counts" && <CountsTab />}
