@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ReactNode } from 'react';
 
 export type Section = { id: string; title: string; body: ReactNode };
-export type Part = { key: 'so' | 'cc' | 'mon' | 'admin'; label: string; icon: ReactNode; intro: string; sections: Section[] };
+export type Part = { key: 'so' | 'cc' | 'mon' | 'cotr' | 'admin'; label: string; icon: ReactNode; intro: string; sections: Section[] };
 
 export function Steps({ items }: { items: ReactNode[] }) {
   return (

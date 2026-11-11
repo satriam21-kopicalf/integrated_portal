@@ -7,7 +7,7 @@ import { Go, Menu, Note, Part, Steps, Table } from './ui';
 
 export const PAGE = {
   title: 'Panduan',
-  subtitle: 'Cara melakukan stock opname, cost control dan penilaian PIC (Monitoring OPS) di portal',
+  subtitle: 'Cara melakukan stock opname, waste, cost control, penilaian PIC (Monitoring OPS) dan Calf On The Road di portal',
   toc: 'Daftar isi',
 };
 
@@ -66,6 +66,7 @@ export const SO: Part = {
             <>Tekan <Menu>Simpan WIP</Menu>. Gram bahan otomatis terisi ke baris item yang sama (tertulis “+ … dari WIP”) dan item itu dianggap sudah terisi, jadi tidak perlu diisi manual. Yang terisi hanya item yang dipakai resep premix; bahan yang tidak ada di daftar muncul di area <b>WIP</b>.</>,
           ]} />
           <Note>Jangan menghitung bahan yang sudah tercampur di premix pada baris bahannya; cukup isi gram premix di bagian WIP. Bila ada stok bahan yang terpisah (mis. susu utuh di chiller), isi di baris itemnya; gram dari premix ditambahkan di atasnya. Hasilnya ikut laporan SO dan ekspor ESB.</Note>
+          <Note tone="warn"><b>WIP wajib disimpan sebelum submit.</b> Tekan <Menu>Simpan WIP</Menu> walaupun tidak ada premix (biarkan kosong atau isi 0). Selama WIP belum disimpan, tombol Submit terkunci dengan keterangan “Simpan WIP dulu”.</Note>
         </>
       ),
     },
@@ -222,6 +223,19 @@ export const CC: Part = {
       ),
     },
     {
+      id: 'cc-waste', title: 'Waste: memantau & mengoreksi',
+      body: (
+        <>
+          <Steps items={[
+            <>Outlet / HUB mengisi waste di form <Menu>Waste</Menu>: setiap SKU wajib kategori dan foto. Satu SKU bisa punya <b>lebih dari satu kategori</b> (tombol <Menu>+ Kategori lain</Menu>), masing-masing dengan jumlahnya sendiri, mis. 2 L Expired + 1 L Tumpah; setiap kategori tersimpan sebagai entri terpisah.</>,
+            <><Go href="/waste">Waste</Go> → mode review: periksa entri per outlet & hari, nilai Rp (pricelist atau HPP ESB) dan fotonya.</>,
+            <><b>Koreksi</b> (tim Cost Control): tombol <Menu>Koreksi</Menu> di setiap entri untuk mengubah jumlah / satuan, item (jenis yang sama), kategori, tanggal waste, production / expired date dan catatan. Alasan wajib diisi.</>,
+            <>Entri yang dikoreksi diberi tanda <b>Dikoreksi</b>; riwayatnya (nilai lama → baru, alasan, siapa, kapan) tampil di bawah entri. Nilai Rp, COGS dan Stock List langsung mengikuti.</>,
+          ]} />
+        </>
+      ),
+    },
+    {
       id: 'cc-rasio', title: 'Rasio Outlet',
       body: (
         <>
@@ -326,7 +340,8 @@ export const ADMIN: Part = {
         <Steps items={[
           <><Go href="/users">Akun Pengguna</Go> → <Menu>Pengguna baru</Menu>. Isi nama, telepon, <b>jabatan</b> & <b>departemen</b> (pilih dari daftar atau ketik nama baru → “Tambahkan … ke daftar”).</>,
           <>Pilih <b>role</b>: User (data cabang yang ditugaskan), Kontrol Biaya (semua cabang + halaman Kontrol Biaya), Super Admin (semua).</>,
-          <><b>Akses halaman</b>: halaman dari role sudah tercentang; centang/hapus centang untuk menambah atau mencabut halaman khusus user ini.</>,
+          <><b>Akses halaman</b>: halaman dari role sudah tercentang; centang/hapus centang untuk menambah atau mencabut halaman khusus user ini. Pilihan dikelompokkan: <b>Forms · Operations app</b> (semua form PIC: Stock Opname, Waste, PIC Check In, Cost Control Check In, Product, Outlet, Damaged Equipment, Fund Request, Transfer Stock, WW-WR), <b>Aggregator</b> (rating GrabFood, Google Maps, dll.), <b>Monitoring</b>, Cost Control dan Calf On The Road.</>,
+          <>Menu di aplikasi Operations mengikuti halaman yang dicentang: form yang dicentang muncul, yang tidak dicentang tidak tampil. User perlu logout dan login lagi setelah aksesnya diubah.</>,
           <><b>Cabang</b> (role User): pilih outlet; untuk HUB WH / HUB CK pilih lokasi tanpa kode ESB. Simpan dan bagikan data login.</>,
         ]} />
       ),

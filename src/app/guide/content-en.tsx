@@ -7,7 +7,7 @@ import { Go, Menu, Note, Part, Steps, Table } from './ui';
 
 export const PAGE = {
   title: 'Guide',
-  subtitle: 'How to run stock opname, cost control and the PIC score (Monitoring OPS) in the portal',
+  subtitle: 'How to run stock opname, waste, cost control, the PIC score (Monitoring OPS) and Calf On The Road in the portal',
   toc: 'Contents',
 };
 
@@ -66,6 +66,7 @@ export const SO: Part = {
             <>Tap <Menu>Save WIP</Menu>. The ingredient grams are filled into the same item lines (shown as “+ … from the WIP”) and those items count as entered, so they need no manual entry. Only the items the premix recipes use are filled; ingredients not on the list appear in the <b>WIP</b> area.</>,
           ]} />
           <Note>Do not count ingredients already mixed into a premix on their own lines; enter the premix grams in the WIP section only. Separate stock of an ingredient (e.g. unopened milk in the chiller) goes on its item line; the premix grams are added on top. The result goes to the SO report and the ESB export.</Note>
+          <Note tone="warn"><b>Save the WIP before submitting.</b> Tap <Menu>Save WIP</Menu> even when there is no premix (leave it empty or 0). Until the WIP is saved, Submit stays locked with “Save the WIP first”.</Note>
         </>
       ),
     },
@@ -222,6 +223,19 @@ export const CC: Part = {
       ),
     },
     {
+      id: 'cc-waste', title: 'Waste: monitoring & correcting',
+      body: (
+        <>
+          <Steps items={[
+            <>Outlets / HUBs enter their waste in the <Menu>Waste</Menu> form: every SKU needs a category and a photo. One SKU can have <b>more than one category</b> (<Menu>+ Another category</Menu>), each with its own quantity, e.g. 2 L Expired + 1 L Spilled; every category is saved as its own entry.</>,
+            <><Go href="/waste">Waste</Go> → review mode: check the entries per outlet & day, the value (pricelist or ESB HPP) and the photos.</>,
+            <><b>Correct</b> (Cost Control): the <Menu>Correct</Menu> button of an entry changes the quantity / unit, the item (same kind), category, waste date, production / expired date and note. A reason is required.</>,
+            <>A corrected entry carries <b>Corrected</b>; its history (old → new, reason, who, when) shows under it. The value, COGS and Stock List follow at once.</>,
+          ]} />
+        </>
+      ),
+    },
+    {
       id: 'cc-rasio', title: 'Outlet ratio',
       body: (
         <>
@@ -326,7 +340,8 @@ export const ADMIN: Part = {
         <Steps items={[
           <><Go href="/users">User Accounts</Go> → <Menu>New user</Menu>. Enter the name, phone, <b>job title</b> & <b>department</b> (pick from the list or type a new name → “Add … to the list”).</>,
           <>Choose the <b>role</b>: User (data of the assigned branches), Cost Control (every branch + the Cost Control pages), Super Admin (everything).</>,
-          <><b>Page access</b>: the role’s pages are ticked; tick/untick to add or remove pages for this user only.</>,
+          <><b>Page access</b>: the role’s pages are ticked; tick/untick to add or remove pages for this user only. The choices are grouped: <b>Forms · Operations app</b> (every PIC form: Stock Opname, Waste, PIC Check In, Cost Control Check In, Product, Outlet, Damaged Equipment, Fund Request, Transfer Stock, WW-WR), <b>Aggregator</b> (GrabFood, Google Maps … ratings), <b>Monitoring</b>, Cost Control and Calf On The Road.</>,
+          <>The Operations app shows the pages ticked: a ticked form appears, an unticked one does not. The user signs out and in again after a change.</>,
           <><b>Branches</b> (User role): pick outlets; for HUB WH / HUB CK pick the location without an ESB code. Save and share the login.</>,
         ]} />
       ),

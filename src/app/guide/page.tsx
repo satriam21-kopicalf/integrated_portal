@@ -12,6 +12,7 @@ import { useLang } from '@/lib/i18n';
 import { CC_PAGES } from '@/lib/pages';
 import * as EN from './content-en';
 import * as ID from './content-id';
+import { COTR_EN, COTR_ID } from './content-cotr';
 import type { Part } from './ui';
 
 export default function GuidePage() {
@@ -25,6 +26,8 @@ export default function GuidePage() {
     if (hasPage(user, 'stock-opname')) out.push(SO);
     if (user.role === 'superadmin' || CC_PAGES.some(p => hasPage(user, p))) out.push(CC);
     if (hasPage(user, 'mon.overview') || hasPage(user, 'mon.branch-groups')) out.push(MON);
+    // Calf On The Road (2026-11-11): every account opening a COTR page
+    if (user.role === 'superadmin' || user.pages.some(p => p.startsWith('cotr.'))) out.push(lang === 'en' ? COTR_EN : COTR_ID);
     if (user.role === 'superadmin') out.push(ADMIN);
     return out.length ? out : [SO];
   }, [user, lang]);
