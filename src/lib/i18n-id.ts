@@ -6117,4 +6117,7 @@ export const ID: Record<string, string> = {
   "{0} workbooks saved": "{0} workbook tersimpan",
   "All pools added up; choose a pool to enter": "Semua pool dijumlahkan; pilih satu pool untuk mengisi data",
   "added up": "dijumlahkan",
+  "App": "Aplikasi",
+  "Armada (sheet)": "Armada (sheet)",
+  "Mixed": "Campuran",
 };

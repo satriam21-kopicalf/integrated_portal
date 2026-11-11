@@ -5,9 +5,9 @@
 // T (sold) and its total at the menu price; then the QRIS, the cash, the cash counted and the operational costs (the
 // requests). Days before the app come from the imported workbooks.
 
-import { ClipboardList, Search } from "lucide-react";
+import { ClipboardList, Download, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, ErrorState, Field, Input, Select, cx } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, Select, cx, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
@@ -16,6 +16,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
 import { rupiah, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
+import { downloadXlsx } from "@/lib/xlsx";
 
 type Line = { b: number; s: number | null; c: number; w: number; t: number; total: number };
 type DayRow = { day: string; status: string; lines: Record<string, Line>; total: number; cash: number; qris: number; operational: number;
@@ -50,6 +51,19 @@ export function ReportArmada() {
   const all = drivers.flatMap((d) => d.days);
   const sum = (f: (x: DayRow) => number) => all.reduce((a, x) => a + f(x), 0);
   const menus = data?.menus ?? [];
+  const toast = useToast();
+  const poolName = (code?: string) => (code ? usable.find((p) => p.code === code)?.name ?? code : "");
+  /** the report as the sheet: a row per driver and day, B / S / C / W / T per menu, then the money */
+  const exportXlsx = () => {
+    const header = [tr("Pool / HUB"), tr("Driver"), tr("Armada (sheet)"), tr("Day"), tr("Source"),
+      ...menus.flatMap((m) => ["B", "S", "C", "W", "T"].map((h) => `${m.name} ${h}`)), tr("Total"), "QRIS", tr("Cash"), tr("Actual Cash"), tr("Operational"), tr("Note")];
+    const rows = drivers.flatMap((d) => d.days.map((x) => [poolName(d.pool), d.name, d.label ?? "", x.day,
+      x.status === "sheet" ? tr("From the workbook") : x.status === "open" ? tr("On the road") : tr("App"),
+      ...menus.flatMap((m) => { const l = x.lines[m.code]; return l ? [l.b, l.s, l.c, l.w, l.t] : [null, null, null, null, null]; }),
+      x.total, x.qris || null, x.cash, x.cashActual, x.operational || null, x.operationalNote ?? null]));
+    downloadXlsx({ fileName: `Report Armada ${poolName(pool) || tr("All pools")} ${from} - ${to}`, sheet: "Report Armada",
+      title: `Report Armada · ${poolName(pool) || tr("All pools")} · ${dmyOf(from)} – ${dmyOf(to)}`, header, rows }).catch((e: Error) => toast(e.message, "error"));
+  };
   return (
     <>
       <div className="flex flex-wrap items-end gap-3">
@@ -60,6 +74,7 @@ export function ReportArmada() {
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search driver")} className="pl-8" />
         </label>
+        <Button variant="secondary" disabled={!drivers.length} onClick={exportXlsx}><Download size={15} /> {tr("Export Excel")}</Button>
       </div>
       <StatGrid label={tr("Summary")} cols={4}>
         <StatCard label={tr("Cups sold")} tone="brand" value={sum((x) => Object.values(x.lines).reduce((a, l) => a + l.t, 0))} sub={tr("{0} driver days", all.length)} />

@@ -7,7 +7,7 @@
 // received (plus what is entered), Waste and Cupping from the drivers' check out and the pool; days imported from the
 // workbooks keep the figures of the sheet. On Storage & Production (any pool) and Storage & Assignment (the pool chosen).
 
-import { AlertTriangle, Boxes, FileSpreadsheet, PackageOpen, Plus, Save, Trash2, Truck } from "lucide-react";
+import { AlertTriangle, Boxes, Download, FileSpreadsheet, PackageOpen, Plus, Save, Trash2, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, Select, cx, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
@@ -19,11 +19,12 @@ import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
 import { useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
+import { downloadXlsx } from "@/lib/xlsx";
 
 type Lot = { batchNo: string | null; qty: number; expiresOn: string | null };
 type Cell = { opening?: number; transfer?: number; arrived?: number; sold?: number; waste?: number; cupping?: number; calculated?: number;
   actual: number | null; balance?: number | null; expired: number; lots: Lot[] };
-type Day = { day: string; source: "opening" | "app" | "sheet"; rows: Record<string, Cell> };
+type Day = { day: string; source: "opening" | "app" | "sheet" | "mixed"; rows: Record<string, Cell> };
 type Ledger = { pool: string; from: string; to: string; start: string | null; menus: { code: string; name: string }[]; days: Day[] };
 
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
@@ -62,6 +63,21 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
   const days = (data?.days ?? []).filter((d) => d.source !== "opening");
   const short = days.flatMap((d) => Object.entries(d.rows).filter(([, c]) => (c.calculated ?? 0) < 0).map(([m]) => m));
   const menuName = (code: string) => data?.menus.find((m) => m.code === code)?.name ?? code;
+  const toast = useToast();
+  const poolLabel = pool ? usable.find((p) => p.code === pool)?.name ?? pool : tr("All pools");
+  /** the sheet Product of the period: a row per day and menu, the batches of the physical leftover in the last column */
+  const exportXlsx = () => {
+    if (!data) return;
+    const header = [tr("Day"), tr("Source"), tr("Menu"), ...FIGURES.map((f) => f.label()), tr("Expired"), tr("Batch & expiry")];
+    const rows = days.flatMap((d) => data.menus.map((m) => {
+      const c = d.rows[m.code];
+      return [d.day, d.source === "sheet" ? tr("From the workbook") : d.source === "mixed" ? tr("Mixed") : tr("App"), m.name,
+        ...FIGURES.map((f) => (c?.[f.key] as number | null | undefined) ?? null), c?.expired || null,
+        (c?.lots ?? []).map((l) => `${l.batchNo ?? "-"}: ${l.qty}${l.expiresOn ? ` (exp ${l.expiresOn})` : ""}`).join(", ") || null];
+    }));
+    downloadXlsx({ fileName: `Product ${poolLabel} ${from} - ${to}`, sheet: "Product", title: `Product · ${poolLabel} · ${dmyOf(from)} – ${dmyOf(to)}`, header, rows })
+      .catch((e: Error) => toast(e.message, "error"));
+  };
   return (
     <>
       {!embedded && (
@@ -70,6 +86,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
           <Field label={tr("Until")}><Input type="date" value={toSel} max={todayWib()} onChange={(e) => setToSel(e.target.value)} /></Field>
           <Field label={tr("Days")}><Select value={String(span)} onChange={(e) => setSpan(Number(e.target.value))}>{[1, 3, 7, 14, 31].map((n) => <option key={n} value={n}>{tr("{0} days", n)}</option>)}</Select></Field>
           <Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={15} /> {tr("Import workbook")}</Button>
+          <Button variant="secondary" disabled={!days.length} onClick={exportXlsx}><Download size={15} /> {tr("Export Excel")}</Button>
         </div>
       )}
       <Panel title={tr("Product stock of the pool")}
