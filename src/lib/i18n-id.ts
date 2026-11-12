@@ -6187,4 +6187,7 @@ export const ID: Record<string, string> = {
   "Search name, nickname or employee code": "Cari nama, panggilan atau kode karyawan",
   "No employee found: add them in Master Driver first": "Karyawan tidak ditemukan: tambahkan dulu di Master Driver",
   "has {0}": "sudah punya {0}",
+  "Same as ESB": "Samakan dengan ESB",
+  "Recipe cards and items are the same as ESB COTR now": "Kartu resep dan item sudah sama dengan ESB COTR",
+  "From ESB COTR: {0} recipe cards ({1} premix), {2} items; menus: {3}": "Dari ESB COTR: {0} kartu resep ({1} premix), {2} item; menu: {3}",
 };

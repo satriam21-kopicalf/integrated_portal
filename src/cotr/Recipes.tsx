@@ -125,8 +125,11 @@ export function RecipesTab() {
   const covered = active.filter((m) => m.bom_code && rows.some((b) => b.code === m.bom_code)).length;
   return (
     <>
-      <Segmented label={tr('View')} value={view} onChange={setView} options={[
-        { value: 'menus', label: tr('Per Menu ({0}/{1})', covered, active.length) }, { value: 'list', label: tr('Recipes ({0})', rows.length) }]} />
+      <div className="flex flex-wrap items-center gap-3">
+        <Segmented label={tr('View')} value={view} onChange={setView} options={[
+          { value: 'menus', label: tr('Per Menu ({0}/{1})', covered, active.length) }, { value: 'list', label: tr('Recipes ({0})', rows.length) }]} />
+        <EsbRecipes onDone={() => { void boms.load(); void items.load(); void menus.load(); }} />
+      </div>
       {view === 'menus' && <Panel title={tr('Recipe Card per Menu')} description={tr('Every product the drivers sell needs its card: the sales become the usage of the raw materials, the production plan and the HPP')}
         actions={<Badge tone={covered === active.length ? 'green' : 'amber'}>{tr('{0} of {1} menus', covered, active.length)}</Badge>}>
         {active.length === 0 ? <Empty title={tr('No active menu yet')} /> : (
@@ -410,5 +413,31 @@ export function UsageTab() {
         </Panel>
       )}
     </>
+  );
+}
+
+
+type EsbSummary = { items: number; cards: number; premix: number; menus: Record<string, string>; saved?: boolean };
+
+/** The recipe cards and items made the same as ESB COTR (2026-11-12, the request of the COTR team): checked, then applied. */
+function EsbRecipes({ onDone }: { onDone: () => void }) {
+  const toast = useToast();
+  const [check, setCheck] = useState<EsbSummary | null>(null);
+  const [busy, setBusy] = useState(false);
+  const run = async (apply: boolean) => {
+    setBusy(true);
+    try {
+      const out = await call<EsbSummary>('/api/cotr/esb/sync-recipes', { method: 'POST', json: { apply } });
+      if (apply) { toast(tr('Recipe cards and items are the same as ESB COTR now')); setCheck(null); onDone(); } else setCheck(out);
+    } catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
+  };
+  if (!check) return <Button variant="secondary" loading={busy} onClick={() => void run(false)}><FlaskConical size={15} /> {tr('Same as ESB')}</Button>;
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-200 bg-brand-50/60 px-3 py-2 text-xs text-brand-900">
+      <span>{tr('From ESB COTR: {0} recipe cards ({1} premix), {2} items; menus: {3}', check.cards, check.premix, check.items,
+        Object.entries(check.menus).map(([m, c]) => `${m} → ${c}`).join(', ') || '—')}</span>
+      <Button size="sm" variant="ghost" onClick={() => setCheck(null)}>{tr('Cancel')}</Button>
+      <Button size="sm" loading={busy} onClick={() => void run(true)}><Save size={14} /> {tr('Apply')}</Button>
+    </div>
   );
 }
