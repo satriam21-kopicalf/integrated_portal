@@ -124,7 +124,10 @@ export default function UsersPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
 
-  const allowed = me?.role === 'superadmin';
+  // a COTR admin (2026-11-13) manages the accounts of the COTR line only: that tab, no role / platform / master settings
+  const cotrAdmin = me?.role === 'cotr_admin';
+  const allowed = me?.role === 'superadmin' || cotrAdmin;
+  useEffect(() => { if (cotrAdmin) setLine('cotr'); }, [cotrAdmin]);
   useEffect(() => {
     if (!allowed) return;
     // ESB branches of every brand (Kopi Calf, Wasgee Tea from its own ESB company) + sites without an ESB branch
@@ -217,7 +220,7 @@ export default function UsersPage() {
       { label: tr('View Details'), icon: <Eye size={16} />, onSelect: () => setViewing(u) },
       { label: tr('Edit'), icon: <Pencil size={16} />, onSelect: () => setEditing(u) },
       ...(u.isLocked ? [{ label: tr('Unlock'), icon: <Unlock size={16} />, onSelect: () => unlock(u) }] : []),
-      { label: tr('Activity Log'), icon: <History size={16} />, onSelect: () => router.push(`/activity?user=${u.id}`) },
+      ...(cotrAdmin ? [] : [{ label: tr('Activity Log'), icon: <History size={16} />, onSelect: () => router.push(`/activity?user=${u.id}`) }]),
       {
         label: tr('Delete'), icon: <Trash2 size={16} />, onSelect: () => setDeleting(u), danger: true, separated: true,
         disabled: isMe, hint: isMe ? tr('You cannot delete your own account') : undefined,
@@ -242,7 +245,7 @@ export default function UsersPage() {
   }
 
   const s = summary;
-  const lineTabs = LINES.map(l => ({
+  const lineTabs = LINES.filter(l => !cotrAdmin || l.key === 'cotr').map(l => ({
     key: l.key, title: l.label, count: s?.lines ? formatNumber(s.lines[l.key] ?? 0) : undefined,
     // the logo only (2026-11-02); the name is the label
     // eslint-disable-next-line @next/next/no-img-element
@@ -253,9 +256,11 @@ export default function UsersPage() {
       <PageShell>
         <PageHeader title={tr('User Accounts')} subtitle={tr('Sign-in, role and branch access of every dashboard user')} eyebrow={tr('Management')}
           actions={<>
-            <IconButton label={tr('Roles & Pages')} onClick={() => setPanel('roles')}><LayoutGrid size={17} strokeWidth={1.75} /></IconButton>
-            <IconButton label={tr('Menus per Platform')} onClick={() => setPanel('platforms')}><MonitorSmartphone size={17} strokeWidth={1.75} /></IconButton>
-            <IconButton label={tr('Job Titles & Departments')} onClick={() => setPanel('masters')}><Briefcase size={17} strokeWidth={1.75} /></IconButton>
+            {!cotrAdmin && <>
+              <IconButton label={tr('Roles & Pages')} onClick={() => setPanel('roles')}><LayoutGrid size={17} strokeWidth={1.75} /></IconButton>
+              <IconButton label={tr('Menus per Platform')} onClick={() => setPanel('platforms')}><MonitorSmartphone size={17} strokeWidth={1.75} /></IconButton>
+              <IconButton label={tr('Job Titles & Departments')} onClick={() => setPanel('masters')}><Briefcase size={17} strokeWidth={1.75} /></IconButton>
+            </>}
             <button type="button" className={btn('solid')} onClick={() => setEditing('new')}><Plus size={15} /> {tr('New User')}</button>
           </>} />
 
@@ -411,7 +416,7 @@ function Avatar({ user }: { user: AuthUser }) {
   return <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" />;
 }
 
-const ROLE_TONE: Record<Role, PillTone> = { superadmin: 'red', cost_control: 'amber', outlet: 'teal', driver: 'violet', user: 'brand' };
+const ROLE_TONE: Record<Role, PillTone> = { superadmin: 'red', cost_control: 'amber', outlet: 'teal', driver: 'violet', user: 'brand', cotr_admin: 'red' };
 
 function RoleBadge({ role }: { role: Role }) {
   return <Pill tone={ROLE_TONE[role] ?? 'brand'} icon={role === 'superadmin' ? <ShieldCheck size={12} /> : undefined}>{ROLE_LABELS[role] ?? role}</Pill>;
@@ -509,7 +514,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
   const cotrMode = businessLine === 'cotr' && form.role !== 'superadmin' && form.role !== 'cost_control';
   const pickKind = (k: CotrKind) => {
     setCotrKind(k);
-    setForm(f => ({ ...f, role: k === 'driver' ? 'driver' : 'user' }));
+    setForm(f => ({ ...f, role: k === 'driver' ? 'driver' : k === 'admin' ? 'cotr_admin' : 'user' }));
     if (k !== 'custom') setPageOverrides(cotrOverrides(k, userRolePages));
     if (cotrEmployee && creating) {
       const name = usernameOf(k, cotrEmployee);
@@ -684,7 +689,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={tr('Business Line')} htmlFor="f-line" error={fieldError('businessLine')} hint={tr('The tab of User Accounts the account is listed in; its branches are of this line')}>
-              <select id="f-line" value={businessLine} onChange={e => { const v = e.target.value as BusinessLine; setBusinessLine(v); setBranchCodes([]); if (v === 'cotr' && creating) pickKind('driver'); else if (form.role === 'driver') set('role', 'user'); }} className={inputClass}>
+              <select id="f-line" value={businessLine} disabled={me?.role === 'cotr_admin'} onChange={e => { const v = e.target.value as BusinessLine; setBusinessLine(v); setBranchCodes([]); if (v === 'cotr' && creating) pickKind('driver'); else if (form.role === 'driver') set('role', 'user'); }} className={inputClass}>
                 {LINES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
               </select>
             </Field>

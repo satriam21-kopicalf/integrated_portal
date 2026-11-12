@@ -2,19 +2,19 @@
 
 // User Accounts → Calf On The Road (2026-11-12): an account of the COTR team is made from its employee in Master Driver
 // (name, phone, position and department filled from it; the account is tied to the employee) and a kind of account that
-// sets the role and the COTR pages: Driver (the driver app), Storage / Stockist HUB, Pool Leader, COTR Management, or
-// Custom (the page access by hand). No ESB branches: the COTR team works with pools.
+// sets the role and the COTR pages: Driver (the driver app), Storage / Stockist HUB, Pool Leader, COTR Management, COTR
+// Admin (every COTR page and the user accounts of the COTR line, migration 099), or Custom (the page access by hand). No ESB branches: the COTR team works with pools.
 
 import { Search, UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { tr } from '@/lib/i18n';
 
-export type CotrKind = 'driver' | 'storage' | 'leader' | 'management' | 'custom';
+export type CotrKind = 'driver' | 'storage' | 'leader' | 'management' | 'admin' | 'custom';
 export type CotrEmployee = { code: string; name: string; nickname: string | null; phone: string | null; pool: string | null; poolName: string | null;
   department: string | null; position: string | null; username?: string | null };
 
 /** the COTR pages each kind opens (on top of none of the role user's own pages) */
-export const COTR_KIND_PAGES: Record<Exclude<CotrKind, 'driver' | 'custom'>, string[]> = {
+export const COTR_KIND_PAGES: Record<Exclude<CotrKind, 'driver' | 'admin' | 'custom'>, string[]> = {
   storage: ['cotr.storage', 'guide'],
   leader: ['cotr.storage', 'cotr.check-in', 'guide'],
   management: ['cotr.check-in', 'cotr.storage', 'cotr.production', 'cotr.drivers', 'cotr.fleet', 'cotr.pools', 'cotr.menu', 'cotr.schedule',
@@ -25,12 +25,13 @@ export const COTR_KINDS: { key: CotrKind; label: () => string; hint: () => strin
   { key: 'storage', label: () => tr('Storage / Stockist HUB'), hint: () => tr('Portal: Storage & Assignment of the pools (assign, receive, physical leftover, waste & cupping)'), prefix: 'cotr.' },
   { key: 'leader', label: () => tr('Pool Leader'), hint: () => tr('Portal: Storage & Assignment and Driver Check In'), prefix: 'cotr.' },
   { key: 'management', label: () => tr('COTR Management'), hint: () => tr('Portal: every COTR menu, the salaries and bank accounts included'), prefix: 'cotr.' },
+  { key: 'admin', label: () => tr('COTR Admin'), hint: () => tr('Portal: every COTR menu and the user accounts of the COTR line'), prefix: 'cotr.' },
   { key: 'custom', label: () => tr('Custom'), hint: () => tr('Choose the pages by hand below'), prefix: 'cotr.' },
 ];
 
 /** the page exceptions of a kind: every page of the role user off, the COTR pages of the kind on */
 export function cotrOverrides(kind: CotrKind, userRolePages: string[]): Record<string, boolean> {
-  if (kind === 'driver' || kind === 'custom') return {};
+  if (kind === 'driver' || kind === 'admin' || kind === 'custom') return {};
   const on = new Set(COTR_KIND_PAGES[kind]);
   const out: Record<string, boolean> = {};
   for (const p of userRolePages) if (!on.has(p)) out[p] = false;
@@ -41,6 +42,7 @@ export function cotrOverrides(kind: CotrKind, userRolePages: string[]): Record<s
 /** the kind an existing account is, from its role and pages */
 export function kindOf(role: string, pages: string[] | undefined): CotrKind {
   if (role === 'driver') return 'driver';
+  if (role === 'cotr_admin') return 'admin';
   const has = new Set(pages ?? []);
   const match = (k: keyof typeof COTR_KIND_PAGES) => COTR_KIND_PAGES[k].filter(p => p.startsWith('cotr.')).every(p => has.has(p))
     && [...has].filter(p => p.startsWith('cotr.')).every(p => COTR_KIND_PAGES[k].includes(p));
