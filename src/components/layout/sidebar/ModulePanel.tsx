@@ -7,7 +7,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { BookOpen, ChevronRight, X } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { cx } from '@/components/kc';
 import { canAccess, useAuth } from '@/lib/auth';
 import { tr } from '@/lib/i18n';
@@ -21,6 +21,7 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
   const { user } = useAuth();
   const guide = !!user && canAccess(user, '/guide');
   const [open, setOpen] = useState(false);
+  const [closedByUser, setClosedByUser] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -28,7 +29,7 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
 
   // beside the sidebar on desktop, centred below 1024 px
   useLayoutEffect(() => {
-    if (!open) return;
+    if (!open || onNavigate) return;
     const place = () => {
       const r = button.current?.getBoundingClientRect();
       const h = panel.current?.offsetHeight ?? 420;
@@ -39,9 +40,9 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
     place();
     window.addEventListener('resize', place);
     return () => window.removeEventListener('resize', place);
-  }, [open]);
+  }, [open, onNavigate]);
   useEffect(() => {
-    if (!open) return;
+    if (!open || onNavigate) return;
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); button.current?.focus(); } };
     const down = (e: MouseEvent) => {
       const t = e.target as Node;
@@ -50,8 +51,8 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
     document.addEventListener('keydown', key);
     document.addEventListener('mousedown', down);
     return () => { document.removeEventListener('keydown', key); document.removeEventListener('mousedown', down); };
-  }, [open]);
-  useEffect(() => { if (open) panel.current?.querySelector<HTMLElement>('a[aria-current="page"], a')?.focus(); }, [open]);
+  }, [open, onNavigate]);
+  useEffect(() => { if (open && !onNavigate) panel.current?.querySelector<HTMLElement>('a[aria-current="page"], a')?.focus(); }, [open, onNavigate]);
 
   // stock opname waiting for a decision, on Review (only for those who open Review)
   const [waiting, setWaiting] = useState<number | null>(null);
@@ -95,12 +96,12 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
               <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{section.title}</span>
               <span className="truncate text-[11px] text-neutral-400">{section.hint}</span>
             </p>
-            <ul className={cx('grid gap-2 sm:grid-cols-2', wide && 'lg:grid-cols-3')}>
+            <ul className={cx('grid grid-cols-1 gap-2 sm:grid-cols-2', wide && 'lg:grid-cols-3')}>
               {section.items.map((item) => {
                 const ItemIcon = item.icon;
                 const on = under(pathname, item.href);
                 return (
-                  <li key={item.href}>
+                  <li key={item.href} className="min-w-0">
                     <Link href={item.href} onClick={go} role="menuitem" aria-current={on ? 'page' : undefined}
                       className={cx('group flex items-center gap-3 rounded-xl border px-3 py-2.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-200',
                         on ? 'border-brand-200 bg-brand-50' : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50')}>
@@ -138,6 +139,58 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
       </div>
     </div>
   );
+
+  // phones / the PWA (the sidebar is a drawer): the pages open inside the drawer as an accordion, not a popup over it
+  // (2026-11-12: Monitoring COTR has more than 12 pages and the centred popup was cramped above the drawer)
+  if (onNavigate) {
+    const expanded = open || (!!current && !closedByUser);
+    return (
+      <div>
+        <button type="button" onClick={() => { if (expanded) { setOpen(false); setClosedByUser(true); } else { setOpen(true); setClosedByUser(false); } }}
+          aria-expanded={expanded} className={entryClass(!!current || expanded, false)}>
+          <Icon size={17} strokeWidth={1.9} className={entryIcon(!!current || expanded)} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate">{config.label}</span>
+            {current && !expanded && <span className="block truncate text-[11px] font-normal text-neutral-400">{current.name}</span>}
+          </span>
+          <ChevronDown size={15} className={cx('flex-shrink-0 text-neutral-400 transition-transform duration-200', expanded && 'rotate-180')} />
+        </button>
+        {expanded && (
+          <div className="mb-2 ml-3 mt-1 space-y-3 border-l border-neutral-200 pl-2.5">
+            {sections.map((section) => (
+              <div key={section.title}>
+                {sections.length > 1 && <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">{section.title}</p>}
+                <ul className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const ItemIcon = item.icon;
+                    const on = under(pathname, item.href);
+                    return (
+                      <li key={item.href}>
+                        <Link href={item.href} onClick={go} aria-current={on ? 'page' : undefined}
+                          className={cx('flex min-h-[44px] items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] transition-colors',
+                            on ? 'bg-white font-semibold text-brand-800 shadow-sm ring-1 ring-brand-100' : 'text-neutral-700 active:bg-neutral-200/60')}>
+                          {item.logo ? (
+                            // eslint-disable-next-line @next/next/no-img-element -- small brand logo from public/assets
+                            <img src={item.logo} alt="" className="h-4 w-8 flex-shrink-0 object-contain" />
+                          ) : (
+                            <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md', on ? 'bg-brand-700 text-white' : 'bg-white text-neutral-500 ring-1 ring-neutral-200')}>
+                              <ItemIcon size={14} strokeWidth={1.9} />
+                            </span>
+                          )}
+                          <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                          {item.soon && <span className="rounded bg-neutral-100 px-1.5 py-px text-[10px] font-semibold uppercase text-neutral-500">{tr('Soon')}</span>}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
