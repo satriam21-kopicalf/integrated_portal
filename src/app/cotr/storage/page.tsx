@@ -5,7 +5,7 @@
 // settles the differences a driver reports (the final cups = the start stock of the shift), and decides the reloads:
 // approve with the cups sent (fewer when short) or reject, then settle a difference found on arrival.
 
-import { AlertTriangle, Building2, CalendarDays, Check, ClipboardCopy, Coffee, PackagePlus, Save, Send, Sparkles, UserRound, Warehouse, X } from "lucide-react";
+import { ChevronDown, AlertTriangle, Building2, CalendarDays, Check, ClipboardCopy, Coffee, PackagePlus, Save, Send, Sparkles, UserRound, Warehouse, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Input, cx, useToast } from "@/so/ui";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
@@ -79,6 +79,8 @@ export default function CotrStoragePage() {
   const poolCode = hub ?? pool;  // "" = every pool (the default)
   const [status, setStatus] = useState<DriverFilter>("");
   const [q, setQ] = useState("");
+  // #17: on phones a driver card folds; the ones still to assign open by themselves
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
   const [sheet, setSheet] = useState(false);
   const [draftF, setDraftF] = useState({ pool: "", day: todayWib(), status: "" as DriverFilter });
   useEffect(() => { if (sheet) setDraftF({ pool: poolCode, day, status }); }, [sheet]); // eslint-disable-line react-hooks/exhaustive-deps -- the values when the drawer opens
@@ -238,16 +240,25 @@ export default function CotrStoragePage() {
                   const shown = can ? plan : planOf(r.dispatch);
                   const st = r.dispatch ? STATUS[r.dispatch.status] : null;
                   const a = r.advice;
+                  const open = opened[r.code] ?? (can && (!r.dispatch || changed(r)));
+                  const total = cups(shown.sell) + cups(shown.cupping);
                   return (
                     <li key={r.code} className={cx("rounded-xl border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-neutral-200")}>
-                      <div className="flex items-start gap-3 border-b border-neutral-100 px-4 py-3">
+                      <div role="button" tabIndex={0} aria-expanded={open} onClick={() => setOpened((o) => ({ ...o, [r.code]: !open }))}
+                        onKeyDown={(e) => { if (e.key === "Enter") setOpened((o) => ({ ...o, [r.code]: !open })); }}
+                        className={cx("flex cursor-pointer items-start gap-3 px-4 py-3 sm:cursor-default", open ? "border-b border-neutral-100" : "border-b border-neutral-100 max-sm:border-b-0")}>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold text-neutral-900">{r.name}</p>
                           <p className="text-[11px] text-neutral-500">{[r.nickname, r.fleet ?? r.code].filter(Boolean).join(" · ")}</p>
+                          <span className="mt-1 block sm:hidden">{r.shift ? <Badge tone="green" dot>{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Badge>
+                          : st ? <Badge tone={st.tone}>{st.label()}</Badge> : <Badge tone="slate">{tr("Not assigned")}</Badge>}</span>
                         </div>
-                        {r.shift ? <Badge tone="green" dot>{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Badge>
-                          : st ? <Badge tone={st.tone}>{st.label()}</Badge> : <Badge tone="slate">{tr("Not assigned")}</Badge>}
+                        {total > 0 && <span className="flex-shrink-0 pt-0.5 text-sm font-bold tabular-nums text-neutral-900 sm:hidden">{tr("{0} cups", total)}</span>}
+                        <ChevronDown size={16} className={cx("mt-0.5 flex-shrink-0 text-neutral-400 transition-transform sm:hidden", open && "rotate-180")} />
+                        <span className="max-sm:hidden">{r.shift ? <Badge tone="green" dot>{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Badge>
+                          : st ? <Badge tone={st.tone}>{st.label()}</Badge> : <Badge tone="slate">{tr("Not assigned")}</Badge>}</span>
                       </div>
+                      <div className={cx(!open && "max-sm:hidden")}>
                       {a && (
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-neutral-50/70 px-4 py-2 text-[11px] text-neutral-600">
                           <span className="inline-flex items-center gap-1 font-medium text-neutral-700"><Sparkles size={12} className="text-violet-600" />
@@ -291,6 +302,7 @@ export default function CotrStoragePage() {
                           </tr>
                         </tfoot>
                       </table>
+                      </div>
                     </li>
                   );
                 })}
