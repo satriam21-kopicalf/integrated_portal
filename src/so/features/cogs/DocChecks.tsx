@@ -3,7 +3,7 @@
 // Unusual ESB documents (COGS & Usage, 2026-11-12; integrated_portal_be app/doc_checks.py, migration 097): the lines of
 // the documents that move the stock of an outlet whose quantity is 20× the usual one or more (or that much less) — TGP04
 // entered its espresso production in KG instead of GR, ~Rp 2.6 bn of "unexplained" usage. Cost Control corrects the
-// quantity here with a reason (ESB stays as it is) and the COGS, the Sales Calculator and the Stock List use it; a goods
+// quantity here with a reason (the portal's figure from then on; ESB stays as it is) and the COGS, the Sales Calculator and the Stock List use it; a goods
 // receipt is corrected on its own page.
 
 import { FileWarning, Pencil, Undo2 } from "lucide-react";
@@ -16,7 +16,9 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 
-type Fix = { id: number; newQty: number; oldQty: number; reason: string; by: string | null; at: string };
+/** the portal keeps the corrected quantity whatever ESB holds now: esbChanged = ESB changed since (fixed there, or else);
+ * docGone = the document was cancelled / deleted in ESB, the correction no longer counts */
+type Fix = { id: number; newQty: number; oldQty: number; reason: string; by: string | null; at: string; esbNow: number | null; esbChanged: boolean; docGone: boolean };
 export type DocLine = {
   module: string; lineType: string; kind: string; docNum: string; docDate: string; status: string | null; branch: string; branchName: string;
   code: string; name: string; uom: string; qty: number; baseQty: number; unit: string; usual: number; samples: number; factor: number | null;
@@ -88,7 +90,9 @@ export default function DocChecks({ from, to, onChanged }: { from: string; to: s
                   <td className="px-3 py-2.5">
                     {l.fix ? (
                       <div className="text-xs">
-                        <Badge tone="green">{tr("Corrected to {0} {1}", num(l.fix.newQty), l.uom)}</Badge>
+                        {l.fix.docGone ? <Badge tone="slate">{tr("Cancelled in ESB · not counted")}</Badge>
+                          : <Badge tone="green">{tr("Corrected to {0} {1}", num(l.fix.newQty), l.uom)}</Badge>}
+                        {l.fix.esbChanged && l.fix.esbNow != null && <span className="mt-0.5 block text-amber-700">{tr("ESB changed since: now {0}", num(l.fix.esbNow))}</span>}
                         <span className="mt-0.5 block text-neutral-500" title={l.fix.reason}>{l.fix.by} · {wibDateTime(l.fix.at)}</span>
                         <button type="button" onClick={() => setUndo(l)} className="mt-0.5 inline-flex items-center gap-1 text-neutral-500 hover:text-red-700"><Undo2 size={12} />{tr("Cancel")}</button>
                       </div>
@@ -137,7 +141,7 @@ function FixDialog({ line, onClose, onDone }: { line: DocLine; onClose: () => vo
         <label className="block text-sm font-medium text-neutral-700">{tr("Reason")}
           <input value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} className={cx(inputClass, "mt-1 h-10")} />
         </label>
-        <p className="text-[11px] text-neutral-500">{tr("ESB stays as it is: correct the document in ESB as well so both agree.")}</p>
+        <p className="text-[11px] text-neutral-500">{tr("The portal uses this quantity from now on, also when ESB is fixed later; ESB itself is not changed.")}</p>
       </div>
     </Dialog>
   );

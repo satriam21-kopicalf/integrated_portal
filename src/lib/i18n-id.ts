@@ -6470,4 +6470,7 @@ export const ID: Record<string, string> = {
   "{0} waste entries in 60 days": "{0} entri waste dalam 60 hari",
   "ESB HPP {0}": "HPP ESB {0}",
   "Set price": "Isi harga",
+  "Cancelled in ESB · not counted": "Dibatalkan di ESB · tidak dihitung",
+  "ESB changed since: now {0}": "ESB berubah sejak dikoreksi: sekarang {0}",
+  "The portal uses this quantity from now on, also when ESB is fixed later; ESB itself is not changed.": "Portal memakai jumlah ini mulai sekarang, juga bila ESB diperbaiki belakangan; data ESB tidak diubah.",
 };
