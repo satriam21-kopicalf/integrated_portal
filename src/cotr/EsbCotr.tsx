@@ -16,6 +16,7 @@ import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { rupiah } from "@/cotr/ui";
+import { Freshness } from "@/cotr/Freshness";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
 
@@ -78,6 +79,7 @@ export function EsbCotr() {
         <StatCard label={tr("Documents")} icon={<FileText />} value={summary ? summary.modules.reduce((a, m) => a + m.docs, 0).toLocaleString("id-ID") : "…"} sub={summary ? tr("{0} branches", summary.branches.length) : undefined} />
         <StatCard label={tr("Last sync")} value={lastSync ? wibDateTime(lastSync) : "—"} sub={tr("every 30 minutes")} />
       </StatGrid>
+      <Freshness />
       <div className="flex flex-wrap items-end gap-3">
         <Field label={tr("Module")}><Select value={module} onChange={(e) => setModule(e.target.value)}>
           {(summary?.modules ?? [{ module: "simple_sales", name: "Simple Sales", docs: 0 } as Mod]).map((m) => <option key={m.module} value={m.module}>{m.name}{m.docs ? ` (${m.docs.toLocaleString("id-ID")})` : ""}</option>)}

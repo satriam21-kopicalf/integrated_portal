@@ -6380,4 +6380,11 @@ export const ID: Record<string, string> = {
   "send {0} cups": "kirim {0} cup",
   "{0} pools need a shipment": "{0} pool perlu dikirim",
   "Your pool / HUB": "Pool / HUB Anda",
+  "How fresh the data is": "Kesegaran data",
+  "ESB last synced {0} (every 30 minutes); green = today or yesterday": "ESB terakhir sinkron {0} (setiap 30 menit); hijau = hari ini atau kemarin",
+  "Newest day of every source per pool / HUB": "Hari terbaru setiap sumber per pool / HUB",
+  "ESB sales": "Penjualan ESB",
+  "ESB transfers": "Transfer ESB",
+  "ESB journals": "Jurnal ESB",
+  "Physical count": "Hitung fisik",
 };

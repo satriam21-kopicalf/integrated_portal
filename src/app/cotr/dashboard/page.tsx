@@ -15,6 +15,7 @@ import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { rupiah } from "@/cotr/ui";
+import { Freshness } from "@/cotr/Freshness";
 import { locale, tr } from "@/lib/i18n";
 
 type Source = "sheet" | "esb" | "app";
@@ -122,6 +123,8 @@ export default function CotrDashboardPage() {
               </table>
             )}
           </Panel>
+
+          <Freshness />
 
           <Panel title={tr("Drivers of the day")} description={data ? tr("{0} drivers with sales; from the app shifts, else the Report Armada of the workbooks", data.drivers.length) : undefined}>
             {!data ? <SkeletonTable cols={4} /> : data.drivers.length === 0 ? (
