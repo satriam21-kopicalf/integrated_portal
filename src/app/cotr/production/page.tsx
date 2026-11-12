@@ -14,10 +14,11 @@ import { BatchCodes } from "@/cotr/BatchCodes";
 import { EsbCotr } from "@/cotr/EsbCotr";
 import { Reconcile } from "@/cotr/Reconcile";
 import { DriverNames } from "@/cotr/DriverNames";
+import { FlowNav, useFlowTab, type FlowGroup } from "@/cotr/FlowNav";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Empty, ErrorState, Input } from "@/so/ui";
 import { Page, Panel } from "@/components/kc/compat";
-import { StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
+import { StatCard, StatGrid, ValueSkeleton, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { ScopeBar } from "@/components/kc/ScopeBar";
 import { FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
@@ -28,27 +29,32 @@ import { locale, tr } from "@/lib/i18n";
 type Tab = "pool" | "reconcile" | "names" | "report" | "codes" | "esb" | "stock" | "receipts" | "counts" | "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 
-const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
-  { key: "pool", label: () => tr("Pool Product Stock"), icon: Boxes }, { key: "reconcile", label: () => tr("Reconciliation"), icon: GitCompareArrows }, { key: "names", label: () => tr("Driver Names"), icon: UserRoundSearch }, { key: "report", label: () => tr("Report Armada"), icon: ClipboardCheck }, { key: "codes", label: () => tr("Batch Codes"), icon: ListTree }, { key: "esb", label: () => tr("ESB COTR"), icon: Building2 },
-  { key: "stock", label: () => tr("Stock"), icon: Boxes }, { key: "receipts", label: () => tr("Goods In"), icon: PackagePlus },
-  { key: "counts", label: () => tr("Stock Opname"), icon: ClipboardCheck },
-  { key: "items", label: () => tr("Items"), icon: Package }, { key: "recipes", label: () => tr("Recipe Cards"), icon: BookOpen },
-  { key: "calc", label: () => tr("Calculator"), icon: Calculator }, { key: "batch", label: () => tr("Batches"), icon: Truck },
-  { key: "plan", label: () => tr("Production Plan"), icon: Factory },
-  { key: "usage", label: () => tr("Usage"), icon: TrendingDown }, { key: "waste", label: () => tr("Waste & Cupping"), icon: Trash2 },
+const I = (C: typeof Package) => <C size={15} />;
+/** the sections in the order of the work: the pool stock of the day, the production of the HUB, the reports matched
+ *  with ESB, the storage warehouse, then the recipe cards and items (set up once) */
+const GROUPS = (): FlowGroup<Tab>[] => [
+  { key: "pool", title: tr("Pool stock"), when: tr("Every night: leftover, batch codes, waste"), tabs: [
+    { key: "pool", label: tr("Pool Product Stock"), icon: I(Boxes) }, { key: "codes", label: tr("Batch Codes"), icon: I(ListTree) },
+    { key: "waste", label: tr("Waste & Cupping"), icon: I(Trash2) }] },
+  { key: "hub", title: tr("HUB production"), when: tr("Every morning: plan, premix, batches sent"), tabs: [
+    { key: "plan", label: tr("Production Plan"), icon: I(Factory) }, { key: "calc", label: tr("Calculator"), icon: I(Calculator) },
+    { key: "batch", label: tr("Batches"), icon: I(Truck) }] },
+  { key: "match", title: tr("Reports & matching"), when: tr("After the workbooks: import, ESB, names"), tabs: [
+    { key: "report", label: tr("Report Armada"), icon: I(ClipboardCheck) }, { key: "reconcile", label: tr("Reconciliation"), icon: I(GitCompareArrows) },
+    { key: "names", label: tr("Driver Names"), icon: I(UserRoundSearch) }, { key: "esb", label: tr("ESB COTR"), icon: I(Building2) }] },
+  { key: "storage", title: tr("Storage warehouse"), when: tr("Goods in, stock, stock opname, usage"), tabs: [
+    { key: "stock", label: tr("Stock"), icon: I(Boxes) }, { key: "receipts", label: tr("Goods In"), icon: I(PackagePlus) },
+    { key: "counts", label: tr("Stock Opname"), icon: I(ClipboardCheck) }, { key: "usage", label: tr("Usage"), icon: I(TrendingDown) }] },
+  { key: "recipes", title: tr("Recipes & items"), when: tr("Set up once, same as ESB"), tabs: [
+    { key: "recipes", label: tr("Recipe Cards"), icon: I(BookOpen) }, { key: "items", label: tr("Items"), icon: I(Package) }] },
 ];
+const KEYS: Tab[] = ["pool", "codes", "waste", "plan", "calc", "batch", "report", "reconcile", "names", "esb", "stock", "receipts", "counts", "usage", "recipes", "items"];
 
 export default function CotrProductionPage() {
-  const [tab, setTab] = useState<Tab>("pool");
-  // a link straight to a section (the COTR dashboard: ?tab=names, ?tab=reconcile)
-  useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get("tab");
-    if (t && SECTIONS.some((x) => x.key === t)) setTab(t as Tab);
-  }, []);
+  const [tab, setTab] = useFlowTab<Tab>(KEYS, "pool");
   return (
     <Page eyebrow="Calf On The Road" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Stock, goods in, stock opname, batches and their waste, recipe cards, production plan and usage")}>
-      <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as Tab)}
-        tabs={SECTIONS.map((x) => ({ key: x.key, label: <span className="inline-flex items-center gap-1.5"><x.icon size={15} />{x.label()}</span> }))} />
+      <FlowNav label={tr("Section")} groups={GROUPS()} value={tab} onChange={setTab} />
       {tab === "pool" && <PoolLedger />}
       {tab === "reconcile" && <Reconcile />}
       {tab === "names" && <DriverNames />}

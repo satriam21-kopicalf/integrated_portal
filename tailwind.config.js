@@ -27,6 +27,8 @@ module.exports = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/so/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/cotr/**/*.{js,ts,jsx,tsx,mdx}',  // Calf On The Road (2026-11-12: its own classes were never built)
+    './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     colors: bg,

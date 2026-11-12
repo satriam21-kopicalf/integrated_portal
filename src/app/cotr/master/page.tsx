@@ -21,12 +21,14 @@ import RequestKindsTab from "@/cotr/RequestKinds";
 
 type Tab = { key: string; href: string; label: () => string; icon: ReactNode; body: ReactNode };
 const TABS: Tab[] = [
-  { key: "employees", href: "/cotr/drivers", label: () => tr("Employees"), icon: <Bike size={15} />, body: <DriversPage /> },
-  { key: "areas", href: "/cotr/pools", label: () => tr("Area"), icon: <MapPinned size={15} />, body: <AreasTab /> },
+  // in the order of the setup (2026-11-12): pools first, then their areas, the menus, the fleet, the people, their
+  // schedule and the kinds of request
   { key: "pools", href: "/cotr/pools", label: () => tr("Pool / HUB"), icon: <Building2 size={15} />, body: <PoolsPage /> },
-  { key: "fleet", href: "/cotr/fleet", label: () => tr("Fleet & Accessories"), icon: <Truck size={15} />, body: <FleetPage /> },
-  { key: "schedule", href: "/cotr/schedule", label: () => tr("Schedule"), icon: <CalendarDays size={15} />, body: <SchedulePage /> },
+  { key: "areas", href: "/cotr/pools", label: () => tr("Area"), icon: <MapPinned size={15} />, body: <AreasTab /> },
   { key: "menu", href: "/cotr/menu", label: () => tr("Menu"), icon: <Coffee size={15} />, body: <MenuPage /> },
+  { key: "fleet", href: "/cotr/fleet", label: () => tr("Fleet & Accessories"), icon: <Truck size={15} />, body: <FleetPage /> },
+  { key: "employees", href: "/cotr/drivers", label: () => tr("Employees"), icon: <Bike size={15} />, body: <DriversPage /> },
+  { key: "schedule", href: "/cotr/schedule", label: () => tr("Schedule"), icon: <CalendarDays size={15} />, body: <SchedulePage /> },
   // migration 083: the kinds of a driver's request, with the requests they are decided in
   { key: "requests", href: "/cotr/check-in", label: () => tr("Requests"), icon: <Wallet size={15} />, body: <RequestKindsTab /> },
 ];
@@ -40,7 +42,7 @@ function Master() {
   return (
     <Page title={tr("Master")} subtitle={tr("The master data of Calf On The Road: employees, areas, pools, fleet & accessories, schedule, menus and request kinds")}>
       <Tabs label={tr("Master")} value={tab?.key ?? ""} onChange={(k) => router.replace(`/cotr/master?tab=${k}`, { scroll: false })}
-        tabs={tabs.map((t) => ({ key: t.key, label: <>{t.icon}{t.label()}</> }))} />
+        tabs={tabs.map((t, i) => ({ key: t.key, label: <><span className="text-[11px] font-bold tabular-nums text-neutral-400">{i + 1}</span>{t.icon}{t.label()}</> }))} />
       <EmbeddedPage.Provider value>{tab?.body}</EmbeddedPage.Provider>
     </Page>
   );

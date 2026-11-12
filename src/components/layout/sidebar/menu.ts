@@ -104,15 +104,19 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
 
 /** "Calf On The Road" menu: Calf On The Road, configured by the COTR team (pages cotr.*, prototype 2026-11-01). */
 export const cotr: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
-  { get title() { return tr('Drivers on the Road'); }, get hint() { return tr('Check-ins of the drivers from the COTR app'); }, icon: MapPinCheck, items: [
+  // in the order of the work (2026-11-12): the day (dashboard → assignment & closing → drivers on the road), the
+  // production and stock behind it, then the monthly pay and the master data set up once
+  { get title() { return tr('Daily'); }, get hint() { return tr('Every day, in this order'); }, icon: MapPinCheck, items: [
     { get name() { return tr('Dashboard'); }, href: '/cotr/dashboard', icon: LayoutDashboard, get description() { return tr('One day of every pool: cups, waste, leftover & what waits'); } },
+    { get name() { return tr('Storage & Assignment'); }, href: '/cotr/storage', icon: Warehouse, get description() { return tr('Morning assignment, reloads, night closing'); } },
     { get name() { return tr('Monitoring Armada - Driver'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Shifts, sales, stock, cupping & waste of every driver'); } },
-    { get name() { return tr('Storage & Assignment'); }, href: '/cotr/storage', icon: Warehouse, get description() { return tr('Products per driver, differences & reloads'); } },
   ] },
-  { get title() { return tr('Master, Production & Incentives'); }, get hint() { return tr('The data of COTR, what the HUB makes and the monthly incentive'); }, icon: Boxes, items: [
-    { get name() { return tr('Master'); }, href: '/cotr/master', icon: Boxes, get description() { return tr('Employees, areas, pools, fleet & accessories, schedule, menus'); } },
+  { get title() { return tr('Production & Stock'); }, get hint() { return tr('HUB production, pool stock, reports'); }, icon: CookingPot, items: [
     { get name() { return tr('Storage & Production'); }, href: '/cotr/production', icon: CookingPot, get description() { return tr('Stock, goods in, stock opname, batches & waste'); } },
+  ] },
+  { get title() { return tr('Monthly & Setup'); }, get hint() { return tr('Incentives and payslips, master data'); }, icon: Boxes, items: [
     { get name() { return tr('Incentive Calculator'); }, href: '/cotr/incentive', icon: Calculator, get description() { return tr('Tiers per cup, bonus & attendance'); } },
+    { get name() { return tr('Master'); }, href: '/cotr/master', icon: Boxes, get description() { return tr('Employees, areas, pools, fleet & accessories, schedule, menus'); } },
   ] },
 ];
 
