@@ -83,7 +83,7 @@ export function DriverNames() {
                 <tr key={`${t.pool}:${t.label}`}>
                   <td className="px-4 py-2.5 font-mono text-xs font-semibold text-neutral-900">{t.label}</td>
                   <td className="px-3 py-2.5">{t.poolName}</td>
-                  <td className="px-3 py-2.5">{t.ignored ? <Badge tone="neutral">{tr("Not a driver")}</Badge> : <span className="font-medium">{t.driverName ?? t.driver}</span>}</td>
+                  <td className="px-3 py-2.5">{t.ignored ? <Badge tone="slate">{tr("Not a driver")}</Badge> : <span className="font-medium">{t.driverName ?? t.driver}</span>}</td>
                   <td className="px-3 py-2.5 text-right"><button type="button" onClick={() => void untie(t)} aria-label={tr("Remove")} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button></td>
                 </tr>
               ))}

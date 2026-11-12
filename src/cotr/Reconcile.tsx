@@ -24,9 +24,9 @@ type Day = { pool: string; poolName: string; day: string; status: Status; gap: n
 type Data = { summary: Record<Status, number>; days: Day[] };
 
 const KIND: Record<Kind, () => string> = { arrived: () => tr("Arrived"), transfer: () => tr("Transfer"), sold: () => tr("Sold"), waste: () => tr("Waste"), cupping: () => tr("Cupping") };
-const STATUS: Record<Status, { label: () => string; tone: "green" | "red" | "amber" | "neutral" | "blue" }> = {
+const STATUS: Record<Status, { label: () => string; tone: "green" | "red" | "amber" | "slate" | "blue" }> = {
   match: { label: () => tr("Match"), tone: "green" }, diff: { label: () => tr("Different"), tone: "red" },
-  sheet: { label: () => tr("Workbook only"), tone: "amber" }, esb: { label: () => tr("ESB only"), tone: "blue" }, app: { label: () => tr("App only"), tone: "neutral" },
+  sheet: { label: () => tr("Workbook only"), tone: "amber" }, esb: { label: () => tr("ESB only"), tone: "blue" }, app: { label: () => tr("App only"), tone: "slate" },
 };
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 const num = (v: number | null) => (v === null ? "—" : v.toLocaleString("id-ID"));
