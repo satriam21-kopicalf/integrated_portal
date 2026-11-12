@@ -104,6 +104,7 @@ export default function PricelistPage() {
           <Stat label={tr("Not Saved Yet")} value={changed.length.toLocaleString("id-ID")} />
         </StatStrip>
       }>
+      <Unpriced reload={data} onPick={(code) => { setStatus("all"); setSearch(code); setOnlyMissing(false); setCategory(""); }} />
       <Panel toolbar={<div className="space-y-3">
         <Tabs label={tr("Status")} value={status} onChange={(k) => { setStatus(k as Status); setDraft({}); setData(null); }} tabs={[
           { key: "active", label: tr("Active"), count: data?.counts?.active },
@@ -173,6 +174,45 @@ export default function PricelistPage() {
         confirmLabel={toggling?.active !== false ? tr("Deactivate") : tr("Activate")}
         onConfirm={() => toggling && void toggle(toggling)} onClose={() => setToggling(null)} />
     </Page>
+  );
+}
+
+type Missing = { code: string; name: string; unit: string | null; active: boolean; level: "none" | "esb"; esbHpp: number | null; cards: number; cardNames: string[];
+  wips: number; wipNames: string[]; waste: number };
+
+/** 2026-11-12: the items the costing needs without a price — a recipe card, a WIP / premix or a waste entry of 60 days
+ * uses them; the HPP of those menus and the value of that waste stay empty until a price is set. */
+function Unpriced({ reload, onPick }: { reload: unknown; onPick: (code: string) => void }) {
+  const [rows, setRows] = useState<Missing[] | null>(null);
+  const [all, setAll] = useState(false);
+  useEffect(() => { void call<{ data: Missing[] }>("/api/cost-control/pricelist/unpriced").then((r) => setRows(r.data)).catch(() => setRows([])); }, [reload]);
+  if (!rows?.length) return null;
+  const none = rows.filter((r) => r.level === "none").length;
+  const shown = all ? rows : rows.slice(0, 6);
+  const where = (r: Missing) => [
+    r.cards ? tr("{0} recipe cards ({1})", r.cards, r.cardNames.slice(0, 3).join(", ")) : null,
+    r.wips ? tr("{0} WIP ({1})", r.wips, r.wipNames.slice(0, 2).join(", ")) : null,
+    r.waste ? tr("{0} waste entries in 60 days", r.waste) : null].filter(Boolean).join(" · ");
+  return (
+    <Panel className="mb-4" title={tr("Used without a price")}
+      description={tr("{0} items used by recipe cards, WIP or waste have no price: the HPP of their menus and the value of their waste stay empty.", none)
+        + (rows.length > none ? ` ${tr("{0} more use the ESB HPP only.", rows.length - none)}` : "")}>
+      <ul className="divide-y divide-neutral-100 border-t border-neutral-100">
+        {shown.map((r) => (
+          <li key={r.code} className="flex flex-col gap-2 px-4 py-2.5 sm:flex-row sm:items-center sm:px-5">
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-2 font-medium text-neutral-900">{r.name}
+                {r.level === "none" ? <Badge tone="red">{tr("No price")}</Badge> : <Badge tone="amber">{tr("ESB HPP {0}", rp(r.esbHpp, 4))}</Badge>}
+                {!r.active && <Badge>{tr("Inactive")}</Badge>}</span>
+              <span className="block text-[11px] text-neutral-500">{r.code} · {r.unit ?? "—"} · {where(r)}</span>
+            </span>
+            <Button size="sm" variant="secondary" onClick={() => onPick(r.code)}>{tr("Set price")}</Button>
+          </li>
+        ))}
+      </ul>
+      {rows.length > 6 && <button type="button" onClick={() => setAll(!all)} className="w-full border-t border-neutral-100 py-2 text-xs font-medium text-brand-700">
+        {all ? tr("Show less") : tr("Show all {0}", rows.length)}</button>}
+    </Panel>
   );
 }
 

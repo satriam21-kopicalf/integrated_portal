@@ -12,6 +12,7 @@ import { AlertTriangle, BarChart3, CalendarDays, CheckCircle2, Store } from 'luc
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import DocChecks from '@/so/features/cogs/DocChecks';
 import { Badge, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from '@/so/ui';
 import { Stat, StatSkeleton, StatStrip } from '@/so/ui/StatStrip';
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from '@/so/ui/Filters';
@@ -131,6 +132,7 @@ function Cogs() {
             <p className="px-5 py-2 text-[11px] text-neutral-500">{tr('Usage ratio = actual ÷ system on the materials counted at both ends; green within ±5 %, amber within ±15 %. Open an outlet for its materials in the Sales Calculator.')}</p></div>
           )}
       </Panel>
+      <DocChecks from={period.from} to={period.to} onChanged={() => void load()} />
       {sheet && <PeriodSheet value={period} onClose={() => setSheet(false)} onApply={(p) => { setPeriod(p); setSheet(false); }} />}
     </Page>
   );
