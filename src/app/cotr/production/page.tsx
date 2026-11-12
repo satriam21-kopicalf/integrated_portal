@@ -15,6 +15,7 @@ import { EsbCotr } from "@/cotr/EsbCotr";
 import { Reconcile } from "@/cotr/Reconcile";
 import { DriverNames } from "@/cotr/DriverNames";
 import { ShipmentPlan } from "@/cotr/ShipmentPlan";
+import { MonthlyExport } from "@/cotr/MonthlyExport";
 import { FlowNav, useFlowTab, type FlowGroup } from "@/cotr/FlowNav";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Empty, ErrorState, Input } from "@/so/ui";
@@ -54,7 +55,8 @@ const KEYS: Tab[] = ["pool", "codes", "waste", "plan", "ship", "calc", "batch", 
 export default function CotrProductionPage() {
   const [tab, setTab] = useFlowTab<Tab>(KEYS, "pool");
   return (
-    <Page eyebrow="Calf On The Road" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Stock, goods in, stock opname, batches and their waste, recipe cards, production plan and usage")}>
+    <Page eyebrow="Calf On The Road" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Stock, goods in, stock opname, batches and their waste, recipe cards, production plan and usage")}
+      actions={<MonthlyExport />}>
       <FlowNav label={tr("Section")} groups={GROUPS()} value={tab} onChange={setTab} />
       {tab === "ship" && <ShipmentPlan />}
       {tab === "pool" && <PoolLedger />}

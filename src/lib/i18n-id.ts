@@ -6387,4 +6387,6 @@ export const ID: Record<string, string> = {
   "ESB transfers": "Transfer ESB",
   "ESB journals": "Jurnal ESB",
   "Physical count": "Hitung fisik",
+  "Monthly summary": "Ringkasan bulanan",
+  "Product, Report Armada, batch codes, waste, fleet issues and reconciliation in one file": "Product, Report Armada, kode batch, waste, kendala armada dan rekonsiliasi dalam satu file",
 };
