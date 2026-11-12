@@ -10,7 +10,7 @@
 
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
-import { BarChart3, CalendarCheck, CalendarDays, CheckCircle2, ClipboardList, FileSearch, PencilLine, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
+import { BarChart3, CalendarCheck, CalendarDays, Check, CheckCircle2, ClipboardList, FileSearch, PencilLine, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { downloadXlsx } from "@/lib/xlsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -162,7 +162,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
     ...(!isDefaultPeriod ? [{ key: "p", label: `${dmy(period.from)} – ${dmy(period.to)}`, onRemove: () => setPeriod(DEFAULT_PERIOD()) }] : []),
     ...(branch ? [{ key: "b", label: branches.find((x) => x.branch_code === branch)?.branch_name ?? branch, onRemove: () => setBranch("") }] : []),
     ...(scope ? [{ key: "t", label: scopeLabel(scope), onRemove: () => setScope("") }] : []),
-    ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
+    ...splitCats(category).map((c) => ({ key: `c:${c}`, label: c, onRemove: () => setCategory(splitCats(category).filter((x) => x !== c).join("|")) })),
     ...(status ? [{ key: "s", label: statusLabel(status), onRemove: () => setStatus("") }] : []),
   ];
 
@@ -496,6 +496,9 @@ function TableFoot({ note, paged }: { note?: string; paged: ReturnType<typeof us
 }
 
 /** The filters of the monitor / review in one sheet: period, branch, type, category, status. */
+/** the categories chosen, kept joined by "|" (the backend reads them so) */
+const splitCats = (v: string) => v.split("|").filter(Boolean);
+
 function WasteFilterSheet({ value, branches, categories, onApply, onClose, onReset }: {
   value: Filters; branches: BranchOpt[]; categories: string[]; onApply: (f: Filters) => void; onClose: () => void; onReset: () => Filters;
 }) {
@@ -504,6 +507,7 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
   const period = periodLabel(d.period, def);
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
   const active = [period, d.branch, d.scope, d.status, d.category].filter(Boolean).length;
+  const picked = splitCats(d.category);
   return (
     <MonitorFilterSheet active={active} onClose={onClose} onReset={() => setD(onReset())} onApply={() => onApply(d)} applyDisabled={days > 92}>
       <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 7 Days")} onClear={period ? () => setD({ ...d, period: def }) : undefined}>
@@ -521,9 +525,21 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
         <Segments value={d.status} onChange={(v) => setD({ ...d, status: v as Filters["status"] })}
           choices={[{ value: "", label: tr("All statuses") }, ...(["submitted", "investigating", "approved", "rejected"] as Status[]).map((x) => ({ value: x, label: statusLabel(x) }))]} />
       </FilterRow>
-      <FilterRow icon={<Tags size={15} />} label={tr("Waste Category")} value={d.category || null} onClear={() => setD({ ...d, category: "" })}>
-        <ComboFilter value={d.category} onChange={(v) => setD({ ...d, category: v })} allLabel={tr("All categories")} placeholder={tr("Search category")}
-          options={categories.map((c) => ({ value: c, label: c }))} />
+      <FilterRow icon={<Tags size={15} />} label={tr("Waste Category")} value={picked.length ? (picked.length === 1 ? picked[0] : tr("{0} categories", picked.length)) : null}
+        onClear={() => setD({ ...d, category: "" })}>
+        {/* 2026-11-12: several categories at once */}
+        <div className="flex flex-wrap gap-1.5">
+          {[...new Set([...categories, ...picked])].map((c) => {
+            const on = picked.includes(c);
+            return (
+              <button key={c} type="button" aria-pressed={on} onClick={() => setD({ ...d, category: (on ? picked.filter((x) => x !== c) : [...picked, c]).join("|") })}
+                className={cx("inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition-colors",
+                  on ? "bg-brand-700 text-white ring-brand-700" : "bg-white text-neutral-700 ring-neutral-200 hover:bg-neutral-50")}>
+                {on && <Check size={12} />}{c}
+              </button>
+            );
+          })}
+        </div>
       </FilterRow>
     </MonitorFilterSheet>
   );
