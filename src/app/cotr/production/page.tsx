@@ -5,7 +5,7 @@
 // exploded through the BOMs down to raw materials: cup → premix → milk, espresso …) and the waste of the pools.
 
 import { StockTab, ReceiptsTab, CountsTab } from "@/cotr/Stock";
-import { GitCompareArrows, UserRoundSearch, Boxes, Building2, ClipboardCheck, PackagePlus, BookOpen, Calculator, CalendarDays, CookingPot, Factory, ListTree, Package, Percent, Trash2, TrendingDown, Truck } from "lucide-react";
+import { Send, GitCompareArrows, UserRoundSearch, Boxes, Building2, ClipboardCheck, PackagePlus, BookOpen, Calculator, CalendarDays, CookingPot, Factory, ListTree, Package, Percent, Trash2, TrendingDown, Truck } from "lucide-react";
 import { BatchesTab } from "@/cotr/Batches";
 import { PoolWaste } from "@/cotr/PoolWaste";
 import { PoolLedger } from "@/cotr/PoolLedger";
@@ -14,6 +14,7 @@ import { BatchCodes } from "@/cotr/BatchCodes";
 import { EsbCotr } from "@/cotr/EsbCotr";
 import { Reconcile } from "@/cotr/Reconcile";
 import { DriverNames } from "@/cotr/DriverNames";
+import { ShipmentPlan } from "@/cotr/ShipmentPlan";
 import { FlowNav, useFlowTab, type FlowGroup } from "@/cotr/FlowNav";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Empty, ErrorState, Input } from "@/so/ui";
@@ -26,7 +27,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { CalculatorTab, ItemsTab, RecipesTab, UsageTab } from "@/cotr/Recipes";
 import { locale, tr } from "@/lib/i18n";
 
-type Tab = "pool" | "reconcile" | "names" | "report" | "codes" | "esb" | "stock" | "receipts" | "counts" | "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
+type Tab = "ship" | "pool" | "reconcile" | "names" | "report" | "codes" | "esb" | "stock" | "receipts" | "counts" | "items" | "recipes" | "calc" | "batch" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 
 const I = (C: typeof Package) => <C size={15} />;
@@ -36,8 +37,8 @@ const GROUPS = (): FlowGroup<Tab>[] => [
   { key: "pool", title: tr("Pool stock"), when: tr("Every night: leftover, batch codes, waste"), tabs: [
     { key: "pool", label: tr("Pool Product Stock"), icon: I(Boxes) }, { key: "codes", label: tr("Batch Codes"), icon: I(ListTree) },
     { key: "waste", label: tr("Waste & Cupping"), icon: I(Trash2) }] },
-  { key: "hub", title: tr("HUB production"), when: tr("Every morning: plan, premix, batches sent"), tabs: [
-    { key: "plan", label: tr("Production Plan"), icon: I(Factory) }, { key: "calc", label: tr("Calculator"), icon: I(Calculator) },
+  { key: "hub", title: tr("HUB production"), when: tr("Every morning: plan, what to send, premix, batches"), tabs: [
+    { key: "plan", label: tr("Production Plan"), icon: I(Factory) }, { key: "ship", label: tr("Shipment Plan"), icon: I(Send) }, { key: "calc", label: tr("Calculator"), icon: I(Calculator) },
     { key: "batch", label: tr("Batches"), icon: I(Truck) }] },
   { key: "match", title: tr("Reports & matching"), when: tr("After the workbooks: import, ESB, names"), tabs: [
     { key: "report", label: tr("Report Armada"), icon: I(ClipboardCheck) }, { key: "reconcile", label: tr("Reconciliation"), icon: I(GitCompareArrows) },
@@ -48,13 +49,14 @@ const GROUPS = (): FlowGroup<Tab>[] => [
   { key: "recipes", title: tr("Recipes & items"), when: tr("Set up once, same as ESB"), tabs: [
     { key: "recipes", label: tr("Recipe Cards"), icon: I(BookOpen) }, { key: "items", label: tr("Items"), icon: I(Package) }] },
 ];
-const KEYS: Tab[] = ["pool", "codes", "waste", "plan", "calc", "batch", "report", "reconcile", "names", "esb", "stock", "receipts", "counts", "usage", "recipes", "items"];
+const KEYS: Tab[] = ["pool", "codes", "waste", "plan", "ship", "calc", "batch", "report", "reconcile", "names", "esb", "stock", "receipts", "counts", "usage", "recipes", "items"];
 
 export default function CotrProductionPage() {
   const [tab, setTab] = useFlowTab<Tab>(KEYS, "pool");
   return (
     <Page eyebrow="Calf On The Road" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Stock, goods in, stock opname, batches and their waste, recipe cards, production plan and usage")}>
       <FlowNav label={tr("Section")} groups={GROUPS()} value={tab} onChange={setTab} />
+      {tab === "ship" && <ShipmentPlan />}
       {tab === "pool" && <PoolLedger />}
       {tab === "reconcile" && <Reconcile />}
       {tab === "names" && <DriverNames />}
