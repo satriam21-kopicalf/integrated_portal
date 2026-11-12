@@ -1,5 +1,6 @@
 'use client';
 
+import { COTR_KINDS, type CotrEmployee, type CotrKind, EmployeePicker, cotrOverrides, kindOf, usernameOf } from '@/components/access/CotrAccount';
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -498,6 +499,32 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
   const [pageOverrides, setPageOverrides] = useState<Record<string, boolean>>(() => user?.pageOverrides ?? {});
   const [businessLine, setBusinessLine] = useState<BusinessLine>(() => user?.businessLine ?? line);
   const [hiddenPages, setHiddenPages] = useState<string[]>(() => user?.hiddenPages ?? []);
+  // Calf On The Road (2026-11-12): the account is made from its employee in Master Driver and a kind that sets the pages
+  const [cotrEmployee, setCotrEmployee] = useState<CotrEmployee | null>(() => (user?.cotrDriver ? { ...user.cotrDriver, phone: null, position: null } : null));
+  const [cotrKind, setCotrKind] = useState<CotrKind>(() => (user ? kindOf(user.role, user.pages) : 'driver'));
+  const [userRolePages, setUserRolePages] = useState<string[]>([]);
+  useEffect(() => {
+    api<{ roles: Record<string, string[]> }>('/api/access/pages').then(r => setUserRolePages(r.roles.user ?? [])).catch(() => setUserRolePages([]));
+  }, []);
+  const cotrMode = businessLine === 'cotr' && form.role !== 'superadmin' && form.role !== 'cost_control';
+  const pickKind = (k: CotrKind) => {
+    setCotrKind(k);
+    setForm(f => ({ ...f, role: k === 'driver' ? 'driver' : 'user' }));
+    if (k !== 'custom') setPageOverrides(cotrOverrides(k, userRolePages));
+    if (cotrEmployee && creating) {
+      const name = usernameOf(k, cotrEmployee);
+      setForm(f => ({ ...f, username: name, email: `${name}@kopicalf.co.id` }));
+    }
+  };
+  const pickEmployee = (e: CotrEmployee) => {
+    setCotrEmployee(e);
+    if (creating) {
+      setProfile(p => ({ ...p, fullName: e.name, phoneNumber: e.phone ?? p.phoneNumber, jobTitle: e.position ?? p.jobTitle, department: e.department ?? p.department }));
+      const name = usernameOf(cotrKind, e);
+      setForm(f => ({ ...f, username: name, email: `${name}@kopicalf.co.id` }));
+      setUsernameTouched(true);
+    }
+  };
   const [showPassword, setShowPassword] = useState(creating);
   // the username follows the full name until it is typed by hand
   const [usernameTouched, setUsernameTouched] = useState(!creating);
@@ -528,8 +555,13 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
       body.pageOverrides = Object.fromEntries(Object.entries(pageOverrides).filter(([k, v]) => v && (k === 'form.wwwr' || k === 'mon.wwwr')));
     }
     body.businessLine = businessLine;
+    if (cotrMode) {
+      body.cotrDriver = cotrEmployee?.code ?? '';
+      if (cotrKind !== 'custom' && cotrKind !== 'driver') body.pageOverrides = cotrOverrides(cotrKind, userRolePages);
+      delete body.branches;
+    }
     return body;
-  }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages]);
+  }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages, cotrMode, cotrEmployee, cotrKind, userRolePages]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -577,7 +609,19 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
           </DrawerSection>
         )}
 
-        {creating && (
+        {cotrMode && (
+          <DrawerSection title={tr('COTR employee')} description={tr('Choose the employee in Master Driver: the name, phone, position and department are filled from it and the account is tied to them.')}>
+            <EmployeePicker value={cotrEmployee} onPick={pickEmployee} inputClass={inputClass} />
+            {fieldError('cotrDriver') && <p className="text-xs text-red-600">{fieldError('cotrDriver')}</p>}
+            <Field label={tr('Kind of account')} htmlFor="f-cotr-kind" hint={COTR_KINDS.find(k => k.key === cotrKind)?.hint()}>
+              <select id="f-cotr-kind" className={inputClass} value={cotrKind} onChange={e => pickKind(e.target.value as CotrKind)}>
+                {COTR_KINDS.map(k => <option key={k.key} value={k.key}>{k.label()}</option>)}
+              </select>
+            </Field>
+          </DrawerSection>
+        )}
+
+        {creating && !cotrMode && (
           <DrawerSection title={tr('Identity')} description={tr('Optional — filled in now, the profile is complete at the first sign-in (the user can still change it).')}>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={tr('Full name')} htmlFor="f-fullName" error={fieldError('fullName')}>
@@ -640,11 +684,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={tr('Business Line')} htmlFor="f-line" error={fieldError('businessLine')} hint={tr('The tab of User Accounts the account is listed in; its branches are of this line')}>
-              <select id="f-line" value={businessLine} onChange={e => { setBusinessLine(e.target.value as BusinessLine); setBranchCodes([]); }} className={inputClass}>
+              <select id="f-line" value={businessLine} onChange={e => { const v = e.target.value as BusinessLine; setBusinessLine(v); setBranchCodes([]); if (v === 'cotr' && creating) pickKind('driver'); else if (form.role === 'driver') set('role', 'user'); }} className={inputClass}>
                 {LINES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
               </select>
             </Field>
-            <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : tr('Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches')}>
+            {!cotrMode && <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : tr('Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches')}>
               <select id="f-role" className={inputClass} value={form.role} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
                 <option value="user">{tr('User')}</option>
                 <option value="outlet">{tr('Outlet / Hub')}</option>
@@ -652,7 +696,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 <option value="cost_control">{tr('Cost Control')}</option>
                 <option value="superadmin">{tr('Super Admin')}</option>
               </select>
-            </Field>
+            </Field>}
             <Field label={tr('Status')} htmlFor="f-active" error={fieldError('isActive')} hint={isMe ? tr('You cannot deactivate your own account') : tr('Inactive users cannot sign in')}>
               <select id="f-active" className={inputClass} value={form.isActive ? '1' : '0'} disabled={isMe} onChange={e => set('isActive', e.target.value === '1')}>
                 <option value="1">{tr('Active')}</option>
@@ -662,14 +706,18 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
           </div>
         </DrawerSection>
 
-        {form.role !== 'driver' && (
+        {form.role !== 'driver' && (!cotrMode || cotrKind === 'custom') && (
           <DrawerSection title={tr('Page Access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
             <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} hidden={hiddenPages} onHiddenChange={setHiddenPages} />
             {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
           </DrawerSection>
         )}
 
-        {branchScoped(form.role) ? (
+        {cotrMode ? (
+          <p className="mt-6 flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">
+            <Info size={16} className="mt-0.5 flex-shrink-0 text-brand-700" /> {tr('No ESB branches for the COTR team: the pool comes from the employee in Master Driver.')}
+          </p>
+        ) : branchScoped(form.role) ? (
           <DrawerSection title={tr('Branch Access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User and Outlet / Hub.')}>
             <BranchAssign branches={lineBranches(branches, businessLine)} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
