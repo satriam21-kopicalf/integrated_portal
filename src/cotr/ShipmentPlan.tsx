@@ -5,15 +5,16 @@
 // still has that is good that day (its last leftover without the lots expiring before). The total per menu is what the
 // HUB production prepares.
 
-import { Download, Send, Truck } from "lucide-react";
+import { CalendarDays, Download, History, Percent, Send, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ErrorState, Field, Input, Select, useToast } from "@/so/ui";
+import { Button, ErrorState, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { StatCard, StatGrid, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { locale, tr } from "@/lib/i18n";
+import { CotrFilters } from "@/cotr/FilterBar";
 import { downloadXlsx } from "@/lib/xlsx";
 
 type Row = { menu: string; name: string; avgSold: number; avgUsed: number; need: number; have: number; expiring: number; send: number };
@@ -43,13 +44,14 @@ export function ShipmentPlan() {
     rows: plan.pools.flatMap((p) => p.rows.map((r) => [p.name, r.name, r.avgSold, r.avgUsed, r.need, r.have, r.expiring, r.send])) }).catch((e: Error) => toast(e.message, "error"));
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("For the day")}><Input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} /></Field>
-        <Field label={tr("Days of sales")}><Select value={days} onChange={(e) => setDays(Number(e.target.value))}>{[3, 7, 14].map((d) => <option key={d} value={d}>{tr("Last {0} days", d)}</option>)}</Select></Field>
-        <Field label={tr("Buffer (%)")}><Select value={buffer} onChange={(e) => setBuffer(Number(e.target.value))}>{[0, 5, 10, 15, 20].map((b) => <option key={b} value={b}>{b}%</option>)}</Select></Field>
-        <button type="button" disabled={!plan} onClick={() => void exportXlsx()} className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50">
-          <Download size={15} /> {tr("Export Excel")}</button>
-      </div>
+      <CotrFilters value={{ day, days: String(days), buffer: String(buffer) }}
+        onApply={(v) => { setDay(v.day || tomorrow()); setDays(Number(v.days) || 7); setBuffer(Number(v.buffer) || 0); }}
+        actions={<Button variant="secondary" disabled={!plan} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>}
+        fields={[
+          { key: "day", kind: "day", label: tr("For the day"), icon: <CalendarDays />, def: tomorrow(), future: true },
+          { key: "days", kind: "segments", label: tr("Days of sales"), icon: <History />, def: "7", options: [3, 7, 14].map((d) => ({ value: String(d), label: tr("Last {0} days", d) })) },
+          { key: "buffer", kind: "segments", label: tr("Buffer (%)"), icon: <Percent />, def: "10", options: [0, 5, 10, 15, 20].map((b) => ({ value: String(b), label: `${b}%` })) },
+        ]} />
       <StatGrid label={plan ? tr("To send for {0}", dmyOf(plan.day)) : tr("Summary")} cols={Math.max(2, Math.min(6, (plan?.totals.length ?? 0) + 1)) as 2 | 3 | 4 | 5 | 6}>
         <StatCard label={tr("Cups to send")} tone="brand" icon={<Send />} value={plan ? n(total) : "…"} sub={plan && tr("{0} pools need a shipment", plan.pools.filter((p) => p.send).length)} />
         {plan?.totals.map((t) => <StatCard key={t.menu} label={t.name} icon={<Truck />} value={n(t.send)} tone={t.send ? "warn" : "default"} />)}

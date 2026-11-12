@@ -9,18 +9,21 @@ import { BRAND_LINE } from '@/components/BrandWatermark';
 import { cx } from '@/components/kc';
 import { assetUrl } from '@/lib/assets';
 import { tr } from '@/lib/i18n';
+import { useCotrLook } from '@/cotr/theme';
 import type { navigation } from './menu';
 
 export function Brand({ compact = false }: { compact?: boolean }) {
+  // a COTR page or a COTR account (2026-11-13): the logo and the name of Calf On The Road
+  const cotr = useCotrLook();
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-neutral-200">
-        <Image src={assetUrl('assets/calf-logo.png')} alt={tr('Kopi Calf')} fill sizes="36px" className="object-contain p-1" />
+        <Image src={cotr ? '/assets/Logo-COTR.png' : assetUrl('assets/calf-logo.png')} alt={cotr ? 'Calf On The Road' : tr('Kopi Calf')} fill sizes="36px" className="object-contain p-1" />
       </div>
       {!compact && (
         <div className="min-w-0 leading-tight">
           <p className="text-[13px] font-bold tracking-[0.16em] text-brand-700">PORTAL</p>
-          <p className="truncate text-[11px] text-neutral-500">{BRAND_LINE}</p>
+          <p className="truncate text-[11px] text-neutral-500">{cotr ? 'Calf On The Road' : BRAND_LINE}</p>
         </div>
       )}
     </div>

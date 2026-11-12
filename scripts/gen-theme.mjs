@@ -28,7 +28,14 @@ const BRAND = {
 };
 // Wasgee Tea (ESB company CALF7, 2026-10-26): white + dark orange. While that brand is chosen (lib/company.tsx sets
 // html.brand-wasgee) the primary colour (blue) becomes dark orange (600 = #C94A0B) and the accent (maroon) a deep brown.
+// Calf On The Road (2026-11-13): the blue (#141EDE = 600) and the red (#E41C24 = 600) of the COTR logo, on every COTR page
+// (src/cotr/theme.ts sets html.brand-cotr there, the COTR tab of the Dashboard too)
+const COTR_BLUE = { 50: '#eef0ff', 100: '#dfe2ff', 200: '#c4c9ff', 300: '#9ba3fd', 400: '#6670f5', 500: '#3a45ea', 600: '#141ede',
+  700: '#1018b8', 800: '#121793', 900: '#141874', 950: '#0b0d46' };
+const COTR_RED = { 50: '#fef2f2', 100: '#fee2e3', 200: '#fdcacc', 300: '#faa3a6', 400: '#f46b70', 500: '#ea3c43', 600: '#e41c24',
+  700: '#bf141b', 800: '#9e151b', 900: '#83181d', 950: '#47070a' };
 const BRAND_THEMES = {
+  'brand-cotr': { blue: COTR_BLUE, brand: COTR_BLUE, maroon: COTR_RED },
   'brand-wasgee': {
     blue: { 50: '#fff6ed', 100: '#ffead5', 200: '#fdd0aa', 300: '#fbad74', 400: '#f7803c', 500: '#ea5f16', 600: '#c94a0b',
       700: '#a53b0c', 800: '#843112', 900: '#6b2a12', 950: '#3a1306' },

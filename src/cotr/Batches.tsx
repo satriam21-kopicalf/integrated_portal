@@ -14,7 +14,7 @@ import { locale, tr } from '@/lib/i18n';
 import { IconButton, SearchInput, StatCard, StatGrid, ValueSkeleton } from '@/components/kc';
 import Drawer, { DrawerSection } from '@/components/kc/Drawer';
 import { SkeletonCards } from '@/components/kc/Skeleton';
-import { ScopeBar } from '@/components/kc/ScopeBar';
+import { CotrFilterBar } from '@/cotr/FilterBar';
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from '@/so/ui/MonitorFilters';
 
 type BatchFilter = '' | 'hub' | 'expiring' | 'expired' | 'out';
@@ -91,7 +91,7 @@ export function BatchesTab() {
   const hubName = (code: string) => hubs.find((p) => p.code === code)?.name ?? code;
   return (
     <>
-      <ScopeBar onOpen={() => { setDraft({ hub: fHub, state }); setSheet(true); }}
+      <CotrFilterBar onOpen={() => { setDraft({ hub: fHub, state }); setSheet(true); }}
         right={<div className="flex items-center gap-2"><SearchInput value={q} onChange={setQ} placeholder={tr('Search menu or batch')} /><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr('New Batch')}</Button></div>}
         scopes={[
           { key: 'hub', icon: <Building2 />, label: tr('Production Hub'), value: fHub ? hubName(fHub) : tr('Every hub'), active: !!fHub },

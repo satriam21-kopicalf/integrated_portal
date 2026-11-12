@@ -3,6 +3,7 @@
 // The page the QR of an armada label opens (no sign-in): the armada (photo, code, type, make, colour, plate, capacity,
 // condition, service, asset number), its pool and the driver(s) on it with today's shift. Without sign-in the papers,
 // the tracker, the QRIS and the phone numbers stay hidden; a signed-in COTR user gets them all (/api/cotr/fleet/{code}/card).
+// 2026-11-13: the COTR palette, "Fleet" in English, the facts not known are left out, the shift time fixed ("07.05").
 
 import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
 import { Bike, Building2, CalendarClock, CheckCircle2, Clock, Lock, MapPin, Phone, ShieldCheck, UserRound, Wrench } from "lucide-react";
@@ -10,10 +11,14 @@ import { useParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { FleetCard } from "@/cotr/types";
 import { LANG_KEY, tr, useLang } from "@/lib/i18n";
-import { wibDate, wibDateTime } from "@/so/lib/wib";
+import { wibDate } from "@/so/lib/wib";
 import { thumb } from "@/lib/assets";
 
-const BLUE = "#1e2bd6";
+// the COTR palette (scripts/gen-theme.mjs: COTR_BLUE / COTR_RED 600)
+const BLUE = "#141ede";
+const RED = "#e41c24";
+/** "07.05" in WIB */
+const clock = (v: string | null | undefined) => (v ? new Date(v).toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit" }) : "—");
 
 export default function FleetSharePage() {
   const { token } = useParams<{ token: string }>();
@@ -50,7 +55,7 @@ export default function FleetSharePage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/Logo-COTR.png" alt="Calf On The Road" className="h-11 w-11 flex-shrink-0 rounded-xl bg-white object-contain p-1" />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">{tr("Armada information")}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">{tr("Fleet information")}</p>
             <h1 className="truncate text-base font-bold">Calf On The Road</h1>
           </div>
           <div className="flex overflow-hidden rounded-lg ring-1 ring-white/30" role="group" aria-label={tr("Language")}>
@@ -61,7 +66,7 @@ export default function FleetSharePage() {
             ))}
           </div>
         </div>
-        <div className="h-1 bg-red-600" />
+        <div className="h-1" style={{ background: RED }} />
       </header>
 
       <main className="mx-auto w-full max-w-2xl flex-1 space-y-4 px-4 py-5">
@@ -104,12 +109,12 @@ export default function FleetSharePage() {
             {card.full && (
               <Section icon={<ShieldCheck size={16} />} title={tr("Papers")}>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                  <Fact label={tr("STNK Number")} value={f.stnk_no} />
-                  <Fact label={tr("STNK Valid Until")} value={day(f.stnk_expires)} warn={soon(f.stnk_expires)} />
-                  <Fact label={tr("Insurance Policy")} value={f.insurance_no} />
-                  <Fact label={tr("Insurance Valid Until")} value={day(f.insurance_expires)} warn={soon(f.insurance_expires)} />
-                  <Fact label={tr("QRIS")} value={[f.qris_bank, f.qris_nmid].filter(Boolean).join(" · ") || null} />
-                  <Fact label={tr("Merchant Name")} value={f.qris_merchant} />
+                  <Fact always label={tr("STNK Number")} value={f.stnk_no} />
+                  <Fact always label={tr("STNK Valid Until")} value={day(f.stnk_expires)} warn={soon(f.stnk_expires)} />
+                  <Fact always label={tr("Insurance Policy")} value={f.insurance_no} />
+                  <Fact always label={tr("Insurance Valid Until")} value={day(f.insurance_expires)} warn={soon(f.insurance_expires)} />
+                  <Fact always label={tr("QRIS")} value={[f.qris_bank, f.qris_nmid].filter(Boolean).join(" · ") || null} />
+                  <Fact always label={tr("Merchant Name")} value={f.qris_merchant} />
                 </dl>
                 {f.note && <p className="mt-3 rounded-lg bg-neutral-50 p-3 text-xs text-neutral-600">{f.note}</p>}
               </Section>
@@ -119,11 +124,11 @@ export default function FleetSharePage() {
               {card.today && (
                 <p className={`mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${card.today.status === "open" ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-600"}`}>
                   <Clock size={14} /> {card.today.status === "open"
-                    ? tr("On the road today with {0} since {1}", card.today.name, wibDateTime(card.today.startedAt).slice(-5))
-                    : tr("Shift of {0} closed at {1}", card.today.name, wibDateTime(card.today.endedAt).slice(-5))}
+                    ? tr("On the road today with {0} since {1}", card.today.name, clock(card.today.startedAt))
+                    : tr("Shift of {0} closed at {1}", card.today.name, clock(card.today.endedAt))}
                 </p>
               )}
-              {card.drivers.length === 0 ? <p className="text-sm text-neutral-500">{tr("No driver on this armada yet.")}</p> : (
+              {card.drivers.length === 0 ? <p className="text-sm text-neutral-500">{tr("No driver on this fleet yet.")}</p> : (
                 <ul className="space-y-3">
                   {card.drivers.map((d) => (
                     <li key={d.code} className="flex gap-3">
@@ -182,7 +187,9 @@ function soon(v: string | null | undefined): boolean {
   return !!v && v.slice(0, 10) <= wibDate(new Date(Date.now() + 30 * 86_400_000));
 }
 
-function Fact({ label, value, warn }: { label: string; value: ReactNode; warn?: boolean }) {
+/** One fact; an empty one is left out (`always`: shown as "—", for the papers the team must fill). */
+function Fact({ label, value, warn, always }: { label: string; value: ReactNode; warn?: boolean; always?: boolean }) {
+  if (!always && (value === null || value === undefined || value === "")) return null;
   return (
     <div className="min-w-0">
       <dt className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{label}</dt>

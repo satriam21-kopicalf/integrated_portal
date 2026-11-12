@@ -1,21 +1,26 @@
 "use client";
 
-// Monitoring COTR → Dashboard (recommendation #7, 2026-11-12): one day of Calf On The Road at a glance — cups sold and
-// their value, waste and cupping, the leftover against the calculation per pool / HUB, 14 days of cups sold, the drivers
-// of the day and what waits for the COTR team. The day opens on the latest day with figures (the workbooks come late).
+// Monitoring COTR → Dashboard (recommendation #7, 2026-11-12; redesigned 2026-11-13 as the Dashboard of Kopi Calf /
+// Wasgee): the period first — cups, sales, pools, menus, cash against QRIS, the best drivers (CotrOverview, the same as
+// the COTR tab of the Dashboard) — then one day for the COTR team: what waits, every pool / HUB with its leftover against
+// the calculation, and the drivers. One Filters button: the period, and the day (the latest day with figures by default:
+// the workbooks come late).
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, ChevronRight, CupSoda, GitCompareArrows, LayoutDashboard, MapPinned, PackagePlus,
-  Scale, Trash2, UserRoundSearch, Users, Wallet, Wrench } from "lucide-react";
-import { Badge, ErrorState, Input } from "@/so/ui";
+import { useEffect, useState } from "react";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, CalendarDays, CalendarRange, ChevronRight, CupSoda, GitCompareArrows, LayoutDashboard, MapPinned,
+  PackagePlus, Scale, Trash2, UserRoundSearch, Wallet, Wrench } from "lucide-react";
+import { Badge, ErrorState, usePaged } from "@/so/ui";
 import { Page, Panel } from "@/components/kc/compat";
 import { StatCard, StatGrid, ValueSkeleton, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
+import { wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
-import { rupiah } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, rupiah } from "@/cotr/ui";
 import { Freshness } from "@/cotr/Freshness";
+import { CotrFilters } from "@/cotr/FilterBar";
+import CotrOverview from "@/cotr/CotrOverview";
 import { locale, tr } from "@/lib/i18n";
 
 type Source = "sheet" | "esb" | "app";
@@ -31,17 +36,18 @@ const SOURCE: Record<Source, { label: () => string; tone: "amber" | "blue" | "gr
   sheet: { label: () => tr("Workbook"), tone: "amber" }, esb: { label: () => "ESB", tone: "blue" }, app: { label: () => tr("App"), tone: "green" },
 };
 const n = (v: number | null | undefined) => (v === null || v === undefined ? "—" : v.toLocaleString(locale()));
-const weekday = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(locale(), { weekday: "short" });
 
 export default function CotrDashboardPage() {
-  const [day, setDay] = useState<string>("");
+  const [day, setDay] = useState("");  // "" = the latest day with figures
+  const [from, setFrom] = useState(wibDay(-6));
+  const [to, setTo] = useState(wibDay(0));
   const [data, setData] = useState<Dash | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   useEffect(() => {
     let alive = true;
     setData(null); setError(null);
-    call<Dash>(`/api/cotr/dashboard${day ? `?day=${day}` : ""}`).then((r) => { if (alive) { setData(r); if (!day) setDay(r.day); } })
+    call<Dash>(`/api/cotr/dashboard${day ? `?day=${day}` : ""}`).then((r) => { if (alive) setData(r); })
       .catch((e: Error) => { if (alive) setError(e.message); });
     return () => { alive = false; };
   }, [day, tick]);
@@ -58,11 +64,23 @@ export default function CotrDashboardPage() {
   ] : [];
   const open = tasks.filter((t) => t.n > 0);
   return (
-    <Page eyebrow="Calf On The Road" media={<LayoutDashboard size={19} />} title={tr("Dashboard")} subtitle={tr("One day of every pool / HUB: cups sold, waste and cupping, the leftover and what waits")}
-      actions={<div className="flex items-center gap-2">
-        {data && data.day !== data.latest && <button type="button" onClick={() => setDay(data.latest)} className="whitespace-nowrap text-xs font-medium text-brand-700 hover:underline">{tr("Latest day")}</button>}
-        <Input type="date" value={day} max={data?.today} onChange={(e) => e.target.value && setDay(e.target.value)} aria-label={tr("Day")} className="w-40" />
-      </div>}>
+    <Page eyebrow="Calf On The Road" media={<LayoutDashboard size={19} />} title={tr("Dashboard")} subtitle={tr("The period of every pool / HUB, then one day: what waits, the leftover and the drivers")}
+      stats={<CotrFilters value={{ from, to, day }} onRefresh={() => setTick((t) => t + 1)} refreshing={!data && !error}
+        onApply={(v) => { setFrom(v.from); setTo(v.to); setDay(v.day); }}
+        fields={[
+          { key: "period", kind: "period", label: tr("Period"), icon: <CalendarRange />, def: wibDay(-6), defTo: wibDay(0), max: wibDay(0) },
+          { key: "day", kind: "day", label: tr("Day"), icon: <CalendarDays />, def: "", allLabel: tr("Latest day with figures"), max: data?.today },
+        ]} />}>
+      {/* the period, as the Dashboard of Kopi Calf / Wasgee */}
+      <CotrOverview key={tick} from={from} to={to} bare />
+
+      <div className="flex flex-wrap items-end justify-between gap-2 border-t border-neutral-200 pt-5">
+        <div>
+          <h2 className="text-base font-semibold text-neutral-900">{data ? tr("The day · {0}", dmyOf(data.day)) : tr("The day")}</h2>
+          <p className="text-xs text-neutral-500">{tr("What waits for the COTR team, every pool / HUB and the drivers of the day")}</p>
+        </div>
+        {data && day && day !== data.latest && <button type="button" onClick={() => setDay("")} className="text-xs font-medium text-brand-700 hover:underline">{tr("Latest day")}</button>}
+      </div>
       {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : (
         <>
           <StatGrid label={data ? tr("Calf On The Road · {0}", dmyOf(data.day)) : tr("Summary")} cols={4}>
@@ -78,8 +96,29 @@ export default function CotrDashboardPage() {
           </StatGrid>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <Panel className="lg:col-span-2" title={tr("Cups sold, last 14 days")} description={tr("Every pool / HUB added up; the day chosen is dark")}>
-              {!data ? <div className="skeleton h-44 rounded-lg" /> : <Trend rows={data.trend} chosen={data.day} onPick={setDay} />}
+            <Panel className="min-w-0 lg:col-span-2" title={tr("Pools / HUBs")} description={tr("The figures of the day per pool, as Pool Product Stock: the workbook first, else ESB, else the app")}>
+              {!data ? <SkeletonTable cols={8} /> : (
+                <table className="m-cards w-full text-sm">
+                  <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5 text-right">{tr("Sold")}</th>
+                    <th className="px-3 py-2.5 text-right">{tr("Arrived")}</th><th className="px-3 py-2.5 text-right">{tr("Waste")}</th><th className="px-3 py-2.5 text-right">{tr("Cupping")}</th>
+                    <th className="px-3 py-2.5 text-right">{tr("Leftover")}</th><th className="px-3 py-2.5 text-right">{tr("Balance")}</th><th className="px-4 py-2.5">{tr("14 days")}</th></tr></thead>
+                  <tbody className="divide-y divide-neutral-100">
+                    {data.pools.map((p) => (
+                      <tr key={p.pool} className="hover:bg-neutral-50">
+                        <td className="px-4 py-2.5"><span className="font-medium text-neutral-900">{p.name}</span>{" "}
+                          {p.source ? <Badge tone={SOURCE[p.source].tone}>{SOURCE[p.source].label()}</Badge> : <Badge tone="slate">{tr("No figures")}</Badge>}</td>
+                        <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{n(p.sold)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{n(p.arrived)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{n(p.waste)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{n(p.cupping)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{n(p.actual)}</td>
+                        <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${p.balance ? "text-red-700" : "text-neutral-400"}`}>{p.balance ? (p.balance > 0 ? `+${p.balance}` : p.balance) : p.balance === 0 ? "0" : "—"}</td>
+                        <td className="px-4 py-2.5"><Spark rows={p.series} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </Panel>
             <Panel title={tr("Waiting for the COTR team")} description={open.length ? tr("{0} things to look at", open.length) : tr("Nothing waits")}>
               {!data ? <SkeletonTable cols={1} /> : (
@@ -99,65 +138,16 @@ export default function CotrDashboardPage() {
             </Panel>
           </div>
 
-          <Panel title={tr("Pools / HUBs")} description={tr("The figures of the day per pool, as Pool Product Stock: the workbook first, else ESB, else the app")}>
-            {!data ? <SkeletonTable cols={8} /> : (
-              <table className="m-cards w-full text-sm">
-                <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5 text-right">{tr("Sold")}</th>
-                  <th className="px-3 py-2.5 text-right">{tr("Arrived")}</th><th className="px-3 py-2.5 text-right">{tr("Waste")}</th><th className="px-3 py-2.5 text-right">{tr("Cupping")}</th>
-                  <th className="px-3 py-2.5 text-right">{tr("Leftover")}</th><th className="px-3 py-2.5 text-right">{tr("Balance")}</th><th className="px-4 py-2.5">{tr("14 days")}</th></tr></thead>
-                <tbody className="divide-y divide-neutral-100">
-                  {data.pools.map((p) => (
-                    <tr key={p.pool} className="hover:bg-neutral-50">
-                      <td className="px-4 py-2.5"><span className="font-medium text-neutral-900">{p.name}</span>{" "}
-                        {p.source ? <Badge tone={SOURCE[p.source].tone}>{SOURCE[p.source].label()}</Badge> : <Badge tone="slate">{tr("No figures")}</Badge>}</td>
-                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{n(p.sold)}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{n(p.arrived)}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{n(p.waste)}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{n(p.cupping)}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{n(p.actual)}</td>
-                      <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${p.balance ? "text-red-700" : "text-neutral-400"}`}>{p.balance ? (p.balance > 0 ? `+${p.balance}` : p.balance) : p.balance === 0 ? "0" : "—"}</td>
-                      <td className="px-4 py-2.5"><Spark rows={p.series} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+          <Panel title={tr("Drivers of the day")} description={data ? tr("{0} drivers with sales; from the app shifts, else the Report Armada of the workbooks", data.drivers.length) : undefined}>
+            {!data ? <SkeletonTable cols={4} /> : data.drivers.length === 0 ? (
+              <p className="flex items-center gap-2 px-4 py-4 text-sm text-neutral-500"><AlertTriangle size={15} className="text-amber-500" />{tr("No driver figures for this day yet: the Report Armada of the workbooks may not be imported yet.")}</p>
+            ) : <Drivers rows={data.drivers} />}
           </Panel>
 
           <Freshness />
-
-          <Panel title={tr("Drivers of the day")} description={data ? tr("{0} drivers with sales; from the app shifts, else the Report Armada of the workbooks", data.drivers.length) : undefined}>
-            {!data ? <SkeletonTable cols={4} /> : data.drivers.length === 0 ? (
-              <p className="flex items-center gap-2 py-4 text-sm text-neutral-500"><AlertTriangle size={15} className="text-amber-500" />{tr("No driver figures for this day yet: the Report Armada of the workbooks may not be imported yet.")}</p>
-            ) : <Drivers rows={data.drivers} />}
-          </Panel>
         </>
       )}
     </Page>
-  );
-}
-
-/** 14 days of cups sold: one bar a day, the chosen day dark; hover shows the figure, a tap opens the day. */
-function Trend({ rows, chosen, onPick }: { rows: Dash["trend"]; chosen: string; onPick: (d: string) => void }) {
-  const max = Math.max(1, ...rows.map((r) => r.sold ?? 0));
-  const [hover, setHover] = useState<string | null>(null);
-  const shown = rows.find((r) => r.day === (hover ?? chosen));
-  return (
-    <div>
-      <p className="mb-2 h-5 text-sm text-neutral-600">{shown && <><span className="font-semibold tabular-nums text-neutral-900">{n(shown.sold)}</span> {tr("cups")} · {dmyOf(shown.day)}</>}</p>
-      <div className="flex h-40 items-end gap-[2px]" role="img" aria-label={tr("Cups sold, last 14 days")} onMouseLeave={() => setHover(null)}>
-        {rows.map((r) => (
-          <button key={r.day} type="button" onClick={() => onPick(r.day)} onMouseEnter={() => setHover(r.day)} onFocus={() => setHover(r.day)}
-            title={`${dmyOf(r.day)}: ${n(r.sold)}`} className="group flex h-full min-w-0 flex-1 flex-col justify-end">
-            <span className={`block w-full rounded-t-[4px] transition-colors ${r.day === chosen ? "bg-brand-700" : hover === r.day ? "bg-brand-400" : "bg-brand-200"}`}
-              style={{ height: `${Math.max(r.sold ? 2 : 0, ((r.sold ?? 0) / max) * 100)}%` }} />
-          </button>
-        ))}
-      </div>
-      <div className="mt-1.5 flex gap-[2px] border-t border-neutral-200 pt-1">
-        {rows.map((r) => <span key={r.day} className={`min-w-0 flex-1 truncate text-center text-[10px] ${r.day === chosen ? "font-semibold text-neutral-800" : "text-neutral-400"}`}>{weekday(r.day)}<span className="block">{r.day.slice(8)}</span></span>)}
-      </div>
-    </div>
   );
 }
 
@@ -171,17 +161,17 @@ function Spark({ rows }: { rows: { day: string; sold: number }[] }) {
 }
 
 function Drivers({ rows }: { rows: DriverDay[] }) {
-  const [all, setAll] = useState(false);
-  const shown = useMemo(() => (all ? rows : rows.slice(0, 10)), [rows, all]);
+  const paged = usePaged(rows, rows, COTR_PAGE);
+  const first = (paged.page - 1) * paged.size;
   return (
     <>
       <table className="m-cards w-full text-sm">
         <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">#</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th>
           <th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-4 py-2.5 text-right">{tr("Sales")}</th></tr></thead>
         <tbody className="divide-y divide-neutral-100">
-          {shown.map((d, i) => (
+          {paged.rows.map((d, i) => (
             <tr key={`${d.code ?? d.name}:${d.pool}`} className="hover:bg-neutral-50">
-              <td className="px-4 py-2 tabular-nums text-neutral-400">{i + 1}</td>
+              <td className="px-4 py-2 tabular-nums text-neutral-400">{first + i + 1}</td>
               <td className="px-3 py-2"><span className="font-medium text-neutral-900">{d.name}</span>{!d.tied && <> <Badge tone="amber">{tr("Not tied")}</Badge></>}</td>
               <td className="px-3 py-2 text-neutral-600">{d.poolName}</td>
               <td className="px-3 py-2 text-right font-semibold tabular-nums">{n(d.cups)}</td>
@@ -190,9 +180,7 @@ function Drivers({ rows }: { rows: DriverDay[] }) {
           ))}
         </tbody>
       </table>
-      {rows.length > 10 && <button type="button" onClick={() => setAll((a) => !a)} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:underline">
-        <Users size={14} />{all ? tr("Show top 10") : tr("Show all {0} drivers", rows.length)}</button>}
+      <CotrPager paged={paged} className="px-4 pb-3" />
     </>
   );
 }
-

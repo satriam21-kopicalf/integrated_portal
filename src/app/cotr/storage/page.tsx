@@ -7,15 +7,16 @@
 
 import { ChevronDown, AlertTriangle, Building2, CalendarDays, Check, ClipboardCopy, Coffee, PackagePlus, Save, Send, Sparkles, UserRound, Warehouse, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Input, cx, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Input, cx, usePaged, useToast } from "@/so/ui";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { SearchInput } from "@/components/kc";
-import { DayField, ScopeBar, dmyOf } from "@/components/kc/ScopeBar";
+import { DayField, dmyOf } from "@/components/kc/ScopeBar";
+import { CotrFilterBar } from "@/cotr/FilterBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool, Stock } from "@/cotr/types";
 import { useAuth } from "@/lib/auth";
-import { useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
 import { PoolBatches } from "@/cotr/Batches";
 import { PoolWaste } from "@/cotr/PoolWaste";
 import { PoolLedger } from "@/cotr/PoolLedger";
@@ -136,14 +137,16 @@ export default function CotrStoragePage() {
   // what the storage prepares for the pool today: to sell and for cupping, per menu
   const need = menus.map((m) => ({ menu: m, sell: rows.reduce((a, r) => a + (draft[r.code]?.sell?.[m.code] ?? 0), 0), cupping: rows.reduce((a, r) => a + (draft[r.code]?.cupping?.[m.code] ?? 0), 0) }));
   const disputes = rows.filter((r) => r.dispatch?.status === "disputed");
-  const reloads = data?.reloads.filter((r) => r.status === "requested" || r.status === "disputed") ?? [];
+  const reloads = useMemo(() => (data?.reloads.filter((r) => r.status === "requested" || r.status === "disputed") ?? [])
+    .sort((a, b) => a.at.localeCompare(b.at)), [data]);  // the oldest request first: it has waited the longest
+  const reloadPage = usePaged(reloads, `${poolCode}|${day}`, COTR_PAGE);
   const name = (code: string) => rows.find((r) => r.code === code)?.name ?? code;
   const listed = rows.filter((r) => matchStatus(r, status) && (!q.trim() || `${r.name} ${r.nickname ?? ""} ${r.code} ${r.fleet ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())));
 
   return (
     <Page eyebrow="Calf On The Road" media={<Warehouse size={19} />} title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
       stats={<>
-        <ScopeBar onOpen={() => setSheet(true)} scopes={[
+        <CotrFilterBar onOpen={() => setSheet(true)} scopes={[
           { key: "pool", icon: <Building2 />, label: hub ? tr("Your pool / HUB") : tr("Pool / HUB"), value: usable.find((p) => p.code === poolCode)?.name ?? (poolCode || tr("All pools")), active: !!poolCode && !hub },
           { key: "day", icon: <CalendarDays />, label: tr("Day"), value: day === todayWib() ? tr("Today") : dmyOf(day) },
           { key: "status", icon: <UserRound />, label: tr("Drivers"), value: status ? FILTER_STATUS[status]() : tr("All"), active: !!status },
@@ -189,11 +192,12 @@ export default function CotrStoragePage() {
           {reloads.length > 0 && (
             <Panel title={tr("Reloads")} description={tr("Approve with the cups sent (fewer when short) or reject; settle a difference found on arrival")}>
               <div className="grid gap-3 p-4 lg:grid-cols-2">
-                {reloads.map((r) => r.status === "requested"
+                {reloadPage.rows.map((r) => r.status === "requested"
                   ? <ReloadDecide key={r.id} r={r} title={`${name(r.driver)} · ${time(r.at)}`} menus={menus} onDone={load} />
                   : <Settle key={r.id} title={`${tr("Reload")} · ${name(r.driver)} · ${time(r.at)}`} menus={menus} expected={r.approvedLines ?? r.lines}
                       found={r.driverCounts ?? {}} note={r.driverNote} url={`/api/cotr/reloads/${r.id}/resolve`} onDone={load} />)}
               </div>
+              <CotrPager paged={reloadPage} className="px-4 pb-3" />
             </Panel>
           )}
 
@@ -225,7 +229,7 @@ export default function CotrStoragePage() {
 
           <Panel title={tr("Assignment of the Day")} description={tr("Products every driver carries, set per driver from his sales: what to sell and what is for cupping")}
             toolbar={rows.length > 0 ? <div className="flex flex-wrap items-center gap-2">
-              <SearchInput value={q} onChange={setQ} placeholder={tr("Search driver or armada")} />
+              <SearchInput value={q} onChange={setQ} placeholder={tr("Search driver or fleet")} />
               <span className="text-xs tabular-nums text-neutral-500">{tr("{0} of {1}", listed.length, rows.length)}</span>
             </div> : undefined}
             actions={<>

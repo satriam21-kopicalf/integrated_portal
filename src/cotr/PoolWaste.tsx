@@ -7,16 +7,17 @@
 
 import { Building2, ClipboardList, Coffee, Factory, Package, Plus, Trash2, Warehouse } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, Select, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, IconButton, SearchInput, StatCard, StatGrid, ValueSkeleton, kcTable } from "@/components/kc";
 import Drawer, { DrawerSection } from "@/components/kc/Drawer";
 import { SkeletonTable } from "@/components/kc/Skeleton";
-import { ScopeBar, dmyOf } from "@/components/kc/ScopeBar";
+import { dmyOf } from "@/components/kc/ScopeBar";
+import { CotrFilterBar } from "@/cotr/FilterBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool } from "@/cotr/types";
-import { useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 
 type Kind = "storage" | "production" | "cupping";
@@ -74,6 +75,7 @@ export function PoolWaste({ pool: fixed, day }: { pool?: string; day?: string })
     return (rows ?? []).filter((w) => (!pool || w.pool_code === pool) && (!kindF || (kindF === "cupping") === (w.kind === "cupping"))
       && (!k || `${w.item} ${w.reason}`.toLowerCase().includes(k)));
   }, [rows, pool, kindF, q]);
+  const paged = usePaged(listed, `${pool}|${kindF}|${q}|${listed.length}`, COTR_PAGE);
   const cupsOf = (f: (w: Waste) => boolean) => listed.filter((w) => w.menu_code && f(w)).reduce((a, w) => a + Number(w.qty), 0);
   const usedPools = new Set((rows ?? []).map((w) => w.pool_code));
   const valid = !!form.pool_code && form.qty > 0 && !!form.reason.trim() && (form.target === "menu" ? !!form.menu_code : !!form.item.trim());
@@ -87,7 +89,7 @@ export function PoolWaste({ pool: fixed, day }: { pool?: string; day?: string })
   return (
     <>
       {fixed ? <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div> : (
-        <ScopeBar onOpen={() => { setDraft(poolF); setSheet(true); }} right={actions}
+        <CotrFilterBar onOpen={() => { setDraft(poolF); setSheet(true); }} right={actions}
           scopes={[{ key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolF ? poolName(poolF) : tr("All pools"), active: !!poolF }]} />
       )}
       <Segments value={kindF} onChange={(v) => setKindF(v as "" | "waste" | "cupping")}
@@ -156,7 +158,7 @@ export function PoolWaste({ pool: fixed, day }: { pool?: string; day?: string })
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Day")}</th>{!fixed && <th className="px-4 py-2.5">{tr("Pool / HUB")}</th>}<th className="px-4 py-2.5">{tr("Type")}</th><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th><th className="px-4 py-2.5">{tr("Reason")}</th><th className="w-10" /></tr></thead>
             <tbody className="divide-y divide-neutral-100">
-              {listed.map((w) => (
+              {paged.rows.map((w) => (
                 <tr key={w.id} className="hover:bg-neutral-50">
                   <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{dmyOf(w.day)}</td>
                   {!fixed && <td className="px-4 py-2.5"><span className="inline-flex items-center gap-1.5"><Warehouse size={13} className="text-neutral-400" />{poolName(w.pool_code)}</span></td>}
@@ -170,6 +172,7 @@ export function PoolWaste({ pool: fixed, day }: { pool?: string; day?: string })
             </tbody>
           </table>
         )}
+        <CotrPager paged={paged} className="px-4 pb-3" />
       </Panel>
     </>
   );

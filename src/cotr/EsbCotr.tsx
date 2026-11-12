@@ -5,9 +5,9 @@
 // waste journals, the manufacturing of the storage, purchases, sales to the outlets, receipts and journals. Listed per
 // module with the branch and period, a document opens with its lines, and every line goes to Excel.
 
-import { Database, Download, FileText, Search } from "lucide-react";
+import { Building2, CalendarRange, Database, Download, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid, kcTable } from "@/components/kc";
 import Drawer from "@/components/kc/Drawer";
@@ -15,7 +15,9 @@ import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
-import { rupiah } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, rupiah } from "@/cotr/ui";
+import { CotrFilters } from "@/cotr/FilterBar";
+import { SearchInput } from "@/components/kc";
 import { Freshness } from "@/cotr/Freshness";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
@@ -59,6 +61,7 @@ export function EsbCotr() {
     return () => { alive = false; };
   }, [module, branch, from, to, query, tick]);
   const mod = summary?.modules.find((m) => m.module === module);
+  const paged = usePaged(rows ?? [], rows, COTR_PAGE);
   const lastSync = summary?.modules.map((m) => m.synced).filter(Boolean).sort().pop();
   const exportXlsx = async () => {
     setExporting(true);
@@ -80,18 +83,17 @@ export function EsbCotr() {
         <StatCard label={tr("Last sync")} value={lastSync ? wibDateTime(lastSync) : "—"} sub={tr("every 30 minutes")} />
       </StatGrid>
       <Freshness />
-      <div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("Module")}><Select value={module} onChange={(e) => setModule(e.target.value)}>
-          {(summary?.modules ?? [{ module: "simple_sales", name: "Simple Sales", docs: 0 } as Mod]).map((m) => <option key={m.module} value={m.module}>{m.name}{m.docs ? ` (${m.docs.toLocaleString("id-ID")})` : ""}</option>)}
-        </Select></Field>
-        <Field label={tr("Branch")}><Select value={branch} onChange={(e) => setBranch(e.target.value)}><option value="">{tr("All branches")}</option>
-          {(summary?.branches ?? []).map((b) => <option key={b.code} value={b.name}>{b.name}</option>)}</Select></Field>
-        <Field label={tr("From")}><Input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /></Field>
-        <Field label={tr("Until")}><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></Field>
-        <label className="relative"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search number, note, counterparty")} className="pl-8" /></label>
-        <Button variant="secondary" loading={exporting} disabled={!rows?.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>
-      </div>
+      <CotrFilters value={{ module, branch, from, to }}
+        onApply={(v) => { setModule(v.module); setBranch(v.branch); setFrom(v.from); setTo(v.to); }}
+        right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search number, note, counterparty")} />}
+        actions={<Button variant="secondary" loading={exporting} disabled={!rows?.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>}
+        fields={[
+          { key: "module", kind: "list", label: tr("Module"), icon: <Database />, def: "simple_sales",
+            options: (summary?.modules ?? [{ module: "simple_sales", name: "Simple Sales", docs: 0 } as Mod]).map((m) => ({ value: m.module, label: m.docs ? `${m.name} (${m.docs.toLocaleString("id-ID")})` : m.name })) },
+          { key: "branch", kind: "combo", label: tr("Branch"), icon: <Building2 />, def: "", allLabel: tr("All branches"), placeholder: tr("Search branch"),
+            options: (summary?.branches ?? []).map((b) => ({ value: b.name, label: b.name })) },
+          { key: "period", kind: "period", label: tr("Period"), icon: <CalendarRange />, def: `${todayWib().slice(0, 8)}01`, defTo: todayWib() },
+        ]} />
       <Panel title={mod?.name ?? tr("Documents")} description={mod?.first ? tr("Synced from {0} to {1}", dmyOf(mod.first), dmyOf(mod.last ?? mod.first)) : tr("The documents of the ESB company COTR")}>
         {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !rows ? <SkeletonTable cols={6} /> : rows.length === 0 ? (
           <EmptyState icon={<FileText />} title={tr("No documents in this period")} />
@@ -102,7 +104,7 @@ export function EsbCotr() {
               <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Document")}</th><th className="px-3 py-2.5">{tr("Day")}</th><th className="px-3 py-2.5">{tr("Branch")}</th>
                 <th className="px-3 py-2.5">{tr("Counterparty")}</th><th className="px-3 py-2.5">{tr("Note")}</th><th className="px-3 py-2.5 text-right">{tr("Total")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
               <tbody className="divide-y divide-neutral-100">
-                {rows.map((r) => (
+                {paged.rows.map((r) => (
                   <tr key={r.docNum} className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(r.docNum)}>
                     <td className="px-4 py-2.5 font-mono text-xs font-semibold text-neutral-900">{r.docNum}<span className="block font-sans text-[11px] font-normal text-neutral-400">{tr("{0} lines", r.lines ?? 0)}</span></td>
                     <td className="px-3 py-2.5 tabular-nums">{dmyOf(r.day)}</td>
@@ -115,6 +117,7 @@ export function EsbCotr() {
                 ))}
               </tbody>
             </table>
+            <CotrPager paged={paged} className="px-4 pb-3" />
           </>
         )}
       </Panel>

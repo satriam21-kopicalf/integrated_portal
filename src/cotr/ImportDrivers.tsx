@@ -93,7 +93,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
               {team && <Badge tone="blue" icon={<UsersRound size={11} />}>{tr('DATA COTR workbook')}</Badge>}
               <Badge tone="green">{tr('{0} new', result.new)}</Badge><Badge tone="amber">{tr('{0} changed', result.update)}</Badge>
               <Badge tone="slate">{tr('{0} the same', result.same)}</Badge>
-              {result.newArmada > 0 && <Badge tone="violet">{tr('{0} new armada', result.newArmada)}</Badge>}
+              {result.newArmada > 0 && <Badge tone="violet">{tr('{0} new fleet', result.newArmada)}</Badge>}
               {!!result.skipped?.length && <Badge tone="red">{tr('{0} left out', result.skipped.length)}</Badge>}
             </div>
             {team && result.departments && (
@@ -124,7 +124,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
                 </table>
               ) : (
                 <table className="m-cards w-full text-sm">
-                  <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Armada')}</th><th className="px-3 py-2">{tr('Name')}</th><th className="px-3 py-2">{tr('Phone')}</th><th className="px-3 py-2" /></tr></thead>
+                  <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Fleet')}</th><th className="px-3 py-2">{tr('Name')}</th><th className="px-3 py-2">{tr('Phone')}</th><th className="px-3 py-2" /></tr></thead>
                   <tbody className="divide-y divide-neutral-100">
                     {(result.rows as ArmadaRow[]).map((r) => (
                       <tr key={r.armada}>

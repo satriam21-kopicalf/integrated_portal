@@ -87,7 +87,7 @@ export default function CotrPoolsPage() {
           <StatCard label={tr("Parent Pools")} icon={<Warehouse />} value={loaded ? rows.filter((p) => p.kind === "parent").length : <ValueSkeleton />}
             sub={loaded && tr("{0} storages", rows.filter((p) => p.kind === "storage").length)} />
           <StatCard label={tr("Employees & Fleet")} icon={<Users />} value={drivers.rows ? (drivers.rows ?? []).filter((d) => d.status !== "inactive").length : <ValueSkeleton />}
-            sub={fleet.rows && tr("{0} armada in use", (fleet.rows ?? []).filter((f) => f.is_active).length)} />
+            sub={fleet.rows && tr("{0} fleet in use", (fleet.rows ?? []).filter((f) => f.is_active).length)} />
           <StatCard label={tr("No coordinates")} icon={<MapPin />} tone={rows.some((p) => !located(p)) ? "warn" : "default"} value={loaded ? rows.filter((p) => !located(p)).length : <ValueSkeleton />}
             sub={tr("check-ins cannot be located there")} />
         </StatGrid>

@@ -41,7 +41,7 @@ export default function CotrFleetPage() {
   const pools = useMaster<Pool>("pools");
   const drivers = useMaster<Driver>("drivers");
   const typeName = (code: string) => types.rows?.find((t) => t.code === code)?.name ?? code;
-  const sec = { main: tr("Armada"), unit: tr("Vehicle"), papers: tr("Papers & upkeep"), qris: tr("QRIS (payments only)") };
+  const sec = { main: tr("Fleet"), unit: tr("Vehicle"), papers: tr("Papers & upkeep"), qris: tr("QRIS (payments only)") };
   const [now] = useState(() => Date.now());
   const acc = useFleetAccessories();
   const [accOf, setAccOf] = useState<Fleet | null>(null);
@@ -50,7 +50,7 @@ export default function CotrFleetPage() {
   const [part, setPart] = useState<"fleet" | "types" | "accessories" | "issues">("fleet");
   const fleetRows = master.rows ?? [];
   return (
-    <Page eyebrow="Calf On The Road" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Armada of COTR: vehicle, papers, upkeep, QRIS and information label")}
+    <Page eyebrow="Calf On The Road" media={<Truck size={19} />} title={tr("Master Fleet")} subtitle={tr("Fleet of COTR: vehicle, papers, upkeep, QRIS and information label")}
       actions={<Link href="/cotr/fleet/labels"><Button variant="secondary"><Printer size={16} /> {tr("Print Labels")}</Button></Link>}
       stats={
         <StatGrid label={tr("Summary")} cols={4}>
@@ -61,7 +61,7 @@ export default function CotrFleetPage() {
         </StatGrid>
       }>
       <Segmented label={tr("Part")} value={part} onChange={setPart} options={[
-        { value: "fleet", label: tr("Fleet ({0})", fleetRows.length) }, { value: "types", label: tr("Armada Types ({0})", types.rows?.length ?? 0) },
+        { value: "fleet", label: tr("Fleet ({0})", fleetRows.length) }, { value: "types", label: tr("Fleet Types ({0})", types.rows?.length ?? 0) },
         { value: "accessories", label: tr("Accessories") }, { value: "issues", label: tr("Issues") }]} />
       {part === "fleet" && <MasterTable noun={tr("fleet")} title={tr("Fleet")} master={master} filters={[
         { key: "pool", label: tr("Pool / HUB"), icon: <Building2 size={15} />, options: (pools.rows ?? []).filter((p) => p.kind !== "storage").map((p) => ({ value: p.code, label: p.name, test: (f: Fleet) => f.pool_code === p.code })) },
@@ -107,7 +107,7 @@ export default function CotrFleetPage() {
           ) },
         ]}
         fields={[
-          { key: "photo", label: tr("Photo of the Armada"), type: "image", image: { entity: "fleet", slot: "photo" }, section: sec.main },
+          { key: "photo", label: tr("Photo of the Fleet"), type: "image", image: { entity: "fleet", slot: "photo" }, section: sec.main },
           { key: "code", label: tr("Code"), required: true, placeholder: "BNI 01", section: sec.main },
           { key: "name", label: tr("Name"), required: true, placeholder: tr("e.g. Armada Kwitang 01"), section: sec.main },
           { key: "type", label: tr("Type"), type: "search", required: true, section: sec.main, options: (types.rows ?? []).map((t) => ({ value: t.code, label: t.name })) },
@@ -143,8 +143,8 @@ export default function CotrFleetPage() {
           { key: "qris", label: tr("QRIS Image"), type: "image", image: { entity: "fleet", slot: "qris" }, section: sec.qris, hint: tr("A photo or screenshot of the QRIS; shown to the customer only for a payment, never printed on the label") },
         ]} />}
 
-      {part === "types" && <MasterTable noun={tr("type")} title={tr("Armada Types")} master={types}
-        description={tr("The kinds of armada the team uses; add one when a new kind of vehicle comes")}
+      {part === "types" && <MasterTable noun={tr("type")} title={tr("Fleet Types")} master={types}
+        description={tr("The kinds of fleet the team uses; add one when a new kind of vehicle comes")}
         blank={(): Partial<FleetType> => ({ code: "", name: "", sort: (types.rows?.length ?? 0) + 1 })}
         columns={[
           { label: tr("Type"), render: (t) => <><span className="block font-medium text-neutral-900">{t.name}</span><span className="text-[11px] text-neutral-400">{t.code}</span></> },

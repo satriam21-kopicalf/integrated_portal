@@ -3,6 +3,8 @@
 // Monitoring COTR → Driver Check In → Location: the last position of every driver of the day on an OpenStreetMap map
 // (Leaflet), coloured by how fresh it is, and the route of the driver picked (GET /api/cotr/locations[/driver],
 // backend migration 048). Refreshed every 30 s for today.
+// 2026-11-13: the map follows the filters of the page (pool, search: `drivers`), fits the drivers once (a refresh no
+// longer moves the map the user is looking at), sizes itself again once shown, and is lower on phones.
 
 import 'leaflet/dist/leaflet.css';
 import type { CircleMarker, LayerGroup, Map as LeafletMap } from 'leaflet';
@@ -23,7 +25,7 @@ const fresh = (p: Position) => (p.shift !== 'open' ? 'slate' : minutes(p.at) <= 
 const COLOR = { green: '#059669', amber: '#d97706', slate: '#64748b' } as const;
 const time = (iso: string) => new Date(iso).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
 
-export default function DriverMap({ day, live }: { day: string; live: boolean }) {
+export default function DriverMap({ day, live, drivers }: { day: string; live: boolean; /** the drivers in the filters of the page */ drivers?: Set<string> }) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
   const layer = useRef<LayerGroup | null>(null);
@@ -33,11 +35,21 @@ export default function DriverMap({ day, live }: { day: string; live: boolean })
   const [error, setError] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [route, setRoute] = useState<Point[]>([]);
+  const fitted = useRef(false);
+  const [all, setAll] = useState<Position[] | null>(null);
+  // the positions of the drivers in the filters of the page
+  const key = drivers ? [...drivers].sort().join(',') : '*';
+  useEffect(() => {
+    setRows(all ? all.filter((p) => !drivers || drivers.has(p.driver)) : null);
+    fitted.current = false;  // another set of drivers: fit them once
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` stands for `drivers`
+  }, [all, key]);
 
   const load = useCallback(async () => {
     setError(null);
-    try { setRows(await call<Position[]>(`/api/cotr/locations?day=${day}`)); } catch (e) { setError((e as Error).message); }
+    try { setAll(await call<Position[]>(`/api/cotr/locations?day=${day}`)); } catch (e) { setError((e as Error).message); }
   }, [day]);
+  useEffect(() => { fitted.current = false; }, [day]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     if (!live) return;
@@ -47,7 +59,7 @@ export default function DriverMap({ day, live }: { day: string; live: boolean })
   useEffect(() => {
     if (!picked) { setRoute([]); return; }
     call<Point[]>(`/api/cotr/locations/${encodeURIComponent(picked)}?day=${day}`).then(setRoute).catch(() => setRoute([]));
-  }, [picked, day, rows]);
+  }, [picked, day, all]);
 
   // Leaflet reads window: loaded in the browser only
   useEffect(() => { void import('leaflet').then((m) => setL(m)); }, []);
@@ -56,7 +68,12 @@ export default function DriverMap({ day, live }: { day: string; live: boolean })
     map.current = L.map(box.current, { zoomControl: true }).setView(KWITANG, 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map.current);
     layer.current = L.layerGroup().addTo(map.current);
-    return () => { map.current?.remove(); map.current = null; };
+    // the box has its size only once the tab is shown: measure again
+    const m = map.current;
+    const t = setTimeout(() => m.invalidateSize(), 50);
+    const onResize = () => m.invalidateSize();
+    window.addEventListener('resize', onResize);
+    return () => { clearTimeout(t); window.removeEventListener('resize', onResize); map.current?.remove(); map.current = null; };
   }, [L]);
 
   // the markers and the route
@@ -75,25 +92,31 @@ export default function DriverMap({ day, live }: { day: string; live: boolean })
     }
     if (route.length > 1) L.polyline(route.map((r) => [r.lat, r.lng] as [number, number]), { color: '#2563eb', weight: 3, opacity: 0.8 }).addTo(layer.current);
     const pts = rows.map((p) => [p.lat, p.lng] as [number, number]);
-    if (pts.length && !picked) map.current.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 15 });
+    // fit the drivers once (and after a change of day / filters), never on the 30 s refresh
+    if (pts.length && !picked && !fitted.current) {
+      map.current.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 15 });
+      fitted.current = true;
+    }
   }, [L, rows, route, picked]);
 
   const focus = (p: Position) => {
-    setPicked(p.driver === picked ? null : p.driver);
-    map.current?.setView([p.lat, p.lng], 16);
+    const off = p.driver === picked;
+    setPicked(off ? null : p.driver);
+    if (off) fitted.current = false;  // back to every driver
+    else map.current?.setView([p.lat, p.lng], 16);
   };
 
   return (
     <Panel title={tr('Driver Location')} description={tr('Last position sent by the COTR app of every driver; pick a driver to see the route of the day')}>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : (
         <div className="grid lg:grid-cols-[1fr_20rem]">
-          <div ref={box} className="h-[480px] w-full bg-neutral-100" />
-          <div className="max-h-[480px] overflow-y-auto border-t border-neutral-100 lg:border-l lg:border-t-0">
+          <div ref={box} className="h-[340px] w-full bg-neutral-100 sm:h-[480px]" />
+          <div className="max-h-[360px] overflow-y-auto border-t border-neutral-100 sm:max-h-[480px] lg:border-l lg:border-t-0">
             {!rows ? <SkeletonList rows={3} /> : rows.length === 0 ? (
               <Empty icon={<LocateFixed size={26} />} title={tr('No position yet')}>{tr('Positions arrive once a driver has checked in with the location allowed.')}</Empty>
             ) : (
               <ul className="divide-y divide-neutral-100">
-                {[...rows].sort((a, b) => b.at.localeCompare(a.at)).map((p) => {
+                {[...rows].sort((a, b) => Number(b.shift === 'open') - Number(a.shift === 'open') || b.at.localeCompare(a.at)).map((p) => {
                   const tone = fresh(p);
                   return (
                     <li key={p.driver}>

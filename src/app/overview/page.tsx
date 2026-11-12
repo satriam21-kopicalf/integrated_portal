@@ -8,6 +8,7 @@ import { Branch, branchesLabel } from '@/components/BranchFilter';
 import { CompareMode, compareRange } from '@/components/overview/CompareFilter';
 import OverviewFilterDrawer from '@/components/overview/OverviewFilterDrawer';
 import CotrOverview from '@/cotr/CotrOverview';
+import { useCotrTheme } from '@/cotr/theme';
 import { wibDay } from '@/so/ui/Filters';
 import KpiTiles from '@/components/overview/KpiTiles';
 import TrendCard from '@/components/overview/TrendCard';
@@ -172,6 +173,7 @@ export default function OverviewPage() {
 /** The Calf On The Road tab (2026-11-13): the COTR sales of the period of the filters (default the last 7 days) against
  * the comparison chosen (default: the same weekdays whole weeks before). */
 function CotrTab({ filters }: { filters: Filters }) {
+  useCotrTheme(true);  // the COTR colours while the tab is shown
   const period = filters.from ? { from: filters.from, to: filters.to || filters.from } : { from: wibDay(-6), to: wibDay(0) };
   const cmp = filters.cmp === 'auto' ? null : compareRange({ mode: filters.cmp, from: filters.cmpFrom, to: filters.cmpTo }, period);
   return <CotrOverview from={period.from} to={period.to} compareFrom={cmp?.from} compareTo={cmp?.to} />;

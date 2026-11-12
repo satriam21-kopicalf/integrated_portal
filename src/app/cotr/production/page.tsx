@@ -24,7 +24,7 @@ import { Badge, Empty, ErrorState, Input } from "@/so/ui";
 import { Page, Panel } from "@/components/kc/compat";
 import { StatCard, StatGrid, ValueSkeleton, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
-import { ScopeBar } from "@/components/kc/ScopeBar";
+import { CotrFilterBar } from "@/cotr/FilterBar";
 import { FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { CalculatorTab, ItemsTab, RecipesTab, UsageTab } from "@/cotr/Recipes";
@@ -100,7 +100,7 @@ function PlanView() {
   const cups = plan?.menus.reduce((t, r) => t + r.plan, 0) ?? 0;
   return (
     <>
-      <ScopeBar onOpen={() => { setDraft({ days, buffer }); setSheet(true); }}
+      <CotrFilterBar onOpen={() => { setDraft({ days, buffer }); setSheet(true); }}
         scopes={[
           { key: "days", icon: <CalendarDays />, label: tr("Days of Sales"), value: tr("Last {0} days", days), active: days !== 7 },
           { key: "buffer", icon: <Percent />, label: tr("Buffer"), value: `${buffer}%`, active: buffer !== 10 },

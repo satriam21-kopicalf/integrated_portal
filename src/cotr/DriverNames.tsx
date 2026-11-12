@@ -5,16 +5,17 @@
 // suggestion, or any driver searched), the rows already imported take the driver — their cups count in the incentives —
 // and the next imports use it; a name that is not a driver ("PESENAN / CUSTOMER POOL") is marked so and stops asking.
 
-import { Ban, Check, Link2, Search, Trash2, UserRoundSearch, Users } from "lucide-react";
+import { Ban, Building2, Check, Link2, Search, Trash2, UserRoundSearch, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, Input, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { Driver, Pool } from "@/cotr/types";
-import { useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
+import { CotrFilters } from "@/cotr/FilterBar";
 import { tr } from "@/lib/i18n";
 
 type Suggestion = { code: string; name: string; nickname: string | null; pool: string | null; fleet: string | null; score: number };
@@ -52,11 +53,15 @@ export function DriverNames() {
     catch (e) { toast((e as Error).message, "error"); }
   };
   const rows = data?.unmatched.reduce((a, u) => a + u.rows, 0) ?? 0;
+  // the page stays where it is when a name is tied (the list gets shorter); a new pool starts again
+  const namePage = usePaged(data?.unmatched ?? [], pool, COTR_PAGE);
+  const tiedPage = usePaged(data?.tied ?? [], pool, COTR_PAGE);
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPool(e.target.value)}><option value="">{tr("All pools")}</option>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-      </div>
+      <CotrFilters value={{ pool }} onApply={(v) => setPool(v.pool)} fields={[
+        { key: "pool", kind: "combo", label: tr("Pool / HUB"), icon: <Building2 />, def: "", allLabel: tr("All pools"), placeholder: tr("Search pool"),
+            options: usable.map((p) => ({ value: p.code, label: p.name })) },
+      ]} />
       <StatGrid label={tr("Summary")} cols={3}>
         <StatCard label={tr("Names without a driver")} icon={<UserRoundSearch />} tone={data?.unmatched.length ? "warn" : "brand"} value={data ? data.unmatched.length : "…"}
           sub={data && tr("{0} rows of Report Armada", rows)} />
@@ -68,18 +73,19 @@ export function DriverNames() {
           <EmptyState icon={<Check />} title={tr("Every name in the workbooks has its driver")} />
         ) : (
           <ul className="divide-y divide-neutral-100">
-            {data.unmatched.map((u) => (
+            {namePage.rows.map((u) => (
               <LabelRow key={`${u.pool}:${u.label}`} u={u} drivers={drivers.rows ?? []} busy={busy === `${u.pool}:${u.label}`} onTie={(d, n) => void tie(u, d, n)} />
             ))}
           </ul>
         )}
+        {data && <CotrPager paged={namePage} className="px-4 pb-3" />}
       </Panel>
       {data && data.tied.length > 0 && (
         <Panel title={tr("Names tied by hand")} description={tr("Removing a tie lets the next import match the name by itself again; the rows already imported keep their driver.")}>
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Name in the workbook")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="w-12 px-3 py-2.5" /></tr></thead>
             <tbody className="divide-y divide-neutral-100">
-              {data.tied.map((t) => (
+              {tiedPage.rows.map((t) => (
                 <tr key={`${t.pool}:${t.label}`}>
                   <td className="px-4 py-2.5 font-mono text-xs font-semibold text-neutral-900">{t.label}</td>
                   <td className="px-3 py-2.5">{t.poolName}</td>
@@ -89,6 +95,7 @@ export function DriverNames() {
               ))}
             </tbody>
           </table>
+          <CotrPager paged={tiedPage} className="px-4 pb-3" />
         </Panel>
       )}
     </>
@@ -121,7 +128,7 @@ function LabelRow({ u, drivers, busy, onTie }: { u: Unmatched; drivers: Driver[]
       </div>
       <div className="relative max-w-sm">
         <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search another driver (name, code, armada)")} className="h-9 pl-8 text-sm" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search another driver (name, code, fleet)")} className="h-9 pl-8 text-sm" />
       </div>
       {found.length > 0 && (
         <div className="flex flex-wrap gap-1.5">

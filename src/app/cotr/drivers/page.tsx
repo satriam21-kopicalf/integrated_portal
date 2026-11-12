@@ -62,8 +62,8 @@ export default function CotrDriversPage() {
         { key: "status", label: tr("Status"), icon: <UserRound size={15} />, options: (Object.keys(STATUS) as Driver["status"][]).map((k) => ({ value: k, label: STATUS[k].label(), test: (d: Driver) => d.status === k })) },
         { key: "account", label: tr("Driver App Account"), icon: <KeyRound size={15} />, options: [
           { value: "with", label: tr("With an Account"), test: (d: Driver) => !!d.user_id }, { value: "without", label: tr("No account yet"), test: (d: Driver) => !d.user_id }] },
-        { key: "fleet", label: tr("Armada"), icon: <Bike size={15} />, options: [
-          { value: "with", label: tr("With an Armada"), test: (d: Driver) => !!d.fleet_code }, { value: "without", label: tr("No armada"), test: (d: Driver) => !d.fleet_code }] },
+        { key: "fleet", label: tr("Fleet"), icon: <Bike size={15} />, options: [
+          { value: "with", label: tr("With a Fleet"), test: (d: Driver) => !!d.fleet_code }, { value: "without", label: tr("No fleet"), test: (d: Driver) => !d.fleet_code }] },
       ]}
         description={tr("Driver logins are made in User Accounts (role Driver (COTR)); pick the account here to tie it to the driver.")}
         blank={(): Partial<Driver> => ({ code: `DRV-${String((master.rows?.length ?? 0) + 1).padStart(3, "0")}`, name: "", phone: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", fleet_code: null, status: "active", joined_on: new Date().toISOString().slice(0, 10), user_id: null })}

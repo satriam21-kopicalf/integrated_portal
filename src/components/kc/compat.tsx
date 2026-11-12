@@ -73,7 +73,7 @@ export function Stat({ label, icon, value, title, children, emphasis = false, cl
     <>
       {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
       <img src="/assets/calf-logo.png" alt="" aria-hidden
-        className={cx('pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain grayscale', emphasis ? 'opacity-[0.1]' : 'opacity-[0.05]')} />
+        className={cx('kc-mark pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain grayscale', emphasis ? 'opacity-[0.1]' : 'opacity-[0.05]')} />
       <span className="relative flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-1 text-[11px] font-semibold uppercase leading-snug tracking-wide text-neutral-500">{label}{info}</span>
         {icon && <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg [&>svg]:h-3.5 [&>svg]:w-3.5',

@@ -117,7 +117,7 @@ export function StatCard({ label, value, sub, icon, tone = 'default', onClick, a
   const body = (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
-      <img src="/assets/calf-logo.png" alt="" aria-hidden className="pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain opacity-[0.05] grayscale" />
+      <img src="/assets/calf-logo.png" alt="" aria-hidden className="kc-mark pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain opacity-[0.05] grayscale" />
       <span className="relative flex items-center justify-between gap-2">
         <span className="truncate text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}</span>
         {icon && <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>}

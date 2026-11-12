@@ -4,16 +4,17 @@
 // against ESB COTR, and the app, per pool, day and menu: arrived, transfer, sold, waste and cupping of each source and
 // the difference workbook − ESB. A pool-day matches, differs, or has only one source; differences first.
 
-import { ChevronDown, Download, GitCompareArrows, Scale, TriangleAlert, CheckCircle2, FileSpreadsheet } from "lucide-react";
+import { Building2, CalendarRange, ChevronDown, CircleDot, Download, GitCompareArrows, Scale, TriangleAlert, CheckCircle2, FileSpreadsheet } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
-import { useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
+import { CotrFilters } from "@/cotr/FilterBar";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
 
@@ -53,6 +54,7 @@ export function Reconcile() {
   // the biggest differences first, then the newest days
   const listed = useMemo(() => (data?.days ?? []).filter((d) => !status || d.status === status)
     .sort((a, b) => b.gap - a.gap || b.day.localeCompare(a.day) || a.pool.localeCompare(b.pool)), [data, status]);
+  const paged = usePaged(listed, `${pool}|${from}|${to}|${status}`, COTR_PAGE);
   const gap = (data?.days ?? []).reduce((a, d) => a + d.gap, 0);
   const exportXlsx = () => downloadXlsx({ fileName: `Rekonsiliasi COTR ${from} - ${to}`, sheet: "Rekonsiliasi", title: `${tr("Reconciliation")} · ${dmyOf(from)} – ${dmyOf(to)}`,
     header: [tr("Date"), tr("Pool / HUB"), tr("Status"), tr("Menu"), tr("Movement"), tr("Workbook"), "ESB", tr("App"), tr("Workbook − ESB")],
@@ -60,14 +62,16 @@ export function Reconcile() {
     .catch((e: Error) => toast(e.message, "error"));
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPool(e.target.value)}><option value="">{tr("All pools")}</option>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-        <Field label={tr("Status")}><Select value={status} onChange={(e) => setStatus(e.target.value as "" | Status)}><option value="">{tr("All")}</option>
-          {(Object.keys(STATUS) as Status[]).map((s) => <option key={s} value={s}>{STATUS[s].label()}</option>)}</Select></Field>
-        <Field label={tr("From")}><Input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /></Field>
-        <Field label={tr("Until")}><Input type="date" value={to} max={todayWib()} onChange={(e) => setTo(e.target.value)} /></Field>
-        <Button variant="secondary" disabled={!listed.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>
-      </div>
+      <CotrFilters value={{ from, to, pool, status }}
+        onApply={(v) => { setFrom(v.from); setTo(v.to); setPool(v.pool); setStatus(v.status as "" | Status); }}
+        actions={<Button variant="secondary" disabled={!listed.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>}
+        fields={[
+          { key: "period", kind: "period", label: tr("Period"), icon: <CalendarRange />, def: `${todayWib().slice(0, 8)}01`, defTo: todayWib(), max: todayWib() },
+          { key: "pool", kind: "combo", label: tr("Pool / HUB"), icon: <Building2 />, def: "", allLabel: tr("All pools"), placeholder: tr("Search pool"),
+            options: usable.map((p) => ({ value: p.code, label: p.name })) },
+          { key: "status", kind: "list", label: tr("Status"), icon: <CircleDot />, def: "diff",
+            options: [{ value: "", label: tr("All") }, ...(Object.keys(STATUS) as Status[]).map((s) => ({ value: s, label: STATUS[s].label() }))] },
+        ]} />
       <StatGrid label={tr("Summary")} cols={4}>
         <StatCard label={tr("Pool-days matching")} tone="brand" icon={<CheckCircle2 />} value={data ? data.summary.match : "…"} />
         <StatCard label={tr("Pool-days different")} icon={<TriangleAlert />} tone={data?.summary.diff ? "warn" : "default"} value={data ? data.summary.diff : "…"}
@@ -83,7 +87,7 @@ export function Reconcile() {
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Date")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5">{tr("Status")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Cups apart")}</th><th className="w-10 px-3 py-2.5" /></tr></thead>
             <tbody className="divide-y divide-neutral-100">
-              {listed.map((d) => {
+              {paged.rows.map((d) => {
                 const key = `${d.pool}:${d.day}`;
                 const on = open === key;
                 const shown = d.status === "diff" ? d.lines.filter((l) => l.diff) : d.lines;
@@ -125,6 +129,7 @@ export function Reconcile() {
             </tbody>
           </table>
         )}
+        {data && <CotrPager paged={paged} className="px-4 pb-3" />}
       </Panel>
     </>
   );

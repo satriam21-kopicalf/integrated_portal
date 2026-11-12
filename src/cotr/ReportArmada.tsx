@@ -5,16 +5,17 @@
 // T (sold) and its total at the menu price; then the QRIS, the cash, the cash counted and the operational costs (the
 // requests). Days before the app come from the imported workbooks.
 
-import { ClipboardList, Download, Search } from "lucide-react";
+import { Building2, CalendarRange, ClipboardList, Download } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, cx, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, cx, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
-import { EmptyState, StatCard, StatGrid } from "@/components/kc";
+import { EmptyState, SearchInput, StatCard, StatGrid } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
-import { rupiah, useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, rupiah, useMaster } from "@/cotr/ui";
+import { CotrFilters } from "@/cotr/FilterBar";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
 
@@ -48,6 +49,7 @@ export function ReportArmada() {
     const k = q.trim().toLowerCase();
     return (data?.drivers ?? []).filter((d) => !k || `${d.name} ${d.nickname ?? ""} ${d.label ?? ""}`.toLowerCase().includes(k));
   }, [data, q]);
+  const paged = usePaged(drivers, `${pool}|${from}|${to}|${q}`, COTR_PAGE);
   const all = drivers.flatMap((d) => d.days);
   const sum = (f: (x: DayRow) => number) => all.reduce((a, x) => a + f(x), 0);
   const menus = data?.menus ?? [];
@@ -66,16 +68,15 @@ export function ReportArmada() {
   };
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPoolSel(e.target.value)}><option value="">{tr("All pools")}</option>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-        <Field label={tr("From")}><Input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /></Field>
-        <Field label={tr("Until")}><Input type="date" value={to} max={todayWib()} onChange={(e) => setTo(e.target.value)} /></Field>
-        <label className="relative">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search driver")} className="pl-8" />
-        </label>
-        <Button variant="secondary" disabled={!drivers.length} onClick={exportXlsx}><Download size={15} /> {tr("Export Excel")}</Button>
-      </div>
+      <CotrFilters value={{ pool, from, to }}
+        onApply={(v) => { setPoolSel(v.pool); setFrom(v.from); setTo(v.to); }}
+        right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
+        actions={<Button variant="secondary" disabled={!drivers.length} onClick={exportXlsx}><Download size={15} /> {tr("Export Excel")}</Button>}
+        fields={[
+          { key: "period", kind: "period", label: tr("Period"), icon: <CalendarRange />, def: `${todayWib().slice(0, 8)}01`, defTo: todayWib(), max: todayWib() },
+          { key: "pool", kind: "combo", label: tr("Pool / HUB"), icon: <Building2 />, def: "", allLabel: tr("All pools"), placeholder: tr("Search pool"),
+            options: usable.map((p) => ({ value: p.code, label: p.name })) },
+        ]} />
       <StatGrid label={tr("Summary")} cols={4}>
         <StatCard label={tr("Cups sold")} tone="brand" value={sum((x) => Object.values(x.lines).reduce((a, l) => a + l.t, 0))} sub={tr("{0} driver days", all.length)} />
         <StatCard label={tr("Sales")} value={rupiah(sum((x) => x.total))} sub={`QRIS ${rupiah(sum((x) => x.qris))}`} />
@@ -87,7 +88,7 @@ export function ReportArmada() {
           <EmptyState icon={<ClipboardList />} title={tr("No driver days in this period")} />
         ) : (
           <div className="divide-y divide-neutral-100">
-            {drivers.map((d) => (
+            {paged.rows.map((d) => (
               <section key={d.code ?? d.label ?? d.name} className="p-4">
                 <p className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-neutral-900">{d.name}
                   {d.label && <span className="text-xs font-normal text-neutral-500">{d.label}</span>}
@@ -123,6 +124,7 @@ export function ReportArmada() {
             ))}
           </div>
         )}
+        {data && <CotrPager paged={paged} className="px-4 pb-3" />}
       </Panel>
     </>
   );

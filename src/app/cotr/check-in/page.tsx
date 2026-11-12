@@ -9,14 +9,15 @@ import { Building2, CalendarDays, Camera, Check, LogIn, LogOut, MapPin, MapPinCh
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Drawer from "@/so/ui/Drawer";
-import { Badge, Button, Empty, ErrorState, Input, cx, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Input, cx, usePaged, useToast } from "@/so/ui";
 import { SearchInput, Tabs } from "@/components/kc";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { DayField, ScopeBar, dmyOf } from "@/components/kc/ScopeBar";
+import { DayField, dmyOf } from "@/components/kc/ScopeBar";
+import { CotrFilterBar } from "@/cotr/FilterBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { Monitor, Reload, Request, Shift, Stock } from "@/cotr/types";
-import { rupiah, useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, rupiah, useMaster } from "@/cotr/ui";
 import type { RequestKind } from "@/cotr/RequestKinds";
 import { locale, tr } from "@/lib/i18n";
 import { thumb } from "@/lib/assets";
@@ -76,7 +77,7 @@ export default function CotrCheckInPage() {
   return (
     <Page eyebrow="Calf On The Road" media={<MapPinCheck size={19} />} title={tr("Monitoring Armada - Driver")} subtitle={tr("Shifts, sales, deductions, cash, stock, reloads and requests of every driver")}
       stats={<>
-        <ScopeBar onOpen={() => { setDraft({ day, pool, state }); setSheet(true); }}
+        <CotrFilterBar onOpen={() => { setDraft({ day, pool, state }); setSheet(true); }}
           right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
           scopes={[
             { key: "day", icon: <CalendarDays />, label: tr("Day"), value: day === todayWib() ? tr("Today") : dmyOf(day) },
@@ -116,7 +117,7 @@ export default function CotrCheckInPage() {
       )}
       {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !view ? (
         <div className="skeleton h-64 rounded-xl" />
-      ) : tab === "shifts" ? <Shifts data={view} /> : tab === "location" ? <DriverMap day={day} live={day === todayWib()} /> : tab === "reloads" ? <Reloads data={view} /> : <Requests data={view} onDone={load} />}
+      ) : tab === "shifts" ? <Shifts data={view} /> : tab === "location" ? <DriverMap day={day} live={day === todayWib()} drivers={pool || q.trim() || state ? new Set([...view.shifts.map((s) => s.driver)]) : undefined} /> : tab === "reloads" ? <Reloads data={view} /> : <Requests data={view} onDone={load} />}
     </Page>
   );
 }
@@ -129,6 +130,7 @@ function Shifts({ data }: { data: Monitor }) {
   const attention = (s: Shift) => !!(s.recap.difference && Object.keys(s.recap.difference).length) || (s.recap.balance ?? 0) < 0 || s.recap.voided > 0;
   const list = data.shifts.filter((s) => show === "all" || (show === "open" ? s.status === "open" : show === "closed" ? s.status === "closed" : attention(s)))
     .sort((x, y) => Number(attention(y)) - Number(attention(x)) || Number(y.status === "open") - Number(x.status === "open") || (x.driverName ?? "").localeCompare(y.driverName ?? ""));
+  const paged = usePaged(list, show + list.length, COTR_PAGE);
   const count = (c: Card) => data.shifts.filter((s) => c === "all" || (c === "open" ? s.status === "open" : c === "closed" ? s.status === "closed" : attention(s))).length;
   return (
     <>
@@ -143,7 +145,7 @@ function Shifts({ data }: { data: Monitor }) {
       </div>
       {list.length === 0 ? <Panel><Empty title={data.shifts.length ? tr("No shift matches") : tr("No driver has checked in on this day")} /></Panel> : (
         <ul className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-          {list.map((s) => {
+          {paged.rows.map((s) => {
             const diff = s.recap.difference && Object.keys(s.recap.difference).length;
             const short = (s.recap.balance ?? 0) < 0;
             return (
@@ -184,6 +186,7 @@ function Shifts({ data }: { data: Monitor }) {
           })}
         </ul>
       )}
+      <CotrPager paged={paged} />
       {data.notStarted.length > 0 && <NotStarted people={data.notStarted} />}
       {open && <ShiftDrawer s={open} onClose={() => setOpen(null)} />}
     </>
@@ -386,11 +389,13 @@ function Decide({ url, onDone, needNote }: { url: string; onDone: () => Promise<
 
 function Reloads({ data }: { data: Monitor }) {
   const name = (code: string | null) => data.shifts.find((s) => s.driver === code)?.driverName ?? code ?? "—";
+  const sorted = [...data.reloads].sort((a, b) => Number(b.status === "requested") - Number(a.status === "requested") || b.at.localeCompare(a.at));
+  const paged = usePaged(sorted, sorted.length, COTR_PAGE);
   return (
     <Panel title={tr("Reloads")} description={tr("Decided and settled by the storage team in Storage & Assignment")}>
       {data.reloads.length === 0 ? <Empty title={tr("No reload on this day")} /> : (
         <ul className="divide-y divide-neutral-100">
-          {[...data.reloads].sort((a, b) => Number(b.status === "requested") - Number(a.status === "requested") || b.at.localeCompare(a.at)).map((r) => (
+          {paged.rows.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
               <span className="min-w-0">
                 <span className="block font-medium text-neutral-900">{name(r.driver)} · {cups(r.lines)} {tr("cups")} <span className="font-normal text-neutral-400">{time(r.at)}</span></span>
@@ -402,6 +407,7 @@ function Reloads({ data }: { data: Monitor }) {
           ))}
         </ul>
       )}
+      <CotrPager paged={paged} className="px-4 pb-3" />
     </Panel>
   );
 }
@@ -414,11 +420,13 @@ function Requests({ data, onDone }: { data: Monitor; onDone: () => Promise<void>
   // the names come from Master → Pengajuan (migration 083); the built-in labels stay for the older codes
   const kinds = useMaster<RequestKind>("request-kinds");
   const kindName = (code: string) => kinds.rows?.find((k) => k.code === code)?.name ?? (KINDS[code] ?? (() => code))();
+  const sorted = [...data.requests].sort((a, b) => Number(b.status === "sent") - Number(a.status === "sent") || b.at.localeCompare(a.at));
+  const paged = usePaged(sorted, sorted.length, COTR_PAGE);
   return (
     <Panel title={tr("Requests")} description={tr("Costs on the road with the receipt; the ones still waiting are listed whatever their day")}>
       {data.requests.length === 0 ? <Empty title={tr("No request")} /> : (
         <ul className="divide-y divide-neutral-100">
-          {data.requests.map((r) => (
+          {paged.rows.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
               <span className="flex min-w-0 items-center gap-3">
                 <a href={photoUrl("request", r.id)} target="_blank" rel="noreferrer" className="flex-shrink-0 overflow-hidden rounded-lg ring-1 ring-neutral-200">
@@ -437,6 +445,7 @@ function Requests({ data, onDone }: { data: Monitor; onDone: () => Promise<void>
           ))}
         </ul>
       )}
+      <CotrPager paged={paged} className="px-4 pb-3" />
     </Panel>
   );
 }

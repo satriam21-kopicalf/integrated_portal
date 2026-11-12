@@ -5,13 +5,13 @@
 
 import { Coffee, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Badge, Field, Input } from "@/so/ui";
+import { Badge, Field, Input, usePaged } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { StatCard, StatGrid, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
-import { rupiah } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, rupiah } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 
 type Row = { day: string; branch: string; item: string; unit: string; kind: "cupping" | "waste" | "other"; qty: number; value: number };
@@ -22,6 +22,7 @@ export function StorageJournals() {
   const [from, setFrom] = useState(`${todayWib().slice(0, 8)}01`);
   const [to, setTo] = useState(todayWib());
   const [data, setData] = useState<Data | null>(null);
+  const paged = usePaged(data?.rows ?? [], data?.rows.length ?? 0, COTR_PAGE);
   useEffect(() => {
     let alive = true;
     setData(null);
@@ -46,7 +47,7 @@ export function StorageJournals() {
                 <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Date")}</th><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2">{tr("Kind")}</th>
                   <th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {data.rows.map((r, i) => (
+                  {paged.rows.map((r, i) => (
                     <tr key={i}>
                       <td className="px-3 py-1.5 tabular-nums">{dmyOf(r.day)}</td>
                       <td className="px-3 py-1.5 text-neutral-800">{r.item}<span className="block text-[11px] text-neutral-400">{r.branch}</span></td>
@@ -57,6 +58,7 @@ export function StorageJournals() {
                   ))}
                 </tbody>
               </table>
+              <CotrPager paged={paged} className="px-3 pb-3" />
             </div>
           )}
         </div>

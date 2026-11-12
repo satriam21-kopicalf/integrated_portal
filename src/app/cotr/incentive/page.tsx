@@ -6,14 +6,15 @@
 
 import { Building2, CalendarDays, Calculator, Coffee, Download, Layers, Plus, Trash2, TriangleAlert, Users, Wallet } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, cx, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, Select, cx, usePaged, useToast } from "@/so/ui";
 import { SearchInput, StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
-import { MonthField, ScopeBar } from "@/components/kc/ScopeBar";
+import { MonthField } from "@/components/kc/ScopeBar";
+import { CotrFilterBar } from "@/cotr/FilterBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList, Segments } from "@/so/ui/MonitorFilters";
 import { Page, Panel } from "@/components/kc/compat";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool } from "@/cotr/types";
-import { MasterTable, rupiah, useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, MasterTable, rupiah, useMaster } from "@/cotr/ui";
 import { locale, tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { PAY_LABEL, PayPanel, PayslipDrawer, type PayKind } from "@/cotr/Payslip";
@@ -97,10 +98,11 @@ function RecapView() {
   const poolList = (pools.rows ?? []).filter((p) => p.kind !== "storage");
   const rows = (data?.rows ?? []).filter((r) => (!only || (only === "eligible" ? r.eligible : !r.eligible))
     && (!q.trim() || `${r.name} ${r.driver} ${r.pool ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())));
+  const paged = usePaged(rows, `${month}|${only}|${q}|${rows.length}`, COTR_PAGE);
   const monthLabel = new Date(`${month}-01T00:00:00`).toLocaleDateString(locale(), { month: "long", year: "numeric" });
   return (
     <div className="space-y-5">
-      <ScopeBar onOpen={() => { setDraft({ month, scheme, pool, only }); setSheet(true); }}
+      <CotrFilterBar onOpen={() => { setDraft({ month, scheme, pool, only }); setSheet(true); }}
         right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
         scopes={[
           { key: "month", icon: <CalendarDays />, label: tr("Month"), value: monthLabel },
@@ -150,7 +152,7 @@ function RecapView() {
               <th className="px-3 py-2.5 text-right">{tr("Tiers")}</th><th className="px-3 py-2.5 text-right">{tr("Product Bonus")}</th><th className="px-3 py-2.5 text-right">{tr("Deduction")}</th><th className="px-3 py-2.5 text-right">{tr("Incentive")}</th>
               <th className="px-3 py-2.5 text-right">{PAY_LABEL.bonus()}</th><th className="px-3 py-2.5 text-right">{tr("Kasbon / minus / warning")}</th><th className="px-4 py-2.5 text-right">{tr("Take home")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
-              {rows.map((r) => (
+              {paged.rows.map((r) => (
                 <Fragment key={r.driver}>
                   <tr className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(open === r.driver ? null : r.driver)}>
                     <td className="px-4 py-2"><span className="block font-medium text-neutral-900">{r.name}</span><span className="text-[11px] text-neutral-400">{r.driver}{r.pool ? ` · ${r.pool}` : ""}</span></td>
@@ -183,6 +185,7 @@ function RecapView() {
           </table>
         </div>
       )}
+      {data && <CotrPager paged={paged} className="px-4 pb-3" />}
     </Panel>
     {slipOf && <PayslipDrawer driver={slipOf} month={month} onClose={() => setSlipOf(null)} />}
     </div>

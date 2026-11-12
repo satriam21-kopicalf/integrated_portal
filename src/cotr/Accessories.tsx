@@ -37,7 +37,7 @@ export function AccessoriesSection({ onChanged }: { onChanged: () => void }) {
   const categories = [...new Set((master.rows ?? []).map((a) => a.category).filter(Boolean))].sort();
   return (
     <div className="space-y-4">
-      <MasterTable noun={tr("accessory")} title={tr("Accessories")} description={tr("The items the armada carries; assign them to a fleet from its row")}
+      <MasterTable noun={tr("accessory")} title={tr("Accessories")} description={tr("The items the fleet carries; assign them to a fleet from its row")}
         master={{ ...master, save: async (row, key) => { const out = await master.save(row, key); onChanged(); return out; } }}
         filters={[
           { key: "category", label: tr("Category"), icon: <Tags size={15} />, options: categories.map((c) => ({ value: c, label: c, test: (a: Accessory) => a.category === c })) },

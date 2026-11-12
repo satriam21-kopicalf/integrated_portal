@@ -6,29 +6,45 @@
 // The first count of a pool is its opening stock. Sold comes from the drivers' transactions, Arrived from the batches
 // received (plus what is entered), Waste and Cupping from the drivers' check out and the pool; days imported from the
 // workbooks keep the figures of the sheet. On Storage & Production (any pool) and Storage & Assignment (the pool chosen).
+// 2026-11-13: the filters in one Filters button; 10 days a page; per menu a short line of its batches (how many, the
+// first expiry) and the batches of a day in a table of their own (code, cups, expiry, state) opened on demand; a workbook
+// day whose Product Arrived comes from ESB says so.
 
-import { AlertTriangle, Boxes, Download, FileSpreadsheet, PackageOpen, Plus, Save, Trash2, Truck } from "lucide-react";
+import { AlertTriangle, Boxes, Building2, CalendarDays, CalendarRange, ChevronDown, Download, FileSpreadsheet, PackageOpen, Plus, Save, Trash2, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, cx, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, Select, cx, usePaged, useToast } from "@/so/ui";
+import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
+import { CotrFilterBar } from "@/cotr/FilterBar";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState } from "@/components/kc";
 import Drawer, { DrawerSection } from "@/components/kc/Drawer";
 import { SkeletonTable } from "@/components/kc/Skeleton";
-import { dmyOf } from "@/components/kc/ScopeBar";
+import { DayField, dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
-import { useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
 
 type Lot = { batchNo: string | null; qty: number; expiresOn: string | null };
 type Cell = { opening?: number; transfer?: number; arrived?: number; sold?: number; waste?: number; cupping?: number; calculated?: number;
   actual: number | null; balance?: number | null; expired: number; lots: Lot[] };
-type Day = { day: string; source: "opening" | "app" | "sheet" | "esb" | "mixed"; rows: Record<string, Cell> };
+type Day = { day: string; source: "opening" | "app" | "sheet" | "esb" | "mixed"; arrivedSource?: "app" | "sheet" | "esb"; rows: Record<string, Cell> };
 export type Ledger = { pool: string; from: string; to: string; start: string | null; menus: { code: string; name: string }[]; days: Day[] };
 
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 const addDays = (d: string, n: number) => new Date(Date.parse(`${d}T00:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
+const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 864e5);
+/** the state of a lot on a day: past its expiry, expiring that day or the next, or fresh (n days left) */
+function lotState(l: Lot, day: string): { tone: "red" | "amber" | "green" | "slate"; label: string } {
+  if (!l.expiresOn) return { tone: "slate", label: tr("No expiry") };
+  const left = daysBetween(day, l.expiresOn);
+  if (left < 0) return { tone: "red", label: tr("Expired") };
+  if (left === 0) return { tone: "red", label: tr("Expires today") };
+  if (left === 1) return { tone: "amber", label: tr("Expires tomorrow") };
+  return { tone: "green", label: tr("{0} days left", left) };
+}
+const SPANS = [1, 3, 7, 14, 31];
 const FIGURES: { key: keyof Cell; label: () => string; strong?: boolean }[] = [
   { key: "opening", label: () => tr("Opening Stock") }, { key: "transfer", label: () => tr("Product Transfer") },
   { key: "arrived", label: () => tr("Product Arrived") }, { key: "sold", label: () => tr("Product Sold") },
@@ -78,16 +94,40 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
     downloadXlsx({ fileName: `Product ${poolLabel} ${from} - ${to}`, sheet: "Product", title: `Product · ${poolLabel} · ${dmyOf(from)} – ${dmyOf(to)}`, header, rows })
       .catch((e: Error) => toast(e.message, "error"));
   };
+  const [sheet, setSheet] = useState(false);
+  const [draft, setDraft] = useState({ pool: poolSel, to: toSel, span });
+  const [lotsOf, setLotsOf] = useState<string | null>(null);
+  const paged = usePaged([...days].reverse(), `${pool}|${from}|${to}`, COTR_PAGE);
   return (
     <>
       {!embedded && (
-        <div className="flex flex-wrap items-end gap-3">
-          <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPoolSel(e.target.value)}><option value="">{tr("All pools")}</option>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-          <Field label={tr("Until")}><Input type="date" value={toSel} max={todayWib()} onChange={(e) => setToSel(e.target.value)} /></Field>
-          <Field label={tr("Days")}><Select value={String(span)} onChange={(e) => setSpan(Number(e.target.value))}>{[1, 3, 7, 14, 31].map((n) => <option key={n} value={n}>{tr("{0} days", n)}</option>)}</Select></Field>
-          <Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={15} /> {tr("Import workbook")}</Button>
-          <Button variant="secondary" disabled={!days.length} onClick={exportXlsx}><Download size={15} /> {tr("Export Excel")}</Button>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <CotrFilterBar onOpen={() => { setDraft({ pool: poolSel, to: toSel, span }); setSheet(true); }} scopes={[
+            { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolLabel, active: !!poolSel },
+            { key: "to", icon: <CalendarDays />, label: tr("Until"), value: toSel === todayWib() ? tr("Today") : dmyOf(toSel), active: toSel !== todayWib() },
+            { key: "span", icon: <CalendarRange />, label: tr("Days"), value: tr("{0} days", span), active: span !== 7 },
+          ]} />
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={15} /> {tr("Import workbook")}</Button>
+            <Button variant="secondary" disabled={!days.length} onClick={exportXlsx}><Download size={15} /> {tr("Export Excel")}</Button>
+          </div>
         </div>
+      )}
+      {sheet && (
+        <MonitorFilterSheet active={[draft.pool, draft.to !== todayWib(), draft.span !== 7].filter(Boolean).length} onClose={() => setSheet(false)}
+          onReset={() => setDraft({ pool: "", to: todayWib(), span: 7 })}
+          onApply={() => { setPoolSel(draft.pool); setToSel(draft.to); setSpan(draft.span); setSheet(false); }}>
+          <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={draft.pool ? usable.find((p) => p.code === draft.pool)?.name ?? draft.pool : null} onClear={() => setDraft({ ...draft, pool: "" })}>
+            <ComboFilter value={draft.pool} onChange={(v) => setDraft({ ...draft, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
+              options={usable.map((p) => ({ value: p.code, label: p.name }))} />
+          </FilterRow>
+          <FilterRow icon={<CalendarDays size={15} />} label={tr("Until")} value={dmyOf(draft.to)}>
+            <DayField value={draft.to} onChange={(v) => setDraft({ ...draft, to: v })} max={todayWib()} />
+          </FilterRow>
+          <FilterRow icon={<CalendarRange size={15} />} label={tr("Days")} value={tr("{0} days", draft.span)}>
+            <Segments value={String(draft.span)} onChange={(v) => setDraft({ ...draft, span: Number(v) })} choices={SPANS.map((n) => ({ value: String(n), label: tr("{0} days", n) }))} />
+          </FilterRow>
+        </MonitorFilterSheet>
       )}
       <Panel title={tr("Product stock of the pool")}
         description={data?.start ? tr("Counted from {0}; the physical leftover of a day is the opening stock of the next", dmyOf(data.start)) : tr("Cups per menu at the pool / HUB, as the sheet Product")}
@@ -101,53 +141,104 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
             <div className="mt-3"><Button disabled={!pool} onClick={() => setCount(addDays(to, -1))}><PackageOpen size={15} /> {tr("Set opening stock")}</Button></div>
           </EmptyState>
         ) : days.length === 0 ? <EmptyState icon={<Boxes />} title={tr("The stock starts the day after the opening count")} /> : (
-          <div className="space-y-5 p-4">
+          <div className="space-y-4 p-4">
             {short.length > 0 && <p className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700"><AlertTriangle size={14} className="mt-0.5" />
               {tr("More went out than there was: {0}. Check the entries or count the pool.", [...new Set(short)].map(menuName).join(", "))}</p>}
-            {[...days].reverse().map((d) => (
-              <section key={d.day} className="overflow-hidden rounded-xl ring-1 ring-neutral-200">
-                <header className="flex flex-wrap items-center gap-2 bg-neutral-50 px-3 py-2">
-                  <span className="text-sm font-semibold text-neutral-900">{dmyOf(d.day)}</span>
-                  {d.source === "sheet" && <Badge tone="violet">{tr("From the workbook")}</Badge>}
-                  {d.source === "esb" && <Badge tone="blue">{tr("From ESB COTR")}</Badge>}
-                  {Object.values(d.rows).some((c) => c.actual === null) && <Badge tone="amber">{tr("Not counted yet")}</Badge>}
-                  {pool && <span className="ml-auto flex gap-1.5">
-                    <Button variant="ghost" onClick={() => setMoves({ day: d.day, kind: "arrived" })}>{tr("Arrived / Transfer")}</Button>
-                    <Button variant="ghost" onClick={() => setCount(d.day)}>{tr("Physical leftover")}</Button>
-                  </span>}
-                </header>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[640px] text-sm">
-                    <thead className="text-xs text-neutral-500"><tr><th className="px-3 py-2 text-left font-medium">&nbsp;</th>{data.menus.map((m) => <th key={m.code} className="px-3 py-2 text-right font-medium">{m.name}</th>)}</tr></thead>
-                    <tbody className="divide-y divide-neutral-100">
-                      {FIGURES.map((f) => (
-                        <tr key={f.key} className={f.strong ? "bg-neutral-50/60" : undefined}>
-                          <td className={cx("whitespace-nowrap px-3 py-1.5", f.strong ? "font-semibold text-neutral-900" : "text-neutral-600")}>{f.label()}</td>
+            {paged.rows.map((d) => {
+              const lots = data.menus.flatMap((m) => (d.rows[m.code]?.lots ?? []).map((l) => ({ ...l, menu: m.name })))
+                .sort((x, y) => (x.expiresOn ?? "9999").localeCompare(y.expiresOn ?? "9999") || x.menu.localeCompare(y.menu));
+              const open = lotsOf === d.day;
+              return (
+                <section key={d.day} className="overflow-hidden rounded-xl bg-white ring-1 ring-neutral-200">
+                  <header className="flex flex-wrap items-center gap-2 border-b border-neutral-100 bg-neutral-50/80 px-3 py-2">
+                    <span className="text-sm font-semibold text-neutral-900">{dmyOf(d.day)}</span>
+                    {d.source === "sheet" && <Badge tone="violet">{tr("From the workbook")}</Badge>}
+                    {d.source === "esb" && <Badge tone="blue">{tr("From ESB COTR")}</Badge>}
+                    {d.source === "sheet" && d.arrivedSource === "esb" && <Badge tone="blue">{tr("Arrived: ESB")}</Badge>}
+                    {Object.values(d.rows).some((c) => c.actual === null) && <Badge tone="amber">{tr("Not counted yet")}</Badge>}
+                    {pool && <span className="ml-auto flex gap-1.5">
+                      <Button variant="ghost" onClick={() => setMoves({ day: d.day, kind: "arrived" })}>{tr("Arrived / Transfer")}</Button>
+                      <Button variant="ghost" onClick={() => setCount(d.day)}>{tr("Physical leftover")}</Button>
+                    </span>}
+                  </header>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-sm">
+                      <thead className="text-xs text-neutral-500"><tr><th className="px-3 py-2 text-left font-medium">&nbsp;</th>{data.menus.map((m) => <th key={m.code} className="px-3 py-2 text-right font-medium">{m.name}</th>)}</tr></thead>
+                      <tbody className="divide-y divide-neutral-100">
+                        {FIGURES.map((f) => (
+                          <tr key={f.key} className={f.strong ? "bg-neutral-50/60" : undefined}>
+                            <td className={cx("whitespace-nowrap px-3 py-1.5", f.strong ? "font-semibold text-neutral-900" : "text-neutral-600")}>{f.label()}</td>
+                            {data.menus.map((m) => {
+                              const c = d.rows[m.code];
+                              const v = c?.[f.key] as number | null | undefined;
+                              const tone = f.key === "balance" && v ? (v < 0 ? "text-red-600" : "text-emerald-700") : f.key === "calculated" && (v ?? 0) < 0 ? "text-red-600" : "";
+                              return <td key={m.code} className={cx("px-3 py-1.5 text-right tabular-nums", f.strong && "font-semibold", tone)}>{v === null || v === undefined ? "—" : f.key === "balance" && v > 0 ? `+${v}` : v || (f.strong ? 0 : "—")}</td>;
+                            })}
+                          </tr>
+                        ))}
+                        <tr>
+                          <td className="whitespace-nowrap px-3 py-1.5 text-xs text-neutral-500">{tr("Batches")}</td>
                           {data.menus.map((m) => {
-                            const c = d.rows[m.code];
-                            const v = c?.[f.key] as number | null | undefined;
-                            const tone = f.key === "balance" && v ? (v < 0 ? "text-red-600" : "text-emerald-700") : f.key === "calculated" && (v ?? 0) < 0 ? "text-red-600" : "";
-                            return <td key={m.code} className={cx("px-3 py-1.5 text-right tabular-nums", f.strong && "font-semibold", tone)}>{v === null || v === undefined ? "—" : f.key === "balance" && v > 0 ? `+${v}` : v || (f.strong ? 0 : "—")}</td>;
+                            const ls = d.rows[m.code]?.lots ?? [];
+                            const first = ls.map((l) => l.expiresOn).filter(Boolean).sort()[0] as string | undefined;
+                            const st = first ? lotState({ batchNo: null, qty: 0, expiresOn: first }, d.day) : null;
+                            const gone = d.rows[m.code]?.expired ?? 0;
+                            return (
+                              <td key={m.code} className="px-3 py-1.5 text-right text-xs">
+                                {ls.length === 0 ? <span className="text-neutral-300">—</span> : (
+                                  <span className="block leading-tight">
+                                    <span className="text-neutral-700">{tr("{0} batches", ls.length)}</span>
+                                    {first && st && <span className={cx("block", st.tone === "red" ? "text-red-600" : st.tone === "amber" ? "text-amber-700" : "text-neutral-500")}>{tr("first exp {0}", dmyOf(first).slice(0, 5))}</span>}
+                                  </span>
+                                )}
+                                {gone > 0 && <span className="block text-[11px] font-medium text-red-600">{tr("{0} expired", gone)}</span>}
+                              </td>
+                            );
                           })}
                         </tr>
-                      ))}
-                      <tr>
-                        <td className="px-3 py-1.5 text-xs text-neutral-500">{tr("Batch & expiry")}</td>
-                        {data.menus.map((m) => (
-                          <td key={m.code} className="px-3 py-1.5 text-right">
-                            <span className="inline-flex flex-wrap justify-end gap-1">{(d.rows[m.code]?.lots ?? []).map((l, i) => {
-                              const gone = !!l.expiresOn && l.expiresOn <= d.day;
-                              return <Badge key={i} tone={gone ? "red" : l.expiresOn && l.expiresOn <= addDays(d.day, 1) ? "amber" : "slate"} title={l.expiresOn ? tr("Expires {0}", dmyOf(l.expiresOn)) : undefined}>{l.batchNo ?? "—"} · {l.qty}</Badge>;
-                            })}</span>
-                            {(d.rows[m.code]?.expired ?? 0) > 0 && <span className="mt-0.5 block text-[11px] text-red-600">{tr("{0} expired: not carried over", d.rows[m.code].expired)}</span>}
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {lots.length > 0 && (
+                    <div className="border-t border-neutral-100">
+                      <button type="button" onClick={() => setLotsOf(open ? null : d.day)} aria-expanded={open}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-brand-700 hover:bg-neutral-50">
+                        <ChevronDown size={14} className={cx("transition-transform", open && "rotate-180")} />
+                        {open ? tr("Hide batches & expiry") : tr("Batches & expiry ({0})", lots.length)}
+                        {lots.some((l) => lotState(l, d.day).tone === "red") && <Badge tone="red">{tr("Expired / today")}</Badge>}
+                        {lots.some((l) => lotState(l, d.day).tone === "amber") && <Badge tone="amber">{tr("Expires tomorrow")}</Badge>}
+                      </button>
+                      {open && (
+                        <div className="overflow-x-auto px-3 pb-3">
+                          <table className="w-full min-w-[480px] text-sm">
+                            <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-500"><tr>
+                              <th className="py-1.5 pr-3 font-medium">{tr("Menu")}</th><th className="py-1.5 pr-3 font-medium">{tr("Batch Code")}</th>
+                              <th className="py-1.5 pr-3 text-right font-medium">{tr("Cups")}</th><th className="py-1.5 pr-3 font-medium">{tr("Expiry")}</th><th className="py-1.5 font-medium">{tr("Status")}</th>
+                            </tr></thead>
+                            <tbody className="divide-y divide-neutral-100">
+                              {lots.map((l, i) => {
+                                const st = lotState(l, d.day);
+                                return (
+                                  <tr key={i}>
+                                    <td className="py-1.5 pr-3 text-neutral-800">{l.menu}</td>
+                                    <td className="py-1.5 pr-3 font-mono text-xs text-neutral-700">{l.batchNo ?? "—"}</td>
+                                    <td className="py-1.5 pr-3 text-right tabular-nums">{l.qty}</td>
+                                    <td className="py-1.5 pr-3 tabular-nums text-neutral-600">{l.expiresOn ? dmyOf(l.expiresOn) : "—"}</td>
+                                    <td className="py-1.5"><Badge tone={st.tone}>{st.label}</Badge></td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                          <p className="mt-2 text-[11px] text-neutral-500">{tr("Batch code SSDD: the batch of the day and the day it was made (0210 = batch 2 of the 10th); the expiry follows the shelf life of the menu.")}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+            <CotrPager paged={paged} />
           </div>
         )}
       </Panel>

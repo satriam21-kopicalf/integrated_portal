@@ -10,7 +10,7 @@ import { Building2, CalendarDays, ChevronLeft, ChevronRight, Clock, Copy, MapPin
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Tone, cx, useToast } from "@/so/ui";
 import { SearchInput, StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
-import { ScopeBar } from "@/components/kc/ScopeBar";
+import { CotrFilterBar } from "@/cotr/FilterBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
 import { Page, Panel } from "@/components/kc/compat";
 import { call } from "@/so/features/checkin/checkin";
@@ -187,7 +187,7 @@ function RosterView() {
                 ))}
               </div>
             </div>
-            <ScopeBar onOpen={() => { setDraftF({ pool, dept }); setSheet(true); }}
+            <CotrFilterBar onOpen={() => { setDraftF({ pool, dept }); setSheet(true); }}
               right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search name or nickname")} />}
               scopes={[
                 { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolList.find((p) => p.code === pool)?.name ?? tr("All pools"), active: !!pool },

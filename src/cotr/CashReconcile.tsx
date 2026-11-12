@@ -4,16 +4,17 @@
 // QRIS part, the operational costs paid from the cash, the cash that should be handed in and the cash counted — the
 // difference shows at once. From Report Armada (the app shifts, else the workbooks).
 
-import { Banknote, Download, Scale, TriangleAlert } from "lucide-react";
+import { Banknote, Building2, CalendarRange, Download, Filter, Scale, TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { ErrorState, Field, Input, Select, useToast } from "@/so/ui";
+import { Button, ErrorState, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
-import { rupiah, useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, rupiah, useMaster } from "@/cotr/ui";
+import { CotrFilters } from "@/cotr/FilterBar";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
 
@@ -49,6 +50,7 @@ export function CashReconcile() {
       operational: Math.round(x.operational), expected, actual: x.cashActual, diff: x.cashActual === null ? null : Math.round(x.cashActual - expected) };
   })).sort((a, b) => Math.abs(b.diff ?? 0) - Math.abs(a.diff ?? 0) || b.day.localeCompare(a.day)), [data]);
   const listed = only === "diff" ? rows.filter((r) => r.diff && Math.abs(r.diff) > min) : rows;
+  const paged = usePaged(listed, `${pool}|${from}|${to}|${only}|${min}`, COTR_PAGE);
   const short = rows.filter((r) => (r.diff ?? 0) < 0);
   const over = rows.filter((r) => (r.diff ?? 0) > 0);
   const exportXlsx = () => downloadXlsx({ fileName: `Rekonsiliasi Uang COTR ${from} - ${to}`, sheet: "Uang", title: `${tr("Cash reconciliation")} · ${dmyOf(from)} – ${dmyOf(to)}`,
@@ -56,16 +58,18 @@ export function CashReconcile() {
     rows: listed.map((r) => [r.day, name(r.pool), r.driver, r.sales, r.qris, r.operational, r.expected, r.actual, r.diff]) }).catch((e: Error) => toast(e.message, "error"));
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPool(e.target.value)}><option value="">{tr("All pools")}</option>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-        <Field label={tr("Show")}><Select value={only} onChange={(e) => setOnly(e.target.value as "diff" | "")}><option value="diff">{tr("Differences only")}</option><option value="">{tr("Every driver-day")}</option></Select></Field>
-        {only === "diff" && <Field label={tr("Difference above")}><Select value={min} onChange={(e) => setMin(Number(e.target.value))}>
-          {[0, 5000, 10000, 50000].map((v) => <option key={v} value={v}>{v ? rupiah(v) : tr("Any")}</option>)}</Select></Field>}
-        <Field label={tr("From")}><Input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /></Field>
-        <Field label={tr("Until")}><Input type="date" value={to} max={todayWib()} onChange={(e) => setTo(e.target.value)} /></Field>
-        <button type="button" disabled={!listed.length} onClick={() => void exportXlsx()} className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50">
-          <Download size={15} /> {tr("Export Excel")}</button>
-      </div>
+      <CotrFilters value={{ from, to, pool, only, min: String(min) }}
+        onApply={(v) => { setFrom(v.from); setTo(v.to); setPool(v.pool); setOnly(v.only as "diff" | ""); setMin(Number(v.min) || 0); }}
+        actions={<Button variant="secondary" disabled={!listed.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>}
+        fields={[
+          { key: "period", kind: "period", label: tr("Period"), icon: <CalendarRange />, def: `${todayWib().slice(0, 8)}01`, defTo: todayWib(), max: todayWib() },
+          { key: "pool", kind: "combo", label: tr("Pool / HUB"), icon: <Building2 />, def: "", allLabel: tr("All pools"), placeholder: tr("Search pool"),
+            options: usable.map((p) => ({ value: p.code, label: p.name })) },
+          { key: "only", kind: "segments", label: tr("Show"), icon: <Filter />, def: "diff",
+            options: [{ value: "diff", label: tr("Differences only") }, { value: "", label: tr("Every driver-day") }] },
+          { key: "min", kind: "segments", label: tr("Difference above"), icon: <Scale />, def: "0", when: (v) => v.only === "diff",
+            options: [0, 5000, 10000, 50000].map((x) => ({ value: String(x), label: x ? rupiah(x) : tr("Any") })) },
+        ]} />
       <StatGrid label={tr("Summary")} cols={4}>
         <StatCard label={tr("Cash expected")} tone="brand" icon={<Banknote />} value={data ? rupiah(rows.reduce((a, r) => a + r.expected, 0)) : "…"} sub={tr("Sales − QRIS − operational")} />
         <StatCard label={tr("Cash counted")} icon={<Scale />} value={data ? rupiah(rows.reduce((a, r) => a + (r.actual ?? 0), 0)) : "…"}
@@ -83,7 +87,7 @@ export function CashReconcile() {
               <th className="px-3 py-2.5 text-right">QRIS</th><th className="px-3 py-2.5 text-right">{tr("Operational")}</th><th className="px-3 py-2.5 text-right">{tr("Cash expected")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Cash counted")}</th><th className="px-4 py-2.5 text-right">{tr("Difference")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
-              {listed.slice(0, 500).map((r) => (
+              {paged.rows.map((r) => (
                 <tr key={r.key} className="hover:bg-neutral-50">
                   <td className="px-4 py-2 tabular-nums">{dmyOf(r.day)}</td>
                   <td className="px-3 py-2"><span className="font-medium text-neutral-900">{r.driver}</span><span className="block text-[11px] text-neutral-500">{name(r.pool)}</span></td>
@@ -99,6 +103,7 @@ export function CashReconcile() {
             </tbody>
           </table>
         )}
+        {data && <CotrPager paged={paged} className="px-4 pb-3" />}
       </Panel>
     </>
   );

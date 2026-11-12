@@ -15,7 +15,8 @@ import { MasterTable, SearchSelect, rupiah, useMaster } from '@/cotr/ui';
 import { locale, tr } from '@/lib/i18n';
 import { StatCard, StatGrid, ValueSkeleton, kcTable } from '@/components/kc';
 import { SkeletonTable } from '@/components/kc/Skeleton';
-import { ScopeBar, dmyOf } from '@/components/kc/ScopeBar';
+import { dmyOf } from '@/components/kc/ScopeBar';
+import { CotrFilterBar } from '@/cotr/FilterBar';
 import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from '@/so/ui/MonitorFilters';
 
 export const CATEGORY: Record<ItemCategory, { label: () => string; tone: 'amber' | 'violet' | 'blue' | 'cyan' | 'slate' | 'green' }> = {
@@ -344,7 +345,7 @@ export function UsageTab() {
   const total = (k: 'sold' | 'waste' | 'cupping') => data?.menus.reduce((a, m) => a + m[k], 0) ?? 0;
   return (
     <>
-      <ScopeBar onOpen={() => { setDraft({ from, to, pool }); setSheet(true); }}
+      <CotrFilterBar onOpen={() => { setDraft({ from, to, pool }); setSheet(true); }}
         scopes={[
           { key: 'period', icon: <CalendarRange />, label: tr('Period'), value: from === to ? dmyOf(from) : `${dmyOf(from)} – ${dmyOf(to)}`, active: quickOf(from, to) !== '6' },
           { key: 'pool', icon: <Building2 />, label: tr('Pool / HUB'), value: poolList.find((p) => p.code === pool)?.name ?? tr('All pools'), active: !!pool },

@@ -7,7 +7,7 @@
 
 import { Banknote, Bike, CupSoda, QrCode, Store, Trash2, TrendingDown, TrendingUp, Users } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
-import { tr } from "@/lib/i18n";
+import { numberLocale, tr } from "@/lib/i18n";
 
 type Change = number | null;
 type Row = { cups: number; value: number; share?: number | null; change?: Change };
@@ -22,10 +22,11 @@ type Data = {
   drivers: { code: string | null; name: string; poolName: string; cups: number; value: number; days: number }[];
 };
 
-const num = (v: number) => Math.round(v).toLocaleString("id-ID");
+// numbers in the format of the language (as lib/format formatNumber); the full Rupiah stays Indonesian, as everywhere
+const num = (v: number) => Math.round(v).toLocaleString(numberLocale());
 const rp = (v: number) => `Rp ${Math.round(v).toLocaleString("id-ID")}`;
-const rpShort = (v: number) => (v >= 1e9 ? `Rp ${(v / 1e9).toLocaleString("id-ID", { maximumFractionDigits: 2 })} M`
-  : v >= 1e6 ? `Rp ${(v / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })} jt` : rp(v));
+const rpShort = (v: number) => (v >= 1e9 ? `Rp ${(v / 1e9).toLocaleString(numberLocale(), { maximumFractionDigits: 2 })} ${tr("bn")}`
+  : v >= 1e6 ? `Rp ${(v / 1e6).toLocaleString(numberLocale(), { maximumFractionDigits: 1 })} ${tr("mn")}` : rp(v));
 const dm = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 const dmy = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}`;
 const range = (p: { from: string; to: string }) => (p.from === p.to ? dmy(p.from) : `${dmy(p.from)} – ${dmy(p.to)}`);
@@ -37,7 +38,7 @@ function Delta({ v, inverse = false }: { v: Change; inverse?: boolean }) {
   const good = inverse ? !up : up;
   return (
     <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${good ? "text-emerald-700" : "text-red-600"}`}>
-      {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{up ? "+" : "−"}{Math.abs(v * 100).toLocaleString("id-ID", { maximumFractionDigits: 1 })}%
+      {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{up ? "+" : "−"}{Math.abs(v * 100).toLocaleString(numberLocale(), { maximumFractionDigits: 1 })}%
     </span>
   );
 }
@@ -122,7 +123,9 @@ function Ranked({ rows, label }: { rows: { key: string; name: string; sub?: stri
   );
 }
 
-export default function CotrOverview({ from, to, compareFrom, compareTo }: { from: string; to: string; compareFrom?: string | null; compareTo?: string | null }) {
+/** `bare`: inside a page that pads its content already (the COTR Dashboard); the Dashboard tab pads it itself. */
+export default function CotrOverview({ from, to, compareFrom, compareTo, bare = false }: { from: string; to: string; compareFrom?: string | null; compareTo?: string | null; bare?: boolean }) {
+  const pad = bare ? "" : "p-4 sm:p-6";
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -135,10 +138,10 @@ export default function CotrOverview({ from, to, compareFrom, compareTo }: { fro
     return () => { alive = false; };
   }, [from, to, compareFrom, compareTo]);
 
-  if (error) return <div className="p-4 sm:p-6"><p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p></div>;
+  if (error) return <div className={pad}><p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p></div>;
   if (!data) {
     return (
-      <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-5" aria-busy="true">
+      <div className={`grid gap-3 sm:grid-cols-2 xl:grid-cols-5 ${pad}`} aria-busy="true">
         {Array.from({ length: 5 }, (_, i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-neutral-200/60" />)}
         <div className="h-64 animate-pulse rounded-xl bg-neutral-200/60 sm:col-span-2 xl:col-span-5" />
       </div>
@@ -148,7 +151,7 @@ export default function CotrOverview({ from, to, compareFrom, compareTo }: { fro
   const pay = s.cash + s.qris;
   const qrisShare = pay ? s.qris / pay : 0;
   return (
-    <div className="space-y-4 p-4 sm:p-6">
+    <div className={`space-y-4 ${pad}`}>
       <p className="text-xs text-neutral-500">{range(data.period)} · {tr("compared with {0}", range(data.compare))}</p>
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
         <Tile icon={<CupSoda size={15} />} label={tr("Cups Sold")} value={num(s.cups)} delta={<Delta v={data.changes.cups} />}

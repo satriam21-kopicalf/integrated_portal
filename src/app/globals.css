@@ -203,3 +203,7 @@ html.dark input[type='date']::-webkit-calendar-picker-indicator {
   }
   table.m-cards td > .ml-auto { margin-left: 0; }
 }
+
+/* The Calf mark of the number cards (components/kc Stat / StatCard) is the Kopi Calf brand: not on the pages of
+   Calf On The Road (html.brand-cotr, src/cotr/theme.ts). */
+html.brand-cotr .kc-mark { display: none; }

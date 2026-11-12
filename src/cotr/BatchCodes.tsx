@@ -4,9 +4,12 @@
 // day it was made, 0808 = batch 8 of the 8th) counted in the physical leftover of the pools, per menu: the day it was
 // made, its expiry (the shelf life of the menu), the days it was counted and the cups of its last count per pool.
 
-import { Download, PencilLine, Save, Search, Tags } from "lucide-react";
+import { Building2, CalendarRange, CircleDot, Coffee, Download, PencilLine, Save, Tags } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, usePaged, useToast } from "@/so/ui";
+import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
+import { SearchInput } from "@/components/kc";
+import { CotrFilterBar } from "@/cotr/FilterBar";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid, kcTable } from "@/components/kc";
 import Drawer from "@/components/kc/Drawer";
@@ -14,7 +17,7 @@ import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
 import { call } from "@/so/features/checkin/checkin";
 import { Pool } from "@/cotr/types";
-import { useMaster } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
 
@@ -38,6 +41,8 @@ export function BatchCodes() {
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const [adjust, setAdjust] = useState<{ code: Code; pool: PoolQty } | null>(null);
+  const [sheet, setSheet] = useState(false);
+  const [draft, setDraft] = useState({ pool, menu, status, from, to });
   useEffect(() => {
     let alive = true;
     setRows(null); setError(null);
@@ -49,22 +54,52 @@ export function BatchCodes() {
   const listed = (rows ?? []).filter((r) => (!menu || r.menu === menu) && (!status || r.status === status)
     && (!q.trim() || `${r.batchNo} ${r.menuName}`.toLowerCase().includes(q.trim().toLowerCase())));
   const active = listed.filter((r) => r.status === "active");
+  const paged = usePaged(listed, `${pool}|${menu}|${status}|${from}|${to}|${q}`, COTR_PAGE);
+  const monthStart = `${todayWib().slice(0, 8)}01`;
+  const poolName = (c: string) => usable.find((p) => p.code === c)?.name ?? c;
+  const menuName = (c: string) => menus.find(([m]) => m === c)?.[1] ?? c;
+  const statusLabel = (v: string) => (v === "active" ? tr("Active") : v === "expired" ? tr("Expired") : tr("All"));
   const exportXlsx = () => downloadXlsx({ fileName: `Kode Batch ${from} - ${to}`, sheet: "Kode Batch", title: `${tr("Batch Codes")} · ${dmyOf(from)} – ${dmyOf(to)}`,
     header: [tr("Menu"), tr("Batch code"), tr("Batch No."), tr("Produced"), tr("Expiry"), tr("Status"), tr("First counted"), tr("Last counted"), tr("Left (last count)"), tr("Per pool")],
     rows: listed.map((r) => [r.menuName, r.batchNo, r.sequence, r.producedOn, r.expiresOn, r.status === "active" ? tr("Active") : tr("Expired"), r.firstCounted, r.lastCounted, r.left,
       r.pools.map((p) => `${p.poolName}: ${p.qty} (${p.day})`).join(", ")]) }).catch((e: Error) => toast(e.message, "error"));
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
-        <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPool(e.target.value)}><option value="">{tr("All pools")}</option>{usable.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select></Field>
-        <Field label={tr("Menu")}><Select value={menu} onChange={(e) => setMenu(e.target.value)}><option value="">{tr("All menus")}</option>{menus.map(([c, n]) => <option key={c} value={c}>{n}</option>)}</Select></Field>
-        <Field label={tr("Status")}><Select value={status} onChange={(e) => setStatus(e.target.value)}><option value="">{tr("All")}</option><option value="active">{tr("Active")}</option><option value="expired">{tr("Expired")}</option></Select></Field>
-        <Field label={tr("From")}><Input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /></Field>
-        <Field label={tr("Until")}><Input type="date" value={to} max={todayWib()} onChange={(e) => setTo(e.target.value)} /></Field>
-        <label className="relative"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search batch code")} className="pl-8" /></label>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <CotrFilterBar onOpen={() => { setDraft({ pool, menu, status, from, to }); setSheet(true); }}
+          right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search batch code")} />}
+          scopes={[
+            { key: "period", icon: <CalendarRange />, label: tr("Period"), value: `${dmyOf(from)} – ${dmyOf(to)}`, active: from !== monthStart || to !== todayWib() },
+            { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: pool ? poolName(pool) : tr("All pools"), active: !!pool },
+            { key: "menu", icon: <Coffee />, label: tr("Menu"), value: menu ? menuName(menu) : tr("All menus"), active: !!menu },
+            { key: "status", icon: <CircleDot />, label: tr("Status"), value: statusLabel(status), active: !!status },
+          ]} />
         <Button variant="secondary" disabled={!listed.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>
       </div>
+      {sheet && (
+        <MonitorFilterSheet active={[draft.pool, draft.menu, draft.status, draft.from !== monthStart || draft.to !== todayWib()].filter(Boolean).length}
+          onClose={() => setSheet(false)} onReset={() => setDraft({ pool: "", menu: "", status: "", from: monthStart, to: todayWib() })}
+          onApply={() => { setPool(draft.pool); setMenu(draft.menu); setStatus(draft.status); setFrom(draft.from); setTo(draft.to); setSheet(false); }}>
+          <FilterRow icon={<CalendarRange size={15} />} label={tr("Period")} value={`${dmyOf(draft.from)} – ${dmyOf(draft.to)}`}>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label={tr("From")}><Input type="date" value={draft.from} max={draft.to} onChange={(e) => e.target.value && setDraft({ ...draft, from: e.target.value })} /></Field>
+              <Field label={tr("Until")}><Input type="date" value={draft.to} max={todayWib()} onChange={(e) => e.target.value && setDraft({ ...draft, to: e.target.value })} /></Field>
+            </div>
+          </FilterRow>
+          <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={draft.pool ? poolName(draft.pool) : null} onClear={() => setDraft({ ...draft, pool: "" })}>
+            <ComboFilter value={draft.pool} onChange={(v) => setDraft({ ...draft, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
+              options={usable.map((p) => ({ value: p.code, label: p.name }))} />
+          </FilterRow>
+          <FilterRow icon={<Coffee size={15} />} label={tr("Menu")} value={draft.menu ? menuName(draft.menu) : null} onClear={() => setDraft({ ...draft, menu: "" })}>
+            <ComboFilter value={draft.menu} onChange={(v) => setDraft({ ...draft, menu: v })} allLabel={tr("All menus")} placeholder={tr("Search menu")}
+              options={menus.map(([c, n]) => ({ value: c, label: n }))} />
+          </FilterRow>
+          <FilterRow icon={<CircleDot size={15} />} label={tr("Status")} value={draft.status ? statusLabel(draft.status) : null} onClear={() => setDraft({ ...draft, status: "" })}>
+            <Segments value={draft.status} onChange={(v) => setDraft({ ...draft, status: v })}
+              choices={[{ value: "", label: tr("All") }, { value: "active", label: tr("Active") }, { value: "expired", label: tr("Expired") }]} />
+          </FilterRow>
+        </MonitorFilterSheet>
+      )}
       <StatGrid label={tr("Summary")} cols={3}>
         <StatCard label={tr("Batch codes")} tone="brand" icon={<Tags />} value={listed.length} sub={tr("{0} menus", new Set(listed.map((r) => r.menu)).size)} />
         <StatCard label={tr("Active")} value={active.length} sub={tr("{0} cups at the last count", active.reduce((a, r) => a + r.left, 0))} />
@@ -78,7 +113,7 @@ export function BatchCodes() {
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Batch code")}</th><th className="px-3 py-2.5">{tr("Menu")}</th><th className="px-3 py-2.5">{tr("Produced")}</th>
               <th className="px-3 py-2.5">{tr("Expiry")}</th><th className="px-3 py-2.5">{tr("Counted")}</th><th className="px-3 py-2.5 text-right">{tr("Left (last count)")}</th><th className="px-4 py-2.5">{tr("Per pool")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
-              {listed.map((r) => (
+              {paged.rows.map((r) => (
                 <tr key={`${r.menu}:${r.batchNo}:${r.producedOn}`} className={r.status === "expired" && r.left > 0 ? "bg-red-50/40" : undefined}>
                   <td className="px-4 py-2.5"><span className="font-mono font-semibold text-neutral-900">{r.batchNo}</span>
                     {r.sequence !== null && <span className="block text-[11px] text-neutral-500">{tr("Batch {0}", r.sequence)}</span>}</td>
@@ -97,6 +132,7 @@ export function BatchCodes() {
             </tbody>
           </table>
         )}
+        <CotrPager paged={paged} className="px-4 pb-3" />
       </Panel>
       {adjust && <AdjustDrawer {...adjust} onClose={() => setAdjust(null)} onSaved={() => { setAdjust(null); setTick((t) => t + 1); }} />}
     </>

@@ -5,6 +5,7 @@
 // type, what the vehicle is and a small QR that opens /share/fleet/{label_token} (the armada and its driver in full).
 // The QRIS is never printed: it is shown to the customer only for a payment. Printed on an A4 sheet with cut lines or
 // one label per page for a label printer; ?codes= preselects armada. A lost label is voided by replacing its QR.
+// 2026-11-13: the COTR palette, the sticker with its facts in a grid, no "Kopi Calf" under the COTR logo.
 
 import { useSearchParams } from "next/navigation";
 import { Printer, RefreshCw } from "lucide-react";
@@ -18,13 +19,14 @@ import { useMaster } from "@/cotr/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 
-const BLUE = "#1e2bd6";
-const RED = "#e11d2a";
+// the COTR palette (scripts/gen-theme.mjs: COTR_BLUE / COTR_RED 600)
+const BLUE = "#141ede";
+const RED = "#e41c24";
 const LOGO = "/assets/Logo-COTR.png";
 
 type Layout = "sticker" | "compact" | "tag" | "card" | "strip";
 const LAYOUTS: Record<Layout, { w: number; h: number; name: string; use: string }> = {
-  sticker: { w: 90, h: 55, name: "Sticker", use: "Body of the armada" },
+  sticker: { w: 90, h: 55, name: "Sticker", use: "Body of the fleet" },
   compact: { w: 60, h: 40, name: "Compact", use: "Handlebar or small panel" },
   tag: { w: 40, h: 25, name: "Mini QR tag", use: "Frame, battery or key" },
   card: { w: 105, h: 148, name: "Card A6", use: "Cargo box or the pool board" },
@@ -91,7 +93,7 @@ function Labels() {
   };
 
   return (
-    <Page eyebrow="Calf On The Road" media={<Printer size={19} />} title={tr("Armada Labels")} subtitle={tr("Information label of the armada: code, vehicle and a QR that opens its details and driver (the QRIS is not printed)")}
+    <Page eyebrow="Calf On The Road" media={<Printer size={19} />} title={tr("Fleet Labels")} subtitle={tr("Information label of the fleet: code, vehicle and a QR that opens its details and driver (the QRIS is not printed)")}
       actions={<Button disabled={!chosen.length || !origin} onClick={() => window.print()}><Printer size={16} /> {tr("Print {0}", chosen.length * copies)}</Button>}>
       <style>{`@media print {
         body * { visibility: hidden !important; }
@@ -133,13 +135,19 @@ function Labels() {
               })}
             </ul>
             <div className="grid grid-cols-2 gap-3 border-t border-neutral-100 p-4">
-              <Field label={tr("Print on")}>
-                <Select value={mode} onChange={(e) => setMode(e.target.value as Mode)}>
-                  <option value="sheet">{tr("A4 sheet with cut lines")}</option>
-                  <option value="roll">{tr("Label printer (one label per page)")}</option>
-                </Select>
-              </Field>
-              <Field label={tr("Copies per Armada")}>
+              <div className="col-span-2">
+                <p className="mb-1.5 text-[13px] font-medium text-neutral-700">{tr("Print on")}</p>
+                <div className="grid grid-cols-2 gap-1 rounded-xl bg-neutral-100 p-1" role="radiogroup" aria-label={tr("Print on")}>
+                  {([["sheet", tr("A4 sheet"), tr("with cut lines")], ["roll", tr("Label printer"), tr("one label per page")]] as const).map(([m, name, hint]) => (
+                    <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
+                      className={cx("rounded-lg px-2 py-1.5 text-left transition-colors", mode === m ? "bg-white shadow-sm" : "hover:bg-white/60")}>
+                      <span className={cx("block text-[13px] font-semibold", mode === m ? "text-brand-800" : "text-neutral-700")}>{name}</span>
+                      <span className="block text-[11px] text-neutral-500">{hint}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Field label={tr("Copies per Fleet")}>
                 <Select value={copies} onChange={(e) => setCopies(Number(e.target.value))}>
                   {[1, 2, 3, 4, 6].map((n) => <option key={n} value={n}>{n}</option>)}
                 </Select>
@@ -150,13 +158,13 @@ function Labels() {
             </div>
           </Panel>
 
-          <Panel title={tr("Armada")} description={tr("{0} of {1} chosen", chosen.length, rows.length)}
+          <Panel title={tr("Fleet")} description={tr("{0} of {1} chosen", chosen.length, rows.length)}
             actions={<>
               <Button size="sm" variant="ghost" onClick={() => setPicked(new Set(listed.map((f) => f.code)))}>{tr("All")}</Button>
               <Button size="sm" variant="ghost" onClick={() => setPicked(new Set())}>{tr("None")}</Button>
             </>}
             toolbar={<div className="flex gap-2">
-              <SearchInput value={q} onChange={setQ} placeholder={tr("Search armada")} />
+              <SearchInput value={q} onChange={setQ} placeholder={tr("Search fleet")} />
               <Select value={poolFilter} onChange={(e) => setPoolFilter(e.target.value)} className="w-36" aria-label={tr("Pool / HUB")}>
                 <option value="">{tr("All pools")}</option>
                 {(pools.rows ?? []).filter((x) => x.kind !== "storage").map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
@@ -195,7 +203,7 @@ function Labels() {
                 <Label layout={layout} x={info(f)} />
               </div>
             )))}
-            {!chosen.length && <p className="w-full py-16 text-center text-sm text-neutral-400">{tr("Choose the armada to print.")}</p>}
+            {!chosen.length && <p className="w-full py-16 text-center text-sm text-neutral-400">{tr("Choose the fleet to print.")}</p>}
           </div>
         </Panel>
       </div>
@@ -247,11 +255,10 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
       <section className={cx(shell, "items-stretch rounded-[3mm]")} style={{ ...box, border: `0.4mm solid #cbd5e1` }}>
         <div className="flex flex-col items-center justify-center px-[3mm] text-white" style={{ background: BLUE, width: "38mm" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={LOGO} alt="Calf On The Road" className="rounded-[2mm] bg-white object-contain p-[1mm]" style={{ width: "24mm", height: "24mm" }} />
-          <span className="mt-[1.5mm] font-extrabold tracking-[0.14em]" style={{ fontSize: "2.2mm" }}>KOPI CALF</span>
+          <img src={LOGO} alt="Calf On The Road" className="rounded-[2mm] bg-white object-contain p-[1mm]" style={{ width: "26mm", height: "26mm" }} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center px-[4mm]">
-          <p className="font-semibold uppercase tracking-[0.2em]" style={{ fontSize: "2.3mm", color: RED }}>{tr("Armada")}</p>
+          <p className="font-semibold uppercase tracking-[0.2em]" style={{ fontSize: "2.3mm", color: RED }}>{tr("Fleet")}</p>
           <p className="font-black leading-none tracking-tight" style={{ fontSize: "14mm" }}>{f.code}</p>
           <p className="mt-[1mm] truncate font-semibold" style={{ fontSize: "3mm" }}>{[f.name, x.type].filter(Boolean).join(" · ")}</p>
           <p className="truncate text-neutral-500" style={{ fontSize: "2.5mm" }}>{[f.plate, x.pool].filter(Boolean).join(" · ")}</p>
@@ -274,7 +281,7 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
         <header className="flex flex-col items-center px-[5mm] pb-[4mm] pt-[5mm] text-white" style={{ background: BLUE }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={LOGO} alt="Calf On The Road" className="rounded-[3mm] bg-white object-contain p-[1.2mm]" style={{ width: "26mm", height: "26mm" }} />
-          <p className="mt-[2.5mm] font-semibold uppercase tracking-[0.24em] text-white/80" style={{ fontSize: "2.4mm" }}>{tr("Armada information")}</p>
+          <p className="mt-[2.5mm] font-semibold uppercase tracking-[0.24em] text-white/80" style={{ fontSize: "2.4mm" }}>{tr("Fleet information")}</p>
         </header>
         <div className="h-[1.2mm]" style={{ background: RED }} />
         <div className="flex flex-1 flex-col items-center px-[6mm] pt-[4mm] text-center">
@@ -292,7 +299,7 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
             <Qr src={x.qr} mm={28} />
             <p className="max-w-[40mm] text-left leading-snug text-neutral-600" style={{ fontSize: "2.5mm" }}>
               <span className="block font-bold uppercase" style={{ color: BLUE, fontSize: "2.8mm" }}>{tr("Scan for info")}</span>
-              {tr("The armada in detail and the driver on duty")}
+              {tr("The fleet in detail and the driver on duty")}
             </p>
           </div>
         </div>
@@ -300,29 +307,38 @@ function Label({ layout, x }: { layout: Layout; x: Info }) {
       </section>
     );
   }
-  // sticker
+  // sticker: the brand, the code, the name, then four facts in a grid; the QR on the right
+  const facts = ([[tr("Type"), x.type], [tr("Pool / HUB"), x.pool], f.plate ? [tr("Plate Number"), f.plate] : [tr("Make / model"), vehicle || null],
+    [tr("Capacity"), f.capacity ? tr("{0} cups", f.capacity) : null], [tr("Asset Number"), f.asset_no]] as [string, string | null][])
+    .filter(([, v]) => v).slice(0, 4);
   return (
     <section className={cx(shell, "rounded-[3mm]")} style={{ ...box, border: `0.4mm solid #cbd5e1` }}>
       <span className="absolute inset-y-0 left-0" style={{ width: "2.2mm", background: BLUE }} />
-      <div className="flex min-w-0 flex-1 flex-col py-[3mm] pl-[5mm] pr-[2mm]">
+      <div className="flex min-w-0 flex-1 flex-col py-[3mm] pl-[5mm] pr-[2.5mm]">
         <div className="flex items-center gap-[2mm]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={LOGO} alt="Calf On The Road" className="object-contain" style={{ width: "11mm", height: "11mm" }} />
+          <img src={LOGO} alt="Calf On The Road" className="object-contain" style={{ width: "10mm", height: "10mm" }} />
           <div className="leading-tight">
             <p className="font-extrabold tracking-[0.12em]" style={{ fontSize: "2.5mm", color: BLUE }}>CALF ON THE ROAD</p>
-            <p className="font-semibold uppercase tracking-[0.18em] text-neutral-400" style={{ fontSize: "1.9mm" }}>{tr("Armada")}</p>
+            <p className="font-semibold uppercase tracking-[0.18em]" style={{ fontSize: "1.9mm", color: RED }}>{tr("Fleet")}</p>
           </div>
         </div>
-        <p className="mt-[2.5mm] font-black leading-none tracking-tight" style={{ fontSize: "10mm" }}>{f.code}</p>
-        <p className="mt-[1.2mm] truncate font-semibold" style={{ fontSize: "2.8mm" }}>{f.name ?? x.type}</p>
-        <p className="truncate text-neutral-500" style={{ fontSize: "2.3mm" }}>{[f.name ? x.type : null, vehicle || null, f.plate].filter(Boolean).join(" · ")}</p>
-        <p className="mt-auto truncate font-semibold" style={{ fontSize: "2.3mm", color: RED }}>{x.pool}</p>
+        <p className="mt-[2mm] font-black leading-none tracking-tight" style={{ fontSize: "10mm" }}>{f.code}</p>
+        {f.name && <p className="mt-[1mm] truncate font-semibold" style={{ fontSize: "2.7mm" }}>{f.name}</p>}
+        <dl className="mt-auto grid grid-cols-2 gap-x-[2.5mm] gap-y-[1.2mm] border-t border-neutral-200 pt-[1.5mm]">
+          {facts.map(([k, v]) => (
+            <div key={k} className="min-w-0">
+              <dt className="uppercase tracking-wide text-neutral-500" style={{ fontSize: "1.8mm" }}>{k}</dt>
+              <dd className="truncate font-semibold" style={{ fontSize: "2.5mm" }}>{v}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
       <div className="flex flex-col items-center justify-center gap-[1.2mm] border-l border-dashed border-neutral-200 px-[3mm]">
-        <Qr src={x.qr} mm={22} />
+        <Qr src={x.qr} mm={23} />
         <span className="font-bold uppercase" style={{ fontSize: "1.9mm", color: BLUE }}>{tr("Scan for info")}</span>
-        {f.asset_no && <span className="text-neutral-400" style={{ fontSize: "1.7mm" }}>{f.asset_no}</span>}
       </div>
+      <span className="absolute bottom-0 left-[2.2mm] right-0" style={{ height: "0.8mm", background: RED }} />
     </section>
   );
 }

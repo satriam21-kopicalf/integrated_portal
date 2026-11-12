@@ -17,19 +17,66 @@ import Drawer from '@/so/ui/Drawer';
 import { ConfirmDialog } from '@/so/ui/Dialog';
 import { call } from '@/so/features/checkin/checkin';
 import { tr } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
 
 export type Entity = 'pools' | 'fleet' | 'fleet-types' | 'shift-templates' | 'incentive-schemes' | 'menus' | 'boms' | 'items' | 'drivers' | 'areas' | 'accessories' | 'menu-categories' | 'request-kinds';
 type Row = Record<string, unknown> & { code: string };
 
+// The masters read once for every component of the page (2026-11-13, load of the COTR pages): a page asks for the pools
+// or the menus four to six times (the page, the ledger, the waste, the batches …) and again on every COTR menu. Now one
+// request per master at a time, the rows shown at once from the last read (kept FRESH_MS, then read again in the
+// background), and a save / delete re-reads them for every component. Kept per signed-in user (another account in the
+// same tab never sees them).
+const FRESH_MS = 30_000;
+const masterCache = new Map<string, { rows: unknown[]; at: number }>();
+const masterInflight = new Map<string, Promise<unknown[]>>();
+const masterSubs = new Map<string, Set<(rows: unknown[]) => void>>();
+let masterSeq = 0;
+const masterApplied = new Map<string, number>();
+/** `force`: a new read even when one is going (after a save: the one going may have started before it) */
+function readMaster(key: string, entity: Entity, force = false): Promise<unknown[]> {
+  const going = masterInflight.get(key);
+  if (going && !force) return going;
+  const seq = ++masterSeq;
+  const p: Promise<unknown[]> = call<unknown[]>(`/api/cotr/masters/${entity}`)
+    .then((rows) => {
+      // an older read ending after a newer one never puts its rows back
+      if (seq >= (masterApplied.get(key) ?? 0)) {
+        masterApplied.set(key, seq);
+        masterCache.set(key, { rows, at: Date.now() });
+        masterSubs.get(key)?.forEach((f) => f(rows));
+      }
+      return masterCache.get(key)?.rows ?? rows;
+    })
+    .finally(() => { if (masterInflight.get(key) === p) masterInflight.delete(key); });
+  masterInflight.set(key, p);
+  return p;
+}
+
 /** One master: rows, reload, save (create when `key` is null) and delete; the messages of a refusal are thrown. */
 export function useMaster<T extends Row>(entity: Entity) {
-  const [rows, setRows] = useState<T[] | null>(null);
+  const { user } = useAuth();
+  const key = `${user?.id ?? ''}:${entity}`;
+  const [rows, setRows] = useState<T[] | null>(() => (masterCache.get(key)?.rows as T[] | undefined) ?? null);
   const [error, setError] = useState<string | null>(null);
-  const load = useCallback(async () => {
+  useEffect(() => {
+    const subs = masterSubs.get(key) ?? new Set();
+    masterSubs.set(key, subs);
+    const on = (r: unknown[]) => setRows(r as T[]);
+    subs.add(on);
+    return () => { subs.delete(on); };
+  }, [key]);
+  const read = useCallback(async (force: boolean) => {
     setError(null);
-    try { setRows(await call<T[]>(`/api/cotr/masters/${entity}`)); } catch (e) { setError((e as Error).message); }
-  }, [entity]);
-  useEffect(() => { void load(); }, [load]);
+    try { await readMaster(key, entity, force); } catch (e) { setError((e as Error).message); }
+  }, [key, entity]);
+  /** read again now (after a change, or a retry); every component of the master gets the new rows */
+  const load = useCallback(() => read(true), [read]);
+  useEffect(() => {
+    const hit = masterCache.get(key);
+    if (hit) setRows(hit.rows as T[]);
+    if (!hit || Date.now() - hit.at > FRESH_MS) void read(false);
+  }, [key, read]);
   const save = async (row: Partial<T>, key: string | null): Promise<T> => {
     const saved = await call<T>(`/api/cotr/masters/${entity}${key ? `/${encodeURIComponent(key)}` : ''}`, { method: key ? 'PUT' : 'POST', json: row });
     await load();
@@ -59,7 +106,7 @@ export type FieldSpec = {
 export type Column<T> = { label: string; render: (row: T) => ReactNode; className?: string };
 
 /** A master list: table + add / edit drawer on the backend; pictures are uploaded after the row is saved. */
-const PAGE = 25;
+const PAGE = 10;  // 10 rows a page on every COTR master (2026-11-13)
 
 /** A filter of a master list: its choices, each a test on the row ('' = all). */
 export type MasterFilter<T> = { key: string; label: string; icon?: ReactNode; options: { value: string; label: string; test: (row: T) => boolean }[] };
@@ -421,4 +468,11 @@ export function TimeInput({ value, onChange, invalid, className }: { value: stri
       <span className="ml-1 text-xs text-neutral-400">WIB</span>
     </span>
   );
+}
+
+/** 10 rows a page on the COTR lists (2026-11-13): the rows of the page and the bar under the list (nothing when they fit). */
+export const COTR_PAGE = 10;
+export function CotrPager({ paged, className }: { paged: ReturnType<typeof usePaged>; className?: string }) {
+  if (paged.pages <= 1) return null;
+  return <div className={cx('flex items-center justify-between gap-3 px-1 pt-3 text-xs text-neutral-500', className)}><span>{tr('{0} rows', paged.total)}</span><PageNav paged={paged} /></div>;
 }
