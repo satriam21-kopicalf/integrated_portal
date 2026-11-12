@@ -1,13 +1,13 @@
 'use client';
 
-// Building blocks of the guide (Panduan), shared by the Indonesian and English text.
+// Building blocks of the guide (Panduan / Guide, content-modules.tsx), for the Indonesian and the English text.
 
 import { AlertTriangle, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
 export type Section = { id: string; title: string; body: ReactNode };
-export type Part = { key: 'so' | 'cc' | 'mon' | 'cotr' | 'admin' | 'dash' | 'sales' | 'form' | 'ops' | 'agg' | 'mgmt'; label: string; icon: ReactNode; intro: string; sections: Section[] };
+export type Part = { key: 'dash' | 'sales' | 'form' | 'cc' | 'ops' | 'cotr' | 'agg' | 'mgmt'; label: string; icon: ReactNode; intro: string; sections: Section[] };
 
 export function Steps({ items }: { items: ReactNode[] }) {
   return (
