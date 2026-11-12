@@ -17,6 +17,7 @@ import { DriverNames } from "@/cotr/DriverNames";
 import { ShipmentPlan } from "@/cotr/ShipmentPlan";
 import { MonthlyExport } from "@/cotr/MonthlyExport";
 import { CashReconcile } from "@/cotr/CashReconcile";
+import { StorageJournals } from "@/cotr/StorageJournals";
 import { FlowNav, useFlowTab, type FlowGroup } from "@/cotr/FlowNav";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Empty, ErrorState, Input } from "@/so/ui";
@@ -76,7 +77,7 @@ export default function CotrProductionPage() {
       {tab === "batch" && <BatchesTab />}
       {tab === "plan" && <PlanView />}
       {tab === "usage" && <UsageTab />}
-      {tab === "waste" && <PoolWaste />}
+      {tab === "waste" && <><PoolWaste /><StorageJournals /></>}
     </Page>
   );
 }

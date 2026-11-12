@@ -5,7 +5,9 @@
 // and when ESB was last synced (every 30 minutes) — so the team knows whether a day is complete.
 
 import { RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Button, useToast } from "@/so/ui";
+import { hasPage, useAuth } from "@/lib/auth";
 import { Panel } from "@/components/kc/compat";
 import { kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
@@ -31,12 +33,43 @@ function Cell({ d, today }: { d: string | null; today: string }) {
   );
 }
 
+type Sync = { requested: string | null; done: string | null; every: number };
+
+/** #4: ask the server to read ESB COTR now; waits for it (the host starts it within a minute) and reloads the figures. */
+function SyncNow({ onDone }: { onDone: () => void }) {
+  const toast = useToast();
+  const { user } = useAuth();
+  const [s, setS] = useState<Sync | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { call<Sync>("/api/cotr/esb/sync-now").then(setS).catch(() => setS(null)); }, []);
+  useEffect(() => {
+    if (!s?.requested) return;
+    const was = s.done;
+    const timer = setInterval(() => {
+      call<Sync>("/api/cotr/esb/sync-now").then((n) => { setS(n); if (!n.requested && n.done !== was) { toast(tr("ESB COTR synced")); onDone(); } }).catch(() => undefined);
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [s?.requested, s?.done, onDone, toast]);
+  if (!user || !hasPage(user, "cotr.production")) return null;
+  const ask = async () => {
+    setBusy(true);
+    try { setS(await call<Sync>("/api/cotr/esb/sync-now", { method: "POST" })); toast(tr("Sync asked: it starts within a minute")); }
+    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  return (
+    <Button size="sm" variant="secondary" loading={busy || !!s?.requested} onClick={() => void ask()} title={s?.done ? tr("Last sync by hand: {0}", wibDateTime(s.done)) : undefined}>
+      <RefreshCw size={14} /> {s?.requested ? tr("Syncing…") : tr("Sync now")}</Button>
+  );
+}
+
 export function Freshness() {
   const [data, setData] = useState<Fresh | null>(null);
-  useEffect(() => { call<Fresh>("/api/cotr/freshness").then(setData).catch(() => setData(null)); }, []);
+  const [tick, setTick] = useState(0);
+  useEffect(() => { call<Fresh>("/api/cotr/freshness").then(setData).catch(() => setData(null)); }, [tick]);
+  const reload = useCallback(() => setTick((t) => t + 1), []);
   return (
     <Panel title={tr("How fresh the data is")} description={data?.synced ? tr("ESB last synced {0} (every 30 minutes); green = today or yesterday", wibDateTime(data.synced)) : tr("Newest day of every source per pool / HUB")}
-      actions={<RefreshCw size={14} className="text-neutral-400" aria-hidden />}>
+      actions={<SyncNow onDone={reload} />}>
       {!data ? <SkeletonTable cols={7} /> : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[40rem] text-sm">

@@ -140,7 +140,8 @@ export function BatchesTab() {
         </DrawerSection>
       </Drawer>
 
-      <Panel title={tr('Batches & Distribution')} description={tr('Batches of the last 14 days: what was sent to each pool and what is left at the hub')}>
+      <Panel title={tr('Batches & Distribution')} description={tr('Batches of the last 14 days: what was sent to each pool and what is left at the hub')}
+        actions={<EsbBatches onDone={() => setTick((t) => t + 1)} />}>
         {error ? <ErrorState message={error} onRetry={load} /> : !rows ? <div className="p-4"><SkeletonCards count={4} /></div> : listed.length === 0 ? (
           rows.length === 0
             ? <Empty icon={<Factory size={26} />} title={tr('No batch yet')}>{tr('Save the first production batch.')}<div className="mt-3"><Button onClick={() => setAdding(true)}><Plus size={15} /> {tr('New Batch')}</Button></div></Empty>
@@ -282,5 +283,30 @@ export function PoolBatches({ pool }: { pool: string }) {
         </table>
       )}
     </Panel>
+  );
+}
+
+
+type EsbBatchCheck = { batches: number; cups: number; skipped: { noMenu: number; noHub: number } };
+
+/** #6: the Simple Manufacturing of ESB COTR as batches (check, then apply); saved again, the cups follow ESB. */
+function EsbBatches({ onDone }: { onDone: () => void }) {
+  const toast = useToast();
+  const [check, setCheck] = useState<EsbBatchCheck | null>(null);
+  const [busy, setBusy] = useState(false);
+  const run = async (apply: boolean) => {
+    setBusy(true);
+    try {
+      const out = await call<EsbBatchCheck>('/api/cotr/esb/sync-batches', { method: 'POST', json: { apply } });
+      if (apply) { toast(tr('{0} batches taken from ESB', out.batches)); setCheck(null); onDone(); } else setCheck(out);
+    } catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
+  };
+  if (!check) return <Button size="sm" variant="secondary" loading={busy} onClick={() => void run(false)}><Factory size={14} /> {tr('From ESB')}</Button>;
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-200 bg-brand-50/60 px-3 py-1.5 text-xs text-brand-900">
+      <span>{tr('Simple Manufacturing of ESB COTR, last 60 days: {0} batches, {1} cups', check.batches, check.cups.toLocaleString('id-ID'))}</span>
+      <Button size="sm" variant="ghost" onClick={() => setCheck(null)}>{tr('Cancel')}</Button>
+      <Button size="sm" loading={busy} onClick={() => void run(true)}>{tr('Apply')}</Button>
+    </div>
   );
 }
