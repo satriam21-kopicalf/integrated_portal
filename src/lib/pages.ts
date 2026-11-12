@@ -88,6 +88,7 @@ export const PAGES: PageInfo[] = [
 export function pageOf(pathname: string): PageKey | 'superadmin' | null {
   if (pathname === '/users' || pathname.startsWith('/users/') || pathname === '/activity' || pathname.startsWith('/activity/')) return 'superadmin';
   if (pathname === '/cost-control') return 'cc.cogs';
+  if (pathname === '/cotr/dashboard') return 'cotr.check-in';  // the COTR dashboard: whoever monitors the drivers
   // the longest matching href wins (/cost-control/monitor before /cost-control)
   const match = PAGES.filter(p => p.href !== '/cost-control' && (pathname === p.href || pathname.startsWith(`${p.href}/`)))
     .sort((a, b) => b.href.length - a.href.length)[0];

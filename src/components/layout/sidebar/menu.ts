@@ -105,6 +105,7 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
 /** "Calf On The Road" menu: Calf On The Road, configured by the COTR team (pages cotr.*, prototype 2026-11-01). */
 export const cotr: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Drivers on the Road'); }, get hint() { return tr('Check-ins of the drivers from the COTR app'); }, icon: MapPinCheck, items: [
+    { get name() { return tr('Dashboard'); }, href: '/cotr/dashboard', icon: LayoutDashboard, get description() { return tr('One day of every pool: cups, waste, leftover & what waits'); } },
     { get name() { return tr('Monitoring Armada - Driver'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Shifts, sales, stock, cupping & waste of every driver'); } },
     { get name() { return tr('Storage & Assignment'); }, href: '/cotr/storage', icon: Warehouse, get description() { return tr('Products per driver, differences & reloads'); } },
   ] },

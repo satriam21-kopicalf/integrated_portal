@@ -40,6 +40,11 @@ const SECTIONS: { key: Tab; label: () => string; icon: typeof Package }[] = [
 
 export default function CotrProductionPage() {
   const [tab, setTab] = useState<Tab>("pool");
+  // a link straight to a section (the COTR dashboard: ?tab=names, ?tab=reconcile)
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t && SECTIONS.some((x) => x.key === t)) setTab(t as Tab);
+  }, []);
   return (
     <Page eyebrow="Calf On The Road" media={<CookingPot size={19} />} title={tr("Storage & Production")} subtitle={tr("Stock, goods in, stock opname, batches and their waste, recipe cards, production plan and usage")}>
       <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as Tab)}
