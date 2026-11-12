@@ -7,7 +7,7 @@ import { Go, Menu, Note, Part, Steps, Table } from './ui';
 
 export const PAGE = {
   title: 'Panduan',
-  subtitle: 'Cara melakukan stock opname, waste, cost control, penilaian PIC (Monitoring OPS) dan Calf On The Road di portal',
+  subtitle: 'Cara memakai setiap menu portal: Dashboard, Sales Transactions, Form, Cost Control, Operations, Calf On The Road, Aggregator dan Management',
   toc: 'Daftar isi',
 };
 

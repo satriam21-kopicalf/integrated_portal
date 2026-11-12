@@ -1,7 +1,8 @@
 'use client';
 
-// Panduan (user guide): how to run stock opname at a branch and how Cost Control uses the portal, for the outlet PIC /
-// crew, the Cost Control team and super admins. Indonesian or English as the portal language; the tabs follow the
+// Panduan (user guide). Indonesian (2026-11-13): one tab per module of the sidebar — Dashboard, Sales Transactions,
+// Form, Cost Control, Operations, Calf On The Road, Aggregator, Management — each menu in detail (content-modules);
+// English keeps the earlier guide (stock opname, Cost Control, monitoring, COTR, admin). Indonesian or English as the portal language; the tabs follow the
 // pages the user opens. The guide itself is a page super admins can show or hide per role or user (User Accounts).
 
 import { BookOpen } from 'lucide-react';
@@ -12,7 +13,8 @@ import { useLang } from '@/lib/i18n';
 import { CC_PAGES } from '@/lib/pages';
 import * as EN from './content-en';
 import * as ID from './content-id';
-import { COTR_EN, COTR_ID } from './content-cotr';
+import { COTR_EN } from './content-cotr';
+import { AGG, CCX, COTR, DASH, FORM, MGMT, OPS, SALES } from './content-modules';
 import type { Part } from './ui';
 
 export default function GuidePage() {
@@ -20,15 +22,31 @@ export default function GuidePage() {
   const { lang } = useLang();
   const text = lang === 'en' ? EN : ID;
   const parts = useMemo(() => {
-    const { SO, CC, MON, ADMIN } = lang === 'en' ? EN : ID;
+    const superadmin = user?.role === 'superadmin';
+    const any = (prefix: string) => superadmin || !!user?.pages.some(p => p.startsWith(prefix));
+    if (lang !== 'en') {
+      // a tab per module, shown with the pages the account opens
+      if (!user) return [FORM];
+      const out: Part[] = [];
+      if (hasPage(user, 'overview')) out.push(DASH);
+      if (hasPage(user, 'sales')) out.push(SALES);
+      if (hasPage(user, 'stock-opname') || hasPage(user, 'waste') || any('form.')) out.push(FORM);
+      if (superadmin || CC_PAGES.some(p => hasPage(user, p))) out.push(CCX);
+      if (any('mon.')) out.push(OPS);
+      if (any('cotr.')) out.push(COTR);
+      if (any('rating.')) out.push(AGG);
+      if (superadmin) out.push(MGMT);
+      return out.length ? out : [FORM];
+    }
+    const { SO, CC, MON, ADMIN } = EN;
     if (!user) return [SO];
     const out: Part[] = [];
     if (hasPage(user, 'stock-opname')) out.push(SO);
-    if (user.role === 'superadmin' || CC_PAGES.some(p => hasPage(user, p))) out.push(CC);
+    if (superadmin || CC_PAGES.some(p => hasPage(user, p))) out.push(CC);
     if (hasPage(user, 'mon.overview') || hasPage(user, 'mon.branch-groups')) out.push(MON);
     // Calf On The Road (2026-11-11): every account opening a COTR page
-    if (user.role === 'superadmin' || user.pages.some(p => p.startsWith('cotr.'))) out.push(lang === 'en' ? COTR_EN : COTR_ID);
-    if (user.role === 'superadmin') out.push(ADMIN);
+    if (any('cotr.')) out.push(COTR_EN);
+    if (superadmin) out.push(ADMIN);
     return out.length ? out : [SO];
   }, [user, lang]);
   const [tab, setTab] = useState<Part['key']>('so');
