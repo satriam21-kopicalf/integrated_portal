@@ -6404,4 +6404,17 @@ export const ID: Record<string, string> = {
   "No cash differences in this period": "Tidak ada selisih uang di periode ini",
   "After the workbooks: import, ESB, cash, names": "Setelah workbook: impor, ESB, uang, nama",
   "Difference above": "Selisih di atas",
+  // 2026-11-12: COTR ESB product mapping
+  "{0} counts as {1}": "{0} dihitung sebagai {1}",
+  "Mapping removed": "Pemetaan dihapus",
+  "ESB COTR products": "Produk ESB COTR",
+  "The menu each product of ESB counts as (last 120 days): by its name, or mapped here once for a new product": "Menu untuk setiap produk ESB (120 hari terakhir): dicocokkan dari namanya, atau dipetakan di sini sekali untuk produk baru",
+  "{0} not mapped": "{0} belum dipetakan",
+  "All mapped": "Semua terpetakan",
+  "ESB product": "Produk ESB",
+  "Last seen": "Terakhir muncul",
+  "Counts as menu": "Dihitung sebagai menu",
+  "Not a menu": "Bukan menu",
+  "mapped": "dipetakan",
+  "by name": "dari nama",
 };

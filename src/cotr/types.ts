@@ -24,7 +24,8 @@ export type Bom = { code: string; name: string; output: string; yield_qty: numbe
 export type ItemCategory = 'raw' | 'premix' | 'packaging' | 'supply' | 'tools' | 'other';
 export type Item = { code: string; name: string; category: ItemCategory; unit: string; pack_unit: string | null; pack_qty: number | null; cost: number | null; is_stock: boolean; is_active: boolean; note: string | null };
 export type Menu = { code: string; name: string; category: string; price: number; bom_code: string | null; is_active: boolean; sort: number;
-  /** migration 062: days a batch keeps (its default expiry) */ shelf_life_days?: number | null };
+  /** migration 062: days a batch keeps (its default expiry) */ shelf_life_days?: number | null;
+  /** migration 095: ESB / workbook names mapped to it by hand */ esb_aliases?: string[] };
 export type Driver = { code: string; name: string; phone: string; pool_code: string; fleet_code: string | null; status: 'active' | 'leave' | 'inactive'; joined_on: string | null; user_id: string | null; account: string | null;
   nik?: string | null; birth_place: string | null; birth_date: string | null; gender: 'male' | 'female' | null; address: string | null; emergency_name: string | null; emergency_phone: string | null;
   employment_status: 'permanent' | 'contract' | 'daily' | 'intern' | null; position: string | null; contract_end: string | null;

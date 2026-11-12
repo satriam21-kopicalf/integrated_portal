@@ -1,4 +1,5 @@
 "use client";
+import { EsbProducts } from "@/cotr/EsbProducts";
 
 // Monitoring COTR → Master Menu (page cotr.menu): the menus the drivers sell (the active ones show in the driver app in
 // this order), the price a sale takes and the recipe (BOM) each is made with (Storage & Production → BOM / recipes).
@@ -79,6 +80,7 @@ export default function CotrMenuPage() {
           { key: "sort", label: tr("Order in the App"), type: "number", section: tr("Driver app") },
           { key: "is_active", label: tr("Sold"), type: "bool", section: tr("Driver app") },
         ]} />}
+      {part === "menus" && rows && <EsbProducts menus={rows} onSaved={() => void master.load()} />}
       {part === "categories" && <MasterTable noun={tr("category")} title={tr("Menu Categories")} master={cats}
         description={tr("The categories the menus are grouped in; a category used by a menu cannot be deleted")}
         blank={(): Partial<Category> => ({ code: "", name: "", sort: (cats.rows?.length ?? 0) + 1, is_active: true })}
