@@ -25,7 +25,7 @@ type Lot = { batchNo: string | null; qty: number; expiresOn: string | null };
 type Cell = { opening?: number; transfer?: number; arrived?: number; sold?: number; waste?: number; cupping?: number; calculated?: number;
   actual: number | null; balance?: number | null; expired: number; lots: Lot[] };
 type Day = { day: string; source: "opening" | "app" | "sheet" | "esb" | "mixed"; rows: Record<string, Cell> };
-type Ledger = { pool: string; from: string; to: string; start: string | null; menus: { code: string; name: string }[]; days: Day[] };
+export type Ledger = { pool: string; from: string; to: string; start: string | null; menus: { code: string; name: string }[]; days: Day[] };
 
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 const addDays = (d: string, n: number) => new Date(Date.parse(`${d}T00:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
@@ -161,7 +161,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
 type LotRow = { menu: string; batch: string; qty: string };
 
 /** The physical leftover at the end of a day, per menu and batch code (the first count is the opening stock). */
-function CountDrawer({ pool, day: first, ledger, onClose, onSaved }: { pool: string; day: string; ledger: Ledger; onClose: () => void; onSaved: () => void }) {
+export function CountDrawer({ pool, day: first, ledger, onClose, onSaved }: { pool: string; day: string; ledger: Ledger; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
   const [day, setDay] = useState(first);
   const known = ledger.days.find((d) => d.day === first);

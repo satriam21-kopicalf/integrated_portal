@@ -18,6 +18,7 @@ import { useMaster } from "@/cotr/ui";
 import { PoolBatches } from "@/cotr/Batches";
 import { PoolWaste } from "@/cotr/PoolWaste";
 import { PoolLedger } from "@/cotr/PoolLedger";
+import { ClosingBar } from "@/cotr/Closing";
 import { PoolAvailable } from "@/cotr/PoolAvailable";
 import { locale, tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
@@ -166,6 +167,9 @@ export default function CotrStoragePage() {
       )}
       {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? <SkeletonList rows={5} /> : (
         <>
+          {/* migration 094: the night closing of the pool (one pool chosen) */}
+          {poolCode && <ClosingBar key={`${poolCode}:${day}`} pool={poolCode} poolName={usable.find((p) => p.code === poolCode)?.name ?? poolCode} day={day} />}
+
           {disputes.length > 0 && (
             <Panel title={tr("Differences reported by the drivers")} description={tr("Set the final cups: they become the start stock of the shift")}>
               <div className="grid gap-3 p-4 lg:grid-cols-2">
