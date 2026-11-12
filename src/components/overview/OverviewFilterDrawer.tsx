@@ -77,8 +77,10 @@ const choice = (on: boolean) =>
     on ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:text-neutral-900'}`;
 
 /** All Overview filters in one drawer: date range (or two days), comparison, branches, channels. */
-export default function OverviewFilterDrawer({ value, branches, channels, defaultPeriod, onApply, onClose }: {
+export default function OverviewFilterDrawer({ value, branches, channels, defaultPeriod, onApply, onClose, periodOnly = false }: {
   value: OverviewFilterValue;
+  /** the period and its comparison only (the Calf On The Road tab, 2026-11-13: no ESB branches or channels) */
+  periodOnly?: boolean;
   branches: Branch[];
   channels: string[];
   defaultPeriod: { from: string; to: string } | null;
@@ -228,7 +230,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
         </Group>
 
         {/* ---------------------------------------------------------------- branches */}
-        <Group title={tr('Branches')} status={codes.length ? tr('{0} selected', codes.length) : tr('All Branches')}
+        {!periodOnly && <Group title={tr('Branches')} status={codes.length ? tr('{0} selected', codes.length) : tr('All Branches')}
           action={codes.length > 0 && <TextButton onClick={() => set({ branch: '' })}>{tr('Clear')}</TextButton>}>
           {codes.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
@@ -268,10 +270,10 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
               {!shown.length && <li className="px-3 py-6 text-center text-sm text-neutral-400">{tr('No branch matches “')}{branchQuery}”</li>}
             </ul>
           </div>
-        </Group>
+        </Group>}
 
         {/* ---------------------------------------------------------------- channels */}
-        <Group title={tr('Channels')} status={draft.channels.length ? tr('{0} selected', draft.channels.length) : tr('All Channels')}
+        {!periodOnly && <Group title={tr('Channels')} status={draft.channels.length ? tr('{0} selected', draft.channels.length) : tr('All Channels')}
           action={draft.channels.length > 0 && <TextButton onClick={() => set({ channels: [] })}>{tr('Clear')}</TextButton>}>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
             {channels.map(ch => {
@@ -287,7 +289,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
             })}
           </div>
           {!draft.channels.length && <p className="text-xs text-neutral-500">{tr('No channel ticked = all channels.')}</p>}
-        </Group>
+        </Group>}
       </div>
     </Drawer>
   );

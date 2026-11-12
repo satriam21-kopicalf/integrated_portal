@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bike, SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
 import { Branch, branchesLabel } from '@/components/BranchFilter';
 import { CompareMode, compareRange } from '@/components/overview/CompareFilter';
 import OverviewFilterDrawer from '@/components/overview/OverviewFilterDrawer';
+import CotrOverview from '@/cotr/CotrOverview';
+import { wibDay } from '@/so/ui/Filters';
 import KpiTiles from '@/components/overview/KpiTiles';
 import TrendCard from '@/components/overview/TrendCard';
 import ChannelMixCard from '@/components/overview/ChannelMixCard';
@@ -84,7 +86,7 @@ export default function OverviewPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   // the brand of the view (Kopi Calf | Wasgee Tea): every figure of the page is of that brand only (lib/company.tsx)
   const { company, setCompany } = useCompany();
-  // Calf On The Road: a tab of its own (not an ESB company yet), empty until its sales exist (prototype 2026-11-01)
+  // Calf On The Road: a tab of its own (not an ESB company); its sales from the COTR pools (2026-11-13: src/cotr/CotrOverview)
   const [cotr, setCotr] = useState(false);
   const pickTab = (code: string) => { if (code === COTR) { setCotr(true); return; } setCotr(false); setCompany(code); };
   const meta = useOverview<MetaResponse>('meta', `company=${company}`);
@@ -144,40 +146,35 @@ export default function OverviewPage() {
             </div>
             <CompanySwitch className="order-last w-full sm:order-none sm:w-auto" extra={EXTRA_TABS}
               value={cotr ? COTR : company} onChange={pickTab} />
-            {!cotr && <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
                 className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-[13px] font-medium transition-colors sm:h-9 ${
                   activeCount ? 'border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100' : 'border-neutral-200 bg-white text-neutral-700 shadow-sm hover:bg-neutral-50'}`}>
                 <SlidersHorizontal size={16} /> {tr('Filters')}
                 {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
               </button>
-              <RealtimeIndicator className="h-10 sm:h-9" />
-            </div>}
+              {!cotr && <RealtimeIndicator className="h-10 sm:h-9" />}
+            </div>
           </div>
         </header>
 
-        {cotr ? <CotrEmpty /> : filters && <OverviewContent filters={filters} branches={branches} company={company} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
+        {cotr ? filters && <CotrTab filters={filters} /> : filters && <OverviewContent filters={filters} branches={branches} company={company} defaultPeriod={meta.data?.defaultPeriod ?? null} />}
       </div>
       {filtersOpen && (
         <OverviewFilterDrawer value={f} branches={branches} channels={(meta.data?.channels ?? []).map(c => c.channel).filter(filterable)}
-          defaultPeriod={meta.data?.defaultPeriod ?? null} onClose={() => setFiltersOpen(false)}
+          defaultPeriod={cotr ? null : meta.data?.defaultPeriod ?? null} periodOnly={cotr} onClose={() => setFiltersOpen(false)}
           onApply={v => { update(v); setFiltersOpen(false); }} />
       )}
     </DashboardLayout>
   );
 }
 
-/** The Calf On The Road tab: empty for now (no sales of the drivers yet). */
-function CotrEmpty() {
-  return (
-    <div className="p-4 sm:p-6">
-      <div className="flex flex-col items-center rounded-xl border border-dashed border-neutral-300 bg-white px-6 py-20 text-center">
-        <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-100 text-neutral-400"><Bike size={24} /></span>
-        <p className="text-sm font-semibold text-neutral-800">Calf On The Road</p>
-        <p className="mt-1 max-w-sm text-sm text-neutral-500">{tr('The dashboard of the COTR drivers appears here once their sales are recorded.')}</p>
-      </div>
-    </div>
-  );
+/** The Calf On The Road tab (2026-11-13): the COTR sales of the period of the filters (default the last 7 days) against
+ * the comparison chosen (default: the same weekdays whole weeks before). */
+function CotrTab({ filters }: { filters: Filters }) {
+  const period = filters.from ? { from: filters.from, to: filters.to || filters.from } : { from: wibDay(-6), to: wibDay(0) };
+  const cmp = filters.cmp === 'auto' ? null : compareRange({ mode: filters.cmp, from: filters.cmpFrom, to: filters.cmpTo }, period);
+  return <CotrOverview from={period.from} to={period.to} compareFrom={cmp?.from} compareTo={cmp?.to} />;
 }
 
 function OverviewContent({ filters, branches, company, defaultPeriod }: {
