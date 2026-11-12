@@ -6379,4 +6379,5 @@ export const ID: Record<string, string> = {
   "expired": "kedaluwarsa",
   "send {0} cups": "kirim {0} cup",
   "{0} pools need a shipment": "{0} pool perlu dikirim",
+  "Your pool / HUB": "Pool / HUB Anda",
 };

@@ -61,6 +61,8 @@ export interface AuthUser {
   /** pages the user opens (role pages ± the user's own exceptions; superadmins: every page) */
   pages: PageKey[];
   /** User Accounts (2026-11-12): the COTR employee of Master Driver the account belongs to */
+  /** 2026-11-12 (#16): the pool / HUB a COTR storage or pool leader account is bound to; null = any pool */
+  hubPool?: string | null;
   cotrDriver?: { code: string; name: string; nickname: string | null; pool: string | null; poolName: string | null; department: string | null } | null;
   /** User Accounts only: pages added (true) or removed (false) on top of the role */
   pageOverrides?: Record<string, boolean>;
