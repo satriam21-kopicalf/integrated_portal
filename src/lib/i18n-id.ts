@@ -6349,4 +6349,15 @@ export const ID: Record<string, string> = {
   "Goods in, stock, stock opname, usage": "Barang masuk, stok, stock opname, pemakaian",
   "Recipes & items": "Resep & item",
   "Set up once, same as ESB": "Diatur sekali, sama dengan ESB",
+  // 2026-11-12: COTR FIFO
+  "expires today": "kedaluwarsa hari ini",
+  "expires tomorrow": "kedaluwarsa besok",
+  "Batch codes to give (FIFO)": "Kode batch yang diberikan (FIFO)",
+  "From the physical leftover of {0}: the first to expire goes out first": "Dari sisa fisik {0}: yang paling cepat kedaluwarsa keluar duluan",
+  "First to expire goes out first": "Yang paling cepat kedaluwarsa keluar duluan",
+  "Expired, do not give": "Sudah kedaluwarsa, jangan diberikan",
+  "New stock": "Stok baru",
+  "No code": "Tanpa kode",
+  "Per driver of the day": "Per driver hari ini",
+  "short": "kurang",
 };

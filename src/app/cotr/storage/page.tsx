@@ -19,6 +19,7 @@ import { PoolBatches } from "@/cotr/Batches";
 import { PoolWaste } from "@/cotr/PoolWaste";
 import { PoolLedger } from "@/cotr/PoolLedger";
 import { ClosingBar } from "@/cotr/Closing";
+import { FifoPanel } from "@/cotr/Fifo";
 import { PoolAvailable } from "@/cotr/PoolAvailable";
 import { locale, tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
@@ -192,6 +193,9 @@ export default function CotrStoragePage() {
 
           {/* migration 090: what the pool can still assign today (ESB COTR transfers in) */}
           <PoolAvailable pool={poolCode} day={day} version={tick} />
+
+          {/* #13: the batch codes to give, first expiring first (one pool chosen) */}
+          {poolCode && <FifoPanel pool={poolCode} day={day} version={tick} />}
 
           <PoolBatches pool={poolCode} />
 
