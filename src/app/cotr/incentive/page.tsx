@@ -6,7 +6,7 @@
 
 import { Building2, CalendarDays, Calculator, Coffee, Download, Layers, Plus, Trash2, TriangleAlert, Users, Wallet } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, Field, Input, Select, cx } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, Select, cx, useToast } from "@/so/ui";
 import { SearchInput, StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
 import { MonthField, ScopeBar } from "@/components/kc/ScopeBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList, Segments } from "@/so/ui/MonitorFilters";
@@ -16,14 +16,19 @@ import { Menu, Pool } from "@/cotr/types";
 import { MasterTable, rupiah, useMaster } from "@/cotr/ui";
 import { locale, tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
+import { PAY_LABEL, PayPanel, PayslipDrawer, type PayKind } from "@/cotr/Payslip";
+import { downloadXlsx } from "@/lib/xlsx";
 
 type Tier = { from: number; to: number | null; rate: number };
 type Bonus = { menu: string; rate: number };
 type Scheme = { code: string; name: string; valid_from: string; tiers: Tier[]; product_bonus: Bonus[]; late_penalty: number; absent_penalty: number; min_attendance_pct: number; is_active: boolean; note: string | null };
 type Part = { cups: number; rate: number; pay: number };
 type Row = { driver: string; name: string; pool: string | null; attendance: { scheduled: number; worked: number; late: number; absent: number };
-  cups: number; tiers: (Part & Tier)[]; bonus: (Part & { menu: string })[]; gross: number; deduction: number; attendancePct: number | null; eligible: boolean; total: number };
-type Recap = { month: string; scheme: Scheme; rows: Row[]; total: number; cups: number };
+  cups: number; tiers: (Part & Tier)[]; bonus: (Part & { menu: string })[]; gross: number; deduction: number; attendancePct: number | null; eligible: boolean; total: number;
+  /** migration 092: bonus and the deductions of the COTR sheets, and the take home of the incentive part */
+  adjustments?: Record<PayKind, number>; takeHome?: number };
+type Recap = { month: string; scheme: Scheme; rows: Row[]; total: number; cups: number; published?: boolean; takeHome?: number };
+const cutOf = (r: Row) => (r.adjustments ? r.adjustments.kasbon + r.adjustments.minus + r.adjustments.warning + r.adjustments.other : 0);
 
 const num = (n: number) => n.toLocaleString(locale());
 
@@ -62,6 +67,14 @@ function RecapView() {
   const [only, setOnly] = useState<"" | "eligible" | "below">("");
   const [sheet, setSheet] = useState(false);
   const [draft, setDraft] = useState({ month, scheme, pool, only });
+  const [slipOf, setSlipOf] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const toast = useToast();
+  const publish = async (on: boolean) => {
+    setPublishing(true);
+    try { await call(`/api/cotr/payslips/${month}/publish`, { method: "POST", json: { on } }); toast(on ? tr("Payslips published to the COTR app") : tr("Payslips withdrawn")); setTick((t) => t + 1); }
+    catch (e) { toast((e as Error).message, "error"); } finally { setPublishing(false); }
+  };
   useEffect(() => {
     let alive = true;
     setError(null);
@@ -72,14 +85,13 @@ function RecapView() {
 
   const exportCsv = () => {
     if (!data) return;
-    const head = ["Kode", "Driver", "Pool", "Cup", "Terjadwal", "Bekerja", "Terlambat", "Tidak hadir", "Kehadiran %", "Insentif tier", "Bonus produk", "Potongan", "Total"];
+    const head = [tr("Code"), tr("Driver"), tr("Pool / HUB"), tr("Cups"), tr("Scheduled"), tr("Worked"), tr("Late"), tr("Absent"), tr("Attendance %"),
+      tr("Tiers"), tr("Product Bonus"), tr("Attendance deduction"), tr("Incentive"), PAY_LABEL.bonus(), PAY_LABEL.kasbon(), PAY_LABEL.minus(), PAY_LABEL.warning(), PAY_LABEL.other(), tr("Incentive take home")];
     const lines = data.rows.map((r) => [r.driver, r.name, r.pool ?? "", r.cups, r.attendance.scheduled, r.attendance.worked, r.attendance.late, r.attendance.absent,
-      r.attendancePct ?? "", r.tiers.reduce((a, t) => a + t.pay, 0), r.bonus.reduce((a, b) => a + b.pay, 0), r.deduction, r.total]);
-    const csv = [head, ...lines].map((l) => l.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" }));
-    a.download = `insentif-cotr-${data.month}.csv`;
-    a.click();
+      r.attendancePct ?? null, r.tiers.reduce((a, t) => a + t.pay, 0), r.bonus.reduce((a, b) => a + b.pay, 0), r.deduction, r.total,
+      r.adjustments?.bonus ?? 0, r.adjustments?.kasbon ?? 0, r.adjustments?.minus ?? 0, r.adjustments?.warning ?? 0, r.adjustments?.other ?? 0, r.takeHome ?? r.total]);
+    void downloadXlsx({ fileName: `Insentif COTR ${data.month}`, sheet: "Insentif", title: `${tr("Incentive")} COTR · ${data.month}`, header: head, rows: lines })
+      .catch((e: Error) => toast(e.message, "error"));
   };
 
   const poolList = (pools.rows ?? []).filter((p) => p.kind !== "storage");
@@ -100,8 +112,9 @@ function RecapView() {
         <StatCard label={tr("Drivers")} icon={<Users />} value={data ? data.rows.length : <ValueSkeleton />} sub={data && tr("{0} below the minimum attendance", data.rows.filter((r) => !r.eligible).length)} />
         <StatCard label={tr("Cups Sold")} icon={<Coffee />} value={data ? num(data.cups) : <ValueSkeleton />} />
         <StatCard label={tr("Total Incentive")} tone="brand" icon={<Wallet />} value={data ? rupiah(data.total) : <ValueSkeleton />} sub={data && `${tr("Scheme")}: ${data.scheme.name}`} />
-        <StatCard label={tr("Deductions")} icon={<TriangleAlert />} tone={data && data.rows.some((r) => r.deduction) ? "warn" : "default"}
-          value={data ? rupiah(data.rows.reduce((a, r) => a + r.deduction, 0)) : <ValueSkeleton />} />
+        <StatCard label={tr("Deductions")} icon={<TriangleAlert />} tone={data && data.rows.some((r) => r.deduction || cutOf(r)) ? "warn" : "default"}
+          value={data ? rupiah(data.rows.reduce((a, r) => a + r.deduction + cutOf(r), 0)) : <ValueSkeleton />}
+          sub={data && tr("Kasbon, minus, warning and attendance")} />
       </StatGrid>
       {sheet && (
         <MonitorFilterSheet active={[draft.scheme, draft.pool, draft.only].filter(Boolean).length} onClose={() => setSheet(false)}
@@ -125,12 +138,17 @@ function RecapView() {
         </MonitorFilterSheet>
       )}
     <Panel title={tr("Incentives of {0}", monthLabel)} description={data ? tr("{0} of {1} drivers · tap a driver for the breakdown", rows.length, data.rows.length) : undefined}
-      actions={<Button size="sm" variant="secondary" disabled={!rows.length} onClick={exportCsv}><Download size={14} /> {tr("Export CSV")}</Button>}>
+      actions={<div className="flex flex-wrap items-center gap-2">
+        {data?.published ? <Badge tone="green">{tr("Payslips published")}</Badge> : null}
+        <Button size="sm" variant={data?.published ? "ghost" : "primary"} loading={publishing} disabled={!data} onClick={() => void publish(!data?.published)}>
+          {data?.published ? tr("Withdraw payslips") : tr("Publish payslips")}</Button>
+        <Button size="sm" variant="secondary" disabled={!rows.length} onClick={exportCsv}><Download size={14} /> {tr("Export Excel")}</Button></div>}>
       {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonList rows={4} /> : (
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[820px] text-sm">
             <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-3 py-2.5 text-right">{tr("Attendance")}</th>
-              <th className="px-3 py-2.5 text-right">{tr("Tiers")}</th><th className="px-3 py-2.5 text-right">{tr("Product Bonus")}</th><th className="px-3 py-2.5 text-right">{tr("Deduction")}</th><th className="px-4 py-2.5 text-right">{tr("Incentive")}</th></tr></thead>
+              <th className="px-3 py-2.5 text-right">{tr("Tiers")}</th><th className="px-3 py-2.5 text-right">{tr("Product Bonus")}</th><th className="px-3 py-2.5 text-right">{tr("Deduction")}</th><th className="px-3 py-2.5 text-right">{tr("Incentive")}</th>
+              <th className="px-3 py-2.5 text-right">{PAY_LABEL.bonus()}</th><th className="px-3 py-2.5 text-right">{tr("Kasbon / minus / warning")}</th><th className="px-4 py-2.5 text-right">{tr("Take home")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {rows.map((r) => (
                 <Fragment key={r.driver}>
@@ -144,21 +162,29 @@ function RecapView() {
                     <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.tiers.reduce((a, t) => a + t.pay, 0))}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.bonus.reduce((a, b) => a + b.pay, 0))}</td>
                     <td className={cx("px-3 py-2 text-right tabular-nums", r.deduction ? "text-red-700" : "")}>{r.deduction ? `−${rupiah(r.deduction)}` : "—"}</td>
-                    <td className="px-4 py-2 text-right font-semibold tabular-nums">{rupiah(r.total)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.total)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{r.adjustments?.bonus ? `+${rupiah(r.adjustments.bonus)}` : "—"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-red-700">{cutOf(r) ? `−${rupiah(cutOf(r))}` : "—"}</td>
+                    <td className="px-4 py-2 text-right font-semibold tabular-nums">{rupiah(r.takeHome ?? r.total)}</td>
                   </tr>
                   {open === r.driver && (
                     <tr className="bg-neutral-50/60">
-                      <td colSpan={7} className="px-4 py-3"><Breakdown row={r} /></td>
+                      <td colSpan={10} className="space-y-3 px-4 py-3">
+                        <Breakdown row={r} />
+                        <PayPanel driver={r.driver} month={month} published={!!data.published} onChanged={() => setTick((t) => t + 1)} />
+                        <Button size="sm" variant="secondary" onClick={() => setSlipOf(r.driver)}>{tr("Payslip")}</Button>
+                      </td>
                     </tr>
                   )}
                 </Fragment>
               ))}
-              {rows.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-neutral-400">{data.rows.length ? tr("No driver matches the search or filters") : tr("No drivers in this pool")}</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={10} className="px-4 py-8 text-center text-neutral-400">{data.rows.length ? tr("No driver matches the search or filters") : tr("No drivers in this pool")}</td></tr>}
             </tbody>
           </table>
         </div>
       )}
     </Panel>
+    {slipOf && <PayslipDrawer driver={slipOf} month={month} onClose={() => setSlipOf(null)} />}
     </div>
   );
 }
