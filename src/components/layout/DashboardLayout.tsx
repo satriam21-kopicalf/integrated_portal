@@ -2,18 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
-import { BookOpen } from 'lucide-react';
 import Sidebar from './Sidebar';
 import TableCards from './TableCards';
 import BottomNav, { FocusContext } from './BottomNav';
 import UserAvatar from '@/components/UserAvatar';
-import AlertBell from '@/components/AlertBell';
+import { UnreadBadge, useNotifications } from '@/components/AlertBell';
 import { BRAND_LINE } from '@/components/BrandWatermark';
 import { ToastProvider } from '@/so/ui';
 import { assetUrl } from '@/lib/assets';
-import { canAccess, useAuth } from '@/lib/auth';
+import { useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { tr } from '@/lib/i18n';
 
@@ -74,11 +72,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 }
 
-/** Phones & tablets: the bar of the app — the brand, then the page title once the page scrolls under it, the guide
- * (Panduan) and the account (opens the menu). Desktop has the sidebar instead. */
+/** Phones & tablets: the bar of the app — the brand, then the page title once the page scrolls under it, and the account
+ * (opens the menu, with the notifications and the guide; its avatar shows the unread notifications). Desktop has the sidebar instead. */
 function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: boolean; onMenu: () => void }) {
   const { user } = useAuth();
-  const guide = !!user && canAccess(user, '/guide');
+  const { unread } = useNotifications();
   // the most specific page of the path (Cost Control pages sit under /cost-control)
   const page = PAGES.filter((p) => pathname === p.href || pathname.startsWith(`${p.href}/`)).sort((a, b) => b.href.length - a.href.length)[0];
   return (
@@ -102,17 +100,11 @@ function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: bo
             </p>
           )}
         </div>
-        <AlertBell size={19} className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-neutral-500 active:bg-neutral-200/70" />
-        {guide && (
-          <Link href="/guide" title={tr('Guide')} aria-label={tr('Guide')} aria-current={pathname === '/guide' ? 'page' : undefined}
-            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full active:bg-neutral-200/70 ${pathname === '/guide' ? 'bg-brand-50 text-brand-700' : 'text-neutral-500'}`}>
-            <BookOpen size={19} />
-          </Link>
-        )}
         {user && (
           <button type="button" onClick={onMenu} className="relative flex-shrink-0 rounded-full p-0.5 ring-2 ring-white active:opacity-80" aria-label={tr('Open Menu')}>
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
-            {!user.profileComplete && <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-maroon-600 ring-2 ring-white" />}
+            {unread > 0 ? <UnreadBadge n={unread} className="absolute -right-1 -top-1 ring-2 ring-white" />
+              : !user.profileComplete && <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-maroon-600 ring-2 ring-white" />}
           </button>
         )}
       </div>

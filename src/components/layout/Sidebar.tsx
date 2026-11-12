@@ -6,11 +6,9 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { BookOpen, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
-import AlertBell from '@/components/AlertBell';
+import { PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { cx } from '@/components/kc';
-import { canAccess, inMenu, useAuth } from '@/lib/auth';
+import { inMenu, useAuth } from '@/lib/auth';
 import { tr } from '@/lib/i18n';
 import { POPUPS, POPUP_ORDER, type MenuSection, navigation, under } from './sidebar/menu';
 import ModulePanel from './sidebar/ModulePanel';
@@ -53,7 +51,6 @@ export default function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen: boo
       {/* desktop */}
       <aside className={cx('hidden h-full flex-shrink-0 border-r border-neutral-200 bg-neutral-50 transition-[width] duration-200 lg:flex', collapsed ? 'w-[64px]' : 'w-60')}>
         <SidebarContent collapsed={collapsed} pathname={pathname}>
-          <AlertBell className={headerButton} />
           <button type="button" onClick={toggleCollapsed} className={headerButton}
             aria-label={collapsed ? tr('Expand sidebar') : tr('Collapse sidebar')} title={collapsed ? tr('Expand sidebar') : tr('Collapse sidebar')}>
             {collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
@@ -86,19 +83,12 @@ function SidebarContent({ collapsed, pathname, onNavigate, children }: {
       .map((s): MenuSection => ({ title: s.title, hint: s.hint, icon: s.icon, items: s.items.filter((i) => user && inMenu(user, i.href)) }))
       .filter((s) => s.items.length),
   })).filter((m) => m.sections.length);
-  const guide = !!user && canAccess(user, '/guide');
 
   return (
     <div className="flex h-full w-full flex-col">
       <div className={cx('flex flex-shrink-0 items-center', collapsed ? 'flex-col gap-1 px-2 py-3' : 'h-16 justify-between gap-1.5 px-3')}>
         <Brand compact={collapsed} />
         <div className={cx('flex items-center', collapsed ? 'flex-col gap-1' : 'gap-0.5')}>
-          {guide && (
-            <Link href="/guide" onClick={onNavigate} title={tr('Guide')} aria-label={tr('Guide')} aria-current={pathname === '/guide' ? 'page' : undefined}
-              className={cx(headerButton, pathname === '/guide' && 'bg-white text-brand-700 shadow-sm ring-1 ring-neutral-200')}>
-              <BookOpen size={17} />
-            </Link>
-          )}
           {children}
         </div>
       </div>
@@ -124,7 +114,7 @@ function SidebarContent({ collapsed, pathname, onNavigate, children }: {
         )}
       </nav>
 
-      <UserMenu collapsed={collapsed} />
+      <UserMenu collapsed={collapsed} onNavigate={onNavigate} />
     </div>
   );
 }

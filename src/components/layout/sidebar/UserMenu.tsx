@@ -1,14 +1,18 @@
 'use client';
 
 // The account at the foot of the sidebar (after kopicalf-hrms): name and role, then a compact menu with who is signed
-// in, the profile and the password, the preferences (theme, language) and signing out.
+// in, the notifications and the guide (2026-11-13: moved here from the header of the sidebar), the profile and the
+// password, the preferences (theme, language) and signing out.
 
 import { useCallback, useRef, useState } from 'react';
-import { ChevronsUpDown, KeyRound, Languages, LogOut, Monitor, Moon, ShieldCheck, Sun, UserRoundPen } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
+import { Bell, BookOpen, ChevronsUpDown, KeyRound, Languages, LogOut, Monitor, Moon, ShieldCheck, Sun, UserRoundPen } from 'lucide-react';
+import { NotificationsDrawer, UnreadBadge, useNotifications } from '@/components/AlertBell';
 import { useAccountDrawers } from '@/components/AccountDrawers';
 import UserAvatar from '@/components/UserAvatar';
 import { Pill, cx } from '@/components/kc';
-import { ROLE_LABELS, useAuth } from '@/lib/auth';
+import { ROLE_LABELS, canAccess, useAuth } from '@/lib/auth';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { Lang, tr, useLang } from '@/lib/i18n';
 import { ThemeMode, useTheme } from '@/lib/theme';
@@ -35,18 +39,23 @@ function Switch<V extends string>({ label, value, onChange, options }: {
   );
 }
 
-export default function UserMenu({ collapsed }: { collapsed: boolean }) {
+export default function UserMenu({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   const { user, logout } = useAuth();
   const { openProfile, openPassword } = useAccountDrawers();
   const { mode, setMode } = useTheme();
   const { lang, setLang } = useLang();
   const [open, setOpen] = useState(false);
+  const [notes, setNotes] = useState(false);
+  const { enabled: canNotify, unread } = useNotifications();
+  const router = useRouter();
+  const pathname = usePathname();
   const ref = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
   useClickOutside(ref, close, open);
   if (!user) return null;
   const role = ROLE_LABELS[user.role] ?? user.role;
   const superadmin = user.role === 'superadmin';
+  const guide = canAccess(user, '/guide');
 
   return (
     <div className="flex-shrink-0 border-t border-neutral-200 p-2" ref={ref}>
@@ -62,6 +71,18 @@ export default function UserMenu({ collapsed }: { collapsed: boolean }) {
               <Pill tone={superadmin ? 'red' : 'brand'} icon={superadmin ? <ShieldCheck size={11} /> : undefined} className="flex-shrink-0">{role}</Pill>
             </div>
             <div className="my-1 h-px bg-neutral-200" />
+            {canNotify && (
+              <button type="button" role="menuitem" onClick={() => { setOpen(false); setNotes(true); }} className={cx(item, 'text-neutral-700 hover:bg-neutral-100')}>
+                <Bell /> {tr('Notifications')}<UnreadBadge n={unread} className="ml-auto" />
+              </button>
+            )}
+            {guide && (
+              <button type="button" role="menuitem" onClick={() => { setOpen(false); onNavigate?.(); router.push('/guide'); }}
+                className={cx(item, pathname === '/guide' ? 'bg-brand-50 text-brand-700' : 'text-neutral-700 hover:bg-neutral-100')}>
+                <BookOpen /> {tr('Guide')}
+              </button>
+            )}
+            {(canNotify || guide) && <div className="my-1 h-px bg-neutral-200" />}
             <button type="button" role="menuitem" onClick={() => { setOpen(false); openProfile(); }} className={cx(item, 'text-neutral-700 hover:bg-neutral-100')}>
               <UserRoundPen /> {tr('My profile')}
               {!user.profileComplete && <span className="ml-auto rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">{tr('Incomplete')}</span>}
@@ -92,7 +113,8 @@ export default function UserMenu({ collapsed }: { collapsed: boolean }) {
           className={cx('flex w-full items-center gap-2 rounded-lg p-1.5 text-left transition-colors hover:bg-neutral-200/60', open && 'bg-neutral-200/60', collapsed && 'justify-center')}>
           <span className="relative flex-shrink-0">
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
-            {!user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-neutral-50" title={tr('Profile Incomplete')} />}
+            {unread > 0 ? <UnreadBadge n={unread} className="absolute -right-1.5 -top-1.5 ring-2 ring-neutral-50" />
+              : !user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-neutral-50" title={tr('Profile Incomplete')} />}
           </span>
           {!collapsed && (
             <>
@@ -105,6 +127,8 @@ export default function UserMenu({ collapsed }: { collapsed: boolean }) {
           )}
         </button>
       </div>
+      {/* on phones the menu sits in a sliding (transformed) drawer: the notifications open over the whole screen */}
+      {canNotify && notes && createPortal(<NotificationsDrawer open onClose={() => setNotes(false)} onNavigate={onNavigate} />, document.body)}
     </div>
   );
 }
