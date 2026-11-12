@@ -6427,4 +6427,12 @@ export const ID: Record<string, string> = {
   "Sync now": "Sinkron sekarang",
   "Cupping & waste of the storage (ESB)": "Cupping & waste storage (ESB)",
   "Item journals of ESB COTR at the storage, per day and material, valued at the HPP": "Jurnal item ESB COTR di storage, per hari dan bahan, dinilai dengan HPP",
+  // 2026-11-12: waste category of several entries
+  "Change category": "Ubah kategori",
+  "{0} entries changed, {1} skipped ({2})": "{0} entri diubah, {1} dilewati ({2})",
+  "{0} entries changed to {1}": "{0} entri diubah ke {1}",
+  "Change waste category": "Ubah kategori waste",
+  "{0} entries picked; every change is logged with the reason": "{0} entri dipilih; setiap perubahan dicatat beserta alasannya",
+  "Choose a category": "Pilih kategori",
+  "e.g. wrong category picked by the outlet": "mis. outlet salah memilih kategori",
 };

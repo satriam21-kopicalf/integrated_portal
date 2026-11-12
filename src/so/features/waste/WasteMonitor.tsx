@@ -16,7 +16,8 @@ import { downloadXlsx } from "@/lib/xlsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
-import { ConfirmDialog } from "@/so/ui/Dialog";
+import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
+import { hasPage, useAuth } from "@/lib/auth";
 import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
@@ -48,6 +49,10 @@ const VIEWS: { value: View; label: () => string; icon: typeof Trash2; monitor?: 
 export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const toast = useToast();
   const review = mode === "review";
+  // 2026-11-12: whoever reviews waste may change the category of several entries at once (monitor and review)
+  const { user } = useAuth();
+  const canFix = review || hasPage(user, "cc.waste-review");
+  const [recat, setRecat] = useState(false);
   const [period, setPeriod] = useState<Period>({ from: wibDay(-6), to: wibDay(0) });
   const [branch, setBranch] = useState("");
   const [scope, setScope] = useState<Scope | "">("");
@@ -95,8 +100,10 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const sm = res?.summary;
   // not decided yet: waiting review or under investigation
   const waiting = rows.filter((e) => e.status === "submitted" || e.status === "investigating");
+  const waitingIds = new Set(waiting.map((x) => x.id));
+  const pickedWaiting = [...picked].filter((id) => waitingIds.has(id));
   const investigate = async () => {
-    const ids = open && !picked.size ? [open.id] : [...picked];
+    const ids = open && !picked.size ? [open.id] : pickedWaiting;
     setBusy(true);
     try {
       const out = await call<{ id: string; reportNo: number }>("/api/waste/investigations", { method: "POST", json: { ids } });
@@ -115,7 +122,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
     if (!verdict) return;
     setBusy(true);
     try {
-      const ids = open && !picked.size ? [open.id] : [...picked];
+      const ids = open && !picked.size ? [open.id] : pickedWaiting;
       const out = await call<{ updated: number }>("/api/waste/reviews", { method: "POST", json: { ids, status: verdict, note: note.trim() || null } });
       toast(tr("{0} entries {1}", out.updated, verdict === "approved" ? tr("approved") : tr("rejected")));
       setVerdict(null);
@@ -203,17 +210,20 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
               : v.value === "branches" ? res.byBranch.length : v.value === "categories" ? res.byCategory.length : null;
             return { key: v.value, label: <><Icon size={15} className={view === v.value ? "text-brand-700" : "text-neutral-400"} />{v.label()}</>, count: count === null ? undefined : fmtNumber(count) };
           })} />
-          {review && view === "entries" && waiting.length > 0 && (
+          {canFix && view === "entries" && rows.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 rounded-xl border border-brand-100 bg-brand-50/60 px-3 py-2 text-sm">
               <label className="flex items-center gap-2 text-neutral-700">
-                <input type="checkbox" checked={picked.size > 0 && picked.size === waiting.length}
-                  onChange={(e) => setPicked(e.target.checked ? new Set(waiting.map((x) => x.id)) : new Set())} />
-                {tr("{0} of {1} selected", picked.size, waiting.length)}
+                <input type="checkbox" checked={picked.size > 0 && picked.size === rows.length}
+                  onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((x) => x.id)) : new Set())} />
+                {tr("{0} of {1} selected", picked.size, rows.length)}
               </label>
               <span className="flex-1" />
-              <Button size="sm" variant="secondary" disabled={!picked.size || busy} onClick={() => void investigate()}><FileSearch size={14} />{tr("Investigate")}</Button>
-              <Button size="sm" variant="secondary" disabled={!picked.size} onClick={() => setVerdict("rejected")}><XCircle size={14} />{tr("Reject")}</Button>
-              <Button size="sm" disabled={!picked.size} onClick={() => setVerdict("approved")}><CheckCircle2 size={14} />{tr("Approve")}</Button>
+              <Button size="sm" variant="secondary" disabled={!picked.size} onClick={() => setRecat(true)}><Tags size={14} />{tr("Change category")}</Button>
+              {review && <>
+                <Button size="sm" variant="secondary" disabled={!pickedWaiting.length || busy} onClick={() => void investigate()}><FileSearch size={14} />{tr("Investigate")}</Button>
+                <Button size="sm" variant="secondary" disabled={!pickedWaiting.length} onClick={() => setVerdict("rejected")}><XCircle size={14} />{tr("Reject")}</Button>
+                <Button size="sm" disabled={!pickedWaiting.length} onClick={() => setVerdict("approved")}><CheckCircle2 size={14} />{tr("Approve")}</Button>
+              </>}
             </div>
           )}
         </div>
@@ -242,11 +252,11 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 </tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {paged.rows.map((e) => {
-                    const pick = review && (e.status === "submitted" || e.status === "investigating");
+                    const pick = canFix;
                     return (
                       <tr key={e.id} onClick={() => setOpen(e)} className={cx("cursor-pointer", picked.has(e.id) ? "bg-brand-50/60" : "hover:bg-neutral-50/70")}>
-                        {review && <td className="py-2.5 pl-5" onClick={(x) => x.stopPropagation()}>{pick && <input type="checkbox" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}</td>}
-                        <td className={cx("py-2 pr-3", review ? "pl-2" : "pl-5")}>
+                        {canFix && <td className="py-2.5 pl-5" onClick={(x) => x.stopPropagation()}>{pick && <input type="checkbox" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}</td>}
+                        <td className={cx("py-2 pr-3", canFix ? "pl-2" : "pl-5")}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={thumb(photoUrl(e.id), 96)} decoding="async" alt="" loading="lazy" className="h-11 w-11 rounded-lg bg-neutral-100 object-cover" />
                         </td>
@@ -269,7 +279,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             <ul className="divide-y divide-neutral-100 md:hidden">
               {paged.rows.map((e) => (
                 <li key={e.id} className="flex items-start gap-3 px-4 py-3 hover:bg-neutral-50">
-                  {review && (e.status === "submitted" || e.status === "investigating") && <input type="checkbox" className="mt-4" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}
+                  {canFix && <input type="checkbox" className="mt-4" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}
                   <button type="button" onClick={() => setOpen(e)} className="flex min-w-0 flex-1 items-start gap-3 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={thumb(photoUrl(e.id), 160)} decoding="async" alt="" loading="lazy" className="h-14 w-14 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
@@ -360,6 +370,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         onReset={() => ({ period: DEFAULT_PERIOD(), branch: "", scope: "", category: "", status: review ? "submitted" : "" })} />}
       {investigation && <InvestigationDrawer id={investigation} onClose={() => setInvestigation(null)} onChanged={() => void load()} />}
       {cats && <CategoriesDrawer onClose={() => setCats(false)} />}
+      {recat && <RecategorizeDialog ids={[...picked]} categories={res?.categories ?? []} onClose={() => setRecat(false)}
+        onDone={() => { setRecat(false); setPicked(new Set()); void load(); }} />}
       {fixing && open && <WasteCorrect entry={open} onClose={() => setFixing(false)}
         onSaved={(e) => { setFixing(false); setFixes((n) => n + 1); setOpen(e); setRes((r) => r && { ...r, data: r.data.map((x) => x.id === e.id ? e : x) }); }} />}
       <ConfirmDialog open={!!verdict} busy={busy} danger={verdict === "rejected"}
@@ -542,5 +554,40 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
         </div>
       </FilterRow>
     </MonitorFilterSheet>
+  );
+}
+
+
+/** 2026-11-12: the waste category of the entries picked changed at once (each one logged as a correction with the reason). */
+function RecategorizeDialog({ ids, categories, onClose, onDone }: { ids: string[]; categories: string[]; onClose: () => void; onDone: () => void }) {
+  const toast = useToast();
+  const [category, setCategory] = useState("");
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const apply = async () => {
+    setBusy(true);
+    try {
+      const out = await call<{ updated: number; skipped: { id: string; reason: string }[] }>("/api/waste/reviews/category", { method: "POST", json: { ids, category, reason: reason.trim() } });
+      toast(out.skipped.length ? tr("{0} entries changed, {1} skipped ({2})", out.updated, out.skipped.length, [...new Set(out.skipped.map((x) => x.reason))].join(", "))
+        : tr("{0} entries changed to {1}", out.updated, category), out.updated ? "ok" : "error");
+      onDone();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  return (
+    <Dialog open title={tr("Change waste category")} description={tr("{0} entries picked; every change is logged with the reason", ids.length)} onClose={onClose}
+      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
+        <Button loading={busy} disabled={!category || reason.trim().length < 3} onClick={() => void apply()}><Tags size={14} />{tr("Change")}</Button></>}>
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-neutral-700">{tr("New category")}
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm">
+            <option value="">{tr("Choose a category")}</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+        <label className="block text-sm font-medium text-neutral-700">{tr("Reason")}
+          <input value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} placeholder={tr("e.g. wrong category picked by the outlet")}
+            className="mt-1 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm" />
+        </label>
+      </div>
+    </Dialog>
   );
 }
