@@ -6241,4 +6241,18 @@ export const ID: Record<string, string> = {
   "Nothing in this period": "Tidak ada data di periode ini",
   "Cups apart": "Selisih cup",
   "{0} other movements match": "{0} gerakan lain sesuai",
+  // 2026-11-12: COTR driver names of the workbooks
+  "Driver Names": "Nama Driver",
+  "{0} tied to {1}: {2} rows of Report Armada updated": "{0} ditautkan ke {1}: {2} baris Report Armada diperbarui",
+  "{0} marked as not a driver": "{0} ditandai bukan driver",
+  "Names without a driver": "Nama tanpa driver",
+  "{0} rows of Report Armada": "{0} baris Report Armada",
+  "Names tied": "Nama tertaut",
+  "Not a driver": "Bukan driver",
+  "Names in the workbooks without a driver": "Nama di workbook yang belum punya driver",
+  "Tie each name once: the rows already imported take the driver (their cups count in the incentives) and the next imports use it.": "Tautkan setiap nama sekali: baris yang sudah diimpor ikut mendapat driver (cup-nya masuk hitungan insentif) dan impor berikutnya memakainya.",
+  "Every name in the workbooks has its driver": "Semua nama di workbook sudah punya driver",
+  "Names tied by hand": "Nama yang ditautkan manual",
+  "Removing a tie lets the next import match the name by itself again; the rows already imported keep their driver.": "Menghapus tautan membuat impor berikutnya mencocokkan nama secara otomatis lagi; baris yang sudah diimpor tetap dengan driver-nya.",
+  "Search another driver (name, code, armada)": "Cari driver lain (nama, kode, armada)",
 };
