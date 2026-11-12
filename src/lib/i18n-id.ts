@@ -6473,4 +6473,10 @@ export const ID: Record<string, string> = {
   "Cancelled in ESB · not counted": "Dibatalkan di ESB · tidak dihitung",
   "ESB changed since: now {0}": "ESB berubah sejak dikoreksi: sekarang {0}",
   "The portal uses this quantity from now on, also when ESB is fixed later; ESB itself is not changed.": "Portal memakai jumlah ini mulai sekarang, juga bila ESB diperbaiki belakangan; data ESB tidak diubah.",
+  // 2026-11-13: notification bell
+  "Notifications": "Notifikasi",
+  "Notifications, {0} unread": "Notifikasi, {0} belum dibaca",
+  "Goods receipts and ESB documents that need a look, and the daily summaries": "GR dan dokumen ESB yang perlu dicek, serta ringkasan harian",
+  "Mark all as read": "Tandai semua dibaca",
+  "No notification yet": "Belum ada notifikasi",
 };

@@ -9,6 +9,7 @@ import Sidebar from './Sidebar';
 import TableCards from './TableCards';
 import BottomNav, { FocusContext } from './BottomNav';
 import UserAvatar from '@/components/UserAvatar';
+import AlertBell from '@/components/AlertBell';
 import { BRAND_LINE } from '@/components/BrandWatermark';
 import { ToastProvider } from '@/so/ui';
 import { assetUrl } from '@/lib/assets';
@@ -101,6 +102,7 @@ function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: bo
             </p>
           )}
         </div>
+        <AlertBell size={19} className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-neutral-500 active:bg-neutral-200/70" />
         {guide && (
           <Link href="/guide" title={tr('Guide')} aria-label={tr('Guide')} aria-current={pathname === '/guide' ? 'page' : undefined}
             className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full active:bg-neutral-200/70 ${pathname === '/guide' ? 'bg-brand-50 text-brand-700' : 'text-neutral-500'}`}>

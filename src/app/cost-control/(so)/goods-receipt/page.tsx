@@ -73,13 +73,14 @@ export default function GoodsReceiptPage() {
   const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => { void call<BranchOpt[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
-  // ?doc=GR…&date=YYYY-MM-DD (2026-11-12: from the unusual ESB documents of the COGS & Usage): that GR, opened
+  // ?doc=GR…&date=YYYY-MM-DD (2026-11-12: from the unusual ESB documents of the COGS & Usage and the notification bell):
+  // the GRs of that day, and that GR opened
   useEffect(() => {
     const qs = new URLSearchParams(window.location.search);
     const doc = qs.get("doc");
     const day = qs.get("date");
-    if (!doc) return;
     if (day && /^\d{4}-\d{2}-\d{2}$/.test(day)) setF((x) => ({ ...x, period: { from: day, to: day } }));
+    if (!doc) return;
     setSearch(doc);
     setOpen(doc);
   }, []);
