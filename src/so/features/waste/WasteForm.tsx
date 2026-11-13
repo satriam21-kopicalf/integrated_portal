@@ -50,7 +50,7 @@ const totalOf = (r: Row) => splitsOf(r).reduce((a, s) => a + (Number(s.qty.repla
 const lacks = (r: Row) => {
   const more = r.more ?? [];
   const cats = splitsOf(r).map((s) => s.category).filter(Boolean);
-  return [!r.category && tr("the category"), more.some((s) => !s.category || !(Number(s.qty.replace(",", ".")) > 0)) && tr("the quantity and category of every added category"),
+  return [!r.category && tr("the category"), r.note.trim().length < 3 && tr("the note / reason"), more.some((s) => !s.category || !(Number(s.qty.replace(",", ".")) > 0)) && tr("the quantity and category of every added category"),
     new Set(cats).size < cats.length && tr("different categories"), !r.photo && tr("the photo"),
     r.made && r.expires && r.expires < r.made && tr("an expired date after the production date")].filter(Boolean) as string[];
 };
@@ -276,7 +276,7 @@ export default function WasteForm() {
                 ))}
               </FormCard>
 
-              <FormCard n={2} title={tr("Wasted Items")} hint={tr("Fill the quantity of each wasted SKU; every filled SKU needs its category and a photo, the dates and the note are optional")}>
+              <FormCard n={2} title={tr("Wasted Items")} hint={tr("Fill the quantity of each wasted SKU; every filled SKU needs its category, a photo and the note / reason; the dates are optional")}>
                 <Segmented label={tr("Type")} value={scope} onChange={pickScope} options={ENTRY_SCOPES.map((s) => ({ value: s, label: scopeLabel(s) }))} />
                 <div className="relative">
                   <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -352,7 +352,7 @@ export default function WasteForm() {
                                         className="rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">+ {tr("Another category")}</button>
                                       {(r.more ?? []).length > 0 && <span className="text-[11px] text-neutral-500">{tr("The first quantity is for the first category; total {0} {1}", fmtQty(totalOf(r)), uom)}</span>}
                                     </div>
-                                    <input className={cx(inputClass, "h-9")} value={r.note} maxLength={500} onChange={(e) => setRow(i.code, { note: e.target.value })} placeholder={tr("Note / reason (optional)")} />
+                                    <input className={cx(inputClass, "h-9")} value={r.note} maxLength={500} onChange={(e) => setRow(i.code, { note: e.target.value })} placeholder={tr("Note / reason (required)")} aria-required="true" />
                                     <label className="text-[11px] text-neutral-500">{tr("Production Date")}
                                       <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.made} max={day} onChange={(e) => setRow(i.code, { made: e.target.value })} />
                                     </label>

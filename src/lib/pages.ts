@@ -11,7 +11,7 @@ export type PageKey =
   | 'mon.pengajuan' | 'mon.wwwr'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
-  | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs' | 'cc.goods-receipt' | 'cc.purchase-plan' | 'cc.info'
+  | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs' | 'cc.goods-receipt' | 'cc.purchase-plan' | 'cc.info' | 'cc.schedule'
   | 'cc.stock-list' | 'cc.stock-transfer'
   | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule' | 'cotr.incentive';
 
@@ -61,6 +61,7 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.overview', href: '/monitoring/overview', get label() { return tr('Monitoring Overview'); }, get group() { return tr('Operations'); } },
   { key: 'mon.pic-check-in', href: '/monitoring/pic-check-in', get label() { return tr('PIC Check In'); }, get group() { return tr('Operations'); } },
   { key: 'mon.surveyor-check-in', href: '/cost-control/check-in', get label() { return tr('Cost Control Clock In'); }, get group() { return tr('Cost Control · Clock In'); } },
+  { key: 'cc.schedule', href: '/cost-control/schedule', get label() { return tr('Cost Control Schedule'); }, get group() { return tr('Cost Control · Clock In'); } },
   { key: 'mon.product', href: '/monitoring/product', get label() { return 'Product'; }, get group() { return tr('Operations'); } },
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return 'Outlet'; }, get group() { return tr('Operations'); } },
   { key: 'mon.wwwr', href: '/monitoring/wwwr', label: 'WW-WR', get group() { return tr('Operations'); } },

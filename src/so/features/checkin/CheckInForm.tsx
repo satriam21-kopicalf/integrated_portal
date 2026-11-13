@@ -225,6 +225,26 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
               {duration(Math.max(0, Math.floor((now.getTime() - Date.parse(openVisit.visitedAt)) / 60_000)))}</span>}
           </section>
         )}
+        {kind === "surveyor" && (data.schedule?.length ?? 0) > 0 && (
+          <section className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">
+            <p className="font-semibold text-neutral-900">{tr("Today's schedule")}</p>
+            <ul className="mt-1.5 flex flex-wrap gap-1.5">
+              {data.schedule!.map((s) => {
+                const done = !!data.today?.[s.code];
+                return (
+                  <li key={s.code}>
+                    <button type="button" disabled={outMode || done} onClick={() => setBranch(s.code)} title={s.note ?? undefined}
+                      className={cx("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
+                        done ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : branch === s.code ? "bg-brand-700 text-white ring-brand-700" : "bg-white text-neutral-700 ring-neutral-200 hover:bg-neutral-50")}>
+                      {done && <CheckCircle2 size={12} />}{s.name}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            {data.schedule!.some((s) => s.note) && <p className="mt-1.5 text-xs text-neutral-500">{data.schedule!.filter((s) => s.note).map((s) => `${s.name}: ${s.note}`).join(" · ")}</p>}
+          </section>
+        )}
         {!outMode && Object.keys(data.today ?? {}).length > 0 && (
           <section className={cx("flex items-start gap-3 rounded-xl border px-4 py-3 text-sm", allDone ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-neutral-200 bg-white text-neutral-700")}>
             <CheckCircle2 size={18} className={cx("mt-0.5 flex-shrink-0", allDone ? "text-emerald-600" : "text-emerald-500")} />
@@ -257,7 +277,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 {b?.checkinDeadline && !outMode && !doneToday && Object.keys(data.today ?? {}).length === 0 && (() => {
                   // the first check in of the day counts for punctuality, by the deadline of its outlet (Monitoring OPS → Branch Groups)
                   const d = b.checkinDeadline;
-                  const late = new Date(Date.now() + 7 * 3600e3).toISOString().slice(11, 16) > d.wib;
+                  const late = !!now && new Date(now.getTime() + 7 * 3600e3).toISOString().slice(11, 16) > d.wib;
                   return (
                     <p className={cx("mt-2 flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm", late ? "border-amber-200 bg-amber-50 text-amber-900" : "border-neutral-200 bg-neutral-50 text-neutral-700")}>
                       <Clock size={16} className={cx("mt-0.5 flex-shrink-0", late ? "text-amber-600" : "text-neutral-400")} />

@@ -297,6 +297,7 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
             [tr('Monitoring Stock'), <P key="13" href="/cost-control/stock-list" t="Stock List" />, S('Stok per cabang dari SO terakhir', 'Stock per branch from the latest SO')],
             ['', <P key="14" href="/cost-control/stock-transfer" t="Transfer Stock" />, S('Persetujuan transfer, label ESB, export', 'Approve transfers, ESB label, export')],
             [tr('Clock In'), <P key="15" href="/cost-control/check-in" t="Cost Control Clock In" />, S('Kunjungan tim Cost Control', 'Visits of the Cost Control team')],
+            ['', <P key="15b" href="/cost-control/schedule" t="Cost Control Schedule" />, S('Leader mengatur outlet yang dikunjungi setiap anggota per hari (Selesai / Terlewat / Terjadwal); anggota melihat jadwal hari ini di form Clock In', 'The leader plans the outlets each member visits per day (Done / Missed / Planned); a member sees today\'s schedule in the Clock In form')],
             [tr('Analytics'), <P key="16" href="/cost-control/ratio" t="Outlet Ratio" />, S('COGS, BB & usage ratio per outlet', 'COGS, BB & usage ratio per outlet')],
             ['', <P key="17" href="/cost-control/goods-receipt" t="Good Receipt" />, S('GR ESB & koreksinya', 'ESB GRs & their corrections')],
             ['', <P key="18" href="/cost-control" t="COGS & Usage" />, S('COGS sistem vs aktual per outlet', 'System vs actual COGS per outlet')],

@@ -6,7 +6,7 @@ import {
   Activity, BarChart3, Bike, Warehouse, CookingPot, Download, Boxes, Calculator, ClipboardPen,
   FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ClipboardCheck, ClipboardList, ListChecks,
   Settings2, History, LayoutDashboard, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, Users, Wallet, UserRoundCheck,
-  PackageCheck, ArrowLeftRight, ShoppingCart,
+  PackageCheck, ArrowLeftRight, ShoppingCart, CalendarDays,
 } from 'lucide-react';
 import { tr } from '@/lib/i18n';
 
@@ -49,6 +49,7 @@ export const costControl: { title: string; hint: string; icon: typeof Users; ite
   ] },
   { get title() { return tr('Clock In'); }, get hint() { return tr('Outlet visits of the Cost Control team'); }, icon: UserRoundCheck, items: [
     { get name() { return tr('Cost Control Clock In'); }, href: '/cost-control/check-in', icon: UserRoundCheck, get description() { return tr('Clock in & clock out of every Cost Control surveyor'); } },
+    { get name() { return tr('Cost Control Schedule'); }, href: '/cost-control/schedule', icon: CalendarDays, get description() { return tr('Outlets each member visits per day, set by the leader'); } },
   ] },
   { get title() { return tr('Analytics'); }, get hint() { return tr('Cost ratios per outlet from ESB data'); }, icon: BarChart3, items: [
     { get name() { return tr('Outlet Ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },

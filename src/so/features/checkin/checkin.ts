@@ -27,7 +27,8 @@ export type Review = { status: "valid" | "invalid"; note: string | null; by: str
 export const suspect = (c: CheckIn) => c.riskLevel === "high" || c.riskLevel === "medium";
 export type FormData = { user: { id: string; username: string; name: string }; branches: Branch[]; recent: CheckIn[];
   /** branches already checked in today (one check in per branch per day) */ today: Record<string, { id: string; visitedAt: string }>;
-  /** Cost Control: the visit clocked in and not out yet (one open visit at a time) */ open?: CheckIn | null };
+  /** Cost Control: the visit clocked in and not out yet (one open visit at a time) */ open?: CheckIn | null;
+  /** Cost Control: the outlets the leader planned for today (Schedule, 2026-11-13) */ schedule?: { code: string; name: string; note: string | null }[] };
 
 export async function call<T>(path: string, init?: RequestInit & { json?: unknown }): Promise<T> {
   const { json, ...rest } = init ?? {};
