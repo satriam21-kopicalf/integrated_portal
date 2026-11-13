@@ -4,7 +4,7 @@
 // the check-in deadline and time zone of every outlet, the Product / Outlet items each group is asked, and the net sales
 // of every outlet against its own month before (no target set by hand). Read by Monitoring → Overview (the PIC score) and the forms.
 
-import { Pencil, Save, Store } from "lucide-react";
+import { GripVertical, Pencil, Save, Store } from "lucide-react";
 import { AddIcon, type Editor, type EditorItem, type EditorSection, ItemDialog, WeightIcon, WeightsDialog, categoryLabel, categoryTone } from "./itemEditor";
 import Drawer from "@/so/ui/Drawer";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -220,10 +220,29 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
       await load();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
+  // drag and drop the rows of a section (2026-11-13): the order of the items in the forms of Operations and the portal
+  const [drag, setDrag] = useState<{ section: string; key: string } | null>(null);
+  const [over, setOver] = useState<string | null>(null);
+  const reorder = async (section: string, from: string, to: string) => {
+    if (!res || from === to) return;
+    const sec = res.forms.find((f) => f.form === form)?.sections.find((x) => x.key === section);
+    if (!sec) return;
+    const keys = sec.items.map((x) => x.key);
+    const moved = keys.filter((k) => k !== from);
+    moved.splice(moved.indexOf(to) + (keys.indexOf(from) < keys.indexOf(to) ? 1 : 0), 0, from);
+    const byKey = new Map(sec.items.map((x) => [x.key, x]));
+    setRes({ ...res, forms: res.forms.map((f) => f.form !== form ? f : { ...f, sections: f.sections.map((x) => x.key !== section ? x
+      : { ...x, items: moved.map((k, n) => ({ ...byKey.get(k)!, no: n + 1 })) }) }) });
+    try {
+      await call(`/api/monitoring/form-items/${form}/order`, { method: "PUT", json: { section, keys: moved } });
+      toast(tr("Order saved"));
+      void load();
+    } catch (e) { toast((e as Error).message, "error"); void load(); }
+  };
   const s = q.trim().toLowerCase();
   return (
     <Card flush title={tr("Form Items per Group")}
-      subtitle={tr("Untick an item for a group and its outlets are not asked it: it is hidden in the form and left out of the score. A dot marks a change from the standard.")}
+      subtitle={`${tr("Untick an item for a group and its outlets are not asked it: it is hidden in the form and left out of the score. A dot marks a change from the standard.")}${canEdit ? ` ${tr("Drag a row to change the order of the items; the forms of Operations follow it.")}` : ""}`}
       actions={canEdit && count > 0 && <Button loading={busy} onClick={() => void save()}><Save size={15} /> {tr("Save {0} changes", count)}</Button>}
       toolbar={
         <div className="flex flex-wrap items-center gap-2">
@@ -258,11 +277,17 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                         className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold normal-case tracking-normal text-brand-700 hover:bg-brand-50"><AddIcon size={12} /> {tr("Add item")}</button>}</span>
                   </td></tr>
                   {items.map((it) => (
-                    <tr key={it.key} className="hover:bg-neutral-50">
+                    <tr key={it.key} className={cx("hover:bg-neutral-50", drag?.key === it.key && "opacity-40", over === it.key && drag && drag.key !== it.key && "outline outline-2 -outline-offset-2 outline-brand-500")}
+                      draggable={canEdit && !s} onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDrag({ section: sec.key, key: it.key }); }}
+                      onDragOver={(e) => { if (drag?.section === sec.key) { e.preventDefault(); setOver(it.key); } }}
+                      onDragLeave={() => setOver((o) => (o === it.key ? null : o))}
+                      onDrop={(e) => { e.preventDefault(); const d = drag; setDrag(null); setOver(null); if (d && d.section === sec.key) void reorder(sec.key, d.key, it.key); }}
+                      onDragEnd={() => { setDrag(null); setOver(null); }}>
                       <td className="px-4 py-2">{(() => {
                         const e = edItem(it.key);
                         return (
                           <div className="flex items-start gap-2">
+                            {canEdit && !s && <span className="mt-0.5 flex-shrink-0 cursor-grab text-neutral-300 hover:text-neutral-500 active:cursor-grabbing" title={tr("Drag to change the order")} aria-hidden><GripVertical size={15} /></span>}
                             <div className={cx("min-w-0 flex-1", e && !e.active && "opacity-50")}>
                               <span className="text-neutral-900">{it.no}. {en ? it.labelEn : it.label}</span>{!it.required && <span className="ml-1.5 text-[11px] text-neutral-400">({tr("optional")})</span>}
                               <span className="mt-0.5 flex flex-wrap gap-1">

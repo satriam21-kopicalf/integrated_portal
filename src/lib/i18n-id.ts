@@ -6765,4 +6765,7 @@ export const ID: Record<string, string> = {
   "The outlets to visit this day; none clears the day.": "Outlet yang dikunjungi hari ini; kosongkan untuk menghapus jadwal hari itu.",
   "Note for the member (optional), e.g. audit SO, check waste": "Catatan untuk anggota (opsional), mis. audit SO, cek waste",
   "Outlets each member visits per day, set by the leader": "Outlet yang dikunjungi setiap anggota per hari, diatur leader",
+  "Order saved": "Urutan tersimpan",
+  "Drag to change the order": "Seret untuk mengubah urutan",
+  "Drag a row to change the order of the items; the forms of Operations follow it.": "Seret baris untuk mengubah urutan butir; form di Operations mengikutinya.",
 };
