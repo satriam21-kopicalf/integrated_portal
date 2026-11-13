@@ -6704,4 +6704,8 @@ export const ID: Record<string, string> = {
   "ESB {0} · portal {1}": "ESB {0} · portal {1}",
   "sync failed": "sinkron gagal",
   "{0} failed · {1} waiting": "{0} gagal · {1} menunggu",
+  "The cost group of every ESB category of the goods receipts and outlet purchases ({0} days). A change applies from its date on; the months before keep theirs. A category not set follows its supplier, as the workbook.": "Kelompok biaya setiap kategori ESB dari GR dan pembelian outlet ({0} hari). Perubahan berlaku mulai tanggalnya; bulan sebelumnya tetap memakai kelompok lamanya. Kategori yang belum diatur ikut suppliernya, seperti workbook.",
+  "{0} from {1}": "{0} mulai {1}",
+  "Reason (agreed with management)": "Alasan (disepakati dengan manajemen)",
+  "Valid from {0} at the earliest: a closed month keeps its figures.": "Berlaku paling awal {0}: bulan yang sudah ditutup tetap memakai angkanya.",
 };

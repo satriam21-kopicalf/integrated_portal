@@ -394,51 +394,94 @@ function PurchasesSwitch({ value, onChange }: { value: Purchases; onChange: (v: 
 }
 
 type CostGroup = "bb" | "espresso" | "dimsum" | "gs" | "other";
-type Category = { category: string; value: number; bySupplier: Record<string, number>; suggested: CostGroup; group: CostGroup | null };
+type Version = { validFrom: string; group: CostGroup | null; note: string | null; by: string | null; at: string | null };
+type Category = { category: string; value: number; bySupplier: Record<string, number>; suggested: CostGroup; group: CostGroup | null; next: Version | null; history: Version[] };
+type CostGroupsData = { days: number; minValidFrom: string; data: Category[] };
 const GROUP_LABEL: Record<CostGroup, () => string> = { bb: () => "BB", espresso: () => "Espresso", dimsum: () => "Dimsum", gs: () => "General Supplies", other: () => tr("Other") };
+const dmyIso = (v: string) => v.split("-").reverse().join("/");
 
-/** The cost group of every ESB category of the GRs and outlet purchases (basis GR, migration 102). */
+/** The cost group of every ESB category of the GRs and outlet purchases (basis GR, migrations 102-103): a change applies
+ *  from its valid-from date (not in a closed month) with a reason, the months before keep theirs; the history stays. */
 function CostGroups({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
-  const toast = useToast();
-  const [data, setData] = useState<{ days: number; data: Category[] } | null>(null);
+  const [data, setData] = useState<CostGroupsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [changed, setChanged] = useState(false);
-  useEffect(() => { call<{ days: number; data: Category[] }>("/api/cost-control/ratio/cost-groups").then(setData).catch((e) => setError((e as Error).message)); }, []);
-  const save = async (c: Category, group: CostGroup | null) => {
-    try {
-      await call("/api/cost-control/ratio/cost-groups", { method: "PUT", body: JSON.stringify({ category: c.category, group }) });
-      setData((d) => d && { ...d, data: d.data.map((x) => (x.category === c.category ? { ...x, group } : x)) });
-      setChanged(true);
-    } catch (e) { toast((e as Error).message, "error"); }
-  };
+  const [edit, setEdit] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const load = useCallback(() => { call<CostGroupsData>("/api/cost-control/ratio/cost-groups").then(setData).catch((e) => setError((e as Error).message)); }, []);
+  useEffect(() => { load(); }, [load]);
   const rows = (data?.data ?? []).filter((c) => !q || c.category.toLowerCase().includes(q.toLowerCase()));
   const close = () => { if (changed) onSaved(); onClose(); };
+  const groupText = (g: CostGroup | null, c: Category) => (g ? GROUP_LABEL[g]() : tr("Follow supplier ({0})", GROUP_LABEL[c.suggested]()));
   return (
     <Dialog open size="lg" title={tr("Cost groups")} onClose={close}
-      description={tr("The cost group of every ESB category of the goods receipts and outlet purchases ({0} days). A category not set follows its supplier, as the workbook.", data?.days ?? 60)}
+      description={tr("The cost group of every ESB category of the goods receipts and outlet purchases ({0} days). A change applies from its date on; the months before keep theirs. A category not set follows its supplier, as the workbook.", data?.days ?? 60)}
       footer={<Button onClick={close}>{tr("Done")}</Button>}>
       {error ? <ErrorState message={error} /> : !data ? <p className="py-6 text-center text-sm text-neutral-500">{tr("Loading…")}</p> : (
         <div className="space-y-3">
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search category")} />
           <ul className="max-h-[55vh] divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200">
             {rows.map((c) => (
-              <li key={c.category} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-neutral-900">{c.category || tr("(no category)")}</p>
-                  <p className="truncate text-[11px] text-neutral-500">Rp {rp(c.value)} · {Object.entries(c.bySupplier).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([s]) => s).join(", ")}</p>
+              <li key={c.category} className="px-3 py-2 text-sm">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-neutral-900">{c.category || tr("(no category)")}</p>
+                    <p className="truncate text-[11px] text-neutral-500">Rp {rp(c.value)} · {Object.entries(c.bySupplier).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([s]) => s).join(", ")}</p>
+                  </div>
+                  <div className="text-right text-xs">
+                    <p className="font-semibold text-neutral-800">{groupText(c.group, c)}</p>
+                    {c.next && <p className="text-brand-700">{tr("{0} from {1}", groupText(c.next.group, c), dmyIso(c.next.validFrom))}</p>}
+                  </div>
+                  <div className="flex gap-1">
+                    {c.history.length > 0 && <Button size="sm" variant="ghost" onClick={() => setOpen(open === c.category ? null : c.category)} aria-expanded={open === c.category}>{tr("History")}</Button>}
+                    <Button size="sm" variant="secondary" onClick={() => setEdit(edit === c.category ? null : c.category)}>{tr("Change")}</Button>
+                  </div>
                 </div>
-                <select value={c.group ?? ""} onChange={(e) => void save(c, (e.target.value || null) as CostGroup | null)} aria-label={tr("Cost group of {0}", c.category)}
-                  className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm">
-                  <option value="">{tr("Follow supplier ({0})", GROUP_LABEL[c.suggested]())}</option>
-                  {(Object.keys(GROUP_LABEL) as CostGroup[]).map((g) => <option key={g} value={g}>{GROUP_LABEL[g]()}</option>)}
-                </select>
+                {open === c.category && (
+                  <ul className="mt-2 space-y-1 rounded-lg bg-neutral-50 px-3 py-2 text-[11px] text-neutral-600">
+                    {c.history.map((h) => <li key={h.validFrom + (h.at ?? "")}><b>{dmyIso(h.validFrom)}</b> · {groupText(h.group, c)} · {h.note ?? "—"}{h.by ? ` · ${h.by}` : ""}</li>)}
+                  </ul>
+                )}
+                {edit === c.category && <CostGroupForm category={c} minFrom={data.minValidFrom} onCancel={() => setEdit(null)}
+                  onSaved={() => { setEdit(null); setChanged(true); load(); }} />}
               </li>
             ))}
           </ul>
         </div>
       )}
     </Dialog>
+  );
+}
+
+function CostGroupForm({ category, minFrom, onCancel, onSaved }: { category: Category; minFrom: string; onCancel: () => void; onSaved: () => void }) {
+  const [group, setGroup] = useState<string>(category.group ?? "");
+  const [from, setFrom] = useState(minFrom);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const save = async () => {
+    setBusy(true); setErr(null);
+    try {
+      await call("/api/cost-control/ratio/cost-groups", { method: "PUT", body: JSON.stringify({ category: category.category, group: group || null, validFrom: from, note }) });
+      onSaved();
+    } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  };
+  return (
+    <div className="mt-2 grid gap-2 rounded-lg border border-brand-100 bg-brand-50/40 p-3 sm:grid-cols-[1fr_auto]">
+      <select value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Cost group of {0}", category.category)} className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm">
+        <option value="">{tr("Follow supplier ({0})", GROUP_LABEL[category.suggested]())}</option>
+        {(Object.keys(GROUP_LABEL) as CostGroup[]).map((g) => <option key={g} value={g}>{GROUP_LABEL[g]()}</option>)}
+      </select>
+      <input type="date" value={from} min={minFrom} onChange={(e) => e.target.value && setFrom(e.target.value)} aria-label={tr("Valid from")} className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm" />
+      <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder={tr("Reason (agreed with management)")} className="sm:col-span-2" />
+      <div className="flex gap-1">
+        <Button size="sm" variant="ghost" onClick={onCancel} disabled={busy}>{tr("Cancel")}</Button>
+        <Button size="sm" onClick={() => void save()} loading={busy} disabled={!note.trim()}>{tr("Save")}</Button>
+      </div>
+      <p className="self-center text-[11px] text-neutral-500">{tr("Valid from {0} at the earliest: a closed month keeps its figures.", dmyIso(minFrom))}</p>
+      {err && <p className="text-xs text-red-700 sm:col-span-2">{err}</p>}
+    </div>
   );
 }
 
