@@ -82,7 +82,9 @@ function HealthCard({ card }: { card: Card }) {
             <li key={`${it.code ?? it.id ?? it.module ?? i}`} className="flex items-center gap-2 px-4 py-1.5">
               {it.status && <span className={cx('[&>svg]:h-3.5 [&>svg]:w-3.5', STATUS[it.status].dot)}>{STATUS[it.status].icon}</span>}
               <span className="min-w-0 flex-1 truncate text-neutral-800">{it.name}</span>
-              {it.module ? <span className="tabular-nums text-neutral-500">{tr('doc {0} · {1} in 7 days{2}', it.lastDoc ? it.lastDoc.split('-').reverse().join('/') : '—', it.week ?? 0, it.drafts ? ` · ${tr('{0} drafts', it.drafts)}` : '')}</span>
+              {it.diff != null ? <span className="tabular-nums text-red-700">{tr('ESB {0} · portal {1}', it.esb ?? 0, it.db ?? 0)}</span>
+                : it.failed != null || it.failedRun ? <span className="text-amber-700">{it.failedRun ? tr('sync failed') : tr('{0} failed · {1} waiting', it.failed ?? 0, it.waiting ?? 0)}</span>
+                : it.module ? <span className="tabular-nums text-neutral-500">{tr('doc {0} · {1} in 7 days{2}', it.lastDoc ? it.lastDoc.split('-').reverse().join('/') : '—', it.week ?? 0, it.drafts ? ` · ${tr('{0} drafts', it.drafts)}` : '')}</span>
                 : it.level ? <span className={it.level === 'none' ? 'text-red-700' : 'text-amber-700'}>{it.level === 'none' ? tr('no price') : tr('ESB HPP')}</span>
                   : it.qty != null ? <span className="tabular-nums text-neutral-500">{tr('{0} sold', it.qty.toLocaleString(numberLocale()))}</span>
                     : <span className="text-neutral-400">{it.code}</span>}

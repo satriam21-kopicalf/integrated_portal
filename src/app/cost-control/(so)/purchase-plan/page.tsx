@@ -84,7 +84,7 @@ export default function PurchasePlanPage() {
             {buffers && <p>{tr('outlets with a default or an empty part')}</p>}</Stat>
         </StatStrip>
       }>
-      <DataSources keys={['esbSales', 'so', 'waste', 'prices', 'recipes']} />
+      <DataSources keys={['esbSales', 'esbIntegrity', 'so', 'waste', 'prices', 'recipes']} />
       <Tabs label={tr('Purchase Estimate')} value={tab} onChange={(k) => setTab(k as typeof tab)} className="mb-4"
         tabs={[{ key: 'buffer', label: tr('Buffer per outlet'), count: buffers?.data.length }, { key: 'plan', label: tr('Estimate') }, { key: 'accuracy', label: tr('Accuracy') }]} />
       {error ? <ErrorState message={error} onRetry={() => void load()} />

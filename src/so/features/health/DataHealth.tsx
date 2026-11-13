@@ -15,7 +15,9 @@ export type Status = 'ok' | 'warn' | 'high' | 'error';
 export type Card = {
   key: string; status: Status; value: string; detail: string; source: string; link: string | null;
   syncedAt?: string | null; dataTo?: string | null; hours?: number | null;
-  items?: { code?: string; id?: string; name: string; level?: string; qty?: number; module?: string; status?: Status; syncedAt?: string | null; hours?: number | null; lastDoc?: string | null; week?: number; drafts?: number }[];
+  items?: { code?: string; id?: string; name: string; level?: string; qty?: number; module?: string; status?: Status; syncedAt?: string | null; hours?: number | null; lastDoc?: string | null; week?: number; drafts?: number;
+    esb?: number; db?: number; diff?: number; failed?: number; waiting?: number; failedRun?: boolean }[];
+  diffs?: number; details?: number; failedRuns?: number;
   missing?: number; total?: number; waiting?: number; recount?: number; pending?: number; day?: string; new?: number; open?: number; unusual?: number;
   none?: number; esb?: number; menus?: number; share?: number; byStatus?: Record<string, number>;
 };
@@ -43,6 +45,10 @@ export function describe(c: Card): { title: string; source: string; value: strin
         text: late.length ? tr('Behind: {0}. Goods receipts, stock opname and invoices feed the COGS and the stock.', late.map((i) => i.name).join(', '))
           : tr('Every module of the ESB documents is synced.') };
     }
+    case 'esbIntegrity': return { title: tr('ESB data in the portal'), source: tr('ESB ↔ Portal'), value: num((c.diffs ?? 0) + (c.details ?? 0) + (c.failedRuns ?? 0)),
+      text: (c.diffs || c.details || c.failedRuns)
+        ? tr('{0} modules / periods whose count differs from ESB · {1} documents without their lines (out of the COGS and the stock) · {2} last syncs failed. The engine reads them again every 30 minutes and every night for 62 days.', num(c.diffs), num(c.details), num(c.failedRuns))
+        : tr('Every ESB document count matches the portal, every document has its lines and every sync succeeded.') };
     case 'so': return { title: tr('Portal stock opname'), source: tr('Portal SO'), value: `${num((c.total ?? 0) - (c.missing ?? 0))}/${num(c.total ?? 0)}`,
       text: (c.missing ? tr('{0} outlets with sales have no portal SO in 8 days: their actual usage and running stock cannot be counted.', num(c.missing))
         : tr('Every outlet with sales has a portal SO in 8 days.')) + ' ' + tr('{0} SO waiting for review, {1} asked to recount.', num(c.waiting), num(c.recount)) };

@@ -5,8 +5,12 @@
 // COGS & usage ratios with the stock opname of the day before and the last day. SO values and the MDR of a month can
 // be corrected here (with the reason), as the team does in the workbook. Two views of the same figures: every ratio on
 // gross sales (subtotal) or on net sales (Pendapatan = gross × (1 − MDR) when the MDR is filled in, else ESB nett).
+// Two bases of the purchases (2026-11-13): Invoice = the workbook (purchase invoices by supplier); GR = what came in (GRs
+// and outlet purchases by the cost group of their ESB category, set in Cost groups) with General Supplies apart and the
+// Transfer Stock between outlets in the usage. "Usage % of sales" is the workbook's usage ratio (not the usage ratio of
+// COGS & Usage, which is actual ÷ recipe).
 
-import { ArrowDown, ArrowUp, BarChart3, Info as InfoIcon, Pencil, Store } from "lucide-react";
+import { ArrowDown, ArrowUp, BarChart3, Info as InfoIcon, Layers, Pencil, Store } from "lucide-react";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, Field, Input, Page, Panel, SkeletonRows, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -21,6 +25,7 @@ type So = { value: number | null; esb: number | null; doc: string | null; docDat
 type Row = {
   branchCode: string; branchName: string; gross: number; nett: number; net: number; pendapatan: number | null; mdrPct: number | null; netBasis: string;
   bb: number; espresso: number; dimsum: number; otherPurchases: number; cogs: number; espressoShare: number | null; bbRatio: number | null;
+  gs: number; transfer: number; gsRatio: number | null; gsRatioGross: number | null; unpricedLines?: number;
   espressoRatio: number | null; bbRatioGross: number | null; espressoRatioGross: number | null; cogsRatioGross: number | null; cogsRatioNet: number | null; soStart: So; soEnd: So; usage: number | null;
   usageRatioGross: number | null; usageRatioNet: number | null; delta: number | null; deltaGross: number | null; nonSales: number; itemJournal: number;
 };
@@ -28,7 +33,8 @@ type Total = Omit<Row, "branchCode" | "branchName" | "soStart" | "soEnd" | "pend
   soStart: number; soEnd: number; outlets: number; outletsWithSo: number; nonSalesPct: number | null; itemJournalPct: number | null;
   nonSalesPctNet: number | null; itemJournalPctNet: number | null;
 };
-type Data = { period: { from: string; to: string; soStart: string; soEnd: string; month: string; mdrEditable: boolean }; outlets: Row[]; total: Total };
+type Data = { period: { from: string; to: string; soStart: string; soEnd: string; month: string; mdrEditable: boolean }; purchases?: Purchases; outlets: Row[]; total: Total };
+type Purchases = "invoice" | "gr";
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const rp = (v: number | null | undefined) => (v === null || v === undefined ? "-" : Math.round(v).toLocaleString("id-ID"));
@@ -83,35 +89,47 @@ const INFO: Record<string, Info> = {
     formula: () => tr("(COGS value + SO awal − SO akhir) ÷ sales") },
   delta: { source: () => tr("Positive: more was bought than used (stock grows); negative: stock was used up. Near 0: purchases follow the usage."),
     formula: () => tr("COGS ratio − Usage ratio") },
+  bbGr: { source: () => tr("ESB goods receipts and outlet purchases of the period whose category is in the BB cost group (Cost groups); a category not set follows its supplier (Calf Warehouse).") },
+  espGr: { source: () => tr("ESB goods receipts of the period whose category is in the Espresso cost group; a category not set follows its supplier (Calf Central Kitchen).") },
+  dimGr: { source: () => tr("ESB goods receipts of the period whose category is in the Dimsum cost group; a category not set follows its supplier (Calf Central Kitchen Food).") },
+  gs: { source: () => tr("ESB goods receipts and outlet purchases whose category is in the General Supplies cost group: apart from the COGS value.") },
+  gsRatio: { source: () => tr("General Supplies against the sales of the view."), formula: () => tr("General Supplies ÷ sales") },
+  transfer: { source: () => tr("Transfer Stock between outlets received in the period (portal): value in − value out. Counted in the usage, not in the COGS value.") },
+  usageGr: { source: () => tr("What was really used: purchases plus the transfers plus the stock at the start minus the stock at the end, against the sales of the view."),
+    formula: () => tr("(COGS value + Transfer + SO awal − SO akhir) ÷ sales") },
   nonSales: { source: () => tr("ESB POS: subtotal of the bills of type Other cost (non sales, e.g. compliments, staff meals) in the period.") },
   itemJournal: { source: () => tr("ESB item journal documents of the outlet in the period (waste, QC and other stock adjustments), valued at the line price."),
     formula: () => tr("Σ |qty × price| of the item journal lines") },
 };
 const BASIS_KEY = "portal.ratio.basis";
+const PURCHASES_KEY = "portal.ratio.purchases";
 // the columns of a view; the ratios divide by the sales of the view
 const SALES: Record<Basis, Col[]> = {
   gross: [{ key: "gross", label: "Gross sales", kind: "rp", info: INFO.gross }, { key: "mdrPct", label: "MDR", kind: "mdr", info: INFO.mdrPct }],
   net: [{ key: "net", label: "Net sales", kind: "rp", info: INFO.net }, { key: "mdrPct", label: "MDR", kind: "mdr", info: INFO.mdrPct }],
 };
-const RATIOS: Record<Basis, Record<"bb" | "esp" | "cogs" | "usage" | "delta", SortKey>> = {
-  gross: { bb: "bbRatioGross", esp: "espressoRatioGross", cogs: "cogsRatioGross", usage: "usageRatioGross", delta: "deltaGross" },
-  net: { bb: "bbRatio", esp: "espressoRatio", cogs: "cogsRatioNet", usage: "usageRatioNet", delta: "delta" },
+const RATIOS: Record<Basis, Record<"bb" | "esp" | "cogs" | "usage" | "delta" | "gs", SortKey>> = {
+  gross: { bb: "bbRatioGross", esp: "espressoRatioGross", cogs: "cogsRatioGross", usage: "usageRatioGross", delta: "deltaGross", gs: "gsRatioGross" },
+  net: { bb: "bbRatio", esp: "espressoRatio", cogs: "cogsRatioNet", usage: "usageRatioNet", delta: "delta", gs: "gsRatio" },
 };
-function columns(basis: Basis): Col[] {
+function columns(basis: Basis, purchases: Purchases): Col[] {
   const r = RATIOS[basis];
+  const gr = purchases === "gr";
   return [
     ...SALES[basis],
-    { key: "bb", label: "Pembelian BB", kind: "rp", info: INFO.bb },
-    { key: "espresso", label: "Espresso", kind: "rp", info: INFO.espresso },
-    { key: "dimsum", label: "Dimsum", kind: "rp", info: INFO.dimsum },
+    { key: "bb", label: "Pembelian BB", kind: "rp", info: gr ? INFO.bbGr : INFO.bb },
+    { key: "espresso", label: "Espresso", kind: "rp", info: gr ? INFO.espGr : INFO.espresso },
+    { key: "dimsum", label: "Dimsum", kind: "rp", info: gr ? INFO.dimGr : INFO.dimsum },
+    ...(gr ? [{ key: "gs", label: "General Supplies", kind: "rp", info: INFO.gs } as Col, { key: "transfer", label: "Transfer", kind: "rp", info: INFO.transfer } as Col] : []),
     { key: "cogs", label: "COGS value", kind: "rp", info: INFO.cogs },
     { key: "espressoShare", label: "% Esp", kind: "pct", info: INFO.espressoShare },
     { key: r.bb, label: "BB ratio", kind: "pct", info: INFO.bbRatio },
     { key: r.esp, label: "Esp ratio", kind: "pct", info: INFO.espRatio },
     { key: r.cogs, label: "COGS ratio", kind: "pct", info: INFO.cogsRatio },
+    ...(gr ? [{ key: r.gs, label: "GS ratio", kind: "pct", info: INFO.gsRatio } as Col] : []),
     { key: "soStart", label: "SO awal", kind: "so", info: INFO.soStart },
     { key: "soEnd", label: "SO akhir", kind: "so", info: INFO.soEnd },
-    { key: r.usage, label: "Usage ratio", kind: "pct", info: INFO.usage },
+    { key: r.usage, label: "Usage % sales", kind: "pct", info: gr ? INFO.usageGr : INFO.usage },
     { key: r.delta, label: "Δ COGS−usage", kind: "pct", info: INFO.delta },
     { key: "nonSales", label: "Non sales", kind: "rp", info: INFO.nonSales },
     { key: "itemJournal", label: "Item journal", kind: "rp", info: INFO.itemJournal },
@@ -142,14 +160,23 @@ export default function RatioPage() {
   useEffect(() => {
     try { if (localStorage.getItem(BASIS_KEY) === "net") setBasis("net"); } catch { /* default gross */ }
   }, [setBasis]);
-  const COLS = useMemo(() => columns(basis), [basis]);
+  const [purchases, setPurchasesState] = useState<Purchases>("invoice");
+  const [groups, setGroups] = useState(false);
+  const setPurchases = useCallback((v: Purchases) => {
+    setPurchasesState(v);
+    try { localStorage.setItem(PURCHASES_KEY, v); } catch { /* not remembered */ }
+  }, []);
+  useEffect(() => {
+    try { if (localStorage.getItem(PURCHASES_KEY) === "gr") setPurchasesState("gr"); } catch { /* default invoice */ }
+  }, []);
+  const COLS = useMemo(() => columns(basis, purchases), [basis, purchases]);
   const cogsKey = RATIOS[basis].cogs;
   const [sheet, setSheet] = useState(false);
   // outlets to look at: COGS ratio (of the view) above a threshold, outlets without both stock opname values
   const [watch, setWatch] = useState<{ cogs: string; so: string }>({ cogs: "", so: "" });
   const [editSo, setEditSo] = useState<{ row: Row; which: "soStart" | "soEnd" } | null>(null);
 
-  const query = `dateFrom=${range.from}&dateTo=${range.to}`;
+  const query = `dateFrom=${range.from}&dateTo=${range.to}&purchases=${purchases}`;
   const load = useCallback(async () => {
     setError(null);
     setData(null);
@@ -227,13 +254,15 @@ export default function RatioPage() {
           </Stat>
         </StatStrip>
       )}>
-      <DataSources keys={['esbSales', 'esbDocs', 'so']} />
+      <DataSources keys={['esbSales', 'esbDocs', 'esbIntegrity', 'so']} />
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <>
           <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)}
-            extra={<div className="flex flex-1 flex-wrap items-center justify-end gap-2"><BasisSwitch value={basis} onChange={setBasis} /><ExcelIconButton label={tr("Download Excel")} href={`/api/cost-control/ratio/export?${query}`} /></div>}
+            extra={<div className="flex flex-1 flex-wrap items-center justify-end gap-2"><PurchasesSwitch value={purchases} onChange={setPurchases} />
+              {purchases === "gr" && <Button size="sm" variant="secondary" onClick={() => setGroups(true)}><Layers size={14} /> {tr("Cost groups")}</Button>}
+              <BasisSwitch value={basis} onChange={setBasis} /><ExcelIconButton label={tr("Download Excel")} href={`/api/cost-control/ratio/export?${query}`} /></div>}
             onClear={() => { const d = new Date(new Date().getFullYear(), new Date().getMonth(), 1); setMonth(d); setRange(presets(d).at(-1)!); setWatch({ cogs: "", so: "" }); }} />}
-            footer={<><span>{data ? tr("SO awal {0}, SO akhir {1}", dmy(data.period.soStart), dmy(data.period.soEnd)) : ""}{" · "}{basis === "gross" ? tr("Ratios on gross sales (subtotal)") : tr("Ratios on net sales")}{" · "}{tr("Net = Pendapatan (gross × (1 − MDR)) when the MDR is filled in, otherwise ESB nett sales")}{data ? ` · ${tr("{0} of {1} shown", rows.length, data.outlets.length)}` : ""}</span><PageNav paged={paged} /></>}>
+            footer={<><span>{data ? tr("SO awal {0}, SO akhir {1}", dmy(data.period.soStart), dmy(data.period.soEnd)) : ""}{" · "}{basis === "gross" ? tr("Ratios on gross sales (subtotal)") : tr("Ratios on net sales")}{" · "}{tr("Net = Pendapatan (gross × (1 − MDR)) when the MDR is filled in, otherwise ESB nett sales")}{" · "}{purchases === "gr" ? tr("Purchases = GR + outlet purchases by cost group") : tr("Purchases = invoices by supplier (workbook)")}{purchases === "gr" && t?.unpricedLines ? ` · ${tr("{0} lines without a price", t.unpricedLines)}` : ""}{data ? ` · ${tr("{0} of {1} shown", rows.length, data.outlets.length)}` : ""}</span><PageNav paged={paged} /></>}>
             <div className="overflow-auto md:max-h-[70vh]">
               <table className="m-cards w-full min-w-[1600px] text-xs">
                 <thead className={cx(theadClass, "sticky top-0 z-10")}>
@@ -281,6 +310,7 @@ export default function RatioPage() {
       )}
       {sheet && <RatioFilters basis={basis} month={month} range={range} watch={watch} onClose={() => setSheet(false)}
         onApply={(m, r, w) => { setMonth(m); setRange(r); setWatch(w); setSheet(false); }} />}
+      {groups && <CostGroups onClose={() => setGroups(false)} onSaved={() => void load()} />}
       {editSo && data && <SoDialog row={editSo.row} which={editSo.which} onClose={() => setEditSo(null)} onSaved={() => { setEditSo(null); void load(); }} />}
     </Page>
   );
@@ -347,6 +377,68 @@ function BasisSwitch({ value, onChange }: { value: Basis; onChange: (b: Basis) =
         </button>
       ))}
     </div>
+  );
+}
+
+function PurchasesSwitch({ value, onChange }: { value: Purchases; onChange: (v: Purchases) => void }) {
+  return (
+    <div role="radiogroup" aria-label={tr("Purchases basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 rounded-lg bg-neutral-100 p-1">
+      {(["invoice", "gr"] as Purchases[]).map((b) => (
+        <button key={b} type="button" role="radio" aria-checked={value === b} onClick={() => onChange(b)} title={b === "invoice" ? tr("Purchase invoices by supplier, as the workbook") : tr("Goods received and outlet purchases by cost group")}
+          className={cx("h-8 rounded-md px-3 text-sm font-medium transition-colors", value === b ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800")}>
+          {b === "invoice" ? tr("Invoice") : tr("GR actual")}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+type CostGroup = "bb" | "espresso" | "dimsum" | "gs" | "other";
+type Category = { category: string; value: number; bySupplier: Record<string, number>; suggested: CostGroup; group: CostGroup | null };
+const GROUP_LABEL: Record<CostGroup, () => string> = { bb: () => "BB", espresso: () => "Espresso", dimsum: () => "Dimsum", gs: () => "General Supplies", other: () => tr("Other") };
+
+/** The cost group of every ESB category of the GRs and outlet purchases (basis GR, migration 102). */
+function CostGroups({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const toast = useToast();
+  const [data, setData] = useState<{ days: number; data: Category[] } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const [changed, setChanged] = useState(false);
+  useEffect(() => { call<{ days: number; data: Category[] }>("/api/cost-control/ratio/cost-groups").then(setData).catch((e) => setError((e as Error).message)); }, []);
+  const save = async (c: Category, group: CostGroup | null) => {
+    try {
+      await call("/api/cost-control/ratio/cost-groups", { method: "PUT", body: JSON.stringify({ category: c.category, group }) });
+      setData((d) => d && { ...d, data: d.data.map((x) => (x.category === c.category ? { ...x, group } : x)) });
+      setChanged(true);
+    } catch (e) { toast((e as Error).message, "error"); }
+  };
+  const rows = (data?.data ?? []).filter((c) => !q || c.category.toLowerCase().includes(q.toLowerCase()));
+  const close = () => { if (changed) onSaved(); onClose(); };
+  return (
+    <Dialog open size="lg" title={tr("Cost groups")} onClose={close}
+      description={tr("The cost group of every ESB category of the goods receipts and outlet purchases ({0} days). A category not set follows its supplier, as the workbook.", data?.days ?? 60)}
+      footer={<Button onClick={close}>{tr("Done")}</Button>}>
+      {error ? <ErrorState message={error} /> : !data ? <p className="py-6 text-center text-sm text-neutral-500">{tr("Loading…")}</p> : (
+        <div className="space-y-3">
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search category")} />
+          <ul className="max-h-[55vh] divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200">
+            {rows.map((c) => (
+              <li key={c.category} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-neutral-900">{c.category || tr("(no category)")}</p>
+                  <p className="truncate text-[11px] text-neutral-500">Rp {rp(c.value)} · {Object.entries(c.bySupplier).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([s]) => s).join(", ")}</p>
+                </div>
+                <select value={c.group ?? ""} onChange={(e) => void save(c, (e.target.value || null) as CostGroup | null)} aria-label={tr("Cost group of {0}", c.category)}
+                  className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm">
+                  <option value="">{tr("Follow supplier ({0})", GROUP_LABEL[c.suggested]())}</option>
+                  {(Object.keys(GROUP_LABEL) as CostGroup[]).map((g) => <option key={g} value={g}>{GROUP_LABEL[g]()}</option>)}
+                </select>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Dialog>
   );
 }
 

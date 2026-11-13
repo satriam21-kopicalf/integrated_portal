@@ -6,7 +6,7 @@
 // status filter and pages of 25 branches. Usage Management: the quantities the branches filled for the period.
 
 import { AlertTriangle, CheckCircle2, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Empty, ErrorState, PageNav, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import { SkeletonCards, SkeletonTable } from "@/components/kc/Skeleton";
 import { SortTh, useSort } from "@/so/ui/Sort";
@@ -213,6 +213,81 @@ export function UsageReport({ period, branch }: { period: Period; branch: string
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- portal vs ESB (2026-11-13) */
+
+type CompareRow = { branchCode: string; branchName: string; portalApproved: number; portalWaiting: number; portalEntries: number; portalUnpriced: number;
+  journalValue: number; journalLines: number; billPortions: number; bills: number; sameCount: number; same: { day: string; code: string; name: string }[] };
+type CompareData = { period: { from: string; to: string }; data: CompareRow[];
+  total: { portalApproved: number; portalWaiting: number; journalValue: number; billPortions: number; bills: number; sameCount: number } };
+type CKey = "name" | "portal" | "journal" | "bills" | "same";
+const cValue = (r: CompareRow, k: CKey) => ({ name: r.branchName, portal: r.portalApproved, journal: r.journalValue, bills: r.billPortions, same: r.sameCount }[k]);
+const rpx = (n: number) => `Rp ${Math.round(n).toLocaleString("id-ID")}`;
+
+/** The waste of the portal beside the ESB item journals and POS waste bills, per outlet; the same material on the same
+ *  day in the portal waste and an ESB item journal may be one loss recorded twice (integrated_portal_be app/waste_compare.py). */
+export function EsbCompare({ period, branch, onBranch }: { period: Period; branch: string; onBranch: (code: string) => void }) {
+  const { data, error, retry } = useLoad<CompareData>(`/api/waste/esb-compare?${query(period, branch)}`);
+  const [open, setOpen] = useState<string | null>(null);
+  const sorted = useSort<CompareRow, CKey>(data?.data ?? [], cValue, { key: "same", dir: "desc" });
+  const paged = usePaged(sorted.rows, JSON.stringify(sorted.sort) + (data?.data.length ?? 0), 10);
+  if (error) return <ErrorState message={error} onRetry={retry} />;
+  if (!data) return <div className="p-4"><SkeletonTable cols={6} /></div>;
+  if (!data.data.length) return <Empty title={tr("No waste in the portal or ESB for this period")} />;
+  const t = data.total;
+  const tiles: [string, string, string][] = [
+    [tr("Portal waste approved"), rpx(t.portalApproved), tr("{0} waiting", rpx(t.portalWaiting))],
+    [tr("ESB item journal"), rpx(t.journalValue), tr("waste, QC & adjustments")],
+    [tr("ESB POS waste bills"), fmtNumber(t.billPortions), tr("{0} bills · in the recipe usage", fmtNumber(t.bills))],
+    [tr("Same material, same day"), fmtNumber(t.sameCount), tr("in the portal and an ESB journal")],
+  ];
+  return (
+    <div>
+      <div className="grid gap-3 p-4 sm:grid-cols-4">
+        {tiles.map(([l, v, h], i) => (
+          <div key={l} className={cx("rounded-xl border bg-white px-4 py-3", i === 3 && t.sameCount ? "border-amber-300" : "border-neutral-200")}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{l}</p>
+            <p className={cx("mt-1 text-lg font-semibold tabular-nums", i === 3 && t.sameCount ? "text-amber-700" : "text-neutral-900")}>{v}</p>
+            <p className="text-xs text-neutral-500">{h}</p>
+          </div>))}
+      </div>
+      <div className="overflow-x-auto"><table className="w-full min-w-[820px] text-sm">
+        <thead className={theadClass}><tr>
+          <SortTh k="name" sort={sorted.sort} onSort={sorted.toggle} className="pl-5">{tr("Outlet")}</SortTh>
+          <SortTh k="portal" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Portal waste")}</SortTh>
+          <SortTh k="journal" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("ESB item journal")}</SortTh>
+          <SortTh k="bills" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("ESB POS waste bills")}</SortTh>
+          <SortTh k="same" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Same material, same day")}</SortTh>
+        </tr></thead>
+        <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => (
+          <Fragment key={r.branchCode}>
+            <tr className="align-top hover:bg-neutral-50/70">
+              <td className="max-w-[16rem] py-2.5 pl-5 pr-3"><button type="button" onClick={() => onBranch(r.branchCode)} className="block max-w-full truncate text-left font-medium text-neutral-900 hover:text-brand-700">{r.branchName}</button>
+                <span className="text-[11px] text-neutral-400">{r.branchCode}</span></td>
+              <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{rpx(r.portalApproved)}
+                <span className="block text-[11px] text-neutral-400">{tr("{0} entries", r.portalEntries)}{r.portalWaiting ? ` · ${tr("{0} waiting", rpx(r.portalWaiting))}` : ""}{r.portalUnpriced ? ` · ${tr("{0} no price", r.portalUnpriced)}` : ""}</span></td>
+              <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{rpx(r.journalValue)}<span className="block text-[11px] text-neutral-400">{tr("{0} lines", r.journalLines)}</span></td>
+              <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{fmtNumber(r.billPortions)}<span className="block text-[11px] text-neutral-400">{tr("{0} bills", r.bills)}</span></td>
+              <td className="whitespace-nowrap px-4 py-2.5 text-right">
+                {r.sameCount ? <button type="button" onClick={() => setOpen(open === r.branchCode ? null : r.branchCode)} aria-expanded={open === r.branchCode}
+                  className="inline-flex items-center gap-1 font-semibold text-amber-700 hover:underline"><AlertTriangle size={13} aria-hidden /> {fmtNumber(r.sameCount)}</button>
+                  : <span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 size={13} aria-hidden /> 0</span>}</td>
+            </tr>
+            {open === r.branchCode && (
+              <tr><td colSpan={5} className="bg-amber-50/50 px-5 py-2 text-xs text-neutral-700">
+                {r.same.map((x) => <span key={`${x.day}${x.code}`} className="mr-3 inline-block">{dmy(x.day)} · {x.name}</span>)}
+              </td></tr>
+            )}
+          </Fragment>
+        ))}</tbody>
+      </table></div>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 px-5 py-2 text-[11px] text-neutral-500">
+        <span className="max-w-3xl">{tr("The Purchase Estimate and COGS & Usage take the approved portal waste. The ESB POS waste bills are already in the usage of the recipe cards. Check a material on the same day in both before counting the ESB journal too.")}</span>
+        <PageNav paged={paged} />
+      </div>
     </div>
   );
 }

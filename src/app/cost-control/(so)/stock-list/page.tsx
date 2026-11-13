@@ -89,7 +89,7 @@ export default function StockListPage() {
           <Stat label={tr("Oldest SO")} icon={<CalendarDays size={13} />} value={data ? (oldest ? dmy(oldest) : "—") : <StatSkeleton />} />
         </StatStrip>
       }>
-      <DataSources keys={['so', 'gr', 'transfers', 'waste']} />
+      <DataSources keys={['esbIntegrity', 'so', 'gr', 'transfers', 'waste']} />
       <Panel toolbar={<div className="space-y-3">
         <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search material or branch")} filters={chips} onOpen={() => setSheet(true)} onClear={() => { setBranch(""); setCategory(""); }}
           extra={<ExcelIconButton boxed className="ml-auto" label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))} />} />

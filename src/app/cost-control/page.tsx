@@ -87,7 +87,7 @@ function Cogs() {
             {res && t && <p>{tr('{0} of impact: correct them first', rp(t.anomalyValue))}</p>}</Stat>
         </StatStrip>
       }>
-      <DataSources keys={['esbSales', 'so', 'gr', 'prices', 'recipes']} />
+      <DataSources keys={['esbSales', 'esbIntegrity', 'so', 'gr', 'prices', 'recipes']} />
       {res && !t && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {tr('No outlet has an SO awal on {0} and an SO akhir the day after {1}: choose a period that starts on a stock opname day and ends the day before the next one.', dmy(period.from), dmy(period.to))}

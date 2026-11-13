@@ -10,7 +10,7 @@
 
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
-import { BarChart3, CalendarCheck, CalendarDays, Check, CheckCircle2, ClipboardList, FileSearch, PencilLine, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
+import { BarChart3, Scale, CalendarCheck, CalendarDays, Check, CheckCircle2, ClipboardList, FileSearch, PencilLine, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { downloadXlsx } from "@/lib/xlsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -25,7 +25,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
-import { DailyReport, UsageReport } from "./WasteDaily";
+import { DailyReport, EsbCompare, UsageReport } from "./WasteDaily";
 import WasteAnalysis from "./WasteAnalysis";
 import WasteCorrect, { CorrectionHistory } from "./WasteCorrect";
 import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
@@ -36,7 +36,7 @@ import { DataSources } from '@/so/features/health/DataHealth';
 
 const DEFAULT_PERIOD = (): Period => ({ from: wibDay(-6), to: wibDay(0) });
 type Filters = { period: Period; branch: string; scope: Scope | ""; category: string; status: Status | "" };
-type View = "analysis" | "entries" | "items" | "branches" | "categories" | "daily" | "usage" | "investigations";
+type View = "analysis" | "entries" | "items" | "branches" | "categories" | "daily" | "usage" | "investigations" | "esb";
 type BranchOpt = { branch_code: string; branch_name: string };
 // the Monitor opens on its Analysis (2026-11-10); the Review on the entries to decide
 const VIEWS: { value: View; label: () => string; icon: typeof Trash2; monitor?: true }[] = [
@@ -45,6 +45,7 @@ const VIEWS: { value: View; label: () => string; icon: typeof Trash2; monitor?: 
   { value: "branches", label: () => tr("Per Branch"), icon: Store }, { value: "categories", label: () => tr("Per Category"), icon: Layers },
   { value: "daily", label: () => tr("Daily Report"), icon: CalendarCheck }, { value: "usage", label: () => tr("Usage Management"), icon: ClipboardList },
   { value: "investigations", label: () => tr("Investigations"), icon: FileSearch },
+  { value: "esb", label: () => tr("Portal vs ESB"), icon: Scale, monitor: true },
 ];
 
 export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
@@ -234,6 +235,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         {view === "investigations" ? <InvestigationList key={String(investigation)} onOpen={setInvestigation} />
           : view === "daily" ? <DailyReport period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
           : view === "usage" ? <UsageReport period={period} branch={branch} />
+          : view === "esb" ? <EsbCompare period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
           : error ? <ErrorState message={error} onRetry={() => void load()} />
           : view === "analysis" ? <WasteAnalysis res={res} onBranch={(c) => { setBranch(c); setView("entries"); }} onItem={(n) => { setSearch(n); setView("entries"); }} />
           : !res ? (view === "categories" ? <SkeletonList rows={6} /> : <SkeletonTable cols={view === "entries" ? (review ? 9 : 8) : 7} />) : view === "entries" ? (

@@ -438,6 +438,7 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
           [tr('Correct'), S('Satu entri: jumlah / satuan, item, kategori, tanggal, production / expired date, catatan — alasan wajib, riwayat tampil', 'One entry: quantity / unit, item, category, date, production / expired date, note — reason required, history shown')],
           [tr('Investigations'), S('Form FM-QAQC-03 "Investigasi Komplain & Waste" yang bisa dicetak / PDF', 'Form FM-QAQC-03 "Investigasi Komplain & Waste", printable / PDF')],
           [`${tr('Daily Report')} · ${tr('Usage Management')}`, S('Cabang yang melapor waste setiap hari; daftar pemakaian harian', 'Branches that reported each day; the daily usage lists')],
+          [tr('Portal vs ESB'), S('Per outlet: waste portal (disetujui / menunggu), item journal ESB, bill waste POS ESB, dan bahan yang sama di hari yang sama di portal & jurnal ESB (mungkin tercatat dua kali)', 'Per outlet: portal waste (approved / waiting), ESB item journals, ESB POS waste bills, and the same material on the same day in the portal & an ESB journal (maybe recorded twice)')],
           [S('Export', 'Export'), S('Excel: entri, per item, laporan harian, Usage Management', 'Excel: entries, per item, daily report, Usage Management')],
         ]} />,
       },
@@ -468,6 +469,10 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
           <Steps items={[
             L(<>Klik nilai SO → isi {tr('Value Used (Rp)')} & {tr('Reason')} → <B t="Save correction" />; <B t="Use the ESB value" /> mengembalikan.</>, <>Click an SO value → {tr('Value Used (Rp)')} & {tr('Reason')} → <B t="Save correction" />; <B t="Use the ESB value" /> restores it.</>),
             L(<>Isi MDR % per outlet (periode dalam satu bulan). Filter cepat: outlet dengan COGS ratio di atas ambang.</>, <>Enter the MDR % per outlet (a period within one month). Quick filter: outlets with a COGS ratio above a threshold.</>),
+            L(<><b>{tr('Invoice')}</b> / <b>{tr('GR actual')}</b>: dasar pembelian. {tr('Invoice')} = workbook (faktur per supplier). {tr('GR actual')} = GR + pembelian outlet per kelompok biaya kategori ESB, dengan kolom General Supplies (di luar COGS) dan Transfer (masuk − keluar, dihitung di usage). <B t="Cost groups" />: atur kelompok setiap kategori ESB; yang belum diatur ikut suppliernya.</>,
+              <><b>{tr('Invoice')}</b> / <b>{tr('GR actual')}</b>: the purchases basis. {tr('Invoice')} = the workbook (invoices by supplier). {tr('GR actual')} = GRs + outlet purchases by the cost group of their ESB category, with a General Supplies column (outside the COGS) and Transfer (in − out, counted in the usage). <B t="Cost groups" />: set the group of every ESB category; one not set follows its supplier.</>),
+            L(<><b>Usage % sales</b> di halaman ini = (pembelian + SO awal − SO akhir) ÷ penjualan, seperti workbook. Berbeda dengan Usage Ratio di COGS & Usage (aktual ÷ resep).</>,
+              <><b>Usage % sales</b> here = (purchases + SO start − SO end) ÷ sales, as the workbook. Not the Usage Ratio of COGS & Usage (actual ÷ recipe).</>),
           ]} />
           <Note>{L(<>Faktur tertinggal dari GR: untuk periode berjalan pembelian bisa terlihat lebih kecil. COGS & Usage memakai GR.</>, <>Invoices lag the goods receipts: in a running period purchases may look low. COGS & Usage uses the GRs.</>)}</Note>
         </>,
@@ -503,8 +508,8 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
         id: 'cc-info', title: tr('Information Center'),
         body: <>
           <Steps items={[
-            L(<>Satu kartu per sumber data: penjualan ESB, dokumen ESB, SO Portal, waste Portal, GR, harga bahan, kartu resep, Transfer Stock. Setiap kartu menyebut sumbernya (ESB / Portal), statusnya dan halaman untuk memperbaikinya (<B t="Open" />).</>,
-              <>One card per data source: ESB sales, ESB documents, Portal SO, Portal waste, GRs, material prices, recipe cards, Transfer Stock. Every card names its source (ESB / Portal), its status and the page that fixes it (<B t="Open" />).</>),
+            L(<>Satu kartu per sumber data: penjualan ESB, dokumen ESB, kelengkapan data ESB di portal (jumlah dokumen ESB vs portal, dokumen tanpa baris detail, sinkron gagal), SO Portal, waste Portal, GR, harga bahan, kartu resep, Transfer Stock. Setiap kartu menyebut sumbernya (ESB / Portal), statusnya dan halaman untuk memperbaikinya (<B t="Open" />).</>,
+              <>One card per data source: ESB sales, ESB documents, how complete the ESB data in the portal is (ESB vs portal document counts, documents without lines, failed syncs), Portal SO, Portal waste, GRs, material prices, recipe cards, Transfer Stock. Every card names its source (ESB / Portal), its status and the page that fixes it (<B t="Open" />).</>),
             L(<><b>{tr('Figures affected')}</b>: COGS, Usage Ratio atau Estimasi Belanja outlet terkait salah sampai diperbaiki. <b>{tr('Check')}</b>: angka masih benar, ada yang menunggu tim. Diperiksa ulang setiap 5 menit.</>,
               <><b>{tr('Figures affected')}</b>: the COGS, Usage Ratio or Purchase Estimate of the outlets concerned are wrong until fixed. <b>{tr('Check')}</b>: the figures hold, something waits for the team. Checked again every 5 minutes.</>),
             L(<>Baris <b>{tr('Data sources')}</b> di bawah judul Outlet Ratio, COGS & Usage, Sales Calculator, Stock List, Good Receipt, Waste, SO dan Estimasi Belanja menunjukkan kartu yang dipakai halaman itu; ketuk untuk membuka Pusat Informasi. Lonceng notifikasi mengirim yang belum baik sekali sehari mulai 09.00.</>,

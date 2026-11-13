@@ -131,7 +131,7 @@ export default function GoodsReceiptPage() {
             {res && <p>{tr("{0} date · {1} qty lines", fmtNumber(all.filter((d) => d.dateCorrected).length), fmtNumber(all.reduce((a, d) => a + d.qtyCorrected, 0)))}</p>}</Stat>
         </StatStrip>
       }>
-      <DataSources keys={['esbDocs', 'gr']} />
+      <DataSources keys={['esbDocs', 'esbIntegrity', 'gr']} />
       <Panel toolbar={
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search GR, PO, branch or supplier")} filters={chips}
           onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
