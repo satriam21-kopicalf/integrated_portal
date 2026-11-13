@@ -4,7 +4,8 @@
 // the check-in deadline and time zone of every outlet, the Product / Outlet items each group is asked, and the net sales
 // of every outlet against its own month before (no target set by hand). Read by Monitoring → Overview (the PIC score) and the forms.
 
-import { Save, Store } from "lucide-react";
+import { Pencil, Save, Store } from "lucide-react";
+import { AddIcon, type Editor, type EditorItem, type EditorSection, ItemDialog, WeightIcon, WeightsDialog, categoryLabel, categoryTone } from "./itemEditor";
 import Drawer from "@/so/ui/Drawer";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, ErrorState, Input, PageNav, Select, cx, fmtNumber, usePaged, useToast } from "@/so/ui";
@@ -192,9 +193,18 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
   const [changes, setChanges] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
   const [outletsOf, setOutletsOf] = useState<MatrixItem | null>(null);
+  // the Form Items editor (2026-11-13): change / add items, category weights
+  const [ed, setEd] = useState<Editor | null>(null);
+  const [editing, setEditing] = useState<{ item: EditorItem | null; section: EditorSection | null } | null>(null);
+  const [weightsOpen, setWeightsOpen] = useState(false);
   const load = useCallback(async () => {
-    try { setRes(await call<Matrix>("/api/monitoring/form-items")); setError(null); } catch (e) { setError((e as Error).message); }
+    try {
+      const [m, e] = await Promise.all([call<Matrix>("/api/monitoring/form-items"), call<Editor>("/api/monitoring/form-items/editor").catch(() => null)]);
+      setRes(m); setEd(e); setError(null);
+    } catch (e) { setError((e as Error).message); }
   }, []);
+  const edSections = ed?.forms.find((f) => f.form === form)?.sections ?? [];
+  const edItem = (key: string) => edSections.flatMap((x) => x.items).find((x) => x.key === key);
   useEffect(() => { void load(); }, [load]);
   const sections = res?.forms.find((f) => f.form === form)?.sections ?? [];
   const k = (item: string, g: string) => `${form}|${item}|${g}`;
@@ -226,6 +236,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
             ))}
           </div>
           <SearchInput value={q} onChange={setQ} placeholder={tr("Search item")} />
+          {canEdit && ed && <Button size="sm" variant="secondary" onClick={() => setWeightsOpen(true)}><WeightIcon size={14} /> {tr("Category weights")}</Button>}
         </div>
       }>
       {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={4} /></tbody></table> : (
@@ -241,10 +252,33 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
               if (!items.length) return null;
               return (
                 <tbody key={sec.key} className={kcTable.tbody}>
-                  <tr><td colSpan={res.groups.length + 2} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{en ? `${sec.group} · ${sec.titleEn}` : `${sec.groupTitle ?? sec.group} · ${sec.title}`}</td></tr>
+                  <tr><td colSpan={res.groups.length + 2} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                    <span className="flex items-center justify-between gap-2">{en ? `${sec.group} · ${sec.titleEn}` : `${sec.groupTitle ?? sec.group} · ${sec.title}`}
+                      {canEdit && ed && <button type="button" onClick={() => setEditing({ item: null, section: edSections.find((x) => x.key === sec.key) ?? null })}
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold normal-case tracking-normal text-brand-700 hover:bg-brand-50"><AddIcon size={12} /> {tr("Add item")}</button>}</span>
+                  </td></tr>
                   {items.map((it) => (
                     <tr key={it.key} className="hover:bg-neutral-50">
-                      <td className="px-4 py-2"><span className="text-neutral-900">{it.no}. {en ? it.labelEn : it.label}</span>{!it.required && <span className="ml-1.5 text-[11px] text-neutral-400">({tr("optional")})</span>}</td>
+                      <td className="px-4 py-2">{(() => {
+                        const e = edItem(it.key);
+                        return (
+                          <div className="flex items-start gap-2">
+                            <div className={cx("min-w-0 flex-1", e && !e.active && "opacity-50")}>
+                              <span className="text-neutral-900">{it.no}. {en ? it.labelEn : it.label}</span>{!it.required && <span className="ml-1.5 text-[11px] text-neutral-400">({tr("optional")})</span>}
+                              <span className="mt-0.5 flex flex-wrap gap-1">
+                                {e?.category && <span className={cx("rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", categoryTone(e.category))}>{categoryLabel(e.category)}</span>}
+                                {e && !e.active && <span className="rounded bg-neutral-200 px-1.5 py-px text-[10px] font-semibold text-neutral-600">{tr("Inactive")}</span>}
+                                {e?.custom && <span className="rounded bg-brand-50 px-1.5 py-px text-[10px] font-semibold text-brand-700">{tr("Added")}</span>}
+                                {e?.changed && <span className="rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold text-amber-700">{tr("Changed")}</span>}
+                                {e && e.photo !== "required" && <span className="text-[10px] text-neutral-400">{tr("photo {0}", e.photo === "none" ? tr("not asked") : tr("optional"))}</span>}
+                                {e && e.note !== "required" && <span className="text-[10px] text-neutral-400">{tr("note {0}", e.note === "none" ? tr("not asked") : tr("optional"))}</span>}
+                              </span>
+                            </div>
+                            {canEdit && e && <button type="button" onClick={() => setEditing({ item: e, section: null })} title={tr("Edit item")} aria-label={`${tr("Edit item")} ${it.no}`}
+                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-brand-700"><Pencil size={14} /></button>}
+                          </div>
+                        );
+                      })()}</td>
                       {res.groups.map((g) => {
                         const c = it.groups[g];
                         const v = shown(it.key, g, c);
@@ -281,6 +315,8 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
           </table>
         </div>
       )}
+      {editing && <ItemDialog form={form} item={editing.item} section={editing.section} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); void load(); }} />}
+      {weightsOpen && ed && <WeightsDialog weights={ed.weights} onClose={() => setWeightsOpen(false)} onSaved={() => { setWeightsOpen(false); void load(); }} />}
       {outletsOf && <ItemOutlets form={form} item={outletsOf} canEdit={canEdit} onClose={() => setOutletsOf(null)}
         onSaved={() => { setOutletsOf(null); void load(); }} />}
     </Card>
