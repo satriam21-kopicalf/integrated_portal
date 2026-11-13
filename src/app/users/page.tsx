@@ -126,7 +126,7 @@ export default function UsersPage() {
 
   // a COTR admin (2026-11-13) manages the accounts of the COTR line only: that tab, no role / platform / master settings
   const cotrAdmin = me?.role === 'cotr_admin';
-  const allowed = me?.role === 'superadmin' || cotrAdmin;
+  const allowed = me?.role === 'superadmin' || me?.role === 'admin' || cotrAdmin;
   useEffect(() => { if (cotrAdmin) setLine('cotr'); }, [cotrAdmin]);
   useEffect(() => {
     if (!allowed) return;
@@ -396,7 +396,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
       }>
       <div className="space-y-6">
         <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: tr('All Roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User') }, { value: 'outlet', label: tr('Outlet / Hub') }, { value: 'driver', label: tr('Driver (COTR)') },
+          { value: '', label: tr('All Roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'admin', label: tr('Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User') }, { value: 'outlet', label: tr('Outlet / Hub') }, { value: 'driver', label: tr('Driver (COTR)') },
         ]} />
         <ChoiceGroup label={tr('Status')} value={draft.status} onChange={set('status')} choices={[
           { value: '', label: tr('All') }, { value: 'active', label: tr('Active') }, { value: 'inactive', label: tr('Inactive') },
@@ -416,7 +416,7 @@ function Avatar({ user }: { user: AuthUser }) {
   return <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" />;
 }
 
-const ROLE_TONE: Record<Role, PillTone> = { superadmin: 'red', cost_control: 'amber', outlet: 'teal', driver: 'violet', user: 'brand', cotr_admin: 'red' };
+const ROLE_TONE: Record<Role, PillTone> = { superadmin: 'red', admin: 'red', cost_control: 'amber', outlet: 'teal', driver: 'violet', user: 'brand', cotr_admin: 'red' };
 
 function RoleBadge({ role }: { role: Role }) {
   return <Pill tone={ROLE_TONE[role] ?? 'brand'} icon={role === 'superadmin' ? <ShieldCheck size={12} /> : undefined}>{ROLE_LABELS[role] ?? role}</Pill>;
@@ -693,9 +693,10 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 {LINES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
               </select>
             </Field>
-            {!cotrMode && <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : tr('Area Supervisor / PIC: Dashboard, Sales, Stock Opname, Waste and every form of the assigned branches')}>
-              <select id="f-role" className={inputClass} value={form.role} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
+            {!cotrMode && <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : form.role === 'admin' ? tr('Admin: the pages the super admin gives it; manages the accounts of role User with the pages it has') : tr('Area Supervisor / PIC: the forms (but Cost Control Clock In), Dashboard, Sales and the Aggregator of the assigned branches')}>
+              <select id="f-role" className={inputClass} value={form.role} disabled={me?.role === 'admin'} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
                 <option value="user">{tr('User')}</option>
+                {me?.role === 'superadmin' && <option value="admin">{tr('Admin')}</option>}
                 <option value="outlet">{tr('Outlet / Hub')}</option>
                 <option value="driver">{tr('Driver (COTR)')}</option>
                 <option value="cost_control">{tr('Cost Control')}</option>
@@ -713,7 +714,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
 
         {form.role !== 'driver' && (!cotrMode || cotrKind === 'custom') && (
           <DrawerSection title={tr('Page Access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
-            <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} hidden={hiddenPages} onHiddenChange={setHiddenPages} />
+            <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} hidden={hiddenPages} onHiddenChange={setHiddenPages}
+              limit={me?.role === 'admin' ? me.pages ?? [] : undefined} />
             {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
           </DrawerSection>
         )}

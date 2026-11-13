@@ -358,7 +358,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
                     {c.clockOut.outsideRadius && <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>}
                     {c.clockOut.lowAccuracy && <Badge tone="slate" icon={<SignalLow size={11} />}>{tr("Low GPS accuracy")}</Badge>}
                     {(c.clockOut.riskLevel === "high" || c.clockOut.riskLevel === "medium") && <Badge tone={c.clockOut.riskLevel === "high" ? "red" : "amber"} icon={<ShieldAlert size={11} />}
-                      title={(c.clockOut.riskSignals ?? []).map((x) => x.text).join("\n")}>{tr("Suspicious Location")}</Badge>}
+                      title={(c.clockOut.riskSignals ?? []).map((x) => x.text).join("\n")}>{c.clockOut.riskLevel === "high" ? tr("Suspicious: high") : tr("Suspicious: medium")}</Badge>}
                   </div>
                   {c.clockOut.latitude !== null && c.clockOut.longitude !== null && (
                     <MapLink href={mapsUrl(c.clockOut.latitude, c.clockOut.longitude)} label={tr("Position at Clock Out")} value={`${c.clockOut.latitude.toFixed(5)}, ${c.clockOut.longitude.toFixed(5)}`} />
@@ -379,14 +379,15 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
             <Check ok={c.accuracyM == null ? null : !c.lowAccuracy} title={tr("GPS accuracy")}
               text={c.accuracyM == null ? tr("The phone gave no accuracy") : tr("The phone reported its position within ±{0} m (precise up to {1} m)", Math.round(c.accuracyM), LOW_ACCURACY_M)}
               verdict={c.accuracyM == null ? tr("Unknown") : c.lowAccuracy ? tr("Not precise") : tr("Precise")} warn />
-            <Check ok={!risky} title={tr("Signs of a faked location")}
+            <Check ok={!risky} warn={c.riskLevel !== "high"} title={tr("Signs of a faked location")}
               text={risky ? tr("{0} signs found, see below", (c.riskSignals ?? []).filter((x) => x.level !== "low").length) : tr("No fake GPS, jump or mocked position found")}
               verdict={RISK_LABEL[c.riskLevel ?? "none"]()} />
           </ul>
         </DrawerBlock>
         {(c.riskSignals ?? []).length > 0 && (
           <DrawerBlock title={`${tr("Signs found")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
-            <ul className={cx("space-y-1.5 rounded-xl border p-3 text-xs", risky ? "border-red-200 bg-red-50" : "border-neutral-200 bg-neutral-50")}>
+            <ul className={cx("space-y-1.5 rounded-xl border p-3 text-xs", c.riskLevel === "high" ? "border-red-200 bg-red-50"
+              : c.riskLevel === "medium" ? "border-amber-200 bg-amber-50" : "border-neutral-200 bg-neutral-50")}>
               {(c.riskSignals ?? []).map((x) => (
                 <li key={x.code} className="flex gap-2">
                   <span className={cx("mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full", x.level === "high" ? "bg-red-500" : x.level === "medium" ? "bg-amber-500" : "bg-neutral-400")} />

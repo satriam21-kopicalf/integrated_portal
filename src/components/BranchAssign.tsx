@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Check, Search, Store, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Check, Search, Store, Warehouse, X } from 'lucide-react';
 import type { Branch } from '@/components/BranchFilter';
 import { inputClass } from '@/components/ui/Dialog';
 import { tr } from '@/lib/i18n';
@@ -13,21 +13,42 @@ interface BranchAssignProps {
   value: string[];
   onChange: (codes: string[]) => void;
   invalid?: boolean;
+  /** {code: outlet | hub | other} (GET /api/branch-kinds, 2026-11-13): the categories of the list */
+  kinds?: Record<string, string>;
 }
+
+type Kind = 'all' | 'outlet' | 'hub' | 'other';
+const KINDS: { key: Kind; label: () => string }[] = [
+  { key: 'all', label: () => tr('All') }, { key: 'outlet', label: () => tr('Outlet') }, { key: 'hub', label: () => tr('Hub') }, { key: 'other', label: () => tr('Others') },
+];
 
 /**
  * Branches a "user" may see (User Accounts drawer): a searchable checklist with the
  * selection as removable chips. Branches that sold recently come first; branches
  * without recent sales (closed or new) are marked.
  */
-export default function BranchAssign({ branches, loading, value, onChange, invalid }: BranchAssignProps) {
+let kindsOnce: Promise<Record<string, string>> | null = null;
+/** {code: outlet | hub | other}, read once per page load (account managers only; others get {}). */
+function loadKinds(): Promise<Record<string, string>> {
+  kindsOnce ??= fetch('/api/branch-kinds').then(r => (r.ok ? r.json() : { kinds: {} })).then((d: { kinds?: Record<string, string> }) => d.kinds ?? {}).catch(() => ({}));
+  return kindsOnce;
+}
+
+export default function BranchAssign({ branches, loading, value, onChange, invalid, kinds: given }: BranchAssignProps) {
+  const [loaded, setLoaded] = useState<Record<string, string> | undefined>(undefined);
+  useEffect(() => { if (!given) void loadKinds().then(setLoaded); }, [given]);
+  const kinds = given ?? loaded;
   const [query, setQuery] = useState('');
+  const [kind, setKind] = useState<Kind>('all');
   const selected = useMemo(() => new Set(value), [value]);
   const names = useMemo(() => new Map(branches.map(b => [b.branch_code, b.branch_name])), [branches]);
-  const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q ? branches.filter(b => b.branch_name.toLowerCase().includes(q) || b.branch_code.toLowerCase().includes(q)) : branches;
-  }, [branches, query]);
+  // a branch without a kopicalf facility: a hub when its name says so, else an outlet
+  const kindOf = (code: string) => (kinds?.[code] ?? (/hub/i.test(names.get(code) ?? '') ? 'hub' : 'outlet')) as Kind;
+  const counts: Record<Kind, number> = { all: branches.length, outlet: 0, hub: 0, other: 0 };
+  for (const b of branches) counts[kindOf(b.branch_code)] += 1;
+  const q = query.trim().toLowerCase();
+  const inKind = kind === 'all' ? branches : branches.filter(b => kindOf(b.branch_code) === kind);
+  const shown = q ? inKind.filter(b => b.branch_name.toLowerCase().includes(q) || b.branch_code.toLowerCase().includes(q)) : inKind;
 
   const toggle = (code: string) =>
     onChange(selected.has(code) ? value.filter(c => c !== code) : [...value, code].sort());
@@ -50,6 +71,14 @@ export default function BranchAssign({ branches, loading, value, onChange, inval
         ))}
       </div>
 
+      <div role="tablist" aria-label={tr('Branch category')} className="flex gap-1 overflow-x-auto px-2 pt-2">
+        {KINDS.filter(k => k.key === 'all' || counts[k.key] > 0).map(k => (
+          <button key={k.key} type="button" role="tab" aria-selected={kind === k.key} onClick={() => setKind(k.key)}
+            className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${kind === k.key ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'}`}>
+            {k.label()} <span className="tabular-nums opacity-80">{counts[k.key]}</span>
+          </button>
+        ))}
+      </div>
       <div className="flex items-center gap-2 p-2">
         <div className="relative flex-1">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -57,7 +86,7 @@ export default function BranchAssign({ branches, loading, value, onChange, inval
             className={`${inputClass} h-9 pl-8 text-sm`} aria-label={tr('Search Branches')} />
         </div>
         <button type="button" onClick={selectShown} disabled={!shown.length} className="rounded-md px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-40">
-          {query ? tr('Select shown') : tr('Select all')}
+          {query || kind !== 'all' ? tr('Select shown') : tr('Select all')}
         </button>
         <button type="button" onClick={clear} disabled={!value.length} className="rounded-md px-2 py-1.5 text-xs font-medium text-neutral-500 hover:bg-neutral-100 disabled:opacity-40">
           {tr('Clear')}
@@ -78,7 +107,7 @@ export default function BranchAssign({ branches, loading, value, onChange, inval
                 <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${on ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-300 bg-white'}`}>
                   {on && <Check size={12} strokeWidth={3} />}
                 </span>
-                <Store size={14} className="flex-shrink-0 text-neutral-400" />
+                {kindOf(b.branch_code) === 'hub' ? <Warehouse size={14} className="flex-shrink-0 text-neutral-400" /> : <Store size={14} className="flex-shrink-0 text-neutral-400" />}
                 <span className="min-w-0 flex-1 truncate text-neutral-800">{b.branch_name}</span>
                 {!b.count && <span className="rounded bg-neutral-100 px-1.5 text-[10px] font-medium text-neutral-500">{tr('no recent sales')}</span>}
                 <span className="font-mono text-[11px] text-neutral-400">{b.branch_code}</span>

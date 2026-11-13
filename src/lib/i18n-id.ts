@@ -6708,4 +6708,11 @@ export const ID: Record<string, string> = {
   "{0} from {1}": "{0} mulai {1}",
   "Reason (agreed with management)": "Alasan (disepakati dengan manajemen)",
   "Valid from {0} at the earliest: a closed month keeps its figures.": "Berlaku paling awal {0}: bulan yang sudah ditutup tetap memakai angkanya.",
+  "Hub": "Hub",
+  "Others": "Lainnya",
+  "Branch category": "Kategori cabang",
+  "Admin": "Admin",
+  "Only pages you open yourself can be given": "Hanya halaman yang Anda buka sendiri yang bisa diberikan",
+  "Admin: the pages the super admin gives it; manages the accounts of role User with the pages it has": "Admin: halaman yang diberikan super admin; mengelola akun role User dengan halaman yang dimilikinya",
+  "Area Supervisor / PIC: the forms (but Cost Control Clock In), Dashboard, Sales and the Aggregator of the assigned branches": "Area Supervisor / PIC: form (kecuali Cost Control Clock In), Dashboard, Sales dan Aggregator untuk cabang yang ditetapkan",
 };

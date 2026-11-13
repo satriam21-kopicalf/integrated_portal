@@ -13,9 +13,9 @@ import { serverMsg, tr } from '@/lib/i18n';
 import { PageInfo, PageKey, PAGES, STATE_LABEL } from '@/lib/pages';
 import { SkeletonList } from '@/components/kc/Skeleton';
 
-type EditableRole = 'cost_control' | 'user' | 'outlet';
+type EditableRole = 'admin' | 'cost_control' | 'user' | 'outlet';
 type RolePages = Record<EditableRole, PageKey[]>;
-const EDITABLE: EditableRole[] = ['cost_control', 'user', 'outlet'];
+const EDITABLE: EditableRole[] = ['admin', 'cost_control', 'user', 'outlet'];
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) } });
@@ -27,7 +27,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 let rolesPromise: Promise<RolePages> | null = null;
 export function loadRolePages(fresh = false): Promise<RolePages> {
   if (fresh || !rolesPromise) {
-    rolesPromise = call<{ roles: RolePages }>('/api/access/pages').then(r => ({ ...r.roles, outlet: r.roles.outlet ?? [] })).catch(() => ({ cost_control: [], user: [], outlet: [] }));
+    rolesPromise = call<{ roles: RolePages }>('/api/access/pages').then(r => ({ ...r.roles, outlet: r.roles.outlet ?? [], admin: r.roles.admin ?? [] })).catch(() => ({ admin: [], cost_control: [], user: [], outlet: [] }));
   }
   return rolesPromise;
 }
@@ -61,8 +61,10 @@ function groups(): { group: string; pages: typeof PAGES }[] {
 }
 
 /** Exceptions of one user: tick or untick pages on top of the role's pages. */
-export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenChange }: {
+export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenChange, limit }: {
   role: Role; overrides: Record<string, boolean>; onChange: (v: Record<string, boolean>) => void;
+  /** an Admin gives only the pages it opens itself (migration 105): the others cannot be ticked */
+  limit?: string[];
   /** superadmins: pages left out of their menu (display only) */
   hidden?: string[]; onHiddenChange?: (v: string[]) => void;
 }) {
@@ -124,7 +126,8 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
                 <li key={p.key}>
                   <label className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm transition-colors ${
                     exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-neutral-200 hover:bg-neutral-50'}`}>
-                    <input type="checkbox" checked={on} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-neutral-300 text-brand-700" />
+                    <input type="checkbox" checked={on} onChange={() => toggle(p.key)} disabled={!!limit && !on && !limit.includes(p.key)}
+                      title={limit && !on && !limit.includes(p.key) ? tr('Only pages you open yourself can be given') : undefined} className="h-4 w-4 rounded border-neutral-300 text-brand-700 disabled:opacity-40" />
                     <span className="min-w-0 flex-1 truncate text-neutral-800">{p.label} <StateTag page={p} /></span>
                     <OpsTag page={p.key} />
                     <span className={`text-[10px] font-semibold uppercase ${exception ? (on ? 'text-emerald-700' : 'text-rose-700') : 'text-neutral-400'}`}>

@@ -13,7 +13,7 @@ import { tr } from './i18n';
 import { CC_PAGES, PageKey, PAGES, pageOf } from './pages';
 
 /** outlet = the shared outlet / HUB CK / HUB WH accounts (2026-10-28): branch scoped like user */
-export type Role = 'superadmin' | 'cost_control' | 'user' | 'outlet' | 'driver' | 'cotr_admin'; // driver: Calf On The Road app only; cotr_admin: the COTR line (migration 099)
+export type Role = 'superadmin' | 'admin' | 'cost_control' | 'user' | 'outlet' | 'driver' | 'cotr_admin'; // driver: Calf On The Road app only; cotr_admin: the COTR line (migration 099)
 export type Gender = 'male' | 'female';
 
 export interface AuthUser {
@@ -106,7 +106,7 @@ export function operationsOnly(role: Role, pages: PageKey[]): boolean {
   return role !== 'superadmin' && pages.some(p => p.startsWith('form.')) && pages.every(p => OPERATIONS_PAGES.includes(p));
 }
 export const ROLE_LABELS: Record<Role, string> = {
-  get superadmin() { return tr('Super Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User'); }, get outlet() { return tr('Outlet / Hub'); },
+  get superadmin() { return tr('Super Admin'); }, get admin() { return tr('Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User'); }, get outlet() { return tr('Outlet / Hub'); },
   get driver() { return tr('Driver (COTR)'); }, get cotr_admin() { return tr('COTR Admin'); },
 };
 export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('Male'); }, get female() { return tr('Female'); } };
@@ -120,7 +120,8 @@ export function canAccess(user: Pick<AuthUser, 'role' | 'pages'>, pathname: stri
   if (user.role === 'superadmin') return true;
   if (pathname === '/cotr/master' || pathname.startsWith('/cotr/master/')) return COTR_MASTER.some((k) => pagesOf(user).includes(k));
   // User Accounts (2026-11-13): a COTR admin manages the accounts of the COTR line; Activity Logs stay superadmin-only
-  if (user.role === 'cotr_admin' && (pathname === '/users' || pathname.startsWith('/users/'))) return true;
+  // an Admin (migration 105) manages the accounts of role User
+  if ((user.role === 'cotr_admin' || user.role === 'admin') && (pathname === '/users' || pathname.startsWith('/users/'))) return true;
   const page = pageOf(pathname);
   return page !== null && page !== 'superadmin' && pagesOf(user).includes(page);
 }
