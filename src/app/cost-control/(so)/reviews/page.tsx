@@ -21,6 +21,7 @@ import { api, errorText } from "@/so/lib/api";
 import { ENTRY_SOURCE, STATUS, countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { SortTh, useSort } from "@/so/ui/Sort";
+import { DataSources } from '@/so/features/health/DataHealth';
 
 type SortKey = "facility" | "type" | "date" | "status" | "counted" | "progress" | "flagged" | "submitted";
 const STATUS_ORDER = ["SUBMITTED", "RECOUNT_REQUESTED", "IN_PROGRESS", "APPROVED", "EXPORTED", "CANCELLED"];
@@ -137,6 +138,7 @@ export default function ReviewsPage() {
           </Stat>
         </StatStrip>
       </>}>
+      <DataSources keys={['so']} />
       <Panel toolbar={<>
         <Tabs label={tr("Status")} value={f.status} onChange={(status) => setF({ ...f, status })}
           tabs={TABS.map((k) => ({ key: k, label: k ? FLOW_LABEL[k]() : tr("All"), count: rows ? fmtNumber(all.filter((r) => statusMatch(r, k)).length) : undefined }))} />

@@ -300,6 +300,8 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
             [tr('Analytics'), <P key="16" href="/cost-control/ratio" t="Outlet Ratio" />, S('COGS, BB & usage ratio per outlet', 'COGS, BB & usage ratio per outlet')],
             ['', <P key="17" href="/cost-control/goods-receipt" t="Good Receipt" />, S('GR ESB & koreksinya', 'ESB GRs & their corrections')],
             ['', <P key="18" href="/cost-control" t="COGS & Usage" />, S('COGS sistem vs aktual per outlet', 'System vs actual COGS per outlet')],
+            ['', <P key="19" href="/cost-control/purchase-plan" t="Purchase Estimate" />, S('Buffer hari & % per outlet, bahan yang perlu dipesan', 'Buffer days & % per outlet, the materials to order')],
+            [tr('Information Center'), <P key="20" href="/cost-control/info" t="Information Center" />, S('Kelengkapan & kesegaran data ESB dan Portal', 'How complete & fresh the ESB and Portal data is')],
           ]} />
           <Table head={[S('Kapan', 'When'), S('Yang dilakukan', 'What')]} rows={[
             [S('Sekali / saat berubah', 'Once / on change'), S('Count Types, Count Lists, Items Groups, Outlet Locations, resep WIP, kartu resep menu, Pricelist', 'Count Types, Count Lists, Items Groups, Outlet Locations, WIP recipes, menu recipe cards, Pricelist')],
@@ -495,6 +497,39 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
             L(<>Panel <b>{tr('Unusual ESB documents')}</b>: baris dokumen ESB outlet (produksi, pembelian outlet, pengiriman, retur, GR) yang ≥20× kebiasaan atau jauh lebih kecil — biasanya salah satuan (KG untuk GR). <B t="Correct" />: isi jumlah yang benar & alasan. Portal memakai jumlah itu, juga bila ESB diperbaiki belakangan; dokumen yang dibatalkan di ESB tidak dihitung. GR dikoreksi di Good Receipt.</>,
               <>The <b>{tr('Unusual ESB documents')}</b> panel: lines of the outlets’ ESB documents (production, outlet purchases, deliveries, returns, GRs) 20× the usual quantity or more, or far less — usually a wrong unit (KG for GR). <B t="Correct" />: the right quantity & a reason. The portal uses it, also when ESB is fixed later; a document cancelled in ESB no longer counts. GRs are corrected in Good Receipt.</>),
           ]} />
+        </>,
+      },
+      {
+        id: 'cc-info', title: tr('Information Center'),
+        body: <>
+          <Steps items={[
+            L(<>Satu kartu per sumber data: penjualan ESB, dokumen ESB, SO Portal, waste Portal, GR, harga bahan, kartu resep, Transfer Stock. Setiap kartu menyebut sumbernya (ESB / Portal), statusnya dan halaman untuk memperbaikinya (<B t="Open" />).</>,
+              <>One card per data source: ESB sales, ESB documents, Portal SO, Portal waste, GRs, material prices, recipe cards, Transfer Stock. Every card names its source (ESB / Portal), its status and the page that fixes it (<B t="Open" />).</>),
+            L(<><b>{tr('Figures affected')}</b>: COGS, Usage Ratio atau Estimasi Belanja outlet terkait salah sampai diperbaiki. <b>{tr('Check')}</b>: angka masih benar, ada yang menunggu tim. Diperiksa ulang setiap 5 menit.</>,
+              <><b>{tr('Figures affected')}</b>: the COGS, Usage Ratio or Purchase Estimate of the outlets concerned are wrong until fixed. <b>{tr('Check')}</b>: the figures hold, something waits for the team. Checked again every 5 minutes.</>),
+            L(<>Baris <b>{tr('Data sources')}</b> di bawah judul Outlet Ratio, COGS & Usage, Sales Calculator, Stock List, Good Receipt, Waste, SO dan Estimasi Belanja menunjukkan kartu yang dipakai halaman itu; ketuk untuk membuka Pusat Informasi. Lonceng notifikasi mengirim yang belum baik sekali sehari mulai 09.00.</>,
+              <>The <b>{tr('Data sources')}</b> line under the title of Outlet Ratio, COGS & Usage, Sales Calculator, Stock List, Good Receipt, Waste, SO and Purchase Estimate shows the cards that page uses; tap it for the Information Center. The bell sends the ones not good once a day from 09:00.</>),
+          ]} />
+        </>,
+      },
+      {
+        id: 'cc-purchase-plan', title: tr('Purchase Estimate'),
+        body: <>
+          <Table head={[S('Bagian', 'Part'), S('Dari mana', 'Where from')]} rows={[
+            [tr('Cover days'), S('Median jarak antar GR dari Calf Warehouse / Central Kitchen / CK Food, 56 hari terakhir (kurang dari 3 GR: 7 hari)', 'The median gap between the GRs from Calf Warehouse / Central Kitchen / CK Food, the last 56 days (fewer than 3 GRs: 7 days)')],
+            [tr('Loss %'), S('Waste portal yang disetujui ÷ pemakaian sistem 28 hari (paling tinggi 20%); "Sisa produk tidak terjual" tidak dihitung karena itu pesanan berlebih', 'Approved portal waste ÷ the system usage of 28 days (at most 20%); "Sisa produk tidak terjual" is left out: it was ordered too much')],
+            [tr('Safety %'), S('Naik-turun penjualan harian outlet untuk buffer hari itu (paling tinggi 30%)', 'The swing of the outlet’s daily sales over its cover days (at most 30%)')],
+            [tr('Buffer %'), S('Susut % + pengaman %', 'Loss % + safety %')],
+          ]} />
+          <Steps items={[
+            L(<>Tab <b>{tr('Buffer per outlet')}</b>: rekomendasi setiap outlet dengan angka asalnya. <B t="Set" />: ubah hari / susut / pengaman dengan alasan; kolom kosong tetap rekomendasi; <B t="Back to the recommendation" /> menghapusnya.</>,
+              <>The <b>{tr('Buffer per outlet')}</b> tab: every outlet’s recommendation with the figures behind it. <B t="Set" />: change the days / loss / safety with a reason; an empty field stays recommended; <B t="Back to the recommendation" /> removes it.</>),
+            L(<>Tab <b>{tr('Estimate')}</b>: per hari × buffer hari × (1 + buffer %) − stok berjalan outlet itu sendiri (bukan stok gabungan), dibulatkan ke kemasan yang biasa diterima outlet. Tanpa outlet: total per outlet.</>,
+              <>The <b>{tr('Estimate')}</b> tab: per day × cover days × (1 + buffer %) − the outlet’s own running stock (never the outlets together), rounded up to the pack the outlet usually receives. Without an outlet: the total of every outlet.</>),
+            L(<>Tab <b>{tr('Accuracy')}</b>: estimasi 4 minggu lalu dibanding pemakaian sesudahnya; di atas 20% berarti rata-rata belum cocok untuk outlet itu.</>,
+              <>The <b>{tr('Accuracy')}</b> tab: the estimate of 4 weeks ago against what was used after; above 20% the average does not fit that outlet yet.</>),
+          ]} />
+          <Note>{L(<>Material Required Planning di Sales Calculator menjumlahkan stok cabang yang dipilih; untuk belanja per outlet pakai {tr('Purchase Estimate')}.</>, <>The Material Required Planning of the Sales Calculator adds the stock of the chosen branches together; for the purchases of an outlet use the {tr('Purchase Estimate')}.</>)}</Note>
         </>,
       },
       {

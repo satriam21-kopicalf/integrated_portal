@@ -11,7 +11,7 @@ export type PageKey =
   | 'mon.pengajuan' | 'mon.wwwr'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
-  | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs' | 'cc.goods-receipt'
+  | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs' | 'cc.goods-receipt' | 'cc.purchase-plan' | 'cc.info'
   | 'cc.stock-list' | 'cc.stock-transfer'
   | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule' | 'cotr.incentive';
 
@@ -54,6 +54,8 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.ratio', href: '/cost-control/ratio', get label() { return tr('Outlet Ratio'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.cogs', href: '/cost-control', get label() { return tr('COGS & Usage'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.goods-receipt', href: '/cost-control/goods-receipt', get label() { return tr('Good Receipt'); }, get group() { return tr('Cost Control · Analytics'); } },
+  { key: 'cc.purchase-plan', href: '/cost-control/purchase-plan', get label() { return tr('Purchase Estimate'); }, get group() { return tr('Cost Control · Analytics'); } },
+  { key: 'cc.info', href: '/cost-control/info', get label() { return tr('Information Center'); }, get group() { return tr('Cost Control · Analytics'); } },
   { key: 'cc.stock-list', href: '/cost-control/stock-list', get label() { return tr('Stock List'); }, get group() { return tr('Monitoring Stock'); } },
   { key: 'cc.stock-transfer', href: '/cost-control/stock-transfer', get label() { return tr('Transfer Stock'); }, get group() { return tr('Monitoring Stock'); } },
   { key: 'mon.overview', href: '/monitoring/overview', get label() { return tr('Monitoring Overview'); }, get group() { return tr('Operations'); } },

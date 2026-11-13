@@ -21,6 +21,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { downloadXlsx } from "@/lib/xlsx";
 import { tr } from "@/lib/i18n";
+import { DataSources } from '@/so/features/health/DataHealth';
 
 type Doc = { docNum: string; esbDate: string | null; date: string | null; poNum: string | null; branchCode: string | null; branchName: string | null;
   location: string | null; supplier: string | null; status: string | null; lines: number; dateCorrected: boolean; qtyCorrected: number;
@@ -130,6 +131,7 @@ export default function GoodsReceiptPage() {
             {res && <p>{tr("{0} date · {1} qty lines", fmtNumber(all.filter((d) => d.dateCorrected).length), fmtNumber(all.reduce((a, d) => a + d.qtyCorrected, 0)))}</p>}</Stat>
         </StatStrip>
       }>
+      <DataSources keys={['esbDocs', 'gr']} />
       <Panel toolbar={
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search GR, PO, branch or supplier")} filters={chips}
           onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}

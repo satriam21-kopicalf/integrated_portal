@@ -19,7 +19,7 @@ const DOT = { high: "bg-red-500", warn: "bg-amber-500", info: "bg-brand-500" } a
 /** The notifications of the signed-in user: {enabled, unread, data}. */
 export function useNotifications() {
   const { user } = useAuth();
-  const enabled = hasPage(user, "cc.goods-receipt") || hasPage(user, "cc.cogs");
+  const enabled = (["cc.goods-receipt", "cc.cogs", "cc.info", "cc.purchase-plan", "cc.ratio", "cc.sales-calc", "cc.reviews", "cc.waste-review"] as const).some((p) => hasPage(user, p));
   return { enabled, ...useAlerts(enabled) };
 }
 

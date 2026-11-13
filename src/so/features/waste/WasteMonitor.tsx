@@ -32,6 +32,7 @@ import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
 import { CategoriesDrawer, Ingredients, InvestigationDrawer, InvestigationList } from "./Investigation";
 import { type DailyData, type Entry, type MonitorData, type UsageRow, type Scope, type Status, PRICE_SOURCE, SCOPES, fmtQty, fmtRp, photoUrl, usagePhotoUrl, scopeLabel, signatureUrl, statusLabel, statusTone } from "./waste";
 import { thumb } from "@/lib/assets";
+import { DataSources } from '@/so/features/health/DataHealth';
 
 const DEFAULT_PERIOD = (): Period => ({ from: wibDay(-6), to: wibDay(0) });
 type Filters = { period: Period; branch: string; scope: Scope | ""; category: string; status: Status | "" };
@@ -193,6 +194,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           <Stat label={tr("Approved / Rejected")} icon={<CheckCircle2 size={13} />} value={sm ? `${fmtNumber(sm.approved)} / ${fmtNumber(sm.rejected)}` : <StatSkeleton />} />
         </StatStrip>
       }>
+      <DataSources keys={['waste', 'prices']} />
       <Panel toolbar={
         <div className="space-y-3">
           <FilterToolbar search={view === "entries" ? search : undefined} onSearch={view === "entries" ? setSearch : undefined}

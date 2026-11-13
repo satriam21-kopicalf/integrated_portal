@@ -6,7 +6,7 @@ import {
   Activity, BarChart3, Bike, Warehouse, CookingPot, Download, Boxes, Calculator, ClipboardPen,
   FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ClipboardCheck, ClipboardList, ListChecks,
   Settings2, History, LayoutDashboard, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, Users, Wallet, UserRoundCheck,
-  PackageCheck, ArrowLeftRight,
+  PackageCheck, ArrowLeftRight, ShoppingCart,
 } from 'lucide-react';
 import { tr } from '@/lib/i18n';
 
@@ -20,6 +20,9 @@ export const navigation = [
  *  pages stay). */
 export type CcItem = { name: string; href: string; icon: typeof Users; description: string; soon?: boolean; badge?: 'review'; /** brand logo (public/assets) shown instead of the icon */ logo?: string };
 export const costControl: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Information Center'); }, get hint() { return tr('How complete and fresh the data of the figures is'); }, icon: Gauge, items: [
+    { get name() { return tr('Information Center'); }, href: '/cost-control/info', icon: Gauge, get description() { return tr('ESB & Portal data: sync, SO, waste, GR, prices, recipes'); } },
+  ] },
   { get title() { return tr('Stock Opname'); }, get hint() { return tr('Follow and close the counts of every branch'); }, icon: ClipboardCheck, items: [
     { get name() { return tr('Stock Opname Monitor'); }, href: '/cost-control/monitor', icon: Activity, get description() { return tr('Progress of every branch per day'); } },
     { get name() { return tr('Stock Opname Review'); }, href: '/cost-control/reviews', icon: ClipboardList, get description() { return tr('Approve or ask for a recount'); }, badge: 'review' },
@@ -51,6 +54,7 @@ export const costControl: { title: string; hint: string; icon: typeof Users; ite
     { get name() { return tr('Outlet Ratio'); }, href: '/cost-control/ratio', icon: BarChart3, get description() { return tr('COGS, BB & usage ratio per outlet'); } },
     { get name() { return tr('Good Receipt'); }, href: '/cost-control/goods-receipt', icon: PackageCheck, get description() { return tr('GR of ESB, date & qty corrections with evidence'); } },
     { get name() { return tr('COGS & Usage'); }, href: '/cost-control', icon: Calculator, get description() { return tr('Per outlet between two SO: COGS, usage ratio, waste'); } },
+    { get name() { return tr('Purchase Estimate'); }, href: '/cost-control/purchase-plan', icon: ShoppingCart, get description() { return tr('Per outlet: buffer days & % from its own data, what to order'); } },
   ] },
 ];
 

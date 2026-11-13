@@ -13,6 +13,7 @@ import { SkeletonTable } from "@/components/kc/Skeleton";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Wand2, X } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -26,6 +27,7 @@ import { tr } from "@/lib/i18n";
 import { type Item, type Wip, Picker, matches, num, rp, useCatalog } from "./parts";
 import { BomImport, OptionsStep } from "./options";
 import { BreakdownStep } from "./breakdown";
+import { DataSources } from '@/so/features/health/DataHealth';
 
 type Kind = "item" | "wip" | "other" | "menu";
 type Line = { type: Kind; code: string; name: string; qty: number; unit: string; price?: number | null };
@@ -121,6 +123,7 @@ export default function SalesCalculatorPage() {
   ];
   return (
     <Page title={tr("Sales Calculator by Menu")} subtitle={tr("Recipe cards per menu and, from the POS transactions of every branch: material planning, actual vs system usage and COGS")}>
+      <DataSources keys={['esbSales', 'recipes', 'prices', 'so']} />
       <nav aria-label={tr("Steps")} className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
         <ol className="flex overflow-x-auto">
           {steps.map((s, i) => {
@@ -1079,6 +1082,13 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                   data.unmapped.filter((m) => !m.viaPackages).slice(0, 6).map((m) => m.name).join(", "))}{data.unmapped.filter((m) => !m.viaPackages).length > 6 ? "…" : ""}</span>
                 <Button size="sm" variant="secondary" onClick={() => onGo("menus")}>{tr("Assign Menus")}</Button>
               </div>
+            )}
+            {view === "mrp" && (data.stock?.onHand.branches ?? 0) > 1 && (
+              // 2026-11-13: the stock of the branches together — the surplus of one hides the shortage of another
+              <p className="mx-4 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                {tr("The stock of {0} branches is added together here: the surplus of one outlet hides the shortage of another.", data.stock?.onHand.branches ?? 0)}{" "}
+                <Link href="/cost-control/purchase-plan" className="font-semibold underline">{tr("Use the Purchase Estimate per outlet")}</Link>
+              </p>
             )}
             {view === "mrp" && (
               <table className="m-cards w-full min-w-[760px] text-sm">

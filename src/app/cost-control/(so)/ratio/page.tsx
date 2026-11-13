@@ -14,6 +14,7 @@ import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import Dialog from "@/so/ui/Dialog";
 import { serverMsg, tr } from "@/lib/i18n";
+import { DataSources } from '@/so/features/health/DataHealth';
 
 type So = { value: number | null; esb: number | null; doc: string | null; docDate: string | null; docStatus: string | null; date: string;
   override: { value: number; note: string; by: string | null; at: string } | null };
@@ -226,6 +227,7 @@ export default function RatioPage() {
           </Stat>
         </StatStrip>
       )}>
+      <DataSources keys={['esbSales', 'esbDocs', 'so']} />
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <>
           <Panel toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)}

@@ -22,6 +22,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { downloadXlsx } from "@/lib/xlsx";
 import { tr } from "@/lib/i18n";
 import { qtyText, rpText } from "@/so/features/stock-transfer/transfer";
+import { DataSources } from '@/so/features/health/DataHealth';
 
 type Row = { branch: string; branchName: string; code: string; name: string; category: string; unit: string; so: number; in: number; out: number;
   pending: number; stock: number; available: number; price: number | null; value: number | null;
@@ -88,6 +89,7 @@ export default function StockListPage() {
           <Stat label={tr("Oldest SO")} icon={<CalendarDays size={13} />} value={data ? (oldest ? dmy(oldest) : "—") : <StatSkeleton />} />
         </StatStrip>
       }>
+      <DataSources keys={['so', 'gr', 'transfers', 'waste']} />
       <Panel toolbar={<div className="space-y-3">
         <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search material or branch")} filters={chips} onOpen={() => setSheet(true)} onClear={() => { setBranch(""); setCategory(""); }}
           extra={<ExcelIconButton boxed className="ml-auto" label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))} />} />

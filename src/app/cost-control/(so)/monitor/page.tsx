@@ -17,6 +17,7 @@ import { btn } from "@/components/kc";
 import { SoGroupTabs, soGroupOf, useGroupTypes, useSoGroup } from "@/so/ui/SoGroupTabs";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { locale, tr } from "@/lib/i18n";
+import { DataSources } from '@/so/features/health/DataHealth';
 
 type Row = {
   facility_id: string;
@@ -160,6 +161,7 @@ export default function MonitorPage() {
           </Stat>
         </StatStrip>
       </>}>
+      <DataSources keys={['so']} />
       <Panel toolbar={<>
         {rows && all.length > 0 && (
           <DayOverview total={all.length} tabCount={tabCount} status={f.status} onStatus={(status) => setF({ ...f, status: f.status === status ? "" : status })}
