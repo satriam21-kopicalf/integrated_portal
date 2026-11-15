@@ -3,11 +3,11 @@
 // Page access in User Accounts: the pages a role opens (Roles & pages, editable by super admins) and the exceptions of
 // one user on top of the role (user form). Backend: /api/access (integrated_portal_be app/access.py).
 
-import { Briefcase, Building2, Check, LayoutGrid, Loader2, Pencil, Plus, RotateCcw, Save, Smartphone, X } from 'lucide-react';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Briefcase, Building2, Check, LayoutGrid, Loader2, RotateCcw, Save, ShieldCheck, Smartphone } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { buttonPrimary, buttonSecondary, inputClass } from '@/components/ui/Dialog';
-import Drawer, { DrawerSection } from '@/components/ui/Drawer';
-import { addMaster, loadMaster, MasterKind, MasterName } from '@/components/MasterCombobox';
+import Drawer from '@/components/ui/Drawer';
+import { loadMaster, MasterKind, MasterName } from '@/components/MasterCombobox';
 import { OPERATIONS_PAGES, OPERATIONS_URL, operationsOnly, Role, ROLE_LABELS } from '@/lib/auth';
 import { serverMsg, tr } from '@/lib/i18n';
 import { PageInfo, PageKey, PAGES, STATE_LABEL } from '@/lib/pages';
@@ -145,7 +145,7 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
 }
 
 /** Roles & pages: which pages each role opens (super admins: always every page). */
-export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
+function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
   const [saved, setSaved] = useState<RolePages | null>(null);
   const [draft, setDraft] = useState<RolePages | null>(null);
   const [busy, setBusy] = useState(false);
@@ -168,22 +168,18 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
       const fresh = await loadRolePages(true);
       setSaved(fresh);
       setDraft(fresh);
-      setMessage({ ok: true, text: tr('Saved. Signed-in users get the new pages within a minute.') });
+      setMessage({ ok: true, text: tr('Saved. Signed-in users get the new pages right away.') });
     } catch (e) {
       setMessage({ ok: false, text: (e as Error).message });
     } finally {
       setBusy(false);
     }
   };
+  useEffect(() => onDirty(dirty), [dirty, onDirty]);
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<LayoutGrid size={18} />} title={tr('Roles & Pages')}
-      description={tr('The pages every role opens. A single user can get pages added or removed in their account.')}
-      footer={<>
-        <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Close')}</button>
-        <button type="button" className={buttonPrimary} disabled={!dirty || busy} onClick={save}>
-          {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} {tr('Save')}
-        </button>
-      </>}>
+    <div className="space-y-3">
+      <SaveBar text={tr('The pages every role opens. A single user can get pages added or removed in their account.')}
+        dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft(saved)} />
       {!draft ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
           <div className="overflow-x-auto rounded-xl border border-neutral-200">
@@ -226,6 +222,64 @@ export function RolePagesDrawer({ onClose }: { onClose: () => void }) {
           {message && <p role="status" className={`rounded-lg px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Above every tab of Access Settings: what the tab sets, and Save / Undo for its changes. */
+function SaveBar({ text, dirty, busy, onSave, onReset }: { text: string; dirty: boolean; busy: boolean; onSave?: () => void; onReset?: () => void }) {
+  return (
+    <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center gap-2 bg-white/95 px-1 py-2 backdrop-blur">
+      <p className="min-w-0 flex-1 text-xs text-neutral-500">{text}</p>
+      {onSave && <>
+        {dirty && <button type="button" className={buttonSecondary} disabled={busy} onClick={onReset}><RotateCcw size={15} /> {tr('Undo')}</button>}
+        <button type="button" className={buttonPrimary} disabled={!dirty || busy} onClick={onSave}>
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} {tr('Save')}
+        </button>
+      </>}
+    </div>
+  );
+}
+
+type AccessTab = 'roles' | 'platforms' | 'masters';
+
+/** Access Settings (2026-11-16): one place for the pages of every role, the menus of every app (portal, Operations,
+ * Calf On The Road) and the job titles & departments (from HRMS). Every tab saves on its own; a save applies at once
+ * (the backend bumps the access generation: signed-in users get the new pages on their next request). */
+export function AccessSettingsDrawer({ onClose, initial = 'roles' }: { onClose: () => void; initial?: AccessTab }) {
+  const [tab, setTab] = useState<AccessTab>(initial);
+  const [dirty, setDirty] = useState<Record<AccessTab, boolean>>({ roles: false, platforms: false, masters: false });
+  const mark = useMemo(() => ({
+    roles: (v: boolean) => setDirty(d => (d.roles === v ? d : { ...d, roles: v })),
+    platforms: (v: boolean) => setDirty(d => (d.platforms === v ? d : { ...d, platforms: v })),
+  }), []);
+  const unsaved = dirty.roles || dirty.platforms;
+  const close = () => {
+    if (unsaved && !window.confirm(tr('Changes not saved yet. Close anyway?'))) return;
+    onClose();
+  };
+  const TABS: { key: AccessTab; label: string; icon: React.ReactNode }[] = [
+    { key: 'roles', label: tr('Roles & Pages'), icon: <LayoutGrid size={15} /> },
+    { key: 'platforms', label: tr('Menus per Platform'), icon: <Smartphone size={15} /> },
+    { key: 'masters', label: tr('Job Titles & Departments'), icon: <Briefcase size={15} /> },
+  ];
+  return (
+    <Drawer open onClose={close} size="xl" icon={<ShieldCheck size={18} />} title={tr('Access Settings')}
+      description={tr('Roles, pages and the menus of the portal, Operations and Calf On The Road in one place. A saved change applies right away.')}
+      footer={<button type="button" className={buttonSecondary} onClick={close}>{tr('Close')}</button>}>
+      <div className="mb-3 flex gap-1 overflow-x-auto border-b border-neutral-200" role="tablist">
+        {TABS.map(t => (
+          <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
+            className={`-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium ${tab === t.key ? 'border-brand-600 text-brand-700' : 'border-transparent text-neutral-500 hover:text-neutral-800'}`}>
+            {t.icon} {t.label}
+            {t.key !== 'masters' && dirty[t.key] && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-label={tr('Not saved')} />}
+          </button>
+        ))}
+      </div>
+      {/* every tab stays mounted: a change not saved yet survives switching tabs */}
+      <div hidden={tab !== 'roles'}><RolePagesPanel onDirty={mark.roles} /></div>
+      <div hidden={tab !== 'platforms'}><PlatformsPanel onDirty={mark.platforms} /></div>
+      <div hidden={tab !== 'masters'}><MastersPanel /></div>
     </Drawer>
   );
 }
@@ -270,7 +324,7 @@ const ALL_PLATFORMS: PlatformKey[] = ['portal', 'operations', 'cotr'];
 
 /** Menus per platform: on which app (portal, Operations, the driver app) every page is shown in the menu. Display only:
  * the access stays as the roles give it. No setting = the default of each app (every platform that has the page). */
-export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
+function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
   const [pages, setPages] = useState<PlatformPage[] | null>(null);
   const [saved, setSaved] = useState<Record<string, PlatformKey[]>>({});
   const [draft, setDraft] = useState<Record<string, PlatformKey[] | null>>({});
@@ -295,7 +349,7 @@ export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
       const r = await call<{ platforms: Record<string, PlatformKey[]> }>('/api/access/platforms', { method: 'PUT', body: JSON.stringify({ platforms: draft }) });
       setSaved(r.platforms);
       setDraft({});
-      setMessage({ ok: true, text: tr('Saved. The menus follow within a minute (after the next sign-in check).') });
+      setMessage({ ok: true, text: tr('Saved. The menus of every app follow right away.') });
     } catch (e) {
       setMessage({ ok: false, text: (e as Error).message });
     } finally {
@@ -311,15 +365,12 @@ export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
     }
     return out;
   }, [pages]);
+  const dirty = Object.keys(draft).length > 0;
+  useEffect(() => onDirty(dirty), [dirty, onDirty]);
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<Smartphone size={18} />} title={tr('Menus per Platform')}
-      description={tr('Where every page is shown in the menu: the portal, Operations or the Calf On The Road app. Only the menu changes; the access and the flows stay as they are.')}
-      footer={<>
-        <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Close')}</button>
-        <button type="button" className={buttonPrimary} disabled={!Object.keys(draft).length || busy} onClick={save}>
-          {busy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} {tr('Save')}
-        </button>
-      </>}>
+    <div className="space-y-3">
+      <SaveBar text={tr('Where every page is shown in the menu: the portal, Operations or the Calf On The Road app. Only the menu changes; the access and the flows stay as they are.')}
+        dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft({})} />
       {message && <p className={`mb-3 rounded-lg px-3 py-2 text-xs ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
       {!pages ? <SkeletonList rows={5} /> : (
         <div className="overflow-x-auto rounded-xl border border-neutral-200">
@@ -354,7 +405,7 @@ export function PlatformsDrawer({ onClose }: { onClose: () => void }) {
           </table>
         </div>
       )}
-    </Drawer>
+    </div>
   );
 }
 
@@ -400,81 +451,46 @@ function GroupRows({ group, children }: { group: string; children: React.ReactNo
   );
 }
 
-/** Job titles & departments: add, rename (accounts follow) and switch off names. */
-export function MastersDrawer({ onClose }: { onClose: () => void }) {
+/** Job titles & departments (2026-11-16): the names come from HRMS (positions, org units) through the HRMS sync, so the
+ * list is read-only here: how many accounts carry each name. Accounts not linked to HRMS pick a name in their form. */
+function MastersPanel() {
   const [kind, setKind] = useState<MasterKind>('jobTitle');
   return (
-    <Drawer open onClose={onClose} size="md" icon={kind === 'jobTitle' ? <Briefcase size={18} /> : <Building2 size={18} />}
-      title={tr('Job Titles & Departments')} description={tr('The names offered in the user forms. New names can also be added straight from a form.')}
-      footer={<button type="button" className={buttonSecondary} onClick={onClose}>{tr('Close')}</button>}>
-      <div className="mb-4 flex gap-1 border-b border-neutral-200" role="tablist">
+    <div className="space-y-3">
+      <SaveBar text={tr('Job titles and departments follow HRMS: a linked account gets them from its employee every hour. The list is read-only; accounts not linked to HRMS pick a name in their form.')} dirty={false} busy={false} />
+      <div className="flex gap-1" role="tablist">
         {(['jobTitle', 'department'] as MasterKind[]).map(k => (
           <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${kind === k ? 'border-brand-600 text-brand-700' : 'border-transparent text-neutral-500 hover:text-neutral-800'}`}>
-            {k === 'jobTitle' ? tr('Job titles') : tr('Departments')}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${kind === k ? 'bg-brand-50 text-brand-700 ring-1 ring-brand-200' : 'text-neutral-500 hover:bg-neutral-100'}`}>
+            {k === 'jobTitle' ? <Briefcase size={13} /> : <Building2 size={13} />} {k === 'jobTitle' ? tr('Job titles') : tr('Departments')}
           </button>
         ))}
       </div>
       <MasterList key={kind} kind={kind} />
-    </Drawer>
+    </div>
   );
 }
 
 function MasterList({ kind }: { kind: MasterKind }) {
   const [rows, setRows] = useState<MasterName[] | null>(null);
-  const [name, setName] = useState('');
-  const [editing, setEditing] = useState<{ id: string; name: string } | null>(null);
-  const [error, setError] = useState('');
-  const reload = useCallback(async () => setRows(await loadMaster(kind, true)), [kind]);
-  useEffect(() => { void reload(); }, [reload]);
-
-  const run = async (fn: () => Promise<unknown>) => {
-    setError('');
-    try {
-      await fn();
-      await reload();
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-  const patch = (id: string, body: object) => call(`/api/access/masters/${kind}/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
-
+  const [q, setQ] = useState('');
+  useEffect(() => { void loadMaster(kind, true).then(setRows); }, [kind]);
+  const shown = (rows ?? []).filter(r => r.users > 0 && r.name.toLowerCase().includes(q.trim().toLowerCase()));
   return (
-    <DrawerSection>
-      <form className="flex gap-2" onSubmit={e => { e.preventDefault(); if (name.trim()) void run(async () => { await addMaster(kind, name.trim()); setName(''); }); }}>
-        <input className={inputClass} value={name} onChange={e => setName(e.target.value)} maxLength={80}
-          placeholder={kind === 'jobTitle' ? tr('New job title') : tr('New department')} aria-label={tr('New Name')} />
-        <button type="submit" className={buttonPrimary} disabled={!name.trim()}><Plus size={16} /> {tr('Add')}</button>
-      </form>
-      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-      {!rows ? <SkeletonList rows={4} /> : rows.length === 0 ? (
+    <div className="space-y-2">
+      <input className={inputClass} value={q} onChange={e => setQ(e.target.value)} placeholder={tr('Search')} aria-label={tr('Search')} />
+      {!rows ? <SkeletonList rows={4} /> : shown.length === 0 ? (
         <p className="py-6 text-center text-sm text-neutral-400">{tr('No names yet')}</p>
       ) : (
-        <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
-          {rows.map(r => (
-            <li key={r.id} className={`flex items-center gap-2 px-3 py-2 ${r.isActive ? '' : 'bg-neutral-50 opacity-70'}`}>
-              {editing?.id === r.id ? (
-                <form className="flex flex-1 gap-2" onSubmit={e => { e.preventDefault(); void run(async () => { await patch(r.id, { name: editing.name }); setEditing(null); }); }}>
-                  <input className={`${inputClass} h-9`} value={editing.name} autoFocus maxLength={80} onChange={e => setEditing({ id: r.id, name: e.target.value })} aria-label={tr('Name')} />
-                  <button type="submit" className="rounded-md p-1.5 text-emerald-700 hover:bg-emerald-50" aria-label={tr('Save')}><Check size={16} /></button>
-                  <button type="button" onClick={() => setEditing(null)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100" aria-label={tr('Cancel')}><X size={16} /></button>
-                </form>
-              ) : (
-                <>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-neutral-900">{r.name}</span>
-                    <span className="block text-[11px] text-neutral-400">{tr('{0} users', r.users)}{r.isActive ? '' : ` · ${tr('Inactive')}`}</span>
-                  </span>
-                  <button type="button" onClick={() => setEditing({ id: r.id, name: r.name })} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Rename {0}', r.name)}><Pencil size={15} /></button>
-                  <button type="button" onClick={() => void run(() => patch(r.id, { isActive: !r.isActive }))}
-                    className="rounded-md px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100">{r.isActive ? tr('Hide') : tr('Show')}</button>
-                </>
-              )}
+        <ul className="grid gap-1 sm:grid-cols-2">
+          {shown.map(r => (
+            <li key={r.id} className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2">
+              <span className="min-w-0 flex-1 truncate text-sm text-neutral-900">{r.name}</span>
+              <span className="flex-shrink-0 text-[11px] tabular-nums text-neutral-400">{tr('{0} users', r.users)}</span>
             </li>
           ))}
         </ul>
       )}
-      <p className="text-xs text-neutral-500">{tr('Renaming changes the name on every account that uses it. Hidden names are no longer offered; accounts keep them.')}</p>
-    </DrawerSection>
+    </div>
   );
 }

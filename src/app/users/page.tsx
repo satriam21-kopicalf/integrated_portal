@@ -4,7 +4,7 @@ import { COTR_KINDS, type CotrEmployee, type CotrKind, EmployeePicker, cotrOverr
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  AlertCircle, Briefcase, MonitorSmartphone, CheckCircle2, LayoutGrid, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
+  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
   LogIn, RefreshCw, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserCheck, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
 } from 'lucide-react';
 import BranchAssign from '@/components/BranchAssign';
@@ -13,7 +13,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import MasterCombobox from '@/components/MasterCombobox';
 import HrmsEmployeePicker, { HRMS_FIELDS, followsHrms, hrmsValue, type HrmsEmployee } from '@/components/access/HrmsEmployeePicker';
 import HrmsSyncDrawer from '@/components/access/HrmsSyncDrawer';
-import { MastersDrawer, PageAccessEditor, PlatformsDrawer, RolePagesDrawer } from '@/components/access/PageAccess';
+import { AccessSettingsDrawer, PageAccessEditor } from '@/components/access/PageAccess';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
 import { Card, EmptyState, ErrorBlock, IconButton, PageHeader, PageShell, Pill, type PillTone, SearchInput, StatCard, StatGrid, Tabs, Toolbar, ValueSkeleton, btn, kcTable } from '@/components/kc';
 import ActionMenu, { ActionItem } from '@/components/ui/ActionMenu';
@@ -37,7 +37,7 @@ function lineBranches(branches: Branch[], line: BusinessLine): Branch[] {
   return branches.filter(b => (b.company_code ?? 'CALF') === company);
 }
 import { PAGES } from '@/lib/pages';
-import { formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
+import { formatDate, formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
 import { locale, tr, serverMsg } from '@/lib/i18n';
 import { PageSkeleton } from '@/components/kc/Skeleton';
 
@@ -117,7 +117,7 @@ export default function UsersPage() {
   const [issued, setIssued] = useState<IssuedLogin | null>(null);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AuthUser | 'new' | null>(null);
-  const [panel, setPanel] = useState<'roles' | 'masters' | 'platforms' | 'hrms' | null>(null);
+  const [panel, setPanel] = useState<'access' | 'hrms' | null>(null);
   const [line, setLine] = useState<BusinessLine>('kopicalf');
   const [viewing, setViewing] = useState<AuthUser | null>(null);
   const [deleting, setDeleting] = useState<AuthUser | null>(null);
@@ -259,9 +259,7 @@ export default function UsersPage() {
         <PageHeader title={tr('User Accounts')} subtitle={tr('Sign-in, role and branch access of every dashboard user')} eyebrow={tr('Management')}
           actions={<>
             {!cotrAdmin && <>
-              <IconButton label={tr('Roles & Pages')} onClick={() => setPanel('roles')}><LayoutGrid size={17} strokeWidth={1.75} /></IconButton>
-              <IconButton label={tr('Menus per Platform')} onClick={() => setPanel('platforms')}><MonitorSmartphone size={17} strokeWidth={1.75} /></IconButton>
-              <IconButton label={tr('Job Titles & Departments')} onClick={() => setPanel('masters')}><Briefcase size={17} strokeWidth={1.75} /></IconButton>
+              <IconButton label={tr('Access Settings')} onClick={() => setPanel('access')}><ShieldCheck size={17} strokeWidth={1.75} /></IconButton>
               {me?.role === 'superadmin' && <IconButton label={tr('Sync with HRMS')} onClick={() => setPanel('hrms')}><RefreshCw size={17} strokeWidth={1.75} /></IconButton>}
             </>}
             <button type="button" className={btn('solid')} onClick={() => setEditing('new')}><Plus size={15} /> {tr('New User')}</button>
@@ -351,9 +349,7 @@ export default function UsersPage() {
       {deleting && <DeleteDialog user={deleting} onClose={() => setDeleting(null)}
         onDeleted={() => { setToast({ tone: 'ok', text: tr('User {0} deleted', deleting.username) }); setDeleting(null); load(); }}
         onError={text => setToast({ tone: 'error', text })} />}
-      {panel === 'roles' && <RolePagesDrawer onClose={() => setPanel(null)} />}
-      {panel === 'masters' && <MastersDrawer onClose={() => setPanel(null)} />}
-      {panel === 'platforms' && <PlatformsDrawer onClose={() => setPanel(null)} />}
+      {panel === 'access' && <AccessSettingsDrawer onClose={() => setPanel(null)} />}
       {panel === 'hrms' && <HrmsSyncDrawer onClose={() => setPanel(null)} onChanged={load} />}
       {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
@@ -440,6 +436,51 @@ function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code
   return <Pill tone="gray" icon={<Store size={11} className="flex-shrink-0" />} title={codes.map(branchName).join('\n')} className="max-w-[14rem]"><span className="truncate">{label}</span></Pill>;
 }
 
+/** The employee of the account left the company in HRMS (2026-11-15): only marked, the account stays as it is. */
+function HrmsLeftBadge() {
+  return <Pill tone="red" icon={<CircleAlert size={11} />} title={tr('This employee has left in HRMS. The account is only marked; deactivate it by hand if needed.')}>{tr('Left in HRMS')}</Pill>;
+}
+
+const HRMS_STATUS: Record<string, string> = { get aktif() { return tr('Active'); }, get kontrak() { return tr('Contract'); }, get percobaan() { return tr('Probation'); }, get keluar() { return tr('Left'); } };
+
+/** The HRMS employee linked to the account, read live (status, site, join date …). */
+function HrmsSection({ user }: { user: AuthUser }) {
+  const [emp, setEmp] = useState<HrmsEmployee | null | undefined>(undefined);
+  const id = user.hrmsEmployeeId;
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    fetch(`/api/hrms-sync/employees/${encodeURIComponent(id)}`).then(r => (r.ok ? r.json() : null)).then(e => { if (!cancelled) setEmp(e); }).catch(() => { if (!cancelled) setEmp(null); });
+    return () => { cancelled = true; };
+  }, [id]);
+  if (!followsHrms(user.role)) return null;
+  if (!id) {
+    return (
+      <DrawerSection title={tr('HRMS')}>
+        <p className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800"><CircleAlert size={16} /> {tr('Not linked to an HRMS employee: job title and department are filled in by hand.')}</p>
+      </DrawerSection>
+    );
+  }
+  const status = emp?.status ?? user.hrmsStatus ?? null;
+  return (
+    <DrawerSection title={tr('HRMS')} description={user.hrmsSyncedAt ? tr('Follows HRMS · last synced {0}', formatDateTime(user.hrmsSyncedAt)) : tr('Follows HRMS')}>
+      {emp === undefined ? <div className="h-16 skeleton rounded-lg" /> : (
+        <InfoGrid items={[
+          [tr('Employee status'), status ? <span key="s" className={status === 'keluar' ? 'font-medium text-red-700' : undefined}>{HRMS_STATUS[status] ?? status}</span> : null],
+          [tr('Employee Number'), emp?.employeeNo ?? user.employeeNumber],
+          [tr('Joined'), emp?.joinDate ? formatDate(emp.joinDate) : null],
+          [tr('Site'), emp?.site ?? null],
+          [tr('HRMS email'), emp?.email ?? null],
+          [tr('Linked by'), user.hrmsLinkedBy ? LINKED_BY[user.hrmsLinkedBy] ?? user.hrmsLinkedBy : null],
+        ]} />
+      )}
+      {emp === null && <p className="mt-2 text-xs text-red-600">{tr('The linked HRMS employee could not be read.')}</p>}
+    </DrawerSection>
+  );
+}
+
+const LINKED_BY: Record<string, string> = { get name() { return tr('Name'); }, get email() { return tr('Email'); }, get employee_no() { return tr('Employee Number'); }, get manual() { return tr('By hand'); } };
+
 /** the user has not filled in their own profile yet */
 function ProfileBadge() {
   return <Pill tone="amber" icon={<CircleAlert size={11} />} title={tr('Full name, phone number, job title or department is missing')}>{tr('Profile Incomplete')}</Pill>;
@@ -460,6 +501,7 @@ function UserRow({ user, isMe, branchName, onView, actions }: {
             {user.profileComplete
               ? <span className="block truncate text-xs text-neutral-500">@{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
               : <span className="mt-0.5 flex items-center gap-1.5 text-xs text-neutral-500">@{user.username} <ProfileBadge /></span>}
+            {user.hrmsLeft && <span className="mt-0.5 block"><HrmsLeftBadge /></span>}
           </span>
         </button>
       </td>
@@ -919,7 +961,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           <p className="truncate text-sm text-neutral-500">
             {[user.jobTitle, user.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}
           </p>
-          <div className="mt-2 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{!user.profileComplete && <ProfileBadge />}</div>
+          <div className="mt-2 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{user.hrmsLeft && <HrmsLeftBadge />}{!user.profileComplete && <ProfileBadge />}</div>
         </div>
       </div>
 
@@ -991,6 +1033,8 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           [tr('Work Location'), user.workBranchName || user.workBranchCode],
         ]} />
       </DrawerSection>
+
+      <HrmsSection user={user} />
 
       <DrawerSection title={tr('Personal')} description={user.profileUpdatedAt ? tr('Last updated by the user {0}', formatDateTime(user.profileUpdatedAt)) : tr('Not yet filled in by the user')}>
         <InfoGrid items={[

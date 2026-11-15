@@ -49,6 +49,9 @@ export interface AuthUser {
   hrmsLinkedBy?: string | null;
   /** profile keys that follow HRMS and are read-only */
   hrmsLocked?: string[];
+  hrmsLeft?: boolean;
+  hrmsStatus?: string | null;
+  hrmsSyncedAt?: string | null;
   /** last change the user made to their own profile */
   profileUpdatedAt: string | null;
   mustChangePassword: boolean;
@@ -110,8 +113,9 @@ export const branchScoped = (role: Role) => role === 'user' || role === 'outlet'
 export function operationsOnly(role: Role, pages: PageKey[]): boolean {
   return role !== 'superadmin' && pages.some(p => p.startsWith('form.')) && pages.every(p => OPERATIONS_PAGES.includes(p));
 }
+// role names (2026-11-16): Superadmin, Admin, Inventory Surveyor (code cost_control), User, Outlet/HUB; the codes stay
 export const ROLE_LABELS: Record<Role, string> = {
-  get superadmin() { return tr('Super Admin'); }, get admin() { return tr('Admin'); }, get cost_control() { return tr('Cost Control'); }, get user() { return tr('User'); }, get outlet() { return tr('Outlet / Hub'); },
+  get superadmin() { return tr('Superadmin'); }, get admin() { return tr('Admin'); }, get cost_control() { return tr('Inventory Surveyor'); }, get user() { return tr('User'); }, get outlet() { return tr('Outlet/HUB'); },
   get driver() { return tr('Driver (COTR)'); }, get cotr_admin() { return tr('COTR Admin'); },
 };
 export const GENDER_LABELS: Record<Gender, string> = { get male() { return tr('Male'); }, get female() { return tr('Female'); } };
@@ -225,6 +229,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => { if (!cancelled) setUser(null); });
     return () => { cancelled = true; };
   }, [setUser, router]);
+
+  // Access Settings apply right away (2026-11-16): the pages, menus and profile are read again when the tab comes back
+  // and every 30 s while it is shown; the menu re-renders only when something changed.
+  const userRef = useRef(user);
+  useEffect(() => { userRef.current = user; }, [user]);
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    let busy = false;
+    const check = async () => {
+      if (busy || document.visibilityState !== 'visible' || leaving.current) return;
+      busy = true;
+      try {
+        const res = await fetch('/api/auth/me', { cache: 'no-store' });
+        if (!res.ok) return; // 401 goes to the sign-in page through the fetch guard below
+        const next = (await res.json()).user as AuthUser;
+        if (next && JSON.stringify(next) !== JSON.stringify(userRef.current)) setUser(next);
+      } catch { /* offline: try again later */ } finally { busy = false; }
+    };
+    const timer = window.setInterval(check, 30_000);
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', check); window.removeEventListener('focus', check); };
+  }, [status, setUser]);
 
   // not signed in on a protected page -> login
   useEffect(() => {
