@@ -349,6 +349,7 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
       const r = await call<{ platforms: Record<string, PlatformKey[]> }>('/api/access/platforms', { method: 'PUT', body: JSON.stringify({ platforms: draft }) });
       setSaved(r.platforms);
       setDraft({});
+      void loadPlatforms(true);
       setMessage({ ok: true, text: tr('Saved. The menus of every app follow right away.') });
     } catch (e) {
       setMessage({ ok: false, text: (e as Error).message });
@@ -409,12 +410,51 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
   );
 }
 
+/** The apps every page is shown in (Menus per Platform: the setting, else every app that has the page), read once
+ * and shared by every tag; a save in Menus per Platform reloads it. Without access to the setting (role Admin) the
+ * pages Operations has are tagged as before. */
+type PlatformMap = Record<string, PlatformKey[]>;
+let platformsPromise: Promise<PlatformMap | null> | null = null;
+const platformListeners = new Set<(m: PlatformMap | null) => void>();
+function loadPlatforms(fresh = false): Promise<PlatformMap | null> {
+  if (fresh || !platformsPromise) {
+    platformsPromise = call<{ pages: PlatformPage[]; platforms: PlatformMap }>('/api/access/platforms')
+      .then(r => Object.fromEntries(r.pages.map(p => [p.key, r.platforms[p.key] ?? p.available])) as PlatformMap)
+      .catch(() => null);
+    void platformsPromise.then(m => platformListeners.forEach(f => f(m)));
+  }
+  return platformsPromise;
+}
+function usePlatforms(): PlatformMap | null | undefined {
+  const [map, setMap] = useState<PlatformMap | null | undefined>(undefined);
+  useEffect(() => {
+    let live = true;
+    void loadPlatforms().then(m => { if (live) setMap(m); });
+    const f = (m: PlatformMap | null) => { if (live) setMap(m); };
+    platformListeners.add(f);
+    return () => { live = false; platformListeners.delete(f); };
+  }, []);
+  return map;
+}
+
+const PLATFORM_TAG: Record<PlatformKey, { label: string; cls: string }> = {
+  portal: { label: 'Portal', cls: 'bg-neutral-100 text-neutral-700' },
+  operations: { label: 'Operations', cls: 'bg-brand-50 text-brand-700' },
+  cotr: { label: 'COTR', cls: 'bg-violet-50 text-violet-700' },
+};
+
 function OpsTag({ page }: { page: PageKey }) {
-  if (!OPERATIONS_PAGES.includes(page)) return null;
+  const map = usePlatforms();
+  const apps: PlatformKey[] = map ? map[page] ?? [] : map === null && OPERATIONS_PAGES.includes(page) ? ['operations'] : [];
+  if (!apps.length) return null;
   return (
-    <span title={tr('Also opens in Operations: {0}', OPERATIONS_URL.replace('https://', ''))}
-      className="inline-flex flex-shrink-0 items-center gap-0.5 whitespace-nowrap rounded bg-brand-50 px-1.5 py-px align-middle text-[10px] font-semibold text-brand-700">
-      <Smartphone size={10} aria-hidden /> Operations
+    <span className="inline-flex flex-shrink-0 flex-wrap gap-0.5 align-middle">
+      {ALL_PLATFORMS.filter(k => apps.includes(k)).map(k => (
+        <span key={k} title={tr('Shown in the menu of {0}', PLATFORM_LABEL[k])}
+          className={`inline-flex items-center gap-0.5 whitespace-nowrap rounded px-1.5 py-px text-[10px] font-semibold ${PLATFORM_TAG[k].cls}`}>
+          {k !== 'portal' && <Smartphone size={10} aria-hidden />} {PLATFORM_TAG[k].label}
+        </span>
+      ))}
     </span>
   );
 }

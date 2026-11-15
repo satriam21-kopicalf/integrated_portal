@@ -6816,4 +6816,5 @@ export const ID: Record<string, string> = {
   "Linked by": "Ditautkan lewat",
   "By hand": "Manual",
   "The linked HRMS employee could not be read.": "Data karyawan HRMS yang tertaut tidak dapat dibaca.",
+  "Shown in the menu of {0}": "Tampil di menu {0}",
 };
