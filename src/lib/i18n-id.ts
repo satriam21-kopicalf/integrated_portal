@@ -6793,7 +6793,7 @@ export const ID: Record<string, string> = {
   "Link by hand": "Tautkan manual",
   "Nothing here": "Tidak ada data",
   "HRMS employee": "Karyawan HRMS",
-  "Job title and department follow the employee in HRMS; they are not typed here.": "Job title dan department mengikuti karyawan di HRMS; tidak diketik di sini.",
+  "Job title and department follow the employee in HRMS; they are not typed here.": "Profil (nama, no. karyawan, gender, tanggal lahir, telepon, alamat, lokasi kerja, job title, department) mengikuti karyawan di HRMS.",
   "Follows HRMS": "Mengikuti HRMS",
   "Linked to HRMS": "Tertaut ke HRMS",
   "Unlink HRMS employee": "Lepas tautan karyawan HRMS",

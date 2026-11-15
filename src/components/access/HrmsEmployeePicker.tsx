@@ -1,7 +1,7 @@
 'use client';
 
-// The HRMS employee of a person account (backend migration 110): job title and department follow HRMS, so the
-// User Accounts form shows them read-only instead of typing them. Search by name, email or employee number.
+// The HRMS employee of a person account (backend migration 110): the profile (name, employee no., gender, birth date,
+// phone, address, work location, job title, department) follows HRMS; the User Accounts form shows those read-only. Search by name, email or employee number.
 
 import { Link2Off, Loader2, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -11,8 +11,17 @@ import { serverMsg, tr } from '@/lib/i18n';
 
 export type HrmsEmployee = {
   id: string; employeeNo: string | null; name: string; email: string | null; status: string | null;
-  jobTitle: string | null; department: string | null;
+  jobTitle: string | null; department: string | null; gender?: 'male' | 'female' | null; birthDate?: string | null;
+  phone?: string | null; address?: string | null; workBranchCode?: string | null; site?: string | null; joinDate?: string | null;
 };
+
+/** Profile keys that follow HRMS (backend app/hrms_sync.py SYNCED). */
+export const HRMS_FIELDS = ['fullName', 'employeeNumber', 'gender', 'birthDate', 'phoneNumber', 'address', 'workBranchCode', 'jobTitle', 'department'] as const;
+export function hrmsValue(e: HrmsEmployee, key: (typeof HRMS_FIELDS)[number]): string {
+  const v = { fullName: e.name, employeeNumber: e.employeeNo, gender: e.gender, birthDate: e.birthDate, phoneNumber: e.phone,
+    address: e.address, workBranchCode: e.workBranchCode, jobTitle: e.jobTitle, department: e.department }[key];
+  return (v ?? '').trim();
+}
 
 /** Roles whose job title / department follow HRMS (app/hrms_sync.py SCOPE_ROLES); outlet / hub stay manual. */
 export const HRMS_ROLES: Role[] = ['user', 'cost_control', 'admin', 'driver', 'cotr_admin'];
@@ -47,7 +56,8 @@ export default function HrmsEmployeePicker({ linked, picked, onPick, onUnlink, i
         <div className="flex items-start justify-between gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-xs">
           <span className="min-w-0">
             <span className="font-medium text-neutral-900">{picked ? `${picked.name} (${picked.employeeNo ?? '-'})` : tr('Linked to HRMS')}</span>
-            {picked && <span className="block text-neutral-600">{picked.jobTitle || '—'} · {picked.department || '—'}</span>}
+            {picked && <span className="block text-neutral-600">{picked.jobTitle || '—'} · {picked.department || '—'}{picked.site ? ` · ${picked.site}` : ''}</span>}
+            {picked?.joinDate && <span className="block text-neutral-500">{tr('Joined {0}', picked.joinDate)} · {picked.status ?? ''}</span>}
           </span>
           <button type="button" className="text-neutral-500 hover:text-red-600" onClick={onUnlink} aria-label={tr('Unlink HRMS employee')}><Link2Off size={14} /></button>
         </div>

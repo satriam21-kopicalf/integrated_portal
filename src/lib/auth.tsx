@@ -47,6 +47,8 @@ export interface AuthUser {
   /** the HRMS employee the account follows (backend migration 110): job title / department come from HRMS */
   hrmsEmployeeId?: string | null;
   hrmsLinkedBy?: string | null;
+  /** profile keys that follow HRMS and are read-only */
+  hrmsLocked?: string[];
   /** last change the user made to their own profile */
   profileUpdatedAt: string | null;
   mustChangePassword: boolean;

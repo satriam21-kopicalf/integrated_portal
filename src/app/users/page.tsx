@@ -11,7 +11,7 @@ import BranchAssign from '@/components/BranchAssign';
 import type { Branch } from '@/components/BranchFilter';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import MasterCombobox from '@/components/MasterCombobox';
-import HrmsEmployeePicker, { followsHrms, type HrmsEmployee } from '@/components/access/HrmsEmployeePicker';
+import HrmsEmployeePicker, { HRMS_FIELDS, followsHrms, hrmsValue, type HrmsEmployee } from '@/components/access/HrmsEmployeePicker';
 import HrmsSyncDrawer from '@/components/access/HrmsSyncDrawer';
 import { MastersDrawer, PageAccessEditor, PlatformsDrawer, RolePagesDrawer } from '@/components/access/PageAccess';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
@@ -539,6 +539,9 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
   const [hrmsChange, setHrmsChange] = useState<string | undefined>(undefined);
   const hrmsLinked = hrmsChange === undefined ? !!user?.hrmsEmployeeId : !!hrmsChange;
   const person = followsHrms(form.role);
+  // the profile keys shown read-only: those the picked employee has, else those the server locks for the account
+  const hrmsFields = useMemo<string[]>(() => (!person || !hrmsLinked ? []
+    : hrmsPick ? HRMS_FIELDS.filter(k => hrmsValue(hrmsPick, k)) : (user?.hrmsLocked ?? [])), [person, hrmsLinked, hrmsPick, user]);
   const [showPassword, setShowPassword] = useState(creating);
   // the username follows the full name until it is typed by hand
   const [usernameTouched, setUsernameTouched] = useState(!creating);
@@ -550,8 +553,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
     setHrmsPick(e);
     setHrmsChange(e.id);
     if (creating && !usernameTouched && !profile.fullName) set('username', suggestUsername(e.name));
-    setProfile(p => ({ ...p, fullName: p.fullName || e.name, jobTitle: e.jobTitle ?? '', department: e.department ?? '',
-      employeeNumber: p.employeeNumber || (e.employeeNo ?? '') }));
+    setProfile(p => {
+      const next = { ...p };
+      for (const k of HRMS_FIELDS) { const v = hrmsValue(e, k); if (v) (next as Record<string, string>)[k] = v; }
+      return next;
+    });
   };
   const unlinkHrms = () => { setHrmsPick(null); setHrmsChange(''); };
 
@@ -578,14 +584,14 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
     }
     body.businessLine = businessLine;
     if (person && hrmsChange !== undefined) body.hrmsEmployeeId = hrmsChange;
-    if (person && hrmsLinked) { delete body.jobTitle; delete body.department; }
+    if (person && hrmsLinked) for (const k of hrmsFields) delete body[k];
     if (cotrMode) {
       body.cotrDriver = cotrEmployee?.code ?? '';
       if (cotrKind !== 'custom' && cotrKind !== 'driver') body.pageOverrides = cotrOverrides(cotrKind, userRolePages);
       delete body.branches;
     }
     return body;
-  }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages, cotrMode, cotrEmployee, cotrKind, userRolePages, person, hrmsChange, hrmsLinked]);
+  }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages, cotrMode, cotrEmployee, cotrKind, userRolePages, person, hrmsChange, hrmsLinked, hrmsFields]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -666,7 +672,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 <input id="f-phoneNumber" type="tel" className={inputClass} value={profile.phoneNumber} maxLength={32} autoComplete="off"
                   onChange={e => setProfileField('phoneNumber', e.target.value)} />
               </Field>
-              {!(person && hrmsLinked) && <>
+              {!hrmsFields.includes('jobTitle') && <>
                 <Field label={tr('Job title')} htmlFor="f-jobTitle" error={fieldError('jobTitle')}>
                   <MasterCombobox kind="jobTitle" id="f-jobTitle" value={profile.jobTitle} onChange={v => setProfileField('jobTitle', v)}
                     canAdd placeholder={tr('PIC Outlet')} />
@@ -784,7 +790,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 <CircleAlert size={16} className="mt-0.5 flex-shrink-0" /> {tr('The user has not completed their profile yet. They can fill it in themself under My profile.')}
               </p>
             )}
-            <ProfileFields values={profile} onChange={setProfileField} fieldError={fieldError} idPrefix="f" markRequired={false} hrmsLocked={person && hrmsLinked}
+            <ProfileFields values={profile} onChange={setProfileField} fieldError={fieldError} idPrefix="f" markRequired={false} locked={hrmsFields}
               currentBranchName={user!.workBranchName} />
             <DrawerSection title={tr('Administrator Notes')} description={tr('Only visible to super admins.')}>
               <Field label={tr('Notes')} htmlFor="f-notes" error={fieldError('notes')}>

@@ -88,7 +88,7 @@ function today(): string {
 }
 
 export default function ProfileFields({
-  values, onChange, fieldError, idPrefix = 'p', markRequired = true, currentBranchName, hrmsLocked = false,
+  values, onChange, fieldError, idPrefix = 'p', markRequired = true, currentBranchName, locked = [],
 }: {
   values: ProfileValues;
   onChange: <K extends keyof ProfileValues>(key: K, value: ProfileValues[K]) => void;
@@ -98,13 +98,16 @@ export default function ProfileFields({
   markRequired?: boolean;
   /** name of the saved work location, shown if it is no longer in the branch list */
   currentBranchName?: string | null;
-  /** the account follows HRMS (migration 110): job title / department are shown, not typed */
-  hrmsLocked?: boolean;
+  /** profile keys that follow HRMS (backend app/hrms_sync.py locked): shown read-only, not typed */
+  locked?: readonly string[];
 }) {
   const branches = useBranches();
   const { user: me } = useAuth();
   const id = (name: string) => `${idPrefix}-${name}`;
   const required = (key: string) => markRequired && (REQUIRED_PROFILE_KEYS as readonly string[]).includes(key);
+  const lk = (key: string) => locked.includes(key);
+  const ro = (key: string) => (lk(key) ? { readOnly: true, className: `${inputClass} bg-neutral-50`, title: tr('Follows HRMS') } : {});
+  const hrmsHint = (key: string, hint?: string) => (lk(key) ? tr('Follows HRMS') : hint);
   const savedBranchMissing = values.workBranchCode && !branches.some(b => b.code === values.workBranchCode);
 
   return (
@@ -113,26 +116,26 @@ export default function ProfileFields({
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={tr('Full name')} htmlFor={id('name')} required={required('fullName')} error={fieldError('fullName')} className="sm:col-span-2">
             <input id={id('name')} className={inputClass} value={values.fullName} onChange={e => onChange('fullName', e.target.value)}
-              maxLength={120} autoComplete="name" placeholder={tr('As on your ID card')} />
+              maxLength={120} autoComplete="name" placeholder={tr('As on your ID card')} {...ro('fullName')} />
           </Field>
           <Field label={tr('Gender')} htmlFor={id('gender')} error={fieldError('gender')}>
-            <select id={id('gender')} className={inputClass} value={values.gender} onChange={e => onChange('gender', e.target.value as Gender | '')}>
+            <select id={id('gender')} className={inputClass} disabled={lk('gender')} value={values.gender} onChange={e => onChange('gender', e.target.value as Gender | '')}>
               <option value="">{tr('Not specified')}</option>
               {(Object.keys(GENDER_LABELS) as Gender[]).map(g => <option key={g} value={g}>{GENDER_LABELS[g]}</option>)}
             </select>
           </Field>
           <Field label={tr('Date of birth')} htmlFor={id('birth')} error={fieldError('birthDate')}>
             <input id={id('birth')} type="date" className={inputClass} value={values.birthDate} onChange={e => onChange('birthDate', e.target.value)}
-              min="1900-01-01" max={today()} autoComplete="bday" />
+              min="1900-01-01" max={today()} autoComplete="bday" {...ro('birthDate')} />
           </Field>
           <Field label={tr('Phone Number')} htmlFor={id('phone')} required={required('phoneNumber')} error={fieldError('phoneNumber')} className="sm:col-span-2"
             hint={tr('Digits, spaces, + ( ) and - only')}>
             <input id={id('phone')} type="tel" inputMode="tel" className={inputClass} value={values.phoneNumber} onChange={e => onChange('phoneNumber', e.target.value)}
-              maxLength={32} autoComplete="tel" placeholder="0812 3456 7890" />
+              maxLength={32} autoComplete="tel" placeholder="0812 3456 7890" {...ro('phoneNumber')} />
           </Field>
           <Field label={tr('Address')} htmlFor={id('address')} error={fieldError('address')} className="sm:col-span-2">
             <textarea id={id('address')} rows={2} className={`${inputClass} h-auto py-2`} value={values.address} onChange={e => onChange('address', e.target.value)}
-              maxLength={300} autoComplete="street-address" />
+              maxLength={300} autoComplete="street-address" {...ro('address')} />
           </Field>
           <Field label={tr('City')} htmlFor={id('city')} error={fieldError('city')} className="sm:col-span-2">
             <input id={id('city')} className={inputClass} value={values.city} onChange={e => onChange('city', e.target.value)} maxLength={80} autoComplete="address-level2" />
@@ -144,27 +147,18 @@ export default function ProfileFields({
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={tr('Employee Number')} htmlFor={id('employee')} error={fieldError('employeeNumber')} hint={tr('Letters, numbers, . / -')}>
             <input id={id('employee')} className={inputClass} value={values.employeeNumber} onChange={e => onChange('employeeNumber', e.target.value)}
-              maxLength={32} autoCapitalize="characters" spellCheck={false} />
+              maxLength={32} autoCapitalize="characters" spellCheck={false} {...ro('employeeNumber')} />
           </Field>
-          {hrmsLocked ? <>
-            <Field label={tr('Job title')} htmlFor={id('job')} hint={tr('Follows HRMS')}>
-              <input id={id('job')} className={`${inputClass} bg-neutral-50`} value={values.jobTitle || '—'} readOnly />
-            </Field>
-            <Field label={tr('Department')} htmlFor={id('dept')} hint={tr('Follows HRMS')}>
-              <input id={id('dept')} className={`${inputClass} bg-neutral-50`} value={values.department || '—'} readOnly />
-            </Field>
-          </> : <>
-            <Field label={tr('Job title')} htmlFor={id('job')} required={required('jobTitle')} error={fieldError('jobTitle')}>
-              <MasterCombobox kind="jobTitle" id={id('job')} value={values.jobTitle} onChange={v => onChange('jobTitle', v)}
-                canAdd={me?.role === 'superadmin'} />
-            </Field>
-            <Field label={tr('Department')} htmlFor={id('dept')} required={required('department')} error={fieldError('department')}>
-              <MasterCombobox kind="department" id={id('dept')} value={values.department} onChange={v => onChange('department', v)}
-                canAdd={me?.role === 'superadmin'} />
-            </Field>
-          </>}
+          <Field label={tr('Job title')} htmlFor={id('job')} required={!lk('jobTitle') && required('jobTitle')} error={fieldError('jobTitle')} hint={hrmsHint('jobTitle')}>
+            {lk('jobTitle') ? <input id={id('job')} value={values.jobTitle} {...ro('jobTitle')} />
+              : <MasterCombobox kind="jobTitle" id={id('job')} value={values.jobTitle} onChange={v => onChange('jobTitle', v)} canAdd={me?.role === 'superadmin'} />}
+          </Field>
+          <Field label={tr('Department')} htmlFor={id('dept')} required={!lk('department') && required('department')} error={fieldError('department')} hint={hrmsHint('department')}>
+            {lk('department') ? <input id={id('dept')} value={values.department} {...ro('department')} />
+              : <MasterCombobox kind="department" id={id('dept')} value={values.department} onChange={v => onChange('department', v)} canAdd={me?.role === 'superadmin'} />}
+          </Field>
           <Field label={tr('Work Location')} htmlFor={id('branch')} error={fieldError('workBranchCode')}>
-            <select id={id('branch')} className={inputClass} value={values.workBranchCode} onChange={e => onChange('workBranchCode', e.target.value)}>
+            <select id={id('branch')} className={inputClass} disabled={lk('workBranchCode')} value={values.workBranchCode} onChange={e => onChange('workBranchCode', e.target.value)}>
               <option value="">{tr('Not specified')}</option>
               {savedBranchMissing && <option value={values.workBranchCode}>{currentBranchName || values.workBranchCode}</option>}
               {branches.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
