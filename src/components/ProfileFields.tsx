@@ -88,7 +88,7 @@ function today(): string {
 }
 
 export default function ProfileFields({
-  values, onChange, fieldError, idPrefix = 'p', markRequired = true, currentBranchName,
+  values, onChange, fieldError, idPrefix = 'p', markRequired = true, currentBranchName, hrmsLocked = false,
 }: {
   values: ProfileValues;
   onChange: <K extends keyof ProfileValues>(key: K, value: ProfileValues[K]) => void;
@@ -98,6 +98,8 @@ export default function ProfileFields({
   markRequired?: boolean;
   /** name of the saved work location, shown if it is no longer in the branch list */
   currentBranchName?: string | null;
+  /** the account follows HRMS (migration 110): job title / department are shown, not typed */
+  hrmsLocked?: boolean;
 }) {
   const branches = useBranches();
   const { user: me } = useAuth();
@@ -144,14 +146,23 @@ export default function ProfileFields({
             <input id={id('employee')} className={inputClass} value={values.employeeNumber} onChange={e => onChange('employeeNumber', e.target.value)}
               maxLength={32} autoCapitalize="characters" spellCheck={false} />
           </Field>
-          <Field label={tr('Job title')} htmlFor={id('job')} required={required('jobTitle')} error={fieldError('jobTitle')}>
-            <MasterCombobox kind="jobTitle" id={id('job')} value={values.jobTitle} onChange={v => onChange('jobTitle', v)}
-              canAdd={me?.role === 'superadmin'} />
-          </Field>
-          <Field label={tr('Department')} htmlFor={id('dept')} required={required('department')} error={fieldError('department')}>
-            <MasterCombobox kind="department" id={id('dept')} value={values.department} onChange={v => onChange('department', v)}
-              canAdd={me?.role === 'superadmin'} />
-          </Field>
+          {hrmsLocked ? <>
+            <Field label={tr('Job title')} htmlFor={id('job')} hint={tr('Follows HRMS')}>
+              <input id={id('job')} className={`${inputClass} bg-neutral-50`} value={values.jobTitle || '—'} readOnly />
+            </Field>
+            <Field label={tr('Department')} htmlFor={id('dept')} hint={tr('Follows HRMS')}>
+              <input id={id('dept')} className={`${inputClass} bg-neutral-50`} value={values.department || '—'} readOnly />
+            </Field>
+          </> : <>
+            <Field label={tr('Job title')} htmlFor={id('job')} required={required('jobTitle')} error={fieldError('jobTitle')}>
+              <MasterCombobox kind="jobTitle" id={id('job')} value={values.jobTitle} onChange={v => onChange('jobTitle', v)}
+                canAdd={me?.role === 'superadmin'} />
+            </Field>
+            <Field label={tr('Department')} htmlFor={id('dept')} required={required('department')} error={fieldError('department')}>
+              <MasterCombobox kind="department" id={id('dept')} value={values.department} onChange={v => onChange('department', v)}
+                canAdd={me?.role === 'superadmin'} />
+            </Field>
+          </>}
           <Field label={tr('Work Location')} htmlFor={id('branch')} error={fieldError('workBranchCode')}>
             <select id={id('branch')} className={inputClass} value={values.workBranchCode} onChange={e => onChange('workBranchCode', e.target.value)}>
               <option value="">{tr('Not specified')}</option>

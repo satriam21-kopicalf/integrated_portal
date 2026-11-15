@@ -154,7 +154,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
           <p className="mt-6 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
         )}
 
-        <ProfileFields values={form} onChange={set} fieldError={fieldError} idPrefix="me" currentBranchName={user.workBranchName} />
+        <ProfileFields values={form} onChange={set} fieldError={fieldError} idPrefix="me" currentBranchName={user.workBranchName} hrmsLocked={!!user.hrmsEmployeeId} />
 
         <DrawerSection title={tr('Sign-in & Access')} description={tr('Managed by an administrator.')}>
           <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100 text-sm">

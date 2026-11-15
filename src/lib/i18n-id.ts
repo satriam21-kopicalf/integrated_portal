@@ -6792,4 +6792,10 @@ export const ID: Record<string, string> = {
   "To update": "Akan diperbarui",
   "Link by hand": "Tautkan manual",
   "Nothing here": "Tidak ada data",
+  "HRMS employee": "Karyawan HRMS",
+  "Job title and department follow the employee in HRMS; they are not typed here.": "Job title dan department mengikuti karyawan di HRMS; tidak diketik di sini.",
+  "Follows HRMS": "Mengikuti HRMS",
+  "Linked to HRMS": "Tertaut ke HRMS",
+  "Unlink HRMS employee": "Lepas tautan karyawan HRMS",
+  "No employee found": "Karyawan tidak ditemukan",
 };

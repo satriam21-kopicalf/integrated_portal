@@ -44,6 +44,9 @@ export interface AuthUser {
   branches: string[];
   /** full name, phone number, job title and department are filled in */
   profileComplete: boolean;
+  /** the HRMS employee the account follows (backend migration 110): job title / department come from HRMS */
+  hrmsEmployeeId?: string | null;
+  hrmsLinkedBy?: string | null;
   /** last change the user made to their own profile */
   profileUpdatedAt: string | null;
   mustChangePassword: boolean;
