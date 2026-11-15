@@ -5,12 +5,13 @@ import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, Briefcase, MonitorSmartphone, CheckCircle2, LayoutGrid, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
-  LogIn, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserCheck, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
+  LogIn, RefreshCw, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserCheck, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
 } from 'lucide-react';
 import BranchAssign from '@/components/BranchAssign';
 import type { Branch } from '@/components/BranchFilter';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import MasterCombobox from '@/components/MasterCombobox';
+import HrmsSyncDrawer from '@/components/access/HrmsSyncDrawer';
 import { MastersDrawer, PageAccessEditor, PlatformsDrawer, RolePagesDrawer } from '@/components/access/PageAccess';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
 import { Card, EmptyState, ErrorBlock, IconButton, PageHeader, PageShell, Pill, type PillTone, SearchInput, StatCard, StatGrid, Tabs, Toolbar, ValueSkeleton, btn, kcTable } from '@/components/kc';
@@ -115,7 +116,7 @@ export default function UsersPage() {
   const [issued, setIssued] = useState<IssuedLogin | null>(null);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AuthUser | 'new' | null>(null);
-  const [panel, setPanel] = useState<'roles' | 'masters' | 'platforms' | null>(null);
+  const [panel, setPanel] = useState<'roles' | 'masters' | 'platforms' | 'hrms' | null>(null);
   const [line, setLine] = useState<BusinessLine>('kopicalf');
   const [viewing, setViewing] = useState<AuthUser | null>(null);
   const [deleting, setDeleting] = useState<AuthUser | null>(null);
@@ -260,6 +261,7 @@ export default function UsersPage() {
               <IconButton label={tr('Roles & Pages')} onClick={() => setPanel('roles')}><LayoutGrid size={17} strokeWidth={1.75} /></IconButton>
               <IconButton label={tr('Menus per Platform')} onClick={() => setPanel('platforms')}><MonitorSmartphone size={17} strokeWidth={1.75} /></IconButton>
               <IconButton label={tr('Job Titles & Departments')} onClick={() => setPanel('masters')}><Briefcase size={17} strokeWidth={1.75} /></IconButton>
+              {me?.role === 'superadmin' && <IconButton label={tr('Sync with HRMS')} onClick={() => setPanel('hrms')}><RefreshCw size={17} strokeWidth={1.75} /></IconButton>}
             </>}
             <button type="button" className={btn('solid')} onClick={() => setEditing('new')}><Plus size={15} /> {tr('New User')}</button>
           </>} />
@@ -351,6 +353,7 @@ export default function UsersPage() {
       {panel === 'roles' && <RolePagesDrawer onClose={() => setPanel(null)} />}
       {panel === 'masters' && <MastersDrawer onClose={() => setPanel(null)} />}
       {panel === 'platforms' && <PlatformsDrawer onClose={() => setPanel(null)} />}
+      {panel === 'hrms' && <HrmsSyncDrawer onClose={() => setPanel(null)} onChanged={load} />}
       {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
       {toast && (
