@@ -13,7 +13,7 @@ import { serverMsg, tr } from '@/lib/i18n';
 
 type Emp = { id: string; employeeNo: string | null; name: string; email: string | null; status: string | null; jobTitle: string | null; department: string | null };
 type Row = {
-  id: string; username: string; name: string | null; role: string; isActive: boolean; jobTitle: string | null; department: string | null;
+  id: string; username: string; name: string | null; role: string; businessLine: string | null; isActive: boolean; jobTitle: string | null; department: string | null;
   match: 'linked' | 'name' | 'email' | 'employee_no' | 'ambiguous' | 'none'; employee: Emp | null; candidates: Emp[];
   changes: boolean; employeeLeft: boolean;
 };
@@ -23,6 +23,8 @@ const MATCH: Record<Row['match'], [string, PillTone]> = {
   linked: ['Linked', 'brand'], name: ['By name', 'teal'], email: ['By email', 'teal'], employee_no: ['By employee no.', 'teal'],
   ambiguous: ['Several employees', 'amber'], none: ['Not found', 'red'],
 };
+
+const LINE: Record<string, string> = { kopicalf: 'Kopi Calf', wasgee: 'Wasgee', cotr: 'COTR' };
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { cache: 'no-store', headers: { 'Content-Type': 'application/json' }, ...init });
@@ -96,6 +98,7 @@ function SyncRow({ row, onApply, onLinked, busy }: { row: Row; onApply: () => vo
           <p className="truncate text-xs text-neutral-500">{row.username}{row.employee && ` → ${row.employee.name} (${row.employee.employeeNo ?? '-'})`}</p>
         </div>
         <div className="flex flex-shrink-0 flex-wrap justify-end gap-1">
+          {row.businessLine && <Pill tone="gray">{LINE[row.businessLine] ?? row.businessLine}</Pill>}
           <Pill tone={tone}>{tr(label)}</Pill>
           {row.employeeLeft && <Pill tone="red">{tr('Left in HRMS')}</Pill>}
         </div>
@@ -149,7 +152,7 @@ export default function HrmsSyncDrawer({ onClose, onChanged }: { onClose: () => 
 
   return (
     <Drawer open size="lg" title={tr('Sync with HRMS')} onClose={onClose}
-      description={tr('Job title and department of User, Cost Control and Admin accounts follow HRMS. Outlet / hub accounts, sign-in, role and pages are not changed.')}
+      description={tr('Job title and department of User, Cost Control, Admin and COTR driver accounts follow HRMS. Outlet / hub accounts, sign-in, role and pages are not changed.')}
       footer={<>
         <button type="button" className={buttonSecondary} onClick={() => void load()} disabled={busy}><RefreshCw size={14} /> {tr('Refresh')}</button>
         <button type="button" className={buttonPrimary} disabled={busy || !counts.changes} onClick={() => void apply()}>

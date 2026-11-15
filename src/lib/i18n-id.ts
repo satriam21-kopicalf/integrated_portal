@@ -6769,7 +6769,7 @@ export const ID: Record<string, string> = {
   "Drag to change the order": "Seret untuk mengubah urutan",
   "Drag a row to change the order of the items; the forms of Operations follow it.": "Seret baris untuk mengubah urutan butir; form di Operations mengikutinya.",
   "Sync with HRMS": "Sinkron dengan HRMS",
-  "Job title and department of User, Cost Control and Admin accounts follow HRMS. Outlet / hub accounts, sign-in, role and pages are not changed.": "Job title dan department akun User, Cost Control dan Admin mengikuti HRMS. Akun outlet / hub, login, role dan halaman tidak diubah.",
+  "Job title and department of User, Cost Control, Admin and COTR driver accounts follow HRMS. Outlet / hub accounts, sign-in, role and pages are not changed.": "Job title dan department akun User, Cost Control, Admin dan driver COTR mengikuti HRMS. Akun outlet / hub, login, role dan halaman tidak diubah.",
   "Linked": "Tertaut",
   "By name": "Cocok nama",
   "By email": "Cocok email",
