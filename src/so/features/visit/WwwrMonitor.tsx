@@ -5,7 +5,7 @@
 // (every audit sent against the latest Product and Outlet visits of the PIC of the outlet in the 7 days before: per PIC
 // the conformity, the items the PIC passed and the team found UNDER; one audit item by item in a drawer).
 
-import { AlertTriangle, CalendarPlus, CheckCircle2, Copy, Crown, Printer, Pencil, Scale, Search, Trash2, UsersRound } from "lucide-react";
+import { CalendarPlus, CheckCircle2, Copy, Crown, Printer, Pencil, Scale, Search, Trash2, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, Field, Panel, cx, fmtNumber, inputClass, theadClass, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -60,11 +60,6 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
         <label className="flex items-center gap-1.5 text-xs text-neutral-500"><input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} /> {tr("Show cancelled")}</label>
         <Button size="sm" onClick={() => setEdit("new")} disabled={!team.length}><CalendarPlus size={14} /> {tr("New audit")}</Button>
       </>}>
-      {!team.length && rows && (
-        <p className="m-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-          <AlertTriangle size={14} className="mt-px flex-shrink-0" /> {tr("No SWAT account yet: give the page “WW-WR (form, SWAT)” to the team in User Accounts.")}
-        </p>
-      )}
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <SkeletonList rows={4} /> : list.length === 0 ? (
         <Empty icon={<CalendarPlus size={28} />} title={tr("No audit scheduled")}>{tr("Schedule the first audit with New audit.")}</Empty>
       ) : (
@@ -121,11 +116,9 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
   const [note, setNote] = useState(audit?.note ?? "");
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
-  // the SWAT team first, the others only when asked (2026-11-09); the members already chosen always show
+  // every user can be in the team (2026-11-16, no SWAT-only list); the SWAT job title is still marked and listed first
   const isSwat = (t: Person) => (t.jobTitle ?? "").trim().toUpperCase() === "SWAT";
-  const [swatOnly, setSwatOnly] = useState(() => team.some(isSwat));
-  const shown = team.filter((t) => (!swatOnly || isSwat(t) || members.has(t.id) || lead === t.id)
-      && (!q.trim() || t.name.toLowerCase().includes(q.trim().toLowerCase()) || (t.username ?? "").includes(q.trim().toLowerCase())))
+  const shown = team.filter((t) => (!q.trim() || t.name.toLowerCase().includes(q.trim().toLowerCase()) || (t.username ?? "").includes(q.trim().toLowerCase())))
     .sort((a, b) => Number(isSwat(b)) - Number(isSwat(a)) || a.name.localeCompare(b.name));
   const toggle = (id: string) => setMembers((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const outlets = useMemo(() => branches.filter((b) => b.branch_name.startsWith("Kopi Calf")).map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code })), [branches]);
@@ -160,8 +153,7 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search member")} className={cx(inputClass, "h-9 pl-8 text-sm")} />
               </div>
-              <label className="flex flex-shrink-0 items-center gap-1.5 text-xs font-medium text-neutral-600">
-                <input type="checkbox" checked={swatOnly} onChange={(e) => setSwatOnly(e.target.checked)} />{tr("SWAT team only ({0})", team.filter(isSwat).length)}</label>
+              <span className="flex-shrink-0 text-xs text-neutral-400">{tr("{0} users", team.length)}</span>
             </div>
             <ul className="max-h-64 divide-y divide-neutral-100 overflow-y-auto">
               {shown.map((t) => {
