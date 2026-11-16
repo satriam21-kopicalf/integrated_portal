@@ -9,7 +9,7 @@ import { Badge, cx } from "@/so/ui";
 import { FormCard } from "@/so/ui/Simple";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_LABEL, STATUS_TONE, STEPS, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
+import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_LABEL, STATUS_TONE, STEPS_OF, statusLabel, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
 
 const EVENT_LABEL: Record<DeEvent["kind"], () => string> = {
   SUBMIT: () => tr("Request sent"), STATUS: () => tr("Status"), ASSIGN: () => tr("Technician assigned"), RELEASE: () => tr("Technician released"),
@@ -17,8 +17,8 @@ const EVENT_LABEL: Record<DeEvent["kind"], () => string> = {
   WORK: () => tr("Technician photo link"), TARGET: () => tr("Target adjusted"), HANDOVER: () => tr("Handover from the PIC"),
 };
 
-export function StatusBadge({ r }: { r: Pick<Request, "status"> }) {
-  return <Badge tone={STATUS_TONE[r.status]} dot>{STATUS_LABEL[r.status]()}</Badge>;
+export function StatusBadge({ r }: { r: Pick<Request, "status" | "kind"> }) {
+  return <Badge tone={STATUS_TONE[r.status]} dot>{statusLabel(r.kind, r.status)}</Badge>;
 }
 
 export function UrgencyBadge({ u }: { u: Request["urgency"] }) {
@@ -28,6 +28,7 @@ export function UrgencyBadge({ u }: { u: Request["urgency"] }) {
 /** Pending → … → Done with the current step; on hold / reject shown on the step where it stopped. */
 export function Steps({ r }: { r: Request }) {
   const at = r.status === "ON_HOLD" ? r.holdFrom : r.status;
+  const STEPS = STEPS_OF[r.kind];
   const idx = at ? STEPS.indexOf(at) : -1;
   return (
     <div>
@@ -43,7 +44,7 @@ export function Steps({ r }: { r: Request }) {
                   : "bg-neutral-200 text-neutral-500")}>
                 {done ? <Check size={13} /> : here && r.status === "ON_HOLD" ? <PauseCircle size={13} /> : here && r.status === "REJECTED" ? <XCircle size={13} /> : i + 1}
               </span>
-              <span className={cx("mt-1 text-[10px] font-medium leading-tight sm:text-[11px]", done || here ? "text-neutral-900" : "text-neutral-400")}>{STATUS_LABEL[s]()}</span>
+              <span className={cx("mt-1 text-[10px] font-medium leading-tight sm:text-[11px]", done || here ? "text-neutral-900" : "text-neutral-400")}>{statusLabel(r.kind, s)}</span>
             </li>
           );
         })}

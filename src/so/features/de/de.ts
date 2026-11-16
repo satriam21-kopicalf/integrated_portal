@@ -1,14 +1,18 @@
-// Maintenance Request (integrated_portal_be app/damaged_equipment.py): types, labels and helpers shared by the form (PIC),
-// the monitoring (Maintenance / procurement team) and the public share page.
+// Maintenance and Procurement (integrated_portal_be app/damaged_equipment.py): types, labels and helpers shared by the two
+// forms (PIC), the monitoring (one page, a tab per form) and the public share page. 2026-11-16 (migration 114): each form
+// has its categories and flow; the urgency comes from the impact / reason and the branch's sales tier (priority()).
 
 import { downloadFile } from "@/lib/download-progress";
 import { tr } from "@/lib/i18n";
 import type { Tone } from "@/so/ui";
 
 export type Kind = "REPAIR" | "PROCUREMENT";
-export type Status = "DRAFT" | "PENDING" | "VALIDATION" | "REVIEW" | "ON_HOLD" | "ACCEPTED" | "IN_PROGRESS" | "HANDOVER" | "DONE" | "REJECTED";
+export type Status = "DRAFT" | "PENDING" | "ON_HOLD" | "ACCEPTED" | "IN_PROGRESS" | "ORDERED" | "HANDOVER" | "DONE" | "REJECTED";
+export type Impact = "STOPS" | "DEGRADED" | "MINOR";
+export type Reason = "REPLACE" | "CAPACITY" | "OTHER";
+export type Tier = "A" | "B" | "C";
 export type Urgency = "CRITICAL" | "HIGH" | "NORMAL" | "LOW" | "PLANNED";
-export type Category = { id: number; group: string; name: string; defaultUrgency: Urgency; examples: string[]; sort: number; isActive: boolean;
+export type Category = { id: number; kind?: Kind; group: string; name: string; defaultUrgency: Urgency; examples: string[]; sort: number; isActive: boolean;
   /** branch groups (ids) the category is offered to; [] = every branch */ branchGroups: string[] };
 export type Item = { id?: number; categoryId: number; group?: string; category?: string; name: string; qty: number; location: string | null;
   urgency: Urgency; note: string | null };
@@ -29,6 +33,8 @@ export type Request = {
   id: string; number: string | null; kind: Kind; kindLabel: string; status: Status; statusLabel: string; holdFrom: Status | null;
   userId?: string; username: string; picName: string; branchCode: string; branchName: string; analysis: string | null; cause: string | null;
   urgency: Urgency; urgencyLabel: string; distanceM: number | null; outsideRadius: boolean;
+  /** Maintenance: impact on the outlet; Procurement: why it is bought; tier: the branch's sales tier (A top 20 %) */
+  impact?: Impact | null; reason?: Reason | null; tier?: Tier | null; orderedAt?: string | null;
   signature: { name: string | null; signedAt: string | null } | null; estCost: number | null; actualCost: number | null; vendor: string | null;
   duplicateOf: { id: string; number: string | null } | null; createdAt: string; updatedAt: string; submittedAt: string | null; closedAt: string | null;
   items?: Item[]; media?: Media[]; events?: DeEvent[]; assignments?: Assignment[]; tracker?: Tracker; technicians?: string[];
@@ -74,22 +80,41 @@ export type FormState = { user: { id: string; name: string }; branches: Branch[]
   /** the branch group of each branch (categories can be limited to groups) */ branchGroups: Record<string, string | null>;
   /** merchandise of the ESB menu (MERCH; a T-shirt takes a size of MERCH SIZE), picked in the category group Merchandise */
   merchandise?: { items: { name: string; sized: boolean }[]; sizes: string[] };
-  limits: { photos: number; videoBytes: number; items: number } };
+  limits: { photos: number; videoBytes: number; items: number };
+  /** the sales tier of each branch of the user and the priority matrix (impact / reason × tier → urgency) */
+  tiers?: Record<string, Tier>; priority?: Record<string, Record<Tier, Urgency>> };
 
-export const KIND_LABEL: Record<Kind, () => string> = {
-  REPAIR: () => "Maintenance", PROCUREMENT: () => tr("Procurement (Decoration, Tools & Merchandise)"),
-};
+export const KIND_LABEL: Record<Kind, () => string> = { REPAIR: () => "Maintenance", PROCUREMENT: () => "Procurement" };
 export const STATUS_LABEL: Record<Status, () => string> = {
-  DRAFT: () => tr("Draft"), PENDING: () => "Pending", VALIDATION: () => tr("Validation"), REVIEW: () => "Review", ON_HOLD: () => "On hold",
-  ACCEPTED: () => "Accept", IN_PROGRESS: () => tr("In Progress"), HANDOVER: () => tr("Handover"), DONE: () => "Done", REJECTED: () => "Reject",
+  DRAFT: () => tr("Draft"), PENDING: () => tr("Submitted"), ON_HOLD: () => "On hold", ACCEPTED: () => tr("Approved"),
+  IN_PROGRESS: () => tr("In Progress"), ORDERED: () => tr("Ordered"), HANDOVER: () => tr("Handover"), DONE: () => tr("Done"), REJECTED: () => tr("Rejected"),
 };
+/** a purchase is received, not handed over */
+export const statusLabel = (kind: Kind, s: Status) => (kind === "PROCUREMENT" && s === "HANDOVER" ? tr("Received by the PIC") : STATUS_LABEL[s]());
 export const STATUS_TONE: Record<Status, Tone> = {
-  DRAFT: "slate", PENDING: "slate", VALIDATION: "blue", REVIEW: "violet", ON_HOLD: "amber", ACCEPTED: "blue", IN_PROGRESS: "blue",
+  DRAFT: "slate", PENDING: "slate", ON_HOLD: "amber", ACCEPTED: "blue", IN_PROGRESS: "blue", ORDERED: "violet",
   HANDOVER: "cyan", DONE: "green", REJECTED: "red",
 };
-/** the steps every request goes through (on hold and reject are side ways) */
-export const STEPS: Status[] = ["PENDING", "VALIDATION", "REVIEW", "ACCEPTED", "IN_PROGRESS", "HANDOVER", "DONE"];
-export const OPEN: Status[] = ["PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "HANDOVER"];
+/** the steps of each form (on hold and reject are side ways) */
+export const STEPS_OF: Record<Kind, Status[]> = {
+  REPAIR: ["PENDING", "ACCEPTED", "IN_PROGRESS", "HANDOVER", "DONE"],
+  PROCUREMENT: ["PENDING", "ACCEPTED", "ORDERED", "HANDOVER", "DONE"],
+};
+export const STEPS: Status[] = STEPS_OF.REPAIR;
+export const OPEN: Status[] = ["PENDING", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "ORDERED", "HANDOVER"];
+export const IMPACTS: { value: Impact; label: () => string; hint: () => string }[] = [
+  { value: "STOPS", label: () => tr("Stops sales"), hint: () => tr("The outlet cannot sell (main machine dead, cannot open)") },
+  { value: "DEGRADED", label: () => tr("Disturbs work"), hint: () => tr("It runs, but slower or only partly") },
+  { value: "MINOR", label: () => tr("Does not disturb"), hint: () => tr("Looks or comfort; sales go on as usual") },
+];
+export const REASONS: { value: Reason; label: () => string; hint: () => string }[] = [
+  { value: "REPLACE", label: () => tr("Replace a broken tool"), hint: () => tr("The old one cannot be repaired any more") },
+  { value: "CAPACITY", label: () => tr("Add capacity"), hint: () => tr("More of it is needed for the sales") },
+  { value: "OTHER", label: () => tr("Decoration & other"), hint: () => tr("Looks, merchandise, new things") },
+];
+export const TIER_LABEL: Record<Tier, () => string> = {
+  A: () => tr("Tier A · top 20% sales"), B: () => tr("Tier B · middle sales"), C: () => tr("Tier C · bottom 20% sales"),
+};
 export const URGENCIES: Urgency[] = ["CRITICAL", "HIGH", "NORMAL", "LOW", "PLANNED"];
 export const URGENCY_LABEL: Record<Urgency, () => string> = {
   CRITICAL: () => tr("Critical"), HIGH: () => tr("High"), NORMAL: () => "Normal", LOW: () => tr("Low"), PLANNED: () => tr("Planned"),

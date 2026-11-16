@@ -1,6 +1,6 @@
 "use client";
 
-// Monitoring → Maintenance Request (page mon.damaged-equipment): see so/features/de/DeMonitor.
+// Monitoring → Maintenance & Procurement (page mon.damaged-equipment): see so/features/de/DeMonitor.
 
 import DeMonitor from "@/so/features/de/DeMonitor";
 

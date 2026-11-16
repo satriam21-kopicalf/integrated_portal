@@ -76,7 +76,8 @@ export const forms: { title: string; hint: string; icon: typeof Users; items: Cc
     { get name() { return 'WW-WR'; }, href: '/forms/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audit of the outlet'); } },
   ] },
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Repairs and procurement of the outlet'); }, icon: Wrench, items: [
-    { get name() { return tr('Maintenance Request'); }, href: '/forms/damaged-equipment', icon: Wrench, get description() { return tr('Repair & procurement requests'); } },
+    { get name() { return 'Maintenance'; }, href: '/forms/damaged-equipment', icon: Wrench, get description() { return tr('Something at the outlet is broken'); } },
+    { get name() { return 'Procurement'; }, href: '/forms/procurement', icon: ShoppingCart, get description() { return tr('Heavy tools, tools, decoration to buy'); } },
   ] },
   { get title() { return tr('Finance'); }, get hint() { return tr('Petty cash and other requests of the outlet'); }, icon: Wallet, items: [
     { get name() { return tr('Fund Request'); }, href: '/forms/pengajuan', icon: Wallet, get description() { return tr('Petty cash with receipts'); } },
@@ -97,7 +98,7 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
     { get name() { return 'WW-WR'; }, href: '/monitoring/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audits, comparison with the PIC & schedule'); } },
   ] },
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Requests of every outlet'); }, icon: Wrench, items: [
-    { get name() { return tr('Maintenance Request'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },
+    { get name() { return tr('Maintenance & Procurement'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },
   ] },
   { get title() { return tr('Finance'); }, get hint() { return tr('Requests of the outlets: verify, approve, pay'); }, icon: Wallet, items: [
     { get name() { return tr('Fund Request'); }, href: '/monitoring/pengajuan', icon: Wallet, get description() { return tr('Petty cash, receipts & approvals'); } },

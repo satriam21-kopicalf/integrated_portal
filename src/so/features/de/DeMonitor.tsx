@@ -1,13 +1,14 @@
 "use client";
 
-// Monitoring → Maintenance Request (page mon.damaged-equipment): tabs Requests · Overview · Technicians · Categories.
+// Monitoring → Maintenance & Procurement (page mon.damaged-equipment): a tab per form (Maintenance | Procurement), then
+// Requests · Overview · Technicians (Maintenance only) · Categories of that form.
 // Requests: status tabs and one Filters sheet, grouped per branch / PIC / list. A request opens in a drawer: its head
 // (status, estimated finish, steps) and tabs Handling (next step with what is still missing, estimated finish, technicians
 // — internal or vendor, never both —, work photos via the technician link (internal), the PIC's handover, cost & invoices,
 // duplicates), the request and its history. Overview: the analysis of every request and its handling (DeOverview).
 
 import { AlertTriangle, BarChart3, CalendarClock, Camera, Check, ChevronDown, ChevronRight, Clock, Copy, Hammer, Handshake, Link2, ListChecks,
-  MessageCircle, Paperclip, PenLine, Plus, Save, Shuffle, Tags, Trash2, Upload, Users, Wrench, X } from "lucide-react";
+  MessageCircle, Paperclip, PenLine, Plus, Save, Shuffle, ShoppingCart, Tags, Trash2, Upload, Users, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -25,7 +26,7 @@ import { type Approver, type StepEdit, StepRow } from "@/so/features/pengajuan/P
 import { useAuth } from "@/lib/auth";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, KIND_LABEL, OPEN, PORTAL_URLS,
-  STATUS_LABEL, STEPS, URGENCIES, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, workUrl } from "./de";
+  STATUS_LABEL, STEPS_OF, URGENCIES, statusLabel, type Kind, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, workUrl } from "./de";
 
 type Result = { period: { from: string; to: string }; data: Request[]; categories: Category[]; technicians: Technician[] };
 /** group = category group (Utilitas …), bgroup = branch group (CCI, CTG, CTGP: Monitoring → Branch groups) */
@@ -34,14 +35,14 @@ type F = { period: Period; kind: string; urgency: string; group: string; tech: s
 const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "", urgency: "", group: "", tech: "", overdue: false, by: "branch",
   bgroup: "", branch: "", pic: "" });
 type GroupOpt = { id: string; code: string; name: string };
-const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", VALIDATION: "bg-sky-500", REVIEW: "bg-violet-500", ON_HOLD: "bg-amber-500",
+const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", ORDERED: "bg-violet-500", ON_HOLD: "bg-amber-500",
   ACCEPTED: "bg-brand-500", IN_PROGRESS: "bg-brand-700", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
 const STRIPE: Record<Urgency, string> = { CRITICAL: "border-l-red-500", HIGH: "border-l-amber-400", NORMAL: "border-l-brand-400", LOW: "border-l-neutral-300", PLANNED: "border-l-violet-400" };
-const TABS: (Status | "" | "OPEN")[] = ["OPEN", "", "PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "DONE", "REJECTED"];
+const TABS: (Status | "" | "OPEN")[] = ["OPEN", "", "PENDING", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "ORDERED", "HANDOVER", "DONE", "REJECTED"];
 const OPEN_SET = new Set<Status>(OPEN);
 const urgRank = (u: Urgency) => URGENCIES.indexOf(u);
 type PageTab = "requests" | "overview" | "tech" | "cat";
-const stepOf = (r: Request) => (r.status === "DONE" ? STEPS.length : Math.max(0, STEPS.indexOf((r.status === "ON_HOLD" ? r.holdFrom : r.status) ?? "PENDING")) + 1);
+const stepOf = (r: Request) => (r.status === "DONE" ? STEPS_OF[r.kind].length : Math.max(0, STEPS_OF[r.kind].indexOf((r.status === "ON_HOLD" ? r.holdFrom : r.status) ?? "PENDING")) + 1);
 
 export default function DeMonitor() {
   const [approvals, setApprovals] = useState(false);
@@ -53,6 +54,7 @@ export default function DeMonitor() {
   const [sheet, setSheet] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [tab, setTab] = useState<PageTab>("requests");
+  const [kind, setKind] = useState<Kind>("REPAIR");
   const [bgroups, setBgroups] = useState<GroupOpt[]>([]);
 
   const load = useCallback(async () => {
@@ -66,10 +68,10 @@ export default function DeMonitor() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setBgroups(r.groups)).catch(() => setBgroups([])); }, []);
 
-  const all = useMemo(() => res?.data ?? [], [res]);
+  const all = useMemo(() => (res?.data ?? []).filter((r) => r.kind === kind), [res, kind]);
   const base = useMemo(() => {
     const s = search.trim().toLowerCase();
-    return all.filter((r) => (!f.kind || r.kind === f.kind) && (!f.urgency || r.urgency === f.urgency) && (!f.overdue || r.tracker?.overdue)
+    return all.filter((r) => (!f.urgency || r.urgency === f.urgency) && (!f.overdue || r.tracker?.overdue)
       && (!f.branch || r.branchCode === f.branch) && (!f.pic || r.username === f.pic)
       && (!f.group || (r.items ?? []).some((i) => i.group === f.group)) && (!f.tech || (r.technicians ?? []).includes(f.tech))
       && (!s || `${r.number} ${r.branchName} ${r.picName} ${(r.items ?? []).map((i) => i.name).join(" ")}`.toLowerCase().includes(s)));
@@ -87,7 +89,6 @@ export default function DeMonitor() {
   const def = NO_F();
   const chips: ActiveFilter[] = [
     ...(f.period.from !== def.period.from || f.period.to !== def.period.to ? [{ key: "p", label: `${dmy(f.period.from)} – ${dmy(f.period.to)}`, onRemove: () => setF({ ...f, period: def.period }) }] : []),
-    ...(f.kind ? [{ key: "k", label: f.kind === "REPAIR" ? "Maintenance" : tr("Procurement"), onRemove: () => setF({ ...f, kind: "" }) }] : []),
     ...(f.urgency ? [{ key: "u", label: URGENCY_LABEL[f.urgency as Urgency](), onRemove: () => setF({ ...f, urgency: "" }) }] : []),
     ...(f.group ? [{ key: "g", label: f.group, onRemove: () => setF({ ...f, group: "" }) }] : []),
     ...(f.tech ? [{ key: "t", label: f.tech, onRemove: () => setF({ ...f, tech: "" }) }] : []),
@@ -114,7 +115,7 @@ export default function DeMonitor() {
   }, [rows, f.by]);
 
   return (
-    <Page title={tr("Monitoring Maintenance Request")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("repair & procurement requests of every outlet")}`}
+    <Page title={tr("Monitoring Maintenance & Procurement")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("repair & procurement requests of every outlet")}`}
       actions={<Button variant="secondary" onClick={() => setApprovals(true)}><ListChecks size={15} /> {tr("Approvals")}</Button>}
       stats={tab !== "requests" ? undefined : 
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
@@ -133,9 +134,22 @@ export default function DeMonitor() {
           </Stat>
         </StatStrip>
       }>
+      <div className="flex gap-1 rounded-2xl border border-neutral-200/70 bg-white p-1.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]" role="tablist" aria-label={tr("Form")}>
+        {(["REPAIR", "PROCUREMENT"] as Kind[]).map((k) => {
+          const n = (res?.data ?? []).filter((r) => r.kind === k && OPEN.includes(r.status)).length;
+          return (
+            <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => { setKind(k); if (k === "PROCUREMENT" && tab === "tech") setTab("requests"); }}
+              className={cx("inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors",
+                kind === k ? "bg-brand-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900")}>
+              {k === "REPAIR" ? <Hammer size={16} /> : <ShoppingCart size={16} />}{KIND_LABEL[k]()}
+              {res && <span className={cx("rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums", kind === k ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500")}>{fmtNumber(n)}</span>}
+            </button>
+          );
+        })}
+      </div>
       <div className="flex gap-x-6 overflow-x-auto rounded-2xl border border-neutral-200/70 bg-white px-5 pt-3.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]" role="tablist" aria-label={tr("Sections")}>
         {([["requests", tr("Requests"), <ListChecks key="r" size={15} />], ["overview", "Overview", <BarChart3 key="o" size={15} />],
-          ["tech", tr("Technicians"), <Users key="t" size={15} />], ["cat", tr("Categories"), <Tags key="c" size={15} />]] as [PageTab, string, React.ReactNode][]).map(([k, label, icon]) => (
+          ["tech", tr("Technicians"), <Users key="t" size={15} />], ["cat", tr("Categories"), <Tags key="c" size={15} />]] as [PageTab, string, React.ReactNode][]).filter(([k]) => k !== "tech" || kind === "REPAIR").map(([k, label, icon]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cx("relative inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-3.5 text-xs font-bold transition-colors",
               tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
@@ -146,18 +160,18 @@ export default function DeMonitor() {
 
       {tab === "overview" && <DeOverview bgroups={bgroups} />}
       {tab === "tech" && <TechniciansDrawer groups={groups} onClose={() => void load()} />}
-      {tab === "cat" && <CategoriesDrawer bgroups={bgroups} onClose={() => void load()} />}
+      {tab === "cat" && <CategoriesDrawer key={kind} kind={kind} bgroups={bgroups} onClose={() => void load()} />}
 
       {tab === "requests" && <Panel title={tr("Requests")} description={tr("Most urgent first; tap a request to handle it")}
         toolbar={<>
           <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist" aria-label={tr("Status")}>
-            {TABS.map((t) => {
+            {TABS.filter((t) => !t || t === "OPEN" || t === "ON_HOLD" || t === "REJECTED" || STEPS_OF[kind].includes(t)).map((t) => {
               const on = status === t;
               return (
                 <button key={t || "all"} type="button" role="tab" aria-selected={on} onClick={() => setStatus(t)}
                   className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
                   {t && t !== "OPEN" && <span className={cx("h-2 w-2 rounded-full", DOT[t])} aria-hidden />}
-                  {t === "OPEN" ? tr("Open") : t ? STATUS_LABEL[t]() : tr("All")}
+                  {t === "OPEN" ? tr("Open") : t ? statusLabel(kind, t) : tr("All")}
                   <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-brand-700 text-white" : "bg-white text-neutral-700")}>{fmtNumber(count(t))}</span>
                 </button>
               );
@@ -254,8 +268,8 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
                 <td className="px-3 py-3">
                   <StatusBadge r={r} />
                   <span className="mt-1.5 flex items-center gap-1.5">
-                    <span className="flex gap-0.5">{STEPS.map((s, i) => <span key={s} className={cx("h-1 w-3.5 rounded-full", r.status === "REJECTED" ? "bg-red-300" : i < stepOf(r) ? (r.status === "DONE" ? "bg-emerald-500" : r.status === "ON_HOLD" ? "bg-amber-400" : "bg-brand-600") : "bg-neutral-200")} />)}</span>
-                    <span className="text-[10px] tabular-nums text-neutral-400">{stepOf(r)}/{STEPS.length}</span>
+                    <span className="flex gap-0.5">{STEPS_OF[r.kind].map((s, i) => <span key={s} className={cx("h-1 w-3.5 rounded-full", r.status === "REJECTED" ? "bg-red-300" : i < stepOf(r) ? (r.status === "DONE" ? "bg-emerald-500" : r.status === "ON_HOLD" ? "bg-amber-400" : "bg-brand-600") : "bg-neutral-200")} />)}</span>
+                    <span className="text-[10px] tabular-nums text-neutral-400">{stepOf(r)}/{STEPS_OF[r.kind].length}</span>
                   </span>
                 </td>
                 <td className="whitespace-nowrap px-3 py-3 text-right text-xs">
@@ -302,10 +316,6 @@ function MonitorFilters({ value, groups, bgroups, branches, pics, technicians, o
           <SearchChoice label="" anyLabel={tr("All PICs")} value={d.pic} onChange={(v) => setD({ ...d, pic: v })} placeholder={tr("Search PIC")} options={pics} />
         </FilterSection>
       )}
-      <FilterSection title={tr("Type")}>
-        <ChoiceGroup label="" value={d.kind} onChange={(v) => setD({ ...d, kind: v })}
-          choices={[{ value: "", label: tr("All") }, { value: "REPAIR", label: "Maintenance" }, { value: "PROCUREMENT", label: tr("Procurement") }]} />
-      </FilterSection>
       <FilterSection title={tr("Urgency")}>
         <ChoiceGroup label="" value={d.urgency} onChange={(v) => setD({ ...d, urgency: v })}
           choices={[{ value: "", label: tr("All") }, ...URGENCIES.map((u) => ({ value: u, label: URGENCY_LABEL[u]() }))]} />
@@ -383,7 +393,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
     }
   };
   const go = async (to: Status) => {
-    if (await act(`/api/de/monitor/${id}/status`, { to, note: note || null }, tr("Status: {0}", STATUS_LABEL[to]()))) setNote("");
+    if (await act(`/api/de/monitor/${id}/status`, { to, note: note || null }, tr("Status: {0}", statusLabel(r?.kind ?? "REPAIR", to)))) setNote("");
   };
   const addAfter = async (shot: Shot) => {
     try {
@@ -431,7 +441,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const ho = r?.handover;
   // what still blocks a step (shown under the buttons, the button disabled)
   const { user: me } = useAuth();
-  const approval = r?.status === "REVIEW" ? r.approval : null;
+  const approval = r?.status === "PENDING" ? r.approval : null;
   const myStep = !approval || me?.role === "superadmin" || approval.userIds.includes(me?.id ?? "");
   const blocker = (to: Status): string | null => {
     if (!r) return null;
@@ -484,9 +494,9 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                     <Button key={to} size="sm" variant={to === "REJECTED" ? "danger" : to === "ON_HOLD" || (to === "IN_PROGRESS" && r.status === "HANDOVER") ? "secondary" : "primary"}
                       disabled={busy || (noteNeeded(to) && !note.trim()) || !!blocker(to)}
                       onClick={() => void go(to)}>{to === "DONE" && <Check size={14} />}{to === "HANDOVER" && <Handshake size={14} />}
-                      {r.status === "ON_HOLD" && to === r.holdFrom ? tr("Resume: {0}", STATUS_LABEL[to]()) : to === "HANDOVER" ? tr("Request handover from the PIC")
+                      {r.status === "ON_HOLD" && to === r.holdFrom ? tr("Resume: {0}", statusLabel(r?.kind ?? "REPAIR", to)) : to === "HANDOVER" ? tr("Request handover from the PIC")
                         : to === "IN_PROGRESS" && r.status === "HANDOVER" ? tr("Back to in progress (redo)")
-                        : to === "ACCEPTED" && approval && approval.position < approval.total ? tr("Approve: {0}", approval.label) : STATUS_LABEL[to]()}</Button>
+                        : to === "ACCEPTED" && approval && approval.position < approval.total ? tr("Approve: {0}", approval.label) : statusLabel(r?.kind ?? "REPAIR", to)}</Button>
                   ))}
                   <Button size="sm" variant="ghost" disabled={busy || !note.trim()} onClick={async () => { if (await act(`/api/de/monitor/${id}/notes`, { note }, tr("Note added"))) setNote(""); }}>{tr("Note only")}</Button>
                 </div>
@@ -844,17 +854,17 @@ function ChoiceGroupMulti({ options, value, onChange }: { options: string[]; val
   );
 }
 
-function CategoriesDrawer({ bgroups, onClose }: { bgroups: GroupOpt[]; /** after a save */ onClose: () => void }) {
+function CategoriesDrawer({ kind, bgroups, onClose }: { kind: Kind; bgroups: GroupOpt[]; /** after a save */ onClose: () => void }) {
   const toast = useToast();
   const [rows, setRows] = useState<Category[] | null>(null);
   const [edit, setEdit] = useState<Partial<Category> & { examplesText?: string } | null>(null);
-  const load = useCallback(async () => setRows(await call<Category[]>("/api/de/categories?all=true").catch(() => [])), []);
+  const load = useCallback(async () => setRows((await call<Category[]>("/api/de/categories?all=true").catch(() => [] as Category[])).filter((c) => (c.kind ?? "REPAIR") === kind)), [kind]);
   useEffect(() => { void load(); }, [load]);
   const groups = [...new Set((rows ?? []).map((c) => c.group))];
   const save = async () => {
     if (!edit) return;
     try {
-      const body = { group: edit.group ?? "", name: edit.name ?? "", defaultUrgency: edit.defaultUrgency ?? "NORMAL",
+      const body = { kind, group: edit.group ?? "", name: edit.name ?? "", defaultUrgency: edit.defaultUrgency ?? "NORMAL",
         examples: (edit.examplesText ?? "").split(",").map((x) => x.trim()).filter(Boolean), sort: edit.sort ?? 0, isActive: edit.isActive ?? true,
         branchGroups: edit.branchGroups ?? [] };
       await call(edit.id ? `/api/de/categories/${edit.id}` : "/api/de/categories", { method: edit.id ? "PATCH" : "POST", json: body });

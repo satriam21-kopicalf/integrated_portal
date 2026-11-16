@@ -31,7 +31,7 @@ export const PAGES: PageInfo[] = [
   { key: 'form.surveyor-check-in', href: '/forms/surveyor-check-in', get label() { return tr('Cost Control Clock In (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.product', href: '/forms/product', get label() { return 'Product (form)'; }, get group() { return tr('Form'); } },
   { key: 'form.outlet', href: '/forms/outlet', get label() { return 'Outlet (form)'; }, get group() { return tr('Form'); } },
-  { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Maintenance Request (form)'); }, get group() { return tr('Form'); } },
+  { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Maintenance & Procurement (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.pengajuan', href: '/forms/pengajuan', get label() { return tr('Fund Request (Form)'); }, get group() { return tr('Form'); } },
   // the SWAT audit (2026-11-03): given per account
   { key: 'form.stock-transfer', href: '/forms/stock-transfer', get label() { return tr('Transfer Stock (form, TITO)'); }, get group() { return tr('Form'); } },
@@ -65,7 +65,7 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.product', href: '/monitoring/product', get label() { return 'Product'; }, get group() { return tr('Operations'); } },
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return 'Outlet'; }, get group() { return tr('Operations'); } },
   { key: 'mon.wwwr', href: '/monitoring/wwwr', label: 'WW-WR', get group() { return tr('Operations'); } },
-  { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Maintenance Request'); }, get group() { return tr('Operations'); } },
+  { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Maintenance & Procurement'); }, get group() { return tr('Operations'); } },
   { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch Groups'); }, get group() { return tr('Operations'); } },
   { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Fund Request'); }, get group() { return tr('Operations'); } },
   // the two approval steps of Pengajuan: rights inside /monitoring/pengajuan, not menu entries of their own
@@ -92,6 +92,8 @@ export function pageOf(pathname: string): PageKey | 'superadmin' | null {
   if (pathname === '/users' || pathname.startsWith('/users/') || pathname === '/activity' || pathname.startsWith('/activity/')) return 'superadmin';
   if (pathname === '/cost-control') return 'cc.cogs';
   if (pathname === '/cotr/dashboard') return 'cotr.check-in';  // the COTR dashboard: whoever monitors the drivers
+  // Form → Procurement (2026-11-16) opens with the same page as Form → Maintenance
+  if (pathname === '/forms/procurement' || pathname.startsWith('/forms/procurement/')) return 'form.damaged-equipment';
   // the longest matching href wins (/cost-control/monitor before /cost-control)
   const match = PAGES.filter(p => p.href !== '/cost-control' && (pathname === p.href || pathname.startsWith(`${p.href}/`)))
     .sort((a, b) => b.href.length - a.href.length)[0];

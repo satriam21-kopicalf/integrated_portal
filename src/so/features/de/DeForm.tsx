@@ -27,16 +27,14 @@ import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import RequestView, { AddPhotoTile, EvidenceGrid, StatusBadge, UrgencyBadge } from "./RequestView";
 import { SkeletonList } from "@/components/kc/Skeleton";
-import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, STEPS, URGENCIES, URGENCY_LABEL,
-  alreadyAsked, download, fmtHours, fmtMb } from "./de";
+import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, alreadyAsked, download, fmtHours, fmtMb, IMPACTS, REASONS, STEPS_OF, TIER_LABEL } from "./de";
 
-export default function DeForm() {
+export default function DeForm({ kind }: { kind: Kind }) {
   const toast = useToast();
   const { user: me } = useAuth();
   const [data, setData] = useState<FormState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [branch, setBranch] = useState("");
-  const [kind, setKind] = useState<Kind>("REPAIR");
   const [draft, setDraft] = useState<Request | null>(null);
   const [sent, setSent] = useState<Request | null>(null);
   const [opening, setOpening] = useState(false);
@@ -85,13 +83,14 @@ export default function DeForm() {
       onSent={(r) => { setDraft(null); setSent(r); void load(); window.scrollTo({ top: 0 }); }} />;
   }
 
-  const drafts = (data?.requests ?? []).filter((r) => r.status === "DRAFT");
-  const mine = (data?.requests ?? []).filter((r) => r.status !== "DRAFT");
+  const ofKind = (data?.requests ?? []).filter((r) => r.kind === kind);
+  const drafts = ofKind.filter((r) => r.status === "DRAFT");
+  const mine = ofKind.filter((r) => r.status !== "DRAFT");
   const live = mine.filter((r) => OPEN.includes(r.status));
   const done = mine.filter((r) => r.status === "DONE");
   const shown = mine.filter((r) => show === "all" || (show === "open" ? OPEN.includes(r.status) : show === "done" ? r.status === "DONE" : r.status === "REJECTED"));
   return (
-    <Page title="Maintenance Request" actions={<LiveClock />}
+    <Page title={KIND_LABEL[kind]()} actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
       {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
@@ -108,24 +107,10 @@ export default function DeForm() {
               </div>
             </div>
             <div className="space-y-4 p-4 sm:p-5">
-              <div>
-                <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Type of request")}</p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {(["REPAIR", "PROCUREMENT"] as Kind[]).map((k) => (
-                    <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k}
-                      className={cx("flex items-start gap-3 rounded-xl border p-3 text-left transition-colors",
-                        kind === k ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
-                      <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg", kind === k ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-500")}>
-                        {k === "REPAIR" ? <Hammer size={18} /> : <PackagePlus size={18} />}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-neutral-900">{KIND_LABEL[k]()}</span>
-                        <span className="block text-xs text-neutral-500">{k === "REPAIR" ? tr("Damage to the building, furniture, tools or heavy tools") : tr("Decoration, tools or heavy tools to add to the outlet")}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <p className="flex items-start gap-3 rounded-xl bg-neutral-50 p-3 text-xs text-neutral-600">
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{kind === "REPAIR" ? <Hammer size={18} /> : <PackagePlus size={18} />}</span>
+                <span className="min-w-0">{kind === "REPAIR" ? tr("Something at the outlet is broken: building, electricity, water, furniture, tools or heavy tools.") : tr("Something new is needed at the outlet: heavy tools, tools, decoration or merchandise.")}</span>
+              </p>
               <div>
                 <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Branch")}</p>
                 {data.branches.length === 0 ? (
@@ -190,6 +175,7 @@ export default function DeForm() {
 /** One of the PIC's requests: number, status and urgency, items, the steps reached and the latest note of the team. */
 function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
   const at = r.status === "ON_HOLD" ? r.holdFrom : r.status;
+  const STEPS = STEPS_OF[r.kind]; // the steps of the request's form
   const idx = r.status === "DONE" ? STEPS.length - 1 : at ? STEPS.indexOf(at) : 0;
   return (
     <li>
@@ -409,6 +395,8 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   const [items, setItems] = useState<ItemDraft[]>((initial.items ?? []).map((i) => ({ ...i, location: i.location ?? "", note: i.note ?? "", key: String(i.id) })));
   const [analysis, setAnalysis] = useState(initial.analysis ?? "");
   const [cause, setCause] = useState(initial.cause ?? "");
+  const [impact, setImpact] = useState<string>(initial.impact ?? "");
+  const [reason, setReason] = useState<string>(initial.reason ?? "");
   const [saving, setSaving] = useState(0);
   const [camera, setCamera] = useState(false);
   const [upload, setUpload] = useState<number | null>(null);
@@ -418,8 +406,8 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   const pending = useRef<Record<string, unknown>>({});
   const base = `/api/de/requests/${r.id}`;
   // the categories offered to the branch's group (a category without groups goes to every branch)
-  const cats = useMemo(() => data.categories.filter((c) => !c.branchGroups?.length || c.branchGroups.includes(data.branchGroups?.[r.branchCode] ?? "")),
-    [data.categories, data.branchGroups, r.branchCode]);
+  const cats = useMemo(() => data.categories.filter((c) => (!c.kind || c.kind === r.kind)
+    && (!c.branchGroups?.length || c.branchGroups.includes(data.branchGroups?.[r.branchCode] ?? ""))), [data.categories, data.branchGroups, r.branchCode, r.kind]);
   const groups = useMemo(() => [...new Set(cats.map((c) => c.group))], [cats]);
   const photos = (r.media ?? []).filter((m) => m.kind === "PHOTO");
   const video = (r.media ?? []).find((m) => m.kind === "VIDEO");
@@ -495,7 +483,9 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   const filled = itemsPayload(items);
   const todo = [
     ...(filled.length ? [] : [tr("Add at least one item")]),
-    ...(analysis.trim() ? [] : [r.kind === "REPAIR" ? tr("Fill in the damage analysis") : tr("Fill in the reason for the procurement")]),
+    ...(r.kind === "REPAIR" && !impact ? [tr("Choose the impact on the outlet")] : []),
+    ...(r.kind === "PROCUREMENT" && !reason ? [tr("Choose why it is needed")] : []),
+    ...(analysis.trim() ? [] : [r.kind === "REPAIR" ? tr("Describe the damage") : tr("Describe the need")]),
     ...(photos.length ? [] : [tr("Attach at least one photo")]),
   ];
 
@@ -545,8 +535,11 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           </section>
         )}
 
-        <FormCard n={2} title={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}
-          hint={r.kind === "REPAIR" ? tr("Building & furniture, heavy tools … one line per item") : tr("Decoration, tools & heavy tools … one line per item")}
+        <PriorityCard r={r} data={data} value={r.kind === "REPAIR" ? impact : reason}
+          onChange={(v) => { if (r.kind === "REPAIR") { setImpact(v); save({ impact: v }, true); } else { setReason(v); save({ reason: v }, true); } }} />
+
+        <FormCard n={3} title={r.kind === "REPAIR" ? tr("What is damaged") : tr("What is needed")}
+          hint={r.kind === "REPAIR" ? tr("One line per item: pick the category and the item") : tr("One line per item: pick the category, the item and how many")}
           aside={<Badge tone={filled.length ? "blue" : "slate"}>{filled.length}</Badge>}>
           {items.length === 0 && <p className="text-sm text-neutral-500">{tr("No item yet.")}</p>}
           {items.map((it, idx) => {
@@ -573,14 +566,11 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
                     <datalist id={`ex-${it.key}`}>{(cat?.examples ?? []).map((x) => <option key={x} value={x} />)}</datalist>
                   </>}
                 </div>
-                <div className="grid grid-cols-[5rem_1fr] gap-2 sm:grid-cols-[5rem_1fr_10rem]">
+                <div className="grid grid-cols-[5rem_1fr] gap-2">
                   <input type="number" min={1} max={9999} value={it.qty} onChange={(e) => upd({ qty: Math.max(1, Number(e.target.value) || 1) })}
                     className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Quantity")} />
                   <input value={it.location ?? ""} onChange={(e) => upd({ location: e.target.value })} maxLength={120} placeholder={tr("Location in the outlet, e.g. bar")}
                     className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Location")} />
-                  <select value={it.urgency} onChange={(e) => upd({ urgency: e.target.value as Item["urgency"] }, true)} className={cx(inputClass, "col-span-2 h-10 text-sm sm:col-span-1")} aria-label={tr("Urgency")}>
-                    {URGENCIES.map((u) => <option key={u} value={u}>{URGENCY_LABEL[u]()}</option>)}
-                  </select>
                 </div>
                 <input value={it.note ?? ""} onChange={(e) => upd({ note: e.target.value })} maxLength={1000} placeholder={tr("Detail (optional), e.g. brand, size, what happens")}
                   className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Detail")} />
@@ -591,7 +581,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           <Button variant="secondary" disabled={items.length >= data.limits.items} onClick={() => setItems([...items, blank(undefined)])}><Plus size={15} /> {tr("Add Item")}</Button>
         </FormCard>
 
-        <FormCard n={3} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
+        <FormCard n={4} title={r.kind === "REPAIR" ? tr("Damage description") : tr("Need description")}
           hint={r.kind === "REPAIR" ? tr("What happened, since when, what was tried") : tr("Why it is needed and where it goes")}>
           <textarea value={analysis} onChange={(e) => { setAnalysis(e.target.value); save({ analysis: e.target.value }); }} rows={4} maxLength={4000}
             className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Analysis")} />
@@ -605,7 +595,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           )}
         </FormCard>
 
-        <FormCard n={4} title={r.kind === "REPAIR" ? tr("Evidence") : tr("Evidence of the space in the outlet")}
+        <FormCard n={5} title={r.kind === "REPAIR" ? tr("Evidence") : tr("Evidence of the space in the outlet")}
           hint={tr("Photos with the camera (at most {0}) and one video of at most {1}", data.limits.photos, fmtMb(data.limits.videoBytes))}
           aside={<Badge tone={photos.length ? "blue" : "slate"}>{photos.length}/{data.limits.photos}</Badge>}>
           <EvidenceGrid list={photos} urls={PORTAL_URLS} onRemove={(id) => void removeMedia(id)}
@@ -642,7 +632,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </div>
       </div>
 
-      <CameraCapture open={camera} title={tr("Maintenance Request Evidence")} branch={r.branchName} countNumber={r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}
+      <CameraCapture open={camera} title={r.kind === "REPAIR" ? tr("Maintenance Evidence") : tr("Procurement Evidence")} branch={r.branchName} countNumber={r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}
         onClose={() => setCamera(false)} onShot={addPhoto} />
       {preview && <SendSheet r={{ ...r, items: items.filter((i) => i.categoryId && i.name.trim()).map((i) => ({ ...i, category: cats.find((c) => c.id === i.categoryId)?.name, group: cats.find((c) => c.id === i.categoryId)?.group })), analysis, cause }}
         onClose={() => setPreview(false)} onSent={onSent} />}
@@ -743,5 +733,32 @@ function MerchPick({ value, merch, onChange }: { value: string; merch: NonNullab
         </select>
       )}
     </div>
+  );
+}
+
+/** What the PIC says about the request (2026-11-16): the impact on the outlet (Maintenance) or why it is needed
+ *  (Procurement). With the branch's sales tier it sets the priority, shown right away (app/damaged_equipment.py priority()). */
+function PriorityCard({ r, data, value, onChange }: { r: Request; data: FormState; value: string; onChange: (v: string) => void }) {
+  const repair = r.kind === "REPAIR";
+  const options = repair ? IMPACTS : REASONS;
+  const tier = data.tiers?.[r.branchCode] ?? "B";
+  const urgency = value ? data.priority?.[value]?.[tier] : null;
+  return (
+    <FormCard n={2} title={repair ? tr("Impact on the outlet") : tr("Why it is needed")}
+      hint={tr("Sets the priority together with the sales of the branch")}>
+      <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={repair ? tr("Impact on the outlet") : tr("Why it is needed")}>
+        {options.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
+            className={cx("rounded-xl border p-3 text-left transition-colors", value === o.value ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+            <span className="block text-sm font-semibold text-neutral-900">{o.label()}</span>
+            <span className="mt-0.5 block text-xs leading-snug text-neutral-500">{o.hint()}</span>
+          </button>
+        ))}
+      </div>
+      <p className="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2.5 text-xs text-neutral-600">
+        <span>{TIER_LABEL[tier]()}</span>
+        {urgency ? <>→ <span className="font-medium text-neutral-800">{tr("Priority")}</span> <UrgencyBadge u={urgency} /></> : <span className="text-neutral-400">{tr("Choose one to see the priority")}</span>}
+      </p>
+    </FormCard>
   );
 }

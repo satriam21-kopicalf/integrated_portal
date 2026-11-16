@@ -33,7 +33,7 @@ type Data = {
   technicians: { name: string; kind: "INTERNAL" | "VENDOR"; jobs: number; done: number; avgHours: number | null }[];
   reasons: { number: string; status: Status; note: string; at: string }[];
 };
-const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", VALIDATION: "bg-sky-500", REVIEW: "bg-violet-500", ON_HOLD: "bg-amber-500",
+const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", ORDERED: "bg-violet-500", ON_HOLD: "bg-amber-500",
   ACCEPTED: "bg-brand-500", IN_PROGRESS: "bg-brand-700", HANDOVER: "bg-cyan-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
 type Range = "30" | "90" | "180" | "365";
 

@@ -247,10 +247,12 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
         ]} />,
       },
       {
-        id: 'form-de', title: tr('Maintenance Request'),
+        id: 'form-de', title: tr('Maintenance & Procurement'),
         body: <Steps items={[
-          L(<><P href="/forms/damaged-equipment" t="Maintenance Request" />: pilih cabang dan jenis — <b>perbaikan</b> (bangunan & alat) atau <b>pengadaan</b> (dekorasi & alat). Permintaan terbuka cabang itu ditampilkan agar tidak dobel.</>,
-            <><P href="/forms/damaged-equipment" t="Maintenance Request" />: choose the branch and kind — <b>repair</b> (building & tools) or <b>procurement</b> (decoration & tools). Open requests of the branch show so nothing is asked twice.</>),
+          L(<>Dua form terpisah: <P href="/forms/damaged-equipment" t="Maintenance" /> untuk yang rusak, <P href="/forms/procurement" t="Procurement" /> untuk barang baru (heavy tools, tools, dekorasi, merchandise). Pilih cabang; permintaan terbuka cabang itu ditampilkan agar tidak dobel.</>,
+            <>Two forms: <P href="/forms/damaged-equipment" t="Maintenance" /> for what is broken, <P href="/forms/procurement" t="Procurement" /> for new things (heavy tools, tools, decoration, merchandise). Choose the branch; its open requests show so nothing is asked twice.</>),
+          L(<>Pilih dampak ke outlet (Maintenance) atau alasan kebutuhan (Procurement). Bersama tier penjualan cabang (A = 20% tertinggi) ini menentukan prioritas.</>,
+            <>Choose the impact on the outlet (Maintenance) or why it is needed (Procurement). With the branch’s sales tier (A = top 20%) it sets the priority.</>),
           L(<>Foto dari kamera (dicap) dan satu video ≤ 10 MB; draft tersimpan otomatis. Pratinjau, tanda tangan PIC, kirim — PDF dan link berbagi tersedia.</>, <>Camera photos (stamped) and one video ≤ 10 MB; the draft saves itself. Preview, PIC signature, send — a PDF and a share link follow.</>),
           L(<>Daftar permintaan saya: progres dan catatan tim; selama dikerjakan PIC bisa menambah foto.</>, <>My requests: progress and the team’s notes; while the work runs the PIC can add photos.</>),
           L(<>Serah terima (link dari tim): 1–5 foto, tanda tangan PIC dan tanda tangan vendor bila vendor. Setelah Done, dokumen akhir bisa diunduh.</>, <>Handover (link from the team): 1–5 photos, the PIC’s signature and the vendor’s for a vendor. Once Done the final document downloads.</>),
@@ -616,10 +618,11 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
         ]} />,
       },
       {
-        id: 'ops-de', title: tr('Maintenance Request'),
+        id: 'ops-de', title: tr('Maintenance & Procurement'),
         body: <Table head={[S('Tab', 'Tab'), S('Isinya', 'What it holds')]} rows={[
+          ['Maintenance · Procurement', S('Satu tab per form. Maintenance: Diajukan → Disetujui → Dikerjakan → Serah terima → Selesai. Procurement: Diajukan → Disetujui → Dipesan (vendor & estimasi) → Diterima PIC → Selesai (biaya & invoice)', 'A tab per form. Maintenance: Submitted → Approved → In Progress → Handover → Done. Procurement: Submitted → Approved → Ordered (vendor & estimate) → Received by the PIC → Done (cost & invoice)')],
           ['Requests', S('Tab status & filter, per cabang / PIC. Satu permintaan: estimasi selesai, langkah, Handling (langkah berikutnya & yang kurang, teknisi internal atau vendor, foto kerja lewat link teknisi, serah terima PIC, biaya & invoice, duplikat), isi permintaan, riwayat', 'Status tabs & filters, per branch / PIC. One request: estimated finish, steps, Handling (next step & what is missing, internal technician or vendor, work photos via the technician link, the PIC\'s handover, cost & invoices, duplicates), the request, history')],
-          ['Overview · Technicians · Categories', S('Analisis semua permintaan; teknisi; kategori', 'Analysis of every request; technicians; categories')],
+          ['Overview · Technicians · Categories', S('Analisis permintaan; teknisi (hanya Maintenance); kategori per form', 'Analysis of the requests; technicians (Maintenance only); categories per form')],
         ]} />,
       },
       {
