@@ -288,7 +288,7 @@ export default function WasteForm() {
                 <div className="max-h-[560px] overflow-auto rounded-xl border border-neutral-200">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
-                      <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix name") : tr("Product name")}</th>
+                      <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix/WIP name") : tr("Product name")}</th>
                         <th className="hidden whitespace-nowrap px-2 py-2 xl:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 whitespace-nowrap px-2 py-2 text-right">{tr("Qty")}</th></tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-100">

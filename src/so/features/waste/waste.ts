@@ -55,7 +55,7 @@ export type MonitorData = {
 export const SCOPES: Scope[] = ["waste", "usage", "premix"];
 // Usage Management is the daily list (PUT /api/waste/usage), not a single entry
 export const ENTRY_SCOPES: Scope[] = ["waste", "premix"];
-export const scopeLabel = (s: Scope) => ({ waste: tr("Waste"), usage: tr("Usage Management"), premix: tr("Premix") })[s];
+export const scopeLabel = (s: Scope) => ({ waste: tr("Material"), usage: tr("Usage Management"), premix: tr("Premix/WIP") })[s];
 export const statusLabel = (s: Status) => ({ submitted: tr("Waiting review"), investigating: tr("Investigating"), approved: tr("Approved"), rejected: tr("Rejected") })[s];
 export const statusTone = (s: Status) => ({ submitted: "amber", investigating: "violet", approved: "green", rejected: "red" } as const)[s];
 export const signatureUrl = (id: string) => `/api/waste/entries/${id}/signature`;

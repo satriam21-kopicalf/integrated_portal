@@ -6817,4 +6817,6 @@ export const ID: Record<string, string> = {
   "By hand": "Manual",
   "The linked HRMS employee could not be read.": "Data karyawan HRMS yang tertaut tidak dapat dibaca.",
   "Shown in the menu of {0}": "Tampil di menu {0}",
+  "Premix/WIP": "Premix/WIP",
+  "Premix/WIP name": "Nama Premix/WIP",
 };
