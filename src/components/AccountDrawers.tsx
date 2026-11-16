@@ -7,10 +7,10 @@
 // reminder to fill it in.
 
 import { createContext, FormEvent, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, Check, CircleUserRound, KeyRound, Loader2, ShieldCheck, UserRoundPen, X } from 'lucide-react';
+import { AlertCircle, Check, CircleUserRound, Info, KeyRound, Link2, Loader2, ShieldCheck, UserRoundPen, X } from 'lucide-react';
 import ChangePasswordDrawer from '@/components/ChangePasswordDrawer';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues, REQUIRED_PROFILE_KEYS, sameProfile } from '@/components/ProfileFields';
-import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
+import { AvatarEditor } from '@/components/UserAvatar';
 import { Pill } from '@/components/kc';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { buttonPrimary, buttonSecondary } from '@/components/ui/Dialog';
@@ -119,22 +119,30 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
       }
     >
       <form id="my-profile" onSubmit={submit} className="space-y-0" noValidate>
-        {/* identity, as in User details of User Accounts */}
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3.5">
-          <UserAvatar name={form.fullName || user.displayName} src={user.avatarUrl} size="lg" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-semibold text-neutral-900">{form.fullName || user.displayName}</p>
-            <p className="truncate text-[13px] text-neutral-500">{[form.jobTitle, form.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}</p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <Pill tone={user.role === 'superadmin' ? 'red' : 'brand'} icon={user.role === 'superadmin' ? <ShieldCheck size={11} /> : undefined}>{role}</Pill>
-              <Pill tone={filled === REQUIRED_PROFILE_KEYS.length ? 'green' : 'amber'}>{tr('Profile')} {filled}/{REQUIRED_PROFILE_KEYS.length}</Pill>
-            </div>
+        {/* identity (2026-11-16, the kopicalf-hrms profile card): one photo with the name, title, role, HRMS and how
+            complete the profile is; the photo buttons under the name */}
+        <div className="mb-6 overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <div className="h-2 bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500" aria-hidden />
+          <div className="px-4 pb-4 pt-4">
+            <AvatarEditor name={form.fullName || user.username} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser}>
+              <div>
+                <p className="truncate text-lg font-bold tracking-tight text-neutral-900">{form.fullName || user.displayName}</p>
+                <p className="truncate text-[13px] text-neutral-500">{[form.jobTitle, form.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}</p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <Pill tone={user.role === 'superadmin' ? 'red' : 'brand'} icon={user.role === 'superadmin' ? <ShieldCheck size={11} /> : undefined}>{role}</Pill>
+                  {user.hrmsEmployeeId && <Pill tone="green" icon={<Link2 size={11} />}>{tr('Linked to HRMS')}</Pill>}
+                  <Pill tone={filled === REQUIRED_PROFILE_KEYS.length ? 'green' : 'amber'}>{tr('Profile')} {filled}/{REQUIRED_PROFILE_KEYS.length}</Pill>
+                </div>
+              </div>
+            </AvatarEditor>
+            {user.hrmsEmployeeId && (
+              <p className="mt-3 flex items-start gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                <Info size={14} className="mt-px flex-shrink-0 text-brand-700" />
+                {tr('Name, job title, department and the other HRMS details follow HRMS and are updated every hour; ask HR to change them.')}
+              </p>
+            )}
           </div>
         </div>
-
-        <DrawerSection title={tr('Profile Photo')} description={tr('Shown in the sidebar and in User Accounts. Saved right away.')}>
-          <AvatarEditor name={form.fullName || user.username} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser} />
-        </DrawerSection>
 
         {!user.profileComplete && (
           <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50/70 px-3.5 py-3 text-sm text-amber-900">

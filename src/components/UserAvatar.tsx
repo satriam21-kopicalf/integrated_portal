@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, type ReactNode, useRef, useState } from 'react';
 import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { AuthUser, initials } from '@/lib/auth';
 import { tr, serverMsg } from '@/lib/i18n';
@@ -55,8 +55,10 @@ export async function toAvatarDataUrl(file: File): Promise<string> {
  * - no endpoint: the picked image is only handed to `onPick` (used before a user exists).
  */
 export function AvatarEditor({
-  name, src, endpoint, onSaved, onPick,
+  name, src, endpoint, onSaved, onPick, children,
 }: {
+  /** shown above the buttons (My profile, 2026-11-16: the name, title and badges beside the one photo) */
+  children?: ReactNode;
   name: string;
   src: string | null;
   endpoint?: string;
@@ -126,7 +128,8 @@ export function AvatarEditor({
           </span>
         )}
       </div>
-      <div className="min-w-0 space-y-2">
+      <div className="min-w-0 flex-1 space-y-2">
+        {children}
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => input.current?.click()} disabled={busy}
             className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-60">
