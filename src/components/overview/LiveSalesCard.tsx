@@ -149,7 +149,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         {/* Today's figures */}
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Gross Sales Today')}</p>
+            <p className="text-xs font-semibold capitalize text-neutral-500">{tr('Gross Sales Today')}</p>
             {t ? (
               <>
                 <p className="mt-1 text-3xl font-semibold tracking-tight text-neutral-900 tabular-nums" title={formatCurrency(t.subtotal)}>
@@ -200,7 +200,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         <div className="space-y-4 p-4 sm:p-5 xl:col-span-4">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Gross sales by hour')}</p>
+              <p className="text-xs font-semibold capitalize text-neutral-500">{tr('Gross sales by hour')}</p>
               <span className="flex items-center gap-3 text-[11px] text-neutral-500">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[#2a78d6]" />{tr('Today')}</span>
                 <span className="flex items-center gap-1"><span className="h-0 w-3 border-t-2 border-dashed border-[#a8a29e]" />{tr('Same day last week')}</span>
@@ -209,7 +209,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
             {hourOption ? <EChart option={hourOption} height={120} ariaLabel={tr('Gross sales per hour today compared with the same day last week')} /> : <span className="skeleton mt-2 block h-[112px] rounded-lg" aria-hidden />}
           </div>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Channels today')}</p>
+            <p className="text-xs font-semibold capitalize text-neutral-500">{tr('Channels today')}</p>
             {channels.length > 0 && t ? (
               <>
                 <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-neutral-100" role="img" aria-label={tr('Share of today\'s sales per channel')}>
@@ -242,7 +242,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
         {/* Latest sales feed */}
         <div className="flex min-w-0 flex-col xl:col-span-4">
           <div className="flex items-center justify-between px-4 pt-4 sm:px-5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Latest Sales')}</p>
+            <p className="text-xs font-semibold capitalize text-neutral-500">{tr('Latest Sales')}</p>
             {batch && batch.bills > 0 && (
               <span className="text-[11px] text-neutral-500" title={tr('Sales that arrived with the most recent sync')}>
                 +{formatNumber(batch.bills)} {tr('at last sync ·')} {formatCurrency(batch.subtotal)}

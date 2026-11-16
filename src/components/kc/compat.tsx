@@ -72,7 +72,7 @@ export function Stat({ label, icon, value, title, children, emphasis = false, cl
 }) {
   // the same card as StatCard (index.tsx, 2026-11-16 kopicalf-hrms look); `emphasis` = a faint brand border
   const body = <StatBody label={label} value={value} sub={children} icon={icon} info={info} title={title} arrow={!!onClick}
-    valueClassName={valueClassName ? valueClassName.replace(/text-(xl|2xl|lg)|sm:text-\S+/g, '').trim() + ' text-[22px]' : undefined} />;
+    valueClassName={valueClassName} />;
   const cls = cx(statCardClass(active, !!onClick), emphasis && !active && 'border-brand-200', className);
   return onClick ? <button type="button" onClick={onClick} aria-pressed={active} className={cls}>{body}</button> : <div className={cls}>{body}</div>;
 }

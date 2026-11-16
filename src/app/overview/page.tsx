@@ -142,8 +142,8 @@ export default function OverviewPage() {
         <header className="px-4 pt-4 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{tr('Dashboard')}</h1>
-              <p className="text-xs text-neutral-500 sm:text-sm">{tr('Sales Analytics')}</p>
+              <h1 className="text-2xl font-bold tracking-tight text-neutral-900">{tr('Dashboard')}</h1>
+              <p className="mt-0.5 text-sm text-neutral-500">{tr('Sales Analytics')}</p>
             </div>
             <CompanySwitch className="order-last w-full sm:order-none sm:w-auto" extra={EXTRA_TABS}
               value={cotr ? COTR : company} onChange={pickTab} />
@@ -303,7 +303,7 @@ function periodText(from: string, to: string): string {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
+      <h2 className="flex items-center gap-3 text-xs font-semibold capitalize text-neutral-400">
         {title}
         <span className="h-px flex-1 bg-neutral-200" aria-hidden />
       </h2>

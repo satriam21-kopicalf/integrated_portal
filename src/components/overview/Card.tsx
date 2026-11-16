@@ -7,6 +7,7 @@ import { Resource } from '@/lib/overview';
 import InfoTip from '@/components/ui/InfoTip';
 import LoadingState, { RefreshBar } from '@/components/ui/LoadingState';
 import { tr } from '@/lib/i18n';
+import { tc } from '@/lib/title-case';
 import { fixed } from '@/lib/format';
 
 /**
@@ -32,15 +33,15 @@ export function Card<T>({
 }) {
   const { data, loading, error, retry } = resource;
   return (
-    <section className={`group/card relative flex h-full min-w-0 flex-col rounded-xl border border-neutral-200/80 bg-white transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-neutral-200/70' : ''} ${className}`}>
+    <section className={`group/card relative flex h-full min-w-0 flex-col rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] transition-shadow ${onOpen ? 'hover:shadow-md hover:shadow-neutral-200/70' : ''} ${className}`}>
       {loading && data && <RefreshBar />}
       <header className="flex flex-wrap items-start justify-between gap-2 px-4 pb-2 pt-4 sm:px-5">
         <div className="min-w-0">
           <div className="flex items-center gap-1">
             {onOpen ? (
-              <button type="button" onClick={onOpen} className="text-left text-sm font-semibold text-neutral-900 hover:text-brand-700">{title}</button>
+              <button type="button" onClick={onOpen} className="text-left text-base font-bold tracking-tight text-neutral-900 hover:text-brand-700">{tc(title)}</button>
             ) : (
-              <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
+              <h2 className="text-base font-bold tracking-tight text-neutral-900">{tc(title)}</h2>
             )}
             {info && <InfoTip info={info} />}
           </div>
@@ -82,9 +83,9 @@ export function CardTabs<V extends string>({ value, options, onChange, label }: 
     <div className="flex gap-1 overflow-x-auto border-b border-neutral-100" role="tablist" aria-label={label}>
       {options.map(o => (
         <button key={o.value} type="button" role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)}
-          className={`-mb-px whitespace-nowrap border-b-2 px-3 pb-2 pt-1 text-sm font-medium transition-colors ${
+          className={`-mb-px whitespace-nowrap border-b-2 px-3 pb-2.5 pt-1 text-xs font-bold transition-colors ${
             value === o.value ? 'border-brand-700 text-brand-700' : 'border-transparent text-neutral-500 hover:text-neutral-900'}`}>
-          {o.label}
+          {tc(o.label)}
         </button>
       ))}
     </div>

@@ -467,7 +467,7 @@ export function MenusDrawer({ q }: { q: string }) {
                   <div className="flex flex-wrap gap-2">
                     {d.categories.map(c => (
                       <div key={c.category} className="min-w-[8rem] flex-1 rounded-lg border border-neutral-200 px-3 py-2">
-                        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><SeriesKey color={CATEGORY_COLORS[c.category] ?? '#a8a29e'} />{c.category}</p>
+                        <p className="flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-500"><SeriesKey color={CATEGORY_COLORS[c.category] ?? '#a8a29e'} />{c.category}</p>
                         <p className="text-lg font-semibold text-neutral-900">{pctText(c.share)}</p>
                         <p className="text-[11px] text-neutral-500">{compactRupiah(c.subtotal)} · {formatNumber(c.qty)} {tr('pcs')}</p>
                       </div>

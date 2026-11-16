@@ -5,7 +5,9 @@
 // GRs not finished, the GRs of yesterday). Shown to the accounts that open Good Receipt or COGS & Usage, from the user
 // menu (the profile at the foot of the sidebar; on phones the avatar of the app bar shows the unread count).
 
-import { Bell, CheckCheck } from "lucide-react";
+import { AlertOctagon, AlertTriangle, Bell, CheckCheck, Info } from "lucide-react";
+import { useState } from "react";
+import { Tabs } from "@/components/kc";
 import { useRouter } from "next/navigation";
 import Drawer from "@/so/ui/Drawer";
 import { cx, Empty } from "@/so/ui";
@@ -14,7 +16,6 @@ import { type Alert, markAlertsRead, useAlerts } from "@/lib/alerts";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 
-const DOT = { high: "bg-red-500", warn: "bg-amber-500", info: "bg-brand-500" } as const;
 
 /** The notifications of the signed-in user: {enabled, unread, data}. */
 export function useNotifications() {
@@ -33,14 +34,44 @@ export function UnreadBadge({ n, className }: { n: number; className?: string })
   );
 }
 
+const SEVERITY = {
+  high: { icon: AlertOctagon, chip: "bg-red-50 text-red-700" },
+  warn: { icon: AlertTriangle, chip: "bg-amber-50 text-amber-700" },
+  info: { icon: Info, chip: "bg-brand-50 text-brand-700" },
+} as const;
+
+/** "5 min ago", "3 h ago", else the WIB date and time. */
+function when(at: string): string {
+  const min = Math.round((Date.now() - new Date(at).getTime()) / 60000);
+  if (min < 1) return tr("just now");
+  if (min < 60) return tr("{0} min ago", min);
+  if (min < 24 * 60) return tr("{0} h ago", Math.floor(min / 60));
+  return wibDateTime(at);
+}
+
+/** Today / Yesterday / Earlier, by the WIB day of the notification. */
+function dayGroup(at: string): "today" | "yesterday" | "earlier" {
+  const wib = (d: Date) => new Date(d.getTime() + 7 * 3600e3).toISOString().slice(0, 10);
+  const day = wib(new Date(at));
+  const today = wib(new Date());
+  if (day === today) return "today";
+  return day === wib(new Date(Date.now() - 864e5)) ? "yesterday" : "earlier";
+}
+const GROUP_LABEL = { get today() { return tr("Today"); }, get yesterday() { return tr("Yesterday"); }, get earlier() { return tr("Earlier"); } };
+
+/** 2026-11-16, the kopicalf-hrms look: All / Unread tabs with counts, grouped by day, a severity icon chip per item,
+ *  the time as "5 min ago". Opening an item marks it read and goes to its page. */
 export function NotificationsDrawer({ open, onClose, onNavigate }: { open: boolean; onClose: () => void; onNavigate?: () => void }) {
   const { unread, data } = useNotifications();
   const router = useRouter();
+  const [view, setView] = useState<"all" | "unread">("all");
   const go = (a: Alert) => {
     if (!a.read) void markAlertsRead([a.id]);
     onClose();
     if (a.link) { onNavigate?.(); router.push(a.link); }
   };
+  const shown = view === "unread" ? data.filter((a) => !a.read) : data;
+  const groups = (["today", "yesterday", "earlier"] as const).map((g) => ({ g, items: shown.filter((a) => dayGroup(a.at) === g) })).filter((x) => x.items.length);
   return (
     <Drawer open={open} onClose={onClose} size="sm" icon={<Bell size={18} />} title={tr("Notifications")}
       description={tr("Goods receipts and ESB documents that need a look, and the daily summaries")}
@@ -49,22 +80,42 @@ export function NotificationsDrawer({ open, onClose, onNavigate }: { open: boole
           <CheckCheck size={15} />{tr("Mark all as read")}
         </button>
       ) : undefined}>
-      {data.length === 0 ? <Empty icon={<Bell size={24} />} title={tr("No notification yet")} /> : (
-        <ul className="-mx-1 space-y-1">
-          {data.map((a) => (
-            <li key={a.id}>
-              <button type="button" onClick={() => go(a)}
-                className={cx("flex w-full items-start gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors hover:bg-neutral-100", !a.read && "bg-brand-50/50")}>
-                <span className={cx("mt-1.5 h-2 w-2 flex-shrink-0 rounded-full", a.read ? "bg-neutral-300" : DOT[a.severity])} aria-hidden />
-                <span className="min-w-0 flex-1">
-                  <span className={cx("block text-sm", a.read ? "text-neutral-700" : "font-semibold text-neutral-900")}>{a.title}</span>
-                  {a.body && <span className="mt-0.5 block text-xs text-neutral-500">{a.body}</span>}
-                  <span className="mt-1 block text-[11px] text-neutral-400">{wibDateTime(a.at)}</span>
-                </span>
-              </button>
-            </li>
+      <Tabs label={tr("Notifications")} value={view} onChange={(k) => setView(k as "all" | "unread")} className="mb-4"
+        tabs={[{ key: "all", label: tr("All"), count: data.length }, { key: "unread", label: tr("Unread"), count: unread }]} />
+      {shown.length === 0 ? (
+        <Empty icon={<Bell size={24} />} title={view === "unread" && data.length ? tr("Everything is read") : tr("No notification yet")} />
+      ) : (
+        <div className="space-y-5">
+          {groups.map(({ g, items }) => (
+            <section key={g}>
+              <p className="mb-2 text-xs font-semibold text-neutral-400">{GROUP_LABEL[g]}</p>
+              <ul className="space-y-2">
+                {items.map((a) => {
+                  const S = SEVERITY[a.severity] ?? SEVERITY.info;
+                  return (
+                    <li key={a.id}>
+                      <button type="button" onClick={() => go(a)}
+                        className={cx("group flex w-full items-start gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all hover:-translate-y-px hover:shadow-sm",
+                          a.read ? "border-neutral-200/70 bg-white" : "border-brand-200 bg-brand-50/40")}>
+                        <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg", a.read ? "bg-neutral-100 text-neutral-400" : S.chip)}>
+                          <S.icon size={16} aria-hidden />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-start justify-between gap-2">
+                            <span className={cx("min-w-0 text-sm leading-snug", a.read ? "font-medium text-neutral-700" : "font-semibold text-neutral-900")}>{a.title}</span>
+                            {!a.read && <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-brand-600" aria-label={tr("Unread")} />}
+                          </span>
+                          {a.body && <span className="mt-0.5 block text-xs leading-relaxed text-neutral-500">{a.body}</span>}
+                          <span className="mt-1.5 block text-[11px] text-neutral-400" title={wibDateTime(a.at)}>{when(a.at)}</span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
       )}
     </Drawer>
   );

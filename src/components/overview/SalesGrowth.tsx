@@ -239,7 +239,7 @@ export function GrowthSummary({ data }: { data: GrowthResponse }) {
   return (
     <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr('Growth')}</p>
+        <p className="text-xs font-semibold capitalize text-neutral-400">{tr('Growth')}</p>
         <p className={`text-2xl font-semibold tabular-nums ${t.growthPct === null ? 'text-neutral-400' : up ? 'text-brand-700' : 'text-red-600'}`}>
           {t.growthPct === null ? 'n/a' : pctLabel(t.growthPct)}
         </p>
@@ -257,7 +257,7 @@ export function GrowthSummary({ data }: { data: GrowthResponse }) {
 function Figure({ label, value, title }: { label: string; value: string; title?: string }) {
   return (
     <div title={title}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{label}</p>
+      <p className="text-xs font-semibold capitalize text-neutral-400">{label}</p>
       <p className="text-sm font-semibold tabular-nums text-neutral-800">{value}</p>
     </div>
   );

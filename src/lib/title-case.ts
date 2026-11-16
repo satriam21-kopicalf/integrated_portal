@@ -37,3 +37,11 @@ export function titleCaseText(s: string): string {
 export function tc<T>(node: T): T {
   return (typeof node === 'string' ? titleCaseText(node) : node) as T;
 }
+
+/** Data written in capitals (ESB categories "BEVERAGE · ORIGINAL KOPI SUSU") shown as names: "Beverage · Original Kopi
+ *  Susu". Words of 3 letters or fewer (PB1, SO, CK) and codes with "_" or digits stay as they are. */
+export function nameCase(s: string | null | undefined): string {
+  if (!s) return s ?? '';
+  return s.replace(/[\p{L}\p{N}_]+/gu, (w) =>
+    w.length > 3 && /^\p{Lu}+$/u.test(w) ? w[0] + w.slice(1).toLowerCase() : w);
+}

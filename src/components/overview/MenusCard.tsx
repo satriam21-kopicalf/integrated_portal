@@ -1,5 +1,6 @@
 'use client';
 
+import { nameCase } from '@/lib/title-case';
 import { useState } from 'react';
 import HBarChart from '@/components/charts/HBarChart';
 import { formatCurrency, formatNumber, fixed } from '@/lib/format';
@@ -47,9 +48,9 @@ export default function MenusCard({ query }: { query: string }) {
               <div className="flex flex-wrap gap-2">
                 {data.categories.map(c => (
                   <div key={c.category} className="min-w-[7rem] flex-1 rounded-lg bg-neutral-50 px-3 py-2">
-                    <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+                    <p className="flex items-center gap-1.5 text-xs font-medium capitalize text-neutral-500">
                       <span className="h-2 w-2 rounded-sm" style={{ background: CATEGORY_COLORS[c.category] ?? '#a8a29e' }} />
-                      {c.category}
+                      {nameCase(c.category)}
                     </p>
                     <p className="text-base font-semibold text-neutral-900">{c.share === null ? '-' : `${fixed(c.share, 1)}%`}</p>
                     <p className="text-[11px] text-neutral-500">{compactRupiah(c.subtotal)}
@@ -80,7 +81,7 @@ export default function MenusCard({ query }: { query: string }) {
               {data.addons.slice(0, 4).map(g => (
                 <div key={g.group} className="min-w-0">
                   <div className="mb-1 flex items-baseline justify-between text-xs">
-                    <span className="font-semibold uppercase tracking-wide text-neutral-500">{g.group}</span>
+                    <span className="font-semibold capitalize text-neutral-500">{g.group}</span>
                     <span className="tabular-nums text-neutral-400">{formatNumber(g.qty)} {tr('pcs')}</span>
                   </div>
                   <HBarChart
@@ -125,7 +126,7 @@ export default function MenusCard({ query }: { query: string }) {
                   rows: [[formatCurrency(m.subtotal), 'sales'], [tr('{0} pcs', formatNumber(m.qty)), 'ordered'], [formatNumber(m.bills), 'bills'],
                     ...(m.previousSubtotal !== undefined ? [[formatCurrency(m.previousSubtotal), 'comparison period'] as [string, string],
                       [tr('{0} pcs', formatNumber(m.previousQty ?? 0)), 'comparison period'] as [string, string]] : [])],
-                  footer: `${m.category} · ${m.categoryDetail}`,
+                  footer: `${nameCase(m.category)} · ${nameCase(m.categoryDetail)}`,
                 },
               }))}
               labelWidth={190}

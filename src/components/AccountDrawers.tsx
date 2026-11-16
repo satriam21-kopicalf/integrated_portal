@@ -12,7 +12,6 @@ import ChangePasswordDrawer from '@/components/ChangePasswordDrawer';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues, REQUIRED_PROFILE_KEYS, sameProfile } from '@/components/ProfileFields';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
 import { Pill } from '@/components/kc';
-import WelcomeNotice from '@/components/WelcomeNotice';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { buttonPrimary, buttonSecondary } from '@/components/ui/Dialog';
 import { AuthUser, ROLE_LABELS, useAuth } from '@/lib/auth';
@@ -49,7 +48,7 @@ export function AccountDrawersProvider({ children }: { children: ReactNode }) {
             ? <ChangePasswordDrawer open forced onClose={() => {}} />
             : (
               <>
-                <WelcomeNotice user={user} />
+                {/* the greeting and mood pop-up after sign-in was removed (2026-11-16, asked by the user) */}
                 {!user.profileComplete && open === null && <ProfileNudge user={user} onOpen={openProfile} />}
               </>
             )}

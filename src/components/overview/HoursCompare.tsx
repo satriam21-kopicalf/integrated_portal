@@ -183,7 +183,7 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
 function Summary({ color, title, range, p, vs }: { color: string; title: string; range: string; p: HoursProfile; vs?: HoursProfile }) {
   return (
     <div className="rounded-lg border border-neutral-200 px-3 py-2">
-      <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+      <p className="flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-500">
         <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: color }} />{title}
       </p>
       <p className="text-[11px] text-neutral-500">{range} · {p.days} {tr('days')}</p>

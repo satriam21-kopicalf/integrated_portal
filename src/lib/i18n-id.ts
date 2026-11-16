@@ -6840,4 +6840,6 @@ export const ID: Record<string, string> = {
   "Tick to list this Superadmin in the WW-WR team (lead and members of an audit).": "Centang agar Superadmin ini tampil di tim WW-WR (lead dan anggota audit).",
   "Superadmin only": "Khusus Superadmin",
   "Roles User and Outlet/HUB see only their assigned branches; Inventory Surveyor sees every branch. A new form is added to role User.": "Role User dan Outlet/HUB hanya melihat cabang yang ditugaskan; Inventory Surveyor melihat semua cabang. Form baru otomatis ditambahkan ke role User.",
+  "Unread": "Belum dibaca",
+  "Everything is read": "Semua sudah dibaca",
 };

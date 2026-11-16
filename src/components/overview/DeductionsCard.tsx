@@ -134,7 +134,7 @@ export function ChannelGroups({ data }: { data: DeductionsResponse }) {
         const deltaPp = g.previousVoidRate === null || g.previousVoidRate === undefined ? null : g.voidRate - g.previousVoidRate;
         return (
           <div key={g.group} className="min-w-0 rounded-lg border border-neutral-200 px-3 py-2.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+            <p className="flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-500">
               <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: GROUP_COLORS[g.group] }} />
               {GROUP_LABELS[g.group]}
               <span className="font-normal normal-case tracking-normal text-neutral-400">{g.group === 'offline' ? tr('Dine In, Takeaway') : tr('GoFood, GrabFood, ShopeeFood')}</span>

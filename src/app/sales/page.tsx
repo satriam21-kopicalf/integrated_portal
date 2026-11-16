@@ -13,6 +13,7 @@ import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate, fixed } from '@/lib/format';
 import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
 import { useRealtime } from '@/lib/realtime';
+import { nameCase } from '@/lib/title-case';
 import { tr, serverMsg } from '@/lib/i18n';
 import { SearchInput, btn } from '@/components/kc';
 
@@ -285,7 +286,7 @@ export default function SalesPage() {
         <header className="px-4 pt-4 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{tr('Sales Transactions')}</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-neutral-900">{tr('Sales Transactions')}</h1>
               <p className="truncate text-xs text-neutral-500 sm:text-sm">
                 {periodLabel} · {branchLabel}
               </p>
@@ -548,14 +549,14 @@ function StatusBadge({ status }: { status?: string | null }) {
   return <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${style}`}>{status}</span>;
 }
 
-const TH = 'px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500 whitespace-nowrap';
+const TH = 'px-3 py-3 text-left text-xs font-semibold capitalize text-neutral-500 whitespace-nowrap'; // the kc table head (kopicalf-hrms)
 const TD = 'px-3 py-2.5 text-sm align-top';
 
 function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skeleton: boolean; onSelect: (t: TransactionCombined) => void }) {
   return (
     <div className="hidden max-h-[calc(100dvh-17rem)] min-h-[16rem] overflow-auto md:block">
       <table className="w-full min-w-[900px] border-separate border-spacing-0 2xl:min-w-[1040px]">
-        <thead className="sticky top-0 z-[5] bg-neutral-50">
+        <thead className="sticky top-0 z-[5] bg-neutral-50/95 backdrop-blur">
           <tr className="[&>th]:border-b [&>th]:border-neutral-200">
             <th className={TH}>{tr('Sales / Bill')}</th>
             <th className={TH}>{tr('Date')}</th>
@@ -617,7 +618,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
                     <td className={`${TD} ${border}`}>
                       <p className={tx.menu_name?.endsWith(')') ? 'pl-3 text-neutral-500' : 'font-medium text-neutral-800'}>{tx.menu_name || '-'}</p>
                       {tx.menu_category && !tx.menu_name?.endsWith(')') && (
-                        <p className="text-xs text-neutral-400">{tx.menu_category}{tx.menu_category_detail ? ` · ${tx.menu_category_detail}` : ''}</p>
+                        <p className="text-xs text-neutral-400">{nameCase(tx.menu_category)}{tx.menu_category_detail ? ` · ${nameCase(tx.menu_category_detail)}` : ''}</p>
                       )}
                     </td>
                     <td className={`${TD} ${border} text-right tabular-nums text-neutral-700`}>{formatNumber(tx.quantity)}</td>

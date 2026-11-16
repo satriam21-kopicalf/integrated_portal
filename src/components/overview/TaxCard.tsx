@@ -43,7 +43,7 @@ function Rows({ rows, label, limit }: { rows: TaxResponse['channels']; label: (k
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-400">
+        <thead className="text-left text-xs capitalize text-neutral-400">
           <tr><th className="py-2 pr-3 font-medium" /><th className="px-2 py-2 text-right font-medium">{tr('Tax / PB1')}</th>
             <th className="px-2 py-2 text-right font-medium">{tr('Rate')}</th><th className="px-2 py-2 text-right font-medium">{tr('Bills Taxed')}</th>
             <th className="py-2 pl-2 text-right font-medium">{tr('Share')}</th></tr>
@@ -108,7 +108,7 @@ export default function TaxCard({ resource }: { resource: Resource<TaxResponse> 
 function Figure({ label, value, sub }: { label: string; value: string; sub?: React.ReactNode }) {
   return (
     <div className="rounded-lg bg-neutral-50 px-3 py-2">
-      <p className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{label}</p>
+      <p className="text-xs font-medium capitalize text-neutral-400">{label}</p>
       <p className="mt-0.5 text-base font-semibold tabular-nums text-neutral-900">{value}</p>
       {sub && <div className="mt-0.5 text-[11px] text-neutral-500">{sub}</div>}
     </div>
