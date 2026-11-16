@@ -2,28 +2,34 @@
 
 // Small pieces of the sidebar (design after kopicalf-hrms): the brand, a section label, a main entry.
 
+import { BRANDS, useBrandLook } from '@/lib/brand-look';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { BRAND_LINE } from '@/components/BrandWatermark';
 import { cx } from '@/components/kc';
-import { assetUrl } from '@/lib/assets';
-import { tr } from '@/lib/i18n';
-import { useCotrLook } from '@/cotr/theme';
 import type { navigation } from './menu';
 
 export function Brand({ compact = false }: { compact?: boolean }) {
-  // a COTR page or a COTR account (2026-11-13): the logo and the name of Calf On The Road
-  const cotr = useCotrLook();
+  // the brand shown (lib/brand-look, 2026-11-16): Kopi Calf, Wasgee Tea Lab (a wide wordmark) or Calf On The Road
+  const b = BRANDS[useBrandLook()];
+  if (b.wide && !compact) {
+    return (
+      <div className="flex min-w-0 flex-col justify-center gap-1 leading-tight">
+        {/* eslint-disable-next-line @next/next/no-img-element -- brand wordmark from public/assets */}
+        <img src={b.logo} alt={b.name} className="h-6 w-auto max-w-[9.5rem] object-contain object-left" />
+        <p className="text-[10px] font-bold tracking-[0.16em] text-brand-700">PORTAL</p>
+      </div>
+    );
+  }
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-neutral-200">
-        <Image src={cotr ? '/assets/Logo-COTR.png' : assetUrl('assets/calf-logo.png')} alt={cotr ? 'Calf On The Road' : tr('Kopi Calf')} fill sizes="36px" className="object-contain p-1" />
+        <Image src={b.logo} alt={b.name} fill sizes="36px" className="object-contain p-1" />
       </div>
       {!compact && (
         <div className="min-w-0 leading-tight">
           <p className="text-[13px] font-bold tracking-[0.16em] text-brand-700">PORTAL</p>
-          <p className="truncate text-[11px] text-neutral-500">{cotr ? 'Calf On The Road' : BRAND_LINE}</p>
+          <p className="truncate text-[11px] text-neutral-500">{b.line}</p>
         </div>
       )}
     </div>

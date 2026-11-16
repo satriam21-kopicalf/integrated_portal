@@ -1,5 +1,6 @@
 'use client';
 
+import { setDashboardCotr } from '@/lib/brand-look';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -89,6 +90,8 @@ export default function OverviewPage() {
   const { company, setCompany } = useCompany();
   // Calf On The Road: a tab of its own (not an ESB company); its sales from the COTR pools (2026-11-13: src/cotr/CotrOverview)
   const [cotr, setCotr] = useState(false);
+  // the sidebar wears the COTR brand while its tab is open (lib/brand-look)
+  useEffect(() => { setDashboardCotr(cotr); return () => setDashboardCotr(false); }, [cotr]);
   const pickTab = (code: string) => { if (code === COTR) { setCotr(true); return; } setCotr(false); setCompany(code); };
   const meta = useOverview<MetaResponse>('meta', `company=${company}`);
 

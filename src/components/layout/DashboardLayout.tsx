@@ -1,5 +1,6 @@
 'use client';
 
+import { BRANDS, useBrandLook } from '@/lib/brand-look';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -8,10 +9,7 @@ import TableCards from './TableCards';
 import BottomNav, { FocusContext } from './BottomNav';
 import UserAvatar from '@/components/UserAvatar';
 import { UnreadBadge, useNotifications } from '@/components/AlertBell';
-import { BRAND_LINE } from '@/components/BrandWatermark';
-import { useCotrLook } from '@/cotr/theme';
 import { ToastProvider } from '@/so/ui';
-import { assetUrl } from '@/lib/assets';
 import { useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { tr } from '@/lib/i18n';
@@ -78,7 +76,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: boolean; onMenu: () => void }) {
   const { user } = useAuth();
   const { unread } = useNotifications();
-  const cotr = useCotrLook();
+  const brand = BRANDS[useBrandLook()];
   // the most specific page of the path (Cost Control pages sit under /cost-control)
   const page = PAGES.filter((p) => pathname === p.href || pathname.startsWith(`${p.href}/`)).sort((a, b) => b.href.length - a.href.length)[0];
   return (
@@ -88,13 +86,21 @@ function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: bo
       <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3 sm:px-5">
         <div className="relative h-10 min-w-0 flex-1">
           <div className={`absolute inset-0 flex items-center gap-2.5 transition-all duration-200 ${scrolled && page ? 'pointer-events-none -translate-y-2 opacity-0' : 'opacity-100'}`}>
-            <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-neutral-200/80">
-              <Image src={cotr ? '/assets/Logo-COTR.png' : assetUrl('assets/calf-logo.png')} alt={cotr ? 'Calf On The Road' : 'Kopi Calf'} fill sizes="36px" className="object-contain p-1" />
-            </span>
-            <span className="min-w-0 leading-tight">
-              <span className="block text-[13px] font-extrabold tracking-[0.14em] text-brand-700">PORTAL</span>
-              <span className="block truncate text-[11px] font-medium text-neutral-500">{cotr ? 'Calf On The Road' : BRAND_LINE}</span>
-            </span>
+            {brand.wide ? (
+              <span className="flex min-w-0 flex-col justify-center gap-1 leading-tight">
+                {/* eslint-disable-next-line @next/next/no-img-element -- brand wordmark from public/assets */}
+                <img src={brand.logo} alt={brand.name} className="h-6 w-auto max-w-[9rem] object-contain object-left" />
+                <span className="block text-[10px] font-extrabold tracking-[0.14em] text-brand-700">PORTAL</span>
+              </span>
+            ) : <>
+              <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-neutral-200/80">
+                <Image src={brand.logo} alt={brand.name} fill sizes="36px" className="object-contain p-1" />
+              </span>
+              <span className="min-w-0 leading-tight">
+                <span className="block text-[13px] font-extrabold tracking-[0.14em] text-brand-700">PORTAL</span>
+                <span className="block truncate text-[11px] font-medium text-neutral-500">{brand.line}</span>
+              </span>
+            </>}
           </div>
           {page && (
             <p className={`absolute inset-0 flex items-center truncate text-base font-semibold text-neutral-900 transition-all duration-200 ${scrolled ? 'opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`}>

@@ -47,7 +47,7 @@ function Tile({ icon, label, value, sub, delta }: { icon: ReactNode; label: stri
   return (
     <div className="min-w-0 rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}</span>
+        <span className="text-xs font-semibold capitalize text-neutral-500">{label}</span>
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{icon}</span>
       </div>
       <p className="mt-2 truncate text-lg font-semibold tabular-nums text-neutral-900 sm:text-2xl">{value}</p>
