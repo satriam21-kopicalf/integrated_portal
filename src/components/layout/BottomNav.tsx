@@ -29,7 +29,7 @@ const FORM_LINKS: FormLink[] = [
   { href: '/forms/surveyor-check-in', key: 'form.surveyor-check-in', icon: UserRoundCheck, label: () => tr('Cost Control Clock In'), hint: () => tr('Cost Control visit to the outlet') },
   { href: '/forms/product', key: 'form.product', icon: Package, label: () => 'Product', hint: () => tr('Fill in the product checklist') },
   { href: '/forms/outlet', key: 'form.outlet', icon: Store, label: () => 'Outlet', hint: () => tr('Fill in the outlet checklist') },
-  { href: '/forms/damaged-equipment', key: 'form.damaged-equipment', icon: Wrench, label: () => tr('Damaged Equipment'), hint: () => tr('Repair & procurement requests') },
+  { href: '/forms/damaged-equipment', key: 'form.damaged-equipment', icon: Wrench, label: () => tr('Maintenance Request'), hint: () => tr('Repair & procurement requests') },
   { href: '/forms/pengajuan', key: 'form.pengajuan', icon: Wallet, label: () => tr('Fund Request'), hint: () => tr('Petty cash with receipts') },
   { href: '/forms/wwwr', key: 'form.wwwr', icon: ShieldCheck, label: () => 'WW-WR', hint: () => tr('SWAT audit of the outlet') },
 ];

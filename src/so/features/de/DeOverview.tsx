@@ -1,13 +1,13 @@
 "use client";
 
-// Monitoring → Damaged Equipment → Overview: the analysis of every request sent in the period (GET /api/de/overview):
+// Monitoring → Maintenance Request → Overview: the analysis of every request sent in the period (GET /api/de/overview):
 // KPIs, the weekly trend (in vs done), where the requests stand, the time per stage, urgency vs target, category groups
 // and categories, internal vs vendor and the technicians, the outlets with most requests, repeated damage and the
 // reasons of reject / on hold.
 
 import { AlertTriangle, BarChart3, CheckCircle2, Clock, Repeat, Wallet, Wrench } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, cx, Empty, ErrorState, fmtNumber, Panel } from "@/so/ui";
+import { Badge, cx, Empty, ErrorState, fmtNumber, Panel, theadClass } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { Segmented } from "@/so/ui/Simple";
 import { dmy, wibDay } from "@/so/ui/Filters";
@@ -106,8 +106,8 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
                 </Panel>
                 <Panel title={tr("Urgency vs Target")} description={tr("Done on target per urgency")}>
                   {!d ? <Skel /> : (
-                    <table className="m-cards w-full text-sm">
-                      <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-2">{tr("Urgency")}</th><th className="px-2 py-2 text-right">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Done")}</th><th className="px-2 py-2">{tr("On Target")}</th><th className="px-4 py-2 text-right">{tr("Average")}</th></tr></thead>
+                    <table className="m-cards w-full text-xs">
+                      <thead className={theadClass}><tr><th className="px-4 py-2">{tr("Urgency")}</th><th className="px-2 py-2 text-right">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Done")}</th><th className="px-2 py-2">{tr("On Target")}</th><th className="px-4 py-2 text-right">{tr("Average")}</th></tr></thead>
                       <tbody className="divide-y divide-neutral-100">
                         {d.urgency.map((u) => (
                           <tr key={u.urgency}>
@@ -241,8 +241,8 @@ function RowTable({ rows }: { rows: Row[] }) {
   if (!rows.length) return <p className="px-4 py-6 text-center text-sm text-neutral-400">—</p>;
   const max = Math.max(1, ...rows.map((r) => r.count));
   return (
-    <table className="m-cards w-full text-sm">
-      <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-400"><tr><th className="px-4 py-2">{tr("Name")}</th><th className="px-2 py-2">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Average")}</th><th className="px-4 py-2 text-right">{tr("Cost")}</th></tr></thead>
+    <table className="m-cards w-full text-xs">
+      <thead className={theadClass}><tr><th className="px-4 py-2">{tr("Name")}</th><th className="px-2 py-2">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Average")}</th><th className="px-4 py-2 text-right">{tr("Cost")}</th></tr></thead>
       <tbody className="divide-y divide-neutral-100">
         {rows.map((r) => (
           <tr key={r.name}>

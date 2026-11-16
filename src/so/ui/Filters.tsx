@@ -4,6 +4,7 @@
 // button; the toolbar keeps the search, the button with the number of filters in use and their removable chips.
 // Dates are WIB (the business day of every outlet and hub).
 
+import { tc } from '@/lib/title-case';
 import { ReactNode } from 'react';
 import { RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { Button, cx, inputClass } from '@/so/ui';
@@ -87,7 +88,7 @@ export function FilterSection({ title, hint, children }: { title: string; hint?:
   return (
     <section className="px-1 py-4 first:pt-1">
       <header className="mb-2.5">
-        <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-neutral-900">{tc(title)}</h3>
         {hint && <p className="mt-0.5 text-xs text-neutral-500">{hint}</p>}
       </header>
       {children}

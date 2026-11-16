@@ -31,7 +31,7 @@ export const PAGES: PageInfo[] = [
   { key: 'form.surveyor-check-in', href: '/forms/surveyor-check-in', get label() { return tr('Cost Control Clock In (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.product', href: '/forms/product', get label() { return 'Product (form)'; }, get group() { return tr('Form'); } },
   { key: 'form.outlet', href: '/forms/outlet', get label() { return 'Outlet (form)'; }, get group() { return tr('Form'); } },
-  { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Damaged Equipment (form)'); }, get group() { return tr('Form'); } },
+  { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Maintenance Request (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.pengajuan', href: '/forms/pengajuan', get label() { return tr('Fund Request (Form)'); }, get group() { return tr('Form'); } },
   // the SWAT audit (2026-11-03): given per account
   { key: 'form.stock-transfer', href: '/forms/stock-transfer', get label() { return tr('Transfer Stock (form, TITO)'); }, get group() { return tr('Form'); } },
@@ -65,7 +65,7 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.product', href: '/monitoring/product', get label() { return 'Product'; }, get group() { return tr('Operations'); } },
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return 'Outlet'; }, get group() { return tr('Operations'); } },
   { key: 'mon.wwwr', href: '/monitoring/wwwr', label: 'WW-WR', get group() { return tr('Operations'); } },
-  { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Damaged Equipment'); }, get group() { return tr('Operations'); } },
+  { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Maintenance Request'); }, get group() { return tr('Operations'); } },
   { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch Groups'); }, get group() { return tr('Operations'); } },
   { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Fund Request'); }, get group() { return tr('Operations'); } },
   // the two approval steps of Pengajuan: rights inside /monitoring/pengajuan, not menu entries of their own

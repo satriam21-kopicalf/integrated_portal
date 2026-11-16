@@ -14,6 +14,7 @@
 //   EmptyState, ErrorBlock     nothing to show / an error with retry
 //   kcTable                    the classes of a list table (thead, rows)
 
+import { tc } from '@/lib/title-case';
 import { AlertCircle, ArrowUpRight, Search, X } from 'lucide-react';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { tr } from '@/lib/i18n';
@@ -40,8 +41,8 @@ export function PageHeader({ title, subtitle, actions, media, eyebrow }: {
       <div className="flex min-w-0 items-start gap-3">
         {media && <span className="flex h-10 min-w-10 flex-shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white px-2 text-brand-700">{media}</span>}
         <div className="min-w-0">
-          {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{eyebrow}</p>}
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">{title}</h1>
+          {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tc(eyebrow)}</p>}
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">{tc(title)}</h1>
           {subtitle && <p className="mt-1 max-w-3xl text-sm text-neutral-500">{subtitle}</p>}
         </div>
       </div>
@@ -87,7 +88,7 @@ export function Card({ title, subtitle, actions, toolbar, footer, children, clas
       {(title || actions) && (
         <header className="flex flex-wrap items-start justify-between gap-3 px-4 pb-2 pt-3.5 sm:px-5">
           <div className="min-w-0">
-            {title && <h2 className="text-base font-bold tracking-tight text-neutral-900">{title}</h2>}
+            {title && <h2 className="text-base font-bold tracking-tight text-neutral-900">{tc(title)}</h2>}
             {subtitle && <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-1.5">{actions}</div>}
@@ -127,7 +128,7 @@ export function StatBody({ label, value, sub, icon, tone = 'default', info, titl
       )}
       <span className="relative min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
-          <span className="flex min-w-0 items-center gap-1 truncate text-xs font-medium text-neutral-500">{label}{info}</span>
+          <span className="flex min-w-0 items-center gap-1 truncate text-xs font-medium text-neutral-500">{tc(label)}{info}</span>
           {arrow && <ArrowUpRight size={14} className="flex-shrink-0 text-neutral-300 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-700" aria-hidden />}
         </span>
         <span title={title} className={cx('mt-0.5 block font-bold leading-tight tracking-tight tabular-nums', valueClassName ?? 'truncate text-[22px]', VALUE_TONE[tone])}>{value}</span>
@@ -177,7 +178,7 @@ export function Tabs({ tabs, value, onChange, label, className, variant = 'line'
           <button key={t.key} type="button" role="tab" aria-selected={on} title={t.title} aria-label={t.title} onClick={() => onChange(t.key)}
             className={cx('relative flex flex-shrink-0 items-center gap-2 whitespace-nowrap pb-3.5 text-xs font-bold transition-colors',
               on ? 'text-brand-700' : 'text-neutral-500 hover:text-neutral-900')}>
-            {t.label}
+            {tc(t.label)}
             {t.count !== undefined && t.count !== null && (
               <span className={cx('rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums', on ? 'bg-brand-50 text-brand-700' : 'bg-neutral-100 text-neutral-500')}>{t.count}</span>
             )}
@@ -238,7 +239,7 @@ export function EmptyState({ icon, title, children }: { icon?: ReactNode; title:
   return (
     <div className="flex flex-col items-center px-4 py-14 text-center">
       {icon && <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-100 text-neutral-400">{icon}</span>}
-      <p className="text-sm font-medium text-neutral-800">{title}</p>
+      <p className="text-sm font-medium text-neutral-800">{tc(title)}</p>
       {children && <div className="mt-1 max-w-md text-[13px] text-neutral-500">{children}</div>}
     </div>
   );
@@ -260,7 +261,7 @@ export function ErrorBlock({ message, onRetry }: { message: string; onRetry?: ()
 // as the kopicalf-hrms DataTable (2026-11-16): a grey head with rounded ends, sentence-case labels, 12 px text
 export const kcTable = {
   table: 'w-full text-xs',
-  thead: 'bg-neutral-50/90 text-left text-xs font-semibold text-neutral-500 [&_th:first-child]:rounded-l-xl [&_th:last-child]:rounded-r-xl',
+  thead: 'bg-neutral-50/90 text-left text-xs font-semibold capitalize text-neutral-500 [&_th:first-child]:rounded-l-xl [&_th:last-child]:rounded-r-xl',
   th: 'whitespace-nowrap px-4 py-3 font-semibold',
   tbody: 'divide-y divide-neutral-100',
   row: 'group transition-colors hover:bg-neutral-50/70',

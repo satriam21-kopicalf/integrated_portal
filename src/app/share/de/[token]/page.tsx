@@ -1,6 +1,6 @@
 "use client";
 
-// A Damaged Equipment request opened from its share link (no sign-in): a report page with the head of the request
+// A Maintenance Request opened from its share link (no sign-in): a report page with the head of the request
 // (status, urgency, key facts, steps), the request itself (items, analysis, evidence, handling, signature) and, beside
 // it, the time per stage and every note of the team. Read-only; the link expires (SHARE_LINK_DAYS). PDF to download.
 
@@ -52,7 +52,7 @@ function ShareView() {
     }
   };
   return (
-    <PublicShell eyebrow="Damaged Equipment" title={r ? `${r.number} · ${r.branchName}` : tr("Request")}
+    <PublicShell eyebrow="Maintenance Request" title={r ? `${r.number} · ${r.branchName}` : tr("Request")}
       subtitle={r ? `${r.kindLabel} · PIC ${r.picName}` : undefined}
       actions={r && (
         <>

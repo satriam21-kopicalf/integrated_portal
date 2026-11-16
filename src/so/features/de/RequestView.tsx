@@ -1,6 +1,6 @@
 "use client";
 
-// One Damaged Equipment request as everyone reads it — the PIC (their requests), the team (monitoring drawer) and the
+// One Maintenance Request as everyone reads it — the PIC (their requests), the team (monitoring drawer) and the
 // share link — in numbered cards like the other drawers: status & steps, time per stage, items, analysis, evidence,
 // handling (technicians, cost, invoices, photos of the work done), the timeline with every note and the signature.
 

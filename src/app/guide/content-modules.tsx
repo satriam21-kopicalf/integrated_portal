@@ -247,10 +247,10 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
         ]} />,
       },
       {
-        id: 'form-de', title: tr('Damaged Equipment'),
+        id: 'form-de', title: tr('Maintenance Request'),
         body: <Steps items={[
-          L(<><P href="/forms/damaged-equipment" t="Damaged Equipment" />: pilih cabang dan jenis — <b>perbaikan</b> (bangunan & alat) atau <b>pengadaan</b> (dekorasi & alat). Permintaan terbuka cabang itu ditampilkan agar tidak dobel.</>,
-            <><P href="/forms/damaged-equipment" t="Damaged Equipment" />: choose the branch and kind — <b>repair</b> (building & tools) or <b>procurement</b> (decoration & tools). Open requests of the branch show so nothing is asked twice.</>),
+          L(<><P href="/forms/damaged-equipment" t="Maintenance Request" />: pilih cabang dan jenis — <b>perbaikan</b> (bangunan & alat) atau <b>pengadaan</b> (dekorasi & alat). Permintaan terbuka cabang itu ditampilkan agar tidak dobel.</>,
+            <><P href="/forms/damaged-equipment" t="Maintenance Request" />: choose the branch and kind — <b>repair</b> (building & tools) or <b>procurement</b> (decoration & tools). Open requests of the branch show so nothing is asked twice.</>),
           L(<>Foto dari kamera (dicap) dan satu video ≤ 10 MB; draft tersimpan otomatis. Pratinjau, tanda tangan PIC, kirim — PDF dan link berbagi tersedia.</>, <>Camera photos (stamped) and one video ≤ 10 MB; the draft saves itself. Preview, PIC signature, send — a PDF and a share link follow.</>),
           L(<>Daftar permintaan saya: progres dan catatan tim; selama dikerjakan PIC bisa menambah foto.</>, <>My requests: progress and the team’s notes; while the work runs the PIC can add photos.</>),
           L(<>Serah terima (link dari tim): 1–5 foto, tanda tangan PIC dan tanda tangan vendor bila vendor. Setelah Done, dokumen akhir bisa diunduh.</>, <>Handover (link from the team): 1–5 photos, the PIC’s signature and the vendor’s for a vendor. Once Done the final document downloads.</>),
@@ -616,7 +616,7 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
         ]} />,
       },
       {
-        id: 'ops-de', title: tr('Damaged Equipment'),
+        id: 'ops-de', title: tr('Maintenance Request'),
         body: <Table head={[S('Tab', 'Tab'), S('Isinya', 'What it holds')]} rows={[
           ['Requests', S('Tab status & filter, per cabang / PIC. Satu permintaan: estimasi selesai, langkah, Handling (langkah berikutnya & yang kurang, teknisi internal atau vendor, foto kerja lewat link teknisi, serah terima PIC, biaya & invoice, duplikat), isi permintaan, riwayat', 'Status tabs & filters, per branch / PIC. One request: estimated finish, steps, Handling (next step & what is missing, internal technician or vendor, work photos via the technician link, the PIC\'s handover, cost & invoices, duplicates), the request, history')],
           ['Overview · Technicians · Categories', S('Analisis semua permintaan; teknisi; kategori', 'Analysis of every request; technicians; categories')],

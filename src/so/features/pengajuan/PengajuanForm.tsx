@@ -131,7 +131,7 @@ export default function PengajuanForm() {
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-xs text-neutral-500">{tr("Maintenance and new equipment, decoration or merchandise: use Form → Damaged Equipment.")}</p>
+                <p className="mt-2 text-xs text-neutral-500">{tr("Maintenance and new equipment, decoration or merchandise: use Form → Maintenance Request.")}</p>
               </div>
               <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create: {0}", kindLabel(kind))}</Button>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-// Form → Damaged Equipment (page form.damaged-equipment): the PIC asks for a repair (building & tools) or a procurement
+// Form → Maintenance Request (page form.damaged-equipment): the PIC asks for a repair (building & tools) or a procurement
 // (decoration & tools) for one of their branches. The draft is saved as it is filled; the open requests of the branch
 // are shown (and an item already asked is flagged) so nothing is asked twice; photos come from the camera (stamped),
 // one video ≤ 10 MB; a preview with the PIC's signature sends it; the PDF and a share link follow, and "My requests"
@@ -91,7 +91,7 @@ export default function DeForm() {
   const done = mine.filter((r) => r.status === "DONE");
   const shown = mine.filter((r) => show === "all" || (show === "open" ? OPEN.includes(r.status) : show === "done" ? r.status === "DONE" : r.status === "REJECTED"));
   return (
-    <Page title="Damaged Equipment" actions={<LiveClock />}
+    <Page title="Maintenance Request" actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
       {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
@@ -258,7 +258,7 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
       window.prompt(tr("Copy the link"), url);
     }
   };
-  const text = `${tr("Damaged Equipment request")} ${r.number} · ${r.kindLabel} · ${r.branchName}\n${url ?? ""}`;
+  const text = `${tr("Maintenance Request")} ${r.number} · ${r.kindLabel} · ${r.branchName}\n${url ?? ""}`;
   const final = async () => {
     setBusy(true);
     try {
@@ -642,7 +642,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </div>
       </div>
 
-      <CameraCapture open={camera} title={tr("Damaged Equipment Evidence")} branch={r.branchName} countNumber={r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}
+      <CameraCapture open={camera} title={tr("Maintenance Request Evidence")} branch={r.branchName} countNumber={r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}
         onClose={() => setCamera(false)} onShot={addPhoto} />
       {preview && <SendSheet r={{ ...r, items: items.filter((i) => i.categoryId && i.name.trim()).map((i) => ({ ...i, category: cats.find((c) => c.id === i.categoryId)?.name, group: cats.find((c) => c.id === i.categoryId)?.group })), analysis, cause }}
         onClose={() => setPreview(false)} onSent={onSent} />}

@@ -132,15 +132,15 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
           )}
         </StatStrip>
       }>
-      <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1" role="tablist" aria-label={tr("Sections")}>
+      <div className="flex gap-x-6 overflow-x-auto rounded-2xl border border-neutral-200/70 bg-white px-5 pt-3.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]" role="tablist" aria-label={tr("Sections")}>
         {((audit ? [["visits", tr("Audits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
           ["comparison", tr("Comparison"), <Scale key="c" size={15} />, null], ["schedule", tr("Schedule"), <CalendarPlus key="s" size={15} />, null]]
           : [["visits", tr("Visits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
           ["attendance", tr("PIC Attendance"), <CalendarDays key="t" size={15} />, att?.pics.length]]) as [Tab, string, React.ReactNode, number | null | undefined][]).map(([k, label, icon, n]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cx("-mb-px inline-flex flex-shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
-              tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800")}>
-            {icon}{label}{n != null && <span className="rounded-full bg-neutral-100 px-1.5 text-[11px] tabular-nums text-neutral-600">{fmtNumber(n)}</span>}
+            className={cx("relative inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-3.5 text-xs font-bold transition-colors",
+              tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
+            {icon}{label}{n != null && <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold tabular-nums text-neutral-500">{fmtNumber(n)}</span>}
           </button>
         ))}
       </div>
@@ -199,7 +199,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                 ))}
               </ul>
               <div className="hidden overflow-x-auto md:block">
-                <table className="m-cards w-full min-w-[920px] text-sm">
+                <table className="m-cards w-full min-w-[920px] text-xs">
                   <thead className={theadClass}>
                     <tr>
                       <th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5">{audit ? tr("Lead") : tr("PIC")}</th><th className="px-3 py-2.5">{tr("Sent")}</th>
@@ -292,7 +292,7 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
         <Empty icon={<UsersRound size={28} />} title={tr("No PIC with this form")}>{tr("PICs appear here when their account has the form page and an outlet in scope.")}</Empty>
       ) : (
         <div className="overflow-x-auto">
-          <table className="m-cards w-full text-sm">
+          <table className="m-cards w-full text-xs">
             <thead className={theadClass}>
               <tr>
                 <th className="sticky left-0 z-10 min-w-[14rem] bg-neutral-50 py-2.5 pl-5 pr-3">{tr("PIC")}</th>
@@ -432,7 +432,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
 
       <Panel title={tr("Outlets Needing Attention")} description={tr("Lowest average score first; tap an outlet to see its visits")}>
         <div className="overflow-x-auto">
-          <table className="m-cards w-full text-sm">
+          <table className="m-cards w-full text-xs">
             <thead className={theadClass}>
               <tr><th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Visits")}</th>
                 <th className="px-3 py-2.5 text-right">{tr("UNDER")}</th><th className="px-3 py-2.5">{tr("Last Visit")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Average Score")}</th></tr>

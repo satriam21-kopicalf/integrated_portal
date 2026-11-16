@@ -145,7 +145,7 @@ const SERVER_EN: [RegExp, string][] = [
   [/^Lampirkan bukti transfer dulu$/, "Attach the transfer proof first"],
   [/^Isi nominal yang ditransfer$/, "Fill in the amount transferred"],
   [/^Isi tanggal transfer$/, "Fill in the transfer date"],
-  [/^Langkah ini bukan bagian akses Anda$/, "This step is not part of your access"],  // Form Fund kinds and approvals, Damaged Equipment approvals (2026-10-29)
+  [/^Langkah ini bukan bagian akses Anda$/, "This step is not part of your access"],  // Form Fund kinds and approvals, Maintenance Request approvals (2026-10-29)
   [/^Isi nama pengaju \(barista \/ PIC\)$/, "Fill in who submits it (barista / PIC)"],
   [/^Isi no\. handphone pribadi pengaju$/, "Fill in the personal phone number"],
   [/^Isi rekening tujuan: bank, no\. rekening dan nama pemilik$/, "Fill in the bank account: bank, number and holder"],
@@ -164,7 +164,7 @@ const SERVER_EN: [RegExp, string][] = [
   [/^Minimal satu tahap approval dan tepat satu tahap pembayaran$/, "At least one approval step and exactly one payment step"],
   [/^Maksimal (\d+) tahap approval$/, "At most $1 approval steps"],
   [/^Ada user approver yang tidak aktif atau tidak ditemukan$/, "An approver is inactive or not found"],
-  [/^Damaged Equipment tidak memiliki tahap pembayaran$/, "Damaged Equipment has no payment step"],
+  [/^Maintenance Request tidak memiliki tahap pembayaran$/, "Maintenance Request has no payment step"],
   [/^Jenis pengajuan tidak dikenal$/, "Unknown kind of request"],
   [/^Pilih outlet$/, "Choose the outlet"],
   [/^Plafon harus angka rupiah 0 sampai 1 triliun$/, "The plafon must be an amount from 0 to 1 trillion rupiah"],

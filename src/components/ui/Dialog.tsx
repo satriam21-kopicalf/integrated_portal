@@ -1,5 +1,6 @@
 'use client';
 
+import { tc } from '@/lib/title-case';
 import { ReactNode, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { tr } from '@/lib/i18n';
@@ -65,7 +66,7 @@ export default function Dialog({
       >
         <header className="flex items-start justify-between gap-3 border-b border-neutral-200 px-5 py-4">
           <div className="min-w-0">
-            <h2 className="text-[15px] font-semibold text-neutral-900">{title}</h2>
+            <h2 className="text-[15px] font-semibold text-neutral-900">{tc(title)}</h2>
             {description && <p className="mt-0.5 text-[13px] text-neutral-500">{description}</p>}
           </div>
           {!locked && (
@@ -95,7 +96,7 @@ export function Field({
   return (
     <div className={className}>
       <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium text-neutral-600">
-        {label}{required && <span className="ml-0.5 text-red-500">*</span>}
+        {tc(label)}{required && <span className="ml-0.5 text-red-500">*</span>}
       </label>
       {children}
       {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : hint ? <p className="mt-1 text-xs text-neutral-500">{hint}</p> : null}

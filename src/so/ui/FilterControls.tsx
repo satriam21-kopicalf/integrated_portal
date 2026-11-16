@@ -1,5 +1,6 @@
 'use client';
 
+import { tc } from '@/lib/title-case';
 import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
 import { ReactNode, useMemo, useState } from 'react';
 import { Check, Search, SlidersHorizontal, X } from 'lucide-react';
@@ -44,7 +45,7 @@ export function ChoiceGroup({ label, choices, value, onChange }: { label: string
   const real = choices.filter(c => c.value !== '');
   return (
     <fieldset>
-      {label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{label}</legend>}
+      {label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>}
       {real.length <= 1 && !value ? <OnlyOne label={real[0]?.label ?? '—'} /> : (
         <div className="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1" role="radiogroup">
           {choices.map(c => {
@@ -53,7 +54,7 @@ export function ChoiceGroup({ label, choices, value, onChange }: { label: string
               <button key={c.value || 'any'} type="button" role="radio" onClick={() => onChange(c.value)} aria-checked={on} title={c.hint}
                 className={`min-w-0 flex-1 basis-[30%] truncate rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
                   on ? 'bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200' : 'text-neutral-600 hover:text-neutral-900'}`}>
-                {c.label}
+                {tc(c.label)}
               </button>
             );
           })}
@@ -79,7 +80,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
     return s ? options.filter(o => o.label.toLowerCase().includes(s) || o.value.toLowerCase().includes(s)) : options;
   }, [options, q]);
   if (!loading && options.length <= 1 && !value) {
-    return <fieldset>{label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{label}</legend>}<OnlyOne label={options[0]?.label ?? '—'} /></fieldset>;
+    return <fieldset>{label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>}<OnlyOne label={options[0]?.label ?? '—'} /></fieldset>;
   }
   const row = (v: string, text: ReactNode, meta?: ReactNode) => {
     const on = v === value;
@@ -99,7 +100,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
   return (
     // min-w-0: a fieldset is at least as wide as its content by default, so long labels would overflow the drawer
     <fieldset className="min-w-0">
-      {label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{label}</legend>}
+      {label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>}
       <div className="overflow-hidden rounded-xl border border-neutral-200">
         <div className="relative border-b border-neutral-100 p-2">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />

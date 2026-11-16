@@ -1,6 +1,6 @@
 "use client";
 
-// The frame of the public Damaged Equipment pages (share link of a request, photo link of a technician): no sign-in, a
+// The frame of the public Maintenance Request pages (share link of a request, photo link of a technician): no sign-in, a
 // brand band with the document name, an ID / EN switch (Indonesian when the browser has no choice yet) and a footer.
 
 import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
@@ -46,7 +46,7 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
       </header>
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
       <footer className="border-t border-neutral-200 bg-white">
-        <p className="mx-auto max-w-4xl px-4 py-3 text-center text-[11px] text-neutral-400 sm:px-6">Kopi Calf Integrated Portal · Damaged Equipment</p>
+        <p className="mx-auto max-w-4xl px-4 py-3 text-center text-[11px] text-neutral-400 sm:px-6">Kopi Calf Integrated Portal · Maintenance Request</p>
       </footer>
     </div>
   );

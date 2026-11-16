@@ -97,7 +97,7 @@ export const MAX_FILE_MB = 10;
 /** The expenses accepted (not rejected by a checker). */
 export const acceptedTotal = (lines: Line[]) => lines.filter((l) => l.review !== "REJECTED").reduce((a, l) => a + (l.amount ?? 0), 0);
 
-/** Upload one file (raw body), as the Damaged Equipment invoices. */
+/** Upload one file (raw body), as the Maintenance Request invoices. */
 export async function upload<T>(url: string, file: File): Promise<T> {
   if (file.size > MAX_FILE_MB * 1048576) throw new Error(tr("Attachments are at most {0} MB", MAX_FILE_MB));
   const res = await fetch(url, { method: "POST", body: file, headers: { "content-type": file.type || "application/octet-stream" } });

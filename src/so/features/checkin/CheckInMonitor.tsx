@@ -193,7 +193,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="m-cards w-full min-w-[820px] text-sm">
+              <table className="m-cards w-full min-w-[820px] text-xs">
                 <thead className={theadClass}>
                   <tr>
                     <th className="w-16 px-4 py-2.5">{tr("Photo")}</th>
@@ -526,7 +526,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
               </ul>
             )
           ) : (
-            <table className="m-cards w-full text-sm">
+            <table className="m-cards w-full text-xs">
               <thead className={theadClass}>
                 <tr>
                   <th className="px-3 py-2">{kind === "checkins" ? tr("Day") : kind === "pics" ? tr("PIC") : tr("Outlet")}</th>

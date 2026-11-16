@@ -44,7 +44,7 @@ export default function BranchGroupsPage() {
   return (
     <Page title={tr("Branch Groups")} subtitle={tr("Classes of outlets the forms are assessed by (CCI, CTG, CTGP …); one group per branch")}
       actions={canEdit && tab === "groups" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Group")}</Button> : undefined}>
-      <Tabs label={tr("Branch Groups")} value={tab} onChange={setTab} tabs={[
+      <Tabs variant="card" label={tr("Branch Groups")} value={tab} onChange={setTab} tabs={[
         { key: "groups", label: tr("Groups") }, { key: "deadlines", label: tr("Check-In Deadlines") },
         { key: "items", label: tr("Form Items") }, { key: "targets", label: tr("Net Sales") }]} />
       {tab === "deadlines" ? <CheckInDeadlines canEdit={canEdit} /> : tab === "items" ? <FormItems canEdit={canEdit} />

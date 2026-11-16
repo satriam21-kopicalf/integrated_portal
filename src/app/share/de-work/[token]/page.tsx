@@ -85,7 +85,7 @@ function Work() {
   const ss = left === null ? "--" : String(Math.floor((left % 60000) / 1000)).padStart(2, "0");
 
   return (
-    <PublicShell eyebrow={tr("Photos of the work done")} title={w ? `${w.number} · ${w.branchName}` : tr("Damaged Equipment")}
+    <PublicShell eyebrow={tr("Photos of the work done")} title={w ? `${w.number} · ${w.branchName}` : tr("Maintenance Request")}
       subtitle={w ? tr("Technician: {0}", w.technician) : undefined}>
       {error ? <PublicError message={error} /> : !w ? <PublicLoading /> : (
         <div className="space-y-4 pb-24">

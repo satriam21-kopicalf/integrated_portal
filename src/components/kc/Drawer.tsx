@@ -5,6 +5,7 @@
 // the backdrop close it unless `locked`. @/components/ui/Drawer and @/so/ui/Drawer re-export this one, so every drawer
 // of the portal shares it.
 
+import { tc } from '@/lib/title-case';
 import { ReactNode, useEffect, useRef } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
 import { tr } from '@/lib/i18n';
@@ -77,7 +78,7 @@ export default function Drawer({
             )}
             {icon && <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 [&>svg]:h-[18px] [&>svg]:w-[18px]">{icon}</span>}
             <div className="min-w-0">
-              <h2 className="flex items-center gap-1.5 text-[15px] font-semibold leading-snug text-neutral-900">{title}{titleExtra}</h2>
+              <h2 className="flex items-center gap-1.5 text-[15px] font-semibold leading-snug text-neutral-900">{tc(title)}{titleExtra}</h2>
               {description && <p className="mt-0.5 text-[13px] text-neutral-500">{description}</p>}
             </div>
           </div>
@@ -103,7 +104,7 @@ export function DrawerSection({ title, description, children }: { title?: string
     <section className="space-y-4 border-b border-neutral-200 pb-6 last:border-b-0 last:pb-0 [&:not(:first-child)]:pt-6">
       {(title || description) && (
         <div>
-          {title && <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{title}</h3>}
+          {title && <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(title)}</h3>}
           {description && <p className="mt-1 text-xs text-neutral-500">{description}</p>}
         </div>
       )}

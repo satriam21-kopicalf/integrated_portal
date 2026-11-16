@@ -229,7 +229,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
       <Panel title={tr("Evaluation per PIC")} description={tr("Lowest conformity first: the PIC's own visits against the SWAT audits of the same outlet ({0} days before)", res.days)}>
         {res.pics.length === 0 ? <p className="px-4 py-10 text-center text-sm text-neutral-400">{tr("No audit with a PIC visit to compare in this period")}</p> : (
           <div className="overflow-x-auto">
-            <table className="m-cards w-full text-sm">
+            <table className="m-cards w-full text-xs">
               <thead className={theadClass}><tr>
                 <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("Audits")}</th><th className="px-3 py-2.5 text-right">{tr("Items Compared")}</th>
                 <th className="px-3 py-2.5 text-right">{tr("Overrated")}</th><th className="px-3 py-2.5 text-right">{tr("Underrated")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Conformity")}</th>
@@ -309,7 +309,7 @@ function ComparisonDrawer({ id, onClose }: { id: string; onClose: () => void }) 
                 </header>
                 {rows.length === 0 ? <p className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-emerald-700"><CheckCircle2 size={16} /> {only ? tr("The PIC and SWAT agree on every item") : tr("No item")}</p> : (
                   <div className="overflow-x-auto">
-                    <table className="m-cards w-full min-w-[640px] text-sm">
+                    <table className="m-cards w-full min-w-[640px] text-xs">
                       <thead className={theadClass}><tr><th className="py-2 pl-4 pr-3">{tr("Item")}</th><th className="px-3 py-2">PIC</th><th className="px-3 py-2">SWAT</th><th className="px-3 py-2 pr-4">{tr("Verdict")}</th></tr></thead>
                       <tbody className="divide-y divide-neutral-100">
                         {rows.map((r) => (

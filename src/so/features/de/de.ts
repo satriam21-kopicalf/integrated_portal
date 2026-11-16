@@ -1,4 +1,4 @@
-// Damaged Equipment (integrated_portal_be app/damaged_equipment.py): types, labels and helpers shared by the form (PIC),
+// Maintenance Request (integrated_portal_be app/damaged_equipment.py): types, labels and helpers shared by the form (PIC),
 // the monitoring (Maintenance / procurement team) and the public share page.
 
 import { downloadFile } from "@/lib/download-progress";

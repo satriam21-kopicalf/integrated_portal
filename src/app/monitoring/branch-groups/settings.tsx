@@ -55,7 +55,7 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
         <EmptyState title={tr("No outlet matches")} />
       ) : (
         <div className="overflow-x-auto">
-          <table className="m-cards w-full min-w-[760px] text-sm">
+          <table className="m-cards w-full min-w-[760px] text-xs">
             <thead className={kcTable.thead}><tr>
               <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5">{tr("Group Deadline")}</th>
               <th className="px-4 py-2.5">{tr("Own Deadline")}</th><th className="px-4 py-2.5">{tr("Time Zone")}</th><th className="px-4 py-2.5">{tr("On Time Until")}</th>
@@ -260,7 +260,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
       }>
       {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={4} /></tbody></table> : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-[640px] text-xs">
             <thead className={cx(kcTable.thead, "sticky top-0 z-[1]")}><tr>
               <th className="px-4 py-2.5">{tr("Item")}</th>
               {res.groups.map((g) => <th key={g} className="w-24 px-3 py-2.5 text-center">{g}</th>)}
@@ -394,7 +394,7 @@ export function SalesTargets() {
         <EmptyState title={tr("No outlet matches")} />
       ) : (
         <div className="overflow-x-auto">
-          <table className="m-cards w-full min-w-[820px] text-sm">
+          <table className="m-cards w-full min-w-[820px] text-xs">
             <thead className={kcTable.thead}><tr>
               <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5 text-right">{tr("Net Sales This Month")}</th>
               <th className="px-4 py-2.5 text-right">{tr("Average per Day")}</th><th className="px-4 py-2.5 text-right">{tr("Average per Day (1 Month Before)")}</th>

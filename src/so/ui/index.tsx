@@ -3,8 +3,9 @@
 // Building blocks with the integrated_portal look (buttons, fields, badges, page header band, empty/error
 // states, toasts). Drawers, menus, stat strips and filters live next to this file.
 
+import { tc } from '@/lib/title-case';
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Inbox, Loader2, Search, X } from "lucide-react";
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Children, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { locale, tr } from "@/lib/i18n";
 
 export function cx(...c: (string | false | null | undefined)[]) {
@@ -44,7 +45,7 @@ export function Button({
       )}
     >
       {loading && <Loader2 size={16} className="animate-spin" aria-hidden />}
-      {children}
+      {Children.map(children, (c) => tc(c))}
     </button>
   );
 }
@@ -55,7 +56,7 @@ export function Field({ label, hint, error, required, children, className }: {
   return (
     <label className={cx("block", className)}>
       <span className="mb-1.5 block text-xs font-medium text-neutral-600">
-        {label}{required && <span className="ml-0.5 text-red-500">*</span>}
+        {tc(label)}{required && <span className="ml-0.5 text-red-500">*</span>}
       </span>
       {children}
       {error ? <span className="mt-1 block text-xs text-red-600">{error}</span>
@@ -127,7 +128,8 @@ export function SearchBox({ value, onChange, placeholder }: { value: string; onC
 }
 
 /** Table header row style shared by every list. */
-export const theadClass = "border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500";
+// the kopicalf-hrms table head (2026-11-16): grey with rounded ends, sentence-case labels in Title Case
+export const theadClass = "bg-neutral-50/90 text-left text-xs font-semibold capitalize text-neutral-500 [&_th:first-child]:rounded-l-xl [&_th:last-child]:rounded-r-xl";
 
 export { SkeletonRows } from "@/components/kc/Skeleton";
 
@@ -135,7 +137,7 @@ export function Empty({ icon, title, children }: { icon?: ReactNode; title?: str
   return (
     <div className="flex flex-col items-center px-4 py-14 text-center">
       <span className="mb-2 text-neutral-300">{icon ?? <Inbox size={28} />}</span>
-      {title && <p className="text-sm font-medium text-neutral-700">{title}</p>}
+      {title && <p className="text-sm font-medium text-neutral-700">{tc(title)}</p>}
       {children && <p className="mt-1 max-w-md text-sm text-neutral-500">{children}</p>}
     </div>
   );

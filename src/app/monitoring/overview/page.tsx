@@ -94,7 +94,7 @@ export default function MonitoringOverviewPage() {
         {error ? <ErrorState message={error} /> : !res ? <SkeletonTable cols={8} /> : view === "pics" ? (
           pics.length === 0 ? <Empty icon={<UsersRound size={28} />} title={tr("No PIC activity in this period")} /> : (
             <div className="overflow-x-auto">
-              <table className="m-cards w-full min-w-[1260px] text-sm">
+              <table className="m-cards w-full min-w-[1260px] text-xs">
                 <thead className={theadClass}><tr>
                   <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("PIC Score")}</th>
                   <th className="px-3 py-2.5 text-right">{tr("Check-Ins")}</th><th className="px-3 py-2.5 text-right">{tr("On Time")}</th>
@@ -133,7 +133,7 @@ export default function MonitoringOverviewPage() {
           )
         ) : (
           <div className="overflow-x-auto">
-            <table className="m-cards w-full min-w-[980px] text-sm">
+            <table className="m-cards w-full min-w-[980px] text-xs">
               <thead className={theadClass}><tr>
                 <th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Check-ins")}</th>
                 <th className="px-3 py-2.5 text-right">Product</th><th className="px-3 py-2.5 text-right">Outlet</th><th className="px-3 py-2.5 text-right">UNDER</th>

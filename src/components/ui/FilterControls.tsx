@@ -1,5 +1,6 @@
 'use client';
 
+import { tc } from '@/lib/title-case';
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { ReactNode, useMemo, useState } from 'react';
 import { Check, Search, SlidersHorizontal, X } from 'lucide-react';
@@ -33,7 +34,7 @@ export interface Choice {
 export function ChoiceGroup({ label, choices, value, onChange }: { label: string; choices: Choice[]; value: string; onChange: (v: string) => void }) {
   return (
     <fieldset>
-      <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{label}</legend>
+      <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>
       <div className="flex flex-wrap gap-2">
         {choices.map(c => {
           const on = c.value === value;
@@ -42,7 +43,7 @@ export function ChoiceGroup({ label, choices, value, onChange }: { label: string
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] transition-colors ${
                 on ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50'
               }`}>
-              {on && <Check size={14} />}{c.label}
+              {on && <Check size={14} />}{tc(c.label)}
             </button>
           );
         })}
@@ -83,7 +84,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
   };
   return (
     <fieldset>
-      <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{label}</legend>
+      <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>
       <div className="overflow-hidden rounded-xl border border-neutral-200">
         <div className="relative border-b border-neutral-100 p-2">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />

@@ -1,6 +1,6 @@
 "use client";
 
-// Monitoring → Damaged Equipment (page mon.damaged-equipment): tabs Requests · Overview · Technicians · Categories.
+// Monitoring → Maintenance Request (page mon.damaged-equipment): tabs Requests · Overview · Technicians · Categories.
 // Requests: status tabs and one Filters sheet, grouped per branch / PIC / list. A request opens in a drawer: its head
 // (status, estimated finish, steps) and tabs Handling (next step with what is still missing, estimated finish, technicians
 // — internal or vendor, never both —, work photos via the technician link (internal), the PIC's handover, cost & invoices,
@@ -114,7 +114,7 @@ export default function DeMonitor() {
   }, [rows, f.by]);
 
   return (
-    <Page title={tr("Monitoring Damaged Equipment")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("repair & procurement requests of every outlet")}`}
+    <Page title={tr("Monitoring Maintenance Request")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("repair & procurement requests of every outlet")}`}
       actions={<Button variant="secondary" onClick={() => setApprovals(true)}><ListChecks size={15} /> {tr("Approvals")}</Button>}
       stats={tab !== "requests" ? undefined : 
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
@@ -133,13 +133,13 @@ export default function DeMonitor() {
           </Stat>
         </StatStrip>
       }>
-      <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1" role="tablist" aria-label={tr("Sections")}>
+      <div className="flex gap-x-6 overflow-x-auto rounded-2xl border border-neutral-200/70 bg-white px-5 pt-3.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]" role="tablist" aria-label={tr("Sections")}>
         {([["requests", tr("Requests"), <ListChecks key="r" size={15} />], ["overview", "Overview", <BarChart3 key="o" size={15} />],
           ["tech", tr("Technicians"), <Users key="t" size={15} />], ["cat", tr("Categories"), <Tags key="c" size={15} />]] as [PageTab, string, React.ReactNode][]).map(([k, label, icon]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cx("-mb-px inline-flex flex-shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
-              tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-800")}>
-            {icon}{label}{k === "requests" && res ? <span className="rounded-full bg-neutral-100 px-1.5 text-[11px] tabular-nums text-neutral-600">{fmtNumber(openRows.length)}</span> : null}
+            className={cx("relative inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-3.5 text-xs font-bold transition-colors",
+              tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
+            {icon}{label}{k === "requests" && res ? <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold tabular-nums text-neutral-500">{fmtNumber(openRows.length)}</span> : null}
           </button>
         ))}
       </div>
@@ -169,7 +169,7 @@ export default function DeMonitor() {
         footer={res && !grouped ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : res && rows.length === 0 ? (
           <Empty icon={<Wrench size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No request yet")}>
-            {!all.length && tr("Requests appear here as soon as the PICs send them from Form → Damaged Equipment.")}
+            {!all.length && tr("Requests appear here as soon as the PICs send them from Form → Maintenance Request.")}
           </Empty>
         ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table> : grouped ? (
           <ul className="divide-y divide-neutral-200">
@@ -232,7 +232,7 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
         ))}
       </ul>
       <div className="hidden overflow-x-auto md:block">
-        <table className="m-cards w-full min-w-[960px] text-sm">
+        <table className="m-cards w-full min-w-[960px] text-xs">
           <thead className={theadClass}>
             <tr>
               <th className="py-2.5 pl-5 pr-3">{tr("Request")}</th><th className="px-3 py-2.5">{tr("Items")}</th><th className="px-3 py-2.5">{tr("Outlet & PIC")}</th>
@@ -581,7 +581,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                   ) : (
                     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-100 bg-amber-50/60 p-3">
                       <Handshake size={16} className="text-amber-700" />
-                      <span className="min-w-0 flex-1 text-xs text-amber-900">{tr("Send the link to {0}: it opens the request in Form → Damaged Equipment (sign-in) for the handover.", r.picName)}</span>
+                      <span className="min-w-0 flex-1 text-xs text-amber-900">{tr("Send the link to {0}: it opens the request in Form → Maintenance Request (sign-in) for the handover.", r.picName)}</span>
                       <Button size="sm" variant="secondary" onClick={async () => { try { await navigator.clipboard.writeText(picLink); toast(tr("Link copied")); } catch { toast(picLink); } }}><Copy size={13} /> {tr("Copy")}</Button>
                       <a href={`https://wa.me/?text=${encodeURIComponent(picMsg)}`} target="_blank" rel="noreferrer"
                         className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700"><MessageCircle size={13} /> WhatsApp</a>
@@ -974,8 +974,8 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   return (
     <div className="space-y-3">
       <div className="overflow-hidden rounded-xl border border-neutral-200">
-        <table className="m-cards w-full text-sm">
-          <thead className="bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+        <table className="m-cards w-full text-xs">
+          <thead className={theadClass}>
             <tr><th className="px-3 py-2">{tr("Description")}</th><th className="hidden px-2 py-2 text-right sm:table-cell">Qty</th>
               <th className="px-2 py-2 text-right">{tr("Estimate")}</th><th className="px-2 py-2 text-right">{tr("Actual")}</th><th className="w-16" /></tr>
           </thead>
@@ -1098,7 +1098,7 @@ function DeApprovals({ onClose }: { onClose: () => void }) {
                 {tr("Add approval step")}</Button></li>
             )}
           </ol>
-          <p className="text-xs text-neutral-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Damaged Equipment page.")}</p>
+          <p className="text-xs text-neutral-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Maintenance Request page.")}</p>
         </div>
       )}
     </Drawer>

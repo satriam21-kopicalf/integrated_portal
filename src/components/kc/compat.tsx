@@ -4,6 +4,7 @@
 // new design: a page moves to it by changing the import path only — its logic stays as it is. Used by the Aggregator
 // pages first (2026-11-02); the next pages follow the same way.
 
+import { tc } from '@/lib/title-case';
 import { createContext, useContext, type ReactNode } from 'react';
 import { PageHeader, PageShell, StatBody, cx, statCardClass } from './index';
 
@@ -42,7 +43,7 @@ export function Panel({ title, description, actions, toolbar, footer, children, 
       {(title || actions) && (
         <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-2.5 pt-3.5 sm:px-5">
           <div className="min-w-0">
-            {title && <h2 className="text-base font-bold tracking-tight text-neutral-900">{title}</h2>}
+            {title && <h2 className="text-base font-bold tracking-tight text-neutral-900">{tc(title)}</h2>}
             {description && <p className="mt-0.5 text-xs text-neutral-500">{description}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
