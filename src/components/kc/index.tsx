@@ -41,8 +41,8 @@ export function PageHeader({ title, subtitle, actions, media, eyebrow }: {
         {media && <span className="flex h-10 min-w-10 flex-shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white px-2 text-brand-700">{media}</span>}
         <div className="min-w-0">
           {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{eyebrow}</p>}
-          <h1 className="text-xl font-semibold tracking-tight text-neutral-900">{title}</h1>
-          {subtitle && <p className="mt-0.5 text-[13px] text-neutral-500">{subtitle}</p>}
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">{title}</h1>
+          {subtitle && <p className="mt-1 max-w-3xl text-sm text-neutral-500">{subtitle}</p>}
         </div>
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -83,11 +83,11 @@ export function Card({ title, subtitle, actions, toolbar, footer, children, clas
   className?: string; /** the body without padding (tables, lists) */ flush?: boolean;
 }) {
   return (
-    <section className={cx('overflow-hidden rounded-xl border border-neutral-200 bg-white', className)}>
+    <section className={cx('overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]', className)}>
       {(title || actions) && (
         <header className="flex flex-wrap items-start justify-between gap-3 px-4 pb-2 pt-3.5 sm:px-5">
           <div className="min-w-0">
-            {title && <h2 className="text-[15px] font-semibold text-neutral-900">{title}</h2>}
+            {title && <h2 className="text-base font-bold tracking-tight text-neutral-900">{title}</h2>}
             {subtitle && <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-1.5">{actions}</div>}

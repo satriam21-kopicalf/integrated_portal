@@ -38,11 +38,11 @@ export function Panel({ title, description, actions, toolbar, footer, children, 
   title?: string; description?: string; actions?: ReactNode; toolbar?: ReactNode; footer?: ReactNode; children: ReactNode; className?: string;
 }) {
   return (
-    <section className={cx('overflow-hidden rounded-xl border border-neutral-200 bg-white', className)}>
+    <section className={cx('overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]', className)}>
       {(title || actions) && (
         <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-2.5 pt-3.5 sm:px-5">
           <div className="min-w-0">
-            {title && <h2 className="text-[15px] font-semibold text-neutral-900">{title}</h2>}
+            {title && <h2 className="text-base font-bold tracking-tight text-neutral-900">{title}</h2>}
             {description && <p className="mt-0.5 text-xs text-neutral-500">{description}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
