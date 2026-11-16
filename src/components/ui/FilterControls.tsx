@@ -92,7 +92,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
         <ul className="max-h-72 overflow-y-auto py-1">
           {!q && row('', anyLabel)}
           {loading ? <li><SkeletonList rows={3} /></li>
-            : shown.length === 0 ? <li className="px-3 py-4 text-center text-sm text-neutral-400">{tr('No match for “')}{q}”</li>
+            : shown.length === 0 ? <li className="px-3 py-4 text-center text-sm text-neutral-400">{q.trim() ? <>{tr('No match for “')}{q}”</> : tr('Nothing to choose yet')}</li>
             : shown.map(o => row(o.value, o.label, o.meta))}
         </ul>
       </div>

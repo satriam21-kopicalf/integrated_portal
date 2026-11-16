@@ -429,7 +429,7 @@ function PlacePicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
       )}
       {o.match !== "none" && (
         <button type="button" disabled={!!busy} onClick={() => void choose(null)} className="mt-2 text-xs text-neutral-500 hover:text-red-700 hover:underline">
-          {tr("This outlet is not on Google Maps")}
+          {tr("Mark as not on Google Maps")}
         </button>
       )}
     </section>

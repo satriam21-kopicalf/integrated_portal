@@ -269,7 +269,7 @@ export default function UsersPage() {
 
         <StatGrid label={tr('User Summary')} cols={5}>
           <StatCard label={tr('Users')} icon={<Users />} value={s ? formatNumber(s.total) : <ValueSkeleton />}
-            sub={s && tr('{0} super admin · {1} PIC · {2} outlet / hub', formatNumber(s.superadmins), formatNumber(s.users), formatNumber(s.outlets ?? 0))} />
+            sub={s && tr('{0} superadmin · {1} user · {2} outlet/HUB', formatNumber(s.superadmins), formatNumber(s.users), formatNumber(s.outlets ?? 0))} />
           <StatCard label={tr('Active')} tone="brand" icon={<UserCheck />} value={s ? formatNumber(s.active) : <ValueSkeleton />}
             sub={s && `${formatNumber(s.inactive)} ${tr('inactive ·')} ${formatNumber(s.locked)} ${tr('locked')}`} />
           <StatCard label={tr('Signed In, 7 Days')} icon={<LogIn />} value={s ? formatNumber(s.active7d) : <ValueSkeleton />}
@@ -396,7 +396,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
       }>
       <div className="space-y-6">
         <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: tr('All Roles') }, { value: 'superadmin', label: tr('Super Admin') }, { value: 'admin', label: tr('Admin') }, { value: 'cost_control', label: tr('Cost Control') }, { value: 'user', label: tr('User') }, { value: 'outlet', label: tr('Outlet / Hub') }, { value: 'driver', label: tr('Driver (COTR)') },
+          { value: '', label: tr('All Roles') }, { value: 'superadmin', label: ROLE_LABELS.superadmin }, { value: 'admin', label: ROLE_LABELS.admin }, { value: 'cost_control', label: ROLE_LABELS.cost_control }, { value: 'user', label: ROLE_LABELS.user }, { value: 'outlet', label: ROLE_LABELS.outlet }, { value: 'driver', label: ROLE_LABELS.driver },
         ]} />
         <ChoiceGroup label={tr('Status')} value={draft.status} onChange={set('status')} choices={[
           { value: '', label: tr('All') }, { value: 'active', label: tr('Active') }, { value: 'inactive', label: tr('Inactive') },
@@ -404,7 +404,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
         ]} />
         <SearchChoice label={tr('Branch')} anyLabel={tr('All Branches')} options={options} value={draft.branch} onChange={set('branch')}
           placeholder={tr('Search outlet name or code')} loading={branchesLoading} />
-        <p className="text-xs text-neutral-500">{tr('A branch shows the users assigned to it; super admins see every branch and are always included.')}</p>
+        <p className="text-xs text-neutral-500">{tr('A branch shows the users assigned to it. A Superadmin sees every branch and is always included.')}</p>
       </div>
     </Drawer>
   );
@@ -433,7 +433,7 @@ function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code
   const codes = user.branches ?? [];
   if (!codes.length) return <Pill tone="red" icon={<CircleAlert size={11} />} title={tr('This user sees no data until branches are assigned')}>{tr('No branch')}</Pill>;
   const label = codes.length === 1 ? branchName(codes[0]) : tr('{0} branches', codes.length);
-  return <Pill tone="gray" icon={<Store size={11} className="flex-shrink-0" />} title={codes.map(branchName).join('\n')} className="max-w-[14rem]"><span className="truncate">{label}</span></Pill>;
+  return <Pill tone="gray" icon={<Store size={11} className="flex-shrink-0" />} title={codes.map(branchName).join('\n')} className="!max-w-[14rem]"><span className="min-w-0 truncate">{label}</span></Pill>;
 }
 
 /** The employee of the account left the company in HRMS (2026-11-15): only marked, the account stays as it is. */
@@ -769,14 +769,14 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 {LINES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
               </select>
             </Field>
-            {!cotrMode && <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Every branch + the Cost Control pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : form.role === 'admin' ? tr('Admin: the pages the super admin gives it; manages the accounts of role User with the pages it has') : tr('Area Supervisor / PIC: the forms (but Cost Control Clock In), Dashboard, Sales and the Aggregator of the assigned branches')}>
+            {!cotrMode && <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Inventory Surveyor: every branch and the pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : form.role === 'admin' ? tr('Admin: the pages the Superadmin gives it. It manages accounts of role User, with the pages it has itself.') : tr('User (Area Supervisor / PIC): the forms except Cost Control Clock In, Dashboard, Sales and Aggregator of the assigned branches.')}>
               <select id="f-role" className={inputClass} value={form.role} disabled={me?.role === 'admin'} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
-                <option value="user">{tr('User')}</option>
-                {me?.role === 'superadmin' && <option value="admin">{tr('Admin')}</option>}
-                <option value="outlet">{tr('Outlet / Hub')}</option>
-                <option value="driver">{tr('Driver (COTR)')}</option>
-                <option value="cost_control">{tr('Cost Control')}</option>
-                <option value="superadmin">{tr('Super Admin')}</option>
+                <option value="user">{ROLE_LABELS.user}</option>
+                {me?.role === 'superadmin' && <option value="admin">{ROLE_LABELS.admin}</option>}
+                <option value="outlet">{ROLE_LABELS.outlet}</option>
+                <option value="driver">{ROLE_LABELS.driver}</option>
+                <option value="cost_control">{ROLE_LABELS.cost_control}</option>
+                <option value="superadmin">{ROLE_LABELS.superadmin}</option>
               </select>
             </Field>}
             <Field label={tr('Status')} htmlFor="f-active" error={fieldError('isActive')} hint={isMe ? tr('You cannot deactivate your own account') : tr('Inactive users cannot sign in')}>
@@ -801,19 +801,19 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             <Info size={16} className="mt-0.5 flex-shrink-0 text-brand-700" /> {tr('No ESB branches for the COTR team: the pool comes from the employee in Master Driver.')}
           </p>
         ) : branchScoped(form.role) ? (
-          <DrawerSection title={tr('Branch Access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms only show these branches (also exports). Required for the roles User and Outlet / Hub.')}>
+          <DrawerSection title={tr('Branch Access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms show only these branches, exports too. Required for the roles User and Outlet/HUB.')}>
             <BranchAssign branches={lineBranches(branches, businessLine)} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
         ) : (
           <p className="mt-6 flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">
-            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {form.role === 'driver' ? tr('Drivers have no branches: their pool and fleet are set in Master Driver.') : tr('Super admins see every branch.')}
+            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {form.role === 'driver' ? tr('Drivers have no branches: their pool and fleet are set in Master Driver.') : tr('A Superadmin sees every branch.')}
           </p>
         )}
 
         {creating ? (
           <>
-            <DrawerSection title={tr('Administrator Notes')} description={tr('Only visible to super admins, e.g. area or outlet group.')}>
+            <DrawerSection title={tr('Administrator Notes')} description={tr('Only a Superadmin sees this, e.g. the area or outlet group.')}>
               <Field label={tr('Notes')} htmlFor="f-notes" error={fieldError('notes')}>
                 <textarea id="f-notes" rows={2} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
               </Field>
@@ -834,7 +834,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             )}
             <ProfileFields values={profile} onChange={setProfileField} fieldError={fieldError} idPrefix="f" markRequired={false} locked={hrmsFields}
               currentBranchName={user!.workBranchName} />
-            <DrawerSection title={tr('Administrator Notes')} description={tr('Only visible to super admins.')}>
+            <DrawerSection title={tr('Administrator Notes')} description={tr('Only a Superadmin sees this.')}>
               <Field label={tr('Notes')} htmlFor="f-notes" error={fieldError('notes')}>
                 <textarea id="f-notes" rows={3} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
               </Field>
@@ -976,7 +976,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
         <Glance label={tr('Activity, 30 Days')} value={counts ? formatNumber(counts.total) : '…'} sub={counts ? tr('{0} exports', formatNumber(counts.exports)) : ''} />
       </div>
 
-      <DrawerSection title={tr('Branch Access')} description={!branchScoped(user.role) ? tr('Super admins and Cost Control see every branch') : tr('Overview, Sales Transactions and exports are limited to these branches')}>
+      <DrawerSection title={tr('Branch Access')} description={!branchScoped(user.role) ? tr('{0} sees every branch', ROLE_LABELS[user.role]) : tr('Overview, Sales Transactions and exports are limited to these branches')}>
         {!branchScoped(user.role) ? (
           <p className="flex items-center gap-2 text-sm text-neutral-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All Branches')}</p>
         ) : branchCodes.length ? (
@@ -994,7 +994,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
         )}
       </DrawerSection>
 
-      <DrawerSection title={tr('Pages')} description={user.role === 'superadmin' ? tr('Super admins open every page') : tr('Pages of the role {0}, plus the exceptions of this user', ROLE_LABELS[user.role])}>
+      <DrawerSection title={tr('Pages')} description={user.role === 'superadmin' ? tr('A Superadmin opens every page') : tr('Pages of the role {0}, plus the exceptions of this user', ROLE_LABELS[user.role])}>
         <ul className="flex flex-wrap gap-1.5">
           {PAGES.filter(p => user.role === 'superadmin' || (user.pages ?? []).includes(p.key)).map(p => {
             const extra = user.pageOverrides?.[p.key] === true;

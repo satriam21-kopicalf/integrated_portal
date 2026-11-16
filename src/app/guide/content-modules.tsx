@@ -784,10 +784,11 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
               <><B t="Roles & Pages" />: the default pages of every role; per account they can be added / removed. The Guide is a page too and can be hidden. <B t="Job Titles & Departments" />: add, rename, hide.</>),
           ]} />
           <Table head={[S('Role', 'Role'), S('Untuk', 'For')]} rows={[
-            [tr('Super Admin'), S('Semua halaman, termasuk User Accounts & Activity Logs', 'Every page, incl. User Accounts & Activity Logs')],
-            [tr('Cost Control'), S('Semua cabang + halaman Cost Control dari role', 'Every branch + the Cost Control pages of the role')],
+            [tr('Superadmin'), S('Semua halaman, termasuk User Accounts & Activity Logs', 'Every page, User Accounts & Activity Logs included')],
+            [tr('Admin'), S('Halaman yang diberikan Superadmin; mengelola akun role User', 'The pages the Superadmin gives it; manages accounts of role User')],
+            [tr('Inventory Surveyor'), S('Semua cabang + halaman Cost Control dari role', 'Every branch + the Cost Control pages of the role')],
             [tr('User'), S('PIC: cabang yang ditugaskan; form diisi di aplikasi Operations', 'PICs: assigned branches; forms in the Operations app')],
-            [tr('Outlet / Hub'), S('Akun outlet / HUB: SO dan Waste di aplikasi Operations', 'Outlet / HUB accounts: counts and Waste in the Operations app')],
+            [tr('Outlet/HUB'), S('Akun outlet / HUB: SO dan Waste di aplikasi Operations', 'Outlet / HUB accounts: counts and Waste in the Operations app')],
             [tr('Driver (COTR)'), S('Aplikasi Calf On The Road saja', 'The Calf On The Road app only')],
           ]} />
           <Note>{L(<>Portal menolak akun yang hanya punya halaman form (diarahkan ke operations.kopicalf.co.id) dan akun driver (ke cotr.kopicalf.co.id). Setelah akses diubah, pengguna perlu login ulang.</>,

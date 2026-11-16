@@ -12,6 +12,7 @@ import { OPERATIONS_PAGES, OPERATIONS_URL, operationsOnly, Role, ROLE_LABELS } f
 import { serverMsg, tr } from '@/lib/i18n';
 import { PageInfo, PageKey, PAGES, STATE_LABEL } from '@/lib/pages';
 import { SkeletonList } from '@/components/kc/Skeleton';
+import { kcTable } from '@/components/kc';
 
 type EditableRole = 'admin' | 'cost_control' | 'user' | 'outlet';
 type RolePages = Record<EditableRole, PageKey[]>;
@@ -73,11 +74,11 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
   if (role === 'superadmin') {
     return (
       <div className="space-y-3">
-        <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">{tr('Super admins open every page, including User Accounts and Activity Logs.')}</p>
+        <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">{tr('A Superadmin opens every page, User Accounts and Activity Logs included.')}</p>
         {/* the WW-WR team (2026-11-04): a super admin shows in the team list only when marked here */}
         <div className="rounded-lg border border-neutral-200 px-3 py-2.5">
           <p className="text-sm font-medium text-neutral-900">{tr('WW-WR Team')}</p>
-          <p className="mt-0.5 text-xs text-neutral-500">{tr('Mark it to show this super admin in the WW-WR team (lead and members of an audit).')}</p>
+          <p className="mt-0.5 text-xs text-neutral-500">{tr('Tick to list this Superadmin in the WW-WR team (lead and members of an audit).')}</p>
           <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
             {([['form.wwwr', tr('Form WW-WR')], ['mon.wwwr', tr('WW-WR')]] as const).map(([k, label]) => (
               <label key={k} className="inline-flex cursor-pointer items-center gap-2 text-sm text-neutral-800">
@@ -123,15 +124,22 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
               const on = effective(p.key);
               const exception = p.key in overrides;
               return (
-                <li key={p.key}>
-                  <label className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm transition-colors ${
+                <li key={p.key} className="min-w-0">
+                  {/* 2026-11-16: the page name in full (it wraps, never cut), the app badges and state on a second line */}
+                  <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition-colors ${
                     exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-neutral-200 hover:bg-neutral-50'}`}>
                     <input type="checkbox" checked={on} onChange={() => toggle(p.key)} disabled={!!limit && !on && !limit.includes(p.key)}
-                      title={limit && !on && !limit.includes(p.key) ? tr('Only pages you open yourself can be given') : undefined} className="h-4 w-4 rounded border-neutral-300 text-brand-700 disabled:opacity-40" />
-                    <span className="min-w-0 flex-1 truncate text-neutral-800">{p.label} <StateTag page={p} /></span>
-                    <OpsTag page={p.key} />
-                    <span className={`text-[10px] font-semibold uppercase ${exception ? (on ? 'text-emerald-700' : 'text-rose-700') : 'text-neutral-400'}`}>
-                      {exception ? (on ? tr('Extra') : tr('Removed')) : base.has(p.key) ? tr('Role') : ''}
+                      title={limit && !on && !limit.includes(p.key) ? tr('Only pages you open yourself can be given') : undefined} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-neutral-300 text-brand-700 disabled:opacity-40" />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-start justify-between gap-2">
+                        <span className="min-w-0 break-words font-medium leading-snug text-neutral-800">{p.label}</span>
+                        {(exception || base.has(p.key)) && (
+                          <span className={`mt-0.5 flex-shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${exception ? (on ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800') : 'bg-neutral-100 text-neutral-500'}`}>
+                            {exception ? (on ? tr('Extra') : tr('Removed')) : tr('Role')}
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-1 flex flex-wrap items-center gap-1 empty:hidden"><OpsTag page={p.key} /><StateTag page={p} /></span>
                     </span>
                   </label>
                 </li>
@@ -184,9 +192,9 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
         <div className="space-y-4">
           <div className="overflow-x-auto rounded-xl border border-neutral-200">
             <table className="w-full min-w-[600px] text-sm">
-              <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+              <thead className={kcTable.thead}>
                 <tr>
-                  <th className="px-3 py-2.5">{tr('Page')}</th>
+                  <th className="min-w-[11rem] px-3 py-2.5">{tr('Page')}</th>
                   <th className="w-28 px-3 py-2.5 text-center">{ROLE_LABELS.superadmin}</th>
                   {EDITABLE.map(r => <th key={r} className="w-28 px-3 py-2.5 text-center">{ROLE_LABELS[r]}</th>)}
                 </tr>
@@ -211,13 +219,13 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
                 <tr className="border-t border-neutral-200 bg-neutral-50/60 text-neutral-500">
                   <td className="px-3 py-2">{tr('User Accounts, Activity Logs')}</td>
                   <td className="px-3 py-2 text-center"><Check size={15} className="inline text-neutral-400" /></td>
-                  <td colSpan={EDITABLE.length} className="px-3 py-2 text-center text-xs">{tr('Super admins only')}</td>
+                  <td colSpan={EDITABLE.length} className="px-3 py-2 text-center text-xs">{tr('Superadmin only')}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <OperationsNote only={false} some />
-          <p className="text-xs text-neutral-500">{tr('Roles User and Outlet / Hub see only their assigned branches; Cost Control pages show every branch. A new form is added to role User.')}</p>
+          <p className="text-xs text-neutral-500">{tr('Roles User and Outlet/HUB see only their assigned branches; Inventory Surveyor sees every branch. A new form is added to role User.')}</p>
           <p className="text-xs text-neutral-500">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
           {message && <p role="status" className={`rounded-lg px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
         </div>
@@ -298,15 +306,15 @@ export function MenuDisplay({ hidden, onChange }: { hidden: string[]; onChange: 
           </button>
         )}
       </div>
-      {groups().map(g => (
+      {groups().map(g => ({ ...g, pages: g.pages.filter(p => p.state !== 'hidden') })).filter(g => g.pages.length > 0).map(g => (
         <div key={g.group}>
           <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{g.group}</p>
           <ul className="grid gap-1 sm:grid-cols-2">
-            {g.pages.filter(p => p.state !== 'hidden').map(p => (
+            {g.pages.map(p => (
               <li key={p.key}>
-                <label className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm ${hidden.includes(p.key) ? 'border-neutral-200 bg-neutral-50 text-neutral-400' : 'border-neutral-200 hover:bg-neutral-50'}`}>
-                  <input type="checkbox" checked={!hidden.includes(p.key)} onChange={() => toggle(p.key)} className="h-4 w-4 rounded border-neutral-300 text-brand-700" />
-                  <span className="min-w-0 flex-1 truncate">{p.label}</span>
+                <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 text-sm ${hidden.includes(p.key) ? 'border-neutral-200 bg-neutral-50 text-neutral-400' : 'border-neutral-200 hover:bg-neutral-50'}`}>
+                  <input type="checkbox" checked={!hidden.includes(p.key)} onChange={() => toggle(p.key)} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-neutral-300 text-brand-700" />
+                  <span className="min-w-0 flex-1 break-words font-medium leading-snug">{p.label}</span>
                 </label>
               </li>
             ))}
@@ -376,8 +384,8 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
       {!pages ? <SkeletonList rows={5} /> : (
         <div className="overflow-x-auto rounded-xl border border-neutral-200">
           <table className="w-full min-w-[560px] text-sm">
-            <thead className="border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
-              <tr><th className="px-3 py-2.5">{tr('Page')}</th>{ALL_PLATFORMS.map(k => <th key={k} className="w-28 px-3 py-2.5 text-center">{PLATFORM_LABEL[k]}</th>)}<th className="w-10" /></tr>
+            <thead className={kcTable.thead}>
+              <tr><th className="min-w-[11rem] px-3 py-2.5">{tr('Page')}</th>{ALL_PLATFORMS.map(k => <th key={k} className="w-28 px-3 py-2.5 text-center">{PLATFORM_LABEL[k]}</th>)}<th className="w-10" /></tr>
             </thead>
             <tbody>
               {byGroup.map(g => (
@@ -468,7 +476,7 @@ function OperationsNote({ only, some }: { only: boolean; some: boolean }) {
       <Smartphone size={14} className="mt-px flex-shrink-0" />
       <span>{only
         ? tr('This account opens forms and pages Operations has only: it signs in at {0} and the portal refuses it. Add a page without the Operations tag to keep the portal.', host)
-        : tr('Pages tagged Operations can also be opened at {0}. An account with forms and only such pages signs in there, not in the portal.', host)}</span>
+        : tr('The badges show the apps whose menu has the page. An account with forms and only pages of Operations signs in at {0}, not in the portal.', host)}</span>
     </p>
   );
 }

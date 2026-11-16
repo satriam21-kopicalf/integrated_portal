@@ -581,7 +581,7 @@ function BranchPicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
       <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500"><Link2 size={13} /> {tr("ESB Branch")}</h3>
       <p className="mt-1 text-xs text-neutral-500">{o.branchCode ? tr("The users of this branch see this outlet.") : tr("Not mapped: only super admins see this outlet. Choose its ESB branch.")}</p>
       <div className="mt-2">
-        <SearchChoice label={tr("ESB Branch")} anyLabel={tr("Not mapped")} options={choices} value={value} onChange={setValue}
+        <SearchChoice label={tr("Branch")} anyLabel={tr("Not mapped")} options={choices} value={value} onChange={setValue}
           placeholder={tr("Search Branch")} loading={options === null} />
       </div>
       <div className="mt-2 flex justify-end">

@@ -151,8 +151,8 @@ export default function HrmsSyncDrawer({ onClose, onChanged }: { onClose: () => 
   const tabs: [Filter, string][] = [['changes', 'To update'], ['manual', 'Link by hand'], ['left', 'Left in HRMS'], ['all', 'All']];
 
   return (
-    <Drawer open size="lg" title={tr('Sync with HRMS')} onClose={onClose}
-      description={tr('Job title and department of User, Cost Control, Admin and COTR driver accounts follow HRMS. Outlet / hub accounts, sign-in, role and pages are not changed.')}
+    <Drawer open size="lg" icon={<RefreshCw size={18} />} title={tr('Sync with HRMS')} onClose={onClose}
+      description={tr('Job title and department of User, Inventory Surveyor, Admin and COTR driver accounts follow HRMS. Outlet/HUB accounts, sign-in, role and pages stay as they are.')}
       footer={<>
         <button type="button" className={buttonSecondary} onClick={() => void load()} disabled={busy}><RefreshCw size={14} /> {tr('Refresh')}</button>
         <button type="button" className={buttonPrimary} disabled={busy || !counts.changes} onClick={() => void apply()}>

@@ -552,7 +552,7 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
           { value: '', label: tr('All') }, { value: 'ok', label: tr('Succeeded') }, { value: 'failed', label: tr('Failed') }, { value: 'denied', label: tr('Denied') },
         ]} />
         <ChoiceGroup label={tr('Role')} value={draft.role} onChange={set('role')} choices={[
-          { value: '', label: tr('All Roles') }, { value: 'user', label: tr('User') }, { value: 'superadmin', label: tr('Super Admin') },
+          { value: '', label: tr('All Roles') }, ...(['superadmin', 'admin', 'cost_control', 'user', 'outlet', 'driver'] as Role[]).map(r => ({ value: r, label: ROLE_LABELS[r] })),
         ]} />
         <SearchChoice label={tr('User')} anyLabel={tr('All users')} options={options} value={draft.user} onChange={set('user')} placeholder={tr('Search name or username')} />
       </div>
