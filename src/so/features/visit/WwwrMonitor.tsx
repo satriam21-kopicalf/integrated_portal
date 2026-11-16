@@ -7,7 +7,7 @@
 
 import { CalendarPlus, CheckCircle2, Copy, Crown, Printer, Pencil, Scale, Search, Trash2, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Field, Panel, cx, fmtNumber, inputClass, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Field, Panel, cx, fmtNumber, inputClass, theadClass, useToast, searchClass } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { ComboFilter } from "@/so/ui/MonitorFilters";
@@ -151,7 +151,7 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
             <div className="flex items-center gap-2 border-b border-neutral-100 p-2">
               <div className="relative min-w-0 flex-1">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search member")} className={cx(inputClass, "h-9 pl-8 text-sm")} />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search member")} className={cx(searchClass, "h-9 pl-8 text-sm")} />
               </div>
               <span className="flex-shrink-0 text-xs text-neutral-400">{tr("{0} users", team.length)}</span>
             </div>

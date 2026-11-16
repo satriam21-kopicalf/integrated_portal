@@ -171,7 +171,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
         onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
         footer={res ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : res && rows.length === 0 ? (
-          <Empty icon={<ScanFace size={28} />} title={res.data.length ? tr("Nothing matches the search or filters") : tr("No check in in this period")}>
+          <Empty icon={<ScanFace size={28} />} title={res.data.length ? tr("Nothing matches the search or filters") : tr("No check-ins in this period")}>
             {!res.data.length && tr("Check-ins appear here as soon as the PICs send them from Form → PIC Check In.")}
           </Empty>
         ) : (

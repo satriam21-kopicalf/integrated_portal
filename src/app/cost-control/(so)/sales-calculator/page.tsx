@@ -15,7 +15,7 @@ import { Tabs } from "@/components/kc";
 import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Wand2, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast, searchClass } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
@@ -234,7 +234,7 @@ function Recipes() {
         <Button size="sm" variant="secondary" onClick={() => setBom(true)}><ArrowDownToLine size={14} />{tr("Import from the ESB BOM")}</Button>
         <Button size="sm" onClick={() => setEdit("new")}><Plus size={14} />{tr("New Card")}</Button></div>}
       toolbar={<div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-0 flex-1 sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" /><input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search card")} /></div>
+        <div className="relative min-w-0 flex-1 sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" /><input className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search card")} /></div>
         <div role="group" aria-label={tr("View")} className="ml-auto inline-flex rounded-lg border border-neutral-200 bg-white p-0.5">
           {([["cards", tr("Cards"), LayoutGrid], ["table", tr("Table"), Rows3]] as const).map(([v, label, Icon]) => (
             <button key={v} type="button" aria-pressed={layout === v} onClick={() => pickLayout(v)}
@@ -670,7 +670,7 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
           )}
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <div className="relative min-w-0 flex-1 basis-48"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input className={cx(inputClass, "h-9 pl-8")} value={menuQ} onChange={(e) => setMenuQ(e.target.value)} placeholder={tr("Search menu")} /></div>
+              <input className={cx(searchClass, "h-9 pl-8")} value={menuQ} onChange={(e) => setMenuQ(e.target.value)} placeholder={tr("Search menu")} /></div>
             <label className="flex items-center gap-2 text-xs text-neutral-600"><input type="checkbox" checked={onlyTicked} onChange={(e) => setOnlyTicked(e.target.checked)} />{tr("Ticked only")}</label>
           </div>
           <div className="max-h-72 overflow-auto rounded-xl border border-neutral-200">

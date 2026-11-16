@@ -11,7 +11,7 @@
 import { CalendarClock, CheckCircle2, ChevronRight, ClipboardCheck, ClipboardList, Copy, Crown, Plus, Printer, Search, ShieldCheck, Store,
   Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Page, cx, inputClass, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Page, cx, inputClass, useToast, searchClass } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
@@ -199,7 +199,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
           <p className="mb-2 text-xs text-neutral-500">{tr("Accounts assigned Form WW-WR (User Accounts). They see this audit in Form WW-WR and fill it with you; only you send it.")}</p>
           <div className="overflow-hidden rounded-xl border border-neutral-200">
             <div className="relative border-b border-neutral-100 p-2"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search colleague")} className={cx(inputClass, "h-9 pl-8")} /></div>
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search colleague")} className={cx(searchClass, "h-9 pl-8")} /></div>
             <ul className="max-h-72 divide-y divide-neutral-100 overflow-y-auto">
               {colleagues === null ? <li><SkeletonList rows={3} /></li> : shown.map((c) => (
                 <li key={c.id}>

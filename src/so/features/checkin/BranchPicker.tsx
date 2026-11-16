@@ -8,7 +8,7 @@
 
 import { Check, MapPin, MapPinOff, Navigation, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { cx, inputClass } from "@/so/ui";
+import { cx, inputClass, searchClass } from "@/so/ui";
 import { type Fix } from "@/so/lib/counts";
 import { distanceM } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
@@ -73,7 +73,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
       {rows.length > 5 && (
         <div className="relative">
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet name or code")} aria-label={tr("Search outlet name or code")} className={cx(inputClass, "h-10 pl-9")} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet name or code")} aria-label={tr("Search outlet name or code")} className={cx(searchClass, "h-10 pl-9")} />
         </div>
       )}
       <ul role="radiogroup" aria-label={tr("Outlet Visited")} className="max-h-[22rem] space-y-2 overflow-y-auto overscroll-contain pr-0.5">

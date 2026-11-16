@@ -11,7 +11,7 @@
 
 import { AlertTriangle, ArrowDownToLine, Check, Database, Plus, RefreshCw, Save, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, inputClass, Panel, SkeletonRows, theadClass, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, inputClass, Panel, SkeletonRows, theadClass, useToast, searchClass } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
@@ -58,7 +58,7 @@ export function OptionsStep() {
       toolbar={
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search choice or menu")} /></div>
+            <input className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search choice or menu")} /></div>
           <div role="radiogroup" aria-label={tr("Show")} className="flex rounded-lg bg-neutral-100 p-1">
             {([["all", tr("All")], ["todo", tr("Not set ({0})", todo)], ["set", tr("Set")]] as const).map(([k, label]) => (
               <button key={k} type="button" role="radio" aria-checked={only === k} onClick={() => setOnly(k)}
@@ -154,7 +154,7 @@ function SugarGrams() {
       </div>}
       toolbar={<div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search menu")} /></div>
+          <input className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search menu")} /></div>
         {checks > 0 && <Badge tone="amber"><AlertTriangle size={12} />{tr("{0} to check", checks)}</Badge>}
         {notFilled && <span className="text-xs text-neutral-500">{tr("Not filled yet: the grams shown follow the % rule. Choose Fill from ESB.")}</span>}
       </div>}>
@@ -319,7 +319,7 @@ export function BomImport({ onClose, onDone }: { onClose: () => void; onDone: ()
       {!pick ? (
         <div className="space-y-3">
           <div className="relative"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input autoFocus className={cx(inputClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search BOM or product, e.g. Es Kopi Calf")} /></div>
+            <input autoFocus className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search BOM or product, e.g. Es Kopi Calf")} /></div>
           {error ? <ErrorState message={error} /> : !list ? <table className="w-full"><tbody><SkeletonRows cols={3} /></tbody></table> : list.length === 0 ? <Empty title={tr("No BOM matches")} /> : (
             <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
               {list.slice(0, 80).map((b) => (

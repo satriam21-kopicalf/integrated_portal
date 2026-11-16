@@ -15,6 +15,7 @@
 //   kcTable                    the classes of a list table (thead, rows)
 
 import { tc } from '@/lib/title-case';
+import { StatIcon } from './stat-icon';
 import { AlertCircle, ArrowUpRight, Search, X } from 'lucide-react';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { tr } from '@/lib/i18n';
@@ -123,9 +124,8 @@ export function StatBody({ label, value, sub, icon, tone = 'default', info, titl
     <>
       {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
       <img src="/assets/calf-logo.png" alt="" aria-hidden className="kc-mark pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain opacity-[0.04] grayscale" />
-      {icon && (
-        <span className={cx('relative hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg', longValue(value) ? '2xl:flex' : 'sm:flex', ' [&>svg]:h-4 [&>svg]:w-4', CHIP_TONE[tone] ?? 'bg-neutral-100 text-neutral-500')}>{icon}</span>
-      )}
+      {(
+        <span className={cx('relative hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg', longValue(value) ? '2xl:flex' : 'sm:flex', ' [&>svg]:h-4 [&>svg]:w-4', CHIP_TONE[tone] ?? 'bg-neutral-100 text-neutral-500')}>{icon ?? <StatIcon label={label} />}</span>)}
       <span className="relative min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
           <span className="flex min-w-0 items-center gap-1 truncate text-xs font-medium text-neutral-500">{tc(label)}{info}</span>

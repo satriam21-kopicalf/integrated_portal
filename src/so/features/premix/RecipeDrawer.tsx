@@ -8,7 +8,7 @@
 
 import { CheckCircle2, ClipboardCheck, CopyPlus, FlaskConical, Loader2, Plus, Save, Search, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Field, Input, inputClass, Select, useToast } from "@/so/ui";
+import { Badge, Button, cx, Field, Input, inputClass, Select, useToast, searchClass } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { FormCard, Segmented, Switch } from "@/so/ui/Simple";
 import { api, errorText } from "@/so/lib/api";
@@ -330,7 +330,7 @@ function ItemPicker({ value, onPick, onNotStock }: { value: DraftLine; onPick: (
       ) : (
         <div className="relative">
           <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input className={cx(inputClass, "h-8 pl-7 text-xs", !value.item_id && "border-red-300")} value={q} autoFocus={open} placeholder={tr("Search item for {0}", value.component_name || "…")}
+          <input className={cx(searchClass, "h-8 pl-7 text-xs", !value.item_id && "border-red-300")} value={q} autoFocus={open} placeholder={tr("Search item for {0}", value.component_name || "…")}
             onFocus={() => setOpen(true)} onChange={e => { setQ(e.target.value); setOpen(true); }} onBlur={() => setTimeout(() => setOpen(false), 150)} />
           {loading && <Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-neutral-400" />}
         </div>

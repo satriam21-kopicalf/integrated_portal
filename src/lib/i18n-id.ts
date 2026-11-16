@@ -2421,7 +2421,7 @@ export const ID: Record<string, string> = {
   "Search PIC or outlet": "Cari PIC atau outlet",
   "the latest 1,000 of the period": "1.000 terbaru dari periode ini",
   "Times in WIB (server time)": "Jam dalam WIB (waktu server)",
-  "No check in in this period": "Belum ada check in pada periode ini",
+  "No check-ins in this period": "Belum ada check-in pada periode ini",
   "Check-ins appear here as soon as the PICs send them from Form → PIC Check In.": "Check in muncul di sini begitu PIC mengirimnya dari Form → PIC Check In.",
   "All PICs": "Semua PIC",
   "Search PIC": "Cari PIC",
@@ -6856,4 +6856,5 @@ export const ID: Record<string, string> = {
   "What the marks mean": "Arti tanda",
   "Showing the items to check": "Menampilkan item yang perlu dicek",
   "Items that need a second look · tap to show": "Item yang perlu dilihat lagi · tekan untuk menampilkan",
+  "Weekly - Monthly": "Mingguan - Bulanan",
 };

@@ -49,20 +49,21 @@ export const soGroupTypes = (types: Iterable<string>, group: SoGroup) => {
 };
 
 export function SoGroupTabs({ value, onChange, counts }: { value: SoGroup; onChange: (g: SoGroup) => void; counts?: Partial<Record<SoGroup, number>> }) {
-  const tabs: { key: SoGroup; label: string; icon: typeof CalendarDays }[] = [
-    { key: "daily", label: tr("Daily Stock Opname"), icon: CalendarDays },
-    { key: "periodic", label: tr("Weekly - Monthly Stock Opname"), icon: CalendarRange },
+  // phones get the short names (2026-11-16: the long ones were cut)
+  const tabs: { key: SoGroup; label: string; short: string; icon: typeof CalendarDays }[] = [
+    { key: "daily", label: tr("Daily Stock Opname"), short: tr("Daily"), icon: CalendarDays },
+    { key: "periodic", label: tr("Weekly - Monthly Stock Opname"), short: tr("Weekly - Monthly"), icon: CalendarRange },
   ];
   return (
     <div role="tablist" aria-label={tr("Stock opname")} className="grid grid-cols-2 gap-1 rounded-xl bg-neutral-100 p-1 sm:inline-grid sm:w-auto">
-      {tabs.map(({ key, label, icon: Icon }) => {
+      {tabs.map(({ key, label, short, icon: Icon }) => {
         const on = key === value;
         return (
           <button key={key} type="button" role="tab" aria-selected={on} onClick={() => onChange(key)}
             className={cx("flex min-w-0 items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors sm:px-4",
               on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800")}>
             <Icon size={15} className={on ? "text-brand-700" : undefined} />
-            <span className="truncate">{label}</span>
+            <span className="truncate sm:hidden">{short}</span><span className="hidden truncate sm:inline">{label}</span>
             {counts?.[key] !== undefined && (
               <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-brand-50 text-brand-700" : "bg-neutral-200 text-neutral-600")}>{counts[key]}</span>
             )}

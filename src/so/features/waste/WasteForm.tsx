@@ -16,7 +16,7 @@
 
 import { Camera, CheckCircle2, ClipboardList, FlaskConical, PenLine, Plus, Save, Search, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
+import { Badge, Button, cx, ErrorState, inputClass, Page, useToast, searchClass } from "@/so/ui";
 import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
 import SignaturePad from "@/so/features/count/SignaturePad";
 import { FormCard, Segmented } from "@/so/ui/Simple";
@@ -280,7 +280,7 @@ export default function WasteForm() {
                 <Segmented label={tr("Type")} value={scope} onChange={pickScope} options={ENTRY_SCOPES.map((s) => ({ value: s, label: scopeLabel(s) }))} />
                 <div className="relative">
                   <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                  <input className={cx(inputClass, "pl-9")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
+                  <input className={cx(searchClass, "pl-9")} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
                 </div>
                 <label className="flex items-center gap-2 text-xs text-neutral-600">
                   <input type="checkbox" checked={onlyFilled} onChange={(e) => setOnlyFilled(e.target.checked)} />{tr("Show filled SKUs only")}
@@ -412,7 +412,7 @@ export default function WasteForm() {
                   <>
                     <div className="relative">
                       <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                      <input className={cx(inputClass, "pl-9")} value={usageSearch} onChange={(e) => setUsageSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
+                      <input className={cx(searchClass, "pl-9")} value={usageSearch} onChange={(e) => setUsageSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
                     </div>
                     <div className="max-h-[460px] overflow-auto rounded-xl border border-neutral-200">
                       <table className="w-full text-sm">

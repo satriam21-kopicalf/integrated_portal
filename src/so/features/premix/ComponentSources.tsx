@@ -7,7 +7,7 @@
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { ChevronRight, Layers, Package, Plus, Search, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { cx, inputClass } from "@/so/ui";
+import { cx, inputClass, searchClass } from "@/so/ui";
 import { api } from "@/so/lib/api";
 import { tr } from "@/lib/i18n";
 
@@ -78,7 +78,7 @@ function ItemsTab({ have, onAdd }: { have: Set<string>; onAdd: (c: PickedCompone
         </select>
         <div className="relative">
           <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Search item name or code")} className={cx(inputClass, "h-8 pl-7 text-xs")} />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Search item name or code")} className={cx(searchClass, "h-8 pl-7 text-xs")} />
         </div>
       </div>
       {rows === null ? <p className="py-4 text-center text-xs text-neutral-400">{tr("Choose a category or type at least 2 letters")}</p> : (
@@ -139,7 +139,7 @@ function BomTab({ have, onAdd }: { have: Set<string>; onAdd: (c: PickedComponent
     <div className="space-y-2">
       <div className="relative">
         <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400" />
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Search ESB BOM (e.g. premix, cream, sauce)")} className={cx(inputClass, "h-8 pl-7 text-xs")} />
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Search ESB BOM (e.g. premix, cream, sauce)")} className={cx(searchClass, "h-8 pl-7 text-xs")} />
       </div>
       {boms === null ? <SkeletonList rows={3} /> : (
         <ul className="divide-y divide-neutral-100">
@@ -167,7 +167,7 @@ function UsedTab({ have, onAdd }: { have: Set<string>; onAdd: (c: PickedComponen
     <div className="space-y-2">
       <div className="relative">
         <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400" />
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Filter")} className={cx(inputClass, "h-8 pl-7 text-xs")} />
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Filter")} className={cx(searchClass, "h-8 pl-7 text-xs")} />
       </div>
       {rows === null ? <SkeletonList rows={4} /> : shown.length === 0 ? (
         <p className="py-4 text-center text-xs text-neutral-400">{tr("No recipe components yet")}</p>

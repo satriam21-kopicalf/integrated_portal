@@ -7,7 +7,7 @@
 
 import { CalendarDays, Check, ChevronDown, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, cx, inputClass } from '@/so/ui';
+import { Button, cx, inputClass, searchClass } from '@/so/ui';
 import Drawer from '@/so/ui/Drawer';
 import { type Period, dmy, wibDay } from '@/so/ui/Filters';
 import { tr } from '@/lib/i18n';
@@ -145,7 +145,7 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
         <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg">
           <div className="relative border-b border-neutral-100 p-2">
             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={placeholder} className={cx(inputClass, 'h-9 pl-8 text-sm')} />
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={placeholder} className={cx(searchClass, 'h-9 pl-8 text-sm')} />
           </div>
           <ul className="max-h-60 overflow-y-auto py-1">
             {!q && item('', allLabel)}

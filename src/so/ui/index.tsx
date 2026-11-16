@@ -17,6 +17,12 @@ export const inputClass =
   "h-11 w-full rounded-xl px-3 text-base lg:h-10 lg:rounded-lg lg:text-sm " +
   "border border-transparent bg-neutral-100 text-neutral-900 placeholder:text-neutral-400 transition-colors hover:bg-neutral-200/60 focus:border-neutral-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400";
 
+/** A search field (2026-11-16, the kopicalf-hrms look): white with a border; the grey inputClass stays for the forms. */
+export const searchClass =
+  "h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-base font-medium text-neutral-900 placeholder:text-neutral-400 " +
+  "transition-colors hover:border-neutral-300 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100 lg:h-10 lg:text-xs";
+
+
 const BUTTON = {
   primary: "bg-brand-700 font-medium text-white shadow-sm hover:bg-brand-800 active:bg-brand-900 disabled:shadow-none",
   secondary: "border border-neutral-200 bg-white font-medium text-neutral-800 shadow-sm hover:bg-neutral-50",
@@ -116,7 +122,7 @@ export function SearchBox({ value, onChange, placeholder }: { value: string; onC
     <div className="relative flex-1">
       <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder}
-        className={`${inputClass} pl-9 pr-9`} />
+        className={`${searchClass} pl-9 pr-9`} />
       {value && (
         <button type="button" onClick={() => onChange("")} aria-label={tr("Clear Search")}
           className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700">

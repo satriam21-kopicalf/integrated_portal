@@ -11,7 +11,7 @@
 
 import { ArrowDown, ArrowRight, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Inbox, Info, PackageCheck, PenLine, Search, Send, Store, Trash2, Undo2, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, useToast } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, useToast, searchClass } from "@/so/ui";
 import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
 import Drawer from "@/so/ui/Drawer";
 import { FormCard, Note, Segmented } from "@/so/ui/Simple";
@@ -148,7 +148,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
             : !stock.items.length ? <p className="text-sm text-neutral-500">{tr("This outlet has no material in stock.")}</p> : (
               <>
                 <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                  <input className={cx(inputClass, "pl-8")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search material")} /></div>
+                  <input className={cx(searchClass, "pl-8")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search material")} /></div>
                 <ul className="max-h-[28rem] divide-y divide-neutral-100 overflow-auto rounded-lg border border-neutral-200">
                   {shown.map((i) => {
                     const v = num(qty[i.code] ?? "");
@@ -230,7 +230,7 @@ function OutletPicker({ outlets, value, onPick, onClose }: { outlets: { code: st
         </header>
         <div className="border-b border-neutral-100 p-3">
           <div className="relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input autoFocus className={cx(inputClass, "h-11 pl-9 text-base sm:text-sm")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet, e.g. kemang")} /></div>
+            <input autoFocus className={cx(searchClass, "h-11 pl-9 text-base sm:text-sm")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet, e.g. kemang")} /></div>
         </div>
         <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
           {shown.map((o) => (

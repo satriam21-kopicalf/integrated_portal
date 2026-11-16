@@ -5,7 +5,7 @@
 
 import { ChevronDown, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { cx, inputClass } from "@/so/ui";
+import { cx, inputClass, searchClass } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 
@@ -43,7 +43,7 @@ export function Picker({ value, options, onPick, placeholder }: {
         <div className="absolute left-0 z-30 mt-1 w-[min(26rem,85vw)] overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl">
           <div className="relative border-b border-neutral-100 p-2">
             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search name or code")} className={cx(inputClass, "h-9 pl-8")} />
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search name or code")} className={cx(searchClass, "h-9 pl-8")} />
           </div>
           <ul className="max-h-72 overflow-y-auto py-1">
             {shown.map((o) => (
