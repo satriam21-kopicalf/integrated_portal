@@ -123,7 +123,7 @@ export function StatBody({ label, value, sub, icon, tone = 'default', info, titl
       {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
       <img src="/assets/calf-logo.png" alt="" aria-hidden className="kc-mark pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain opacity-[0.04] grayscale" />
       {icon && (
-        <span className={cx('relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg [&>svg]:h-4 [&>svg]:w-4', CHIP_TONE[tone] ?? 'bg-neutral-100 text-neutral-500')}>{icon}</span>
+        <span className={cx('relative hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg sm:flex [&>svg]:h-4 [&>svg]:w-4', CHIP_TONE[tone] ?? 'bg-neutral-100 text-neutral-500')}>{icon}</span>
       )}
       <span className="relative min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
@@ -138,7 +138,7 @@ export function StatBody({ label, value, sub, icon, tone = 'default', info, titl
 }
 
 export const statCardClass = (active?: boolean, clickable?: boolean) => cx(
-  'group relative flex h-full min-w-0 items-start gap-3.5 overflow-hidden rounded-2xl border bg-white p-4 text-left shadow-sm transition-all duration-150',
+  'group relative flex h-full min-w-0 items-start gap-3.5 overflow-hidden rounded-2xl border bg-white p-3.5 text-left sm:p-4 shadow-sm transition-all duration-150',
   active ? 'border-brand-300 ring-2 ring-brand-600/15' : 'border-neutral-200',
   clickable && 'cursor-pointer hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md');
 
@@ -158,7 +158,8 @@ export const ValueSkeleton = () => <span className="skeleton inline-block h-7 w-
 
 export type TabItem = { key: string; label: ReactNode; count?: ReactNode; title?: string };
 /** Underline tabs; a tab may be a logo (label = <img>) with its name as `title`. */
-export function Tabs({ tabs, value, onChange, label, className }: { tabs: TabItem[]; value: string; onChange: (k: string) => void; label: string; className?: string }) {
+/** `variant="card"`: the page-level tab bar of kopicalf-hrms, in a white card; the default underline bar sits inside cards. */
+export function Tabs({ tabs, value, onChange, label, className, variant = 'line' }: { tabs: TabItem[]; value: string; onChange: (k: string) => void; label: string; className?: string; variant?: 'line' | 'card' }) {
   // the chosen tab stays in sight when the bar scrolls sideways (phones, 2026-11-10)
   const bar = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -168,17 +169,19 @@ export function Tabs({ tabs, value, onChange, label, className }: { tabs: TabIte
     box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2, behavior: 'smooth' });
   }, [value]);
   return (
-    <div ref={bar} role="tablist" aria-label={label} className={cx('-mx-1 flex gap-1 overflow-x-auto border-b border-neutral-200 px-1', className)}>
+    <div ref={bar} role="tablist" aria-label={label}
+      className={cx('flex gap-x-6 overflow-x-auto', variant === 'card' ? 'rounded-2xl border border-neutral-200/70 bg-white px-5 pt-3.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]' : 'border-b border-neutral-200 px-1 pt-1.5', className)}>
       {tabs.map((t) => {
         const on = t.key === value;
         return (
           <button key={t.key} type="button" role="tab" aria-selected={on} title={t.title} aria-label={t.title} onClick={() => onChange(t.key)}
-            className={cx('-mb-px flex flex-shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 pb-2.5 pt-1.5 text-[13px] font-medium transition-colors',
-              on ? 'border-brand-700 text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-800')}>
+            className={cx('relative flex flex-shrink-0 items-center gap-2 whitespace-nowrap pb-3.5 text-xs font-bold transition-colors',
+              on ? 'text-brand-700' : 'text-neutral-500 hover:text-neutral-900')}>
             {t.label}
             {t.count !== undefined && t.count !== null && (
-              <span className={cx('rounded-full px-1.5 text-[11px] font-semibold tabular-nums', on ? 'bg-brand-50 text-brand-700' : 'bg-neutral-100 text-neutral-500')}>{t.count}</span>
+              <span className={cx('rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums', on ? 'bg-brand-50 text-brand-700' : 'bg-neutral-100 text-neutral-500')}>{t.count}</span>
             )}
+            {on && <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-brand-700" aria-hidden />}
           </button>
         );
       })}
@@ -193,7 +196,7 @@ export function SearchInput({ value, onChange, placeholder, label }: { value: st
     <div className="relative min-w-0 flex-1 basis-56">
       <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={label ?? placeholder}
-        className="h-9 w-full rounded-lg border border-transparent bg-neutral-100 pl-9 pr-8 text-[13px] text-neutral-900 placeholder:text-neutral-400 transition-colors hover:bg-neutral-200/70 focus:border-neutral-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100" />
+        className="h-9 w-full rounded-xl border border-neutral-200 bg-white pl-9 pr-8 text-xs font-medium text-neutral-900 placeholder:text-neutral-400 transition-colors hover:border-neutral-300 focus:border-brand-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100" />
       {value && (
         <button type="button" onClick={() => onChange('')} aria-label={tr('Clear Search')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700"><X size={14} /></button>
       )}
@@ -254,11 +257,12 @@ export function ErrorBlock({ message, onRetry }: { message: string; onRetry?: ()
 /* ---------------------------------------------------------------- tables */
 
 /** The classes of a list table: a quiet head and thin row lines. */
+// as the kopicalf-hrms DataTable (2026-11-16): a grey head with rounded ends, sentence-case labels, 12 px text
 export const kcTable = {
-  table: 'w-full text-[13px]',
-  thead: 'border-b border-neutral-200 bg-neutral-50/80 text-left text-[11px] font-medium uppercase tracking-wide text-neutral-500',
-  th: 'whitespace-nowrap px-4 py-2.5 font-medium',
+  table: 'w-full text-xs',
+  thead: 'bg-neutral-50/90 text-left text-xs font-semibold text-neutral-500 [&_th:first-child]:rounded-l-xl [&_th:last-child]:rounded-r-xl',
+  th: 'whitespace-nowrap px-4 py-3 font-semibold',
   tbody: 'divide-y divide-neutral-100',
-  row: 'group transition-colors hover:bg-neutral-50',
-  td: 'px-4 py-3 align-middle',
+  row: 'group transition-colors hover:bg-neutral-50/70',
+  td: 'px-4 py-3.5 align-middle font-medium text-neutral-700',
 };

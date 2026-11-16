@@ -353,7 +353,7 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[940px] text-sm">
+              <table className={cx(kcTable.table, "min-w-[940px]")}>
                 <thead className={kcTable.thead}>
                   <tr>
                     <th className={TH}>{tr("Outlet")}</th>
@@ -987,7 +987,7 @@ function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlet
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[900px] text-sm">
+              <table className={cx(kcTable.table, "min-w-[900px]")}>
                 <thead className={kcTable.thead}>
                   <tr>
                     <th className={TH}>{tr("Menu")}</th>

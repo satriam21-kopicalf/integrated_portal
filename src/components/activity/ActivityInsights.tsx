@@ -41,9 +41,10 @@ export default function ActivityInsights({ data, onPickDay }: { data: ActivityIn
 
 function Panel({ title, note, className = '', children }: { title: string; note: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className={`min-w-0 rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm ${className}`}>
-      <h2 className="text-sm font-semibold text-neutral-900">{title}</h2>
-      <p className="text-xs text-neutral-500">{note}</p>
+    // the kc Card look (kopicalf-hrms, 2026-11-16): 16 px corners, a light border, a bold title
+    <div className={`min-w-0 rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] sm:px-5 ${className}`}>
+      <h2 className="text-base font-bold tracking-tight text-neutral-900">{title}</h2>
+      <p className="mt-0.5 text-xs text-neutral-500">{note}</p>
       <div className="mt-2">{children}</div>
     </div>
   );

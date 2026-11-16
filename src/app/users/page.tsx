@@ -265,7 +265,7 @@ export default function UsersPage() {
             <button type="button" className={btn('solid')} onClick={() => setEditing('new')}><Plus size={15} /> {tr('New User')}</button>
           </>} />
 
-        <Tabs label={tr('Business Line')} tabs={lineTabs} value={line} onChange={k => { setLine(k as BusinessLine); setPage(1); applyFilters(NO_FILTERS); }} />
+        <Tabs variant="card" label={tr('Business Line')} tabs={lineTabs} value={line} onChange={k => { setLine(k as BusinessLine); setPage(1); applyFilters(NO_FILTERS); }} />
 
         <StatGrid label={tr('User Summary')} cols={5}>
           <StatCard label={tr('Users')} icon={<Users />} value={s ? formatNumber(s.total) : <ValueSkeleton />}

@@ -11,7 +11,7 @@ import {
   Badge, Button, Empty, ErrorState, Input, PageNav, SkeletonRows, type Tone, fmtNumber, usePaged,
 } from "@/so/ui";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { kcTable } from "@/components/kc";
+import { cx, kcTable } from "@/components/kc";
 import Drawer from "@/so/ui/Drawer";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar } from "@/so/ui/Filters";
 import { wibDateTime, wibDay } from "@/so/lib/wib";
@@ -226,7 +226,7 @@ export default function GoogleMapsRatingPage() {
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[860px] text-sm">
+              <table className={cx(kcTable.table, "min-w-[860px]")}>
                 <thead className={kcTable.thead}>
                   <tr>
                     <th className="px-4 py-2.5">{tr("Outlet")}</th>
