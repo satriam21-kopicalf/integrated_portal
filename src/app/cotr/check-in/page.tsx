@@ -312,7 +312,7 @@ function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
             {s.deductions.lines.length === 0 ? <p className="text-xs text-neutral-400">{tr("No cupping or waste")}</p> : (
               <>
                 <table className="w-full text-xs">
-                  <thead className="text-left text-[10px] uppercase tracking-wide text-neutral-400"><tr><th className="py-1">{tr("Menu")}</th><th>{tr("Type")}</th><th className="text-right">{tr("Assigned")}</th><th className="text-right">{tr("Used")}</th><th className="text-right">{tr("Value")}</th></tr></thead>
+                  <thead className="text-left text-xs capitalize text-neutral-400"><tr><th className="py-1">{tr("Menu")}</th><th>{tr("Type")}</th><th className="text-right">{tr("Assigned")}</th><th className="text-right">{tr("Used")}</th><th className="text-right">{tr("Value")}</th></tr></thead>
                   <tbody className="divide-y divide-neutral-100 text-neutral-700">
                     {s.deductions.lines.map((d) => (
                       <tr key={`${d.kind}:${d.code}`}><td className="py-1.5">{d.name}</td><td><Badge tone={d.kind === "cupping" ? "violet" : "amber"}>{d.kind === "cupping" ? tr("Cupping") : tr("Waste")}</Badge></td>

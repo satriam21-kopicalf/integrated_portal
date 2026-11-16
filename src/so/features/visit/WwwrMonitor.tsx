@@ -255,7 +255,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
                   </span>
                   {a.parts.map((p) => (
                     <span key={p.part} className="min-w-0 rounded-lg border border-neutral-100 bg-neutral-50/60 px-3 py-2">
-                      <span className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{PART[p.part]}
+                      <span className="flex items-center justify-between text-xs font-semibold capitalize text-neutral-500">{PART[p.part]}
                         {p.pic?.conformity != null && <span className={cx("normal-case", scoreTone(p.pic.conformity))}>{tr("{0}% conform", p.pic.conformity)}</span>}</span>
                       {p.pic ? (
                         <span className="mt-0.5 block truncate text-xs text-neutral-700">{p.pic.name} · PIC {p.pic.score ?? "—"}% · SWAT {p.swatScore ?? "—"}%
@@ -344,7 +344,7 @@ function Meter({ pct }: { pct: number | null }) {
 function Tile({ label, value, note }: { label: string; value: React.ReactNode; note: string }) {
   return (
     <div className="rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="text-xs font-semibold capitalize text-neutral-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-neutral-900">{value}</p>
       <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">{note}</p>
     </div>

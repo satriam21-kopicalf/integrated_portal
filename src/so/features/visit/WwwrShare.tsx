@@ -53,7 +53,7 @@ function View() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/calf-logo.png" alt="Kopi Calf" className="h-11 w-11 flex-shrink-0 rounded-xl bg-white object-contain p-1 print:ring-1 print:ring-neutral-200" />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-200 print:text-neutral-500">{tr("WW-WR audit result")}</p>
+            <p className="text-xs font-semibold capitalize tracking-[0.16em] text-brand-200 print:text-neutral-500">{tr("WW-WR audit result")}</p>
             <h1 className="truncate text-lg font-semibold">{a.branchName}</h1>
             <p className="text-xs text-brand-100/80 print:text-neutral-500">{dayLong(a.day)} · {tr("SWAT team")}: {a.members.map((m) => m.name).join(", ")}</p>
           </div>
@@ -76,7 +76,7 @@ function View() {
         <div className="grid gap-3 sm:grid-cols-2">
           {(["product", "outlet"] as const).map((p) => (
             <div key={p} className="avoid rounded-xl border border-neutral-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{p === "product" ? "Product" : "Outlet"}</p>
+              <p className="text-xs font-semibold capitalize text-neutral-500">{p === "product" ? "Product" : "Outlet"}</p>
               <p className="mt-1 flex gap-4 text-sm">{(["UNDER", "MEET", "EXCEED"] as Rating[]).map((r) => <span key={r} className={RATING_STYLE[r].text}><b className="tabular-nums">{a.counts[p][r.toLowerCase() as "under"]}</b> {ratingLabel(r)}</span>)}</p>
             </div>
           ))}
@@ -85,7 +85,7 @@ function View() {
         <Block title={tr("General Evaluation")}><p className="whitespace-pre-line text-sm text-neutral-700">{a.summary || "—"}</p></Block>
         <Block title={tr("Action Plans")}>
           <table className="m-cards w-full text-xs">
-            <thead><tr className="border-b border-neutral-200 text-left text-[11px] uppercase tracking-wide text-neutral-500"><th className="py-2 pr-2">#</th><th className="py-2 pr-2">{tr("Action")}</th><th className="py-2 pr-2">{tr("Handled by")}</th><th className="py-2 pr-2">{tr("Due")}</th><th className="py-2">{tr("Status")}</th></tr></thead>
+            <thead><tr className="border-b border-neutral-200 text-left text-xs capitalize text-neutral-500"><th className="py-2 pr-2">#</th><th className="py-2 pr-2">{tr("Action")}</th><th className="py-2 pr-2">{tr("Handled by")}</th><th className="py-2 pr-2">{tr("Due")}</th><th className="py-2">{tr("Status")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {a.actions.map((x: ActionPlan, i: number) => (
                 <tr key={x.id} className="avoid align-top">
@@ -125,7 +125,7 @@ function View() {
         <Block title={tr("Every Item")}>
           {d.definition.groups.map((g) => g.sections.filter((s) => !s.retired).map((s) => (
             <div key={s.key} className="avoid mb-4 last:mb-0">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-700">{tl(g, "title")} · {tl(s, "title")}</p>
+              <p className="mb-1 text-xs font-semibold capitalize text-brand-700">{tl(g, "title")} · {tl(s, "title")}</p>
               <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
                 {s.items.map((it) => {
                   const ans = d.answers[it.key];
@@ -147,7 +147,7 @@ function View() {
 }
 
 function Fact({ k, v }: { k: string; v: React.ReactNode }) {
-  return <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{k}</p><p className="mt-0.5 text-sm font-medium text-neutral-900">{v}</p></div>;
+  return <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3"><p className="text-xs font-semibold capitalize text-neutral-500">{k}</p><p className="mt-0.5 text-sm font-medium text-neutral-900">{v}</p></div>;
 }
 
 function Block({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {

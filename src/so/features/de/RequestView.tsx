@@ -64,7 +64,7 @@ function Tracker({ r }: { r: Request }) {
     <div className="space-y-3">
       <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-lg border border-neutral-100 text-center">
         {[[tr("Total"), t.totalHours], [tr("Handled"), t.workHours], [tr("On hold"), t.holdHours]].map(([k, v]) => (
-          <div key={String(k)} className="px-2 py-2"><p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{k}</p>
+          <div key={String(k)} className="px-2 py-2"><p className="text-xs font-semibold capitalize text-neutral-400">{k}</p>
             <p className="text-sm font-semibold tabular-nums text-neutral-900">{fmtHours(v as number)}</p></div>
         ))}
       </div>
@@ -217,7 +217,7 @@ export function RequestHero({ r, compact = false }: { r: Request; compact?: bool
       <dl className="grid grid-cols-2 border-y border-neutral-100 bg-neutral-50/60 sm:grid-cols-4">
         {facts.map(([icon, k, v], i) => (
           <div key={k} className={cx("px-4 py-2.5 sm:px-5", i % 2 === 1 && "border-l border-neutral-100", i >= 2 && "border-t border-neutral-100 sm:border-t-0", i === 2 && "sm:border-l")}>
-            <dt className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{icon}{k}</dt>
+            <dt className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400">{icon}{k}</dt>
             <dd className="mt-0.5 truncate text-sm font-medium text-neutral-900">{v}</dd>
           </div>
         ))}
@@ -234,7 +234,7 @@ export function RequestHero({ r, compact = false }: { r: Request; compact?: bool
 function SignBox({ title, name, src }: { title: string; name: string; src?: string }) {
   return (
     <div className="rounded-lg border border-neutral-200 p-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{title}</p>
+      <p className="text-xs font-semibold capitalize text-neutral-400">{title}</p>
       {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
       {src ? <img src={src} alt={tr("Signature")} className="my-1 h-16 w-auto max-w-full object-contain" /> : <div className="my-1 h-4" />}
       <p className="text-sm font-semibold text-neutral-900">{name}</p>

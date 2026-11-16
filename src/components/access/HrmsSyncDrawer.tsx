@@ -105,8 +105,8 @@ function SyncRow({ row, onApply, onLinked, busy }: { row: Row; onApply: () => vo
       </div>
       {row.employee && (
         <div className="mt-2 grid grid-cols-2 gap-3 rounded-lg bg-neutral-50 p-2">
-          <div><p className="text-[11px] uppercase tracking-wide text-neutral-400">{tr('Portal now')}</p><Values title={row.jobTitle} dept={row.department} /></div>
-          <div><p className="text-[11px] uppercase tracking-wide text-neutral-400">{tr('HRMS')}</p><Values title={row.employee.jobTitle} dept={row.employee.department} other={row} /></div>
+          <div><p className="text-xs capitalize text-neutral-400">{tr('Portal now')}</p><Values title={row.jobTitle} dept={row.department} /></div>
+          <div><p className="text-xs capitalize text-neutral-400">{tr('HRMS')}</p><Values title={row.employee.jobTitle} dept={row.employee.department} other={row} /></div>
         </div>
       )}
       <div className="mt-2 flex flex-wrap gap-2">

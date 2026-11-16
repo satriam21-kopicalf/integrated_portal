@@ -7,10 +7,10 @@
 // review actions sit in a bar above the bottom menu on phones and tablets, the lines are cards on phones.
 
 import { thumb } from "@/lib/assets";
-import { AlertTriangle, ArrowLeft, Check, ChevronRight, ClipboardList, FlaskConical, History, MapPin, Pencil, RotateCcw, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, ChevronDown, ChevronRight, ClipboardList, FlaskConical, History, Info as InfoIcon, MapPin, Pencil, RotateCcw, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Field, cx, fmtDate, fmtDay, inputClass, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import Drawer, { DrawerSection } from "@/components/kc/Drawer";
@@ -153,7 +153,7 @@ export default function ReviewDetailPage() {
         <header className="flex flex-wrap items-start gap-3">
           <Link href="/cost-control/reviews" className={cx(btn("outline"), "w-9 px-0")} aria-label={tr("Back")}><ArrowLeft size={16} /></Link>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tr("Stock Opname Review")}</p>
+            <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Stock Opname Review")}</p>
             <h1 className="truncate text-xl font-semibold tracking-tight text-neutral-900">{count.facility_name}</h1>
             <p className="mt-0.5 text-[13px] text-neutral-500">{countTypeLabel(count.count_type, count.count_type_name)} · {fmtDay(count.business_date)} · <span className="font-mono">{count.number}</span></p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -194,7 +194,7 @@ export default function ReviewDetailPage() {
           <StatCard label={tr("Counted")} icon={<ClipboardList />} value={`${count.progress.counted}/${count.progress.lines}`}
             sub={<span className="flex items-center gap-2"><span className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${pct}%` }} /></span>{pct}%</span>} />
           <StatCard label={tr("To Check")} icon={<AlertTriangle />} tone={count.progress.flagged ? "warn" : "default"} value={count.progress.flagged}
-            onClick={() => setOnlyFlagged((v) => !v)} active={onlyFlagged} sub={onlyFlagged ? tr("Showing the lines to check") : tr("Tap to show only them")} />
+            onClick={() => setOnlyFlagged((v) => !v)} active={onlyFlagged} sub={onlyFlagged ? tr("Showing the items to check") : tr("Items that need a second look · tap to show")} />
           <StatCard label={tr("Started")} value={<span className="text-base sm:text-lg">{fmtDate(count.started_at)}</span>} sub={count.started_by_name ?? "—"} />
           <StatCard label={tr("Submitted")} value={<span className="text-base sm:text-lg">{count.submitted_at ? fmtDate(count.submitted_at) : "—"}</span>}
             sub={count.reviewed_at ? tr("Reviewed {0}", `${fmtDate(count.reviewed_at)}${count.reviewed_by_name ? ` · ${count.reviewed_by_name}` : ""}`) : st.label()} />
@@ -222,7 +222,7 @@ export default function ReviewDetailPage() {
           {places && (
           <div className="grid gap-5 border-t border-neutral-100 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
           <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Location")}</p>
+          <p className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Location")}</p>
           <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-1">
             <Position label={tr("Location at Start")} lat={count.start_lat} lng={count.start_lng} distance={count.start_distance_m}
               accuracy={count.start_accuracy_m} at={count.start_located_at} none={count.entry_source && count.entry_source !== "CREW" ? "—" : tr("No location")} />
@@ -234,7 +234,7 @@ export default function ReviewDetailPage() {
           </dl>
           </div>
           <div className="min-w-0">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Log")}</p>
+            <p className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Log")}</p>
             <CountLog countId={id} reload={count.status} bare />
           </div>
           </div>
@@ -291,6 +291,7 @@ export default function ReviewDetailPage() {
               </button>
             </div>
           }>
+          <MarksLegend />
           {lines.length === 0 ? <EmptyState icon={<ClipboardList />} title={tr("No item matches")} /> : (
             <>
               {/* phones: one card per item, the tick and Correct big enough to tap */}
@@ -370,7 +371,7 @@ export default function ReviewDetailPage() {
           <Card flush title={tr("Evidence")} actions={<EvidenceDownloads count={count} />}
             subtitle={tr("{0} photos · {1} files{2} · time and position recorded by the server; SHA-256 proves the file is unchanged",
               count.photos.length, count.files?.length ?? 0, count.signature ? ` · ${tr("signed")}` : "")}>
-            <p className="px-4 pt-4 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 sm:px-5">{tr("Photos")}</p>
+            <p className="px-4 pt-4 text-xs font-semibold capitalize text-neutral-500 sm:px-5">{tr("Photos")}</p>
             {count.photos.length === 0 ? <p className="px-4 py-3 text-sm text-neutral-500 sm:px-5">{tr("No evidence photos were taken.")}</p> : (
               <ul className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:p-5 lg:grid-cols-6">
                 {count.photos.map((ph) => {
@@ -391,13 +392,13 @@ export default function ReviewDetailPage() {
             )}
             {(count.files?.length ?? 0) > 0 && (
               <div className="border-t border-neutral-100 px-4 py-4 sm:px-5">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Files")} · <span className="normal-case tracking-normal text-neutral-400">{tr("tap to download; also in the ZIP once approved")}</span></p>
+                <p className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Files")} · <span className="normal-case tracking-normal text-neutral-400">{tr("tap to download; also in the ZIP once approved")}</span></p>
                 <CountFileList files={count.files!} />
               </div>
             )}
             {count.signature && (
               <div className="border-t border-neutral-100 px-4 py-4 sm:px-5">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Signature")}</p>
+                <p className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Signature")}</p>
                 <SignatureCard count={count} bare />
               </div>
             )}
@@ -598,15 +599,62 @@ function Qty({ l, count, right }: { l: CountLine; count: Count; right?: boolean 
   );
 }
 
+/** The x3 mark explained (2026-11-16, users did not read "x3 vs last count"): the last approved count, this count
+ *  and how many times bigger / smaller, so a unit typed wrong (grams as kilograms) is seen at once. */
+function SpikeBadge({ l }: { l: CountLine }) {
+  const prev = l.previous_qty == null ? null : Number(l.previous_qty);
+  const now = l.qty_base == null ? null : Number(l.qty_base);
+  const times = prev && now ? (now > prev ? now / prev : prev / now) : null;
+  const help = tr("The quantity is more than 3 times, or less than a third of, the last approved count of this item. Check the unit (e.g. grams typed as kilograms) or the count.");
+  return (
+    <span className="inline-flex flex-col gap-0.5" title={help}>
+      <Badge tone="amber">{now !== null && prev !== null && prev > 0 && now > prev ? tr("Far above the last count") : tr("Far below the last count")}</Badge>
+      {prev !== null && now !== null && (
+        <span className="text-[11px] text-amber-800">
+          {tr("Last count {0} → now {1}", `${fmtQty(String(prev))} ${l.base_uom}`, `${fmtQty(String(now))} ${l.base_uom}`)}
+          {times ? ` (${times.toLocaleString(undefined, { maximumFractionDigits: 1 })}×)` : ""}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** What the marks of the items mean, under the item toolbar (opens and closes; remembered closed after the first look). */
+function MarksLegend() {
+  const items: [ReactNode, string][] = [
+    [<Badge key="c" tone="amber"><AlertTriangle size={11} /> {tr("To Check")}</Badge>, tr("Items with one of the marks below. Tap To Check to show only them.")],
+    [<Badge key="s" tone="amber">{tr("Far above the last count")}</Badge>, tr("More than 3 times, or less than a third of, the last approved count. Often a wrong unit.")],
+    [<Badge key="r" tone="amber">{tr("Recount")}</Badge>, tr("Sent back to the outlet to be counted again.")],
+    [<Badge key="d" tone="green">{tr("Recounted")}</Badge>, tr("Counted again by the outlet after a recount.")],
+    [<Badge key="k" tone="blue">{tr("Corrected by Cost Control")}</Badge>, tr("The quantity was changed by Cost Control, with a note.")],
+  ];
+  return (
+    <details className="group mx-4 mt-3 rounded-xl border border-neutral-200 bg-neutral-50/60 px-3 py-2 text-xs text-neutral-600 sm:mx-5">
+      <summary className="flex cursor-pointer list-none items-center gap-1.5 font-semibold text-neutral-700">
+        <InfoIcon size={14} className="text-brand-700" /> {tr("What the marks mean")}
+        <ChevronDown size={14} className="ml-auto transition-transform group-open:rotate-180" />
+      </summary>
+      <dl className="mt-2 grid gap-2 sm:grid-cols-2">
+        {items.map(([mark, text], i) => (
+          <div key={i} className="flex items-start gap-2">
+            <dt className="flex-shrink-0">{mark}</dt>
+            <dd className="leading-snug">{text}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  );
+}
+
 function LineMarks({ l, inline }: { l: CountLine; inline?: boolean }) {
   const marks = l.flags.includes("SPIKE") || l.flags.includes("RECOUNT") || l.flags.includes("RECOUNTED") || l.flags.includes("CORRECTED");
   if (!marks) return inline ? <span className="text-xs text-neutral-300">—</span> : null;
   return (
     <div className={cx(!inline && "mt-2")}>
       <div className="flex flex-wrap gap-1">
-        {l.flags.includes("SPIKE") && <Badge tone="amber">{tr("×3 vs last count")}</Badge>}
-        {l.flags.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
-        {l.flags.includes("RECOUNTED") && <Badge tone="green">{tr("Recounted")}</Badge>}
+        {l.flags.includes("SPIKE") && <SpikeBadge l={l} />}
+        {l.flags.includes("RECOUNT") && <Badge tone="amber" title={tr("Sent back to the outlet to be counted again")}>{tr("Recount")}</Badge>}
+        {l.flags.includes("RECOUNTED") && <Badge tone="green" title={tr("Counted again by the outlet after a recount")}>{tr("Recounted")}</Badge>}
         {l.flags.includes("CORRECTED") && <Badge tone="blue" title={`${l.corrected_by_name ?? ""} · ${l.corrected_at ? fmtDate(l.corrected_at) : ""}`}>{tr("Corrected by Cost Control")}</Badge>}
       </div>
       {l.flags.includes("CORRECTED") && l.correction_note && <p className="mt-1 max-w-[18rem] text-[11px] text-neutral-500">{l.corrected_by_name}: {l.correction_note}</p>}

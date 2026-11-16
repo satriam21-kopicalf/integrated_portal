@@ -170,7 +170,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                 )}
                 {f.counts.length === 0 ? <NextCount upcoming={f.upcoming} /> : f.upcoming.length > 0 && (
                   <div className="border-t border-neutral-100 px-4 py-3 sm:px-5">
-                    <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400"><CalendarDays size={12} /> {tr("Next 14 days")}</p>
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><CalendarDays size={12} /> {tr("Next 14 days")}</p>
                     <ul className="flex flex-wrap gap-2">
                       {f.upcoming.map((u) => (
                         <li key={`${u.date}:${u.count_type}`} className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs">

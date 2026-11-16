@@ -65,11 +65,11 @@ export default function ResetLogsDrawer({ storage, retentionDays, onClose, onDon
       <div className="space-y-6">
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200 text-sm">
           <div className="bg-white px-3 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Entries stored')}</dt>
+            <dt className="text-xs font-semibold capitalize text-neutral-500">{tr('Entries stored')}</dt>
             <dd className="mt-0.5 font-semibold tabular-nums text-neutral-900">{storage ? formatNumber(storage.entries) : '…'}</dd>
           </div>
           <div className="bg-white px-3 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tr('Auto clean-up')}</dt>
+            <dt className="text-xs font-semibold capitalize text-neutral-500">{tr('Auto clean-up')}</dt>
             <dd className="mt-0.5 font-semibold text-neutral-900">{retentionDays ? tr('after {0} days', retentionDays) : tr('off')}</dd>
           </div>
           <div className="col-span-2 bg-white px-3 py-2.5 text-xs text-neutral-500">

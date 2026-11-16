@@ -420,7 +420,7 @@ function ClockOutCell({ c }: { c: CheckIn }) {
 export function DrawerBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{title}</h3>
+      <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{title}</h3>
       {children}
     </section>
   );
@@ -438,7 +438,7 @@ export function DrawerRow({ k, v }: { k: string; v: React.ReactNode }) {
 function Fact({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
     <div className="min-w-0 rounded-xl border border-neutral-200 px-3 py-2">
-      <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{icon}{label}</p>
+      <p className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400">{icon}{label}</p>
       <p className="mt-0.5 truncate text-sm font-semibold text-neutral-900" title={value}>{value}</p>
       {sub && <p className="font-mono text-[10px] text-neutral-400">{sub}</p>}
     </div>
@@ -448,7 +448,7 @@ function Fact({ icon, label, value, sub }: { icon: React.ReactNode; label: strin
 function Figure({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className="px-3 py-2.5 text-center">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{label}</p>
+      <p className="text-xs font-semibold capitalize text-neutral-400">{label}</p>
       <p className={cx("mt-0.5 text-base font-semibold tabular-nums text-neutral-900", tone)}>{value}</p>
     </div>
   );

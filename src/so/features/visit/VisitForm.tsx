@@ -348,7 +348,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
       ) : (
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
         <div className="px-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-700">{tl(current.group, "title")} · {tl(current.group, "subtitle")}</p>
+          <p className="text-xs font-semibold capitalize text-brand-700">{tl(current.group, "title")} · {tl(current.group, "subtitle")}</p>
           <div className="mt-0.5 flex items-end justify-between gap-3">
             <p className="text-lg font-semibold leading-tight text-neutral-900">{tl(current, "title")}</p>
             <p className="flex-shrink-0 text-xs tabular-nums text-neutral-500">{tr("{0} of {1} rated", sectionDone(current.key)[0], sectionDone(current.key)[1])}</p>
@@ -469,12 +469,12 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
             {RATINGS.map((r) => (
               <div key={r} className="rounded-lg bg-white px-1 py-2 ring-1 ring-neutral-200">
                 <p className={cx("text-xl font-semibold tabular-nums", RATING_STYLE[r].text)}>{counts[r]}</p>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{r}</p>
+                <p className="text-xs font-semibold capitalize text-neutral-400">{r}</p>
               </div>
             ))}
             <div className="rounded-lg bg-white px-1 py-2 ring-1 ring-neutral-200">
               <p className="text-xl font-semibold tabular-nums text-neutral-900">{photos}</p>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Photos")}</p>
+              <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Photos")}</p>
             </div>
           </div>
           <p className="mt-2 text-xs text-neutral-500">{tr("{0} of {1} rated", counts.UNDER + counts.MEET + counts.EXCEED, total)}</p>
@@ -517,7 +517,7 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
 function Info({ k, v }: { k: string; v: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{k}</p>
+      <p className="text-xs font-medium capitalize text-neutral-400">{k}</p>
       <p className="truncate font-medium text-neutral-800" title={v}>{v}</p>
     </div>
   );

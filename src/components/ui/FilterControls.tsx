@@ -34,7 +34,7 @@ export interface Choice {
 export function ChoiceGroup({ label, choices, value, onChange }: { label: string; choices: Choice[]; value: string; onChange: (v: string) => void }) {
   return (
     <fieldset>
-      <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>
+      <legend className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tc(label)}</legend>
       <div className="flex flex-wrap gap-2">
         {choices.map(c => {
           const on = c.value === value;
@@ -84,7 +84,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
   };
   return (
     <fieldset>
-      <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>
+      <legend className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tc(label)}</legend>
       <div className="overflow-hidden rounded-xl border border-neutral-200">
         <div className="relative border-b border-neutral-100 p-2">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />

@@ -186,7 +186,7 @@ function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Re
     <Drawer open onClose={onClose} size="md" icon={<Scale size={18} />} title={p.name} description={tr("How the PIC score is made")} focusFirstField={false}>
       <div className="space-y-4 text-sm">
         <div className="rounded-xl bg-neutral-50 p-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("PIC Score")}</p>
+          <p className="text-xs font-semibold capitalize text-neutral-500">{tr("PIC Score")}</p>
           <p className={cx("text-4xl font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</p>
           <p className="mt-1 text-xs text-neutral-500">{tr("Weighted over the parts with data")}</p>
         </div>

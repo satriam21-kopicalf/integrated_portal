@@ -290,7 +290,7 @@ function AutoCards({ onClose, onDone }: { onClose: () => void; onDone: () => voi
         <div className="space-y-4 text-sm">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {([[tr("From the BOM"), plan.created.length], [tr("Bundling"), plan.bundles.length], [tr("Added to a card"), plan.assigned.length], [tr("Skipped"), plan.skipped.length]] as const).map(([k, v]) => (
-              <div key={k} className="rounded-lg bg-neutral-50 px-3 py-2"><p className="text-[10px] uppercase tracking-wide text-neutral-400">{k}</p><p className="text-lg font-semibold tabular-nums">{v}</p></div>
+              <div key={k} className="rounded-lg bg-neutral-50 px-3 py-2"><p className="text-xs capitalize text-neutral-400">{k}</p><p className="text-lg font-semibold tabular-nums">{v}</p></div>
             ))}
           </div>
           {plan.bundles.length > 0 && <section><p className="mb-1 text-xs font-semibold text-neutral-700">{tr("Bundling")}</p>
@@ -322,7 +322,7 @@ function Anomalies({ rows }: { rows: Anomaly[] }) {
       </header>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[900px] text-xs">
-          <thead className="bg-white text-left text-[10px] uppercase tracking-wide text-neutral-400"><tr>
+          <thead className="bg-white text-left text-xs capitalize text-neutral-400"><tr>
             <th className="py-2 pl-3 pr-2">{tr("Branch")}</th><th className="px-2 py-2">{tr("Material")}</th><th className="px-2 py-2 text-right">{tr("SO Awal")}</th>
             <th className="px-2 py-2 text-right">{tr("In − Out")}</th><th className="px-2 py-2 text-right">{tr("SO Akhir")}</th><th className="px-2 py-2 text-right">{tr("Usage")}</th>
             <th className="px-2 py-2 text-right">{tr("Impact")}</th><th className="py-2 pl-2 pr-3">{tr("Why")}</th></tr></thead>
@@ -426,13 +426,13 @@ function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null;
         </div>
         <div className="flex flex-1 flex-col px-4 py-3">
           <div className="grid grid-cols-3 divide-x divide-neutral-200 rounded-xl bg-neutral-50 py-2 text-center">
-            <span><span className="block text-[10px] uppercase tracking-wide text-neutral-400">{tr("HPP")}</span>
+            <span><span className="block text-xs capitalize text-neutral-400">{tr("HPP")}</span>
               <span className={cx("block text-sm font-semibold tabular-nums", hpp === null ? "text-amber-700" : "text-neutral-900")}>{hpp !== null ? rp(hpp) : priced && r.lines.length ? tr("Price missing") : "—"}</span></span>
-            <span><span className="block text-[10px] uppercase tracking-wide text-neutral-400">{tr("Components")}</span><span className="block text-sm font-semibold tabular-nums text-neutral-900">{r.lines.length}</span></span>
-            <span><span className="block text-[10px] uppercase tracking-wide text-neutral-400">{tr("Menus")}</span><span className="block text-sm font-semibold tabular-nums text-neutral-900">{r.menus.length}</span></span>
+            <span><span className="block text-xs capitalize text-neutral-400">{tr("Components")}</span><span className="block text-sm font-semibold tabular-nums text-neutral-900">{r.lines.length}</span></span>
+            <span><span className="block text-xs capitalize text-neutral-400">{tr("Menus")}</span><span className="block text-sm font-semibold tabular-nums text-neutral-900">{r.menus.length}</span></span>
           </div>
           <div className="mt-3 rounded-xl border border-neutral-100 px-3 py-2">
-            <p className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-neutral-400"><span>{tr("Selling Price")}</span><span>{tr("% HPP")}</span></p>
+            <p className="mb-1 flex items-center justify-between text-xs capitalize text-neutral-400"><span>{tr("Selling Price")}</span><span>{tr("% HPP")}</span></p>
             {r.menus.length ? <PriceRows prices={cardPrices(r.menus)} hpp={hpp} compact /> : <p className="text-[11px] text-neutral-400">{tr("Assign a menu to see its price")}</p>}
           </div>
           <ul className="mt-3 flex-1 space-y-1.5 text-xs text-neutral-600">
@@ -486,7 +486,7 @@ function UnitInput({ value, onChange, unit, placeholder, label, className }: { v
   return (
     <span className={cx("relative block", className)}>
       <input inputMode="decimal" className={cx(inputClass, "h-9 pr-12 text-right tabular-nums")} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder ?? "0"} aria-label={label} />
-      <span className="pointer-events-none absolute right-3 top-1/2 max-w-[2.5rem] -translate-y-1/2 truncate text-[11px] font-medium uppercase text-neutral-400">{unit || "—"}</span>
+      <span className="pointer-events-none absolute right-3 top-1/2 max-w-[2.5rem] -translate-y-1/2 truncate text-xs font-medium capitalize text-neutral-400">{unit || "—"}</span>
     </span>
   );
 }
@@ -573,7 +573,7 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
     <Drawer open onClose={onClose} size="xl" icon={<BookOpen size={18} />} title={recipe ? recipe.name : tr("New Card")} description={tr("What one portion of the menu uses")} focusFirstField={false}
       footer={<div className="flex w-full flex-wrap items-center gap-2">
         <div className="mr-auto min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("HPP per Portion")}</p>
+          <p className="text-xs font-semibold capitalize text-neutral-400">{tr("HPP per Portion")}</p>
           <p className="text-lg font-bold tabular-nums text-neutral-900">{hpp === null ? <span className="text-sm font-medium text-amber-700">{lines.length ? tr("Price missing") : "—"}</span> : rp(hpp)}</p>
         </div>
         {recipe && cardPrices(recipe.menus.filter((m) => ids.has(m.id))).length > 0 && (
@@ -611,7 +611,7 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
                     <span className={cx("mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg", KIND_CHIP[l.type])} title={KIND[l.type].label()}><Icon size={15} /></span>
                     <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[minmax(0,1fr)_8.5rem_7rem] sm:items-center">
                       <div className="min-w-0">
-                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{i + 1}. {KIND[l.type].label()}</p>
+                        <p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{i + 1}. {KIND[l.type].label()}</p>
                         {l.type === "item" && <Picker value={l.code} options={itemOptions} onPick={(v) => pickItem(i, v)} placeholder={loading ? tr("Loading items…") : tr("Choose raw material / packaging")} />}
                         {l.type === "wip" && <Picker value={l.code} options={wipOptions} onPick={(v) => pickWip(i, v)} placeholder={tr("Choose WIP / premix")} />}
                         {l.type === "menu" && <Picker value={l.code} options={cardOptions} onPick={(v) => pickCard(i, v)} placeholder={tr("Choose the card of a menu")} />}
@@ -623,10 +623,10 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
                           </div>
                         )}
                       </div>
-                      <label className="block"><span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Qty")}</span>
+                      <label className="block"><span className="mb-1 block text-xs font-semibold capitalize text-neutral-400">{tr("Qty")}</span>
                         <UnitInput value={l.qtyText} onChange={(v) => setLine(i, { qtyText: v })} unit={l.unit} label={`${tr("Qty")} ${i + 1}`} /></label>
                       <div className="text-right">
-                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Cost")}</span>
+                        <span className="mb-1 block text-xs font-semibold capitalize text-neutral-400">{tr("Cost")}</span>
                         <span className="inline-block py-2 text-sm font-semibold tabular-nums text-neutral-800">{costs[i] === null ? <span className="text-xs font-medium text-amber-700">{tr("No price")}</span> : rp(costs[i])}</span>
                       </div>
                     </div>
@@ -886,7 +886,7 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
     <Drawer open onClose={() => setEdit(null)} size="lg" icon={<Package size={18} />} title={edit.id ? edit.name : tr("Add Item")} description={tr("Additional Items")} focusFirstField={false}
       footer={<div className="flex w-full flex-wrap items-center gap-2">
         <div className="mr-auto min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Cost")} {per}</p>
+          <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Cost")} {per}</p>
           <p className="text-lg font-bold tabular-nums text-neutral-900">{each === null ? <span className="text-sm font-medium text-amber-700">{unitPrice === null ? tr("No price") : "—"}</span> : rp(each)}</p>
         </div>
         <Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button>

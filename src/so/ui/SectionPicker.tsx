@@ -43,7 +43,7 @@ export default function SectionPicker({ options, value, onChange, allLabel, titl
       <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog"
         className="flex h-11 w-full items-center gap-3 rounded-xl border border-neutral-200/80 bg-white px-3.5 text-left shadow-sm active:bg-neutral-50 lg:hidden">
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
+          <span className="block text-xs font-semibold capitalize text-neutral-400">
             {title}{index >= 0 ? ` · ${index + 1}/${options.length}` : ""}
           </span>
           <span className="block truncate text-sm font-semibold leading-tight text-neutral-900">{current?.label}</span>

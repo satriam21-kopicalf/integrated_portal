@@ -151,7 +151,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
 function Info({ k, v }: { k: string; v: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{k}</p>
+      <p className="text-xs font-medium capitalize text-neutral-400">{k}</p>
       <p className="truncate font-medium text-neutral-800" title={v}>{v}</p>
     </div>
   );

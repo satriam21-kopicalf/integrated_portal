@@ -55,7 +55,7 @@ export default function FleetSharePage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/Logo-COTR.png" alt="Calf On The Road" className="h-11 w-11 flex-shrink-0 rounded-xl bg-white object-contain p-1" />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70">{tr("Fleet information")}</p>
+            <p className="text-xs font-semibold capitalize tracking-[0.16em] text-white/70">{tr("Fleet information")}</p>
             <h1 className="truncate text-base font-bold">Calf On The Road</h1>
           </div>
           <div className="flex overflow-hidden rounded-lg ring-1 ring-white/30" role="group" aria-label={tr("Language")}>
@@ -192,7 +192,7 @@ function Fact({ label, value, warn, always }: { label: string; value: ReactNode;
   if (!always && (value === null || value === undefined || value === "")) return null;
   return (
     <div className="min-w-0">
-      <dt className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{label}</dt>
+      <dt className="text-xs font-medium capitalize text-neutral-400">{label}</dt>
       <dd className={`truncate font-medium ${warn ? "text-red-600" : "text-neutral-800"}`}>{value === null || value === undefined || value === "" ? "—" : value}</dd>
     </div>
   );

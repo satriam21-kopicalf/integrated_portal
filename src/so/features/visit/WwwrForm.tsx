@@ -183,7 +183,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button><Button disabled={!pick.size} loading={busy} onClick={() => void add()}><UserPlus size={15} /> {tr("Add {0}", pick.size)}</Button></>}>
       <div className="space-y-4 text-sm">
         <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("In the Team")} ({audit.members.length})</h3>
+          <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("In the Team")} ({audit.members.length})</h3>
           <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
             {audit.members.map((m) => (
               <li key={m.id} className="flex items-center gap-2.5 px-3 py-2">
@@ -195,7 +195,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
           </ul>
         </section>
         <section>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Add Colleagues")}</h3>
+          <h3 className="mb-1 text-xs font-semibold capitalize text-neutral-500">{tr("Add Colleagues")}</h3>
           <p className="mb-2 text-xs text-neutral-500">{tr("Accounts assigned Form WW-WR (User Accounts). They see this audit in Form WW-WR and fill it with you; only you send it.")}</p>
           <div className="overflow-hidden rounded-xl border border-neutral-200">
             <div className="relative border-b border-neutral-100 p-2"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -250,7 +250,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
   return (
     <div className="space-y-4">
       <div className="px-1">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-700">{tr("Before sending")}</p>
+        <p className="text-xs font-semibold capitalize text-brand-700">{tr("Before sending")}</p>
         <p className="text-lg font-semibold text-neutral-900">{tr("Evaluation & Action Plan")}</p>
         <p className="text-xs text-neutral-500">{tr("The team writes what it found, what the outlet must do, who of the team follows it and when the team comes back.")}</p>
       </div>
@@ -353,9 +353,9 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
           <p className="font-semibold">{done ? tr("Completed {0}", wibDateTime(audit.completedAt)) : tr("Follow-up: {0} of {1} action plans open", left, audit.actions.length)}</p>
           <p className="text-xs">{tr("Revisit {0}", dayShort(audit.revisitOn))}{audit.revisitNote ? ` · ${audit.revisitNote}` : ""}</p>
         </div>
-        {audit.summary && <section><h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("General Evaluation")}</h3><p className="whitespace-pre-line rounded-xl bg-neutral-50 p-3 text-neutral-700">{audit.summary}</p></section>}
+        {audit.summary && <section><h3 className="mb-1 text-xs font-semibold capitalize text-neutral-500">{tr("General Evaluation")}</h3><p className="whitespace-pre-line rounded-xl bg-neutral-50 p-3 text-neutral-700">{audit.summary}</p></section>}
         <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Action Plans")}</h3>
+          <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Action Plans")}</h3>
           <ul className="space-y-2">
             {audit.actions.map((x) => (
               <li key={x.id} className={cx("flex items-start gap-3 rounded-xl border p-3", x.status === "done" ? "border-emerald-200 bg-emerald-50/50" : "border-neutral-200")}>

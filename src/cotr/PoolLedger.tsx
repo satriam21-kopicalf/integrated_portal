@@ -211,7 +211,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                       {open && (
                         <div className="overflow-x-auto px-3 pb-3">
                           <table className="w-full min-w-[480px] text-sm">
-                            <thead className="text-left text-[11px] uppercase tracking-wide text-neutral-500"><tr>
+                            <thead className="text-left text-xs capitalize text-neutral-500"><tr>
                               <th className="py-1.5 pr-3 font-medium">{tr("Menu")}</th><th className="py-1.5 pr-3 font-medium">{tr("Batch Code")}</th>
                               <th className="py-1.5 pr-3 text-right font-medium">{tr("Cups")}</th><th className="py-1.5 pr-3 font-medium">{tr("Expiry")}</th><th className="py-1.5 font-medium">{tr("Status")}</th>
                             </tr></thead>

@@ -27,7 +27,7 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
           {/* eslint-disable-next-line @next/next/no-img-element -- brand logo from the assets bucket */}
           <img src={assetUrl("assets/calf-logo.png")} alt="Kopi Calf" className="h-10 w-10 flex-shrink-0 rounded-xl bg-white object-contain p-1" />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-200">{eyebrow}</p>
+            <p className="text-xs font-semibold capitalize tracking-[0.14em] text-brand-200">{eyebrow}</p>
             <h1 className="truncate text-base font-semibold sm:text-lg">{title}</h1>
             {subtitle && <p className="truncate text-xs text-brand-100/80">{subtitle}</p>}
           </div>

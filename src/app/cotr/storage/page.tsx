@@ -272,7 +272,7 @@ export default function CotrStoragePage() {
                         </div>
                       )}
                       <table className="w-full text-sm">
-                        <thead className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
+                        <thead className="text-xs font-semibold capitalize text-neutral-400">
                           <tr><th className="px-4 pb-1 pt-2 text-left">{tr("Product")}</th><th className="w-20 px-1 pb-1 pt-2 text-center">{tr("Sell")}</th>
                             <th className="w-20 px-1 pb-1 pt-2 text-center"><span className="inline-flex items-center gap-0.5"><Coffee size={10} />{tr("Cupping")}</span></th><th className="w-16 px-3 pb-1 pt-2 text-right">{tr("Carried")}</th></tr>
                         </thead>

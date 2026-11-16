@@ -72,7 +72,7 @@ export default function PremixPage() {
           </Stat>
         </StatStrip>
       }>
-      <Tabs label={tr("View")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={tabs.map((t) => ({ key: t.key, label: <>{t.icon}{t.label}</> }))} />
+      <Tabs variant="card" label={tr("View")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={tabs.map((t) => ({ key: t.key, label: <>{t.icon}{t.label}</> }))} />
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel>
         : tab === "calculator" ? <CalculatorTab recipes={rows} />
         : <RecipesTab recipes={rows} onOpen={setOpen} />}
@@ -262,7 +262,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
               {result && (
                 <>
                   <div className="border-b border-neutral-100 px-4 py-3">
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("WIP entered")}</p>
+                    <p className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("WIP entered")}</p>
                     <ul className="space-y-1.5">
                       {result.rows.map(r => (
                         <li key={`${r.recipe_id}|${r.uom}`} className="flex items-center gap-2 text-sm">
@@ -360,7 +360,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 function Tile({ k, v }: { k: string; v: string }) {
   return (
     <div className="px-2 py-3">
-      <dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{k}</dt>
+      <dt className="text-xs font-semibold capitalize text-neutral-400">{k}</dt>
       <dd className="mt-0.5 text-lg font-semibold tabular-nums text-neutral-900">{v}</dd>
     </div>
   );

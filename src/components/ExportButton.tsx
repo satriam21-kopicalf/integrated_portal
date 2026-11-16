@@ -151,7 +151,7 @@ export default function ExportButton({
                 {!googleSheets && (
                   <p className="px-2.5 pb-1 text-[11px] leading-snug text-neutral-400">{tr('Google Sheets becomes available once it is set up on the server.')}</p>
                 )}
-                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr('Export to')} {destination}</p>
+                <p className="px-2.5 pb-1.5 pt-1 text-xs font-semibold capitalize text-neutral-400">{tr('Export to')} {destination}</p>
                 {REPORTS.map(r => {
                   // one sheet only: the period is capped (one month of every branch ≈ 450k rows)
                   const tooLong = r.value === 'menu' && days > MENU_MAX_DAYS[format];

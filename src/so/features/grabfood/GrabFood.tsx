@@ -486,7 +486,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         {o.hours.week.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Opening Hours on GrabFood")}</h3>
+            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Opening Hours on GrabFood")}</h3>
             <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
               {o.hours.week.map((r, i) => {
                 const today = i === new Date(now + 7 * 3600e3).getUTCDay();
@@ -506,7 +506,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         {dist.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Rating Distribution")}</h3>
+            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Rating Distribution")}</h3>
             <ul className="space-y-1 rounded-xl border border-neutral-200 p-3">
               {dist.map((d) => (
                 <li key={d.score} className="flex items-center gap-2 text-xs text-neutral-600">
@@ -521,7 +521,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Menu Unavailable")} ({fmtNumber(unavailable(o))})</h3>
+            <h3 className="text-xs font-semibold capitalize text-neutral-500">{tr("Menu Unavailable")} ({fmtNumber(unavailable(o))})</h3>
             {unavailable(o) > 0 && <button type="button" onClick={onMenu} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show All")}</button>}
           </div>
           {items === null ? <SkeletonList rows={3} /> : items.length === 0
@@ -544,7 +544,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Latest Reviews")} ({fmtNumber(o.reviewsAll.count)})</h3>
+            <h3 className="text-xs font-semibold capitalize text-neutral-500">{tr("Latest Reviews")} ({fmtNumber(o.reviewsAll.count)})</h3>
             {o.reviewsAll.count > 0 && <button type="button" onClick={onReviews} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show All")}</button>}
           </div>
           {latest === null ? <SkeletonList rows={3} /> : latest.length === 0
@@ -578,7 +578,7 @@ function BranchPicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
     .map((b) => ({ value: b.code, label: `${b.name} (${b.code})` }));
   return (
     <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-      <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500"><Link2 size={13} /> {tr("ESB Branch")}</h3>
+      <h3 className="flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-500"><Link2 size={13} /> {tr("ESB Branch")}</h3>
       <p className="mt-1 text-xs text-neutral-500">{o.branchCode ? tr("The users of this branch see this outlet.") : tr("Not mapped: only super admins see this outlet. Choose its ESB branch.")}</p>
       <div className="mt-2">
         <SearchChoice label={tr("Branch")} anyLabel={tr("Not mapped")} options={choices} value={value} onChange={setValue}
@@ -846,7 +846,7 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
 
         {r.imageUrls.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Photos ({0})", r.imageUrls.length)}</h3>
+            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Photos ({0})", r.imageUrls.length)}</h3>
             <div className="grid grid-cols-3 gap-2">
               {r.imageUrls.map((u, i) => (
                 <button key={u} type="button" onClick={() => setZoom(i)} className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" aria-label={tr("Open photo {0}", i + 1)}>
@@ -860,7 +860,7 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
 
         {aspects.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("What the Customer Mentions")}</h3>
+            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("What the Customer Mentions")}</h3>
             <p className="mb-2 text-[11px] text-neutral-400">{tr("Detected by Grab from the review: + positive, − negative")}</p>
             <div className="flex flex-wrap gap-1.5">
               {aspects.map((a, i) => <Badge key={`${a.aspectName}-${i}`} tone={a.rating < 0 ? "red" : a.rating > 0 ? "green" : "slate"}>{a.rating < 0 ? "− " : a.rating > 0 ? "+ " : ""}{a.aspectName}</Badge>)}

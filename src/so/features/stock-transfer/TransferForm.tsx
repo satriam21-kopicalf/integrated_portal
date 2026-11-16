@@ -161,7 +161,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
                         <span className="relative w-28 flex-shrink-0 sm:w-32">
                           <input inputMode="decimal" className={cx(inputClass, "h-11 pr-11 text-right text-base tabular-nums sm:h-10 sm:text-sm", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
                             onChange={(e) => setQty({ ...qty, [i.code]: e.target.value })} aria-label={`${tr("Qty")} ${i.name}`} />
-                          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] uppercase text-neutral-400">{i.unit}</span>
+                          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs capitalize text-neutral-400">{i.unit}</span>
                         </span>
                       </li>
                     );
@@ -330,7 +330,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           <span className="ml-auto font-semibold tabular-nums text-neutral-900">{t.value != null ? rpText(t.value) : t.estimate != null ? `± ${rpText(t.estimate)}` : ""}</span></div>
         <div className="overflow-hidden rounded-xl border border-neutral-200">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-[11px] uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
+            <thead className="bg-neutral-50 text-left text-xs capitalize text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">{(t.items ?? []).map((i) => (
               <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p>{i.available != null && <p className="mt-1 text-[11px] text-neutral-500">{tr("Stock of the outlet when asked")}: <span className="font-semibold tabular-nums text-neutral-700">{qtyText(i.available)} {i.unit}</span></p>}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
@@ -338,7 +338,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
                     <span className="relative inline-block w-28 sm:w-32">
                       <input inputMode="decimal" className={cx(inputClass, "h-10 pr-10 text-right text-base tabular-nums sm:h-9 sm:text-sm", adjusted[i.code] !== undefined && "border-amber-400 bg-amber-50")}
                         value={adjust[i.code] ?? String(i.qty).replace(".", ",")} onChange={(e) => setAdjust({ ...adjust, [i.code]: e.target.value })} aria-label={`${tr("Approved Qty")} ${i.name}`} />
-                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] uppercase text-neutral-400">{i.unit}</span>
+                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs capitalize text-neutral-400">{i.unit}</span>
                     </span>
                   ) : <>{qtyText(i.qty)} <span className="text-neutral-400">{i.unit}</span></>}
                   {Math.abs(i.requested - i.qty) > 1e-9 && <span className="block text-[11px] text-amber-700">{tr("asked {0}, adjusted by Cost Control", qtyText(i.requested))}</span>}
@@ -348,7 +348,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           </table>
         </div>
         <section className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Process")}</p>
+          <p className="mb-3 text-xs font-semibold capitalize text-neutral-500">{tr("Process")}</p>
           <Tracker steps={steps} />
         </section>
         {t.gr && <GrStatus gr={t.gr} />}

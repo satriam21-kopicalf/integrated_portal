@@ -71,7 +71,7 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
           [tr("Every Day Reported"), fmtNumber(full), tr("{0} branches with a gap", fmtNumber(total - full))],
         ] as const).map(([k, v, sub]) => (
           <div key={k} className="rounded-lg bg-neutral-50 px-3 py-2">
-            <p className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{k}</p>
+            <p className="text-xs font-medium capitalize text-neutral-400">{k}</p>
             <p className="text-lg font-semibold tabular-nums text-neutral-900">{v}</p>
             <p className="text-[11px] text-neutral-500">{sub}</p>
           </div>
@@ -249,7 +249,7 @@ export function EsbCompare({ period, branch, onBranch }: { period: Period; branc
       <div className="grid gap-3 p-4 sm:grid-cols-4">
         {tiles.map(([l, v, h], i) => (
           <div key={l} className={cx("rounded-xl border bg-white px-4 py-3", i === 3 && t.sameCount ? "border-amber-300" : "border-neutral-200")}>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{l}</p>
+            <p className="text-xs font-semibold capitalize text-neutral-500">{l}</p>
             <p className={cx("mt-1 text-lg font-semibold tabular-nums", i === 3 && t.sameCount ? "text-amber-700" : "text-neutral-900")}>{v}</p>
             <p className="text-xs text-neutral-500">{h}</p>
           </div>))}

@@ -301,7 +301,7 @@ export function CategoriesDrawer({ onClose }: { onClose: () => void }) {
         </div>
         {!rows ? <SkeletonList rows={4} /> : (["waste", "usage"] as const).map((sc) => (
           <div key={sc}>
-            <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400"><Tags size={12} />{sc === "waste" ? tr("Form Waste") : tr("Usage Management")}</p>
+            <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><Tags size={12} />{sc === "waste" ? tr("Form Waste") : tr("Usage Management")}</p>
             <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
               {rows.filter((r) => r.scope === sc).map((r) => (
                 <li key={r.id} className="flex items-center gap-2 px-3 py-2 text-sm">

@@ -223,7 +223,7 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
         <Row icon={<CalendarRange size={14} />} k={tr("Valid period")} v={validity} />
       </span>
       <span className="block px-4 pt-3">
-        <span className="block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Next")}</span>
+        <span className="block text-xs font-semibold capitalize text-neutral-400">{tr("Next")}</span>
         <span className="mt-1.5 flex min-h-[1.5rem] flex-wrap gap-1">
           {t.next_dates.length === 0 ? <span className="text-xs text-neutral-400">{t.frequency === "ADHOC" ? tr("Started when needed") : tr("Nothing scheduled")}</span>
             : t.next_dates.slice(0, 3).map((d) => (
@@ -350,7 +350,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
       <div className="space-y-4">
         {/* what the staff will see */}
         <section className="rounded-xl bg-neutral-900 p-4 text-white">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Summary")}</p>
+          <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Summary")}</p>
           <p className="mt-1 truncate text-lg font-semibold">{d.name.trim() || tr("Untitled count type")}</p>
           <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-200">
             <span className="inline-flex items-center gap-1.5"><CalendarDays size={14} className="text-neutral-400" />{summary}</span>

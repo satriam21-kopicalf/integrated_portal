@@ -63,7 +63,7 @@ function HealthCard({ card }: { card: Card }) {
             <h2 className="text-sm font-semibold text-neutral-900">{d.title}</h2>
             <Badge tone={card.status === 'ok' ? 'green' : card.status === 'warn' ? 'amber' : card.status === 'high' ? 'red' : 'slate'}>{s.label()}</Badge>
           </div>
-          <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-neutral-400">{tr('Source')}: {d.source}</p>
+          <p className="mt-0.5 text-xs font-medium capitalize text-neutral-400">{tr('Source')}: {d.source}</p>
           <p className="mt-2 text-xs leading-relaxed text-neutral-600">{card.status === 'error' ? card.detail : d.text}</p>
         </div>
         <span className="flex-shrink-0 text-right text-xl font-semibold tabular-nums text-neutral-900">{d.value}</span>

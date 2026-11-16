@@ -353,7 +353,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         {areas.filter((a) => shown.some((l) => l.area === a)).map((a) => (
           <section key={a} className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
             <div className="flex items-center justify-between gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2.5">
-              <h2 className="truncate text-[11px] font-semibold uppercase tracking-wide text-neutral-600">{a}</h2>
+              <h2 className="truncate text-xs font-semibold capitalize text-neutral-600">{a}</h2>
               {areaDone[a] && (
                 <span className="flex flex-shrink-0 items-center gap-2">
                   <span className="h-1 w-14 overflow-hidden rounded-full bg-neutral-200"><span className={cx("block h-full rounded-full", areaDone[a][0] >= areaDone[a][1] ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${areaDone[a][1] ? (areaDone[a][0] / areaDone[a][1]) * 100 : 0}%` }} /></span>
@@ -415,7 +415,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                               className={cx(inputClass, "h-11 text-right text-base font-semibold tabular-nums", done && "border-emerald-200 bg-emerald-50/40", bad && "border-red-400")}
                               aria-label={`${l.item_name} ${unitOf(l)}`} />
                           </label>
-                          <p className="mt-0.5 max-w-[7rem] truncate text-right text-[10px] font-semibold uppercase text-neutral-500 sm:max-w-[9rem]" title={unitOf(l)}>
+                          <p className="mt-0.5 max-w-[7rem] truncate text-right text-xs font-semibold capitalize text-neutral-500 sm:max-w-[9rem]" title={unitOf(l)}>
                             {unitOf(l)}{factorOf(l) !== 1 && l.qty_base !== null ? <span className="font-normal normal-case text-neutral-400"> = {fmtQty(l.qty_base)} {l.base_uom}</span> : null}
                           </p>
                         </div>
@@ -428,7 +428,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         }
                         return (
                           <div className="mt-1.5 pl-8 sm:max-w-sm">
-                            <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[df]()}</span>
+                            <span className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400"><CalendarDays size={11} />{DATE_FIELD_LABEL[df]()}</span>
                             <div className="mt-0.5 flex items-center gap-1.5">
                               <DateField disabled={!edit} value={l[df] ?? ""} max={df === "roasted_date" ? wibDay(0) : undefined}
                                 onCommit={(v) => void saveDate(l, v || null)}
@@ -513,7 +513,7 @@ function DateRows({ line, field, edit, unit, qty, onSave }: {
   const total = rows.reduce((a, r) => a + (Number(parseQty(r.qty) ?? 0) || 0), 0);
   return (
     <div className="mt-2 rounded-xl border border-neutral-200 bg-neutral-50/70 p-2">
-      <p className="flex items-center justify-between gap-2 px-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
+      <p className="flex items-center justify-between gap-2 px-0.5 text-xs font-semibold capitalize text-neutral-500">
         <span className="flex items-center gap-1"><CalendarDays size={11} />{label}</span>
         <span className="normal-case tabular-nums text-neutral-600">{tr("Total {0} {1}", fmtQty(total), unit)}</span>
       </p>

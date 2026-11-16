@@ -155,7 +155,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
               <ul className="grid grid-cols-2 gap-px bg-neutral-100 lg:grid-cols-4">
                 {res.platforms.map((p) => (
                   <li key={p.key} className="bg-white px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{PLATFORM_LABEL[p.platform]}</p>
+                    <p className="text-xs font-semibold capitalize text-neutral-500">{PLATFORM_LABEL[p.platform]}</p>
                     <p className="mt-1 inline-flex items-center gap-1.5 text-xl font-semibold tabular-nums text-neutral-900">
                       <Star size={17} className={p.stars === null ? "text-neutral-300" : "fill-amber-400 text-amber-400"} /> {p.stars === null ? "—" : fmtStars(p.stars)}
                     </p>
@@ -458,7 +458,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
 function Insight({ label, value, note }: { label: string; value: React.ReactNode; note: string }) {
   return (
     <div className="rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="text-xs font-semibold capitalize text-neutral-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-neutral-900">{value}</p>
       <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">{note}</p>
     </div>
@@ -523,7 +523,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
               <div className="flex items-center gap-3">
                 <ScorePill score={v.score} large />
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Score of the visit")}</p>
+                  <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Score of the visit")}</p>
                   <p className="text-xs text-neutral-500">{tr("{0} items rated", v.counts.under + v.counts.meet + v.counts.exceed)}</p>
                 </div>
               </div>
@@ -532,7 +532,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                   {RATINGS.map((r) => (
                     <div key={r} className={cx("rounded-xl px-3 py-2 text-center ring-1 ring-inset", RATING_STYLE[r].on)}>
                       <p className="text-lg font-bold tabular-nums leading-none">{v.counts[r.toLowerCase() as "under" | "meet" | "exceed"]}</p>
-                      <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide">{ratingLabel(r)}</p>
+                      <p className="mt-1 text-xs font-semibold capitalize">{ratingLabel(r)}</p>
                     </div>
                   ))}
                 </div>
@@ -567,7 +567,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
             if (!sections.length) return null;
             return (
               <section key={g.key} className="space-y-2">
-                <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-brand-700">{tl(g, "title")} <span className="font-normal normal-case text-neutral-400">· {tl(g, "subtitle")}</span></p>
+                <p className="px-1 text-xs font-semibold capitalize text-brand-700">{tl(g, "title")} <span className="font-normal normal-case text-neutral-400">· {tl(g, "subtitle")}</span></p>
                 {sections.map((sec) => (
                   <div key={sec.key} className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
                     <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 bg-neutral-50/60 px-4 py-2.5">
@@ -636,7 +636,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
             );
           })}
           {show === "under" && v.counts.under === 0 && <p className="py-6 text-center text-sm text-neutral-400">{tr("No UNDER in this visit")}</p>}
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Signature of the PIC")}</p>
+          <p className="px-1 text-xs font-semibold capitalize text-neutral-500">{tr("Signature of the PIC")}</p>
           {v.signature ? (
             <section className="flex flex-col gap-3 rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
               {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
@@ -657,7 +657,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
 function Fact({ icon, k, v }: { icon: React.ReactNode; k: string; v: React.ReactNode }) {
   return (
     <div className="bg-neutral-50/80 px-4 py-2.5">
-      <dt className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{icon}{k}</dt>
+      <dt className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400">{icon}{k}</dt>
       <dd className="mt-0.5 text-sm font-medium text-neutral-900">{v}</dd>
     </div>
   );

@@ -45,7 +45,7 @@ export function ChoiceGroup({ label, choices, value, onChange }: { label: string
   const real = choices.filter(c => c.value !== '');
   return (
     <fieldset>
-      {label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>}
+      {label && <legend className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tc(label)}</legend>}
       {real.length <= 1 && !value ? <OnlyOne label={real[0]?.label ?? '—'} /> : (
         <div className="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1" role="radiogroup">
           {choices.map(c => {
@@ -80,7 +80,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
     return s ? options.filter(o => o.label.toLowerCase().includes(s) || o.value.toLowerCase().includes(s)) : options;
   }, [options, q]);
   if (!loading && options.length <= 1 && !value) {
-    return <fieldset>{label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>}<OnlyOne label={options[0]?.label ?? '—'} /></fieldset>;
+    return <fieldset>{label && <legend className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tc(label)}</legend>}<OnlyOne label={options[0]?.label ?? '—'} /></fieldset>;
   }
   const row = (v: string, text: ReactNode, meta?: ReactNode) => {
     const on = v === value;
@@ -100,7 +100,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
   return (
     // min-w-0: a fieldset is at least as wide as its content by default, so long labels would overflow the drawer
     <fieldset className="min-w-0">
-      {label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{tc(label)}</legend>}
+      {label && <legend className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tc(label)}</legend>}
       <div className="overflow-hidden rounded-xl border border-neutral-200">
         <div className="relative border-b border-neutral-100 p-2">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />

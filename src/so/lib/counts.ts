@@ -26,6 +26,8 @@ export type CountLine = {
   counted_at: string | null;
   counted_by_name: string | null;
   flags: string[];
+  /** the quantity of the last approved count of the item (2026-11-16), beside the x3 mark */
+  previous_qty?: string | number | null;
   recount_of: number | null;
   is_current: boolean;
   /** corrected by Cost Control in the review (flag CORRECTED, 2026-10-29) */

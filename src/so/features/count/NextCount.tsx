@@ -83,7 +83,7 @@ export default function NextCount({ upcoming }: { upcoming: Upcoming[] }) {
         <div className="flex flex-wrap items-start gap-3 p-4">
           <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white"><CalendarClock size={20} /></span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-700">{tr("Next stock opname")}</p>
+            <p className="text-xs font-semibold capitalize text-brand-700">{tr("Next stock opname")}</p>
             <p className="text-base font-semibold text-neutral-900">{countTypeLabel(next.count_type, next.name)}</p>
             <p className="mt-0.5 text-sm text-neutral-700">{periodText(next.date, next.period_end, next.window_start, next.window_end)}</p>
           </div>
@@ -110,7 +110,7 @@ export default function NextCount({ upcoming }: { upcoming: Upcoming[] }) {
 
       {rest.length > 0 && (
         <div>
-          <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400"><CalendarDays size={12} /> {tr("Next 14 days")}</p>
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><CalendarDays size={12} /> {tr("Next 14 days")}</p>
           <ul className="space-y-1.5">
             {rest.map((u) => (
               <li key={`${u.date}:${u.count_type}`} className={cx("flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm")}>

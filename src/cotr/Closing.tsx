@@ -146,7 +146,7 @@ function ClosingDrawer({ initial, poolName, onClose }: { initial: Closing; poolN
               <>
                 <div className="overflow-x-auto rounded-lg border border-neutral-200">
                   <table className="w-full min-w-[30rem] text-xs">
-                    <thead className="bg-neutral-50 text-left text-[11px] uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Menu")}</th>
+                    <thead className="bg-neutral-50 text-left text-xs capitalize text-neutral-500"><tr><th className="px-3 py-2">{tr("Menu")}</th>
                       <th className="px-3 py-2 text-right">{tr("Opening")}</th><th className="px-3 py-2 text-right">{tr("In")}</th><th className="px-3 py-2 text-right">{tr("Out")}</th>
                       <th className="px-3 py-2 text-right">{tr("Calculated")}</th><th className="px-3 py-2 text-right">{tr("Actual")}</th><th className="px-3 py-2 text-right">{tr("Balance")}</th></tr></thead>
                     <tbody className="divide-y divide-neutral-100">

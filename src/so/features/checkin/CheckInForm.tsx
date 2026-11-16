@@ -510,9 +510,9 @@ function SuccessScreen({ c, out = false, onClose, onDetail }: { c: CheckIn; out?
           {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
           <img src={thumb(photoUrl(c.id, !!o), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-xl object-cover shadow-md ring-4 ring-white" />
           <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-neutral-100 rounded-xl border border-neutral-200/80 bg-white text-left">
-            <div className="px-3 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Time")}</dt>
+            <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Time")}</dt>
               <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Clock size={13} className="text-neutral-400" />{wibTime(o ? o.at : c.visitedAt)} WIB</dd></div>
-            <div className="px-3 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Location")}</dt>
+            <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Location")}</dt>
               <dd className={cx("mt-0.5 flex items-center gap-1.5 text-sm font-semibold", outside ? "text-amber-700" : "text-neutral-900")}><MapPin size={13} className="text-neutral-400" />
                 {distance !== null ? tr("{0} m from the outlet", distance) : tr("No coordinates")}</dd></div>
           </dl>
@@ -556,7 +556,7 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
         {c.note && <p className="flex items-start gap-2 rounded-xl bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700"><MessageSquareText size={15} className="mt-0.5 flex-shrink-0 text-neutral-400" />{c.note}</p>}
         {c.clockOut !== undefined && (
           <section className="rounded-xl border border-neutral-200 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Clock Out")}</p>
+            <p className="text-xs font-semibold capitalize text-neutral-500">{tr("Clock Out")}</p>
             {c.clockOut ? (
               <div className="mt-2 grid gap-3 sm:grid-cols-[6rem_minmax(0,1fr)]">
                 <a href={photoUrl(c.id, true)} target="_blank" rel="noreferrer">
@@ -575,7 +575,7 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
         )}
         <section className={cx("rounded-xl border px-4 py-3",
           c.review?.status === "valid" ? "border-emerald-200 bg-emerald-50" : c.review?.status === "invalid" ? "border-red-200 bg-red-50" : "border-neutral-200 bg-white")}>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Management review")}</p>
+          <p className="text-xs font-semibold capitalize text-neutral-500">{tr("Management review")}</p>
           {c.review ? (
             <>
               <p className={cx("mt-1 flex items-center gap-1.5 text-sm font-semibold", c.review.status === "valid" ? "text-emerald-800" : "text-red-800")}>
@@ -614,7 +614,7 @@ function Card({ n, ok, active, title, hint, action, children }: {
 function Metric({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0 px-2.5 py-2 sm:px-3">
-      <dt className="truncate text-[10px] font-medium uppercase tracking-wide text-neutral-400">{label}</dt>
+      <dt className="truncate text-xs font-medium capitalize text-neutral-400">{label}</dt>
       <dd className="mt-1">{children}</dd>
     </div>
   );

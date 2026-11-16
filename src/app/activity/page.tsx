@@ -658,7 +658,7 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
   return (
     <div className={`custom-scrollbar max-h-[70vh] overflow-auto ${loading ? 'opacity-60' : ''}`}>
       <table className="m-cards w-full text-sm">
-        <thead className="sticky top-0 z-[1] bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+        <thead className="sticky top-0 z-[1] bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
           <tr>
             {[tr('Time'), tr('User'), tr('Activity'), tr('Details'), tr('Page'), tr('Result'), tr('Device · IP')].map(h => <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5">{h}</th>)}
           </tr>

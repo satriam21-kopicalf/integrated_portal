@@ -287,7 +287,7 @@ export default function WasteForm() {
                 </label>
                 <div className="max-h-[560px] overflow-auto rounded-xl border border-neutral-200">
                   <table className="w-full text-sm">
-                    <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                    <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
                       <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix/WIP name") : tr("Product name")}</th>
                         <th className="hidden whitespace-nowrap px-2 py-2 xl:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 whitespace-nowrap px-2 py-2 text-right">{tr("Qty")}</th></tr>
                     </thead>
@@ -391,7 +391,7 @@ export default function WasteForm() {
                 </div>
                 {premixTotals.length > 0 && (
                   <div className="rounded-lg bg-violet-50/60 px-3 py-2">
-                    <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-violet-700"><FlaskConical size={13} />{tr("Premix ingredients wasted (calculated)")}</p>
+                    <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-violet-700"><FlaskConical size={13} />{tr("Premix ingredients wasted (calculated)")}</p>
                     <ul className="grid gap-x-4 gap-y-0.5 text-xs sm:grid-cols-2">
                       {premixTotals.map((p) => (
                         <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-neutral-400")}>
@@ -416,7 +416,7 @@ export default function WasteForm() {
                     </div>
                     <div className="max-h-[460px] overflow-auto rounded-xl border border-neutral-200">
                       <table className="w-full text-sm">
-                        <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                        <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
                           <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{tr("Product Name")}</th>
                             <th className="hidden whitespace-nowrap px-2 py-2 xl:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 whitespace-nowrap px-2 py-2 text-right">{tr("Qty")}</th></tr>
                         </thead>

@@ -118,7 +118,7 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
       </div>
       {groups().map(g => (
         <div key={g.group}>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{g.group}</p>
+          <p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{g.group}</p>
           <ul className="grid gap-1 sm:grid-cols-2">
             {g.pages.map(p => {
               const on = effective(p.key);
@@ -308,7 +308,7 @@ export function MenuDisplay({ hidden, onChange }: { hidden: string[]; onChange: 
       </div>
       {groups().map(g => ({ ...g, pages: g.pages.filter(p => p.state !== 'hidden') })).filter(g => g.pages.length > 0).map(g => (
         <div key={g.group}>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{g.group}</p>
+          <p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{g.group}</p>
           <ul className="grid gap-1 sm:grid-cols-2">
             {g.pages.map(p => (
               <li key={p.key}>
@@ -390,7 +390,7 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
             <tbody>
               {byGroup.map(g => (
                 <Fragment key={g.group}>
-                  <tr className="border-t border-neutral-200 bg-neutral-50/60"><td colSpan={5} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{g.group}</td></tr>
+                  <tr className="border-t border-neutral-200 bg-neutral-50/60"><td colSpan={5} className="px-3 py-1.5 text-xs font-semibold capitalize text-neutral-400">{g.group}</td></tr>
                   {g.pages.map(p => (
                     <tr key={p.key} className="border-t border-neutral-100">
                       <td className="px-3 py-2 text-neutral-800">{p.label}{custom(p) && <span className="ml-1 rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold uppercase text-amber-700">{tr('Set')}</span>}</td>
@@ -492,7 +492,7 @@ function GroupRows({ group, children }: { group: string; children: React.ReactNo
   return (
     <>
       <tr className="border-t border-neutral-200 bg-neutral-50/60">
-        <td colSpan={EDITABLE.length + 2} className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{group}</td>
+        <td colSpan={EDITABLE.length + 2} className="px-3 py-1.5 text-xs font-semibold capitalize text-neutral-400">{group}</td>
       </tr>
       {children}
     </>

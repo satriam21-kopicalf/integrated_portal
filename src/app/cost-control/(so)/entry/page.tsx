@@ -53,7 +53,7 @@ export default function EntryPage() {
         <Info size={16} className="mt-0.5 flex-shrink-0" />
         <span>{tr("What you enter or import goes to Review as Submitted. Another Cost Control member approves it (you cannot approve your own entry).")}</span>
       </p>
-      <Tabs label={tr("Entry")} value={tab} onChange={(k) => setTab(k as typeof tab)}
+      <Tabs variant="card" label={tr("Entry")} value={tab} onChange={(k) => setTab(k as typeof tab)}
         tabs={([["form", tr("Fill in a Form"), ClipboardEdit], ["import", tr("Import a file"), FileUp]] as const).map(([k, label, Icon]) => ({ key: k, label: <><Icon size={15} />{label}</> }))} />
       {tab === "form" ? <FormEntry facilities={facilities} types={types} /> : <ImportEntry types={types} />}
     </Page>
@@ -224,7 +224,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "green" | "amber" }) {
   return (
     <div className={cx("rounded-lg border px-3 py-2", tone === "green" ? "border-emerald-200 bg-emerald-50" : tone === "amber" ? "border-amber-200 bg-amber-50" : "border-neutral-200 bg-white")}>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="text-xs font-medium capitalize text-neutral-500">{label}</p>
       <p className="text-lg font-semibold tabular-nums text-neutral-900">{fmtNumber(value)}</p>
     </div>
   );

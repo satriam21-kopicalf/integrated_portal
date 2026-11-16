@@ -493,9 +493,9 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
       {!g ? <SkeletonList rows={5} /> : (
         <div className="space-y-5">
           <dl className="grid grid-cols-3 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-neutral-50 text-center">
-            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Items")}</dt><dd className="text-lg font-semibold tabular-nums text-neutral-900">{items.length}</dd></div>
-            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-neutral-900" : "text-amber-600")}>{g.used_by.length}</dd></div>
-            <div className="px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Status")}</dt><dd className="mt-1">{g.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}</dd></div>
+            <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Items")}</dt><dd className="text-lg font-semibold tabular-nums text-neutral-900">{items.length}</dd></div>
+            <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-neutral-900" : "text-amber-600")}>{g.used_by.length}</dd></div>
+            <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Status")}</dt><dd className="mt-1">{g.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}</dd></div>
           </dl>
           <Tabs label={tr("View")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={tabs.map((t) => ({ key: t.key, label: <>{t.label}{t.key === "items" && dirty ? " •" : ""}</> }))} />
           {tab === "items" && (

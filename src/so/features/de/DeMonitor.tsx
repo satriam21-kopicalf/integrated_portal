@@ -570,10 +570,10 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                       <Gallery r={r} urls={PORTAL_URLS} kind="HANDOVER" />
                       {ho.note && <p className="rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{ho.note}</p>}
                       <div className="grid gap-2 sm:grid-cols-2">
-                        {ho.vendorName && <div className="rounded-lg border border-neutral-200 p-2"><p className="text-[10px] font-semibold uppercase text-neutral-400">{tr("Vendor")}</p>
+                        {ho.vendorName && <div className="rounded-lg border border-neutral-200 p-2"><p className="text-xs font-semibold capitalize text-neutral-400">{tr("Vendor")}</p>
                           {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
                           <img src={PORTAL_URLS.handover!(r.id, "vendor")} alt={tr("Signature")} className="h-14 object-contain" /><p className="text-sm font-semibold">{ho.vendorName}</p></div>}
-                        {ho.picName && <div className="rounded-lg border border-neutral-200 p-2"><p className="text-[10px] font-semibold uppercase text-neutral-400">PIC</p>
+                        {ho.picName && <div className="rounded-lg border border-neutral-200 p-2"><p className="text-xs font-semibold capitalize text-neutral-400">PIC</p>
                           {/* eslint-disable-next-line @next/next/no-img-element -- private signature through the API */}
                           <img src={PORTAL_URLS.handover!(r.id, "pic")} alt={tr("Signature")} className="h-14 object-contain" /><p className="text-sm font-semibold">{ho.picName}</p></div>}
                       </div>
@@ -797,9 +797,9 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
       ) : (
         <div className="space-y-3">
         <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 text-center">
-          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Active")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.filter((t) => t.isActive).length}</dd></div>
-          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Jobs in progress")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.reduce((a, t) => a + t.activeJobs, 0)}</dd></div>
-          <div className="bg-white px-2 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Pay per month")}</dt>
+          <div className="bg-white px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Active")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.filter((t) => t.isActive).length}</dd></div>
+          <div className="bg-white px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Jobs in progress")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.reduce((a, t) => a + t.activeJobs, 0)}</dd></div>
+          <div className="bg-white px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Pay per month")}</dt>
             <dd className="text-sm font-semibold tabular-nums">{fmtRp(rows.filter((t) => t.isActive).reduce((a, t) => a + monthlyPay(t), 0))}</dd></div>
         </dl>
         <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">

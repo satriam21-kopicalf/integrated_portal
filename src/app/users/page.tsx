@@ -867,7 +867,7 @@ function InfoGrid({ items }: { items: [string, ReactNode][] }) {
     <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
       {items.map(([k, v]) => (
         <div key={k} className="min-w-0">
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{k}</dt>
+          <dt className="text-xs font-semibold capitalize text-neutral-400">{k}</dt>
           <dd className="mt-0.5 break-words text-sm text-neutral-800">{v === null || v === undefined || v === '' ? <span className="text-neutral-400">—</span> : v}</dd>
         </div>
       ))}
@@ -1090,7 +1090,7 @@ function Glance({ label, value, sub, tone }: { label: string; value: string; sub
   const color = tone === 'bad' ? 'text-red-700' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : 'text-neutral-900';
   return (
     <div className="min-w-0 bg-white px-3 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">{label}</p>
+      <p className="text-xs font-semibold capitalize text-neutral-400">{label}</p>
       <p className={`mt-0.5 truncate text-base font-semibold tabular-nums ${color}`}>{value}</p>
       <p className="truncate text-[11px] text-neutral-500" title={sub}>{sub}</p>
     </div>

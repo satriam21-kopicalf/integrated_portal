@@ -272,7 +272,7 @@ export default function RatioPage() {
                       <th key={c.key} className="whitespace-nowrap px-2 py-2.5 text-right">
                         <span className="inline-flex items-center gap-1">
                           <button type="button" onClick={() => setSort(s => ({ key: c.key, desc: s.key === c.key ? !s.desc : true }))}
-                            className="inline-flex items-center gap-0.5 uppercase hover:text-neutral-800">
+                            className="inline-flex items-center gap-0.5 capitalize hover:text-neutral-800">
                             {c.label}{sort.key === c.key && (sort.desc ? <ArrowDown size={11} /> : <ArrowUp size={11} />)}
                           </button>
                           <HeaderInfo label={c.label} info={c.info} alignRight={i > COLS.length - 4} />

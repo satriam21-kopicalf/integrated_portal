@@ -58,7 +58,7 @@ export function Balances({ p, out }: { p: Pengajuan; out?: number }) {
     <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {cells.map(([k, v, icon, tone]) => (
         <div key={k} className="rounded-xl bg-white px-3 py-2.5 ring-1 ring-neutral-200">
-          <dt className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{icon}{k}</dt>
+          <dt className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400">{icon}{k}</dt>
           <dd className={cx("mt-0.5 truncate text-base font-semibold tabular-nums", tone)}>{fmtRp(v)}</dd>
         </div>
       ))}
@@ -163,13 +163,13 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
 
       <section className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-neutral-200 p-3 text-sm">
-          <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400"><Landmark size={12} /> {tr("Transfer to")}</p>
+          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><Landmark size={12} /> {tr("Transfer to")}</p>
           <p className="font-semibold text-neutral-900">{p.payeeBank ?? "—"} · <span className="tabular-nums">{p.payeeAccount ?? "—"}</span></p>
           <p className="text-neutral-600">a/n {p.payeeName ?? "—"}</p>
         </div>
         {!petty && (
           <div className="rounded-xl border border-neutral-200 p-3 text-sm">
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Purpose")}</p>
+            <p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{tr("Purpose")}</p>
             <p className="whitespace-pre-line text-neutral-800">{p.purpose ?? "—"}</p>
           </div>
         )}
@@ -223,7 +223,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
             {[[tr("Money out (this request)"), p.totalOut ?? 0], [tr("Simple Purchase in the period"), p.purchaseDocs.total],
               [tr("Difference"), (p.totalOut ?? 0) - p.purchaseDocs.total]].map(([k, v], i) => (
               <div key={String(k)} className="rounded-xl bg-white px-2 py-2 ring-1 ring-neutral-200">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{k}</p>
+                <p className="text-xs font-semibold capitalize text-neutral-400">{k}</p>
                 <p className={cx("text-sm font-semibold tabular-nums", i === 2 && Math.abs(Number(v)) > 0 ? "text-amber-700" : "text-neutral-900")}>{fmtRp(Number(v))}</p>
               </div>
             ))}
@@ -244,10 +244,10 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
 
       {(other.length > 0 || payment.length > 0 || p.note) && (
         <section className="space-y-3">
-          {p.note && <div><p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Note")}</p><p className="whitespace-pre-line text-sm text-neutral-700">{p.note}</p></div>}
-          {other.length > 0 && <div><p className="mb-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400"><Paperclip size={11} /> {tr("Other attachments")}</p>
+          {p.note && <div><p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{tr("Note")}</p><p className="whitespace-pre-line text-sm text-neutral-700">{p.note}</p></div>}
+          {other.length > 0 && <div><p className="mb-1 flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400"><Paperclip size={11} /> {tr("Other attachments")}</p>
             <div className="flex flex-wrap gap-2">{other.map((f) => <FileChip key={f.id} f={f} />)}</div></div>}
-          {payment.length > 0 && <div><p className="mb-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400"><Wallet size={11} /> {tr("Payment proof")}</p>
+          {payment.length > 0 && <div><p className="mb-1 flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400"><Wallet size={11} /> {tr("Payment proof")}</p>
             <div className="flex flex-wrap gap-2">{payment.map((f) => <FileChip key={f.id} f={f} />)}</div></div>}
         </section>
       )}
@@ -281,7 +281,7 @@ function eventText(e: NonNullable<Pengajuan["events"]>[number]): string {
 function Info({ k, v }: { k: string; v: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{k}</p>
+      <p className="text-xs font-medium capitalize text-neutral-400">{k}</p>
       <p className="truncate font-medium text-neutral-800" title={v}>{v}</p>
     </div>
   );

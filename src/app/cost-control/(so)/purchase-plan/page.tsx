@@ -85,7 +85,7 @@ export default function PurchasePlanPage() {
         </StatStrip>
       }>
       <DataSources keys={['esbSales', 'esbIntegrity', 'so', 'waste', 'prices', 'recipes']} />
-      <Tabs label={tr('Purchase Estimate')} value={tab} onChange={(k) => setTab(k as typeof tab)} className="mb-4"
+      <Tabs variant="card" label={tr('Purchase Estimate')} value={tab} onChange={(k) => setTab(k as typeof tab)} className="mb-4"
         tabs={[{ key: 'buffer', label: tr('Buffer per outlet'), count: buffers?.data.length }, { key: 'plan', label: tr('Estimate') }, { key: 'accuracy', label: tr('Accuracy') }]} />
       {error ? <ErrorState message={error} onRetry={() => void load()} />
         : tab === 'buffer' ? <BufferTab data={buffers} onSaved={(row) => setBuffers((b) => b && { ...b, data: b.data.map((x) => (x.branchCode === row.branchCode ? row : x)) })} onOpen={open} />
@@ -134,7 +134,7 @@ function BufferTab({ data, onSaved, onOpen }: { data: Buffers | null; onSaved: (
             </tr></thead>
             <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => {
               const o = r.override;
-              const mark = (set: boolean) => set && <span className="ml-1 text-[10px] font-semibold uppercase text-brand-700">{tr('set')}</span>;
+              const mark = (set: boolean) => set && <span className="ml-1 text-xs font-semibold capitalize text-brand-700">{tr('set')}</span>;
               return (
                 <tr key={r.branchCode} className="align-top hover:bg-neutral-50/70">
                   <td className="w-[17rem] max-w-[17rem] py-2.5 pl-5 pr-3">
@@ -366,7 +366,7 @@ function PlanTab({ branch, setBranch, outlets }: { branch: string; setBranch: (b
 function MiniStat({ icon, label, value, hint, warn }: { icon: React.ReactNode; label: string; value: string; hint?: string; warn?: boolean }) {
   return (
     <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3">
-      <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{icon}{label}</p>
+      <p className="flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-500">{icon}{label}</p>
       <p className="mt-1 truncate text-lg font-semibold tabular-nums text-neutral-900">{value}</p>
       {hint && <p className={cx('text-xs', warn ? 'text-amber-700' : 'text-neutral-500')}>{hint}</p>}
     </div>

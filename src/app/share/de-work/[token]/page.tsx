@@ -100,16 +100,16 @@ function Work() {
           ) : (
             <section className={cx("grid grid-cols-3 divide-x overflow-hidden rounded-xl border bg-white shadow-sm", expired ? "border-red-200 divide-red-100" : "border-neutral-200 divide-neutral-100")}>
               <div className="px-3 py-3 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Link valid")}</p>
+                <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Link valid")}</p>
                 <p className={cx("mt-0.5 inline-flex items-center gap-1 font-mono text-lg font-semibold tabular-nums", expired ? "text-red-600" : left !== null && left < 600000 ? "text-amber-600" : "text-neutral-900")}>
                   <Clock size={15} />{expired ? tr("Expired") : `${mm}:${ss}`}</p>
               </div>
               <div className="px-3 py-3 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Photos")}</p>
+                <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Photos")}</p>
                 <p className="mt-0.5 text-lg font-semibold tabular-nums text-neutral-900">{w.photos.length}<span className="text-sm font-normal text-neutral-400"> / {w.max}</span></p>
               </div>
               <div className="px-3 py-3 text-center">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Required")}</p>
+                <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Required")}</p>
                 <p className={cx("mt-0.5 text-sm font-semibold", w.photos.length ? "text-emerald-600" : "text-neutral-900")}>{w.photos.length ? tr("Done ✓") : tr("Min. 1 photo")}</p>
               </div>
             </section>

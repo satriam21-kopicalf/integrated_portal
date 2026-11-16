@@ -310,7 +310,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
 
         {o.weekHours.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Opening Hours")}</h3>
+            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Opening Hours")}</h3>
             <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
               {o.weekHours.map((line) => {
                 const [day, hours] = line.includes(": ") ? line.split(": ", 2) : [line, ""];
@@ -325,7 +325,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
         )}
 
         <section>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Latest Reviews")}</h3>
+          <h3 className="mb-1 text-xs font-semibold capitalize text-neutral-500">{tr("Latest Reviews")}</h3>
           <p className="mb-2 text-xs text-neutral-400">{tr("Newest first. Google picks at most 5 reviews per outlet in the Places API (not always the newest ones); the rating and the number of reviews cover all of them.")}</p>
           {o.reviews.length === 0 ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p> : (
             <ul className="space-y-2">
@@ -394,7 +394,7 @@ function PlacePicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
 
   return (
     <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Place on Google Maps")}</h3>
+      <h3 className="text-xs font-semibold capitalize text-neutral-500">{tr("Place on Google Maps")}</h3>
       <p className="mt-1 text-xs text-neutral-500">
         {o.match === "auto" ? tr("Matched automatically ({0} m from the outlet's coordinates).", o.matchDistanceM ?? "?")
           : o.match === "manual" ? tr("Chosen by {0}.", o.setBy ?? "—")
