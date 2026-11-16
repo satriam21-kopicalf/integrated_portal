@@ -152,7 +152,7 @@ function Fact({ k, v }: { k: string; v: React.ReactNode }) {
 
 function Block({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm print:shadow-none">
+    <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] print:shadow-none">
       <h2 className="mb-3 flex items-baseline justify-between text-sm font-semibold text-neutral-900">{title}{subtitle && <span className="text-xs font-normal text-neutral-500">{subtitle}</span>}</h2>
       {children}
     </section>

@@ -178,7 +178,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   if (error || !data) {
     return (
       <Page title={tr("PIC Check In")} subtitle={subtitle} actions={clock}>
-        {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div>
+        {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div>
           : <div className="mx-auto max-w-5xl space-y-4"><SkeletonList rows={3} /><SkeletonList rows={5} /></div>}
       </Page>
     );
@@ -187,7 +187,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   return (
     <Page title={tr("PIC Check In")} subtitle={subtitle} actions={clock}
       stats={
-        <div className="mx-auto max-w-5xl rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+        <div className="mx-auto max-w-5xl rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
           <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 md:flex-row md:items-center md:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
@@ -226,7 +226,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
           </section>
         )}
         {kind === "surveyor" && (data.schedule?.length ?? 0) > 0 && (
-          <section className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">
+          <section className="rounded-2xl border border-neutral-200/70 bg-white px-4 py-3 text-sm text-neutral-700 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             <p className="font-semibold text-neutral-900">{tr("Today's schedule")}</p>
             <ul className="mt-1.5 flex flex-wrap gap-1.5">
               {data.schedule!.map((s) => {
@@ -257,7 +257,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
         )}
 
         {data.branches.length === 0 ? (
-          <div className="rounded-xl border border-neutral-200/80 bg-white px-6 py-12 text-center text-sm text-neutral-500">
+          <div className="rounded-2xl border border-neutral-200/70 bg-white px-6 py-12 text-center text-sm text-neutral-500 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             {tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}
           </div>
         ) : (
@@ -395,7 +395,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
             </div>
 
             <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-              <section className="hidden rounded-xl border border-neutral-200/80 bg-white p-5 shadow-sm lg:block">
+              <section className="hidden rounded-2xl border border-neutral-200/70 bg-white p-5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] lg:block">
                 <p className="text-sm font-semibold text-neutral-900">{tr("Summary")}</p>
                 <dl className="mt-3 divide-y divide-neutral-100 text-sm">
                   <Row k={tr("Outlet")} v={b?.name ?? "—"} />
@@ -407,7 +407,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-red-600" : "text-neutral-400")}>{pending}</p>}
               </section>
 
-              <section className="rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+              <section className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
                 <p className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-900 sm:px-5">{tr("My latest check-ins")}</p>
                 {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{tr("No check in yet")}</p> : (
                   <ul className="divide-y divide-neutral-100">
@@ -594,7 +594,7 @@ function Card({ n, ok, active, title, hint, action, children }: {
   n: number; ok: boolean; active: boolean; title: string; hint: string; action?: ReactNode; children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+    <section className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <header className="flex items-start gap-3 border-b border-neutral-100 px-4 py-3 sm:px-5">
         <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
           ok ? "bg-emerald-500 text-white" : active ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-500")}>

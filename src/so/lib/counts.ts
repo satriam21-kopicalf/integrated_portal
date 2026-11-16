@@ -1,5 +1,6 @@
 // Stock opname types and helpers (06.9); same file in the Outlet and Warehouse apps until @kopicalf/ui is extracted.
 
+import { titleCaseText } from "@/lib/title-case";
 import { tr } from "@/lib/i18n";
 
 export type CountStatus = "IN_PROGRESS" | "SUBMITTED" | "RECOUNT_REQUESTED" | "APPROVED" | "CANCELLED" | "EXPORTED";
@@ -183,7 +184,8 @@ export function setCountTypeNames(types: { code: string; name: string }[]) {
   }
 }
 
-export const countTypeLabel = (code: string, fallback?: string) => NAMES[code] ?? COUNT_TYPE_LABEL[code]?.() ?? fallback ?? code;
+// shown as a name in Title Case (2026-11-16): "Daily Packaging", "Weekly Raw Material"
+export const countTypeLabel = (code: string, fallback?: string) => titleCaseText(NAMES[code] ?? COUNT_TYPE_LABEL[code]?.() ?? fallback ?? code);
 
 /** A GPS position: accuracy in metres (68% radius reported by the device) and when the device took it. */
 export type Fix = { lat: number; lng: number; accuracy: number; at: string };

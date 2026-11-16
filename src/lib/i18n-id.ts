@@ -6869,4 +6869,8 @@ export const ID: Record<string, string> = {
   "Keep your account safe with a password only you know.": "Jaga akun Anda dengan password yang hanya Anda ketahui.",
   "After saving, every other device signed in to your account is signed out. This device stays signed in.": "Setelah disimpan, semua perangkat lain yang masuk dengan akun Anda akan otomatis keluar. Perangkat ini tetap masuk.",
   "Name, job title, department and the other HRMS details follow HRMS and are updated every hour; ask HR to change them.": "Nama, jabatan, departemen, dan data HRMS lainnya mengikuti HRMS dan diperbarui setiap jam; hubungi HR untuk mengubahnya.",
+  "{0} item to check": "{0} item perlu dicek",
+  "{0} items to check": "{0} item perlu dicek",
+  "{0} item": "{0} item",
+  "{0} premix": "{0} premix",
 };

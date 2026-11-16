@@ -71,12 +71,12 @@ export default function FleetSharePage() {
 
       <main className="mx-auto w-full max-w-2xl flex-1 space-y-4 px-4 py-5">
         {error ? (
-          <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-600 shadow-sm">{error}</div>
+          <div className="rounded-2xl border border-neutral-200/70 bg-white p-8 text-center text-sm text-neutral-600 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">{error}</div>
         ) : !card || !f ? (
           <div className="space-y-3 py-8"><Skeleton className="h-40 w-full rounded-2xl" /><SkeletonList rows={4} className="rounded-xl border border-neutral-200 bg-white" /></div>
         ) : (
           <>
-            <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
               <div className="relative flex aspect-[16/9] items-center justify-center bg-neutral-100 text-neutral-300">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {f.has_photo ? <img src={thumb(`${base}/photo?v=${encodeURIComponent(f.updated_at ?? "")}`, 640)} decoding="async" loading="lazy" alt="" className="h-full w-full object-cover" /> : <Bike size={56} />}
@@ -200,7 +200,7 @@ function Fact({ label, value, warn, always }: { label: string; value: ReactNode;
 
 function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+    <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-neutral-900"><span style={{ color: BLUE }}>{icon}</span> {title}</h2>
       {children}
     </section>

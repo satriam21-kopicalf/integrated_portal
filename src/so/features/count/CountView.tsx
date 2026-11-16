@@ -10,6 +10,7 @@
 // Several roasted / expired dates of one item (2026-10-28): (+) beside the date adds rows, each a date and its quantity;
 // the item then counts their sum (the quantity field shows the total) and the report lists every row.
 
+import { SpikeMark, plural } from "@/so/features/count/SpikeMark";
 import { AlertTriangle, ArrowLeft, CalendarDays, Check, CheckCircle2, CloudUpload, Loader2, MapPin, Plus, RotateCcw, Send, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -293,7 +294,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
               {!crew && <Badge tone="violet">{ENTRY_SOURCE[count.entry_source ?? "CREW"]?.()}</Badge>}
               {count.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
               {count.outside_radius && <Badge tone="amber" icon={<MapPin size={11} />}>{tr("Outside the facility radius")}</Badge>}
-              {count.progress.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} lines to check", count.progress.flagged)}</Badge>}
+              {count.progress.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{plural(count.progress.flagged, "{0} item to check", "{0} items to check")}</Badge>}
             </div>
             {count.status !== "CANCELLED" && <SheetTools count={count} open={open} onImported={() => void load()} />}
           </div>
@@ -380,7 +381,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                       {(l.flags.includes("RECOUNT") || l.flags.includes("SPIKE")) && (
                         <span className="mt-1 flex flex-wrap gap-1">
                           {l.flags.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
-                          {l.flags.includes("SPIKE") && <Badge tone="amber" title={tr("More than 3 times higher or lower than the last approved count")}>{tr("Check")}</Badge>}
+                          {l.flags.includes("SPIKE") && <SpikeMark l={l} />}
                         </span>
                       )}
                       {(l.source !== "WIP_EXPLODED" || l.flags.includes("RECOUNT")) && Number(l.qty_wip ?? 0) > 0 && (

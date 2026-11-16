@@ -343,7 +343,7 @@ function Meter({ pct }: { pct: number | null }) {
 
 function Tile({ label, value, note }: { label: string; value: React.ReactNode; note: string }) {
   return (
-    <div className="rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <p className="text-xs font-semibold capitalize text-neutral-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-neutral-900">{value}</p>
       <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">{note}</p>
@@ -361,7 +361,7 @@ export function AuditEvaluation({ audit }: { audit: AuditTeam }) {
   const url = audit.shareToken ? `${window.location.origin}/share/wwwr/${audit.shareToken}` : null;
   const copy = async () => { if (!url) return; try { await navigator.clipboard.writeText(url); toast(tr("Link copied: share it with the PIC")); } catch { toast(url); } };
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
         <div>
           <h3 className="text-sm font-semibold text-neutral-900">{tr("Evaluation & Action Plan")}</h3>

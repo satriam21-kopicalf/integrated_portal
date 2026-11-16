@@ -237,7 +237,7 @@ export default function WasteForm() {
   if (error || !data) {
     return (
       <Page title={tr("Waste")} subtitle={subtitle} actions={<LiveClock />}>
-        {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={() => void load(branch, day)} /></div>
+        {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={() => void load(branch, day)} /></div>
           : <div className="mx-auto max-w-5xl space-y-4"><SkeletonList rows={3} /><SkeletonList rows={5} /></div>}
       </Page>
     );
@@ -248,7 +248,7 @@ export default function WasteForm() {
     <Page title={tr("Waste")} subtitle={subtitle} actions={<LiveClock />}>
       <div className="mx-auto max-w-5xl space-y-4">
         {data.branches.length === 0 ? (
-          <div className="rounded-xl border border-neutral-200/80 bg-white px-6 py-12 text-center text-sm text-neutral-500">
+          <div className="rounded-2xl border border-neutral-200/70 bg-white px-6 py-12 text-center text-sm text-neutral-500 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             {tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}
           </div>
         ) : (
@@ -496,7 +496,7 @@ export default function WasteForm() {
 
 function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; branch: string; day: string; me: string; onRemove: (e: Entry) => void }) {
   return (
-    <section className="h-fit rounded-xl border border-neutral-200/80 bg-white">
+    <section className="h-fit rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <header className="flex items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3">
         <span className="min-w-0">
           <span className="block text-sm font-semibold text-neutral-900">{tr("Waste entered")}</span>

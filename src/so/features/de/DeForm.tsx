@@ -93,13 +93,13 @@ export default function DeForm() {
   return (
     <Page title="Maintenance Request" actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
-      {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && <SentCard r={sent} onClose={() => setSent(null)} onOpen={() => setView(sent.id)} />}
 
-          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
@@ -164,7 +164,7 @@ export default function DeForm() {
             </section>
           )}
 
-          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3 sm:px-5">
               <div>
                 <p className="text-sm font-semibold text-neutral-900">{tr("My requests")}</p>

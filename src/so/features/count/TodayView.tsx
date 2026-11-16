@@ -203,7 +203,7 @@ function Info({ icon, label, value }: { icon: React.ReactNode; label: string; va
   return (
     <div className="min-w-0">
       <dt className="flex items-center gap-1 text-neutral-400">{icon}{label}</dt>
-      <dd className="truncate font-medium text-neutral-700" title={value}>{value}</dd>
+      <dd className="break-words font-medium leading-snug text-neutral-700" title={value}>{value}</dd>
     </div>
   );
 }

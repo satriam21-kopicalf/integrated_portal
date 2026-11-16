@@ -57,5 +57,5 @@ export function PublicLoading() {
 }
 
 export function PublicError({ message }: { message: string }) {
-  return <div className="rounded-xl border border-neutral-200 bg-white shadow-sm"><ErrorState message={message} /></div>;
+  return <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={message} /></div>;
 }

@@ -6,6 +6,7 @@
 // Layout (2026-11-04): the correction opens in a drawer (full screen on phones, the Save button at the bottom), the
 // review actions sit in a bar above the bottom menu on phones and tablets, the lines are cards on phones.
 
+import { SpikeMark } from "@/so/features/count/SpikeMark";
 import { thumb } from "@/lib/assets";
 import { AlertTriangle, ArrowLeft, Check, ChevronDown, ChevronRight, ClipboardList, FlaskConical, History, Info as InfoIcon, MapPin, Pencil, RotateCcw, XCircle } from "lucide-react";
 import Link from "next/link";
@@ -599,26 +600,6 @@ function Qty({ l, count, right }: { l: CountLine; count: Count; right?: boolean 
   );
 }
 
-/** The x3 mark explained (2026-11-16, users did not read "x3 vs last count"): the last approved count, this count
- *  and how many times bigger / smaller, so a unit typed wrong (grams as kilograms) is seen at once. */
-function SpikeBadge({ l }: { l: CountLine }) {
-  const prev = l.previous_qty == null ? null : Number(l.previous_qty);
-  const now = l.qty_base == null ? null : Number(l.qty_base);
-  const times = prev && now ? (now > prev ? now / prev : prev / now) : null;
-  const help = tr("The quantity is more than 3 times, or less than a third of, the last approved count of this item. Check the unit (e.g. grams typed as kilograms) or the count.");
-  return (
-    <span className="inline-flex flex-col gap-0.5" title={help}>
-      <Badge tone="amber">{now !== null && prev !== null && prev > 0 && now > prev ? tr("Far above the last count") : tr("Far below the last count")}</Badge>
-      {prev !== null && now !== null && (
-        <span className="text-[11px] text-amber-800">
-          {tr("Last count {0} → now {1}", `${fmtQty(String(prev))} ${l.base_uom}`, `${fmtQty(String(now))} ${l.base_uom}`)}
-          {times ? ` (${times.toLocaleString(undefined, { maximumFractionDigits: 1 })}×)` : ""}
-        </span>
-      )}
-    </span>
-  );
-}
-
 /** What the marks of the items mean, under the item toolbar (opens and closes; remembered closed after the first look). */
 function MarksLegend() {
   const items: [ReactNode, string][] = [
@@ -652,7 +633,7 @@ function LineMarks({ l, inline }: { l: CountLine; inline?: boolean }) {
   return (
     <div className={cx(!inline && "mt-2")}>
       <div className="flex flex-wrap gap-1">
-        {l.flags.includes("SPIKE") && <SpikeBadge l={l} />}
+        {l.flags.includes("SPIKE") && <SpikeMark l={l} />}
         {l.flags.includes("RECOUNT") && <Badge tone="amber" title={tr("Sent back to the outlet to be counted again")}>{tr("Recount")}</Badge>}
         {l.flags.includes("RECOUNTED") && <Badge tone="green" title={tr("Counted again by the outlet after a recount")}>{tr("Recounted")}</Badge>}
         {l.flags.includes("CORRECTED") && <Badge tone="blue" title={`${l.corrected_by_name ?? ""} · ${l.corrected_at ? fmtDate(l.corrected_at) : ""}`}>{tr("Corrected by Cost Control")}</Badge>}

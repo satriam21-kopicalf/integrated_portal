@@ -96,7 +96,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
     : draftOf(code) ? { label: tr("Draft"), tone: "draft" } : null;
   return (
     <Page title={title} subtitle={subtitle} actions={clock}>
-      {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={4} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
@@ -111,7 +111,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
             </div>
           )}
 
-          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
@@ -159,7 +159,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
             </section>
           )}
 
-          <section className="rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+          <section className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             <p className="border-b border-neutral-100 px-4 py-2.5 text-sm font-semibold text-neutral-900 sm:px-5">{tr("My latest visits")}</p>
             {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{tr("No visit sent yet")}</p> : (
               <ul className="divide-y divide-neutral-100">
@@ -358,7 +358,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           <ClipboardCheck size={15} className="mt-px flex-shrink-0 text-brand-700" />
           <span><b>{tr("Items marked Required must be rated, with the note and photo they ask for")}</b> — {tr("optional items may be skipped. Write what you see and take a clear photo of it: they are the material for the analysis.")}</span>
         </p>
-        <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
           <ul className="divide-y divide-neutral-100">
             {current.items.map((it) => (
               <ItemRow key={it.key} item={it} group={group} answer={answers[it.key] ?? {}} auto={visit.auto?.[it.key] ?? null} photos={photos.filter((p) => p.item === it.key)}

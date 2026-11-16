@@ -457,7 +457,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
 
 function Insight({ label, value, note }: { label: string; value: React.ReactNode; note: string }) {
   return (
-    <div className="rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <p className="text-xs font-semibold capitalize text-neutral-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-neutral-900">{value}</p>
       <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">{note}</p>
@@ -518,7 +518,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
       description={v ? `${tl(v.definition, "title")} · ${wibDateTime(v.submittedAt)}` : undefined} focusFirstField={false}>
       {error ? <ErrorState message={error} /> : !v ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
-          <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             <div className="grid gap-4 px-4 py-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-5">
               <div className="flex items-center gap-3">
                 <ScorePill score={v.score} large />
@@ -638,7 +638,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
           {show === "under" && v.counts.under === 0 && <p className="py-6 text-center text-sm text-neutral-400">{tr("No UNDER in this visit")}</p>}
           <p className="px-1 text-xs font-semibold capitalize text-neutral-500">{tr("Signature of the PIC")}</p>
           {v.signature ? (
-            <section className="flex flex-col gap-3 rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
+            <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] sm:flex-row sm:items-end">
               {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
               <img src={visitSignatureUrl(v.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-lg bg-white object-contain ring-1 ring-neutral-200" />
               <div className="text-sm">

@@ -4,6 +4,7 @@
 // count with the reason, who asked and how much is asked, opening the count. Counts of an earlier day are among them
 // (the Today screen only lists today's counts otherwise).
 
+import { plural } from "@/so/features/count/SpikeMark";
 import { ChevronRight, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { type TodayFacility, countTypeLabel } from "@/so/lib/counts";
@@ -28,7 +29,7 @@ export default function RecountNotice({ rows, basePath = "", multi }: { rows: Re
       </div>
       <ul className="divide-y divide-amber-200/70 border-t border-amber-200/70 bg-white/60">
         {rows.map((r) => {
-          const asked = [r.items ? tr("{0} items", r.items) : "", r.premixes ? tr("{0} premixes", r.premixes) : ""].filter(Boolean).join(" · ");
+          const asked = [r.items ? plural(r.items, "{0} item", "{0} items") : "", r.premixes ? plural(r.premixes, "{0} premix", "{0} premixes") : ""].filter(Boolean).join(" · ");
           return (
             <li key={r.id}>
               <Link href={`${basePath}/stock-opname/${r.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-amber-100/60 sm:hover:bg-amber-100/40">

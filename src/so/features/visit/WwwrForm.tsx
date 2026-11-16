@@ -78,7 +78,7 @@ export default function WwwrForm() {
   );
   return (
     <Page title="WW-WR" subtitle={tr("SWAT audit of the outlet: Product and Outlet in one form")}>
-      {error ? <div className="rounded-xl border border-neutral-200/80 bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={4} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
@@ -110,7 +110,7 @@ export default function WwwrForm() {
 
 function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <p className="flex items-center gap-2 border-b border-neutral-100 px-4 py-2.5 text-sm font-semibold text-neutral-900 sm:px-5">
         {title}<span className="rounded-full bg-neutral-100 px-1.5 text-[11px] tabular-nums text-neutral-600">{count}</span>
       </p>
@@ -256,7 +256,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
       </div>
       {!dirty && missing.length > 0 && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Still needed before the lead sends: {0}", missing.join(", "))}</p>}
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-neutral-900">{tr("Team")}</h3>
           {audit.lead.id === me && <Button size="sm" variant="secondary" onClick={() => setTeamOpen(true)}><UserPlus size={14} /> {tr("Add Colleagues")}</Button>}
@@ -264,13 +264,13 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
         <p className="flex flex-wrap gap-1.5">{members.map((m) => <Badge key={m.id} tone={m.id === audit.lead.id ? "amber" : "slate"}>{m.name}{m.id === audit.lead.id ? ` · ${tr("lead")}` : ""}</Badge>)}</p>
       </section>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
         <label className="block text-sm font-semibold text-neutral-900">{tr("General Evaluation")} <span className="text-red-500">*</span>
           <textarea rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={4000} className={cx(inputClass, "mt-2 py-2 font-normal")}
             placeholder={tr("e.g. Bar clean, but the stock of premix is under par and two shelf-life labels are missing …")} /></label>
       </section>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
         <div className="mb-3 flex items-center justify-between gap-2">
           <div><h3 className="text-sm font-semibold text-neutral-900">{tr("Action Plans")} <span className="text-red-500">*</span></h3><p className="text-xs text-neutral-500">{tr("What must be done, who of the team handles it and by when")}</p></div>
           <Button size="sm" variant="secondary" onClick={() => setActions((a) => [...a, { title: "", detail: "", assigneeId: "", dueOn: revisit }])}><Plus size={14} /> {tr("Action plan")}</Button>
@@ -298,7 +298,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
         </ol>
       </section>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
         <label className="block text-sm font-semibold text-neutral-900">{tr("Revisit")} <span className="text-red-500">*</span>
           <span className="block text-xs font-normal text-neutral-500">{tr("When the team comes back to check the progress; the audit stays open until then")}</span>
           <input type="date" value={revisit} min={audit.day} onChange={(e) => setRevisit(e.target.value)} className={cx(inputClass, "mt-2 h-10 max-w-[14rem] font-normal")} /></label>

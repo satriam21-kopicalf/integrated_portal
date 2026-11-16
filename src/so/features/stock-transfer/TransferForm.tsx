@@ -67,7 +67,7 @@ export default function TransferForm() {
         )}
         <Segmented label={tr("View")} value={tab} onChange={setTab} options={tabs} />
         {!data.branches.length ? (
-          <div className="rounded-xl border border-neutral-200 bg-white px-6 py-12 text-center text-sm text-neutral-500">{tr("No outlet is assigned to your account.")}</div>
+          <div className="rounded-2xl border border-neutral-200/70 bg-white px-6 py-12 text-center text-sm text-neutral-500 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">{tr("No outlet is assigned to your account.")}</div>
         ) : tab === "request" ? (
           <RequestForm data={data} onDone={(t) => { toast(tr("Transfer {0} sent to {1}", t.number, shortBranch(t.fromName))); void load(); setTab("mine"); setOpen(t.id); }} />
         ) : (
@@ -185,7 +185,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
         </FormCard>
       </div>
       <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-        <section className="hidden rounded-xl border border-neutral-200 bg-white p-4 lg:block">
+        <section className="hidden rounded-2xl border border-neutral-200/70 bg-white p-4 lg:block shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
           <p className="text-sm font-semibold text-neutral-900">{tr("Summary")}</p>
           <dl className="mt-2 space-y-1.5 text-sm">
             <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("From")}</dt><dd className="truncate text-right">{fromName ? fromName : "—"}</dd></div>
@@ -260,7 +260,7 @@ function SignDialog({ busy, onSign, onClose }: { busy: boolean; onSign: (sig: st
 }
 
 function List({ rows, side, onOpen }: { rows: Transfer[]; side: "mine" | "incoming"; onOpen: (id: string) => void }) {
-  if (!rows.length) return <div className="rounded-xl border border-neutral-200 bg-white"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No request from other outlets")} /></div>;
+  if (!rows.length) return <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No request from other outlets")} /></div>;
   return (
     <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200 bg-white">
       {rows.map((t) => {
@@ -347,7 +347,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-neutral-700">{rpText(i.value)}</td></tr>))}</tbody>
           </table>
         </div>
-        <section className="rounded-xl border border-neutral-200 bg-white p-4">
+        <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
           <p className="mb-3 text-xs font-semibold capitalize text-neutral-500">{tr("Process")}</p>
           <Tracker steps={steps} />
         </section>

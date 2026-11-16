@@ -39,7 +39,7 @@ export function SignatureCard({ count, bare = false }: { count: Count; /** the s
     );
   }
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <div className="flex items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">
         <PenLine size={18} className="text-neutral-500" />
         <h2 className="text-sm font-semibold text-neutral-900">{tr("Signature")}</h2>
@@ -154,7 +154,7 @@ export function EvidenceFiles({ count, open, onChange }: { count: Count; open: b
   };
 
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <div className="flex flex-wrap items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">
         <Paperclip size={18} className="text-neutral-500" />
         <div className="min-w-0 flex-1">
@@ -218,7 +218,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
   };
 
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <div className="flex flex-wrap items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3">
         <Images size={18} className="text-neutral-500" />
         <div className="min-w-0 flex-1">
