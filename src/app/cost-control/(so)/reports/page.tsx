@@ -5,6 +5,7 @@
 // qty, price, value), "Summary" with one row per count, "WIP premix" and one sheet per branch. Every filter sits in
 // one drawer; the figures show what the file will hold.
 
+import { downloadFile } from "@/lib/download-progress";
 import { ccUrl } from "@/lib/company";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Building2, FileSpreadsheet, Layers, ListChecks } from "lucide-react";
@@ -75,14 +76,8 @@ export default function ReportsPage() {
       if (!kinds) throw new Error(tr("No count with this status in the period"));
       const qs = new URLSearchParams({ date_from: f.period.from, date_to: f.period.to, status: f.status, per_branch: String(f.perBranch),
         count_type: kinds, ...(f.facility ? { facility_id: f.facility } : {}) });
-      const res = await fetch(ccUrl(`/api/so/count-reports/file?${qs}`), { credentials: "same-origin" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded"));
-      }
-      const href = URL.createObjectURL(await res.blob());
-      Object.assign(document.createElement("a"), { href, download: `Stock Opname Report ${group === "daily" ? "Daily" : "Weekly-Monthly"} ${f.period.from} - ${f.period.to}.xlsx` }).click();
-      URL.revokeObjectURL(href);
+      await downloadFile(`Stock Opname Report ${group === "daily" ? "Daily" : "Weekly-Monthly"} ${f.period.from} - ${f.period.to}.xlsx`,
+        (signal) => fetch(ccUrl(`/api/so/count-reports/file?${qs}`), { credentials: "same-origin", signal }));
     } catch (e) {
       toast(errorText(e), "error");
     } finally {

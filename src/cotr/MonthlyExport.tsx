@@ -3,6 +3,7 @@
 // The month of Calf On The Road in one Excel file (recommendation #12): Product, Report Armada, batch codes, waste &
 // cupping, fleet issues and the reconciliation, for finance and the owners.
 
+import { downloadFile } from "@/lib/download-progress";
 import { FileSpreadsheet } from "lucide-react";
 import { useState } from "react";
 import { Button, Input, useToast } from "@/so/ui";
@@ -17,11 +18,9 @@ export function MonthlyExport({ pool }: { pool?: string }) {
   const download = async () => {
     setBusy(true);
     try {
-      const res = await fetch(`/api/cotr/monthly-workbook?month=${month}${pool ? `&pool=${encodeURIComponent(pool)}` : ""}`, { credentials: "same-origin" });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.detail ?? `Excel (${res.status})`);
-      const href = URL.createObjectURL(await res.blob());
-      Object.assign(document.createElement("a"), { href, download: `Ringkasan COTR ${month}.xlsx` }).click();
-      setTimeout(() => URL.revokeObjectURL(href), 1000);
+      await downloadFile(`Ringkasan COTR ${month}.xlsx`,
+        (signal) => fetch(`/api/cotr/monthly-workbook?month=${month}${pool ? `&pool=${encodeURIComponent(pool)}` : ""}`, { credentials: "same-origin", signal }),
+        async (res) => (await res.json().catch(() => ({})))?.detail ?? `Excel (${res.status})`);
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   return (

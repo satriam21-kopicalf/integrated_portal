@@ -6819,4 +6819,7 @@ export const ID: Record<string, string> = {
   "Shown in the menu of {0}": "Tampil di menu {0}",
   "Premix/WIP": "Premix/WIP",
   "Premix/WIP name": "Nama Premix/WIP",
+  "Preparing the file…": "Menyiapkan file…",
+  "Downloading…": "Mengunduh…",
+  "The server is putting the data together, please wait": "Server sedang menyusun data, mohon tunggu",
 };

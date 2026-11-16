@@ -2,17 +2,15 @@
 // downloads became Excel, as every other export. Numbers stay numbers; the file has a title, the download time and a
 // bold frozen header.
 
+import { downloadFile } from "@/lib/download-progress";
+
 export type XlsxCell = string | number | null | undefined;
 
 export async function downloadXlsx({ fileName, sheet, title, header, rows }: {
   fileName: string; sheet: string; title?: string; header: string[]; rows: XlsxCell[][];
 }): Promise<void> {
-  const res = await fetch("/api/xlsx", {
-    method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" },
+  await downloadFile(`${fileName}.xlsx`, (signal) => fetch("/api/xlsx", {
+    method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, signal,
     body: JSON.stringify({ fileName, sheet: sheet.slice(0, 31), title, header, rows: rows.map((r) => r.map((v) => (v === undefined ? null : v))) }),
-  });
-  if (!res.ok) throw new Error(`Excel (${res.status})`);
-  const href = URL.createObjectURL(await res.blob());
-  Object.assign(document.createElement("a"), { href, download: `${fileName}.xlsx` }).click();
-  setTimeout(() => URL.revokeObjectURL(href), 1000);
+  }), async (res) => `Excel (${res.status})`);
 }

@@ -5,6 +5,7 @@
 // for every branch — what the branches sent (approved or not), what waits for a review, everything incl. counts still in
 // progress, or the approved ones only; it follows the period and the count type filter.
 
+import { downloadFile } from "@/lib/download-progress";
 import { ccUrl } from "@/lib/company";
 import LocationBadges from "@/so/features/count/LocationBadges";
 import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCheck, Clock, Layers, RotateCcw, Send } from "lucide-react";
@@ -90,14 +91,12 @@ export default function ReviewsPage() {
       const types = f.type || soGroupTypes((rows ?? []).map((r) => r.count_type), group);
       if (!types) throw new Error(tr("No count with this status in the period"));
       const qs = new URLSearchParams({ date_from: f.period.from, date_to: f.period.to, status, per_branch: "true", count_type: types });
-      const res = await fetch(ccUrl(`/api/so/count-reports/file?${qs}`), { credentials: "same-origin" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(res.status === 404 ? tr("No count with this status in the period") : body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded"));
-      }
-      const href = URL.createObjectURL(await res.blob());
-      Object.assign(document.createElement("a"), { href, download: `Stock Opname ${group === "daily" ? "Daily" : "Weekly-Monthly"} ${EXPORT_FILE[status]} ${f.period.from} - ${f.period.to}.xlsx` }).click();
-      URL.revokeObjectURL(href);
+      await downloadFile(`Stock Opname ${group === "daily" ? "Daily" : "Weekly-Monthly"} ${EXPORT_FILE[status]} ${f.period.from} - ${f.period.to}.xlsx`,
+        (signal) => fetch(ccUrl(`/api/so/count-reports/file?${qs}`), { credentials: "same-origin", signal }),
+        async (res) => {
+          const body = await res.json().catch(() => null);
+          return res.status === 404 ? tr("No count with this status in the period") : body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded");
+        });
     } catch (e) {
       toast(errorText(e), "error");
     }

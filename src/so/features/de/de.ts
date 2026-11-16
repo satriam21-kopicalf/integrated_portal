@@ -1,6 +1,7 @@
 // Damaged Equipment (integrated_portal_be app/damaged_equipment.py): types, labels and helpers shared by the form (PIC),
 // the monitoring (Maintenance / procurement team) and the public share page.
 
+import { downloadFile } from "@/lib/download-progress";
 import { tr } from "@/lib/i18n";
 import type { Tone } from "@/so/ui";
 
@@ -133,12 +134,5 @@ export function alreadyAsked(item: { categoryId: number; name: string }, open: R
 }
 
 export async function download(url: string, name: string) {
-  const res = await fetch(url, { credentials: "same-origin" });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.error ?? body?.detail ?? tr("The file could not be downloaded"));
-  }
-  const href = URL.createObjectURL(await res.blob());
-  Object.assign(document.createElement("a"), { href, download: name }).click();
-  URL.revokeObjectURL(href);
+  await downloadFile(name, (signal) => fetch(url, { credentials: "same-origin", signal }));
 }

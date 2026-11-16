@@ -14,7 +14,7 @@
 //   EmptyState, ErrorBlock     nothing to show / an error with retry
 //   kcTable                    the classes of a list table (thead, rows)
 
-import { AlertCircle, Search, X } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, Search, X } from 'lucide-react';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { tr } from '@/lib/i18n';
 
@@ -107,27 +107,47 @@ export function StatGrid({ children, cols = 4, label }: { children: ReactNode; c
   return <div role="group" aria-label={label} className={cx('grid grid-cols-2 gap-3', COLS[cols])}>{children}</div>;
 }
 
-const VALUE_TONE = { default: 'text-neutral-900', good: 'text-emerald-600', warn: 'text-amber-600', bad: 'text-red-600', brand: 'text-brand-700' } as const;
+// 2026-11-16, as kopicalf-hrms StatCard (calm cards): a neutral icon chip on the left, label / value / note on the right;
+// colour only for what needs attention (warn / bad), "good" and "brand" no longer colour the value.
+const VALUE_TONE = { default: 'text-neutral-900', good: 'text-neutral-900', warn: 'text-amber-600', bad: 'text-red-600', brand: 'text-neutral-900' } as const;
+const CHIP_TONE: Partial<Record<keyof typeof VALUE_TONE, string>> = { warn: 'bg-amber-50 text-amber-700', bad: 'bg-red-50 text-red-700' };
 export type StatTone = keyof typeof VALUE_TONE;
+
+/** The body of a number card (StatCard here, Stat in compat.tsx): icon chip, label, value, note. */
+export function StatBody({ label, value, sub, icon, tone = 'default', info, title, valueClassName, arrow }: {
+  label: ReactNode; value: ReactNode; sub?: ReactNode; icon?: ReactNode; tone?: StatTone; info?: ReactNode; title?: string;
+  valueClassName?: string; arrow?: boolean;
+}) {
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
+      <img src="/assets/calf-logo.png" alt="" aria-hidden className="kc-mark pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain opacity-[0.04] grayscale" />
+      {icon && (
+        <span className={cx('relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg [&>svg]:h-4 [&>svg]:w-4', CHIP_TONE[tone] ?? 'bg-neutral-100 text-neutral-500')}>{icon}</span>
+      )}
+      <span className="relative min-w-0 flex-1">
+        <span className="flex items-start justify-between gap-2">
+          <span className="flex min-w-0 items-center gap-1 truncate text-xs font-medium text-neutral-500">{label}{info}</span>
+          {arrow && <ArrowUpRight size={14} className="flex-shrink-0 text-neutral-300 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-700" aria-hidden />}
+        </span>
+        <span title={title} className={cx('mt-0.5 block font-bold leading-tight tracking-tight tabular-nums', valueClassName ?? 'truncate text-[22px]', VALUE_TONE[tone])}>{value}</span>
+        {sub && <span className="mt-1 block truncate text-xs text-neutral-400 [&_p]:truncate">{sub}</span>}
+      </span>
+    </>
+  );
+}
+
+export const statCardClass = (active?: boolean, clickable?: boolean) => cx(
+  'group relative flex h-full min-w-0 items-start gap-3.5 overflow-hidden rounded-2xl border bg-white p-4 text-left shadow-sm transition-all duration-150',
+  active ? 'border-brand-300 ring-2 ring-brand-600/15' : 'border-neutral-200',
+  clickable && 'cursor-pointer hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md');
+
 /** A number card; clickable when `onClick` is given (e.g. a quick filter), highlighted when `active`. */
 export function StatCard({ label, value, sub, icon, tone = 'default', onClick, active }: {
   label: ReactNode; value: ReactNode; sub?: ReactNode; icon?: ReactNode; tone?: StatTone; onClick?: () => void; active?: boolean;
 }) {
-  // the same card as Stat (compat.tsx): a faint Calf watermark, the icon in a chip (2026-11-07)
-  const body = (
-    <>
-      {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
-      <img src="/assets/calf-logo.png" alt="" aria-hidden className="kc-mark pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain opacity-[0.05] grayscale" />
-      <span className="relative flex items-center justify-between gap-2">
-        <span className="truncate text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}</span>
-        {icon && <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500 [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>}
-      </span>
-      <span className={cx('relative block truncate text-xl font-semibold leading-tight tabular-nums sm:text-2xl', VALUE_TONE[tone])}>{value}</span>
-      {sub && <span className="relative block truncate text-xs text-neutral-500">{sub}</span>}
-    </>
-  );
-  const cls = cx('relative flex min-w-0 flex-col gap-1.5 overflow-hidden rounded-xl border bg-white px-4 py-3.5 text-left shadow-sm transition',
-    active ? 'border-brand-400 ring-2 ring-brand-100' : 'border-neutral-200', onClick && 'hover:-translate-y-px hover:shadow-md');
+  const body = <StatBody label={label} value={value} sub={sub} icon={icon} tone={tone} arrow={!!onClick} />;
+  const cls = statCardClass(active, !!onClick);
   return onClick ? <button type="button" onClick={onClick} aria-pressed={active} className={cls}>{body}</button> : <div className={cls}>{body}</div>;
 }
 

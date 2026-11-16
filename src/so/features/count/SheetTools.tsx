@@ -4,6 +4,7 @@
 // empty, sheet Petunjuk) and the import of the filled file (a preview of the changes and of the rows to correct,
 // then saved); once submitted, the export of what was sent (user decision: the export only after the submit).
 
+import { downloadFile } from "@/lib/download-progress";
 import { Download, FileSpreadsheet, Info, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { Badge, Button, cx, useToast } from "@/so/ui";
@@ -23,12 +24,8 @@ export default function SheetTools({ count, open, onImported }: { count: Count; 
   const download = async () => {
     setDownloading(true);
     try {
-      const res = await fetch(`/api/so/counts/${count.id}/sheet`, { credentials: "same-origin" });
-      if (!res.ok) throw new Error(tr("The file could not be downloaded"));
-      const href = URL.createObjectURL(await res.blob());
       const name = `${open ? "Format Import SO" : "SO"} ${count.facility_name} ${count.business_date} ${count.number}.xlsx`;
-      Object.assign(document.createElement("a"), { href, download: name }).click();
-      URL.revokeObjectURL(href);
+      await downloadFile(name, (signal) => fetch(`/api/so/counts/${count.id}/sheet`, { credentials: "same-origin", signal }));
     } catch (e) {
       toast(errorText(e), "error");
     } finally {

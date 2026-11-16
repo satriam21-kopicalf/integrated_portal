@@ -4,6 +4,7 @@
 // count (optional), up to 15 documents (PDF, Excel …; 2026-10-21, optional), and once the count is approved the
 // evidence as files (ZIP) or one PDF.
 
+import { downloadFile } from "@/lib/download-progress";
 import { Camera, Download, FileText, Images, Loader2, Paperclip, PenLine, Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button, cx, useToast } from "@/so/ui";
@@ -18,14 +19,7 @@ import CameraCapture, { type Shot } from "./CameraCapture";
 export const MAX_PHOTOS = 15;
 
 async function download(url: string, name: string) {
-  const res = await fetch(url, { credentials: "same-origin" });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.error?.message ?? body?.detail ?? tr("The file could not be downloaded"));
-  }
-  const href = URL.createObjectURL(await res.blob());
-  Object.assign(document.createElement("a"), { href, download: name }).click();
-  URL.revokeObjectURL(href);
+  await downloadFile(name, (signal) => fetch(url, { credentials: "same-origin", signal }));
 }
 
 /** The crew's signature of a submitted count (06.9 §12.16, D-62), when they signed. */

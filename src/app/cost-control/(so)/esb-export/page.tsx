@@ -3,6 +3,7 @@
 // ESB export (06.9 §8): approved counts of one day and count type become one ESB "Stock Opname Template" file. The file
 // is kept, so downloading a batch again gives exactly the file that was imported (same SHA-256).
 
+import { downloadFile } from "@/lib/download-progress";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Download, FileOutput, FileSpreadsheet } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -21,11 +22,7 @@ const TYPES = ["DAILY_PACKAGING", "WEEKLY_RAW", "MONTHLY_RAW", "ADHOC"];
 const today = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 
 async function download(url: string, name: string) {
-  const res = await fetch(url, { credentials: "same-origin" });
-  if (!res.ok) throw new Error(tr("The file could not be downloaded"));
-  const href = URL.createObjectURL(await res.blob());
-  Object.assign(document.createElement("a"), { href, download: name }).click();
-  URL.revokeObjectURL(href);
+  await downloadFile(name, (signal) => fetch(url, { credentials: "same-origin", signal }));
 }
 
 export default function EsbExportPage() {

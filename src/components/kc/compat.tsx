@@ -5,7 +5,7 @@
 // pages first (2026-11-02); the next pages follow the same way.
 
 import { createContext, useContext, type ReactNode } from 'react';
-import { PageHeader, PageShell, cx } from './index';
+import { PageHeader, PageShell, StatBody, cx, statCardClass } from './index';
 
 /** Inside a tab of another page (Monitoring COTR → Master): no own shell and title, the actions stay on top. */
 export const EmbeddedPage = createContext(false);
@@ -65,27 +65,14 @@ export function StatStrip({ children, columns = 4, label, gridClassName }: { chi
 
 /** A number card: label (+ icon / info), value, the lines under it; a quick filter when `onClick` is given. Every card
  * carries the Calf mark as a faint watermark (2026-11-07); the emphasised one a light brand gradient. */
-export function Stat({ label, icon, value, title, children, emphasis = false, className = '', valueClassName = 'truncate text-xl sm:text-2xl', info, onClick, active = false }: {
+export function Stat({ label, icon, value, title, children, emphasis = false, className = '', valueClassName, info, onClick, active = false }: {
   label: string; icon?: ReactNode; info?: ReactNode; value: ReactNode; title?: string; children?: ReactNode; emphasis?: boolean;
   className?: string; valueClassName?: string; onClick?: () => void; active?: boolean;
 }) {
-  const body = (
-    <>
-      {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
-      <img src="/assets/calf-logo.png" alt="" aria-hidden
-        className={cx('kc-mark pointer-events-none absolute -bottom-5 -right-4 h-20 w-20 rotate-[-12deg] select-none object-contain grayscale', emphasis ? 'opacity-[0.1]' : 'opacity-[0.05]')} />
-      <span className="relative flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1 text-[11px] font-semibold uppercase leading-snug tracking-wide text-neutral-500">{label}{info}</span>
-        {icon && <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg [&>svg]:h-3.5 [&>svg]:w-3.5',
-          emphasis ? 'bg-brand-100 text-brand-700' : 'bg-neutral-100 text-neutral-500')}>{icon}</span>}
-      </span>
-      <span title={title} className={cx('relative block font-semibold leading-tight tabular-nums', valueClassName, emphasis ? 'text-brand-800' : 'text-neutral-900')}>{value}</span>
-      {children && <div className="relative space-y-0.5 text-xs text-neutral-500 [&_p]:truncate">{children}</div>}
-    </>
-  );
-  const cls = cx('relative flex min-w-0 flex-col gap-1.5 overflow-hidden rounded-xl border px-4 py-3.5 text-left shadow-sm transition',
-    emphasis ? 'border-brand-200 bg-gradient-to-br from-brand-50 via-white to-white' : 'border-neutral-200 bg-white',
-    active && 'border-brand-400 ring-2 ring-brand-100', onClick && 'hover:-translate-y-px hover:shadow-md', className);
+  // the same card as StatCard (index.tsx, 2026-11-16 kopicalf-hrms look); `emphasis` = a faint brand border
+  const body = <StatBody label={label} value={value} sub={children} icon={icon} info={info} title={title} arrow={!!onClick}
+    valueClassName={valueClassName ? valueClassName.replace(/text-(xl|2xl|lg)|sm:text-\S+/g, '').trim() + ' text-[22px]' : undefined} />;
+  const cls = cx(statCardClass(active, !!onClick), emphasis && !active && 'border-brand-200', className);
   return onClick ? <button type="button" onClick={onClick} aria-pressed={active} className={cls}>{body}</button> : <div className={cls}>{body}</div>;
 }
 

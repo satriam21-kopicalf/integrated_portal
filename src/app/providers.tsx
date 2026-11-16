@@ -5,6 +5,7 @@ import { AppSkeleton } from '@/components/kc/Skeleton';
 import { usePathname, useRouter } from 'next/navigation';
 import { AccountDrawersProvider } from '@/components/AccountDrawers';
 import AppUpdate from '@/components/AppUpdate';
+import DownloadProgress from '@/components/DownloadProgress';
 import ExportToasts from '@/components/ExportToasts';
 import InstallApp, { useServiceWorker } from '@/components/InstallApp';
 import { usePageViewLog } from '@/lib/activity';
@@ -34,6 +35,7 @@ export default function Providers({ children }: { children: ReactNode }) {
           <Gate>{children}</Gate>
         </AuthProvider>
         <AppUpdate />
+        <DownloadProgress />
       </LanguageProvider>
     </ThemeProvider>
   );
