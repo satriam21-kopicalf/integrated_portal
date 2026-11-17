@@ -61,16 +61,21 @@ export function BundleDrawer({ menu, cards, current, suggested, onClose, onSaved
         <Button loading={busy} disabled={!filled.length || bad} onClick={() => void save(filled)}><Save size={14} />{tr("Save")}</Button>
       </div>}>
       <div className="space-y-3">
+        {/* one row per menu of the bundle: its recipe card, how many portions (2026-11-17) */}
         {rows.map((r, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <div className="min-w-0 flex-1">
-              <SearchSelect value={r.card} options={options} placeholder={tr("Choose the menu's recipe card")} onChange={(v) => set(i, { card: v ?? "" })} ariaLabel={tr("Recipe Card")} />
+          <div key={i} className="rounded-xl border border-neutral-200 p-3">
+            <div className="mb-1.5 flex items-center justify-between">
+              <span className="text-xs font-semibold text-neutral-500">{tr("Menu {0}", i + 1)}</span>
+              <button type="button" onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((_, j) => j !== i) : [{ card: "", qty: "1" }]))}
+                aria-label={tr("Delete")} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
             </div>
-            <input value={r.qty} onChange={(e) => set(i, { qty: e.target.value })} inputMode="decimal" aria-label={tr("Portions")}
-              className={`${inputClass} w-20 text-right tabular-nums`} />
-            <span className="mt-2.5 text-xs text-neutral-500">{tr("portions")}</span>
-            <button type="button" onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((_, j) => j !== i) : [{ card: "", qty: "1" }]))}
-              aria-label={tr("Delete")} className="mt-2 rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
+            <SearchSelect value={r.card} options={options} placeholder={tr("Choose the menu's recipe card")} onChange={(v) => set(i, { card: v ?? "" })} ariaLabel={tr("Recipe Card")} />
+            <label className="mt-2 flex items-center gap-2 text-xs text-neutral-500">
+              <span>{tr("Portions")}</span>
+              <input value={r.qty} onChange={(e) => set(i, { qty: e.target.value })} inputMode="decimal" aria-label={tr("Portions")}
+                className={`${inputClass} w-24 text-right tabular-nums`} />
+              <span>{tr("per bundle")}</span>
+            </label>
           </div>
         ))}
         <Button variant="secondary" size="sm" onClick={() => setRows((rs) => [...rs, { card: "", qty: "1" }])}><Plus size={14} />{tr("Add a menu")}</Button>

@@ -6941,4 +6941,6 @@ export const ID: Record<string, string> = {
   "Example: BUNDLING PROMO GOFOOD 3 ES KOPI CALF PREMIUM = the card of Es Kopi Calf Premium × 3. A bundle with a choice (Chocolate or Es Kopi) takes the usual mix.": "Contoh: BUNDLING PROMO GOFOOD 3 ES KOPI CALF PREMIUM = kartu Es Kopi Calf Premium × 3. Bundling dengan pilihan (Chocolate atau Es Kopi) memakai komposisi yang biasa terjual.",
   "Edit bundle contents": "Ubah isi bundling",
   "Set bundle contents": "Atur isi bundling",
+  "Menu {0}": "Menu {0}",
+  "per bundle": "per bundling",
 };

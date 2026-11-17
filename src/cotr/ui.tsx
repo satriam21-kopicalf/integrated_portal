@@ -384,7 +384,7 @@ export function SearchSelect({ value, options, onChange, required, placeholder, 
         title={current?.label}
         className={cx(inputClass, 'flex h-auto min-h-11 items-center justify-between gap-2 py-1.5 text-left lg:h-auto lg:min-h-10', disabled && 'cursor-not-allowed opacity-60')}>
         {/* the whole name, on two lines at most (2026-11-17); the full text is the tooltip */}
-        <span className={cx('line-clamp-2 min-w-0 break-words leading-snug', !current && 'text-neutral-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
+        <span className={cx('line-clamp-2 min-w-0 flex-1 break-words leading-snug', !current && 'text-neutral-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
         <span className="flex items-center gap-1">
           {current && !required && !disabled && <X size={14} className="text-neutral-400 hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
           <ChevronDown size={15} className={cx('text-neutral-400 transition-transform', open && 'rotate-180')} />
