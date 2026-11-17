@@ -6924,4 +6924,5 @@ export const ID: Record<string, string> = {
   "Helps the maintenance team understand the request": "Membantu tim maintenance memahami pengajuan",
   "0 when the photo shows nothing was wasted": "Isi 0 bila foto menunjukkan tidak ada yang terbuang",
   "Reason for rejecting an approved waste": "Alasan menolak waste yang sudah disetujui",
+  "Choose the item of the new type": "Pilih item dari tipe yang baru",
 };

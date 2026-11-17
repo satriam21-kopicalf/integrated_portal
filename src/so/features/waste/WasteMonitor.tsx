@@ -104,7 +104,10 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const waiting = rows.filter((e) => e.status === "submitted" || e.status === "investigating");
   const waitingIds = new Set(waiting.map((x) => x.id));
   const pickedWaiting = [...picked].filter((id) => waitingIds.has(id));
-  const undoApproval = verdict === "rejected" && !picked.size && open?.status === "approved";
+  // reject: the waiting entries and the approved ones too (Cost Control, 2026-11-17); approve / investigate: waiting only
+  const approvedIds = new Set(rows.filter((e) => e.status === "approved").map((x) => x.id));
+  const pickedRejectable = [...picked].filter((id) => waitingIds.has(id) || approvedIds.has(id));
+  const undoApproval = verdict === "rejected" && (picked.size ? pickedRejectable.some((id) => approvedIds.has(id)) : open?.status === "approved");
   const investigate = async () => {
     const ids = open && !picked.size ? [open.id] : pickedWaiting;
     setBusy(true);
@@ -125,7 +128,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
     if (!verdict) return;
     setBusy(true);
     try {
-      const ids = open && !picked.size ? [open.id] : pickedWaiting;
+      const ids = open && !picked.size ? [open.id] : verdict === "rejected" ? pickedRejectable : pickedWaiting;
       const out = await call<{ updated: number }>("/api/waste/reviews", { method: "POST", json: { ids, status: verdict, note: note.trim() || null } });
       toast(tr("{0} entries {1}", out.updated, verdict === "approved" ? tr("approved") : tr("rejected")));
       setVerdict(null);
@@ -225,7 +228,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
               <Button size="sm" variant="secondary" disabled={!picked.size} onClick={() => setRecat(true)}><Tags size={14} />{tr("Change category")}</Button>
               {review && <>
                 <Button size="sm" variant="secondary" disabled={!pickedWaiting.length || busy} onClick={() => void investigate()}><FileSearch size={14} />{tr("Investigate")}</Button>
-                <Button size="sm" variant="secondary" disabled={!pickedWaiting.length} onClick={() => setVerdict("rejected")}><XCircle size={14} />{tr("Reject")}</Button>
+                <Button size="sm" variant="secondary" disabled={!pickedRejectable.length} onClick={() => setVerdict("rejected")}><XCircle size={14} />{tr("Reject")}</Button>
                 <Button size="sm" disabled={!pickedWaiting.length} onClick={() => setVerdict("approved")}><CheckCircle2 size={14} />{tr("Approve")}</Button>
               </>}
             </div>
@@ -383,7 +386,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         onSaved={(e) => { setFixing(false); setFixes((n) => n + 1); setOpen(e); setRes((r) => r && { ...r, data: r.data.map((x) => x.id === e.id ? e : x) }); }} />}
       <ConfirmDialog open={!!verdict} busy={busy} danger={verdict === "rejected"}
         title={verdict === "approved" ? tr("Approve the waste?") : tr("Reject the waste?")}
-        description={tr("{0} entries", open && !picked.size ? 1 : picked.size)}
+        description={tr("{0} entries", open && !picked.size ? 1 : verdict === "rejected" ? pickedRejectable.length : pickedWaiting.length)}
         confirmLabel={verdict === "approved" ? tr("Approve") : tr("Reject")}
         // rejecting an approved entry takes it out of the COGS: the reason is required (2026-11-17)
         reasonLabel={undoApproval ? tr("Reason for rejecting an approved waste") : tr("Note for the branch (optional)")} reasonRequired={undoApproval}

@@ -20,7 +20,7 @@ type Options = { items: WasteItem[]; categories: string[] };
 type Fix = { field: string; old: string | null; new: string | null; reason: string; by: string; at: string };
 
 const FIELD: Record<string, () => string> = {
-  qty: () => tr("Quantity"), item: () => tr("Item"), category: () => tr("Waste category"), businessDate: () => tr("Waste date"),
+  type: () => tr("Type"), qty: () => tr("Quantity"), item: () => tr("Item"), category: () => tr("Waste category"), businessDate: () => tr("Waste date"),
   productionDate: () => tr("Production Date"), expiredDate: () => tr("Expired Date"), note: () => tr("Note / reason"),
 };
 
@@ -53,6 +53,9 @@ export function CorrectionHistory({ entry, version }: { entry: Entry; version?: 
 export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry; onClose: () => void; onSaved: (e: Entry) => void }) {
   const toast = useToast();
   const [opts, setOpts] = useState<Options | null>(null);
+  // the type may be corrected between material and premix / WIP (2026-11-17); another type needs an item of that type
+  const typed = entry.scope === "waste" || entry.scope === "premix";
+  const [scope, setScope] = useState(entry.scope);
   const [itemCode, setItemCode] = useState(entry.itemCode);
   const [qty, setQty] = useState(String(entry.qty));
   const [uom, setUom] = useState(entry.unit);
@@ -64,19 +67,26 @@ export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    call<Options>(`/api/waste/reviews/${entry.id}/options`).then(setOpts).catch((e: Error) => toast(e.message, "error"));
-  }, [entry.id, toast]);
+    call<Options>(`/api/waste/reviews/${entry.id}/options?scope=${scope}`).then(setOpts).catch((e: Error) => toast(e.message, "error"));
+  }, [entry.id, scope, toast]);
+  const pickType = (s: Entry["scope"]) => {
+    setScope(s);
+    setOpts(null);
+    setItemCode(s === entry.scope ? entry.itemCode : "");
+    setUom(s === entry.scope ? entry.unit : "");
+  };
   const item = opts?.items.find((i) => i.code === itemCode);
-  const units = entry.scope === "premix" ? (item?.units ?? [{ uom: entry.unit, grams: 1 }]) : null;
+  const units = scope === "premix" ? (item?.units ?? (scope === entry.scope ? [{ uom: entry.unit, grams: 1 }] : [])) : null;
   const itemOptions = useMemo(() => {
     const list = (opts?.items ?? []).map((i) => ({ value: i.code, label: i.name, hint: `${i.code} · ${i.unit}` }));
-    return list.some((o) => o.value === entry.itemCode) ? list : [{ value: entry.itemCode, label: entry.itemName, hint: entry.itemCode }, ...list];
-  }, [opts, entry]);
+    return scope !== entry.scope || list.some((o) => o.value === entry.itemCode) ? list : [{ value: entry.itemCode, label: entry.itemName, hint: entry.itemCode }, ...list];
+  }, [opts, entry, scope]);
   const amount = Number(qty.replace(",", "."));
   const body: Record<string, unknown> = { reason: reason.trim() };
+  if (scope !== entry.scope) body.scope = scope;
   if (itemCode !== entry.itemCode) body.itemCode = itemCode;
   if (amount !== entry.qty) body.qty = amount;
-  if (units && uom !== entry.unit) body.uom = uom;
+  if (units && (uom !== entry.unit || scope !== entry.scope)) body.uom = uom;
   if (category !== entry.category) body.category = category;
   if (day !== entry.businessDate) body.businessDate = day;
   if (made !== (entry.productionDate ?? "")) body.productionDate = made || null;
@@ -84,7 +94,7 @@ export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry
   if (note.trim() !== (entry.note ?? "")) body.note = note.trim() || null;
   const changes = Object.keys(body).length - 1;
   // Cost Control may correct to 0 (2026-11-17): the photo shows nothing was wasted; the outlet itself enters more than 0
-  const valid = changes > 0 && reason.trim().length >= 3 && qty.trim() !== "" && Number.isFinite(amount) && amount >= 0 && !!day;
+  const valid = changes > 0 && !!itemCode && (!units || !!uom) && reason.trim().length >= 3 && qty.trim() !== "" && Number.isFinite(amount) && amount >= 0 && !!day;
   const save = async () => {
     setBusy(true);
     try {
@@ -102,8 +112,16 @@ export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry
       </>}>
       <div className="space-y-4">
         <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">{tr("The entry is changed in place; the value, COGS and Stock List follow. The old figures and the reason are kept in the history.")}</p>
+        {typed && (
+          <Field label={tr("Type")} hint={scope !== entry.scope ? tr("Choose the item of the new type") : undefined}>
+            <Select value={scope} onChange={(e) => pickType(e.target.value as Entry["scope"])}>
+              <option value="waste">{tr("Material")}</option>
+              <option value="premix">{tr("Premix/WIP")}</option>
+            </Select>
+          </Field>
+        )}
         <Field label={tr("Item")}>
-          {opts ? <SearchSelect value={itemCode} options={itemOptions} onChange={(v) => { if (v) { setItemCode(v); const it = opts.items.find((i) => i.code === v); if (it && entry.scope === "premix") setUom(it.unit); } }} />
+          {opts ? <SearchSelect value={itemCode} options={itemOptions} onChange={(v) => { if (v) { setItemCode(v); const it = opts.items.find((i) => i.code === v); if (it && scope === "premix") setUom(it.unit); } }} />
             : <div className="skeleton h-10 rounded-lg" />}
         </Field>
         <div className="grid grid-cols-2 gap-3">
