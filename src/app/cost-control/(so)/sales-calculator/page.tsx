@@ -37,7 +37,9 @@ type Extra = { id: number; code: string | null; name: string; unit: string; pric
 type ListPrice = { channel: "dine-in" | "online" | "other"; price: number; min: number; max: number };
 type Recipe = { code: string; name: string; category: string | null; lines: Line[]; note: string | null; isActive: boolean; menus: { id: string; name: string; prices?: ListPrice[] }[] };
 type Menu = { id: string; name: string; category: string; detail?: string; kinds?: string[]; companies?: { code: string; name: string }[];
-  qty: number; lastSold?: string | null; recipe: string | null };
+  qty: number; lastSold?: string | null; recipe: string | null;
+  /** a bundle without a card (2026-11-17): costed from the ESB master when its contents are fixed (auto), else what to fix */
+  bundle?: { auto: boolean; contents: { name: string; qty: number; card: string | null }[]; reasons: string[] } | null };
 type Report = {
   period: { from: string; to: string; days: number; horizon: number; buffer: number };
   menus: { id: string; name: string; recipe: string; recipeName: string; qty: number; sales: number; hpp: number | null; cogs: number | null; ratio: number | null; optionCogs?: number }[];
@@ -694,7 +696,9 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
 
 // ---------------------------------------------------------------- 2. assign menus
 
-type AssignFilters = { status: "" | "with" | "without"; brand: string; category: string; recipe: string };
+type AssignFilters = { status: "" | "with" | "without" | "check"; brand: string; category: string; recipe: string };
+/** a bundle without a card that the ESB master cannot cost (2026-11-17) */
+const needsCheck = (m: Menu) => !m.recipe && !!m.bundle && !m.bundle.auto;
 const NO_AF: AssignFilters = { status: "", brand: "", category: "", recipe: "" };
 
 function MenuAssign() {
@@ -723,17 +727,19 @@ function MenuAssign() {
   const all = useMemo(() => menus ?? [], [menus]);
   const brandList = useMemo(() => [...new Map(all.flatMap((m) => m.companies ?? []).map((c) => [c.code, c.name])).entries()].map(([value, label]) => ({ value, label })), [all]);
   const categories = useMemo(() => [...new Set(all.map((m) => m.category).filter(Boolean))].sort().map((c) => ({ value: c, label: c })), [all]);
-  const shown = useMemo(() => all.filter((m) => (f.status !== "without" || !m.recipe) && (f.status !== "with" || !!m.recipe)
+  const shown = useMemo(() => all.filter((m) => (f.status !== "without" || (!m.recipe && !m.bundle?.auto)) && (f.status !== "with" || !!m.recipe || !!m.bundle?.auto)
+    && (f.status !== "check" || needsCheck(m))
     && (!f.brand || (m.companies ?? []).some((c) => c.code === f.brand)) && (!f.category || m.category === f.category)
     && (!f.recipe || m.recipe === f.recipe) && (!q || matches(`${m.name} ${m.category} ${m.detail ?? ""}`, q))), [all, f, q]);
   const menuValue = useCallback((m: Menu, k: MenuKey) => ({ menu: m.name, category: m.category, brand: brands(m), sold: m.qty, card: m.recipe }[k]), []);
   const sorted = useSort<Menu, MenuKey>(shown, menuValue);
   const paged = usePaged(sorted.rows, JSON.stringify(f) + q + JSON.stringify(sorted.sort), 25);
-  const free = all.filter((m) => !m.recipe).length;
+  const free = all.filter((m) => !m.recipe && !m.bundle?.auto).length;
+  const toCheck = all.filter(needsCheck).length;
   const recipeName = (code: string) => recipes.find((r) => r.code === code)?.name ?? code;
   const recipeOptions = useMemo(() => recipes.map((r) => ({ value: r.code, label: r.name, hint: r.code })), [recipes]);
   const chips: ActiveFilter[] = [
-    ...(f.status ? [{ key: "s", label: f.status === "with" ? tr("With a Card") : tr("Without a Card"), onRemove: () => setF({ ...f, status: "" }) }] : []),
+    ...(f.status ? [{ key: "s", label: f.status === "with" ? tr("With a Card") : f.status === "check" ? tr("Bundles to check") : tr("Without a Card"), onRemove: () => setF({ ...f, status: "" }) }] : []),
     ...(f.brand ? [{ key: "b", label: brandList.find((b) => b.value === f.brand)?.label ?? f.brand, onRemove: () => setF({ ...f, brand: "" }) }] : []),
     ...(f.category ? [{ key: "c", label: f.category, onRemove: () => setF({ ...f, category: "" }) }] : []),
     ...(f.recipe ? [{ key: "r", label: recipeName(f.recipe), onRemove: () => setF({ ...f, recipe: "" }) }] : []),
@@ -742,7 +748,8 @@ function MenuAssign() {
     <Panel title={tr("Assign Menus")} description={tr("Every menu of the POS transactions of the branches and the recipe card it uses; several menus may share a card")}
       actions={menus ? <span className="flex items-center gap-2 text-xs text-neutral-500">
         <span className="h-1.5 w-24 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-emerald-500" style={{ width: `${all.length ? ((all.length - free) / all.length) * 100 : 0}%` }} /></span>
-        {tr("{0} of {1} menus have a card", all.length - free, all.length)}</span> : undefined}
+        {tr("{0} of {1} menus have a card", all.length - free, all.length)}
+        {toCheck > 0 && <button type="button" onClick={() => setF({ ...NO_AF, status: "check" })} className="font-medium text-amber-700 hover:underline">{tr("{0} bundles to check", toCheck)}</button>}</span> : undefined}
       toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search menu, e.g. es kopi premium")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_AF)} />}
       footer={menus ? <><span>{tr("{0} shown", fmtNumber(shown.length))}</span><PageNav paged={paged} /></> : undefined}>
       {!menus ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table> : (
@@ -766,12 +773,16 @@ function MenuAssign() {
                       <td className="px-3 py-2.5 text-right tabular-nums">{num(m.qty, 0)}</td>
                       <td className="w-72 px-3 py-2.5 pr-5">
                         <div className="flex items-center gap-2">
-                          <span className={cx("h-2 w-2 flex-shrink-0 rounded-full", m.recipe ? "bg-emerald-500" : "bg-amber-400")} aria-hidden />
+                          <span className={cx("h-2 w-2 flex-shrink-0 self-start rounded-full", "mt-4", m.recipe || m.bundle?.auto ? "bg-emerald-500" : "bg-amber-400")} aria-hidden />
                           {/* searchable (2026-11-17): ~170 cards, typed by name or code; × takes the card off the menu */}
                           <div className="min-w-0 flex-1">
-                            <SearchSelect value={m.recipe ?? ""} options={recipeOptions} placeholder={tr("— No card —")}
+                            <SearchSelect value={m.recipe ?? ""} options={recipeOptions} placeholder={m.bundle?.auto ? tr("Bundle from ESB") : tr("— No card —")}
                               disabled={busy === m.id || !recipes.length} ariaLabel={`${tr("Recipe Card")} ${m.name}`}
                               onChange={(v) => { if ((v ?? "") !== (m.recipe ?? "")) void assign(m, v ?? ""); }} />
+                            {/* a bundle without a card (2026-11-17): its contents from the ESB master, or what to fix */}
+                            {!m.recipe && m.bundle && (m.bundle.auto
+                              ? <p className="mt-1 text-[11px] leading-snug text-emerald-700">{tr("Costed from ESB: {0}", m.bundle.contents.map((c) => `${c.qty}× ${c.name}`).join(" + "))}</p>
+                              : <p className="mt-1 text-[11px] leading-snug text-amber-700">{tr("Check: {0}", m.bundle.reasons.join("; "))}</p>)}
                           </div>
                         </div>
                       </td>
@@ -797,9 +808,9 @@ function AssignFilterSheet({ value, brands: brandOpts, categories, recipes, onAp
   const active = [d.status, d.brand, d.category, d.recipe].filter(Boolean).length;
   return (
     <MonitorFilterSheet active={active} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(NO_AF)}>
-      <FilterRow icon={<ListChecks size={15} />} label={tr("Recipe Card")} value={d.status === "with" ? tr("With a Card") : d.status === "without" ? tr("Without a Card") : null} onClear={() => setD({ ...d, status: "" })}>
+      <FilterRow icon={<ListChecks size={15} />} label={tr("Recipe Card")} value={d.status === "with" ? tr("With a Card") : d.status === "without" ? tr("Without a Card") : d.status === "check" ? tr("Bundles to check") : null} onClear={() => setD({ ...d, status: "" })}>
         <Segments value={d.status} onChange={(v) => setD({ ...d, status: v as AssignFilters["status"] })}
-          choices={[{ value: "", label: tr("All") }, { value: "with", label: tr("With a Card") }, { value: "without", label: tr("Without a Card") }]} />
+          choices={[{ value: "", label: tr("All") }, { value: "with", label: tr("With a Card") }, { value: "without", label: tr("Without a Card") }, { value: "check", label: tr("Bundles to check") }]} />
       </FilterRow>
       {brandOpts.length > 1 && (
         <FilterRow icon={<Store size={15} />} label={tr("Brand")} value={brandOpts.find((b) => b.value === d.brand)?.label ?? null} onClear={() => setD({ ...d, brand: "" })}>

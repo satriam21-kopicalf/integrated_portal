@@ -6926,4 +6926,9 @@ export const ID: Record<string, string> = {
   "Reason for rejecting an approved waste": "Alasan menolak waste yang sudah disetujui",
   "Choose the item of the new type": "Pilih item dari tipe yang baru",
   "the latest 50,000: search or narrow the filters to find older entries": "50.000 terbaru: cari atau persempit filter untuk menemukan entri lebih lama",
+  "Bundle from ESB": "Bundling dari ESB",
+  "Costed from ESB: {0}": "Dihitung dari ESB: {0}",
+  "Check: {0}": "Perlu dicek: {0}",
+  "Bundles to check": "Bundling perlu dicek",
+  "{0} bundles to check": "{0} bundling perlu dicek",
 };
