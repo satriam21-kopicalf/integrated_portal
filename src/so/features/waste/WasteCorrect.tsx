@@ -83,7 +83,8 @@ export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry
   if (expires !== (entry.expiredDate ?? "")) body.expiredDate = expires || null;
   if (note.trim() !== (entry.note ?? "")) body.note = note.trim() || null;
   const changes = Object.keys(body).length - 1;
-  const valid = changes > 0 && reason.trim().length >= 3 && amount > 0 && !!day;
+  // Cost Control may correct to 0 (2026-11-17): the photo shows nothing was wasted; the outlet itself enters more than 0
+  const valid = changes > 0 && reason.trim().length >= 3 && qty.trim() !== "" && Number.isFinite(amount) && amount >= 0 && !!day;
   const save = async () => {
     setBusy(true);
     try {
@@ -106,7 +107,7 @@ export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry
             : <div className="skeleton h-10 rounded-lg" />}
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label={tr("Quantity")} required><Input inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} className="text-right tabular-nums" /></Field>
+          <Field label={tr("Quantity")} required hint={tr("0 when the photo shows nothing was wasted")}><Input inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} className="text-right tabular-nums" /></Field>
           <Field label={tr("Unit")}>
             {units ? <Select value={uom} onChange={(e) => setUom(e.target.value)}>{units.map((u) => <option key={u.uom} value={u.uom}>{u.uom}</option>)}</Select>
               : <Input value={item?.unit ?? entry.unit} disabled />}

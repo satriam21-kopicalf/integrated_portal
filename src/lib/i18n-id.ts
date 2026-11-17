@@ -6922,4 +6922,5 @@ export const ID: Record<string, string> = {
   "Test account": "Akun testing",
   "Shared account": "Akun bersama",
   "Helps the maintenance team understand the request": "Membantu tim maintenance memahami pengajuan",
+  "0 when the photo shows nothing was wasted": "Isi 0 bila foto menunjukkan tidak ada yang terbuang",
 };
