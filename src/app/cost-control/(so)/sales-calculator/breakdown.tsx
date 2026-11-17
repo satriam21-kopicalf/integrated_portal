@@ -24,7 +24,8 @@ import { matches, num, rp } from "./parts";
 type Material = { code: string | null; name: string; unit: string; qty: number; value: number; priced?: boolean; price?: number | null; menus?: number };
 type MenuRow = { id: string; category: string; sub: string; menu: string; card: string; portions: number; value: number; unpriced: number;
   levels: Record<string, number>; choices: Record<string, number>; materials: Material[] };
-type Data = { period: { from: string; to: string }; menus: MenuRow[]; materials: Material[]; totals: { portions: number; value: number; noCard: number } };
+type Outlet = { code: string; name: string; portions: number; value: number; menus: number; materials: Material[] };
+type Data = { period: { from: string; to: string }; menus: MenuRow[]; materials: Material[]; outlets?: Outlet[]; totals: { portions: number; value: number; noCard: number } };
 type Branch = { branch_code: string; branch_name: string };
 const LEVELS = ["No Sugar", "Less Sugar", "Normal Sugar", "Extra Sugar"];
 // the last 3 months up to yesterday (the data of today is still coming)
@@ -38,7 +39,7 @@ export function BreakdownStep() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"menus" | "materials">("menus");
+  const [view, setView] = useState<"menus" | "materials" | "outlets">("menus");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
@@ -54,6 +55,7 @@ export function BreakdownStep() {
   const branchName = branches.find((b) => b.branch_code === branch)?.branch_name;
   const menus = useMemo(() => (data?.menus ?? []).filter((m) => !q || matches(`${m.menu} ${m.sub} ${m.category} ${m.card}`, q)), [data, q]);
   const materials = useMemo(() => (data?.materials ?? []).filter((m) => !q || matches(`${m.name} ${m.code ?? ""}`, q)), [data, q]);
+  const outlets = useMemo(() => (data?.outlets ?? []).filter((o) => !q || matches(`${o.name} ${o.code}`, q) || o.materials.some((m) => matches(`${m.name} ${m.code ?? ""}`, q))), [data, q]);
   const exportJob = (perBranch: boolean) => async () => {
     const job = await call<ExportJob>("/api/cost-control/sales-calc/breakdown/export", { method: "POST",
       json: { dateFrom: period.from, dateTo: period.to, branch: branch || null, perBranch } });
@@ -91,11 +93,13 @@ export function BreakdownStep() {
             ]} footer={<>{branchName ?? tr("All Branches")} · {dmy(period.from)} – {dmy(period.to)}</>} /></div>} />
           <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={[
             { key: "menus", label: tr("Per Menu"), count: data ? fmtNumber(menus.length) : undefined },
-            { key: "materials", label: tr("Per Raw Material"), count: data ? fmtNumber(materials.length) : undefined }]} />
+            { key: "materials", label: tr("Per Raw Material"), count: data ? fmtNumber(materials.length) : undefined },
+            { key: "outlets", label: tr("Per Outlet"), count: data ? fmtNumber(outlets.length) : undefined }]} />
         </div>}>
         {error ? <ErrorState message={error} /> : !data ? <SkeletonTable cols={view === "menus" ? 8 : 6} />
           : view === "menus" ? <MenuTable rows={menus} open={open} onOpen={(id) => setOpen(open === id ? null : id)} />
-          : <MaterialTable rows={materials} />}
+          : view === "materials" ? <MaterialTable rows={materials} />
+          : <OutletTable rows={outlets} open={open} onOpen={(id) => setOpen(open === id ? null : id)} q={q} />}
       </Panel>
       {sheet && (
         <MonitorFilterSheet active={1 + (branch ? 1 : 0)} onClose={() => setSheet(false)} onApply={() => setSheet(false)} onReset={() => { setPeriod(DEFAULT()); setBranch(""); }}>
@@ -200,6 +204,59 @@ function MaterialTable({ rows }: { rows: Material[] }) {
                 <td className="px-4 py-2.5 text-right tabular-nums">{fmtNumber(m.menus ?? 0)}</td>
               </tr>
             ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex justify-end border-t border-neutral-100 px-4 py-2"><PageNav paged={paged} /></div>
+    </>
+  );
+}
+
+/** Per outlet (2026-11-17): the raw materials used by every menu sold at each outlet in the period; an outlet opens its materials. */
+function OutletTable({ rows, open, onOpen, q }: { rows: Outlet[]; open: string | null; onOpen: (id: string) => void; q: string }) {
+  const paged = usePaged(rows, rows.length);
+  if (!rows.length) return <Empty title={tr("No sale in this period")} />;
+  return (
+    <>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-sm">
+          <thead className={theadClass}><tr>
+            <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Portions")}</th>
+            <th className="px-3 py-2.5 text-right">{tr("Menus")}</th><th className="px-3 py-2.5 text-right">{tr("Raw Materials")}</th>
+            <th className="px-3 py-2.5 text-right">{tr("Material Value")}</th><th className="w-8" />
+          </tr></thead>
+          <tbody className="divide-y divide-neutral-100">
+            {paged.rows.map((o) => {
+              const isOpen = open === `o:${o.code}`;
+              const mats = q ? o.materials.filter((m) => matches(`${m.name} ${m.code ?? ""}`, q)) : o.materials;
+              return (
+                <Fragment key={o.code}>
+                  <tr className={cx("cursor-pointer", isOpen ? "bg-brand-50/50" : "hover:bg-neutral-50")} onClick={() => onOpen(`o:${o.code}`)}>
+                    <td className="px-4 py-2.5"><span className="font-medium text-neutral-900">{o.name}</span><span className="block text-[11px] text-neutral-400">{o.code}</span></td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{num(o.portions, 0)}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(o.menus)}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(o.materials.length)}</td>
+                    <td className="px-3 py-2.5 text-right font-medium tabular-nums">{rp(o.value)}</td>
+                    <td className="px-2 text-neutral-400"><ChevronRight size={15} className={cx("transition-transform", isOpen && "rotate-90")} /></td>
+                  </tr>
+                  {isOpen && (
+                    <tr><td colSpan={6} className="bg-neutral-50/60 px-4 py-3">
+                      <table className="w-full text-xs">
+                        <thead><tr className="text-left text-neutral-500"><th className="py-1 pr-3">{tr("Raw Material")}</th><th className="py-1 pr-3 text-right">{tr("Quantity")}</th>
+                          <th className="py-1 pr-3">{tr("Unit")}</th><th className="py-1 text-right">{tr("Value")}</th></tr></thead>
+                        <tbody className="divide-y divide-neutral-200/60">
+                          {mats.map((x) => (
+                            <tr key={x.code ?? x.name}><td className="py-1 pr-3 text-neutral-800">{x.name}<span className="ml-1.5 text-[10px] text-neutral-400">{x.code}</span></td>
+                              <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-sky-700")}>{num(x.qty)}</td><td className="py-1 pr-3 text-neutral-500">{x.unit}</td>
+                              <td className="py-1 text-right tabular-nums">{x.priced === false ? <span className="text-amber-600">{tr("No price")}</span> : rp(x.value)}</td></tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </td></tr>
+                  )}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
