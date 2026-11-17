@@ -6943,4 +6943,9 @@ export const ID: Record<string, string> = {
   "Set bundle contents": "Atur isi bundling",
   "Menu {0}": "Menu {0}",
   "per bundle": "per bundling",
+  "Status changes": "Perubahan status",
+  "changed the status": "mengubah status",
+  "Unassigned": "Belum ditugaskan",
+  "Live · updated {0}": "Live · diperbarui {0}",
+  "Request type": "Jenis",
 };

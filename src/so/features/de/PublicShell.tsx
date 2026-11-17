@@ -23,7 +23,7 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
   return (
     <div className="flex min-h-screen flex-col bg-neutral-100">
       <header className="bg-[#0b1f4d] text-white">
-        <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 sm:px-6">
           {/* eslint-disable-next-line @next/next/no-img-element -- brand logo from the assets bucket */}
           <img src={assetUrl("assets/calf-logo.png")} alt="Kopi Calf" className="h-10 w-10 flex-shrink-0 rounded-xl bg-white object-contain p-1" />
           <div className="min-w-0 flex-1">
@@ -44,9 +44,9 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
         </div>
         <div className="h-1 bg-brand-600" />
       </header>
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
       <footer className="border-t border-neutral-200 bg-white">
-        <p className="mx-auto max-w-4xl px-4 py-3 text-center text-[11px] text-neutral-400 sm:px-6">Kopi Calf Integrated Portal · Maintenance Request</p>
+        <p className="mx-auto max-w-6xl px-4 py-3 text-center text-[11px] text-neutral-400 sm:px-6">Kopi Calf Integrated Portal · Maintenance Request</p>
       </footer>
     </div>
   );

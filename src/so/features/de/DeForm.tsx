@@ -27,7 +27,7 @@ import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import RequestView, { AddPhotoTile, EvidenceGrid, StatusBadge } from "./RequestView";
 import { SkeletonList } from "@/components/kc/Skeleton";
-import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, alreadyAsked, download, fmtHours, fmtMb, IMPACTS, REASONS, STEPS_OF } from "./de";
+import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, alreadyAsked, download, fmtHours, fmtMb, IMPACTS, REASONS, STEPS_OF, useLive } from "./de";
 
 export default function DeForm({ kind }: { kind: Kind }) {
   const toast = useToast();
@@ -272,7 +272,10 @@ function MyRequest({ id, onClose }: { id: string; onClose: () => void }) {
   const [r, setR] = useState<Request | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [camera, setCamera] = useState<"MONITOR" | "HANDOVER" | null>(null);
-  useEffect(() => { call<Request>(`/api/de/requests/${id}`).then(setR).catch((e) => setError((e as Error).message)); }, [id]);
+  const load = useCallback((first = false) => call<Request>(`/api/de/requests/${id}`).then(setR).catch((e) => { if (first) setError((e as Error).message); }), [id]);
+  useEffect(() => { void load(true); }, [load]);
+  // live (2026-11-17): the team's steps, notes and photos show without a reload; paused while the camera is open
+  useLive(() => load(), 20000, camera === null);
   const addPhoto = async (shot: Shot) => {
     try {
       setR(await call<Request>(`/api/de/requests/${id}/${camera === "HANDOVER" ? "handover" : "monitor"}-photos`,

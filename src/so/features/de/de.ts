@@ -2,6 +2,7 @@
 // forms (PIC), the monitoring (one page, a tab per form) and the public share page. 2026-11-16 (migration 114): each form
 // has its categories and flow; the urgency comes from the impact / reason and the branch's sales tier (priority()).
 
+import { useEffect, useRef } from "react";
 import { downloadFile } from "@/lib/download-progress";
 import { tr } from "@/lib/i18n";
 import type { Tone } from "@/so/ui";
@@ -156,6 +157,22 @@ export function alreadyAsked(item: { categoryId: number; name: string }, open: R
     if ((r.items ?? []).some((i) => i.categoryId === item.categoryId && i.name.trim().toLowerCase() === n)) return r.number ?? "draft";
   }
   return null;
+}
+
+/** Live (2026-11-17): calls `refresh` every `ms` while the page is visible and at once when it comes back (tab, focus),
+ *  so photos, attachments and steps of the others show without a reload. Stops when `on` is false. */
+export function useLive(refresh: () => unknown, ms = 15000, on = true) {
+  const fn = useRef(refresh);
+  useEffect(() => { fn.current = refresh; });
+  useEffect(() => {
+    if (!on) return;
+    const visible = () => typeof document === "undefined" || document.visibilityState === "visible";
+    const tick = () => { if (visible()) void fn.current(); };
+    const t = setInterval(tick, ms);
+    document.addEventListener("visibilitychange", tick);
+    window.addEventListener("focus", tick);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", tick); window.removeEventListener("focus", tick); };
+  }, [ms, on]);
 }
 
 export async function download(url: string, name: string) {

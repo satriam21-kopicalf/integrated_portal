@@ -4,7 +4,8 @@
 // share link — in numbered cards like the other drawers: status & steps, time per stage, items, analysis, evidence,
 // handling (technicians, cost, invoices, photos of the work done), the timeline with every note and the signature.
 
-import { AlertTriangle, Calendar, CalendarClock, Camera, Check, CircleDot, Download, FileText, Handshake, MapPin, PauseCircle, User, Video, Wrench, XCircle } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, Calendar, CalendarClock, Camera, Check, Download, FileText, Handshake, MapPin, PauseCircle, User, Video, Wrench, XCircle } from "lucide-react";
 import { Badge, cx } from "@/so/ui";
 import { FormCard } from "@/so/ui/Simple";
 import { wibDateTime } from "@/so/lib/wib";
@@ -25,26 +26,39 @@ export function UrgencyBadge({ u }: { u: Request["urgency"] }) {
   return <Badge tone={URGENCY_TONE[u]} icon={u === "CRITICAL" ? <AlertTriangle size={11} /> : undefined}>{URGENCY_LABEL[u]()}</Badge>;
 }
 
-/** Pending → … → Done with the current step; on hold / reject shown on the step where it stopped. */
+/** When each step was reached (the last time the request moved to it; sending = the first step). */
+function reachedAt(r: Request): Partial<Record<Request["status"], { at: string; by: string | null }>> {
+  const out: Partial<Record<Request["status"], { at: string; by: string | null }>> = {};
+  if (r.submittedAt) out.PENDING = { at: r.submittedAt, by: r.picName };
+  for (const e of r.events ?? []) if (e.kind === "STATUS" && e.to) out[e.to] = { at: e.at, by: e.actor };
+  if (r.handover?.at && !out.HANDOVER) out.HANDOVER = { at: r.handover.at, by: r.handover.picName };
+  return out;
+}
+
+/** The workflow (Jira-like, 2026-11-17): Submitted → … → Done, each step with when and by whom it was reached; on hold /
+ *  reject shown on the step where it stopped. */
 export function Steps({ r }: { r: Request }) {
   const at = r.status === "ON_HOLD" ? r.holdFrom : r.status;
   const STEPS = STEPS_OF[r.kind];
   const idx = at ? STEPS.indexOf(at) : -1;
+  const when = reachedAt(r);
   return (
     <div>
       <ol className="flex items-start">
         {STEPS.map((s, i) => {
           const done = r.status === "DONE" || i < idx;
           const here = i === idx && r.status !== "DONE";
+          const w = done || here ? when[s] : undefined;
           return (
-            <li key={s} className="relative flex flex-1 flex-col items-center text-center">
-              {i > 0 && <span className={cx("absolute right-1/2 top-3 h-0.5 w-full", done || here ? "bg-brand-600" : "bg-neutral-200")} aria-hidden />}
-              <span className={cx("relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold",
-                done ? "bg-brand-600 text-white" : here ? (r.status === "ON_HOLD" ? "bg-amber-500 text-white" : r.status === "REJECTED" ? "bg-red-600 text-white" : "bg-brand-600 text-white ring-4 ring-brand-100")
-                  : "bg-neutral-200 text-neutral-500")}>
-                {done ? <Check size={13} /> : here && r.status === "ON_HOLD" ? <PauseCircle size={13} /> : here && r.status === "REJECTED" ? <XCircle size={13} /> : i + 1}
+            <li key={s} className="relative flex min-w-0 flex-1 flex-col items-center px-0.5 text-center">
+              {i > 0 && <span className={cx("absolute right-1/2 top-3.5 h-0.5 w-full", done || here ? "bg-brand-600" : "bg-neutral-200")} aria-hidden />}
+              <span className={cx("relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold",
+                done ? "bg-brand-600 text-white" : here ? (r.status === "ON_HOLD" ? "bg-amber-500 text-white ring-4 ring-amber-100" : r.status === "REJECTED" ? "bg-red-600 text-white ring-4 ring-red-100" : "bg-white text-brand-700 ring-2 ring-brand-600")
+                  : "bg-white text-neutral-400 ring-1 ring-neutral-300")}>
+                {done ? <Check size={14} /> : here && r.status === "ON_HOLD" ? <PauseCircle size={14} /> : here && r.status === "REJECTED" ? <XCircle size={14} /> : i + 1}
               </span>
-              <span className={cx("mt-1 text-[10px] font-medium leading-tight sm:text-[11px]", done || here ? "text-neutral-900" : "text-neutral-400")}>{statusLabel(r.kind, s)}</span>
+              <span className={cx("mt-1.5 text-[10px] font-semibold leading-tight sm:text-xs", here ? "text-brand-700" : done ? "text-neutral-900" : "text-neutral-400")}>{statusLabel(r.kind, s)}</span>
+              {w && <span className="mt-0.5 hidden text-[10px] leading-tight text-neutral-500 sm:block">{wibDateTime(w.at)}</span>}
             </li>
           );
         })}
@@ -150,9 +164,30 @@ export function Invoices({ list, urls, onRemove }: { list: Media[]; urls: MediaU
   );
 }
 
+const initials = (name: string | null) => (name ?? "?").split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "?";
+type ActivityFilter = "all" | "notes" | "status";
+
+/** The activity of a request (Jira-like, 2026-11-17): who did what and when, newest first, every note as a comment;
+ *  filtered to all / notes / status changes. */
 export function Timeline({ events }: { events: DeEvent[] }) {
+  const [f, setF] = useState<ActivityFilter>("all");
+  const shown = events.filter((e) => f === "all" || (f === "notes" ? !!e.note : e.kind === "STATUS" || e.kind === "SUBMIT" || e.kind === "HANDOVER"));
   return (
-    <ol className="relative space-y-4 border-l border-neutral-200 pl-5">
+    <div className="space-y-3">
+      <div className="flex gap-1" role="tablist" aria-label={tr("Activity")}>
+        {([["all", tr("All")], ["status", tr("Status changes")], ["notes", tr("Notes")]] as [ActivityFilter, string][]).map(([k, label]) => (
+          <button key={k} type="button" role="tab" aria-selected={f === k} onClick={() => setF(k)}
+            className={cx("rounded-md px-2.5 py-1 text-xs font-medium", f === k ? "bg-brand-50 text-brand-700 ring-1 ring-brand-200" : "text-neutral-500 hover:bg-neutral-100")}>{label}</button>
+        ))}
+      </div>
+      {shown.length === 0 ? <p className="py-3 text-center text-sm text-neutral-400">{tr("Nothing yet")}</p> : <Activity events={shown} />}
+    </div>
+  );
+}
+
+function Activity({ events }: { events: DeEvent[] }) {
+  return (
+    <ol className="space-y-4">
       {[...events].reverse().map((e) => {
         const tech = e.details?.technician as string | undefined;
         const what = e.kind === "STATUS" ? `${e.from ? STATUS_LABEL[e.from]() : ""} → ${e.to ? STATUS_LABEL[e.to]() : ""}`
@@ -163,19 +198,56 @@ export function Timeline({ events }: { events: DeEvent[] }) {
           : e.kind === "WORK" ? (e.details?.link === "sent" ? tr("Technician sent {0} photo(s) of the work", String(e.details?.photos ?? 0)) : tr("Photo link sent to {0}", String(tech ?? "")))
           : e.kind === "COST" ? (e.details?.invoice !== undefined ? tr("Invoice attached: {0}", String(e.details.invoice)) : `${EVENT_LABEL.COST()}: ${fmtRp(e.details?.estCost as number)} / ${fmtRp(e.details?.actualCost as number)}`)
           : `${EVENT_LABEL[e.kind]()}${tech ? `: ${tech}` : ""}${e.details?.scheduledFor ? ` · ${tr("scheduled {0}", String(e.details.scheduledFor))}` : ""}`;
+        const tone = e.to === "REJECTED" ? "bg-red-100 text-red-700" : e.to === "ON_HOLD" ? "bg-amber-100 text-amber-800"
+          : e.to === "DONE" || e.kind === "HANDOVER" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-emerald-100 text-emerald-700"
+          : e.kind === "TARGET" ? "bg-violet-100 text-violet-700" : "bg-brand-100 text-brand-700";
         return (
-          <li key={e.id} className="relative">
-            <span className={cx("absolute -left-[1.6rem] top-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-white",
-              e.to === "REJECTED" ? "bg-red-500" : e.to === "ON_HOLD" ? "bg-amber-500" : e.to === "DONE" || e.kind === "HANDOVER" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-emerald-500" : e.kind === "TARGET" ? "bg-violet-500" : e.kind === "NOTE" ? "bg-neutral-400" : "bg-brand-500")}>
-              <CircleDot size={10} className="text-white" />
-            </span>
-            <p className="text-sm font-medium text-neutral-900">{what}</p>
-            <p className="text-[11px] text-neutral-500">{wibDateTime(e.at)}{e.actor ? ` · ${e.actor}` : ""}</p>
-            {e.note && <p className="mt-1 whitespace-pre-line rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{e.note}</p>}
+          <li key={e.id} className="flex gap-3">
+            <span className={cx("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold", tone)} aria-hidden>{initials(e.actor)}</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm text-neutral-700"><span className="font-semibold text-neutral-900">{e.actor ?? tr("System")}</span>{" "}
+                {e.kind === "STATUS" && e.to ? (
+                  <>{tr("changed the status")} <span className="inline-flex flex-wrap items-center gap-1 align-middle">
+                    {e.from && <Badge tone={STATUS_TONE[e.from]}>{STATUS_LABEL[e.from]()}</Badge>}<span className="text-neutral-400">→</span><Badge tone={STATUS_TONE[e.to]}>{STATUS_LABEL[e.to]()}</Badge></span></>
+                ) : <span>{what}</span>}</p>
+              <p className="mt-0.5 text-[11px] text-neutral-400">{wibDateTime(e.at)}</p>
+              {e.note && <p className="mt-1.5 whitespace-pre-line rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm">{e.note}</p>}
+            </div>
           </li>
         );
       })}
     </ol>
+  );
+}
+
+/** The details sidebar (Jira-like, 2026-11-17): every field of the request in one list. */
+export function DetailsPanel({ r, hidePriority = false }: { r: Request; hidePriority?: boolean }) {
+  const techs = (r.assignments ?? []).filter((a) => a.status !== "RELEASED").map((a) => a.name);
+  const rows: [string, React.ReactNode][] = [
+    [tr("Status"), <StatusBadge key="s" r={r} />],
+    ...(!hidePriority ? [[tr("Priority"), <UrgencyBadge key="u" u={r.urgency} />] as [string, React.ReactNode]] : []),
+    [tr("Request type"), r.kindLabel],
+    [tr("Outlet"), <span key="o">{r.branchName}<span className="block text-[11px] text-neutral-400">{r.branchCode}</span></span>],
+    ["PIC", r.picName],
+    [r.mode === "VENDOR" ? tr("Vendor") : tr("Technician"), techs.join(", ") || <span key="n" className="text-neutral-400">{tr("Unassigned")}</span>],
+    [tr("Sent"), wibDateTime(r.submittedAt)],
+    [tr("Estimated Finish"), <span key="d" className={r.tracker?.overdue || r.tracker?.late ? "font-semibold text-red-600" : undefined}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}</span>],
+    [tr("Updated"), wibDateTime(r.updatedAt)],
+    ...(r.closedAt ? [[tr("Closed"), wibDateTime(r.closedAt)] as [string, React.ReactNode]] : []),
+    ...(r.estCost !== null || r.actualCost !== null ? [[tr("Cost"), <span key="c" className="tabular-nums">{fmtRp(r.actualCost ?? r.estCost)}
+      <span className="block text-[11px] text-neutral-400">{r.actualCost !== null ? tr("Actual cost") : tr("Estimated cost")}</span></span>] as [string, React.ReactNode]] : []),
+  ];
+  return (
+    <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+      <h3 className="border-b border-neutral-100 px-4 py-2.5 text-sm font-semibold text-neutral-900">{tr("Details")}</h3>
+      <dl className="divide-y divide-neutral-100">
+        {rows.map(([k, v]) => (
+          <div key={k} className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-2 px-4 py-2 text-sm">
+            <dt className="text-xs font-medium text-neutral-500">{k}</dt><dd className="min-w-0 break-words text-neutral-900">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 
@@ -191,8 +263,17 @@ export function TargetNote({ r }: { r: Request }) {
   );
 }
 
+/** The title of a request: its items ("Freezer 310L × 1, Showcase … +2"), else the form. */
+export function summary(r: Pick<Request, "items" | "kindLabel">) {
+  const items = r.items ?? [];
+  if (!items.length) return r.kindLabel;
+  const head = items.slice(0, 2).map((i) => (i.qty > 1 ? `${i.name} × ${i.qty}` : i.name)).join(", ");
+  return items.length > 2 ? `${head} +${items.length - 2}` : head;
+}
+
 /** The head of a request: kind and number, status and urgency, the key facts, the steps and the reason of a hold / reject. */
-export function RequestHero({ r, compact = false }: { r: Request; compact?: boolean }) {
+export function RequestHero({ r, compact = false, facts: showFacts = true }: { r: Request; compact?: boolean;
+  /** false beside a details sidebar (share link, 2026-11-17) */ facts?: boolean }) {
   const why = r.status === "ON_HOLD" || r.status === "REJECTED" ? [...(r.events ?? [])].reverse().find((e) => e.to === r.status && e.note)?.note : null;
   const techs = (r.assignments ?? []).filter((a) => a.status !== "RELEASED").map((a) => a.name);
   const facts: [React.ReactNode, string, React.ReactNode][] = [
@@ -208,22 +289,24 @@ export function RequestHero({ r, compact = false }: { r: Request; compact?: bool
     <section className={cx("overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm", compact && "rounded-xl")}>
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-4 sm:px-5">
         <div className="min-w-0">
-          <p className="font-mono text-xs font-semibold text-brand-700">{r.number}</p>
-          <h2 className={cx("font-semibold text-neutral-900", compact ? "text-base" : "text-lg sm:text-xl")}>{r.kindLabel}</h2>
+          {/* breadcrumb and summary like an issue (2026-11-17): Maintenance / MR-2611-001, then what is asked */}
+          <p className="flex items-center gap-1.5 text-xs text-neutral-500"><span>{r.kindLabel}</span><span className="text-neutral-300">/</span>
+            <span className="font-mono font-semibold text-brand-700">{r.number ?? tr("Draft")}</span></p>
+          <h2 className={cx("mt-0.5 font-semibold leading-snug text-neutral-900", compact ? "text-base" : "text-lg sm:text-xl")}>{summary(r)}</h2>
           <p className="flex items-center gap-1 text-xs text-neutral-500"><MapPin size={12} /> {r.branchName} ({r.branchCode})
             {r.distanceM !== null && <span className={r.outsideRadius ? "text-red-600" : undefined}> · {tr("sent {0} m from the outlet", r.distanceM)}</span>}</p>
         </div>
         <span className="flex flex-wrap gap-1.5"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>
       </div>
-      <dl className="grid grid-cols-2 border-y border-neutral-100 bg-neutral-50/60 sm:grid-cols-4">
+      {showFacts && <dl className="grid grid-cols-2 border-y border-neutral-100 bg-neutral-50/60 sm:grid-cols-4">
         {facts.map(([icon, k, v], i) => (
           <div key={k} className={cx("px-4 py-2.5 sm:px-5", i % 2 === 1 && "border-l border-neutral-100", i >= 2 && "border-t border-neutral-100 sm:border-t-0", i === 2 && "sm:border-l")}>
             <dt className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400">{icon}{k}</dt>
             <dd className="mt-0.5 truncate text-sm font-medium text-neutral-900">{v}</dd>
           </div>
         ))}
-      </dl>
-      <div className="px-4 py-4 sm:px-5">
+      </dl>}
+      <div className={cx("px-4 py-4 sm:px-5", !showFacts && "border-t border-neutral-100")}>
         <Steps r={r} />
         <div className="mt-2"><TargetNote r={r} /></div>
         {why && <p className={cx("mt-2 rounded-lg px-3 py-2 text-xs", r.status === "ON_HOLD" ? "bg-amber-50 text-amber-900" : "bg-red-50 text-red-800")}><b>{tr("Reason")}:</b> {why}</p>}
@@ -243,7 +326,7 @@ function SignBox({ title, name, src }: { title: string; name: string; src?: stri
   );
 }
 
-type Part = "all" | "detail" | "handling" | "history";
+type Part = "all" | "detail" | "handling" | "history" | "tracker" | "activity";
 
 /** The request in cards. part: all (the PIC's view: everything in order), detail (items, analysis, evidence, signature),
  *  handling (technicians, cost, invoices, work photos), history (time per stage and the timeline). `children` (the team's
@@ -258,7 +341,7 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
   const active = (r.assignments ?? []).filter((a) => a.status !== "RELEASED");
   const handled = active.length > 0 || invoices.length > 0 || (r.media ?? []).some((m) => m.kind === "AFTER" || m.kind === "MONITOR") || r.estCost !== null || r.actualCost !== null;
   const ho = r.handover;
-  const show = (p: Part) => part === "all" || part === p;
+  const show = (p: Part) => part === "all" || part === p || (part === "history" && (p === "tracker" || p === "activity"));
   let n = 0;
   const next = () => (numbered ? ++n : undefined);
   return (
@@ -282,7 +365,7 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
 
       {part === "all" && children}
 
-      {show("history") && r.tracker && r.tracker.totalHours !== null && (
+      {show("tracker") && r.tracker && r.tracker.totalHours !== null && (
         <FormCard n={next()} title={tr("Time Tracker")} hint={tr("Time per stage from sending; on hold counted apart")}
           aside={r.tracker.slaHours !== null ? <Badge tone={r.tracker.overdue ? "red" : "green"}>{r.tracker.overdue ? tr("Past target ({0})", fmtHours(r.tracker.slaHours)) : tr("Target {0}", fmtHours(r.tracker.slaHours))}</Badge> : undefined}>
           <Tracker r={r} />
@@ -363,8 +446,8 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
         </FormCard>
       )}
 
-      {show("history") && (
-        <FormCard n={next()} title={tr("Progress & Notes")} hint={tr("Every step of the team, newest first")}>
+      {show("activity") && (
+        <FormCard n={next()} title={tr("Activity")} hint={tr("Every step of the team, newest first")}>
           <Timeline events={r.events ?? []} />
         </FormCard>
       )}

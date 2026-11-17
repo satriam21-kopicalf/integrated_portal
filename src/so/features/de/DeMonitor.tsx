@@ -26,7 +26,7 @@ import { type Approver, type StepEdit, StepRow } from "@/so/features/pengajuan/P
 import { useAuth } from "@/lib/auth";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, KIND_LABEL, OPEN, PORTAL_URLS,
-  STATUS_LABEL, STEPS_OF, URGENCIES, statusLabel, type Kind, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, workUrl } from "./de";
+  STATUS_LABEL, STEPS_OF, URGENCIES, statusLabel, type Kind, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, useLive, workUrl } from "./de";
 
 type Result = { period: { from: string; to: string }; data: Request[]; categories: Category[]; technicians: Technician[] };
 /** group = category group (Utilitas …), bgroup = branch group (CCI, CTG, CTGP: Monitoring → Branch groups) */
@@ -370,11 +370,8 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   useEffect(() => { void load(); }, [load]);
   // the technician's photos arrive while the drawer is open: refresh while a link is open
   const waiting = (r?.workLinks ?? []).some((l) => l.state === "OPEN") || (r?.status === "HANDOVER" && !r.handover?.at);
-  useEffect(() => {
-    if (!waiting) return;
-    const t = setInterval(() => void load(), 15000);
-    return () => clearInterval(t);
-  }, [waiting, load]);
+  // live (2026-11-17): every 15 s while a link / handover is waited for, else every 30 s, and when the tab comes back
+  useLive(load, waiting ? 15000 : 30000);
   useEffect(() => { if (r && !OPEN_SET.has(r.status)) setTab((t) => (t === "handle" ? "detail" : t)); }, [r?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const act = async (path: string, json: unknown, ok: string, method = "POST") => {
