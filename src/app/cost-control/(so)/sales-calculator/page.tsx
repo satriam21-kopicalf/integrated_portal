@@ -785,7 +785,8 @@ function MenuAssign() {
                             {!m.recipe && m.bundle && (m.bundle.auto
                               ? <p className="mt-1 text-[11px] leading-snug text-emerald-700">{tr("Costed from ESB: {0}", m.bundle.contents.map((c) => `${c.qty}× ${c.name}`).join(" + "))}</p>
                               : <p className="mt-1 text-[11px] leading-snug text-amber-700">{tr("Check: {0}", m.bundle.reasons.join("; "))}</p>)}
-                            {(!!m.bundle || /bundl/i.test(m.name) || m.recipe?.startsWith("BND-")) && (
+                            {/* any menu without a card may be filled as a bundle ("Brownies Fudgy + Es Kopi", 2026-11-17) */}
+                            {(!!m.bundle || !m.recipe || /bundl|\s\+\s/i.test(m.name) || m.recipe?.startsWith("BND-")) && (
                               <button type="button" onClick={() => setBundleFor(m)} className="mt-1 text-[11px] font-medium text-brand-700 hover:underline">
                                 {m.recipe?.startsWith("BND-") ? tr("Edit bundle contents") : tr("Set bundle contents")}
                               </button>
