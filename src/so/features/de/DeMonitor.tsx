@@ -7,7 +7,7 @@
 // — internal or vendor, never both —, work photos via the technician link (internal), the PIC's handover, cost & invoices,
 // duplicates), the request and its history. Overview: the analysis of every request and its handling (DeOverview).
 
-import { AlertTriangle, BarChart3, CalendarClock, Camera, Check, ChevronDown, ChevronRight, Clock, Copy, Hammer, Handshake, Link2, ListChecks,
+import { AlertTriangle, BarChart3, CalendarClock, Camera, Check, ChevronDown, Columns3, ChevronRight, Clock, Copy, Hammer, Handshake, Link2, ListChecks,
   MessageCircle, Paperclip, PenLine, Plus, Save, Shuffle, ShoppingCart, Tags, Trash2, Upload, Users, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -19,7 +19,7 @@ import CameraCapture, { type Shot } from "@/so/features/count/CameraCapture";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import RequestView, { Gallery, Invoices, RequestHero, StatusBadge, UrgencyBadge } from "./RequestView";
+import RequestView, { Gallery, Invoices, RequestHero, StatusBadge, UrgencyBadge, summary } from "./RequestView";
 import DeOverview from "./DeOverview";
 import { DocActions } from "./DeForm";
 import { type Approver, type StepEdit, StepRow } from "@/so/features/pengajuan/PengajuanMonitor";
@@ -30,7 +30,7 @@ import { type Category, type CostItem, type CostKind, type Request, type Status,
 
 type Result = { period: { from: string; to: string }; data: Request[]; categories: Category[]; technicians: Technician[] };
 /** group = category group (Utilitas …), bgroup = branch group (CCI, CTG, CTGP: Monitoring → Branch groups) */
-type F = { period: Period; kind: string; urgency: string; group: string; tech: string; overdue: boolean; by: "none" | "branch" | "pic";
+type F = { period: Period; kind: string; urgency: string; group: string; tech: string; overdue: boolean; by: "none" | "branch" | "pic" | "board";
   bgroup: string; branch: string; pic: string };
 const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "", urgency: "", group: "", tech: "", overdue: false, by: "branch",
   bgroup: "", branch: "", pic: "" });
@@ -66,6 +66,8 @@ export default function DeMonitor() {
     }
   }, [f.period, f.bgroup]);
   useEffect(() => { void load(); }, [load]);
+  // live (2026-11-17): new requests and steps of the others show without a reload; quiet while a request is open
+  useLive(load, 30000, !open);
   useEffect(() => { void call<{ groups: GroupOpt[] }>("/api/monitoring/branch-groups").then((r) => setBgroups(r.groups)).catch(() => setBgroups([])); }, []);
 
   const all = useMemo(() => (res?.data ?? []).filter((r) => r.kind === kind), [res, kind]);
@@ -96,14 +98,14 @@ export default function DeMonitor() {
     ...(f.bgroup ? [{ key: "bg", label: `${tr("Group")} ${f.bgroup === "none" ? tr("Without a Group") : bgroups.find((g) => g.id === f.bgroup)?.code ?? ""}`, onRemove: () => setF({ ...f, bgroup: "" }) }] : []),
     ...(f.branch ? [{ key: "b", label: all.find((r) => r.branchCode === f.branch)?.branchName ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
     ...(f.pic ? [{ key: "pic", label: all.find((r) => r.username === f.pic)?.picName ?? f.pic, onRemove: () => setF({ ...f, pic: "" }) }] : []),
-    ...(f.by !== "branch" ? [{ key: "by", label: f.by === "pic" ? tr("Per PIC") : tr("List"), onRemove: () => setF({ ...f, by: "branch" }) }] : []),
+    ...(f.by === "pic" || f.by === "none" ? [{ key: "by", label: f.by === "pic" ? tr("Per PIC") : tr("List"), onRemove: () => setF({ ...f, by: "branch" }) }] : []),
   ];
   const branchOpts = useMemo(() => [...new Map(all.map((r) => [r.branchCode, r.branchName])).entries()].map(([value, label]) => ({ value, label })), [all]);
   const picOpts = useMemo(() => [...new Map(all.map((r) => [r.username, r.picName])).entries()].map(([value, label]) => ({ value, label })), [all]);
 
   // grouped per branch / PIC: open requests first, the group with the most urgent request on top
   const grouped = useMemo(() => {
-    if (f.by === "none") return null;
+    if (f.by === "none" || f.by === "board") return null;
     const m = new Map<string, { key: string; title: string; sub: string; rows: Request[] }>();
     for (const r of rows) {
       const key = f.by === "branch" ? r.branchCode : r.username;
@@ -178,14 +180,21 @@ export default function DeMonitor() {
             })}
           </div>
           <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search number, outlet, PIC or item")} filters={chips}
-            onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
+            onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
+            extra={<div className="ml-auto flex rounded-lg bg-neutral-100 p-0.5" role="group" aria-label={tr("View")}>
+              {([["branch", tr("Table"), <ListChecks key="t" size={14} />], ["board", tr("Board"), <Columns3 key="b" size={14} />]] as [F["by"], string, React.ReactNode][]).map(([v, label, icon]) => {
+                const on = v === "board" ? f.by === "board" : f.by !== "board";
+                return <button key={v} type="button" aria-pressed={on} onClick={() => setF({ ...f, by: v === "board" ? "board" : f.by === "board" ? "branch" : f.by })}
+                  className={cx("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium", on ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900")}>{icon}{label}</button>;
+              })}
+            </div>} />
         </>}
-        footer={res && !grouped ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
+        footer={res && !grouped && f.by !== "board" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : res && rows.length === 0 ? (
           <Empty icon={<Wrench size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No request yet")}>
             {!all.length && tr("Requests appear here as soon as the PICs send them from Form → Maintenance Request.")}
           </Empty>
-        ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table> : grouped ? (
+        ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table> : f.by === "board" ? <Board rows={rows} kind={kind} onOpen={setOpen} /> : grouped ? (
           <ul className="divide-y divide-neutral-200">
             {grouped.map((g) => <Group key={g.key} g={g} onOpen={setOpen} />)}
           </ul>
@@ -197,6 +206,48 @@ export default function DeMonitor() {
       {open && res && <TeamDrawer id={open} technicians={res.technicians} all={all} onOpen={setOpen} onClose={() => setOpen(null)} onChanged={load} />}
       {approvals && <DeApprovals onClose={() => setApprovals(false)} />}
     </Page>
+  );
+}
+
+/** The board (Jira-like, 2026-11-17): a column per step of the form (on hold and rejected after them), a card per
+ *  request, the most urgent on top; a card opens the request. */
+function Board({ rows, kind, onOpen }: { rows: Request[]; kind: Kind; onOpen: (id: string) => void }) {
+  const cols: Status[] = [...STEPS_OF[kind], "ON_HOLD", "REJECTED"];
+  const of = (st: Status) => rows.filter((r) => r.status === st);
+  return (
+    <div className="overflow-x-auto p-3">
+      <div className="flex min-w-max gap-3">
+        {cols.map((st) => {
+          const list = of(st);
+          return (
+            <section key={st} className="flex w-72 flex-shrink-0 flex-col rounded-xl bg-neutral-100/80">
+              <h3 className="flex items-center gap-2 px-3 pb-2 pt-3 text-xs font-bold uppercase tracking-wide text-neutral-600">
+                <span className={cx("h-2 w-2 rounded-full", DOT[st] ?? "bg-cyan-500")} aria-hidden />{statusLabel(kind, st)}
+                <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px] tabular-nums text-neutral-500">{fmtNumber(list.length)}</span>
+              </h3>
+              <ul className="max-h-[38rem] space-y-2 overflow-y-auto px-2 pb-2">
+                {list.length === 0 && <li className="rounded-lg border border-dashed border-neutral-300 px-3 py-4 text-center text-[11px] text-neutral-400">{tr("Nothing yet")}</li>}
+                {list.map((r) => (
+                  <li key={r.id}>
+                    <button type="button" onClick={() => onOpen(r.id)}
+                      className={cx("w-full rounded-lg border border-l-4 border-neutral-200 bg-white p-3 text-left shadow-sm transition hover:border-brand-300 hover:shadow", STRIPE[r.urgency])}>
+                      <span className="block text-sm font-medium leading-snug text-neutral-900">{summary(r)}</span>
+                      <span className="mt-1 block truncate text-[11px] text-neutral-500">{r.branchName}</span>
+                      <span className="mt-2 flex items-center gap-1.5">
+                        <UrgencyBadge u={r.urgency} />
+                        {r.tracker?.overdue && <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-600"><Clock size={11} />{tr("Past target")}</span>}
+                        <span className="ml-auto font-mono text-[10px] font-semibold text-neutral-400">{r.number}</span>
+                      </span>
+                      {(r.technicians ?? []).length > 0 && <span className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-neutral-500"><Wrench size={11} />{(r.technicians ?? []).join(", ")}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

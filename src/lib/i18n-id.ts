@@ -6948,4 +6948,5 @@ export const ID: Record<string, string> = {
   "Unassigned": "Belum ditugaskan",
   "Live · updated {0}": "Live · diperbarui {0}",
   "Request type": "Jenis",
+  "Board": "Papan",
 };
