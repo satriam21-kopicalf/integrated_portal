@@ -16,6 +16,7 @@ import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator,
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast, searchClass } from "@/so/ui";
+import { SearchSelect } from "@/cotr/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
@@ -730,6 +731,7 @@ function MenuAssign() {
   const paged = usePaged(sorted.rows, JSON.stringify(f) + q + JSON.stringify(sorted.sort), 25);
   const free = all.filter((m) => !m.recipe).length;
   const recipeName = (code: string) => recipes.find((r) => r.code === code)?.name ?? code;
+  const recipeOptions = useMemo(() => recipes.map((r) => ({ value: r.code, label: r.name, hint: r.code })), [recipes]);
   const chips: ActiveFilter[] = [
     ...(f.status ? [{ key: "s", label: f.status === "with" ? tr("With a Card") : tr("Without a Card"), onRemove: () => setF({ ...f, status: "" }) }] : []),
     ...(f.brand ? [{ key: "b", label: brandList.find((b) => b.value === f.brand)?.label ?? f.brand, onRemove: () => setF({ ...f, brand: "" }) }] : []),
@@ -765,9 +767,12 @@ function MenuAssign() {
                       <td className="w-72 px-3 py-2.5 pr-5">
                         <div className="flex items-center gap-2">
                           <span className={cx("h-2 w-2 flex-shrink-0 rounded-full", m.recipe ? "bg-emerald-500" : "bg-amber-400")} aria-hidden />
-                          <select className={cx(inputClass, "h-9", !m.recipe && "text-neutral-400")} value={m.recipe ?? ""} disabled={busy === m.id || !recipes.length} onChange={(e) => void assign(m, e.target.value)} aria-label={`${tr("Recipe Card")} ${m.name}`}>
-                            <option value="">{tr("— No card —")}</option>{recipes.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
-                          </select>
+                          {/* searchable (2026-11-17): ~170 cards, typed by name or code; × takes the card off the menu */}
+                          <div className="min-w-0 flex-1">
+                            <SearchSelect value={m.recipe ?? ""} options={recipeOptions} placeholder={tr("— No card —")}
+                              disabled={busy === m.id || !recipes.length} ariaLabel={`${tr("Recipe Card")} ${m.name}`}
+                              onChange={(v) => { if ((v ?? "") !== (m.recipe ?? "")) void assign(m, v ?? ""); }} />
+                          </div>
                         </div>
                       </td>
                     </tr>

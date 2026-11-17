@@ -309,8 +309,9 @@ function FieldInput({ f, v, set, code, picture, onPicture }: {
 }
 
 /** A select with a search box and a hint per option (pool, armada, account …). */
-export function SearchSelect({ value, options, onChange, required, placeholder }: {
+export function SearchSelect({ value, options, onChange, required, placeholder, disabled, ariaLabel }: {
   value: string; options: Option[]; onChange: (v: string | null) => void; required?: boolean; placeholder?: string;
+  /** while saving (2026-11-17, Sales Calculator → Assign Menus) */ disabled?: boolean; ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
@@ -352,10 +353,11 @@ export function SearchSelect({ value, options, onChange, required, placeholder }
   const shown = options.filter((o) => !s || o.label.toLowerCase().includes(s) || o.value.toLowerCase().includes(s) || (o.hint ?? '').toLowerCase().includes(s));
   return (
     <div ref={box} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={cx(inputClass, 'flex items-center justify-between gap-2 text-left')}>
+      <button type="button" disabled={disabled} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={ariaLabel}
+        className={cx(inputClass, 'flex items-center justify-between gap-2 text-left', disabled && 'cursor-not-allowed opacity-60')}>
         <span className={cx('truncate', !current && 'text-neutral-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
         <span className="flex items-center gap-1">
-          {current && !required && <X size={14} className="text-neutral-400 hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
+          {current && !required && !disabled && <X size={14} className="text-neutral-400 hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
           <ChevronDown size={15} className={cx('text-neutral-400 transition-transform', open && 'rotate-180')} />
         </span>
       </button>
