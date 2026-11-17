@@ -104,6 +104,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const waiting = rows.filter((e) => e.status === "submitted" || e.status === "investigating");
   const waitingIds = new Set(waiting.map((x) => x.id));
   const pickedWaiting = [...picked].filter((id) => waitingIds.has(id));
+  const undoApproval = verdict === "rejected" && !picked.size && open?.status === "approved";
   const investigate = async () => {
     const ids = open && !picked.size ? [open.id] : pickedWaiting;
     setBusy(true);
@@ -323,6 +324,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             {open.investigationId
               ? <Button variant="secondary" onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={14} />{tr("Open the investigation")}</Button>
               : <Button variant="secondary" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button>}
+            {/* an approved entry can still be rejected by Cost Control (2026-11-17): it leaves the COGS and the stock */}
+            <Button variant="secondary" onClick={() => { setPicked(new Set()); setVerdict("rejected"); }}><XCircle size={14} />{tr("Reject")}</Button>
           </div>
         ) : open && review ? (
           <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
@@ -381,7 +384,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
       <ConfirmDialog open={!!verdict} busy={busy} danger={verdict === "rejected"}
         title={verdict === "approved" ? tr("Approve the waste?") : tr("Reject the waste?")}
         description={tr("{0} entries", open && !picked.size ? 1 : picked.size)}
-        confirmLabel={verdict === "approved" ? tr("Approve") : tr("Reject")} reasonLabel={tr("Note for the branch (optional)")}
+        confirmLabel={verdict === "approved" ? tr("Approve") : tr("Reject")}
+        // rejecting an approved entry takes it out of the COGS: the reason is required (2026-11-17)
+        reasonLabel={undoApproval ? tr("Reason for rejecting an approved waste") : tr("Note for the branch (optional)")} reasonRequired={undoApproval}
         onConfirm={(note) => void decide(note)} onClose={() => setVerdict(null)} />
     </Page>
   );
