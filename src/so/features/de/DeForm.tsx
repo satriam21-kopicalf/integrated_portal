@@ -406,7 +406,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   const pending = useRef<Record<string, unknown>>({});
   const base = `/api/de/requests/${r.id}`;
   // the categories offered to the branch's group (a category without groups goes to every branch)
-  const cats = useMemo(() => data.categories.filter((c) => (!c.kind || c.kind === r.kind)
+  const cats = useMemo(() => data.categories.filter((c) => (!c.kind || c.kind === r.kind) && (c.examples.length > 0 || c.group === MERCH_GROUP) /* only categories with an item list made by the team (2026-11-17) */
     && (!c.branchGroups?.length || c.branchGroups.includes(data.branchGroups?.[r.branchCode] ?? ""))), [data.categories, data.branchGroups, r.branchCode, r.kind]);
   const groups = useMemo(() => [...new Set(cats.map((c) => c.group))], [cats]);
   const photos = (r.media ?? []).filter((m) => m.kind === "PHOTO");
