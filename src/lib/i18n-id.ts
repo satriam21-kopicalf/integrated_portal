@@ -6949,4 +6949,8 @@ export const ID: Record<string, string> = {
   "Live · updated {0}": "Live · diperbarui {0}",
   "Request type": "Jenis",
   "Board": "Papan",
+  "from sales: {0}": "dari sales: {0}",
+  "The priority of a request follows the outlet's sales (Tier A top 20% → Critical, B → High, C bottom 20% → Normal), not the category.": "Prioritas pengajuan mengikuti sales outlet (Tier A 20% teratas → Kritis, B → Tinggi, C 20% terbawah → Normal), bukan kategori.",
+  "Final Works (PDF)": "Final Works (PDF)",
+  "Progress so far; the final document once Done": "Progres saat ini; dokumen final setelah Selesai",
 };

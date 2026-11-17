@@ -10,7 +10,7 @@ import { Badge, cx } from "@/so/ui";
 import { FormCard } from "@/so/ui/Simple";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_LABEL, STATUS_TONE, STEPS_OF, statusLabel, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
+import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_LABEL, STATUS_TONE, STEPS_OF, statusLabel, TIER_LABEL, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
 
 const EVENT_LABEL: Record<DeEvent["kind"], () => string> = {
   SUBMIT: () => tr("Request sent"), STATUS: () => tr("Status"), ASSIGN: () => tr("Technician assigned"), RELEASE: () => tr("Technician released"),
@@ -22,8 +22,9 @@ export function StatusBadge({ r }: { r: Pick<Request, "status" | "kind"> }) {
   return <Badge tone={STATUS_TONE[r.status]} dot>{statusLabel(r.kind, r.status)}</Badge>;
 }
 
-export function UrgencyBadge({ u }: { u: Request["urgency"] }) {
-  return <Badge tone={URGENCY_TONE[u]} icon={u === "CRITICAL" ? <AlertTriangle size={11} /> : undefined}>{URGENCY_LABEL[u]()}</Badge>;
+/** The priority; with `tier`, the sales tier of the outlet it comes from ("High · Tier B", 2026-11-18). */
+export function UrgencyBadge({ u, tier }: { u: Request["urgency"]; tier?: Request["tier"] }) {
+  return <span title={tier ? TIER_LABEL[tier]() : undefined}><Badge tone={URGENCY_TONE[u]} icon={u === "CRITICAL" ? <AlertTriangle size={11} /> : undefined}>{URGENCY_LABEL[u]()}{tier ? ` · Tier ${tier}` : ""}</Badge></span>;
 }
 
 /** When each step was reached (the last time the request moved to it; sending = the first step). */
@@ -225,7 +226,9 @@ export function DetailsPanel({ r, hidePriority = false }: { r: Request; hidePrio
   const techs = (r.assignments ?? []).filter((a) => a.status !== "RELEASED").map((a) => a.name);
   const rows: [string, React.ReactNode][] = [
     [tr("Status"), <StatusBadge key="s" r={r} />],
-    ...(!hidePriority ? [[tr("Priority"), <UrgencyBadge key="u" u={r.urgency} />] as [string, React.ReactNode]] : []),
+    // the priority is the outlet's sales tier (2026-11-18): shown with the tier it comes from
+    ...(!hidePriority ? [[tr("Priority"), <span key="u" className="inline-flex flex-col items-start gap-1"><UrgencyBadge u={r.urgency} />
+      {r.tier && <span className="text-[11px] text-neutral-500">{tr("from sales: {0}", TIER_LABEL[r.tier]())}</span>}</span>] as [string, React.ReactNode]] : []),
     [tr("Request type"), r.kindLabel],
     [tr("Outlet"), <span key="o">{r.branchName}<span className="block text-[11px] text-neutral-400">{r.branchCode}</span></span>],
     ["PIC", r.picName],
@@ -296,7 +299,7 @@ export function RequestHero({ r, compact = false, facts: showFacts = true }: { r
           <p className="flex items-center gap-1 text-xs text-neutral-500"><MapPin size={12} /> {r.branchName} ({r.branchCode})
             {r.distanceM !== null && <span className={r.outsideRadius ? "text-red-600" : undefined}> · {tr("sent {0} m from the outlet", r.distanceM)}</span>}</p>
         </div>
-        <span className="flex flex-wrap gap-1.5"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>
+        <span className="flex flex-wrap gap-1.5"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} tier={r.tier} /></span>
       </div>
       {showFacts && <dl className="grid grid-cols-2 border-y border-neutral-100 bg-neutral-50/60 sm:grid-cols-4">
         {facts.map(([icon, k, v], i) => (
@@ -384,7 +387,6 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
                     <span className="block text-xs text-neutral-500">{it.category} · {it.group}{it.location ? ` · ${it.location}` : ""}</span>
                     {it.note && <span className="mt-0.5 block text-xs text-neutral-600">{it.note}</span>}
                   </span>
-                  {!hidePriority && <UrgencyBadge u={it.urgency} />}
                 </li>
               ))}
             </ul>

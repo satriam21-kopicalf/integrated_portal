@@ -4,12 +4,13 @@
 // (status, urgency, key facts, steps), the request itself (items, analysis, evidence, handling, signature) and, beside
 // it, the time per stage and every note of the team. Read-only; the link expires (SHARE_LINK_DAYS). PDF to download.
 
-import { Check, Copy, Download, Info } from "lucide-react";
+import { Check, Copy, Info } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button, ToastProvider, useToast } from "@/so/ui";
 import PublicShell, { PublicError, PublicLoading } from "@/so/features/de/PublicShell";
 import RequestView, { DetailsPanel, RequestHero } from "@/so/features/de/RequestView";
+import { PdfIcon, WhatsAppIcon } from "@/so/features/de/icons";
 import { type Request, download, shareUrls, useLive } from "@/so/features/de/de";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
@@ -69,7 +70,9 @@ function ShareView() {
           <button type="button" onClick={() => void copy()} aria-label={tr("Copy Link")}
             className="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-white ring-1 ring-white/25 hover:bg-white/10 sm:inline-flex">
             {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? tr("Copied") : tr("Copy Link")}</button>
-          <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><Download size={14} /> PDF</Button>
+          <a href={`https://wa.me/?text=${encodeURIComponent(`${r.number} · ${r.kindLabel} · ${r.branchName}\n${typeof window === "undefined" ? "" : window.location.href}`)}`} target="_blank" rel="noreferrer"
+            aria-label="WhatsApp" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-xs font-medium text-neutral-800 hover:bg-neutral-50"><WhatsAppIcon size={16} /><span className="hidden sm:inline">WhatsApp</span></a>
+          <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><PdfIcon size={16} /> PDF</Button>
         </>
       )}>
       {error ? <PublicError message={error} /> : !r ? <PublicLoading /> : (

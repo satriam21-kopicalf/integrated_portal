@@ -234,7 +234,7 @@ function Board({ rows, kind, onOpen }: { rows: Request[]; kind: Kind; onOpen: (i
                       <span className="block text-sm font-medium leading-snug text-neutral-900">{summary(r)}</span>
                       <span className="mt-1 block truncate text-[11px] text-neutral-500">{r.branchName}</span>
                       <span className="mt-2 flex items-center gap-1.5">
-                        <UrgencyBadge u={r.urgency} />
+                        <UrgencyBadge u={r.urgency} tier={r.tier} />
                         {r.tracker?.overdue && <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-600"><Clock size={11} />{tr("Past target")}</span>}
                         <span className="ml-auto font-mono text-[10px] font-semibold text-neutral-400">{r.number}</span>
                       </span>
@@ -309,7 +309,7 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
               <tr key={r.id} onClick={() => onOpen(r.id)} className="group cursor-pointer hover:bg-brand-50/40">
                 <td className={cx("whitespace-nowrap border-l-4 py-3 pl-4 pr-3", STRIPE[r.urgency])}>
                   <span className="block font-mono text-xs font-semibold text-neutral-800">{r.number}</span>
-                  <span className="mt-0.5 flex items-center gap-1.5"><UrgencyBadge u={r.urgency} /><span className="text-[11px] text-neutral-500">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}</span></span>
+                  <span className="mt-0.5 flex items-center gap-1.5"><UrgencyBadge u={r.urgency} tier={r.tier} /><span className="text-[11px] text-neutral-500">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}</span></span>
                 </td>
                 <td className="max-w-[16rem] px-3 py-3">
                   <span className="block truncate font-medium text-neutral-900">{items(r)}</span>
@@ -936,11 +936,8 @@ function CategoriesDrawer({ kind, bgroups, onClose }: { kind: Kind; bgroups: Gro
             <datalist id="de-groups">{groups.map((g) => <option key={g} value={g} />)}</datalist>
           </Field>
           <Field label={tr("Category")} required><Input value={edit.name ?? ""} onChange={(e) => setEdit({ ...edit, name: e.target.value })} maxLength={80} /></Field>
-          <Field label={tr("Default Urgency")}>
-            <select value={edit.defaultUrgency} onChange={(e) => setEdit({ ...edit, defaultUrgency: e.target.value as Urgency })} className={cx(inputClass, "h-10 text-sm")}>
-              {URGENCIES.map((u) => <option key={u} value={u}>{URGENCY_LABEL[u]()}</option>)}
-            </select>
-          </Field>
+          {/* no urgency per category (2026-11-18): the priority of a request comes from the outlet's sales tier only */}
+          <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900">{tr("The priority of a request follows the outlet's sales (Tier A top 20% → Critical, B → High, C bottom 20% → Normal), not the category.")}</p>
           <Field label={tr("Branch Groups")} hint={tr("Only the outlets of these groups see the category on the form; none = every outlet")}>
             <div className="flex flex-wrap gap-1.5">
               {bgroups.map((g) => {
@@ -969,7 +966,6 @@ function CategoriesDrawer({ kind, bgroups, onClose }: { kind: Kind; bgroups: Gro
                       <span className="block truncate text-xs text-neutral-500">{c.examples.join(", ") || "—"}</span></span>
                     <span className="hidden flex-wrap justify-end gap-1 sm:flex">{c.branchGroups?.length ? c.branchGroups.map((id) => <Badge key={id} tone="blue">{bgroups.find((g) => g.id === id)?.code ?? "?"}</Badge>)
                       : <Badge>{tr("All Outlets")}</Badge>}</span>
-                    <UrgencyBadge u={c.defaultUrgency} />
                     <Button size="sm" variant="ghost" onClick={() => setEdit({ ...c, examplesText: c.examples.join(", ") })}>{tr("Edit")}</Button>
                   </li>
                 ))}

@@ -8,8 +8,8 @@
 // handover (link ?request=<id>) the PIC confirms at the outlet: 1-5 photos, their signature and, for a vendor, the
 // vendor's signature. Once Done the final document (work report / vendor's handover record) is downloadable.
 
-import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Copy, Download, FileCheck2, FileText,
-  Hammer, Handshake, Loader2, MessageCircle, PackagePlus, Plus, Send, Trash2, Video, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Copy, FileText,
+  Hammer, Handshake, Loader2, PackagePlus, Plus, Send, Trash2, Video, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -25,6 +25,7 @@ import { locate } from "@/so/lib/counts";
 import { TZ, wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
+import { PdfIcon, WhatsAppIcon } from "./icons";
 import RequestView, { AddPhotoTile, EvidenceGrid, StatusBadge } from "./RequestView";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, alreadyAsked, download, fmtHours, fmtMb, IMPACTS, REASONS, STEPS_OF, useLive } from "./de";
@@ -253,16 +254,17 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
       setBusy(false);
     }
   };
+  // one export (2026-11-18): Final Works (PDF) — the final document once Done (work report / vendor record), before that
+  // the report of the progress so far
   return (
     <div className="flex flex-wrap gap-2">
-      {r.status === "DONE" && (
-        <Button size="sm" loading={busy} onClick={() => void final()}><FileCheck2 size={14} /> {r.mode === "VENDOR" ? tr("Vendor handover record") : tr("Final work report")}</Button>
-      )}
-      <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><Download size={14} /> PDF</Button>
+      <Button size="sm" variant="secondary" loading={busy} onClick={() => void (r.status === "DONE" ? final() : pdf())}
+        title={r.status === "DONE" ? (r.mode === "VENDOR" ? tr("Vendor handover record") : tr("Final work report")) : tr("Progress so far; the final document once Done")}>
+        <PdfIcon size={16} /> {tr("Final Works (PDF)")}</Button>
       {url && <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy Link")}</Button>}
       {url && <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"
         className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-        <MessageCircle size={14} className="text-emerald-600" /> WhatsApp</a>}
+        <WhatsAppIcon size={16} /> WhatsApp</a>}
     </div>
   );
 }
