@@ -46,6 +46,8 @@ export interface AuthUser {
   profileComplete: boolean;
   /** the HRMS employee the account follows (backend migration 110): job title / department come from HRMS */
   hrmsEmployeeId?: string | null;
+  /** person (made from its HRMS employee) | shared (a team sign-in) | test (migration 115) */
+  accountKind?: 'person' | 'shared' | 'test';
   hrmsLinkedBy?: string | null;
   /** profile keys that follow HRMS and are read-only */
   hrmsLocked?: string[];

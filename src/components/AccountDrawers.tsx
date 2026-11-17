@@ -131,6 +131,8 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <Pill tone={user.role === 'superadmin' ? 'red' : 'brand'} icon={user.role === 'superadmin' ? <ShieldCheck size={11} /> : undefined}>{role}</Pill>
                   {user.hrmsEmployeeId && <Pill tone="green" icon={<Link2 size={11} />}>{tr('Linked to HRMS')}</Pill>}
+                  {user.accountKind === 'shared' && <Pill tone="gray">{tr('Shared account')}</Pill>}
+                  {user.accountKind === 'test' && <Pill tone="amber">{tr('Test account')}</Pill>}
                   <Pill tone={filled === REQUIRED_PROFILE_KEYS.length ? 'green' : 'amber'}>{tr('Profile')} {filled}/{REQUIRED_PROFILE_KEYS.length}</Pill>
                 </div>
               </div>

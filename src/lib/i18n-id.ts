@@ -6914,4 +6914,11 @@ export const ID: Record<string, string> = {
   "What is needed": "Apa yang dibutuhkan",
   "Why it is needed": "Alasan kebutuhan",
   "For the team; the priority comes from the sales of the branch": "Untuk tim; prioritas berasal dari sales cabang",
+  // account kind (2026-11-17)
+  "A person account is made from its HRMS employee: name, job title and department follow HRMS.": "Akun orang dibuat dari data karyawannya di HRMS: nama, jabatan dan departemen mengikuti HRMS.",
+  "A shared or test account is never linked to HRMS and is left out of the person scores.": "Akun bersama atau testing tidak pernah ditautkan ke HRMS dan tidak ikut dalam penilaian orang.",
+  "Person (HRMS employee)": "Orang (karyawan HRMS)",
+  "Shared account (a team)": "Akun bersama (satu tim)",
+  "Test account": "Akun testing",
+  "Shared account": "Akun bersama",
 };

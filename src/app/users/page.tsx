@@ -580,7 +580,9 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
   const [hrmsPick, setHrmsPick] = useState<HrmsEmployee | null>(null);
   const [hrmsChange, setHrmsChange] = useState<string | undefined>(undefined);
   const hrmsLinked = hrmsChange === undefined ? !!user?.hrmsEmployeeId : !!hrmsChange;
-  const person = followsHrms(form.role);
+  // migration 115: a person account is made from its HRMS employee; a shared or test account says so and is never linked
+  const [accountKind, setAccountKind] = useState<'person' | 'shared' | 'test'>(user?.accountKind ?? 'person');
+  const person = followsHrms(form.role) && accountKind === 'person';
   // the profile keys shown read-only: those the picked employee has, else those the server locks for the account
   const hrmsFields = useMemo<string[]>(() => (!person || !hrmsLinked ? []
     : hrmsPick ? HRMS_FIELDS.filter(k => hrmsValue(hrmsPick, k)) : (user?.hrmsLocked ?? [])), [person, hrmsLinked, hrmsPick, user]);
@@ -625,6 +627,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
       body.pageOverrides = Object.fromEntries(Object.entries(pageOverrides).filter(([k, v]) => v && (k === 'form.wwwr' || k === 'mon.wwwr')));
     }
     body.businessLine = businessLine;
+    if (followsHrms(form.role)) body.accountKind = accountKind;
     if (person && hrmsChange !== undefined) body.hrmsEmployeeId = hrmsChange;
     if (person && hrmsLinked) for (const k of hrmsFields) delete body[k];
     if (cotrMode) {
@@ -633,7 +636,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
       delete body.branches;
     }
     return body;
-  }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages, cotrMode, cotrEmployee, cotrKind, userRolePages, person, hrmsChange, hrmsLinked, hrmsFields]);
+  }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages, cotrMode, cotrEmployee, cotrKind, userRolePages, person, accountKind, hrmsChange, hrmsLinked, hrmsFields]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -693,10 +696,23 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
           </DrawerSection>
         )}
 
-        {person && (
-          <DrawerSection title={tr('HRMS employee')} description={tr('Job title and department follow the employee in HRMS; they are not typed here.')}>
-            <HrmsEmployeePicker linked={hrmsLinked} picked={hrmsPick} onPick={pickHrms} onUnlink={unlinkHrms}
-              initialQuery={profile.fullName} error={fieldError('hrmsEmployeeId')} />
+        {followsHrms(form.role) && (
+          <DrawerSection title={tr('HRMS employee')} description={accountKind === 'person'
+            ? tr('A person account is made from its HRMS employee: name, job title and department follow HRMS.')
+            : tr('A shared or test account is never linked to HRMS and is left out of the person scores.')}>
+            <Field label={tr('Kind of account')} htmlFor="f-account-kind">
+              <select id="f-account-kind" className={inputClass} value={accountKind}
+                onChange={e => { const k = e.target.value as typeof accountKind; setAccountKind(k); if (k !== 'person') { setHrmsPick(null); setHrmsChange(undefined); } }}>
+                <option value="person">{tr('Person (HRMS employee)')}</option>
+                <option value="shared">{tr('Shared account (a team)')}</option>
+                <option value="test">{tr('Test account')}</option>
+              </select>
+            </Field>
+            {person && (
+              <HrmsEmployeePicker linked={hrmsLinked} picked={hrmsPick} onPick={pickHrms} onUnlink={unlinkHrms}
+                initialQuery={profile.fullName} error={fieldError('hrmsEmployeeId')} />
+            )}
+            {!person && fieldError('hrmsEmployeeId') && <p className="text-xs text-red-600">{fieldError('hrmsEmployeeId')}</p>}
           </DrawerSection>
         )}
 
