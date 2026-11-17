@@ -6921,4 +6921,5 @@ export const ID: Record<string, string> = {
   "Shared account (a team)": "Akun bersama (satu tim)",
   "Test account": "Akun testing",
   "Shared account": "Akun bersama",
+  "Helps the maintenance team understand the request": "Membantu tim maintenance memahami pengajuan",
 };

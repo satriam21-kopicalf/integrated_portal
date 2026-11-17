@@ -248,8 +248,9 @@ type Part = "all" | "detail" | "handling" | "history";
 /** The request in cards. part: all (the PIC's view: everything in order), detail (items, analysis, evidence, signature),
  *  handling (technicians, cost, invoices, work photos), history (time per stage and the timeline). `children` (the team's
  *  actions) come after the status card in "all". */
-export default function RequestView({ r, urls, children, part = "all", numbered = true }: {
+export default function RequestView({ r, urls, children, part = "all", numbered = true, hidePriority = false }: {
   r: Request; urls: MediaUrls; children?: React.ReactNode; part?: Part; numbered?: boolean;
+  /** the PIC's own view: the priority (sales tier) is for the management only (2026-11-17) */ hidePriority?: boolean;
 }) {
   const video = (r.media ?? []).find((m) => m.kind === "VIDEO");
   const photos = (r.media ?? []).filter((m) => m.kind === "PHOTO").length;
@@ -264,7 +265,7 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
     <div className="space-y-4">
       {part === "all" && (
         <FormCard n={next()} title={tr("Status & Progress")} hint={`${r.kindLabel} · ${r.branchName}`}
-          aside={<span className="flex flex-wrap justify-end gap-1"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} /></span>}>
+          aside={<span className="flex flex-wrap justify-end gap-1"><StatusBadge r={r} />{!hidePriority && <UrgencyBadge u={r.urgency} />}</span>}>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
             <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
             <div><dt className="text-[11px] text-neutral-400">{tr("Sent")}</dt><dd className="text-neutral-900">{wibDateTime(r.submittedAt)}</dd></div>
@@ -300,7 +301,7 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
                     <span className="block text-xs text-neutral-500">{it.category} · {it.group}{it.location ? ` · ${it.location}` : ""}</span>
                     {it.note && <span className="mt-0.5 block text-xs text-neutral-600">{it.note}</span>}
                   </span>
-                  <UrgencyBadge u={it.urgency} />
+                  {!hidePriority && <UrgencyBadge u={it.urgency} />}
                 </li>
               ))}
             </ul>

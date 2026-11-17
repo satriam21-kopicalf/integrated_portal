@@ -25,9 +25,9 @@ import { locate } from "@/so/lib/counts";
 import { TZ, wibDateTime } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
-import RequestView, { AddPhotoTile, EvidenceGrid, StatusBadge, UrgencyBadge } from "./RequestView";
+import RequestView, { AddPhotoTile, EvidenceGrid, StatusBadge } from "./RequestView";
 import { SkeletonList } from "@/components/kc/Skeleton";
-import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, alreadyAsked, download, fmtHours, fmtMb, IMPACTS, REASONS, STEPS_OF, TIER_LABEL } from "./de";
+import { type Category, type FormState, type Item, type Kind, type Request, CAUSES, KIND_LABEL, OPEN, PORTAL_URLS, alreadyAsked, download, fmtHours, fmtMb, IMPACTS, REASONS, STEPS_OF } from "./de";
 
 export default function DeForm({ kind }: { kind: Kind }) {
   const toast = useToast();
@@ -118,10 +118,8 @@ export default function DeForm({ kind }: { kind: Kind }) {
                 ) : data.branches.length === 1 ? (
                   <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm font-medium text-neutral-900">{data.branches[0].name}</p>
                 ) : (
-                  <select value={branch} onChange={(e) => setBranch(e.target.value)} className={cx(inputClass, "h-11")} aria-label={tr("Branch")}>
-                    <option value="">{tr("Choose the branch")}</option>
-                    {data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
-                  </select>
+                  // more than one outlet: searchable by name, code and branch group (2026-11-17)
+                  <BranchSearch value={branch} onChange={setBranch} branches={data.branches} groups={data.branchGroups ?? {}} />
                 )}
               </div>
               <p className="text-xs text-neutral-500">{tr("Date and time = server time when sent; PIC and branch come from your account.")}</p>
@@ -182,7 +180,7 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
       <button type="button" onClick={onOpen} className="w-full px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-mono text-xs font-semibold text-neutral-500">{r.number}</span>
-          <StatusBadge r={r} /><UrgencyBadge u={r.urgency} />
+          <StatusBadge r={r} />
           {r.status === "HANDOVER" && !r.handover?.at && <Badge tone="red" icon={<Handshake size={11} />}>{tr("Your handover needed")}</Badge>}
           {r.tracker?.targetAdjusted && OPEN.includes(r.status) && <Badge tone="violet">{tr("Estimate adjusted")}</Badge>}
           <span className="ml-auto text-[11px] tabular-nums text-neutral-400">{wibDateTime(r.submittedAt)}</span>
@@ -297,7 +295,7 @@ function MyRequest({ id, onClose }: { id: string; onClose: () => void }) {
     <Drawer open onClose={onClose} size="lg" icon={<FileText size={18} />} title={r ? `${r.number} · ${r.branchName}` : tr("Request")}
       description={r ? r.kindLabel : undefined} focusFirstField={false} footer={r ? <DocActions r={r} /> : undefined}>
       {error ? <ErrorState message={error} /> : !r ? <SkeletonList rows={5} /> : (
-        <RequestView r={r} urls={PORTAL_URLS}>
+        <RequestView r={r} urls={PORTAL_URLS} hidePriority>
           {handoverDue && <HandoverCard r={r} onCamera={() => setCamera("HANDOVER")} onRemove={(mid) => void removePhoto(mid)} onSent={(out) => { setR(out); toast(tr("Handover sent to the maintenance team")); }} />}
           {working && (
             <FormCard title={tr("Photos while the work runs")} hint={tr("Optional: let the team follow the technician's work at your outlet")}
@@ -535,7 +533,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           </section>
         )}
 
-        <PriorityCard r={r} data={data} value={r.kind === "REPAIR" ? impact : reason}
+        <PriorityCard r={r} value={r.kind === "REPAIR" ? impact : reason}
           onChange={(v) => { if (r.kind === "REPAIR") { setImpact(v); save({ impact: v }, true); } else { setReason(v); save({ reason: v }, true); } }} />
 
         <FormCard n={3} title={r.kind === "REPAIR" ? tr("What is damaged") : tr("What is needed")}
@@ -689,7 +687,6 @@ function SendSheet({ r, onClose, onSent }: { r: Request; onClose: () => void; on
               <li key={i} className="flex items-start justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
                 <span className="min-w-0"><span className="block text-neutral-900">{it.name} × {it.qty}</span>
                   <span className="block text-xs text-neutral-500">{it.category}{it.location ? ` · ${it.location}` : ""}{it.note ? ` · ${it.note}` : ""}</span></span>
-                <UrgencyBadge u={it.urgency} />
               </li>
             ))}
           </ul>
@@ -744,14 +741,12 @@ function MerchPick({ value, merch, onChange }: { value: string; merch: NonNullab
 
 /** What the PIC says about the request (2026-11-16): the impact on the outlet (Maintenance) or why it is needed
  *  (Procurement). With the branch's sales tier it sets the priority, shown right away (app/damaged_equipment.py priority()). */
-function PriorityCard({ r, data, value, onChange }: { r: Request; data: FormState; value: string; onChange: (v: string) => void }) {
+function PriorityCard({ r, value, onChange }: { r: Request; value: string; onChange: (v: string) => void }) {
   const repair = r.kind === "REPAIR";
   const options = repair ? IMPACTS : REASONS;
-  const tier = data.tiers?.[r.branchCode] ?? "B";
-  const urgency = data.priority ? Object.values(data.priority)[0]?.[tier] : null; // the sales tier alone sets it (2026-11-17)
   return (
     <FormCard n={2} title={repair ? tr("Impact on the outlet") : tr("Why it is needed")}
-      hint={tr("For the team; the priority comes from the sales of the branch")}>
+      hint={tr("Helps the maintenance team understand the request")}>
       <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={repair ? tr("Impact on the outlet") : tr("Why it is needed")}>
         {options.map((o) => (
           <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
@@ -761,10 +756,36 @@ function PriorityCard({ r, data, value, onChange }: { r: Request; data: FormStat
           </button>
         ))}
       </div>
-      <p className="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2.5 text-xs text-neutral-600">
-        <span>{TIER_LABEL[tier]()}</span>
-        {urgency ? <>→ <span className="font-medium text-neutral-800">{tr("Priority")}</span> <UrgencyBadge u={urgency} /></> : null}
-      </p>
     </FormCard>
+  );
+}
+
+/** The branch of a new request when the account has more than one outlet (2026-11-17): typed to filter by name, code or
+ *  branch group, then tapped. */
+function BranchSearch({ value, onChange, branches, groups }: {
+  value: string; onChange: (code: string) => void; branches: { code: string; name: string }[]; groups: Record<string, string | null>;
+}) {
+  const [q, setQ] = useState("");
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const shown = branches.filter((b) => words.every((w) => `${b.name} ${b.code} ${groups[b.code] ?? ""}`.toLowerCase().includes(w)));
+  return (
+    <div className="space-y-2">
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet name or code")} aria-label={tr("Search outlet name or code")}
+        className={cx(inputClass, "h-11")} />
+      <ul className="max-h-72 space-y-1.5 overflow-y-auto" role="listbox" aria-label={tr("Branch")}>
+        {shown.map((b) => (
+          <li key={b.code}>
+            <button type="button" role="option" aria-selected={value === b.code} onClick={() => onChange(b.code)}
+              className={cx("flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
+                value === b.code ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+              <span className="min-w-0"><span className="block truncate text-sm font-medium text-neutral-900">{b.name}</span>
+                <span className="block text-xs text-neutral-500">{b.code}{groups[b.code] ? ` · ${groups[b.code]}` : ""}</span></span>
+              {value === b.code && <Check size={16} className="flex-shrink-0 text-brand-700" />}
+            </button>
+          </li>
+        ))}
+        {!shown.length && <li className="rounded-xl bg-neutral-50 px-3 py-3 text-sm text-neutral-500">{tr("No outlet matches")}</li>}
+      </ul>
+    </div>
   );
 }
