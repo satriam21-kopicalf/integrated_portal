@@ -6925,4 +6925,5 @@ export const ID: Record<string, string> = {
   "0 when the photo shows nothing was wasted": "Isi 0 bila foto menunjukkan tidak ada yang terbuang",
   "Reason for rejecting an approved waste": "Alasan menolak waste yang sudah disetujui",
   "Choose the item of the new type": "Pilih item dari tipe yang baru",
+  "the latest 2,000: search or narrow the filters to find older entries": "2.000 terbaru: cari atau persempit filter untuk menemukan entri lebih lama",
 };

@@ -65,6 +65,12 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const [error, setError] = useState<string | null>(null);
   const [branches, setBranches] = useState<BranchOpt[]>([]);
   const [search, setSearch] = useState("");
+  // the search runs on the server over the whole period (2026-11-17), not only over the 2,000 entries listed
+  const [query, setQuery] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setQuery(search.trim()), 400);
+    return () => clearTimeout(t);
+  }, [search]);
   const [open, setOpen] = useState<Entry | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [verdict, setVerdict] = useState<"approved" | "rejected" | null>(null);
@@ -81,14 +87,14 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
     setError(null);
     setRes(null);
     const q = new URLSearchParams({ dateFrom: period.from, dateTo: period.to, ...(branch ? { branch } : {}), ...(scope ? { scope } : {}),
-      ...(category ? { category } : {}), status });
+      ...(category ? { category } : {}), status, ...(query ? { q: query } : {}) });
     try {
       setRes(await call<MonitorData>(`/api/waste/${review ? "reviews" : "monitor"}?${q}`));
       setPicked(new Set());
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [period, branch, scope, category, status, review]);
+  }, [period, branch, scope, category, status, review, query]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { void call<BranchOpt[]>("/api/branches?company=all").then(setBranches).catch(() => setBranches([])); }, []);
 
@@ -235,7 +241,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           )}
         </div>
       }
-        footer={res && view === "entries" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 2,000 of the period")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
+        footer={res && view === "entries" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 2,000: search or narrow the filters to find older entries")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
         {view === "investigations" ? <InvestigationList key={String(investigation)} onOpen={setInvestigation} />
           : view === "daily" ? <DailyReport period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
           : view === "usage" ? <UsageReport period={period} branch={branch} />
