@@ -241,7 +241,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           )}
         </div>
       }
-        footer={res && view === "entries" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 2,000: search or narrow the filters to find older entries")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
+        footer={res && view === "entries" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 50,000: search or narrow the filters to find older entries")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
         {view === "investigations" ? <InvestigationList key={String(investigation)} onOpen={setInvestigation} />
           : view === "daily" ? <DailyReport period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
           : view === "usage" ? <UsageReport period={period} branch={branch} />
