@@ -28,6 +28,7 @@ import { tr } from "@/lib/i18n";
 import { type Item, type Wip, Picker, matches, num, rp, useCatalog } from "./parts";
 import { BomImport, OptionsStep } from "./options";
 import { BreakdownStep } from "./breakdown";
+import { BundleDrawer } from "./bundle";
 import { DataSources } from '@/so/features/health/DataHealth';
 
 type Kind = "item" | "wip" | "other" | "menu";
@@ -709,6 +710,7 @@ function MenuAssign() {
   const [f, setF] = useState<AssignFilters>(NO_AF);
   const [sheet, setSheet] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [bundleFor, setBundleFor] = useState<Menu | null>(null);
   const load = useCallback(() => {
     void call<{ data: Menu[] }>("/api/cost-control/sales-calc/menus").then((r) => setMenus(r.data));
     void call<{ data: Recipe[] }>("/api/cost-control/sales-calc/recipes").then((r) => setRecipes(r.data));
@@ -783,6 +785,11 @@ function MenuAssign() {
                             {!m.recipe && m.bundle && (m.bundle.auto
                               ? <p className="mt-1 text-[11px] leading-snug text-emerald-700">{tr("Costed from ESB: {0}", m.bundle.contents.map((c) => `${c.qty}× ${c.name}`).join(" + "))}</p>
                               : <p className="mt-1 text-[11px] leading-snug text-amber-700">{tr("Check: {0}", m.bundle.reasons.join("; "))}</p>)}
+                            {(!!m.bundle || /bundl/i.test(m.name) || m.recipe?.startsWith("BND-")) && (
+                              <button type="button" onClick={() => setBundleFor(m)} className="mt-1 text-[11px] font-medium text-brand-700 hover:underline">
+                                {m.recipe?.startsWith("BND-") ? tr("Edit bundle contents") : tr("Set bundle contents")}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -794,6 +801,10 @@ function MenuAssign() {
           )}
         </>
       )}
+      {bundleFor && <BundleDrawer menu={{ id: bundleFor.id, name: bundleFor.name }} cards={recipes}
+        current={bundleFor.recipe?.startsWith("BND-") ? recipes.find((r) => r.code === bundleFor.recipe) ?? null : null}
+        suggested={(bundleFor.bundle?.contents ?? []).map((c) => ({ card: c.card, qty: c.qty }))}
+        onClose={() => setBundleFor(null)} onSaved={() => { setBundleFor(null); load(); }} />}
       {sheet && <AssignFilterSheet value={f} brands={brandList} categories={categories} recipes={recipes.map((r) => ({ value: r.code, label: r.name, hint: r.code }))}
         onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </Panel>
