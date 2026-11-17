@@ -7,7 +7,7 @@
 import { Camera, ChevronDown, ImageOff, MapPin, Pencil, Plus, Save, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { createPortal } from 'react-dom';
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Badge, Button, ErrorState, Field, Input, PageNav, Select, SkeletonRows, cx, inputClass, usePaged, useToast } from '@/so/ui';
 import { EmptyState, SearchInput, kcTable } from '@/components/kc';
 import { Panel } from '@/components/kc/compat';
@@ -325,7 +325,8 @@ export function SearchSelect({ value, options, onChange, required, placeholder, 
     if (!r) return;
     const below = window.innerHeight - r.bottom - 12, above = r.top - 12;
     const up = below < 260 && above > below;
-    const width = Math.max(r.width, 240), left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8));
+    // 2026-11-17: at least 360 px wide (a narrow table cell no longer cuts the names), never wider than the screen
+    const width = Math.min(window.innerWidth - 16, Math.max(r.width, 360)), left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8));
     setAt(up ? { left, width, bottom: window.innerHeight - r.top + 4, max: Math.min(320, above) }
       : { left, width, top: r.bottom + 4, max: Math.min(320, below) });
   }, []);
@@ -351,11 +352,39 @@ export function SearchSelect({ value, options, onChange, required, placeholder, 
   const current = options.find((o) => o.value === value);
   const s = q.trim().toLowerCase();
   const shown = options.filter((o) => !s || o.label.toLowerCase().includes(s) || o.value.toLowerCase().includes(s) || (o.hint ?? '').toLowerCase().includes(s));
+  // keyboard (2026-11-17): ↓ / ↑ move the highlight (the list scrolls with it), Enter picks, Escape closes
+  const [active, setActive] = useState(-1);
+  const listId = useId();
+  const list = useRef<HTMLUListElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (open) setActive(Math.max(0, shown.findIndex((o) => o.value === value)));
+  }, [open, q]); // eslint-disable-line react-hooks/exhaustive-deps -- reset only when opened or the search changes
+  useEffect(() => {
+    list.current?.querySelector<HTMLElement>(`[data-i="${active}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [active]);
+  const pick = (v: string) => { onChange(v); setOpen(false); setQ(''); button.current?.focus(); };
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!shown.length) return;
+      setActive((i) => (e.key === 'ArrowDown' ? (i + 1) % shown.length : (i - 1 + shown.length) % shown.length));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (shown[active]) pick(shown[active].value);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+      button.current?.focus();
+    }
+  };
   return (
     <div ref={box} className="relative">
-      <button type="button" disabled={disabled} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={ariaLabel}
-        className={cx(inputClass, 'flex items-center justify-between gap-2 text-left', disabled && 'cursor-not-allowed opacity-60')}>
-        <span className={cx('truncate', !current && 'text-neutral-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
+      <button ref={button} type="button" disabled={disabled} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={ariaLabel}
+        aria-haspopup="listbox" onKeyDown={(e) => { if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); setOpen(true); } }}
+        title={current?.label}
+        className={cx(inputClass, 'flex h-auto min-h-11 items-center justify-between gap-2 py-1.5 text-left lg:h-auto lg:min-h-10', disabled && 'cursor-not-allowed opacity-60')}>
+        {/* the whole name, on two lines at most (2026-11-17); the full text is the tooltip */}
+        <span className={cx('line-clamp-2 min-w-0 break-words leading-snug', !current && 'text-neutral-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
         <span className="flex items-center gap-1">
           {current && !required && !disabled && <X size={14} className="text-neutral-400 hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
           <ChevronDown size={15} className={cx('text-neutral-400 transition-transform', open && 'rotate-180')} />
@@ -364,13 +393,16 @@ export function SearchSelect({ value, options, onChange, required, placeholder, 
       {open && at && createPortal(
         <div ref={pop} className="fixed z-[90] flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
           style={{ left: at.left, width: at.width, top: at.top, bottom: at.bottom, maxHeight: at.max }}>
-          <div className="flex-shrink-0 border-b border-neutral-100 p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search')} className={cx(inputClass, 'h-9')} /></div>
-          <ul className="min-h-0 flex-1 overflow-y-auto py-1">
-            {shown.map((o) => (
-              <li key={o.value}>
-                <button type="button" onClick={() => { onChange(o.value); setOpen(false); setQ(''); }}
-                  className={cx('flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-neutral-50', o.value === value && 'bg-brand-50 text-brand-800')}>
-                  <span className="truncate">{o.label}</span>{o.hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{o.hint}</span>}
+          <div className="flex-shrink-0 border-b border-neutral-100 p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
+            placeholder={tr('Search')} className={cx(inputClass, 'h-9')} role="combobox" aria-expanded={true} aria-controls={listId}
+            aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined} /></div>
+          <ul ref={list} id={listId} role="listbox" className="min-h-0 flex-1 overflow-y-auto py-1">
+            {shown.map((o, i) => (
+              <li key={o.value} id={`${listId}-${i}`} data-i={i} role="option" aria-selected={o.value === value}>
+                <button type="button" tabIndex={-1} onMouseEnter={() => setActive(i)} onClick={() => pick(o.value)}
+                  className={cx('flex w-full items-start justify-between gap-3 px-3 py-2 text-left text-sm',
+                    i === active ? 'bg-neutral-100' : 'hover:bg-neutral-50', o.value === value && 'bg-brand-50 text-brand-800', o.value === value && i === active && 'ring-1 ring-inset ring-brand-300')}>
+                  <span className="min-w-0 break-words leading-snug">{o.label}</span>{o.hint && <span className="mt-0.5 flex-shrink-0 text-[11px] text-neutral-400">{o.hint}</span>}
                 </button>
               </li>
             ))}
