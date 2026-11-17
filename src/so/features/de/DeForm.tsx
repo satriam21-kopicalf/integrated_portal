@@ -560,6 +560,12 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
                   </select>
                   {cat?.group === MERCH_GROUP && data.merchandise?.items.length ? (
                     <MerchPick value={it.name} merch={data.merchandise} onChange={(name) => upd({ name }, true)} />
+                  ) : r.kind === "PROCUREMENT" && cat?.examples.length ? (
+                    // Procurement: the item comes from the master list (LIST HEAVY TOOLS, 2026-11-17)
+                    <select value={it.name} onChange={(e) => upd({ name: e.target.value }, true)} className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item Name")}>
+                      <option value="">{tr("Choose the item")}</option>
+                      {cat.examples.map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
                   ) : <>
                     <input value={it.name} onChange={(e) => upd({ name: e.target.value })} list={`ex-${it.key}`} maxLength={120} placeholder={tr("Item name, e.g. {0}", cat?.examples[0] ?? "Grinder")}
                       className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item Name")} />
