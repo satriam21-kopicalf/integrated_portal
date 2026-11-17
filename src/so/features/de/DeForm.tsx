@@ -560,8 +560,8 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
                   </select>
                   {cat?.group === MERCH_GROUP && data.merchandise?.items.length ? (
                     <MerchPick value={it.name} merch={data.merchandise} onChange={(name) => upd({ name }, true)} />
-                  ) : r.kind === "PROCUREMENT" && cat?.examples.length ? (
-                    // Procurement: the item comes from the master list (LIST HEAVY TOOLS, 2026-11-17)
+                  ) : cat?.examples.length ? (
+                    // the item comes from the category's list, never typed (Maintenance & Procurement, 2026-11-17)
                     <select value={it.name} onChange={(e) => upd({ name: e.target.value }, true)} className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item Name")}>
                       <option value="">{tr("Choose the item")}</option>
                       {cat.examples.map((x) => <option key={x} value={x}>{x}</option>)}
@@ -748,10 +748,10 @@ function PriorityCard({ r, data, value, onChange }: { r: Request; data: FormStat
   const repair = r.kind === "REPAIR";
   const options = repair ? IMPACTS : REASONS;
   const tier = data.tiers?.[r.branchCode] ?? "B";
-  const urgency = value ? data.priority?.[value]?.[tier] : null;
+  const urgency = data.priority ? Object.values(data.priority)[0]?.[tier] : null; // the sales tier alone sets it (2026-11-17)
   return (
     <FormCard n={2} title={repair ? tr("Impact on the outlet") : tr("Why it is needed")}
-      hint={tr("Sets the priority together with the sales of the branch")}>
+      hint={tr("For the team; the priority comes from the sales of the branch")}>
       <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={repair ? tr("Impact on the outlet") : tr("Why it is needed")}>
         {options.map((o) => (
           <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
@@ -763,7 +763,7 @@ function PriorityCard({ r, data, value, onChange }: { r: Request; data: FormStat
       </div>
       <p className="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2.5 text-xs text-neutral-600">
         <span>{TIER_LABEL[tier]()}</span>
-        {urgency ? <>→ <span className="font-medium text-neutral-800">{tr("Priority")}</span> <UrgencyBadge u={urgency} /></> : <span className="text-neutral-400">{tr("Choose one to see the priority")}</span>}
+        {urgency ? <>→ <span className="font-medium text-neutral-800">{tr("Priority")}</span> <UrgencyBadge u={urgency} /></> : null}
       </p>
     </FormCard>
   );

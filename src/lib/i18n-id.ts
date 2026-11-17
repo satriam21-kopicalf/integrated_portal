@@ -6913,4 +6913,5 @@ export const ID: Record<string, string> = {
   "Tier C · bottom 20% sales": "Tier C · 20% penjualan terendah",
   "What is needed": "Apa yang dibutuhkan",
   "Why it is needed": "Alasan kebutuhan",
+  "For the team; the priority comes from the sales of the branch": "Untuk tim; prioritas berasal dari sales cabang",
 };
