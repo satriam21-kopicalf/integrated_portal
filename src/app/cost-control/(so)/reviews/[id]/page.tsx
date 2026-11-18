@@ -6,6 +6,8 @@
 // Layout (2026-11-04): the correction opens in a drawer (full screen on phones, the Save button at the bottom), the
 // review actions sit in a bar above the bottom menu on phones and tablets, the lines are cards on phones.
 
+import { soGroupOf } from "@/so/ui/SoGroupTabs";
+import { call } from "@/so/features/checkin/checkin";
 import { NativeSelect } from "@/so/ui/Jira";
 import { SpikeMark } from "@/so/features/count/SpikeMark";
 import { thumb } from "@/lib/assets";
@@ -27,7 +29,9 @@ import { PageSkeleton } from "@/components/kc/Skeleton";
 import CountLog from "@/so/features/count/CountLog";
 import { SortTh, useSort } from "@/so/ui/Sort";
 
-type LineSort = "item" | "area" | "counted" | "date" | "by" | "check";
+type LineSort = "item" | "area" | "counted" | "estimate" | "variance" | "date" | "by" | "check";
+/** the estimated stock at the start of the count day (weekly / monthly, 2026-11-18): the previous count + what moved since */
+type Estimate = { from: string | null; items: Record<string, { so: number; estimate: number; unit: string }> };
 const counted = (l: CountLine) => (l.qty_base == null ? null : Number(l.qty_base) + Number(l.qty_wip ?? 0));
 
 type Fix = { id: number; qty: string; note: string; wip?: boolean; field?: "roasted_date" | "expired_date" | null; date?: string };
@@ -66,6 +70,18 @@ export default function ReviewDetailPage() {
     }
   }, [id, history]);
   useEffect(() => { void load(); }, [load]);
+  // weekly / monthly counts: the estimate of the stock and the variance per item, information for Cost Control
+  const [est, setEst] = useState<Estimate | null>(null);
+  const periodic = !!count && soGroupOf(count.count_type) === "periodic";
+  useEffect(() => {
+    if (!count || !periodic) return;
+    let live = true;
+    void call<Estimate>(`/api/monitoring/stock/estimate?branch=${encodeURIComponent(count.facility_code)}&date=${count.business_date}`)
+      .then((e) => { if (live) setEst(e); }).catch(() => { if (live) setEst(null); });
+    return () => { live = false; };
+  }, [count?.id, count?.facility_code, count?.business_date, periodic]); // eslint-disable-line react-hooks/exhaustive-deps
+  const estOf = (l: CountLine) => est?.items[l.item_code]?.estimate ?? null;
+  const varOf = (l: CountLine) => { const c = counted(l), e = estOf(l); return c == null || e == null ? null : c - e; };
 
   const lines = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -76,8 +92,8 @@ export default function ReviewDetailPage() {
   // sortable item table (2026-11-07): by name, area, quantity, date, who counted or the checks
   const lineValue = useCallback((l: CountLine, k: LineSort) => {
     const df = count ? lineDateField(l, count) : null;
-    return { item: l.item_name, area: l.area, counted: counted(l), date: df ? l[df] ?? null : null, by: l.counted_by_name, check: l.flags.length }[k];
-  }, [count]);
+    return { item: l.item_name, area: l.area, counted: counted(l), estimate: estOf(l), variance: varOf(l), date: df ? l[df] ?? null : null, by: l.counted_by_name, check: l.flags.length }[k];
+  }, [count, est]); // eslint-disable-line react-hooks/exhaustive-deps -- estOf / varOf read est
   const { rows: sortedLines, sort, toggle, setSort } = useSort(lines, lineValue);
 
   const saveFix = async () => {
@@ -330,6 +346,8 @@ export default function ReviewDetailPage() {
                       <SortTh k="item" sort={sort} onSort={toggle}>{tr("Item")}</SortTh>
                       <SortTh k="area" sort={sort} onSort={toggle}>{tr("Area")}</SortTh>
                       <SortTh k="counted" sort={sort} onSort={toggle} align="right" first="desc">{tr("Counted")}</SortTh>
+                      {periodic && <SortTh k="estimate" sort={sort} onSort={toggle} align="right" first="desc">{tr("Estimate Stock")}</SortTh>}
+                      {periodic && <SortTh k="variance" sort={sort} onSort={toggle} align="right" first="desc">{tr("Variance")}</SortTh>}
                       {dateFields.length > 0 && <SortTh k="date" sort={sort} onSort={toggle}>{dateFields.length === 1 ? DATE_FIELD_LABEL[dateFields[0]]() : tr("Date")}</SortTh>}
                       <SortTh k="by" sort={sort} onSort={toggle}>{tr("Counted by")}</SortTh>
                       <SortTh k="check" sort={sort} onSort={toggle} first="desc">{tr("Check")}</SortTh>
@@ -350,6 +368,18 @@ export default function ReviewDetailPage() {
                           <td className="max-w-[20rem] px-3 py-2"><ItemName l={l} /></td>
                           <td className="px-3 py-2 text-xs text-neutral-500">{l.area}</td>
                           <td className="whitespace-nowrap px-3 py-2 text-right"><Qty l={l} count={count} right /></td>
+                          {periodic && (() => {
+                            const e = estOf(l), v = varOf(l);
+                            const big = v != null && e != null && Math.abs(v) > Math.max(1, Math.abs(e) * 0.1);
+                            return (<>
+                              <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-neutral-600" title={est?.from ? tr("From the SO of {0} and what moved since", fmtDay(est.from)) : undefined}>
+                                {e == null ? <span className="text-neutral-300">—</span> : <>{fmtQty(e)} <span className="text-xs text-neutral-400">{l.base_uom}</span></>}</td>
+                              <td className={cx("whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums", v == null ? "text-neutral-300" : big ? (v < 0 ? "text-red-700" : "text-amber-700") : "text-neutral-700")}
+                                title={big ? tr("More than 10% from the estimate") : undefined}>
+                                {v == null ? "—" : `${v > 0 ? "+" : v < 0 ? "−" : ""}${fmtQty(Math.abs(v))}`}
+                                {v != null && e ? <span className="block text-[10px] font-normal text-neutral-400">{`${v > 0 ? "+" : ""}${((v / Math.abs(e)) * 100).toFixed(1)}%`}</span> : null}</td>
+                            </>);
+                          })()}
                           {dateFields.length > 0 && (
                             <td className="whitespace-nowrap px-3 py-2 text-xs tabular-nums text-neutral-700">
                               {df && l[df] ? fmtDay(l[df]!) : <span className="text-neutral-300">—</span>}

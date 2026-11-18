@@ -29,14 +29,15 @@ type Row = { branch: string; branchName: string; code: string; name: string; cat
   /** the quantity of the stock opname before the latest one (2026-11-08) */ prevSo?: number | null;
   received: number; otherMoves: number; waste: number; used: number; estimate: number; estimateValue: number | null;
   /** the columns of Cost Control (2026-11-18): transfers of the running stock, Waste Product Sales (Premix Tumpah / Human Error) */
-  transferIn: number; transferOut: number; wasteProduct: number };
+  transferIn: number; transferOut: number; wasteProduct: number;
+  /** Items Out: the usage of the menus sold and of the ESB other-cost bills (cupping, waste, compliment …) */ sales: number; nonSales: number };
 type Head = { branch: string; branchName: string; soDate: string; refs: string[]; items: number; value: number; final?: boolean | null; estimateValue: number;
   prevSoDate?: string | null; prevRefs?: string[]; /** when the SO was sent: what happened before is in the count */ soAt?: string | null };
 type Data = { branches: Head[]; rows: Row[] };
 type View = "branch" | "material";
-type SortKey = "branch" | "material" | "so" | "received" | "tin" | "other" | "tout" | "waste" | "wasteProduct" | "used" | "estimate" | "available" | "value";
+type SortKey = "branch" | "material" | "so" | "received" | "tin" | "other" | "tout" | "waste" | "wasteProduct" | "sales" | "nonSales" | "used" | "estimate" | "available" | "value";
 const sortValue = (r: Row, k: SortKey) => ({ branch: r.branchName, material: r.name, so: r.so, received: r.received, tin: r.transferIn, other: r.otherMoves,
-  tout: r.transferOut, waste: r.waste, wasteProduct: r.wasteProduct, used: r.used, estimate: r.estimate, available: r.available, value: r.estimateValue }[k]);
+  tout: r.transferOut, waste: r.waste, wasteProduct: r.wasteProduct, sales: r.sales, nonSales: r.nonSales, used: r.used, estimate: r.estimate, available: r.available, value: r.estimateValue }[k]);
 
 export default function StockListPage() {
   const toast = useToast();
@@ -77,9 +78,9 @@ export default function StockListPage() {
   ];
   const exportRows = () => downloadXlsx({ fileName: "Stock List", sheet: "Stock", title: "Stock List (SO terakhir)",
     header: ["Cabang", "Tanggal SO", "SO Final", "Kode", "Material", "Kategori", "Satuan", "SO Awal", "IN: Good Receipt", "IN: Transfer In (TITO)", "Mutasi Lain",
-      "OUT: Transfer Out (TITO)", "OUT: Waste", "OUT: Waste Product Sales", "Used (System)", "Estimate Stock", "Dalam Proses Keluar", "Available", "Harga", "Nilai Estimasi"],
+      "OUT: Transfer Out (TITO)", "OUT: Waste", "OUT: Waste Product Sales", "OUT: Sales", "OUT: Non Sales", "Used (System)", "Estimate Stock", "Dalam Proses Keluar", "Available", "Harga", "Nilai Estimasi"],
     rows: rows.map((r) => { const h = heads.find((x) => x.branch === r.branch); return [r.branchName, h?.soDate ?? "", h?.final ? "Ya" : "Belum", r.code, r.name, r.category, r.unit,
-      r.so, r.received, r.transferIn, r.otherMoves, r.transferOut, r.waste, r.wasteProduct, r.used, r.estimate, r.pending, r.available, r.price, r.estimateValue]; }) });
+      r.so, r.received, r.transferIn, r.otherMoves, r.transferOut, r.waste, r.wasteProduct, r.sales, r.nonSales, r.used, r.estimate, r.pending, r.available, r.price, r.estimateValue]; }) });
   return (
     <Page title={tr("Stock List")} subtitle={tr("The stock of every branch from its latest stock opname, with the transfers since")}
       stats={
@@ -105,7 +106,7 @@ export default function StockListPage() {
               <thead className={theadClass}>
                 <tr className="[&>th]:px-3 [&>th]:pt-2 [&>th]:text-center">
                   <th colSpan={3} /><th colSpan={2} className="border-l border-neutral-200 text-emerald-700">{tr("Items In")}</th><th className="border-l border-neutral-200" />
-                  <th colSpan={3} className="border-l border-neutral-200 text-red-700">{tr("Items Out")}</th><th colSpan={4} className="border-l border-neutral-200" /></tr>
+                  <th colSpan={5} className="border-l border-neutral-200 text-red-700">{tr("Items Out")}</th><th colSpan={4} className="border-l border-neutral-200" /></tr>
                 <tr>
                 <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("Branch")}</SortTh>
                 <SortTh k="material" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Material")}</SortTh>
@@ -116,6 +117,8 @@ export default function StockListPage() {
                 <SortTh k="tout" sort={sorted.sort} onSort={sorted.toggle} pad="border-l border-neutral-200 px-3 py-2.5" align="right" first="desc">{tr("Transfer Out (TITO)")}</SortTh>
                 <SortTh k="waste" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Waste")}</SortTh>
                 <SortTh k="wasteProduct" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Waste Product Sales")}</SortTh>
+                <SortTh k="sales" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Sales")}</SortTh>
+                <SortTh k="nonSales" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Non Sales")}</SortTh>
                 <SortTh k="used" sort={sorted.sort} onSort={sorted.toggle} pad="border-l border-neutral-200 px-3 py-2.5" align="right" first="desc">{tr("Used (System)")}</SortTh>
                 <SortTh k="estimate" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Estimate Stock")}</SortTh>
                 <SortTh k="available" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Available")}</SortTh>
@@ -136,6 +139,8 @@ export default function StockListPage() {
                     {num(r.transferOut, "−", "border-l border-neutral-100 text-red-700")}
                     {num(r.waste, "−", "text-red-700")}
                     {num(r.wasteProduct, "−", "text-red-700")}
+                    {num(r.sales, "−", "text-red-700")}
+                    {num(r.nonSales, "−", "text-red-700")}
                     {num(r.used, "−", "border-l border-neutral-100 text-neutral-700")}
                     <td className={cx("whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-red-700" : "text-neutral-900")}
                       title={r.estimate < -1e-6 ? tr("Below zero: the recipe cards, a move or the SO does not match") : undefined}>{qtyText(r.estimate)}</td>
@@ -213,7 +218,9 @@ function CalcDrawer({ r, h, onClose }: { r: Row; h?: Head; onClose: () => void }
           {line(tr("Transfer Out (TITO)"), r.transferOut, tr("From the Cost Control approval"), false, "−")}
           {line(tr("Waste approved"), r.waste, undefined, false, "−")}
           {line(tr("Waste Product Sales"), r.wasteProduct, tr("Waste of the category Premix Tumpah / Human Error"), false, "−")}
-          {line(tr("Used by the recipe cards"), r.used, tr("Menus sold × recipe cards"), false, "−")}
+          {line(tr("Sales"), r.sales, tr("Menus sold × recipe cards"), false, "−")}
+          {line(tr("Non Sales"), r.nonSales, tr("ESB other-cost bills (cupping, waste, compliment …) × recipe cards"), false, "−")}
+          {line(tr("Used by the recipe cards"), r.used, tr("Sales + Non Sales"), false, "−")}
           {line(tr("Estimate Stock"), r.estimate, `${tr("SO")} ${qtyText(r.so)} ${moves >= 0 ? "+" : "−"} ${qtyText(Math.abs(moves))} − ${qtyText(r.waste + r.wasteProduct)} − ${qtyText(r.used)}`, true)}
           {line(tr("Available"), r.available, tr("For Transfer Stock: the SO with the transfers, less the ones on their way out"))}
         </section>

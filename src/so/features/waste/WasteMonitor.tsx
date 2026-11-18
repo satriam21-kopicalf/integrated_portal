@@ -82,6 +82,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const [cats, setCats] = useState(false);
   // 2026-11-10 (migration 087): Cost Control corrects an entry
   const [fixing, setFixing] = useState(false);
+  // correct from the table (2026-11-18): one entry corrected without opening it first
+  const [quick, setQuick] = useState<Entry | null>(null);
   const [fixes, setFixes] = useState(0);
 
   const load = useCallback(async () => {
@@ -263,7 +265,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                   <th className={cx("w-16 py-2.5 pr-3", review ? "pl-2" : "pl-5")}>{tr("Photo")}</th><SortTh k="item" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Item")}</SortTh>
                   <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Branch")}</SortTh><SortTh k="date" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" first="desc">{tr("Date")}</SortTh>
                   <SortTh k="qty" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Quantity")}</SortTh><SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Value")}</SortTh>
-                  <SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Waste category")}</SortTh><SortTh k="by" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Entered by")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5">{tr("Status")}</SortTh>
+                  <SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Waste category")}</SortTh><SortTh k="by" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Entered by")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Status")}</SortTh>
+                  {canFix && <th className="w-24 py-2.5 pr-5" aria-label={tr("Correct")} />}
                 </tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {paged.rows.map((e) => {
@@ -283,8 +286,12 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                         <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", e.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{e.value == null ? tr("No price") : fmtRp(e.value)}</td>
                         <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-neutral-600">{e.category || "—"}</p>{e.note && <p className="truncate text-[11px] text-neutral-400" title={e.note}>“{e.note}”</p>}</td>
                         <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-neutral-700">{e.name}</p><p className="text-[11px] text-neutral-400">{wibDateTime(e.createdAt)}</p></td>
-                        <td className="px-3 py-2 pr-5"><span className="flex flex-wrap items-center gap-1"><Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge>
+                        <td className="px-3 py-2"><span className="flex flex-wrap items-center gap-1"><Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge>
                           {!!e.corrections && <Badge tone="amber" title={tr("Corrected by Cost Control")}><PencilLine size={11} />{tr("Corrected")}</Badge>}</span></td>
+                        {canFix && <td className="py-2 pr-5 text-right" onClick={(x) => x.stopPropagation()}>
+                          <button type="button" onClick={() => setQuick(e)} title={tr("Correct {0}", e.itemName)}
+                            className="inline-flex items-center gap-1 rounded-[4px] border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-700 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800">
+                            <PencilLine size={12} />{tr("Correct")}</button></td>}
                       </tr>
                     );
                   })}
@@ -307,6 +314,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                       <span className="block truncate text-xs text-neutral-500">{e.branchName} · {dmy(e.businessDate)} · {e.name}{e.note ? ` · “${e.note}”` : ""}</span>
                     </span>
                   </button>
+                  {canFix && <button type="button" onClick={() => setQuick(e)} aria-label={tr("Correct {0}", e.itemName)}
+                    className="mt-3 flex-shrink-0 rounded-[4px] border border-neutral-200 bg-white p-2 text-neutral-600 hover:bg-brand-50 hover:text-brand-800"><PencilLine size={15} /></button>}
                 </li>
               ))}
             </ul>
@@ -389,6 +398,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
       {cats && <CategoriesDrawer onClose={() => setCats(false)} />}
       {recat && <RecategorizeDialog ids={[...picked]} categories={res?.categories ?? []} onClose={() => setRecat(false)}
         onDone={() => { setRecat(false); setPicked(new Set()); void load(); }} />}
+      {quick && <WasteCorrect entry={quick} onClose={() => setQuick(null)}
+        onSaved={(e) => { setQuick(null); setFixes((n) => n + 1); setRes((r) => r && { ...r, data: r.data.map((x) => x.id === e.id ? e : x) }); }} />}
       {fixing && open && <WasteCorrect entry={open} onClose={() => setFixing(false)}
         onSaved={(e) => { setFixing(false); setFixes((n) => n + 1); setOpen(e); setRes((r) => r && { ...r, data: r.data.map((x) => x.id === e.id ? e : x) }); }} />}
       <ConfirmDialog open={!!verdict} busy={busy} danger={verdict === "rejected"}

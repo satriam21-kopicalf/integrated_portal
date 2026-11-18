@@ -24,6 +24,9 @@ import { ENTRY_SOURCE, STATUS, countTypeLabel } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { DataSources } from '@/so/features/health/DataHealth';
+import { useMe } from "@/so/lib/me";
+import Drawer from "@/so/ui/Drawer";
+import { Button, cx, inputClass } from "@/so/ui";
 
 type SortKey = "facility" | "type" | "date" | "status" | "counted" | "progress" | "flagged" | "submitted";
 const STATUS_ORDER = ["SUBMITTED", "RECOUNT_REQUESTED", "IN_PROGRESS", "APPROVED", "EXPORTED", "CANCELLED"];
@@ -49,6 +52,10 @@ const FLOW_LABEL: Record<string, () => string> = {
   APPROVED: () => tr("Approved"),
 };
 const statusMatch = (r: Row, st: string) => !st || r.status === st || (st === "APPROVED" && r.status === "EXPORTED");
+// bulk review (2026-11-18): approve and recount the sent counts, reject (cancel) the counts not approved yet
+type Bulk = "APPROVE" | "RECOUNT" | "CANCEL";
+const BULK_OK: Record<Bulk, string[]> = { APPROVE: ["SUBMITTED"], RECOUNT: ["SUBMITTED"], CANCEL: ["IN_PROGRESS", "SUBMITTED", "RECOUNT_REQUESTED"] };
+const pickable = (r: Row) => BULK_OK.CANCEL.includes(r.status);
 
 export default function ReviewsPage() {
   const toast = useToast();
@@ -60,6 +67,11 @@ export default function ReviewsPage() {
   const [group, setGroupOnly] = useSoGroup();
   const setGroup = (g: typeof group) => { setGroupOnly(g); setF((x) => ({ ...x, type: "" })); };
   const typeChoices = useGroupTypes(group, (rows ?? []).map((r) => r.count_type));
+  const { can } = useMe();
+  const canReview = can("inventory.count.review");
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [bulk, setBulk] = useState<Bulk | null>(null);
+  const pick = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   // every status of the period: the figures count all of them, the status filter only narrows the list
   const load = useCallback(async () => {
@@ -82,6 +94,9 @@ export default function ReviewsPage() {
       && (!s || [r.facility_name, r.facility_code, r.number].some((v) => v.toLowerCase().includes(s))));
   }, [all, search, f]);
   const { rows: ordered, sort, toggle, setSort } = useSort(shown, sortValue);
+  // the selection keeps only what is still shown and still open to a decision
+  useEffect(() => { setPicked((p) => new Set([...p].filter((id) => shown.some((r) => r.id === id && pickable(r))))); }, [shown]);
+  const selected = (rows ?? []).filter((r) => picked.has(r.id));
   const paged = usePaged(ordered, shown.length + search + JSON.stringify(f) + JSON.stringify(sort));
   const n = (st: string) => all.filter((r) => r.status === st).length;
   const flaggedCounts = all.filter((r) => r.status === "SUBMITTED" && r.flagged > 0).length;
@@ -149,6 +164,17 @@ export default function ReviewsPage() {
             footer={<>{f.type ? `${countTypeLabel(f.type)} · ` : ""}{tr("every branch, one sheet per branch")} · {dmy(f.period.from)} – {dmy(f.period.to)}</>} /></div>} />
       </>}
         footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
+        {canReview && selected.length > 0 && (
+          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-brand-200 bg-brand-50 px-4 py-2 sm:px-5">
+            <span className="text-sm font-semibold text-brand-900">{tr("{0} selected", selected.length)}</span>
+            <button type="button" onClick={() => setPicked(new Set())} className="text-xs text-brand-700 hover:underline">{tr("Clear")}</button>
+            <span className="ml-auto flex flex-wrap gap-2">
+              <Button size="sm" disabled={!selected.some((r) => BULK_OK.APPROVE.includes(r.status))} onClick={() => setBulk("APPROVE")}><CheckCircle2 size={14} /> {tr("Approve")} ({selected.filter((r) => BULK_OK.APPROVE.includes(r.status)).length})</Button>
+              <Button size="sm" variant="secondary" disabled={!selected.some((r) => BULK_OK.RECOUNT.includes(r.status))} onClick={() => setBulk("RECOUNT")}><RotateCcw size={14} /> {tr("Recount")} ({selected.filter((r) => BULK_OK.RECOUNT.includes(r.status)).length})</Button>
+              <Button size="sm" variant="danger" onClick={() => setBulk("CANCEL")}>{tr("Reject")} ({selected.length})</Button>
+            </span>
+          </div>
+        )}
         {error ? <ErrorState message={error} onRetry={load} /> : rows && shown.length === 0 ? (
           <Empty icon={<ClipboardCheck size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No counts in this period")}>
             {f.status === "SUBMITTED" && all.length > 0 && tr("Nothing is waiting for review. Change the status filter to see the other counts.")}
@@ -171,8 +197,10 @@ export default function ReviewsPage() {
                 const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
                 const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                 return (
-                  <li key={r.id}>
-                    <Link href={`/cost-control/reviews/${r.id}`} className="block rounded-md border border-neutral-200 bg-white p-3.5 shadow-sm active:bg-neutral-50">
+                  <li key={r.id} className="relative">
+                    {canReview && pickable(r) && <input type="checkbox" className="absolute right-3 top-3 z-[1] h-5 w-5 accent-brand-700" checked={picked.has(r.id)}
+                      onChange={() => pick(r.id)} aria-label={tr("Select {0}", r.facility_name)} />}
+                    <Link href={`/cost-control/reviews/${r.id}`} className={cx("block rounded-md border bg-white p-3.5 shadow-sm active:bg-neutral-50", picked.has(r.id) ? "border-brand-400" : "border-neutral-200", canReview && pickable(r) && "pr-11")}>
                       <span className="flex items-start justify-between gap-3">
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-semibold text-neutral-900">{r.facility_name}</span>
@@ -202,6 +230,10 @@ export default function ReviewsPage() {
               <table className="w-full min-w-[860px] text-sm">
                 <thead className={theadClass}>
                   <tr>
+                    {canReview && <th className="w-10 px-3 py-2">
+                      <input type="checkbox" className="h-4 w-4 cursor-pointer accent-brand-700" aria-label={tr("Select all shown")}
+                        checked={paged.rows.some(pickable) && paged.rows.filter(pickable).every((r) => picked.has(r.id))}
+                        onChange={(e) => setPicked((p) => { const n = new Set(p); for (const r of paged.rows.filter(pickable)) { if (e.target.checked) n.add(r.id); else n.delete(r.id); } return n; })} /></th>}
                     <SortTh k="facility" sort={sort} onSort={toggle}>{tr("Facility")}</SortTh>
                     <SortTh k="date" sort={sort} onSort={toggle} first="desc">{tr("Count")}</SortTh>
                     <SortTh k="status" sort={sort} onSort={toggle}>{tr("Status")}</SortTh>
@@ -212,11 +244,13 @@ export default function ReviewsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {rows === null ? <SkeletonRows cols={7} /> : paged.rows.map((r) => {
+                  {rows === null ? <SkeletonRows cols={canReview ? 8 : 7} /> : paged.rows.map((r) => {
                     const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
                     const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                     return (
-                      <tr key={r.id} className="group hover:bg-neutral-50/70">
+                      <tr key={r.id} className={cx("group hover:bg-neutral-50", picked.has(r.id) && "bg-brand-50/60")}>
+                        {canReview && <td className="px-3 py-2">{pickable(r) && <input type="checkbox" className="h-4 w-4 cursor-pointer accent-brand-700"
+                          checked={picked.has(r.id)} onChange={() => pick(r.id)} aria-label={tr("Select {0}", r.facility_name)} />}</td>}
                         <td className="max-w-[18rem] px-3 py-2">
                           <Link href={`/cost-control/reviews/${r.id}`} className="block min-w-0">
                             <span className="block truncate font-medium text-neutral-900 group-hover:text-brand-700">{r.facility_name}</span>
@@ -250,6 +284,8 @@ export default function ReviewsPage() {
         )}
       </Panel>
 
+      {bulk && <BulkReview action={bulk} rows={selected.filter((r) => BULK_OK[bulk].includes(r.status))} onClose={() => setBulk(null)}
+        onDone={() => { setBulk(null); setPicked(new Set()); void load(); }} />}
       {sheet && <ReviewFilters value={f} types={typeChoices} facilityTypes={Array.from(new Set(all.map((r) => r.facility_type)))}
         onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
     </Page>
@@ -304,3 +340,65 @@ const EXPORT_TONE: Record<ExportKind, string> = {
   REVIEWED: "bg-emerald-50 text-emerald-600",
 };
 const EXPORT_FILE: Record<ExportKind, string> = { ENTERED: "Entered", SUBMITTED: "Waiting Review", ALL: "All", REVIEWED: "Approved" };
+
+/** Approve, recount or reject many counts at once (2026-11-18): the same review of every count, one after the other;
+ *  a count that changed meanwhile (reviewed in another tab) is reported, the others go on. */
+function BulkReview({ action, rows, onClose, onDone }: { action: Bulk; rows: Row[]; onClose: () => void; onDone: () => void }) {
+  const toast = useToast();
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<{ id: string; ok: boolean; msg?: string }[]>([]);
+  const label = { APPROVE: tr("Approve"), RECOUNT: tr("Recount"), CANCEL: tr("Reject") }[action];
+  const needNote = action !== "APPROVE";
+  const run = async () => {
+    setBusy(true);
+    const out: { id: string; ok: boolean; msg?: string }[] = [];
+    for (const r of rows) {
+      try {
+        await api(`/api/so/counts/${r.id}/review`, { method: "POST", json: { action, note: note.trim() || null, line_ids: null, wip_line_ids: null, missing_items: false } });
+        out.push({ id: r.id, ok: true });
+      } catch (e) {
+        out.push({ id: r.id, ok: false, msg: errorText(e) });
+      }
+      setDone([...out]);
+    }
+    setBusy(false);
+    const ok = out.filter((x) => x.ok).length;
+    toast(tr("{0} of {1} counts: {2}", ok, rows.length, label), ok === rows.length ? "ok" : "error");
+    if (ok === rows.length) onDone();
+  };
+  const failed = done.filter((x) => !x.ok);
+  return (
+    <Drawer open onClose={busy ? () => undefined : (done.length ? onDone : onClose)} size="md" icon={action === "APPROVE" ? <CheckCircle2 size={18} /> : <RotateCcw size={18} />}
+      title={tr("{0} {1} counts", label, rows.length)} description={action === "APPROVE" ? tr("Every count below is approved as it was sent")
+        : action === "RECOUNT" ? tr("Every item of the counts below is asked again from the branch") : tr("The counts below are cancelled; the branch counts again from the start")}
+      footer={<>
+        <Button variant="secondary" disabled={busy} onClick={done.length ? onDone : onClose}>{done.length ? tr("Close") : tr("Cancel")}</Button>
+        {!done.length && <Button variant={action === "CANCEL" ? "danger" : "primary"} loading={busy} disabled={!rows.length || (needNote && !note.trim())} onClick={() => void run()}>{label} ({rows.length})</Button>}
+      </>}>
+      <div className="space-y-4">
+        {needNote && (
+          <label className="block text-sm">
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Note for the branches")} *</span>
+            <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} className={cx(inputClass, "h-auto py-2")}
+              placeholder={action === "RECOUNT" ? tr("e.g. the quantities look wrong, count again") : tr("e.g. counted on the wrong day")} />
+          </label>
+        )}
+        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+          {rows.map((r) => {
+            const d = done.find((x) => x.id === r.id);
+            return (
+              <li key={r.id} className="flex items-center gap-3 px-3 py-2 text-sm">
+                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-neutral-900">{r.facility_name}</span>
+                  <span className="text-[11px] text-neutral-500">{r.number} · {countTypeLabel(r.count_type)} · {dmy(r.business_date)}</span>
+                  {d && !d.ok && <span className="block text-[11px] text-red-700">{d.msg}</span>}</span>
+                {d ? <Badge tone={d.ok ? "green" : "red"}>{d.ok ? tr("Done") : tr("Failed")}</Badge> : busy ? <span className="text-[11px] text-neutral-400">{tr("Waiting…")}</span> : null}
+              </li>
+            );
+          })}
+        </ul>
+        {failed.length > 0 && <p className="text-xs text-red-700">{tr("{0} counts could not be changed (they may have been reviewed meanwhile)", failed.length)}</p>}
+      </div>
+    </Drawer>
+  );
+}
