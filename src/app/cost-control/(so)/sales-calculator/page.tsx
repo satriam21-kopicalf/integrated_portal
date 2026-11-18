@@ -58,7 +58,8 @@ type Report = {
     actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null;
     /** Items In / Out of the window and the difference in % of quantity and value (Cost Control, 2026-11-18) */
     received?: number | null; transferIn?: number | null; transferOut?: number | null; otherMoves?: number | null; waste?: number | null; wasteProduct?: number | null;
-    variancePct?: number | null; valueVariance?: number | null; valueVariancePct?: number | null }[];
+    variancePct?: number | null; valueVariance?: number | null; valueVariancePct?: number | null;
+    /** Items Out: the system usage of the menus sold and of the ESB other-cost bills (cupping, waste, compliment …) */ sales?: number | null; nonSales?: number | null }[];
   mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean;
     /** the latest SO (the order follows it) and the running estimate beside it (2026-11-18) */ soLatest?: number | null; estimate?: number | null }[];
   /** the months the Usage & COGS cover: SO awal / SO akhir at the month ends (basis month) or the period itself */
@@ -1004,12 +1005,12 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
 // ---------------------------------------------------------------- 4. calculator
 
 const NONE: never[] = [];
-type UsageKey = "name" | "soStart" | "received" | "tin" | "other" | "tout" | "waste" | "wasteProduct" | "soEnd" | "actual" | "system" | "variance" | "variancePct" | "systemValue" | "actualValue" | "valueVariance";
+type UsageKey = "name" | "soStart" | "received" | "tin" | "other" | "tout" | "waste" | "wasteProduct" | "sales" | "nonSales" | "soEnd" | "actual" | "system" | "variance" | "variancePct" | "systemValue" | "actualValue" | "valueVariance";
 type MrpKey = "name" | "qty" | "onHand" | "estimate" | "toOrder" | "value";
 const mrpValue = (r: Report["mrp"][number], k: MrpKey) =>
   ({ name: r.name, qty: r.qty, onHand: r.soLatest ?? r.onHand, estimate: r.estimate, toOrder: r.toOrder, value: r.orderValue ?? r.value }[k]);
 const usageValue = (r: Report["usage"][number], k: UsageKey) => ({ name: r.name, soStart: r.soStart, received: r.received, tin: r.transferIn, other: r.otherMoves,
-  tout: r.transferOut, waste: r.waste, wasteProduct: r.wasteProduct, soEnd: r.soEnd, actual: r.actual, system: r.system, variance: r.variance,
+  tout: r.transferOut, waste: r.waste, wasteProduct: r.wasteProduct, sales: r.sales, nonSales: r.nonSales, soEnd: r.soEnd, actual: r.actual, system: r.system, variance: r.variance,
   variancePct: r.variancePct, systemValue: r.systemValue, actualValue: r.actualValue, valueVariance: r.valueVariance }[k]);
 const menuValue = (m: Report["menus"][number], k: "name" | "card" | "qty" | "sales" | "hpp" | "cogs" | "ratio") =>
   ({ name: m.name, card: m.recipeName, qty: m.qty, sales: m.sales, hpp: m.hpp, cogs: m.cogs, ratio: m.ratio }[k]);
@@ -1094,9 +1095,9 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                 run: guard((d) => downloadXlsx({ fileName: file("Anomali SO"), sheet: "Anomali", title: file("Anomali SO"), header: ["Cabang", "Kode", "Bahan", "Satuan", "SO Awal", "Masuk − Keluar", "SO Akhir", "Pemakaian", "Harga", "Dampak (Rp)", "Alasan", "SO Awal (dok)", "SO Akhir (dok)"],
                   rows: (d.anomalies ?? []).map((a) => [a.branchName, a.code, a.name, a.unit, a.start, a.moves, a.end, a.actual, a.price, a.impact, a.reasons.map((r) => REASON[r]()).join("; "), a.refs.start.join(", "), a.refs.end.join(", ")]) })) },
               { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: SO awal, purchases, SO akhir, actual, system, difference and value"), icon: <ListChecks size={16} />, tone: "bg-emerald-50 text-emerald-600", count: data ? data.usage.length : null,
-                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "IN: Good Receipt", "IN: Transfer In (TITO)", "Mutasi Lain", "OUT: Transfer Out (TITO)", "OUT: Waste", "OUT: Waste Product Sales",
+                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "IN: Good Receipt", "IN: Transfer In (TITO)", "Mutasi Lain", "OUT: Transfer Out (TITO)", "OUT: Waste", "OUT: Waste Product Sales", "OUT: Sales", "OUT: Non Sales",
                     "SO Akhir", "Usage Actual", "Usage System", "Selisih Qty", "Selisih Qty %", "Harga", "Nilai Usage System", "Nilai Usage Actual", "Selisih Nilai", "Selisih Nilai %"],
-                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, r.received ?? null, r.transferIn ?? null, r.otherMoves ?? null, r.transferOut ?? null, r.waste ?? null, r.wasteProduct ?? null,
+                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, r.received ?? null, r.transferIn ?? null, r.otherMoves ?? null, r.transferOut ?? null, r.waste ?? null, r.wasteProduct ?? null, r.sales ?? null, r.nonSales ?? null,
                     r.soEnd ?? null, r.actual, r.system, r.variance, r.variancePct ?? null, r.price, r.systemValue, r.actualValue, r.valueVariance ?? null, r.valueVariancePct ?? null]) })) },
             ]} /></div>} />
           <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={outputs.map((o) => ({ key: o.key, label: o.label }))} />
@@ -1187,11 +1188,11 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
               </div>
               <div className="overflow-x-auto">
               <table className="w-full min-w-[1700px] text-sm">
-                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Usage Actual = SO Awal + Items In + other moves − Transfer Out − SO Akhir (the waste is inside it); Usage System = menus sold × recipe cards. Difference % = (Actual − System) ÷ System, of the quantity and of the value.")}</caption>
+                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Usage Actual = SO Awal + Items In + other moves − Transfer Out − SO Akhir (the waste is inside it); Usage System = Sales + Non Sales: menus sold and ESB other-cost bills (cupping, waste, compliment …) × recipe cards. Difference % = (Actual − System) ÷ System, of the quantity and of the value.")}</caption>
                 <thead className={theadClass}>
                   <tr className="[&>th]:px-3 [&>th]:pt-2 [&>th]:text-center">
                     <th colSpan={2} /><th colSpan={2} className="border-l border-neutral-200 text-emerald-700">{tr("Items In")}</th><th className="border-l border-neutral-200" />
-                    <th colSpan={3} className="border-l border-neutral-200 text-red-700">{tr("Items Out")}</th>
+                    <th colSpan={5} className="border-l border-neutral-200 text-red-700">{tr("Items Out")}</th>
                     <th colSpan={5} className="border-l border-neutral-200">{tr("Quantity")}</th><th colSpan={4} className="border-l border-neutral-200">{tr("Value")}</th></tr>
                   <tr>
                   <SortTh k="name" sort={useSort_.sort} onSort={useSort_.toggle}>{tr("Material")}</SortTh>
@@ -1202,6 +1203,8 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                   <SortTh k="tout" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc" pad="border-l border-neutral-200 px-3 py-2.5">{tr("Transfer Out (TITO)")}</SortTh>
                   <SortTh k="waste" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Waste")}</SortTh>
                   <SortTh k="wasteProduct" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Waste Product Sales")}</SortTh>
+                  <SortTh k="sales" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Sales")}</SortTh>
+                  <SortTh k="nonSales" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Non Sales")}</SortTh>
                   <SortTh k="soEnd" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc" pad="border-l border-neutral-200 px-3 py-2.5">{tr("SO Akhir")}</SortTh>
                   <SortTh k="actual" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Usage Actual")}</SortTh>
                   <SortTh k="system" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Usage System")}</SortTh>
@@ -1229,6 +1232,8 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                         {q(r.transferOut, "−", "border-l border-neutral-100 text-red-700")}
                         {q(r.waste, "−", "text-red-700")}
                         {q(r.wasteProduct, "−", "text-red-700")}
+                        {q(r.sales, "−", "text-red-700")}
+                        {q(r.nonSales, "−", "text-red-700")}
                         <td className="whitespace-nowrap border-l border-neutral-100 px-3 py-2 text-right tabular-nums text-neutral-800">{r.soEnd == null ? "—" : num(r.soEnd)}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums">{r.actual == null ? "—" : `${num(r.actual)} ${r.unit}`}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{num(r.system)} {r.unit}</td>
@@ -1241,7 +1246,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                       </tr>
                     );
                   })}
-                  {!data.usage.length && <tr><td colSpan={18}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
+                  {!data.usage.length && <tr><td colSpan={20}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
                 </tbody>
               </table>
               </div>
