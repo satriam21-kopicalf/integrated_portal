@@ -25,7 +25,7 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
       <header className="bg-[#0b1f4d] text-white">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 sm:px-6">
           {/* eslint-disable-next-line @next/next/no-img-element -- brand logo from the assets bucket */}
-          <img src={assetUrl("assets/calf-logo.png")} alt="Kopi Calf" className="h-10 w-10 flex-shrink-0 rounded-xl bg-white object-contain p-1" />
+          <img src={assetUrl("assets/calf-logo.png")} alt="Kopi Calf" className="h-10 w-10 flex-shrink-0 rounded-md bg-white object-contain p-1" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold capitalize tracking-[0.14em] text-brand-200">{eyebrow}</p>
             <h1 className="truncate text-base font-semibold sm:text-lg">{title}</h1>
@@ -57,5 +57,5 @@ export function PublicLoading() {
 }
 
 export function PublicError({ message }: { message: string }) {
-  return <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={message} /></div>;
+  return <div className="rounded-md border border-neutral-200 bg-white shadow-none"><ErrorState message={message} /></div>;
 }

@@ -51,7 +51,7 @@ function View() {
       <header className="bg-[#0b1f4d] text-white print:bg-white print:text-neutral-900">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-4 sm:px-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/calf-logo.png" alt="Kopi Calf" className="h-11 w-11 flex-shrink-0 rounded-xl bg-white object-contain p-1 print:ring-1 print:ring-neutral-200" />
+          <img src="/assets/calf-logo.png" alt="Kopi Calf" className="h-11 w-11 flex-shrink-0 rounded-md bg-white object-contain p-1 print:ring-1 print:ring-neutral-200" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold capitalize tracking-[0.16em] text-brand-200 print:text-neutral-500">{tr("WW-WR audit result")}</p>
             <h1 className="truncate text-lg font-semibold">{a.branchName}</h1>
@@ -64,7 +64,7 @@ function View() {
             </div>
           </div>
         </div>
-        <div className="h-1 bg-brand-600 print:hidden" />
+        <div className="h-1 bg-brand-700 print:hidden" />
       </header>
 
       <main className="mx-auto max-w-4xl space-y-4 px-4 py-5 sm:px-6">
@@ -152,7 +152,7 @@ function Fact({ k, v }: { k: string; v: React.ReactNode }) {
 
 function Block({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] print:shadow-none">
+    <section className="rounded-md border border-neutral-200 bg-white p-4 shadow-none print:shadow-none">
       <h2 className="mb-3 flex items-baseline justify-between text-sm font-semibold text-neutral-900">{title}{subtitle && <span className="text-xs font-normal text-neutral-500">{subtitle}</span>}</h2>
       {children}
     </section>

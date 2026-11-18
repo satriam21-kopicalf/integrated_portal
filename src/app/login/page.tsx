@@ -204,7 +204,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 lg:h-11 lg:rounded-lg text-sm font-semibold text-white shadow-sm shadow-brand-600/20 transition-colors hover:bg-brand-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/25 disabled:cursor-wait disabled:bg-brand-600/80"
+                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-brand-700 lg:h-11  text-sm font-semibold text-white shadow-sm shadow-brand-600/20 transition-colors hover:bg-brand-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/25 disabled:cursor-wait disabled:bg-brand-600/80"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
                   {submitting ? tr('Signing in…') : tr('Sign in')}
@@ -225,7 +225,7 @@ export default function LoginPage() {
 
 function inputClass(invalid: boolean) {
   return (
-    'h-12 w-full rounded-md border bg-white pl-10 pr-3 text-base text-neutral-900 lg:h-11 lg:rounded-lg lg:text-sm placeholder:text-neutral-400 transition-colors ' +
+    'h-12 w-full rounded-md border bg-white pl-10 pr-3 text-base text-neutral-900 lg:h-11  lg:text-sm placeholder:text-neutral-400 transition-colors ' +
     'focus:outline-none focus:ring-4 ' +
     (invalid
       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
@@ -292,7 +292,7 @@ function DashboardIllustration() {
   const bars = [38, 56, 46, 70, 60, 84, 66];
   return (
     <div className="relative w-full max-w-[460px]" aria-hidden>
-      <div className="rounded-xl bg-white p-5 shadow-2xl shadow-brand-950/30">
+      <div className="rounded-md bg-white p-5 shadow-2xl shadow-brand-950/30">
         <div className="flex items-center justify-between">
           <span className="space-y-1.5">
             <span className="block h-2 w-20 rounded-full bg-neutral-200" />
@@ -321,7 +321,7 @@ function DashboardIllustration() {
         </div>
       </div>
       {/* floating KPI chip */}
-      <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-xl bg-white px-3 py-2.5 shadow-xl shadow-brand-950/25">
+      <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-[4px] bg-white px-3 py-2.5 shadow-xl shadow-brand-950/25">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-600"><TrendingUp size={16} /></span>
         <span className="space-y-1.5">
           <span className="block h-1.5 w-12 rounded-full bg-neutral-200" />
@@ -336,8 +336,8 @@ function DashboardIllustration() {
 function FarewellCard({ farewell }: { farewell: Farewell }) {
   const Icon = DAY_PART_ICONS[farewell.part] ?? Info;
   return (
-    <div className="notice-in flex items-start gap-3 rounded-xl bg-brand-50 px-4 py-3.5" role="status">
-      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-600 text-white">
+    <div className="notice-in flex items-start gap-3 rounded-md bg-brand-50 px-4 py-3.5" role="status">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-white">
         <Icon size={18} />
       </span>
       <div className="min-w-0">

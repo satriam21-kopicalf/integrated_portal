@@ -155,7 +155,7 @@ export default function DeMonitor() {
               );
             })}
           </div>
-          <div className="flex gap-x-5 overflow-x-auto sm:ml-auto" role="tablist" aria-label={tr("Sections")}>
+          <div className="-mx-4 flex w-[calc(100%+2rem)] gap-x-5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:ml-auto sm:w-auto sm:px-0" role="tablist" aria-label={tr("Sections")}>
             {([["requests", tr("Requests"), <ListChecks key="r" size={15} />], ["overview", "Overview", <BarChart3 key="o" size={15} />],
               ["tech", tr("Technicians"), <Users key="t" size={15} />], ["cat", tr("Categories"), <Tags key="c" size={15} />]] as [PageTab, string, React.ReactNode][]).filter(([k]) => k !== "tech" || kind === "REPAIR").map(([k, label, icon]) => (
               <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}

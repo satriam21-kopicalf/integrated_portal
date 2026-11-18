@@ -121,7 +121,8 @@ export function WorkCard<K extends string>({ tabs, active, onTab, left, children
     <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
       <div className="flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-neutral-200 px-4 pt-3 sm:px-5">
         {left && <div className="pb-2">{left}</div>}
-        <div className={cx("flex gap-x-5 overflow-x-auto", !!left && "sm:ml-auto")} role="tablist" aria-label={label}>
+        {/* phones: the tabs take the whole row and scroll sideways (2026-11-18) */}
+        <div className={cx("-mx-4 flex w-[calc(100%+2rem)] gap-x-5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:w-auto sm:px-0", !!left && "sm:ml-auto")} role="tablist" aria-label={label}>
           {tabs.map((t) => (
             <button key={t.key} type="button" role="tab" aria-selected={active === t.key} onClick={() => onTab(t.key)}
               className={cx("-mb-px inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-2.5 pt-1.5 text-sm font-medium transition-colors",
