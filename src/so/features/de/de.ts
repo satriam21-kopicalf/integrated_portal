@@ -90,8 +90,9 @@ export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), PENDING: () => tr("Submitted"), ON_HOLD: () => "On hold", ACCEPTED: () => tr("Approved"),
   IN_PROGRESS: () => tr("In Progress"), ORDERED: () => tr("Ordered"), HANDOVER: () => tr("Handover"), DONE: () => tr("Done"), REJECTED: () => tr("Rejected"),
 };
-/** a purchase is received, not handed over */
-export const statusLabel = (kind: Kind, s: Status) => (kind === "PROCUREMENT" && s === "HANDOVER" ? tr("Received by the PIC") : STATUS_LABEL[s]());
+/** Procurement flow (2026-11-18): Submitted → Approved → In Progress & Order → Received → Done */
+const PROCUREMENT_LABEL: Partial<Record<Status, () => string>> = { ORDERED: () => tr("In Progress & Order"), HANDOVER: () => tr("Received") };
+export const statusLabel = (kind: Kind, s: Status) => ((kind === "PROCUREMENT" && PROCUREMENT_LABEL[s]) || STATUS_LABEL[s])();
 export const STATUS_TONE: Record<Status, Tone> = {
   DRAFT: "slate", PENDING: "slate", ON_HOLD: "amber", ACCEPTED: "blue", IN_PROGRESS: "blue", ORDERED: "violet",
   HANDOVER: "cyan", DONE: "green", REJECTED: "red",

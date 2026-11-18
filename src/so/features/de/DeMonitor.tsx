@@ -238,7 +238,8 @@ function Board({ rows, kind, onOpen }: { rows: Request[]; kind: Kind; onOpen: (i
                         {r.tracker?.overdue && <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-600"><Clock size={11} />{tr("Past target")}</span>}
                         <span className="ml-auto font-mono text-[10px] font-semibold text-neutral-400">{r.number}</span>
                       </span>
-                      {(r.technicians ?? []).length > 0 && <span className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-neutral-500"><Wrench size={11} />{(r.technicians ?? []).join(", ")}</span>}
+                      {r.kind === "PROCUREMENT" ? r.vendor && <span className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-neutral-500"><ShoppingCart size={11} />{r.vendor}</span>
+                        : (r.technicians ?? []).length > 0 && <span className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-neutral-500"><Wrench size={11} />{(r.technicians ?? []).join(", ")}</span>}
                     </button>
                   </li>
                 ))}
@@ -301,7 +302,7 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
           <thead className={theadClass}>
             <tr>
               <th className="py-2.5 pl-5 pr-3">{tr("Request")}</th><th className="px-3 py-2.5">{tr("Items")}</th><th className="px-3 py-2.5">{tr("Outlet & PIC")}</th>
-              <th className="px-3 py-2.5">{tr("Status")}</th><th className="px-3 py-2.5 text-right">{tr("Time")}</th><th className="px-3 py-2.5">{tr("Technician")}</th><th className="w-8" />
+              <th className="px-3 py-2.5">{tr("Status")}</th><th className="px-3 py-2.5 text-right">{tr("Time")}</th><th className="px-3 py-2.5">{rows[0]?.kind === "PROCUREMENT" ? tr("Shop / Supplier") : tr("Technician")}</th><th className="w-8" />
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100">
@@ -327,7 +328,7 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
                   <span className={cx("block font-semibold tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-neutral-800")}>{fmtHours(r.tracker?.workHours)}</span>
                   <span className="text-neutral-400">{r.tracker?.slaHours ? tr("target {0}", fmtHours(r.tracker.slaHours)) : "—"}</span>
                 </td>
-                <td className="max-w-[10rem] px-3 py-3 text-xs text-neutral-600"><span className="block truncate">{(r.technicians ?? []).join(", ") || <span className="text-neutral-300">{tr("Not assigned")}</span>}</span></td>
+                <td className="max-w-[10rem] px-3 py-3 text-xs text-neutral-600"><span className="block truncate">{(r.kind === "PROCUREMENT" ? r.vendor : (r.technicians ?? []).join(", ")) || <span className="text-neutral-300">{r.kind === "PROCUREMENT" ? tr("Not set") : tr("Not assigned")}</span>}</span></td>
                 <td className="pr-3 text-neutral-300 group-hover:text-brand-600"><ChevronRight size={16} /></td>
               </tr>
             ))}
@@ -486,6 +487,11 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const afterCount = (r?.media ?? []).filter((m) => m.kind === "AFTER").length;
   const invoiceCount = (r?.media ?? []).filter((m) => m.kind === "INVOICE").length;
   const vendor = r?.mode === "VENDOR" && active.length > 0;
+  // Procurement (2026-11-18) has its own flow: no technicians and no work photos; a shop / supplier, the order, the
+  // receipt of the goods by the PIC, then Done with the actual price and the invoice
+  const proc = r?.kind === "PROCUREMENT";
+  const [supplier, setSupplier] = useState("");
+  useEffect(() => { setSupplier(r?.vendor ?? ""); }, [r?.vendor]);
   const ho = r?.handover;
   // what still blocks a step (shown under the buttons, the button disabled)
   const { user: me } = useAuth();
@@ -494,6 +500,12 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const blocker = (to: Status): string | null => {
     if (!r) return null;
     if (approval && !myStep && (to === "ACCEPTED" || to === "REJECTED")) return tr("Waiting for {0}: {1}", approval.label, approval.users.join(", ") || "Superadmin");
+    if (proc) {
+      if (to === "ORDERED" && (!r.vendor?.trim() || r.estCost === null)) return tr("Fill in the shop / supplier and the estimated price first (Purchase and Cost & invoices)");
+      if (to === "DONE" && !ho?.at) return tr("Waiting for the PIC to confirm the goods were received");
+      if (to === "DONE" && (r.actualCost === null || invoiceCount === 0)) return tr("Fill in the actual price and attach the invoice / receipt");
+      return null;
+    }
     if ((to === "ACCEPTED" || to === "IN_PROGRESS") && vendor && r.estCost === null) return tr("Vendor work: fill in the estimated cost first (Cost & invoices)");
     if (to === "HANDOVER" && r.mode === "INTERNAL" && afterCount === 0) return tr("Waiting for the technician's photos: send the photo link below");
     if (to === "DONE" && !ho?.at) return tr("Waiting for the PIC's handover at the outlet");
@@ -501,13 +513,14 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
     return null;
   };
   const picLink = r ? `${typeof window === "undefined" ? "" : window.location.origin}/forms/damaged-equipment?request=${r.id}` : "";
-  const picMsg = r ? tr("Hello {0}, please do the handover of {1} at the outlet (photos{2} and your signature): {3}", r.picName, r.number ?? "", r.mode === "VENDOR" ? tr(", the vendor's signature") : "", picLink) : "";
+  const picMsg = r && proc ? tr("Hello {0}, the goods of {1} have been ordered; when they arrive at the outlet, confirm the receipt (photos and your signature): {2}", r.picName, r.number ?? "", picLink)
+    : r ? tr("Hello {0}, please do the handover of {1} at the outlet (photos{2} and your signature): {3}", r.picName, r.number ?? "", r.mode === "VENDOR" ? tr(", the vendor's signature") : "", picLink) : "";
   const tabs: [Tab, string, number | null][] = [["handle", tr("Handling"), null], ["detail", tr("Request"), r?.items?.length ?? null], ["history", tr("History"), r?.events?.length ?? null]];
   let n = 0;
   const next = () => ++n;
 
   return (
-    <Drawer open onClose={onClose} size="xl" icon={<Wrench size={18} />} title={r ? `${r.number} · ${r.branchName}` : tr("Request")}
+    <Drawer open onClose={onClose} size="xl" icon={proc ? <ShoppingCart size={18} /> : <Wrench size={18} />} title={r ? `${r.number} · ${r.branchName}` : tr("Request")}
       description={r ? `${r.kindLabel} · ${r.picName}` : undefined} focusFirstField={false} footer={r ? <DocActions r={r} /> : undefined}>
       {error ? <ErrorState message={error} /> : !r ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
@@ -539,11 +552,14 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 ))}
                 <div className="flex flex-wrap gap-2">
                   {(r.allowed ?? []).map((to) => (
-                    <Button key={to} size="sm" variant={to === "REJECTED" ? "danger" : to === "ON_HOLD" || (to === "IN_PROGRESS" && r.status === "HANDOVER") ? "secondary" : "primary"}
+                    <Button key={to} size="sm" variant={to === "REJECTED" ? "danger" : to === "ON_HOLD" || ((to === "IN_PROGRESS" || to === "ORDERED") && r.status === "HANDOVER") ? "secondary" : "primary"}
                       disabled={busy || (noteNeeded(to) && !note.trim()) || !!blocker(to)}
                       onClick={() => void go(to)}>{to === "DONE" && <Check size={14} />}{to === "HANDOVER" && <Handshake size={14} />}
-                      {r.status === "ON_HOLD" && to === r.holdFrom ? tr("Resume: {0}", statusLabel(r?.kind ?? "REPAIR", to)) : to === "HANDOVER" ? tr("Request handover from the PIC")
+                      {r.status === "ON_HOLD" && to === r.holdFrom ? tr("Resume: {0}", statusLabel(r?.kind ?? "REPAIR", to))
+                        : to === "HANDOVER" ? (proc ? tr("Goods sent: ask the PIC to confirm receipt") : tr("Request handover from the PIC"))
                         : to === "IN_PROGRESS" && r.status === "HANDOVER" ? tr("Back to in progress (redo)")
+                        : to === "ORDERED" && r.status === "HANDOVER" ? tr("Back to order (wrong / missing goods)")
+                        : to === "ACCEPTED" && r.status === "PENDING" && proc && !approval ? tr("Approve")
                         : to === "ACCEPTED" && approval && approval.position < approval.total ? tr("Approve: {0}", approval.label) : statusLabel(r?.kind ?? "REPAIR", to)}</Button>
                   ))}
                   <Button size="sm" variant="ghost" disabled={busy || !note.trim()} onClick={async () => { if (await act(`/api/de/monitor/${id}/notes`, { note }, tr("Note added"))) setNote(""); }}>{tr("Note only")}</Button>
@@ -564,6 +580,22 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 </div>
               </FormCard>
 
+              {proc ? (
+                <FormCard n={next()} title={tr("Purchase")} hint={tr("The shop / supplier the goods are bought from; with the estimated price it is required before In Progress & Order")}
+                  aside={<Badge tone={r.vendor ? "green" : "amber"}>{r.vendor ? tr("Supplier set") : tr("Required")}</Badge>}>
+                  <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+                    <div><dt className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Shop / Supplier")}</dt><dd className="mt-0.5 font-medium text-neutral-900">{r.vendor || "—"}</dd></div>
+                    <div><dt className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Estimated price")}</dt><dd className="mt-0.5 font-medium tabular-nums text-neutral-900">{r.estCost === null ? "—" : fmtRp(r.estCost)}</dd></div>
+                    <div><dt className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Actual price")}</dt><dd className="mt-0.5 font-medium tabular-nums text-neutral-900">{r.actualCost === null ? "—" : fmtRp(r.actualCost)}</dd></div>
+                  </dl>
+                  <div className="grid gap-2 rounded-lg bg-neutral-50 p-3 sm:grid-cols-[1fr_auto]">
+                    <input value={supplier} onChange={(e) => setSupplier(e.target.value)} maxLength={200} placeholder={tr("Shop / supplier name, e.g. Ace Hardware Kemang or a Tokopedia shop")}
+                      className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Shop / Supplier")} />
+                    <Button size="sm" variant="secondary" disabled={busy || !supplier.trim() || supplier.trim() === (r.vendor ?? "")}
+                      onClick={() => void act(`/api/de/monitor/${id}/supplier`, { vendor: supplier.trim() }, tr("Supplier saved"))}><Save size={14} /> {tr("Save")}</Button>
+                  </div>
+                </FormCard>
+              ) : (<>
               <FormCard n={next()} title={tr("Technicians")} hint={tr("Assign after review; move a technician to a request that needs them first, with the reason")}
                 aside={active.length ? <Badge tone={r.mode === "VENDOR" ? "amber" : "blue"}>{r.mode === "VENDOR" ? tr("Vendor") : tr("Internal")} · {tr("{0} assigned", active.length)}</Badge> : undefined}>
                 {active.length > 0 && (
@@ -618,9 +650,11 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                   )}
                 </FormCard>
               )}
+              </>)}
 
               {r.status === "HANDOVER" && (
-                <FormCard n={next()} title={tr("Handover by the PIC")} hint={r.mode === "VENDOR" ? tr("At the outlet: photos, the vendor's signature and the PIC's") : tr("At the outlet: photos and the PIC's signature")}
+                <FormCard n={next()} title={proc ? tr("Receipt of the Goods") : tr("Handover by the PIC")}
+                  hint={proc ? tr("At the outlet: the PIC photographs the goods received and signs") : r.mode === "VENDOR" ? tr("At the outlet: photos, the vendor's signature and the PIC's") : tr("At the outlet: photos and the PIC's signature")}
                   aside={<Badge tone={ho?.at ? "green" : "amber"}>{ho?.at ? tr("Received") : tr("Waiting for the PIC")}</Badge>}>
                   {ho?.at ? (
                     <>
@@ -639,7 +673,8 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                   ) : (
                     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-100 bg-amber-50/60 p-3">
                       <Handshake size={16} className="text-amber-700" />
-                      <span className="min-w-0 flex-1 text-xs text-amber-900">{tr("Send the link to {0}: it opens the request in Form → Maintenance Request (sign-in) for the handover.", r.picName)}</span>
+                      <span className="min-w-0 flex-1 text-xs text-amber-900">{proc ? tr("Send the link to {0}: it opens the request in the form (sign-in) to confirm the goods were received.", r.picName)
+                        : tr("Send the link to {0}: it opens the request in Form → Maintenance Request (sign-in) for the handover.", r.picName)}</span>
                       <Button size="sm" variant="secondary" onClick={async () => { try { await navigator.clipboard.writeText(picLink); toast(tr("Link copied")); } catch { toast(picLink); } }}><Copy size={13} /> {tr("Copy")}</Button>
                       <a href={`https://wa.me/?text=${encodeURIComponent(picMsg)}`} target="_blank" rel="noreferrer"
                         className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700"><MessageCircle size={13} /> WhatsApp</a>
@@ -648,9 +683,10 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 </FormCard>
               )}
 
-              <FormCard n={next()} title={tr("Cost & Invoices")} hint={r.mode === "VENDOR" ? tr("Vendor work: an estimate before work starts, the actual cost and an invoice before Done")
+              <FormCard n={next()} title={tr("Cost & Invoices")} hint={proc ? tr("Price lines of the goods (items, shipping): the estimate before the order, the actual price and the invoice / receipt before Done")
+                : r.mode === "VENDOR" ? tr("Vendor work: an estimate before work starts, the actual cost and an invoice before Done")
                 : tr("Cost lines with a description (materials, service, transport) and the labour of the technicians; attach the invoices")}
-                aside={r.mode === "VENDOR" ? <Badge tone="red">{tr("Required for vendor")}</Badge> : undefined}>
+                aside={proc ? <Badge tone="red">{tr("Required")}</Badge> : r.mode === "VENDOR" ? <Badge tone="red">{tr("Required for vendor")}</Badge> : undefined}>
                 <CostLines r={r} busy={busy} act={act} />
                 <div className="border-t border-neutral-100 pt-3">
                   <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-neutral-700"><Paperclip size={13} /> {tr("Invoices / receipts")} <span className="font-normal text-neutral-400">({tr("PDF or photo, at most {0} each", "10 MB")})</span></p>

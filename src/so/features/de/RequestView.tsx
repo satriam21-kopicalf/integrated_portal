@@ -5,12 +5,12 @@
 // handling (technicians, cost, invoices, photos of the work done), the timeline with every note and the signature.
 
 import { useState } from "react";
-import { AlertTriangle, Calendar, CalendarClock, Camera, Check, Download, FileText, Handshake, MapPin, PauseCircle, User, Video, Wrench, XCircle } from "lucide-react";
+import { AlertTriangle, Calendar, CalendarClock, Camera, Check, Download, FileText, Handshake, MapPin, PauseCircle, ShoppingCart, User, Video, Wrench, XCircle } from "lucide-react";
 import { Badge, cx } from "@/so/ui";
 import { FormCard } from "@/so/ui/Simple";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_LABEL, STATUS_TONE, STEPS_OF, statusLabel, TIER_LABEL, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
+import { type DeEvent, type Media, type MediaUrls, type Request, CAUSES, STATUS_TONE, STEPS_OF, statusLabel, TIER_LABEL, URGENCY_LABEL, URGENCY_TONE, fmtHours, fmtMb, fmtRp } from "./de";
 
 const EVENT_LABEL: Record<DeEvent["kind"], () => string> = {
   SUBMIT: () => tr("Request sent"), STATUS: () => tr("Status"), ASSIGN: () => tr("Technician assigned"), RELEASE: () => tr("Technician released"),
@@ -66,7 +66,7 @@ export function Steps({ r }: { r: Request }) {
       </ol>
       {(r.status === "ON_HOLD" || r.status === "REJECTED") && (
         <p className={cx("mt-2 rounded-lg px-3 py-1.5 text-center text-xs font-medium", r.status === "ON_HOLD" ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-700")}>
-          {r.status === "ON_HOLD" ? tr("On hold at {0}", r.holdFrom ? STATUS_LABEL[r.holdFrom]() : "—") : r.duplicateOf ? tr("Rejected: duplicate of {0}", r.duplicateOf.number ?? "—") : tr("Rejected")}
+          {r.status === "ON_HOLD" ? tr("On hold at {0}", r.holdFrom ? statusLabel(r.kind, r.holdFrom) : "—") : r.duplicateOf ? tr("Rejected: duplicate of {0}", r.duplicateOf.number ?? "—") : tr("Rejected")}
         </p>
       )}
     </div>
@@ -87,7 +87,7 @@ function Tracker({ r }: { r: Request }) {
       <ul className="space-y-1.5">
         {t.stages.map((s) => (
           <li key={s.status} className="grid grid-cols-[6.5rem_1fr_4.5rem] items-center gap-2 text-xs">
-            <span className="truncate text-neutral-600">{STATUS_LABEL[s.status]()}</span>
+            <span className="truncate text-neutral-600">{statusLabel(r.kind, s.status)}</span>
             <span className="h-1.5 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", s.status === "ON_HOLD" ? "bg-amber-400" : "bg-brand-500")} style={{ width: `${(s.hours / max) * 100}%` }} /></span>
             <span className="text-right tabular-nums text-neutral-700">{fmtHours(s.hours)}</span>
           </li>
@@ -170,7 +170,7 @@ type ActivityFilter = "all" | "notes" | "status";
 
 /** The activity of a request (Jira-like, 2026-11-17): who did what and when, newest first, every note as a comment;
  *  filtered to all / notes / status changes. */
-export function Timeline({ events }: { events: DeEvent[] }) {
+export function Timeline({ events, kind = "REPAIR" }: { events: DeEvent[]; kind?: Request["kind"] }) {
   const [f, setF] = useState<ActivityFilter>("all");
   const shown = events.filter((e) => f === "all" || (f === "notes" ? !!e.note : e.kind === "STATUS" || e.kind === "SUBMIT" || e.kind === "HANDOVER"));
   return (
@@ -181,17 +181,17 @@ export function Timeline({ events }: { events: DeEvent[] }) {
             className={cx("rounded-md px-2.5 py-1 text-xs font-medium", f === k ? "bg-brand-50 text-brand-700 ring-1 ring-brand-200" : "text-neutral-500 hover:bg-neutral-100")}>{label}</button>
         ))}
       </div>
-      {shown.length === 0 ? <p className="py-3 text-center text-sm text-neutral-400">{tr("Nothing yet")}</p> : <Activity events={shown} />}
+      {shown.length === 0 ? <p className="py-3 text-center text-sm text-neutral-400">{tr("Nothing yet")}</p> : <Activity events={shown} kind={kind} />}
     </div>
   );
 }
 
-function Activity({ events }: { events: DeEvent[] }) {
+function Activity({ events, kind }: { events: DeEvent[]; kind: Request["kind"] }) {
   return (
     <ol className="space-y-4">
       {[...events].reverse().map((e) => {
         const tech = e.details?.technician as string | undefined;
-        const what = e.kind === "STATUS" ? `${e.from ? STATUS_LABEL[e.from]() : ""} → ${e.to ? STATUS_LABEL[e.to]() : ""}`
+        const what = e.kind === "STATUS" ? `${e.from ? statusLabel(kind, e.from) : ""} → ${e.to ? statusLabel(kind, e.to) : ""}`
           : e.kind === "SWAP" ? `${EVENT_LABEL.SWAP()}: ${tech ?? ""} ${e.details?.to ? tr("to {0}", String(e.details.to)) : e.details?.from ? tr("from {0}", String(e.details.from)) : ""}`
           : e.kind === "DUPLICATE" ? tr("Marked as duplicate of {0}", String(e.details?.of ?? ""))
           : e.kind === "TARGET" ? tr("Estimated finish adjusted to {0}", wibDateTime(String(e.details?.to ?? "")))
@@ -209,7 +209,7 @@ function Activity({ events }: { events: DeEvent[] }) {
               <p className="text-sm text-neutral-700"><span className="font-semibold text-neutral-900">{e.actor ?? tr("System")}</span>{" "}
                 {e.kind === "STATUS" && e.to ? (
                   <>{tr("changed the status")} <span className="inline-flex flex-wrap items-center gap-1 align-middle">
-                    {e.from && <Badge tone={STATUS_TONE[e.from]}>{STATUS_LABEL[e.from]()}</Badge>}<span className="text-neutral-400">→</span><Badge tone={STATUS_TONE[e.to]}>{STATUS_LABEL[e.to]()}</Badge></span></>
+                    {e.from && <Badge tone={STATUS_TONE[e.from]}>{statusLabel(kind, e.from)}</Badge>}<span className="text-neutral-400">→</span><Badge tone={STATUS_TONE[e.to]}>{statusLabel(kind, e.to)}</Badge></span></>
                 ) : <span>{what}</span>}</p>
               <p className="mt-0.5 text-[11px] text-neutral-400">{wibDateTime(e.at)}</p>
               {e.note && <p className="mt-1.5 whitespace-pre-line rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 shadow-sm">{e.note}</p>}
@@ -285,8 +285,11 @@ export function RequestHero({ r, compact = false, facts: showFacts = true }: { r
     [<CalendarClock key="t" size={13} />, tr("Estimated Finish"), <span key="v" className={r.tracker?.overdue || r.tracker?.late ? "text-red-600" : undefined}>
       {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}{r.tracker?.targetAdjusted ? <span className="ml-1 rounded bg-violet-100 px-1 text-[10px] font-semibold text-violet-700">{tr("adjusted")}</span> : null}
       <span className="block text-[11px] font-normal text-neutral-400">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></span>],
-    [<Wrench key="w" size={13} />, r.mode === "VENDOR" ? tr("Vendor") : tr("Technician"), <span key="w">{techs.join(", ") || "—"}
-      {r.mode && <span className="block text-[11px] font-normal text-neutral-400">{r.mode === "VENDOR" ? tr("Vendor work") : tr("Internal technician")}</span>}</span>],
+    r.kind === "PROCUREMENT"
+      ? [<ShoppingCart key="w" size={13} />, tr("Shop / Supplier"), <span key="w">{r.vendor || "—"}
+        <span className="block text-[11px] font-normal text-neutral-400">{r.estCost !== null ? tr("estimate {0}", fmtRp(r.estCost)) : tr("price not set")}</span></span>]
+      : [<Wrench key="w" size={13} />, r.mode === "VENDOR" ? tr("Vendor") : tr("Technician"), <span key="w">{techs.join(", ") || "—"}
+        {r.mode && <span className="block text-[11px] font-normal text-neutral-400">{r.mode === "VENDOR" ? tr("Vendor work") : tr("Internal technician")}</span>}</span>],
   ];
   return (
     <section className={cx("overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm", compact && "rounded-xl")}>
@@ -344,6 +347,7 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
   const active = (r.assignments ?? []).filter((a) => a.status !== "RELEASED");
   const handled = active.length > 0 || invoices.length > 0 || (r.media ?? []).some((m) => m.kind === "AFTER" || m.kind === "MONITOR") || r.estCost !== null || r.actualCost !== null;
   const ho = r.handover;
+  const proc = r.kind === "PROCUREMENT";
   const show = (p: Part) => part === "all" || part === p || (part === "history" && (p === "tracker" || p === "activity"));
   let n = 0;
   const next = () => (numbered ? ++n : undefined);
@@ -410,8 +414,8 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
       )}
 
       {(show("handling") && handled) && (
-        <FormCard n={next()} title={tr("Handling")} hint={tr("Technicians, cost, invoices and photos of the work done")}
-          aside={r.mode ? <Badge tone={r.mode === "VENDOR" ? "amber" : "blue"}>{r.mode === "VENDOR" ? tr("Vendor") : tr("Internal")}</Badge> : undefined}>
+        <FormCard n={next()} title={proc ? tr("Purchase") : tr("Handling")} hint={proc ? tr("Shop / supplier, price and invoices") : tr("Technicians, cost, invoices and photos of the work done")}
+          aside={!proc && r.mode ?<Badge tone={r.mode === "VENDOR" ? "amber" : "blue"}>{r.mode === "VENDOR" ? tr("Vendor") : tr("Internal")}</Badge> : undefined}>
           {active.length > 0 && (
             <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
               {active.map((a) => (
@@ -424,19 +428,19 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
           )}
           {(r.estCost !== null || r.actualCost !== null || r.vendor) && (
             <dl className="grid grid-cols-3 gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs">
-              <div><dt className="text-neutral-400">{tr("Estimated cost")}</dt><dd className="font-semibold tabular-nums text-neutral-900">{fmtRp(r.estCost)}</dd></div>
-              <div><dt className="text-neutral-400">{tr("Actual cost")}</dt><dd className="font-semibold tabular-nums text-neutral-900">{fmtRp(r.actualCost)}</dd></div>
-              <div><dt className="text-neutral-400">{tr("Vendor")}</dt><dd className="truncate font-semibold text-neutral-900">{r.vendor ?? "—"}</dd></div>
+              <div><dt className="text-neutral-400">{proc ? tr("Estimated price") : tr("Estimated cost")}</dt><dd className="font-semibold tabular-nums text-neutral-900">{fmtRp(r.estCost)}</dd></div>
+              <div><dt className="text-neutral-400">{proc ? tr("Actual price") : tr("Actual cost")}</dt><dd className="font-semibold tabular-nums text-neutral-900">{fmtRp(r.actualCost)}</dd></div>
+              <div><dt className="text-neutral-400">{proc ? tr("Shop / Supplier") : tr("Vendor")}</dt><dd className="truncate font-semibold text-neutral-900">{r.vendor ?? "—"}</dd></div>
             </dl>
           )}
           {invoices.length > 0 && <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("Invoices / receipts")}</p><Invoices list={invoices} urls={urls} /></div>}
-          {r.mode !== "VENDOR" && <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("Photos of the work done")}</p><Gallery r={r} urls={urls} kind="AFTER" /></div>}
+          {!proc && r.mode !== "VENDOR" && <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("Photos of the work done")}</p><Gallery r={r} urls={urls} kind="AFTER" /></div>}
           {(r.media ?? []).some((m) => m.kind === "MONITOR") && <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("PIC photos while the work ran")}</p><Gallery r={r} urls={urls} kind="MONITOR" /></div>}
         </FormCard>
       )}
 
       {show("handling") && ho?.at && (
-        <FormCard n={next()} title={tr("Handover at the Outlet")} hint={`${wibDateTime(ho.at)}${ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}`}
+        <FormCard n={next()} title={proc ? tr("Receipt of the Goods") : tr("Handover at the Outlet")} hint={`${wibDateTime(ho.at)}${ho.distanceM !== null ? ` · ${tr("{0} m from the outlet", ho.distanceM)}` : ""}`}
           aside={<Badge tone="green" icon={<Handshake size={11} />}>{tr("Received")}</Badge>}>
           <Gallery r={r} urls={urls} kind="HANDOVER" />
           {ho.note && <p className="rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{ho.note}</p>}
@@ -450,7 +454,7 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
 
       {show("activity") && (
         <FormCard n={next()} title={tr("Activity")} hint={tr("Every step of the team, newest first")}>
-          <Timeline events={r.events ?? []} />
+          <Timeline events={r.events ?? []} kind={r.kind} />
         </FormCard>
       )}
 

@@ -484,7 +484,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   return (
     <div className="flex min-h-full flex-col bg-neutral-50">
       <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-4xl items-start gap-2">
+        <div className="mx-auto flex max-w-6xl items-start gap-2">
           <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-base font-semibold text-neutral-900 sm:text-lg">{KIND_LABEL[r.kind]()}</h1>
@@ -496,7 +496,9 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
+      {/* Jira-like layout (2026-11-18): the issue body on the left, its details (request data, priority) on the right */}
+      <div className="mx-auto grid w-full max-w-6xl flex-1 items-start gap-4 px-3 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <aside className="space-y-4 lg:sticky lg:top-20 lg:order-2">
         <FormCard n={1} title={tr("Request Data")} hint={tr("Filled automatically from your account")}>
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
             <div><dt className="text-[11px] text-neutral-400">{tr("Date & time")}</dt><dd className="font-medium text-neutral-900"><LiveClock /></dd></div>
@@ -529,6 +531,9 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
         <PriorityCard r={r} value={r.kind === "REPAIR" ? impact : reason}
           onChange={(v) => { if (r.kind === "REPAIR") { setImpact(v); save({ impact: v }, true); } else { setReason(v); save({ reason: v }, true); } }} />
+        </aside>
+
+        <div className="min-w-0 space-y-4 lg:order-1">
 
         <FormCard n={3} title={r.kind === "REPAIR" ? tr("What is damaged") : tr("What is needed")}
           hint={r.kind === "REPAIR" ? tr("One line per item: pick the category and the item") : tr("One line per item: pick the category, the item and how many")}
@@ -581,8 +586,21 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
         <FormCard n={4} title={r.kind === "REPAIR" ? tr("Damage description") : tr("Need description")}
           hint={r.kind === "REPAIR" ? tr("What happened, since when, what was tried") : tr("Why it is needed and where it goes")}>
-          <textarea value={analysis} onChange={(e) => { setAnalysis(e.target.value); save({ analysis: e.target.value }); }} rows={4} maxLength={4000}
-            className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Analysis")} />
+          {/* a wide description like an issue body (2026-11-18): an outline to start from and the characters left */}
+          <div className="overflow-hidden rounded-lg border border-neutral-200 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100">
+            <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 bg-neutral-50 px-3 py-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Description")}</span>
+              {!analysis.trim() && (
+                <button type="button" className="ml-auto rounded-md px-2 py-0.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
+                  onClick={() => { const t = r.kind === "REPAIR" ? tr("What happened:\nSince when:\nWhat was tried:\n") : tr("What is needed:\nWhat it is for:\nSpecification (brand, size, colour):\nWhere it goes in the outlet:\nReference link (optional):\n"); setAnalysis(t); save({ analysis: t }); }}>
+                  {tr("Use the outline")}</button>
+              )}
+            </div>
+            <textarea value={analysis} onChange={(e) => { setAnalysis(e.target.value); save({ analysis: e.target.value }); }} rows={r.kind === "REPAIR" ? 6 : 10} maxLength={4000}
+              placeholder={r.kind === "REPAIR" ? tr("Describe the damage in detail") : tr("Describe the need in detail: what, what for, the specification and where it goes")}
+              className="block min-h-[10rem] w-full resize-y border-0 px-3 py-2.5 text-sm leading-relaxed text-neutral-900 outline-none placeholder:text-neutral-400 sm:min-h-[16rem]" aria-label={tr("Analysis")} />
+            <p className="border-t border-neutral-100 px-3 py-1 text-right text-[11px] tabular-nums text-neutral-400">{analysis.length}/4000</p>
+          </div>
           {r.kind === "REPAIR" && (
             <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Cause")}>
               {CAUSES.map((c) => (
@@ -621,10 +639,11 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           <Button variant="ghost" className="text-red-600" onClick={() => setDiscarding(true)}><Trash2 size={15} /> {tr("Delete draft")}</Button>
           <span className="text-xs text-neutral-500">{tr("Saved automatically; you can continue later.")}</span>
         </div>
+        </div>
       </div>
 
       <div className="action-bar sticky bottom-0 z-20 border-t border-neutral-200/70 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
-        <div className="mx-auto flex max-w-4xl items-center gap-3">
+        <div className="mx-auto flex max-w-6xl items-center gap-3">
           <p className="min-w-0 flex-1 text-xs text-neutral-600">{todo.length ? <span className="text-amber-700">{todo.join(" · ")}</span> : tr("Everything is ready.")}</p>
           <Button disabled={todo.length > 0 || saving > 0} onClick={() => { void flush(); setPreview(true); }}><Send size={15} /> {tr("Preview & send")}</Button>
         </div>
