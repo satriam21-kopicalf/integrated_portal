@@ -9,10 +9,12 @@
 // document) and COGS Material (Pricelist Items), system and actual. A card may hold other cards (bundling, 2026-11-06)
 // and shows the list price of its menus (POS menu master, per channel) with the % HPP.
 
+import ExcelIconButton from "@/components/ExcelIconButton";
+import { RecipeImport, exportRecipes } from "./recipe-excel";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
-import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Wand2, X } from "lucide-react";
+import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Upload, Wand2, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast, searchClass } from "@/so/ui";
@@ -226,6 +228,8 @@ function Recipes() {
   const [edit, setEdit] = useState<Recipe | "new" | null>(null);
   const [bom, setBom] = useState(false);
   const [auto, setAuto] = useState(false);
+  const [imp, setImp] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [q, setQ] = useState("");
   const [layout, setLayout] = useState<"cards" | "table">(() => { try { return localStorage.getItem("sc.recipes.layout") === "table" ? "table" : "cards"; } catch { return "cards"; } });
   const pickLayout = (v: "cards" | "table") => { setLayout(v); try { localStorage.setItem("sc.recipes.layout", v); } catch { /* private mode */ } };
@@ -238,6 +242,10 @@ function Recipes() {
   return (
     <Panel title={tr("Recipe Cards")} description={tr("What one portion of a menu uses: raw materials, packaging, WIP / premix and other items")}
       actions={<div className="flex flex-wrap gap-2">
+        {/* Excel (2026-11-18): the export is also the template of the import (recipe-excel.tsx) */}
+        <ExcelIconButton label={tr("Export to Excel")} loading={exporting} disabled={!rows?.length}
+          onClick={() => { setExporting(true); void exportRecipes(rows ?? []).finally(() => setExporting(false)); }} />
+        <Button size="sm" variant="secondary" onClick={() => setImp(true)}><Upload size={14} />{tr("Import Excel")}</Button>
         <Button size="sm" variant="secondary" onClick={() => setAuto(true)}><Wand2 size={14} />{tr("Make Cards for Every Menu")}</Button>
         <Button size="sm" variant="secondary" onClick={() => setBom(true)}><ArrowDownToLine size={14} />{tr("Import from the ESB BOM")}</Button>
         <Button size="sm" onClick={() => setEdit("new")}><Plus size={14} />{tr("New Card")}</Button></div>}
@@ -265,6 +273,7 @@ function Recipes() {
       {edit && <RecipeDrawer recipe={edit === "new" ? null : edit} cards={rows ?? []} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
       {bom && <BomImport onClose={() => setBom(false)} onDone={() => { setBom(false); load(); }} />}
       {auto && <AutoCards onClose={() => setAuto(false)} onDone={() => { setAuto(false); load(); }} />}
+      {imp && <RecipeImport onClose={() => setImp(false)} onDone={load} />}
     </Panel>
   );
 }

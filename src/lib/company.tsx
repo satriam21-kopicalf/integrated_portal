@@ -6,7 +6,7 @@
 // /api/branches/companies; the choice is remembered on the device. With one company there is nothing to choose.
 // Pages that list the branches of every brand (User Accounts, profile, monitoring) ask `?company=all`.
 
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppSkeleton } from '@/components/kc/Skeleton';
 import { useAuth } from '@/lib/auth';
 
@@ -109,6 +109,7 @@ export function CompanySwitch({ className = '', extra = [], value, onChange, com
   const tabs = [...companies, ...extra];
   if (tabs.length < 2) return null;
   const shown = value ?? company;
+  if (compact) return <BrandMenu tabs={tabs} shown={shown} pick={(code) => (onChange ? onChange(code) : setCompany(code))} className={className} />;
   return (
     <div role="radiogroup" aria-label="Brand" className={`inline-flex max-w-full gap-1 ${className}`}>
       {tabs.map(c => {
@@ -125,6 +126,50 @@ export function CompanySwitch({ className = '', extra = [], value, onChange, com
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/** The brand as one dropdown of the top bar (2026-11-18): the chosen logo and a chevron; the menu lists every brand
+ *  with its logo and name, the chosen one marked. */
+function BrandMenu({ tabs, shown, pick, className }: { tabs: { code: string; name: string }[]; shown: string; pick: (code: string) => void; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const down = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', down);
+    document.addEventListener('keydown', key);
+    return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key); };
+  }, [open]);
+  const cur = tabs.find((t) => t.code === shown) ?? tabs[0];
+  const logo = (code: string, name: string, cls: string) => (LOGOS[code]
+    // eslint-disable-next-line @next/next/no-img-element
+    ? <img src={LOGOS[code]} alt="" aria-hidden className={`${cls} object-contain`} /> : <span className="truncate text-xs font-semibold text-neutral-700">{name}</span>);
+  return (
+    <div ref={box} className={`relative ${className ?? ''}`}>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`Brand: ${cur.name}`} title={cur.name}
+        className={`flex h-8 items-center gap-1.5 rounded-[4px] border px-2 transition-colors ${open ? 'border-brand-600 bg-white ring-2 ring-brand-100' : 'border-neutral-200 bg-white hover:bg-neutral-50'}`}>
+        <span className="flex h-5 w-12 items-center justify-center">{logo(cur.code, cur.name, 'max-h-4 max-w-full')}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-neutral-400 transition ${open ? 'rotate-180' : ''}`} aria-hidden><path d="m6 9 6 6 6-6" /></svg>
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-md border border-neutral-200 bg-white py-1 shadow-xl lg:left-0 lg:right-auto">
+          <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500">Brand</p>
+          {tabs.map((t) => {
+            const on = t.code === shown;
+            return (
+              <button key={t.code} type="button" role="menuitemradio" aria-checked={on} onClick={() => { setOpen(false); if (!on) pick(t.code); }}
+                className={`relative flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] ${on ? 'bg-brand-50 font-medium text-brand-800 before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:bg-brand-700' : 'text-neutral-800 hover:bg-neutral-100'}`}>
+                <span className="flex h-6 w-14 flex-shrink-0 items-center justify-center rounded-[4px] border border-neutral-200 bg-white px-1">{logo(t.code, t.name, 'max-h-4 max-w-full')}</span>
+                <span className="min-w-0 flex-1 truncate">{t.name}</span>
+                {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden><path d="M20 6 9 17l-5-5" /></svg>}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
