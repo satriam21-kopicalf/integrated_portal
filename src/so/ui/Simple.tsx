@@ -73,11 +73,11 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
 }) {
   return (
     // one line on phones too: the options scroll sideways instead of wrapping onto a second row (2026-10-28)
-    <div role="radiogroup" aria-label={label} className="flex max-w-full gap-1 overflow-x-auto rounded-lg bg-neutral-100 p-1 [scrollbar-width:none]">
+    <div role="radiogroup" aria-label={label} className="flex max-w-full gap-1 overflow-x-auto [scrollbar-width:none]">
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
-          className={cx("min-h-9 flex-1 flex-shrink-0 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm",
-            value === o.value ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800")}>{o.label}</button>
+          className={cx("min-h-8 flex-shrink-0 whitespace-nowrap rounded-[4px] border px-2 py-1 text-xs font-medium transition-colors sm:px-3 sm:text-[13px]",
+            value === o.value ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>{o.label}</button>
       ))}
     </div>
   );

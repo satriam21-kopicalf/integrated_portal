@@ -336,7 +336,7 @@ function ItemPicker({ value, onPick, onNotStock }: { value: DraftLine; onPick: (
         </div>
       )}
       {open && (
-        <ul className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-xl border border-neutral-200/80 bg-white py-1 shadow-xl">
+        <ul className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-md border border-neutral-200/80 bg-white py-1 shadow-xl">
           {found.map(f => (
             <li key={f.item_id}><button type="button" onMouseDown={e => e.preventDefault()} onClick={() => { onPick(f); setOpen(false); setQ(""); }}
               className="w-full px-3 py-1.5 text-left text-xs hover:bg-neutral-50"><span className="font-mono text-neutral-500">{f.item_code}</span> {f.item_name} <span className="text-neutral-400">· {f.base_uom}</span></button></li>

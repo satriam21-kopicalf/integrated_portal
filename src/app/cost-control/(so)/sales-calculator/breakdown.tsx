@@ -127,7 +127,7 @@ function MenuTable({ rows, open, onOpen }: { rows: MenuRow[]; open: string | nul
       <div className="overflow-x-auto">
         <table className="w-full min-w-[920px] text-sm">
           <thead className={theadClass}><tr>
-            <th className="px-4 py-2.5">{tr("Menu")}</th><th className="px-3 py-2.5 text-right">{tr("Portions")}</th>
+            <th className="px-3 py-2">{tr("Menu")}</th><th className="px-3 py-2.5 text-right">{tr("Portions")}</th>
             {LEVELS.map((l) => <th key={l} className="px-3 py-2.5 text-right">{l}</th>)}
             <th className="px-3 py-2.5 text-right">{tr("Material Value")}</th><th className="w-8" />
           </tr></thead>
@@ -139,7 +139,7 @@ function MenuTable({ rows, open, onOpen }: { rows: MenuRow[]; open: string | nul
                 <Fragment key={m.id}>
                   {showHead && <tr><td colSpan={8} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{m.category || "—"} · {m.sub || "—"}</td></tr>}
                   <tr className={cx("cursor-pointer", isOpen ? "bg-brand-50/50" : "hover:bg-neutral-50")} onClick={() => onOpen(m.id)}>
-                    <td className="px-4 py-2.5"><span className="font-medium text-neutral-900">{m.menu}</span>
+                    <td className="px-3 py-2"><span className="font-medium text-neutral-900">{m.menu}</span>
                       <span className="block text-[11px] text-neutral-400">{m.card ? tr("Card: {0}", m.card) : <Badge tone="amber">{tr("No recipe card")}</Badge>}
                         {Object.keys(m.choices).length > 0 && ` · ${Object.entries(m.choices).map(([k, v]) => `${k} ${num(v, 0)}`).join(", ")}`}</span></td>
                     <td className="px-3 py-2.5 text-right font-medium tabular-nums">{num(m.portions, 0)}</td>
@@ -148,7 +148,7 @@ function MenuTable({ rows, open, onOpen }: { rows: MenuRow[]; open: string | nul
                     <td className="px-2 text-neutral-400"><ChevronRight size={15} className={cx("transition-transform", isOpen && "rotate-90")} /></td>
                   </tr>
                   {isOpen && (
-                    <tr><td colSpan={8} className="bg-neutral-50/60 px-4 py-3">
+                    <tr><td colSpan={8} className="bg-neutral-50/60 px-3 py-2">
                       {m.materials.length === 0 || !m.card ? <p className="text-xs text-neutral-500">{tr("This menu has no recipe card yet: assign one in Assign Menus.")}</p> : (
                         <table className="w-full text-xs">
                           <thead><tr className="text-left text-neutral-500"><th className="py-1 pr-3">{tr("Raw Material")}</th><th className="py-1 pr-3 text-right">{tr("Quantity")}</th>
@@ -190,18 +190,18 @@ function MaterialTable({ rows }: { rows: Material[] }) {
           <thead className={theadClass}><tr>
             <SortTh k="name" sort={sorted.sort} onSort={sorted.toggle}>{tr("Raw Material")}</SortTh>
             <SortTh k="qty" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Quantity")}</SortTh>
-            <th className="px-4 py-2.5">{tr("Unit")}</th><th className="px-4 py-2.5 text-right">{tr("Unit Price")}</th>
+            <th className="px-3 py-2">{tr("Unit")}</th><th className="px-3 py-2 text-right">{tr("Unit Price")}</th>
             <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Value")}</SortTh>
             <SortTh k="menus" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Menus")}</SortTh>
           </tr></thead>
           <tbody className="divide-y divide-neutral-100">
             {paged.rows.map((m) => (
               <tr key={m.code ?? m.name} className="hover:bg-neutral-50">
-                <td className="px-4 py-2.5"><span className="font-medium text-neutral-900">{m.name}</span><span className="block text-[11px] text-neutral-400">{m.code}</span></td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{num(m.qty)}</td><td className="px-4 py-2.5 text-neutral-500">{m.unit}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{m.price == null ? <span className="text-amber-600">{tr("No price")}</span> : rp(m.price)}</td>
-                <td className="px-4 py-2.5 text-right font-medium tabular-nums">{rp(m.value)}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{fmtNumber(m.menus ?? 0)}</td>
+                <td className="px-3 py-2"><span className="font-medium text-neutral-900">{m.name}</span><span className="block text-[11px] text-neutral-400">{m.code}</span></td>
+                <td className="px-3 py-2 text-right tabular-nums">{num(m.qty)}</td><td className="px-3 py-2 text-neutral-500">{m.unit}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{m.price == null ? <span className="text-amber-600">{tr("No price")}</span> : rp(m.price)}</td>
+                <td className="px-3 py-2 text-right font-medium tabular-nums">{rp(m.value)}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(m.menus ?? 0)}</td>
               </tr>
             ))}
           </tbody>
@@ -221,7 +221,7 @@ function OutletTable({ rows, open, onOpen, q }: { rows: Outlet[]; open: string |
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-sm">
           <thead className={theadClass}><tr>
-            <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Portions")}</th>
+            <th className="px-3 py-2">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Portions")}</th>
             <th className="px-3 py-2.5 text-right">{tr("Menus")}</th><th className="px-3 py-2.5 text-right">{tr("Raw Materials")}</th>
             <th className="px-3 py-2.5 text-right">{tr("Material Value")}</th><th className="w-8" />
           </tr></thead>
@@ -232,7 +232,7 @@ function OutletTable({ rows, open, onOpen, q }: { rows: Outlet[]; open: string |
               return (
                 <Fragment key={o.code}>
                   <tr className={cx("cursor-pointer", isOpen ? "bg-brand-50/50" : "hover:bg-neutral-50")} onClick={() => onOpen(`o:${o.code}`)}>
-                    <td className="px-4 py-2.5"><span className="font-medium text-neutral-900">{o.name}</span><span className="block text-[11px] text-neutral-400">{o.code}</span></td>
+                    <td className="px-3 py-2"><span className="font-medium text-neutral-900">{o.name}</span><span className="block text-[11px] text-neutral-400">{o.code}</span></td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{num(o.portions, 0)}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(o.menus)}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(o.materials.length)}</td>
@@ -240,7 +240,7 @@ function OutletTable({ rows, open, onOpen, q }: { rows: Outlet[]; open: string |
                     <td className="px-2 text-neutral-400"><ChevronRight size={15} className={cx("transition-transform", isOpen && "rotate-90")} /></td>
                   </tr>
                   {isOpen && (
-                    <tr><td colSpan={6} className="bg-neutral-50/60 px-4 py-3">
+                    <tr><td colSpan={6} className="bg-neutral-50/60 px-3 py-2">
                       <table className="w-full text-xs">
                         <thead><tr className="text-left text-neutral-500"><th className="py-1 pr-3">{tr("Raw Material")}</th><th className="py-1 pr-3 text-right">{tr("Quantity")}</th>
                           <th className="py-1 pr-3">{tr("Unit")}</th><th className="py-1 text-right">{tr("Value")}</th></tr></thead>

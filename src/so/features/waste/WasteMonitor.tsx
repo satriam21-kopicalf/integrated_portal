@@ -224,7 +224,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             return { key: v.value, label: <><Icon size={15} className={view === v.value ? "text-brand-700" : "text-neutral-400"} />{v.label()}</>, count: count === null ? undefined : fmtNumber(count) };
           })} />
           {canFix && view === "entries" && rows.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-brand-100 bg-brand-50/60 px-3 py-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 rounded-md border border-brand-100 bg-brand-50/60 px-3 py-2 text-sm">
               <label className="flex items-center gap-2 text-neutral-700">
                 <input type="checkbox" checked={picked.size > 0 && picked.size === rows.length}
                   onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((x) => x.id)) : new Set())} />
@@ -345,7 +345,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={thumb(photoUrl(open.id), 640)} decoding="async" loading="lazy" alt={tr("Photo evidence")} className="w-full rounded-xl bg-neutral-100 object-contain" />
             </a>
-            <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+            <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
               {([
                 [tr("Status"), <Badge key="s" tone={statusTone(open.status)}>{statusLabel(open.status)}</Badge>],
                 [tr("Type"), scopeLabel(open.scope)],
@@ -370,7 +370,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             <CorrectionHistory entry={open} version={fixes} />
             <Ingredients entry={open} />
             {open.signed && (
-              <div className="rounded-xl border border-neutral-200 p-3">
+              <div className="rounded-md border border-neutral-200 p-3">
                 <p className="mb-1 text-xs font-semibold text-neutral-700">{tr("Signature of {0}", open.name)}</p>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={signatureUrl(open.id)} alt={tr("Signature")} className="max-h-28 object-contain" />
@@ -448,7 +448,7 @@ function ItemsTable({ res }: { res: MonitorData }) {
         <SortTh k="entries" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Entries")}</SortTh>
         <SortTh k="branches" sort={sorted.sort} onSort={sorted.toggle} pad={`${th} pr-5`} align="right" first="desc">{tr("Branches")}</SortTh></tr></thead>
       <tbody className="divide-y divide-neutral-100">{paged.rows.map((i, n) => (
-        <tr key={`${i.scope}:${i.code}:${i.unit}`} className="hover:bg-neutral-50/70"><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
+        <tr key={`${i.scope}:${i.code}:${i.unit}`} className="hover:bg-neutral-50"><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
           <td className="px-3 py-2"><p className="font-medium text-neutral-800">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p></td>
           <td className="px-3 py-2"><Badge tone="slate">{scopeLabel(i.scope)}</Badge></td><td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(i.qty)} <span className="text-neutral-400">{i.unit}</span></td>
           <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", i.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{i.value == null ? tr("No price") : fmtRp(i.value)}</td>

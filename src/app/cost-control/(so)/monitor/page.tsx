@@ -189,22 +189,22 @@ export default function MonitorPage() {
                     <SortTh k="count" sort={sorted.sort} onSort={sorted.toggle}>{tr("Count")}</SortTh>
                     <SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh>
                     <SortTh k="submitted" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Submitted")}</SortTh>
-                    <th className="px-4 py-2.5">{tr("Evidence")}</th>
-                    <th className="w-20 px-4 py-2.5" />
+                    <th className="px-3 py-2">{tr("Evidence")}</th>
+                    <th className="w-20 px-3 py-2" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {rows === null ? <SkeletonRows cols={6} /> : paged.rows.map((r) => {
                     return (
-                      <tr key={`${r.facility_id}:${r.count_type}`} className="hover:bg-neutral-50/70">
-                        <td className="max-w-[20rem] px-4 py-3">
+                      <tr key={`${r.facility_id}:${r.count_type}`} className="hover:bg-neutral-50">
+                        <td className="max-w-[20rem] px-3 py-2">
                           <span className="block truncate font-medium text-neutral-900">{r.facility_name}</span>
                           <span className="block truncate text-xs text-neutral-400">{r.facility_code} · {r.facility_type}</span>
                         </td>
-                        <td className="px-4 py-3 text-neutral-700">{countTypeLabel(r.count_type)}</td>
-                        <td className="px-4 py-3"><StatusSteps status={r.status} /><span className="mt-1 block text-[11px] text-neutral-500">{NEXT[r.status]?.()}</span></td>
-                        <td className="px-4 py-3 text-xs tabular-nums text-neutral-500">{timeOf(r.session?.submitted_at ?? null) ? `${timeOf(r.session!.submitted_at)} WIB` : "—"}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-2 text-neutral-700">{countTypeLabel(r.count_type)}</td>
+                        <td className="px-3 py-2"><StatusSteps status={r.status} /><span className="mt-1 block text-[11px] text-neutral-500">{NEXT[r.status]?.()}</span></td>
+                        <td className="px-3 py-2 text-xs tabular-nums text-neutral-500">{timeOf(r.session?.submitted_at ?? null) ? `${timeOf(r.session!.submitted_at)} WIB` : "—"}</td>
+                        <td className="px-3 py-2">
                           <div className="flex flex-wrap gap-1">
                             {r.session?.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
                             {r.session && <LocationBadges s={{ ...r.session, facility_located: r.facility_located }} />}
@@ -213,7 +213,7 @@ export default function MonitorPage() {
                               && r.facility_located !== false && <span className="text-xs text-neutral-400">—</span>}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-3 py-2 text-right">
                           {r.session && (
                             <Link href={`/cost-control/reviews/${r.session.id}`} className={cx(btn(r.status === "SUBMITTED" ? "solid" : "outline", "sm"))}>
                               {r.status === "SUBMITTED" ? tr("Review") : tr("Open")} <ChevronRight size={13} />
@@ -253,7 +253,7 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
   const done = TABS.filter((t) => ["APPROVED", "SUBMITTED"].includes(t.key)).reduce((n, t) => n + tabCount(t.key), 0);
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
+      <div className="rounded-md border border-neutral-200 bg-neutral-50/60 p-3">
         <div className="mb-2 flex items-baseline justify-between gap-2 text-xs">
           <span className="font-semibold text-neutral-700">{tr("Progress of the day")}</span>
           <span className="tabular-nums text-neutral-500">{tr("{0} of {1} sent", fmtNumber(done), fmtNumber(total))} · <span className="font-semibold text-neutral-900">{total ? Math.round((done / total) * 100) : 0}%</span></span>
@@ -288,7 +288,7 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
             const on = type === t;
             return (
               <button key={t} type="button" onClick={() => onType(t)} aria-pressed={on}
-                className={cx("rounded-xl border bg-white px-3 py-2.5 text-left shadow-sm transition",
+                className={cx("rounded-md border bg-white px-3 py-2.5 text-left shadow-sm transition",
                   on ? "border-brand-600 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-xs font-semibold text-neutral-800">{countTypeLabel(t)}</span>
@@ -339,7 +339,7 @@ function MobileRow({ r }: { r: Row }) {
       )}
     </>
   );
-  const cls = "block rounded-xl border border-neutral-200 bg-white p-3.5 shadow-sm";
+  const cls = "block rounded-md border border-neutral-200 bg-white p-3.5 shadow-sm";
   return <li>{r.session ? <Link href={`/cost-control/reviews/${r.session.id}`} className={cx(cls, "active:bg-neutral-50")}>{body}</Link> : <div className={cls}>{body}</div>}</li>;
 }
 

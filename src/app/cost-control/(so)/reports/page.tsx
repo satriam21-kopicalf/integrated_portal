@@ -127,12 +127,12 @@ export default function ReportsPage() {
               {rows === null ? <SkeletonRows cols={5} rows={4} /> : shown.length === 0 ? (
                 <tr><td colSpan={5}><Empty icon={<FileSpreadsheet size={28} />} title={tr("No reviewed stock opname in this period")}>{tr("Change the period or the filters.")}</Empty></td></tr>
               ) : paged.rows.map((r) => (
-                <tr key={r.id} className="hover:bg-neutral-50/70">
-                  <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{dmy(r.business_date)}</td>
-                  <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{r.facility_name}</span><span className="font-mono text-[11px] text-neutral-400">{r.number}</span></td>
-                  <td className="px-4 py-2.5">{countTypeLabel(r.count_type)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums">{fmtNumber(r.lines)}</td>
-                  <td className="px-4 py-2.5"><Badge tone={STATUS[r.status]?.tone ?? "slate"}>{STATUS[r.status]?.label() ?? r.status}</Badge></td>
+                <tr key={r.id} className="hover:bg-neutral-50">
+                  <td className="whitespace-nowrap px-3 py-2 tabular-nums">{dmy(r.business_date)}</td>
+                  <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{r.facility_name}</span><span className="font-mono text-[11px] text-neutral-400">{r.number}</span></td>
+                  <td className="px-3 py-2">{countTypeLabel(r.count_type)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(r.lines)}</td>
+                  <td className="px-3 py-2"><Badge tone={STATUS[r.status]?.tone ?? "slate"}>{STATUS[r.status]?.label() ?? r.status}</Badge></td>
                 </tr>
               ))}
             </tbody>

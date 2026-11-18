@@ -171,7 +171,7 @@ export default function ReviewsPage() {
                 const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                 return (
                   <li key={r.id}>
-                    <Link href={`/cost-control/reviews/${r.id}`} className="block rounded-xl border border-neutral-200 bg-white p-3.5 shadow-sm active:bg-neutral-50">
+                    <Link href={`/cost-control/reviews/${r.id}`} className="block rounded-md border border-neutral-200 bg-white p-3.5 shadow-sm active:bg-neutral-50">
                       <span className="flex items-start justify-between gap-3">
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-semibold text-neutral-900">{r.facility_name}</span>
@@ -207,7 +207,7 @@ export default function ReviewsPage() {
                     <SortTh k="progress" sort={sort} onSort={toggle} align="right" first="desc">{tr("Counted")}</SortTh>
                     <SortTh k="flagged" sort={sort} onSort={toggle} first="desc">{tr("Checks")}</SortTh>
                     <SortTh k="submitted" sort={sort} onSort={toggle} first="desc">{tr("Submitted")}</SortTh>
-                    <th className="w-16 px-4 py-2.5" />
+                    <th className="w-16 px-3 py-2" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
@@ -216,27 +216,27 @@ export default function ReviewsPage() {
                     const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                     return (
                       <tr key={r.id} className="group hover:bg-neutral-50/70">
-                        <td className="max-w-[18rem] px-4 py-3">
+                        <td className="max-w-[18rem] px-3 py-2">
                           <Link href={`/cost-control/reviews/${r.id}`} className="block min-w-0">
                             <span className="block truncate font-medium text-neutral-900 group-hover:text-brand-700">{r.facility_name}</span>
                             <span className="block truncate font-mono text-[11px] text-neutral-400">{r.number}</span>
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-neutral-700">{countTypeLabel(r.count_type)}<span className="block text-xs text-neutral-400">{dmy(r.business_date)}</span></td>
-                        <td className="px-4 py-3"><Badge tone={st.tone} dot>{st.label()}</Badge></td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-3 py-2 text-neutral-700">{countTypeLabel(r.count_type)}<span className="block text-xs text-neutral-400">{dmy(r.business_date)}</span></td>
+                        <td className="px-3 py-2"><Badge tone={st.tone} dot>{st.label()}</Badge></td>
+                        <td className="px-3 py-2 text-right">
                           <span className="tabular-nums text-neutral-700">{r.counted}/{r.lines}</span>
                           <span className="ml-auto mt-1 block h-1 w-16 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${p}%` }} /></span>
                         </td>
-                        <td className="px-4 py-3"><div className="flex flex-wrap gap-1">
+                        <td className="px-3 py-2"><div className="flex flex-wrap gap-1">
                           {r.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} to check", r.flagged)}</Badge>}
                           {r.entry_source && r.entry_source !== "CREW" && <Badge tone="violet">{ENTRY_SOURCE[r.entry_source]?.()}</Badge>}
                           {r.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
                           <LocationBadges s={r} />
                         </div></td>
-                        <td className="whitespace-nowrap px-4 py-3 text-xs text-neutral-500">{r.submitted_at ? fmtDate(r.submitted_at) : "—"}
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-neutral-500">{r.submitted_at ? fmtDate(r.submitted_at) : "—"}
                           {r.started_by_name && <span className="block">{r.started_by_name}</span>}</td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-3 py-2 text-right">
                           <Link href={`/cost-control/reviews/${r.id}`} className="inline-flex items-center text-xs font-semibold text-brand-700 hover:underline">{tr("Open")}<ChevronRight size={13} /></Link>
                         </td>
                       </tr>

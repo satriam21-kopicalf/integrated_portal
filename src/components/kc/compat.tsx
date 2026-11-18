@@ -43,16 +43,16 @@ export function Panel({ title, description, actions, toolbar, footer, children, 
       {(title || actions) && (
         <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-2.5 pt-3.5 sm:px-5">
           <div className="min-w-0">
-            {title && <h2 className="text-base font-bold tracking-tight text-neutral-900">{tc(title)}</h2>}
+            {title && <h2 className="text-[15px] font-semibold text-neutral-900">{tc(title)}</h2>}
             {description && <p className="mt-0.5 text-xs text-neutral-500">{description}</p>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
       )}
-      {toolbar && <div className={cx('space-y-3 px-4 pb-3 sm:px-5', !(title || actions) && 'pt-3.5')}>{toolbar}</div>}
-      <div className={cx(!!(title || actions || toolbar) && 'border-t border-neutral-100')}>{children}</div>
+      {toolbar && <div className={cx('space-y-2.5 px-4 pb-3 sm:px-5', !(title || actions) && 'pt-3')}>{toolbar}</div>}
+      <div className={cx(!!(title || actions || toolbar) && 'border-t border-neutral-200')}>{children}</div>
       {footer && (
-        <div className="flex flex-col items-center justify-between gap-2 border-t border-neutral-100 bg-neutral-50/60 px-4 py-2.5 text-xs text-neutral-500 sm:flex-row sm:px-5">{footer}</div>
+        <div className="flex flex-col items-center justify-between gap-2 border-t border-neutral-200 bg-white px-4 py-2.5 text-xs text-neutral-500 sm:flex-row sm:px-5">{footer}</div>
       )}
     </section>
   );

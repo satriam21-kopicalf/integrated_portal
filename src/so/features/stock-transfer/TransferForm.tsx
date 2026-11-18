@@ -59,9 +59,9 @@ export default function TransferForm() {
       <div className="mx-auto max-w-5xl space-y-4">
         {(data.todo.answer > 0 || data.todo.receive > 0) && (
           <div className="flex flex-wrap gap-2">
-            {data.todo.answer > 0 && <button type="button" onClick={() => setTab("incoming")} className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            {data.todo.answer > 0 && <button type="button" onClick={() => setTab("incoming")} className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
               <Inbox size={15} />{tr("{0} requests from other outlets to check", data.todo.answer)}</button>}
-            {data.todo.receive > 0 && <button type="button" onClick={() => setTab("mine")} className="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-sm text-violet-900">
+            {data.todo.receive > 0 && <button type="button" onClick={() => setTab("mine")} className="inline-flex items-center gap-2 rounded-md border border-violet-200 bg-violet-50 px-3 py-2 text-sm text-violet-900">
               <PackageCheck size={15} />{tr("{0} approved transfers to receive", data.todo.receive)}</button>}
           </div>
         )}
@@ -262,7 +262,7 @@ function SignDialog({ busy, onSign, onClose }: { busy: boolean; onSign: (sig: st
 function List({ rows, side, onOpen }: { rows: Transfer[]; side: "mine" | "incoming"; onOpen: (id: string) => void }) {
   if (!rows.length) return <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No request from other outlets")} /></div>;
   return (
-    <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200 bg-white">
       {rows.map((t) => {
         const todo = side === "mine" ? t.status === "approved" : t.status === "submitted";
         return (
@@ -328,7 +328,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
         <div className="flex flex-wrap items-center gap-2"><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge>
           {t.esbLabel && <Badge tone="slate">{tr("ESB label")}: {t.esbLabel.value === "esb" ? tr("To ESB") : tr("Portal only")}</Badge>}
           <span className="ml-auto font-semibold tabular-nums text-neutral-900">{t.value != null ? rpText(t.value) : t.estimate != null ? `± ${rpText(t.estimate)}` : ""}</span></div>
-        <div className="overflow-hidden rounded-xl border border-neutral-200">
+        <div className="overflow-hidden rounded-md border border-neutral-200">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs capitalize text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">{(t.items ?? []).map((i) => (

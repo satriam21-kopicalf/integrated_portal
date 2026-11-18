@@ -185,13 +185,13 @@ function CalcDrawer({ r, h, onClose }: { r: Row; h?: Head; onClose: () => void }
   return (
     <Drawer open onClose={onClose} icon={<Calculator size={18} />} title={r.name} description={`${r.branchName} · ${r.code}`}>
       <div className="space-y-4">
-        <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <section className="overflow-hidden rounded-md border border-neutral-200 bg-white">
           <p className="border-b border-neutral-100 px-4 py-2 text-xs font-semibold capitalize text-neutral-500">{tr("Stock opname")}</p>
           {line(tr("Previous SO"), r.prevSo, h?.prevSoDate ? `${dmy(h.prevSoDate)}${h.prevRefs?.length ? ` · ${h.prevRefs.join(", ")}` : ""}` : tr("No earlier SO in the last 60 days"))}
           {line(tr("Latest SO"), r.so, h ? `${h.soAt ? tr("sent {0}", wibDateTime(h.soAt)) : dmy(h.soDate)}${h.refs.length ? ` · ${h.refs.join(", ")}` : ""}${h.final === false ? ` · ${tr("not approved")}` : ""}` : undefined, true)}
           {r.prevSo != null && line(tr("Change between the two SO"), r.so - r.prevSo, undefined, false, r.so - r.prevSo > 0 ? "+" : "")}
         </section>
-        <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <section className="overflow-hidden rounded-md border border-neutral-200 bg-white">
           <p className="border-b border-neutral-100 px-4 py-2 text-xs font-semibold capitalize text-neutral-500">{tr("Since the latest SO")}</p>
           <p className="border-b border-neutral-100 bg-sky-50/60 px-4 py-2 text-[11px] text-sky-900">{tr("Waste, transfers and bills count from the time the SO was sent; goods receipts and other ESB documents from its day.")}</p>
           {line(tr("Goods Receipt"), r.received, undefined, false, "+")}

@@ -128,22 +128,23 @@ export default function SalesCalculatorPage() {
   return (
     <Page title={tr("Sales Calculator by Menu")} subtitle={tr("Recipe cards per menu and, from the POS transactions of every branch: material planning, actual vs system usage and COGS")}>
       <DataSources keys={['esbSales', 'recipes', 'prices', 'so']} />
-      <nav aria-label={tr("Steps")} className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <nav aria-label={tr("Steps")} className="border-b border-neutral-200">
         <ol className="flex overflow-x-auto">
           {steps.map((s, i) => {
             const on = step === s.key;
             const Icon = s.icon;
             return (
-              <li key={s.key} className="relative min-w-[12.5rem] flex-1 border-r border-neutral-100 last:border-r-0">
+              <li key={s.key} className="relative min-w-[11rem] flex-1">
                 <button type="button" onClick={() => setStep(s.key)} aria-current={on ? "step" : undefined}
-                  className={cx("flex h-full w-full items-center gap-3 px-4 py-3.5 text-left transition-colors", on ? "bg-brand-50/70" : "hover:bg-neutral-50")}>
-                  <span className={cx("relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold transition",
-                    on ? "bg-brand-700 text-white ring-4 ring-brand-100" : s.done ? "bg-emerald-600 text-white" : "border-2 border-neutral-200 bg-white text-neutral-500")}>
-                    {s.done && !on ? <Check size={18} strokeWidth={3} /> : <Icon size={17} />}
+                  className={cx("flex h-full w-full items-center gap-2.5 px-4 py-3 text-left transition-colors", on ? "bg-white" : "hover:bg-neutral-50")}>
+                  <span className={cx("relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px] text-xs font-bold transition",
+                    on ? "bg-brand-700 text-white" : s.done ? "bg-emerald-600 text-white" : "bg-neutral-100 text-neutral-500")}>
+                    {s.done && !on ? <Check size={14} strokeWidth={3} /> : <Icon size={14} />}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className={cx("block text-[10px] font-semibold uppercase tracking-[0.14em]", on ? "text-brand-700" : "text-neutral-400")}>{tr("Step {0}", i + 1)}</span>
-                    <span className={cx("block truncate text-sm font-semibold", on ? "text-brand-900" : "text-neutral-800")}>{s.label}</span>
+                    <span className={cx("block text-[10px] font-bold uppercase tracking-wider", on ? "text-brand-700" : "text-neutral-400")}>{tr("Step {0}", i + 1)}</span>
+                    <span className={cx("block truncate text-sm font-medium", on ? "text-brand-700" : "text-neutral-800")}>{s.label}</span>
                     <span className="block truncate text-[11px] text-neutral-500">{s.status ?? s.hint}</span>
                     {s.share !== undefined && (
                       <span className="mt-1 block h-1 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", s.done ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${Math.round(s.share * 100)}%` }} /></span>
@@ -156,12 +157,15 @@ export default function SalesCalculatorPage() {
           })}
         </ol>
       </nav>
+      <div className="space-y-4 bg-neutral-50/60 p-3 sm:p-4">
       {step === "recipes" && <Recipes />}
       {step === "menus" && <MenuAssign />}
       {step === "options" && <OptionsStep />}
       {step === "extras" && <Extras />}
       {step === "report" && <ReportView onGo={setStep} link={link} />}
       {step === "breakdown" && <BreakdownStep />}
+      </div>
+      </section>
     </Page>
   );
 }
@@ -298,14 +302,14 @@ function AutoCards({ onClose, onDone }: { onClose: () => void; onDone: () => voi
             ))}
           </div>
           {plan.bundles.length > 0 && <section><p className="mb-1 text-xs font-semibold text-neutral-700">{tr("Bundling")}</p>
-            <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">{plan.bundles.map((b) => (
+            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">{plan.bundles.map((b) => (
               <li key={b.code} className="px-3 py-2"><p className="font-medium text-neutral-900">{b.name}</p><p className="text-xs text-neutral-500">{b.contents.join(" + ")}</p></li>))}</ul></section>}
           {plan.created.length > 0 && <section><p className="mb-1 text-xs font-semibold text-neutral-700">{tr("From the BOM")}</p>
-            <ul className="max-h-72 divide-y divide-neutral-100 overflow-auto rounded-xl border border-neutral-200">{plan.created.map((c) => (
+            <ul className="max-h-72 divide-y divide-neutral-100 overflow-auto rounded-md border border-neutral-200">{plan.created.map((c) => (
               <li key={c.code} className="flex items-start justify-between gap-3 px-3 py-2"><span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{c.name}</span>
                 <span className="block truncate text-xs text-neutral-500">{c.menus.join(", ")}</span></span><span className="font-mono text-[11px] text-neutral-400">{c.code}</span></li>))}</ul></section>}
           {plan.skipped.length > 0 && <section><p className="mb-1 text-xs font-semibold text-amber-800">{tr("Skipped: fill these by hand")}</p>
-            <ul className="max-h-60 divide-y divide-amber-100 overflow-auto rounded-xl border border-amber-200 bg-amber-50/50">{plan.skipped.map((x) => (
+            <ul className="max-h-60 divide-y divide-amber-100 overflow-auto rounded-md border border-amber-200 bg-amber-50/50">{plan.skipped.map((x) => (
               <li key={x.id} className="px-3 py-2"><p className="font-medium text-neutral-900">{x.name}</p><p className="text-xs text-amber-800">{x.reason}</p></li>))}</ul></section>}
           {!todo && <p className="text-neutral-500">{tr("Every menu sold already has a card.")}</p>}
         </div>
@@ -320,7 +324,7 @@ function Anomalies({ rows }: { rows: Anomaly[] }) {
   const shown = all ? rows : rows.slice(0, 8);
   const total = rows.reduce((a, r) => a + r.impact, 0);
   return (
-    <section className="mx-4 mt-3 overflow-hidden rounded-xl border border-red-200">
+    <section className="mx-4 mt-3 overflow-hidden rounded-md border border-red-200">
       <header className="flex flex-wrap items-center gap-2 bg-red-50 px-3 py-2.5 text-xs text-red-900">
         <span className="font-semibold">{tr("{0} SO rows look wrong, {1} of value: check and correct them in the stock opname first", rows.length, rp(total))}</span>
       </header>
@@ -413,7 +417,7 @@ function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null;
   return (
    <li className="min-w-0">
       <button type="button" onClick={onOpen}
-        className={cx("group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
+        className={cx("group flex h-full w-full flex-col overflow-hidden rounded-md border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
           r.isActive ? "border-neutral-200 hover:border-brand-300" : "border-neutral-200 opacity-75")}>
         <div className="relative overflow-hidden bg-gradient-to-br from-[#0b1f4d] via-[#12307a] to-brand-600 px-4 pb-4 pt-3.5 text-white">
           {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
@@ -435,7 +439,7 @@ function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null;
             <span><span className="block text-xs capitalize text-neutral-400">{tr("Components")}</span><span className="block text-sm font-semibold tabular-nums text-neutral-900">{r.lines.length}</span></span>
             <span><span className="block text-xs capitalize text-neutral-400">{tr("Menus")}</span><span className="block text-sm font-semibold tabular-nums text-neutral-900">{r.menus.length}</span></span>
           </div>
-          <div className="mt-3 rounded-xl border border-neutral-100 px-3 py-2">
+          <div className="mt-3 rounded-md border border-neutral-100 px-3 py-2">
             <p className="mb-1 flex items-center justify-between text-xs capitalize text-neutral-400"><span>{tr("Selling Price")}</span><span>{tr("% HPP")}</span></p>
             {r.menus.length ? <PriceRows prices={cardPrices(r.menus)} hpp={hpp} compact /> : <p className="text-[11px] text-neutral-400">{tr("Assign a menu to see its price")}</p>}
           </div>
@@ -461,7 +465,7 @@ const toDraft = (l: Line): Draft => ({ ...l, qtyText: l.qty ? String(l.qty).repl
 /** A numbered block of a drawer form. */
 function FormBlock({ n, title, hint, aside, children }: { n: number; title: string; hint?: string; aside?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+    <section className="rounded-md border border-neutral-200/80 bg-white shadow-sm">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 px-4 py-3">
         <div className="flex items-start gap-3">
           <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-[11px] font-bold text-white">{n}</span>
@@ -610,7 +614,7 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
               const Icon = KIND_ICON[l.type];
               const bad = tried && (!l.code || !l.name.trim() || (parse(l.qtyText) ?? 0) <= 0);
               return (
-                <li key={i} className={cx("rounded-xl border p-3", bad ? "border-red-300 bg-red-50/40" : "border-neutral-200 bg-neutral-50/40")}>
+                <li key={i} className={cx("rounded-md border p-3", bad ? "border-red-300 bg-red-50/40" : "border-neutral-200 bg-neutral-50/40")}>
                   <div className="flex items-start gap-3">
                     <span className={cx("mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg", KIND_CHIP[l.type])} title={KIND[l.type].label()}><Icon size={15} /></span>
                     <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[minmax(0,1fr)_8.5rem_7rem] sm:items-center">
@@ -640,13 +644,13 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
               );
             })}
           </ol>
-          {!lines.length && <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">{tr("No component yet: add one below")}</p>}
+          {!lines.length && <p className="rounded-md border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">{tr("No component yet: add one below")}</p>}
           <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
             {([["item", tr("From the item master")], ["wip", tr("In grams, from the Production Calculator")], ["other", tr("Typed by hand with its price")],
               ["menu", tr("Bundling: portions of another card")]] as [Kind, string][]).map(([k, hint]) => {
               const Icon = KIND_ICON[k];
               return (
-                <button key={k} type="button" onClick={() => add(k)} className="flex items-center gap-2.5 rounded-xl border border-dashed border-neutral-300 px-3 py-2.5 text-left hover:border-brand-400 hover:bg-brand-50/40">
+                <button key={k} type="button" onClick={() => add(k)} className="flex items-center gap-2.5 rounded-md border border-dashed border-neutral-300 px-3 py-2.5 text-left hover:border-brand-400 hover:bg-brand-50/40">
                   <span className={cx("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg", KIND_CHIP[k])}><Icon size={15} /></span>
                   <span className="min-w-0"><span className="flex items-center gap-1 text-sm font-medium text-neutral-800"><Plus size={13} /> {KIND[k].label()}</span><span className="block truncate text-[11px] text-neutral-500">{hint}</span></span>
                 </button>
@@ -677,7 +681,7 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
               <input className={cx(searchClass, "h-9 pl-8")} value={menuQ} onChange={(e) => setMenuQ(e.target.value)} placeholder={tr("Search menu")} /></div>
             <label className="flex items-center gap-2 text-xs text-neutral-600"><input type="checkbox" checked={onlyTicked} onChange={(e) => setOnlyTicked(e.target.checked)} />{tr("Ticked only")}</label>
           </div>
-          <div className="max-h-72 overflow-auto rounded-xl border border-neutral-200">
+          <div className="max-h-72 overflow-auto rounded-md border border-neutral-200">
             {menuShown.map((m) => (
               <label key={m.id} className={cx("flex cursor-pointer items-center gap-2.5 border-b border-neutral-100 px-3 py-2 text-xs last:border-0", ids.has(m.id) ? "bg-brand-50/50" : "hover:bg-neutral-50")}>
                 <input type="checkbox" checked={ids.has(m.id)}
@@ -929,7 +933,7 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
               const on = manual === o.m;
               return (
                 <button key={o.label} type="button" role="radio" aria-checked={on} onClick={() => setEdit({ ...edit, code: o.m ? null : edit.code ?? "" })}
-                  className={cx("flex items-start gap-3 rounded-xl border p-3 text-left transition", on ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+                  className={cx("flex items-start gap-3 rounded-md border p-3 text-left transition", on ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
                   <span className={cx("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg", on ? "bg-brand-700 text-white" : "bg-neutral-100 text-neutral-500")}><o.icon size={15} /></span>
                   <span><span className="block text-sm font-semibold text-neutral-900">{o.label}</span><span className="block text-xs text-neutral-500">{o.hint}</span></span>
                 </button>
@@ -959,7 +963,7 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
               const Icon = BASIS_ICON[b];
               return (
                 <button key={b} type="button" role="radio" aria-checked={on} onClick={() => setEdit({ ...edit, basis: b })}
-                  className={cx("rounded-xl border p-3 text-left transition", on ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+                  className={cx("rounded-md border p-3 text-left transition", on ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
                   <span className={cx("mb-2 flex h-8 w-8 items-center justify-center rounded-lg", on ? "bg-brand-700 text-white" : "bg-neutral-100 text-neutral-500")}><Icon size={15} /></span>
                   <span className="block text-sm font-semibold text-neutral-900">{BASIS[b]()}</span>
                   <span className="mt-0.5 block text-[11px] leading-snug text-neutral-500">{BASIS_HINT[b]()}</span>
@@ -1146,7 +1150,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                 const c = data.coverage;
                 const share = c.value ? c.countedValue / c.value : 1;
                 return (
-                  <div className={cx("mx-4 mt-3 rounded-xl border px-3 py-2.5 text-xs", share < 0.9 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900")}>
+                  <div className={cx("mx-4 mt-3 rounded-md border px-3 py-2.5 text-xs", share < 0.9 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900")}>
                     <p className="font-semibold">{tr("SO coverage {0}: {1} of {2} materials the cards use are counted at both ends", pct(share), c.counted, c.items)}</p>
                     {c.missing.length > 0 && <p className="mt-0.5">{tr("Not in the SO lists (no actual usage, left out of the actual COGS): {0}", c.missing.slice(0, 8).map((m) => `${m.name} (${rp(m.systemValue)})`).join(", "))}{c.missing.length > 8 ? "…" : ""}</p>}
                   </div>
@@ -1183,7 +1187,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
             {view === "cogs" && (
               <>
                 {!!data.nonSales?.length && (
-                  <div className="mx-4 mt-3 rounded-xl border border-violet-200 bg-violet-50/60 px-3 py-2.5 text-xs text-violet-900">
+                  <div className="mx-4 mt-3 rounded-md border border-violet-200 bg-violet-50/60 px-3 py-2.5 text-xs text-violet-900">
                     <p className="font-semibold">{tr("Made without a sale (ESB bills without a bill number): {0}, counted in the system usage", rp(data.total.nonSalesCost ?? 0))}</p>
                     <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5">
                       {data.nonSales.map((r) => (
@@ -1211,7 +1215,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                 {!!data.extras?.length && (
                   <table className="m-cards mt-2 w-full min-w-[760px] text-sm">
                     <caption className="px-4 py-2 text-left text-xs font-semibold text-neutral-700">{tr("Additional Items (Outside the Recipe Cards)")}</caption>
-                    <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5">{tr("Basis")}</th><th className="px-4 py-2.5 text-right">{tr("Used")}</th><th className="px-4 py-2.5 text-right">{tr("Value")}</th></tr></thead>
+                    <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Item")}</th><th className="px-3 py-2">{tr("Basis")}</th><th className="px-3 py-2 text-right">{tr("Used")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
                     <tbody className="divide-y divide-neutral-100">
                       {data.extras.map((e) => (
                         <tr key={e.id}>
@@ -1241,7 +1245,7 @@ function StockCoverage({ stock, names }: { stock?: Report["stock"]; names: Branc
   const portal = stock.branches.filter((b) => stock.covered.includes(b.code) && (b.start?.source === "portal" || b.end?.source === "portal")).length;
   const missing = stock.branches.filter((b) => !stock.covered.includes(b.code));
   return (
-    <details className="mx-4 mt-3 rounded-xl border border-neutral-200 bg-neutral-50/60 px-3 py-2 text-xs text-neutral-700">
+    <details className="mx-4 mt-3 rounded-md border border-neutral-200 bg-neutral-50/60 px-3 py-2 text-xs text-neutral-700">
       <summary className="cursor-pointer select-none font-medium">
         {stock.covered.length ? tr("{0} branches with SO awal & akhir ({1} from the portal SO)", stock.covered.length, portal) : tr("No branch has both SO awal and SO akhir in this period")}
         {missing.length > 0 && <span className="text-amber-700"> · {tr("{0} with one SO only (left out)", missing.length)}</span>}

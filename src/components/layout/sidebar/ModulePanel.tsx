@@ -26,10 +26,12 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const current = sections.flatMap((s) => s.items).find((i) => under(pathname, i.href));
+  // the pages as a tree in the sidebar (phones, and desktop while the sidebar is open, 2026-11-18); the popup only when collapsed
+  const tree = !!onNavigate || !collapsed;
 
   // beside the sidebar on desktop, centred below 1024 px
   useLayoutEffect(() => {
-    if (!open || onNavigate) return;
+    if (!open || tree) return;
     const place = () => {
       const r = button.current?.getBoundingClientRect();
       const h = panel.current?.offsetHeight ?? 420;
@@ -40,9 +42,9 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
     place();
     window.addEventListener('resize', place);
     return () => window.removeEventListener('resize', place);
-  }, [open, onNavigate]);
+  }, [open, tree]);
   useEffect(() => {
-    if (!open || onNavigate) return;
+    if (!open || tree) return;
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); button.current?.focus(); } };
     const down = (e: MouseEvent) => {
       const t = e.target as Node;
@@ -51,8 +53,8 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
     document.addEventListener('keydown', key);
     document.addEventListener('mousedown', down);
     return () => { document.removeEventListener('keydown', key); document.removeEventListener('mousedown', down); };
-  }, [open, onNavigate]);
-  useEffect(() => { if (open && !onNavigate) panel.current?.querySelector<HTMLElement>('a[aria-current="page"], a')?.focus(); }, [open, onNavigate]);
+  }, [open, tree]);
+  useEffect(() => { if (open && !tree) panel.current?.querySelector<HTMLElement>('a[aria-current="page"], a')?.focus(); }, [open, tree]);
 
   // stock opname waiting for a decision, on Review (only for those who open Review)
   const [waiting, setWaiting] = useState<number | null>(null);
@@ -142,7 +144,7 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
 
   // phones / the PWA (the sidebar is a drawer): the pages open inside the drawer as an accordion, not a popup over it
   // (2026-11-12: Monitoring COTR has more than 12 pages and the centred popup was cramped above the drawer)
-  if (onNavigate || !collapsed) {
+  if (tree) {
     const expanded = open || (!!current && !closedByUser);
     return (
       <div>

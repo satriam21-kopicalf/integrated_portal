@@ -113,7 +113,7 @@ export default function PricelistPage() {
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search item")} filters={chips} onOpen={() => setSheet(true)}
           onClear={() => { setCategory(""); setOnlyMissing(false); }} />
         {/* the new prices: from which day, filled from the purchase average, saved together */}
-        <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-neutral-50/60 p-2.5 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 rounded-md border border-neutral-200 bg-neutral-50/60 p-2.5 sm:flex-row sm:items-center">
           <label className="flex items-center gap-2 whitespace-nowrap text-xs font-medium text-neutral-600"><CalendarDays size={14} className="text-neutral-400" />{tr("Valid from")}
             <input type="date" className={cx(inputClass, "h-9 w-40 bg-white")} value={from} onChange={(e) => setFrom(e.target.value)} aria-label={tr("Valid from")} /></label>
           <span className="hidden flex-1 sm:block" />
@@ -133,7 +133,7 @@ export default function PricelistPage() {
                 <SortTh k="purchase" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Purchase Avg 90 Days")}</SortTh>
                 <SortTh k="hpp" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("ESB HPP")}</SortTh>
                 <SortTh k="price" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Current Price")}</SortTh>
-                <th className="px-4 py-2.5">{tr("New Price")}</th><th className="px-4 py-2.5">{tr("Status")}</th><th /></tr></thead>
+                <th className="px-3 py-2">{tr("New Price")}</th><th className="px-3 py-2">{tr("Status")}</th><th /></tr></thead>
               <tbody className="divide-y divide-neutral-100">
                 {paged.rows.map((i) => (
                   <tr key={i.code} className={cx(draft[i.code] && "bg-brand-50/40", i.active === false && "bg-neutral-50/70")}>
@@ -222,7 +222,7 @@ function HistoryDrawer({ item, onClose }: { item: Item; onClose: () => void }) {
   return (
     <Drawer open onClose={onClose} icon={<Tags size={18} />} title={item.name} description={`${item.code} · ${tr("price per {0}", item.unit)}`}>
       {!rows ? <SkeletonList rows={4} /> : rows.length === 0 ? <Empty title={tr("No price yet")} /> : (
-        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
           {rows.map((r) => (
             <li key={r.validFrom} className="flex items-center justify-between gap-3 px-3 py-2">
               <span><span className="font-medium">{rp(r.price, 4)}</span><span className="block text-[11px] text-neutral-400">{tr("from {0}", r.validFrom)} · {r.by ?? ""} · {wibDateTime(r.at)}</span></span>

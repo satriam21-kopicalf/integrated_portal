@@ -63,7 +63,7 @@ export function BundleDrawer({ menu, cards, current, suggested, onClose, onSaved
       <div className="space-y-3">
         {/* one row per menu of the bundle: its recipe card, how many portions (2026-11-17) */}
         {rows.map((r, i) => (
-          <div key={i} className="rounded-xl border border-neutral-200 p-3">
+          <div key={i} className="rounded-md border border-neutral-200 p-3">
             <div className="mb-1.5 flex items-center justify-between">
               <span className="text-xs font-semibold text-neutral-500">{tr("Menu {0}", i + 1)}</span>
               <button type="button" onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((_, j) => j !== i) : [{ card: "", qty: "1" }]))}

@@ -180,16 +180,16 @@ export function Tabs({ tabs, value, onChange, label, className, variant = 'line'
   }, [value]);
   return (
     <div ref={bar} role="tablist" aria-label={label}
-      className={cx('flex gap-x-6 overflow-x-auto', variant === 'card' ? 'rounded-2xl border border-neutral-200/70 bg-white px-5 pt-3.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]' : 'border-b border-neutral-200 px-1 pt-1.5', className)}>
+      className={cx('flex gap-x-5 overflow-x-auto', variant === 'card' ? 'rounded-2xl border border-neutral-200/70 bg-white px-4 pt-3 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] sm:px-5' : 'border-b border-neutral-200 px-1 pt-1.5', className)}>
       {tabs.map((t) => {
         const on = t.key === value;
         return (
           <button key={t.key} type="button" role="tab" aria-selected={on} title={t.title} aria-label={t.title} onClick={() => onChange(t.key)}
-            className={cx('relative flex flex-shrink-0 items-center gap-2 whitespace-nowrap pb-3.5 text-xs font-bold transition-colors',
+            className={cx('relative flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap pb-2.5 pt-1 text-sm font-medium transition-colors',
               on ? 'text-brand-700' : 'text-neutral-500 hover:text-neutral-900')}>
             {tc(t.label)}
             {t.count !== undefined && t.count !== null && (
-              <span className={cx('rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums', on ? 'bg-brand-50 text-brand-700' : 'bg-neutral-100 text-neutral-500')}>{t.count}</span>
+              <span className="rounded-full bg-neutral-100 px-1.5 text-[11px] font-semibold tabular-nums text-neutral-500">{t.count}</span>
             )}
             {on && <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-brand-700" aria-hidden />}
           </button>
@@ -206,7 +206,7 @@ export function SearchInput({ value, onChange, placeholder, label }: { value: st
     <div className="relative min-w-0 flex-1 basis-56">
       <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={label ?? placeholder}
-        className="h-9 w-full rounded-xl border border-neutral-200 bg-white pl-9 pr-8 text-xs font-medium text-neutral-900 placeholder:text-neutral-400 transition-colors hover:border-neutral-300 focus:border-brand-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100" />
+        className="h-9 w-full rounded-[4px] border border-neutral-300 bg-white pl-9 pr-8 text-[13px] text-neutral-900 placeholder:text-neutral-500 transition-colors hover:bg-neutral-50 focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100" />
       {value && (
         <button type="button" onClick={() => onChange('')} aria-label={tr('Clear Search')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700"><X size={14} /></button>
       )}

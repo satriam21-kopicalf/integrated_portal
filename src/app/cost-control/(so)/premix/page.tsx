@@ -5,6 +5,7 @@
 // sheet, with the WIP entered, the share of each ingredient and the breakdown per WIP. Recipes: the recipes with
 // versions (what the count form uses). The workbook import tab was removed (2026-10-20: not used).
 
+import { CardBody, WorkCard } from "@/so/ui/Jira";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { Calculator, ChevronDown, Copy, FlaskConical, Minus, Plus, RotateCcw, Scale, Search, X } from "lucide-react";
@@ -72,10 +73,14 @@ export default function PremixPage() {
           </Stat>
         </StatStrip>
       }>
-      <Tabs variant="card" label={tr("View")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={tabs.map((t) => ({ key: t.key, label: <>{t.icon}{t.label}</> }))} />
-      {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel>
-        : tab === "calculator" ? <CalculatorTab recipes={rows} />
-        : <RecipesTab recipes={rows} onOpen={setOpen} />}
+      {/* Jira-like (2026-11-18, preview): the views as the tabs of one card */}
+      <WorkCard label={tr("View")} active={tab} onTab={(k) => setTab(k as typeof tab)} tabs={tabs.map((t) => ({ key: t.key, label: t.label, icon: t.icon }))}>
+        <CardBody>
+          {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel>
+            : tab === "calculator" ? <CalculatorTab recipes={rows} />
+            : <RecipesTab recipes={rows} onOpen={setOpen} />}
+        </CardBody>
+      </WorkCard>
       {open && <RecipeDrawer recipeId={open} onClose={() => setOpen(null)} onChanged={load} />}
     </Page>
   );
@@ -170,7 +175,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
   return (
     <div className="grid gap-5 pb-20 xl:grid-cols-[minmax(0,1fr)_22rem] xl:pb-0 2xl:grid-cols-[minmax(0,1fr)_26rem]">
       {/* recipes and their quantities */}
-      <section className="min-w-0 overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+      <section className="min-w-0 overflow-hidden rounded-md border border-neutral-200/80 bg-white shadow-sm">
         <div className="space-y-3 border-b border-neutral-100 p-4">
           <div>
             <h2 className="text-sm font-semibold text-neutral-900">{tr("1. Enter the WIP Quantities")}</h2>
@@ -234,7 +239,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 
       {/* the result */}
       <aside id="premix-result" className="min-w-0 xl:sticky xl:top-4 xl:self-start">
-        <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-md border border-neutral-200/80 bg-white shadow-sm">
           <div className="flex items-start justify-between gap-3 border-b border-neutral-100 p-4">
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-neutral-900">{tr("2. Ingredients to Prepare")}</h2>
@@ -404,7 +409,7 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[720px] text-sm">
             <thead className={theadClass}>
-              <tr><SortTh k="recipe" sort={sorted.sort} onSort={sorted.toggle}>{tr("Recipe")}</SortTh><th className="px-4 py-2.5">{tr("Units")}</th><SortTh k="batch" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Batch")}</SortTh>
+              <tr><SortTh k="recipe" sort={sorted.sort} onSort={sorted.toggle}>{tr("Recipe")}</SortTh><th className="px-3 py-2">{tr("Units")}</th><SortTh k="batch" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Batch")}</SortTh>
                 <SortTh k="components" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Components")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh></tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
@@ -413,14 +418,14 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
                 const warnings = r.active?.issues.filter(i => i.level === "warning") ?? [];
                 return (
                   <tr key={r.id} className="group cursor-pointer hover:bg-neutral-50/70" onClick={() => onOpen(r.id)}>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <span className="block font-medium text-neutral-900 group-hover:text-brand-700">{r.name}</span>
                       <span className="block font-mono text-[11px] text-neutral-400">{r.code} · {r.recipe_type}{r.facility_types.length ? ` · ${r.facility_types.join(", ")}` : ""}</span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-neutral-600">{r.units.map(u => u.uom).join(" · ")}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{r.active ? `${fmtG(num(r.active.output_qty_base))} g` : "-"}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{r.active?.lines.length ?? "-"}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2 text-xs text-neutral-600">{r.units.map(u => u.uom).join(" · ")}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{r.active ? `${fmtG(num(r.active.output_qty_base))} g` : "-"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{r.active?.lines.length ?? "-"}</td>
+                    <td className="px-3 py-2">
                       <span className="flex flex-wrap gap-1">
                         {!r.is_active ? <Badge>{tr("Inactive")}</Badge> : r.active ? <Badge tone="green">{tr("Active v{0}", r.active.version_no)}</Badge> : <Badge tone="amber">{tr("No active version")}</Badge>}
                         {r.drafts > 0 && <Badge tone="blue">{tr("Draft")}</Badge>}

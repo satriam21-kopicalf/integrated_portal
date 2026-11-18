@@ -19,7 +19,7 @@ export const inputClass =
 
 /** A search field (2026-11-16, the kopicalf-hrms look): white with a border; the grey inputClass stays for the forms. */
 export const searchClass =
-  "h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-base font-medium text-neutral-900 placeholder:text-neutral-400 " +
+  "h-11 w-full rounded-[4px] border border-neutral-300 bg-white px-3 text-base font-medium text-neutral-900 placeholder:text-neutral-500 " +
   "transition-colors hover:border-neutral-300 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100 lg:h-10 lg:text-xs";
 
 
@@ -44,7 +44,7 @@ export function Button({
       {...p}
       disabled={p.disabled || loading}
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-xl text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 lg:rounded-lg",
+        "inline-flex items-center justify-center gap-2 rounded-[4px] text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         size === "sm" ? "h-9 px-3 text-xs lg:h-8" : "h-11 px-4 lg:h-9 lg:px-3.5 lg:text-[13px]",
         BUTTON[variant],
         className,
@@ -106,7 +106,7 @@ export function Badge({ tone = "slate", dot, icon, title, wrap, children }: {
   tone?: Tone; dot?: boolean; icon?: ReactNode; title?: string; /** long text may break onto a second line (phones) */ wrap?: boolean; children: ReactNode;
 }) {
   return (
-    <span title={title} className={cx("inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold", wrap ? "whitespace-normal" : "whitespace-nowrap", TONES[tone])}>
+    <span title={title} className={cx("inline-flex max-w-full items-center gap-1 rounded-[3px] px-1.5 py-0.5 text-[11px] font-bold uppercase leading-4 tracking-wide", wrap ? "whitespace-normal" : "whitespace-nowrap", TONES[tone])}>
       {dot && <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />}
       {icon}
       {children}
@@ -135,7 +135,8 @@ export function SearchBox({ value, onChange, placeholder }: { value: string; onC
 
 /** Table header row style shared by every list. */
 // the kopicalf-hrms table head (2026-11-16): grey with rounded ends, sentence-case labels in Title Case
-export const theadClass = "bg-neutral-50/90 text-left text-xs font-semibold capitalize text-neutral-500 [&_th:first-child]:rounded-l-xl [&_th:last-child]:rounded-r-xl";
+// Jira-like (2026-11-18): small grey caps over a double rule
+export const theadClass = "border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500";
 
 export { SkeletonRows } from "@/components/kc/Skeleton";
 
