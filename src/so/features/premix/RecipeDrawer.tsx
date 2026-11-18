@@ -271,7 +271,7 @@ function ComponentTable({ lines, batch, editable, onChange, onRemove }: {
   return (
     <div className="overflow-x-auto rounded-lg border border-neutral-200">
       <table className="m-cards w-full min-w-[640px] text-sm">
-        <thead className="bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
+        <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
           <tr><th className="px-3 py-2">{tr("Component")}</th><th className="px-3 py-2">{tr("Stock Item")}</th>
             <th className="w-28 px-3 py-2 text-right">{tr("Grams / Batch")}</th><th className="w-16 px-3 py-2 text-right">%</th>{editable && <th className="w-10" />}</tr>
         </thead>

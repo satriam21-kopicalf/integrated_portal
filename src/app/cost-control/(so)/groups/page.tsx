@@ -4,6 +4,7 @@
 // lists of many branches; a change to the group reaches every branch that uses it.
 // New group = a 3-step wizard (details → items → branches); an existing group opens on tabs (items, branches, details).
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { Boxes, Check, ChevronLeft, ChevronRight, FileSpreadsheet, MapPin, PackagePlus, Plus, Save, Search, Store, Upload, X } from "lucide-react";
@@ -229,11 +230,11 @@ function BranchPicker({ facilities, types, usedBy, countTypes, setCountTypes, pi
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_12rem]">
           <SearchBox value={q} onChange={setQ} placeholder={tr("Search Branch")} />
           {cities.length > 1 && (
-            <select value={city} onChange={(e) => setCity(e.target.value)} aria-label={tr("City")}
+            <NativeSelect value={city} onChange={(e) => setCity(e.target.value)} aria-label={tr("City")}
               className="h-10 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-700">
               <option value="">{tr("All cities")}</option>
               {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            </NativeSelect>
           )}
         </div>
       </div>

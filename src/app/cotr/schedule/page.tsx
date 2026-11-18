@@ -4,6 +4,7 @@
 // roster of the drivers (a shift, off, leave or sick per day), the attendance against the check in of the driver
 // app and a recap per driver — the administrative reference of the incentives.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { AreaRequests } from "@/cotr/AreaRequests";
 import { type Slot, SlotsDrawer, slotsText } from "@/cotr/RosterSlots";
 import { Building2, CalendarDays, ChevronLeft, ChevronRight, Clock, Copy, MapPinned, Save, Users, Wallet } from "lucide-react";
@@ -178,10 +179,10 @@ function RosterView() {
                 <button type="button" aria-label={tr("Next Week")} onClick={() => setWeek(addDays(week, 7))} className="rounded-r-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronRight size={16} /></button>
               </div>
               {week !== mondayOf(today) && <Button size="sm" variant="ghost" onClick={() => { setWeek(mondayOf(today)); setDay(today); }}>{tr("This week")}</Button>}
-              <div role="radiogroup" aria-label={tr("View")} className="ml-auto flex rounded-lg bg-neutral-100 p-1">
+              <div role="radiogroup" aria-label={tr("View")} className="ml-auto flex gap-1">
                 {(["day", "week"] as const).map((m) => (
                   <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-                    className={cx("rounded-md px-3 py-1 text-xs font-semibold", mode === m ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500")}>
+                    className={cx("rounded-md px-3 py-1 text-xs font-semibold", mode === m ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "text-neutral-500")}>
                     {m === "day" ? tr("Per Day") : tr("Weekly")}
                   </button>
                 ))}
@@ -267,12 +268,12 @@ function RosterView() {
                       const changed = `${p.code}|${d}` in edits;
                       return (
                         <td key={d} className={cx("px-1.5 py-1.5 align-top", d === today && "bg-brand-50/40")}>
-                          <select value={keyOf(v)} onChange={(e) => setCell(p.code, d, e.target.value)} aria-label={`${p.name} ${d}`}
+                          <NativeSelect value={keyOf(v)} onChange={(e) => setCell(p.code, d, e.target.value)} aria-label={`${p.name} ${d}`}
                             className={cx("h-8 w-full rounded-lg border px-1.5 text-xs font-semibold outline-none", t ? TEMPLATE_TONE[t.color ?? ""] ?? "border-neutral-200 bg-neutral-50" : v.status ? "border-neutral-200 bg-neutral-100 text-neutral-500" : "border-dashed border-neutral-200 text-neutral-400", changed && "ring-2 ring-brand-300")}>
                             <option value="">—</option>
                             {templates.map((x) => <option key={x.code} value={x.code}>{x.code} · {x.start_time}–{x.end_time}</option>)}
                             {(Object.keys(OTHER) as (keyof typeof OTHER)[]).map((s) => <option key={s} value={`@${s}`}>{OTHER[s]()}</option>)}
-                          </select>
+                          </NativeSelect>
                           <SlotLine compact slots={c?.slots} onOpen={() => setSlotOf({ driver: p.code, day: d })} />
                           {(att || c?.started) && !changed && (
                             <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-neutral-500">
@@ -284,11 +285,11 @@ function RosterView() {
                       );
                     })}
                     <td className="px-1.5 py-1.5 align-top">
-                      <select value="" onChange={(e) => e.target.value !== "#" && days.forEach((d) => setCell(p.code, d, e.target.value))} aria-label={tr("Whole Week")} className="h-8 w-full rounded-lg border border-neutral-200 px-1.5 text-xs text-neutral-500 outline-none">
+                      <NativeSelect value="" onChange={(e) => e.target.value !== "#" && days.forEach((d) => setCell(p.code, d, e.target.value))} aria-label={tr("Whole Week")} className="h-8 w-full rounded-lg border border-neutral-200 px-1.5 text-xs text-neutral-500 outline-none">
                         <option value="#">{tr("Fill…")}</option>
                         {templates.map((x) => <option key={x.code} value={x.code}>{x.code} · {x.name}</option>)}
                         <option value="@off">{tr("Off")}</option><option value="">{tr("Clear")}</option>
-                      </select>
+                      </NativeSelect>
                     </td>
                   </tr>
                 ))}

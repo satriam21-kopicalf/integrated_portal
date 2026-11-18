@@ -5,6 +5,7 @@
 // for every branch — what the branches sent (approved or not), what waits for a review, everything incl. counts still in
 // progress, or the approved ones only; it follows the period and the count type filter.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { downloadFile } from "@/lib/download-progress";
 import { ccUrl } from "@/lib/company";
 import LocationBadges from "@/so/features/count/LocationBadges";
@@ -157,13 +158,13 @@ export default function ReviewsPage() {
             {/* phones: one card per count; the whole card opens it */}
             <div className="flex items-center gap-2 px-3 pt-3 md:hidden">
               <label className="text-xs text-neutral-500" htmlFor="review-sort">{tr("Sort")}</label>
-              <select id="review-sort" className="h-9 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-sm"
+              <NativeSelect id="review-sort" className="h-9 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-sm"
                 value={sort.key ? `${sort.key}:${sort.dir}` : ""}
                 onChange={(e) => { const [k, d] = e.target.value.split(":") as [SortKey, "asc" | "desc"]; setSort(e.target.value ? { key: k, dir: d } : { key: null, dir: "asc" }); }}>
                 <option value="">{tr("Default order")}</option>
                 {([["submitted:desc", tr("Submitted, newest")], ["submitted:asc", tr("Submitted, oldest")], ["facility:asc", tr("Facility A–Z")],
                   ["flagged:desc", tr("Most lines to check")], ["progress:asc", tr("Least counted")], ["date:desc", tr("Count date, newest")]] as const).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
+              </NativeSelect>
             </div>
             <ul className="space-y-2.5 p-3 md:hidden">
               {rows === null ? <li><SkeletonList rows={4} /></li> : paged.rows.map((r) => {

@@ -9,6 +9,7 @@
 // - Import from the ESB BOM: a recipe card from an ESB bill of material, its lines matched to the item master and the
 //   WIP recipes, with the POS menus of the same name.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { AlertTriangle, ArrowDownToLine, Check, Database, Plus, RefreshCw, Save, Search, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Panel, SkeletonRows, theadClass, useToast, searchClass } from "@/so/ui";
@@ -59,10 +60,10 @@ export function OptionsStep() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search choice or menu")} /></div>
-          <div role="radiogroup" aria-label={tr("Show")} className="flex rounded-lg bg-neutral-100 p-1">
+          <div role="radiogroup" aria-label={tr("Show")} className="flex gap-1">
             {([["all", tr("All")], ["todo", tr("Not set ({0})", todo)], ["set", tr("Set")]] as const).map(([k, label]) => (
               <button key={k} type="button" role="radio" aria-checked={only === k} onClick={() => setOnly(k)}
-                className={cx("rounded-md px-3 py-1 text-xs font-semibold", only === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500")}>{label}</button>
+                className={cx("rounded-md px-3 py-1 text-xs font-semibold", only === k ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "text-neutral-500")}>{label}</button>
             ))}
           </div>
         </div>
@@ -238,17 +239,17 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
             </div>
             {lines.map((l, i) => (
               <div key={i} className="grid gap-2 rounded-md border border-neutral-200 p-3 sm:grid-cols-[10rem_minmax(0,1fr)_9rem_7rem_auto] sm:items-center">
-                <select className={cx(inputClass, "h-9")} value={l.target} aria-label={tr("Material")}
+                <NativeSelect className={cx(inputClass, "h-9")} value={l.target} aria-label={tr("Material")}
                   onChange={(e) => set(i, { target: e.target.value as RuleLine["target"], mode: e.target.value === "sugar" ? "pct" : l.mode, code: null })}>
                   <option value="sugar">{tr("Sugar of the card")}</option><option value="item">{tr("An item")}</option>
-                </select>
+                </NativeSelect>
                 {l.target === "item" ? <Picker value={l.code ?? ""} options={itemOpts} placeholder={tr("Pick an item")}
                   onPick={(v) => set(i, { code: v, name: items.find((x) => x.code === v)?.name })} />
                   : <span className="text-xs text-neutral-500">{tr("Every gula / sugar item of the card of the menu (not the flavour syrups)")}</span>}
-                <select className={cx(inputClass, "h-9")} value={l.mode} disabled={l.target === "sugar"} aria-label={tr("How")}
+                <NativeSelect className={cx(inputClass, "h-9")} value={l.mode} disabled={l.target === "sugar"} aria-label={tr("How")}
                   onChange={(e) => set(i, { mode: e.target.value as RuleLine["mode"] })}>
                   <option value="pct">{tr("% of the card")}</option><option value="qty">{tr("Qty per choice")}</option>
-                </select>
+                </NativeSelect>
                 <div className="relative">
                   <input inputMode="decimal" className={cx(inputClass, "h-9 pr-12 text-right tabular-nums")} value={l.text} placeholder={l.mode === "pct" ? "-50" : "18"}
                     onChange={(e) => set(i, { text: e.target.value.replace(/[^0-9,.-]/g, "") })} aria-label={tr("Value")} />

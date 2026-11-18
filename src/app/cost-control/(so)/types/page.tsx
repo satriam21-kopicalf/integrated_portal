@@ -5,6 +5,7 @@
 // and its ESB purpose. Quick setups fill the usual schedules in one tap. A month calendar
 // shows the schedule the server computes from these rules; the editor previews an unsaved schedule live.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { CalendarClock, CalendarDays, CalendarRange, ChevronDown, ChevronRight, Clock, FlaskConical, ListChecks, Plus, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -385,10 +386,10 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
 
         <FormCard n={2} title={tr("Schedule")} hint={tr("When the branches have to count")}
           aside={(
-            <select value="" aria-label={tr("Quick Setup")} onChange={(e) => { const q = QUICK[Number(e.target.value)]; if (q) setD((o) => ({ ...o, ...q.set })); }}
+            <NativeSelect value="" aria-label={tr("Quick Setup")} onChange={(e) => { const q = QUICK[Number(e.target.value)]; if (q) setD((o) => ({ ...o, ...q.set })); }}
               className="h-8 rounded-lg border border-neutral-200 bg-white px-2 text-xs font-medium text-neutral-600">
               {QUICK_KEYS.map((k) => <option key={k || "x"} value={k}>{k === "" ? tr("Quick setup…") : QUICK[Number(k)].label()}</option>)}
-            </select>
+            </NativeSelect>
           )}>
           <Segmented label={tr("Frequency")} value={d.frequency} onChange={(v) => set("frequency", v)}
             options={FREQUENCIES.map((f) => ({ value: f.key, label: f.label() }))} />

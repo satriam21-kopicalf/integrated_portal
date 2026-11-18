@@ -8,6 +8,7 @@
 // handover (link ?request=<id>) the PIC confirms at the outlet: 1-5 photos, their signature and, for a vendor, the
 // vendor's signature. Once Done the final document (work report / vendor's handover record) is downloadable.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Copy, FileText,
   Hammer, Handshake, Loader2, PackagePlus, Plus, Send, Trash2, Video, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -505,10 +506,10 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
             <div><dt className="text-[11px] text-neutral-400">{tr("Branch")}</dt>
               <dd>{data.branches.length > 1 ? (
-                <select value={r.branchCode} onChange={(e) => { setR({ ...r, branchCode: e.target.value }); save({ branchCode: e.target.value }, true); }}
+                <NativeSelect value={r.branchCode} onChange={(e) => { setR({ ...r, branchCode: e.target.value }); save({ branchCode: e.target.value }, true); }}
                   className={cx(inputClass, "h-9 text-sm")} aria-label={tr("Branch")}>
                   {data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
-                </select>
+                </NativeSelect>
               ) : <span className="font-medium text-neutral-900">{r.branchName}</span>}</dd></div>
           </dl>
         </FormCard>
@@ -550,19 +551,19 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
                   <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Item")}><Trash2 size={15} /></button>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <select value={it.categoryId || ""} aria-label={tr("Category")} className={cx(inputClass, "h-10 text-sm")}
+                  <NativeSelect value={it.categoryId || ""} aria-label={tr("Category")} className={cx(inputClass, "h-10 text-sm")}
                     onChange={(e) => { const c = cats.find((x) => x.id === Number(e.target.value)); upd({ categoryId: Number(e.target.value), urgency: c?.defaultUrgency ?? it.urgency }, true); }}>
                     <option value="">{tr("Choose the category")}</option>
                     {groups.map((g) => <optgroup key={g} label={g}>{cats.filter((c) => c.group === g).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</optgroup>)}
-                  </select>
+                  </NativeSelect>
                   {cat?.group === MERCH_GROUP && data.merchandise?.items.length ? (
                     <MerchPick value={it.name} merch={data.merchandise} onChange={(name) => upd({ name }, true)} />
                   ) : cat?.examples.length ? (
                     // the item comes from the category's list, never typed (Maintenance & Procurement, 2026-11-17)
-                    <select value={it.name} onChange={(e) => upd({ name: e.target.value }, true)} className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item Name")}>
+                    <NativeSelect value={it.name} onChange={(e) => upd({ name: e.target.value }, true)} className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item Name")}>
                       <option value="">{tr("Choose the item")}</option>
                       {cat.examples.map((x) => <option key={x} value={x}>{x}</option>)}
-                    </select>
+                    </NativeSelect>
                   ) : <>
                     <input value={it.name} onChange={(e) => upd({ name: e.target.value })} list={`ex-${it.key}`} maxLength={120} placeholder={tr("Item name, e.g. {0}", cat?.examples[0] ?? "Grinder")}
                       className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Item Name")} />
@@ -738,15 +739,15 @@ function MerchPick({ value, merch, onChange }: { value: string; merch: NonNullab
   const join = (b: string, s: string) => (merch.items.find((i) => i.name === b)?.sized && s ? `${b} (${s})` : b);
   return (
     <div className={cx("grid gap-2", item?.sized && "grid-cols-[minmax(0,1fr)_8.5rem]")}>
-      <select value={item ? base : ""} onChange={(e) => onChange(join(e.target.value, size))} aria-label={tr("Merchandise")} className={cx(inputClass, "h-10 text-sm")}>
+      <NativeSelect value={item ? base : ""} onChange={(e) => onChange(join(e.target.value, size))} aria-label={tr("Merchandise")} className={cx(inputClass, "h-10 text-sm")}>
         <option value="">{tr("Choose the merchandise")}</option>
         {merch.items.map((i) => <option key={i.name} value={i.name}>{i.name}</option>)}
-      </select>
+      </NativeSelect>
       {item?.sized && (
-        <select value={size} onChange={(e) => onChange(join(base, e.target.value))} aria-label={tr("Size")} className={cx(inputClass, "h-10 text-sm", !size && "border-red-300")}>
+        <NativeSelect value={size} onChange={(e) => onChange(join(base, e.target.value))} aria-label={tr("Size")} className={cx(inputClass, "h-10 text-sm", !size && "border-red-300")}>
           <option value="">{tr("Size")}</option>
           {merch.sizes.map((x) => <option key={x} value={x}>{x}</option>)}
-        </select>
+        </NativeSelect>
       )}
     </div>
   );

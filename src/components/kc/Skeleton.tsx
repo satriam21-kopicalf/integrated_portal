@@ -43,7 +43,7 @@ export function SkeletonTable({ cols, rows = 8 }: { cols: number; rows?: number 
   return (
     <div className="overflow-hidden" role="status" aria-label={tr('Loading…')}>
       <table className="w-full text-sm">
-        <thead className="border-b border-neutral-100 bg-neutral-50/70" aria-hidden><tr>
+        <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500" aria-hidden><tr>
           {Array.from({ length: Math.max(1, cols) }, (_, c) => <th key={c} className="px-3 py-2"><Skeleton className={cx('h-2.5', c === 0 ? 'w-24' : 'w-14')} /></th>)}
         </tr></thead>
         <tbody className="divide-y divide-neutral-100"><SkeletonRows cols={cols} rows={rows} /></tbody>

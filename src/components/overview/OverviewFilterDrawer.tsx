@@ -1,5 +1,6 @@
 'use client';
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { ReactNode, useMemo, useState } from 'react';
 import { AlertTriangle, CalendarDays, CalendarRange, Check, GitCompareArrows, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import Drawer from '@/components/ui/Drawer';
@@ -142,7 +143,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
       <div className="space-y-7">
         {/* ---------------------------------------------------------------- dates */}
         <Group title={tr('Dates')}>
-          <div role="radiogroup" aria-label={tr('Date View')} className="grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1">
+          <div role="radiogroup" aria-label={tr('Date View')} className="grid grid-cols-2 gap-1 gap-1">
             {([['period', tr('Date range'), CalendarRange], ['day', tr('Compare two days'), GitCompareArrows]] as const).map(([v, l, Icon]) => (
               <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
                 className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -176,10 +177,10 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
 
               <div>
                 <Label htmlFor="compare">{tr('Compare with')}</Label>
-                <select id="compare" value={pd.cmp} className={inputClass}
+                <NativeSelect id="compare" value={pd.cmp} className={inputClass}
                   onChange={e => { const mode = e.target.value as CompareMode; set({ cmp: mode, ...(mode === 'custom' ? {} : { cmpFrom: '', cmpTo: '' }) }); }}>
                   {COMPARE.map(o => <option key={o.mode} value={o.mode}>{o.label}</option>)}
-                </select>
+                </NativeSelect>
                 {pd.cmp === 'custom' && (
                   <div className="mt-2 flex items-center gap-2">
                     <input type="date" aria-label={tr('Compare from')} value={pd.cmpFrom} max={today}

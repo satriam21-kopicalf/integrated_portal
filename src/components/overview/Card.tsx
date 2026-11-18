@@ -183,7 +183,7 @@ export function DataTable({
     <div className="custom-scrollbar overflow-auto rounded-lg border border-neutral-100" style={{ maxHeight }}>
       <table className="w-full text-xs">
         <caption className="sr-only">{caption}</caption>
-        <thead className="sticky top-0 bg-neutral-50 text-neutral-500">
+        <thead className="sticky top-0 border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
           <tr>
             {columns.map(c => (
               <th key={c.key} scope="col" className={`whitespace-nowrap px-3 py-2 font-medium ${c.align === 'right' ? 'text-right' : 'text-left'}`}>

@@ -8,6 +8,7 @@
 // Layout (2026-11-06): tabs with icons and counts; the entries as a table on a desktop (cards on a phone), the totals
 // ranked with their share of the value; the filters in the monitor filter sheet.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { BarChart3, Scale, CalendarCheck, CalendarDays, Check, CheckCircle2, ClipboardList, FileSearch, PencilLine, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
@@ -597,9 +598,9 @@ function RecategorizeDialog({ ids, categories, onClose, onDone }: { ids: string[
         <Button loading={busy} disabled={!category || reason.trim().length < 3} onClick={() => void apply()}><Tags size={14} />{tr("Change")}</Button></>}>
       <div className="space-y-3">
         <label className="block text-sm font-medium text-neutral-700">{tr("New category")}
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm">
+          <NativeSelect value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm">
             <option value="">{tr("Choose a category")}</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+          </NativeSelect>
         </label>
         <label className="block text-sm font-medium text-neutral-700">{tr("Reason")}
           <input value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} placeholder={tr("e.g. wrong category picked by the outlet")}

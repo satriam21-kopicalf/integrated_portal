@@ -5,6 +5,7 @@
 // waste) with how it is reached, the goods coming in, and the stock opname (counted against the running stock, sent,
 // approved: the next running stock starts from it).
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { Boxes, Calculator, CheckCircle2, ClipboardCheck, PackagePlus, Plus, Save, Send, Trash2, Warehouse } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Empty, ErrorState, cx, inputClass, theadClass, useToast } from "@/so/ui";
@@ -143,9 +144,9 @@ export function ReceiptsTab() {
               options={(items.rows ?? []).filter((i) => i.is_stock && i.is_active).map((i) => ({ value: i.code, label: i.name, hint: `${i.code} · ${i.unit}` }))} /></div></div>
           <label className="text-[11px] font-medium text-neutral-500">{tr("Qty")}
             <span className="mt-1 flex gap-1.5"><input className={cx(inputClass, "h-10 text-right")} inputMode="decimal" value={form.qty} onChange={(e) => setForm({ ...form, qty: e.target.value })} />
-              <select className={cx(inputClass, "h-10 w-28")} value={form.unit || it?.unit || ""} onChange={(e) => setForm({ ...form, unit: e.target.value })} disabled={!it}>
+              <NativeSelect className={cx(inputClass, "h-10 w-28")} value={form.unit || it?.unit || ""} onChange={(e) => setForm({ ...form, unit: e.target.value })} disabled={!it}>
                 {it && <option value={it.unit}>{it.unit}</option>}{it?.pack_unit && <option value={it.pack_unit}>{it.pack_unit} ({num(Number(it.pack_qty))} {it.unit})</option>}
-              </select></span></label>
+              </NativeSelect></span></label>
           <label className="text-[11px] font-medium text-neutral-500">{tr("Day")}<input type="date" className={cx(inputClass, "mt-1 h-10")} value={form.day} max={todayWib()} onChange={(e) => setForm({ ...form, day: e.target.value })} /></label>
           <label className="text-[11px] font-medium text-neutral-500">{tr("Supplier")}<input className={cx(inputClass, "mt-1 h-10")} value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} /></label>
           <label className="text-[11px] font-medium text-neutral-500">{tr("Document No.")}<input className={cx(inputClass, "mt-1 h-10")} value={form.docNo} onChange={(e) => setForm({ ...form, docNo: e.target.value })} /></label>

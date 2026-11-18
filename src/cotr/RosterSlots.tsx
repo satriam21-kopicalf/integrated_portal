@@ -4,6 +4,7 @@
 // 10:00–14:00 area B … Every slot starts from a shift template (its times are filled in and may be changed), an area and
 // optionally another fleet; slots may not overlap. Saved at once with the day as "work".
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { ArrowDown, ArrowUp, Copy, MapPinned, Plus, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button, cx, inputClass, useToast } from "@/so/ui";
@@ -78,13 +79,13 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
               </div>
               <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
                 <label className="text-[11px] font-medium text-neutral-500">{tr("Shift template")}
-                  <select className={cx(inputClass, "mt-1 h-10")} value={s.template ?? ""} onChange={(e) => {
+                  <NativeSelect className={cx(inputClass, "mt-1 h-10")} value={s.template ?? ""} onChange={(e) => {
                     const t = active.find((x) => x.code === e.target.value);
                     set(i, t ? { template: t.code, start: hm(t.start_time), end: hm(t.end_time) } : { template: null });
                   }}>
                     <option value="">{tr("Custom time")}</option>
                     {active.map((t) => <option key={t.code} value={t.code}>{t.name} · {hm(t.start_time)}–{hm(t.end_time)}</option>)}
-                  </select></label>
+                  </NativeSelect></label>
                 <label className="text-[11px] font-medium text-neutral-500">{tr("Start")}
                   <TimeInput className="mt-1" value={s.start} onChange={(v) => set(i, { start: v })} /></label>
                 <label className="text-[11px] font-medium text-neutral-500">{tr("End")}

@@ -80,7 +80,7 @@ export default function SchedulePage() {
           : !res.team.length ? <p className="px-5 py-8 text-center text-sm text-neutral-500">{tr('No Cost Control member yet: give an account the page Cost Control Clock In.')}</p> : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[980px] table-fixed text-xs">
-                <thead className="border-b border-neutral-200 bg-neutral-50 text-xs font-semibold capitalize text-neutral-500">
+                <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                   <tr><th className="w-40 px-3 py-2.5 text-left">{tr('Member')}</th>
                     {days.map((d) => <th key={d} className={cx('px-2 py-2.5 text-left', d === today && 'text-brand-700')}>{label(d)}</th>)}</tr>
                 </thead>

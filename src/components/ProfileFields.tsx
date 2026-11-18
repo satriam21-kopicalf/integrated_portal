@@ -1,5 +1,6 @@
 'use client';
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { useEffect, useState } from 'react';
 import { DrawerSection } from '@/components/ui/Drawer';
 import { Field, inputClass } from '@/components/ui/Dialog';
@@ -119,10 +120,10 @@ export default function ProfileFields({
               maxLength={120} autoComplete="name" placeholder={tr('As on your ID card')} {...ro('fullName')} />
           </Field>
           <Field label={tr('Gender')} htmlFor={id('gender')} error={fieldError('gender')}>
-            <select id={id('gender')} className={inputClass} disabled={lk('gender')} value={values.gender} onChange={e => onChange('gender', e.target.value as Gender | '')}>
+            <NativeSelect id={id('gender')} className={inputClass} disabled={lk('gender')} value={values.gender} onChange={e => onChange('gender', e.target.value as Gender | '')}>
               <option value="">{tr('Not specified')}</option>
               {(Object.keys(GENDER_LABELS) as Gender[]).map(g => <option key={g} value={g}>{GENDER_LABELS[g]}</option>)}
-            </select>
+            </NativeSelect>
           </Field>
           <Field label={tr('Date of birth')} htmlFor={id('birth')} error={fieldError('birthDate')}>
             <input id={id('birth')} type="date" className={inputClass} value={values.birthDate} onChange={e => onChange('birthDate', e.target.value)}
@@ -158,11 +159,11 @@ export default function ProfileFields({
               : <MasterCombobox kind="department" id={id('dept')} value={values.department} onChange={v => onChange('department', v)} canAdd={me?.role === 'superadmin'} />}
           </Field>
           <Field label={tr('Work Location')} htmlFor={id('branch')} error={fieldError('workBranchCode')}>
-            <select id={id('branch')} className={inputClass} disabled={lk('workBranchCode')} value={values.workBranchCode} onChange={e => onChange('workBranchCode', e.target.value)}>
+            <NativeSelect id={id('branch')} className={inputClass} disabled={lk('workBranchCode')} value={values.workBranchCode} onChange={e => onChange('workBranchCode', e.target.value)}>
               <option value="">{tr('Not specified')}</option>
               {savedBranchMissing && <option value={values.workBranchCode}>{currentBranchName || values.workBranchCode}</option>}
               {branches.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
-            </select>
+            </NativeSelect>
           </Field>
         </div>
       </DrawerSection>

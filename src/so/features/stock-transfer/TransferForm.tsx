@@ -9,6 +9,7 @@
 //              of both outlets moves); a request the outlet has not answered can be cancelled;
 //   Incoming   the requests to my outlets: accept (the stock does not move yet) or decline, with a note.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { ArrowDown, ArrowRight, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Inbox, Info, PackageCheck, PenLine, Search, Send, Store, Trash2, Undo2, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, useToast, searchClass } from "@/so/ui";
@@ -123,9 +124,9 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
               {data.branches.length === 1 ? (
                 <span className="mt-1 flex h-11 items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-900"><Store size={15} className="text-neutral-400" /><span className="truncate">{data.branches[0].name}</span></span>
               ) : (
-                <select className={cx(inputClass, "mt-1 h-11")} value={to} onChange={(e) => { setTo(e.target.value); if (e.target.value === from) setFrom(""); }}>
+                <NativeSelect className={cx(inputClass, "mt-1 h-11")} value={to} onChange={(e) => { setTo(e.target.value); if (e.target.value === from) setFrom(""); }}>
                   <option value="">{tr("Choose")}</option>{data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
-                </select>
+                </NativeSelect>
               )}</label>
             <span className="flex justify-center text-neutral-300 sm:pb-3" aria-hidden><ArrowDown size={18} className="sm:hidden" /><ArrowRight size={18} className="hidden rotate-180 sm:block" /></span>
             <div className="text-xs font-medium text-neutral-600">{tr("Take from outlet")}
@@ -330,7 +331,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           <span className="ml-auto font-semibold tabular-nums text-neutral-900">{t.value != null ? rpText(t.value) : t.estimate != null ? `± ${rpText(t.estimate)}` : ""}</span></div>
         <div className="overflow-hidden rounded-md border border-neutral-200">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-xs capitalize text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
+            <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">{(t.items ?? []).map((i) => (
               <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p>{i.available != null && <p className="mt-1 text-[11px] text-neutral-500">{tr("Stock of the outlet when asked")}: <span className="font-semibold tabular-nums text-neutral-700">{qtyText(i.available)} {i.unit}</span></p>}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">

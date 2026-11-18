@@ -8,6 +8,7 @@
 // a whole with "Save WIP". In a recount (2026-10-29) only the premixes Cost Control picked open (the same quantity is
 // confirmed with "Same ✓"); the others stay as they are, and the grams counted by hand on their materials are not touched.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { ChevronDown, FlaskConical, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, useToast } from "@/so/ui";
@@ -165,10 +166,10 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                           onChange={e => setValues(v => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "").replace(/^(\d*\.\d{0,2}).*$/, "$1") }))}
                           className={cx("h-11 w-24 rounded-lg border px-2 text-right text-base tabular-nums", Number(values[k]) > 0 ? "border-violet-400 bg-violet-50/50" : "border-neutral-200")} />
                         {r.units.length > 1 ? (
-                          <select value={uom} onChange={(e) => setUnitOf((m) => ({ ...m, [r.id]: e.target.value }))} aria-label={tr("Unit of {0}", r.name)}
+                          <NativeSelect value={uom} onChange={(e) => setUnitOf((m) => ({ ...m, [r.id]: e.target.value }))} aria-label={tr("Unit of {0}", r.name)}
                             className="h-11 rounded-lg border border-neutral-200 bg-white px-2 text-sm text-neutral-700">
                             {r.units.map((u) => <option key={u.uom} value={u.uom}>{isGram(u.uom) ? "g" : u.uom}</option>)}
-                          </select>
+                          </NativeSelect>
                         ) : <span className="text-sm text-neutral-600">{isGram(unit.uom) ? "g" : unit.uom}</span>}
                       </span>
                       {grams > 0 && !isGram(uom) && <span className="w-full text-right text-[11px] tabular-nums text-violet-700 sm:w-auto">= {fmtG(grams)} g</span>}

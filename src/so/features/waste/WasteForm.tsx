@@ -14,6 +14,7 @@
 // Every day (migration 041): the branch reports its waste, the items or "no waste today", and fills the Usage
 // Management list, the quantity of every usage item (saved again to correct it). Usage is not a single waste entry.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { Camera, CheckCircle2, ClipboardList, FlaskConical, PenLine, Plus, Save, Search, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast, searchClass } from "@/so/ui";
@@ -255,10 +256,10 @@ export default function WasteForm() {
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <div className="space-y-4">
               <FormCard n={1} title={tr("Branch and Day")} hint={tr("Waste is entered for today or, late, for yesterday")}>
-                <select className={inputClass} value={branch} onChange={(e) => pickBranch(e.target.value)} aria-label={tr("Branch")}>
+                <NativeSelect className={inputClass} value={branch} onChange={(e) => pickBranch(e.target.value)} aria-label={tr("Branch")}>
                   <option value="">{tr("Choose the branch")}</option>
                   {data.branches.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
-                </select>
+                </NativeSelect>
                 <Segmented label={tr("Day")} value={day} onChange={pickDay}
                   options={[{ value: data.days.to, label: `${tr("Today")} · ${dayName(data.days.to)}` }, { value: data.days.from, label: `${tr("Yesterday")} · ${dayName(data.days.from)}` }]} />
                 {b && (data.data.length > 0 ? (
@@ -287,7 +288,7 @@ export default function WasteForm() {
                 </label>
                 <div className="max-h-[560px] overflow-auto rounded-md border border-neutral-200">
                   <table className="w-full text-sm">
-                    <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
+                    <thead className="sticky top-0 z-10 border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                       <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix/WIP name") : tr("Product name")}</th>
                         <th className="hidden whitespace-nowrap px-2 py-2 xl:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 whitespace-nowrap px-2 py-2 text-right">{tr("Qty")}</th></tr>
                     </thead>
@@ -311,10 +312,10 @@ export default function WasteForm() {
                               <td className="hidden whitespace-nowrap px-2 py-1.5 align-top text-xs text-neutral-500 xl:table-cell">{i.code}</td>
                               <td className="px-2 py-1.5 align-top text-xs text-neutral-500">
                                 {scope === "premix" && (i.units?.length ?? 0) > 1 ? (
-                                  <select value={uom} onChange={(e) => setRow(i.code, { uom: e.target.value })} aria-label={tr("Unit of {0}", i.name)}
+                                  <NativeSelect value={uom} onChange={(e) => setRow(i.code, { uom: e.target.value })} aria-label={tr("Unit of {0}", i.name)}
                                     className="h-9 rounded-lg border border-neutral-200 bg-white px-1.5 text-xs text-neutral-700">
                                     {i.units!.map((u) => <option key={u.uom} value={u.uom}>{unitText(u.uom)}</option>)}
-                                  </select>
+                                  </NativeSelect>
                                 ) : scope === "premix" ? unitText(uom) : i.unit}
                               </td>
                               <td className="px-2 py-1.5 text-right align-top">
@@ -328,21 +329,21 @@ export default function WasteForm() {
                                 <td />
                                 <td colSpan={4} className="px-2 pb-3">
                                   <div className="grid gap-2 sm:grid-cols-2">
-                                    <select className={cx(inputClass, "h-9")} value={r.category} onChange={(e) => setRow(i.code, { category: e.target.value })} aria-label={tr("Waste Category")}>
+                                    <NativeSelect className={cx(inputClass, "h-9")} value={r.category} onChange={(e) => setRow(i.code, { category: e.target.value })} aria-label={tr("Waste Category")}>
                                       <option value="">{tr("Choose the category")}</option>
                                       {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                                    </select>
+                                    </NativeSelect>
                                     {/* other categories of the same SKU, each with its own quantity (2026-11-11) */}
                                     {(r.more ?? []).map((m, k) => (
                                       <div key={k} className="flex items-center gap-2 sm:col-span-2">
                                         <input className={cx(inputClass, "h-9 w-24 text-right tabular-nums")} inputMode="decimal" placeholder="0" value={m.qty}
                                           aria-label={tr("Quantity of the category")}
                                           onChange={(e) => setRow(i.code, { more: r.more.map((x, j) => (j === k ? { ...x, qty: e.target.value.replace(/[^0-9.,]/g, "") } : x)) })} />
-                                        <select className={cx(inputClass, "h-9 flex-1")} value={m.category} aria-label={tr("Waste Category")}
+                                        <NativeSelect className={cx(inputClass, "h-9 flex-1")} value={m.category} aria-label={tr("Waste Category")}
                                           onChange={(e) => setRow(i.code, { more: r.more.map((x, j) => (j === k ? { ...x, category: e.target.value } : x)) })}>
                                           <option value="">{tr("Choose the category")}</option>
                                           {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                                        </select>
+                                        </NativeSelect>
                                         <button type="button" aria-label={tr("Remove the category")} onClick={() => setRow(i.code, { more: r.more.filter((_, j) => j !== k) })}
                                           className="rounded-lg px-2 py-2 text-xs font-medium text-neutral-500 hover:text-red-600">✕</button>
                                       </div>
@@ -416,7 +417,7 @@ export default function WasteForm() {
                     </div>
                     <div className="max-h-[460px] overflow-auto rounded-md border border-neutral-200">
                       <table className="w-full text-sm">
-                        <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
+                        <thead className="sticky top-0 z-10 border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                           <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{tr("Product Name")}</th>
                             <th className="hidden whitespace-nowrap px-2 py-2 xl:table-cell">{tr("Product Code")}</th><th className="px-2 py-2">{tr("Unit")}</th><th className="w-24 whitespace-nowrap px-2 py-2 text-right">{tr("Qty")}</th></tr>
                         </thead>
@@ -442,10 +443,10 @@ export default function WasteForm() {
                                     <td />
                                     <td colSpan={4} className="px-2 pb-3">
                                       <div className="grid gap-2 sm:grid-cols-2">
-                                        <select className={cx(inputClass, "h-9")} value={l.category} onChange={(e) => setULine(i.code, { category: e.target.value })} aria-label={tr("Category")}>
+                                        <NativeSelect className={cx(inputClass, "h-9")} value={l.category} onChange={(e) => setULine(i.code, { category: e.target.value })} aria-label={tr("Category")}>
                                           <option value="">{tr("Choose the category")}</option>
                                           {(data.usageCategories ?? data.categories).map((c) => <option key={c} value={c}>{c}</option>)}
-                                        </select>
+                                        </NativeSelect>
                                         <input className={cx(inputClass, "h-9")} value={l.note} maxLength={500} onChange={(e) => setULine(i.code, { note: e.target.value })} placeholder={tr("Reason (optional)")} />
                                         <div className="flex items-center gap-2 sm:col-span-2">
                                           {l.photo || l.hasPhoto ? (

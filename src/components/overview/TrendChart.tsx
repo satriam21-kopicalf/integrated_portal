@@ -1,5 +1,6 @@
 'use client';
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { useMemo } from 'react';
 import EChart, { ChartClick, ChartOption } from '@/components/charts/EChart';
 import { Legend } from '@/components/charts/common';
@@ -209,11 +210,11 @@ export function ChartTypeSelect({ value, onChange }: { value: TrendChartType; on
   return (
     <label className="relative inline-flex items-center">
       <span className="sr-only">{tr('Chart type')}</span>
-      <select value={value} onChange={e => onChange(e.target.value as TrendChartType)}
+      <NativeSelect value={value} onChange={e => onChange(e.target.value as TrendChartType)}
         title={TREND_CHARTS.find(c => c.value === value)?.hint}
         className="h-7 rounded-lg border border-neutral-200 bg-white pl-2 pr-7 text-xs font-medium text-neutral-700 hover:border-neutral-300 focus:border-neutral-400 focus:outline-none">
         {TREND_CHARTS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-      </select>
+      </NativeSelect>
     </label>
   );
 }

@@ -106,7 +106,7 @@ export function Reconcile() {
                           {d.status === "diff" && d.lines.length > shown.length && <p className="mb-2 text-xs text-neutral-500">{tr("{0} other movements match", d.lines.length - shown.length)}</p>}
                           <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
                             <table className="w-full min-w-[34rem] text-xs">
-                              <thead className="bg-neutral-50 text-left text-xs capitalize text-neutral-500"><tr><th className="px-3 py-2">{tr("Menu")}</th><th className="px-3 py-2">{tr("Movement")}</th>
+                              <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Menu")}</th><th className="px-3 py-2">{tr("Movement")}</th>
                                 <th className="px-3 py-2 text-right">{tr("Workbook")}</th><th className="px-3 py-2 text-right">ESB</th><th className="px-3 py-2 text-right">{tr("App")}</th><th className="px-3 py-2 text-right">{tr("Workbook − ESB")}</th></tr></thead>
                               <tbody className="divide-y divide-neutral-100">
                                 {shown.map((l) => (

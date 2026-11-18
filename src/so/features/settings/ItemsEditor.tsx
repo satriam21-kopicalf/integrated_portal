@@ -3,6 +3,7 @@
 // Edits the items of a count list or an item group: search & add items, area, package unit (counted in packs + loose),
 // ESB unit (unit of the ESB import file), photo required, remove. Saved as a whole by the parent.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { Camera, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, cx, inputClass } from "@/so/ui";
@@ -90,13 +91,13 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
     <div className="space-y-3">
       {!readOnly && categories.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <select value="" disabled={adding} onChange={(e) => void addCategory(e.target.value)} aria-label={tr("Add a Whole Category")}
+          <NativeSelect value="" disabled={adding} onChange={(e) => void addCategory(e.target.value)} aria-label={tr("Add a Whole Category")}
             className={`${inputClass} h-9 max-w-xs flex-1 text-sm`}>
             <option value="">{adding ? tr("Adding…") : tr("+ Add a whole category")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.parent_name ? `${c.parent_name} › ${c.name}` : c.name} ({c.items})</option>
             ))}
-          </select>
+          </NativeSelect>
           {adding && <Loader2 size={14} className="animate-spin text-neutral-400" />}
           {note && <span className="text-xs text-neutral-500">{note}</span>}
           {items.length > 0 && (
@@ -154,18 +155,18 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <input value={i.area} disabled={readOnly} onChange={(e) => set(i.item_id, { area: e.target.value.toUpperCase() })}
                 className={`${inputClass} h-8 text-xs`} aria-label={tr("Area")} placeholder={tr("Area")} />
-              <select value={i.pack_uom ?? ""} disabled={readOnly} aria-label={tr("Package Unit")}
+              <NativeSelect value={i.pack_uom ?? ""} disabled={readOnly} aria-label={tr("Package Unit")}
                 onChange={(e) => (e.target.value === "__new" ? setUnitFor(i) : set(i.item_id, { pack_uom: e.target.value || null }))}
                 className={`${inputClass} h-8 text-xs`}>
                 <option value="">{tr("No package")}</option>
                 {i.units.filter((u) => u !== i.base_uom).map((u) => <option key={u} value={u}>{u}</option>)}
                 {!readOnly && <option value="__new">{tr("+ Add unit…")}</option>}
-              </select>
-              <select value={i.esb_uom ?? ""} disabled={readOnly} onChange={(e) => set(i.item_id, { esb_uom: e.target.value || null })}
+              </NativeSelect>
+              <NativeSelect value={i.esb_uom ?? ""} disabled={readOnly} onChange={(e) => set(i.item_id, { esb_uom: e.target.value || null })}
                 className={`${inputClass} h-8 text-xs`} aria-label={tr("ESB Unit")}>
                 <option value="">{tr("ESB unit: {0}", i.base_uom)}</option>
                 {i.units.filter((u) => u !== i.base_uom).map((u) => <option key={u} value={u}>{tr("ESB unit: {0}", u)}</option>)}
-              </select>
+              </NativeSelect>
               <button type="button" disabled={readOnly} onClick={() => set(i.item_id, { photo_required: !i.photo_required })} aria-pressed={i.photo_required}
                 className={cx("inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border text-xs font-medium",
                   i.photo_required ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-500")}>

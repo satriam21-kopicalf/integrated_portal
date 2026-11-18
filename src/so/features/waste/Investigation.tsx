@@ -6,6 +6,7 @@
 // action, signed by QA, the PIC / leader of the outlet and the operations manager. Also the categories of the two forms
 // (Form Waste, Usage Management), managed by Cost Control only.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { ExternalLink, FileSearch, Pencil, Plus, Printer, Save, Tags } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, PageNav, theadClass, usePaged, useToast } from "@/so/ui";
@@ -173,9 +174,9 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={field}>{tr("Investigation date")}<input type="date" className={cx(inputClass, "mt-1")} value={report.date} onChange={(e) => set("date", e.target.value)} /></label>
               <label className={field}>{tr("Incident")}
-                <select className={cx(inputClass, "mt-1")} value={report.incident} onChange={(e) => set("incident", e.target.value as Report["incident"])}>
+                <NativeSelect className={cx(inputClass, "mt-1")} value={report.incident} onChange={(e) => set("incident", e.target.value as Report["incident"])}>
                   <option value="waste">{tr("Waste incident")}</option><option value="complaint">{tr("Customer complaint")}</option><option value="both">{tr("Complaint & waste")}</option>
-                </select>
+                </NativeSelect>
               </label>
             </div>
             {report.incident !== "waste" && (
@@ -292,9 +293,9 @@ export function CategoriesDrawer({ onClose }: { onClose: () => void }) {
     <Drawer open onClose={onClose} icon={<Tags size={18} />} title={tr("Waste Categories")} description={tr("The categories outlets pick in Form Waste and Usage Management; only Cost Control adds or changes them")}>
       <div className="space-y-4">
         <div className="flex gap-2">
-          <select className={cx(inputClass, "w-44")} value={draft.scope} onChange={(e) => setDraft({ ...draft, scope: e.target.value as Category["scope"] })} aria-label={tr("Form")}>
+          <NativeSelect className={cx(inputClass, "w-44")} value={draft.scope} onChange={(e) => setDraft({ ...draft, scope: e.target.value as Category["scope"] })} aria-label={tr("Form")}>
             <option value="waste">{tr("Form Waste")}</option><option value="usage">{tr("Usage Management")}</option>
-          </select>
+          </NativeSelect>
           <input className={inputClass} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder={tr("New category")}
             onKeyDown={(e) => { if (e.key === "Enter" && draft.name.trim()) void add(); }} />
           <Button disabled={!draft.name.trim()} onClick={() => void add()}><Plus size={15} />{tr("Add")}</Button>

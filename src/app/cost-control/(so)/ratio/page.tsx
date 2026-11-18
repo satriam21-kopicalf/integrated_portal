@@ -10,6 +10,7 @@
 // Transfer Stock between outlets in the usage. "Usage % of sales" is the workbook's usage ratio (not the usage ratio of
 // COGS & Usage, which is actual ÷ recipe).
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { ArrowDown, ArrowUp, BarChart3, Info as InfoIcon, Layers, Pencil, Store } from "lucide-react";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -368,11 +369,11 @@ function HeaderInfo({ label, info, alignRight }: { label: string; info: Info; al
 /** Gross / Net: which sales the ratios of the table divide by. */
 function BasisSwitch({ value, onChange }: { value: Basis; onChange: (b: Basis) => void }) {
   return (
-    <div role="radiogroup" aria-label={tr("Ratio Basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 rounded-lg bg-neutral-100 p-1">
+    <div role="radiogroup" aria-label={tr("Ratio Basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 gap-1">
       {(["gross", "net"] as Basis[]).map((b) => (
         <button key={b} type="button" role="radio" aria-checked={value === b} onClick={() => onChange(b)}
           className={cx("h-8 rounded-md px-3 text-sm font-medium transition-colors",
-            value === b ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800")}>
+            value === b ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "rounded-[4px] border border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
           {b === "gross" ? tr("Gross sales") : tr("Net sales")}
         </button>
       ))}
@@ -382,10 +383,10 @@ function BasisSwitch({ value, onChange }: { value: Basis; onChange: (b: Basis) =
 
 function PurchasesSwitch({ value, onChange }: { value: Purchases; onChange: (v: Purchases) => void }) {
   return (
-    <div role="radiogroup" aria-label={tr("Purchases basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 rounded-lg bg-neutral-100 p-1">
+    <div role="radiogroup" aria-label={tr("Purchases basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 gap-1">
       {(["invoice", "gr"] as Purchases[]).map((b) => (
         <button key={b} type="button" role="radio" aria-checked={value === b} onClick={() => onChange(b)} title={b === "invoice" ? tr("Purchase invoices by supplier, as the workbook") : tr("Goods received and outlet purchases by cost group")}
-          className={cx("h-8 rounded-md px-3 text-sm font-medium transition-colors", value === b ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800")}>
+          className={cx("h-8 rounded-md px-3 text-sm font-medium transition-colors", value === b ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "rounded-[4px] border border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
           {b === "invoice" ? tr("Invoice") : tr("GR actual")}
         </button>
       ))}
@@ -469,10 +470,10 @@ function CostGroupForm({ category, minFrom, onCancel, onSaved }: { category: Cat
   };
   return (
     <div className="mt-2 grid gap-2 rounded-lg border border-brand-100 bg-brand-50/40 p-3 sm:grid-cols-[1fr_auto]">
-      <select value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Cost group of {0}", category.category)} className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm">
+      <NativeSelect value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Cost group of {0}", category.category)} className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm">
         <option value="">{tr("Follow supplier ({0})", GROUP_LABEL[category.suggested]())}</option>
         {(Object.keys(GROUP_LABEL) as CostGroup[]).map((g) => <option key={g} value={g}>{GROUP_LABEL[g]()}</option>)}
-      </select>
+      </NativeSelect>
       <input type="date" value={from} min={minFrom} onChange={(e) => e.target.value && setFrom(e.target.value)} aria-label={tr("Valid from")} className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm" />
       <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder={tr("Reason (agreed with management)")} className="sm:col-span-2" />
       <div className="flex gap-1">

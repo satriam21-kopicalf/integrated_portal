@@ -4,6 +4,7 @@
 // /api/cotr/masters/{entity}, one table + drawer form driven by field specs (sections, searchable selects, pictures,
 // coordinates on a map), and the picture of a master row (/api/cotr/masters/{entity}/{code}/image/{slot}).
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { Camera, ChevronDown, ImageOff, MapPin, Pencil, Plus, Save, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { createPortal } from 'react-dom';
@@ -490,15 +491,15 @@ export function TimeInput({ value, onChange, invalid, className }: { value: stri
   const pick = (hh: string, mm: string) => onChange(hh ? `${hh}:${mm || '00'}` : '');
   return (
     <span className={cx('flex items-center gap-1', className)}>
-      <select value={h ?? ''} onChange={(e) => pick(e.target.value, m ?? '00')} aria-label={tr('Hour')}
+      <NativeSelect value={h ?? ''} onChange={(e) => pick(e.target.value, m ?? '00')} aria-label={tr('Hour')}
         className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-red-300')}>
         <option value="">--</option>{hours.map((x) => <option key={x} value={x}>{x}</option>)}
-      </select>
+      </NativeSelect>
       <span className="font-semibold text-neutral-500">:</span>
-      <select value={m ?? ''} onChange={(e) => pick(h || '00', e.target.value)} aria-label={tr('Minute')}
+      <NativeSelect value={m ?? ''} onChange={(e) => pick(h || '00', e.target.value)} aria-label={tr('Minute')}
         className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-red-300')}>
         <option value="">--</option>{mins.map((x) => <option key={x} value={x}>{x}</option>)}
-      </select>
+      </NativeSelect>
       <span className="ml-1 text-xs text-neutral-400">WIB</span>
     </span>
   );

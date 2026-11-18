@@ -1,5 +1,6 @@
 'use client';
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { COTR_KINDS, type CotrEmployee, type CotrKind, EmployeePicker, cotrOverrides, kindOf, usernameOf } from '@/components/access/CotrAccount';
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -689,9 +690,9 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             <EmployeePicker value={cotrEmployee} onPick={pickEmployee} inputClass={inputClass} />
             {fieldError('cotrDriver') && <p className="text-xs text-red-600">{fieldError('cotrDriver')}</p>}
             <Field label={tr('Kind of account')} htmlFor="f-cotr-kind" hint={COTR_KINDS.find(k => k.key === cotrKind)?.hint()}>
-              <select id="f-cotr-kind" className={inputClass} value={cotrKind} onChange={e => pickKind(e.target.value as CotrKind)}>
+              <NativeSelect id="f-cotr-kind" className={inputClass} value={cotrKind} onChange={e => pickKind(e.target.value as CotrKind)}>
                 {COTR_KINDS.map(k => <option key={k.key} value={k.key}>{k.label()}</option>)}
-              </select>
+              </NativeSelect>
             </Field>
           </DrawerSection>
         )}
@@ -701,12 +702,12 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             ? tr('A person account is made from its HRMS employee: name, job title and department follow HRMS.')
             : tr('A shared or test account is never linked to HRMS and is left out of the person scores.')}>
             <Field label={tr('Kind of account')} htmlFor="f-account-kind">
-              <select id="f-account-kind" className={inputClass} value={accountKind}
+              <NativeSelect id="f-account-kind" className={inputClass} value={accountKind}
                 onChange={e => { const k = e.target.value as typeof accountKind; setAccountKind(k); if (k !== 'person') { setHrmsPick(null); setHrmsChange(undefined); } }}>
                 <option value="person">{tr('Person (HRMS employee)')}</option>
                 <option value="shared">{tr('Shared account (a team)')}</option>
                 <option value="test">{tr('Test account')}</option>
-              </select>
+              </NativeSelect>
             </Field>
             {person && (
               <HrmsEmployeePicker linked={hrmsLinked} picked={hrmsPick} onPick={pickHrms} onUnlink={unlinkHrms}
@@ -781,25 +782,25 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={tr('Business Line')} htmlFor="f-line" error={fieldError('businessLine')} hint={tr('The tab of User Accounts the account is listed in; its branches are of this line')}>
-              <select id="f-line" value={businessLine} disabled={me?.role === 'cotr_admin'} onChange={e => { const v = e.target.value as BusinessLine; setBusinessLine(v); setBranchCodes([]); if (v === 'cotr' && creating) pickKind('driver'); else if (form.role === 'driver') set('role', 'user'); }} className={inputClass}>
+              <NativeSelect id="f-line" value={businessLine} disabled={me?.role === 'cotr_admin'} onChange={e => { const v = e.target.value as BusinessLine; setBusinessLine(v); setBranchCodes([]); if (v === 'cotr' && creating) pickKind('driver'); else if (form.role === 'driver') set('role', 'user'); }} className={inputClass}>
                 {LINES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
-              </select>
+              </NativeSelect>
             </Field>
             {!cotrMode && <Field label={tr('Role')} htmlFor="f-role" error={fieldError('role')} hint={form.role === 'superadmin' ? tr('Full access incl. platforms and user accounts') : form.role === 'cost_control' ? tr('Inventory Surveyor: every branch and the pages of the role') : form.role === 'outlet' ? tr('Shared outlet / HUB account: Stock Opname and Waste of the assigned branches') : form.role === 'driver' ? tr('Calf On The Road driver: signs in to cotr.kopicalf.co.id only; tie the account to the driver in Monitoring COTR → Master Driver') : form.role === 'admin' ? tr('Admin: the pages the Superadmin gives it. It manages accounts of role User, with the pages it has itself.') : tr('User (Area Supervisor / PIC): the forms except Cost Control Clock In, Dashboard, Sales and Aggregator of the assigned branches.')}>
-              <select id="f-role" className={inputClass} value={form.role} disabled={me?.role === 'admin'} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
+              <NativeSelect id="f-role" className={inputClass} value={form.role} disabled={me?.role === 'admin'} onChange={e => { set('role', e.target.value as Role); setPageOverrides({}); }}>
                 <option value="user">{ROLE_LABELS.user}</option>
                 {me?.role === 'superadmin' && <option value="admin">{ROLE_LABELS.admin}</option>}
                 <option value="outlet">{ROLE_LABELS.outlet}</option>
                 <option value="driver">{ROLE_LABELS.driver}</option>
                 <option value="cost_control">{ROLE_LABELS.cost_control}</option>
                 <option value="superadmin">{ROLE_LABELS.superadmin}</option>
-              </select>
+              </NativeSelect>
             </Field>}
             <Field label={tr('Status')} htmlFor="f-active" error={fieldError('isActive')} hint={isMe ? tr('You cannot deactivate your own account') : tr('Inactive users cannot sign in')}>
-              <select id="f-active" className={inputClass} value={form.isActive ? '1' : '0'} disabled={isMe} onChange={e => set('isActive', e.target.value === '1')}>
+              <NativeSelect id="f-active" className={inputClass} value={form.isActive ? '1' : '0'} disabled={isMe} onChange={e => set('isActive', e.target.value === '1')}>
                 <option value="1">{tr('Active')}</option>
                 <option value="0">{tr('Inactive')}</option>
-              </select>
+              </NativeSelect>
             </Field>
           </div>
         </DrawerSection>

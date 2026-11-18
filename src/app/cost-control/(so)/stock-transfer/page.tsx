@@ -5,6 +5,7 @@
 // accepted, Cost Control labels the received ones whether they go to ESB; exports: the transfers, their lines, per
 // outlet (value in / out) and per material.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { CalendarDays, CheckCircle2, ClipboardList, ListChecks, Package, Save, Settings2, Store, Tags, Truck } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -146,9 +147,9 @@ function Transfers() {
                   <td className="px-3 py-2.5"><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge></td>
                   <td className="px-3 py-2.5 pr-5" onClick={(e) => e.stopPropagation()}>
                     {t.status === "received" ? (
-                      <select className="h-8 rounded-lg border border-neutral-200 bg-white px-2 text-xs" value={t.esbLabel?.value ?? ""} onChange={(e) => void label(t, (e.target.value || null) as "esb" | "portal" | null)} aria-label={tr("ESB label")}>
+                      <NativeSelect className="h-8 rounded-lg border border-neutral-200 bg-white px-2 text-xs" value={t.esbLabel?.value ?? ""} onChange={(e) => void label(t, (e.target.value || null) as "esb" | "portal" | null)} aria-label={tr("ESB label")}>
                         <option value="">{tr("Not labelled")}</option><option value="esb">{ESB_LABEL.esb()}</option><option value="portal">{ESB_LABEL.portal()}</option>
-                      </select>
+                      </NativeSelect>
                     ) : <span className="text-xs text-neutral-300">—</span>}
                   </td>
                 </tr>))}</tbody>

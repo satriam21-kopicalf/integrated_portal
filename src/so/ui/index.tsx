@@ -3,6 +3,7 @@
 // Building blocks with the integrated_portal look (buttons, fields, badges, page header band, empty/error
 // states, toasts). Drawers, menus, stat strips and filters live next to this file.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { tc } from '@/lib/title-case';
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Inbox, Loader2, Search, X } from "lucide-react";
 import { Children, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
@@ -76,7 +77,10 @@ export function Input({ className, ...p }: React.InputHTMLAttributes<HTMLInputEl
 }
 
 export function Select({ className, ...p }: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...p} className={cx(inputClass, "pr-8", className)} />;
+  // the Jira dropdown (2026-11-18); callers read e.target.value only
+  const { value, onChange, children, disabled } = p;
+  return <NativeSelect value={value} disabled={disabled} aria-label={p["aria-label"]} className={className}
+    onChange={onChange as unknown as (e: { target: { value: string } }) => void}>{children}</NativeSelect>;
 }
 
 export function Checkbox({ label, hint, ...p }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {

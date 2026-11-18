@@ -354,10 +354,10 @@ export default function ActivityPage() {
                 search={<SearchInput value={search} onChange={onSearch} placeholder={tr('Search user, activity, file name, sales no.')} label={tr('Search Activity')} />}
                 chips={<ActiveFilters filters={activeFilters} onClear={() => setFilters(NO_FILTERS)} />}>
                 <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
-                <div className="hidden rounded-lg bg-neutral-100 p-1 sm:flex" role="radiogroup" aria-label={tr('View')}>
+                <div className="hidden gap-1 sm:flex" role="radiogroup" aria-label={tr('View')}>
                   {([['timeline', tr('Timeline'), <List key="i" size={14} />], ['table', tr('Table'), <Rows3 key="i" size={14} />]] as const).map(([v, l, icon]) => (
                     <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
-                      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium ${view === v ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-800'}`}>
+                      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium ${view === v ? 'rounded-[4px] border border-brand-700 bg-brand-700 text-white' : 'text-neutral-500 hover:text-neutral-800'}`}>
                       {icon}{l}
                     </button>
                   ))}
@@ -658,7 +658,7 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
   return (
     <div className={`custom-scrollbar max-h-[70vh] overflow-auto ${loading ? 'opacity-60' : ''}`}>
       <table className="m-cards w-full text-sm">
-        <thead className="sticky top-0 z-[1] bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
+        <thead className="sticky top-0 z-[1] border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
           <tr>
             {[tr('Time'), tr('User'), tr('Activity'), tr('Details'), tr('Page'), tr('Result'), tr('Device · IP')].map(h => <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5">{h}</th>)}
           </tr>

@@ -6,6 +6,7 @@
 // Layout (2026-11-04): the correction opens in a drawer (full screen on phones, the Save button at the bottom), the
 // review actions sit in a bar above the bottom menu on phones and tablets, the lines are cards on phones.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { SpikeMark } from "@/so/features/count/SpikeMark";
 import { thumb } from "@/lib/assets";
 import { AlertTriangle, ArrowLeft, Check, ChevronDown, ChevronRight, ClipboardList, FlaskConical, History, Info as InfoIcon, MapPin, Pencil, RotateCcw, XCircle } from "lucide-react";
@@ -298,12 +299,12 @@ export default function ReviewDetailPage() {
               {/* phones: one card per item, the tick and Correct big enough to tap */}
               <div className="flex items-center gap-2 px-4 pt-3 md:hidden">
                 <label className="text-xs text-neutral-500" htmlFor="line-sort">{tr("Sort")}</label>
-                <select id="line-sort" className="h-9 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-sm" value={sort.key ? `${sort.key}:${sort.dir}` : ""}
+                <NativeSelect id="line-sort" className="h-9 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-sm" value={sort.key ? `${sort.key}:${sort.dir}` : ""}
                   onChange={(e) => { const [k, d] = e.target.value.split(":") as [LineSort, "asc" | "desc"]; setSort(e.target.value ? { key: k, dir: d } : { key: null, dir: "asc" }); }}>
                   <option value="">{tr("Count list order")}</option>
                   {([["item:asc", tr("Item A–Z")], ["item:desc", tr("Item Z–A")], ["counted:desc", tr("Quantity, highest")], ["counted:asc", tr("Quantity, lowest")],
                     ["area:asc", tr("Area")], ["check:desc", tr("To check first")], ["date:asc", tr("Date, earliest")]] as const).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <ul className="divide-y divide-neutral-100 md:hidden">
                 {sortedLines.map((l) => (

@@ -167,7 +167,7 @@ function ItemOutlets({ form, item, canEdit, onClose, onSaved }: { form: "product
                       <button key={String(x.v)} type="button" role="radio" aria-checked={v === x.v} disabled={!canEdit}
                         onClick={() => setDraft((d) => ({ ...d, [o.code]: x.v }))}
                         className={cx("rounded-md px-2.5 py-1 text-xs font-medium disabled:opacity-60", v === x.v
-                          ? x.v === null ? "bg-white text-neutral-900 shadow-sm" : x.v ? "bg-emerald-600 text-white" : "bg-neutral-700 text-white"
+                          ? x.v === null ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : x.v ? "bg-emerald-600 text-white" : "bg-neutral-700 text-white"
                           : "text-neutral-500")}>{x.label}</button>
                     ))}
                   </span>
@@ -246,10 +246,10 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
       actions={canEdit && count > 0 && <Button loading={busy} onClick={() => void save()}><Save size={15} /> {tr("Save {0} changes", count)}</Button>}
       toolbar={
         <div className="flex flex-wrap items-center gap-2">
-          <div role="radiogroup" aria-label={tr("Form")} className="flex rounded-lg bg-neutral-100 p-1">
+          <div role="radiogroup" aria-label={tr("Form")} className="flex gap-1">
             {(["product", "outlet"] as const).map((f) => (
               <button key={f} type="button" role="radio" aria-checked={form === f} onClick={() => setForm(f)}
-                className={cx("rounded-md px-3 py-1 text-xs font-semibold", form === f ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500")}>
+                className={cx("rounded-md px-3 py-1 text-xs font-semibold", form === f ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "text-neutral-500")}>
                 {f === "product" ? "Form Product" : "Form Outlet"}
               </button>
             ))}

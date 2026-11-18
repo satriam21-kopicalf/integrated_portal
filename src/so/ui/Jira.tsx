@@ -6,11 +6,45 @@
 // Monitoring page so they read as one system.
 
 import { Check, ChevronDown, Search } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Children, isValidElement, useEffect, useMemo, useRef, useState } from "react";
 import { cx } from "@/so/ui";
 import { tr } from "@/lib/i18n";
 
 export type JOption = { value: string; label: string; hint?: string; group?: string; disabled?: boolean };
+
+type SelectChange = { target: { value: string }; currentTarget: { value: string } };
+const textOf = (n: React.ReactNode): string =>
+  n == null || typeof n === "boolean" ? "" : typeof n === "string" || typeof n === "number" ? String(n)
+    : Array.isArray(n) ? n.map(textOf).join("") : isValidElement(n) ? textOf((n.props as { children?: React.ReactNode }).children) : "";
+function optionsOf(children: React.ReactNode, group?: string): JOption[] {
+  const out: JOption[] = [];
+  Children.forEach(children, (c) => {
+    if (!isValidElement(c)) return;
+    const p = c.props as { value?: string | number; children?: React.ReactNode; label?: string; disabled?: boolean };
+    if (c.type === "option") out.push({ value: String(p.value ?? textOf(p.children)), label: textOf(p.children), group, disabled: p.disabled });
+    else if (c.type === "optgroup") out.push(...optionsOf(p.children, p.label));
+    else if (p.children) out.push(...optionsOf(p.children, group));
+  });
+  return out;
+}
+const WIDTH = /^(?:[a-z0-9]+:)?(?:w-|min-w-|max-w-|flex-1|flex-none|basis-|col-span-|self-|ml-auto|justify-self-)/;
+
+/** A drop-in for a native <select> (2026-11-18): the same value / onChange (e.target.value) and <option> / <optgroup>
+ *  children, shown as the Jira dropdown with a search box. The first option with an empty value is the placeholder. */
+export function NativeSelect({ value, onChange, children, className, disabled, ...rest }: {
+  value?: string | number | readonly string[]; onChange?: (e: SelectChange) => void; children?: React.ReactNode; className?: string; disabled?: boolean;
+  "aria-label"?: string; id?: string; required?: boolean; name?: string; title?: string;
+}) {
+  const opts = optionsOf(children);
+  const empty = opts.find((o) => o.value === "");
+  const v = value == null ? "" : String(value);
+  const width = (className ?? "").split(/\s+/).filter((c) => WIDTH.test(c)).join(" ");
+  return (
+    <JSelect value={v} disabled={disabled} label={rest["aria-label"] ?? rest.title} className={cx("min-w-[8rem]", width)}
+      placeholder={empty?.label || tr("Choose")} options={opts}
+      onChange={(nv) => onChange?.({ target: { value: nv }, currentTarget: { value: nv } })} />
+  );
+}
 
 /** A Jira dropdown (2026-11-18): a flat trigger, a popover with a search box, options grouped under small caps, the
  *  chosen one marked by a blue bar and a check. Replaces the native select on the Monitoring pages. */

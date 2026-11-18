@@ -127,7 +127,7 @@ export default function ExportButton({
               </div>
             ) : (
               <div className="p-1.5">
-                <div role="radiogroup" aria-label={tr('Export Format')} className="mb-1.5 grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1">
+                <div role="radiogroup" aria-label={tr('Export Format')} className="mb-1.5 grid grid-cols-2 gap-1 gap-1">
                   {FORMATS.map(f => {
                     const unavailable = f.value === 'gsheet' && !googleSheets;
                     return (
@@ -140,7 +140,7 @@ export default function ExportButton({
                         onClick={() => chooseFormat(f.value)}
                         title={unavailable ? tr('Google Sheets is not set up on the server yet') : undefined}
                         className={`inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                          format === f.value ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 disabled:hover:text-neutral-500'}`}
+                          format === f.value ? 'rounded-[4px] border border-brand-700 bg-brand-700 text-white' : 'text-neutral-500 hover:text-neutral-800 disabled:hover:text-neutral-500'}`}
                       >
                         {f.value === 'gsheet' ? <Sheet size={14} className="text-emerald-600" /> : <FileSpreadsheet size={14} className="text-emerald-700" />}
                         {f.label}

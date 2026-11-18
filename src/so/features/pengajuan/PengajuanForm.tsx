@@ -8,6 +8,7 @@
 // phone) and the bank account. The draft is saved as it is filled; what is still missing is listed above the Send button.
 // A request sent back for a revision opens here again with the notes. Mobile first.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, ClipboardList, CloudUpload, Loader2, Paperclip, Plus, Send, Trash2, UserPlus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast } from "@/so/ui";
@@ -113,10 +114,10 @@ export default function PengajuanForm() {
                 ) : data.branches.length === 1 ? (
                   <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm font-medium text-neutral-900">{data.branches[0].name}</p>
                 ) : (
-                  <select value={branch} onChange={(e) => setBranch(e.target.value)} className={cx(inputClass, "h-11")} aria-label={tr("Branch")}>
+                  <NativeSelect value={branch} onChange={(e) => setBranch(e.target.value)} className={cx(inputClass, "h-11")} aria-label={tr("Branch")}>
                     <option value="">{tr("Choose the branch")}</option>
                     {data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
-                  </select>
+                  </NativeSelect>
                 )}
               </div>
               <div>
@@ -467,9 +468,9 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
                 </div>
                 <div className={cx("grid gap-2", lineDate ? "sm:grid-cols-[9.5rem_minmax(0,1fr)_10rem]" : "sm:grid-cols-[minmax(0,1fr)_10rem]")}>
                   {lineDate && <input type="date" value={l.spentOn ?? ""} max={wibDate()} onChange={(e) => setLine(l.key, { spentOn: e.target.value })} aria-label={tr("Date")} className={cx(inputClass, "h-10 text-sm")} />}
-                  <select value={l.category} onChange={(e) => setLine(l.key, { category: e.target.value })} aria-label={tr("Category")} className={cx(inputClass, "h-10 text-sm")}>
+                  <NativeSelect value={l.category} onChange={(e) => setLine(l.key, { category: e.target.value })} aria-label={tr("Category")} className={cx(inputClass, "h-10 text-sm")}>
                     {Object.keys(cats).map((c) => <option key={c} value={c}>{(CATEGORY_LABEL[c] ?? (() => c))()}</option>)}
-                  </select>
+                  </NativeSelect>
                   <RpInput value={typeRp(l.amount)} onChange={(v) => setLine(l.key, { amount: parseRp(v) })} label={tr("Amount")} compact />
                 </div>
                 <input value={l.description} onChange={(e) => setLine(l.key, { description: e.target.value })} maxLength={300}
@@ -580,11 +581,11 @@ function Baristas({ value, options, onChange }: { value: Barista[]; options: { i
         </div>
       )}
       {options.filter((o) => !has(o.name)).length > 0 && (
-        <select value="" aria-label={tr("Accounts of the Branch")} className={cx(inputClass, "h-10 text-sm")}
+        <NativeSelect value="" aria-label={tr("Accounts of the Branch")} className={cx(inputClass, "h-10 text-sm")}
           onChange={(e) => { const o = options.find((x) => x.id === e.target.value); if (o) onChange([...value, { name: o.name, userId: o.id }]); }}>
           <option value="">{tr("Pick from the accounts of the branch ({0})", options.filter((o) => !has(o.name)).length)}</option>
           {options.filter((o) => !has(o.name)).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-        </select>
+        </NativeSelect>
       )}
       <div className="flex gap-2">
         <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} maxLength={80}
@@ -615,9 +616,9 @@ function Attachments({ files, docTypes, required, onAdd, onRemove }: { files: Pg
     <div className="flex flex-wrap items-end gap-2">
       {files.map((f) => <FileChip key={f.id} f={f} onRemove={() => onRemove(f.id)} />)}
       <div className={cx("flex items-center gap-1 rounded-lg border p-1", required && !files.length ? "border-red-300 bg-red-50/40" : "border-neutral-200 bg-white")}>
-        <select value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Kind of Document")} className="h-8 rounded-md border-0 bg-transparent pl-1.5 pr-6 text-xs font-medium text-neutral-700 focus:ring-0">
+        <NativeSelect value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Kind of Document")} className="h-8 rounded-md border-0 bg-transparent pl-1.5 pr-6 text-xs font-medium text-neutral-700 focus:ring-0">
           {docTypes.map((d) => <option key={d} value={d}>{(DOC_LABEL[d] ?? (() => d))()}</option>)}
-        </select>
+        </NativeSelect>
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={(e) => void pick(e.target.files)} />
         <button type="button" disabled={busy} onClick={() => input.current?.click()}
           className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand-700 px-2.5 text-xs font-medium text-white hover:bg-brand-800 disabled:opacity-60">

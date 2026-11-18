@@ -4,6 +4,7 @@
 // materials (take one line or the whole BOM) and the components other WIP recipes already use. Adding puts a line in
 // the draft with the stock item already chosen.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { ChevronRight, Layers, Package, Plus, Search, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -72,10 +73,10 @@ function ItemsTab({ have, onAdd }: { have: Set<string>; onAdd: (c: PickedCompone
   return (
     <div className="space-y-2">
       <div className="grid gap-2 sm:grid-cols-2">
-        <select value={cat} onChange={e => setCat(e.target.value)} className={cx(inputClass, "h-8 text-xs")} aria-label={tr("Category")}>
+        <NativeSelect value={cat} onChange={e => setCat(e.target.value)} className={cx(inputClass, "h-8 text-xs")} aria-label={tr("Category")}>
           <option value="">{tr("All categories")}</option>
           {cats.map(c => <option key={c.id} value={c.id}>{c.parent_name ? `${c.parent_name} › ${c.name}` : c.name} ({c.items})</option>)}
-        </select>
+        </NativeSelect>
         <div className="relative">
           <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr("Search item name or code")} className={cx(searchClass, "h-8 pl-7 text-xs")} />

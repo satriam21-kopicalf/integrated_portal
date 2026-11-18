@@ -137,7 +137,7 @@ function Labels() {
             <div className="grid grid-cols-2 gap-3 border-t border-neutral-100 p-4">
               <div className="col-span-2">
                 <p className="mb-1.5 text-[13px] font-medium text-neutral-700">{tr("Print on")}</p>
-                <div className="grid grid-cols-2 gap-1 rounded-xl bg-neutral-100 p-1" role="radiogroup" aria-label={tr("Print on")}>
+                <div className="grid grid-cols-2 gap-1 gap-1" role="radiogroup" aria-label={tr("Print on")}>
                   {([["sheet", tr("A4 sheet"), tr("with cut lines")], ["roll", tr("Label printer"), tr("one label per page")]] as const).map(([m, name, hint]) => (
                     <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
                       className={cx("rounded-lg px-2 py-1.5 text-left transition-colors", mode === m ? "bg-white shadow-sm" : "hover:bg-white/60")}>

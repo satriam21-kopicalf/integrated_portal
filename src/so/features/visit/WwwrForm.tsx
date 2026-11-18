@@ -8,6 +8,7 @@
 // plans are marked done and the lead closes the revisit (then it is complete); its result is shared with the PIC by a
 // link (print / PDF). The team never sees a score.
 
+import { NativeSelect } from "@/so/ui/Jira";
 import { CalendarClock, CheckCircle2, ChevronRight, ClipboardCheck, ClipboardList, Copy, Crown, Plus, Printer, Search, ShieldCheck, Store,
   Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -284,9 +285,9 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
                   <input value={x.title} onChange={(e) => set(i, { title: e.target.value })} maxLength={300} placeholder={tr("What to do, e.g. Restock premix and relabel shelf life")} className={cx(inputClass, "h-9 sm:col-span-6")} />
                   <input value={x.detail} onChange={(e) => set(i, { detail: e.target.value })} maxLength={2000} placeholder={tr("Detail (optional)")} className={cx(inputClass, "h-9 sm:col-span-6")} />
                   <label className="text-[11px] font-medium text-neutral-500 sm:col-span-4">{tr("Handled by")}
-                    <select value={x.assigneeId} onChange={(e) => set(i, { assigneeId: e.target.value })} className={cx(inputClass, "mt-1 h-9")}>
+                    <NativeSelect value={x.assigneeId} onChange={(e) => set(i, { assigneeId: e.target.value })} className={cx(inputClass, "mt-1 h-9")}>
                       <option value="">{tr("— Choose —")}</option>{members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-                    </select></label>
+                    </NativeSelect></label>
                   <label className="text-[11px] font-medium text-neutral-500 sm:col-span-2">{tr("Due")}
                     <input type="date" value={x.dueOn} min={audit.day} onChange={(e) => set(i, { dueOn: e.target.value })} className={cx(inputClass, "mt-1 h-9")} /></label>
                 </div>

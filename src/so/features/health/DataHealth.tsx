@@ -4,9 +4,9 @@
 // Center and the "Sources" line every Cost Control page shows under its title — where its figures come from (ESB /
 // Portal), how fresh they are and what is missing, with a link to the Information Center.
 
-import { AlertOctagon, AlertTriangle, CheckCircle2, ChevronRight, Database, XCircle } from 'lucide-react';
+import { AlertOctagon, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, XCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { cx } from '@/so/ui';
 import { call } from '@/so/features/checkin/checkin';
 import { numberLocale, tr } from '@/lib/i18n';
@@ -84,28 +84,56 @@ export function useHealth(keys?: string[]) {
   return { data, error, reload: () => setTick((t) => t + 1) };
 }
 
-/** One quiet line under a page title: the sources of its figures and their state; a tap opens the Information Center. */
+/** The data sources of a page, simple (2026-11-18): one small chip with the worst state ("Data: Good" / "Data: 2 to
+ *  check"); a tap shows each source in a small popover with a link to the Information Center. */
 export function DataSources({ keys, className }: { keys: string[]; className?: string }) {
   const { data } = useHealth(keys);
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const down = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', down);
+    document.addEventListener('keydown', key);
+    return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key); };
+  }, [open]);
   if (!data) return null;
   const cards = keys.map((k) => data.cards.find((c) => c.key === k)).filter((c): c is Card => !!c);
   if (!cards.length) return null;
+  const order: Status[] = ['high', 'error', 'warn', 'ok'];
+  const worst = order.find((st) => cards.some((c) => c.status === st)) ?? 'ok';
+  const bad = cards.filter((c) => c.status !== 'ok').length;
+  const w = STATUS[worst];
   return (
-    <Link href="/cost-control/info" className={cx('mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-md border border-neutral-200 bg-white px-3.5 py-2 text-xs text-neutral-600 shadow-sm hover:border-brand-200 hover:bg-brand-50/40', className)}>
-      <span className="flex items-center gap-1.5 font-semibold text-neutral-800"><Database size={13} aria-hidden /> {tr('Data sources')}</span>
-      {cards.map((c) => {
-        const d = describe(c);
-        const s = STATUS[c.status];
-        return (
-          <span key={c.key} className="inline-flex items-center gap-1" title={d.text}>
-            <span className={cx('[&>svg]:h-3.5 [&>svg]:w-3.5', s.dot)}>{s.icon}</span>
-            <span className="text-neutral-500">{d.source}</span>
-            <span className="font-semibold tabular-nums text-neutral-800">{d.value}</span>
-            <span className="sr-only">{s.label()}</span>
-          </span>
-        );
-      })}
-      <span className="ml-auto flex items-center gap-0.5 font-medium text-brand-700">{tr('Information Center')} <ChevronRight size={13} aria-hidden /></span>
-    </Link>
+    <div ref={box} className={cx('relative mb-3 inline-block', className)}>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
+        className={cx('inline-flex h-7 items-center gap-1.5 rounded-[4px] border px-2 text-xs font-medium transition-colors', w.tone, 'hover:brightness-95')}>
+        <span className="[&>svg]:h-3.5 [&>svg]:w-3.5">{w.icon}</span>
+        {tr('Data')}: {bad ? tr('{0} to check', bad) : tr('Good')}
+        <ChevronDown size={12} className={cx('transition', open && 'rotate-180')} aria-hidden />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-30 mt-1 w-80 overflow-hidden rounded-md border border-neutral-200 bg-white py-1 shadow-xl">
+          <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500">{tr('Data sources')}</p>
+          <ul>
+            {cards.map((c) => {
+              const d = describe(c);
+              const st = STATUS[c.status];
+              return (
+                <li key={c.key} className="flex items-start gap-2 px-3 py-1.5" title={d.text}>
+                  <span className={cx('mt-0.5 [&>svg]:h-3.5 [&>svg]:w-3.5', st.dot)}>{st.icon}</span>
+                  <span className="min-w-0 flex-1 text-xs"><span className="block text-neutral-800">{d.title}</span>
+                    <span className="block text-[11px] text-neutral-500">{d.source}</span></span>
+                  <span className="text-xs font-semibold tabular-nums text-neutral-800">{d.value}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <Link href="/cost-control/info" className="mt-1 flex items-center justify-between border-t border-neutral-100 px-3 py-2 text-xs font-medium text-brand-700 hover:bg-neutral-50">
+            {tr('Information Center')} <ChevronRight size={13} aria-hidden /></Link>
+        </div>
+      )}
+    </div>
   );
 }

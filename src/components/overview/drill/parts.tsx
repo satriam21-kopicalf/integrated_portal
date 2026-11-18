@@ -152,7 +152,7 @@ export function DetailTable<R>({
       <div className="custom-scrollbar overflow-auto rounded-lg border border-neutral-200" style={{ maxHeight }}>
         <table className="w-full whitespace-nowrap text-xs">
           <caption className="sr-only">{caption}</caption>
-          <thead className="sticky top-0 z-10 bg-neutral-50 text-neutral-500">
+          <thead className="sticky top-0 z-10 border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
             <tr>
               {columns.map(c => {
                 const active = sort?.key === c.key;
