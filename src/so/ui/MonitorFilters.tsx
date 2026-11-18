@@ -41,9 +41,9 @@ export function FilterRow({ icon, label, value, onClear, children }: {
 }) {
   return (
     <section className="px-1 py-4 first:pt-1">
-      <header className="mb-2.5 flex items-center gap-2">
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500">{icon}</span>
-        <h3 className="text-sm font-semibold text-neutral-900">{label}</h3>
+      <header className="mb-2 flex items-center gap-1.5">
+        <span className="flex-shrink-0 text-neutral-400 [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>
+        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}</h3>
         <span className="ml-auto flex min-w-0 items-center gap-2 text-xs">
           {value ? <span className="truncate font-medium text-brand-700">{value}</span> : <span className="text-neutral-400">{tr('All')}</span>}
           {value && onClear && <button type="button" onClick={onClear} className="flex-shrink-0 text-neutral-400 underline-offset-2 hover:text-neutral-700 hover:underline">{tr('Clear')}</button>}
@@ -67,12 +67,12 @@ function OnlyOne({ label }: { label: string }) {
 /** A few choices side by side ('' = all). */
 export function Segments({ value, onChange, choices }: { value: string; onChange: (v: string) => void; choices: { value: string; label: string }[] }) {
   return (
-    <div className="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1" role="radiogroup">
+    <div className="flex flex-wrap gap-1.5" role="radiogroup">
       {choices.map((c) => {
         const on = c.value === value;
         return (
           <button key={c.value || 'all'} type="button" role="radio" aria-checked={on} onClick={() => onChange(c.value)}
-            className={cx('min-w-0 flex-1 basis-[30%] truncate rounded-lg px-2.5 py-1.5 text-xs font-medium transition', on ? 'bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200' : 'text-neutral-600 hover:text-neutral-900')}>
+            className={cx('min-w-0 truncate rounded-[4px] border px-2.5 py-1 text-xs font-medium transition', on ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100')}>
             {c.label}
           </button>
         );
@@ -125,7 +125,7 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
   const item = (v: string, label: string, hint?: string) => (
     <li key={v || 'all'}>
       <button type="button" onClick={() => pick(v)} aria-pressed={v === value}
-        className={cx('flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-neutral-50', v === value ? 'font-medium text-brand-800' : 'text-neutral-700')}>
+        className={cx('flex w-full items-center gap-2.5 border-l-2 px-3 py-2 text-left text-sm', v === value ? 'border-brand-700 bg-brand-50 font-medium text-brand-800' : 'border-transparent text-neutral-700 hover:bg-neutral-100')}>
         <span className="flex w-4 flex-shrink-0 justify-center">{v === value && <Check size={14} />}</span>
         <span className="min-w-0 flex-1 truncate">{label}</span>{hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{hint}</span>}
       </button>
@@ -134,7 +134,7 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
   return (
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className={cx(inputClass, 'flex h-10 items-center justify-between gap-2 text-left', open && 'border-brand-500 ring-2 ring-brand-500/20')}>
+        className={cx(inputClass, 'flex h-9 items-center justify-between gap-2 rounded-[4px] bg-neutral-50 text-left hover:bg-neutral-100', open && 'border-brand-500 bg-white ring-2 ring-brand-500/20')}>
         <span className={cx('truncate text-sm', !current && 'text-neutral-500')}>{current ? current.label : allLabel}</span>
         <span className="flex flex-shrink-0 items-center gap-1 text-neutral-400">
           {current && <X size={14} className="hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); pick(''); }} aria-label={tr('Clear')} />}
@@ -142,7 +142,7 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
         </span>
       </button>
       {open && (
-        <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg">
+        <div className="absolute z-30 mt-1 w-full min-w-[14rem] overflow-hidden rounded-md border border-neutral-200 bg-white shadow-xl">
           <div className="relative border-b border-neutral-100 p-2">
             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={placeholder} className={cx(searchClass, 'h-9 pl-8 text-sm')} />

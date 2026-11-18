@@ -9,7 +9,7 @@
 import { AlertTriangle, BarChart3, CalendarDays, CalendarOff, Camera, CalendarPlus, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, Layers, MapPin, MessageSquareText, PenLine, Scale, Star,
   Store, UserRound, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import { Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, FilterToolbar, Period, dmy, wibDay } from "@/so/ui/Filters";
@@ -22,6 +22,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { locale, tr } from "@/lib/i18n";
 import { type Definition, type Platform, type Rating, type Visit, type VisitFormKey, PLATFORM_LABEL, RATINGS, RATING_STYLE, fmtGrams, fmtStars, ratingLabel, scoreTone, tl, visitPhotoUrl, visitSignatureUrl } from "./visit";
 import { SkeletonList } from "@/components/kc/Skeleton";
+import { CardBody, CardFooter, type JTab, Lozenge, Person, QuickChips, ScoreLozenge, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { thumb } from "@/lib/assets";
 
 type SectionPerf = { key: string; title: string; titleEn?: string; group: string; under: number; meet: number; exceed: number };
@@ -132,20 +133,14 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
           )}
         </StatStrip>
       }>
-      <div className="flex gap-x-6 overflow-x-auto rounded-2xl border border-neutral-200/70 bg-white px-5 pt-3.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]" role="tablist" aria-label={tr("Sections")}>
-        {((audit ? [["visits", tr("Audits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
-          ["comparison", tr("Comparison"), <Scale key="c" size={15} />, null], ["schedule", tr("Schedule"), <CalendarPlus key="s" size={15} />, null]]
-          : [["visits", tr("Visits"), <ClipboardList key="v" size={15} />, res?.data.length], ["analysis", tr("Analysis"), <BarChart3 key="a" size={15} />, null],
-          ["attendance", tr("PIC Attendance"), <CalendarDays key="t" size={15} />, att?.pics.length]]) as [Tab, string, React.ReactNode, number | null | undefined][]).map(([k, label, icon, n]) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cx("relative inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-3.5 text-xs font-bold transition-colors",
-              tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
-            {icon}{label}{n != null && <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold tabular-nums text-neutral-500">{fmtNumber(n)}</span>}
-          </button>
-        ))}
-      </div>
+      {/* Jira-like (2026-11-18): one card, the sections as tabs, the visits as an issue table */}
+      <WorkCard label={tr("Sections")} active={tab} onTab={setTab}
+        tabs={(audit ? [{ key: "visits", label: tr("Audits"), icon: <ClipboardList size={15} />, count: res?.data.length }, { key: "analysis", label: tr("Analysis"), icon: <BarChart3 size={15} /> },
+          { key: "comparison", label: tr("Comparison"), icon: <Scale size={15} /> }, { key: "schedule", label: tr("Schedule"), icon: <CalendarPlus size={15} /> }]
+          : [{ key: "visits", label: tr("Visits"), icon: <ClipboardList size={15} />, count: res?.data.length }, { key: "analysis", label: tr("Analysis"), icon: <BarChart3 size={15} /> },
+          { key: "attendance", label: tr("PIC Attendance"), icon: <CalendarDays size={15} />, count: att?.pics.length }]) as JTab<Tab>[]}>
 
-      {tab === "analysis" && (!res ? <SkeletonList rows={5} /> : res.data.length === 0 ? (
+      {tab === "analysis" && <CardBody>{!res ? <SkeletonList rows={5} /> : res.data.length === 0 ? (
         <Panel><Empty icon={<BarChart3 size={28} />} title={tr("No visit in this period")}>{tr("The analysis appears as soon as the PICs send their visits.")}</Empty></Panel>
       ) : (
         <div className="space-y-4">
@@ -166,18 +161,22 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
             </Panel>
           )}
         </div>
-      ))}
+      )}</CardBody>}
 
-      {tab === "comparison" && <ComparisonPanel period={f.period} branch={f.branch} group={f.group} />}
-      {tab === "schedule" && <SchedulePanel branches={branches} onOpenVisit={setOpen} />}
-      {tab === "attendance" && <AttendancePanel form={form} group={f.group} branch={f.branch} onPic={(id) => { setF({ ...f, user: id }); setTab("visits"); }} />}
+      {tab === "comparison" && <CardBody><ComparisonPanel period={f.period} branch={f.branch} group={f.group} /></CardBody>}
+      {tab === "schedule" && <CardBody><SchedulePanel branches={branches} onOpenVisit={setOpen} /></CardBody>}
+      {tab === "attendance" && <CardBody><AttendancePanel form={form} group={f.group} branch={f.branch} onPic={(id) => { setF({ ...f, user: id }); setTab("visits"); }} /></CardBody>}
 
       {tab === "visits" && (
-        <Panel title={tr("Visits")} description={tr("Newest first; tap a visit to see every item, note and photo")}
-          toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or PIC")} filters={chips}
-            onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
-          footer={res ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span><PageNav paged={paged} /></> : undefined}>
-          {error ? <ErrorState message={error} onRetry={() => void load()} /> : res && rows.length === 0 ? (
+        <>
+          <Toolbar>
+            <QuickChips label={tr("Show")} value={f.only} onChange={(only) => setF({ ...f, only })}
+              items={[{ key: "", label: tr("All"), count: res?.data.length }, { key: "under", label: tr("With UNDER findings"), dot: "bg-red-500", count: res ? res.data.filter((v) => v.counts.under > 0).length : null },
+                { key: "outside", label: tr("Outside Radius"), dot: "bg-amber-500", count: res ? res.data.filter((v) => v.outsideRadius).length : null }]} />
+            <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or PIC")} filters={chips}
+              onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
+          </Toolbar>
+          {error ? <div className="p-4"><ErrorState message={error} onRetry={() => void load()} /></div> : res && rows.length === 0 ? (
             <Empty icon={<ClipboardList size={28} />} title={res.data.length ? tr("Nothing matches the search or filters") : tr("No visit in this period")}>
               {!res.data.length && tr("Visits appear here as soon as the PICs send them from the Form menu.")}
             </Empty>
@@ -187,7 +186,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                 {paged.rows.map((v) => (
                   <li key={v.id}>
                     <button type="button" onClick={() => setOpen(v.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50">
-                      <ScorePill score={v.score} />
+                      <ScoreLozenge score={v.score} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold text-neutral-900">{v.branchName}</span>
                         <span className="block truncate text-xs text-neutral-500">{v.branchGroup ? `${v.branchGroup} · ` : ""}{v.name} · {wibDateTime(v.submittedAt)}</span>
@@ -199,34 +198,33 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                 ))}
               </ul>
               <div className="hidden overflow-x-auto md:block">
-                <table className="m-cards w-full min-w-[920px] text-xs">
-                  <thead className={theadClass}>
-                    <tr>
-                      <th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5">{audit ? tr("Lead") : tr("PIC")}</th><th className="px-3 py-2.5">{tr("Sent")}</th>
-                      <th className="px-3 py-2.5">{tr("Result")}</th><th className="px-3 py-2.5 text-center">{tr("Score")}</th>
-                      <th className="px-3 py-2.5 text-right">{tr("Photos")}</th><th className="px-3 py-2.5">{tr("Location")}</th><th className="w-8" />
+                <table className={cx(jTable, "min-w-[1000px]")}>
+                  <thead>
+                    <tr className={jHeadRow}>
+                      <th className={cx(jTh, "w-8")} aria-label={tr("Type")} /><th className={jTh}>Key</th><th className={jTh}>{tr("Outlet")}</th><th className={jTh}>{audit ? tr("Lead") : tr("PIC")}</th>
+                      <th className={jTh}>{tr("Result")}</th><th className={jTh}>{tr("Score")}</th><th className={jTh}>{tr("Location")}</th>
+                      <th className={cx(jTh, "text-right")}>{tr("Photos")}</th><th className={jTh}>{tr("Sent")}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-100">
-                    {!res ? <SkeletonRows cols={8} /> : paged.rows.map((v) => (
-                      <tr key={v.id} onClick={() => setOpen(v.id)} className="group cursor-pointer hover:bg-brand-50/40">
-                        <td className="max-w-[16rem] py-3 pl-5 pr-3"><span className="block truncate font-semibold text-neutral-900">{v.branchName}</span><span className="text-[11px] text-neutral-400">{v.branchCode}</span>
-                          {v.branchGroup && <span className="ml-1.5 rounded bg-brand-50 px-1 text-[10px] font-semibold text-brand-700">{v.branchGroup}</span>}</td>
-                        <td className="px-3 py-3">
-                          <span className="flex items-center gap-2"><span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[10px] font-bold text-neutral-600">{initials(v.name)}</span>
-                            <span className="min-w-0"><span className="block truncate text-neutral-800">{v.name}</span><span className="block max-w-[14rem] truncate text-[11px] text-neutral-400">{v.audit ? tr("Team: {0}", v.audit.members.map((m) => m.name).join(", ")) : `@${v.username}`}</span></span></span>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-3 text-xs tabular-nums text-neutral-600">{wibDateTime(v.submittedAt)}</td>
-                        <td className="w-56 px-3 py-3">
+                  <tbody>
+                    {!res ? <SkeletonRows cols={9} /> : paged.rows.map((v) => (
+                      <tr key={v.id} onClick={() => setOpen(v.id)} className={jRow}>
+                        <td className={jTd}><TypeIcon tone={audit ? "bg-rose-600" : form === "product" ? "bg-sky-600" : "bg-emerald-600"} title={title}>
+                          {audit ? <Scale size={11} /> : form === "product" ? <Layers size={11} /> : <Store size={11} />}</TypeIcon></td>
+                        <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{v.branchCode}</span></td>
+                        <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-neutral-900">{v.branchName}</span>
+                          {v.branchGroup && <span className="text-[11px] text-neutral-400">{tr("Group")} {v.branchGroup}</span>}</td>
+                        <td className={cx(jTd, "max-w-[14rem]")}><Person name={v.name} sub={v.audit ? tr("Team: {0}", v.audit.members.map((m) => m.name).join(", ")) : `@${v.username}`} /></td>
+                        <td className={cx(jTd, "w-52")}>
                           <Bar c={v.counts} />
                           <span className="mt-1 block text-[11px] text-neutral-500"><span className={v.counts.under ? "font-semibold text-red-600" : ""}>{v.counts.under} UNDER</span> · {v.counts.meet} MEET · {v.counts.exceed} EXCEED</span>
                         </td>
-                        <td className="px-3 py-3 text-center"><ScorePill score={v.score} /></td>
-                        <td className="px-3 py-3 text-right tabular-nums text-neutral-600"><span className="inline-flex items-center gap-1"><Camera size={12} className="text-neutral-400" />{v.photoCount ?? 0}</span></td>
-                        <td className="px-3 py-3">
-                          {v.distanceM === null ? <Badge>{tr("No position")}</Badge> : v.outsideRadius ? <Badge tone="red" icon={<MapPin size={11} />}>{v.distanceM} m</Badge> : <Badge tone="green">{v.distanceM} m</Badge>}
+                        <td className={jTd}><ScoreLozenge score={v.score} /></td>
+                        <td className={jTd}>
+                          {v.distanceM === null ? <Lozenge>{tr("No position")}</Lozenge> : v.outsideRadius ? <Lozenge tone="red">{v.distanceM} m</Lozenge> : <Lozenge tone="green">{v.distanceM} m</Lozenge>}
                         </td>
-                        <td className="pr-3 text-neutral-300 group-hover:text-brand-600"><ChevronRight size={16} /></td>
+                        <td className={cx(jTd, "text-right tabular-nums text-neutral-600")}><span className="inline-flex items-center gap-1"><Camera size={12} className="text-neutral-400" />{v.photoCount ?? 0}</span></td>
+                        <td className={cx(jTd, "whitespace-nowrap text-neutral-600")}>{wibDateTime(v.submittedAt)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -234,8 +232,10 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
               </div>
             </>
           )}
-        </Panel>
+          {res && <CardFooter><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span><PageNav paged={paged} /></CardFooter>}
+        </>
       )}
+      </WorkCard>
 
       {sheet && <VisitFilters value={f} groups={groups} branches={branches} pics={res?.pics ?? []} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
       {open && <VisitDrawer form={form} id={open} onClose={() => setOpen(null)} />}

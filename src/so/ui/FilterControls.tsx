@@ -47,13 +47,13 @@ export function ChoiceGroup({ label, choices, value, onChange }: { label: string
     <fieldset>
       {label && <legend className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tc(label)}</legend>}
       {real.length <= 1 && !value ? <OnlyOne label={real[0]?.label ?? '—'} /> : (
-        <div className="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1" role="radiogroup">
+        <div className="flex flex-wrap gap-1.5" role="radiogroup">
           {choices.map(c => {
             const on = c.value === value;
             return (
               <button key={c.value || 'any'} type="button" role="radio" onClick={() => onChange(c.value)} aria-checked={on} title={c.hint}
-                className={`min-w-0 flex-1 basis-[30%] truncate rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
-                  on ? 'bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200' : 'text-neutral-600 hover:text-neutral-900'}`}>
+                className={`min-w-0 truncate rounded-[4px] border px-2.5 py-1 text-xs font-medium transition ${
+                  on ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100'}`}>
                 {tc(c.label)}
               </button>
             );
@@ -87,7 +87,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
     return (
       <li key={v || 'any'}>
         <button type="button" onClick={() => onChange(v)} aria-pressed={on}
-          className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${on ? 'bg-brand-50 font-medium text-brand-800' : 'text-neutral-700 hover:bg-neutral-50'}`}>
+          className={`flex w-full items-center gap-2.5 border-l-2 px-3 py-2 text-left text-sm transition-colors ${on ? 'border-brand-700 bg-brand-50 font-medium text-brand-800' : 'border-transparent text-neutral-700 hover:bg-neutral-100'}`}>
           <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${on ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-300'}`}>
             {on && <Check size={10} strokeWidth={3} />}
           </span>
@@ -100,8 +100,8 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
   return (
     // min-w-0: a fieldset is at least as wide as its content by default, so long labels would overflow the drawer
     <fieldset className="min-w-0">
-      {label && <legend className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tc(label)}</legend>}
-      <div className="overflow-hidden rounded-xl border border-neutral-200">
+      {label && <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tc(label)}</legend>}
+      <div className="overflow-hidden rounded-md border border-neutral-200">
         <div className="relative border-b border-neutral-100 p-2">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={placeholder} className={`${inputClass} h-9 pl-8 text-sm`} aria-label={placeholder} />

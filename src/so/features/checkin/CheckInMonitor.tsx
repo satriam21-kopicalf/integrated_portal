@@ -10,7 +10,7 @@
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, Layers, MapPin, MapPinOff, ScanFace, ShieldAlert, SignalLow, Store, UserRound, UsersRound, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, inputClass, theadClass, usePaged, useToast } from "@/so/ui";
+import { Badge, Button, Empty, ErrorState, Page, PageNav, SkeletonRows, cx, fmtNumber, inputClass, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, FilterToolbar, Period, SegmentBar, dmy, wibDay } from "@/so/ui/Filters";
@@ -22,6 +22,7 @@ import { type CheckIn, call, duration, photoUrl, suspect } from "@/so/features/c
 import { type Kind, kindSlug, setKind, swapClock, swapKind } from "@/so/features/checkin/checkin";
 import { locale, tr as baseTr } from "@/lib/i18n";
 import { thumb } from "@/lib/assets";
+import { CardFooter, Person, QuickChips, Toolbar, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 const tr = (key: string, ...args: (string | number | null | undefined)[]) => swapClock(baseTr(swapKind(key), ...args));
 /** "07.42" in WIB */
 const wibClock = (iso: string) => new Date(iso).toLocaleTimeString(locale(), { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
@@ -167,10 +168,18 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
       )}
 
       <LocationLegend />
-      <Panel toolbar={<FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search PIC or outlet")} filters={chips}
-        onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
-        footer={res ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span><PageNav paged={paged} /></> : undefined}>
-        {error ? <ErrorState message={error} onRetry={() => void load()} /> : res && rows.length === 0 ? (
+      {/* Jira-like (2026-11-18): one card, quick filters on the location checks, the check-ins as an issue table */}
+      <WorkCard label={tr("Sections")} active="list" onTab={() => undefined}
+        tabs={[{ key: "list", label: tr("Check-ins"), icon: <ScanFace size={15} />, count: res?.data.length }]}>
+        <Toolbar>
+          <QuickChips label={tr("Location")} value={f.location} onChange={(location) => setF({ ...f, location })}
+            items={[{ key: "", label: tr("All"), count: s?.total }, { key: "unreviewed", label: LOC.unreviewed(), dot: "bg-red-500", count: s?.unreviewed },
+              { key: "outside", label: LOC.outside(), dot: "bg-orange-500", count: s?.outside }, { key: "suspect", label: LOC.suspect(), dot: "bg-rose-600", count: s?.suspect },
+              { key: "low", label: LOC.low(), dot: "bg-amber-400", count: s?.low }, { key: "unlocated", label: LOC.unlocated(), dot: "bg-neutral-400", count: s?.unlocated }]} />
+          <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search PIC or outlet")} filters={chips}
+            onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
+        </Toolbar>
+        {error ? <div className="p-4"><ErrorState message={error} onRetry={() => void load()} /></div> : res && rows.length === 0 ? (
           <Empty icon={<ScanFace size={28} />} title={res.data.length ? tr("Nothing matches the search or filters") : tr("No check-ins in this period")}>
             {!res.data.length && tr("Check-ins appear here as soon as the PICs send them from Form → PIC Check In.")}
           </Empty>
@@ -193,10 +202,11 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="m-cards w-full min-w-[820px] text-xs">
-                <thead className={theadClass}>
-                  <tr>
-                    <th className="w-16 px-4 py-2.5">{tr("Photo")}</th>
+              <table className={cx(jTable, "min-w-[900px]")}>
+                <thead>
+                  <tr className={jHeadRow}>
+                    <th className={cx(jTh, "w-14")}>{tr("Photo")}</th>
+                    <th className={jTh}>Key</th>
                     <SortTh k="pic" sort={sorted.sort} onSort={sorted.toggle}>{tr("PIC")}</SortTh>
                     <SortTh k="outlet" sort={sorted.sort} onSort={sorted.toggle}>{tr("Outlet")}</SortTh>
                     <SortTh k="time" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Visit Time")}</SortTh>
@@ -204,18 +214,19 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                     {kind === "surveyor" && <SortTh k="out" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Clock Out")}</SortTh>}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
-                  {!res ? <SkeletonRows cols={kind === "surveyor" ? 6 : 5} /> : paged.rows.map((c) => (
-                    <tr key={c.id} onClick={() => setOpen(c)} className={cx("cursor-pointer", (c.outsideRadius || suspect(c)) && !c.review ? "bg-red-50/50 hover:bg-red-50" : "hover:bg-neutral-50/70")}>
-                      <td className="px-4 py-2.5">
+                <tbody>
+                  {!res ? <SkeletonRows cols={kind === "surveyor" ? 7 : 6} /> : paged.rows.map((c) => (
+                    <tr key={c.id} onClick={() => setOpen(c)} className={cx(jRow, (c.outsideRadius || suspect(c)) && !c.review && "bg-red-50/50 hover:bg-red-50")}>
+                      <td className={jTd}>
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                        <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face Photo")} loading="lazy" className="h-11 w-11 rounded-lg bg-neutral-100 object-cover" />
+                        <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face Photo")} loading="lazy" className="h-9 w-9 rounded-md bg-neutral-100 object-cover" />
                       </td>
-                      <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{c.name}</span><span className="text-xs text-neutral-400">@{c.username}</span></td>
-                      <td className="max-w-[16rem] px-4 py-2.5"><span className="block truncate text-neutral-800">{c.branchName}</span><span className="text-xs text-neutral-400">{c.branchCode}</span></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-neutral-700">{wibDateTime(c.visitedAt)}</td>
-                      <td className="px-4 py-2.5"><LocationTags c={c} /></td>
-                      {kind === "surveyor" && <td className="px-4 py-2.5"><ClockOutCell c={c} /></td>}
+                      <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{c.branchCode}</span></td>
+                      <td className={cx(jTd, "max-w-[14rem]")}><Person name={c.name} sub={`@${c.username}`} /></td>
+                      <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-neutral-800">{c.branchName}</span></td>
+                      <td className={cx(jTd, "whitespace-nowrap tabular-nums text-neutral-700")}>{wibDateTime(c.visitedAt)}</td>
+                      <td className={jTd}><LocationTags c={c} /></td>
+                      {kind === "surveyor" && <td className={jTd}><ClockOutCell c={c} /></td>}
                     </tr>
                   ))}
                 </tbody>
@@ -223,7 +234,8 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
             </div>
           </>
         )}
-      </Panel>
+        {res && <CardFooter><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""} · {tr("Times in WIB (server time)")}</span><PageNav paged={paged} /></CardFooter>}
+      </WorkCard>
 
       {sheet && <CheckInFilters value={f} groups={groups} branches={branches} pics={pics} onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
       {open && <CheckInDrawer c={res?.data.find((x) => x.id === open.id) ?? open} onClose={() => setOpen(null)} onReviewed={() => void load(true)} />}

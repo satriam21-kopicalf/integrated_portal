@@ -87,8 +87,8 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
 export function FilterSection({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
     <section className="px-1 py-4 first:pt-1">
-      <header className="mb-2.5">
-        <h3 className="text-sm font-semibold text-neutral-900">{tc(title)}</h3>
+      <header className="mb-2">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tc(title)}</h3>
         {hint && <p className="mt-0.5 text-xs text-neutral-500">{hint}</p>}
       </header>
       {children}

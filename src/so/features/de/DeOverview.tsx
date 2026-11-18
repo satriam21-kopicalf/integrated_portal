@@ -5,6 +5,7 @@
 // and categories, internal vs vendor and the technicians, the outlets with most requests, repeated damage and the
 // reasons of reject / on hold.
 
+import { JSelect } from "@/so/ui/Jira";
 import { AlertTriangle, BarChart3, CheckCircle2, Clock, Repeat, Wallet, Wrench } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, cx, Empty, ErrorState, fmtNumber, Panel, theadClass } from "@/so/ui";
@@ -58,11 +59,8 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
         <p className="text-xs text-neutral-500">{d ? tr("Requests sent {0} – {1}", dmy(d.period.from), dmy(d.period.to)) : tr("Loading…")}</p>
         <div className="flex flex-wrap items-center gap-2">
           {bgroups.length > 0 && (
-            <select value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Branch Group")}
-              className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm text-neutral-700">
-              <option value="">{tr("All Branch Groups")}</option>
-              {bgroups.map((g) => <option key={g.id} value={g.id}>{g.code}</option>)}
-            </select>
+            <JSelect value={group} onChange={setGroup} label={tr("Branch Group")} placeholder={tr("All Branch Groups")} className="w-48"
+              options={[{ value: "", label: tr("All Branch Groups") }, ...bgroups.map((g) => ({ value: g.id, label: g.code }))]} />
           )}
           <Segmented label={tr("Period")} value={range} onChange={setRange}
             options={[{ value: "30", label: tr("30 days") }, { value: "90", label: tr("90 Days") }, { value: "180", label: tr("6 Months") }, { value: "365", label: tr("1 Year") }]} />

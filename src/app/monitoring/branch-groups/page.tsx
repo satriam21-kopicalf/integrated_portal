@@ -4,16 +4,16 @@
 // Check In, Monitoring Product and Monitoring Outlet are judged by. One group per branch; a branch picked for a group
 // moves out of its former group. Used by Monitoring → Overview and the group filter of the monitoring pages.
 
-import { AlarmClock, Boxes, Check, MapPinCheck, Plus, Save, Store, Trash2 } from "lucide-react";
+import { AlarmClock, Boxes, Check, ListChecks, Plus, Save, Store, Trash2, TrendingUp } from "lucide-react";
+import { CardBody, CardFooter, Lozenge, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Field, Input, Page, Panel, cx, inputClass, useToast } from "@/so/ui";
+import { Badge, Button, ErrorState, Field, Input, Page, cx, inputClass, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { ConfirmDialog } from "@/so/ui/Dialog";
 import { FormCard } from "@/so/ui/Simple";
 import { call } from "@/so/features/checkin/checkin";
 import { useAuth, hasPage } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
-import { Tabs } from "@/components/kc";
 import { CheckInDeadlines, FormItems, SalesTargets } from "./settings";
 
 type Branch = { code: string; name: string };
@@ -44,45 +44,57 @@ export default function BranchGroupsPage() {
   return (
     <Page title={tr("Branch Groups")} subtitle={tr("Classes of outlets the forms are assessed by (CCI, CTG, CTGP …); one group per branch")}
       actions={canEdit && tab === "groups" ? <Button onClick={() => setOpen("new")}><Plus size={16} /> {tr("New Group")}</Button> : undefined}>
-      <Tabs variant="card" label={tr("Branch Groups")} value={tab} onChange={setTab} tabs={[
-        { key: "groups", label: tr("Groups") }, { key: "deadlines", label: tr("Check-In Deadlines") },
-        { key: "items", label: tr("Form Items") }, { key: "targets", label: tr("Net Sales") }]} />
-      {tab === "deadlines" ? <CheckInDeadlines canEdit={canEdit} /> : tab === "items" ? <FormItems canEdit={canEdit} />
-        : tab === "targets" ? <SalesTargets /> : error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : !data ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-40 rounded-xl" />)}</div>
+      {/* Jira-like (2026-11-18): one card, the settings as tabs, the groups as an issue table */}
+      <WorkCard label={tr("Branch Groups")} active={tab} onTab={setTab}
+        tabs={[{ key: "groups", label: tr("Groups"), icon: <Boxes size={15} />, count: data?.groups.length }, { key: "deadlines", label: tr("Check-In Deadlines"), icon: <AlarmClock size={15} /> },
+          { key: "items", label: tr("Form Items"), icon: <ListChecks size={15} /> }, { key: "targets", label: tr("Net Sales"), icon: <TrendingUp size={15} /> }]}>
+      {tab === "deadlines" ? <CardBody><CheckInDeadlines canEdit={canEdit} /></CardBody> : tab === "items" ? <CardBody><FormItems canEdit={canEdit} /></CardBody>
+        : tab === "targets" ? <CardBody><SalesTargets /></CardBody> : error ? <div className="p-4"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+        <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-10 rounded-md" />)}</div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {data.groups.map((g) => (
-              <button key={g.id} type="button" onClick={() => canEdit && setOpen(g)} disabled={!canEdit}
-                className="group flex flex-col rounded-xl border border-neutral-200/80 bg-white p-4 text-left shadow-sm transition hover:border-brand-300 hover:shadow disabled:cursor-default">
-                <span className="flex items-start justify-between gap-3">
-                  <span className="min-w-0">
-                    <span className="block text-lg font-semibold text-neutral-900 group-hover:text-brand-700">{g.code}</span>
-                    <span className="block truncate text-xs text-neutral-500">{g.name !== g.code ? g.name : g.description ?? ""}</span>
-                  </span>
-                  <span className="rounded-full bg-brand-50 px-2.5 py-1 text-sm font-semibold tabular-nums text-brand-700">{g.branches.length}</span>
-                </span>
-                <span className="mt-3 flex flex-wrap gap-1">
-                  {g.branches.slice(0, 6).map((b) => <span key={b.code} className="max-w-full truncate rounded-md bg-neutral-100 px-1.5 py-0.5 text-[11px] text-neutral-600">{b.name.replace(/^Kopi Calf (To Go )?/, "")}</span>)}
-                  {g.branches.length > 6 && <span className="rounded-md px-1.5 py-0.5 text-[11px] text-neutral-400">+{g.branches.length - 6}</span>}
-                  {g.branches.length === 0 && <span className="text-xs text-amber-700">{tr("No branch yet")}</span>}
-                </span>
-                {g.description && g.name !== g.code && <span className="mt-3 text-xs text-neutral-500">{g.description}</span>}
-                <span className="mt-3 inline-flex items-center gap-1.5 text-xs text-neutral-600"><MapPinCheck size={13} className="text-neutral-400" />{tr("PIC check-in: {0}× per outlet per day", g.checkin_max_per_day ?? 1)}</span>
-                <span className="mt-1 inline-flex items-center gap-1.5 text-xs text-neutral-600"><AlarmClock size={13} className="text-neutral-400" />{tr("On time until {0}", g.checkin_deadline ?? "11:00")}</span>
-              </button>
-            ))}
+          <div className="overflow-x-auto">
+            <table className={cx(jTable, "min-w-[860px]")}>
+              <thead>
+                <tr className={jHeadRow}>
+                  <th className={cx(jTh, "w-8")} aria-label={tr("Type")} /><th className={jTh}>Key</th><th className={jTh}>{tr("Name")}</th>
+                  <th className={jTh}>{tr("Outlets")}</th><th className={cx(jTh, "text-right")}>{tr("Check-ins per day")}</th><th className={jTh}>{tr("On time until")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.groups.map((g) => (
+                  <tr key={g.id} onClick={() => canEdit && setOpen(g)} className={cx(jRow, !canEdit && "cursor-default")}>
+                    <td className={jTd}><TypeIcon tone="bg-brand-700" title={tr("Group")}><Boxes size={11} /></TypeIcon></td>
+                    <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{g.code}</span></td>
+                    <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-neutral-900">{g.name}</span>
+                      {g.description && <span className="block truncate text-[11px] text-neutral-400">{g.description}</span>}</td>
+                    <td className={cx(jTd, "max-w-[26rem]")}>
+                      <span className="flex flex-wrap items-center gap-1">
+                        <Lozenge tone={g.branches.length ? "blue" : "amber"}>{g.branches.length}</Lozenge>
+                        {g.branches.slice(0, 4).map((b) => <span key={b.code} className="max-w-[9rem] truncate rounded-[3px] bg-neutral-100 px-1.5 py-0.5 text-[11px] text-neutral-600">{b.name.replace(/^Kopi Calf (To Go )?/, "")}</span>)}
+                        {g.branches.length > 4 && <span className="text-[11px] text-neutral-400">+{g.branches.length - 4}</span>}
+                        {g.branches.length === 0 && <span className="text-xs text-amber-700">{tr("No branch yet")}</span>}
+                      </span>
+                    </td>
+                    <td className={cx(jTd, "text-right tabular-nums text-neutral-800")}>{g.checkin_max_per_day ?? 1}×</td>
+                    <td className={cx(jTd, "tabular-nums text-neutral-800")}>{g.checkin_deadline ?? "11:00"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <Panel title={tr("Without a group ({0})", data.unassigned.length)} description={tr("{0} Kopi Calf outlets in total; outlets without a group appear as “Without a group” in the Overview", total)}>
-            {data.unassigned.length === 0 ? <Empty icon={<Check size={26} />} title={tr("Every outlet is in a group")} /> : (
-              <ul className="flex flex-wrap gap-1.5 p-4">
+          <div className="border-t border-neutral-200 px-4 py-3 sm:px-5">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Without a group ({0})", data.unassigned.length)}</p>
+            {data.unassigned.length === 0 ? <p className="flex items-center gap-1.5 text-sm text-emerald-700"><Check size={14} /> {tr("Every outlet is in a group")}</p> : (
+              <ul className="flex flex-wrap gap-1.5">
                 {data.unassigned.map((b) => <li key={b.code}><Badge tone="amber" icon={<Store size={11} />}>{b.name} · {b.code}</Badge></li>)}
               </ul>
             )}
-          </Panel>
+          </div>
+          <CardFooter><span>{tr("{0} Kopi Calf outlets in total; outlets without a group appear as “Without a group” in the Overview", total)}</span></CardFooter>
         </>
       )}
+      </WorkCard>
       {open && data && <GroupDrawer group={open === "new" ? null : open} data={data} onClose={() => setOpen(null)} onSaved={() => { setOpen(null); void load(); }} />}
     </Page>
   );

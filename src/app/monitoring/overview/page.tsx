@@ -10,7 +10,7 @@ import { SkeletonTable } from "@/components/kc/Skeleton";
 import { AlertTriangle, CalendarDays, ClipboardCheck, Layers, MapPinCheck, Package, Scale, ShieldCheck, Store, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Empty, ErrorState, Page, PageNav, Panel, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import { Empty, ErrorState, Page, PageNav, cx, fmtNumber, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
@@ -18,6 +18,7 @@ import { FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } fro
 import { call } from "@/so/features/checkin/checkin";
 import { scoreTone } from "@/so/features/visit/visit";
 import { tr } from "@/lib/i18n";
+import { CardFooter, Person, Toolbar, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 
 type Pic = { id: string; name: string; branches: number; checkins: number; checkinDays: number; outside: number; productVisits: number; productScore: number | null;
   outletVisits: number; outletScore: number | null; under: number; swatAudits: number; conformity: number | null; overrated: number; openActions: number;
@@ -81,50 +82,47 @@ export default function MonitoringOverviewPage() {
           </Stat>
         </StatStrip>
       }>
-      <Panel title={view === "pics" ? tr("Assessment per PIC") : tr("Per outlet")}
-        description={view === "pics" ? tr("Lowest PIC score first; tap a row to see how the score is made") : tr("Daily forms and SWAT audits of every outlet")}
-        actions={<div className="flex rounded-lg bg-neutral-100 p-1">
-          {([["pics", tr("PIC"), UsersRound], ["outlets", tr("Outlet"), Store]] as const).map(([k, label, Icon]) => (
-            <button key={k} type="button" onClick={() => setView(k)} aria-pressed={view === k}
-              className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium", view === k ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500")}><Icon size={13} /> {label}</button>
-          ))}
-        </div>}
-        toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={view === "pics" ? tr("Search PIC") : tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />}
-        footer={res ? <><span className="inline-flex items-center gap-1"><ShieldCheck size={12} /> {tr("Check-in deadlines, form items and net sales per outlet: Monitoring OPS → Branch Groups")}</span><PageNav paged={view === "pics" ? pagedPics : pagedOutlets} /></> : undefined}>
-        {error ? <ErrorState message={error} /> : !res ? <SkeletonTable cols={8} /> : view === "pics" ? (
+      {/* Jira-like (2026-11-18): one card, PIC | Outlet as tabs, the assessment as an issue table */}
+      <WorkCard label={tr("View")} active={view} onTab={setView}
+        tabs={[{ key: "pics", label: tr("Assessment per PIC"), icon: <UsersRound size={15} />, count: res?.picAssessment.length },
+          { key: "outlets", label: tr("Per outlet"), icon: <Store size={15} />, count: res?.branches.length }]}>
+        <Toolbar>
+          <FilterToolbar search={q} onSearch={setQ} placeholder={view === "pics" ? tr("Search PIC") : tr("Search outlet")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
+        </Toolbar>
+        {error ? <div className="p-4"><ErrorState message={error} /></div> : !res ? <SkeletonTable cols={8} /> : view === "pics" ? (
           pics.length === 0 ? <Empty icon={<UsersRound size={28} />} title={tr("No PIC activity in this period")} /> : (
             <div className="overflow-x-auto">
-              <table className="m-cards w-full min-w-[1260px] text-xs">
-                <thead className={theadClass}><tr>
-                  <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("PIC Score")}</th>
-                  <th className="px-3 py-2.5 text-right">{tr("Check-Ins")}</th><th className="px-3 py-2.5 text-right">{tr("On Time")}</th>
-                  <th className="px-3 py-2.5 text-right">Product</th><th className="px-3 py-2.5 text-right">Outlet</th><th className="px-3 py-2.5 text-right">UNDER</th>
-                  <th className="px-3 py-2.5 text-right">{tr("Net Sales")}</th>
-                  <th className="px-3 py-2.5 text-right">{tr("SWAT Audits")}</th><th className="px-3 py-2.5 text-right">{tr("Overrated")}</th>
-                  <th className="px-3 py-2.5 text-right">{tr("Open Plans")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Agreement with SWAT")}</th>
+              <table className={cx(jTable, "min-w-[1260px]")}>
+                <thead><tr className={jHeadRow}>
+                  <th className={cx(jTh)}>{tr("PIC")}</th><th className={cx(jTh, "text-right")}>{tr("PIC Score")}</th>
+                  <th className={cx(jTh, "text-right")}>{tr("Check-Ins")}</th><th className={cx(jTh, "text-right")}>{tr("On Time")}</th>
+                  <th className={cx(jTh, "text-right")}>Product</th><th className={cx(jTh, "text-right")}>Outlet</th><th className={cx(jTh, "text-right")}>UNDER</th>
+                  <th className={cx(jTh, "text-right")}>{tr("Net Sales")}</th>
+                  <th className={cx(jTh, "text-right")}>{tr("SWAT Audits")}</th><th className={cx(jTh, "text-right")}>{tr("Overrated")}</th>
+                  <th className={cx(jTh, "text-right")}>{tr("Open Plans")}</th><th className={cx(jTh, "text-right")}>{tr("Agreement with SWAT")}</th>
                 </tr></thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody>
                   {pagedPics.rows.map((p) => (
-                    <tr key={p.id} onClick={() => setOpen(p)} className="cursor-pointer hover:bg-brand-50/40">
-                      <td className="py-2.5 pl-5 pr-3" data-label={tr("PIC")}><span className="block font-medium text-neutral-900">{p.name}</span><span className="text-[11px] text-neutral-400">{tr("{0} outlets", p.branches)}</span></td>
-                      <td className="px-3 py-2.5 text-right" data-label={tr("PIC Score")}><span className={cx("text-base font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</span></td>
-                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Check-Ins")}>
+                    <tr key={p.id} onClick={() => setOpen(p)} className={jRow}>
+                      <td className={cx(jTd)} data-label={tr("PIC")}><Person name={p.name} sub={tr("{0} outlets", p.branches)} /></td>
+                      <td className={cx(jTd, "text-right")} data-label={tr("PIC Score")}><span className={cx("text-base font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</span></td>
+                      <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Check-Ins")}>
                         <span className={cx("font-semibold", scoreTone(p.checkinRate))}>{pct(p.checkinRate)}</span>
                         <span className="block text-[10px] text-neutral-400">{p.checkins}/{p.checkinTarget}{p.outside ? ` · ${tr("{0} outside radius", p.outside)}` : ""}</span></td>
-                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("On Time")}>
+                      <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("On Time")}>
                         <span className={cx("font-semibold", scoreTone(p.punctuality))}>{pct(p.punctuality)}</span>
                         <span className="block text-[10px] text-neutral-400">{tr("{0} of {1} days", p.punctualDays, p.checkinDays)}</span>
                         {p.punctualityLegacy != null && p.punctualityLegacy !== p.punctuality && <span className="block text-[10px] text-neutral-400">{tr("11:00 rule: {0}", pct(p.punctualityLegacy))}</span>}</td>
-                      <td className="px-3 py-2.5 text-right" data-label="Product"><Score v={p.productScore} n={p.productVisits} /></td>
-                      <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={p.outletScore} n={p.outletVisits} /></td>
-                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{p.under}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Net Sales")}>
+                      <td className={cx(jTd, "text-right")} data-label="Product"><Score v={p.productScore} n={p.productVisits} /></td>
+                      <td className={cx(jTd, "text-right")} data-label="Outlet"><Score v={p.outletScore} n={p.outletVisits} /></td>
+                      <td className={cx(jTd, "text-right tabular-nums", p.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{p.under}</td>
+                      <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Net Sales")}>
                         {p.salesScore == null ? <span className="text-xs text-neutral-400">{tr("No history")}</span> : <span className={cx("font-semibold", scoreTone(p.salesScore))}>{pct(p.salesScore)}</span>}
                         {p.salesScore != null && <span className="block text-[10px] text-neutral-400">{tr("{0} outlets vs the month before", p.salesOutlets)}</span>}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT Audits")}>{p.swatAudits || <span className="text-neutral-300">0</span>}</td>
-                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
-                      <td className={cx("px-3 py-2.5 text-right tabular-nums", p.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{p.openActions}</td>
-                      <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Agreement with SWAT")}>{p.conformity === null ? <span className="text-xs text-neutral-400">{tr("Not audited yet")}</span> : <Meter v={p.conformity} />}</td>
+                      <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("SWAT Audits")}>{p.swatAudits || <span className="text-neutral-300">0</span>}</td>
+                      <td className={cx(jTd, "text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
+                      <td className={cx(jTd, "text-right tabular-nums", p.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{p.openActions}</td>
+                      <td className={cx(jTd, "text-right")} data-label={tr("Agreement with SWAT")}>{p.conformity === null ? <span className="text-xs text-neutral-400">{tr("Not audited yet")}</span> : <Meter v={p.conformity} />}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -133,30 +131,31 @@ export default function MonitoringOverviewPage() {
           )
         ) : (
           <div className="overflow-x-auto">
-            <table className="m-cards w-full min-w-[980px] text-xs">
-              <thead className={theadClass}><tr>
-                <th className="py-2.5 pl-5 pr-3">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Check-ins")}</th>
-                <th className="px-3 py-2.5 text-right">Product</th><th className="px-3 py-2.5 text-right">Outlet</th><th className="px-3 py-2.5 text-right">UNDER</th>
-                <th className="px-3 py-2.5 text-right">{tr("SWAT Audits")}</th><th className="px-3 py-2.5 text-right">{tr("SWAT Score")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Open Plans")}</th>
+            <table className={cx(jTable, "min-w-[980px]")}>
+              <thead><tr className={jHeadRow}>
+                <th className={cx(jTh)}>{tr("Outlet")}</th><th className={cx(jTh, "text-right")}>{tr("Check-ins")}</th>
+                <th className={cx(jTh, "text-right")}>Product</th><th className={cx(jTh, "text-right")}>Outlet</th><th className={cx(jTh, "text-right")}>UNDER</th>
+                <th className={cx(jTh, "text-right")}>{tr("SWAT Audits")}</th><th className={cx(jTh, "text-right")}>{tr("SWAT Score")}</th><th className={cx(jTh, "text-right")}>{tr("Open Plans")}</th>
               </tr></thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody>
                 {pagedOutlets.rows.map((o) => (
-                  <tr key={o.code} className={o.visited ? undefined : "text-neutral-400"}>
-                    <td className="py-2.5 pl-5 pr-3" data-label={tr("Outlet")}><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
-                    <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Check-ins")}>{o.checkins}</td>
-                    <td className="px-3 py-2.5 text-right" data-label="Product"><Score v={o.productScore} n={o.productVisits} /></td>
-                    <td className="px-3 py-2.5 text-right" data-label="Outlet"><Score v={o.outletScore} n={o.outletVisits} /></td>
-                    <td className={cx("px-3 py-2.5 text-right tabular-nums", o.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{o.under}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("SWAT Audits")}>{o.swatAudits}</td>
-                    <td className="px-3 py-2.5 text-right" data-label={tr("SWAT Score")}><span className={cx("font-semibold tabular-nums", scoreTone(o.swatScore))}>{pct(o.swatScore)}</span></td>
-                    <td className={cx("px-3 py-2.5 pr-5 text-right tabular-nums", o.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{o.openActions}</td>
+                  <tr key={o.code} className={cx("border-b border-neutral-100 hover:bg-neutral-50", !o.visited && "text-neutral-400")}>
+                    <td className={cx(jTd)} data-label={tr("Outlet")}><span className="block text-neutral-900"><span className={cx(jKey, "mr-1.5")}>{o.code}</span>{o.name}</span>{o.groupCode && <span className="text-[11px] text-neutral-400">{tr("Group")} {o.groupCode}</span>}</td>
+                    <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Check-ins")}>{o.checkins}</td>
+                    <td className={cx(jTd, "text-right")} data-label="Product"><Score v={o.productScore} n={o.productVisits} /></td>
+                    <td className={cx(jTd, "text-right")} data-label="Outlet"><Score v={o.outletScore} n={o.outletVisits} /></td>
+                    <td className={cx(jTd, "text-right tabular-nums", o.under ? "text-red-600" : "text-neutral-400")} data-label="UNDER">{o.under}</td>
+                    <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("SWAT Audits")}>{o.swatAudits}</td>
+                    <td className={cx(jTd, "text-right")} data-label={tr("SWAT Score")}><span className={cx("font-semibold tabular-nums", scoreTone(o.swatScore))}>{pct(o.swatScore)}</span></td>
+                    <td className={cx(jTd, "text-right tabular-nums", o.openActions ? "text-amber-700" : "text-neutral-400")} data-label={tr("Open Plans")}>{o.openActions}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </Panel>
+        {res && <CardFooter><span className="inline-flex items-center gap-1"><ShieldCheck size={12} /> {tr("Check-in deadlines, form items and net sales per outlet: Monitoring OPS → Branch Groups")}</span><PageNav paged={view === "pics" ? pagedPics : pagedOutlets} /></CardFooter>}
+      </WorkCard>
       <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-neutral-500">
         <span className="inline-flex items-center gap-1"><AlertTriangle size={12} /> {tr("Overrated: items the PIC passed and the SWAT team found UNDER")}</span>
         <Link href="/monitoring/wwwr" className="text-brand-700 hover:underline">WW-WR →</Link>

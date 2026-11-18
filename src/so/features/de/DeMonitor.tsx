@@ -7,6 +7,7 @@
 // — internal or vendor, never both —, work photos via the technician link (internal), the PIC's handover, cost & invoices,
 // duplicates), the request and its history. Overview: the analysis of every request and its handling (DeOverview).
 
+import { JSelect } from "@/so/ui/Jira";
 import { AlertTriangle, BarChart3, CalendarClock, Camera, Check, ChevronDown, Columns3, ChevronRight, Clock, Copy, Hammer, Handshake, Link2, ListChecks,
   MessageCircle, Paperclip, PenLine, Plus, Save, Shuffle, ShoppingCart, Tags, Trash2, Upload, Users, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -652,14 +653,10 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                 )}
                 {["REVIEW", "ACCEPTED", "IN_PROGRESS", "ON_HOLD"].includes(r.status) ? (
                   <div className="grid gap-2 rounded-lg bg-neutral-50 p-3 sm:grid-cols-[1fr_10rem]">
-                    <select value={assign.technicianId} onChange={(e) => setAssign({ ...assign, technicianId: e.target.value })} className={cx(inputClass, "h-10 bg-white text-sm")} aria-label={tr("Technician")}>
-                      <option value="">{tr("Choose a technician")}</option>
-                      {(["INTERNAL", "VENDOR"] as const).filter((k) => !active.length || r.mode === k).map((k) => (
-                        <optgroup key={k} label={k === "VENDOR" ? tr("Vendor") : tr("Internal")}>
-                          {technicians.filter((t) => t.kind === k).map((t) => <option key={t.id} value={t.id}>{t.name}{t.kind === "VENDOR" && t.company ? ` (${t.company})` : ""} · {tr("{0} active jobs", t.activeJobs)}</option>)}
-                        </optgroup>
-                      ))}
-                    </select>
+                    <JSelect value={assign.technicianId} onChange={(v) => setAssign({ ...assign, technicianId: v })} label={tr("Technician")} placeholder={tr("Choose a technician")}
+                      options={(["INTERNAL", "VENDOR"] as const).filter((k) => !active.length || r.mode === k).flatMap((k) => technicians.filter((t) => t.kind === k).map((t) => ({
+                        value: String(t.id), group: k === "VENDOR" ? tr("Vendor") : tr("Internal"),
+                        label: `${t.name}${t.kind === "VENDOR" && t.company ? ` (${t.company})` : ""}`, hint: tr("{0} active jobs", t.activeJobs) })))} />
                     <input type="date" value={assign.scheduledFor} onChange={(e) => setAssign({ ...assign, scheduledFor: e.target.value })} className={cx(inputClass, "h-10 bg-white text-sm")} aria-label={tr("Scheduled for")} />
                     <input value={assign.note} onChange={(e) => setAssign({ ...assign, note: e.target.value })} maxLength={500} placeholder={tr("Note (optional)")} className={cx(inputClass, "h-10 bg-white text-sm sm:col-span-2")} />
                     <Button size="sm" className="sm:col-span-2 sm:justify-self-start" disabled={busy || !assign.technicianId}
@@ -756,10 +753,8 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                     ))}
                   </ul>
                   <div className="grid gap-2 sm:grid-cols-[12rem_1fr_auto]">
-                    <select value={dup.of} onChange={(e) => setDup({ ...dup, of: e.target.value })} className={cx(inputClass, "h-9 text-sm")} aria-label={tr("Duplicate of")}>
-                      <option value="">{tr("Duplicate of …")}</option>
-                      {r.related!.filter((o) => o.status !== "REJECTED").map((o) => <option key={o.id} value={o.id}>{o.number}</option>)}
-                    </select>
+                    <JSelect value={dup.of} onChange={(v) => setDup({ ...dup, of: v })} label={tr("Duplicate of")} placeholder={tr("Duplicate of …")}
+                      options={r.related!.filter((o) => o.status !== "REJECTED").map((o) => ({ value: o.id, label: o.number ?? o.id, hint: o.branchName }))} />
                     <input value={dup.note} onChange={(e) => setDup({ ...dup, note: e.target.value })} maxLength={2000} placeholder={tr("Reason (Required)")} className={cx(inputClass, "h-9 text-sm")} />
                     <Button size="sm" variant="danger" disabled={busy || !dup.of || !dup.note.trim()} onClick={() => void act(`/api/de/monitor/${id}/duplicate`, { ofId: dup.of, note: dup.note }, tr("Marked as duplicate"))}>{tr("Mark duplicate")}</Button>
                   </div>
@@ -778,10 +773,8 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
             }}><Shuffle size={15} /> {tr("Move")}</Button></>}>
           <FormCard title={tr("Move the Technician")}>
             <Field label={tr("Priority Request")} required>
-              <select value={swap.to} onChange={(e) => setSwap({ ...swap, to: e.target.value })} className={cx(inputClass, "h-10 text-sm")}>
-                <option value="">{tr("Choose the request")}</option>
-                {targets.sort((a, b) => urgRank(a.urgency) - urgRank(b.urgency)).map((t) => <option key={t.id} value={t.id}>{t.number} · {t.branchName} · {URGENCY_LABEL[t.urgency]()} · {STATUS_LABEL[t.status]()}</option>)}
-              </select>
+              <JSelect value={swap.to} onChange={(v) => setSwap({ ...swap, to: v })} placeholder={tr("Choose the request")}
+                options={targets.sort((a, b) => urgRank(a.urgency) - urgRank(b.urgency)).map((t) => ({ value: t.id, label: `${t.number} · ${t.branchName}`, hint: `${URGENCY_LABEL[t.urgency]()} · ${STATUS_LABEL[t.status]()}` }))} />
             </Field>
             <Field label={tr("Scheduled for")}><Input type="date" value={swap.scheduledFor} onChange={(e) => setSwap({ ...swap, scheduledFor: e.target.value })} /></Field>
             <Field label={tr("Reason")} required><textarea value={swap.note} onChange={(e) => setSwap({ ...swap, note: e.target.value })} rows={3} maxLength={500} className={cx(inputClass, "h-auto py-2 text-sm")} /></Field>
@@ -830,9 +823,8 @@ function WorkLinks({ r, busy, tech, setTech, onCreate, onCloseLink }: {
           <Link2 size={16} className="text-brand-700" />
           <span className="min-w-0 flex-1 text-xs text-brand-900">{live ? tr("A link is open; a new one replaces it.") : tr("Create a link for the technician on site.")}</span>
           {active.length > 1 && (
-            <select value={tech} onChange={(e) => setTech(e.target.value)} className={cx(inputClass, "h-9 w-auto bg-white text-sm")} aria-label={tr("Technician of the Link")}>
-              {active.map((a) => <option key={a.id} value={a.technicianId}>{a.name}</option>)}
-            </select>
+            <JSelect value={tech} onChange={setTech} label={tr("Technician of the Link")} placeholder={tr("Choose a technician")} className="w-48"
+              options={active.map((a) => ({ value: String(a.technicianId), label: a.name }))} />
           )}
           <Button size="sm" disabled={busy || !active.length} onClick={onCreate}><Link2 size={14} /> {live ? tr("New link") : tr("Create link")}</Button>
         </div>
@@ -1081,9 +1073,8 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   const form = line && (
     <div className="space-y-2 rounded-xl border border-brand-200 bg-brand-50/40 p-3">
       <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_5rem]">
-        <select value={line.kind} onChange={(e) => setLine({ ...line, kind: e.target.value as CostKind })} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Kind of Cost")}>
-          {(Object.keys(COST_KIND_LABEL) as CostKind[]).map((k) => <option key={k} value={k}>{COST_KIND_LABEL[k]()}</option>)}
-        </select>
+        <JSelect value={line.kind} onChange={(v) => setLine({ ...line, kind: v as CostKind })} label={tr("Kind of Cost")} placeholder={tr("Kind of Cost")}
+          options={(Object.keys(COST_KIND_LABEL) as CostKind[]).map((k) => ({ value: k, label: COST_KIND_LABEL[k]() }))} />
         <input value={line.description} onChange={(e) => setLine({ ...line, description: e.target.value })} maxLength={200} autoFocus
           placeholder={tr("Description, e.g. burr grinder 64 mm")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Description")} />
         <input value={line.qty} onChange={(e) => setLine({ ...line, qty: e.target.value.replace(/[^0-9.]/g, "") })} inputMode="decimal" className={cx(inputClass, "h-9 bg-white text-right text-sm")} aria-label="Qty" />

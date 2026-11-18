@@ -8,9 +8,10 @@
 // a revision or reject it (with a note); the payment step records the transfer with its proof. Settings: the approval
 // steps of every kind with their users (superadmin) and the petty cash plafon (superadmin, Finance).
 
+import { CardFooter, JSelect, Lozenge, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, dmy, wibDay as wibOffset } from "@/so/ui/Filters";
@@ -136,26 +137,18 @@ export default function PengajuanMonitor() {
           ))}
         </StatStrip>
       }>
-      <Panel title={tr("Fund Request")} description={tr("Oldest waiting first; tap one to check it")}
-        toolbar={<>
-          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist" aria-label={tr("Status")}>
-            {TABS.map((t) => {
-              const on = status === t;
-              return (
-                <button key={t || "all"} type="button" role="tab" aria-selected={on} onClick={() => setStatus(t)}
-                  className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
-                  {t && t !== "OPEN" && t !== "MINE" && <span className={cx("h-2 w-2 rounded-full", DOT[t])} aria-hidden />}
-                  {t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My Turn") : t ? STATUS_LABEL[t as Status]() : tr("All")}
-                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-brand-700 text-white" : "bg-white text-neutral-700")}>{fmtNumber(base.filter((p) => inTab(p, t)).length)}</span>
-                </button>
-              );
-            })}
-          </div>
-          <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search number, outlet, requester, purpose or line")} filters={chips}
+      {/* Jira-like (2026-11-18): one card, the kinds as tabs, the status as quick filters, the requests as an issue table */}
+      <WorkCard label={tr("Kind")} active={f.kind || "ALL"} onTab={(k) => setF({ ...f, kind: k === "ALL" ? "" : (k as Kind) })}
+        tabs={[{ key: "ALL", label: tr("All kinds"), icon: <Wallet size={15} />, count: all.length },
+          ...KINDS.map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
+        <Toolbar>
+          <QuickChips label={tr("Status")} value={status} onChange={setStatus}
+            items={TABS.map((t) => ({ key: t, label: t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My Turn") : t ? STATUS_LABEL[t as Status]() : tr("All"),
+              dot: t && t !== "OPEN" && t !== "MINE" ? DOT[t as Status] : undefined, count: res ? base.filter((p) => inTab(p, t)).length : null }))} />
+          <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search number, outlet, requester, purpose or line")} filters={chips.filter((c) => c.key !== "k")}
             onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
-        </>}
-        footer={res ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))} · {fmtRp(sum(rows, (p) => p.requestedAmount ?? p.totalOut))}</span><PageNav paged={paged} /></> : undefined}>
-        {error ? <ErrorState message={error} onRetry={load} /> : res && rows.length === 0 ? (
+        </Toolbar>
+        {error ? <div className="p-4"><ErrorState message={error} onRetry={load} /></div> : res && rows.length === 0 ? (
           <Empty icon={<ClipboardList size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No fund request yet")}>
             {!all.length && tr("Fund requests appear here as soon as they are sent from Form → Fund requests.")}
           </Empty>
@@ -165,7 +158,7 @@ export default function PengajuanMonitor() {
               {paged.rows.map((p) => (
                 <li key={p.id}>
                   <button type="button" onClick={() => setOpen(p.id)} className="w-full px-4 py-3 text-left hover:bg-neutral-50">
-                    <span className="flex items-center justify-between gap-2"><span className="font-mono text-xs font-semibold text-neutral-500">{p.number}</span><StatusBadge s={p.status} /></span>
+                    <span className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-brand-700">{p.number}</span><PgLozenge s={p.status} /></span>
                     <span className="mt-1 flex items-baseline justify-between gap-2"><span className="truncate text-sm font-semibold text-neutral-900">{p.branchName}</span>
                       <span className="flex-shrink-0 text-sm font-semibold tabular-nums">{fmtRp(p.requestedAmount ?? p.totalOut)}</span></span>
                     <span className="block truncate text-xs text-neutral-500">{kindLabel(p.kind)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</span>
@@ -176,26 +169,29 @@ export default function PengajuanMonitor() {
               ))}
             </ul>
             <div className="hidden overflow-x-auto md:block">
-              <table className="m-cards w-full min-w-[1040px] text-xs">
-                <thead className={theadClass}>
-                  <tr className="whitespace-nowrap">
-                    <th className="px-4 py-2.5">{tr("Number")}</th><th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5">{tr("Kind")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Money Out")}</th><th className="px-4 py-2.5 text-right">{tr("Amount Asked")}</th>
-                    <th className="px-4 py-2.5">{tr("Status")}</th><th className="px-4 py-2.5">{tr("Sent")}</th>
+              <table className={cx(jTable, "min-w-[1100px]")}>
+                <thead>
+                  <tr className={cx(jHeadRow, "whitespace-nowrap")}>
+                    <th className={cx(jTh, "w-8")} aria-label={tr("Kind")} /><th className={jTh}>Key</th><th className={jTh}>{tr("Summary")}</th>
+                    <th className={jTh}>{tr("Status")}</th><th className={jTh}>{tr("Reporter")}</th>
+                    <th className={cx(jTh, "text-right")}>{tr("Money Out")}</th><th className={cx(jTh, "text-right")}>{tr("Amount Asked")}</th><th className={jTh}>{tr("Created")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody>
                   {paged.rows.map((p) => (
-                    <tr key={p.id} onClick={() => setOpen(p.id)} className="cursor-pointer hover:bg-neutral-50">
-                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-xs font-semibold text-neutral-600">{p.number}</td>
-                      <td className="max-w-[16rem] px-4 py-2.5"><p className="truncate font-medium text-neutral-900">{p.branchName}</p>
-                        <p className="truncate text-xs text-neutral-500">@{p.username} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</p><Flags p={p} /></td>
-                      <td className="max-w-[14rem] px-4 py-2.5 text-xs text-neutral-600"><p className="font-medium text-neutral-800">{kindLabel(p.kind)}</p>
-                        <p className="truncate">{p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</p></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-neutral-700">{fmtRp(p.totalOut)}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold tabular-nums text-neutral-900">{fmtRp(p.approvedAmount ?? p.requestedAmount)}</td>
-                      <td className="px-4 py-2.5"><StatusBadge s={p.status} /><StepWaiting p={p} /></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-xs tabular-nums text-neutral-500">{wibDateTime(p.submittedAt)}</td>
+                    <tr key={p.id} onClick={() => setOpen(p.id)} className={jRow}>
+                      <td className={jTd}><TypeIcon tone={KIND_TONE[p.kind] ?? "bg-neutral-500"} title={kindLabel(p.kind)}><Wallet size={11} /></TypeIcon></td>
+                      <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{p.number}</span></td>
+                      <td className={cx(jTd, "max-w-[22rem]")}>
+                        <span className="block truncate text-neutral-900">{p.branchName} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? kindLabel(p.kind)}</span>
+                        <span className="block truncate text-[11px] text-neutral-400">{kindLabel(p.kind)} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</span>
+                        <Flags p={p} />
+                      </td>
+                      <td className={jTd}><PgLozenge s={p.status} /><StepWaiting p={p} /></td>
+                      <td className={cx(jTd, "max-w-[12rem]")}><Person name={p.requesterName || p.name} sub={`@${p.username}`} /></td>
+                      <td className={cx(jTd, "whitespace-nowrap text-right tabular-nums text-neutral-700")}>{fmtRp(p.totalOut)}</td>
+                      <td className={cx(jTd, "whitespace-nowrap text-right font-semibold tabular-nums text-neutral-900")}>{fmtRp(p.approvedAmount ?? p.requestedAmount)}</td>
+                      <td className={cx(jTd, "whitespace-nowrap text-neutral-600")}>{wibDateTime(p.submittedAt)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -203,7 +199,8 @@ export default function PengajuanMonitor() {
             </div>
           </>
         )}
-      </Panel>
+        {res && <CardFooter><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))} · {fmtRp(sum(rows, (p) => p.requestedAmount ?? p.totalOut))}</span><PageNav paged={paged} /></CardFooter>}
+      </WorkCard>
 
       {settings && <SettingsDrawer branches={branchOpts} onClose={() => setSettings(false)} onChanged={load} />}
       {sheet && <MonitorFilters value={f} bgroups={bgroups} branches={branchOpts} accounts={accountOpts} categories={Object.keys(res?.categories ?? {})}
@@ -211,6 +208,12 @@ export default function PengajuanMonitor() {
       {open && <TeamDrawer id={open} onClose={() => setOpen(null)} onChanged={load} />}
     </Page>
   );
+}
+
+const KIND_TONE: Partial<Record<Kind, string>> = { PETTY_CASH: "bg-emerald-600", EMERGENCY: "bg-red-600", MARKETING: "bg-violet-600", EVENT: "bg-sky-600", BILL: "bg-amber-600" };
+const PG_TONE: Record<Status, LozengeTone> = { DRAFT: "grey", SUBMITTED: "blue", REVISION: "amber", APPROVED: "cyan", PAID: "green", REJECTED: "red" };
+function PgLozenge({ s }: { s: Status }) {
+  return <Lozenge tone={PG_TONE[s]}>{STATUS_LABEL[s]()}</Lozenge>;
 }
 
 function StepWaiting({ p }: { p: Pengajuan }) {
@@ -527,13 +530,9 @@ export function StepRow({ n, step, users, names, edit, payment, onChange, onUp, 
       {edit && (
         <div className="mt-2">
           {/* a compact dropdown (2026-10-30: the open list made the panel long); typing the first letters jumps to a name */}
-          <select value={pick} aria-label={tr("Add an Approver")} className={cx(inputClass, "h-10 text-sm")}
-            onChange={(e) => { const id = e.target.value; if (id) onChange({ ...step, userIds: [...step.userIds, id] }); setPick(""); }}>
-            <option value="">{tr("+ Add an approver ({0} users)", users.filter((u) => !step.userIds.includes(u.id)).length)}</option>
-            {users.filter((u) => !step.userIds.includes(u.id)).map((u) => (
-              <option key={u.id} value={u.id}>{u.name} (@{u.username}){u.jobTitle ? ` · ${u.jobTitle}` : ""}</option>
-            ))}
-          </select>
+          <JSelect value={pick} label={tr("Add an Approver")} placeholder={tr("+ Add an approver ({0} users)", users.filter((u) => !step.userIds.includes(u.id)).length)}
+            onChange={(id) => { if (id) onChange({ ...step, userIds: [...step.userIds, id] }); setPick(""); }}
+            options={users.filter((u) => !step.userIds.includes(u.id)).map((u) => ({ value: u.id, label: u.name, hint: u.jobTitle ? `@${u.username} · ${u.jobTitle}` : `@${u.username}` }))} />
         </div>
       )}
     </li>
@@ -596,9 +595,8 @@ function Suggestions({ onApplied }: { onApplied: (p: Settings["plafon"]) => void
       <p className="text-sm font-semibold text-neutral-900">{tr("Plafon from Simple Purchase")}</p>
       <p className="text-xs text-neutral-600">{tr("Weekly average of what the outlet bought itself in ESB (13 weeks) × the factor, rounded up to Rp 50.000. Outlets without a plafon are ticked; adjust any of them afterwards.")}</p>
       <label className="flex items-center gap-2 text-xs text-neutral-700">{tr("Factor")}
-        <select value={factor} onChange={(e) => setFactor(e.target.value)} className={cx(inputClass, "h-8 w-24 text-xs")}>
-          {["1", "1.1", "1.2", "1.3", "1.5", "2"].map((x) => <option key={x} value={x}>× {x}</option>)}
-        </select>
+        <JSelect value={factor} onChange={setFactor} className="w-28" placeholder="× 1" label={tr("Factor")}
+          options={["1", "1.1", "1.2", "1.3", "1.5", "2"].map((x) => ({ value: x, label: `× ${x}` }))} />
         <span className="ml-auto">{tr("{0} of {1} ticked", picked.size, withSug.length)}</span>
       </label>
       {!rows ? <SkeletonList rows={4} /> : (
