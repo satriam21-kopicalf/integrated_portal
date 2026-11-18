@@ -2,7 +2,8 @@
 
 import { setDashboardCotr } from '@/lib/brand-look';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { Clock, CreditCard, Landmark, ShoppingBasket, SlidersHorizontal, Store, TrendingUp } from 'lucide-react';
+import { CardBody, WorkCard } from '@/so/ui/Jira';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
 import { Branch, branchesLabel } from '@/components/BranchFilter';
@@ -218,6 +219,7 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
     return p.toString();
   }, [filters.branch, filters.channels, company]);
   const live = useLive(liveQuery);
+  const [tab, setTab] = useState('trend');
 
   const f = kpis.data?.filters;
   const branchName = branchesLabel(filters.branch, branches);
@@ -255,39 +257,35 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
         <KpiTiles resource={kpis} />
       </div>
 
-      {/* what happened over time: trend, per day, growth %, monthly (one card, one comparison) */}
-      <TrendCard query={query} />
-
-      {/* Cost Control is left off the Overview until its figures are final (see the Cost Control page) */}
-
-      <Section title={tr('How Customers Buy')}>
-        <div className="grid gap-4 xl:grid-cols-2">
-          <div className="min-w-0"><ChannelMixCard resource={channels} /></div>
-          <div className="min-w-0"><PaymentsCard resource={payments} /></div>
-        </div>
-      </Section>
-
-      <Section title={tr('Tax / PB1')}>
-        <TaxCard resource={tax} />
-      </Section>
-
-      <Section title={tr('Branches')}>
-        <BranchLeaderboard resource={branchBoard} query={query} />
-      </Section>
-
-      <Section title={tr('When & What Sells')}>
-        <div className="grid gap-4 xl:grid-cols-2">
-          <div className="min-w-0"><BusyHoursCard resource={hourly} query={query} /></div>
-          <div className="min-w-0"><MenusCard query={query} /></div>
-        </div>
-      </Section>
-
-      <Section title={tr('Basket & Deductions')}>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="min-w-0"><BasketCard resource={basket} /></div>
-          <div className="min-w-0"><DeductionsCard resource={deductions} /></div>
-        </div>
-      </Section>
+      {/* Jira-like (2026-11-18, preview): the analyses in one card, a tab each; the figures are the same as before */}
+      <WorkCard label={tr('Sections')} active={tab} onTab={setTab} tabs={[
+        { key: 'trend', label: tr('Trend'), icon: <TrendingUp size={15} /> }, { key: 'buy', label: tr('How Customers Buy'), icon: <CreditCard size={15} /> },
+        { key: 'tax', label: tr('Tax / PB1'), icon: <Landmark size={15} /> }, { key: 'branches', label: tr('Branches'), icon: <Store size={15} /> },
+        { key: 'when', label: tr('When & What Sells'), icon: <Clock size={15} /> }, { key: 'basket', label: tr('Basket & Deductions'), icon: <ShoppingBasket size={15} /> }]}>
+        <CardBody>
+          {tab === 'trend' && <TrendCard query={query} />}
+          {tab === 'buy' && (
+            <div className="grid gap-4 xl:grid-cols-2">
+              <div className="min-w-0"><ChannelMixCard resource={channels} /></div>
+              <div className="min-w-0"><PaymentsCard resource={payments} /></div>
+            </div>
+          )}
+          {tab === 'tax' && <TaxCard resource={tax} />}
+          {tab === 'branches' && <BranchLeaderboard resource={branchBoard} query={query} />}
+          {tab === 'when' && (
+            <div className="grid gap-4 xl:grid-cols-2">
+              <div className="min-w-0"><BusyHoursCard resource={hourly} query={query} /></div>
+              <div className="min-w-0"><MenusCard query={query} /></div>
+            </div>
+          )}
+          {tab === 'basket' && (
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="min-w-0"><BasketCard resource={basket} /></div>
+              <div className="min-w-0"><DeductionsCard resource={deductions} /></div>
+            </div>
+          )}
+        </CardBody>
+      </WorkCard>
 
     </div>
     <DrillHost />
@@ -301,16 +299,4 @@ function periodText(from: string, to: string): string {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const day = new Date(`${from}T12:00:00+07:00`).toLocaleDateString(locale(), { timeZone: 'Asia/Jakarta', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
   return from === today ? `${tr('Today')} · ${day}` : day;
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-3">
-      <h2 className="flex items-center gap-3 text-xs font-semibold capitalize text-neutral-400">
-        {title}
-        <span className="h-px flex-1 bg-neutral-200" aria-hidden />
-      </h2>
-      {children}
-    </section>
-  );
 }

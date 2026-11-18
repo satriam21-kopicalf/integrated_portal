@@ -6984,4 +6984,7 @@ export const ID: Record<string, string> = {
   "Assignee": "Ditangani",
   "Workflow": "Alur kerja",
   "Approval steps": "Tahap approval",
+  "Preferences": "Preferensi",
+  "All kinds": "Semua jenis",
+  "On time until": "Tepat waktu sampai",
 };

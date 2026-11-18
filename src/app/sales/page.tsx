@@ -1,5 +1,6 @@
 'use client';
 
+import { Lozenge } from '@/so/ui/Jira';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
@@ -299,7 +300,34 @@ export default function SalesPage() {
           <SummaryStrip summary={summary} loading={summaryLoading} />
 
           {/* Transactions card */}
-          <section className="rounded-xl border border-neutral-200 bg-white">
+          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+            {/* Transaction type tabs */}
+            <div className="flex gap-x-5 overflow-x-auto border-b border-neutral-200 px-4 pt-3 sm:px-5" role="tablist">
+              {TX_TYPES.map(t => {
+                const active = t.value === txType;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setTxType(t.value)}
+                    className={`-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 pb-2.5 pt-1.5 text-sm font-medium transition-colors ${
+                      active ? 'border-brand-700 text-brand-700' : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                    }`}
+                  >
+                    <span className="sm:hidden">{t.short}</span>
+                    <span className="hidden sm:inline">{t.label}</span>
+                    {typeCounts[t.value] !== undefined && (
+                      <span className="rounded-full bg-neutral-100 px-1.5 text-[11px] font-semibold tabular-nums text-neutral-500">
+                        {formatNumber(typeCounts[t.value])}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Toolbar */}
             <div className="flex flex-wrap items-center gap-2 border-b border-neutral-200 p-3 sm:px-5 sm:py-3.5">
               <SearchInput value={search} onChange={(v) => (v ? handleSearchChange(v) : clearSearch())} placeholder={tr('Search sales no., bill no. or branch')} />
@@ -315,33 +343,6 @@ export default function SalesPage() {
                   typeLabel={typeInfo.label}
                 />
               </div>
-            </div>
-
-            {/* Transaction type tabs */}
-            <div className="flex gap-1 overflow-x-auto border-b border-neutral-200 px-3 sm:px-4" role="tablist">
-              {TX_TYPES.map(t => {
-                const active = t.value === txType;
-                return (
-                  <button
-                    key={t.value}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setTxType(t.value)}
-                    className={`-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13px] font-medium transition-colors ${
-                      active ? 'border-brand-700 text-neutral-900' : 'border-transparent text-neutral-500 hover:text-neutral-800'
-                    }`}
-                  >
-                    <span className="sm:hidden">{t.short}</span>
-                    <span className="hidden sm:inline">{t.label}</span>
-                    {typeCounts[t.value] !== undefined && (
-                      <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${active ? 'bg-brand-50 text-brand-700' : 'bg-neutral-100 text-neutral-500'}`}>
-                        {formatNumber(typeCounts[t.value])}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
             </div>
 
             {/* Active filters */}
@@ -540,25 +541,20 @@ function DeductionRow({ label, color, value, count, hint }: { label: string; col
 function StatusBadge({ status }: { status?: string | null }) {
   if (!status) return <span className="text-neutral-400">-</span>;
   const s = status.toLowerCase();
-  const style =
-    s === 'finished' || s === 'completed'
-      ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-      : s === 'void' || s === 'cancelled'
-      ? 'bg-rose-50 text-rose-700 ring-rose-600/20'
-      : 'bg-amber-50 text-amber-700 ring-amber-600/20';
-  return <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${style}`}>{status}</span>;
+  return <Lozenge tone={s === 'finished' || s === 'completed' ? 'green' : s === 'void' || s === 'cancelled' ? 'red' : 'amber'}>{status}</Lozenge>;
 }
 
-const TH = 'px-3 py-3 text-left text-xs font-semibold capitalize text-neutral-500 whitespace-nowrap'; // the kc table head (kopicalf-hrms)
-const TD = 'px-3 py-2.5 text-sm align-top';
+// the Jira issue table (2026-11-18): small caps grey heads, dense rows
+const TH = 'px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500 whitespace-nowrap first:pl-4 last:pr-4 sm:first:pl-5 sm:last:pr-5';
+const TD = 'px-2 py-2 text-[13px] align-top first:pl-4 last:pr-4 sm:first:pl-5 sm:last:pr-5';
 
 function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skeleton: boolean; onSelect: (t: TransactionCombined) => void }) {
   return (
     <div className="hidden max-h-[calc(100dvh-17rem)] min-h-[16rem] overflow-auto md:block">
       <table className="w-full min-w-[900px] border-separate border-spacing-0 2xl:min-w-[1040px]">
-        <thead className="sticky top-0 z-[5] bg-neutral-50/95 backdrop-blur">
-          <tr className="[&>th]:border-b [&>th]:border-neutral-200">
-            <th className={TH}>{tr('Sales / Bill')}</th>
+        <thead className="sticky top-0 z-[5] bg-white/95 backdrop-blur">
+          <tr className="[&>th]:border-b-2 [&>th]:border-neutral-200">
+            <th className={TH}>Key</th>
             <th className={TH}>{tr('Date')}</th>
             <th className={TH}>{tr('Branch / Payment')}</th>
             <th className={`${TH} min-w-[220px]`}>{tr('Menu Item')}</th>
@@ -584,7 +580,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
               group.rows.map((tx, i) => {
                 const first = i === 0;
                 const last = i === group.rows.length - 1;
-                const border = last ? 'border-b border-neutral-200' : 'border-b border-transparent';
+                const border = last ? 'border-b border-neutral-100' : 'border-b border-transparent';
                 return (
                   <tr
                     key={`${group.key}-${tx.line_number ?? i}`}
@@ -594,7 +590,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
                     <td className={`${TD} ${border}`}>
                       {first && (
                         <>
-                          <p className="font-medium text-neutral-900 group-hover:text-brand-700">{tx.sales_num}</p>
+                          <p className="font-medium text-brand-700 group-hover:underline">{tx.sales_num}</p>
                           <p className="text-xs text-neutral-400">{tx.bill_num || tr('No bill number')}</p>
                         </>
                       )}

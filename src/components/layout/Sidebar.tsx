@@ -36,7 +36,7 @@ function writeFlag(key: string, value: boolean) {
   }
 }
 
-const headerButton = 'rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-200/60 hover:text-neutral-700';
+const headerButton = 'rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700';
 
 export default function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen: boolean; onMobileClose: () => void }) {
   const pathname = usePathname();
@@ -49,7 +49,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen: boo
   return (
     <>
       {/* desktop */}
-      <aside className={cx('hidden h-full flex-shrink-0 border-r border-neutral-200 bg-neutral-50 transition-[width] duration-200 lg:flex', collapsed ? 'w-[64px]' : 'w-60')}>
+      <aside className={cx('hidden h-full flex-shrink-0 border-r border-neutral-200 bg-white transition-[width] duration-200 lg:flex', collapsed ? 'w-[64px]' : 'w-60')}>
         <SidebarContent collapsed={collapsed} pathname={pathname}>
           <button type="button" onClick={toggleCollapsed} className={headerButton}
             aria-label={collapsed ? tr('Expand sidebar') : tr('Collapse sidebar')} title={collapsed ? tr('Expand sidebar') : tr('Collapse sidebar')}>
@@ -61,7 +61,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen: boo
       {/* phones: a drawer */}
       <div className={cx('fixed inset-0 z-[60] bg-neutral-900/50 transition-opacity duration-200 dark:bg-black/70 lg:hidden', mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0')}
         onClick={onMobileClose} aria-hidden="true" />
-      <aside className={cx('fixed inset-y-0 left-0 z-[65] flex w-72 max-w-[85vw] bg-neutral-50 shadow-2xl transition-transform duration-200 lg:hidden', mobileOpen ? 'translate-x-0' : '-translate-x-full')}
+      <aside className={cx('fixed inset-y-0 left-0 z-[65] flex w-72 max-w-[85vw] bg-white shadow-2xl transition-transform duration-200 lg:hidden', mobileOpen ? 'translate-x-0' : '-translate-x-full')}
         aria-hidden={!mobileOpen}>
         <SidebarContent collapsed={false} pathname={pathname} onNavigate={onMobileClose}>
           <button type="button" onClick={onMobileClose} className={headerButton} aria-label={tr('Close Menu')}><X size={17} /></button>

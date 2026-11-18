@@ -71,12 +71,12 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
   const wide = sections.reduce((n, s) => n + s.items.length, 0) > 10;
   const menu = (
     <div ref={panel} role="menu" aria-label={config.title}
-      className={cx('fixed z-[80] flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xl',
+      className={cx('fixed z-[80] flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-md border border-neutral-200 bg-white shadow-2xl',
         wide ? 'w-[min(56rem,calc(100vw-2rem))]' : 'w-[min(38rem,calc(100vw-2rem))]',
         !pos && 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2')}
       style={pos ? { left: pos.left, top: pos.top } : undefined}>
       <div className="flex flex-shrink-0 items-start gap-3 px-5 pb-3 pt-4">
-        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><Icon size={18} /></span>
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-brand-700 text-white"><Icon size={16} /></span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-neutral-900">{config.title}</p>
           <p className="truncate text-xs text-neutral-500">{config.subtitle}</p>
@@ -96,22 +96,22 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
               <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{section.title}</span>
               <span className="truncate text-[11px] text-neutral-400">{section.hint}</span>
             </p>
-            <ul className={cx('grid grid-cols-1 gap-2 sm:grid-cols-2', wide && 'lg:grid-cols-3')}>
+            <ul className={cx('grid grid-cols-1 gap-0.5 sm:grid-cols-2', wide && 'lg:grid-cols-3')}>
               {section.items.map((item) => {
                 const ItemIcon = item.icon;
                 const on = under(pathname, item.href);
                 return (
                   <li key={item.href} className="min-w-0">
                     <Link href={item.href} onClick={go} role="menuitem" aria-current={on ? 'page' : undefined}
-                      className={cx('group flex items-center gap-3 rounded-xl border px-3 py-2.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-200',
-                        on ? 'border-brand-200 bg-brand-50' : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50')}>
+                      className={cx('group relative flex items-center gap-3 rounded-[4px] px-3 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-200',
+                        on ? 'bg-brand-50 before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-brand-700' : 'hover:bg-neutral-100')}>
                       {item.logo ? (
                         <span className="flex h-8 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-white px-2 ring-1 ring-neutral-200">
                           {/* eslint-disable-next-line @next/next/no-img-element -- small brand logo from public/assets */}
                           <img src={item.logo} alt="" className="max-h-4 max-w-full object-contain" />
                         </span>
                       ) : (
-                        <span className={cx('flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg', on ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-500')}>
+                        <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px]', on ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-600')}>
                           <ItemIcon size={15} strokeWidth={1.9} />
                         </span>
                       )}
@@ -167,8 +167,8 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
                     return (
                       <li key={item.href}>
                         <Link href={item.href} onClick={go} aria-current={on ? 'page' : undefined}
-                          className={cx('flex min-h-[44px] items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] transition-colors',
-                            on ? 'bg-white font-semibold text-brand-800 shadow-sm ring-1 ring-brand-100' : 'text-neutral-700 active:bg-neutral-200/60')}>
+                          className={cx('relative flex min-h-[44px] items-center gap-2.5 rounded-[4px] px-2 py-2 text-[13px] transition-colors',
+                            on ? 'bg-brand-50 font-semibold text-brand-800 before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-brand-700' : 'text-neutral-700 active:bg-neutral-100')}>
                           {item.logo ? (
                             // eslint-disable-next-line @next/next/no-img-element -- small brand logo from public/assets
                             <img src={item.logo} alt="" className="h-4 w-8 flex-shrink-0 object-contain" />

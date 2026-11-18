@@ -39,15 +39,16 @@ export function Brand({ compact = false }: { compact?: boolean }) {
 /** The small uppercase title of a group of entries (hidden when the sidebar is collapsed). */
 export function SectionLabel({ children, collapsed }: { children: ReactNode; collapsed: boolean }) {
   if (collapsed) return <div className="mx-auto my-2 h-px w-6 bg-neutral-200" aria-hidden />;
-  return <p className="mb-1 px-2.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{children}</p>;
+  return <p className="mb-1 px-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-500">{children}</p>;
 }
 
 /** The look of an entry: active = white with a line and the navy icon, idle = quiet grey. */
 export const entryClass = (active: boolean, collapsed: boolean) => cx(
-  'group relative flex w-full items-center gap-2.5 rounded-lg py-1.5 text-left text-[13px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-200',
+  'group relative flex w-full items-center gap-2.5 rounded-[4px] py-1.5 text-left text-[13px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-200',
   collapsed ? 'justify-center px-0' : 'px-2.5',
-  active ? 'bg-white font-semibold text-neutral-900 shadow-sm ring-1 ring-neutral-200' : 'font-medium text-neutral-600 hover:bg-neutral-200/60 hover:text-neutral-900');
-export const entryIcon = (active: boolean) => cx('flex-shrink-0', active ? 'text-brand-700' : 'text-neutral-400 group-hover:text-neutral-600');
+  active ? 'bg-brand-50 font-semibold text-brand-800 before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:rounded-r before:bg-brand-700'
+    : 'font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900');
+export const entryIcon = (active: boolean) => cx('flex-shrink-0', active ? 'text-brand-700' : 'text-neutral-500 group-hover:text-neutral-700');
 
 type NavEntry = (typeof navigation)[number];
 
