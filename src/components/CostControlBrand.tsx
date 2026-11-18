@@ -5,15 +5,15 @@
 // (@/lib/company ccUrl). Nothing shows for an account that sees one brand.
 
 import { Fragment, type ReactNode } from 'react';
-import { CompanySwitch, useCompany } from '@/lib/company';
+import { useCompany } from '@/lib/company';
+
+/** the pages whose brand is chosen in the top bar (desktop TopBar, phone AppBar; 2026-11-18) */
+export const brandInTopBar = (path: string) => path.startsWith('/cost-control') || path.startsWith('/monitoring');
 
 export default function CostControlBrand({ children }: { children: ReactNode }) {
   const { company } = useCompany();
   return (
     <>
-      <div className="mx-auto flex max-w-7xl justify-end px-4 pt-3 sm:px-6 lg:pt-5">
-        <CompanySwitch className="w-full sm:w-auto" />
-      </div>
       <Fragment key={company}>{children}</Fragment>
     </>
   );

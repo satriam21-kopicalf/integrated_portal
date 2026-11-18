@@ -14,6 +14,8 @@ import { ToastProvider } from '@/so/ui';
 import { useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { tr } from '@/lib/i18n';
+import { CompanySwitch } from '@/lib/company';
+import { brandInTopBar } from '@/components/CostControlBrand';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -110,6 +112,7 @@ function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: bo
             </p>
           )}
         </div>
+        {brandInTopBar(pathname) && <CompanySwitch compact className="flex-shrink-0" />}
         {user && (
           <button type="button" onClick={onMenu} className="relative flex-shrink-0 rounded-full p-0.5 ring-2 ring-white active:opacity-80" aria-label={tr('Open Menu')}>
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />

@@ -14,6 +14,8 @@ import { canAccess, inMenu, useAuth } from '@/lib/auth';
 import { PAGES } from '@/lib/pages';
 import { tr } from '@/lib/i18n';
 import UserMenu from './sidebar/UserMenu';
+import { CompanySwitch } from '@/lib/company';
+import { brandInTopBar } from '@/components/CostControlBrand';
 
 const iconButton = 'relative flex h-8 w-8 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900';
 
@@ -60,6 +62,7 @@ export default function TopBar() {
         {page && <><span className="truncate text-neutral-500">{page.group}</span><ChevronRight size={14} className="flex-shrink-0 text-neutral-300" />
           <span className="truncate font-medium text-neutral-900">{page.label}</span></>}
       </nav>
+      {brandInTopBar(pathname) && <CompanySwitch compact className="ml-2 flex-shrink-0" />}
       <div ref={box} className="relative ml-auto w-full max-w-sm">
         <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
         <input ref={input} value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}

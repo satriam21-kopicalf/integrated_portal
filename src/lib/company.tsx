@@ -101,8 +101,9 @@ export const useCompany = () => useContext(CompanyContext);
 /** The logo of a brand tab (public/assets); none for an unknown code. */
 const LOGOS: Record<string, string> = { CALF: '/assets/calf-logo.png', CALF7: '/assets/Logo-Wasgee.png', COTR: '/assets/Logo-COTR.png' };
 
-export function CompanySwitch({ className = '', extra = [], value, onChange }: {
+export function CompanySwitch({ className = '', extra = [], value, onChange, compact = false }: {
   className?: string; extra?: { code: string; name: string }[]; value?: string; onChange?: (code: string) => void;
+  /** small logo buttons for the top bar (2026-11-18) */ compact?: boolean;
 }) {
   const { companies, company, setCompany } = useCompany();
   const tabs = [...companies, ...extra];
@@ -114,12 +115,12 @@ export function CompanySwitch({ className = '', extra = [], value, onChange }: {
         const on = c.code === shown;
         return (
           <button key={c.code} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
-            className={`flex h-8 w-20 min-w-0 items-center justify-center rounded-[4px] border px-2 transition-colors ${
+            className={`flex ${compact ? 'h-7 w-14 px-1.5' : 'h-8 w-20 px-2'} min-w-0 items-center justify-center rounded-[4px] border transition-colors ${
               on ? 'border-brand-700 bg-white ring-1 ring-brand-700' : 'border-neutral-200 bg-neutral-50 hover:bg-neutral-100'}`}>
             {/* the logo only (2026-11-02); the name is the label */}
             {LOGOS[c.code]
               // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`max-h-5 max-w-full object-contain transition ${on ? '' : 'opacity-60 grayscale'}`} />
+              ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`${compact ? 'max-h-4' : 'max-h-5'} max-w-full object-contain transition ${on ? '' : 'opacity-60 grayscale'}`} />
               : <span className="truncate text-xs font-semibold text-neutral-600">{c.name}</span>}
           </button>
         );
