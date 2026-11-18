@@ -152,7 +152,7 @@ export function BatchesTab() {
               const left = daysLeft(b.expiresOn);
               const pct = Math.round((b.sent / b.qty) * 100);
               return (
-                <li key={b.id} className="rounded-xl border border-neutral-200 bg-white">
+                <li key={b.id} className="rounded-md border border-neutral-200 bg-white">
                   <div className="flex flex-wrap items-start gap-2 border-b border-neutral-100 px-4 py-3">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-neutral-900">{name(b.menu)} · {b.qty}</p>
@@ -209,7 +209,7 @@ function WasteLine({ batch, onSaved }: { batch: Batch; onSaved: () => void }) {
     catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
   };
   return (
-    <div className="grid gap-2 rounded-xl border border-amber-200 bg-amber-50/50 p-2.5 sm:grid-cols-[6rem_1fr_auto]">
+    <div className="grid gap-2 rounded-md border border-amber-200 bg-amber-50/50 p-2.5 sm:grid-cols-[6rem_1fr_auto]">
       <Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="h-10 text-right" aria-label={tr('Cups wasted')} />
       <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Reason (spilled, failed the taste …)')} className="h-10" />
       <div className="flex gap-2"><Button size="sm" variant="ghost" onClick={() => setOpen(false)}>{tr('Cancel')}</Button>
@@ -229,7 +229,7 @@ function SendForm({ batch, pools, onClose, onSent }: { batch: Batch; pools: Pool
     catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
   };
   return (
-    <div className="grid gap-2 rounded-xl border border-brand-200 bg-brand-50/40 p-2.5 sm:grid-cols-[1fr_6rem_auto]">
+    <div className="grid gap-2 rounded-md border border-brand-200 bg-brand-50/40 p-2.5 sm:grid-cols-[1fr_6rem_auto]">
       <Select value={pool} onChange={(e) => setPool(e.target.value)} className="h-10">{pools.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select>
       <Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="h-10 text-right" aria-label={tr('Quantity')} />
       <div className="flex gap-2"><Button size="sm" variant="ghost" onClick={onClose}>{tr('Cancel')}</Button>
@@ -259,7 +259,7 @@ export function PoolBatches({ pool }: { pool: string }) {
           <p className="mb-2 text-xs font-semibold text-amber-800">{tr('On the way to this pool ({0})', data.incoming.length)}</p>
           <ul className="grid gap-2 sm:grid-cols-2">
             {data.incoming.map((i) => (
-              <li key={i.transfer} className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/50 px-3 py-2">
+              <li key={i.transfer} className="flex items-center gap-3 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2">
                 <Truck size={16} className="flex-shrink-0 text-amber-700" />
                 <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{i.menuName} · {i.qty}</span><span className="font-mono text-[11px] text-neutral-500">{i.batchNo} · {tr('exp')} {dmy(i.expiresOn)}</span></span>
                 <Button size="sm" onClick={() => void receive(i.transfer)}><PackageCheck size={14} /> {tr('Receive')}</Button>

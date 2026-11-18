@@ -66,7 +66,7 @@ export default function WasteAnalysis({ res, onBranch, onItem }: { res: MonitorD
       <section>
         <Head icon={<CalendarDays size={15} />} title={tr("Waste value per day")}
           aside={<>{tr("Average {0} a day", fmtRp(a.avg))}{a.peak[1] > 0 && <> · {tr("highest {0} on {1}", fmtRp(a.peak[1]), dmy(a.peak[0]))}</>}</>} />
-        <div className="flex h-40 items-end gap-1 rounded-xl border border-neutral-200 bg-white px-3 pb-2 pt-4" role="img"
+        <div className="flex h-40 items-end gap-1 rounded-md border border-neutral-200 bg-white px-3 pb-2 pt-4" role="img"
           aria-label={tr("Waste value per day")}>
           {a.days.map(([d, v]) => (
             <div key={d} className="group relative flex h-full min-w-0 flex-1 flex-col justify-end" title={`${dmy(d)} · ${fmtRp(v)}`}>
@@ -128,9 +128,9 @@ function Head({ icon, title, aside }: { icon: React.ReactNode; title: string; as
 
 /** Horizontal bars, the label and figure in text colours (the bar carries the size only). */
 function Bars({ rows, max, total }: { rows: { key: string; label: string; sub?: string; value: number; text: string; onClick?: () => void }[]; max: number; total?: number }) {
-  if (!rows.length) return <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">—</p>;
+  if (!rows.length) return <p className="rounded-md border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">—</p>;
   return (
-    <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white">
+    <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 bg-white">
       {rows.map((r) => {
         const Tag = r.onClick ? "button" : "div";
         return (
@@ -160,7 +160,7 @@ function AnalysisSkeleton() {
     <div className="space-y-5 p-4 sm:p-5" role="status" aria-label={tr("Loading…")}>
       <div className="space-y-2" aria-hidden>
         <Skeleton className="h-3.5 w-48" />
-        <div className="flex h-40 items-end gap-1 rounded-xl border border-neutral-200 px-3 pb-2 pt-4">
+        <div className="flex h-40 items-end gap-1 rounded-md border border-neutral-200 px-3 pb-2 pt-4">
           {[40, 65, 30, 80, 55, 70, 45].map((h, i) => <Skeleton key={i} className="flex-1 rounded-t-[4px] rounded-b-none" style={{ height: `${h}%` }} />)}
         </div>
       </div>
@@ -168,7 +168,7 @@ function AnalysisSkeleton() {
         {[0, 1, 2, 3].map((k) => (
           <div key={k} className="space-y-2">
             <Skeleton className="h-3.5 w-36" />
-            <div className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+            <div className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
               {[0, 1, 2].map((r) => <div key={r} className="space-y-2 px-3 py-3"><Skeleton className="h-3 w-2/3" /><Skeleton className="h-1.5 w-full rounded-full" /></div>)}
             </div>
           </div>

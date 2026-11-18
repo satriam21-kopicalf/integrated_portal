@@ -71,7 +71,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
   const Icon = failed ? XCircle : done && !empty ? CheckCircle2 : empty ? AlertTriangle : Loader2;
 
   return (
-    <div role="status" aria-live="polite" className="rounded-xl border border-neutral-200 bg-white shadow-2xl">
+    <div role="status" aria-live="polite" className="rounded-md border border-neutral-200 bg-white shadow-2xl">
       <div className="flex items-start gap-3 p-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-neutral-100">
           {gsheet ? <Sheet size={20} className="text-emerald-600" /> : <FileSpreadsheet size={20} className="text-neutral-700" />}

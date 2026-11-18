@@ -89,7 +89,7 @@ function Cogs() {
       }>
       <DataSources keys={['esbSales', 'esbIntegrity', 'so', 'gr', 'prices', 'recipes']} />
       {res && !t && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {tr('No outlet has an SO awal on {0} and an SO akhir the day after {1}: choose a period that starts on a stock opname day and ends the day before the next one.', dmy(period.from), dmy(period.to))}
           <span className="block text-xs">{tr('{0} outlets with an SO awal · {1} with an SO akhir', res.counts.start, res.counts.end)}</span>
         </div>
@@ -117,14 +117,14 @@ function Cogs() {
                     <span className="text-[11px] text-neutral-400">{tr('SO {0} → {1}', dmy(r.so.start.date), dmy(r.so.end.date))}</span>
                     {!r.final && <Badge tone="amber">{tr('SO not approved')}</Badge>}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{rp(r.nett)}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums"><span className="font-medium">{pct(r.systemRatio)}</span><span className="block text-[11px] text-neutral-400">{rp(r.systemCogs)}</span></td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums"><span className="font-medium">{pct(r.actualRatio)}</span><span className="block text-[11px] text-neutral-400">{rp(r.actualCogs)}</span></td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rp(r.nett)}</td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-medium">{pct(r.systemRatio)}</span><span className="block text-[11px] text-neutral-400">{rp(r.systemCogs)}</span></td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-medium">{pct(r.actualRatio)}</span><span className="block text-[11px] text-neutral-400">{rp(r.actualCogs)}</span></td>
                   <td className={cx('whitespace-nowrap px-4 py-2.5 text-right text-base font-semibold tabular-nums', usageTone(r.usageRatio))}>{pct(r.usageRatio, 0)}</td>
                   <td className={cx('whitespace-nowrap px-4 py-2.5 text-right tabular-nums', r.difference > 0 ? 'text-red-700' : 'text-emerald-700')}>{rp(r.difference)}
                     {r.waste ? <span className="block text-[11px] text-neutral-400">{tr('waste {0}', rp(r.waste))}</span> : null}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{rp(r.unexplained)}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right text-xs">
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rp(r.unexplained)}</td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right text-xs">
                     <span className={r.coverage.counted < r.coverage.materials ? 'text-amber-700' : 'text-neutral-500'}>{tr('SO {0}/{1}', r.coverage.counted, r.coverage.materials)}</span>
                     {r.anomalies > 0 && <span className="block text-red-700">{tr('{0} anomalies', r.anomalies)}</span>}
                     {r.unpriced.length > 0 && <span className="block text-amber-700" title={r.unpriced.join(', ')}>{tr('{0} no price', r.unpriced.length)}</span>}

@@ -94,7 +94,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
   const recipes = !open ? [] : recount ? wip.recipes.filter((r) => !wip.lines.some((l) => l.recipe_id === r.id)) : wip.recipes;
   const entered = wip.lines.length;
   return (
-    <section className="overflow-hidden rounded-xl border border-violet-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-md border border-violet-200 bg-white shadow-sm">
       <button type="button" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}
         className="flex w-full items-center gap-3 bg-violet-50/70 px-4 py-3 text-left">
         <FlaskConical size={18} className="flex-shrink-0 text-violet-700" />

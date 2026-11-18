@@ -19,7 +19,7 @@ export const recountsOf = (rows: TodayFacility[] | null | undefined): RecountRow
 export default function RecountNotice({ rows, basePath = "", multi }: { rows: RecountRow[]; basePath?: string; multi?: boolean }) {
   if (!rows.length) return null;
   return (
-    <section className="overflow-hidden rounded-xl border border-amber-200 bg-amber-50" role="status" aria-live="polite">
+    <section className="overflow-hidden rounded-md border border-amber-200 bg-amber-50" role="status" aria-live="polite">
       <div className="flex items-start gap-3 px-4 pb-2 pt-3.5">
         <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700"><RotateCcw size={18} /></span>
         <div className="min-w-0">

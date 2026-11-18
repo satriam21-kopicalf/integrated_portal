@@ -83,12 +83,12 @@ export default function WwwrForm() {
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && (
-            <p className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <p className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
               <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <span><b>{tr("Audit sent for {0}", sent.branchName)}</b><br /><span className="text-xs">{wibDateTime(sent.submittedAt)} · {tr("Follow the action plans until the revisit")}</span></span>
             </p>
           )}
-          <p className="flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-xs leading-relaxed text-brand-900">
+          <p className="flex items-start gap-2 rounded-md border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-xs leading-relaxed text-brand-900">
             <ShieldCheck size={15} className="mt-px flex-shrink-0 text-brand-700" />
             <span>{tr("Only the members of an audit open it. Everyone in the team fills the same form (each item shows who filled it); the lead reviews and sends it.")}</span>
           </p>
@@ -184,7 +184,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
       <div className="space-y-4 text-sm">
         <section>
           <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("In the Team")} ({audit.members.length})</h3>
-          <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+          <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
             {audit.members.map((m) => (
               <li key={m.id} className="flex items-center gap-2.5 px-3 py-2">
                 <span className="min-w-0 flex-1"><span className="block truncate font-medium text-neutral-800">{m.name}</span><span className="text-[11px] text-neutral-400">{m.jobTitle ?? `@${m.username ?? ""}`}</span></span>
@@ -197,7 +197,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
         <section>
           <h3 className="mb-1 text-xs font-semibold capitalize text-neutral-500">{tr("Add Colleagues")}</h3>
           <p className="mb-2 text-xs text-neutral-500">{tr("Accounts assigned Form WW-WR (User Accounts). They see this audit in Form WW-WR and fill it with you; only you send it.")}</p>
-          <div className="overflow-hidden rounded-xl border border-neutral-200">
+          <div className="overflow-hidden rounded-md border border-neutral-200">
             <div className="relative border-b border-neutral-100 p-2"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search colleague")} className={cx(searchClass, "h-9 pl-8")} /></div>
             <ul className="max-h-72 divide-y divide-neutral-100 overflow-y-auto">
@@ -254,7 +254,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
         <p className="text-lg font-semibold text-neutral-900">{tr("Evaluation & Action Plan")}</p>
         <p className="text-xs text-neutral-500">{tr("The team writes what it found, what the outlet must do, who of the team follows it and when the team comes back.")}</p>
       </div>
-      {!dirty && missing.length > 0 && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Still needed before the lead sends: {0}", missing.join(", "))}</p>}
+      {!dirty && missing.length > 0 && <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Still needed before the lead sends: {0}", missing.join(", "))}</p>}
 
       <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
         <div className="mb-2 flex items-center justify-between gap-2">
@@ -277,7 +277,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
         </div>
         <ol className="space-y-2">
           {actions.map((x, i) => (
-            <li key={x.id ?? `n${i}`} className="rounded-xl border border-neutral-200 bg-neutral-50/50 p-3">
+            <li key={x.id ?? `n${i}`} className="rounded-md border border-neutral-200 bg-neutral-50/50 p-3">
               <div className="flex items-start gap-2">
                 <span className="mt-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">{i + 1}</span>
                 <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-6">
@@ -294,7 +294,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
               </div>
             </li>
           ))}
-          {actions.length === 0 && <li className="rounded-xl border border-dashed border-neutral-200 px-3 py-5 text-center text-xs text-neutral-400">{tr("No action plan yet")}</li>}
+          {actions.length === 0 && <li className="rounded-md border border-dashed border-neutral-200 px-3 py-5 text-center text-xs text-neutral-400">{tr("No action plan yet")}</li>}
         </ol>
       </section>
 
@@ -349,7 +349,7 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
         <Button onClick={onClose}>{tr("Close")}</Button>
       </>}>
       <div className="space-y-4 text-sm">
-        <div className={cx("rounded-xl border px-4 py-3", done ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
+        <div className={cx("rounded-md border px-4 py-3", done ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
           <p className="font-semibold">{done ? tr("Completed {0}", wibDateTime(audit.completedAt)) : tr("Follow-up: {0} of {1} action plans open", left, audit.actions.length)}</p>
           <p className="text-xs">{tr("Revisit {0}", dayShort(audit.revisitOn))}{audit.revisitNote ? ` · ${audit.revisitNote}` : ""}</p>
         </div>
@@ -358,7 +358,7 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
           <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Action Plans")}</h3>
           <ul className="space-y-2">
             {audit.actions.map((x) => (
-              <li key={x.id} className={cx("flex items-start gap-3 rounded-xl border p-3", x.status === "done" ? "border-emerald-200 bg-emerald-50/50" : "border-neutral-200")}>
+              <li key={x.id} className={cx("flex items-start gap-3 rounded-md border p-3", x.status === "done" ? "border-emerald-200 bg-emerald-50/50" : "border-neutral-200")}>
                 <button type="button" disabled={done || busy === x.id} onClick={() => void toggle(x)} aria-pressed={x.status === "done"}
                   className={cx("mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border", x.status === "done" ? "border-emerald-600 bg-emerald-600 text-white" : "border-neutral-300 bg-white hover:border-brand-500")}>
                   {x.status === "done" && <CheckCircle2 size={13} />}</button>
@@ -374,7 +374,7 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
           </ul>
         </section>
         {!done && lead && (
-          <section className="rounded-xl border border-neutral-200 p-3">
+          <section className="rounded-md border border-neutral-200 p-3">
             <h3 className="text-sm font-semibold text-neutral-900">{tr("Close the Revisit")}</h3>
             <p className="mb-2 text-xs text-neutral-500">{left ? tr("Mark every action plan done first ({0} open)", left) : tr("Every action plan is done: close the revisit to complete the audit")}</p>
             <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Result of the revisit (optional)")} className={cx(inputClass, "py-2")} />

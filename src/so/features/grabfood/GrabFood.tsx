@@ -208,7 +208,7 @@ export default function GrabFood() {
       }>
 
       {res?.canEdit && res.session && !res.session.valid && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
           <span className="min-w-0 flex-1">{res.session.present ? tr("The Grab session has ended: the data stops updating until it is refreshed.") : tr("No Grab session yet: add one to start the updates.")}</span>
           <Button size="sm" onClick={() => setSessionOpen(true)}>{tr("Refresh")}</Button>
@@ -475,7 +475,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
               <span className="text-xs text-neutral-400">{o.status.isOpen && o.status.openUntil ? `${tr("open until {0}", fmtTime(o.status.openUntil))} · ` : ""}{tr("checked {0}", timeAgo(o.status.checkedAt))}</span></div>
           </div>
         </div>
-        {o.address && <p className="flex items-start gap-1.5 rounded-xl border border-neutral-200 p-3 text-sm text-neutral-700"><MapPin size={15} className="mt-0.5 flex-shrink-0 text-neutral-400" />{o.address}</p>}
+        {o.address && <p className="flex items-start gap-1.5 rounded-md border border-neutral-200 p-3 text-sm text-neutral-700"><MapPin size={15} className="mt-0.5 flex-shrink-0 text-neutral-400" />{o.address}</p>}
 
         {(o.hours.closedInHours || (o.hours.closedMinutesToday ?? 0) > 0) && (
           <p className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-800">
@@ -487,7 +487,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
         {o.hours.week.length > 0 && (
           <section>
             <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Opening Hours on GrabFood")}</h3>
-            <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+            <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
               {o.hours.week.map((r, i) => {
                 const today = i === new Date(now + 7 * 3600e3).getUTCDay();
                 return (
@@ -507,7 +507,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
         {dist.length > 0 && (
           <section>
             <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Rating Distribution")}</h3>
-            <ul className="space-y-1 rounded-xl border border-neutral-200 p-3">
+            <ul className="space-y-1 rounded-md border border-neutral-200 p-3">
               {dist.map((d) => (
                 <li key={d.score} className="flex items-center gap-2 text-xs text-neutral-600">
                   <span className="w-6 tabular-nums">{d.score}★</span>
@@ -525,9 +525,9 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
             {unavailable(o) > 0 && <button type="button" onClick={onMenu} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show All")}</button>}
           </div>
           {items === null ? <SkeletonList rows={3} /> : items.length === 0
-            ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-5 text-center text-sm text-neutral-400">{o.menu.syncedAt ? tr("Everything on the menu is available") : tr("The menu has not been read yet")}</p>
+            ? <p className="rounded-md border border-dashed border-neutral-200 px-3 py-5 text-center text-sm text-neutral-400">{o.menu.syncedAt ? tr("Everything on the menu is available") : tr("The menu has not been read yet")}</p>
             : (
-              <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
+              <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200">
                 {items.slice(0, 8).map((i) => (
                   <li key={i.itemId} className="flex items-center gap-3 px-3 py-2">
                     <span className="min-w-0 flex-1">
@@ -548,7 +548,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
             {o.reviewsAll.count > 0 && <button type="button" onClick={onReviews} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show All")}</button>}
           </div>
           {latest === null ? <SkeletonList rows={3} /> : latest.length === 0
-            ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p>
+            ? <p className="rounded-md border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p>
             : <ul className="space-y-2">{latest.map((r) => <li key={r.reviewId}><ReviewItem r={r} onOpen={() => onPreview(r)} /></li>)}</ul>}
         </section>
 
@@ -577,7 +577,7 @@ function BranchPicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
   const choices = (options ?? []).filter((b) => !b.usedBy || b.usedBy === o.merchantId)
     .map((b) => ({ value: b.code, label: `${b.name} (${b.code})` }));
   return (
-    <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+    <section className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
       <h3 className="flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-500"><Link2 size={13} /> {tr("ESB Branch")}</h3>
       <p className="mt-1 text-xs text-neutral-500">{o.branchCode ? tr("The users of this branch see this outlet.") : tr("Not mapped: only super admins see this outlet. Choose its ESB branch.")}</p>
       <div className="mt-2">
@@ -804,7 +804,7 @@ function ReviewRow({ r, showOutlet, onOpen }: { r: Review; showOutlet: boolean; 
 /** The review card of the outlet drawer (Google Maps style). */
 function ReviewItem({ r, onOpen }: { r: Review; onOpen: () => void }) {
   return (
-    <button type="button" onClick={onOpen} className="w-full rounded-xl border border-neutral-200 p-3 text-left hover:border-brand-200 hover:bg-brand-50/30">
+    <button type="button" onClick={onOpen} className="w-full rounded-md border border-neutral-200 p-3 text-left hover:border-brand-200 hover:bg-brand-50/30">
       <span className="flex items-center gap-2">
         <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-500">{(r.eaterName || "?")[0].toUpperCase()}</span>
         <span className="min-w-0 flex-1">
@@ -840,7 +840,7 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
               {r.hasReply ? <Badge tone="green">{tr("Replied")}</Badge> : <Badge tone="blue" dot>{tr("not replied")}</Badge>}</div>
           </div>
         </div>
-        <p className={cx("whitespace-pre-line rounded-xl border border-neutral-200 p-3 text-sm leading-relaxed", r.description ? "text-neutral-800" : "italic text-neutral-400")}>
+        <p className={cx("whitespace-pre-line rounded-md border border-neutral-200 p-3 text-sm leading-relaxed", r.description ? "text-neutral-800" : "italic text-neutral-400")}>
           {r.description || tr("No written review (stars only)")}
         </p>
 
@@ -849,7 +849,7 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
             <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Photos ({0})", r.imageUrls.length)}</h3>
             <div className="grid grid-cols-3 gap-2">
               {r.imageUrls.map((u, i) => (
-                <button key={u} type="button" onClick={() => setZoom(i)} className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100" aria-label={tr("Open photo {0}", i + 1)}>
+                <button key={u} type="button" onClick={() => setZoom(i)} className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-100" aria-label={tr("Open photo {0}", i + 1)}>
                   {/* eslint-disable-next-line @next/next/no-img-element -- customer photo from the Grab CDN */}
                   <img src={u} alt="" loading="lazy" className="aspect-square w-full object-cover transition-transform hover:scale-105" />
                 </button>
@@ -868,7 +868,7 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
           </section>
         )}
 
-        <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+        <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
           {r.orderedItems.length > 0 && <Row k={tr("Ordered")} v={r.orderedItems.join(", ")} />}
           {r.orderId && <Row k={tr("Order")} v={<span className="font-mono text-xs">{r.orderId}</span>} />}
           {r.serviceType && <Row k={tr("Service")} v={r.serviceType} />}
@@ -1109,7 +1109,7 @@ function SessionDrawer({ session, onClose, onSaved }: { session: Session; onClos
         <Button loading={saving} disabled={cookie.trim().length < 20} onClick={() => void save()}>{tr("Save Session")}</Button>
       </>}>
       <div className="space-y-4">
-        <div className={cx("rounded-xl border px-3 py-2.5 text-sm", ok ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
+        <div className={cx("rounded-md border px-3 py-2.5 text-sm", ok ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
           <p className="font-medium">{ok ? tr("Grab session active") : session?.present ? tr("Grab session ended") : tr("No Grab session yet")}</p>
           {session?.updatedAt && <p className="text-xs opacity-80">{tr("updated {0}", fmtDateTime(session.updatedAt))}{session.updatedBy ? ` · ${tr("by {0}", session.updatedBy)}` : ""}</p>}
         </div>

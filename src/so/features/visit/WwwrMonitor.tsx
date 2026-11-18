@@ -147,7 +147,7 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
           <input type="date" value={day} onChange={(e) => setDay(e.target.value)} className={cx(inputClass, "h-10")} />
         </Field>
         <Field label={tr("Team")} required hint={tr("Tick the members, then crown the lead who sends the audit")}>
-          <div className="overflow-hidden rounded-xl border border-neutral-200">
+          <div className="overflow-hidden rounded-md border border-neutral-200">
             <div className="flex items-center gap-2 border-b border-neutral-100 p-2">
               <div className="relative min-w-0 flex-1">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -288,7 +288,7 @@ function ComparisonDrawer({ id, onClose }: { id: string; onClose: () => void }) 
           {c.parts.map((p) => {
             const rows = (p.items ?? []).filter((r) => !only || (r.verdict && r.verdict !== "agree"));
             return (
-              <section key={p.part} className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+              <section key={p.part} className="overflow-hidden rounded-md border border-neutral-200/80 bg-white shadow-sm">
                 <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
                   <div>
                     <h3 className="text-sm font-semibold text-neutral-900">{PART[p.part]}</h3>
@@ -375,7 +375,7 @@ export function AuditEvaluation({ audit }: { audit: AuditTeam }) {
       </header>
       <div className="space-y-3 px-4 py-3 text-sm">
         <p className="whitespace-pre-line text-neutral-700">{audit.summary || <span className="text-neutral-400">{tr("No evaluation written")}</span>}</p>
-        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
           {actions.map((x) => (
             <li key={x.id} className="flex items-start gap-2.5 px-3 py-2">
               {x.status === "done" ? <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0 text-emerald-600" /> : <span className="mt-1 h-3 w-3 flex-shrink-0 rounded-full border-2 border-amber-400" />}

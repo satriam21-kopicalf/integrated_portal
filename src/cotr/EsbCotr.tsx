@@ -101,18 +101,18 @@ export function EsbCotr() {
           <>
             {more && <p className="px-4 pt-3 text-xs text-amber-700">{tr("Only the first 2,000 are shown: narrow the period or the branch")}</p>}
             <table className="m-cards w-full text-sm">
-              <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Document")}</th><th className="px-3 py-2.5">{tr("Day")}</th><th className="px-3 py-2.5">{tr("Branch")}</th>
-                <th className="px-3 py-2.5">{tr("Counterparty")}</th><th className="px-3 py-2.5">{tr("Note")}</th><th className="px-3 py-2.5 text-right">{tr("Total")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
+              <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Document")}</th><th className="px-3 py-2.5">{tr("Day")}</th><th className="px-3 py-2.5">{tr("Branch")}</th>
+                <th className="px-3 py-2.5">{tr("Counterparty")}</th><th className="px-3 py-2.5">{tr("Note")}</th><th className="px-3 py-2.5 text-right">{tr("Total")}</th><th className="px-3 py-2">{tr("Status")}</th></tr></thead>
               <tbody className="divide-y divide-neutral-100">
                 {paged.rows.map((r) => (
                   <tr key={r.docNum} className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(r.docNum)}>
-                    <td className="px-4 py-2.5 font-mono text-xs font-semibold text-neutral-900">{r.docNum}<span className="block font-sans text-[11px] font-normal text-neutral-400">{tr("{0} lines", r.lines ?? 0)}</span></td>
+                    <td className="px-3 py-2 font-mono text-xs font-semibold text-neutral-900">{r.docNum}<span className="block font-sans text-[11px] font-normal text-neutral-400">{tr("{0} lines", r.lines ?? 0)}</span></td>
                     <td className="px-3 py-2.5 tabular-nums">{dmyOf(r.day)}</td>
                     <td className="px-3 py-2.5">{r.branch ?? "—"}</td>
                     <td className="px-3 py-2.5">{r.counterparty ?? "—"}</td>
                     <td className="max-w-[260px] truncate px-3 py-2.5 text-xs text-neutral-600" title={r.info ?? undefined}>{r.info ?? "—"}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{r.total !== null ? rupiah(r.total) : "—"}</td>
-                    <td className="px-4 py-2.5">{r.status ? <Badge tone={/author|approv|close|done/i.test(r.status) ? "green" : "slate"}>{r.status}</Badge> : "—"}</td>
+                    <td className="px-3 py-2">{r.status ? <Badge tone={/author|approv|close|done/i.test(r.status) ? "green" : "slate"}>{r.status}</Badge> : "—"}</td>
                   </tr>
                 ))}
               </tbody>

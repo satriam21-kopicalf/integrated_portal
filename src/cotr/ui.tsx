@@ -251,7 +251,7 @@ function EditDrawer({ title, initial, fields, code, onClose, onSave, onDelete }:
       </>}>
       <div className="space-y-5">
         {sections.map((sec) => (
-          <section key={sec || 'main'} className={cx(sec && 'rounded-xl border border-neutral-200 bg-white')}>
+          <section key={sec || 'main'} className={cx(sec && 'rounded-md border border-neutral-200 bg-white')}>
             {sec && <h3 className="border-b border-neutral-100 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{sec}</h3>}
             <div className={cx('grid gap-x-4 gap-y-3.5 sm:grid-cols-2', sec && 'p-4')}>
               {fields.filter((f) => (f.section ?? '') === sec).map((f) => (
@@ -391,7 +391,7 @@ export function SearchSelect({ value, options, onChange, required, placeholder, 
         </span>
       </button>
       {open && at && createPortal(
-        <div ref={pop} className="fixed z-[90] flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
+        <div ref={pop} className="fixed z-[90] flex flex-col overflow-hidden rounded-md border border-neutral-200 bg-white shadow-xl"
           style={{ left: at.left, width: at.width, top: at.top, bottom: at.bottom, maxHeight: at.max }}>
           <div className="flex-shrink-0 border-b border-neutral-100 p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
             placeholder={tr('Search')} className={cx(inputClass, 'h-9')} role="combobox" aria-expanded={true} aria-controls={listId}

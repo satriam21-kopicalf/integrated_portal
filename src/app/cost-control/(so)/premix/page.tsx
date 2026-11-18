@@ -183,11 +183,11 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="min-w-0 flex-1"><SearchBox value={q} onChange={setQ} placeholder={tr("Search recipe")} /></div>
-            <div className="flex rounded-lg bg-neutral-100 p-0.5 text-sm" role="radiogroup" aria-label={tr("Show")}>
+            <div className="inline-flex max-w-full flex-wrap gap-1 self-start" role="radiogroup" aria-label={tr("Show")}>
               {[[false, tr("All ({0})", active.length)], [true, tr("Entered ({0})", picked.size)]].map(([v, label]) => (
                 <button key={String(v)} type="button" role="radio" aria-checked={onlyPicked === v} onClick={() => setOnlyPicked(v as boolean)}
-                  className={cx("flex-1 whitespace-nowrap rounded-md px-3 py-1.5 font-medium transition-colors",
-                    onlyPicked === v ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800")}>{label as string}</button>
+                  className={cx("whitespace-nowrap rounded-[4px] border px-2.5 py-1 text-xs font-medium transition-colors",
+                    onlyPicked === v ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>{label as string}</button>
               ))}
             </div>
           </div>

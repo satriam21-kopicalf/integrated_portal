@@ -129,7 +129,7 @@ export default function DeForm({ kind }: { kind: Kind }) {
           </section>
 
           {drafts.length > 0 && (
-            <section className="rounded-xl border border-amber-200 bg-white shadow-sm">
+            <section className="rounded-md border border-amber-200 bg-white shadow-sm">
               <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("Drafts saved ({0})", drafts.length)}</p>
               <ul className="divide-y divide-neutral-100">
                 {drafts.map((d) => (
@@ -204,7 +204,7 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
 /** Sent: number, PDF, link to share with the teams. */
 function SentCard({ r, onClose, onOpen }: { r: Request; onClose: () => void; onOpen: () => void }) {
   return (
-    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+    <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
       <div className="flex items-start gap-3">
         <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
         <div className="min-w-0 flex-1">
@@ -338,7 +338,7 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
   };
   let n = 0;
   return (
-    <section className="space-y-3 rounded-xl border-2 border-cyan-200 bg-cyan-50/40 p-3 sm:p-4">
+    <section className="space-y-3 rounded-md border-2 border-cyan-200 bg-cyan-50/40 p-3 sm:p-4">
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-cyan-600 text-white"><Handshake size={18} /></span>
         <div>
@@ -514,7 +514,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </FormCard>
 
         {(r.openInBranch ?? []).length > 0 && (
-          <section className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+          <section className="rounded-md border border-amber-200 bg-amber-50/60 p-4">
             <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-900"><AlertTriangle size={16} /> {tr("Still in progress at {0} ({1})", r.branchName, r.openInBranch!.length)}</p>
             <p className="mt-0.5 text-xs text-amber-800">{tr("Check these first so nothing is asked twice; follow them under My requests.")}</p>
             <ul className="mt-2 space-y-1.5">
@@ -763,7 +763,7 @@ function PriorityCard({ r, value, onChange }: { r: Request; value: string; onCha
       <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={repair ? tr("Impact on the outlet") : tr("Why it is needed")}>
         {options.map((o) => (
           <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
-            className={cx("rounded-xl border p-3 text-left transition-colors", value === o.value ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+            className={cx("rounded-md border p-3 text-left transition-colors", value === o.value ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
             <span className="block text-sm font-semibold text-neutral-900">{o.label()}</span>
             <span className="mt-0.5 block text-xs leading-snug text-neutral-500">{o.hint()}</span>
           </button>
@@ -789,7 +789,7 @@ function BranchSearch({ value, onChange, branches, groups }: {
         {shown.map((b) => (
           <li key={b.code}>
             <button type="button" role="option" aria-selected={value === b.code} onClick={() => onChange(b.code)}
-              className={cx("flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
+              className={cx("flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors",
                 value === b.code ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
               <span className="min-w-0"><span className="block truncate text-sm font-medium text-neutral-900">{b.name}</span>
                 <span className="block text-xs text-neutral-500">{b.code}{groups[b.code] ? ` · ${groups[b.code]}` : ""}</span></span>

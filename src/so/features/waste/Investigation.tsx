@@ -26,7 +26,7 @@ export const printUrl = (id: string) => `/cost-control/waste/reviews/investigati
 export function Ingredients({ entry }: { entry: Entry }) {
   if (!entry.ingredients?.length) return null;
   return (
-    <div className="rounded-xl border border-neutral-200">
+    <div className="rounded-md border border-neutral-200">
       <p className="border-b border-neutral-100 px-3 py-2 text-xs font-semibold text-neutral-700">
         {tr("Breakdown of the premix")}{entry.grams ? ` · ${fmtQty(entry.grams)} g` : ""}
       </p>
@@ -143,7 +143,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
             <h3 className="font-semibold text-neutral-900">{tr("Waste Entries")}</h3>
             <ul className="space-y-2">
               {entries.map((e) => (
-                <li key={e.id} className="rounded-xl border border-neutral-200 p-3">
+                <li key={e.id} className="rounded-md border border-neutral-200 p-3">
                   <div className="flex items-start gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={thumb(`/api/waste/entries/${e.id}/photo`, 160)} decoding="async" loading="lazy" alt="" className="h-14 w-14 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
@@ -242,7 +242,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
               {SIGNERS.map((s) => {
                 const v = sigs[s.key];
                 return (
-                  <div key={s.key} className="rounded-xl border border-neutral-200 p-3 text-xs">
+                  <div key={s.key} className="rounded-md border border-neutral-200 p-3 text-xs">
                     <p className="font-semibold text-neutral-700">{s.title}</p>
                     <div className="my-2 flex h-20 items-center justify-center rounded-lg bg-neutral-50">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -257,7 +257,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
               })}
             </div>
             {signing && (
-              <div className="rounded-xl border border-brand-200 bg-brand-50/40 p-3">
+              <div className="rounded-md border border-brand-200 bg-brand-50/40 p-3">
                 <p className="mb-2 text-xs font-semibold text-neutral-700">{SIGNERS.find((x) => x.key === signing)!.title}</p>
                 <SignaturePad onChange={(img) => setSigs((all) => ({ ...all, [signing]: { name: all[signing]?.name ?? "", role: all[signing]?.role ?? SIGNERS.find((x) => x.key === signing)!.role, image: img, at: new Date().toISOString().slice(0, 10) } }))} />
                 <div className="mt-2 flex justify-end"><Button size="sm" onClick={() => setSigning(null)}>{tr("Done")}</Button></div>
@@ -302,7 +302,7 @@ export function CategoriesDrawer({ onClose }: { onClose: () => void }) {
         {!rows ? <SkeletonList rows={4} /> : (["waste", "usage"] as const).map((sc) => (
           <div key={sc}>
             <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><Tags size={12} />{sc === "waste" ? tr("Form Waste") : tr("Usage Management")}</p>
-            <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
               {rows.filter((r) => r.scope === sc).map((r) => (
                 <li key={r.id} className="flex items-center gap-2 px-3 py-2 text-sm">
                   {editing?.id === r.id ? (

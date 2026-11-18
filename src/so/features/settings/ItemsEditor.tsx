@@ -112,7 +112,7 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
             className={`${inputClass} pl-9`} />
           {searching && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-neutral-400" />}
           {q.trim().length >= 2 && !searching && (
-            <ul className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-xl border border-neutral-200/80 bg-white py-1 shadow-xl">
+            <ul className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-md border border-neutral-200/80 bg-white py-1 shadow-xl">
               {found.map((f) => (
                 <li key={f.item_id}>
                   <button type="button" disabled={ids.has(f.item_id)} onClick={() => add(f)}

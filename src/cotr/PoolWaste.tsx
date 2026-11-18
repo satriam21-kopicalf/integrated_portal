@@ -156,16 +156,16 @@ export function PoolWaste({ pool: fixed, day }: { pool?: string; day?: string })
           <EmptyState icon={<Trash2 />} title={rows.length ? tr("Nothing matches the filters") : tr("Nothing yet")}>{!rows.length && <div className="mt-3"><Button onClick={() => open("storage")}><Plus size={15} /> {tr("Record Waste")}</Button></div>}</EmptyState>
         ) : (
           <table className="m-cards w-full text-sm">
-            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Day")}</th>{!fixed && <th className="px-4 py-2.5">{tr("Pool / HUB")}</th>}<th className="px-4 py-2.5">{tr("Type")}</th><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th><th className="px-4 py-2.5">{tr("Reason")}</th><th className="w-10" /></tr></thead>
+            <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Day")}</th>{!fixed && <th className="px-3 py-2">{tr("Pool / HUB")}</th>}<th className="px-3 py-2">{tr("Type")}</th><th className="px-3 py-2">{tr("Item")}</th><th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2">{tr("Reason")}</th><th className="w-10" /></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {paged.rows.map((w) => (
                 <tr key={w.id} className="hover:bg-neutral-50">
-                  <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{dmyOf(w.day)}</td>
-                  {!fixed && <td className="px-4 py-2.5"><span className="inline-flex items-center gap-1.5"><Warehouse size={13} className="text-neutral-400" />{poolName(w.pool_code)}</span></td>}
-                  <td className="px-4 py-2.5"><Badge tone={KIND[w.kind]?.tone ?? "amber"}>{KIND[w.kind]?.label() ?? w.kind}</Badge></td>
-                  <td className="px-4 py-2.5"><span className="inline-flex items-center gap-2 font-medium text-neutral-900">{w.menu_code ? <Coffee size={13} className="text-neutral-400" /> : <Factory size={13} className="text-neutral-400" />}{w.item}</span></td>
-                  <td className="px-4 py-2.5 text-right tabular-nums">{Number(w.qty)} {w.unit}</td>
-                  <td className="px-4 py-2.5"><span className="block text-xs text-neutral-600">{w.reason}</span>{w.by_name && <span className="text-[11px] text-neutral-400">{w.by_name}</span>}</td>
+                  <td className="whitespace-nowrap px-3 py-2 tabular-nums">{dmyOf(w.day)}</td>
+                  {!fixed && <td className="px-3 py-2"><span className="inline-flex items-center gap-1.5"><Warehouse size={13} className="text-neutral-400" />{poolName(w.pool_code)}</span></td>}
+                  <td className="px-3 py-2"><Badge tone={KIND[w.kind]?.tone ?? "amber"}>{KIND[w.kind]?.label() ?? w.kind}</Badge></td>
+                  <td className="px-3 py-2"><span className="inline-flex items-center gap-2 font-medium text-neutral-900">{w.menu_code ? <Coffee size={13} className="text-neutral-400" /> : <Factory size={13} className="text-neutral-400" />}{w.item}</span></td>
+                  <td className="px-3 py-2 text-right tabular-nums">{Number(w.qty)} {w.unit}</td>
+                  <td className="px-3 py-2"><span className="block text-xs text-neutral-600">{w.reason}</span>{w.by_name && <span className="text-[11px] text-neutral-400">{w.by_name}</span>}</td>
                   <td className="px-1"><IconButton label={tr("Delete")} onClick={() => void remove(w.id)}><Trash2 size={15} /></IconButton></td>
                 </tr>
               ))}

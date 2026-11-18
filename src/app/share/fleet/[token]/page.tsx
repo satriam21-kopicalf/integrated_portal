@@ -73,7 +73,7 @@ export default function FleetSharePage() {
         {error ? (
           <div className="rounded-2xl border border-neutral-200/70 bg-white p-8 text-center text-sm text-neutral-600 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">{error}</div>
         ) : !card || !f ? (
-          <div className="space-y-3 py-8"><Skeleton className="h-40 w-full rounded-2xl" /><SkeletonList rows={4} className="rounded-xl border border-neutral-200 bg-white" /></div>
+          <div className="space-y-3 py-8"><Skeleton className="h-40 w-full rounded-2xl" /><SkeletonList rows={4} className="rounded-md border border-neutral-200 bg-white" /></div>
         ) : (
           <>
             <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">

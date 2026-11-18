@@ -187,7 +187,7 @@ export default function GoogleMapsRatingPage() {
 
       <NoteLine note={note} />
       {res && !res.ready && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
           <span>{tr("The Google Places API key is not set on the server yet (GOOGLE_PLACES_API_KEY): the data appears after it is set and the first sync.")}</span>
         </div>
@@ -229,26 +229,26 @@ export default function GoogleMapsRatingPage() {
               <table className={cx(kcTable.table, "min-w-[860px]")}>
                 <thead className={kcTable.thead}>
                   <tr>
-                    <th className="px-4 py-2.5">{tr("Outlet")}</th>
-                    <th className="px-4 py-2.5">{tr("Rating")}</th>
-                    <th className="px-4 py-2.5 text-right">{tr("Reviews")}</th>
-                    <th className="px-4 py-2.5">{tr("Now")}</th>
-                    <th className="px-4 py-2.5">{tr("Today")}</th>
-                    <th className="px-4 py-2.5">{tr("Google Maps")}</th>
+                    <th className="px-3 py-2">{tr("Outlet")}</th>
+                    <th className="px-3 py-2">{tr("Rating")}</th>
+                    <th className="px-3 py-2 text-right">{tr("Reviews")}</th>
+                    <th className="px-3 py-2">{tr("Now")}</th>
+                    <th className="px-3 py-2">{tr("Today")}</th>
+                    <th className="px-3 py-2">{tr("Google Maps")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {!res ? <SkeletonRows cols={6} /> : paged.rows.map((o) => (
                     <tr key={o.code} onClick={() => setOpen(o.code)} className="cursor-pointer hover:bg-neutral-50/70">
-                      <td className="max-w-[20rem] px-4 py-2.5">
+                      <td className="max-w-[20rem] px-3 py-2">
                         <span className="block truncate font-medium text-neutral-900">{o.branchName}</span>
                         <span className="block truncate text-xs text-neutral-400">{o.address ?? o.code}</span>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-2.5"><Stars value={o.rating} /></td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-neutral-700">{o.reviewCount === null ? "—" : fmtNumber(o.reviewCount)}</td>
-                      <td className="px-4 py-2.5"><OpenBadge o={o} /></td>
-                      <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-neutral-600">{o.todayHours ?? "—"}</td>
-                      <td className="px-4 py-2.5">
+                      <td className="whitespace-nowrap px-3 py-2"><Stars value={o.rating} /></td>
+                      <td className="px-3 py-2 text-right tabular-nums text-neutral-700">{o.reviewCount === null ? "—" : fmtNumber(o.reviewCount)}</td>
+                      <td className="px-3 py-2"><OpenBadge o={o} /></td>
+                      <td className="whitespace-nowrap px-3 py-2 tabular-nums text-neutral-600">{o.todayHours ?? "—"}</td>
+                      <td className="px-3 py-2">
                         <span className="inline-flex items-center gap-2">
                           <MatchBadge o={o} />
                           {o.mapsUri && <a href={o.mapsUri} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title={tr("Open in Google Maps")}
@@ -300,7 +300,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
           <MatchBadge o={o} />
         </div>
         {(o.address || o.mapsUri) && (
-          <div className="rounded-xl border border-neutral-200 p-3 text-sm">
+          <div className="rounded-md border border-neutral-200 p-3 text-sm">
             {o.address && <p className="text-neutral-700">{o.address}</p>}
             {o.mapsUri && <a href={o.mapsUri} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-brand-700 hover:underline">
               {tr("Open in Google Maps")} <ExternalLink size={12} /></a>}
@@ -311,7 +311,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
         {o.weekHours.length > 0 && (
           <section>
             <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Opening Hours")}</h3>
-            <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+            <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
               {o.weekHours.map((line) => {
                 const [day, hours] = line.includes(": ") ? line.split(": ", 2) : [line, ""];
                 return (
@@ -327,10 +327,10 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
         <section>
           <h3 className="mb-1 text-xs font-semibold capitalize text-neutral-500">{tr("Latest Reviews")}</h3>
           <p className="mb-2 text-xs text-neutral-400">{tr("Newest first. Google picks at most 5 reviews per outlet in the Places API (not always the newest ones); the rating and the number of reviews cover all of them.")}</p>
-          {o.reviews.length === 0 ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p> : (
+          {o.reviews.length === 0 ? <p className="rounded-md border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p> : (
             <ul className="space-y-2">
               {o.reviews.map((r, i) => (
-                <li key={r.uri ?? i} className="rounded-xl border border-neutral-200 p-3">
+                <li key={r.uri ?? i} className="rounded-md border border-neutral-200 p-3">
                   <div className="flex items-center gap-2">
                     {r.authorPhoto
                       // eslint-disable-next-line @next/next/no-img-element -- reviewer photo from Google
@@ -393,7 +393,7 @@ function PlacePicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
   };
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+    <section className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
       <h3 className="text-xs font-semibold capitalize text-neutral-500">{tr("Place on Google Maps")}</h3>
       <p className="mt-1 text-xs text-neutral-500">
         {o.match === "auto" ? tr("Matched automatically ({0} m from the outlet's coordinates).", o.matchDistanceM ?? "?")

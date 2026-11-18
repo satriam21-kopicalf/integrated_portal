@@ -73,7 +73,7 @@ export function Freshness() {
       {!data ? <SkeletonTable cols={7} /> : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[40rem] text-sm">
-            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5 text-right">{tr("ESB sales")}</th>
+            <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Pool / HUB")}</th><th className="px-3 py-2.5 text-right">{tr("ESB sales")}</th>
               <th className="px-3 py-2.5 text-right">{tr("ESB transfers")}</th><th className="px-3 py-2.5 text-right">{tr("ESB journals")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Workbook")}</th><th className="px-3 py-2.5 text-right">{tr("Physical count")}</th><th className="px-3 py-2.5 text-right">{tr("App")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">

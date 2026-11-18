@@ -121,7 +121,7 @@ function IssueDrawer({ id, onClose, onSaved }: { id: string; onClose: () => void
             {x.description && <p className="text-sm text-neutral-700">{x.description}</p>}
             <p className="flex items-center gap-1.5 text-xs text-neutral-500"><UserRound size={12} />{x.driverName ?? "—"} · {wibDateTime(x.at)}</p>
             {x.lat != null && x.lng != null && <a href={`https://maps.google.com/?q=${x.lat},${x.lng}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-brand-700"><MapPin size={12} />{tr("Map")}</a>}
-            {x.hasPhoto && <a href={`/api/cotr/photos/issue/${x.id}`} target="_blank" rel="noreferrer"><img src={`/api/cotr/photos/issue/${x.id}?w=640`} alt="" className="max-h-72 rounded-xl border border-neutral-200 object-contain" /></a>}
+            {x.hasPhoto && <a href={`/api/cotr/photos/issue/${x.id}`} target="_blank" rel="noreferrer"><img src={`/api/cotr/photos/issue/${x.id}?w=640`} alt="" className="max-h-72 rounded-md border border-neutral-200 object-contain" /></a>}
           </DrawerSection>
           {(x.handler || x.resolutionNote || x.cost != null) && (
             <DrawerSection title={tr("Handling")}>

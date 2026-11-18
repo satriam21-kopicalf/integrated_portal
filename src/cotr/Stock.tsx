@@ -80,21 +80,21 @@ export function StockTab() {
               <SortTh k="value" {...S} align="right" first="desc">{tr("Value")}</SortTh></tr></thead>
             <tbody className="divide-y divide-neutral-100">{sorted.rows.map((r) => (
               <tr key={r.code} className="cursor-pointer hover:bg-neutral-50/70" onClick={() => setOpen(r)}>
-                <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{r.name}</span><span className="text-[11px] text-neutral-400">{r.code} · {r.category}</span></td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{num(r.so)} <span className="text-neutral-400">{r.unit}</span></td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-emerald-700">{r.received ? `+${num(r.received)}` : "—"}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600">{r.used ? `−${num(r.used)}` : "—"}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600">{r.waste ? `−${num(r.waste)}` : "—"}</td>
-                <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-red-700" : "text-neutral-900")}>{num(r.estimate)}
+                <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{r.name}</span><span className="text-[11px] text-neutral-400">{r.code} · {r.category}</span></td>
+                <td className="px-3 py-2 text-right tabular-nums">{num(r.so)} <span className="text-neutral-400">{r.unit}</span></td>
+                <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{r.received ? `+${num(r.received)}` : "—"}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{r.used ? `−${num(r.used)}` : "—"}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{r.waste ? `−${num(r.waste)}` : "—"}</td>
+                <td className={cx("px-3 py-2 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-red-700" : "text-neutral-900")}>{num(r.estimate)}
                   {r.packUnit && r.packQty ? <span className="block text-[10px] font-normal text-neutral-400">≈ {num(r.estimate / r.packQty)} {r.packUnit}</span> : null}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{r.value == null ? <Badge tone="amber">{tr("No cost")}</Badge> : rupiah(r.value)}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{r.value == null ? <Badge tone="amber">{tr("No cost")}</Badge> : rupiah(r.value)}</td>
               </tr>))}</tbody>
           </table></div>
         )}
       </Panel>
       {open && data && (
         <Drawer open onClose={() => setOpen(null)} icon={<Calculator size={18} />} title={open.name} description={`${open.code} · ${data.pool}`}>
-          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200 text-sm">
+          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200 text-sm">
             {[[tr("Stock opname"), open.so, data.soDay ? tr("approved count of {0}", data.soDay) : tr("no approved count: 0"), ""],
               [tr("Goods in"), open.received, tr("since the count"), "+"], [tr("Used by the batches"), open.used, tr("cups made × recipe card"), "−"],
               [tr("Waste"), open.waste, tr("storage and production"), "−"]].map(([l, v, h, sign]) => (
@@ -156,10 +156,10 @@ export function ReceiptsTab() {
       <Panel title={tr("Goods in (last 30 days)")}>
         {!rows ? <div className="p-4"><SkeletonList rows={3} /></div> : !rows.length ? <Empty icon={<PackagePlus size={24} />} title={tr("No goods in yet")} /> : (
           <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Day")}</th><th className="px-4 py-2.5">{tr("Item")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th><th className="px-4 py-2.5">{tr("Supplier / document")}</th><th /></tr></thead>
+            <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Day")}</th><th className="px-3 py-2">{tr("Item")}</th><th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2">{tr("Supplier / document")}</th><th /></tr></thead>
             <tbody className="divide-y divide-neutral-100">{rows.map((r) => (
-              <tr key={r.id}><td className="whitespace-nowrap px-4 py-2.5">{r.day}</td><td className="px-4 py-2.5">{r.name}<span className="block text-[11px] text-neutral-400">{r.item}</span></td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{num(r.qty)} {r.unit}</td><td className="px-4 py-2.5 text-xs text-neutral-600">{[r.supplier, r.docNo, r.note].filter(Boolean).join(" · ") || "—"}</td>
+              <tr key={r.id}><td className="whitespace-nowrap px-3 py-2">{r.day}</td><td className="px-3 py-2">{r.name}<span className="block text-[11px] text-neutral-400">{r.item}</span></td>
+                <td className="px-3 py-2 text-right tabular-nums">{num(r.qty)} {r.unit}</td><td className="px-3 py-2 text-xs text-neutral-600">{[r.supplier, r.docNo, r.note].filter(Boolean).join(" · ") || "—"}</td>
                 <td className="px-2"><button type="button" onClick={() => void remove(r.id)} aria-label={tr("Delete")} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button></td></tr>))}</tbody>
           </table></div>
         )}
@@ -243,7 +243,7 @@ function CountDrawer({ id, pool, onClose, onSaved }: { id: string | null; pool: 
             <label className="text-[11px] font-medium text-neutral-500">{tr("Note")}<input className={cx(inputClass, "mt-1 h-10")} value={note} onChange={(e) => setNote(e.target.value)} /></label>
           </div>
           <SearchInput value={q} onChange={setQ} placeholder={tr("Search item")} />
-          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">{list.map((i) => {
+          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200">{list.map((i) => {
             const v = qty[i.code] ?? "";
             const d = v.trim() !== "" ? Number(v.replace(",", ".")) - expected(i.code) : null;
             return (

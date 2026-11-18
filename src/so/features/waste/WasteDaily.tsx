@@ -100,10 +100,10 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
       <div className="flex flex-col gap-2 border-b border-neutral-100 px-4 py-3 sm:flex-row sm:items-center">
         <div className="relative sm:w-72"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input className="h-9 w-full rounded-lg border border-neutral-200 pl-8 pr-3 text-sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search branch")} /></div>
-        <div className="flex flex-wrap gap-1 rounded-xl bg-neutral-100 p-1 sm:ml-auto" role="radiogroup" aria-label={tr("Show")}>
+        <div className="inline-flex max-w-full flex-wrap gap-1 sm:ml-auto" role="radiogroup" aria-label={tr("Show")}>
           {([["", tr("All")], ["missing", tr("Not reported {0}", short(data.lastDate!))], ["late", tr("With a gap")], ["full", tr("Every day")]] as [DailyFilter, string][]).map(([v, l]) => (
             <button key={v} type="button" role="radio" aria-checked={show === v} onClick={() => setShow(v)}
-              className={cx("rounded-lg px-2.5 py-1 text-xs font-medium", show === v ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-600 hover:text-neutral-900")}>{l}</button>
+              className={cx("rounded-[4px] border px-2.5 py-1 text-xs font-medium", show === v ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>{l}</button>
           ))}
         </div>
       </div>
@@ -248,7 +248,7 @@ export function EsbCompare({ period, branch, onBranch }: { period: Period; branc
     <div>
       <div className="grid gap-3 p-4 sm:grid-cols-4">
         {tiles.map(([l, v, h], i) => (
-          <div key={l} className={cx("rounded-xl border bg-white px-4 py-3", i === 3 && t.sameCount ? "border-amber-300" : "border-neutral-200")}>
+          <div key={l} className={cx("rounded-md border bg-white px-4 py-3", i === 3 && t.sameCount ? "border-amber-300" : "border-neutral-200")}>
             <p className="text-xs font-semibold capitalize text-neutral-500">{l}</p>
             <p className={cx("mt-1 text-lg font-semibold tabular-nums", i === 3 && t.sameCount ? "text-amber-700" : "text-neutral-900")}>{v}</p>
             <p className="text-xs text-neutral-500">{h}</p>
@@ -267,11 +267,11 @@ export function EsbCompare({ period, branch, onBranch }: { period: Period; branc
             <tr className="align-top hover:bg-neutral-50/70">
               <td className="max-w-[16rem] py-2.5 pl-5 pr-3"><button type="button" onClick={() => onBranch(r.branchCode)} className="block max-w-full truncate text-left font-medium text-neutral-900 hover:text-brand-700">{r.branchName}</button>
                 <span className="text-[11px] text-neutral-400">{r.branchCode}</span></td>
-              <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{rpx(r.portalApproved)}
+              <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rpx(r.portalApproved)}
                 <span className="block text-[11px] text-neutral-400">{tr("{0} entries", r.portalEntries)}{r.portalWaiting ? ` · ${tr("{0} waiting", rpx(r.portalWaiting))}` : ""}{r.portalUnpriced ? ` · ${tr("{0} no price", r.portalUnpriced)}` : ""}</span></td>
-              <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{rpx(r.journalValue)}<span className="block text-[11px] text-neutral-400">{tr("{0} lines", r.journalLines)}</span></td>
-              <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{fmtNumber(r.billPortions)}<span className="block text-[11px] text-neutral-400">{tr("{0} bills", r.bills)}</span></td>
-              <td className="whitespace-nowrap px-4 py-2.5 text-right">
+              <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rpx(r.journalValue)}<span className="block text-[11px] text-neutral-400">{tr("{0} lines", r.journalLines)}</span></td>
+              <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtNumber(r.billPortions)}<span className="block text-[11px] text-neutral-400">{tr("{0} bills", r.bills)}</span></td>
+              <td className="whitespace-nowrap px-3 py-2 text-right">
                 {r.sameCount ? <button type="button" onClick={() => setOpen(open === r.branchCode ? null : r.branchCode)} aria-expanded={open === r.branchCode}
                   className="inline-flex items-center gap-1 font-semibold text-amber-700 hover:underline"><AlertTriangle size={13} aria-hidden /> {fmtNumber(r.sameCount)}</button>
                   : <span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 size={13} aria-hidden /> 0</span>}</td>

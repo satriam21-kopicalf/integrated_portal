@@ -44,7 +44,7 @@ export function FilterToolbar({ search, onSearch, placeholder, filters, onOpen, 
               <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
             </svg>
             <input value={search ?? ''} onChange={(e) => onSearch(e.target.value)} placeholder={placeholder} aria-label={placeholder}
-              className="h-10 w-full rounded-xl border border-neutral-200 bg-white pl-9 pr-3 text-base font-medium text-neutral-900 placeholder:text-neutral-400 transition-colors hover:border-neutral-300 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100 lg:text-xs" />
+              className="h-10 w-full rounded-md border border-neutral-200 bg-white pl-9 pr-3 text-base font-medium text-neutral-900 placeholder:text-neutral-400 transition-colors hover:border-neutral-300 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100 lg:text-xs" />
           </div>
         )}
         <FilterButton count={filters.length} onClick={onOpen} />

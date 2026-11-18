@@ -126,19 +126,19 @@ export default function GroupsPage() {
               <tbody className="divide-y divide-neutral-100">
                 {rows === null ? <SkeletonRows cols={4} /> : paged.rows.map((g) => (
                   <tr key={g.id} className="group cursor-pointer hover:bg-neutral-50/70" onClick={() => setOpen(g.id)}>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <span className="block font-medium text-neutral-900 group-hover:text-brand-700">{g.name} {!g.is_active && <Badge>{tr("Inactive")}</Badge>}
                         {g.date_field && <span className="ml-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">{GROUP_DATE_OPTIONS.find((x) => x.value === g.date_field)?.label()}</span>}</span>
                       <span className="block font-mono text-[11px] text-neutral-400">{g.code}{g.source_ref ? ` · ${g.source_ref}` : ""}</span>
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
+                    <td className="px-3 py-2 text-right tabular-nums">
                       {g.items}
                       {g.pending > 0 && <span className="block text-[11px] font-medium text-amber-700">{tr("+{0} not in the item master", g.pending)}</span>}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
+                    <td className="px-3 py-2 text-right tabular-nums">
                       {g.lists || <span className="text-xs font-medium text-amber-700">{tr("Not assigned")}</span>}
                     </td>
-                    <td className="px-4 py-3 text-xs text-neutral-500">{fmtDate(g.updated_at)}</td>
+                    <td className="px-3 py-2 text-xs text-neutral-500">{fmtDate(g.updated_at)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -492,7 +492,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
       description={g ? `${g.code} · ${tr("{0} items", items.length)}` : undefined} footer={footer}>
       {!g ? <SkeletonList rows={5} /> : (
         <div className="space-y-5">
-          <dl className="grid grid-cols-3 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-neutral-50 text-center">
+          <dl className="grid grid-cols-3 divide-x divide-neutral-200 rounded-md border border-neutral-200 bg-neutral-50 text-center">
             <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Items")}</dt><dd className="text-lg font-semibold tabular-nums text-neutral-900">{items.length}</dd></div>
             <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-neutral-900" : "text-amber-600")}>{g.used_by.length}</dd></div>
             <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Status")}</dt><dd className="mt-1">{g.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}</dd></div>
@@ -620,7 +620,7 @@ function ImportTemplateDrawer({ onClose, onDone }: { onClose: () => void; onDone
         <Button variant="secondary" loading={busy && !report} disabled={!file} onClick={() => run(false)}><Search size={15} /> {tr("Check")}</Button>
         <Button loading={busy && !!report} disabled={!report || report.applied} onClick={() => run(true)}>{tr("Import {0} groups", report?.sheets.length ?? 0)}</Button></>}>
       <div className="space-y-4">
-        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-neutral-300 px-4 py-3 text-sm hover:border-brand-400 hover:bg-brand-50/40">
+        <label className="flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-neutral-300 px-4 py-3 text-sm hover:border-brand-400 hover:bg-brand-50/40">
           <Upload size={18} className="text-neutral-400" />
           <span className="min-w-0 flex-1 truncate text-neutral-700">{file ? file.name : tr("Choose TEMPLATE SO PER CATEGORY (.xlsx)")}</span>
           <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />

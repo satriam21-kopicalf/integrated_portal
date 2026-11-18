@@ -247,7 +247,7 @@ export default function CotrStoragePage() {
                   const open = opened[r.code] ?? (can && (!r.dispatch || changed(r)));
                   const total = cups(shown.sell) + cups(shown.cupping);
                   return (
-                    <li key={r.code} className={cx("rounded-xl border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-neutral-200")}>
+                    <li key={r.code} className={cx("rounded-md border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-neutral-200")}>
                       <div role="button" tabIndex={0} aria-expanded={open} onClick={() => setOpened((o) => ({ ...o, [r.code]: !open }))}
                         onKeyDown={(e) => { if (e.key === "Enter") setOpened((o) => ({ ...o, [r.code]: !open })); }}
                         className={cx("flex cursor-pointer items-start gap-3 px-4 py-3 sm:cursor-default", open ? "border-b border-neutral-100" : "border-b border-neutral-100 max-sm:border-b-0")}>
@@ -343,7 +343,7 @@ function Settle({ title, menus, expected, found, note, url, onDone }: {
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   return (
-    <section className="rounded-xl border border-red-200 bg-white p-3">
+    <section className="rounded-md border border-red-200 bg-white p-3">
       <p className="text-sm font-semibold text-neutral-900">{title}</p>
       {note && <p className="mt-1 rounded-lg bg-red-50 px-2 py-1.5 text-xs text-red-700">{note}</p>}
       <table className="mt-2 w-full text-xs">
@@ -385,7 +385,7 @@ function ReloadDecide({ r, title, menus, onDone }: { r: Reload; title: string; m
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   return (
-    <section className="rounded-xl border border-amber-200 bg-white p-3">
+    <section className="rounded-md border border-amber-200 bg-white p-3">
       <p className="text-sm font-semibold text-neutral-900">{title}</p>
       {r.note && <p className="mt-1 text-xs text-neutral-500">{r.note}</p>}
       <table className="mt-2 w-full text-xs">

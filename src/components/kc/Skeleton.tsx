@@ -22,7 +22,7 @@ export function SkeletonRows({ cols, rows = 6 }: { cols: number; rows?: number }
       {Array.from({ length: rows }, (_, r) => (
         <tr key={r} aria-hidden>
           {Array.from({ length: Math.max(1, cols) }, (_, c) => (
-            <td key={c} className="px-4 py-3.5">
+            <td key={c} className="px-3 py-2.5">
               {c === 0 ? (
                 <span className="flex items-center gap-3">
                   <Skeleton className="h-8 w-8 flex-shrink-0 rounded-lg" />
@@ -44,7 +44,7 @@ export function SkeletonTable({ cols, rows = 8 }: { cols: number; rows?: number 
     <div className="overflow-hidden" role="status" aria-label={tr('Loading…')}>
       <table className="w-full text-sm">
         <thead className="border-b border-neutral-100 bg-neutral-50/70" aria-hidden><tr>
-          {Array.from({ length: Math.max(1, cols) }, (_, c) => <th key={c} className="px-4 py-3"><Skeleton className={cx('h-2.5', c === 0 ? 'w-24' : 'w-14')} /></th>)}
+          {Array.from({ length: Math.max(1, cols) }, (_, c) => <th key={c} className="px-3 py-2"><Skeleton className={cx('h-2.5', c === 0 ? 'w-24' : 'w-14')} /></th>)}
         </tr></thead>
         <tbody className="divide-y divide-neutral-100"><SkeletonRows cols={cols} rows={rows} /></tbody>
       </table>
@@ -82,7 +82,7 @@ export function SkeletonCards({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-hidden>
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="space-y-2.5 rounded-xl border border-neutral-200 bg-white px-4 py-3.5">
+        <div key={i} className="space-y-2.5 rounded-md border border-neutral-200 bg-white px-4 py-3.5">
           <Skeleton className="h-2.5 w-1/2" />
           <SkeletonValue />
         </div>
@@ -97,7 +97,7 @@ export function PageSkeleton({ cards = 4, rows = 6 }: { cards?: number; rows?: n
     <div className="mx-auto w-full max-w-[1400px] space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-6" role="status" aria-label={tr('Loading…')}>
       <div className="space-y-2" aria-hidden><Skeleton className="h-2.5 w-24" /><Skeleton className="h-6 w-64" /><Skeleton className="h-3 w-80 max-w-full" /></div>
       {cards > 0 && <SkeletonCards count={cards} />}
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <div className="overflow-hidden rounded-md border border-neutral-200 bg-white">
         <div className="px-4 py-3.5 sm:px-5" aria-hidden><Skeleton className="h-9 w-full max-w-sm rounded-lg" /></div>
         <SkeletonList rows={rows} className="border-t border-neutral-100" />
       </div>

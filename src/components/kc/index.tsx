@@ -40,7 +40,7 @@ export function PageHeader({ title, subtitle, actions, media, eyebrow }: {
   return (
     <header className="flex flex-wrap items-start justify-between gap-3">
       <div className="flex min-w-0 items-start gap-3">
-        {media && <span className="flex h-10 min-w-10 flex-shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white px-2 text-brand-700">{media}</span>}
+        {media && <span className="flex h-10 min-w-10 flex-shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 text-brand-700">{media}</span>}
         <div className="min-w-0">
           {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{tc(eyebrow)}</p>}
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">{tc(title)}</h1>

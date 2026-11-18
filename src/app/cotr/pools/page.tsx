@@ -98,7 +98,7 @@ export default function CotrPoolsPage() {
           const children = rows.filter((p) => p.parent_code === m.code);
           const c = count(m.code);
           return (
-            <section key={m.code} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+            <section key={m.code} className="overflow-hidden rounded-md border border-neutral-200 bg-white">
               <header className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 px-4 py-3.5 sm:px-5">
                 <div className="flex min-w-0 items-start gap-3">
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-700 text-white"><Building2 size={18} /></span>
@@ -160,7 +160,7 @@ export default function CotrPoolsPage() {
             </section>
           );
         })}
-        {loaded && mains.length === 0 && <p className="rounded-xl border border-dashed border-neutral-300 px-4 py-8 text-center text-sm text-neutral-500">{tr("No main HUB yet: add one below.")}</p>}
+        {loaded && mains.length === 0 && <p className="rounded-md border border-dashed border-neutral-300 px-4 py-8 text-center text-sm text-neutral-500">{tr("No main HUB yet: add one below.")}</p>}
       </div>
       <MasterTable noun={tr("pool")} title={tr("Pools, HUBs & Storages")} master={master} filters={filters}
         blank={(): Partial<Pool> => ({ code: "", name: "", kind: "parent", parent_code: mains[0]?.code ?? null, city: "", address: "", storage: [], is_active: true, latitude: null, longitude: null, radius_m: 100 })}

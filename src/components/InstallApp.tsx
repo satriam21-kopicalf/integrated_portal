@@ -96,11 +96,11 @@ export default function InstallApp() {
 
   return (
     <div role="dialog" aria-label={tr('Install the App')}
-      className="fixed inset-x-3 z-[60] mx-auto max-w-md rounded-xl border border-neutral-200 bg-white p-4 shadow-xl sm:inset-x-auto sm:right-4"
+      className="fixed inset-x-3 z-[60] mx-auto max-w-md rounded-md border border-neutral-200 bg-white p-4 shadow-xl sm:inset-x-auto sm:right-4"
       style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
       <div className="flex items-start gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/icons/icon-192.png" alt="" className="h-11 w-11 shrink-0 rounded-xl border border-neutral-100" />
+        <img src="/icons/icon-192.png" alt="" className="h-11 w-11 shrink-0 rounded-md border border-neutral-100" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-neutral-900">{tr('Install Kopi Calf Portal')}</p>
           <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">

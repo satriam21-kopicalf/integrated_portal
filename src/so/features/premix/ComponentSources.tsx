@@ -29,7 +29,7 @@ export default function ComponentSources({ have, onAdd }: { have: Set<string>; o
     { key: "used", label: tr("Used in Recipes"), icon: <Sparkles size={13} /> },
   ];
   return (
-    <div className="rounded-xl border border-neutral-200 bg-neutral-50/60">
+    <div className="rounded-md border border-neutral-200 bg-neutral-50/60">
       <div className="flex gap-1 border-b border-neutral-200 px-2 pt-2" role="tablist">
         {tabs.map(t => (
           <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}

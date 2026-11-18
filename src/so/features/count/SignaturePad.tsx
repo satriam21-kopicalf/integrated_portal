@@ -93,7 +93,7 @@ export default function SignaturePad({ onChange }: { onChange: (image: string | 
 
   return (
     <div>
-      <div className="relative overflow-hidden rounded-xl border border-neutral-300 bg-white">
+      <div className="relative overflow-hidden rounded-md border border-neutral-300 bg-white">
         <canvas ref={canvas} style={{ height: HEIGHT, touchAction: "none" }} className="block w-full cursor-crosshair"
           onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={up}
           aria-label={tr("Signature area: draw your signature")} role="img" />

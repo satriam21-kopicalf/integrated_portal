@@ -101,7 +101,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {done && (
-            <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <div className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
               <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{tr("{0} sent for {1}", title, done.branchName)}</p>
@@ -140,7 +140,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
           </section>
 
           {data.drafts.length > 0 && (
-            <section className="rounded-xl border border-amber-200 bg-white shadow-sm">
+            <section className="rounded-md border border-amber-200 bg-white shadow-sm">
               <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("Drafts saved ({0})", data.drafts.length)}</p>
               <ul className="divide-y divide-neutral-100">
                 {data.drafts.map((d) => (
@@ -329,7 +329,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           <div className="mt-2.5 flex items-center gap-2">
             {evaluation && (
               <button type="button" onClick={openEval} aria-pressed={evalOpen}
-                className={cx("order-last inline-flex h-10 flex-shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-semibold",
+                className={cx("order-last inline-flex h-10 flex-shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold",
                   evalOpen ? "border-brand-600 bg-brand-600 text-white" : evaluation.ready ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-800")}>
                 {evaluation.ready ? <CheckCircle2 size={14} /> : <ClipboardList size={14} />} {tr("Evaluation")}
               </button>
@@ -354,7 +354,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
             <p className="flex-shrink-0 text-xs tabular-nums text-neutral-500">{tr("{0} of {1} rated", sectionDone(current.key)[0], sectionDone(current.key)[1])}</p>
           </div>
         </div>
-        <p className="flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-xs leading-relaxed text-brand-900">
+        <p className="flex items-start gap-2 rounded-md border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-xs leading-relaxed text-brand-900">
           <ClipboardCheck size={15} className="mt-px flex-shrink-0 text-brand-700" />
           <span><b>{tr("Items marked Required must be rated, with the note and photo they ask for")}</b> — {tr("optional items may be skipped. Write what you see and take a clear photo of it: they are the material for the analysis.")}</span>
         </p>
@@ -459,7 +459,7 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
         </div>
       }>
       <div className="space-y-5">
-        <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+        <section className="rounded-md border border-neutral-200 bg-neutral-50 p-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
             <Info k={tr("Outlet")} v={visit.branchName} />
             <Info k={tr("PIC")} v={visit.name} />
@@ -487,8 +487,8 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
 
         <section>
           <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><AlertTriangle size={15} className="text-red-500" /> {tr("Findings (UNDER)")}</h3>
-          {under.length === 0 ? <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No UNDER in this visit.")}</p> : (
-            <ul className="divide-y divide-neutral-100 rounded-xl border border-red-100">
+          {under.length === 0 ? <p className="rounded-md border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No UNDER in this visit.")}</p> : (
+            <ul className="divide-y divide-neutral-100 rounded-md border border-red-100">
               {under.map((u) => (
                 <li key={u.item.key} className="px-3 py-2.5 text-sm">
                   <p className="font-medium text-neutral-900">{tl(u.item)}</p>
@@ -500,7 +500,7 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
           )}
         </section>
 
-        <section className="rounded-xl border border-neutral-200 p-4">
+        <section className="rounded-md border border-neutral-200 p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900"><PenLine size={16} className="text-neutral-500" /> {tr("Signature")} <span className="font-normal text-neutral-500">({tr("optional")})</span></h3>
           <p className="mb-3 mt-0.5 text-xs text-neutral-500">{tr("By signing, I confirm the ratings above reflect the visit.")}</p>
           <SignaturePad onChange={setSignature} />

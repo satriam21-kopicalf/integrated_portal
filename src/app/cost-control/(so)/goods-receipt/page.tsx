@@ -289,12 +289,12 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !d ? <SkeletonList rows={4} /> : (
         <div className="space-y-4">
           {(d.dateCorrected || d.qtyCorrected > 0) && (d.finished ? (
-            <p className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900"><CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900"><CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
               <span>{tr("Finished by {0} · {1}: the corrections count in the Stock List and the COGS.", d.finished.by, wibDateTime(d.finished.at))}{d.finished.note ? ` “${d.finished.note}”` : ""}</span></p>
           ) : (
-            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Draft: the corrections do not count yet. Mark the GR Finished once the date and quantities are right.")}</p>
+            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Draft: the corrections do not count yet. Mark the GR Finished once the date and quantities are right.")}</p>
           ))}
-          <dl className="grid grid-cols-2 gap-3 rounded-xl border border-neutral-200 p-3 text-sm sm:grid-cols-4">
+          <dl className="grid grid-cols-2 gap-3 rounded-md border border-neutral-200 p-3 text-sm sm:grid-cols-4">
             <div><dt className="text-xs text-neutral-500">{tr("Received")}</dt><dd className="font-medium">
               {editing ? <input type="date" className={inputClass + " mt-1"} value={date} onChange={(e) => setDate(e.target.value)} /> : d.date ? dmy(d.date) : "—"}</dd></div>
             <div><dt className="text-xs text-neutral-500">{tr("ESB date")}</dt><dd>{d.esbDate ? dmy(d.esbDate) : "—"}</dd></div>
@@ -302,7 +302,7 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
             <div><dt className="text-xs text-neutral-500">{tr("Status")}</dt><dd>{d.status ?? "—"}</dd></div>
           </dl>
 
-          <div className="overflow-x-auto rounded-xl border border-neutral-200"><table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-md border border-neutral-200"><table className="w-full text-sm">
             <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Item")}</th><th className="px-3 py-2 text-right">{tr("ESB Qty")}</th>
               <th className="px-3 py-2 text-right">{tr("Qty Used")}</th><th className="px-3 py-2">{tr("Unit")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">{d.items.map((l) => (
@@ -320,7 +320,7 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
           </table></div>
 
           {editing && (
-            <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+            <div className="space-y-3 rounded-md border border-amber-200 bg-amber-50/60 p-3">
               <label className="block text-xs font-medium text-neutral-700">{tr("Reason (required)")}
                 <textarea className={inputClass + " mt-1 h-20 w-full"} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)}
                   placeholder={tr("e.g. the goods arrived on 3/11, the delivery note says 3 bottles")} />
@@ -351,7 +351,7 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
               <ul className="space-y-2">{d.corrections.map((c) => {
                 const line = c.lineNo ? d.items.find((l) => l.lineNo === c.lineNo) : null;
                 return (
-                  <li key={c.id} className="rounded-xl border border-neutral-200 p-3 text-sm">
+                  <li key={c.id} className="rounded-md border border-neutral-200 p-3 text-sm">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium text-neutral-900">{c.kind === "date"
                         ? tr("Date {0} → {1}", c.oldDate ? dmy(c.oldDate) : "—", c.newDate ? dmy(c.newDate) : "—")

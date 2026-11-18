@@ -84,7 +84,7 @@ export function Segments({ value, onChange, choices }: { value: string; onChange
 /** Choices with longer names, one per line with a radio dot ('' = all). */
 export function OptionList({ value, onChange, choices }: { value: string; onChange: (v: string) => void; choices: { value: string; label: string; icon?: ReactNode }[] }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200" role="radiogroup">
+    <div className="overflow-hidden rounded-md border border-neutral-200" role="radiogroup">
       {choices.map((c) => {
         const on = c.value === value;
         return (

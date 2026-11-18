@@ -316,7 +316,7 @@ export default function UsersPage() {
                       <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
                         onView={() => setViewing(u as AuthUser)} actions={actionsFor(u as AuthUser)} />
                     ) : (
-                      <tr key={i}><td colSpan={7} className="px-4 py-3"><div className="h-9 skeleton rounded-lg" /></td></tr>
+                      <tr key={i}><td colSpan={7} className="px-3 py-2"><div className="h-9 skeleton rounded-lg" /></td></tr>
                     ))}
                   </tbody>
                 </table>
@@ -982,7 +982,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       </div>
 
       {/* at a glance */}
-      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-neutral-200 bg-neutral-200 sm:grid-cols-4">
         <Glance label={tr('Last Sign-in')} value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('has not signed in')} />
         <Glance label={tr('Branch Access')} value={!branchScoped(user.role) ? 'All' : formatNumber(branchCodes.length)}
           sub={!branchScoped(user.role) ? ROLE_LABELS[user.role] : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}

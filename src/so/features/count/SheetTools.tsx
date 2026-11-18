@@ -109,7 +109,7 @@ function ImportDrawer({ count, onClose, onDownload, onImported }: { count: Count
           onChange={(e) => void pick(e.target.files?.[0])} />
         {!preview && (
           <button type="button" disabled={busy} onClick={() => input.current?.click()}
-            className="flex w-full flex-col items-center gap-1.5 rounded-xl border-2 border-dashed border-neutral-300 px-4 py-8 text-sm text-neutral-600 hover:border-brand-400 hover:bg-brand-50/40">
+            className="flex w-full flex-col items-center gap-1.5 rounded-md border-2 border-dashed border-neutral-300 px-4 py-8 text-sm text-neutral-600 hover:border-brand-400 hover:bg-brand-50/40">
             <Upload size={22} className="text-neutral-400" />
             <span className="font-semibold">{busy ? tr("Reading the file…") : tr("Choose the filled Excel file")}</span>
             <span className="text-xs text-neutral-400">.xlsx</span>
@@ -123,13 +123,13 @@ function ImportDrawer({ count, onClose, onDownload, onImported }: { count: Count
               {preview.problems.length > 0 && <Badge tone="red">{tr("{0} rows to correct", preview.problems.length)}</Badge>}
             </div>
             {preview.problems.length > 0 && (
-              <ul className="space-y-1 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+              <ul className="space-y-1 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-800">
                 {preview.problems.map((p) => <li key={p.row}>{tr("Row {0}", p.row)}{p.item ? ` · ${p.item}` : ""}: {p.error}</li>)}
                 <li className="pt-1 font-semibold">{tr("Correct these rows in the file and choose it again: nothing is saved while a row is wrong.")}</li>
               </ul>
             )}
             {preview.changes.length > 0 && (
-              <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+              <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
                 {preview.changes.map((c) => (
                   <li key={c.row} className="flex items-center justify-between gap-2 px-3 py-2">
                     <span className="min-w-0 truncate">{c.item}</span>

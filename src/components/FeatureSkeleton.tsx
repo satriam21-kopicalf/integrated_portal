@@ -29,7 +29,7 @@ export default function FeatureSkeleton({ title, subtitle, endpoint, steps, icon
           <p className="mt-3 max-w-md text-[13px] text-neutral-600">{tr('This page is ready in the menu and in the access settings (User Accounts → Roles & pages). The screens come next.')}</p>
           <ol className="mt-6 w-full max-w-md space-y-2 text-left">
             {(steps ?? []).map((s, i) => (
-              <li key={s} className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-[13px] text-neutral-700">
+              <li key={s} className="flex items-start gap-3 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-[13px] text-neutral-700">
                 <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">{i + 1}</span>
                 <span>{s}</span>
               </li>

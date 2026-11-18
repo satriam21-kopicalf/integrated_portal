@@ -329,7 +329,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           const items = count.lines.filter((l) => l.flags.includes("RECOUNT")).length;
           const premixes = count.wip?.lines.filter((w) => w.flags?.includes("RECOUNT")).length ?? 0;
           return (
-            <section className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-amber-900" role="status">
+            <section className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3.5 text-amber-900" role="status">
               <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700"><RotateCcw size={18} /></span>
               <div className="min-w-0 text-[13px]">
                 <p className="text-sm font-semibold">{tr("Recount requested by {0}", count.reviewed_by_name ?? tr("the reviewer"))}</p>
@@ -343,7 +343,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           );
         })()}
         {!open && (
-          <p className="flex items-start gap-2 rounded-xl border border-neutral-200/80 bg-white px-4 py-3 text-sm text-neutral-600">
+          <p className="flex items-start gap-2 rounded-md border border-neutral-200/80 bg-white px-4 py-3 text-sm text-neutral-600">
             <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
             {count.submitted_at ? tr("Submitted {0}. The count is locked.", fmtDate(count.submitted_at)) : tr("The count is locked.")}
           </p>
@@ -352,7 +352,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         {count.wip?.enabled && <WipSection count={count} open={open} onSaved={setCount} onDirty={setWipDirty} />}
 
         {areas.filter((a) => shown.some((l) => l.area === a)).map((a) => (
-          <section key={a} className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+          <section key={a} className="overflow-hidden rounded-md border border-neutral-200/80 bg-white shadow-sm">
             <div className="flex items-center justify-between gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2.5">
               <h2 className="truncate text-xs font-semibold capitalize text-neutral-600">{a}</h2>
               {areaDone[a] && (
@@ -513,7 +513,7 @@ function DateRows({ line, field, edit, unit, qty, onSave }: {
   const set = (key: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   const total = rows.reduce((a, r) => a + (Number(parseQty(r.qty) ?? 0) || 0), 0);
   return (
-    <div className="mt-2 rounded-xl border border-neutral-200 bg-neutral-50/70 p-2">
+    <div className="mt-2 rounded-md border border-neutral-200 bg-neutral-50/70 p-2">
       <p className="flex items-center justify-between gap-2 px-0.5 text-xs font-semibold capitalize text-neutral-500">
         <span className="flex items-center gap-1"><CalendarDays size={11} />{label}</span>
         <span className="normal-case tabular-nums text-neutral-600">{tr("Total {0} {1}", fmtQty(total), unit)}</span>

@@ -79,21 +79,21 @@ export function OptionsStep() {
             <div className="overflow-x-auto">
               <table className="m-cards w-full min-w-[820px] text-sm">
                 <thead className={theadClass}><tr>
-                  <th className="px-4 py-2.5">{tr("Choice")}</th><th className="px-4 py-2.5 text-right">{tr("Sold (90 Days)")}</th>
-                  <th className="px-4 py-2.5">{tr("Sold With")}</th><th className="px-4 py-2.5">{tr("Rule")}</th><th className="w-24 px-4 py-2.5" />
+                  <th className="px-3 py-2">{tr("Choice")}</th><th className="px-3 py-2 text-right">{tr("Sold (90 Days)")}</th>
+                  <th className="px-3 py-2">{tr("Sold With")}</th><th className="px-3 py-2">{tr("Rule")}</th><th className="w-24 px-3 py-2" />
                 </tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {rows.map((c) => (
                     <tr key={c.key} className="hover:bg-neutral-50">
-                      <td className="px-4 py-2.5"><span className="font-medium text-neutral-900">{c.name}</span>
+                      <td className="px-3 py-2"><span className="font-medium text-neutral-900">{c.name}</span>
                         {c.ids > 1 && <span className="block text-[11px] text-neutral-400">{tr("{0} ESB ids with this name", c.ids)}</span>}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums" data-label={tr("Sold (90 Days)")}>{num(c.qty, 0)}
+                      <td className="px-3 py-2 text-right tabular-nums" data-label={tr("Sold (90 Days)")}>{num(c.qty, 0)}
                         <span className="block text-[11px] text-neutral-400">{tr("{0} with a card", num(c.withCard, 0))}</span></td>
-                      <td className="px-4 py-2.5 text-xs text-neutral-600" data-label={tr("Sold With")}>
+                      <td className="px-3 py-2 text-xs text-neutral-600" data-label={tr("Sold With")}>
                         {c.top.slice(0, 3).map((t) => t.name).join(", ")}{c.menus > 3 ? ` ${tr("+{0} menus", c.menus - 3)}` : ""}</td>
-                      <td className="px-4 py-2.5" data-label={tr("Rule")}>
+                      <td className="px-3 py-2" data-label={tr("Rule")}>
                         <Badge tone={!c.rule ? "amber" : c.rule.effect === "none" ? "slate" : "violet"} wrap>{ruleText(c.rule)}</Badge></td>
-                      <td className="px-4 py-2.5 text-right"><Button size="sm" variant={c.rule ? "secondary" : "primary"} onClick={() => setEdit(c)}>{c.rule ? tr("Change") : tr("Set")}</Button></td>
+                      <td className="px-3 py-2 text-right"><Button size="sm" variant={c.rule ? "secondary" : "primary"} onClick={() => setEdit(c)}>{c.rule ? tr("Change") : tr("Set")}</Button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -162,8 +162,8 @@ function SugarGrams() {
         : rows.length === 0 ? <Empty title={tr("No menu with a sugar choice")} /> : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Menu (recipe card)")}</th><th className="px-4 py-2.5 text-right">Normal</th>
-              {LEVELS.map((l) => <th key={l.key} className="px-4 py-2.5">{l.label}</th>)}</tr></thead>
+            <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Menu (recipe card)")}</th><th className="px-3 py-2 text-right">Normal</th>
+              {LEVELS.map((l) => <th key={l.key} className="px-3 py-2">{l.label}</th>)}</tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {rows.map((r) => (
                 <tr key={r.code} className="hover:bg-neutral-50">
@@ -221,7 +221,7 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
           {([["none", tr("No Effect"), tr("The materials of the card do not change (Normal Sugar, Less Ice, a note …)")],
             ["adjust", tr("Change the Materials"), tr("Less or more of a material of the card, or an item added")]] as const).map(([k, label, hint]) => (
             <button key={k} type="button" role="radio" aria-checked={effect === k} onClick={() => setEffect(k)}
-              className={cx("rounded-xl border p-3 text-left transition", effect === k ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+              className={cx("rounded-md border p-3 text-left transition", effect === k ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
               <span className="flex items-center gap-2 text-sm font-semibold text-neutral-900">{effect === k && <Check size={15} className="text-brand-700" />}{label}</span>
               <span className="mt-0.5 block text-[11px] text-neutral-500">{hint}</span>
             </button>
@@ -237,7 +237,7 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
               ))}
             </div>
             {lines.map((l, i) => (
-              <div key={i} className="grid gap-2 rounded-xl border border-neutral-200 p-3 sm:grid-cols-[10rem_minmax(0,1fr)_9rem_7rem_auto] sm:items-center">
+              <div key={i} className="grid gap-2 rounded-md border border-neutral-200 p-3 sm:grid-cols-[10rem_minmax(0,1fr)_9rem_7rem_auto] sm:items-center">
                 <select className={cx(inputClass, "h-9")} value={l.target} aria-label={tr("Material")}
                   onChange={(e) => set(i, { target: e.target.value as RuleLine["target"], mode: e.target.value === "sugar" ? "pct" : l.mode, code: null })}>
                   <option value="sugar">{tr("Sugar of the card")}</option><option value="item">{tr("An item")}</option>
@@ -321,7 +321,7 @@ export function BomImport({ onClose, onDone }: { onClose: () => void; onDone: ()
           <div className="relative"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input autoFocus className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search BOM or product, e.g. Es Kopi Calf")} /></div>
           {error ? <ErrorState message={error} /> : !list ? <table className="w-full"><tbody><SkeletonRows cols={3} /></tbody></table> : list.length === 0 ? <Empty title={tr("No BOM matches")} /> : (
-            <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
               {list.slice(0, 80).map((b) => (
                 <li key={b.id}>
                   <button type="button" onClick={() => open(b)} className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-neutral-50">

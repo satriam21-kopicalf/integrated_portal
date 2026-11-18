@@ -89,7 +89,7 @@ function Row({ label, value, sign, strong }: { label: string; value: number; sig
 export function SlipSheet({ slip }: { slip: Slip }) {
   const e = slip.employee;
   return (
-    <div className="payslip mx-auto max-w-xl space-y-4 rounded-xl border border-neutral-200 bg-white p-5 text-sm">
+    <div className="payslip mx-auto max-w-xl space-y-4 rounded-md border border-neutral-200 bg-white p-5 text-sm">
       <div className="flex items-start justify-between gap-3 border-b border-neutral-200 pb-3">
         <div><p className="text-xs font-semibold uppercase tracking-wider text-brand-700">Calf On The Road</p>
           <p className="text-lg font-bold text-neutral-900">{tr("Payslip")}</p><p className="text-xs text-neutral-500">{monthText(slip.month)}</p></div>

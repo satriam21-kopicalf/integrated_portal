@@ -79,7 +79,7 @@ export default function NextCount({ upcoming }: { upcoming: Upcoming[] }) {
   const rest = upcoming.slice(1);
   return (
     <div className="space-y-4 px-4 py-4 sm:px-5">
-      <div className="overflow-hidden rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white">
+      <div className="overflow-hidden rounded-md border border-brand-200 bg-gradient-to-br from-brand-50 to-white">
         <div className="flex flex-wrap items-start gap-3 p-4">
           <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white"><CalendarClock size={20} /></span>
           <div className="min-w-0 flex-1">
@@ -98,7 +98,7 @@ export default function NextCount({ upcoming }: { upcoming: Upcoming[] }) {
         {next.areas && next.areas.length > 0 && <p className="px-4 pb-3 text-[11px] text-neutral-500">{tr("Areas")}: {next.areas.join(" · ")}</p>}
       </div>
 
-      <div className="rounded-xl border border-neutral-200 p-4">
+      <div className="rounded-md border border-neutral-200 p-4">
         <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Get ready")}</p>
         <ul className="mb-3 space-y-1.5 text-sm text-neutral-700">
           <li className="flex gap-2"><MapPin size={15} className="mt-0.5 flex-shrink-0 text-neutral-400" />{tr("Be at the branch when the window opens; the location is recorded when you start and submit.")}</li>

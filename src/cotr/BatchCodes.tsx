@@ -110,12 +110,12 @@ export function BatchCodes() {
           <EmptyState icon={<Tags />} title={tr("No batch codes in this period")} />
         ) : (
           <table className="m-cards w-full text-sm">
-            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Batch code")}</th><th className="px-3 py-2.5">{tr("Menu")}</th><th className="px-3 py-2.5">{tr("Produced")}</th>
-              <th className="px-3 py-2.5">{tr("Expiry")}</th><th className="px-3 py-2.5">{tr("Counted")}</th><th className="px-3 py-2.5 text-right">{tr("Left (last count)")}</th><th className="px-4 py-2.5">{tr("Per pool")}</th></tr></thead>
+            <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Batch code")}</th><th className="px-3 py-2.5">{tr("Menu")}</th><th className="px-3 py-2.5">{tr("Produced")}</th>
+              <th className="px-3 py-2.5">{tr("Expiry")}</th><th className="px-3 py-2.5">{tr("Counted")}</th><th className="px-3 py-2.5 text-right">{tr("Left (last count)")}</th><th className="px-3 py-2">{tr("Per pool")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {paged.rows.map((r) => (
                 <tr key={`${r.menu}:${r.batchNo}:${r.producedOn}`} className={r.status === "expired" && r.left > 0 ? "bg-red-50/40" : undefined}>
-                  <td className="px-4 py-2.5"><span className="font-mono font-semibold text-neutral-900">{r.batchNo}</span>
+                  <td className="px-3 py-2"><span className="font-mono font-semibold text-neutral-900">{r.batchNo}</span>
                     {r.sequence !== null && <span className="block text-[11px] text-neutral-500">{tr("Batch {0}", r.sequence)}</span>}</td>
                   <td className="px-3 py-2.5">{r.menuName}</td>
                   <td className="px-3 py-2.5 tabular-nums">{r.producedOn ? dmyOf(r.producedOn) : "—"}</td>
@@ -123,7 +123,7 @@ export function BatchCodes() {
                     <Badge tone={r.status === "expired" ? "red" : "green"}>{r.status === "expired" ? tr("Expired") : tr("Active")}</Badge></td>
                   <td className="px-3 py-2.5 text-xs text-neutral-600">{r.firstCounted === r.lastCounted ? dmyOf(r.firstCounted) : `${dmyOf(r.firstCounted)} – ${dmyOf(r.lastCounted)}`}</td>
                   <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{r.left}</td>
-                  <td className="px-4 py-2.5"><span className="flex flex-wrap gap-1">{r.pools.map((p) => (
+                  <td className="px-3 py-2"><span className="flex flex-wrap gap-1">{r.pools.map((p) => (
                     <button key={p.pool} type="button" onClick={() => setAdjust({ code: r, pool: p })} title={tr("Adjust the cups counted on {0}", dmyOf(p.day))}
                       className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-700 hover:bg-brand-50 hover:text-brand-700">
                       {p.poolName.replace(/^COTR /, "").replace(/ HUB$/, "")} · {p.qty}<PencilLine size={11} /></button>))}</span></td>

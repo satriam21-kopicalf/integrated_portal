@@ -85,7 +85,7 @@ export function SearchChoice({ label, anyLabel, options, value, onChange, placeh
   return (
     <fieldset>
       <legend className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tc(label)}</legend>
-      <div className="overflow-hidden rounded-xl border border-neutral-200">
+      <div className="overflow-hidden rounded-md border border-neutral-200">
         <div className="relative border-b border-neutral-100 p-2">
           <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={placeholder} className={`${inputClass} h-9 pl-8 text-sm`} aria-label={placeholder} />

@@ -76,12 +76,12 @@ function AccessoryUsage() {
     <Panel title={tr("Accessory Usage")} description={tr("What each driver carried on each shift (last 30 days), from the fleet at check in")}>
       {!rows ? <div className="p-4"><SkeletonList rows={3} /></div> : !rows.length ? <Empty icon={<Clock size={24} />} title={tr("No shift with accessories yet")} /> : (
         <div className="overflow-x-auto"><table className="w-full min-w-[720px] text-sm">
-          <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Day")}</th><th className="px-4 py-2.5">{tr("Driver")}</th><th className="px-4 py-2.5">{tr("Fleet")}</th>
-            <th className="px-4 py-2.5">{tr("Accessory")}</th><th className="px-4 py-2.5 text-right">{tr("Qty")}</th><th className="px-4 py-2.5">{tr("Used")}</th></tr></thead>
+          <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Day")}</th><th className="px-3 py-2">{tr("Driver")}</th><th className="px-3 py-2">{tr("Fleet")}</th>
+            <th className="px-3 py-2">{tr("Accessory")}</th><th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2">{tr("Used")}</th></tr></thead>
           <tbody className="divide-y divide-neutral-100">{rows.map((u) => (
-            <tr key={`${u.shift}:${u.code}`}><td className="px-4 py-2.5 whitespace-nowrap">{u.day}</td><td className="px-4 py-2.5">{u.driverName ?? u.driver}</td>
-              <td className="px-4 py-2.5">{u.fleet ?? "—"}</td><td className="px-4 py-2.5">{u.name}</td><td className="px-4 py-2.5 text-right tabular-nums">{u.qty}</td>
-              <td className="px-4 py-2.5 text-xs text-neutral-500">{u.startedAt ? wibDateTime(u.startedAt) : "—"} – {u.endedAt ? wibDateTime(u.endedAt) : tr("on the road")}</td></tr>))}
+            <tr key={`${u.shift}:${u.code}`}><td className="px-3 py-2 whitespace-nowrap">{u.day}</td><td className="px-3 py-2">{u.driverName ?? u.driver}</td>
+              <td className="px-3 py-2">{u.fleet ?? "—"}</td><td className="px-3 py-2">{u.name}</td><td className="px-3 py-2 text-right tabular-nums">{u.qty}</td>
+              <td className="px-3 py-2 text-xs text-neutral-500">{u.startedAt ? wibDateTime(u.startedAt) : "—"} – {u.endedAt ? wibDateTime(u.endedAt) : tr("on the road")}</td></tr>))}
           </tbody></table></div>
       )}
     </Panel>
@@ -116,7 +116,7 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
   return (
     <Drawer open onClose={onClose} icon={<Package size={18} />} title={tr("Accessories of {0}", fleet.code)} description={fleet.name || undefined}>
       <div className="space-y-4">
-        <section className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-3">
+        <section className="rounded-md border border-neutral-200 bg-neutral-50/60 p-3">
           <p className="mb-2 text-xs font-medium text-neutral-600">{tr("Put an accessory on this fleet: the item, how many and the day it is used from")}</p>
           <div className="grid gap-2 sm:grid-cols-[5rem_minmax(0,1fr)_auto]">
             <div className="min-w-0 sm:col-span-3"><SearchSelect value={pick} onChange={(v) => setPick(v ?? "")} placeholder={tr("Choose the accessory")}
@@ -127,7 +127,7 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
           </div>
         </section>
         {!rows ? <SkeletonList rows={3} /> : !on.length ? <Empty icon={<Package size={24} />} title={tr("No accessory on this fleet yet")} /> : (
-          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
+          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200">
             {on.map((r) => (
               <li key={r.id} className="flex items-center gap-3 px-3 py-2.5">
                 <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{r.name} <span className="tabular-nums text-neutral-500">× {r.qty} {r.unit}</span></span>
@@ -140,7 +140,7 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
           </ul>
         )}
         {off.length > 0 && (
-          <details className="rounded-xl border border-neutral-200 px-3 py-2 text-sm">
+          <details className="rounded-md border border-neutral-200 px-3 py-2 text-sm">
             <summary className="cursor-pointer text-xs font-medium text-neutral-600">{tr("Taken off before ({0})", off.length)}</summary>
             <ul className="mt-2 space-y-1 text-xs text-neutral-500">{off.map((r) => <li key={r.id}>{r.name} × {r.qty} · {r.assignedOn} – {r.removedOn}</li>)}</ul>
           </details>

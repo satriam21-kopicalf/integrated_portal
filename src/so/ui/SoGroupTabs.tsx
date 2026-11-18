@@ -55,17 +55,17 @@ export function SoGroupTabs({ value, onChange, counts }: { value: SoGroup; onCha
     { key: "periodic", label: tr("Weekly - Monthly Stock Opname"), short: tr("Weekly - Monthly"), icon: CalendarRange },
   ];
   return (
-    <div role="tablist" aria-label={tr("Stock opname")} className="grid grid-cols-2 gap-1 rounded-xl bg-neutral-100 p-1 sm:inline-grid sm:w-auto">
+    <div role="tablist" aria-label={tr("Stock opname")} className="inline-flex max-w-full flex-wrap gap-1">
       {tabs.map(({ key, label, short, icon: Icon }) => {
         const on = key === value;
         return (
           <button key={key} type="button" role="tab" aria-selected={on} onClick={() => onChange(key)}
-            className={cx("flex min-w-0 items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors sm:px-4",
-              on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800")}>
-            <Icon size={15} className={on ? "text-brand-700" : undefined} />
+            className={cx("flex min-w-0 items-center gap-1.5 rounded-[4px] border px-2.5 py-1 text-xs font-medium transition-colors",
+              on ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
+            <Icon size={13} />
             <span className="truncate sm:hidden">{short}</span><span className="hidden truncate sm:inline">{label}</span>
             {counts?.[key] !== undefined && (
-              <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-brand-50 text-brand-700" : "bg-neutral-200 text-neutral-600")}>{counts[key]}</span>
+              <span className={cx("tabular-nums", on ? "text-white/70" : "text-neutral-400")}>{counts[key]}</span>
             )}
           </button>
         );

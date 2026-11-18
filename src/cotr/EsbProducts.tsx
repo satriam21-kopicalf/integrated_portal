@@ -42,8 +42,8 @@ export function EsbProducts({ menus, onSaved }: { menus: Menu[]; onSaved: () => 
       actions={rows ? (open ? <Badge tone="amber">{tr("{0} not mapped", open)}</Badge> : <Badge tone="green">{tr("All mapped")}</Badge>) : undefined}>
       {!rows ? <SkeletonTable cols={4} /> : (
         <table className="m-cards w-full text-sm">
-          <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("ESB product")}</th><th className="px-3 py-2.5 text-right">{tr("Lines")}</th>
-            <th className="px-3 py-2.5">{tr("Last seen")}</th><th className="px-4 py-2.5">{tr("Counts as menu")}</th></tr></thead>
+          <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("ESB product")}</th><th className="px-3 py-2.5 text-right">{tr("Lines")}</th>
+            <th className="px-3 py-2.5">{tr("Last seen")}</th><th className="px-3 py-2">{tr("Counts as menu")}</th></tr></thead>
           <tbody className="divide-y divide-neutral-100">
             {rows.map((p) => {
               const byHand = menus.some((m) => (m.esb_aliases ?? []).includes(p.key));

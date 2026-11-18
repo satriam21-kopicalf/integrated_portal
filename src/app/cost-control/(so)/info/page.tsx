@@ -55,7 +55,7 @@ function HealthCard({ card }: { card: Card }) {
   const s = STATUS[card.status];
   const items = card.items ?? [];
   return (
-    <section className="flex flex-col rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <section className="flex flex-col rounded-md border border-neutral-200 bg-white shadow-sm">
       <div className="flex items-start gap-3 p-4">
         <span className={cx('flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border [&>svg]:h-4.5 [&>svg]:w-4.5', s.tone)}>{s.icon}</span>
         <div className="min-w-0 flex-1">

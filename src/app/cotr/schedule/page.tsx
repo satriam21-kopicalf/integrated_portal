@@ -206,7 +206,7 @@ function RosterView() {
                 const n = filled(d);
                 return (
                   <button key={d} type="button" onClick={() => setDay(d)} aria-pressed={on}
-                    className={cx("flex min-w-[3.6rem] flex-shrink-0 flex-col items-center rounded-xl border px-2 py-1.5",
+                    className={cx("flex min-w-[3.6rem] flex-shrink-0 flex-col items-center rounded-md border px-2 py-1.5",
                       on ? "border-brand-600 bg-brand-600 text-white" : d === today ? "border-brand-200 bg-brand-50 text-brand-800" : "border-neutral-200 bg-white text-neutral-700")}>
                     <span className="text-[10px] font-semibold uppercase">{dayLabel(d, { weekday: "short" })}</span>
                     <span className="text-lg font-bold leading-tight tabular-nums">{dayLabel(d, { day: "numeric" })}</span>
@@ -322,7 +322,7 @@ function RosterView() {
       {data && people.length > 0 && sum && (
         <Panel title={tr("Recap of the Week")} description={tr("Days scheduled and worked, on time, late and absent, base pay: the reference of the incentives")}>
           <table className="m-cards w-full text-sm">
-            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Name")}</th>
+            <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Name")}</th>
               {[tr("Scheduled"), tr("Worked"), tr("On Time"), tr("Late"), tr("Absent"), tr("Off"), tr("Leave"), tr("Sick"), tr("Base Pay")].map((h) => <th key={h} className="px-3 py-2.5 text-right">{h}</th>)}</tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {people.map((p) => { const r = recap(p.code); return (

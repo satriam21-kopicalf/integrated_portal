@@ -86,7 +86,7 @@ export default function PengajuanForm() {
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && (
-            <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <div className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
               <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{tr("Fund request {0} sent", sent.number ?? "")}</p>
@@ -124,7 +124,7 @@ export default function PengajuanForm() {
                 <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={tr("Kind of Request")}>
                   {KINDS.map((k) => (
                     <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
-                      className={cx("rounded-xl border px-3 py-2.5 text-left transition-colors", k === "PETTY_CASH" && "sm:col-span-2",
+                      className={cx("rounded-md border px-3 py-2.5 text-left transition-colors", k === "PETTY_CASH" && "sm:col-span-2",
                         kind === k ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500" : "border-neutral-200 bg-white hover:bg-neutral-50")}>
                       <span className="block text-sm font-semibold text-neutral-900">{kindLabel(k)}{k !== "PETTY_CASH" && <span className="ml-1.5 text-[11px] font-medium text-neutral-400">{tr("Budget")}</span>}</span>
                       <span className="block text-xs text-neutral-500">{KIND_HINT[k]()}</span>
@@ -138,7 +138,7 @@ export default function PengajuanForm() {
           </section>
 
           {editable.length > 0 && (
-            <section className="rounded-xl border border-amber-200 bg-white shadow-sm">
+            <section className="rounded-md border border-amber-200 bg-white shadow-sm">
               <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("To finish ({0})", editable.length)}</p>
               <ul className="divide-y divide-neutral-100">
                 {editable.map((d) => (
@@ -392,7 +392,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
       <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-6">
         {revision && (
-          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             <p className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} /> {tr("Sent back for a revision by {0}", revision.actor ?? "—")}</p>
             <p className="mt-1 whitespace-pre-line">{revision.note}</p>
             {rejectedLines.length > 0 && <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs">{rejectedLines.map((l) => <li key={l.id}>{l.description}: {l.reviewNote}</li>)}</ul>}
@@ -460,7 +460,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           aside={<span className="text-sm font-semibold tabular-nums text-neutral-900">{fmtRp(totalOut)}</span>}>
           <ul className="space-y-3">
             {local.lines.map((l, i) => (
-              <li key={l.key} className="rounded-xl border border-neutral-200 p-3">
+              <li key={l.key} className="rounded-md border border-neutral-200 p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-semibold text-neutral-500">{lineWord} {i + 1}</span>
                   <button type="button" onClick={() => removeLine(l.key)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Expense")}><Trash2 size={15} /></button>

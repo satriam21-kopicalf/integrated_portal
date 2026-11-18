@@ -53,7 +53,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
     <Drawer open onClose={onClose} title={tr('Transaction Detail')} icon={<Receipt />} focusFirstField={false}
       description={<span className="font-mono">{tx.sales_num}</span>}>
           {/* Total */}
-          <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4">
+          <div className="mb-6 rounded-md border border-neutral-200 bg-neutral-50 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyle(tx.status)}`}>
                 {tx.status || tr('Unknown')}

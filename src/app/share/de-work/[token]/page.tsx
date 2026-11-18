@@ -90,7 +90,7 @@ function Work() {
       {error ? <PublicError message={error} /> : !w ? <PublicLoading /> : (
         <div className="space-y-4 pb-24">
           {sent ? (
-            <section className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <section className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4">
               <CheckCircle2 size={22} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <div>
                 <p className="font-semibold text-emerald-900">{tr("Photos sent")}</p>
@@ -98,7 +98,7 @@ function Work() {
               </div>
             </section>
           ) : (
-            <section className={cx("grid grid-cols-3 divide-x overflow-hidden rounded-xl border bg-white shadow-sm", expired ? "border-red-200 divide-red-100" : "border-neutral-200 divide-neutral-100")}>
+            <section className={cx("grid grid-cols-3 divide-x overflow-hidden rounded-md border bg-white shadow-sm", expired ? "border-red-200 divide-red-100" : "border-neutral-200 divide-neutral-100")}>
               <div className="px-3 py-3 text-center">
                 <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Link valid")}</p>
                 <p className={cx("mt-0.5 inline-flex items-center gap-1 font-mono text-lg font-semibold tabular-nums", expired ? "text-red-600" : left !== null && left < 600000 ? "text-amber-600" : "text-neutral-900")}>
@@ -150,7 +150,7 @@ function Work() {
               {!locked && w.photos.length < w.max && (
                 <li>
                   <button type="button" onClick={() => setCamera(true)}
-                    className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-brand-300 bg-brand-50/50 text-sm font-medium text-brand-700 hover:bg-brand-50">
+                    className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed border-brand-300 bg-brand-50/50 text-sm font-medium text-brand-700 hover:bg-brand-50">
                     {w.photos.length ? <ImagePlus size={22} /> : <Camera size={22} />}{w.photos.length ? tr("Add photo") : tr("Take Photo")}
                   </button>
                 </li>

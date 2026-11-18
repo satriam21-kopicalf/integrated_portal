@@ -81,7 +81,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
             </Field>
           )}
           <Field label={tr('Excel File (.xlsx)')} required>
-            <label className="flex h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-neutral-300 px-3 text-sm text-neutral-600 hover:bg-neutral-50 lg:h-10">
+            <label className="flex h-11 cursor-pointer items-center gap-2 rounded-md border border-dashed border-neutral-300 px-3 text-sm text-neutral-600 hover:bg-neutral-50 lg:h-10">
               <Upload size={16} /> <span className="truncate">{name || tr('Choose a file')}</span>
               <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => void pick(e.target.files?.[0])} />
             </label>
@@ -104,7 +104,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
                 ))}
               </div>
             )}
-            <div className="max-h-[28rem] overflow-auto rounded-xl border border-neutral-200">
+            <div className="max-h-[28rem] overflow-auto rounded-md border border-neutral-200">
               {team ? (
                 <table className="m-cards w-full min-w-[720px] text-sm">
                   <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Employee')}</th><th className="px-3 py-2">{tr('Department')}</th><th className="px-3 py-2">{tr('Pool / HUB')}</th>
@@ -139,7 +139,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
               )}
             </div>
             {!!result.skipped?.length && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
                 <p className="font-semibold">{tr('Left out')}</p>
                 <ul className="mt-1 space-y-0.5">{result.skipped.slice(0, 20).map((r) => <li key={r.employeeId}>{r.employeeId} · {r.name}: {r.reason}</li>)}</ul>
               </div>

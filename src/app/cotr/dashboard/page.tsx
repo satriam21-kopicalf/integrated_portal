@@ -99,13 +99,13 @@ export default function CotrDashboardPage() {
             <Panel className="min-w-0 lg:col-span-2" title={tr("Pools / HUBs")} description={tr("The figures of the day per pool, as Pool Product Stock: the workbook first, else ESB, else the app")}>
               {!data ? <SkeletonTable cols={8} /> : (
                 <table className="m-cards w-full text-sm">
-                  <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5 text-right">{tr("Sold")}</th>
+                  <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Pool / HUB")}</th><th className="px-3 py-2.5 text-right">{tr("Sold")}</th>
                     <th className="px-3 py-2.5 text-right">{tr("Arrived")}</th><th className="px-3 py-2.5 text-right">{tr("Waste")}</th><th className="px-3 py-2.5 text-right">{tr("Cupping")}</th>
-                    <th className="px-3 py-2.5 text-right">{tr("Leftover")}</th><th className="px-3 py-2.5 text-right">{tr("Balance")}</th><th className="px-4 py-2.5">{tr("14 days")}</th></tr></thead>
+                    <th className="px-3 py-2.5 text-right">{tr("Leftover")}</th><th className="px-3 py-2.5 text-right">{tr("Balance")}</th><th className="px-3 py-2">{tr("14 days")}</th></tr></thead>
                   <tbody className="divide-y divide-neutral-100">
                     {data.pools.map((p) => (
                       <tr key={p.pool} className="hover:bg-neutral-50">
-                        <td className="px-4 py-2.5"><span className="font-medium text-neutral-900">{p.name}</span>{" "}
+                        <td className="px-3 py-2"><span className="font-medium text-neutral-900">{p.name}</span>{" "}
                           {p.source ? <Badge tone={SOURCE[p.source].tone}>{SOURCE[p.source].label()}</Badge> : <Badge tone="slate">{tr("No figures")}</Badge>}</td>
                         <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{n(p.sold)}</td>
                         <td className="px-3 py-2.5 text-right tabular-nums">{n(p.arrived)}</td>
@@ -113,7 +113,7 @@ export default function CotrDashboardPage() {
                         <td className="px-3 py-2.5 text-right tabular-nums">{n(p.cupping)}</td>
                         <td className="px-3 py-2.5 text-right tabular-nums">{n(p.actual)}</td>
                         <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${p.balance ? "text-red-700" : "text-neutral-400"}`}>{p.balance ? (p.balance > 0 ? `+${p.balance}` : p.balance) : p.balance === 0 ? "0" : "—"}</td>
-                        <td className="px-4 py-2.5"><Spark rows={p.series} /></td>
+                        <td className="px-3 py-2"><Spark rows={p.series} /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -166,8 +166,8 @@ function Drivers({ rows }: { rows: DriverDay[] }) {
   return (
     <>
       <table className="m-cards w-full text-sm">
-        <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">#</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th>
-          <th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-4 py-2.5 text-right">{tr("Sales")}</th></tr></thead>
+        <thead className={kcTable.thead}><tr><th className="px-3 py-2">#</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th>
+          <th className="px-3 py-2.5 text-right">{tr("Cups")}</th><th className="px-3 py-2 text-right">{tr("Sales")}</th></tr></thead>
         <tbody className="divide-y divide-neutral-100">
           {paged.rows.map((d, i) => (
             <tr key={`${d.code ?? d.name}:${d.pool}`} className="hover:bg-neutral-50">

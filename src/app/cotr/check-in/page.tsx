@@ -134,12 +134,12 @@ function Shifts({ data }: { data: Monitor }) {
   const count = (c: Card) => data.shifts.filter((s) => c === "all" || (c === "open" ? s.status === "open" : c === "closed" ? s.status === "closed" : attention(s))).length;
   return (
     <>
-      <div role="radiogroup" aria-label={tr("Show")} className="flex max-w-full gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1 [scrollbar-width:none]">
+      <div role="radiogroup" aria-label={tr("Show")} className="inline-flex max-w-full flex-wrap gap-1">
         {([["all", tr("All")], ["open", tr("On the road")], ["closed", tr("Shift ended")], ["attention", tr("Needs attention")]] as [Card, string][]).map(([k, label]) => (
           <button key={k} type="button" role="radio" aria-checked={show === k} onClick={() => setShow(k)}
-            className={cx("flex h-9 flex-1 flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-xs font-semibold sm:text-sm",
-              show === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800")}>
-            {label}<span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", show === k ? "bg-brand-50 text-brand-700" : "bg-white/70 text-neutral-500")}>{count(k)}</span>
+            className={cx("flex items-center gap-1.5 whitespace-nowrap rounded-[4px] border px-2.5 py-1 text-xs font-medium",
+              show === k ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
+            {label}<span className={cx("tabular-nums", show === k ? "text-white/70" : "text-neutral-400")}>{count(k)}</span>
           </button>
         ))}
       </div>
@@ -272,7 +272,7 @@ function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
         <Block title={tr("Check In & Check Out")}>
           <div className="grid gap-3 sm:grid-cols-2">
             {s.checkIns.map((c) => (
-              <section key={c.id} className="rounded-xl border border-neutral-200 p-3">
+              <section key={c.id} className="rounded-md border border-neutral-200 p-3">
                 <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
                   {c.kind === "start" ? <LogIn size={14} /> : <LogOut size={14} />}{c.kind === "start" ? tr("Start of shift") : tr("End of shift")}
                   <span className="ml-auto font-normal tabular-nums text-neutral-500">{time(c.at)}</span></p>
@@ -293,7 +293,7 @@ function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
                 )}
               </section>
             ))}
-            {s.checkIns.length === 1 && <p className="flex items-center justify-center rounded-xl border border-dashed border-neutral-200 p-3 text-xs text-neutral-400">{tr("Not checked out yet")}</p>}
+            {s.checkIns.length === 1 && <p className="flex items-center justify-center rounded-md border border-dashed border-neutral-200 p-3 text-xs text-neutral-400">{tr("Not checked out yet")}</p>}
           </div>
         </Block>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -355,7 +355,7 @@ function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-3.5">
+    <section className="rounded-md border border-neutral-200 bg-white p-3.5">
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{title}</p>
       {children}
     </section>

@@ -225,7 +225,7 @@ export default function LoginPage() {
 
 function inputClass(invalid: boolean) {
   return (
-    'h-12 w-full rounded-xl border bg-white pl-10 pr-3 text-base text-neutral-900 lg:h-11 lg:rounded-lg lg:text-sm placeholder:text-neutral-400 transition-colors ' +
+    'h-12 w-full rounded-md border bg-white pl-10 pr-3 text-base text-neutral-900 lg:h-11 lg:rounded-lg lg:text-sm placeholder:text-neutral-400 transition-colors ' +
     'focus:outline-none focus:ring-4 ' +
     (invalid
       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'

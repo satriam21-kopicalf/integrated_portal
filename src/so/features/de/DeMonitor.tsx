@@ -566,11 +566,11 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
         <div className="space-y-4">
           <RequestHero r={r} compact />
           <div role="tablist" aria-label={tr("Sections")}>
-            <div className="grid grid-cols-3 gap-1 rounded-xl bg-neutral-100 p-1">
+            <div className="flex gap-5 border-b border-neutral-200">
               {tabs.map(([k, label, count]) => (
                 <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-                  className={cx("inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium", tab === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
-                  {label}{count !== null && <span className="rounded-full bg-neutral-200 px-1.5 text-[11px] tabular-nums text-neutral-600">{count}</span>}
+                  className={cx("-mb-px inline-flex items-center gap-1.5 border-b-2 pb-2 text-sm font-medium", tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
+                  {label}{count !== null && <span className="rounded-full bg-neutral-100 px-1.5 text-[11px] tabular-nums text-neutral-500">{count}</span>}
                 </button>
               ))}
             </div>
@@ -921,13 +921,13 @@ function TechniciansDrawer({ groups, onClose }: { groups: string[]; /** after a 
         <Empty icon={<Users size={28} />} title={tr("No technician yet")}>{tr("Add the internal and vendor technicians who do the work.")}</Empty>
       ) : (
         <div className="space-y-3">
-        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 text-center">
+        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-md border border-neutral-200 bg-neutral-200 text-center">
           <div className="bg-white px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Active")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.filter((t) => t.isActive).length}</dd></div>
           <div className="bg-white px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Jobs in progress")}</dt><dd className="text-lg font-semibold tabular-nums">{rows.reduce((a, t) => a + t.activeJobs, 0)}</dd></div>
           <div className="bg-white px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Pay per month")}</dt>
             <dd className="text-sm font-semibold tabular-nums">{fmtRp(rows.filter((t) => t.isActive).reduce((a, t) => a + monthlyPay(t), 0))}</dd></div>
         </dl>
-        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
           {rows.map((t) => (
             <li key={t.id} className={cx("px-4 py-3", !t.isActive && "bg-neutral-50 opacity-70")}>
               <div className="flex items-start gap-3">
@@ -1024,7 +1024,7 @@ function CategoriesDrawer({ kind, bgroups, onClose }: { kind: Kind; bgroups: Gro
       ) : !rows ? <SkeletonList rows={5} /> : (
         <div className="space-y-3">
           {groups.map((g) => (
-            <section key={g} className="rounded-xl border border-neutral-200">
+            <section key={g} className="rounded-md border border-neutral-200">
               <p className="border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{g}</p>
               <ul className="divide-y divide-neutral-100">
                 {rows.filter((c) => c.group === g).map((c) => (
@@ -1071,7 +1071,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   const laborTotal = work.reduce((a, x) => a + (x.amount ?? 0), 0);
   const diff = r.estCost !== null && r.actualCost !== null ? r.actualCost - r.estCost : null;
   const form = line && (
-    <div className="space-y-2 rounded-xl border border-brand-200 bg-brand-50/40 p-3">
+    <div className="space-y-2 rounded-md border border-brand-200 bg-brand-50/40 p-3">
       <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_5rem]">
         <JSelect value={line.kind} onChange={(v) => setLine({ ...line, kind: v as CostKind })} label={tr("Kind of Cost")} placeholder={tr("Kind of Cost")}
           options={(Object.keys(COST_KIND_LABEL) as CostKind[]).map((k) => ({ value: k, label: COST_KIND_LABEL[k]() }))} />
@@ -1093,7 +1093,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   );
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-xl border border-neutral-200">
+      <div className="overflow-hidden rounded-md border border-neutral-200">
         <table className="m-cards w-full text-xs">
           <thead className={theadClass}>
             <tr><th className="px-3 py-2">{tr("Description")}</th><th className="hidden px-2 py-2 text-right sm:table-cell">Qty</th>
@@ -1145,7 +1145,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
         </table>
       </div>
       {labor && (
-        <div className="space-y-2 rounded-xl border border-violet-200 bg-violet-50/40 p-3">
+        <div className="space-y-2 rounded-md border border-violet-200 bg-violet-50/40 p-3">
           <p className="text-xs font-semibold text-violet-900">{tr("Adjust the labour")} · {work.find((x) => x.assignmentId === labor.id)?.technician}</p>
           <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_auto]">
             <input value={labor.amount} onChange={(e) => setLabor({ ...labor, amount: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white text-right text-sm tabular-nums")} aria-label={tr("Labour (Rp)")} />
@@ -1228,7 +1228,7 @@ function DeApprovals({ onClose }: { onClose: () => void }) {
                 onDown={i < steps.length - 1 ? () => { const l = [...steps]; [l[i + 1], l[i]] = [l[i], l[i + 1]]; setSteps(l); } : undefined}
                 onRemove={() => setSteps(steps.filter((_, j) => j !== i))} />
             ))}
-            {!steps.length && <li className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-center text-sm text-neutral-500">{tr("No approval step: any monitoring account accepts")}</li>}
+            {!steps.length && <li className="rounded-md border border-dashed border-neutral-300 px-3 py-4 text-center text-sm text-neutral-500">{tr("No approval step: any monitoring account accepts")}</li>}
             {edit && steps.length < 8 && (
               <li><Button variant="secondary" className="w-full" onClick={() => setSteps([...steps, { label: tr("Approval {0}", steps.length + 1), type: "APPROVE", userIds: [] }])}>
                 {tr("Add approval step")}</Button></li>

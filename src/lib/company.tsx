@@ -109,13 +109,13 @@ export function CompanySwitch({ className = '', extra = [], value, onChange }: {
   if (tabs.length < 2) return null;
   const shown = value ?? company;
   return (
-    <div role="radiogroup" aria-label="Brand" className={`flex max-w-full rounded-xl bg-neutral-100 p-1 sm:inline-flex ${className}`}>
+    <div role="radiogroup" aria-label="Brand" className={`inline-flex max-w-full gap-1 ${className}`}>
       {tabs.map(c => {
         const on = c.code === shown;
         return (
           <button key={c.code} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
-            className={`flex h-9 min-w-0 flex-1 items-center justify-center rounded-lg px-3 transition-colors sm:w-24 sm:flex-none ${
-              on ? 'bg-white shadow-sm ring-1 ring-neutral-200' : 'hover:bg-white/60'}`}>
+            className={`flex h-8 w-20 min-w-0 items-center justify-center rounded-[4px] border px-2 transition-colors ${
+              on ? 'border-brand-700 bg-white ring-1 ring-brand-700' : 'border-neutral-200 bg-neutral-50 hover:bg-neutral-100'}`}>
             {/* the logo only (2026-11-02); the name is the label */}
             {LOGOS[c.code]
               // eslint-disable-next-line @next/next/no-img-element

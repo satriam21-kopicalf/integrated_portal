@@ -202,10 +202,10 @@ export default function ReviewDetailPage() {
         </StatGrid>
 
         {count.review_note && (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"><span className="font-semibold">{tr("Review Note")}:</span> {count.review_note}</p>
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"><span className="font-semibold">{tr("Review Note")}:</span> {count.review_note}</p>
         )}
 
-        <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm">
           <button type="button" onClick={() => setPlaces((v) => !v)} aria-expanded={places}
             className="flex w-full flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
             <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><MapPin size={16} /></span>
@@ -243,7 +243,7 @@ export default function ReviewDetailPage() {
         </section>
 
         {reviewable && (
-          <p className="flex items-start gap-2 rounded-xl border border-brand-100 bg-brand-50/60 px-4 py-3 text-[13px] text-brand-900">
+          <p className="flex items-start gap-2 rounded-md border border-brand-100 bg-brand-50/60 px-4 py-3 text-[13px] text-brand-900">
             <RotateCcw size={15} className="mt-0.5 flex-shrink-0" />
             <span>{tr("Tick a material to have it counted again by hand (its premix grams stay), or tick a premix to have only the premix counted again (only its grams change). Nothing ticked: every item is asked again.")}</span>
           </p>
@@ -325,14 +325,14 @@ export default function ReviewDetailPage() {
                 <table className="w-full min-w-[760px] text-sm">
                   <thead className={kcTable.thead}>
                     <tr>
-                      {reviewable && <th className="w-12 px-4 py-2.5"><span className="sr-only">{tr("Recount")}</span></th>}
+                      {reviewable && <th className="w-12 px-3 py-2"><span className="sr-only">{tr("Recount")}</span></th>}
                       <SortTh k="item" sort={sort} onSort={toggle}>{tr("Item")}</SortTh>
                       <SortTh k="area" sort={sort} onSort={toggle}>{tr("Area")}</SortTh>
                       <SortTh k="counted" sort={sort} onSort={toggle} align="right" first="desc">{tr("Counted")}</SortTh>
                       {dateFields.length > 0 && <SortTh k="date" sort={sort} onSort={toggle}>{dateFields.length === 1 ? DATE_FIELD_LABEL[dateFields[0]]() : tr("Date")}</SortTh>}
                       <SortTh k="by" sort={sort} onSort={toggle}>{tr("Counted by")}</SortTh>
                       <SortTh k="check" sort={sort} onSort={toggle} first="desc">{tr("Check")}</SortTh>
-                      {correctable && <th className="w-24 px-4 py-2.5" />}
+                      {correctable && <th className="w-24 px-3 py-2" />}
                     </tr>
                   </thead>
                   <tbody className={kcTable.tbody}>
@@ -341,23 +341,23 @@ export default function ReviewDetailPage() {
                       return (
                         <tr key={l.id} className={cx("align-top transition-colors hover:bg-neutral-50", !l.is_current && "bg-neutral-50 text-neutral-400", picked.has(l.id) && "bg-brand-50/50")}>
                           {reviewable && (
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2">
                               {l.is_current && <input type="checkbox" className="h-[18px] w-[18px] cursor-pointer rounded border-neutral-300 accent-brand-700" checked={picked.has(l.id)}
                                 onChange={() => togglePick(l.id)} aria-label={tr("Select {0}", l.item_name)} />}
                             </td>
                           )}
-                          <td className="max-w-[20rem] px-4 py-3"><ItemName l={l} /></td>
-                          <td className="px-4 py-3 text-xs text-neutral-500">{l.area}</td>
-                          <td className="whitespace-nowrap px-4 py-3 text-right"><Qty l={l} count={count} right /></td>
+                          <td className="max-w-[20rem] px-3 py-2"><ItemName l={l} /></td>
+                          <td className="px-3 py-2 text-xs text-neutral-500">{l.area}</td>
+                          <td className="whitespace-nowrap px-3 py-2 text-right"><Qty l={l} count={count} right /></td>
                           {dateFields.length > 0 && (
-                            <td className="whitespace-nowrap px-4 py-3 text-xs tabular-nums text-neutral-700">
+                            <td className="whitespace-nowrap px-3 py-2 text-xs tabular-nums text-neutral-700">
                               {df && l[df] ? fmtDay(l[df]!) : <span className="text-neutral-300">—</span>}
                               {df && dateFields.length > 1 && <span className="block text-[10px] text-neutral-400">{DATE_FIELD_LABEL[df]()}</span>}
                             </td>
                           )}
-                          <td className="px-4 py-3 text-xs text-neutral-500">{l.counted_by_name ?? "—"}{l.counted_at && <span className="block">{fmtDate(l.counted_at)}</span>}</td>
-                          <td className="px-4 py-3"><LineMarks l={l} inline /></td>
-                          {correctable && <td className="px-4 py-3 text-right">{l.is_current && <CorrectButton onClick={() => fixLine(l)} label={tr("Correct {0}", l.item_name)} />}</td>}
+                          <td className="px-3 py-2 text-xs text-neutral-500">{l.counted_by_name ?? "—"}{l.counted_at && <span className="block">{fmtDate(l.counted_at)}</span>}</td>
+                          <td className="px-3 py-2"><LineMarks l={l} inline /></td>
+                          {correctable && <td className="px-3 py-2 text-right">{l.is_current && <CorrectButton onClick={() => fixLine(l)} label={tr("Correct {0}", l.item_name)} />}</td>}
                         </tr>
                       );
                     })}
@@ -495,7 +495,7 @@ function FlowBanner({ count, reviewable }: { count: Count; reviewable: boolean }
   };
   const t = text[count.status] ?? text.IN_PROGRESS;
   return (
-    <section className={cx("rounded-xl border px-4 py-3.5", t.tone)} aria-label={tr("Flow of the Count")}>
+    <section className={cx("rounded-md border px-4 py-3.5", t.tone)} aria-label={tr("Flow of the Count")}>
       <p className="text-sm font-semibold">{t.title}</p>
       <p className="mt-0.5 text-[13px] opacity-90">{t.body}</p>
       {at >= 0 && (
@@ -610,7 +610,7 @@ function MarksLegend() {
     [<Badge key="k" tone="blue">{tr("Corrected by Cost Control")}</Badge>, tr("The quantity was changed by Cost Control, with a note.")],
   ];
   return (
-    <details className="group mx-4 mt-3 rounded-xl border border-neutral-200 bg-neutral-50/60 px-3 py-2 text-xs text-neutral-600 sm:mx-5">
+    <details className="group mx-4 mt-3 rounded-md border border-neutral-200 bg-neutral-50/60 px-3 py-2 text-xs text-neutral-600 sm:mx-5">
       <summary className="flex cursor-pointer list-none items-center gap-1.5 font-semibold text-neutral-700">
         <InfoIcon size={14} className="text-brand-700" /> {tr("What the marks mean")}
         <ChevronDown size={14} className="ml-auto transition-transform group-open:rotate-180" />

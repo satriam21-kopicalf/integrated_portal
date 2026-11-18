@@ -163,11 +163,11 @@ export default function TypesPage() {
       }>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <div className="space-y-5">
-          <div className="rounded-xl border border-neutral-200/80 bg-white p-3 shadow-sm sm:p-4">
+          <div className="rounded-md border border-neutral-200/80 bg-white p-3 shadow-sm sm:p-4">
             <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search count type")} filters={chips}
               onOpen={() => setSheet(true)} onClear={() => setTf(TF_EMPTY)} />
           </div>
-          {rows && shownTypes.length === 0 && <p className="rounded-xl border border-dashed border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500">{tr("Nothing matches the search or filters")}</p>}
+          {rows && shownTypes.length === 0 && <p className="rounded-md border border-dashed border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-500">{tr("Nothing matches the search or filters")}</p>}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {rows === null ? <SkeletonList rows={4} /> : paged.rows.map((t) => (
               <TypeCard key={t.code} t={t} color={colorOf(t.code)} onOpen={() => setOpen(t)} />
@@ -204,7 +204,7 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
     ? `${t.valid_from ? fmtDate(t.valid_from) : tr("now")} – ${t.valid_to ? fmtDate(t.valid_to) : tr("no end")}` : tr("Always");
   return (
     <button type="button" onClick={onOpen}
-      className={cx("group flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:border-brand-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
+      className={cx("group flex h-full w-full flex-col overflow-hidden rounded-md border bg-white text-left shadow-sm transition hover:border-brand-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
         t.is_active ? "border-neutral-200" : "border-dashed border-neutral-300 bg-neutral-50/60")}>
       <span className={cx("h-1 w-full", t.is_active ? color : "bg-neutral-300")} aria-hidden />
       <span className="flex items-start gap-3 px-4 pb-3 pt-3.5">
@@ -467,7 +467,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
           </FormCard>
         )}
 
-        <section className="rounded-xl border border-neutral-200/80 bg-white">
+        <section className="rounded-md border border-neutral-200/80 bg-white">
           <button type="button" onClick={() => setMore((v) => !v)} aria-expanded={more}
             className="flex w-full items-center justify-between px-4 py-3 text-left">
             <span>

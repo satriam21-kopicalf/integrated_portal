@@ -86,13 +86,13 @@ export default function ComparePage() {
                 <tbody className="divide-y divide-neutral-100">
                   {rows === null ? <SkeletonRows cols={6} /> : all.map((r) => (
                     <tr key={r.count_id} className="group hover:bg-neutral-50/70">
-                      <td className="px-4 py-3"><Link href={`/cost-control/esb-compare/${r.count_id}`} className="block font-medium text-neutral-900 group-hover:text-brand-700">{r.facility_name}</Link>
+                      <td className="px-3 py-2"><Link href={`/cost-control/esb-compare/${r.count_id}`} className="block font-medium text-neutral-900 group-hover:text-brand-700">{r.facility_name}</Link>
                         <span className="block font-mono text-[11px] text-neutral-400">{r.number}</span></td>
-                      <td className="px-4 py-3 text-neutral-700">{countTypeLabel(r.count_type)}<span className="block text-xs text-neutral-400">{fmtDay(r.business_date)}</span></td>
-                      <td className="px-4 py-3 font-mono text-xs text-neutral-600">{r.esb_doc ?? "—"}</td>
-                      <td className="px-4 py-3"><Badge tone={(COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH).tone}>{(COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH).label()}</Badge></td>
-                      <td className="px-4 py-3 text-right tabular-nums">{r.mismatches ?? "—"}</td>
-                      <td className="px-4 py-3 text-right tabular-nums">{rp(r.variance_value)}</td>
+                      <td className="px-3 py-2 text-neutral-700">{countTypeLabel(r.count_type)}<span className="block text-xs text-neutral-400">{fmtDay(r.business_date)}</span></td>
+                      <td className="px-3 py-2 font-mono text-xs text-neutral-600">{r.esb_doc ?? "—"}</td>
+                      <td className="px-3 py-2"><Badge tone={(COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH).tone}>{(COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH).label()}</Badge></td>
+                      <td className="px-3 py-2 text-right tabular-nums">{r.mismatches ?? "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{rp(r.variance_value)}</td>
                     </tr>
                   ))}
                 </tbody>

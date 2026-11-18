@@ -40,7 +40,7 @@ export function Picker({ value, options, onPick, placeholder }: {
         <ChevronDown size={15} className="flex-shrink-0 text-neutral-400" />
       </button>
       {open && (
-        <div className="absolute left-0 z-30 mt-1 w-[min(26rem,85vw)] overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl">
+        <div className="absolute left-0 z-30 mt-1 w-[min(26rem,85vw)] overflow-hidden rounded-md border border-neutral-200 bg-white shadow-xl">
           <div className="relative border-b border-neutral-100 p-2">
             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search name or code")} className={cx(searchClass, "h-9 pl-8")} />

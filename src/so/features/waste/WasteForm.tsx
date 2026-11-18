@@ -285,7 +285,7 @@ export default function WasteForm() {
                 <label className="flex items-center gap-2 text-xs text-neutral-600">
                   <input type="checkbox" checked={onlyFilled} onChange={(e) => setOnlyFilled(e.target.checked)} />{tr("Show filled SKUs only")}
                 </label>
-                <div className="max-h-[560px] overflow-auto rounded-xl border border-neutral-200">
+                <div className="max-h-[560px] overflow-auto rounded-md border border-neutral-200">
                   <table className="w-full text-sm">
                     <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
                       <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{scope === "premix" ? tr("Premix/WIP name") : tr("Product name")}</th>
@@ -414,7 +414,7 @@ export default function WasteForm() {
                       <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                       <input className={cx(searchClass, "pl-9")} value={usageSearch} onChange={(e) => setUsageSearch(e.target.value)} placeholder={tr("Search the item name or code")} />
                     </div>
-                    <div className="max-h-[460px] overflow-auto rounded-xl border border-neutral-200">
+                    <div className="max-h-[460px] overflow-auto rounded-md border border-neutral-200">
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 text-left text-xs font-semibold capitalize text-neutral-500">
                           <tr><th className="w-10 px-2 py-2 text-right">No</th><th className="px-2 py-2">{tr("Product Name")}</th>

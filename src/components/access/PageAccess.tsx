@@ -126,7 +126,7 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
               return (
                 <li key={p.key} className="min-w-0">
                   {/* 2026-11-16: the page name in full (it wraps, never cut), the app badges and state on a second line */}
-                  <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition-colors ${
+                  <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2.5 text-sm transition-colors ${
                     exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-neutral-200 hover:bg-neutral-50'}`}>
                     <input type="checkbox" checked={on} onChange={() => toggle(p.key)} disabled={!!limit && !on && !limit.includes(p.key)}
                       title={limit && !on && !limit.includes(p.key) ? tr('Only pages you open yourself can be given') : undefined} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-neutral-300 text-brand-700 disabled:opacity-40" />
@@ -190,7 +190,7 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
         dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft(saved)} />
       {!draft ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
-          <div className="overflow-x-auto rounded-xl border border-neutral-200">
+          <div className="overflow-x-auto rounded-md border border-neutral-200">
             <table className="w-full min-w-[600px] text-sm">
               <thead className={kcTable.thead}>
                 <tr>
@@ -312,7 +312,7 @@ export function MenuDisplay({ hidden, onChange }: { hidden: string[]; onChange: 
           <ul className="grid gap-1 sm:grid-cols-2">
             {g.pages.map(p => (
               <li key={p.key}>
-                <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 text-sm ${hidden.includes(p.key) ? 'border-neutral-200 bg-neutral-50 text-neutral-400' : 'border-neutral-200 hover:bg-neutral-50'}`}>
+                <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2.5 text-sm ${hidden.includes(p.key) ? 'border-neutral-200 bg-neutral-50 text-neutral-400' : 'border-neutral-200 hover:bg-neutral-50'}`}>
                   <input type="checkbox" checked={!hidden.includes(p.key)} onChange={() => toggle(p.key)} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-neutral-300 text-brand-700" />
                   <span className="min-w-0 flex-1 break-words font-medium leading-snug">{p.label}</span>
                 </label>
@@ -382,7 +382,7 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
         dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft({})} />
       {message && <p className={`mb-3 rounded-lg px-3 py-2 text-xs ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
       {!pages ? <SkeletonList rows={5} /> : (
-        <div className="overflow-x-auto rounded-xl border border-neutral-200">
+        <div className="overflow-x-auto rounded-md border border-neutral-200">
           <table className="w-full min-w-[560px] text-sm">
             <thead className={kcTable.thead}>
               <tr><th className="min-w-[11rem] px-3 py-2.5">{tr('Page')}</th>{ALL_PLATFORMS.map(k => <th key={k} className="w-28 px-3 py-2.5 text-center">{PLATFORM_LABEL[k]}</th>)}<th className="w-10" /></tr>

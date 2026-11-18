@@ -83,11 +83,11 @@ export function DriverNames() {
       {data && data.tied.length > 0 && (
         <Panel title={tr("Names tied by hand")} description={tr("Removing a tie lets the next import match the name by itself again; the rows already imported keep their driver.")}>
           <table className="m-cards w-full text-sm">
-            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Name in the workbook")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="w-12 px-3 py-2.5" /></tr></thead>
+            <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Name in the workbook")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="w-12 px-3 py-2.5" /></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {tiedPage.rows.map((t) => (
                 <tr key={`${t.pool}:${t.label}`}>
-                  <td className="px-4 py-2.5 font-mono text-xs font-semibold text-neutral-900">{t.label}</td>
+                  <td className="px-3 py-2 font-mono text-xs font-semibold text-neutral-900">{t.label}</td>
                   <td className="px-3 py-2.5">{t.poolName}</td>
                   <td className="px-3 py-2.5">{t.ignored ? <Badge tone="slate">{tr("Not a driver")}</Badge> : <span className="font-medium">{t.driverName ?? t.driver}</span>}</td>
                   <td className="px-3 py-2.5 text-right"><button type="button" onClick={() => void untie(t)} aria-label={tr("Remove")} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button></td>

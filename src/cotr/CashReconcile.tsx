@@ -83,9 +83,9 @@ export function CashReconcile() {
           <EmptyState icon={<Scale />} title={only === "diff" ? tr("No cash differences in this period") : tr("Nothing in this period")} />
         ) : (
           <table className="m-cards w-full text-sm">
-            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Date")}</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Sales")}</th>
+            <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Date")}</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="px-3 py-2.5 text-right">{tr("Sales")}</th>
               <th className="px-3 py-2.5 text-right">QRIS</th><th className="px-3 py-2.5 text-right">{tr("Operational")}</th><th className="px-3 py-2.5 text-right">{tr("Cash expected")}</th>
-              <th className="px-3 py-2.5 text-right">{tr("Cash counted")}</th><th className="px-4 py-2.5 text-right">{tr("Difference")}</th></tr></thead>
+              <th className="px-3 py-2.5 text-right">{tr("Cash counted")}</th><th className="px-3 py-2 text-right">{tr("Difference")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {paged.rows.map((r) => (
                 <tr key={r.key} className="hover:bg-neutral-50">

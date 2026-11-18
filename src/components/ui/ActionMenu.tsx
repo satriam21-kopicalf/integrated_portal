@@ -88,7 +88,7 @@ export default function ActionMenu({ items, label = tr('Actions') }: { items: Ac
           ref={menu}
           role="menu"
           style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999, width: MENU_WIDTH }}
-          className="fixed z-[80] overflow-hidden rounded-xl border border-neutral-200/80 bg-white p-1 shadow-xl"
+          className="fixed z-[80] overflow-hidden rounded-md border border-neutral-200/80 bg-white p-1 shadow-xl"
         >
           {items.map(item => (
             <div key={item.label}>

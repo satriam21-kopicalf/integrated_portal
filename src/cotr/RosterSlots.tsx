@@ -65,7 +65,7 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
         <p className="text-xs text-neutral-500">{tr("Split the day into slots: each slot sends the driver to an area for a time. Pick a shift template to fill the times, then change them if needed.")}</p>
         <ol className="space-y-3">
           {slots.map((s, i) => (
-            <li key={i} className="rounded-xl border border-neutral-200 bg-white p-3">
+            <li key={i} className="rounded-md border border-neutral-200 bg-white p-3">
               <div className="mb-2 flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-50 text-[11px] font-bold text-brand-700 ring-1 ring-brand-200">{i + 1}</span>
                 <span className="text-sm font-semibold text-neutral-900">{tr("Slot {0}", i + 1)}</span>

@@ -215,7 +215,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
       }>
       <div className="mx-auto max-w-5xl space-y-4">
         {openVisit && (
-          <section className="flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+          <section className="flex items-start gap-3 rounded-md border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
             <Clock size={18} className="mt-0.5 flex-shrink-0 text-brand-700" />
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{tr("At {0} since {1}", openVisit.branchName, wibTime(openVisit.visitedAt))}</p>
@@ -246,7 +246,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
           </section>
         )}
         {!outMode && Object.keys(data.today ?? {}).length > 0 && (
-          <section className={cx("flex items-start gap-3 rounded-xl border px-4 py-3 text-sm", allDone ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-neutral-200 bg-white text-neutral-700")}>
+          <section className={cx("flex items-start gap-3 rounded-md border px-4 py-3 text-sm", allDone ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-neutral-200 bg-white text-neutral-700")}>
             <CheckCircle2 size={18} className={cx("mt-0.5 flex-shrink-0", allDone ? "text-emerald-600" : "text-emerald-500")} />
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{allDone ? tr("You have checked in today") : tr("Checked in today")}</p>
@@ -382,7 +382,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 )}
               </Card>
 
-              <section className={cx("rounded-xl border bg-white p-4 shadow-sm sm:p-5", outside ? "border-red-200" : "border-neutral-200")}>
+              <section className={cx("rounded-md border bg-white p-4 shadow-sm sm:p-5", outside ? "border-red-200" : "border-neutral-200")}>
                 <label htmlFor="pic-note" className="text-sm font-semibold text-neutral-900">
                   {outside ? <>{outMode ? tr("Reason for clocking out outside the radius") : tr("Reason for checking in outside the radius")} <span className="font-normal text-red-600">({tr("required")})</span></>
                     : <>{tr("Note")} <span className="font-normal text-neutral-400">({tr("optional")})</span></>}
@@ -462,7 +462,7 @@ function PhotoGuide() {
     { icon: <Lightbulb size={15} />, title: tr("Inside the outlet"), text: tr("Not in front of a plain wall or outside the outlet, so the visit can be verified") },
   ];
   return (
-    <div className="rounded-xl border border-brand-100 bg-brand-50/60 p-3">
+    <div className="rounded-md border border-brand-100 bg-brand-50/60 p-3">
       <p className="mb-2 text-xs font-semibold text-brand-900">{tr("For a valid check-in photo")}</p>
       <ul className="grid gap-2 sm:grid-cols-3">
         {tips.map((t) => (
@@ -509,7 +509,7 @@ function SuccessScreen({ c, out = false, onClose, onDetail }: { c: CheckIn; out?
           <p className="mt-1 text-sm text-neutral-600">{c.branchName}</p>
           {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
           <img src={thumb(photoUrl(c.id, !!o), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-xl object-cover shadow-md ring-4 ring-white" />
-          <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-neutral-100 rounded-xl border border-neutral-200/80 bg-white text-left">
+          <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-neutral-100 rounded-md border border-neutral-200/80 bg-white text-left">
             <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Time")}</dt>
               <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Clock size={13} className="text-neutral-400" />{wibTime(o ? o.at : c.visitedAt)} WIB</dd></div>
             <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Location")}</dt>
@@ -545,7 +545,7 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
             {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
             <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="aspect-[3/4] w-full rounded-xl bg-neutral-100 object-cover ring-1 ring-neutral-200" />
           </a>
-          <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+          <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
             <Row k={tr("Outlet")} v={c.branchName} />
             <Row k={tr("Visit Time")} v={wibDateTime(c.visitedAt)} />
             <Row k={tr("Distance")} v={<span className={c.outsideRadius ? "text-amber-700" : undefined}>{c.distanceM !== null ? `${c.distanceM} m` : "—"}{c.radiusM != null ? ` / ${tr("radius {0} m", c.radiusM)}` : ""}</span>} />
@@ -555,7 +555,7 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
         </div>
         {c.note && <p className="flex items-start gap-2 rounded-xl bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700"><MessageSquareText size={15} className="mt-0.5 flex-shrink-0 text-neutral-400" />{c.note}</p>}
         {c.clockOut !== undefined && (
-          <section className="rounded-xl border border-neutral-200 px-4 py-3">
+          <section className="rounded-md border border-neutral-200 px-4 py-3">
             <p className="text-xs font-semibold capitalize text-neutral-500">{tr("Clock Out")}</p>
             {c.clockOut ? (
               <div className="mt-2 grid gap-3 sm:grid-cols-[6rem_minmax(0,1fr)]">
@@ -573,7 +573,7 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
             ) : <p className="mt-1 text-sm text-neutral-600">{tr("Not clocked out yet")}</p>}
           </section>
         )}
-        <section className={cx("rounded-xl border px-4 py-3",
+        <section className={cx("rounded-md border px-4 py-3",
           c.review?.status === "valid" ? "border-emerald-200 bg-emerald-50" : c.review?.status === "invalid" ? "border-red-200 bg-red-50" : "border-neutral-200 bg-white")}>
           <p className="text-xs font-semibold capitalize text-neutral-500">{tr("Management review")}</p>
           {c.review ? (

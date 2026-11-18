@@ -63,7 +63,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         </div>
       }>
       <div className="space-y-5">
-        <section className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm sm:grid-cols-3">
+        <section className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4 text-sm sm:grid-cols-3">
           <Info k={tr("Branch")} v={`${count.facility_name} (${count.facility_code})`} />
           <Info k={tr("Count type")} v={countTypeLabel(count.count_type, count.count_type_name)} />
           <Info k={tr("Count day")} v={fmtDay(count.business_date)} />
@@ -79,7 +79,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
           </h3>
           <div className="space-y-3">
             {areas.map(([area, lines]) => (
-              <div key={area} className="overflow-hidden rounded-xl border border-neutral-200">
+              <div key={area} className="overflow-hidden rounded-md border border-neutral-200">
                 <p className="border-b border-neutral-100 bg-neutral-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{area} · {lines.length}</p>
                 <ul className="divide-y divide-neutral-100 text-sm">
                   {lines.map((l) => (
@@ -100,7 +100,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         {wip.length > 0 && (
           <section>
             <h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("WIP / Premix")}</h3>
-            <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
               {wip.map((w) => (
                 <li key={w.id} className="flex justify-between gap-3 px-3 py-2">
                   <span className="min-w-0 truncate text-neutral-800">{w.name}</span>
@@ -114,7 +114,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         <section>
           <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Images size={16} className="text-neutral-500" /> {tr("Evidence Photos")} <span className="font-normal text-neutral-500">({count.photos.length})</span></h3>
           {count.photos.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No evidence photos. They are optional; go back to the count to take some.")}</p>
+            <p className="rounded-md border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No evidence photos. They are optional; go back to the count to take some.")}</p>
           ) : (
             <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {count.photos.map((p) => (
@@ -130,11 +130,11 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         <section>
           <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Paperclip size={16} className="text-neutral-500" /> {tr("Evidence Files")} <span className="font-normal text-neutral-500">({count.files?.length ?? 0})</span></h3>
           {count.files?.length ? <CountFileList files={count.files} /> : (
-            <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No files attached. They are optional; go back to the count to attach some.")}</p>
+            <p className="rounded-md border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No files attached. They are optional; go back to the count to attach some.")}</p>
           )}
         </section>
 
-        <section className="rounded-xl border border-neutral-200 p-4">
+        <section className="rounded-md border border-neutral-200 p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900"><PenLine size={16} className="text-neutral-500" /> {tr("Signature")} <span className="font-normal text-neutral-500">({tr("optional")})</span></h3>
           <p className="mb-3 mt-0.5 text-xs text-neutral-500">{tr("By signing, I confirm the quantities above are what was physically counted.")}</p>
           <SignaturePad onChange={setSignature} />

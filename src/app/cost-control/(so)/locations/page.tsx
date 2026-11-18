@@ -117,7 +117,7 @@ export default function LocationsPage() {
                   <SortTh k="coords" sort={sorted.sort} onSort={sorted.toggle}>{tr("Coordinates")}</SortTh>
                   <SortTh k="radius" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Radius")}</SortTh>
                   <SortTh k="start" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Latest Stock Opname Start")}</SortTh>
-                  <th className="w-24 px-4 py-2.5" />
+                  <th className="w-24 px-3 py-2" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
@@ -126,11 +126,11 @@ export default function LocationsPage() {
                   const off = ls && located(r) ? distance([Number(r.latitude), Number(r.longitude)], [ls.start_lat, ls.start_lng]) : null;
                   return (
                     <tr key={r.id} className="hover:bg-neutral-50/70">
-                      <td className="max-w-[18rem] px-4 py-3">
+                      <td className="max-w-[18rem] px-3 py-2">
                         <span className="block truncate font-medium text-neutral-900">{r.name}</span>
                         <span className="block text-xs text-neutral-400">{r.code} · {r.facility_type}</span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         {located(r) ? (
                           <a href={mapsUrl(r.latitude!, r.longitude!)} target="_blank" rel="noreferrer"
                             className="inline-flex items-center gap-1 font-mono text-xs text-brand-700 hover:underline">
@@ -138,8 +138,8 @@ export default function LocationsPage() {
                           </a>
                         ) : <Badge tone="amber" icon={<MapPinOff size={11} />}>{tr("Not set")}</Badge>}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-neutral-700">{r.radius_m} m</td>
-                      <td className="px-4 py-3 text-xs text-neutral-600">
+                      <td className="px-3 py-2 text-right tabular-nums text-neutral-700">{r.radius_m} m</td>
+                      <td className="px-3 py-2 text-xs text-neutral-600">
                         {ls ? (
                           <>
                             <a href={mapsUrl(ls.start_lat, ls.start_lng)} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">
@@ -151,7 +151,7 @@ export default function LocationsPage() {
                           </>
                         ) : <span className="text-neutral-400">—</span>}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-3 py-2 text-right">
                         <Button variant="secondary" size="sm" onClick={() => setEdit(r)}><Pencil size={13} /> {tr("Set")}</Button>
                       </td>
                     </tr>

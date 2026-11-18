@@ -91,7 +91,7 @@ export function DataSources({ keys, className }: { keys: string[]; className?: s
   const cards = keys.map((k) => data.cards.find((c) => c.key === k)).filter((c): c is Card => !!c);
   if (!cards.length) return null;
   return (
-    <Link href="/cost-control/info" className={cx('mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-xs text-neutral-600 shadow-sm hover:border-brand-200 hover:bg-brand-50/40', className)}>
+    <Link href="/cost-control/info" className={cx('mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-md border border-neutral-200 bg-white px-3.5 py-2 text-xs text-neutral-600 shadow-sm hover:border-brand-200 hover:bg-brand-50/40', className)}>
       <span className="flex items-center gap-1.5 font-semibold text-neutral-800"><Database size={13} aria-hidden /> {tr('Data sources')}</span>
       {cards.map((c) => {
         const d = describe(c);

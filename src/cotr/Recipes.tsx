@@ -135,8 +135,8 @@ export function RecipesTab() {
         actions={<Badge tone={covered === active.length ? 'green' : 'amber'}>{tr('{0} of {1} menus', covered, active.length)}</Badge>}>
         {active.length === 0 ? <Empty title={tr('No active menu yet')} /> : (
           <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm">
-            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr('Menu')}</th><th className="px-4 py-2.5 text-right">{tr('Price')}</th><th className="px-4 py-2.5">{tr('Recipe Card')}</th>
-              <th className="px-4 py-2.5 text-right">HPP</th><th className="px-4 py-2.5 text-right">{tr('Margin')}</th><th className="w-32 px-4 py-2.5" /></tr></thead>
+            <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr('Menu')}</th><th className="px-3 py-2 text-right">{tr('Price')}</th><th className="px-3 py-2">{tr('Recipe Card')}</th>
+              <th className="px-3 py-2 text-right">HPP</th><th className="px-3 py-2 text-right">{tr('Margin')}</th><th className="w-32 px-3 py-2" /></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {active.map((m) => {
                 const card = rows.find((b) => b.code === m.bom_code);
@@ -144,13 +144,13 @@ export function RecipesTab() {
                 const margin = hpp !== null ? m.price - hpp : null;
                 return (
                   <tr key={m.code} className={card ? '' : 'bg-amber-50/40'}>
-                    <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{m.name}</span><span className="text-[11px] text-neutral-400">{m.code}</span></td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{rupiah(m.price)}</td>
-                    <td className="px-4 py-2.5">{card ? <Badge tone="green" dot>{tr('{0} components', card.lines.length)}</Badge> : <Badge tone="amber">{tr('No card yet')}</Badge>}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{hpp === null ? '—' : rupiah(hpp)}</td>
+                    <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{m.name}</span><span className="text-[11px] text-neutral-400">{m.code}</span></td>
+                    <td className="px-3 py-2 text-right tabular-nums">{rupiah(m.price)}</td>
+                    <td className="px-3 py-2">{card ? <Badge tone="green" dot>{tr('{0} components', card.lines.length)}</Badge> : <Badge tone="amber">{tr('No card yet')}</Badge>}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{hpp === null ? '—' : rupiah(hpp)}</td>
                     <td className={cx('px-4 py-2.5 text-right tabular-nums', margin === null ? 'text-neutral-400' : margin < 0 ? 'text-red-700' : 'text-emerald-700')}>
                       {margin === null ? '—' : `${rupiah(margin)} · ${Math.round((margin / (m.price || 1)) * 100)}%`}</td>
-                    <td className="px-4 py-2.5 text-right">{card
+                    <td className="px-3 py-2 text-right">{card
                       ? <Button size="sm" variant="secondary" onClick={() => { setCode(card.code); setView('list'); }}>{tr('Edit card')}</Button>
                       : <Button size="sm" loading={making === m.code} onClick={() => void makeCard(m)}><Plus size={14} /> {tr('Make Card')}</Button>}</td>
                   </tr>
@@ -298,7 +298,7 @@ export function CalculatorTab() {
       <Panel title={tr('Raw Materials Needed')} description={tr('Total per material, rounded up')}>
         {result.length === 0 ? <Empty icon={<Calculator size={26} />} title={tr('Add a Row Above')} /> : (
           <table className="m-cards w-full text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Material')}</th><th className="px-4 py-2.5 text-right">{tr('Qty')}</th><th className="px-4 py-2.5 text-right">{tr('Packs')}</th></tr></thead>
+            <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Material')}</th><th className="px-3 py-2 text-right">{tr('Qty')}</th><th className="px-3 py-2 text-right">{tr('Packs')}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {result.map((r) => (
                 <tr key={r.code}>
@@ -384,7 +384,7 @@ export function UsageTab() {
               </p>
             )}
             <table className="m-cards w-full text-sm">
-              <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Menu')}</th><th className="px-4 py-2.5 text-right">{tr('Sold')}</th><th className="px-4 py-2.5 text-right">{tr('Waste')}</th><th className="px-4 py-2.5 text-right">{tr('Cupping')}</th></tr></thead>
+              <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Menu')}</th><th className="px-3 py-2 text-right">{tr('Sold')}</th><th className="px-3 py-2 text-right">{tr('Waste')}</th><th className="px-3 py-2 text-right">{tr('Cupping')}</th></tr></thead>
               <tbody className="divide-y divide-neutral-100">
                 {data.menus.map((m) => (
                   <tr key={m.code}><td className="px-4 py-2">{m.name} {!m.bom && <Badge tone="amber">{tr('No recipe yet')}</Badge>}</td>
@@ -399,7 +399,7 @@ export function UsageTab() {
       {data && data.items.length > 0 && (
         <Panel title={tr('Items Used')} description={value ? `${tr('Value')}: ${rupiah(value)}` : undefined}>
           <table className="m-cards w-full text-sm">
-            <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr('Item')}</th><th className="px-4 py-2.5 text-right">{tr('Sold')}</th><th className="px-4 py-2.5 text-right">{tr('Waste')}</th><th className="px-4 py-2.5 text-right">{tr('Cupping')}</th><th className="px-4 py-2.5 text-right">{tr('Total')}</th><th className="px-4 py-2.5 text-right">{tr('Value')}</th></tr></thead>
+            <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Item')}</th><th className="px-3 py-2 text-right">{tr('Sold')}</th><th className="px-3 py-2 text-right">{tr('Waste')}</th><th className="px-3 py-2 text-right">{tr('Cupping')}</th><th className="px-3 py-2 text-right">{tr('Total')}</th><th className="px-3 py-2 text-right">{tr('Value')}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {data.items.map((r) => (
                 <tr key={r.item}>

@@ -124,7 +124,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
   const petty = p.kind === "PETTY_CASH";
   return (
     <div className="space-y-5">
-      <section className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+      <section className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
         <Steps p={p} />
         {petty && <Balances p={p} />}
         <div className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
@@ -162,13 +162,13 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-neutral-200 p-3 text-sm">
+        <div className="rounded-md border border-neutral-200 p-3 text-sm">
           <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><Landmark size={12} /> {tr("Transfer to")}</p>
           <p className="font-semibold text-neutral-900">{p.payeeBank ?? "—"} · <span className="tabular-nums">{p.payeeAccount ?? "—"}</span></p>
           <p className="text-neutral-600">a/n {p.payeeName ?? "—"}</p>
         </div>
         {!petty && (
-          <div className="rounded-xl border border-neutral-200 p-3 text-sm">
+          <div className="rounded-md border border-neutral-200 p-3 text-sm">
             <p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{tr("Purpose")}</p>
             <p className="whitespace-pre-line text-neutral-800">{p.purpose ?? "—"}</p>
           </div>
@@ -182,7 +182,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
 
       {petty && <section>
         <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><ArrowDownLeft size={15} className="text-emerald-600" /> {tr("Money in")}</h3>
-        <div className="rounded-xl border border-neutral-200 p-3 text-sm">
+        <div className="rounded-md border border-neutral-200 p-3 text-sm">
           <p className="font-semibold tabular-nums text-neutral-900">{fmtRp(p.incomeAmount)}</p>
           {p.incomeNote && <p className="mt-0.5 text-neutral-600">{p.incomeNote}</p>}
           {income.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{income.map((f) => <FileChip key={f.id} f={f} />)}</div>}
@@ -192,7 +192,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
       <section>
         <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><ArrowUpRight size={15} className="text-red-600" /> {petty || p.kind === "EMERGENCY" ? tr("Money out ({0})", lines.length) : tr("Cost details ({0})", lines.length)}
           <span className="ml-auto text-sm tabular-nums">{fmtRp(p.totalOut)}</span></h3>
-        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
           {lines.map((l, i) => (
             <li key={l.id ?? i} className={cx("px-3 py-3", l.review === "REJECTED" && "bg-red-50/50")}>
               <div className="flex items-start gap-2.5">
@@ -230,7 +230,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
           </div>
           <p className="mt-1 text-[11px] text-neutral-500">{tr("Purchases the outlet entered in ESB from {0} to {1}; a difference means an expense not in ESB or the other way round.", wibDay(p.purchaseDocs.from), wibDay(p.purchaseDocs.to))}</p>
           {p.purchaseDocs.docs.length > 0 ? (
-            <ul className="mt-2 max-h-56 divide-y divide-neutral-100 overflow-auto rounded-xl border border-neutral-200 text-xs">
+            <ul className="mt-2 max-h-56 divide-y divide-neutral-100 overflow-auto rounded-md border border-neutral-200 text-xs">
               {p.purchaseDocs.docs.map((d) => (
                 <li key={d.number} className="flex items-center justify-between gap-2 px-3 py-1.5">
                   <span className="min-w-0 truncate"><span className="font-mono text-neutral-500">{d.number}</span> · {wibDay(d.date)}{d.supplier ? ` · ${d.supplier}` : ""}</span>

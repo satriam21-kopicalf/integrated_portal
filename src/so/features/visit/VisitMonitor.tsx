@@ -569,7 +569,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
               <section key={g.key} className="space-y-2">
                 <p className="px-1 text-xs font-semibold capitalize text-brand-700">{tl(g, "title")} <span className="font-normal normal-case text-neutral-400">· {tl(g, "subtitle")}</span></p>
                 {sections.map((sec) => (
-                  <div key={sec.key} className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-sm">
+                  <div key={sec.key} className="overflow-hidden rounded-md border border-neutral-200/80 bg-white shadow-sm">
                     <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 bg-neutral-50/60 px-4 py-2.5">
                       <p className="min-w-0 flex-1 text-sm font-semibold text-neutral-900">{tl(sec, "title")} <span className="font-normal text-neutral-400">· {tr("{0} items", sec.items.length)}</span></p>
                       {(() => {

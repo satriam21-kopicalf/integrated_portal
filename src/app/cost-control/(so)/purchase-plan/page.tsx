@@ -143,14 +143,14 @@ function BufferTab({ data, onSaved, onOpen }: { data: Buffers | null; onSaved: (
                     {o ? <Badge tone="blue">{tr('Set by Cost Control')}</Badge> : <Badge tone="slate">{tr('Recommended')}</Badge>}
                     {r.notes.map((n) => <span key={n} className="mt-1 flex items-start gap-1 text-[11px] leading-snug text-amber-700"><AlertTriangle size={11} className="mt-0.5 flex-shrink-0" aria-hidden /><span>{NOTE[n]?.() ?? n}</span></span>)}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums"><span className="font-semibold">{r.used.coverDays}</span>{mark(!!o?.coverDays)}
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-semibold">{r.used.coverDays}</span>{mark(!!o?.coverDays)}
                     <span className="block text-[11px] text-neutral-400">{r.basis.cover === 'gr' ? tr('{0} GR days · median {1}', r.basis.grDays.length, num(r.basis.medianGap, 1)) : tr('default')}</span></td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums"><span className="font-semibold">{pct(r.used.lossPct)}</span>{mark(o?.lossPct != null)}
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-semibold">{pct(r.used.lossPct)}</span>{mark(o?.lossPct != null)}
                     <span className="block text-[11px] text-neutral-400" title={tr('waste {0} of {1}', rp(r.basis.wasteValue), rp(r.basis.usageValue))}>{tr('waste {0}', rp(r.basis.wasteValue))}</span></td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums"><span className="font-semibold">{pct(r.used.safetyPct)}</span>{mark(o?.safetyPct != null)}
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-semibold">{pct(r.used.safetyPct)}</span>{mark(o?.safetyPct != null)}
                     <span className="block text-[11px] text-neutral-400" title={r.basis.salesMean ? tr('swing {0} of {1} a day', pct((r.basis.salesStdev ?? 0) / r.basis.salesMean * 100), rp(r.basis.salesMean)) : undefined}>
                       {r.basis.salesMean ? tr('sales swing {0}', pct((r.basis.salesStdev ?? 0) / r.basis.salesMean * 100)) : '—'}</span></td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right text-base font-semibold tabular-nums text-neutral-900">{pct(r.used.bufferPct)}
+                  <td className="whitespace-nowrap px-3 py-2 text-right text-base font-semibold tabular-nums text-neutral-900">{pct(r.used.bufferPct)}
                     {o && <span className="block text-[11px] font-normal text-neutral-400">{tr('recommended {0}', pct(r.recommended.bufferPct))}</span>}</td>
                   <td className="whitespace-nowrap py-2.5 pl-2 pr-5 text-right">
                     <div className="flex justify-end gap-1">
@@ -292,17 +292,17 @@ function PlanTab({ branch, setBranch, outlets }: { branch: string; setBranch: (b
       {error ? <ErrorState message={error} /> : !summary ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table>
         : !summary.data.length ? <Empty icon={<ShoppingCart size={26} />} title={tr('No estimate yet')} /> : (
           <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm">
-            <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr('Outlet')}</th><th className="px-4 py-2.5 text-right">{tr('Cover days')}</th>
-              <th className="px-4 py-2.5 text-right">{tr('Buffer %')}</th><th className="px-4 py-2.5 text-right">{tr('Materials to order')}</th>
-              <th className="px-4 py-2.5 text-right">{tr('Estimate')}</th><th className="px-4 py-2.5">{tr('Stock from')}</th></tr></thead>
+            <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr('Outlet')}</th><th className="px-3 py-2 text-right">{tr('Cover days')}</th>
+              <th className="px-3 py-2 text-right">{tr('Buffer %')}</th><th className="px-3 py-2 text-right">{tr('Materials to order')}</th>
+              <th className="px-3 py-2 text-right">{tr('Estimate')}</th><th className="px-3 py-2">{tr('Stock from')}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">{sumPaged.rows.map((r) => (
               <tr key={r.branchCode} className="hover:bg-neutral-50/70">
                 <td className="max-w-[18rem] py-2.5 pl-5 pr-3"><button type="button" onClick={() => setBranch(r.branchCode)} className="block max-w-full truncate text-left font-medium text-neutral-900 hover:text-brand-700">{r.branchName}</button></td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{r.coverDays}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{pct(r.bufferPct)}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{r.items}{r.unpriced > 0 && <span className="block text-[11px] text-amber-700">{tr('{0} no price', r.unpriced)}</span>}</td>
-                <td className="px-4 py-2.5 text-right font-semibold tabular-nums">{rp(r.value)}</td>
-                <td className="px-4 py-2.5 text-xs text-neutral-500">{r.so ? <>{tr('SO {0}', dmy(r.so.date))}{!r.so.final && <Badge tone="amber">{tr('SO not approved')}</Badge>}</> : <Badge tone="amber">{tr('No portal SO')}</Badge>}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{r.coverDays}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{pct(r.bufferPct)}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{r.items}{r.unpriced > 0 && <span className="block text-[11px] text-amber-700">{tr('{0} no price', r.unpriced)}</span>}</td>
+                <td className="px-3 py-2 text-right font-semibold tabular-nums">{rp(r.value)}</td>
+                <td className="px-3 py-2 text-xs text-neutral-500">{r.so ? <>{tr('SO {0}', dmy(r.so.date))}{!r.so.final && <Badge tone="amber">{tr('SO not approved')}</Badge>}</> : <Badge tone="amber">{tr('No portal SO')}</Badge>}</td>
               </tr>))}</tbody>
           </table></div>)}
       {sheetEl}
@@ -348,12 +348,12 @@ function PlanTab({ branch, setBranch, outlets }: { branch: string; setBranch: (b
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => (
                 <tr key={r.code} className="hover:bg-neutral-50/70">
                   <td className="max-w-[18rem] py-2.5 pl-5 pr-3"><span className="block truncate font-medium text-neutral-900">{r.name ?? r.code}</span><span className="text-[11px] text-neutral-400">{r.code} · {r.unit}</span></td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{num(r.perDay)}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{num(r.required)}</td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{num(r.perDay)}</td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{num(r.required)}</td>
                   <td className={cx('whitespace-nowrap px-4 py-2.5 text-right tabular-nums', !r.stockKnown && 'text-amber-700')}>{r.stockKnown ? num(r.stock) : tr('not in the SO')}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold tabular-nums">{num(r.toOrder)}
+                  <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums">{num(r.toOrder)}
                     {r.packs != null && r.packUom && <span className="block text-[11px] font-normal text-neutral-500">{tr('{0} × {1}', r.packs, r.packUom)}</span>}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right tabular-nums">{rp(r.value)}
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rp(r.value)}
                     {r.priceSource === 'esb' && <span className="block text-[11px] text-amber-700">{tr('ESB HPP')}</span>}</td>
                 </tr>))}</tbody>
             </table></div>)}
@@ -365,7 +365,7 @@ function PlanTab({ branch, setBranch, outlets }: { branch: string; setBranch: (b
 
 function MiniStat({ icon, label, value, hint, warn }: { icon: React.ReactNode; label: string; value: string; hint?: string; warn?: boolean }) {
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3">
+    <div className="rounded-md border border-neutral-200 bg-white px-4 py-3">
       <p className="flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-500">{icon}{label}</p>
       <p className="mt-1 truncate text-lg font-semibold tabular-nums text-neutral-900">{value}</p>
       {hint && <p className={cx('text-xs', warn ? 'text-amber-700' : 'text-neutral-500')}>{hint}</p>}
@@ -404,13 +404,13 @@ function AccuracyTab({ branch, setBranch, outlets }: { branch: string; setBranch
                 {score(res.vsActual, tr('Against the actual usage'), res.hasCounts ? tr('no priced material') : tr('needs an SO at both ends of the test weeks'))}
               </div>
               <div className="overflow-x-auto"><table className="w-full min-w-[720px] text-sm">
-                <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr('Material')}</th><th className="px-4 py-2.5 text-right">{tr('Estimate')}</th>
-                  <th className="px-4 py-2.5 text-right">{tr('System usage')}</th><th className="px-4 py-2.5 text-right">{tr('Actual usage')}</th><th className="px-4 py-2.5 text-right">{tr('Difference')}</th></tr></thead>
+                <thead className={theadClass}><tr><th className="py-2.5 pl-5 pr-3">{tr('Material')}</th><th className="px-3 py-2 text-right">{tr('Estimate')}</th>
+                  <th className="px-3 py-2 text-right">{tr('System usage')}</th><th className="px-3 py-2 text-right">{tr('Actual usage')}</th><th className="px-3 py-2 text-right">{tr('Difference')}</th></tr></thead>
                 <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => (
                   <tr key={r.code}><td className="py-2.5 pl-5 pr-3"><span className="block font-medium text-neutral-900">{r.name ?? r.code}</span><span className="text-[11px] text-neutral-400">{r.code} · {r.unit}</span></td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{num(r.forecast)}</td><td className="px-4 py-2.5 text-right tabular-nums">{num(r.system)}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{num(r.actual)}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{r.price ? rp((r.forecast - r.system) * r.price) : '—'}</td></tr>))}</tbody>
+                    <td className="px-3 py-2 text-right tabular-nums">{num(r.forecast)}</td><td className="px-3 py-2 text-right tabular-nums">{num(r.system)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{num(r.actual)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{r.price ? rp((r.forecast - r.system) * r.price) : '—'}</td></tr>))}</tbody>
               </table></div>
             </>)}
       </Panel>

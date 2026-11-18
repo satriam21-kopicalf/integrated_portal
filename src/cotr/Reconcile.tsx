@@ -84,7 +84,7 @@ export function Reconcile() {
           <EmptyState icon={<GitCompareArrows />} title={status === "diff" ? tr("No differences in this period") : tr("Nothing in this period")} />
         ) : (
           <table className="w-full text-sm">
-            <thead className={kcTable.thead}><tr><th className="px-4 py-2.5">{tr("Date")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5">{tr("Status")}</th>
+            <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Date")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5">{tr("Status")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Cups apart")}</th><th className="w-10 px-3 py-2.5" /></tr></thead>
             <tbody className="divide-y divide-neutral-100">
               {paged.rows.map((d) => {
@@ -94,7 +94,7 @@ export function Reconcile() {
                 return (
                   <Fragment key={key}>
                     <tr className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(on ? null : key)} aria-expanded={on}>
-                      <td className="px-4 py-2.5 tabular-nums">{dmyOf(d.day)}</td>
+                      <td className="px-3 py-2 tabular-nums">{dmyOf(d.day)}</td>
                       <td className="px-3 py-2.5 font-medium text-neutral-900">{d.poolName}</td>
                       <td className="px-3 py-2.5"><Badge tone={STATUS[d.status].tone}>{STATUS[d.status].label()}</Badge></td>
                       <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${d.gap ? "text-red-700" : "text-neutral-400"}`}>{d.gap ? d.gap.toLocaleString("id-ID") : "—"}</td>
@@ -102,7 +102,7 @@ export function Reconcile() {
                     </tr>
                     {on && (
                       <tr className="bg-neutral-50/70">
-                        <td colSpan={5} className="px-4 py-3">
+                        <td colSpan={5} className="px-3 py-2">
                           {d.status === "diff" && d.lines.length > shown.length && <p className="mb-2 text-xs text-neutral-500">{tr("{0} other movements match", d.lines.length - shown.length)}</p>}
                           <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
                             <table className="w-full min-w-[34rem] text-xs">

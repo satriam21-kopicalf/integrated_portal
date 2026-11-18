@@ -42,7 +42,7 @@ function View() {
   const items = useMemo(() => (d ? allItems(d.definition) : []), [d]);
   const photo = (id: string) => `/api/public/wwwr/${encodeURIComponent(token)}/photos/${id}`;
   if (error) return <div className="flex min-h-screen items-center justify-center bg-neutral-100 p-6 text-sm text-neutral-600">{error}</div>;
-  if (!d) return <div className="min-h-screen bg-neutral-100"><div className="mx-auto max-w-3xl space-y-3 px-4 py-8"><Skeleton className="h-6 w-64" /><SkeletonList rows={6} className="rounded-xl border border-neutral-200 bg-white" /></div></div>;
+  if (!d) return <div className="min-h-screen bg-neutral-100"><div className="mx-auto max-w-3xl space-y-3 px-4 py-8"><Skeleton className="h-6 w-64" /><SkeletonList rows={6} className="rounded-md border border-neutral-200 bg-white" /></div></div>;
   const a = d.audit;
   const under = items.filter((it) => d.answers[it.key]?.rating === "UNDER");
   return (
@@ -75,7 +75,7 @@ function View() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {(["product", "outlet"] as const).map((p) => (
-            <div key={p} className="avoid rounded-xl border border-neutral-200 bg-white p-4">
+            <div key={p} className="avoid rounded-md border border-neutral-200 bg-white p-4">
               <p className="text-xs font-semibold capitalize text-neutral-500">{p === "product" ? "Product" : "Outlet"}</p>
               <p className="mt-1 flex gap-4 text-sm">{(["UNDER", "MEET", "EXCEED"] as Rating[]).map((r) => <span key={r} className={RATING_STYLE[r].text}><b className="tabular-nums">{a.counts[p][r.toLowerCase() as "under"]}</b> {ratingLabel(r)}</span>)}</p>
             </div>
@@ -107,7 +107,7 @@ function View() {
               {under.map((it) => {
                 const ph = d.photos.filter((p) => p.item === it.key);
                 return (
-                  <li key={it.key} className="avoid rounded-xl border border-red-100 bg-red-50/40 p-3">
+                  <li key={it.key} className="avoid rounded-md border border-red-100 bg-red-50/40 p-3">
                     <p className="text-sm font-medium text-neutral-900">{tl(it)}</p>
                     <p className="text-[11px] text-neutral-500">{tl(it, "section")}</p>
                     {d.answers[it.key]?.note && <p className="mt-1 text-sm text-neutral-700">{d.answers[it.key]?.note}</p>}
@@ -126,7 +126,7 @@ function View() {
           {d.definition.groups.map((g) => g.sections.filter((s) => !s.retired).map((s) => (
             <div key={s.key} className="avoid mb-4 last:mb-0">
               <p className="mb-1 text-xs font-semibold capitalize text-brand-700">{tl(g, "title")} · {tl(s, "title")}</p>
-              <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+              <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
                 {s.items.map((it) => {
                   const ans = d.answers[it.key];
                   return (
@@ -147,7 +147,7 @@ function View() {
 }
 
 function Fact({ k, v }: { k: string; v: React.ReactNode }) {
-  return <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3"><p className="text-xs font-semibold capitalize text-neutral-500">{k}</p><p className="mt-0.5 text-sm font-medium text-neutral-900">{v}</p></div>;
+  return <div className="rounded-md border border-neutral-200 bg-white px-4 py-3"><p className="text-xs font-semibold capitalize text-neutral-500">{k}</p><p className="mt-0.5 text-sm font-medium text-neutral-900">{v}</p></div>;
 }
 
 function Block({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {

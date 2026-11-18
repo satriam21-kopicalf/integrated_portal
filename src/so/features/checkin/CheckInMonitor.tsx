@@ -157,7 +157,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
       }>
 
       {s && s.unreviewed > 0 && f.location !== "unreviewed" && (
-        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:flex-row sm:items-center">
+        <div role="alert" className="flex flex-col gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:flex-row sm:items-center">
           <AlertTriangle size={18} className="hidden flex-shrink-0 text-red-600 sm:block" />
           <div className="min-w-0 flex-1">
             <p className="font-semibold">{tr("{0} check-ins need review", fmtNumber(s.unreviewed))}</p>
@@ -311,7 +311,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
               <Fact icon={<Store size={14} />} label={tr("Outlet")} value={c.branchName} sub={c.branchCode} />
               <Fact icon={<CalendarDays size={14} />} label={tr("Visit Time")} value={wibDateTime(c.visitedAt)} />
             </div>
-            <div className={cx("flex items-start gap-3 rounded-xl border px-3 py-2.5", toneBox[verdict.tone])}>
+            <div className={cx("flex items-start gap-3 rounded-md border px-3 py-2.5", toneBox[verdict.tone])}>
               <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-white", toneIcon[verdict.tone])}>{verdict.icon}</span>
               <span className="min-w-0">
                 <span className="block text-sm font-semibold">{verdict.title}</span>
@@ -326,7 +326,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
         </div>
 
         <DrawerBlock title={tr("Location")}>
-          <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-xl border border-neutral-200">
+          <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-md border border-neutral-200">
             <Figure label={tr("Distance")} value={c.distanceM !== null ? `${c.distanceM} m` : "—"} tone={c.outsideRadius ? "text-red-700" : undefined} />
             <Figure label={tr("Radius")} value={c.radiusM !== null ? `${c.radiusM} m` : "—"} />
             <Figure label={tr("GPS Accuracy")} value={c.accuracyM !== null ? `±${Math.round(c.accuracyM)} m` : "—"} tone={c.lowAccuracy ? "text-amber-700" : undefined} />
@@ -335,12 +335,12 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
             <MapLink href={mapsUrl(c.latitude, c.longitude)} label={tr("PIC Position")} value={`${c.latitude.toFixed(5)}, ${c.longitude.toFixed(5)}`} />
             {c.outletLatitude !== null && c.outletLongitude !== null
               ? <MapLink href={mapsUrl(c.outletLatitude, c.outletLongitude)} label={tr("Outlet Location")} value={`${c.outletLatitude.toFixed(5)}, ${c.outletLongitude.toFixed(5)}`} />
-              : <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-500">{tr("Outlet Location")}: {tr("No coordinates yet")}</div>}
+              : <div className="rounded-md border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-500">{tr("Outlet Location")}: {tr("No coordinates yet")}</div>}
           </div>
         </DrawerBlock>
 
         <DrawerBlock title={tr("Time")}>
-          <dl className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 text-sm">
+          <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
             <DrawerRow k={tr("Visit Time")} v={`${wibDateTime(c.visitedAt)} · ${tr("server time")}`} />
             <DrawerRow k={tr("Phone clock")} v={c.deviceTime ? <>{wibDateTime(c.deviceTime)}{skew !== null && Math.abs(skew) >= 5 && <Badge tone="amber">{tr("differs {0} min", skew)}</Badge>}</> : "—"} />
           </dl>
@@ -361,7 +361,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
                   <img src={thumb(photoUrl(c.id, true), 320)} alt={tr("Face Photo")} loading="lazy" className="aspect-[3/4] w-full object-cover" />
                 </a>
                 <div className="min-w-0 space-y-2">
-                  <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-xl border border-neutral-200">
+                  <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-md border border-neutral-200">
                     <Figure label={tr("Time")} value={wibClock(c.clockOut.at)} />
                     <Figure label={tr("At the Outlet")} value={duration(c.clockOut.durationMin)} />
                     <Figure label={tr("Distance")} value={c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"} tone={c.clockOut.outsideRadius ? "text-red-700" : undefined} />
@@ -378,12 +378,12 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
                   {c.clockOut.note && <p className="rounded-xl bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{c.clockOut.note}</p>}
                 </div>
               </div>
-            ) : <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-sm text-neutral-500">{tr("Not clocked out yet")}</p>}
+            ) : <p className="rounded-md border border-dashed border-neutral-200 px-3 py-3 text-sm text-neutral-500">{tr("Not clocked out yet")}</p>}
           </DrawerBlock>
         )}
 
         <DrawerBlock title={tr("Location check")}>
-          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
+          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200">
             <Check ok={c.outletLocated ? !c.outsideRadius : null} title={tr("Position")}
               text={!c.outletLocated ? tr("The outlet has no coordinates yet: the distance cannot be checked")
                 : tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100)}
@@ -398,7 +398,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
         </DrawerBlock>
         {(c.riskSignals ?? []).length > 0 && (
           <DrawerBlock title={`${tr("Signs found")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
-            <ul className={cx("space-y-1.5 rounded-xl border p-3 text-xs", c.riskLevel === "high" ? "border-red-200 bg-red-50"
+            <ul className={cx("space-y-1.5 rounded-md border p-3 text-xs", c.riskLevel === "high" ? "border-red-200 bg-red-50"
               : c.riskLevel === "medium" ? "border-amber-200 bg-amber-50" : "border-neutral-200 bg-neutral-50")}>
               {(c.riskSignals ?? []).map((x) => (
                 <li key={x.code} className="flex gap-2">
@@ -449,7 +449,7 @@ export function DrawerRow({ k, v }: { k: string; v: React.ReactNode }) {
 
 function Fact({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
-    <div className="min-w-0 rounded-xl border border-neutral-200 px-3 py-2">
+    <div className="min-w-0 rounded-md border border-neutral-200 px-3 py-2">
       <p className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400">{icon}{label}</p>
       <p className="mt-0.5 truncate text-sm font-semibold text-neutral-900" title={value}>{value}</p>
       {sub && <p className="font-mono text-[10px] text-neutral-400">{sub}</p>}
@@ -468,7 +468,7 @@ function Figure({ label, value, tone }: { label: string; value: string; tone?: s
 
 function MapLink({ href, label, value }: { href: string; label: string; value: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2 hover:border-brand-300 hover:bg-brand-50/40">
+    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-md border border-neutral-200 px-3 py-2 hover:border-brand-300 hover:bg-brand-50/40">
       <MapPin size={15} className="flex-shrink-0 text-brand-700" />
       <span className="min-w-0 flex-1">
         <span className="block text-xs font-medium text-neutral-700">{label}</span>
@@ -518,7 +518,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
             {summary.low > 0 && <p className="text-xs text-neutral-500">{tr("{0} with low GPS accuracy", fmtNumber(summary.low))}</p>}
           </>
         )}
-        <div className="overflow-hidden rounded-xl border border-neutral-200">
+        <div className="overflow-hidden rounded-md border border-neutral-200">
           {kind === "outside" ? (
             outside.length === 0 ? <p className="px-4 py-8 text-center text-sm text-neutral-400">{tr("No check in outside the radius")}</p> : (
               <ul className="divide-y divide-neutral-100">
@@ -591,7 +591,7 @@ function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
     }
   };
   return (
-    <section className="rounded-xl border border-brand-200 bg-brand-50/40 p-3">
+    <section className="rounded-md border border-brand-200 bg-brand-50/40 p-3">
       <p className="text-sm font-semibold text-neutral-900">{tr("Management review")}</p>
       {c.review ? (
         <p className="mt-1 text-xs text-neutral-600">
@@ -637,7 +637,7 @@ function LocationLegend() {
     { badge: <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet Has No Coordinates")}</Badge>, text: tr("The distance cannot be checked until the outlet's location is set") },
   ];
   return (
-    <details className="group rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm">
+    <details className="group rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm">
       <summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-neutral-800">
         <MapPin size={15} className="text-neutral-400" />{tr("What the location badges mean")}
         <span className="ml-auto text-xs text-neutral-400 group-open:hidden">{tr("Show")}</span></summary>

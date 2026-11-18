@@ -189,7 +189,7 @@ function ScoreDrawer({ p, weights, workingDays, onClose }: { p: Pic; weights: Re
           <p className={cx("text-4xl font-bold tabular-nums", scoreTone(p.score))}>{pct(p.score)}</p>
           <p className="mt-1 text-xs text-neutral-500">{tr("Weighted over the parts with data")}</p>
         </div>
-        <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
           {parts.map((x) => (
             <li key={x.key} className={cx("px-4 py-3", x.value == null && "opacity-60")}>
               <div className="flex items-baseline justify-between gap-3">

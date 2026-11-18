@@ -34,7 +34,7 @@ export function CorrectionHistory({ entry, version }: { entry: Entry; version?: 
   }, [entry.id, entry.corrections, version]);
   if (rows && !rows.length) return null;
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-3">
+    <div className="rounded-md border border-amber-200 bg-amber-50/40 p-3">
       <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-amber-800"><History size={13} />{tr("Corrected by Cost Control")}</p>
       {!rows ? <SkeletonList rows={2} /> : (
         <ul className="space-y-2 text-xs">

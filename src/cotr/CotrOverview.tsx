@@ -45,7 +45,7 @@ function Delta({ v, inverse = false }: { v: Change; inverse?: boolean }) {
 
 function Tile({ icon, label, value, sub, delta }: { icon: ReactNode; label: string; value: ReactNode; sub?: ReactNode; delta?: ReactNode }) {
   return (
-    <div className="min-w-0 rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm">
+    <div className="min-w-0 rounded-md border border-neutral-200/80 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold capitalize text-neutral-500">{label}</span>
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{icon}</span>
@@ -58,7 +58,7 @@ function Tile({ icon, label, value, sub, delta }: { icon: ReactNode; label: stri
 
 function Card({ title, subtitle, children, className = "" }: { title: string; subtitle?: string; children: ReactNode; className?: string }) {
   return (
-    <section className={`min-w-0 rounded-xl border border-neutral-200/80 bg-white p-4 shadow-sm sm:p-5 ${className}`}>
+    <section className={`min-w-0 rounded-md border border-neutral-200/80 bg-white p-4 shadow-sm sm:p-5 ${className}`}>
       <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
       {subtitle && <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>}
       <div className="mt-3">{children}</div>
@@ -138,7 +138,7 @@ export default function CotrOverview({ from, to, compareFrom, compareTo, bare = 
     return () => { alive = false; };
   }, [from, to, compareFrom, compareTo]);
 
-  if (error) return <div className={pad}><p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p></div>;
+  if (error) return <div className={pad}><p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p></div>;
   if (!data) {
     return (
       <div className={`grid gap-3 sm:grid-cols-2 xl:grid-cols-5 ${pad}`} aria-busy="true">

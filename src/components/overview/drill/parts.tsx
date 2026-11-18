@@ -57,7 +57,7 @@ export function Tiles({ tiles, columns = 4 }: { tiles: Tile[]; columns?: 2 | 3 |
   return (
     <dl className={`grid grid-cols-2 gap-3 ${cols}`}>
       {tiles.map(t => (
-        <div key={t.label} className="min-w-0 rounded-xl border border-neutral-200 bg-white px-4 py-3.5" title={t.title ?? t.value}>
+        <div key={t.label} className="min-w-0 rounded-md border border-neutral-200 bg-white px-4 py-3.5" title={t.title ?? t.value}>
           <dt className="truncate text-xs font-medium text-neutral-500">{t.label}</dt>
           {/* full figures stay on one line: long ones (Rp 45.795.696.100) get a smaller size */}
           <dd className={`mt-0.5 truncate font-semibold tabular-nums tracking-tight text-neutral-900 ${t.value.length > 14 ? 'text-[15px]' : 'text-lg'}`}>{t.value}</dd>

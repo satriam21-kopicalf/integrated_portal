@@ -127,7 +127,7 @@ export default function LiveSalesCard({ data, error }: { data: LiveResponse | nu
     : '';
 
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200/80 bg-white" aria-label={tr('Gross Sales Today')}>
+    <section className="overflow-hidden rounded-md border border-neutral-200/80 bg-white" aria-label={tr('Gross Sales Today')}>
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3 sm:px-5">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-900">

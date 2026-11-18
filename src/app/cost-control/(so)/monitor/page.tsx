@@ -253,7 +253,7 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
   const done = TABS.filter((t) => ["APPROVED", "SUBMITTED"].includes(t.key)).reduce((n, t) => n + tabCount(t.key), 0);
   return (
     <div className="space-y-3">
-      <div className="rounded-md border border-neutral-200 bg-neutral-50/60 p-3">
+      <div className="rounded-md border border-neutral-200 bg-white p-3">
         <div className="mb-2 flex items-baseline justify-between gap-2 text-xs">
           <span className="font-semibold text-neutral-700">{tr("Progress of the day")}</span>
           <span className="tabular-nums text-neutral-500">{tr("{0} of {1} sent", fmtNumber(done), fmtNumber(total))} · <span className="font-semibold text-neutral-900">{total ? Math.round((done / total) * 100) : 0}%</span></span>
@@ -262,20 +262,17 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
           aria-label={TABS.map((t) => `${STATUS[t.key].label()} ${tabCount(t.key)}`).join(", ")}>
           {TABS.map((t) => tabCount(t.key) > 0 && <span key={t.key} className={cx(t.color, "first:rounded-l-full last:rounded-r-full")} style={{ width: `${(tabCount(t.key) / total) * 100}%` }} />)}
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-4 xl:grid-cols-7" role="tablist" aria-label={tr("Status of the Day")}>
+        <div className="mt-3 flex flex-wrap gap-1" role="tablist" aria-label={tr("Status of the Day")}>
           {[{ key: "", color: "bg-neutral-900" }, ...TABS].map((t) => {
             const on = status === t.key;
             const count = t.key ? tabCount(t.key) : total;
             return (
               <button key={t.key || "all"} type="button" role="tab" aria-selected={on} onClick={() => onStatus(t.key)} disabled={!!t.key && !count && !on}
-                className={cx("flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition disabled:opacity-40",
-                  on ? "border-brand-600 bg-white shadow-sm ring-1 ring-brand-600" : "border-transparent bg-white/70 hover:border-neutral-200 hover:bg-white")}>
-                <span className={cx("h-2.5 w-2.5 flex-shrink-0 rounded-full", t.color)} aria-hidden />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[11px] font-medium text-neutral-600">{t.key ? STATUS[t.key].label() : tr("All")}</span>
-                  <span className="block text-sm font-semibold tabular-nums text-neutral-900">{fmtNumber(count)}
-                    {t.key && total > 0 && <span className="ml-1 text-[10px] font-medium text-neutral-400">{Math.round((count / total) * 100)}%</span>}</span>
-                </span>
+                className={cx("flex items-center gap-1.5 rounded-[4px] border px-2.5 py-1 text-left text-xs transition disabled:opacity-40",
+                  on ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
+                <span className={cx("h-2 w-2 flex-shrink-0 rounded-full", t.color)} aria-hidden />
+                <span className="font-medium">{t.key ? STATUS[t.key].label() : tr("All")}</span>
+                <span className={cx("tabular-nums", on ? "text-white/70" : "text-neutral-400")}>{fmtNumber(count)}</span>
               </button>
             );
           })}

@@ -41,7 +41,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
   if (branches.length === 1) {
     const r = rows[0];
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-brand-200 bg-brand-50/50 px-3.5 py-3">
+      <div className="flex items-center gap-3 rounded-md border border-brand-200 bg-brand-50/50 px-3.5 py-3">
         <Logo on />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-neutral-900">{r.name}</span>
@@ -83,7 +83,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
           return (
             <li key={r.code}>
               <button type="button" role="radio" aria-checked={on} disabled={locked} onClick={() => onChange(r.code)}
-                className={cx("flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
+                className={cx("flex w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors",
                   on ? "border-brand-600 bg-brand-50 ring-2 ring-brand-600/15" : locked ? "cursor-not-allowed border-neutral-200 bg-neutral-50 opacity-70" : "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50")}>
                 <Logo on={on} muted={locked} />
                 <span className="min-w-0 flex-1">
@@ -106,7 +106,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
             </li>
           );
         })}
-        {!shown.length && <li className="rounded-xl border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">{tr("No outlet matches")}</li>}
+        {!shown.length && <li className="rounded-md border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">{tr("No outlet matches")}</li>}
       </ul>
     </div>
   );

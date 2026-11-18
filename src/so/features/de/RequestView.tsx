@@ -101,7 +101,7 @@ function Tracker({ r }: { r: Request }) {
 export function EvidenceGrid({ list, urls, onRemove, add, empty, by = false }: {
   list: Media[]; urls: MediaUrls; onRemove?: (id: string) => void; add?: React.ReactNode; empty?: string; by?: boolean;
 }) {
-  if (!list.length && !add) return <p className="rounded-xl border border-dashed border-neutral-200 px-3 py-5 text-center text-sm text-neutral-400">{empty ?? tr("No photo")}</p>;
+  if (!list.length && !add) return <p className="rounded-md border border-dashed border-neutral-200 px-3 py-5 text-center text-sm text-neutral-400">{empty ?? tr("No photo")}</p>;
   return (
     <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
       {list.map((m, i) => (
@@ -131,7 +131,7 @@ export function EvidenceGrid({ list, urls, onRemove, add, empty, by = false }: {
 export function AddPhotoTile({ onClick, label, tone = "slate" }: { onClick: () => void; label: string; tone?: "slate" | "blue" }) {
   return (
     <button type="button" onClick={onClick}
-      className={cx("flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed text-xs font-medium transition-colors",
+      className={cx("flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed text-xs font-medium transition-colors",
         tone === "blue" ? "border-brand-300 bg-brand-50/50 text-brand-700 hover:bg-brand-50" : "border-neutral-300 bg-neutral-50/60 text-neutral-500 hover:border-brand-400 hover:text-brand-700")}>
       <Camera size={20} />{label}
     </button>
@@ -241,7 +241,7 @@ export function DetailsPanel({ r, hidePriority = false }: { r: Request; hidePrio
       <span className="block text-[11px] text-neutral-400">{r.actualCost !== null ? tr("Actual cost") : tr("Estimated cost")}</span></span>] as [string, React.ReactNode]] : []),
   ];
   return (
-    <section className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm">
       <h3 className="border-b border-neutral-100 px-4 py-2.5 text-sm font-semibold text-neutral-900">{tr("Details")}</h3>
       <dl className="divide-y divide-neutral-100">
         {rows.map(([k, v]) => (
@@ -292,7 +292,7 @@ export function RequestHero({ r, compact = false, facts: showFacts = true }: { r
         {r.mode && <span className="block text-[11px] font-normal text-neutral-400">{r.mode === "VENDOR" ? tr("Vendor work") : tr("Internal technician")}</span>}</span>],
   ];
   return (
-    <section className={cx("overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm", compact && "rounded-xl")}>
+    <section className={cx("overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm", compact && "rounded-xl")}>
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-4 sm:px-5">
         <div className="min-w-0">
           {/* breadcrumb and summary like an issue (2026-11-17): Maintenance / MR-2611-001, then what is asked */}

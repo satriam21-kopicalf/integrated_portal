@@ -362,7 +362,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               {tr("Check every line and its receipt. A rejected line is left out of the approved amount (lines accepted {0} now).", fmtRp(acceptedTotal(p.lines ?? [])))}</p>
           )}
           {p.can?.payment && (
-            <section className="rounded-xl border border-cyan-200 bg-cyan-50/40 p-3">
+            <section className="rounded-md border border-cyan-200 bg-cyan-50/40 p-3">
               <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Wallet size={15} /> {tr("Payment: approved {0}", fmtRp(p.approvedAmount))}</p>
               <div className="flex flex-wrap items-end gap-2">
                 {payment.map((x) => <FileChip key={x.id} f={x} onRemove={() => void removeProof(x.id)} />)}
@@ -453,10 +453,10 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
       {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : (
         <div className="space-y-6">
           <section className="space-y-3">
-            <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist" aria-label={tr("Kind")}>
+            <div className="flex gap-5 overflow-x-auto border-b border-neutral-200" role="tablist" aria-label={tr("Kind")}>
               {KINDS.map((k) => (
                 <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-                  className={cx("flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium", kind === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>{kindLabel(k)}</button>
+                  className={cx("-mb-px flex-shrink-0 border-b-2 pb-2 text-sm font-medium", kind === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>{kindLabel(k)}</button>
               ))}
             </div>
             {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin changes the approvals.")}</p>}
@@ -489,7 +489,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
               <PlafonRow key={b.branchCode} label={branchName(b.branchCode)} amount={b.amount} edit={data.canPlafon} onSave={(a) => void savePlafon(b.branchCode, a)} removable />
             ))}
             {data.canPlafon && (
-              <div className="grid gap-2 rounded-xl border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
+              <div className="grid gap-2 rounded-md border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
                 <SearchChoice label="" anyLabel={tr("Choose the outlet")} options={outletOpts.filter((b) => !data.plafon.branches.some((x) => x.branchCode === b.value))}
                   value={plafon.branch} onChange={(branch) => setPlafon({ ...plafon, branch })} placeholder={tr("Search outlet")} />
                 <input value={plafon.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setPlafon({ ...plafon, amount: typeRp(parseRp(e.target.value)) })}
@@ -508,7 +508,7 @@ export function StepRow({ n, step, users, names, edit, payment, onChange, onUp, 
   names: Map<string, string>; edit: boolean; payment?: boolean; onChange: (s: StepEdit) => void; onUp?: () => void; onDown?: () => void; onRemove?: () => void }) {
   const [pick, setPick] = useState("");
   return (
-    <li className={cx("rounded-xl border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-neutral-200 bg-white")}>
+    <li className={cx("rounded-md border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-neutral-200 bg-white")}>
       <div className="flex items-center gap-2">
         <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-cyan-600" : "bg-brand-600")}>{n}</span>
         {edit ? <input value={step.label} maxLength={60} onChange={(e) => onChange({ ...step, label: e.target.value })} aria-label={tr("Step Name")}
@@ -544,7 +544,7 @@ function PlafonRow({ label, amount, edit, removable, onSave }: { label: string; 
   useEffect(() => setV(typeRp(amount)), [amount]);
   const changed = parseRp(v) !== amount;
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2">
+    <div className="flex flex-wrap items-center gap-2 rounded-md border border-neutral-200 px-3 py-2">
       <p className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-800">{label}</p>
       {edit ? <>
         <input value={v} inputMode="numeric" placeholder={tr("No plafon")} onChange={(e) => setV(typeRp(parseRp(e.target.value)))} aria-label={tr("Plafon {0}", label)}
@@ -591,7 +591,7 @@ function Suggestions({ onApplied }: { onApplied: (p: Settings["plafon"]) => void
   }
   const withSug = (rows ?? []).filter((x) => x.suggested);
   return (
-    <div className="space-y-2 rounded-xl border border-brand-200 bg-brand-50/40 p-3">
+    <div className="space-y-2 rounded-md border border-brand-200 bg-brand-50/40 p-3">
       <p className="text-sm font-semibold text-neutral-900">{tr("Plafon from Simple Purchase")}</p>
       <p className="text-xs text-neutral-600">{tr("Weekly average of what the outlet bought itself in ESB (13 weeks) × the factor, rounded up to Rp 50.000. Outlets without a plafon are ticked; adjust any of them afterwards.")}</p>
       <label className="flex items-center gap-2 text-xs text-neutral-700">{tr("Factor")}

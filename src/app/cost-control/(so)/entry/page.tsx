@@ -49,7 +49,7 @@ export default function EntryPage() {
 
   return (
     <Page title={tr("Enter / Import SO")} subtitle={tr("Optional: fill in or import the stock opname of branches. Branches can still count themselves.")}>
-      <p className="flex items-start gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+      <p className="flex items-start gap-2 rounded-md border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
         <Info size={16} className="mt-0.5 flex-shrink-0" />
         <span>{tr("What you enter or import goes to Review as Submitted. Another Cost Control member approves it (you cannot approve your own entry).")}</span>
       </p>
@@ -192,15 +192,15 @@ function ImportEntry({ types }: { types: CountType[] }) {
           {result.branches.length === 0 ? <Empty icon={<FileSpreadsheet size={28} />} title={tr("No branch of the file was recognised")} /> : (
             <div className="overflow-x-auto rounded-lg border border-neutral-200">
               <table className="m-cards w-full min-w-[560px] text-sm">
-                <thead className={theadClass}><tr><th className="px-4 py-2.5">{tr("Branch")}</th><th className="px-4 py-2.5 text-right">{tr("Rows")}</th>
-                  <th className="px-4 py-2.5 text-right">{tr("Items with Quantity")}</th><th className="px-4 py-2.5">{tr("Status")}</th></tr></thead>
+                <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Branch")}</th><th className="px-3 py-2 text-right">{tr("Rows")}</th>
+                  <th className="px-3 py-2 text-right">{tr("Items with Quantity")}</th><th className="px-3 py-2">{tr("Status")}</th></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
                   {result.branches.map((b) => (
                     <tr key={b.facility_id}>
-                      <td className="px-4 py-2.5 font-medium text-neutral-900">{b.facility}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{fmtNumber(b.rows)}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums">{b.lines ?? "—"}</td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-3 py-2 font-medium text-neutral-900">{b.facility}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.rows)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{b.lines ?? "—"}</td>
+                      <td className="px-3 py-2">
                         <Badge tone={STATUS_TONE[b.status] ?? "slate"}>{STATUS_LABEL[b.status]?.() ?? b.status}</Badge>
                         {b.existing && <span className="ml-2 text-xs text-neutral-500">{b.existing.number}</span>}
                         {b.count_id && <Link href={`/cost-control/reviews/${b.count_id}`} className="ml-2 text-xs font-semibold text-brand-700 hover:underline">{b.number}</Link>}

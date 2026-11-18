@@ -57,9 +57,9 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[760px] text-xs">
             <thead className={kcTable.thead}><tr>
-              <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5">{tr("Group Deadline")}</th>
-              <th className="px-4 py-2.5">{tr("Own Deadline")}</th><th className="px-4 py-2.5">{tr("Time Zone")}</th><th className="px-4 py-2.5">{tr("On Time Until")}</th>
-              {canEdit && <th className="w-28 px-4 py-2.5" />}
+              <th className="px-3 py-2">{tr("Outlet")}</th><th className="px-3 py-2">{tr("Group Deadline")}</th>
+              <th className="px-3 py-2">{tr("Own Deadline")}</th><th className="px-3 py-2">{tr("Time Zone")}</th><th className="px-3 py-2">{tr("On Time Until")}</th>
+              {canEdit && <th className="w-28 px-3 py-2" />}
             </tr></thead>
             <tbody className={kcTable.tbody}>
               {paged.rows.map((o) => {
@@ -71,22 +71,22 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
                 const wib = `${String(Math.floor(wibMin / 60)).padStart(2, "0")}:${String(wibMin % 60).padStart(2, "0")}`;
                 return (
                   <tr key={o.code} className={cx(dirty(o) && "bg-brand-50/40")}>
-                    <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
-                    <td className="px-4 py-2.5 tabular-nums text-neutral-600">{o.groupDeadline ?? <span className="text-neutral-400">{tr("Default {0}", res.defaultDeadline)}</span>}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
+                    <td className="px-3 py-2 tabular-nums text-neutral-600">{o.groupDeadline ?? <span className="text-neutral-400">{tr("Default {0}", res.defaultDeadline)}</span>}</td>
+                    <td className="px-3 py-2">
                       {canEdit ? <Input type="time" value={v.deadline} onChange={(e) => setDraft((x) => ({ ...x, [o.code]: { ...v, deadline: e.target.value } }))} className="h-9 w-32" aria-label={tr("Own Deadline")} />
                         : <span className="tabular-nums">{o.deadline ?? "—"}</span>}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-2">
                       {canEdit ? (
                         <Select value={v.timezone} onChange={(e) => setDraft((x) => ({ ...x, [o.code]: { ...v, timezone: e.target.value } }))} className="h-9 w-28" aria-label={tr("Time Zone")}>
                           {res.zones.map((z) => <option key={z.value} value={z.value}>{z.label}</option>)}
                         </Select>
                       ) : zoneLabel(o.timezone)}
                     </td>
-                    <td className="px-4 py-2.5 tabular-nums"><span className="font-semibold text-neutral-900">{local} {zoneLabel(v.timezone)}</span>{shift !== 0 && <span className="block text-[11px] text-neutral-500">= {wib} WIB</span>}</td>
+                    <td className="px-3 py-2 tabular-nums"><span className="font-semibold text-neutral-900">{local} {zoneLabel(v.timezone)}</span>{shift !== 0 && <span className="block text-[11px] text-neutral-500">= {wib} WIB</span>}</td>
                     {canEdit && (
-                      <td className="px-4 py-2.5 text-right">
+                      <td className="px-3 py-2 text-right">
                         {dirty(o) && <Button size="sm" loading={busy === o.code} onClick={() => void save(o)}><Save size={14} /> {tr("Save")}</Button>}
                         {!dirty(o) && (o.deadline || o.timezone !== "Asia/Jakarta") && (
                           <button type="button" className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
@@ -150,7 +150,7 @@ function ItemOutlets({ form, item, canEdit, onClose, onSaved }: { form: "product
         {!outlets ? <table className="w-full"><tbody><SkeletonRows cols={2} rows={6} /></tbody></table> : !list.length ? (
           <EmptyState title={only ? tr("No outlet is set apart: every outlet follows its group") : tr("No outlet matches")} />
         ) : (
-          <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200">
+          <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
             {paged.rows.map((o) => {
               const v = state(o.code);
               const byGroup = groupShown(o.groupCode);
@@ -262,7 +262,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-xs">
             <thead className={cx(kcTable.thead, "sticky top-0 z-[1]")}><tr>
-              <th className="px-4 py-2.5">{tr("Item")}</th>
+              <th className="px-3 py-2">{tr("Item")}</th>
               {res.groups.map((g) => <th key={g} className="w-24 px-3 py-2.5 text-center">{g}</th>)}
               <th className="w-32 px-3 py-2.5 text-center">{tr("Per Outlet")}</th>
             </tr></thead>
@@ -396,18 +396,18 @@ export function SalesTargets() {
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[820px] text-xs">
             <thead className={kcTable.thead}><tr>
-              <th className="px-4 py-2.5">{tr("Outlet")}</th><th className="px-4 py-2.5 text-right">{tr("Net Sales This Month")}</th>
-              <th className="px-4 py-2.5 text-right">{tr("Average per Day")}</th><th className="px-4 py-2.5 text-right">{tr("Average per Day (1 Month Before)")}</th>
-              <th className="px-4 py-2.5 text-right">{tr("Against 1 Month Before")}</th>
+              <th className="px-3 py-2">{tr("Outlet")}</th><th className="px-3 py-2 text-right">{tr("Net Sales This Month")}</th>
+              <th className="px-3 py-2 text-right">{tr("Average per Day")}</th><th className="px-3 py-2 text-right">{tr("Average per Day (1 Month Before)")}</th>
+              <th className="px-3 py-2 text-right">{tr("Against 1 Month Before")}</th>
             </tr></thead>
             <tbody className={kcTable.tbody}>
               {paged.rows.map((o) => (
                 <tr key={o.code}>
-                  <td className="px-4 py-2.5"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-800" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-neutral-400">{tr("{0} selling days", o.days ?? 0)}</span></td>
-                  <td className="px-4 py-2.5 text-right tabular-nums" data-label={tr("Average per Day")}>{o.perDay == null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Average per Day (1 Month Before)")}>{o.baselinePerDay == null ? <Pill>{tr("No sales data yet")}</Pill> : rupiah(o.baselinePerDay)}</td>
-                  <td className={cx("px-4 py-2.5 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against 1 Month Before")}>{o.vsBaseline == null ? "—" : `${o.vsBaseline}%`}</td>
+                  <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
+                  <td className="px-3 py-2 text-right tabular-nums text-neutral-800" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-neutral-400">{tr("{0} selling days", o.days ?? 0)}</span></td>
+                  <td className="px-3 py-2 text-right tabular-nums" data-label={tr("Average per Day")}>{o.perDay == null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Average per Day (1 Month Before)")}>{o.baselinePerDay == null ? <Pill>{tr("No sales data yet")}</Pill> : rupiah(o.baselinePerDay)}</td>
+                  <td className={cx("px-3 py-2 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against 1 Month Before")}>{o.vsBaseline == null ? "—" : `${o.vsBaseline}%`}</td>
                 </tr>
               ))}
             </tbody>

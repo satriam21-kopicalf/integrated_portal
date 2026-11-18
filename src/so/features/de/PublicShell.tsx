@@ -53,7 +53,7 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
 }
 
 export function PublicLoading() {
-  return <div className="mx-auto max-w-2xl space-y-3 px-4 py-8"><Skeleton className="h-6 w-56" /><SkeletonList rows={5} className="rounded-xl border border-neutral-200 bg-white" /></div>;
+  return <div className="mx-auto max-w-2xl space-y-3 px-4 py-8"><Skeleton className="h-6 w-56" /><SkeletonList rows={5} className="rounded-md border border-neutral-200 bg-white" /></div>;
 }
 
 export function PublicError({ message }: { message: string }) {

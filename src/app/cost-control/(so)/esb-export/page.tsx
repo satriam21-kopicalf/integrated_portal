@@ -88,7 +88,7 @@ export default function EsbExportPage() {
             <table className="m-cards w-full min-w-[560px] text-sm">
               <thead className={theadClass}>
                 <tr>
-                  <th className="w-10 px-4 py-2.5"><input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={all} aria-label={tr("Select All Shown")}
+                  <th className="w-10 px-3 py-2"><input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={all} aria-label={tr("Select All Shown")}
                     onChange={() => setPicked(all ? new Set() : new Set((ready ?? []).map((r) => r.id)))} /></th>
                   <SortTh k="facility" sort={sorted.sort} onSort={sorted.toggle}>{tr("Facility")}</SortTh><SortTh k="lines" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Lines")}</SortTh><SortTh k="approved" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Approved")}</SortTh>
                 </tr>
@@ -96,11 +96,11 @@ export default function EsbExportPage() {
               <tbody className="divide-y divide-neutral-100">
                 {ready === null ? <SkeletonRows cols={4} rows={3} /> : sorted.rows.map((r) => (
                   <tr key={r.id} className={cx(picked.has(r.id) && "bg-brand-50/40")}>
-                    <td className="px-4 py-3"><input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(r.id)} aria-label={r.facility_name}
+                    <td className="px-3 py-2"><input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(r.id)} aria-label={r.facility_name}
                       onChange={() => setPicked((s) => { const n = new Set(s); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; })} /></td>
-                    <td className="px-4 py-3"><span className="block font-medium text-neutral-900">{r.facility_name}</span><span className="block font-mono text-[11px] text-neutral-400">{r.number}</span></td>
-                    <td className="px-4 py-3 text-right tabular-nums">{r.lines}</td>
-                    <td className="px-4 py-3 text-xs text-neutral-500">{r.reviewed_at ? fmtDate(r.reviewed_at) : "—"}</td>
+                    <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{r.facility_name}</span><span className="block font-mono text-[11px] text-neutral-400">{r.number}</span></td>
+                    <td className="px-3 py-2 text-right tabular-nums">{r.lines}</td>
+                    <td className="px-3 py-2 text-xs text-neutral-500">{r.reviewed_at ? fmtDate(r.reviewed_at) : "—"}</td>
                   </tr>
                 ))}
               </tbody>

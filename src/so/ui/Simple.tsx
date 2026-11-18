@@ -28,7 +28,7 @@ export function Switch({ checked, onChange, label, hint, disabled }: {
 /** A numbered step of a form in a drawer. */
 export function FormCard({ n, title, hint, children, aside }: { n?: number; title: string; hint?: string; children: ReactNode; aside?: ReactNode }) {
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white">
+    <section className="rounded-md border border-neutral-200 bg-white">
       <header className="flex items-start gap-3 border-b border-neutral-100 px-4 py-3">
         {n !== undefined && <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">{n}</span>}
         <span className="min-w-0 flex-1">
@@ -54,7 +54,7 @@ export function Note({ icon, title, children, tone = "muted", action, className 
   icon?: ReactNode; title?: string; children: ReactNode; tone?: keyof typeof NOTE_TONE; action?: ReactNode; className?: string;
 }) {
   return (
-    <div className={cx("flex flex-col gap-2 rounded-xl border px-3.5 py-3 text-xs leading-relaxed sm:flex-row sm:items-center", NOTE_TONE[tone], className)}>
+    <div className={cx("flex flex-col gap-2 rounded-md border px-3.5 py-3 text-xs leading-relaxed sm:flex-row sm:items-center", NOTE_TONE[tone], className)}>
       <div className="flex min-w-0 flex-1 items-start gap-2.5">
         {icon && <span className="note-icon mt-px flex-shrink-0 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
         <div className="min-w-0">
