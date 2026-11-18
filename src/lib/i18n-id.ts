@@ -7036,4 +7036,7 @@ export const ID: Record<string, string> = {
   "{0} counts could not be changed (they may have been reviewed meanwhile)": "{0} SO tidak bisa diubah (mungkin sudah direview di tempat lain)",
   "ESB other-cost bills (cupping, waste, compliment …) × recipe cards": "Bill other-cost ESB (cupping, waste, compliment …) × kartu resep",
   "Sales + Non Sales": "Sales + Non Sales",
+  "Product Sales": "Product Sales",
+  "Transfer In": "Transfer In",
+  "Transfer Out": "Transfer Out",
 };
