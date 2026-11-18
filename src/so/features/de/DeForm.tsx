@@ -224,16 +224,6 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const url = shareUrl ?? r.shareUrl ?? null;
-  const pdf = async () => {
-    setBusy(true);
-    try {
-      await download(PORTAL_URLS.pdf(r.id), `${r.number}.pdf`);
-    } catch (e) {
-      toast((e as Error).message, "error");
-    } finally {
-      setBusy(false);
-    }
-  };
   const copy = async () => {
     if (!url) return;
     try {
@@ -254,13 +244,12 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
       setBusy(false);
     }
   };
-  // one export (2026-11-18): Final Works (PDF) — the final document once Done (work report / vendor record), before that
-  // the report of the progress so far
+  // one export (2026-11-18): Final Works (PDF), shown only once the request is Done (work report / vendor record)
   return (
     <div className="flex flex-wrap gap-2">
-      <Button size="sm" variant="secondary" loading={busy} onClick={() => void (r.status === "DONE" ? final() : pdf())}
-        title={r.status === "DONE" ? (r.mode === "VENDOR" ? tr("Vendor handover record") : tr("Final work report")) : tr("Progress so far; the final document once Done")}>
-        <PdfIcon size={16} /> {tr("Final Works (PDF)")}</Button>
+      {r.status === "DONE" && <Button size="sm" variant="secondary" loading={busy} onClick={() => void final()}
+        title={r.mode === "VENDOR" ? tr("Vendor handover record") : tr("Final work report")}>
+        <PdfIcon size={16} /> {tr("Final Works (PDF)")}</Button>}
       {url && <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy Link")}</Button>}
       {url && <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"
         className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50">

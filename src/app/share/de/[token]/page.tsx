@@ -72,7 +72,7 @@ function ShareView() {
             {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? tr("Copied") : tr("Copy Link")}</button>
           <a href={`https://wa.me/?text=${encodeURIComponent(`${r.number} · ${r.kindLabel} · ${r.branchName}\n${typeof window === "undefined" ? "" : window.location.href}`)}`} target="_blank" rel="noreferrer"
             aria-label="WhatsApp" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-xs font-medium text-neutral-800 hover:bg-neutral-50"><WhatsAppIcon size={16} /><span className="hidden sm:inline">WhatsApp</span></a>
-          <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><PdfIcon size={16} /> PDF</Button>
+          {r.status === "DONE" && <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><PdfIcon size={16} /> <span className="hidden sm:inline">{tr("Final Works (PDF)")}</span></Button>}
         </>
       )}>
       {error ? <PublicError message={error} /> : !r ? <PublicLoading /> : (
