@@ -6987,4 +6987,7 @@ export const ID: Record<string, string> = {
   "Preferences": "Preferensi",
   "All kinds": "Semua jenis",
   "On time until": "Tepat waktu sampai",
+  "Search pages": "Cari halaman",
+  "Go to": "Buka",
+  "Breadcrumb": "Lokasi halaman",
 };

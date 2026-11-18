@@ -40,7 +40,8 @@ function Switch<V extends string>({ label, value, onChange, options }: {
   );
 }
 
-export default function UserMenu({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
+export default function UserMenu({ collapsed, onNavigate, placement = 'side' }: { collapsed: boolean; onNavigate?: () => void;
+  /** 'top': the avatar of the desktop top bar, the menu opening under it (2026-11-18); 'side': the foot of the sidebar */ placement?: 'top' | 'side' }) {
   const { user, logout } = useAuth();
   const { openProfile, openPassword } = useAccountDrawers();
   const { mode, setMode } = useTheme();
@@ -56,13 +57,15 @@ export default function UserMenu({ collapsed, onNavigate }: { collapsed: boolean
   if (!user) return null;
   const role = ROLE_LABELS[user.role] ?? user.role;
   const superadmin = user.role === 'superadmin';
-  const guide = canAccess(user, '/guide');
+  const top = placement === 'top';
+  // in the top bar the bell and the guide have their own buttons
+  const guide = !top && canAccess(user, '/guide');
 
   return (
-    <div className="flex-shrink-0 border-t border-neutral-200 p-2" ref={ref}>
+    <div className={top ? 'relative' : 'flex-shrink-0 border-t border-neutral-200 p-2 lg:hidden'} ref={ref}>
       <div className="relative">
         {open && (
-          <div role="menu" className={cx('absolute bottom-full z-10 mb-1.5 rounded-md border border-neutral-200 bg-white py-1 shadow-xl', collapsed ? 'left-0 w-64' : 'inset-x-0 min-w-[15rem]')}>
+          <div role="menu" className={cx('absolute z-40 rounded-md border border-neutral-200 bg-white py-1 shadow-xl', top ? 'right-0 top-full mt-1.5 w-72' : collapsed ? 'bottom-full left-0 mb-1.5 w-64' : 'inset-x-0 bottom-full mb-1.5 min-w-[15rem]')}>
             <p className={group}>{tr("Account")}</p>
             <div className="flex items-center gap-2.5 px-3 py-2">
               <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" />
@@ -73,7 +76,7 @@ export default function UserMenu({ collapsed, onNavigate }: { collapsed: boolean
               <Pill tone={superadmin ? 'red' : 'brand'} icon={superadmin ? <ShieldCheck size={11} /> : undefined} className="flex-shrink-0">{role}</Pill>
             </div>
             <div className="my-1 h-px bg-neutral-200" />
-            {canNotify && (
+            {canNotify && !top && (
               <button type="button" role="menuitem" onClick={() => { setOpen(false); setNotes(true); }} className={cx(item, 'text-neutral-700 hover:bg-neutral-100')}>
                 <Bell /> {tr('Notifications')}<UnreadBadge n={unread} className="ml-auto" />
               </button>
@@ -84,7 +87,7 @@ export default function UserMenu({ collapsed, onNavigate }: { collapsed: boolean
                 <BookOpen /> {tr('Guide')}
               </button>
             )}
-            {(canNotify || guide) && <div className="my-1 h-px bg-neutral-200" />}
+            {((canNotify && !top) || guide) && <div className="my-1 h-px bg-neutral-200" />}
             <p className={group}>{tr('Profile')}</p>
             <button type="button" role="menuitem" onClick={() => { setOpen(false); openProfile(); }} className={cx(item, 'text-neutral-700 hover:bg-neutral-100')}>
               <UserRoundPen /> {tr('My profile')}
@@ -113,6 +116,13 @@ export default function UserMenu({ collapsed, onNavigate }: { collapsed: boolean
             </button>
           </div>
         )}
+        {top ? (
+          <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu" aria-label={tr('Account')} title={`${user.displayName} · ${role}`}
+            className={cx('relative flex rounded-full p-0.5 transition-shadow hover:ring-2 hover:ring-neutral-200', open && 'ring-2 ring-brand-500')}>
+            <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
+            {!user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" title={tr('Profile Incomplete')} />}
+          </button>
+        ) : (
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu" title={collapsed ? `${user.displayName} · ${role}` : undefined}
           className={cx('flex w-full items-center gap-2 rounded-[4px] p-1.5 text-left transition-colors hover:bg-neutral-100', open && 'bg-brand-50', collapsed && 'justify-center')}>
           <span className="relative flex-shrink-0">
@@ -130,6 +140,7 @@ export default function UserMenu({ collapsed, onNavigate }: { collapsed: boolean
             </>
           )}
         </button>
+        )}
       </div>
       {/* on phones the menu sits in a sliding (transformed) drawer: the notifications open over the whole screen */}
       {canNotify && notes && createPortal(<NotificationsDrawer open onClose={() => setNotes(false)} onNavigate={onNavigate} />, document.body)}

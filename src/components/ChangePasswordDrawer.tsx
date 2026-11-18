@@ -120,7 +120,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
     >
       <form id="change-password" onSubmit={submit}>
         {user && (
-          <div className="mb-5 flex items-center gap-3 rounded-2xl border border-neutral-200/70 bg-neutral-50/70 px-4 py-3">
+          <div className="-mx-5 -mt-5 mb-5 flex items-center gap-3 border-b border-neutral-200 bg-neutral-50 px-5 py-3 sm:-mx-6 sm:px-6">
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-neutral-900">{user.displayName}</p>
@@ -149,7 +149,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
               <p className={`mt-1 text-xs font-medium ${level.text}`}>{tr('Strength: {0}', level.label)}</p>
             </div>
           )}
-          <ul className="space-y-1.5 rounded-xl border border-neutral-200 bg-neutral-50/70 px-3.5 py-3 text-xs">
+          <ul className="space-y-1.5 rounded-[4px] border-l-[3px] border-neutral-300 bg-neutral-50 px-3.5 py-3 text-xs">
             {RULES.map(r => {
               const ok = r.test(next, current);
               return (
@@ -169,11 +169,11 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
         </DrawerSection>
 
         {!forced && (
-          <p className="mt-5 flex items-start gap-2 rounded-xl bg-brand-50/60 px-3.5 py-3 text-xs text-brand-900">
+          <p className="mt-5 flex items-start gap-2 rounded-[4px] border-l-[3px] border-brand-700 bg-brand-50/60 px-3.5 py-3 text-xs text-brand-900">
             <Info size={14} className="mt-px flex-shrink-0" /> {tr('After saving, every other device signed in to your account is signed out. This device stays signed in.')}
           </p>
         )}
-        {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
+        {error && <p className="mt-4 rounded-[4px] border-l-[3px] border-red-600 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
       </form>
     </Drawer>
   );

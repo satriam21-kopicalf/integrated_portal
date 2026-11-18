@@ -88,17 +88,17 @@ export function NotificationsDrawer({ open, onClose, onNavigate }: { open: boole
         <div className="space-y-5">
           {groups.map(({ g, items }) => (
             <section key={g}>
-              <p className="mb-2 text-xs font-semibold text-neutral-400">{GROUP_LABEL[g]}</p>
-              <ul className="space-y-2">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500">{GROUP_LABEL[g]}</p>
+              <ul className="-mx-5 divide-y divide-neutral-100 border-y border-neutral-100 sm:-mx-6">
                 {items.map((a) => {
                   const S = SEVERITY[a.severity] ?? SEVERITY.info;
                   return (
                     <li key={a.id}>
                       <button type="button" onClick={() => go(a)}
-                        className={cx("group flex w-full items-start gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all hover:-translate-y-px hover:shadow-sm",
-                          a.read ? "border-neutral-200/70 bg-white" : "border-brand-200 bg-brand-50/40")}>
-                        <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg", a.read ? "bg-neutral-100 text-neutral-400" : S.chip)}>
-                          <S.icon size={16} aria-hidden />
+                        className={cx("group relative flex w-full items-start gap-3 px-5 py-3 text-left transition-colors hover:bg-neutral-50 sm:px-6",
+                          !a.read && "bg-brand-50/50 before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-brand-700")}>
+                        <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[4px]", a.read ? "bg-neutral-100 text-neutral-400" : S.chip)}>
+                          <S.icon size={13} aria-hidden />
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="flex items-start justify-between gap-2">

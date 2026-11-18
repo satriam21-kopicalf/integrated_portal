@@ -121,9 +121,9 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
       <form id="my-profile" onSubmit={submit} className="space-y-0" noValidate>
         {/* identity (2026-11-16, the kopicalf-hrms profile card): one photo with the name, title, role, HRMS and how
             complete the profile is; the photo buttons under the name */}
-        <div className="mb-6 overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-          <div className="h-2 bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500" aria-hidden />
-          <div className="px-4 pb-4 pt-4">
+        <div className="-mx-5 -mt-5 mb-6 border-b border-neutral-200 sm:-mx-6">
+          <div className="h-14 bg-gradient-to-r from-brand-800 via-brand-700 to-brand-500" aria-hidden />
+          <div className="px-5 pb-5 pt-4 sm:px-6">
             <AvatarEditor name={form.fullName || user.username} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser}>
               <div>
                 <p className="truncate text-lg font-bold tracking-tight text-neutral-900">{form.fullName || user.displayName}</p>
@@ -138,7 +138,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
               </div>
             </AvatarEditor>
             {user.hrmsEmployeeId && (
-              <p className="mt-3 flex items-start gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+              <p className="mt-3 flex items-start gap-2 rounded-[4px] border-l-[3px] border-brand-700 bg-brand-50/60 px-3 py-2 text-xs text-neutral-700">
                 <Info size={14} className="mt-px flex-shrink-0 text-brand-700" />
                 {tr('Name, job title, department and the other HRMS details follow HRMS and are updated every hour; ask HR to change them.')}
               </p>
@@ -166,15 +166,15 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
         <ProfileFields values={form} onChange={set} fieldError={fieldError} idPrefix="me" currentBranchName={user.workBranchName} locked={user.hrmsLocked ?? []} />
 
         <DrawerSection title={tr('Sign-in & Access')} description={tr('Managed by an administrator.')}>
-          <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100 text-sm">
+          <dl className="divide-y divide-neutral-100 border-y border-neutral-100 text-sm">
             {([
               [tr('Username'), user.username],
               [tr('Email'), user.email],
               [tr('Role'), <span key="r" className="inline-flex items-center gap-1">{user.role === 'superadmin' && <ShieldCheck size={13} className="text-red-600" />}{role}</span>],
               [tr('Password changed'), user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
             ] as [string, ReactNode][]).map(([k, v]) => (
-              <div key={k} className="grid grid-cols-[9rem_1fr] gap-3 px-3 py-2">
-                <dt className="text-neutral-500">{k}</dt>
+              <div key={k} className="grid grid-cols-[9rem_1fr] gap-3 py-2">
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{k}</dt>
                 <dd className="min-w-0 break-words text-neutral-800">{v}</dd>
               </div>
             ))}

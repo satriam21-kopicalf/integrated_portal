@@ -142,13 +142,13 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
 
   // phones / the PWA (the sidebar is a drawer): the pages open inside the drawer as an accordion, not a popup over it
   // (2026-11-12: Monitoring COTR has more than 12 pages and the centred popup was cramped above the drawer)
-  if (onNavigate) {
+  if (onNavigate || !collapsed) {
     const expanded = open || (!!current && !closedByUser);
     return (
       <div>
         <button type="button" onClick={() => { if (expanded) { setOpen(false); setClosedByUser(true); } else { setOpen(true); setClosedByUser(false); } }}
-          aria-expanded={expanded} className={entryClass(!!current || expanded, false)}>
-          <Icon size={17} strokeWidth={1.9} className={entryIcon(!!current || expanded)} />
+          aria-expanded={expanded} className={entryClass(false, false)}>
+          <Icon size={17} strokeWidth={1.9} className={entryIcon(!!current)} />
           <span className="min-w-0 flex-1">
             <span className="block truncate">{config.label}</span>
             {current && !expanded && <span className="block truncate text-[11px] font-normal text-neutral-400">{current.name}</span>}
@@ -156,7 +156,7 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
           <ChevronDown size={15} className={cx('flex-shrink-0 text-neutral-400 transition-transform duration-200', expanded && 'rotate-180')} />
         </button>
         {expanded && (
-          <div className="mb-2 ml-3 mt-1 space-y-3 border-l border-neutral-200 pl-2.5">
+          <div className="mb-1.5 ml-[18px] mt-0.5 space-y-2 border-l border-neutral-200 pl-2">
             {sections.map((section) => (
               <div key={section.title}>
                 {sections.length > 1 && <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">{section.title}</p>}
@@ -167,14 +167,14 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
                     return (
                       <li key={item.href}>
                         <Link href={item.href} onClick={go} aria-current={on ? 'page' : undefined}
-                          className={cx('relative flex min-h-[44px] items-center gap-2.5 rounded-[4px] px-2 py-2 text-[13px] transition-colors',
-                            on ? 'bg-brand-50 font-semibold text-brand-800 before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-brand-700' : 'text-neutral-700 active:bg-neutral-100')}>
+                          className={cx('relative flex min-h-[36px] items-center gap-2 rounded-[4px] px-2 py-1.5 text-[13px] transition-colors lg:min-h-[32px]',
+                            on ? 'bg-brand-50 font-semibold text-brand-800 before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-brand-700' : 'text-neutral-700 hover:bg-neutral-100 active:bg-neutral-100')}>
                           {item.logo ? (
                             // eslint-disable-next-line @next/next/no-img-element -- small brand logo from public/assets
                             <img src={item.logo} alt="" className="h-4 w-8 flex-shrink-0 object-contain" />
                           ) : (
-                            <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md', on ? 'bg-brand-700 text-white' : 'bg-white text-neutral-500 ring-1 ring-neutral-200')}>
-                              <ItemIcon size={14} strokeWidth={1.9} />
+                            <span className={cx('flex h-5 w-5 flex-shrink-0 items-center justify-center', on ? 'text-brand-700' : 'text-neutral-500')}>
+                              <ItemIcon size={15} strokeWidth={1.9} />
                             </span>
                           )}
                           <span className="min-w-0 flex-1 truncate">{item.name}</span>
