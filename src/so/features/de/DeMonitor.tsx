@@ -32,17 +32,16 @@ type Result = { period: { from: string; to: string }; data: Request[]; categorie
 /** group = category group (Utilitas …), bgroup = branch group (CCI, CTG, CTGP: Monitoring → Branch groups) */
 type F = { period: Period; kind: string; urgency: string; group: string; tech: string; overdue: boolean; by: "none" | "branch" | "pic" | "board";
   bgroup: string; branch: string; pic: string };
-const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "", urgency: "", group: "", tech: "", overdue: false, by: "branch",
+const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "", urgency: "", group: "", tech: "", overdue: false, by: "none",
   bgroup: "", branch: "", pic: "" });
 type GroupOpt = { id: string; code: string; name: string };
 const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", ORDERED: "bg-violet-500", ON_HOLD: "bg-amber-500",
-  ACCEPTED: "bg-brand-500", IN_PROGRESS: "bg-brand-700", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
+  ACCEPTED: "bg-brand-500", IN_PROGRESS: "bg-brand-700", HANDOVER: "bg-cyan-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
 const STRIPE: Record<Urgency, string> = { CRITICAL: "border-l-red-500", HIGH: "border-l-amber-400", NORMAL: "border-l-brand-400", LOW: "border-l-neutral-300", PLANNED: "border-l-violet-400" };
 const TABS: (Status | "" | "OPEN")[] = ["OPEN", "", "PENDING", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "ORDERED", "HANDOVER", "DONE", "REJECTED"];
 const OPEN_SET = new Set<Status>(OPEN);
 const urgRank = (u: Urgency) => URGENCIES.indexOf(u);
 type PageTab = "requests" | "overview" | "tech" | "cat";
-const stepOf = (r: Request) => (r.status === "DONE" ? STEPS_OF[r.kind].length : Math.max(0, STEPS_OF[r.kind].indexOf((r.status === "ON_HOLD" ? r.holdFrom : r.status) ?? "PENDING")) + 1);
 
 export default function DeMonitor() {
   const [approvals, setApprovals] = useState(false);
@@ -98,7 +97,7 @@ export default function DeMonitor() {
     ...(f.bgroup ? [{ key: "bg", label: `${tr("Group")} ${f.bgroup === "none" ? tr("Without a Group") : bgroups.find((g) => g.id === f.bgroup)?.code ?? ""}`, onRemove: () => setF({ ...f, bgroup: "" }) }] : []),
     ...(f.branch ? [{ key: "b", label: all.find((r) => r.branchCode === f.branch)?.branchName ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
     ...(f.pic ? [{ key: "pic", label: all.find((r) => r.username === f.pic)?.picName ?? f.pic, onRemove: () => setF({ ...f, pic: "" }) }] : []),
-    ...(f.by === "pic" || f.by === "none" ? [{ key: "by", label: f.by === "pic" ? tr("Per PIC") : tr("List"), onRemove: () => setF({ ...f, by: "branch" }) }] : []),
+    ...(f.by === "pic" || f.by === "branch" ? [{ key: "by", label: f.by === "pic" ? tr("Per PIC") : tr("Per outlet"), onRemove: () => setF({ ...f, by: "none" }) }] : []),
   ];
   const branchOpts = useMemo(() => [...new Map(all.map((r) => [r.branchCode, r.branchName])).entries()].map(([value, label]) => ({ value, label })), [all]);
   const picOpts = useMemo(() => [...new Map(all.map((r) => [r.username, r.picName])).entries()].map(([value, label]) => ({ value, label })), [all]);
@@ -136,70 +135,81 @@ export default function DeMonitor() {
           </Stat>
         </StatStrip>
       }>
-      <div className="flex gap-1 rounded-2xl border border-neutral-200/70 bg-white p-1.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]" role="tablist" aria-label={tr("Form")}>
-        {(["REPAIR", "PROCUREMENT"] as Kind[]).map((k) => {
-          const n = (res?.data ?? []).filter((r) => r.kind === k && OPEN.includes(r.status)).length;
-          return (
-            <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => { setKind(k); if (k === "PROCUREMENT" && tab === "tech") setTab("requests"); }}
-              className={cx("inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors",
-                kind === k ? "bg-brand-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900")}>
-              {k === "REPAIR" ? <Hammer size={16} /> : <ShoppingCart size={16} />}{KIND_LABEL[k]()}
-              {res && <span className={cx("rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums", kind === k ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500")}>{fmtNumber(n)}</span>}
-            </button>
-          );
-        })}
-      </div>
-      <div className="flex gap-x-6 overflow-x-auto rounded-2xl border border-neutral-200/70 bg-white px-5 pt-3.5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]" role="tablist" aria-label={tr("Sections")}>
-        {([["requests", tr("Requests"), <ListChecks key="r" size={15} />], ["overview", "Overview", <BarChart3 key="o" size={15} />],
-          ["tech", tr("Technicians"), <Users key="t" size={15} />], ["cat", tr("Categories"), <Tags key="c" size={15} />]] as [PageTab, string, React.ReactNode][]).filter(([k]) => k !== "tech" || kind === "REPAIR").map(([k, label, icon]) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cx("relative inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-3.5 text-xs font-bold transition-colors",
-              tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
-            {icon}{label}{k === "requests" && res ? <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold tabular-nums text-neutral-500">{fmtNumber(openRows.length)}</span> : null}
-          </button>
-        ))}
-      </div>
-
-      {tab === "overview" && <DeOverview bgroups={bgroups} />}
-      {tab === "tech" && <TechniciansDrawer groups={groups} onClose={() => void load()} />}
-      {tab === "cat" && <CategoriesDrawer key={kind} kind={kind} bgroups={bgroups} onClose={() => void load()} />}
-
-      {tab === "requests" && <Panel title={tr("Requests")} description={tr("Most urgent first; tap a request to handle it")}
-        toolbar={<>
-          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist" aria-label={tr("Status")}>
-            {TABS.filter((t) => !t || t === "OPEN" || t === "ON_HOLD" || t === "REJECTED" || STEPS_OF[kind].includes(t)).map((t) => {
-              const on = status === t;
+      {/* one card like a Jira project (2026-11-18): the form (Maintenance | Procurement) and its sections on top, then
+          the content of the section; the requests as a dense issue table */}
+      <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-neutral-200 px-4 pt-3 sm:px-5">
+          <div className="flex gap-1 pb-2" role="tablist" aria-label={tr("Form")}>
+            {(["REPAIR", "PROCUREMENT"] as Kind[]).map((k) => {
+              const n = (res?.data ?? []).filter((r) => r.kind === k && OPEN.includes(r.status)).length;
               return (
-                <button key={t || "all"} type="button" role="tab" aria-selected={on} onClick={() => setStatus(t)}
-                  className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", on ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:text-neutral-900")}>
-                  {t && t !== "OPEN" && <span className={cx("h-2 w-2 rounded-full", DOT[t])} aria-hidden />}
-                  {t === "OPEN" ? tr("Open") : t ? statusLabel(kind, t) : tr("All")}
-                  <span className={cx("rounded-full px-1.5 text-[11px] tabular-nums", on ? "bg-brand-700 text-white" : "bg-white text-neutral-700")}>{fmtNumber(count(t))}</span>
+                <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => { setKind(k); if (k === "PROCUREMENT" && tab === "tech") setTab("requests"); }}
+                  className={cx("inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
+                    kind === k ? "bg-brand-50 text-brand-800 ring-1 ring-brand-200" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900")}>
+                  <span className={cx("flex h-6 w-6 items-center justify-center rounded-md text-white", k === "REPAIR" ? "bg-orange-500" : "bg-violet-600")}>
+                    {k === "REPAIR" ? <Hammer size={13} /> : <ShoppingCart size={13} />}</span>
+                  {KIND_LABEL[k]()}
+                  {res && <span className={cx("rounded-full px-1.5 text-[11px] font-bold tabular-nums", kind === k ? "bg-brand-700 text-white" : "bg-neutral-100 text-neutral-500")}>{fmtNumber(n)}</span>}
                 </button>
               );
             })}
           </div>
-          <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search number, outlet, PIC or item")} filters={chips}
-            onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
-            extra={<div className="ml-auto flex rounded-lg bg-neutral-100 p-0.5" role="group" aria-label={tr("View")}>
-              {([["branch", tr("Table"), <ListChecks key="t" size={14} />], ["board", tr("Board"), <Columns3 key="b" size={14} />]] as [F["by"], string, React.ReactNode][]).map(([v, label, icon]) => {
-                const on = v === "board" ? f.by === "board" : f.by !== "board";
-                return <button key={v} type="button" aria-pressed={on} onClick={() => setF({ ...f, by: v === "board" ? "board" : f.by === "board" ? "branch" : f.by })}
-                  className={cx("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium", on ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900")}>{icon}{label}</button>;
+          <div className="flex gap-x-5 overflow-x-auto sm:ml-auto" role="tablist" aria-label={tr("Sections")}>
+            {([["requests", tr("Requests"), <ListChecks key="r" size={15} />], ["overview", "Overview", <BarChart3 key="o" size={15} />],
+              ["tech", tr("Technicians"), <Users key="t" size={15} />], ["cat", tr("Categories"), <Tags key="c" size={15} />]] as [PageTab, string, React.ReactNode][]).filter(([k]) => k !== "tech" || kind === "REPAIR").map(([k, label, icon]) => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+                className={cx("-mb-px inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-2.5 pt-1.5 text-sm font-medium transition-colors",
+                  tab === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
+                {icon}{label}{k === "requests" && res ? <span className="rounded-full bg-neutral-100 px-1.5 text-[11px] font-semibold tabular-nums text-neutral-500">{fmtNumber(openRows.length)}</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {tab === "overview" && <div className="bg-neutral-50/60 p-3 sm:p-4"><DeOverview bgroups={bgroups} /></div>}
+        {tab === "tech" && <div className="bg-neutral-50/60 p-3 sm:p-4"><TechniciansDrawer groups={groups} onClose={() => void load()} /></div>}
+        {tab === "cat" && <div className="bg-neutral-50/60 p-3 sm:p-4"><CategoriesDrawer key={kind} kind={kind} bgroups={bgroups} onClose={() => void load()} /></div>}
+
+        {tab === "requests" && <>
+          <div className="space-y-2.5 border-b border-neutral-200 px-4 py-3 sm:px-5">
+            <div className="-mx-1 flex gap-1 overflow-x-auto" role="tablist" aria-label={tr("Status")}>
+              {TABS.filter((t) => !t || t === "OPEN" || t === "ON_HOLD" || t === "REJECTED" || STEPS_OF[kind].includes(t)).map((t) => {
+                const on = status === t;
+                return (
+                  <button key={t || "all"} type="button" role="tab" aria-selected={on} onClick={() => setStatus(t)}
+                    className={cx("inline-flex flex-shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors", on ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900")}>
+                    {t && t !== "OPEN" && <span className={cx("h-2 w-2 rounded-full", DOT[t])} aria-hidden />}
+                    {t === "OPEN" ? tr("Open") : t ? statusLabel(kind, t) : tr("All")}
+                    <span className={cx("tabular-nums", on ? "text-white/70" : "text-neutral-400")}>{fmtNumber(count(t))}</span>
+                  </button>
+                );
               })}
-            </div>} />
+            </div>
+            <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search number, outlet, PIC or item")} filters={chips}
+              onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
+              extra={<div className="ml-auto flex rounded-lg bg-neutral-100 p-0.5" role="group" aria-label={tr("View")}>
+                {([["branch", tr("Table"), <ListChecks key="t" size={14} />], ["board", tr("Board"), <Columns3 key="b" size={14} />]] as [F["by"], string, React.ReactNode][]).map(([v, label, icon]) => {
+                  const on = v === "board" ? f.by === "board" : f.by !== "board";
+                  return <button key={v} type="button" aria-pressed={on} onClick={() => setF({ ...f, by: v === "board" ? "board" : f.by === "board" ? "none" : f.by })}
+                    className={cx("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium", on ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-900")}>{icon}{label}</button>;
+                })}
+              </div>} />
+          </div>
+          {error ? <div className="p-4"><ErrorState message={error} onRetry={load} /></div> : res && rows.length === 0 ? (
+            <Empty icon={<Wrench size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No request yet")}>
+              {!all.length && tr("Requests appear here as soon as the PICs send them from Form → Maintenance Request.")}
+            </Empty>
+          ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table> : f.by === "board" ? <Board rows={rows} kind={kind} onOpen={setOpen} /> : grouped ? (
+            <ul className="divide-y divide-neutral-200">
+              {grouped.map((g) => <Group key={g.key} g={g} onOpen={setOpen} />)}
+            </ul>
+          ) : <RequestTable rows={paged.rows} onOpen={setOpen} />}
+          {res && !grouped && f.by !== "board" && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-200 px-4 py-2.5 text-xs text-neutral-500 sm:px-5">
+              <span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></div>
+          )}
         </>}
-        footer={res && !grouped && f.by !== "board" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
-        {error ? <ErrorState message={error} onRetry={load} /> : res && rows.length === 0 ? (
-          <Empty icon={<Wrench size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No request yet")}>
-            {!all.length && tr("Requests appear here as soon as the PICs send them from Form → Maintenance Request.")}
-          </Empty>
-        ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table> : f.by === "board" ? <Board rows={rows} kind={kind} onOpen={setOpen} /> : grouped ? (
-          <ul className="divide-y divide-neutral-200">
-            {grouped.map((g) => <Group key={g.key} g={g} onOpen={setOpen} />)}
-          </ul>
-        ) : <RequestTable rows={paged.rows} onOpen={setOpen} />}
-      </Panel>}
+      </section>
 
       {sheet && <MonitorFilters value={f} groups={groups} bgroups={bgroups} branches={branchOpts} pics={picOpts} technicians={(res?.technicians ?? []).map((t) => t.name)}
         onClose={() => setSheet(false)} onApply={(v) => { setF(v); setSheet(false); }} />}
@@ -297,46 +307,75 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
           </li>
         ))}
       </ul>
+      {/* Jira-like issue table (2026-11-18): dense rows, type icon + key, summary, status lozenge, priority, people */}
       <div className="hidden overflow-x-auto md:block">
-        <table className="m-cards w-full min-w-[960px] text-xs">
-          <thead className={theadClass}>
-            <tr>
-              <th className="py-2.5 pl-5 pr-3">{tr("Request")}</th><th className="px-3 py-2.5">{tr("Items")}</th><th className="px-3 py-2.5">{tr("Outlet & PIC")}</th>
-              <th className="px-3 py-2.5">{tr("Status")}</th><th className="px-3 py-2.5 text-right">{tr("Time")}</th><th className="px-3 py-2.5">{rows[0]?.kind === "PROCUREMENT" ? tr("Shop / Supplier") : tr("Technician")}</th><th className="w-8" />
+        <table className="w-full min-w-[1040px] border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b-2 border-neutral-200 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+              <th className="w-10 py-2 pl-4 pr-1 font-semibold" aria-label={tr("Type")} /><th className="px-2 py-2 font-semibold">Key</th>
+              <th className="px-2 py-2 font-semibold">{tr("Summary")}</th><th className="px-2 py-2 font-semibold">{tr("Status")}</th>
+              <th className="px-2 py-2 font-semibold">{tr("Priority")}</th><th className="px-2 py-2 font-semibold">{tr("Outlet")}</th>
+              <th className="px-2 py-2 font-semibold">{tr("Reporter")}</th>
+              <th className="px-2 py-2 font-semibold">{rows[0]?.kind === "PROCUREMENT" ? tr("Shop / Supplier") : tr("Assignee")}</th>
+              <th className="px-2 py-2 font-semibold">{tr("Created")}</th><th className="py-2 pl-2 pr-4 text-right font-semibold">{tr("Time")}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100">
-            {rows.map((r) => (
-              <tr key={r.id} onClick={() => onOpen(r.id)} className="group cursor-pointer hover:bg-brand-50/40">
-                <td className={cx("whitespace-nowrap border-l-4 py-3 pl-4 pr-3", STRIPE[r.urgency])}>
-                  <span className="block font-mono text-xs font-semibold text-neutral-800">{r.number}</span>
-                  <span className="mt-0.5 flex items-center gap-1.5"><UrgencyBadge u={r.urgency} tier={r.tier} /><span className="text-[11px] text-neutral-500">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")}</span></span>
-                </td>
-                <td className="max-w-[16rem] px-3 py-3">
-                  <span className="block truncate font-medium text-neutral-900">{items(r)}</span>
-                  <span className="block truncate text-[11px] text-neutral-500">{[...new Set((r.items ?? []).map((i) => i.category))].join(" · ")}</span>
-                </td>
-                <td className="max-w-[14rem] px-3 py-3"><span className="block truncate text-neutral-800">{r.branchName}</span><span className="block truncate text-[11px] text-neutral-500">{r.picName} · {wibDateTime(r.submittedAt)}</span></td>
-                <td className="px-3 py-3">
-                  <StatusBadge r={r} />
-                  <span className="mt-1.5 flex items-center gap-1.5">
-                    <span className="flex gap-0.5">{STEPS_OF[r.kind].map((s, i) => <span key={s} className={cx("h-1 w-3.5 rounded-full", r.status === "REJECTED" ? "bg-red-300" : i < stepOf(r) ? (r.status === "DONE" ? "bg-emerald-500" : r.status === "ON_HOLD" ? "bg-amber-400" : "bg-brand-600") : "bg-neutral-200")} />)}</span>
-                    <span className="text-[10px] tabular-nums text-neutral-400">{stepOf(r)}/{STEPS_OF[r.kind].length}</span>
-                  </span>
-                </td>
-                <td className="whitespace-nowrap px-3 py-3 text-right text-xs">
-                  <span className={cx("block font-semibold tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-neutral-800")}>{fmtHours(r.tracker?.workHours)}</span>
-                  <span className="text-neutral-400">{r.tracker?.slaHours ? tr("target {0}", fmtHours(r.tracker.slaHours)) : "—"}</span>
-                </td>
-                <td className="max-w-[10rem] px-3 py-3 text-xs text-neutral-600"><span className="block truncate">{(r.kind === "PROCUREMENT" ? r.vendor : (r.technicians ?? []).join(", ")) || <span className="text-neutral-300">{r.kind === "PROCUREMENT" ? tr("Not set") : tr("Not assigned")}</span>}</span></td>
-                <td className="pr-3 text-neutral-300 group-hover:text-brand-600"><ChevronRight size={16} /></td>
-              </tr>
-            ))}
+          <tbody>
+            {rows.map((r) => {
+              const who = (r.kind === "PROCUREMENT" ? r.vendor : (r.technicians ?? []).join(", ")) || "";
+              return (
+                <tr key={r.id} onClick={() => onOpen(r.id)} className="group cursor-pointer border-b border-neutral-100 hover:bg-neutral-50">
+                  <td className="py-2 pl-4 pr-1">
+                    <span className={cx("flex h-5 w-5 items-center justify-center rounded text-white", r.kind === "REPAIR" ? "bg-orange-500" : "bg-violet-600")} title={r.kindLabel}>
+                      {r.kind === "REPAIR" ? <Hammer size={11} /> : <ShoppingCart size={11} />}</span>
+                  </td>
+                  <td className="whitespace-nowrap px-2 py-2"><span className="font-medium text-brand-700 group-hover:underline">{r.number}</span></td>
+                  <td className="max-w-[22rem] px-2 py-2">
+                    <span className="block truncate text-neutral-900">{summary(r)}</span>
+                    <span className="block truncate text-[11px] text-neutral-400">{[...new Set((r.items ?? []).map((i) => i.category))].join(" · ") || items(r)}</span>
+                  </td>
+                  <td className="whitespace-nowrap px-2 py-2"><Lozenge r={r} /></td>
+                  <td className="whitespace-nowrap px-2 py-2"><Priority r={r} /></td>
+                  <td className="max-w-[12rem] px-2 py-2"><span className="block truncate text-neutral-800">{r.branchName}</span></td>
+                  <td className="max-w-[10rem] px-2 py-2"><Person name={r.picName} /></td>
+                  <td className="max-w-[11rem] px-2 py-2">{who ? <Person name={who} /> : <span className="text-neutral-400">{r.kind === "PROCUREMENT" ? tr("Not set") : tr("Unassigned")}</span>}</td>
+                  <td className="whitespace-nowrap px-2 py-2 text-neutral-600">{wibDateTime(r.submittedAt)}</td>
+                  <td className="whitespace-nowrap py-2 pl-2 pr-4 text-right">
+                    <span className={cx("tabular-nums", r.tracker?.overdue ? "font-semibold text-red-600" : "text-neutral-700")}>{fmtHours(r.tracker?.workHours)}</span>
+                    {r.tracker?.slaHours ? <span className="text-neutral-400"> / {fmtHours(r.tracker.slaHours)}</span> : null}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
     </>
   );
+}
+
+const LOZENGE: Record<Status, string> = {
+  DRAFT: "bg-neutral-100 text-neutral-700", PENDING: "bg-neutral-200 text-neutral-800", ON_HOLD: "bg-amber-100 text-amber-900",
+  ACCEPTED: "bg-blue-100 text-blue-800", IN_PROGRESS: "bg-blue-100 text-blue-800", ORDERED: "bg-blue-100 text-blue-800",
+  HANDOVER: "bg-cyan-100 text-cyan-900", DONE: "bg-emerald-100 text-emerald-800", REJECTED: "bg-red-100 text-red-800",
+};
+/** a Jira status lozenge: small caps on a soft colour */
+function Lozenge({ r }: { r: Request }) {
+  return <span className={cx("inline-block max-w-[11rem] truncate rounded-[3px] px-1.5 py-0.5 text-[11px] font-bold uppercase leading-4 tracking-wide", LOZENGE[r.status])}>{statusLabel(r.kind, r.status)}</span>;
+}
+const PRIO: Record<Urgency, [string, string]> = { CRITICAL: ["text-red-600", "▲▲"], HIGH: ["text-orange-500", "▲"], NORMAL: ["text-amber-500", "="], LOW: ["text-blue-500", "▼"], PLANNED: ["text-neutral-400", "○"] };
+/** priority like Jira: a coloured mark and the label, the sales tier after it */
+function Priority({ r }: { r: Request }) {
+  const [tone, mark] = PRIO[r.urgency] ?? PRIO.NORMAL;
+  return <span className="inline-flex items-center gap-1.5 text-neutral-800"><span className={cx("text-[11px] font-black leading-none", tone)} aria-hidden>{mark}</span>{URGENCY_LABEL[r.urgency]()}
+    {r.tier && <span className="text-[11px] text-neutral-400">· {r.tier}</span>}</span>;
+}
+const AVATAR = ["bg-sky-600", "bg-emerald-600", "bg-violet-600", "bg-rose-600", "bg-amber-600", "bg-teal-600", "bg-indigo-600"];
+function Person({ name }: { name: string }) {
+  const ini = name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "?";
+  const tone = AVATAR[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR.length];
+  return <span className="flex min-w-0 items-center gap-1.5"><span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white", tone)} aria-hidden>{ini}</span>
+    <span className="truncate text-neutral-800">{name}</span></span>;
 }
 
 type Opt = { value: string; label: string };
@@ -1166,14 +1205,30 @@ function DeApprovals({ onClose }: { onClose: () => void }) {
       footer={edit ? <Button loading={busy} onClick={() => void save()}>{tr("Save")}</Button> : undefined}>
       {!data ? <SkeletonList rows={5} /> : (
         <div className="space-y-3">
-          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1" role="tablist">
+          {/* Jira-like workflow (2026-11-18): the form as tabs, then the path a request takes through the approvals */}
+          <div className="flex gap-5 border-b border-neutral-200" role="tablist" aria-label={tr("Form")}>
             {Object.entries(data.kinds).map(([k, label]) => (
               <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-                className={cx("flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium", kind === k ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600")}>
+                className={cx("-mb-px inline-flex items-center gap-2 border-b-2 pb-2.5 text-sm font-medium", kind === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
+                <span className={cx("flex h-5 w-5 items-center justify-center rounded text-white", k === "REPAIR" ? "bg-orange-500" : "bg-violet-600")}>
+                  {k === "REPAIR" ? <Hammer size={11} /> : <ShoppingCart size={11} />}</span>
                 {(KIND_LABEL as Record<string, () => string>)[k]?.() ?? label}</button>
             ))}
           </div>
+          <section className="rounded-lg border border-neutral-200 bg-neutral-50/70 p-3">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Workflow")}</p>
+            <ol className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide">
+              <li className="rounded-[3px] bg-neutral-200 px-1.5 py-0.5 text-neutral-800">{statusLabel(kind as Kind, "PENDING")}</li>
+              {steps.map((st, i) => (
+                <li key={i} className="flex items-center gap-1.5"><ChevronRight size={13} className="text-neutral-400" />
+                  <span className="rounded-[3px] border border-dashed border-brand-300 bg-white px-1.5 py-0.5 normal-case tracking-normal text-brand-800">{st.label || tr("Approval {0}", i + 1)}</span></li>
+              ))}
+              <li className="flex items-center gap-1.5"><ChevronRight size={13} className="text-neutral-400" />
+                <span className="rounded-[3px] bg-blue-100 px-1.5 py-0.5 text-blue-800">{statusLabel(kind as Kind, "ACCEPTED")}</span></li>
+            </ol>
+          </section>
           {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin changes the approvals.")}</p>}
+          <p className="pt-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Approval steps")} · {steps.length}</p>
           <ol className="space-y-2">
             {steps.map((st, i) => (
               <StepRow key={i} n={i + 1} step={st} users={data.users} names={names} edit={edit}

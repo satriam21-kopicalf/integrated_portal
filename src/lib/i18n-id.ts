@@ -6980,4 +6980,8 @@ export const ID: Record<string, string> = {
   "What is needed:\nWhat it is for:\nSpecification (brand, size, colour):\nWhere it goes in the outlet:\nReference link (optional):\n": "Yang dibutuhkan:\nUntuk keperluan:\nSpesifikasi (merek, ukuran, warna):\nPenempatan di outlet:\nLink referensi (opsional):\n",
   "Describe the damage in detail": "Jelaskan kerusakan secara detail",
   "Describe the need in detail: what, what for, the specification and where it goes": "Jelaskan kebutuhan secara detail: apa, untuk apa, spesifikasi dan penempatannya",
+  "Reporter": "Pelapor",
+  "Assignee": "Ditangani",
+  "Workflow": "Alur kerja",
+  "Approval steps": "Tahap approval",
 };
