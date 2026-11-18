@@ -9,6 +9,7 @@
 // document) and COGS Material (Pricelist Items), system and actual. A card may hold other cards (bundling, 2026-11-06)
 // and shows the list price of its menus (POS menu master, per channel) with the % HPP.
 
+import { Segmented } from "@/so/ui/Simple";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { RecipeImport, exportRecipes } from "./recipe-excel";
 import { SkeletonTable } from "@/components/kc/Skeleton";
@@ -54,8 +55,14 @@ type Report = {
   unmapped: { id: string; name: string; category: string; qty: number; sales: number; viaPackages?: boolean }[];
   usage: { code: string | null; name: string; unit: string; isStock: boolean; extra?: boolean; system: number; soStart?: number | null; purchased?: number | null; soEnd?: number | null; purchasedOther?: { uom: string; qty: number }[];
     /** the moves in (+) and out (−) between the counts (integrated_portal_be app/stock_moves.py) */ moves?: Partial<Record<MoveKind, number>>;
-    actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null }[];
-  mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean }[];
+    actual: number | null; variance: number | null; price: number | null; systemValue: number | null; actualValue: number | null;
+    /** Items In / Out of the window and the difference in % of quantity and value (Cost Control, 2026-11-18) */
+    received?: number | null; transferIn?: number | null; transferOut?: number | null; otherMoves?: number | null; waste?: number | null; wasteProduct?: number | null;
+    variancePct?: number | null; valueVariance?: number | null; valueVariancePct?: number | null }[];
+  mrp: { code: string | null; name: string; unit: string; isStock: boolean; qty: number; onHand?: number | null; toOrder?: number; value: number | null; orderValue?: number | null; extra?: boolean;
+    /** the latest SO (the order follows it) and the running estimate beside it (2026-11-18) */ soLatest?: number | null; estimate?: number | null }[];
+  /** the months the Usage & COGS cover: SO awal / SO akhir at the month ends (basis month) or the period itself */
+  usageWindow?: { from: string; to: string; basis: "month" | "period"; closed: boolean };
   /** the stock items of the cards counted at both ends (their share of the system value) and the ones missing */
   /** branch × item rows whose counts look wrong (negative usage, a count many times the other end) */
   anomalies?: Anomaly[];
@@ -77,10 +84,6 @@ const REASON: Record<Anomaly["reasons"][number], () => string> = {
   negative: () => tr("Negative usage: SO akhir above SO awal + what came in"), startHigh: () => tr("SO awal many times SO akhir"), endHigh: () => tr("SO akhir many times SO awal"),
 };
 type MoveKind = "received" | "outletBuy" | "produced" | "consumed" | "delivered" | "returned";
-const MOVE: Record<MoveKind, () => string> = {
-  received: () => tr("Goods Receipt"), outletBuy: () => tr("Outlet purchase"), produced: () => tr("Produced"),
-  consumed: () => tr("Used in production"), delivered: () => tr("Sent out"), returned: () => tr("Returned"),
-};
 type Step = "recipes" | "menus" | "options" | "extras" | "report" | "breakdown";
 
 const BASIS: Record<Extra["basis"], () => string> = { bill: () => tr("Per Bill"), portion: () => tr("Per Portion Sold"), day: () => tr("Per Outlet-Day") };
@@ -1001,11 +1004,13 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
 // ---------------------------------------------------------------- 4. calculator
 
 const NONE: never[] = [];
-type UsageKey = "name" | "soStart" | "moves" | "soEnd" | "actual" | "system" | "variance" | "systemValue" | "actualValue";
-const mrpValue = (r: Report["mrp"][number], k: "name" | "qty" | "onHand" | "toOrder" | "value") =>
-  ({ name: r.name, qty: r.qty, onHand: r.onHand, toOrder: r.toOrder, value: r.orderValue ?? r.value }[k]);
-const usageValue = (r: Report["usage"][number], k: UsageKey) => ({ name: r.name, soStart: r.soStart, moves: r.purchased, soEnd: r.soEnd, actual: r.actual,
-  system: r.system, variance: r.variance, systemValue: r.systemValue, actualValue: r.actualValue }[k]);
+type UsageKey = "name" | "soStart" | "received" | "tin" | "other" | "tout" | "waste" | "wasteProduct" | "soEnd" | "actual" | "system" | "variance" | "variancePct" | "systemValue" | "actualValue" | "valueVariance";
+type MrpKey = "name" | "qty" | "onHand" | "estimate" | "toOrder" | "value";
+const mrpValue = (r: Report["mrp"][number], k: MrpKey) =>
+  ({ name: r.name, qty: r.qty, onHand: r.soLatest ?? r.onHand, estimate: r.estimate, toOrder: r.toOrder, value: r.orderValue ?? r.value }[k]);
+const usageValue = (r: Report["usage"][number], k: UsageKey) => ({ name: r.name, soStart: r.soStart, received: r.received, tin: r.transferIn, other: r.otherMoves,
+  tout: r.transferOut, waste: r.waste, wasteProduct: r.wasteProduct, soEnd: r.soEnd, actual: r.actual, system: r.system, variance: r.variance,
+  variancePct: r.variancePct, systemValue: r.systemValue, actualValue: r.actualValue, valueVariance: r.valueVariance }[k]);
 const menuValue = (m: Report["menus"][number], k: "name" | "card" | "qty" | "sales" | "hpp" | "cogs" | "ratio") =>
   ({ name: m.name, card: m.recipeName, qty: m.qty, sales: m.sales, hpp: m.hpp, cogs: m.cogs, ratio: m.ratio }[k]);
 
@@ -1018,8 +1023,9 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
   const [horizon, setHorizon] = useState("");
   const [buffer, setBuffer] = useState("");
   const [view, setView] = useState<"cogs" | "mrp" | "usage">("cogs");
+  const [soBasis, setSoBasis] = useState<"month" | "period">("month");
   const [data, setData] = useState<Report | null>(null);
-  const mrpSort = useSort<Report["mrp"][number], "name" | "qty" | "onHand" | "toOrder" | "value">(data?.mrp ?? NONE, mrpValue);
+  const mrpSort = useSort<Report["mrp"][number], MrpKey>(data?.mrp ?? NONE, mrpValue);
   const useSort_ = useSort<Report["usage"][number], UsageKey>(data?.usage ?? NONE, usageValue);
   const menuSort = useSort<Report["menus"][number], "name" | "card" | "qty" | "sales" | "hpp" | "cogs" | "ratio">(data?.menus ?? NONE, menuValue);
   const [error, setError] = useState<string | null>(null);
@@ -1037,10 +1043,10 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
     let alive = true;
     setData(null);
     setError(null);
-    call<Report>(`/api/cost-control/sales-calc/report?dateFrom=${period.from}&dateTo=${period.to}&horizon=${h}&buffer=${b}${branch ? `&branch=${encodeURIComponent(branch)}` : ""}`)
+    call<Report>(`/api/cost-control/sales-calc/report?dateFrom=${period.from}&dateTo=${period.to}&horizon=${h}&buffer=${b}&soBasis=${soBasis}${branch ? `&branch=${encodeURIComponent(branch)}` : ""}`)
       .then((d) => { if (alive) setData(d); }).catch((e: Error) => { if (alive) setError(e.message); });
     return () => { alive = false; };
-  }, [period, branch, h, b, tick]);
+  }, [period, branch, h, b, soBasis, tick]);
   const t = period ? data?.total : undefined;
   const file = (what: string) => `${what} ${period?.from ?? ""} - ${period?.to ?? ""}`;
   const guard = (f: (d: Report) => Promise<void>) => async () => {
@@ -1082,15 +1088,16 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                 run: guard((d) => downloadXlsx({ fileName: file("COGS Material"), sheet: "COGS", title: file("COGS Material"), header: ["Menu", "Kartu Resep", "Terjual", "Sales", "HPP / Porsi", "COGS", "Rasio"],
                   rows: d.menus.map((m) => [m.name, m.recipeName, m.qty, m.sales, m.hpp, m.cogs, m.ratio]) })) },
               { key: "mrp", label: tr("Material Required Planning"), hint: tr("Materials to prepare for the planned days"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: data ? data.mrp.length : null,
-                run: guard((d) => downloadXlsx({ fileName: file("Material Required Planning"), sheet: "MRP", title: file("Material Required Planning"), header: ["Kode", "Bahan", "Satuan", "Kebutuhan", "Stok (SO Terakhir)", "Perlu Dipesan", "Nilai Kebutuhan", "Nilai Dipesan"],
-                  rows: d.mrp.map((r) => [r.code, r.name, r.unit, r.qty, r.onHand ?? null, r.toOrder ?? r.qty, r.value, r.orderValue ?? null]) })) },
+                run: guard((d) => downloadXlsx({ fileName: file("Material Required Planning"), sheet: "MRP", title: file("Material Required Planning"), header: ["Kode", "Bahan", "Satuan", "Kebutuhan", "Stok SO Terakhir", "Estimasi Sekarang", "Perlu Dipesan", "Nilai Kebutuhan", "Nilai Dipesan"],
+                  rows: d.mrp.map((r) => [r.code, r.name, r.unit, r.qty, r.soLatest ?? r.onHand ?? null, r.estimate ?? null, r.toOrder ?? r.qty, r.value, r.orderValue ?? null]) })) },
               { key: "anomalies", label: tr("SO Anomalies"), hint: tr("Branch × material rows whose counts look wrong, to check and correct"), icon: <ListChecks size={16} />, tone: "bg-red-50 text-red-600", count: data ? (data.anomalies ?? []).length : null,
                 run: guard((d) => downloadXlsx({ fileName: file("Anomali SO"), sheet: "Anomali", title: file("Anomali SO"), header: ["Cabang", "Kode", "Bahan", "Satuan", "SO Awal", "Masuk − Keluar", "SO Akhir", "Pemakaian", "Harga", "Dampak (Rp)", "Alasan", "SO Awal (dok)", "SO Akhir (dok)"],
                   rows: (d.anomalies ?? []).map((a) => [a.branchName, a.code, a.name, a.unit, a.start, a.moves, a.end, a.actual, a.price, a.impact, a.reasons.map((r) => REASON[r]()).join("; "), a.refs.start.join(", "), a.refs.end.join(", ")]) })) },
               { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: SO awal, purchases, SO akhir, actual, system, difference and value"), icon: <ListChecks size={16} />, tone: "bg-emerald-50 text-emerald-600", count: data ? data.usage.length : null,
-                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "Good Receipt", "Belanja Outlet", "Hasil Produksi", "Dipakai Produksi", "Dikirim Keluar", "Retur", "Masuk − Keluar", "SO Akhir", "Actual", "System", "Selisih", "Harga", "Nilai System", "Nilai Actual"],
-                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, ...(["received", "outletBuy", "produced", "consumed", "delivered", "returned"] as MoveKind[]).map((k) => r.moves?.[k] ?? null),
-                    r.purchased ?? null, r.soEnd ?? null, r.actual, r.system, r.variance, r.price, r.systemValue, r.actualValue]) })) },
+                run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "IN: Good Receipt", "IN: Transfer In (TITO)", "Mutasi Lain", "OUT: Transfer Out (TITO)", "OUT: Waste", "OUT: Waste Product Sales",
+                    "SO Akhir", "Usage Actual", "Usage System", "Selisih Qty", "Selisih Qty %", "Harga", "Nilai Usage System", "Nilai Usage Actual", "Selisih Nilai", "Selisih Nilai %"],
+                  rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, r.received ?? null, r.transferIn ?? null, r.otherMoves ?? null, r.transferOut ?? null, r.waste ?? null, r.wasteProduct ?? null,
+                    r.soEnd ?? null, r.actual, r.system, r.variance, r.variancePct ?? null, r.price, r.systemValue, r.actualValue, r.valueVariance ?? null, r.valueVariancePct ?? null]) })) },
             ]} /></div>} />
           <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={outputs.map((o) => ({ key: o.key, label: o.label }))} />
         </div>
@@ -1132,22 +1139,28 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
               </p>
             )}
             {view === "mrp" && (
-              <table className="m-cards w-full min-w-[760px] text-sm">
+              <table className="m-cards w-full min-w-[880px] text-sm">
                 <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Average daily sales of {0} days × {1} days + {2}% buffer, exploded through the cards (rounded up)", data.period.days, data.period.horizon, data.period.buffer)}
-                  {" · "}{data.stock?.onHand.branches ? tr("Stock = the latest SO of {0} branches ({1} – {2}); To Order = Required − Stock", data.stock.onHand.branches, dmy(data.stock.onHand.from ?? ""), dmy(data.stock.onHand.to ?? "")) : tr("No recent SO of the branches: To Order = Required")}</caption>
+                  {" · "}{data.stock?.onHand.branches ? tr("To Order = Required − the latest SO of {0} branches ({1} – {2}); Estimate Now = the latest SO + moves − waste − usage since, for comparison", data.stock.onHand.branches, dmy(data.stock.onHand.from ?? ""), dmy(data.stock.onHand.to ?? "")) : tr("No recent SO of the branches: To Order = Required")}</caption>
                 <thead className={theadClass}><tr><SortTh k="name" sort={mrpSort.sort} onSort={mrpSort.toggle}>{tr("Material")}</SortTh><SortTh k="qty" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Required")}</SortTh>
-                  <SortTh k="onHand" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Stock (Latest SO)")}</SortTh><SortTh k="toOrder" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("To Order")}</SortTh><SortTh k="value" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Order Value")}</SortTh></tr></thead>
+                  <SortTh k="onHand" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Stock (Latest SO)")}</SortTh><SortTh k="estimate" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Estimate Now")}</SortTh>
+                  <SortTh k="toOrder" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("To Order")}</SortTh><SortTh k="value" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Order Value")}</SortTh></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {mrpSort.rows.map((r) => (
-                    <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
-                      <td className="px-4 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
-                      <td className="px-4 py-2 text-right tabular-nums" data-label={tr("Required")}>{num(r.qty, 0)} {r.unit}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Stock (Latest SO)")}>{r.onHand == null ? "—" : num(r.onHand)}</td>
-                      <td className="px-4 py-2 text-right font-semibold tabular-nums" data-label={tr("To Order")}>{num(r.toOrder ?? r.qty, 0)} {r.unit}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Order Value")}>{rp(r.orderValue ?? r.value)}</td>
-                    </tr>
-                  ))}
-                  {!data.mrp.length && <tr><td colSpan={5}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
+                  {mrpSort.rows.map((r) => {
+                    const so = r.soLatest ?? r.onHand;
+                    return (
+                      <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
+                        <td className="px-3 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
+                        <td className="px-3 py-2 text-right tabular-nums" data-label={tr("Required")}>{num(r.qty, 0)} {r.unit}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-neutral-800" data-label={tr("Stock (Latest SO)")}>{so == null ? "—" : num(so)}</td>
+                        <td className={cx("px-3 py-2 text-right tabular-nums", r.estimate != null && so != null && r.estimate < so * 0.5 ? "text-amber-700" : "text-neutral-500")} data-label={tr("Estimate Now")}
+                          title={r.estimate != null && so != null && r.estimate < so * 0.5 ? tr("Much less than the latest SO: the stock was used since the count") : undefined}>{r.estimate == null ? "—" : num(r.estimate)}</td>
+                        <td className="px-3 py-2 text-right font-semibold tabular-nums" data-label={tr("To Order")}>{num(r.toOrder ?? r.qty, 0)} {r.unit}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Order Value")}>{rp(r.orderValue ?? r.value)}</td>
+                      </tr>
+                    );
+                  })}
+                  {!data.mrp.length && <tr><td colSpan={6}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
                 </tbody>
               </table>
             )}
@@ -1165,32 +1178,73 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                   </div>
                 );
               })()}
-              <table className="m-cards w-full min-w-[1080px] text-sm">
-                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Actual = SO awal + moves in − moves out − SO akhir; System = menus sold × recipe cards. Both over the branches with SO awal and SO akhir (the portal stock opname from 28 Oct 2026, else the ESB document).")}</caption>
-                <thead className={theadClass}><tr><SortTh k="name" sort={useSort_.sort} onSort={useSort_.toggle}>{tr("Material")}</SortTh><SortTh k="soStart" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("SO Awal")}</SortTh><SortTh k="moves" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("In − Out")}</SortTh>
-                  <SortTh k="soEnd" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("SO Akhir")}</SortTh><SortTh k="actual" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Actual")}</SortTh><SortTh k="system" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("System")}</SortTh>
-                  <SortTh k="variance" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Difference")}</SortTh><SortTh k="systemValue" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Value System")}</SortTh><SortTh k="actualValue" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Value Actual")}</SortTh></tr></thead>
+              <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 text-xs text-neutral-600">
+                <span className="font-semibold text-neutral-800">{tr("SO basis")}</span>
+                <Segmented label={tr("SO basis")} value={soBasis} onChange={setSoBasis}
+                  options={[{ value: "month", label: tr("Month-end SO") }, { value: "period", label: tr("SO of the period") }]} />
+                {data.usageWindow && <span>{tr("SO Awal {0} · SO Akhir {1}", dmy(data.usageWindow.from), dmy(data.usageWindow.to))}
+                  {data.usageWindow.basis === "month" && !data.usageWindow.closed && <span className="ml-1 text-amber-700">· {tr("the month is not closed: waiting for the month-end SO")}</span>}</span>}
+              </div>
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[1700px] text-sm">
+                <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Usage Actual = SO Awal + Items In + other moves − Transfer Out − SO Akhir (the waste is inside it); Usage System = menus sold × recipe cards. Difference % = (Actual − System) ÷ System, of the quantity and of the value.")}</caption>
+                <thead className={theadClass}>
+                  <tr className="[&>th]:px-3 [&>th]:pt-2 [&>th]:text-center">
+                    <th colSpan={2} /><th colSpan={2} className="border-l border-neutral-200 text-emerald-700">{tr("Items In")}</th><th className="border-l border-neutral-200" />
+                    <th colSpan={3} className="border-l border-neutral-200 text-red-700">{tr("Items Out")}</th>
+                    <th colSpan={5} className="border-l border-neutral-200">{tr("Quantity")}</th><th colSpan={4} className="border-l border-neutral-200">{tr("Value")}</th></tr>
+                  <tr>
+                  <SortTh k="name" sort={useSort_.sort} onSort={useSort_.toggle}>{tr("Material")}</SortTh>
+                  <SortTh k="soStart" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("SO Awal")}</SortTh>
+                  <SortTh k="received" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc" pad="border-l border-neutral-200 px-3 py-2.5">{tr("Good Receipt")}</SortTh>
+                  <SortTh k="tin" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Transfer In (TITO)")}</SortTh>
+                  <SortTh k="other" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc" pad="border-l border-neutral-200 px-3 py-2.5">{tr("Other Moves")}</SortTh>
+                  <SortTh k="tout" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc" pad="border-l border-neutral-200 px-3 py-2.5">{tr("Transfer Out (TITO)")}</SortTh>
+                  <SortTh k="waste" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Waste")}</SortTh>
+                  <SortTh k="wasteProduct" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Waste Product Sales")}</SortTh>
+                  <SortTh k="soEnd" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc" pad="border-l border-neutral-200 px-3 py-2.5">{tr("SO Akhir")}</SortTh>
+                  <SortTh k="actual" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Usage Actual")}</SortTh>
+                  <SortTh k="system" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Usage System")}</SortTh>
+                  <SortTh k="variance" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Difference")}</SortTh>
+                  <SortTh k="variancePct" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">%</SortTh>
+                  <SortTh k="systemValue" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc" pad="border-l border-neutral-200 px-3 py-2.5">{tr("Usage System")}</SortTh>
+                  <SortTh k="actualValue" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Usage Actual")}</SortTh>
+                  <SortTh k="valueVariance" sort={useSort_.sort} onSort={useSort_.toggle} align="right" first="desc">{tr("Difference")}</SortTh>
+                  <th className="px-3 py-2.5 text-right">%</th></tr></thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {useSort_.rows.map((r) => (
-                    <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
-                      <td className="px-4 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Awal")}>{r.soStart == null ? "—" : num(r.soStart)}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("In − Out")}>{r.purchased == null ? "—" : num(r.purchased)}
-                        {r.moves && Object.keys(r.moves).length > (r.moves.received !== undefined ? 1 : 0) && (
-                          <span className="block text-[11px] text-neutral-400">{(Object.entries(r.moves) as [MoveKind, number][]).map(([k, q]) => `${MOVE[k]()} ${q > 0 ? "+" : ""}${num(q)}`).join(" · ")}</span>)}
-                        {!!r.purchasedOther?.length && <span className="block text-[11px] text-amber-700" title={tr("Bought in a unit with no conversion to {0} in the item master: not counted", r.unit)}>
-                          + {r.purchasedOther.map((o) => `${num(o.qty)} ${o.uom}`).join(", ")} {tr("not converted")}</span>}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600" data-label={tr("SO Akhir")}>{r.soEnd == null ? "—" : num(r.soEnd)}</td>
-                      <td className="px-4 py-2 text-right font-semibold tabular-nums" data-label={tr("Actual")}>{r.actual == null ? "—" : `${num(r.actual)} ${r.unit}`}</td>
-                      <td className="px-4 py-2 text-right tabular-nums" data-label={tr("System")}>{num(r.system)} {r.unit}</td>
-                      <td className={cx("px-4 py-2 text-right tabular-nums", r.variance !== null && r.variance > 0 ? "text-red-700" : r.variance !== null && r.variance < 0 ? "text-emerald-700" : "")}>{r.variance === null ? "—" : `${r.variance > 0 ? "+" : ""}${num(r.variance)}`}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600">{rp(r.systemValue)}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-neutral-600">{rp(r.actualValue)}</td>
-                    </tr>
-                  ))}
-                  {!data.usage.length && <tr><td colSpan={9}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
+                  {useSort_.rows.map((r) => {
+                    const q = (v: number | null | undefined, sign = "", cls = "text-neutral-600") => (
+                      <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", v ? cls : "text-neutral-300")}>{v == null ? "—" : v ? `${sign}${num(Math.abs(v))}` : "—"}</td>);
+                    const tone = (v: number | null | undefined) => (v == null ? "" : v > 0 ? "text-red-700" : v < 0 ? "text-emerald-700" : "");
+                    const pctOf = (v: number | null | undefined) => (v == null ? "—" : `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`);
+                    return (
+                      <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-neutral-400"}>
+                        <td className="px-3 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-neutral-400">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}
+                          {!!r.purchasedOther?.length && <span className="block text-[11px] text-amber-700" title={tr("Bought in a unit with no conversion to {0} in the item master: not counted", r.unit)}>
+                            + {r.purchasedOther.map((o) => `${num(o.qty)} ${o.uom}`).join(", ")} {tr("not converted")}</span>}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-neutral-800">{r.soStart == null ? "—" : num(r.soStart)}</td>
+                        {q(r.received, "+", "border-l border-neutral-100 text-emerald-700")}
+                        {q(r.transferIn, "+", "text-emerald-700")}
+                        {q(r.otherMoves, (r.otherMoves ?? 0) > 0 ? "+" : "−", cx("border-l border-neutral-100", (r.otherMoves ?? 0) > 0 ? "text-emerald-700" : "text-red-700"))}
+                        {q(r.transferOut, "−", "border-l border-neutral-100 text-red-700")}
+                        {q(r.waste, "−", "text-red-700")}
+                        {q(r.wasteProduct, "−", "text-red-700")}
+                        <td className="whitespace-nowrap border-l border-neutral-100 px-3 py-2 text-right tabular-nums text-neutral-800">{r.soEnd == null ? "—" : num(r.soEnd)}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums">{r.actual == null ? "—" : `${num(r.actual)} ${r.unit}`}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{num(r.system)} {r.unit}</td>
+                        <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", tone(r.variance))}>{r.variance == null ? "—" : `${r.variance > 0 ? "+" : ""}${num(r.variance)}`}</td>
+                        <td className={cx("whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums", tone(r.variancePct))}>{pctOf(r.variancePct)}</td>
+                        <td className="whitespace-nowrap border-l border-neutral-100 px-3 py-2 text-right tabular-nums text-neutral-600">{rp(r.systemValue)}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-neutral-600">{rp(r.actualValue)}</td>
+                        <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", tone(r.valueVariance))}>{r.valueVariance == null ? "—" : `${r.valueVariance > 0 ? "+" : "−"}${rp(Math.abs(r.valueVariance))}`}</td>
+                        <td className={cx("whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums", tone(r.valueVariancePct))}>{pctOf(r.valueVariancePct)}</td>
+                      </tr>
+                    );
+                  })}
+                  {!data.usage.length && <tr><td colSpan={18}><Empty title={tr("No sales of menus with a card in this period")} /></td></tr>}
                 </tbody>
               </table>
+              </div>
               </>
             )}
             {view === "cogs" && (

@@ -27,14 +27,16 @@ import { DataSources } from '@/so/features/health/DataHealth';
 type Row = { branch: string; branchName: string; code: string; name: string; category: string; unit: string; so: number; in: number; out: number;
   pending: number; stock: number; available: number; price: number | null; value: number | null;
   /** the quantity of the stock opname before the latest one (2026-11-08) */ prevSo?: number | null;
-  received: number; otherMoves: number; waste: number; used: number; estimate: number; estimateValue: number | null };
+  received: number; otherMoves: number; waste: number; used: number; estimate: number; estimateValue: number | null;
+  /** the columns of Cost Control (2026-11-18): transfers of the running stock, Waste Product Sales (Premix Tumpah / Human Error) */
+  transferIn: number; transferOut: number; wasteProduct: number };
 type Head = { branch: string; branchName: string; soDate: string; refs: string[]; items: number; value: number; final?: boolean | null; estimateValue: number;
   prevSoDate?: string | null; prevRefs?: string[]; /** when the SO was sent: what happened before is in the count */ soAt?: string | null };
 type Data = { branches: Head[]; rows: Row[] };
 type View = "branch" | "material";
-type SortKey = "branch" | "material" | "so" | "moves" | "waste" | "used" | "estimate" | "available" | "value";
-const sortValue = (r: Row, k: SortKey) => ({ branch: r.branchName, material: r.name, so: r.so, moves: r.received + r.otherMoves + r.in - r.out,
-  waste: r.waste, used: r.used, estimate: r.estimate, available: r.available, value: r.estimateValue }[k]);
+type SortKey = "branch" | "material" | "so" | "received" | "tin" | "other" | "tout" | "waste" | "wasteProduct" | "used" | "estimate" | "available" | "value";
+const sortValue = (r: Row, k: SortKey) => ({ branch: r.branchName, material: r.name, so: r.so, received: r.received, tin: r.transferIn, other: r.otherMoves,
+  tout: r.transferOut, waste: r.waste, wasteProduct: r.wasteProduct, used: r.used, estimate: r.estimate, available: r.available, value: r.estimateValue }[k]);
 
 export default function StockListPage() {
   const toast = useToast();
@@ -74,10 +76,10 @@ export default function StockListPage() {
     ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
   ];
   const exportRows = () => downloadXlsx({ fileName: "Stock List", sheet: "Stock", title: "Stock List (SO terakhir)",
-    header: ["Cabang", "Tanggal SO Sebelumnya", "SO Sebelumnya", "Tanggal SO", "SO Final", "Kode", "Material", "Kategori", "Satuan", "SO", "Transfer Masuk", "Transfer Keluar", "Good Receipt", "Pergerakan Lain",
-      "Waste Approved", "Terpakai (Resep)", "Estimasi Saat Ini", "Dalam Proses Keluar", "Tersedia (TITO)", "Harga", "Nilai SO", "Nilai Estimasi"],
-    rows: rows.map((r) => { const h = heads.find((x) => x.branch === r.branch); return [r.branchName, h?.prevSoDate ?? "", r.prevSo ?? "", h?.soDate ?? "", h?.final ? "Ya" : "Belum", r.code, r.name, r.category, r.unit,
-      r.so, r.in, r.out, r.received, r.otherMoves, r.waste, r.used, r.estimate, r.pending, r.available, r.price, r.value, r.estimateValue]; }) });
+    header: ["Cabang", "Tanggal SO", "SO Final", "Kode", "Material", "Kategori", "Satuan", "SO Awal", "IN: Good Receipt", "IN: Transfer In (TITO)", "Mutasi Lain",
+      "OUT: Transfer Out (TITO)", "OUT: Waste", "OUT: Waste Product Sales", "Used (System)", "Estimate Stock", "Dalam Proses Keluar", "Available", "Harga", "Nilai Estimasi"],
+    rows: rows.map((r) => { const h = heads.find((x) => x.branch === r.branch); return [r.branchName, h?.soDate ?? "", h?.final ? "Ya" : "Belum", r.code, r.name, r.category, r.unit,
+      r.so, r.received, r.transferIn, r.otherMoves, r.transferOut, r.waste, r.wasteProduct, r.used, r.estimate, r.pending, r.available, r.price, r.estimateValue]; }) });
   return (
     <Page title={tr("Stock List")} subtitle={tr("The stock of every branch from its latest stock opname, with the transfers since")}
       stats={
@@ -98,36 +100,47 @@ export default function StockListPage() {
         {error ? <ErrorState message={error} onRetry={load} /> : !data ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table>
           : !rows.length ? <Empty icon={<Boxes size={26} />} title={tr("No stock matches")} />
           : view === "branch" ? (
-            <div className="overflow-x-auto"><table className="w-full min-w-[1180px] text-sm">
-              <thead className={theadClass}><tr>
+            // the format of Cost Control (2026-11-18): SO Awal | Items In | other moves | Items Out | Used | Estimate | Available | Value
+            <div className="overflow-x-auto"><table className="w-full min-w-[1500px] text-sm">
+              <thead className={theadClass}>
+                <tr className="[&>th]:px-3 [&>th]:pt-2 [&>th]:text-center">
+                  <th colSpan={3} /><th colSpan={2} className="border-l border-neutral-200 text-emerald-700">{tr("Items In")}</th><th className="border-l border-neutral-200" />
+                  <th colSpan={3} className="border-l border-neutral-200 text-red-700">{tr("Items Out")}</th><th colSpan={4} className="border-l border-neutral-200" /></tr>
+                <tr>
                 <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("Branch")}</SortTh>
                 <SortTh k="material" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Material")}</SortTh>
-                <SortTh k="so" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("SO")}</SortTh>
-                <SortTh k="moves" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("In − Out")}</SortTh>
+                <SortTh k="so" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Beginning Stock (SO Awal)")}</SortTh>
+                <SortTh k="received" sort={sorted.sort} onSort={sorted.toggle} pad="border-l border-neutral-200 px-3 py-2.5" align="right" first="desc">{tr("Good Receipt")}</SortTh>
+                <SortTh k="tin" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Transfer In (TITO)")}</SortTh>
+                <SortTh k="other" sort={sorted.sort} onSort={sorted.toggle} pad="border-l border-neutral-200 px-3 py-2.5" align="right" first="desc">{tr("Other Moves")}</SortTh>
+                <SortTh k="tout" sort={sorted.sort} onSort={sorted.toggle} pad="border-l border-neutral-200 px-3 py-2.5" align="right" first="desc">{tr("Transfer Out (TITO)")}</SortTh>
                 <SortTh k="waste" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Waste")}</SortTh>
-                <SortTh k="used" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Used")}</SortTh>
-                <SortTh k="estimate" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Estimate Now")}</SortTh>
+                <SortTh k="wasteProduct" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Waste Product Sales")}</SortTh>
+                <SortTh k="used" sort={sorted.sort} onSort={sorted.toggle} pad="border-l border-neutral-200 px-3 py-2.5" align="right" first="desc">{tr("Used (System)")}</SortTh>
+                <SortTh k="estimate" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Estimate Stock")}</SortTh>
                 <SortTh k="available" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Available")}</SortTh>
                 <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5" align="right" first="desc">{tr("Value")}</SortTh></tr></thead>
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => {
                 const h = heads.find((x) => x.branch === r.branch);
+                const num = (v: number, sign: "+" | "−" | "", cls = "text-neutral-700") => (
+                  <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", v ? cls : "text-neutral-300")}>{v ? `${sign}${qtyText(Math.abs(v))}` : "—"}</td>);
                 return (
-                  <tr key={`${r.branch}:${r.code}`} className="cursor-pointer hover:bg-neutral-50/70" onClick={() => setCalc(r)} title={tr("See the calculation")}>
-                    <td className="max-w-[15rem] py-2 pl-5 pr-3"><p className="truncate text-neutral-800" title={r.branchName}>{r.branchName}</p>
+                  <tr key={`${r.branch}:${r.code}`} className="cursor-pointer hover:bg-neutral-50" onClick={() => setCalc(r)} title={tr("See the calculation")}>
+                    <td className="max-w-[14rem] py-2 pl-5 pr-3"><p className="truncate text-neutral-800" title={r.branchName}>{r.branchName}</p>
                       <p className="text-[11px] text-neutral-400">{h ? tr("SO {0}", dmy(h.soDate)) : ""}{h && h.final === false ? <span className="ml-1 text-amber-700">· {tr("not approved")}</span> : null}</p></td>
-                    <td className="max-w-[16rem] px-3 py-2"><p className="truncate font-medium text-neutral-900">{r.name}</p><p className="text-[11px] text-neutral-400">{r.code}{r.category ? ` · ${r.category}` : ""}</p></td>
-                    <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{qtyText(r.so)} <span className="text-neutral-400">{r.unit}</span>
-                      <span className="block text-[10px] text-neutral-400">{h ? dmy(h.soDate) : ""}{r.prevSo != null && h?.prevSoDate ? ` · ${tr("before {0}", qtyText(r.prevSo))}` : ""}</span></td>
-                    {(() => { const mv = r.received + r.otherMoves + r.in - r.out; return (
-                      <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", mv > 0 ? "text-emerald-700" : mv < 0 ? "text-red-700" : "text-neutral-300")}
-                        title={`${tr("Goods Receipt")} ${qtyText(r.received)} · ${tr("Transfer")} +${qtyText(r.in)} / −${qtyText(r.out)} · ${tr("Other")} ${qtyText(r.otherMoves)}`}>{mv ? `${mv > 0 ? "+" : ""}${qtyText(mv)}` : "—"}</td>); })()}
-                    <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{r.waste ? `−${qtyText(r.waste)}` : "—"}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{r.used ? `−${qtyText(r.used)}` : "—"}</td>
+                    <td className="max-w-[15rem] px-3 py-2"><p className="truncate font-medium text-neutral-900">{r.name}</p><p className="text-[11px] text-neutral-400">{r.code}{r.category ? ` · ${r.category}` : ""}</p></td>
+                    <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{qtyText(r.so)} <span className="text-neutral-400">{r.unit}</span></td>
+                    {num(r.received, "+", "border-l border-neutral-100 text-emerald-700")}
+                    {num(r.transferIn, "+", "text-emerald-700")}
+                    {num(r.otherMoves, r.otherMoves > 0 ? "+" : "−", cx("border-l border-neutral-100", r.otherMoves > 0 ? "text-emerald-700" : "text-red-700"))}
+                    {num(r.transferOut, "−", "border-l border-neutral-100 text-red-700")}
+                    {num(r.waste, "−", "text-red-700")}
+                    {num(r.wasteProduct, "−", "text-red-700")}
+                    {num(r.used, "−", "border-l border-neutral-100 text-neutral-700")}
                     <td className={cx("whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-red-700" : "text-neutral-900")}
                       title={r.estimate < -1e-6 ? tr("Below zero: the recipe cards, a move or the SO does not match") : undefined}>{qtyText(r.estimate)}</td>
                     <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{r.pending ? <span title={tr("{0} on its way out", qtyText(r.pending))}>{qtyText(r.available)}*</span> : qtyText(r.available)}</td>
-                    <td className="whitespace-nowrap px-3 py-2 pr-5 text-right tabular-nums">{r.estimateValue == null ? <Badge tone="amber">{tr("No price")}</Badge> : rpText(r.estimateValue)}
-                      {r.value != null && <span className="block text-[10px] text-neutral-400">{tr("SO {0}", rpText(r.value))}</span>}</td>
+                    <td className="whitespace-nowrap px-3 py-2 pr-5 text-right tabular-nums">{r.estimateValue == null ? <Badge tone="amber">{tr("No price")}</Badge> : rpText(r.estimateValue)}</td>
                   </tr>
                 );
               })}</tbody>
@@ -173,7 +186,7 @@ function StockFilters({ branch, category, heads, categories, onApply, onClose }:
 /** How the stock now of one material of one branch is reached (2026-11-08): the previous SO, the latest SO, every move,
  * waste and usage since the latest SO, the estimate and the available quantity. */
 function CalcDrawer({ r, h, onClose }: { r: Row; h?: Head; onClose: () => void }) {
-  const moves = r.received + r.otherMoves + r.in - r.out;
+  const moves = r.received + r.transferIn + r.otherMoves - r.transferOut;
   const line = (label: string, v: number | null | undefined, hint?: string, strong?: boolean, sign = "") => (
     <div className={cx("flex items-start justify-between gap-3 px-4 py-2.5", strong && "bg-neutral-50")}>
       <span className="min-w-0"><span className={cx("block text-sm", strong ? "font-semibold text-neutral-900" : "text-neutral-700")}>{label}</span>
@@ -195,12 +208,13 @@ function CalcDrawer({ r, h, onClose }: { r: Row; h?: Head; onClose: () => void }
           <p className="border-b border-neutral-100 px-4 py-2 text-xs font-semibold capitalize text-neutral-500">{tr("Since the latest SO")}</p>
           <p className="border-b border-neutral-100 bg-sky-50/60 px-4 py-2 text-[11px] text-sky-900">{tr("Waste, transfers and bills count from the time the SO was sent; goods receipts and other ESB documents from its day.")}</p>
           {line(tr("Goods Receipt"), r.received, undefined, false, "+")}
-          {line(tr("Transfer in"), r.in, undefined, false, "+")}
-          {line(tr("Transfer out"), r.out, tr("From the Cost Control approval"), false, "−")}
+          {line(tr("Transfer In (TITO)"), r.transferIn, undefined, false, "+")}
           {line(tr("Other moves"), r.otherMoves, tr("Outlet purchases, production, deliveries, returns"), false, r.otherMoves > 0 ? "+" : "")}
+          {line(tr("Transfer Out (TITO)"), r.transferOut, tr("From the Cost Control approval"), false, "−")}
           {line(tr("Waste approved"), r.waste, undefined, false, "−")}
+          {line(tr("Waste Product Sales"), r.wasteProduct, tr("Waste of the category Premix Tumpah / Human Error"), false, "−")}
           {line(tr("Used by the recipe cards"), r.used, tr("Menus sold × recipe cards"), false, "−")}
-          {line(tr("Estimate Now"), r.estimate, `${tr("SO")} ${qtyText(r.so)} ${moves >= 0 ? "+" : "−"} ${qtyText(Math.abs(moves))} − ${qtyText(r.waste)} − ${qtyText(r.used)}`, true)}
+          {line(tr("Estimate Stock"), r.estimate, `${tr("SO")} ${qtyText(r.so)} ${moves >= 0 ? "+" : "−"} ${qtyText(Math.abs(moves))} − ${qtyText(r.waste + r.wasteProduct)} − ${qtyText(r.used)}`, true)}
           {line(tr("Available"), r.available, tr("For Transfer Stock: the SO with the transfers, less the ones on their way out"))}
         </section>
         <p className="px-1 text-xs text-neutral-500">{tr("Value")}: <span className="font-semibold text-neutral-800">{r.estimateValue == null ? tr("No price") : rpText(r.estimateValue)}</span>
