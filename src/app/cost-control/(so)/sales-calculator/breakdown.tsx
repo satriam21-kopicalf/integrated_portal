@@ -6,6 +6,7 @@
 // an export job (the Sales Transactions design: title rows, a frozen header; a Data sheet ready for a Pivot Table) that
 // the export notices follow and download.
 
+import { sheetTable } from "@/so/ui/Jira";
 import { CalendarDays, ChevronRight, Layers, Package, Store } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Badge, cx, Empty, ErrorState, fmtNumber, PageNav, Panel, theadClass, usePaged, useToast } from "@/so/ui";
@@ -21,7 +22,8 @@ import { type ExportJob, useExports } from "@/lib/exports";
 import { tr } from "@/lib/i18n";
 import { matches, num, rp } from "./parts";
 
-type Material = { code: string | null; name: string; unit: string; qty: number; value: number; priced?: boolean; price?: number | null; menus?: number };
+type Material = { code: string | null; name: string; unit: string; qty: number; value: number; priced?: boolean; price?: number | null; menus?: number;
+  /** the quantity in the largest pack of the item master (2026-11-19) */ convQty?: number; convUom?: string; convFactor?: number; baseUom?: string };
 type MenuRow = { id: string; category: string; sub: string; menu: string; card: string; portions: number; value: number; unpriced: number;
   levels: Record<string, number>; choices: Record<string, number>; materials: Material[] };
 type Outlet = { code: string; name: string; portions: number; value: number; menus: number; materials: Material[] };
@@ -125,7 +127,7 @@ function MenuTable({ rows, open, onOpen }: { rows: MenuRow[]; open: string | nul
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[920px] text-sm">
+        <table className={cx(sheetTable, "min-w-[920px]")}>
           <thead className={theadClass}><tr>
             <th className="px-3 py-2">{tr("Menu")}</th><th className="px-3 py-2.5 text-right">{tr("Portions")}</th>
             {LEVELS.map((l) => <th key={l} className="px-3 py-2.5 text-right">{l}</th>)}
@@ -186,11 +188,13 @@ function MaterialTable({ rows }: { rows: Material[] }) {
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
+        <table className={cx(sheetTable, "min-w-[720px]")}>
           <thead className={theadClass}><tr>
             <SortTh k="name" sort={sorted.sort} onSort={sorted.toggle}>{tr("Raw Material")}</SortTh>
             <SortTh k="qty" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Quantity")}</SortTh>
-            <th className="px-3 py-2">{tr("Unit")}</th><th className="px-3 py-2 text-right">{tr("Unit Price")}</th>
+            <th className="px-3 py-2">{tr("Unit")}</th>
+            <th className="px-3 py-2 text-right">{tr("Converted")}</th><th className="px-3 py-2">{tr("Converted Unit")}</th>
+            <th className="px-3 py-2 text-right">{tr("Unit Price")}</th>
             <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Value")}</SortTh>
             <SortTh k="menus" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Menus")}</SortTh>
           </tr></thead>
@@ -199,6 +203,9 @@ function MaterialTable({ rows }: { rows: Material[] }) {
               <tr key={m.code ?? m.name} className="hover:bg-neutral-50">
                 <td className="px-3 py-2"><span className="font-medium text-neutral-900">{m.name}</span><span className="block text-[11px] text-neutral-400">{m.code}</span></td>
                 <td className="px-3 py-2 text-right tabular-nums">{num(m.qty)}</td><td className="px-3 py-2 text-neutral-500">{m.unit}</td>
+                <td className="px-3 py-2 text-right tabular-nums" title={m.convUom ? `1 ${m.convUom} = ${num(m.convFactor ?? 0)} ${m.baseUom ?? ""}` : tr("No pack unit in the item master")}>
+                  {m.convQty == null ? <span className="text-neutral-300">–</span> : num(m.convQty)}</td>
+                <td className="px-3 py-2 text-neutral-500">{m.convUom ? <>{m.convUom} <span className="text-[11px] text-neutral-400">({num(m.convFactor ?? 0)} {m.baseUom})</span></> : null}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{m.price == null ? <span className="text-amber-600">{tr("No price")}</span> : rp(m.price)}</td>
                 <td className="px-3 py-2 text-right font-medium tabular-nums">{rp(m.value)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(m.menus ?? 0)}</td>
@@ -219,7 +226,7 @@ function OutletTable({ rows, open, onOpen, q }: { rows: Outlet[]; open: string |
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
+        <table className={cx(sheetTable, "min-w-[720px]")}>
           <thead className={theadClass}><tr>
             <th className="px-3 py-2">{tr("Outlet")}</th><th className="px-3 py-2.5 text-right">{tr("Portions")}</th>
             <th className="px-3 py-2.5 text-right">{tr("Menus")}</th><th className="px-3 py-2.5 text-right">{tr("Raw Materials")}</th>

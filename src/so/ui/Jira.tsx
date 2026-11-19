@@ -197,6 +197,14 @@ export const jHeadRow = "border-b-2 border-neutral-200 text-left text-[11px] upp
 export const jTh = "px-2 py-2 font-semibold first:pl-4 last:pr-4 sm:first:pl-5 sm:last:pr-5";
 export const jRow = "group cursor-pointer border-b border-neutral-100 hover:bg-neutral-50";
 export const jTd = "px-2 py-2 align-middle first:pl-4 last:pr-4 sm:first:pl-5 sm:last:pr-5";
+/** A wide data table like the Stock List (2026-11-19): one line per cell (a second line of a cell sits beside the first),
+ *  the first column kept in sight while the table scrolls sideways, 13px, thin rules. Add the min width of the table. */
+export const sheetTable = "w-full border-separate border-spacing-0 text-[13px] [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap " +
+  "[&_td>.block]:inline [&_td>.block:not(:first-child)]:ml-1.5 [&_td>p]:inline [&_td>p:not(:first-child)]:ml-1.5 " +
+  "[&_td]:border-b [&_td]:border-neutral-100 [&_tbody_tr:hover_td]:bg-neutral-50 " +
+  "[&_th:first-child]:sticky [&_th:first-child]:left-0 [&_th:first-child]:z-[2] [&_th:first-child]:bg-white " +
+  "[&_td:first-child]:sticky [&_td:first-child]:left-0 [&_td:first-child]:z-[1] [&_td:first-child]:bg-white [&_td:first-child]:shadow-[inset_-1px_0_0_#e5e5e5]";
+
 /** the key of a row (number, code): blue, underlined on hover */
 export const jKey = "font-medium text-brand-700 group-hover:underline";
 

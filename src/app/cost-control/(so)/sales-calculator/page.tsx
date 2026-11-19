@@ -9,6 +9,7 @@
 // document) and COGS Material (Pricelist Items), system and actual. A card may hold other cards (bundling, 2026-11-06)
 // and shows the list price of its menus (POS menu master, per channel) with the % HPP.
 
+import { sheetTable } from "@/so/ui/Jira";
 import { Segmented } from "@/so/ui/Simple";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { RecipeImport, exportRecipes } from "./recipe-excel";
@@ -342,7 +343,7 @@ function Anomalies({ rows }: { rows: Anomaly[] }) {
         <span className="font-semibold">{tr("{0} SO rows look wrong, {1} of value: check and correct them in the stock opname first", rows.length, rp(total))}</span>
       </header>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] text-xs">
+        <table className={cx(sheetTable, "min-w-[900px]")}>
           <thead className="bg-white text-left text-xs capitalize text-neutral-400"><tr>
             <th className="py-2 pl-3 pr-2">{tr("Branch")}</th><th className="px-2 py-2">{tr("Material")}</th><th className="px-2 py-2 text-right">{tr("SO Awal")}</th>
             <th className="px-2 py-2 text-right">{tr("In − Out")}</th><th className="px-2 py-2 text-right">{tr("SO Akhir")}</th><th className="px-2 py-2 text-right">{tr("Usage")}</th>
@@ -391,7 +392,7 @@ function RecipeTable({ rows, hppOf, priced, onOpen }: { rows: Recipe[]; hppOf: (
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[980px] text-sm">
+        <table className={cx(sheetTable, "min-w-[980px]")}>
           <thead className={theadClass}><tr>
             <SortTh k="card" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("Card")}</SortTh><SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Category")}</SortTh>
             <SortTh k="components" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Components")}</SortTh><SortTh k="menus" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Menus")}</SortTh>
@@ -1140,7 +1141,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
               </p>
             )}
             {view === "mrp" && (
-              <table className="m-cards w-full min-w-[880px] text-sm">
+              <table className={cx(sheetTable, "m-cards min-w-[880px]")}>
                 <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Average daily sales of {0} days × {1} days + {2}% buffer, exploded through the cards (rounded up)", data.period.days, data.period.horizon, data.period.buffer)}
                   {" · "}{data.stock?.onHand.branches ? tr("To Order = Required − the latest SO of {0} branches ({1} – {2}); Estimate Now = the latest SO + moves − waste − usage since, for comparison", data.stock.onHand.branches, dmy(data.stock.onHand.from ?? ""), dmy(data.stock.onHand.to ?? "")) : tr("No recent SO of the branches: To Order = Required")}</caption>
                 <thead className={theadClass}><tr><SortTh k="name" sort={mrpSort.sort} onSort={mrpSort.toggle}>{tr("Material")}</SortTh><SortTh k="qty" sort={mrpSort.sort} onSort={mrpSort.toggle} align="right" first="desc">{tr("Required")}</SortTh>
@@ -1187,7 +1188,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                   {data.usageWindow.basis === "month" && !data.usageWindow.closed && <span className="ml-1 text-amber-700">· {tr("the month is not closed: waiting for the month-end SO")}</span>}</span>}
               </div>
               <div className="overflow-x-auto">
-              <table className="w-full min-w-[1700px] text-sm">
+              <table className={cx(sheetTable, "min-w-[1700px]")}>
                 <caption className="px-4 py-2 text-left text-xs text-neutral-500">{tr("Usage Actual = SO Awal + Items In + other moves − Transfer Out − SO Akhir (the waste is inside it); Usage System = Sales + Non Sales: menus sold and ESB other-cost bills (cupping, waste, compliment …) × recipe cards. Difference % = (Actual − System) ÷ System, of the quantity and of the value.")}</caption>
                 <thead className={theadClass}>
                   <tr className="[&>th]:px-3 [&>th]:pt-2 [&>th]:text-center">
@@ -1261,7 +1262,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                     </ul>
                   </div>
                 )}
-                <table className="m-cards w-full min-w-[760px] text-sm">
+                <table className={cx(sheetTable, "m-cards min-w-[760px]")}>
                   <thead className={theadClass}><tr><SortTh k="name" sort={menuSort.sort} onSort={menuSort.toggle}>{tr("Menu")}</SortTh><SortTh k="card" sort={menuSort.sort} onSort={menuSort.toggle}>{tr("Recipe Card")}</SortTh><SortTh k="qty" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">{tr("Sold")}</SortTh>
                     <SortTh k="sales" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">{tr("Sales")}</SortTh><SortTh k="hpp" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">{tr("HPP / Portion")}</SortTh><SortTh k="cogs" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">COGS</SortTh><SortTh k="ratio" sort={menuSort.sort} onSort={menuSort.toggle} align="right" first="desc">{tr("Ratio")}</SortTh></tr></thead>
                   <tbody className="divide-y divide-neutral-100">
@@ -1277,7 +1278,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                   </tbody>
                 </table>
                 {!!data.extras?.length && (
-                  <table className="m-cards mt-2 w-full min-w-[760px] text-sm">
+                  <table className={cx(sheetTable, "m-cards mt-2 min-w-[760px]")}>
                     <caption className="px-4 py-2 text-left text-xs font-semibold text-neutral-700">{tr("Additional Items (Outside the Recipe Cards)")}</caption>
                     <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Item")}</th><th className="px-3 py-2">{tr("Basis")}</th><th className="px-3 py-2 text-right">{tr("Used")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
                     <tbody className="divide-y divide-neutral-100">
