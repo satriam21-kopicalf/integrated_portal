@@ -7039,4 +7039,5 @@ export const ID: Record<string, string> = {
   "Product Sales": "Product Sales",
   "Transfer In": "Transfer In",
   "Transfer Out": "Transfer Out",
+  "From the attendance punch-in (HRMS)": "Dari absen masuk (HRMS)",
 };

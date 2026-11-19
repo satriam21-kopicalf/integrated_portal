@@ -9,6 +9,7 @@ export type Branch = { code: string; name: string; latitude: number | null; long
   /** PIC check in: on time until then, on the outlet's clock (Monitoring OPS → Branch Groups, 2026-11-04) */
   checkinDeadline?: { deadline: string; zone: string; wib: string } | null };
 export type CheckIn = {
+  /** attendance: made from the HRMS punch-in (no photo of its own, 2026-11-19) · form: Form → PIC Check In */ source?: "form" | "attendance";
   id: string; userId: string; username: string; name: string; role: string; branchCode: string; branchName: string;
   visitedAt: string; deviceTime: string | null; latitude: number; longitude: number; accuracyM: number | null;
   outletLatitude: number | null; outletLongitude: number | null; radiusM: number | null; distanceM: number | null;
