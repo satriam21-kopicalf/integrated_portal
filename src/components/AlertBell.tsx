@@ -15,6 +15,7 @@ import { hasPage, useAuth } from "@/lib/auth";
 import { type Alert, markAlertsRead, useAlerts } from "@/lib/alerts";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
+import { useCompany } from "@/lib/company";
 
 
 /** The notifications of the signed-in user: {enabled, unread, data}. */
@@ -63,6 +64,7 @@ const GROUP_LABEL = { get today() { return tr("Today"); }, get yesterday() { ret
  *  the time as "5 min ago". Opening an item marks it read and goes to its page. */
 export function NotificationsDrawer({ open, onClose, onNavigate }: { open: boolean; onClose: () => void; onNavigate?: () => void }) {
   const { unread, data } = useNotifications();
+  const { companies } = useCompany();
   const router = useRouter();
   const [view, setView] = useState<"all" | "unread">("all");
   const go = (a: Alert) => {
@@ -106,7 +108,10 @@ export function NotificationsDrawer({ open, onClose, onNavigate }: { open: boole
                             {!a.read && <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-brand-600" aria-label={tr("Unread")} />}
                           </span>
                           {a.body && <span className="mt-0.5 block text-xs leading-relaxed text-neutral-500">{a.body}</span>}
-                          <span className="mt-1.5 block text-[11px] text-neutral-400" title={wibDateTime(a.at)}>{when(a.at)}</span>
+                          <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-neutral-400">
+                            {a.brand && companies.length > 1 && <span className="rounded border border-neutral-200 px-1 font-semibold uppercase tracking-wide text-neutral-500">
+                              {companies.find((c) => c.code === a.brand)?.name ?? a.brand}</span>}
+                            <span title={wibDateTime(a.at)}>{when(a.at)}</span></span>
                         </span>
                       </button>
                     </li>

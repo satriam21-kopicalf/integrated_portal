@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { call } from "@/so/features/checkin/checkin";
 
 export type Alert = {
+  /** the brand (ESB company) of its branch; the bell shows every brand, labelled (2026-11-19) */ brand?: string | null;
   id: number; kind: string; severity: "high" | "warn" | "info"; title: string; body: string | null; link: string | null;
   branch: string | null; doc: string | null; at: string; read: boolean;
 };
