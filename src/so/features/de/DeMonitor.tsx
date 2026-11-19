@@ -1015,7 +1015,7 @@ function CategoriesDrawer({ kind, bgroups, onClose }: { kind: Kind; bgroups: Gro
               {!(edit.branchGroups ?? []).length && <span className="self-center text-xs text-neutral-500">· {tr("every outlet")}</span>}
             </div>
           </Field>
-          <Field label={tr("Example Items")} hint={tr("Separated by commas; offered while typing the item name")}>
+          <Field label={tr("Example Items")} hint={`${tr("Separated by commas; offered while typing the item name")} · ${(edit.examplesText ?? "").split(",").filter((x) => x.trim()).length}/200`}>
             <textarea value={edit.examplesText ?? ""} onChange={(e) => setEdit({ ...edit, examplesText: e.target.value })} rows={2} className={cx(inputClass, "h-auto py-2 text-sm")} />
           </Field>
           <Field label={tr("Order")}><Input type="number" value={edit.sort ?? 0} onChange={(e) => setEdit({ ...edit, sort: Number(e.target.value) || 0 })} /></Field>
