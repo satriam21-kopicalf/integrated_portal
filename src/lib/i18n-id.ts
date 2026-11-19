@@ -47,6 +47,7 @@ export const ID: Record<string, string> = {
   "This menu has no recipe card yet: assign one in Assign Menus.": "Menu ini belum punya recipe card: atur di Assign Menus.",
   "Unit Price": "Harga Satuan",
   "Converted": "Konversi",
+  "At most {0} entries at once": "Maksimal {0} entri sekaligus",
   "Converted Unit": "Satuan Konversi",
   "No pack unit in the item master": "Belum ada satuan kemasan di item master",
   "No raw material in this period": "Tidak ada bahan baku pada periode ini",

@@ -49,6 +49,9 @@ const VIEWS: { value: View; label: () => string; icon: typeof Trash2; monitor?: 
   { value: "esb", label: () => tr("Portal vs ESB"), icon: Scale, monitor: true },
 ];
 
+/** approve / reject at once (integrated_portal_be routes/waste.py ReviewIn, 2026-11-19) */
+const MAX_REVIEW = 1000;
+
 export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const toast = useToast();
   const review = mode === "review";
@@ -232,13 +235,14 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 <input type="checkbox" checked={picked.size > 0 && picked.size === rows.length}
                   onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((x) => x.id)) : new Set())} />
                 {tr("{0} of {1} selected", picked.size, rows.length)}
+                {picked.size > MAX_REVIEW && <span className="font-medium text-red-600">{tr("At most {0} entries at once", fmtNumber(MAX_REVIEW))}</span>}
               </label>
               <span className="flex-1" />
               <Button size="sm" variant="secondary" disabled={!picked.size} onClick={() => setRecat(true)}><Tags size={14} />{tr("Change category")}</Button>
               {review && <>
                 <Button size="sm" variant="secondary" disabled={!pickedWaiting.length || busy} onClick={() => void investigate()}><FileSearch size={14} />{tr("Investigate")}</Button>
-                <Button size="sm" variant="secondary" disabled={!pickedRejectable.length} onClick={() => setVerdict("rejected")}><XCircle size={14} />{tr("Reject")}</Button>
-                <Button size="sm" disabled={!pickedWaiting.length} onClick={() => setVerdict("approved")}><CheckCircle2 size={14} />{tr("Approve")}</Button>
+                <Button size="sm" variant="secondary" disabled={!pickedRejectable.length || pickedRejectable.length > MAX_REVIEW} title={pickedRejectable.length > MAX_REVIEW ? tr("At most {0} entries at once", fmtNumber(MAX_REVIEW)) : undefined} onClick={() => setVerdict("rejected")}><XCircle size={14} />{tr("Reject")}</Button>
+                <Button size="sm" disabled={!pickedWaiting.length || pickedWaiting.length > MAX_REVIEW} title={pickedWaiting.length > MAX_REVIEW ? tr("At most {0} entries at once", fmtNumber(MAX_REVIEW)) : undefined} onClick={() => setVerdict("approved")}><CheckCircle2 size={14} />{tr("Approve")}</Button>
               </>}
             </div>
           )}
