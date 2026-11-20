@@ -1,6 +1,18 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Configurations": "Konfigurasi",
+  "Fund Request: approval flows, the choices of the personal form and the plafon": "Fund Request: alur approval, pilihan form personal dan plafon",
+  "Who approves each outlet request": "Siapa yang menyetujui tiap pengajuan outlet",
+  "One flow per purpose of funds": "Satu alur per keperluan dana",
+  "The choices on the personal form": "Pilihan pada form personal",
+  "The most that can be asked": "Batas maksimal pengajuan",
+  "Approval Flow · Outlet": "Alur Approval · Outlet",
+  "Approval Flow · Personal": "Alur Approval · Personal",
+  "Default Flow": "Alur Default",
+  "Personal Form Lists": "Daftar Form Personal",
+  "Outlet Petty Cash": "Petty Cash Outlet",
+  "Department Plafon": "Plafon Departemen",
   "Weekly Petty Cash": "Petty Cash Mingguan",
   "Emergency Purchase": "Pembelian Darurat",
   "Marketing & Promo": "Marketing & Promo",

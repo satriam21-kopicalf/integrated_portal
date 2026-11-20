@@ -9,7 +9,7 @@
 // steps of every kind with their users (superadmin) and the petty cash plafon (superadmin, Finance).
 
 import { CardFooter, JSelect, Lozenge, NativeSelect, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet , Store, UserRound, ListChecks, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -122,7 +122,7 @@ export default function PengajuanMonitor() {
   return (
     <Page title={tr("Fund Request")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("petty cash and budget requests of every outlet")}`}
       actions={<div className="flex gap-2">
-        <Button variant="secondary" onClick={() => setSettings(true)}><Settings2 size={15} /> {tr("Approvals & Plafon")}</Button>
+        <Button variant="secondary" onClick={() => setSettings(true)}><Settings2 size={15} /> {tr("Configurations")}</Button>
         <ExcelIconButton label={tr("Export to Excel")} loading={exporting} disabled={!rows.length} onClick={exportCsv} />
       </div>}
       stats={
@@ -393,7 +393,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
 export type StepEdit = { label: string; type: "APPROVE" | "PAY"; userIds: string[] };
 export type Approver = { id: string; name: string; username: string; role: string; jobTitle: string | null };
 type Settings = { kinds: Record<Kind, string>; flows: Record<string, { label: string; type: "APPROVE" | "PAY"; users: { id: string; name: string }[] }[]>;
-  options: Record<OptionList, FundOption[]>; lists: Record<OptionList, string>; kindLabels?: Partial<Record<Kind, string>>; deptPlafon: { department: string; amount: number }[]; departments: string[]; canOptions: boolean;
+  options: Record<OptionList, FundOption[]>; lists: Record<OptionList, string>; listDefaults?: Record<OptionList, string>; kindLabels?: Partial<Record<Kind, string>>; deptPlafon: { department: string; amount: number }[]; departments: string[]; canOptions: boolean;
   users: Approver[]; plafon: { default: number | null; branches: { branchCode: string; amount: number }[] }; canEdit: boolean; canPlafon: boolean;
   /** every outlet, for the plafon per outlet */ outlets?: { code: string; name: string }[] };
 
@@ -416,7 +416,8 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   const [steps, setSteps] = useState<StepEdit[]>([]);
   const [busy, setBusy] = useState(false);
   const [plafon, setPlafon] = useState({ branch: "", amount: "" });
-  const [renaming, setRenaming] = useState(false);
+  // renaming: an outlet kind, the title of a list (LIST:<list>) or a Keperluan Dana (its edit dialog)
+  const [renaming, setRenaming] = useState<{ code: string; current: string; fallback: string } | FundOption | null>(null);
   const load = useCallback(async () => {
     try { const d = await call<Settings>("/api/pengajuan/settings"); setKindLabels(d.kindLabels); setData(d); } catch (e) { setError((e as Error).message); }
   }, []);
@@ -428,14 +429,15 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
       .map((x) => ({ label: x.label, type: x.type, userIds: x.users.map((u) => u.id) })));
   }, [data, kind, ownFlow]);
   const purposes = data?.options.PURPOSE ?? [];
-  const nav: { title: string; items: { view: View; label: string; count?: number; muted?: boolean }[] }[] = [
-    { title: tr("Approval flow · Outlet"), items: KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
-    { title: tr("Approval flow · Personal"), items: [{ view: { type: "flow", key: "PERSONAL" }, label: tr("Default flow") },
+  const nav: { title: string; hint: string; icon: React.ReactNode; items: { view: View; label: string; count?: number; muted?: boolean }[] }[] = [
+    { title: tr("Approval Flow · Outlet"), hint: tr("Who approves each outlet request"), icon: <Store size={13} />, items: KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
+    { title: tr("Approval Flow · Personal"), hint: tr("One flow per purpose of funds"), icon: <UserRound size={13} />, items: [{ view: { type: "flow", key: "PERSONAL" }, label: tr("Default Flow") },
       ...purposes.filter((o) => o.isActive).map((o) => ({ view: { type: "flow", key: `PERSONAL:${o.id}` } as View, label: o.name, muted: !data?.flows[`PERSONAL:${o.id}`]?.length }))] },
-    { title: tr("Personal form lists"), items: (Object.keys(data?.lists ?? {}) as OptionList[]).map((l) => ({ view: { type: "list", list: l }, label: data!.lists[l], count: data!.options[l].length })) },
-    { title: tr("Plafon"), items: [{ view: { type: "plafon" }, label: tr("Outlet petty cash") }, { view: { type: "dept" }, label: tr("Department") }] },
+    { title: tr("Personal Form Lists"), hint: tr("The choices on the personal form"), icon: <ListChecks size={13} />, items: (Object.keys(data?.lists ?? {}) as OptionList[]).map((l) => ({ view: { type: "list", list: l }, label: data!.lists[l], count: data!.options[l].length })) },
+    { title: tr("Plafon"), hint: tr("The most that can be asked"), icon: <Wallet size={13} />, items: [{ view: { type: "plafon" }, label: tr("Outlet Petty Cash") }, { view: { type: "dept" }, label: tr("Department Plafon") }] },
   ];
   const current = nav.flatMap((g) => g.items).find((i) => viewKey(i.view) === viewKey(view));
+  const group = nav.find((g) => g.items.some((i) => viewKey(i.view) === viewKey(view)));
   const names = useMemo(() => new Map((data?.users ?? []).map((u) => [u.id, u.name])), [data]);
   const outletOpts = useMemo(() => (data?.outlets?.length ? data.outlets.map((o) => ({ value: o.code, label: o.name })) : branches), [data, branches]);
   const branchName = (code: string) => outletOpts.find((b) => b.value === code)?.label ?? code;
@@ -471,19 +473,21 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   const edit = !!data?.canEdit;
   const personalFlow = kind.startsWith("PERSONAL");
   return (
-    <Drawer open onClose={onClose} size="xl" icon={<Settings2 size={18} />} title={tr("Approvals & Plafon")}
-      description={tr("Approval flows, the lists of the personal form and the plafon of Fund Request")}
+    <Drawer open onClose={onClose} size="xl" icon={<Settings2 size={18} />} title={tr("Configurations")}
+      description={tr("Fund Request: approval flows, the choices of the personal form and the plafon")}
       footer={edit && view.type === "flow" ? <div className="flex w-full flex-wrap justify-end gap-2">
         {!personalFlow && <Button variant="secondary" disabled={busy} onClick={() => void copyToAll()}>{tr("Use for Every Kind")}</Button>}
         <Button loading={busy} onClick={() => void save()}>{tr("Save approvals of {0}", current?.label ?? "")}</Button>
       </div> : undefined}>
       {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : (
-        <div className="grid gap-5 sm:grid-cols-[13.5rem_minmax(0,1fr)]">
+        <div className="grid gap-5 sm:grid-cols-[16rem_minmax(0,1fr)]">
           {/* the navigation of the settings (a select on a phone) */}
-          <nav className="hidden space-y-4 border-r border-neutral-200 pr-3 sm:block" aria-label={tr("Settings")}>
+          <nav className="hidden space-y-5 border-r border-neutral-200 pr-3 sm:block" aria-label={tr("Configurations")}>
             {nav.map((g) => (
               <div key={g.title}>
-                <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{g.title}</p>
+                <p className="flex items-center gap-1.5 px-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-600">
+                  <span className="text-neutral-400">{g.icon}</span>{g.title}</p>
+                <p className="mb-1.5 px-2 pl-[1.6rem] text-[11px] text-neutral-400">{g.hint}</p>
                 <ul className="space-y-px">
                   {g.items.map((i) => {
                     const on = viewKey(i.view) === viewKey(view);
@@ -511,10 +515,13 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
           </div>
 
           <div className="min-w-0">
+            <p className="mb-1 flex items-center gap-1 text-[11px] text-neutral-500">{tr("Configurations")}<ChevronRight size={11} />{group?.title}</p>
             {view.type === "flow" && (
               <section className="space-y-4">
-                <PanelHead title={current?.label ?? ""} action={!personalFlow && data.canOptions
-                  ? <Button variant="secondary" size="sm" onClick={() => setRenaming(true)}>{tr("Rename")}</Button> : undefined} text={personalFlow
+                <PanelHead title={current?.label ?? ""} action={data.canOptions && kind !== "PERSONAL"
+                  ? <Button variant="secondary" size="sm" onClick={() => setRenaming(personalFlow
+                    ? purposes.find((o) => `PERSONAL:${o.id}` === kind) ?? null
+                    : { code: kind, current: kindLabel(kind as Kind), fallback: KIND_LABEL[kind as Kind]?.() ?? kind })}>{tr("Rename")}</Button> : undefined} text={personalFlow
                   ? tr("The approvers of this purpose of funds, in order, then the payment by Finance.")
                   : tr("Who approves this kind of outlet request, in order, then the payment by Finance.")} />
                 {personalFlow && kind !== "PERSONAL" && !ownFlow && (
@@ -541,11 +548,12 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
             )}
 
             {view.type === "list" && <OptionTable data={data} list={view.list} onChanged={() => void load()}
+              onRename={() => setRenaming({ code: `LIST:${view.list}`, current: data.lists[view.list], fallback: data.listDefaults?.[view.list] ?? data.lists[view.list] })}
               onFlow={(o) => setView({ type: "flow", key: `PERSONAL:${o.id}` })} />}
 
             {view.type === "plafon" && (
               <section className="space-y-3">
-                <PanelHead title={tr("Outlet petty cash")} text={tr("The weekly top-up brings the cash of the outlet back to its plafon. An outlet without its own plafon uses the one of every outlet.")} />
+                <PanelHead title={tr("Outlet Petty Cash")} text={tr("The weekly top-up brings the cash of the outlet back to its plafon. An outlet without its own plafon uses the one of every outlet.")} />
                 {data.canPlafon && <Suggestions onApplied={(pl) => setData((d) => (d ? { ...d, plafon: pl } : d))} />}
                 <PlafonRow label={tr("Every Outlet")} amount={data.plafon.default} edit={data.canPlafon} onSave={(a) => void savePlafon("*", a)} />
                 {data.plafon.branches.map((b) => (
@@ -564,8 +572,10 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
             )}
 
             {view.type === "dept" && <DeptPlafon data={data} onChanged={() => void load()} />}
-            {renaming && view.type === "flow" && !personalFlow && <RenameKind kind={view.key as Kind} onClose={() => setRenaming(false)}
-              onSaved={() => { setRenaming(false); void load(); onChanged(); }} />}
+            {renaming && "code" in renaming && <RenameKind {...renaming} onClose={() => setRenaming(null)}
+              onSaved={() => { setRenaming(null); void load(); onChanged(); }} />}
+            {renaming && "list" in renaming && <OptionDialog list="PURPOSE" label={data.lists.PURPOSE} option={renaming}
+              onClose={() => setRenaming(null)} onSaved={() => { setRenaming(null); void load(); onChanged(); }} />}
           </div>
         </div>
       )}
@@ -573,16 +583,16 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   );
 }
 
-/** Rename an outlet kind (Weekly Petty Cash, Marketing & Promo …); empty = back to the default name. */
-function RenameKind({ kind, onClose, onSaved }: { kind: Kind; onClose: () => void; onSaved: () => void }) {
+/** Rename an outlet kind (Weekly Petty Cash, Marketing & Promo …) or the title of a list of the personal form
+ * (code LIST:<list>); empty = back to the default name. */
+function RenameKind({ code, current, fallback, onClose, onSaved }: { code: string; current: string; fallback: string; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
-  const [name, setName] = useState(kindLabel(kind));
+  const [name, setName] = useState(current);
   const [busy, setBusy] = useState(false);
-  const fallback = KIND_LABEL[kind]?.() ?? kind;
   const submit = async () => {
     setBusy(true);
     try {
-      const r = await call<{ kindLabels: Partial<Record<Kind, string>> }>(`/api/pengajuan/settings/kind-label/${kind}`,
+      const r = await call<{ kindLabels: Partial<Record<Kind, string>> }>(`/api/pengajuan/settings/kind-label/${encodeURIComponent(code)}`,
         { method: "PUT", json: { label: name.trim() && name.trim() !== fallback ? name.trim() : null } });
       setKindLabels(r.kindLabels);
       toast(tr("Name saved"));
@@ -615,7 +625,7 @@ function PanelHead({ title, text, action }: { title: string; text?: string; acti
 
 /** One list of the personal form as a Jira table: name, (Keperluan Dana: type, rules, approval flow), status;
  * Create and a row open the edit dialog. An option in use is switched off, never deleted. */
-function OptionTable({ data, list, onChanged, onFlow }: { data: Settings; list: OptionList; onChanged: () => void; onFlow: (o: FundOption) => void }) {
+function OptionTable({ data, list, onChanged, onFlow, onRename }: { data: Settings; list: OptionList; onChanged: () => void; onFlow: (o: FundOption) => void; onRename: () => void }) {
   const [q, setQ] = useState("");
   const [show, setShow] = useState<"active" | "inactive" | "all">("active");
   const [editing, setEditing] = useState<FundOption | "new" | null>(null);
@@ -633,7 +643,8 @@ function OptionTable({ data, list, onChanged, onFlow }: { data: Settings; list: 
   return (
     <section className="space-y-3">
       <PanelHead title={data.lists[list]} text={HINT[list]}
-        action={edit ? <Button onClick={() => setEditing("new")}><Plus size={15} /> {tr("Create")}</Button> : undefined} />
+        action={edit ? <span className="flex gap-2"><Button variant="secondary" onClick={onRename}>{tr("Rename")}</Button>
+          <Button onClick={() => setEditing("new")}><Plus size={15} /> {tr("Create")}</Button></span> : undefined} />
       <div className="flex flex-wrap items-center gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search {0}", data.lists[list].toLowerCase())} aria-label={tr("Search")}
           className={cx(inputClass, "h-9 w-full max-w-xs text-sm")} />
@@ -667,7 +678,7 @@ function OptionTable({ data, list, onChanged, onFlow }: { data: Settings; list: 
                       {!o.settings.receipt && !o.settings.outlet && !o.settings.deptPlafon && <span className="text-neutral-400">—</span>}
                     </span></td>
                     <td className={jTd}><button type="button" onClick={(e) => { e.stopPropagation(); onFlow(o); }} className="whitespace-nowrap text-xs font-medium text-brand-700 hover:underline">
-                      {n ? tr("{0} steps", n) : tr("Default flow")}</button></td>
+                      {n ? tr("{0} steps", n) : tr("Default Flow")}</button></td>
                   </>}
                   <td className={jTd}><Lozenge tone={o.isActive ? "green" : "grey"}>{o.isActive ? tr("Active") : tr("Inactive")}</Lozenge></td>
                 </tr>

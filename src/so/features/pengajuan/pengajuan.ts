@@ -54,7 +54,7 @@ export type FormState = { user: { id: string; username: string; name: string }; 
   profile: { email: string | null; name: string; department: string | null; jobTitle: string | null };
   options: Record<OptionList, FundOption[]>; outlets: { code: string; name: string }[]; advances: Advance[];
   lastPayee: { bank: string | null; account: string | null; name: string | null; accountTypeId: number | null };
-  kindLabels?: Partial<Record<Kind, string>> };
+  kindLabels?: Partial<Record<Kind, string>>; /** the titles of the lists, as management named them */ listNames?: Record<OptionList, string> };
 
 export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), SUBMITTED: () => tr("Waiting for approval"), REVISION: () => tr("Revision"),

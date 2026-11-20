@@ -782,11 +782,11 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
 
         <FormCard n={2} title={tr("Request")} hint={tr("What the funds are for")}>
           <div className="grid gap-3 sm:grid-cols-2">
-            {select("purposeId", "PURPOSE", tr("Purpose of Funds"))}
-            {select("transactionTypeId", "TRANSACTION", tr("Transaction Type"))}
+            {select("purposeId", "PURPOSE", data.listNames?.PURPOSE ?? tr("Purpose of Funds"))}
+            {select("transactionTypeId", "TRANSACTION", data.listNames?.TRANSACTION ?? tr("Transaction Type"))}
             <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Date Funds Needed")}<span className="text-red-600"> *</span></span>
               <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-red-300")} /></label>
-            {select("projectId", "PROJECT", tr("Project"), false)}
+            {select("projectId", "PROJECT", data.listNames?.PROJECT ?? tr("Project"), false)}
             <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Outlet")}{flags.outlet && <span className="text-red-600"> *</span>}</span>
               <NativeSelect value={local.branchCode} onChange={(e) => update({ branchCode: e.target.value })} aria-label={tr("Outlet")} className={cx(inputClass, "h-11 w-full")}>
                 <option value="">{flags.outlet ? tr("Choose the outlet") : tr("No outlet")}</option>
@@ -821,7 +821,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
 
         <FormCard n={5} title={tr("Destination Account")} hint={tr("The transfer goes to this account")}>
           <div className="grid gap-2 sm:grid-cols-2">
-            <div className="sm:col-span-2">{select("accountTypeId", "ACCOUNT", tr("Account Type"))}</div>
+            <div className="sm:col-span-2">{select("accountTypeId", "ACCOUNT", data.listNames?.ACCOUNT ?? tr("Account Type"))}</div>
             <Field label={tr("Bank")} value={local.payeeBank} onChange={(v) => update({ payeeBank: v })} max={60} placeholder="BCA" />
             <Field label={tr("Account Number")} value={local.payeeAccount} onChange={(v) => update({ payeeAccount: v })} max={40} inputMode="numeric" />
             <div className="sm:col-span-2"><Field label={tr("Account holder")} value={local.payeeName} onChange={(v) => update({ payeeName: v })} max={80} /></div>
