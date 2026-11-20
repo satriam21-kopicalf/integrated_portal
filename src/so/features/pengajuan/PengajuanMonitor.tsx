@@ -9,11 +9,11 @@
 // steps of every kind with their users (superadmin) and the petty cash plafon (superadmin, Finance).
 
 import { CardFooter, JSelect, Lozenge, NativeSelect, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
-import { Segmented } from "@/so/ui/Simple";
 import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, cx, Empty, ErrorState, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
+import { Badge, Button, cx, Empty, ErrorState, Field, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
+import Dialog from "@/so/ui/Dialog";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, ChoiceGroup, FilterSection, FilterSheet, FilterToolbar, Period, PeriodField, SearchChoice, dmy, wibDay as wibOffset } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
@@ -396,28 +396,44 @@ type Settings = { kinds: Record<Kind, string>; flows: Record<string, { label: st
   /** every outlet, for the plafon per outlet */ outlets?: { code: string; name: string }[] };
 
 /** The approval steps of every kind (any number, in order, each with its users; then the payment) and the petty cash plafon. */
+type View = { type: "flow"; key: string } | { type: "list"; list: OptionList } | { type: "plafon" } | { type: "dept" };
+const viewKey = (v: View) => (v.type === "flow" ? `flow:${v.key}` : v.type === "list" ? `list:${v.list}` : v.type);
+const PURPOSE_TYPE: Record<string, { label: () => string; tone: LozengeTone }> = {
+  "": { label: () => tr("Regular"), tone: "grey" }, ADVANCE: { label: () => tr("Cash in Advance"), tone: "blue" },
+  SETTLEMENT: { label: () => tr("Settlement"), tone: "violet" },
+};
+
+/** Fund Request settings in the layout of a Jira project settings page (2026-11-20): a navigation on the left
+ * (the approval flow of every outlet kind, the default personal flow and one per Keperluan Dana, the lists of the
+ * personal form, the plafon) and the chosen part on the right; a list is a table with Create and an edit dialog. */
 function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: string; label: string }[]; onClose: () => void; onChanged: () => void }) {
   const toast = useToast();
   const [data, setData] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [kind, setKind] = useState<string>("PETTY_CASH");
+  const [view, setView] = useState<View>({ type: "flow", key: "PETTY_CASH" });
   const [steps, setSteps] = useState<StepEdit[]>([]);
-  const [tab, setTab] = useState<"approvals" | "lists">("approvals");
-  // the flows: the outlet kinds, the default personal flow, then one per Keperluan Dana
-  const flowTabs = useMemo(() => [...KINDS.map((k) => ({ key: k as string, label: kindLabel(k) })), { key: "PERSONAL", label: tr("Personal (default)") },
-    ...(data?.options.PURPOSE ?? []).filter((o) => o.isActive).map((o) => ({ key: `PERSONAL:${o.id}`, label: o.name }))], [data]);
-  const flowLabel = flowTabs.find((t) => t.key === kind)?.label ?? kind;
   const [busy, setBusy] = useState(false);
   const [plafon, setPlafon] = useState({ branch: "", amount: "" });
   const load = useCallback(async () => {
     try { setData(await call<Settings>("/api/pengajuan/settings")); } catch (e) { setError((e as Error).message); }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  const kind = view.type === "flow" ? view.key : "";
+  const ownFlow = !!(kind && data?.flows[kind]?.length);
   useEffect(() => {
-    if (data) setSteps((data.flows[kind]?.length ? data.flows[kind] : data.flows[kind.startsWith("PERSONAL") ? "PERSONAL" : kind] ?? []).map((x) => ({ label: x.label, type: x.type, userIds: x.users.map((u) => u.id) })));
-  }, [data, kind]);
+    if (data && kind) setSteps((ownFlow ? data.flows[kind] : data.flows[kind.startsWith("PERSONAL") ? "PERSONAL" : kind] ?? [])
+      .map((x) => ({ label: x.label, type: x.type, userIds: x.users.map((u) => u.id) })));
+  }, [data, kind, ownFlow]);
+  const purposes = data?.options.PURPOSE ?? [];
+  const nav: { title: string; items: { view: View; label: string; count?: number; muted?: boolean }[] }[] = [
+    { title: tr("Approval flow · Outlet"), items: KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
+    { title: tr("Approval flow · Personal"), items: [{ view: { type: "flow", key: "PERSONAL" }, label: tr("Default flow") },
+      ...purposes.filter((o) => o.isActive).map((o) => ({ view: { type: "flow", key: `PERSONAL:${o.id}` } as View, label: o.name, muted: !data?.flows[`PERSONAL:${o.id}`]?.length }))] },
+    { title: tr("Personal form lists"), items: (Object.keys(data?.lists ?? {}) as OptionList[]).map((l) => ({ view: { type: "list", list: l }, label: data!.lists[l], count: data!.options[l].length })) },
+    { title: tr("Plafon"), items: [{ view: { type: "plafon" }, label: tr("Outlet petty cash") }, { view: { type: "dept" }, label: tr("Department") }] },
+  ];
+  const current = nav.flatMap((g) => g.items).find((i) => viewKey(i.view) === viewKey(view));
   const names = useMemo(() => new Map((data?.users ?? []).map((u) => [u.id, u.name])), [data]);
-  // every outlet (not only those that sent a request in the period)
   const outletOpts = useMemo(() => (data?.outlets?.length ? data.outlets.map((o) => ({ value: o.code, label: o.name })) : branches), [data, branches]);
   const branchName = (code: string) => outletOpts.find((b) => b.value === code)?.label ?? code;
   const approvals = steps.filter((x) => x.type === "APPROVE");
@@ -429,7 +445,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
       await call(`/api/pengajuan/settings/flow/${kind}`, { method: "PUT", json: { steps } });
       await load();
       onChanged();
-      toast(tr("Approvals of {0} saved", flowLabel));
+      toast(tr("Approvals of {0} saved", current?.label ?? kind));
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   const copyToAll = async () => {
@@ -450,151 +466,276 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
     } catch (e) { toast((e as Error).message, "error"); }
   };
   const edit = !!data?.canEdit;
+  const personalFlow = kind.startsWith("PERSONAL");
   return (
     <Drawer open onClose={onClose} size="xl" icon={<Settings2 size={18} />} title={tr("Approvals & Plafon")}
-      description={tr("Who approves each kind of request, in order, and the petty cash plafon")}
-      footer={edit ? <div className="flex w-full flex-wrap justify-end gap-2">
-        <Button variant="secondary" disabled={busy} onClick={() => void copyToAll()}>{tr("Use for Every Kind")}</Button>
-        <Button loading={busy} onClick={() => void save()}>{tr("Save approvals of {0}", flowLabel)}</Button>
+      description={tr("Approval flows, the lists of the personal form and the plafon of Fund Request")}
+      footer={edit && view.type === "flow" ? <div className="flex w-full flex-wrap justify-end gap-2">
+        {!personalFlow && <Button variant="secondary" disabled={busy} onClick={() => void copyToAll()}>{tr("Use for Every Kind")}</Button>}
+        <Button loading={busy} onClick={() => void save()}>{tr("Save approvals of {0}", current?.label ?? "")}</Button>
       </div> : undefined}>
-      {data && <div className="mb-4"><Segmented label={tr("Settings")} value={tab} onChange={setTab}
-        options={[{ value: "approvals", label: tr("Approvals & Plafon") }, { value: "lists", label: tr("Personal request lists") }]} /></div>}
-      {data && tab === "lists" && <OptionLists data={data} onChanged={() => void load()} />}
-      {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : tab === "lists" ? null : (
-        <div className="space-y-6">
-          <section className="space-y-3">
-            <div className="flex gap-5 overflow-x-auto border-b border-neutral-200" role="tablist" aria-label={tr("Kind")}>
-              {flowTabs.map((t) => (
-                <button key={t.key} type="button" role="tab" aria-selected={kind === t.key} onClick={() => setKind(t.key)}
-                  className={cx("-mb-px flex-shrink-0 border-b-2 pb-2 text-sm font-medium", kind === t.key ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>{t.label}</button>
-              ))}
-            </div>
-            {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin changes the approvals.")}</p>}
-            <ol className="space-y-2">
-              {approvals.map((st, i) => (
-                <StepRow key={i} n={i + 1} step={st} users={data.users} names={names} edit={edit}
-                  onChange={(x) => setApprovals(approvals.map((y, j) => (j === i ? x : y)))}
-                  onUp={i > 0 ? () => { const l = [...approvals]; [l[i - 1], l[i]] = [l[i], l[i - 1]]; setApprovals(l); } : undefined}
-                  onDown={i < approvals.length - 1 ? () => { const l = [...approvals]; [l[i + 1], l[i]] = [l[i], l[i + 1]]; setApprovals(l); } : undefined}
-                  onRemove={approvals.length > 1 ? () => setApprovals(approvals.filter((_, j) => j !== i)) : undefined} />
-              ))}
-              {edit && approvals.length < 8 && (
-                <li><Button variant="secondary" className="w-full" onClick={() => setApprovals([...approvals, { label: tr("Approval {0}", approvals.length + 1), type: "APPROVE", userIds: [] }])}>
-                  <Plus size={15} /> {tr("Add approval step")}</Button></li>
-              )}
-              <StepRow n={approvals.length + 1} step={pay} users={data.users} names={names} edit={edit} payment
-                onChange={(x) => setSteps([...approvals, x])} />
-            </ol>
-            <p className="text-xs text-neutral-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Fund requests page.")}</p>
-          </section>
-
-          <section className="space-y-3 border-t border-neutral-100 pt-5">
-            <div>
-              <p className="text-sm font-semibold text-neutral-900">{tr("Petty cash plafon")}</p>
-              <p className="text-xs text-neutral-500">{tr("The weekly top-up brings the cash of the outlet back to its plafon. An outlet without its own plafon uses the one of every outlet.")}</p>
-            </div>
-            {data.canPlafon && <Suggestions onApplied={(pl) => setData((d) => (d ? { ...d, plafon: pl } : d))} />}
-            <PlafonRow label={tr("Every Outlet")} amount={data.plafon.default} edit={data.canPlafon} onSave={(a) => void savePlafon("*", a)} />
-            {data.plafon.branches.map((b) => (
-              <PlafonRow key={b.branchCode} label={branchName(b.branchCode)} amount={b.amount} edit={data.canPlafon} onSave={(a) => void savePlafon(b.branchCode, a)} removable />
-            ))}
-            {data.canPlafon && (
-              <div className="grid gap-2 rounded-md border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
-                <SearchChoice label="" anyLabel={tr("Choose the outlet")} options={outletOpts.filter((b) => !data.plafon.branches.some((x) => x.branchCode === b.value))}
-                  value={plafon.branch} onChange={(branch) => setPlafon({ ...plafon, branch })} placeholder={tr("Search outlet")} />
-                <input value={plafon.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setPlafon({ ...plafon, amount: typeRp(parseRp(e.target.value)) })}
-                  className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} aria-label={tr("Plafon")} />
-                <Button disabled={!plafon.branch || parseRp(plafon.amount) === null} onClick={() => void savePlafon(plafon.branch, parseRp(plafon.amount))}>{tr("Add")}</Button>
+      {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : (
+        <div className="grid gap-5 sm:grid-cols-[13.5rem_minmax(0,1fr)]">
+          {/* the navigation of the settings (a select on a phone) */}
+          <nav className="hidden space-y-4 border-r border-neutral-200 pr-3 sm:block" aria-label={tr("Settings")}>
+            {nav.map((g) => (
+              <div key={g.title}>
+                <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{g.title}</p>
+                <ul className="space-y-px">
+                  {g.items.map((i) => {
+                    const on = viewKey(i.view) === viewKey(view);
+                    return (
+                      <li key={viewKey(i.view)}>
+                        <button type="button" onClick={() => setView(i.view)} aria-current={on ? "page" : undefined}
+                          className={cx("flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px]",
+                            on ? "bg-brand-50 font-medium text-brand-800" : "text-neutral-700 hover:bg-neutral-100")}>
+                          <span className={cx("min-w-0 flex-1 truncate", i.muted && !on && "text-neutral-500")}>{i.label}</span>
+                          {i.count !== undefined && <span className="rounded-full bg-neutral-200/70 px-1.5 text-[11px] tabular-nums text-neutral-600">{i.count}</span>}
+                          {i.muted && <span className="h-1.5 w-1.5 rounded-full bg-neutral-300" title={tr("Uses the default flow")} />}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
+            ))}
+          </nav>
+          <div className="sm:hidden">
+            <NativeSelect value={viewKey(view)} aria-label={tr("Settings")} className={cx(inputClass, "h-10 w-full")}
+              onChange={(e) => { const i = nav.flatMap((g) => g.items).find((x) => viewKey(x.view) === e.target.value); if (i) setView(i.view); }}>
+              {nav.flatMap((g) => g.items.map((i) => <option key={viewKey(i.view)} value={viewKey(i.view)}>{`${g.title} — ${i.label}`}</option>))}
+            </NativeSelect>
+          </div>
+
+          <div className="min-w-0">
+            {view.type === "flow" && (
+              <section className="space-y-4">
+                <PanelHead title={current?.label ?? ""} text={personalFlow
+                  ? tr("The approvers of this purpose of funds, in order, then the payment by Finance.")
+                  : tr("Who approves this kind of outlet request, in order, then the payment by Finance.")} />
+                {personalFlow && kind !== "PERSONAL" && !ownFlow && (
+                  <p className="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">{tr("No flow of its own yet: the default personal flow applies. Saving here gives it its own.")}</p>
+                )}
+                {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin changes the approvals.")}</p>}
+                <ol className="space-y-2">
+                  {approvals.map((st, i) => (
+                    <StepRow key={i} n={i + 1} step={st} users={data.users} names={names} edit={edit}
+                      onChange={(x) => setApprovals(approvals.map((y, j) => (j === i ? x : y)))}
+                      onUp={i > 0 ? () => { const l = [...approvals]; [l[i - 1], l[i]] = [l[i], l[i - 1]]; setApprovals(l); } : undefined}
+                      onDown={i < approvals.length - 1 ? () => { const l = [...approvals]; [l[i + 1], l[i]] = [l[i], l[i + 1]]; setApprovals(l); } : undefined}
+                      onRemove={approvals.length > 1 ? () => setApprovals(approvals.filter((_, j) => j !== i)) : undefined} />
+                  ))}
+                  {edit && approvals.length < 8 && (
+                    <li><Button variant="secondary" className="w-full" onClick={() => setApprovals([...approvals, { label: tr("Approval {0}", approvals.length + 1), type: "APPROVE", userIds: [] }])}>
+                      <Plus size={15} /> {tr("Add approval step")}</Button></li>
+                  )}
+                  <StepRow n={approvals.length + 1} step={pay} users={data.users} names={names} edit={edit} payment
+                    onChange={(x) => setSteps([...approvals, x])} />
+                </ol>
+                <p className="text-xs text-neutral-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Fund requests page.")}</p>
+              </section>
             )}
-          </section>
+
+            {view.type === "list" && <OptionTable data={data} list={view.list} onChanged={() => void load()}
+              onFlow={(o) => setView({ type: "flow", key: `PERSONAL:${o.id}` })} />}
+
+            {view.type === "plafon" && (
+              <section className="space-y-3">
+                <PanelHead title={tr("Outlet petty cash")} text={tr("The weekly top-up brings the cash of the outlet back to its plafon. An outlet without its own plafon uses the one of every outlet.")} />
+                {data.canPlafon && <Suggestions onApplied={(pl) => setData((d) => (d ? { ...d, plafon: pl } : d))} />}
+                <PlafonRow label={tr("Every Outlet")} amount={data.plafon.default} edit={data.canPlafon} onSave={(a) => void savePlafon("*", a)} />
+                {data.plafon.branches.map((b) => (
+                  <PlafonRow key={b.branchCode} label={branchName(b.branchCode)} amount={b.amount} edit={data.canPlafon} onSave={(a) => void savePlafon(b.branchCode, a)} removable />
+                ))}
+                {data.canPlafon && (
+                  <div className="grid gap-2 rounded-md border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
+                    <SearchChoice label="" anyLabel={tr("Choose the outlet")} options={outletOpts.filter((b) => !data.plafon.branches.some((x) => x.branchCode === b.value))}
+                      value={plafon.branch} onChange={(branch) => setPlafon({ ...plafon, branch })} placeholder={tr("Search outlet")} />
+                    <input value={plafon.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setPlafon({ ...plafon, amount: typeRp(parseRp(e.target.value)) })}
+                      className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} aria-label={tr("Plafon")} />
+                    <Button disabled={!plafon.branch || parseRp(plafon.amount) === null} onClick={() => void savePlafon(plafon.branch, parseRp(plafon.amount))}>{tr("Add")}</Button>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {view.type === "dept" && <DeptPlafon data={data} onChanged={() => void load()} />}
+          </div>
         </div>
       )}
     </Drawer>
   );
 }
 
-/** Personal request lists (2026-11-20): Keperluan Dana with its flags, Jenis Transaksi, Project, Jenis Rekening, and the
- * plafon per department. Adding, renaming and switching off; an option in use is never deleted. */
-function OptionLists({ data, onChanged }: { data: Settings; onChanged: () => void }) {
-  const toast = useToast();
-  const [list, setList] = useState<OptionList>("PURPOSE");
-  const [name, setName] = useState("");
-  const [dept, setDept] = useState({ department: "", amount: "" });
+function PanelHead({ title, text, action }: { title: string; text?: string; action?: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-200 pb-3">
+      <div className="min-w-0">
+        <h3 className="text-base font-semibold text-neutral-900">{title}</h3>
+        {text && <p className="mt-0.5 max-w-xl text-xs text-neutral-500">{text}</p>}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+/** One list of the personal form as a Jira table: name, (Keperluan Dana: type, rules, approval flow), status;
+ * Create and a row open the edit dialog. An option in use is switched off, never deleted. */
+function OptionTable({ data, list, onChanged, onFlow }: { data: Settings; list: OptionList; onChanged: () => void; onFlow: (o: FundOption) => void }) {
+  const [q, setQ] = useState("");
+  const [show, setShow] = useState<"active" | "inactive" | "all">("active");
+  const [editing, setEditing] = useState<FundOption | "new" | null>(null);
   const edit = data.canOptions;
-  const run = async (fn: () => Promise<unknown>, ok: string) => {
-    try { await fn(); toast(ok); onChanged(); } catch (e) { toast((e as Error).message, "error"); }
+  const purpose = list === "PURPOSE";
+  const all = data.options[list];
+  const rows = all.filter((o) => (show === "all" || (show === "active") === o.isActive) && (!q.trim() || o.name.toLowerCase().includes(q.trim().toLowerCase())));
+  const steps = (o: FundOption) => data.flows[`PERSONAL:${o.id}`]?.filter((x) => x.type === "APPROVE").length ?? 0;
+  const HINT: Record<OptionList, string> = {
+    PURPOSE: tr("What a person asks the money for. Each purpose has its own rules and approval flow."),
+    TRANSACTION: tr("The kind of transaction picked on the personal form."),
+    PROJECT: tr("The projects a personal request can be charged to."),
+    ACCOUNT: tr("The kinds of destination account (personal, VA, credit card …)."),
   };
-  const add = () => run(() => call("/api/pengajuan/settings/options", { method: "POST", json: { list, name: name.trim(), settings: {} } }), tr("Added")).then(() => setName(""));
-  const patchOpt = (o: FundOption, body: Record<string, unknown>) => run(() => call(`/api/pengajuan/settings/options/${o.id}`, { method: "PATCH", json: body }), tr("Saved"));
-  const flag = (o: FundOption, key: "receipt" | "outlet" | "deptPlafon", label: string) => (
-    <label className="flex items-center gap-1.5 text-xs text-neutral-600">
-      <input type="checkbox" disabled={!edit} checked={!!o.settings[key]} onChange={(e) => void patchOpt(o, { settings: { [key]: e.target.checked } })} />{label}</label>
+  return (
+    <section className="space-y-3">
+      <PanelHead title={data.lists[list]} text={HINT[list]}
+        action={edit ? <Button onClick={() => setEditing("new")}><Plus size={15} /> {tr("Create")}</Button> : undefined} />
+      <div className="flex flex-wrap items-center gap-2">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search {0}", data.lists[list].toLowerCase())} aria-label={tr("Search")}
+          className={cx(inputClass, "h-9 w-full max-w-xs text-sm")} />
+        <QuickChips label={tr("Status")} value={show} onChange={setShow} items={[
+          { key: "active", label: tr("Active"), count: all.filter((o) => o.isActive).length },
+          { key: "inactive", label: tr("Inactive"), count: all.filter((o) => !o.isActive).length },
+          { key: "all", label: tr("All"), count: all.length }]} />
+      </div>
+      <div className="overflow-x-auto rounded border border-neutral-200">
+        <table className={cx(jTable, "min-w-[520px]")}>
+          <thead><tr className={jHeadRow}>
+            <th className={jTh}>{tr("Name")}</th>
+            {purpose && <><th className={jTh}>{tr("Type")}</th><th className={jTh}>{tr("Rules")}</th><th className={jTh}>{tr("Approval")}</th></>}
+            <th className={jTh}>{tr("Status")}</th>
+          </tr></thead>
+          <tbody>
+            {rows.length === 0 && <tr><td colSpan={purpose ? 5 : 2} className="px-4 py-8 text-center text-sm text-neutral-400">
+              {all.length ? tr("Nothing matches") : tr("Nothing yet: press Create")}</td></tr>}
+            {rows.map((o) => {
+              const t = PURPOSE_TYPE[o.settings.type ?? ""] ?? PURPOSE_TYPE[""];
+              const n = steps(o);
+              return (
+                <tr key={o.id} className={jRow} onClick={() => edit && setEditing(o)}>
+                  <td className={jTd}><span className={cx(edit ? jKey : "font-medium text-neutral-900", !o.isActive && "text-neutral-400 no-underline")}>{o.name}</span></td>
+                  {purpose && <>
+                    <td className={jTd}><Lozenge tone={t.tone}>{t.label()}</Lozenge></td>
+                    <td className={jTd}><span className="flex gap-1 whitespace-nowrap">
+                      {o.settings.receipt && <Lozenge tone="amber">{tr("Receipt")}</Lozenge>}
+                      {o.settings.outlet && <Lozenge tone="cyan">{tr("Outlet")}</Lozenge>}
+                      {o.settings.deptPlafon && <Lozenge tone="red">{tr("Plafon")}</Lozenge>}
+                      {!o.settings.receipt && !o.settings.outlet && !o.settings.deptPlafon && <span className="text-neutral-400">—</span>}
+                    </span></td>
+                    <td className={jTd}><button type="button" onClick={(e) => { e.stopPropagation(); onFlow(o); }} className="whitespace-nowrap text-xs font-medium text-brand-700 hover:underline">
+                      {n ? tr("{0} steps", n) : tr("Default flow")}</button></td>
+                  </>}
+                  <td className={jTd}><Lozenge tone={o.isActive ? "green" : "grey"}>{o.isActive ? tr("Active") : tr("Inactive")}</Lozenge></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin or admin changes these lists.")}</p>}
+      {editing && <OptionDialog list={list} label={data.lists[list]} option={editing === "new" ? null : editing}
+        onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onChanged(); }} />}
+    </section>
+  );
+}
+
+/** Create or edit one option (Jira "Create" dialog): its name; a Keperluan Dana also its type and rules; switching
+ * it off keeps the requests that used it. */
+function OptionDialog({ list, label, option, onClose, onSaved }: { list: OptionList; label: string; option: FundOption | null; onClose: () => void; onSaved: () => void }) {
+  const toast = useToast();
+  const [name, setName] = useState(option?.name ?? "");
+  const [type, setType] = useState<string>(option?.settings.type ?? "");
+  const [rules, setRules] = useState({ receipt: !!option?.settings.receipt, outlet: !!option?.settings.outlet, deptPlafon: !!option?.settings.deptPlafon });
+  const [active, setActive] = useState(option?.isActive ?? true);
+  const [busy, setBusy] = useState(false);
+  const purpose = list === "PURPOSE";
+  const settings = purpose ? { ...rules, type: type || null } : {};
+  const submit = async () => {
+    setBusy(true);
+    try {
+      if (option) await call(`/api/pengajuan/settings/options/${option.id}`, { method: "PATCH", json: { name: name.trim(), isActive: active, settings } });
+      else await call("/api/pengajuan/settings/options", { method: "POST", json: { list, name: name.trim(), settings } });
+      toast(option ? tr("Saved") : tr("{0} created", name.trim()));
+      onSaved();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  const rule = (key: keyof typeof rules, title: string, hint: string) => (
+    <label className="flex cursor-pointer items-start gap-3 rounded border border-neutral-200 px-3 py-2.5 hover:bg-neutral-50">
+      <input type="checkbox" className="mt-0.5" checked={rules[key]} onChange={(e) => setRules({ ...rules, [key]: e.target.checked })} />
+      <span><span className="block text-sm font-medium text-neutral-900">{title}</span><span className="block text-xs text-neutral-500">{hint}</span></span>
+    </label>
   );
   return (
-    <div className="space-y-5">
-      {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin or admin changes these lists.")}</p>}
-      <div className="flex gap-5 overflow-x-auto border-b border-neutral-200" role="tablist">
-        {(Object.keys(data.lists) as OptionList[]).map((l) => (
-          <button key={l} type="button" role="tab" aria-selected={list === l} onClick={() => setList(l)}
-            className={cx("-mb-px flex-shrink-0 border-b-2 pb-2 text-sm font-medium", list === l ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
-            {data.lists[l]} <span className="text-neutral-400">{data.options[l].length}</span></button>
-        ))}
+    <Dialog open onClose={onClose} size="md" title={option ? tr("Edit {0}", label) : tr("Create {0}", label)}
+      description={purpose ? tr("The name shown on the form, its type and the rules checked before sending.") : undefined}
+      footer={<div className="flex w-full justify-end gap-2">
+        <Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
+        <Button loading={busy} disabled={!name.trim()} onClick={() => void submit()}>{option ? tr("Save") : tr("Create")}</Button>
+      </div>}>
+      <div className="space-y-4">
+        <Field label={tr("Name")} required>
+          <input autoFocus value={name} maxLength={120} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && name.trim() && !purpose) void submit(); }}
+            className={cx(inputClass, "h-10")} /></Field>
+        {purpose && <>
+          <Field label={tr("Type")} hint={type === "ADVANCE" ? tr("Paid ahead; settled later with a Settlement request") : type === "SETTLEMENT" ? tr("Picks the Cash in Advance it settles and shows the difference") : tr("A normal request")}>
+            <NativeSelect value={type} onChange={(e) => setType(e.target.value)} aria-label={tr("Type")} className={cx(inputClass, "h-10 w-full")}>
+              <option value="">{tr("Regular")}</option><option value="ADVANCE">{tr("Cash in Advance")}</option><option value="SETTLEMENT">{tr("Settlement of a Cash in Advance")}</option>
+            </NativeSelect></Field>
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-neutral-600">{tr("Rules")}</p>
+            {rule("receipt", tr("Receipt required"), tr("A bill, receipt or photo must be attached before sending"))}
+            {rule("outlet", tr("Outlet required"), tr("The request must name the outlet it is for"))}
+            {rule("deptPlafon", tr("Department plafon"), tr("Refused above the plafon of the requester's department (set in Plafon → Department)"))}
+          </div>
+        </>}
+        {option && (
+          <label className="flex items-center justify-between gap-3 rounded border border-neutral-200 px-3 py-2.5">
+            <span><span className="block text-sm font-medium text-neutral-900">{tr("Active")}</span>
+              <span className="block text-xs text-neutral-500">{tr("Inactive: no longer on the form; requests that used it keep it")}</span></span>
+            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} aria-label={tr("Active")} />
+          </label>
+        )}
       </div>
-      <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
-        {data.options[list].length === 0 && <li className="px-3 py-3 text-sm text-neutral-400">{tr("Nothing yet")}</li>}
-        {data.options[list].map((o) => (
-          <li key={o.id} className={cx("space-y-2 px-3 py-2.5", !o.isActive && "bg-neutral-50")}>
-            <div className="flex items-center gap-2">
-              <input defaultValue={o.name} disabled={!edit} maxLength={120} aria-label={tr("Name")}
-                onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== o.name) void patchOpt(o, { name: v }); }}
-                className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm", !o.isActive && "text-neutral-400 line-through")} />
-              <Button size="sm" variant="secondary" disabled={!edit} onClick={() => void patchOpt(o, { isActive: !o.isActive })}>{o.isActive ? tr("Switch off") : tr("Switch on")}</Button>
-            </div>
-            {list === "PURPOSE" && (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                {flag(o, "receipt", tr("Receipt required"))}{flag(o, "outlet", tr("Outlet required"))}{flag(o, "deptPlafon", tr("Department plafon"))}
-                <label className="flex items-center gap-1.5 text-xs text-neutral-600">{tr("Type")}
-                  <NativeSelect value={o.settings.type ?? ""} disabled={!edit} onChange={(e) => void patchOpt(o, { settings: { type: e.target.value || null } })} className="h-8 text-xs">
-                    <option value="">{tr("Regular")}</option><option value="ADVANCE">{tr("Cash in Advance")}</option><option value="SETTLEMENT">{tr("Settlement of a Cash in Advance")}</option>
-                  </NativeSelect></label>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+    </Dialog>
+  );
+}
+
+/** The plafon per department for the purposes with the Department plafon rule (empty: no limit). */
+function DeptPlafon({ data, onChanged }: { data: Settings; onChanged: () => void }) {
+  const toast = useToast();
+  const [dept, setDept] = useState({ department: "", amount: "" });
+  const edit = data.canOptions;
+  const put = async (department: string, amount: number | null) => {
+    try { await call("/api/pengajuan/settings/dept-plafon", { method: "PUT", json: { department, amount } }); toast(tr("Plafon saved")); onChanged(); setDept({ department: "", amount: "" }); }
+    catch (e) { toast((e as Error).message, "error"); }
+  };
+  return (
+    <section className="space-y-3">
+      <PanelHead title={tr("Department plafon")} text={tr("The most a department may ask at once for a purpose marked Department plafon. Empty: no limit.")} />
+      {data.deptPlafon.length === 0 && <p className="rounded border border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No department has a plafon: no limit")}</p>}
+      {data.deptPlafon.map((d) => <PlafonRow key={d.department} label={d.department} amount={d.amount} edit={edit} removable onSave={(a) => void put(d.department, a)} />)}
       {edit && (
-        <div className="flex gap-2">
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder={tr("New {0}", data.lists[list])}
-            onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) void add(); }} className={cx(inputClass, "h-10 min-w-0 flex-1 text-sm")} />
-          <Button disabled={!name.trim()} onClick={() => void add()}><Plus size={15} /> {tr("Add")}</Button>
+        <div className="grid gap-2 rounded-md border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
+          <NativeSelect value={dept.department} onChange={(e) => setDept({ ...dept, department: e.target.value })} aria-label={tr("Department")} className={cx(inputClass, "h-10")}>
+            <option value="">{tr("Choose the department")}</option>
+            {data.departments.filter((d) => !data.deptPlafon.some((x) => x.department === d)).map((d) => <option key={d} value={d}>{d}</option>)}
+          </NativeSelect>
+          <input value={dept.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setDept({ ...dept, amount: typeRp(parseRp(e.target.value)) })}
+            className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} aria-label={tr("Plafon")} />
+          <Button disabled={!dept.department || parseRp(dept.amount) === null} onClick={() => void put(dept.department, parseRp(dept.amount))}>{tr("Add")}</Button>
         </div>
       )}
-      {list === "PURPOSE" && <p className="text-xs text-neutral-500">{tr("Each purpose has its own approval flow: set it in Approvals & Plafon. Without one, the default personal flow applies.")}</p>}
-
-      <section className="space-y-3 border-t border-neutral-100 pt-5">
-        <div>
-          <p className="text-sm font-semibold text-neutral-900">{tr("Department plafon")}</p>
-          <p className="text-xs text-neutral-500">{tr("The most a department may ask at once for a purpose marked Department plafon. Empty: no limit.")}</p>
-        </div>
-        {data.deptPlafon.map((d) => (
-          <PlafonRow key={d.department} label={d.department} amount={d.amount} edit={edit} removable
-            onSave={(a) => void run(() => call("/api/pengajuan/settings/dept-plafon", { method: "PUT", json: { department: d.department, amount: a } }), tr("Plafon saved"))} />
-        ))}
-        {edit && (
-          <div className="grid gap-2 rounded-md border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
-            <NativeSelect value={dept.department} onChange={(e) => setDept({ ...dept, department: e.target.value })} aria-label={tr("Department")} className={cx(inputClass, "h-10")}>
-              <option value="">{tr("Choose the department")}</option>
-              {data.departments.filter((d) => !data.deptPlafon.some((x) => x.department === d)).map((d) => <option key={d} value={d}>{d}</option>)}
-            </NativeSelect>
-            <input value={dept.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setDept({ ...dept, amount: typeRp(parseRp(e.target.value)) })}
-              className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} aria-label={tr("Plafon")} />
-            <Button disabled={!dept.department || parseRp(dept.amount) === null}
-              onClick={() => void run(() => call("/api/pengajuan/settings/dept-plafon", { method: "PUT", json: { department: dept.department, amount: parseRp(dept.amount) } }), tr("Plafon saved")).then(() => setDept({ department: "", amount: "" }))}>{tr("Add")}</Button>
-          </div>
-        )}
-      </section>
-    </div>
+    </section>
   );
 }
 
