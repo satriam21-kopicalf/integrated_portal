@@ -5,7 +5,12 @@ import { serverMsg, tr } from "@/lib/i18n";
 import type { Tone } from "@/so/ui";
 
 export type Status = "DRAFT" | "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "REJECTED";
-export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL";
+export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL" | "PERSONAL";
+/** the lists of the personal form, set by management (migration 124) */
+export type OptionList = "PURPOSE" | "TRANSACTION" | "PROJECT" | "ACCOUNT";
+export type PurposeSettings = { receipt?: boolean; outlet?: boolean; deptPlafon?: boolean; type?: "ADVANCE" | "SETTLEMENT" | null };
+export type FundOption = { id: number; list: OptionList; name: string; isActive: boolean; sort: number; settings: PurposeSettings };
+export type Advance = { id: string; number: string; paidAmount: number | null; paidOn: string | null; purpose: string | null };
 export type Action = "APPROVE" | "REVISION" | "REJECTED" | "PAID";
 export type Step = { position: number; label: string; type: "APPROVE" | "PAY"; users: string[] };
 export type FileKind = "LINE" | "INCOME" | "OTHER" | "PAYMENT";
@@ -26,6 +31,11 @@ export type Pengajuan = {
   closedAt: string | null; kind: Kind; kindLabel: string; approvalStep: number; requesterName: string | null; requesterPhone: string | null;
   payeeBank: string | null; payeeAccount: string | null; payeeName: string | null; purpose: string | null; neededOn: string | null;
   plafon: number | null; requestedAmount: number | null;
+  /** personal (2026-11-20): identity from the account, the lists set by management, the Cash in Advance it settles */
+  scope?: "OUTLET" | "PERSONAL"; email?: string | null; department?: string | null; jobTitle?: string | null;
+  purposeId?: number | null; transactionTypeId?: number | null; projectId?: number | null; accountTypeId?: number | null; settlesId?: string | null;
+  purposeName?: string | null; transactionTypeName?: string | null; projectName?: string | null; accountTypeName?: string | null;
+  settles?: { id: string; number: string; paidAmount: number | null; paidOn: string | null; diff: number; outcome: "PAY" | "RETURN" | "EVEN" } | null;
   /** the steps of its kind (full view); monitoring list: the step waiting and its approvers */
   steps?: Step[]; step?: { label: string; users: string[]; userIds: string[] } | null;
   /** petty cash: what the outlet bought itself in ESB (Simple Purchase) over the 13 weeks before the period end */
@@ -40,7 +50,10 @@ export type Pengajuan = {
 };
 export type FormState = { user: { id: string; username: string; name: string }; branches: { code: string; name: string }[];
   requests: Pengajuan[]; categories: Record<string, string>; categoriesOf: Record<Kind, Record<string, string>>; kinds: Record<Kind, string>;
-  neededOn: Partial<Record<Kind, string>>; receiptRequired: Kind[]; docTypes: Record<string, string>; baristas: Record<string, { id: string; name: string }[]> };
+  neededOn: Partial<Record<Kind, string>>; receiptRequired: Kind[]; docTypes: Record<string, string>; baristas: Record<string, { id: string; name: string }[]>;
+  profile: { email: string | null; name: string; department: string | null; jobTitle: string | null };
+  options: Record<OptionList, FundOption[]>; outlets: { code: string; name: string }[]; advances: Advance[];
+  lastPayee: { bank: string | null; account: string | null; name: string | null; accountTypeId: number | null } };
 
 export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), SUBMITTED: () => tr("Waiting for approval"), REVISION: () => tr("Revision"),
@@ -54,7 +67,7 @@ export const ACTION_LABEL: Record<Action, () => string> = {
 export const KINDS: Kind[] = ["PETTY_CASH", "EMERGENCY", "MARKETING", "EVENT", "BILL"];
 export const KIND_LABEL: Record<Kind, () => string> = {
   PETTY_CASH: () => tr("Weekly petty cash"), EMERGENCY: () => tr("Emergency purchase"), MARKETING: () => tr("Marketing & promo"),
-  EVENT: () => tr("Event & bazaar"), BILL: () => tr("Outlet bills"),
+  EVENT: () => tr("Event & bazaar"), BILL: () => tr("Outlet bills"), PERSONAL: () => tr("Personal request"),
 };
 export const KIND_HINT: Record<Kind, () => string> = {
   PETTY_CASH: () => tr("Report of the week's petty cash and the top-up up to the plafon. No request, no transfer."),
@@ -62,9 +75,14 @@ export const KIND_HINT: Record<Kind, () => string> = {
   MARKETING: () => tr("Banners, flyers, vouchers, sampling for the outlet"),
   EVENT: () => tr("Booth, equipment, stock and crew of an event or bazaar"),
   BILL: () => tr("Electricity, water, internet, waste, security, rent"),
+  PERSONAL: () => tr("Cash in advance, reimbursement, refund, department petty cash …"),
 };
 export const NEEDED_LABEL: Partial<Record<Kind, () => string>> = { MARKETING: () => tr("Date needed"), EVENT: () => tr("Event date"), BILL: () => tr("Due date") };
 export const kindLabel = (k: Kind) => KIND_LABEL[k]?.() ?? k;
+/** the label of a request: a personal one shows its Keperluan Dana */
+export const requestLabel = (p: Pick<Pengajuan, "kind" | "purposeName">) => (p.kind === "PERSONAL" && p.purposeName) || kindLabel(p.kind);
+/** where a request belongs: the outlet, else the department of a personal one */
+export const placeOf = (p: Pick<Pengajuan, "branchName" | "department" | "kind">) => p.branchName || (p.kind === "PERSONAL" ? p.department || tr("Personal") : "—");
 export const CATEGORY_LABEL: Record<string, () => string> = {
   RAW: () => tr("Raw Materials"), OPERATIONAL: () => tr("Outlet operations"), GAS_WATER: () => tr("Gas & gallon water"),
   TRANSPORT: () => tr("Transport & delivery"), CLEANING: () => tr("Cleaning & stationery"), REPAIR: () => tr("Small repairs"),

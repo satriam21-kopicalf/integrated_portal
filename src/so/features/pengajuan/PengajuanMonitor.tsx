@@ -8,7 +8,8 @@
 // a revision or reject it (with a note); the payment step records the transfer with its proof. Settings: the approval
 // steps of every kind with their users (superadmin) and the petty cash plafon (superadmin, Finance).
 
-import { CardFooter, JSelect, Lozenge, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
+import { CardFooter, JSelect, Lozenge, NativeSelect, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
+import { Segmented } from "@/so/ui/Simple";
 import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -23,7 +24,7 @@ import { type XlsxCell, downloadXlsx } from "@/lib/xlsx";
 import PengajuanView, { FileChip, StatusBadge } from "./PengajuanView";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTION_LABEL, CATEGORY_LABEL, KINDS, OPEN, STATUS_LABEL, acceptedTotal,
-  categoryLabel, fmtRp, kindLabel, parseRp, typeRp, upload } from "./pengajuan";
+  categoryLabel, fmtRp, kindLabel, parseRp, placeOf, requestLabel, typeRp, upload, type FundOption, type OptionList } from "./pengajuan";
 
 type Result = { period: { from: string; to: string }; me: string; superadmin: boolean; data: Pengajuan[]; categories: Record<string, string> };
 type F = { period: Period; bgroup: string; branch: string; kind: Kind | ""; account: string; category: string; flag: "" | "reused" | "negative" | "opening" | "rejected" | "aboveRef" };
@@ -140,7 +141,7 @@ export default function PengajuanMonitor() {
       {/* Jira-like (2026-11-18): one card, the kinds as tabs, the status as quick filters, the requests as an issue table */}
       <WorkCard label={tr("Kind")} active={f.kind || "ALL"} onTab={(k) => setF({ ...f, kind: k === "ALL" ? "" : (k as Kind) })}
         tabs={[{ key: "ALL", label: tr("All kinds"), icon: <Wallet size={15} />, count: all.length },
-          ...KINDS.map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
+          ...[...KINDS, "PERSONAL" as Kind].map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
         <Toolbar>
           <QuickChips label={tr("Status")} value={status} onChange={setStatus}
             items={TABS.map((t) => ({ key: t, label: t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My Turn") : t ? STATUS_LABEL[t as Status]() : tr("All"),
@@ -159,9 +160,9 @@ export default function PengajuanMonitor() {
                 <li key={p.id}>
                   <button type="button" onClick={() => setOpen(p.id)} className="w-full px-4 py-3 text-left hover:bg-neutral-50">
                     <span className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-brand-700">{p.number}</span><PgLozenge s={p.status} /></span>
-                    <span className="mt-1 flex items-baseline justify-between gap-2"><span className="truncate text-sm font-semibold text-neutral-900">{p.branchName}</span>
+                    <span className="mt-1 flex items-baseline justify-between gap-2"><span className="truncate text-sm font-semibold text-neutral-900">{placeOf(p)}</span>
                       <span className="flex-shrink-0 text-sm font-semibold tabular-nums">{fmtRp(p.requestedAmount ?? p.totalOut)}</span></span>
-                    <span className="block truncate text-xs text-neutral-500">{kindLabel(p.kind)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</span>
+                    <span className="block truncate text-xs text-neutral-500">{requestLabel(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</span>
                     <StepWaiting p={p} />
                     <Flags p={p} />
                   </button>
@@ -180,11 +181,11 @@ export default function PengajuanMonitor() {
                 <tbody>
                   {paged.rows.map((p) => (
                     <tr key={p.id} onClick={() => setOpen(p.id)} className={jRow}>
-                      <td className={jTd}><TypeIcon tone={KIND_TONE[p.kind] ?? "bg-neutral-500"} title={kindLabel(p.kind)}><Wallet size={11} /></TypeIcon></td>
+                      <td className={jTd}><TypeIcon tone={KIND_TONE[p.kind] ?? "bg-neutral-500"} title={requestLabel(p)}><Wallet size={11} /></TypeIcon></td>
                       <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{p.number}</span></td>
                       <td className={cx(jTd, "max-w-[22rem]")}>
-                        <span className="block truncate text-neutral-900">{p.branchName} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? kindLabel(p.kind)}</span>
-                        <span className="block truncate text-[11px] text-neutral-400">{kindLabel(p.kind)} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</span>
+                        <span className="block truncate text-neutral-900">{placeOf(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? requestLabel(p)}</span>
+                        <span className="block truncate text-[11px] text-neutral-400">{requestLabel(p)}{p.kind === "PERSONAL" ? ` · ${p.name}` : ""} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</span>
                         <Flags p={p} />
                       </td>
                       <td className={jTd}><PgLozenge s={p.status} /><StepWaiting p={p} /></td>
@@ -249,7 +250,7 @@ function MonitorFilters({ value, bgroups, branches, accounts, categories, flagLa
       </FilterSection>
       <FilterSection title={tr("Kind")}>
         <ChoiceGroup label="" value={v.kind} onChange={(kind) => setV({ ...v, kind: kind as F["kind"] })}
-          choices={[{ value: "", label: tr("All") }, ...KINDS.map((k) => ({ value: k, label: kindLabel(k) }))]} />
+          choices={[{ value: "", label: tr("All") }, ...[...KINDS, "PERSONAL" as Kind].map((k) => ({ value: k, label: kindLabel(k) }))]} />
       </FilterSection>
       <FilterSection title={tr("Outlet")}><SearchChoice label="" anyLabel={tr("Every Outlet")} options={branches} value={v.branch} onChange={(branch) => setV({ ...v, branch })} placeholder={tr("Search outlet")} /></FilterSection>
       <FilterSection title={tr("Account")}><SearchChoice label="" anyLabel={tr("Every account")} options={accounts} value={v.account} onChange={(account) => setV({ ...v, account })} placeholder={tr("Search account")} /></FilterSection>
@@ -319,7 +320,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
   const needNote = action === "REVISION" || action === "REJECTED";
   return (
     <Drawer open onClose={onClose} size="xl" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund Request")}
-      description={p ? `${p.branchName} · @${p.username} · ${wibDateTime(p.submittedAt)}` : undefined}
+      description={p ? `${placeOf(p)} · @${p.username} · ${wibDateTime(p.submittedAt)}` : undefined}
       titleExtra={p ? <StatusBadge s={p.status} /> : undefined}
       footer={p && next.length > 0 ? (
         <div className="flex w-full flex-col gap-2">
@@ -389,7 +390,8 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
 
 export type StepEdit = { label: string; type: "APPROVE" | "PAY"; userIds: string[] };
 export type Approver = { id: string; name: string; username: string; role: string; jobTitle: string | null };
-type Settings = { kinds: Record<Kind, string>; flows: Record<Kind, { label: string; type: "APPROVE" | "PAY"; users: { id: string; name: string }[] }[]>;
+type Settings = { kinds: Record<Kind, string>; flows: Record<string, { label: string; type: "APPROVE" | "PAY"; users: { id: string; name: string }[] }[]>;
+  options: Record<OptionList, FundOption[]>; lists: Record<OptionList, string>; deptPlafon: { department: string; amount: number }[]; departments: string[]; canOptions: boolean;
   users: Approver[]; plafon: { default: number | null; branches: { branchCode: string; amount: number }[] }; canEdit: boolean; canPlafon: boolean;
   /** every outlet, for the plafon per outlet */ outlets?: { code: string; name: string }[] };
 
@@ -398,8 +400,13 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   const toast = useToast();
   const [data, setData] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [kind, setKind] = useState<Kind>("PETTY_CASH");
+  const [kind, setKind] = useState<string>("PETTY_CASH");
   const [steps, setSteps] = useState<StepEdit[]>([]);
+  const [tab, setTab] = useState<"approvals" | "lists">("approvals");
+  // the flows: the outlet kinds, the default personal flow, then one per Keperluan Dana
+  const flowTabs = useMemo(() => [...KINDS.map((k) => ({ key: k as string, label: kindLabel(k) })), { key: "PERSONAL", label: tr("Personal (default)") },
+    ...(data?.options.PURPOSE ?? []).filter((o) => o.isActive).map((o) => ({ key: `PERSONAL:${o.id}`, label: o.name }))], [data]);
+  const flowLabel = flowTabs.find((t) => t.key === kind)?.label ?? kind;
   const [busy, setBusy] = useState(false);
   const [plafon, setPlafon] = useState({ branch: "", amount: "" });
   const load = useCallback(async () => {
@@ -407,7 +414,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   }, []);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
-    if (data) setSteps(data.flows[kind].map((x) => ({ label: x.label, type: x.type, userIds: x.users.map((u) => u.id) })));
+    if (data) setSteps((data.flows[kind]?.length ? data.flows[kind] : data.flows[kind.startsWith("PERSONAL") ? "PERSONAL" : kind] ?? []).map((x) => ({ label: x.label, type: x.type, userIds: x.users.map((u) => u.id) })));
   }, [data, kind]);
   const names = useMemo(() => new Map((data?.users ?? []).map((u) => [u.id, u.name])), [data]);
   // every outlet (not only those that sent a request in the period)
@@ -422,7 +429,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
       await call(`/api/pengajuan/settings/flow/${kind}`, { method: "PUT", json: { steps } });
       await load();
       onChanged();
-      toast(tr("Approvals of {0} saved", kindLabel(kind)));
+      toast(tr("Approvals of {0} saved", flowLabel));
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   const copyToAll = async () => {
@@ -448,15 +455,18 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
       description={tr("Who approves each kind of request, in order, and the petty cash plafon")}
       footer={edit ? <div className="flex w-full flex-wrap justify-end gap-2">
         <Button variant="secondary" disabled={busy} onClick={() => void copyToAll()}>{tr("Use for Every Kind")}</Button>
-        <Button loading={busy} onClick={() => void save()}>{tr("Save approvals of {0}", kindLabel(kind))}</Button>
+        <Button loading={busy} onClick={() => void save()}>{tr("Save approvals of {0}", flowLabel)}</Button>
       </div> : undefined}>
-      {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : (
+      {data && <div className="mb-4"><Segmented label={tr("Settings")} value={tab} onChange={setTab}
+        options={[{ value: "approvals", label: tr("Approvals & Plafon") }, { value: "lists", label: tr("Personal request lists") }]} /></div>}
+      {data && tab === "lists" && <OptionLists data={data} onChanged={() => void load()} />}
+      {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : tab === "lists" ? null : (
         <div className="space-y-6">
           <section className="space-y-3">
             <div className="flex gap-5 overflow-x-auto border-b border-neutral-200" role="tablist" aria-label={tr("Kind")}>
-              {KINDS.map((k) => (
-                <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-                  className={cx("-mb-px flex-shrink-0 border-b-2 pb-2 text-sm font-medium", kind === k ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>{kindLabel(k)}</button>
+              {flowTabs.map((t) => (
+                <button key={t.key} type="button" role="tab" aria-selected={kind === t.key} onClick={() => setKind(t.key)}
+                  className={cx("-mb-px flex-shrink-0 border-b-2 pb-2 text-sm font-medium", kind === t.key ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>{t.label}</button>
               ))}
             </div>
             {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin changes the approvals.")}</p>}
@@ -501,6 +511,90 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
         </div>
       )}
     </Drawer>
+  );
+}
+
+/** Personal request lists (2026-11-20): Keperluan Dana with its flags, Jenis Transaksi, Project, Jenis Rekening, and the
+ * plafon per department. Adding, renaming and switching off; an option in use is never deleted. */
+function OptionLists({ data, onChanged }: { data: Settings; onChanged: () => void }) {
+  const toast = useToast();
+  const [list, setList] = useState<OptionList>("PURPOSE");
+  const [name, setName] = useState("");
+  const [dept, setDept] = useState({ department: "", amount: "" });
+  const edit = data.canOptions;
+  const run = async (fn: () => Promise<unknown>, ok: string) => {
+    try { await fn(); toast(ok); onChanged(); } catch (e) { toast((e as Error).message, "error"); }
+  };
+  const add = () => run(() => call("/api/pengajuan/settings/options", { method: "POST", json: { list, name: name.trim(), settings: {} } }), tr("Added")).then(() => setName(""));
+  const patchOpt = (o: FundOption, body: Record<string, unknown>) => run(() => call(`/api/pengajuan/settings/options/${o.id}`, { method: "PATCH", json: body }), tr("Saved"));
+  const flag = (o: FundOption, key: "receipt" | "outlet" | "deptPlafon", label: string) => (
+    <label className="flex items-center gap-1.5 text-xs text-neutral-600">
+      <input type="checkbox" disabled={!edit} checked={!!o.settings[key]} onChange={(e) => void patchOpt(o, { settings: { [key]: e.target.checked } })} />{label}</label>
+  );
+  return (
+    <div className="space-y-5">
+      {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin or admin changes these lists.")}</p>}
+      <div className="flex gap-5 overflow-x-auto border-b border-neutral-200" role="tablist">
+        {(Object.keys(data.lists) as OptionList[]).map((l) => (
+          <button key={l} type="button" role="tab" aria-selected={list === l} onClick={() => setList(l)}
+            className={cx("-mb-px flex-shrink-0 border-b-2 pb-2 text-sm font-medium", list === l ? "border-brand-700 text-brand-700" : "border-transparent text-neutral-500 hover:text-neutral-900")}>
+            {data.lists[l]} <span className="text-neutral-400">{data.options[l].length}</span></button>
+        ))}
+      </div>
+      <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+        {data.options[list].length === 0 && <li className="px-3 py-3 text-sm text-neutral-400">{tr("Nothing yet")}</li>}
+        {data.options[list].map((o) => (
+          <li key={o.id} className={cx("space-y-2 px-3 py-2.5", !o.isActive && "bg-neutral-50")}>
+            <div className="flex items-center gap-2">
+              <input defaultValue={o.name} disabled={!edit} maxLength={120} aria-label={tr("Name")}
+                onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== o.name) void patchOpt(o, { name: v }); }}
+                className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm", !o.isActive && "text-neutral-400 line-through")} />
+              <Button size="sm" variant="secondary" disabled={!edit} onClick={() => void patchOpt(o, { isActive: !o.isActive })}>{o.isActive ? tr("Switch off") : tr("Switch on")}</Button>
+            </div>
+            {list === "PURPOSE" && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {flag(o, "receipt", tr("Receipt required"))}{flag(o, "outlet", tr("Outlet required"))}{flag(o, "deptPlafon", tr("Department plafon"))}
+                <label className="flex items-center gap-1.5 text-xs text-neutral-600">{tr("Type")}
+                  <NativeSelect value={o.settings.type ?? ""} disabled={!edit} onChange={(e) => void patchOpt(o, { settings: { type: e.target.value || null } })} className="h-8 text-xs">
+                    <option value="">{tr("Regular")}</option><option value="ADVANCE">{tr("Cash in Advance")}</option><option value="SETTLEMENT">{tr("Settlement of a Cash in Advance")}</option>
+                  </NativeSelect></label>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+      {edit && (
+        <div className="flex gap-2">
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder={tr("New {0}", data.lists[list])}
+            onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) void add(); }} className={cx(inputClass, "h-10 min-w-0 flex-1 text-sm")} />
+          <Button disabled={!name.trim()} onClick={() => void add()}><Plus size={15} /> {tr("Add")}</Button>
+        </div>
+      )}
+      {list === "PURPOSE" && <p className="text-xs text-neutral-500">{tr("Each purpose has its own approval flow: set it in Approvals & Plafon. Without one, the default personal flow applies.")}</p>}
+
+      <section className="space-y-3 border-t border-neutral-100 pt-5">
+        <div>
+          <p className="text-sm font-semibold text-neutral-900">{tr("Department plafon")}</p>
+          <p className="text-xs text-neutral-500">{tr("The most a department may ask at once for a purpose marked Department plafon. Empty: no limit.")}</p>
+        </div>
+        {data.deptPlafon.map((d) => (
+          <PlafonRow key={d.department} label={d.department} amount={d.amount} edit={edit} removable
+            onSave={(a) => void run(() => call("/api/pengajuan/settings/dept-plafon", { method: "PUT", json: { department: d.department, amount: a } }), tr("Plafon saved"))} />
+        ))}
+        {edit && (
+          <div className="grid gap-2 rounded-md border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
+            <NativeSelect value={dept.department} onChange={(e) => setDept({ ...dept, department: e.target.value })} aria-label={tr("Department")} className={cx(inputClass, "h-10")}>
+              <option value="">{tr("Choose the department")}</option>
+              {data.departments.filter((d) => !data.deptPlafon.some((x) => x.department === d)).map((d) => <option key={d} value={d}>{d}</option>)}
+            </NativeSelect>
+            <input value={dept.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setDept({ ...dept, amount: typeRp(parseRp(e.target.value)) })}
+              className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} aria-label={tr("Plafon")} />
+            <Button disabled={!dept.department || parseRp(dept.amount) === null}
+              onClick={() => void run(() => call("/api/pengajuan/settings/dept-plafon", { method: "PUT", json: { department: dept.department, amount: parseRp(dept.amount) } }), tr("Plafon saved")).then(() => setDept({ department: "", amount: "" }))}>{tr("Add")}</Button>
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
 

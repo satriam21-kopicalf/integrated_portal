@@ -25,7 +25,7 @@ import { locale, tr } from "@/lib/i18n";
 import PengajuanView, { Balances, FileChip, StatusBadge } from "./PengajuanView";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Barista, type FileKind, type FormState, type Kind, type Line, type Pengajuan, type PgFile, CATEGORY_LABEL, DOC_LABEL, KINDS, KIND_HINT,
-  NEEDED_LABEL, OPEN, STATUS_LABEL, fmtRp, kindLabel, parseRp, typeRp, upload } from "./pengajuan";
+  NEEDED_LABEL, OPEN, STATUS_LABEL, fmtRp, kindLabel, parseRp, placeOf, requestLabel, typeRp, upload } from "./pengajuan";
 
 export default function PengajuanForm() {
   const toast = useToast();
@@ -34,6 +34,8 @@ export default function PengajuanForm() {
   const [error, setError] = useState<string | null>(null);
   const [branch, setBranch] = useState("");
   const [kind, setKind] = useState<Kind>("PETTY_CASH");
+  // Outlet (petty cash, budget of the outlet) or Personal (the person's own request, 2026-11-20)
+  const [scope, setScope] = useState<"OUTLET" | "PERSONAL">("OUTLET");
   const [draft, setDraft] = useState<Pengajuan | null>(null);
   const [sent, setSent] = useState<Pengajuan | null>(null);
   const [opening, setOpening] = useState(false);
@@ -61,7 +63,7 @@ export default function PengajuanForm() {
   const open = async (id?: string) => {
     setOpening(true);
     try {
-      setDraft(id ? await call<Pengajuan>(`/api/pengajuan/requests/${id}`) : await call<Pengajuan>("/api/pengajuan/requests", { method: "POST", json: { branchCode: branch, kind } }));
+      setDraft(id ? await call<Pengajuan>(`/api/pengajuan/requests/${id}`) : await call<Pengajuan>("/api/pengajuan/requests", { method: "POST", json: scope === "PERSONAL" ? { kind: "PERSONAL", branchCode: branch || null } : { branchCode: branch, kind } }));
       setSent(null);
       window.scrollTo({ top: 0 });
     } catch (e) {
@@ -72,6 +74,8 @@ export default function PengajuanForm() {
   };
 
   if (draft && data) {
+    if (draft.kind === "PERSONAL") return <PersonalEditor data={data} initial={draft} onClose={() => { setDraft(null); void load(); }}
+      onSent={(p) => { setDraft(null); setSent(p); void load(); window.scrollTo({ top: 0 }); }} />;
     return <Editor data={data} initial={draft} onClose={() => { setDraft(null); void load(); }}
       onSent={(p) => { setDraft(null); setSent(p); void load(); window.scrollTo({ top: 0 }); }} />;
   }
@@ -91,7 +95,7 @@ export default function PengajuanForm() {
               <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{tr("Fund request {0} sent", sent.number ?? "")}</p>
-                <p className="text-xs">{kindLabel(sent.kind)} · {sent.branchName} · {fmtRp(sent.requestedAmount ?? sent.totalOut)} · {tr("Management approves it, then Finance transfers")}</p>
+                <p className="text-xs">{requestLabel(sent)} · {placeOf(sent)} · {fmtRp(sent.requestedAmount ?? sent.totalOut)} · {tr("Management approves it, then Finance transfers")}</p>
                 <button type="button" onClick={() => setView(sent.id)} className="mt-1 text-xs font-semibold underline-offset-2 hover:underline">{tr("See the Progress")}</button>
               </div>
               <button type="button" onClick={() => setSent(null)} className="rounded-md p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
@@ -103,10 +107,16 @@ export default function PengajuanForm() {
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-neutral-900">{data.user.name}</p>
-                <p className="truncate text-xs text-neutral-500">@{data.user.username} · {tr("Petty cash and budget requests of the outlet")}</p>
+                <p className="truncate text-xs text-neutral-500">@{data.user.username} · {scope === "PERSONAL" ? [data.profile.jobTitle, data.profile.department].filter(Boolean).join(" · ") || tr("Your own request") : tr("Petty cash and budget requests of the outlet")}</p>
               </div>
             </div>
             <div className="space-y-4 p-4 sm:p-5">
+              <Segmented label={tr("Request for")} value={scope} onChange={setScope}
+                options={[{ value: "OUTLET", label: tr("Outlet") }, { value: "PERSONAL", label: tr("Personal / Department") }]} />
+              {scope === "PERSONAL" ? (<>
+                <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">{KIND_HINT.PERSONAL()}</p>
+                <Button className="w-full sm:w-auto" loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create: {0}", kindLabel("PERSONAL"))}</Button>
+              </>) : (<>
               <div>
                 <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Branch")}</p>
                 {data.branches.length === 0 ? (
@@ -135,6 +145,7 @@ export default function PengajuanForm() {
                 <p className="mt-2 text-xs text-neutral-500">{tr("Maintenance and new equipment, decoration or merchandise: use Form → Maintenance Request.")}</p>
               </div>
               <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create: {0}", kindLabel(kind))}</Button>
+              </>)}
             </div>
           </section>
 
@@ -147,7 +158,7 @@ export default function PengajuanForm() {
                     <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
                       <ClipboardList size={18} className={cx("flex-shrink-0", d.status === "REVISION" ? "text-red-600" : "text-amber-600")} />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-neutral-900">{d.number ?? tr("Draft")} · {kindLabel(d.kind)} · {d.branchName}</span>
+                        <span className="block truncate text-sm font-medium text-neutral-900">{d.number ?? tr("Draft")} · {requestLabel(d)} · {placeOf(d)}</span>
                         <span className="block text-xs text-neutral-500">{d.status === "REVISION" ? tr("Sent back for a revision: see the team's note") : tr("saved {0}", wibDateTime(d.updatedAt))}</span>
                       </span>
                       <StatusBadge s={d.status} />
@@ -180,7 +191,7 @@ export default function PengajuanForm() {
                         <span className="ml-auto text-[11px] tabular-nums text-neutral-400">{wibDateTime(r.submittedAt)}</span>
                       </span>
                       <span className="mt-1 flex items-baseline justify-between gap-2">
-                        <span className="truncate text-sm font-medium text-neutral-900">{kindLabel(r.kind)} · {r.branchName}{r.kind === "PETTY_CASH" && r.periodFrom && r.periodTo ? ` · ${wibDay(r.periodFrom)} – ${wibDay(r.periodTo)}` : ""}</span>
+                        <span className="truncate text-sm font-medium text-neutral-900">{requestLabel(r)} · {placeOf(r)}{r.kind === "PETTY_CASH" && r.periodFrom && r.periodTo ? ` · ${wibDay(r.periodFrom)} – ${wibDay(r.periodTo)}` : ""}</span>
                         <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-neutral-900">{fmtRp(r.requestedAmount ?? r.totalOut)}</span>
                       </span>
                     </button>
@@ -630,3 +641,226 @@ function Attachments({ files, docTypes, required, onAdd, onRemove }: { files: Pg
   );
 }
 
+
+
+/** Form → Fund Request → Personal (2026-11-20, migration 124): the person's own request (Cash in Advance, Reimbursement,
+ * Refund, department petty cash …). Email, name, department and job title come from the account; Keperluan Dana, Jenis
+ * Transaksi, Project and Jenis Rekening are the lists management sets; a Laporan Penyelesaian picks the Cash in Advance it
+ * settles. Saved as it is filled, like the outlet form. */
+type PLocal = { neededOn: string; purposeId: string; transactionTypeId: string; projectId: string; accountTypeId: string; purpose: string;
+  amount: string; branchCode: string; payeeBank: string; payeeAccount: string; payeeName: string; settlesId: string; note: string };
+const pLocal = (p: Pengajuan): PLocal => ({ neededOn: p.neededOn ?? "", purposeId: p.purposeId ? String(p.purposeId) : "",
+  transactionTypeId: p.transactionTypeId ? String(p.transactionTypeId) : "", projectId: p.projectId ? String(p.projectId) : "",
+  accountTypeId: p.accountTypeId ? String(p.accountTypeId) : "", purpose: p.purpose ?? "", amount: typeRp(p.requestedAmount),
+  branchCode: p.branchCode ?? "", payeeBank: p.payeeBank ?? "", payeeAccount: p.payeeAccount ?? "", payeeName: p.payeeName ?? "",
+  settlesId: p.settlesId ?? "", note: p.note ?? "" });
+const num = (v: string) => (v ? Number(v) : null);
+
+function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; initial: Pengajuan; onClose: () => void; onSent: (p: Pengajuan) => void }) {
+  const toast = useToast();
+  useFocusMode(true);
+  const [server, setServer] = useState<Pengajuan>(initial);
+  const [local, setLocal] = useState<PLocal>(() => pLocal(initial));
+  const [files, setFiles] = useState<PgFile[]>(initial.files ?? []);
+  const [saving, setSaving] = useState<"idle" | "pending" | "saving" | "error">("idle");
+  const [confirm, setConfirm] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+  const localRef = useRef(local);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const base = `/api/pengajuan/requests/${initial.id}`;
+
+  const flush = useCallback(async (): Promise<Pengajuan | null> => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    const l = localRef.current;
+    setSaving("saving");
+    try {
+      const p = await call<Pengajuan>(base, { method: "PATCH", json: {
+        neededOn: l.neededOn || null, purposeId: num(l.purposeId), transactionTypeId: num(l.transactionTypeId), projectId: num(l.projectId),
+        accountTypeId: num(l.accountTypeId), purpose: l.purpose, requestedAmount: parseRp(l.amount), branchCode: l.branchCode || null,
+        payeeBank: l.payeeBank, payeeAccount: l.payeeAccount, payeeName: l.payeeName, settlesId: l.settlesId || null, note: l.note } });
+      setServer(p);
+      setFiles(p.files ?? []);
+      setSaving("idle");
+      return p;
+    } catch (e) {
+      setSaving("error");
+      toast((e as Error).message, "error");
+      return null;
+    }
+  }, [base, toast]);
+  const update = (patch: Partial<PLocal>) => {
+    setLocal((cur) => { const next = { ...cur, ...patch }; localRef.current = next; return next; });
+    setSaving("pending");
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => void flush(), 900);
+  };
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const opts = data.options;
+  const purpose = opts.PURPOSE.find((o) => String(o.id) === local.purposeId);
+  const flags = useMemo(() => purpose?.settings ?? {}, [purpose]);
+  const settling = flags.type === "SETTLEMENT";
+  const amount = parseRp(local.amount);
+  const advance = data.advances.find((a) => a.id === local.settlesId);
+  const diff = settling && advance && amount !== null ? amount - (advance.paidAmount ?? 0) : null;
+  const todo = useMemo(() => {
+    const out: string[] = [];
+    if (!purpose) out.push(tr("Choose the purpose of the funds"));
+    if (!local.transactionTypeId) out.push(tr("Choose the transaction type"));
+    if (!local.neededOn) out.push(tr("Fill in the date the funds are needed"));
+    if (!local.purpose.trim()) out.push(tr("Write the description and details"));
+    if (!amount || amount <= 0) out.push(tr("Fill in the total requested"));
+    if (flags.outlet && !local.branchCode) out.push(tr("Choose the outlet"));
+    if (!local.accountTypeId) out.push(tr("Choose the account type"));
+    if (!local.payeeBank.trim() || !local.payeeAccount.trim() || !local.payeeName.trim()) out.push(tr("Fill in the bank account: bank, number and holder"));
+    if (settling && !local.settlesId) out.push(tr("Choose the Cash in Advance being settled"));
+    if (flags.receipt && !files.some((f) => f.kind === "OTHER")) out.push(tr("Attach the supporting documents (bill, receipt, photo)"));
+    return out;
+  }, [local, purpose, flags, settling, amount, files]);
+
+  const attach = async (file: File, docType: string) => {
+    try {
+      const q = new URLSearchParams({ kind: "OTHER", docType, name: file.name.slice(0, 150) });
+      setFiles((await upload<{ files: PgFile[] }>(`${base}/files?${q}`, file)).files);
+    } catch (e) { toast((e as Error).message, "error"); }
+  };
+  const removeFile = async (id: string) => {
+    try { setFiles((await call<{ files: PgFile[] }>(`${base}/files/${id}`, { method: "DELETE" })).files); } catch (e) { toast((e as Error).message, "error"); }
+  };
+  const submit = async () => {
+    setSending(true);
+    try {
+      if (!(await flush())) return;
+      onSent(await call<Pengajuan>(`${base}/submit`, { method: "POST" }));
+    } catch (e) { toast((e as Error).message, "error"); } finally { setSending(false); setConfirm(false); }
+  };
+  const discard = async () => { try { await call(base, { method: "DELETE" }); onClose(); } catch (e) { toast((e as Error).message, "error"); } };
+  const revision = server.status === "REVISION" ? [...(server.events ?? [])].reverse().find((e) => e.to === "REVISION") : undefined;
+  const select = (key: keyof PLocal, list: keyof FormState["options"], label: string, required = true) => (
+    <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{label}{required && <span className="text-red-600"> *</span>}</span>
+      <NativeSelect value={local[key]} onChange={(e) => update({ [key]: e.target.value } as Partial<PLocal>)} aria-label={label} className={cx(inputClass, "h-11 w-full")}>
+        <option value="">{required ? tr("Choose") : tr("None")}</option>
+        {opts[list].map((o) => <option key={o.id} value={String(o.id)}>{o.name}</option>)}
+      </NativeSelect></label>
+  );
+  const readOnly = (label: string, value: string | null | undefined) => (
+    <div><span className="mb-1 block text-xs font-medium text-neutral-600">{label}</span>
+      <p className="flex h-11 items-center truncate rounded-md bg-neutral-100 px-3 text-sm text-neutral-700">{value || "—"}</p></div>
+  );
+
+  return (
+    <div className="min-h-full bg-neutral-50 pb-40">
+      <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-3xl items-center gap-2">
+          <button type="button" onClick={() => void flush().then(onClose)} className="-ml-1.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-semibold text-neutral-900">{server.number ?? tr("New fund request")} · {purpose?.name ?? kindLabel("PERSONAL")}</p>
+            <p className="truncate text-xs text-neutral-500">{[server.department, server.jobTitle].filter(Boolean).join(" · ") || tr("Personal")}</p>
+          </div>
+          <span className="flex items-center gap-1 text-xs text-neutral-500" aria-live="polite">
+            {saving === "saving" ? <><Loader2 size={13} className="animate-spin" /> {tr("Saving")}</> : saving === "pending" ? tr("Not saved yet")
+              : saving === "error" ? <span className="text-red-600">{tr("Not saved")}</span> : <><CloudUpload size={13} /> {tr("Saved")}</>}
+          </span>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-6">
+        {revision && (
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} /> {tr("Sent back for a revision by {0}", revision.actor ?? "—")}</p>
+            <p className="mt-1 whitespace-pre-line">{revision.note}</p>
+          </div>
+        )}
+        <FormCard n={1} title={tr("Requester")} hint={tr("From your account; ask HR if something is wrong")}>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {readOnly(tr("Email"), server.email)}{readOnly(tr("Name"), server.requesterName ?? server.name)}
+            {readOnly(tr("Department"), server.department)}{readOnly(tr("Job Title"), server.jobTitle)}
+          </div>
+        </FormCard>
+
+        <FormCard n={2} title={tr("Request")} hint={tr("What the funds are for")}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {select("purposeId", "PURPOSE", tr("Purpose of Funds"))}
+            {select("transactionTypeId", "TRANSACTION", tr("Transaction Type"))}
+            <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Date Funds Needed")}<span className="text-red-600"> *</span></span>
+              <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-red-300")} /></label>
+            {select("projectId", "PROJECT", tr("Project"), false)}
+            <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Outlet")}{flags.outlet && <span className="text-red-600"> *</span>}</span>
+              <NativeSelect value={local.branchCode} onChange={(e) => update({ branchCode: e.target.value })} aria-label={tr("Outlet")} className={cx(inputClass, "h-11 w-full")}>
+                <option value="">{flags.outlet ? tr("Choose the outlet") : tr("No outlet")}</option>
+                {data.outlets.map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
+              </NativeSelect></label>
+          </div>
+          {settling && (
+            <div className="mt-3 rounded-md border border-sky-200 bg-sky-50/60 p-3">
+              <label className="block"><span className="mb-1 block text-xs font-medium text-sky-900">{tr("Cash in Advance being settled")}<span className="text-red-600"> *</span></span>
+                <NativeSelect value={local.settlesId} onChange={(e) => update({ settlesId: e.target.value })} aria-label={tr("Cash in Advance")} className={cx(inputClass, "h-11 w-full")}>
+                  <option value="">{data.advances.length ? tr("Choose") : tr("No open Cash in Advance")}</option>
+                  {[...data.advances, ...(server.settles && !data.advances.some((a) => a.id === server.settles!.id) ? [{ id: server.settles.id, number: server.settles.number, paidAmount: server.settles.paidAmount, paidOn: server.settles.paidOn, purpose: null }] : [])]
+                    .map((a) => <option key={a.id} value={a.id}>{`${a.number} · ${fmtRp(a.paidAmount)}`}</option>)}
+                </NativeSelect></label>
+              {diff !== null && (
+                <p className={cx("mt-2 text-sm font-medium", diff > 0 ? "text-amber-800" : diff < 0 ? "text-emerald-800" : "text-neutral-700")}>
+                  {diff > 0 ? tr("The company still pays {0}", fmtRp(diff)) : diff < 0 ? tr("{0} is returned to the company", fmtRp(-diff)) : tr("Settled exactly")}</p>
+              )}
+            </div>
+          )}
+        </FormCard>
+
+        <FormCard n={3} title={tr("Description and Details")} hint={tr("What it is for, the items or costs and why it is needed")}>
+          <textarea value={local.purpose} onChange={(e) => update({ purpose: e.target.value })} rows={6} maxLength={1000}
+            placeholder={tr("e.g. Train tickets Jakarta–Bandung for the outlet opening, 2 people, 24–25 Nov")}
+            className={cx(inputClass, "h-auto min-h-[9rem] py-2 text-sm", !local.purpose.trim() && "border-red-300")} />
+        </FormCard>
+
+        <FormCard n={4} title={settling ? tr("Total Spent") : tr("Total Requested")} hint={settling ? tr("What the Cash in Advance was spent on, in total") : undefined}>
+          <RpInput value={local.amount} onChange={(v) => update({ amount: v })} label={tr("Total Requested")} />
+        </FormCard>
+
+        <FormCard n={5} title={tr("Destination Account")} hint={tr("The transfer goes to this account")}>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="sm:col-span-2">{select("accountTypeId", "ACCOUNT", tr("Account Type"))}</div>
+            <Field label={tr("Bank")} value={local.payeeBank} onChange={(v) => update({ payeeBank: v })} max={60} placeholder="BCA" />
+            <Field label={tr("Account Number")} value={local.payeeAccount} onChange={(v) => update({ payeeAccount: v })} max={40} inputMode="numeric" />
+            <div className="sm:col-span-2"><Field label={tr("Account holder")} value={local.payeeName} onChange={(v) => update({ payeeName: v })} max={80} /></div>
+          </div>
+        </FormCard>
+
+        <FormCard n={6} title={tr("Supporting Documents")} hint={flags.receipt ? tr("Required: bill, receipt or photo") : tr("Bill, receipt, quotation or photo (optional)")}>
+          <Attachments files={files.filter((f) => f.kind === "OTHER")} docTypes={["NOTA", "KWITANSI", "INVOICE", "STRUK", "FOTO", "QUOTE", "OTHER"]} required={!!flags.receipt}
+            onAdd={attach} onRemove={removeFile} />
+          <textarea value={local.note} onChange={(e) => update({ note: e.target.value })} rows={2} maxLength={1000}
+            placeholder={tr("Note for management / Finance (optional)")} className={cx(inputClass, "mt-3 h-auto py-2 text-sm")} />
+        </FormCard>
+
+        {server.status === "DRAFT" && (
+          <button type="button" onClick={() => setDiscarding(true)} className="mx-auto flex items-center gap-1.5 text-xs font-medium text-red-600 hover:underline"><Trash2 size={13} /> {tr("Delete this draft")}</button>
+        )}
+      </div>
+
+      <div className="action-bar fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+        <div className="mx-auto max-w-3xl space-y-2">
+          {todo.length > 0 && (
+            <details className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <summary className="cursor-pointer font-semibold">{tr("{0} things to complete before sending", todo.length)}</summary>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">{todo.map((t) => <li key={t}>{t}</li>)}</ul>
+            </details>
+          )}
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1 text-xs text-neutral-500">
+              <p className="font-semibold tabular-nums text-neutral-900">{tr("Asked {0}", fmtRp(amount))}</p>
+              <p className="truncate">{purpose?.name ?? kindLabel("PERSONAL")}</p>
+            </div>
+            <Button disabled={todo.length > 0 || saving === "saving"} onClick={() => setConfirm(true)}><Send size={15} /> {server.status === "REVISION" ? tr("Send again") : tr("Send")}</Button>
+          </div>
+        </div>
+      </div>
+      <ConfirmDialog open={confirm} onClose={() => setConfirm(false)} onConfirm={() => void submit()} busy={sending}
+        title={tr("Send this fund request?")} confirmLabel={tr("Send")}
+        description={tr("{0}: {1} asked. After sending it cannot be changed unless the approver sends it back for a revision.", purpose?.name ?? kindLabel("PERSONAL"), fmtRp(amount))} />
+      <ConfirmDialog open={discarding} onClose={() => setDiscarding(false)} onConfirm={() => void discard()} danger
+        title={tr("Delete this draft?")} confirmLabel={tr("Delete")} description={tr("Every figure and attachment of this draft is removed.")} />
+    </div>
+  );
+}

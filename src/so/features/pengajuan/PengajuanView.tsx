@@ -122,17 +122,28 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
   const reused = files.filter((f) => f.usedIn.length > 0);
   const differs = p.openingExpected !== null && p.openingBalance !== null && p.openingBalance !== p.openingExpected;
   const petty = p.kind === "PETTY_CASH";
+  const personal = p.kind === "PERSONAL";
   return (
     <div className="space-y-5">
       <section className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
         <Steps p={p} />
         {petty && <Balances p={p} />}
         <div className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-          <Info k={tr("Kind")} v={kindLabel(p.kind)} />
-          {petty ? <Info k={tr("Period")} v={p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : "—"} />
+          <Info k={personal ? tr("Purpose of Funds") : tr("Kind")} v={personal ? p.purposeName ?? kindLabel(p.kind) : kindLabel(p.kind)} />
+          {personal && <>
+            <Info k={tr("Transaction Type")} v={p.transactionTypeName ?? "—"} />
+            <Info k={tr("Date Funds Needed")} v={p.neededOn ? wibDay(p.neededOn) : "—"} />
+            <Info k={tr("Department · Job Title")} v={[p.department, p.jobTitle].filter(Boolean).join(" · ") || "—"} />
+            <Info k={tr("Email")} v={p.email ?? "—"} />
+            <Info k={tr("Outlet")} v={p.branchName ?? "—"} />
+            <Info k={tr("Project")} v={p.projectName ?? "—"} />
+            {p.settles && <Info k={tr("Settles")} v={`${p.settles.number} · ${tr("paid {0}", fmtRp(p.settles.paidAmount))} · ${p.settles.outcome === "PAY"
+              ? tr("company pays {0}", fmtRp(p.settles.diff)) : p.settles.outcome === "RETURN" ? tr("returns {0}", fmtRp(-p.settles.diff)) : tr("even")}`} />}
+          </>}
+          {personal ? null : petty ? <Info k={tr("Period")} v={p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : "—"} />
             : NEEDED_LABEL[p.kind] ? <Info k={NEEDED_LABEL[p.kind]!()} v={p.neededOn ? wibDay(p.neededOn) : "—"} /> : null}
           <Info k={tr("Sent by")} v={`${p.requesterName ?? p.name}${p.requesterPhone ? ` · ${p.requesterPhone}` : ""} (@${p.username})`} />
-          <Info k={tr("Lines accepted")} v={`${fmtRp(acceptedTotal(lines))}${rejected.length ? ` · ${tr("{0} rejected", rejected.length)}` : ""}`} />
+          {!personal && <Info k={tr("Lines accepted")} v={`${fmtRp(acceptedTotal(lines))}${rejected.length ? ` · ${tr("{0} rejected", rejected.length)}` : ""}`} />}
           <Info k={petty ? tr("Top-up asked") : tr("Amount Asked")} v={`${fmtRp(p.requestedAmount ?? p.totalOut)}${petty && p.plafon !== null ? ` · ${tr("plafon {0}", fmtRp(p.plafon))}` : ""}`} />
           {p.approvedAmount !== null && <Info k={tr("Approved amount")} v={fmtRp(p.approvedAmount)} />}
           {p.paidAmount !== null && <Info k={tr("Paid")} v={`${fmtRp(p.paidAmount)}${p.paidOn ? ` · ${wibDay(p.paidOn)}` : ""}`} />}
@@ -165,11 +176,11 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
         <div className="rounded-md border border-neutral-200 p-3 text-sm">
           <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><Landmark size={12} /> {tr("Transfer to")}</p>
           <p className="font-semibold text-neutral-900">{p.payeeBank ?? "—"} · <span className="tabular-nums">{p.payeeAccount ?? "—"}</span></p>
-          <p className="text-neutral-600">a/n {p.payeeName ?? "—"}</p>
+          <p className="text-neutral-600">a/n {p.payeeName ?? "—"}{p.accountTypeName ? ` · ${p.accountTypeName}` : ""}</p>
         </div>
         {!petty && (
           <div className="rounded-md border border-neutral-200 p-3 text-sm">
-            <p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{tr("Purpose")}</p>
+            <p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{personal ? tr("Description and Details") : tr("Purpose")}</p>
             <p className="whitespace-pre-line text-neutral-800">{p.purpose ?? "—"}</p>
           </div>
         )}
