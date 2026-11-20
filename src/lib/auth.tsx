@@ -141,6 +141,10 @@ export function canAccess(user: Pick<AuthUser, 'role' | 'pages'>, pathname: stri
  * the portal. Display only — a hidden page still opens by its address (canAccess). */
 export function inMenu(user: Pick<AuthUser, 'role' | 'pages' | 'hiddenPages' | 'platforms'>, pathname: string): boolean {
   if (!canAccess(user, pathname)) return false;
+  const shown = (p: PageKey) => !user.hiddenPages?.includes(p) && (!user.platforms?.[p] || user.platforms[p].includes('portal'));
+  // Calf On The Road → Master (2026-11-20): no page of its own; in the menu while one of its tabs is opened and shown
+  if (pathname === '/cotr/master' || pathname.startsWith('/cotr/master/'))
+    return COTR_MASTER.some((k) => (user.role === 'superadmin' || pagesOf(user).includes(k)) && shown(k));
   const page = pageOf(pathname);
   if (!page || page === 'superadmin') return true;
   if (user.hiddenPages?.includes(page)) return false;
