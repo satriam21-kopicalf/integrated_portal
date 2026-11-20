@@ -16,8 +16,8 @@ export type CotrEmployee = { code: string; name: string; nickname: string | null
 /** the COTR pages each kind opens (on top of none of the role user's own pages) */
 export const COTR_KIND_PAGES: Record<Exclude<CotrKind, 'driver' | 'admin' | 'custom'>, string[]> = {
   storage: ['cotr.storage', 'guide'],
-  leader: ['cotr.storage', 'cotr.check-in', 'guide'],
-  management: ['cotr.check-in', 'cotr.storage', 'cotr.production', 'cotr.drivers', 'cotr.fleet', 'cotr.pools', 'cotr.menu', 'cotr.schedule',
+  leader: ['cotr.storage', 'cotr.check-in', 'cotr.requests', 'guide'],
+  management: ['cotr.check-in', 'cotr.storage', 'cotr.production', 'cotr.pools', 'cotr.areas', 'cotr.menu', 'cotr.fleet', 'cotr.drivers', 'cotr.schedule', 'cotr.requests',
     'cotr.incentive', 'cotr.management', 'guide'],
 };
 export const COTR_KINDS: { key: CotrKind; label: () => string; hint: () => string; prefix: string }[] = [

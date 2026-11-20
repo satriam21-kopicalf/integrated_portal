@@ -9,7 +9,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { Page, EmbeddedPage } from "@/components/kc/compat";
 import { Tabs } from "@/components/kc";
-import { canAccess, useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
+import type { PageKey } from "@/lib/pages";
 import { tr } from "@/lib/i18n";
 import DriversPage from "../drivers/page";
 import PoolsPage from "../pools/page";
@@ -19,25 +20,26 @@ import MenuPage from "../menu/page";
 import AreasTab from "@/cotr/Areas";
 import RequestKindsTab from "@/cotr/RequestKinds";
 
-type Tab = { key: string; href: string; label: () => string; icon: ReactNode; body: ReactNode };
+type Tab = { key: string; page: PageKey; label: () => string; icon: ReactNode; body: ReactNode };
 const TABS: Tab[] = [
   // in the order of the setup (2026-11-12): pools first, then their areas, the menus, the fleet, the people, their
   // schedule and the kinds of request
-  { key: "pools", href: "/cotr/pools", label: () => tr("Pool / HUB"), icon: <Building2 size={15} />, body: <PoolsPage /> },
-  { key: "areas", href: "/cotr/pools", label: () => tr("Area"), icon: <MapPinned size={15} />, body: <AreasTab /> },
-  { key: "menu", href: "/cotr/menu", label: () => tr("Menu"), icon: <Coffee size={15} />, body: <MenuPage /> },
-  { key: "fleet", href: "/cotr/fleet", label: () => tr("Fleet & Accessories"), icon: <Truck size={15} />, body: <FleetPage /> },
-  { key: "employees", href: "/cotr/drivers", label: () => tr("Employees"), icon: <Bike size={15} />, body: <DriversPage /> },
-  { key: "schedule", href: "/cotr/schedule", label: () => tr("Schedule"), icon: <CalendarDays size={15} />, body: <SchedulePage /> },
+  { key: "pools", page: "cotr.pools", label: () => tr("Pool / HUB"), icon: <Building2 size={15} />, body: <PoolsPage /> },
+  { key: "areas", page: "cotr.areas", label: () => tr("Area"), icon: <MapPinned size={15} />, body: <AreasTab /> },
+  { key: "menu", page: "cotr.menu", label: () => tr("Menu"), icon: <Coffee size={15} />, body: <MenuPage /> },
+  { key: "fleet", page: "cotr.fleet", label: () => tr("Fleet & Accessories"), icon: <Truck size={15} />, body: <FleetPage /> },
+  { key: "employees", page: "cotr.drivers", label: () => tr("Employees"), icon: <Bike size={15} />, body: <DriversPage /> },
+  { key: "schedule", page: "cotr.schedule", label: () => tr("Schedule"), icon: <CalendarDays size={15} />, body: <SchedulePage /> },
   // migration 083: the kinds of a driver's request, with the requests they are decided in
-  { key: "requests", href: "/cotr/check-in", label: () => tr("Requests"), icon: <Wallet size={15} />, body: <RequestKindsTab /> },
+  { key: "requests", page: "cotr.requests", label: () => tr("Requests"), icon: <Wallet size={15} />, body: <RequestKindsTab /> },
 ];
 
 function Master() {
   const { user } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const tabs = TABS.filter((t) => user && canAccess(user, t.href));
+  // every tab its own page (2026-11-20, migration 126): User Accounts → Calf On The Road → Master · <tab>
+  const tabs = TABS.filter((t) => user && (user.role === "superadmin" || (user.pages ?? []).includes(t.page)));
   const tab = tabs.find((t) => t.key === params.get("tab")) ?? tabs[0];
   return (
     <Page title={tr("Master")} subtitle={tr("The master data of Calf On The Road: employees, areas, pools, fleet & accessories, schedule, menus and request kinds")}>

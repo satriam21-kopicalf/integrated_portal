@@ -13,7 +13,7 @@ export type PageKey =
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs' | 'cc.goods-receipt' | 'cc.purchase-plan' | 'cc.info' | 'cc.schedule'
   | 'cc.stock-list' | 'cc.stock-transfer'
-  | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule' | 'cotr.incentive';
+  | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule' | 'cotr.incentive' | 'cotr.areas' | 'cotr.requests';
 
 /** How the page shows in the menu: 'header' = icon in the header (not the sidebar), 'hidden' = no menu entry for now
  * (opened by URL; user decision 2026-10-17), 'soon' = menu entry marked Soon, 'building' = skeleton screen only. */
@@ -78,12 +78,15 @@ export const PAGES: PageInfo[] = [
   // not a menu entry: salary, bank account and NIK of the drivers in Master Driver (backend migration 050)
   { key: 'cotr.management', href: '/cotr/management', get label() { return tr('COTR Management (salary & bank)'); }, get group() { return tr('Calf On The Road'); }, state: 'hidden' },
   { key: 'cotr.storage', href: '/cotr/storage', get label() { return tr('Storage & Assignment'); }, get group() { return tr('Calf On The Road'); } },
-  { key: 'cotr.drivers', href: '/cotr/drivers', get label() { return tr('Master Driver'); }, get group() { return tr('Calf On The Road'); } },
-  { key: 'cotr.fleet', href: '/cotr/fleet', get label() { return tr('Master Fleet'); }, get group() { return tr('Calf On The Road'); } },
-  { key: 'cotr.pools', href: '/cotr/pools', get label() { return tr('Master Pool / HUB'); }, get group() { return tr('Calf On The Road'); } },
-  { key: 'cotr.menu', href: '/cotr/menu', get label() { return tr('Master Menu'); }, get group() { return tr('Calf On The Road'); } },
   { key: 'cotr.production', href: '/cotr/production', get label() { return tr('Storage & Production'); }, get group() { return tr('Calf On The Road'); } },
-  { key: 'cotr.schedule', href: '/cotr/schedule', get label() { return tr('Master Schedule'); }, get group() { return tr('Calf On The Road'); } },
+  // Master (2026-11-20, backend migration 126): one page per tab of Calf On The Road → Master, named as the tab
+  { key: 'cotr.pools', href: '/cotr/pools', get label() { return tr('Master · Pool / HUB'); }, get group() { return tr('Calf On The Road'); } },
+  { key: 'cotr.areas', href: '/cotr/master/areas', get label() { return tr('Master · Area'); }, get group() { return tr('Calf On The Road'); } },
+  { key: 'cotr.menu', href: '/cotr/menu', get label() { return tr('Master · Menu'); }, get group() { return tr('Calf On The Road'); } },
+  { key: 'cotr.fleet', href: '/cotr/fleet', get label() { return tr('Master · Fleet & Accessories'); }, get group() { return tr('Calf On The Road'); } },
+  { key: 'cotr.drivers', href: '/cotr/drivers', get label() { return tr('Master · Employees'); }, get group() { return tr('Calf On The Road'); } },
+  { key: 'cotr.schedule', href: '/cotr/schedule', get label() { return tr('Master · Schedule'); }, get group() { return tr('Calf On The Road'); } },
+  { key: 'cotr.requests', href: '/cotr/master/requests', get label() { return tr('Master · Requests'); }, get group() { return tr('Calf On The Road'); } },
   { key: 'cotr.incentive', href: '/cotr/incentive', get label() { return tr('Incentive Calculator'); }, get group() { return tr('Calf On The Road'); } },
 ];
 
