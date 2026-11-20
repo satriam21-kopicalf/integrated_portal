@@ -53,7 +53,8 @@ export type FormState = { user: { id: string; username: string; name: string }; 
   neededOn: Partial<Record<Kind, string>>; receiptRequired: Kind[]; docTypes: Record<string, string>; baristas: Record<string, { id: string; name: string }[]>;
   profile: { email: string | null; name: string; department: string | null; jobTitle: string | null };
   options: Record<OptionList, FundOption[]>; outlets: { code: string; name: string }[]; advances: Advance[];
-  lastPayee: { bank: string | null; account: string | null; name: string | null; accountTypeId: number | null } };
+  lastPayee: { bank: string | null; account: string | null; name: string | null; accountTypeId: number | null };
+  kindLabels?: Partial<Record<Kind, string>> };
 
 export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), SUBMITTED: () => tr("Waiting for approval"), REVISION: () => tr("Revision"),
@@ -66,9 +67,12 @@ export const ACTION_LABEL: Record<Action, () => string> = {
 };
 export const KINDS: Kind[] = ["PETTY_CASH", "EMERGENCY", "MARKETING", "EVENT", "BILL"];
 export const KIND_LABEL: Record<Kind, () => string> = {
-  PETTY_CASH: () => tr("Weekly petty cash"), EMERGENCY: () => tr("Emergency purchase"), MARKETING: () => tr("Marketing & promo"),
-  EVENT: () => tr("Event & bazaar"), BILL: () => tr("Outlet bills"), PERSONAL: () => tr("Personal request"),
+  PETTY_CASH: () => tr("Weekly Petty Cash"), EMERGENCY: () => tr("Emergency Purchase"), MARKETING: () => tr("Marketing & Promo"),
+  EVENT: () => tr("Event & Bazaar"), BILL: () => tr("Outlet Bills"), PERSONAL: () => tr("Personal Request"),
 };
+/** the names management gave the outlet kinds (2026-11-20, backend migration 127), set from every answer that carries them */
+let kindNames: Partial<Record<Kind, string>> = {};
+export const setKindLabels = (m: Partial<Record<Kind, string>> | undefined) => { if (m) kindNames = m; };
 export const KIND_HINT: Record<Kind, () => string> = {
   PETTY_CASH: () => tr("Report of the week's petty cash and the top-up up to the plafon. No request, no transfer."),
   EMERGENCY: () => tr("Something urgent already bought with personal money (stock ran out, late supplier …)"),
@@ -78,7 +82,7 @@ export const KIND_HINT: Record<Kind, () => string> = {
   PERSONAL: () => tr("Cash in advance, reimbursement, refund, department petty cash …"),
 };
 export const NEEDED_LABEL: Partial<Record<Kind, () => string>> = { MARKETING: () => tr("Date needed"), EVENT: () => tr("Event date"), BILL: () => tr("Due date") };
-export const kindLabel = (k: Kind) => KIND_LABEL[k]?.() ?? k;
+export const kindLabel = (k: Kind) => kindNames[k] || (KIND_LABEL[k]?.() ?? k);
 /** the label of a request: a personal one shows its Keperluan Dana */
 export const requestLabel = (p: Pick<Pengajuan, "kind" | "purposeName">) => (p.kind === "PERSONAL" && p.purposeName) || kindLabel(p.kind);
 /** where a request belongs: the outlet, else the department of a personal one */

@@ -25,7 +25,7 @@ import { locale, tr } from "@/lib/i18n";
 import PengajuanView, { Balances, FileChip, StatusBadge } from "./PengajuanView";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Barista, type FileKind, type FormState, type Kind, type Line, type Pengajuan, type PgFile, CATEGORY_LABEL, DOC_LABEL, KINDS, KIND_HINT,
-  NEEDED_LABEL, OPEN, STATUS_LABEL, fmtRp, kindLabel, parseRp, placeOf, requestLabel, typeRp, upload } from "./pengajuan";
+  NEEDED_LABEL, OPEN, STATUS_LABEL, fmtRp, kindLabel, parseRp, placeOf, requestLabel, setKindLabels, typeRp, upload } from "./pengajuan";
 
 export default function PengajuanForm() {
   const toast = useToast();
@@ -52,6 +52,7 @@ export default function PengajuanForm() {
     setError(null);
     try {
       const d = await call<FormState>("/api/pengajuan/form");
+      setKindLabels(d.kindLabels);
       setData(d);
       setBranch((b) => b || (d.branches.length === 1 ? d.branches[0].code : ""));
     } catch (e) {

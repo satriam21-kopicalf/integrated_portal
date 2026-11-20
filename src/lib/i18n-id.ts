@@ -1,6 +1,16 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Weekly Petty Cash": "Petty Cash Mingguan",
+  "Emergency Purchase": "Pembelian Darurat",
+  "Marketing & Promo": "Marketing & Promo",
+  "Event & Bazaar": "Event & Bazar",
+  "Outlet Bills": "Tagihan Outlet",
+  "Personal Request": "Pengajuan Personal",
+  "Name of {0}": "Nama {0}",
+  "Shown on the form, the monitoring and the exports. Empty: the default name.": "Tampil di form, monitoring dan export. Kosong: nama default.",
+  "Default name: {0}": "Nama default: {0}",
+  "Name saved": "Nama disimpan",
   "Approval flows, the lists of the personal form and the plafon of Fund Request": "Alur approval, daftar form personal dan plafon Fund Request",
   "Approval flow · Outlet": "Alur approval · Outlet",
   "Approval flow · Personal": "Alur approval · Personal",

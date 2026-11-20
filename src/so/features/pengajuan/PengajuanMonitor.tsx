@@ -23,8 +23,8 @@ import ExcelIconButton from "@/components/ExcelIconButton";
 import { type XlsxCell, downloadXlsx } from "@/lib/xlsx";
 import PengajuanView, { FileChip, StatusBadge } from "./PengajuanView";
 import { SkeletonList } from "@/components/kc/Skeleton";
-import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTION_LABEL, CATEGORY_LABEL, KINDS, OPEN, STATUS_LABEL, acceptedTotal,
-  categoryLabel, fmtRp, kindLabel, parseRp, placeOf, requestLabel, typeRp, upload, type FundOption, type OptionList } from "./pengajuan";
+import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTION_LABEL, CATEGORY_LABEL, KINDS, KIND_LABEL, OPEN, STATUS_LABEL, acceptedTotal,
+  categoryLabel, fmtRp, kindLabel, parseRp, placeOf, requestLabel, setKindLabels, typeRp, upload, type FundOption, type OptionList } from "./pengajuan";
 
 type Result = { period: { from: string; to: string }; me: string; superadmin: boolean; data: Pengajuan[]; categories: Record<string, string> };
 type F = { period: Period; bgroup: string; branch: string; kind: Kind | ""; account: string; category: string; flag: "" | "reused" | "negative" | "opening" | "rejected" | "aboveRef" };
@@ -58,7 +58,9 @@ export default function PengajuanMonitor() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      setRes(await call<Result>(`/api/pengajuan/monitor?dateFrom=${f.period.from}&dateTo=${f.period.to}${f.bgroup ? `&group=${encodeURIComponent(f.bgroup)}` : ""}`));
+      const r = await call<Result & { kindLabels?: Partial<Record<Kind, string>> }>(`/api/pengajuan/monitor?dateFrom=${f.period.from}&dateTo=${f.period.to}${f.bgroup ? `&group=${encodeURIComponent(f.bgroup)}` : ""}`);
+      setKindLabels(r.kindLabels);
+      setRes(r);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -391,7 +393,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
 export type StepEdit = { label: string; type: "APPROVE" | "PAY"; userIds: string[] };
 export type Approver = { id: string; name: string; username: string; role: string; jobTitle: string | null };
 type Settings = { kinds: Record<Kind, string>; flows: Record<string, { label: string; type: "APPROVE" | "PAY"; users: { id: string; name: string }[] }[]>;
-  options: Record<OptionList, FundOption[]>; lists: Record<OptionList, string>; deptPlafon: { department: string; amount: number }[]; departments: string[]; canOptions: boolean;
+  options: Record<OptionList, FundOption[]>; lists: Record<OptionList, string>; kindLabels?: Partial<Record<Kind, string>>; deptPlafon: { department: string; amount: number }[]; departments: string[]; canOptions: boolean;
   users: Approver[]; plafon: { default: number | null; branches: { branchCode: string; amount: number }[] }; canEdit: boolean; canPlafon: boolean;
   /** every outlet, for the plafon per outlet */ outlets?: { code: string; name: string }[] };
 
@@ -414,8 +416,9 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   const [steps, setSteps] = useState<StepEdit[]>([]);
   const [busy, setBusy] = useState(false);
   const [plafon, setPlafon] = useState({ branch: "", amount: "" });
+  const [renaming, setRenaming] = useState(false);
   const load = useCallback(async () => {
-    try { setData(await call<Settings>("/api/pengajuan/settings")); } catch (e) { setError((e as Error).message); }
+    try { const d = await call<Settings>("/api/pengajuan/settings"); setKindLabels(d.kindLabels); setData(d); } catch (e) { setError((e as Error).message); }
   }, []);
   useEffect(() => { void load(); }, [load]);
   const kind = view.type === "flow" ? view.key : "";
@@ -510,7 +513,8 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
           <div className="min-w-0">
             {view.type === "flow" && (
               <section className="space-y-4">
-                <PanelHead title={current?.label ?? ""} text={personalFlow
+                <PanelHead title={current?.label ?? ""} action={!personalFlow && data.canOptions
+                  ? <Button variant="secondary" size="sm" onClick={() => setRenaming(true)}>{tr("Rename")}</Button> : undefined} text={personalFlow
                   ? tr("The approvers of this purpose of funds, in order, then the payment by Finance.")
                   : tr("Who approves this kind of outlet request, in order, then the payment by Finance.")} />
                 {personalFlow && kind !== "PERSONAL" && !ownFlow && (
@@ -560,10 +564,40 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
             )}
 
             {view.type === "dept" && <DeptPlafon data={data} onChanged={() => void load()} />}
+            {renaming && view.type === "flow" && !personalFlow && <RenameKind kind={view.key as Kind} onClose={() => setRenaming(false)}
+              onSaved={() => { setRenaming(false); void load(); onChanged(); }} />}
           </div>
         </div>
       )}
     </Drawer>
+  );
+}
+
+/** Rename an outlet kind (Weekly Petty Cash, Marketing & Promo …); empty = back to the default name. */
+function RenameKind({ kind, onClose, onSaved }: { kind: Kind; onClose: () => void; onSaved: () => void }) {
+  const toast = useToast();
+  const [name, setName] = useState(kindLabel(kind));
+  const [busy, setBusy] = useState(false);
+  const fallback = KIND_LABEL[kind]?.() ?? kind;
+  const submit = async () => {
+    setBusy(true);
+    try {
+      const r = await call<{ kindLabels: Partial<Record<Kind, string>> }>(`/api/pengajuan/settings/kind-label/${kind}`,
+        { method: "PUT", json: { label: name.trim() && name.trim() !== fallback ? name.trim() : null } });
+      setKindLabels(r.kindLabels);
+      toast(tr("Name saved"));
+      onSaved();
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  return (
+    <Dialog open onClose={onClose} size="sm" title={tr("Rename")} description={tr("Shown on the form, the monitoring and the exports. Empty: the default name.")}
+      footer={<div className="flex w-full justify-end gap-2">
+        <Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
+        <Button loading={busy} onClick={() => void submit()}>{tr("Save")}</Button></div>}>
+      <Field label={tr("Name of {0}", fallback)} hint={tr("Default name: {0}", fallback)}>
+        <input autoFocus value={name} maxLength={60} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
+          className={cx(inputClass, "h-10")} /></Field>
+    </Dialog>
   );
 }
 
