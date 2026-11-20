@@ -190,7 +190,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                 <li key={c.id}>
                   <button type="button" onClick={() => setOpen(c)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-neutral-50">
                     {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                    {c.source === "attendance" ? <span title={tr("From the attendance punch-in (HRMS)")} className={cx("h-12 w-12 flex-shrink-0 rounded-lg bg-neutral-100 object-cover grid place-items-center bg-sky-50 text-[9px] font-bold uppercase text-sky-700")}>HRMS</span> : <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-12 w-12 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />}
+                    <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-12 w-12 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-neutral-900">{c.name}</span>
                       <span className="block truncate text-xs text-neutral-500">{c.branchName} · {wibDateTime(c.visitedAt)}</span>
@@ -219,7 +219,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                     <tr key={c.id} onClick={() => setOpen(c)} className={cx(jRow, (c.outsideRadius || suspect(c)) && !c.review && "bg-red-50/50 hover:bg-red-50")}>
                       <td className={jTd}>
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                        {c.source === "attendance" ? <span title={tr("From the attendance punch-in (HRMS)")} className={cx("h-9 w-9 rounded-md bg-neutral-100 object-cover grid place-items-center bg-sky-50 text-[9px] font-bold uppercase text-sky-700")}>HRMS</span> : <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face Photo")} loading="lazy" className="h-9 w-9 rounded-md bg-neutral-100 object-cover" />}
+                        <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face Photo")} loading="lazy" className="h-9 w-9 rounded-md bg-neutral-100 object-cover" />
                       </td>
                       <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{c.branchCode}</span></td>
                       <td className={cx(jTd, "max-w-[14rem]")}><Person name={c.name} sub={`@${c.username}`} /></td>
@@ -297,7 +297,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
         <div className="grid gap-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
           <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
             {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-            {c.source === "attendance" ? <span title={tr("From the attendance punch-in (HRMS)")} className={cx("aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02] grid place-items-center bg-sky-50 text-[9px] font-bold uppercase text-sky-700")}>HRMS</span> : <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />}
+            <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
             <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-lg bg-black/55 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">
               <ScanFace size={12} />{tr("{0} face(s) detected", c.faces)}
             </span>
@@ -526,7 +526,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
                   <li key={c.id}>
                     <button type="button" onClick={() => onOpen(c)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-neutral-50">
                       {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                      {c.source === "attendance" ? <span title={tr("From the attendance punch-in (HRMS)")} className={cx("h-9 w-9 flex-shrink-0 rounded-full bg-neutral-100 object-cover grid place-items-center bg-sky-50 text-[9px] font-bold uppercase text-sky-700")}>HRMS</span> : <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-full bg-neutral-100 object-cover" />}
+                      <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-full bg-neutral-100 object-cover" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-neutral-900">{c.name} · {c.branchName}</span>
                         <span className="block text-xs text-neutral-500">{wibDateTime(c.visitedAt)}</span>
