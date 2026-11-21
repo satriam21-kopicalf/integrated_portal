@@ -428,8 +428,12 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   const kind = view.type === "flow" ? view.key : "";
   const ownFlow = !!(kind && data?.flows[kind]?.length);
   useEffect(() => {
-    if (data && kind) setSteps((ownFlow ? data.flows[kind] : data.flows[kind.startsWith("PERSONAL") ? "PERSONAL" : kind] ?? [])
-      .map((x) => ({ label: x.label, type: x.type, userIds: x.users.map((u) => u.id) })));
+    if (!data || !kind) return;
+    const saved = (ownFlow ? data.flows[kind] : data.flows[kind.startsWith("PERSONAL") ? "PERSONAL" : kind] ?? [])
+      .map((x) => ({ label: x.label, type: x.type, userIds: x.users.map((u) => u.id) }));
+    // a kind without a flow yet (Maintenance & Procurement, 2026-11-22) starts with one approval and the payment: the
+    // backend needs both, saving the payment alone was refused (422)
+    setSteps(saved.length ? saved : [{ label: tr("Approval {0}", 1), type: "APPROVE", userIds: [] }, { label: tr("Payment"), type: "PAY", userIds: [] }]);
   }, [data, kind, ownFlow]);
   const purposes = data?.options.PURPOSE ?? [];
   const nav: { title: string; hint: string; icon: React.ReactNode; items: { view: View; label: string; count?: number; muted?: boolean }[] }[] = [
