@@ -1,6 +1,8 @@
 // Bahasa Indonesia for the English UI texts: key = the English text passed to t() / tr() in the code.
 // Missing keys fall back to English. Keep placeholders ({0}, {name}) and leading / trailing spaces.
 export const ID: Record<string, string> = {
+  "Attendance app": "Aplikasi Attendance",
+  "Attendance PWA": "Attendance PWA",
   "The attendance punch-in counted as the first outlet visit of the day (within the outlet's radius)": "Absen masuk dihitung sebagai kunjungan outlet pertama hari itu (dalam radius outlet)",
   "Attendance · first visit": "Absensi · kunjungan pertama",
   "Sent through Form → PIC Check In at the outlet": "Dikirim lewat Form → PIC Check In di outlet",

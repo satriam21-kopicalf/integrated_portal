@@ -9,7 +9,7 @@
 import { AlertTriangle, BarChart3, CalendarDays, CalendarOff, Camera, CalendarPlus, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, Layers, MapPin, MessageSquareText, PenLine, Scale, Star,
   Store, UserRound, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, FilterToolbar, Period, dmy, wibDay } from "@/so/ui/Filters";
@@ -44,6 +44,18 @@ type Tab = "visits" | "analysis" | "attendance" | "comparison" | "schedule";
 
 const NO_F = (): F => ({ period: { from: wibDay(-29), to: wibDay(0) }, group: "", branch: "", user: "", only: "" });
 const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+
+const CLIENT: Record<NonNullable<Visit["client"]>, { label: () => string; tone: "cyan" | "violet" | "slate" }> = {
+  ATTENDANCE_APP: { label: () => tr("Attendance app"), tone: "cyan" },
+  ATTENDANCE_PWA: { label: () => tr("Attendance PWA"), tone: "violet" },
+  OPERATIONS: { label: () => tr("Operations"), tone: "slate" },
+};
+
+/** Where the visit was sent from; a visit sent before 21 Nov 2026 may not know it. */
+function ClientTag({ v }: { v: Visit }) {
+  const c = v.client ? CLIENT[v.client] : null;
+  return c ? <Badge tone={c.tone}>{c.label()}</Badge> : null;
+}
 
 function Bar({ c, className }: { c: { under: number; meet: number; exceed: number }; className?: string }) {
   const total = c.under + c.meet + c.exceed;
@@ -190,6 +202,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold text-neutral-900">{v.branchName}</span>
                         <span className="block truncate text-xs text-neutral-500">{v.branchGroup ? `${v.branchGroup} · ` : ""}{v.name} · {wibDateTime(v.submittedAt)}</span>
+                        <span className="mt-1 block"><ClientTag v={v} /></span>
                         <Bar c={v.counts} className="mt-1.5" />
                       </span>
                       <ChevronRight size={16} className="text-neutral-300" />
@@ -213,6 +226,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                           {audit ? <Scale size={11} /> : form === "product" ? <Layers size={11} /> : <Store size={11} />}</TypeIcon></td>
                         <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{v.branchCode}</span></td>
                         <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-neutral-900">{v.branchName}</span>
+                          <span className="mt-0.5 block"><ClientTag v={v} /></span>
                           {v.branchGroup && <span className="text-[11px] text-neutral-400">{tr("Group")} {v.branchGroup}</span>}</td>
                         <td className={cx(jTd, "max-w-[14rem]")}><Person name={v.name} sub={v.audit ? tr("Team: {0}", v.audit.members.map((m) => m.name).join(", ")) : `@${v.username}`} /></td>
                         <td className={cx(jTd, "w-52")}>
@@ -543,7 +557,8 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
               {v.audit ? <Fact icon={<UsersRound size={12} />} k={tr("SWAT team")} v={<>{v.audit.lead.name} <span className="text-[11px] font-normal text-neutral-400">({tr("lead")})</span>
                 <span className="block text-[11px] font-normal text-neutral-400">{v.audit.members.filter((m) => m.id !== v.audit!.lead.id).map((m) => m.name).join(", ") || "—"}</span></>} />
                 : <Fact icon={<UsersRound size={12} />} k="PIC" v={<>{v.name}<span className="block text-[11px] font-normal text-neutral-400">@{v.username}</span></>} />}
-              <Fact icon={<CalendarDays size={12} />} k={tr("Started → sent")} v={<>{wibDateTime(v.submittedAt)}<span className="block text-[11px] font-normal text-neutral-400">{tr("started {0}", wibDateTime(v.startedAt))}</span></>} />
+              <Fact icon={<CalendarDays size={12} />} k={tr("Started → sent")} v={<>{wibDateTime(v.submittedAt)}<span className="block text-[11px] font-normal text-neutral-400">{tr("started {0}", wibDateTime(v.startedAt))}</span>
+                {v.client && <span className="mt-1 block"><ClientTag v={v} /></span>}</>} />
               <Fact icon={<MapPin size={12} />} k={tr("Location when sent")} v={v.latitude !== null && v.longitude !== null ? (
                 <a href={mapsUrl(v.latitude, v.longitude)} target="_blank" rel="noreferrer" className={cx("hover:underline", v.outsideRadius ? "text-red-700" : "text-brand-700")}>
                   {v.distanceM !== null ? tr("{0} m from the outlet", v.distanceM) : `${v.latitude.toFixed(4)}, ${v.longitude.toFixed(4)}`} <ExternalLink size={10} className="inline" />

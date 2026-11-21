@@ -77,6 +77,8 @@ export type Visit = {
   outsideRadius: boolean; lowAccuracy: boolean;
   /** optional signature at sending (2026-10-21) */
   signature?: { name: string | null; signedAt: string | null } | null;
+  /** where it was sent from (backend migration 132): the attendance app (native / PWA) or Operations; null before */
+  client?: "ATTENDANCE_APP" | "ATTENDANCE_PWA" | "OPERATIONS" | null;
   answers?: Record<string, Answer>; photos?: VisitPhoto[]; photoCount?: number;
   /** draft only: the current Google Maps figure per item (kept in the answers at sending) */
   auto?: Record<string, AutoStars | null>;
