@@ -9,7 +9,7 @@
 // steps of every kind with their users (superadmin) and the petty cash plafon (superadmin, Finance).
 
 import { CardFooter, JSelect, Lozenge, NativeSelect, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet , Store, UserRound, ListChecks, ChevronRight } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet, Store, UserRound, ListChecks, ChevronRight, Wrench } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -22,8 +22,9 @@ import { tr } from "@/lib/i18n";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { type XlsxCell, downloadXlsx } from "@/lib/xlsx";
 import PengajuanView, { FileChip, StatusBadge } from "./PengajuanView";
+import RefundPanel from "./PengajuanRefund";
 import { SkeletonList } from "@/components/kc/Skeleton";
-import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTION_LABEL, CATEGORY_LABEL, KINDS, KIND_LABEL, OPEN, STATUS_LABEL, acceptedTotal,
+import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTION_LABEL, CATEGORY_LABEL, DE_KINDS, KINDS, KIND_LABEL, OPEN, STATUS_LABEL, acceptedTotal,
   categoryLabel, fmtRp, kindLabel, parseRp, placeOf, requestLabel, setKindLabels, typeRp, upload, type FundOption, type OptionList } from "./pengajuan";
 
 type Result = { period: { from: string; to: string }; me: string; superadmin: boolean; data: Pengajuan[]; categories: Record<string, string> };
@@ -52,7 +53,8 @@ export default function PengajuanMonitor() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
-  const [open, setOpen] = useState<string | null>(null);
+  // ?open=<id>: opened from a link of the other monitor (Fund Request ↔ Maintenance & Procurement)
+  const [open, setOpen] = useState<string | null>(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("open")));
   const [bgroups, setBgroups] = useState<GroupOpt[]>([]);
 
   const load = useCallback(async () => {
@@ -143,7 +145,7 @@ export default function PengajuanMonitor() {
       {/* Jira-like (2026-11-18): one card, the kinds as tabs, the status as quick filters, the requests as an issue table */}
       <WorkCard label={tr("Kind")} active={f.kind || "ALL"} onTab={(k) => setF({ ...f, kind: k === "ALL" ? "" : (k as Kind) })}
         tabs={[{ key: "ALL", label: tr("All kinds"), icon: <Wallet size={15} />, count: all.length },
-          ...[...KINDS, "PERSONAL" as Kind].map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
+          ...[...KINDS, "PERSONAL" as Kind, ...DE_KINDS].map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
         <Toolbar>
           <QuickChips label={tr("Status")} value={status} onChange={setStatus}
             items={TABS.map((t) => ({ key: t, label: t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My Turn") : t ? STATUS_LABEL[t as Status]() : tr("All"),
@@ -252,7 +254,7 @@ function MonitorFilters({ value, bgroups, branches, accounts, categories, flagLa
       </FilterSection>
       <FilterSection title={tr("Kind")}>
         <ChoiceGroup label="" value={v.kind} onChange={(kind) => setV({ ...v, kind: kind as F["kind"] })}
-          choices={[{ value: "", label: tr("All") }, ...[...KINDS, "PERSONAL" as Kind].map((k) => ({ value: k, label: kindLabel(k) }))]} />
+          choices={[{ value: "", label: tr("All") }, ...[...KINDS, "PERSONAL" as Kind, ...DE_KINDS].map((k) => ({ value: k, label: kindLabel(k) }))]} />
       </FilterSection>
       <FilterSection title={tr("Outlet")}><SearchChoice label="" anyLabel={tr("Every Outlet")} options={branches} value={v.branch} onChange={(branch) => setV({ ...v, branch })} placeholder={tr("Search outlet")} /></FilterSection>
       <FilterSection title={tr("Account")}><SearchChoice label="" anyLabel={tr("Every account")} options={accounts} value={v.account} onChange={(account) => setV({ ...v, account })} placeholder={tr("Search account")} /></FilterSection>
@@ -376,6 +378,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               </div>
             </section>
           )}
+          {p.can?.refund && <RefundPanel p={p} base={base} onChanged={changed} />}
           <PengajuanView p={p} onReview={p.can?.reviewLines ? review : undefined} />
           <section>
             <p className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><MessageSquareText size={15} className="text-neutral-500" /> {tr("Add a note to the history")}</p>
@@ -431,6 +434,8 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   const purposes = data?.options.PURPOSE ?? [];
   const nav: { title: string; hint: string; icon: React.ReactNode; items: { view: View; label: string; count?: number; muted?: boolean }[] }[] = [
     { title: tr("Approval Flow · Outlet"), hint: tr("Who approves each outlet request"), icon: <Store size={13} />, items: KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
+    { title: tr("Approval Flow · Maintenance & Procurement"), hint: tr("Who approves the funds of the team's requests"), icon: <Wrench size={13} />,
+      items: DE_KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
     { title: tr("Approval Flow · Personal"), hint: tr("One flow per purpose of funds"), icon: <UserRound size={13} />, items: [{ view: { type: "flow", key: "PERSONAL" }, label: tr("Default Flow") },
       ...purposes.filter((o) => o.isActive).map((o) => ({ view: { type: "flow", key: `PERSONAL:${o.id}` } as View, label: o.name, muted: !data?.flows[`PERSONAL:${o.id}`]?.length }))] },
     { title: tr("Personal Form Lists"), hint: tr("The choices on the personal form"), icon: <ListChecks size={13} />, items: (Object.keys(data?.lists ?? {}) as OptionList[]).map((l) => ({ view: { type: "list", list: l }, label: data!.lists[l], count: data!.options[l].length })) },

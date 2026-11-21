@@ -43,6 +43,8 @@ export type Request = {
   /** Review → Accept: the approval step waiting (set by management, 2026-10-29); null when the kind has no step */
   approval?: { position: number; total: number; label: string; users: string[]; userIds: string[]; steps: { label: string; users: string[] }[] } | null; shareUrl?: string | null;
   workLinks?: WorkLink[]; mode?: Mode | null; handover?: Handover | null; costItems?: CostItem[]; labor?: Labor[];
+  /** the request's money in Fund Request (Finance, 2026-11-21); null until the team asks for it */
+  fund?: Fund | null;
   target?: { at: string; note: string | null; by: string | null; setAt: string | null; changes: number } | null;
 };
 /** the photo link of a technician (no sign-in, 1 hour): OPEN, SENT (photos sent), EXPIRED or CLOSED (replaced / work stopped) */
@@ -135,6 +137,18 @@ export function fmtHours(h: number | null | undefined): string {
   if (h < 1) return tr("{0} min", Math.round(h * 60));
   return h < 48 ? tr("{0} h", h.toFixed(1)) : tr("{0} days", (h / 24).toFixed(1));
 }
+/** a Fund Request of the request (kind MAINTENANCE / PROCUREMENT) and the top-ups of its settlement at Done */
+export type Fund = {
+  id: string; number: string; status: "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "REJECTED"; statusLabel: string;
+  requestedAmount: number | null; approvedAmount: number | null; paidAmount: number | null; paidOn: string | null;
+  payeeBank: string | null; payeeAccount: string | null; payeeName: string | null; approvalStep: number; step: string | null;
+  refundAmount: number | null; refundedAt: string | null;
+  topUps: { id: string; number: string; status: string; statusLabel: string; amount: number | null }[];
+};
+/** the work of a request with a cost starts once Finance approved its fund (backend app/de_funds.py gate) */
+export const fundCleared = (r: { estCost: number | null; fund?: Fund | null }) =>
+  !(r.estCost ?? 0) || r.fund?.status === "APPROVED" || r.fund?.status === "PAID";
+
 export const fmtRp = (v: number | null | undefined) => (v === null || v === undefined ? "—" : `Rp ${Math.round(v).toLocaleString("id-ID")}`);
 export const fmtMb = (bytes: number) => `${(bytes / 1048576).toFixed(1)} MB`;
 

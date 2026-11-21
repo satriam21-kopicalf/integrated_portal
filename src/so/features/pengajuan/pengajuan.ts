@@ -5,7 +5,7 @@ import { serverMsg, tr } from "@/lib/i18n";
 import type { Tone } from "@/so/ui";
 
 export type Status = "DRAFT" | "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "REJECTED";
-export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL" | "PERSONAL";
+export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL" | "PERSONAL" | "MAINTENANCE" | "PROCUREMENT";
 /** the lists of the personal form, set by management (migration 124) */
 export type OptionList = "PURPOSE" | "TRANSACTION" | "PROJECT" | "ACCOUNT";
 export type PurposeSettings = { receipt?: boolean; outlet?: boolean; deptPlafon?: boolean; type?: "ADVANCE" | "SETTLEMENT" | null };
@@ -13,13 +13,13 @@ export type FundOption = { id: number; list: OptionList; name: string; isActive:
 export type Advance = { id: string; number: string; paidAmount: number | null; paidOn: string | null; purpose: string | null };
 export type Action = "APPROVE" | "REVISION" | "REJECTED" | "PAID";
 export type Step = { position: number; label: string; type: "APPROVE" | "PAY"; users: string[] };
-export type FileKind = "LINE" | "INCOME" | "OTHER" | "PAYMENT";
+export type FileKind = "LINE" | "INCOME" | "OTHER" | "PAYMENT" | "REFUND";
 export type Barista = { name: string; userId?: string };
 export type Line = { id?: number; spentOn: string | null; category: string; categoryLabel?: string; description: string; amount: number | null;
   review?: "OK" | "REJECTED"; reviewNote?: string | null; reviewedBy?: string | null; key?: string };
 export type PgFile = { id: string; lineId: number | null; kind: FileKind; docType: string; mime: string; bytes: number; fileName: string | null;
   uploadedAt: string; uploadedBy: string | null; /** numbers of other pengajuan with the same file */ usedIn: string[] };
-export type PgEvent = { at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "LINE" | "NOTE"; from: Status | null; to: Status | null;
+export type PgEvent = { at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "LINE" | "NOTE" | "REFUND"; from: Status | null; to: Status | null;
   note: string | null; details: Record<string, unknown> };
 export type Pengajuan = {
   id: string; number: string | null; status: Status; statusLabel: string; userId: string; username: string; name: string;
@@ -32,7 +32,7 @@ export type Pengajuan = {
   payeeBank: string | null; payeeAccount: string | null; payeeName: string | null; purpose: string | null; neededOn: string | null;
   plafon: number | null; requestedAmount: number | null;
   /** personal (2026-11-20): identity from the account, the lists set by management, the Cash in Advance it settles */
-  scope?: "OUTLET" | "PERSONAL"; email?: string | null; department?: string | null; jobTitle?: string | null;
+  scope?: "OUTLET" | "PERSONAL" | "DE"; email?: string | null; department?: string | null; jobTitle?: string | null;
   purposeId?: number | null; transactionTypeId?: number | null; projectId?: number | null; accountTypeId?: number | null; settlesId?: string | null;
   purposeName?: string | null; transactionTypeName?: string | null; projectName?: string | null; accountTypeName?: string | null;
   settles?: { id: string; number: string; paidAmount: number | null; paidOn: string | null; diff: number; outcome: "PAY" | "RETURN" | "EVEN" } | null;
@@ -44,9 +44,13 @@ export type Pengajuan = {
   purchaseDocs?: { from: string; to: string; total: number; docs: { number: string; date: string; supplier: string | null; total: number | null; status: string | null }[] } | null;
   /** monitoring list: the outlet's weekly Simple Purchase average and whether the amount is far above it */
   purchaseAvgWeek?: number | null; aboveRef?: boolean;
+  /** asked by the Maintenance & Procurement team for a Damaged Equipment request (2026-11-21, backend app/de_funds.py) */
+  deRequest?: { id: string; number: string | null; kind: "REPAIR" | "PROCUREMENT"; vendor: string | null; pic: string | null } | null;
+  /** the money a Maintenance & Procurement fund gives back (spent less than paid) and Finance's confirmation */
+  refundAmount?: number | null; refundedAt?: string | null; refundedBy?: string | null; refundedNote?: string | null;
   lines?: Line[]; files?: PgFile[]; events?: PgEvent[]; missing?: string[]; fileCount?: number; reusedFiles?: number;
   /** monitoring: what the signed-in checker may do now */
-  can?: { next: Action[]; reviewLines: boolean; payment: boolean; step: string | null; stepUsers: string[] };
+  can?: { next: Action[]; reviewLines: boolean; payment: boolean; refund?: boolean; step: string | null; stepUsers: string[] };
 };
 export type FormState = { user: { id: string; username: string; name: string }; branches: { code: string; name: string }[];
   requests: Pengajuan[]; categories: Record<string, string>; categoriesOf: Record<Kind, Record<string, string>>; kinds: Record<Kind, string>;
@@ -66,9 +70,12 @@ export const ACTION_LABEL: Record<Action, () => string> = {
   APPROVE: () => tr("Approve"), PAID: () => tr("Record payment"), REVISION: () => tr("Send back for revision"), REJECTED: () => tr("Reject"),
 };
 export const KINDS: Kind[] = ["PETTY_CASH", "EMERGENCY", "MARKETING", "EVENT", "BILL"];
+/** asked from a Maintenance & Procurement request by the team, never from the outlet form */
+export const DE_KINDS: Kind[] = ["MAINTENANCE", "PROCUREMENT"];
 export const KIND_LABEL: Record<Kind, () => string> = {
   PETTY_CASH: () => tr("Weekly Petty Cash"), EMERGENCY: () => tr("Emergency Purchase"), MARKETING: () => tr("Marketing & Promo"),
   EVENT: () => tr("Event & Bazaar"), BILL: () => tr("Outlet Bills"), PERSONAL: () => tr("Personal Request"),
+  MAINTENANCE: () => tr("Maintenance"), PROCUREMENT: () => tr("Procurement"),
 };
 /** the names management gave the outlet kinds (2026-11-20, backend migration 127), set from every answer that carries them */
 let kindNames: Partial<Record<Kind, string>> = {};
@@ -80,6 +87,8 @@ export const KIND_HINT: Record<Kind, () => string> = {
   EVENT: () => tr("Booth, equipment, stock and crew of an event or bazaar"),
   BILL: () => tr("Electricity, water, internet, waste, security, rent"),
   PERSONAL: () => tr("Cash in advance, reimbursement, refund, department petty cash …"),
+  MAINTENANCE: () => tr("The funds of a repair, asked by the Maintenance team from its request"),
+  PROCUREMENT: () => tr("The funds of a purchase, asked by the Procurement team from its request"),
 };
 export const NEEDED_LABEL: Partial<Record<Kind, () => string>> = { MARKETING: () => tr("Date needed"), EVENT: () => tr("Event date"), BILL: () => tr("Due date") };
 export const kindLabel = (k: Kind) => kindNames[k] || (KIND_LABEL[k]?.() ?? k);

@@ -22,11 +22,12 @@ import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 import RequestView, { Gallery, Invoices, RequestHero, StatusBadge, UrgencyBadge, summary } from "./RequestView";
 import DeOverview from "./DeOverview";
+import FundCard from "./DeFund";
 import { DocActions } from "./DeForm";
 import { type Approver, type StepEdit, StepRow } from "@/so/features/pengajuan/PengajuanMonitor";
 import { useAuth } from "@/lib/auth";
 import { SkeletonList } from "@/components/kc/Skeleton";
-import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, KIND_LABEL, OPEN, PORTAL_URLS,
+import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, KIND_LABEL, OPEN, PORTAL_URLS, fundCleared,
   STATUS_LABEL, STEPS_OF, URGENCIES, statusLabel, type Kind, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, useLive, workUrl } from "./de";
 
 type Result = { period: { from: string; to: string }; data: Request[]; categories: Category[]; technicians: Technician[] };
@@ -52,7 +53,8 @@ export default function DeMonitor() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
-  const [open, setOpen] = useState<string | null>(null);
+  // ?open=<id>: opened from a link of the other monitor (Fund Request ↔ Maintenance & Procurement)
+  const [open, setOpen] = useState<string | null>(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("open")));
   const [tab, setTab] = useState<PageTab>("requests");
   const [kind, setKind] = useState<Kind>("REPAIR");
   const [bgroups, setBgroups] = useState<GroupOpt[]>([]);
@@ -540,6 +542,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
   const blocker = (to: Status): string | null => {
     if (!r) return null;
     if (approval && !myStep && (to === "ACCEPTED" || to === "REJECTED")) return tr("Waiting for {0}: {1}", approval.label, approval.users.join(", ") || "Superadmin");
+    if ((to === "IN_PROGRESS" || to === "ORDERED") && !fundCleared(r)) return tr("Waiting for Finance: ask for the funds and wait for the approval (Finance Funds)");
     if (proc) {
       if (to === "ORDERED" && (!r.vendor?.trim() || r.estCost === null)) return tr("Fill in the shop / supplier and the estimated price first (Purchase and Cost & invoices)");
       if (to === "DONE" && !ho?.at) return tr("Waiting for the PIC to confirm the goods were received");
@@ -735,6 +738,11 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                     </label>
                   </div>
                 </div>
+              </FormCard>
+
+              <FormCard n={next()} title={tr("Finance Funds")} hint={tr("The money of this request goes through Fund Request: the work starts once Finance approved it")}
+                aside={(r.estCost ?? 0) > 0 && !fundCleared(r) ? <Badge tone="red">{tr("Required")}</Badge> : undefined}>
+                <FundCard r={r} busy={busy} act={act} />
               </FormCard>
 
               {(r.related ?? []).length > 0 && (

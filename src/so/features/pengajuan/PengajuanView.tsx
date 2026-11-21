@@ -130,6 +130,8 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
         {petty && <Balances p={p} />}
         <div className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
           <Info k={personal ? tr("Purpose of Funds") : tr("Kind")} v={personal ? p.purposeName ?? kindLabel(p.kind) : kindLabel(p.kind)} />
+          {p.deRequest && <DeSource de={p.deRequest} />}
+          {p.refundAmount != null && <Info k={tr("Money back")} v={`${fmtRp(p.refundAmount)} · ${p.refundedAt ? tr("received {0}", wibDay(p.refundedAt)) : tr("not received yet")}`} />}
           {personal && <>
             <Info k={tr("Transaction Type")} v={p.transactionTypeName ?? "—"} />
             <Info k={tr("Date Funds Needed")} v={p.neededOn ? wibDay(p.neededOn) : "—"} />
@@ -287,6 +289,18 @@ function eventText(e: NonNullable<Pengajuan["events"]>[number]): string {
   if (e.kind === "STATUS" && e.to) return `${tr("Status: {0}", STATUS_LABEL[e.to]())}${e.details.step ? ` (${String(e.details.step)})` : ""}`;
   if (e.kind === "LINE") return e.details.review === "REJECTED" ? tr("Line rejected: {0}", String(e.details.description ?? "")) : tr("Line accepted again: {0}", String(e.details.description ?? ""));
   return tr("Note");
+}
+
+/** The Maintenance & Procurement request the fund pays (opens it in its monitoring), its vendor and PIC. */
+function DeSource({ de }: { de: NonNullable<Pengajuan["deRequest"]> }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-xs font-medium text-neutral-400">{tr("Maintenance & Procurement request")}</p>
+      <p className="truncate font-medium text-neutral-800">
+        <a href={`/monitoring/damaged-equipment?open=${de.id}`} className="text-brand-700 hover:underline">{de.number ?? "—"}</a>
+        {de.vendor && ` · ${de.vendor}`}{de.pic && ` · PIC ${de.pic}`}</p>
+    </div>
+  );
 }
 
 function Info({ k, v }: { k: string; v: string }) {

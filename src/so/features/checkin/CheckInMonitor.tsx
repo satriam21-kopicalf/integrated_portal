@@ -53,6 +53,14 @@ const REFRESH_MS = 60_000;
  *  3. suspicious location: signs of a faked position (fake GPS, a jump, a mocked device) — medium (amber) or high (red). */
 const LOW_ACCURACY_M = 100;
 
+/** Where the check in comes from (2026-11-21): the attendance punch-in, counted as the PIC's first visit of the day at
+ * the outlet whose radius it falls in (an outlet only, never a hub inside it), or the visit form sent at the outlet. */
+function SourceTag({ c }: { c: CheckIn }) {
+  return c.source === "attendance"
+    ? <Badge tone="cyan" title={tr("The attendance punch-in counted as the first outlet visit of the day (within the outlet's radius)")}>{tr("Attendance · first visit")}</Badge>
+    : <Badge tone="slate" title={tr("Sent through Form → PIC Check In at the outlet")}>{tr("Visit form")}</Badge>;
+}
+
 function RiskTags({ c }: { c: CheckIn }) {
   return (
     <>
@@ -194,6 +202,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-neutral-900">{c.name}</span>
                       <span className="block truncate text-xs text-neutral-500">{c.branchName} · {wibDateTime(c.visitedAt)}</span>
+                      <span className="mt-1 block"><SourceTag c={c} /></span>
                       <span className="mt-1 block"><LocationTags c={c} /></span>
                       {kind === "surveyor" && <span className="mt-1 block"><ClockOutCell c={c} /></span>}
                     </span>
@@ -223,7 +232,8 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                       </td>
                       <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{c.branchCode}</span></td>
                       <td className={cx(jTd, "max-w-[14rem]")}><Person name={c.name} sub={`@${c.username}`} /></td>
-                      <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-neutral-800">{c.branchName}</span></td>
+                      <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-neutral-800">{c.branchName}</span>
+                        <span className="mt-0.5 block"><SourceTag c={c} /></span></td>
                       <td className={cx(jTd, "whitespace-nowrap tabular-nums text-neutral-700")}>{wibDateTime(c.visitedAt)}</td>
                       <td className={jTd}><LocationTags c={c} /></td>
                       {kind === "surveyor" && <td className={jTd}><ClockOutCell c={c} /></td>}
@@ -306,6 +316,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
             <div>
               <p className="text-base font-semibold text-neutral-900">{c.name}</p>
               <p className="text-xs text-neutral-500">@{c.username}</p>
+              <p className="mt-1.5"><SourceTag c={c} /></p>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <Fact icon={<Store size={14} />} label={tr("Outlet")} value={c.branchName} sub={c.branchCode} />
@@ -529,7 +540,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
                       <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-full bg-neutral-100 object-cover" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-neutral-900">{c.name} · {c.branchName}</span>
-                        <span className="block text-xs text-neutral-500">{wibDateTime(c.visitedAt)}</span>
+                        <span className="block text-xs text-neutral-500">{wibDateTime(c.visitedAt)} · {c.source === "attendance" ? tr("Attendance") : tr("Visit form")}</span>
                       </span>
                       <span className="text-xs font-semibold tabular-nums text-amber-700">{c.distanceM} m</span>
                     </button>
