@@ -4,7 +4,7 @@
 // Master Driver), Area (the selling / standby places, migration 080), Pool / HUB, Fleet & Accessories, Schedule, Menu and Pengajuan (the request kinds, migration 083).
 // The tab is kept in the address (?tab=) so a link opens it; a tab shows only with the page it belongs to.
 
-import { Bike, Building2, CalendarDays, Coffee, MapPinned, Truck, Wallet } from "lucide-react";
+import { Bike, BookOpen, Building2, CalendarDays, Coffee, MapPinned, Truck, Wallet } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { Page, EmbeddedPage } from "@/components/kc/compat";
@@ -19,6 +19,7 @@ import SchedulePage from "../schedule/page";
 import MenuPage from "../menu/page";
 import AreasTab from "@/cotr/Areas";
 import RequestKindsTab from "@/cotr/RequestKinds";
+import { ItemsTab, RecipesTab } from "@/cotr/Recipes";
 
 type Tab = { key: string; page: PageKey; label: () => string; icon: ReactNode; body: ReactNode };
 const TABS: Tab[] = [
@@ -32,6 +33,8 @@ const TABS: Tab[] = [
   { key: "schedule", page: "cotr.schedule", label: () => tr("Schedule"), icon: <CalendarDays size={15} />, body: <SchedulePage /> },
   // migration 083: the kinds of a driver's request, with the requests they are decided in
   { key: "requests", page: "cotr.requests", label: () => tr("Requests"), icon: <Wallet size={15} />, body: <RequestKindsTab /> },
+  // 2026-11-22: set up once, same as ESB (formerly the last group of Storage & Production)
+  { key: "recipes", page: "cotr.production", label: () => tr("Recipes & Items"), icon: <BookOpen size={15} />, body: <><RecipesTab /><ItemsTab /></> },
 ];
 
 function Master() {
@@ -42,7 +45,7 @@ function Master() {
   const tabs = TABS.filter((t) => user && (user.role === "superadmin" || (user.pages ?? []).includes(t.page)));
   const tab = tabs.find((t) => t.key === params.get("tab")) ?? tabs[0];
   return (
-    <Page title={tr("Master")} subtitle={tr("The master data of Calf On The Road: employees, areas, pools, fleet & accessories, schedule, menus and request kinds")}>
+    <Page title={tr("Master")} subtitle={tr("The master data of Calf On The Road: employees, areas, pools, fleet & accessories, schedule, menus, request kinds, recipe cards and items")}>
       <Tabs label={tr("Master")} value={tab?.key ?? ""} onChange={(k) => router.replace(`/cotr/master?tab=${k}`, { scroll: false })}
         tabs={tabs.map((t, i) => ({ key: t.key, label: <><span className="text-[11px] font-bold tabular-nums text-neutral-400">{i + 1}</span>{t.icon}{t.label()}</> }))} />
       <EmbeddedPage.Provider value>{tab?.body}</EmbeddedPage.Provider>

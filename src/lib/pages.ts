@@ -78,7 +78,7 @@ export const PAGES: PageInfo[] = [
   // not a menu entry: salary, bank account and NIK of the drivers in Master Driver (backend migration 050)
   { key: 'cotr.management', href: '/cotr/management', get label() { return tr('COTR Management (salary & bank)'); }, get group() { return tr('Calf On The Road'); }, state: 'hidden' },
   { key: 'cotr.storage', href: '/cotr/storage', get label() { return tr('Storage & Assignment'); }, get group() { return tr('Calf On The Road'); } },
-  { key: 'cotr.production', href: '/cotr/production', get label() { return tr('Storage & Production'); }, get group() { return tr('Calf On The Road'); } },
+  { key: 'cotr.production', href: '/cotr/production', get label() { return tr('Storage & Production (Pool Stock, HUB, Warehouse, Reports)'); }, get group() { return tr('Calf On The Road'); } },
   // Master (2026-11-20, backend migration 126): one page per tab of Calf On The Road → Master, named as the tab
   { key: 'cotr.pools', href: '/cotr/pools', get label() { return tr('Master · Pool / HUB'); }, get group() { return tr('Calf On The Road'); } },
   { key: 'cotr.areas', href: '/cotr/master/areas', get label() { return tr('Master · Area'); }, get group() { return tr('Calf On The Road'); } },
@@ -95,6 +95,8 @@ export function pageOf(pathname: string): PageKey | 'superadmin' | null {
   if (pathname === '/users' || pathname.startsWith('/users/') || pathname === '/activity' || pathname.startsWith('/activity/')) return 'superadmin';
   if (pathname === '/cost-control') return 'cc.cogs';
   if (pathname === '/cotr/dashboard') return 'cotr.check-in';  // the COTR dashboard: whoever monitors the drivers
+  // the pages of Storage & Production (2026-11-22, src/cotr/Production.tsx): one page key, four pages
+  if (['/cotr/hub', '/cotr/warehouse', '/cotr/reports'].includes(pathname)) return 'cotr.production';
   // Form → Procurement (2026-11-16) opens with the same page as Form → Maintenance
   if (pathname === '/forms/procurement' || pathname.startsWith('/forms/procurement/')) return 'form.damaged-equipment';
   // the longest matching href wins (/cost-control/monitor before /cost-control)

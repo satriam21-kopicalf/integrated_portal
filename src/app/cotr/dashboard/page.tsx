@@ -59,8 +59,8 @@ export default function CotrDashboardPage() {
     { n: todo.requests, label: tr("Driver requests to decide"), href: "/cotr/check-in", icon: <Wallet size={16} /> },
     { n: todo.areaRequests, label: tr("Area requests"), href: "/cotr/schedule", icon: <MapPinned size={16} /> },
     { n: todo.issues, label: tr("Open fleet issues"), href: "/cotr/fleet", icon: <Wrench size={16} /> },
-    { n: todo.unmatchedNames, label: tr("Workbook names without a driver"), href: "/cotr/production?tab=names", icon: <UserRoundSearch size={16} /> },
-    { n: todo.reconcileDiff, label: tr("Pool-days workbook ≠ ESB (7 days)"), href: "/cotr/production?tab=reconcile", icon: <GitCompareArrows size={16} /> },
+    { n: todo.unmatchedNames, label: tr("Workbook names without a driver"), href: "/cotr/reports?tab=names", icon: <UserRoundSearch size={16} /> },
+    { n: todo.reconcileDiff, label: tr("Pool-days workbook ≠ ESB (7 days)"), href: "/cotr/reports?tab=reconcile", icon: <GitCompareArrows size={16} /> },
   ] : [];
   const open = tasks.filter((t) => t.n > 0);
   return (
