@@ -28,7 +28,8 @@ import { downloadXlsx } from "@/lib/xlsx";
 
 type Lot = { batchNo: string | null; qty: number; expiresOn: string | null };
 type Cell = { opening?: number; transfer?: number; arrived?: number; sold?: number; waste?: number; cupping?: number; calculated?: number;
-  actual: number | null; balance?: number | null; expired: number; lots: Lot[] };
+  actual: number | null; balance?: number | null; expired: number; lots: Lot[];
+  /** stage 2 (2026-11-23): what ESB says when it differs from the arrival / transfer the pool confirmed */ esbDiff?: { arrived?: number; transfer?: number } };
 type Day = { day: string; source: "opening" | "app" | "sheet" | "esb" | "mixed"; arrivedSource?: "app" | "sheet" | "esb"; rows: Record<string, Cell> };
 export type Ledger = { pool: string; from: string; to: string; start: string | null; menus: { code: string; name: string }[]; days: Day[] };
 
@@ -142,7 +143,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
             <div className="mt-3"><Button disabled={!pool} onClick={() => setCount(addDays(to, -1))}><PackageOpen size={15} /> {tr("Set opening stock")}</Button></div>
           </EmptyState>
         ) : days.length === 0 ? <EmptyState icon={<Boxes />} title={tr("The stock starts the day after the opening count")} /> : (
-          <div className="space-y-4 p-4">
+          <div className="space-y-3 p-2 sm:space-y-4 sm:p-4">
             {short.length > 0 && <p className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700"><AlertTriangle size={14} className="mt-0.5" />
               {tr("More went out than there was: {0}. Check the entries or count the pool.", [...new Set(short)].map(menuName).join(", "))}</p>}
             {paged.rows.map((d) => {
@@ -164,21 +165,23 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                   </header>
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[640px] text-sm">
-                      <thead className="text-xs text-neutral-500"><tr><th className="px-3 py-2 text-left font-medium">&nbsp;</th>{data.menus.map((m) => <th key={m.code} className="px-3 py-2 text-right font-medium">{m.name}</th>)}</tr></thead>
+                      <thead className="text-xs text-neutral-500"><tr><th className="sticky left-0 z-[1] bg-white px-3 py-2 text-left font-medium">&nbsp;</th>{data.menus.map((m) => <th key={m.code} className="px-3 py-2 text-right font-medium">{m.name}</th>)}</tr></thead>
                       <tbody className="divide-y divide-neutral-100">
                         {FIGURES.map((f) => (
                           <tr key={f.key} className={f.strong ? "bg-neutral-50/60" : undefined}>
-                            <td className={cx("whitespace-nowrap px-3 py-1.5", f.strong ? "font-semibold text-neutral-900" : "text-neutral-600")}>{f.label()}</td>
+                            <td className={cx("sticky left-0 z-[1] whitespace-nowrap px-3 py-1.5 shadow-[inset_-1px_0_0_#e5e5e5]", f.strong ? "bg-neutral-50 font-semibold text-neutral-900" : "bg-white text-neutral-600")}>{f.label()}</td>
                             {data.menus.map((m) => {
                               const c = d.rows[m.code];
                               const v = c?.[f.key] as number | null | undefined;
                               const tone = f.key === "balance" && v ? (v < 0 ? "text-red-600" : "text-emerald-700") : f.key === "calculated" && (v ?? 0) < 0 ? "text-red-600" : "";
-                              return <td key={m.code} className={cx("px-3 py-1.5 text-right tabular-nums", f.strong && "font-semibold", tone)}>{v === null || v === undefined ? "—" : f.key === "balance" && v > 0 ? `+${v}` : v || (f.strong ? 0 : "—")}</td>;
+                              const esbV = (f.key === "arrived" || f.key === "transfer") ? c?.esbDiff?.[f.key] : undefined;
+                              return <td key={m.code} className={cx("px-3 py-1.5 text-right tabular-nums", f.strong && "font-semibold", tone)}>{v === null || v === undefined ? "—" : f.key === "balance" && v > 0 ? `+${v}` : v || (f.strong ? 0 : "—")}
+                                {esbV !== undefined && <span className="block text-[10px] font-semibold text-red-600" title={tr("ESB differs from what the pool confirmed: fix the ESB simple transfer")}>{tr("ESB {0}", esbV)}</span>}</td>;
                             })}
                           </tr>
                         ))}
                         <tr>
-                          <td className="whitespace-nowrap px-3 py-1.5 text-xs text-neutral-500">{tr("Batches")}</td>
+                          <td className="sticky left-0 z-[1] whitespace-nowrap bg-white px-3 py-1.5 text-xs text-neutral-500 shadow-[inset_-1px_0_0_#e5e5e5]">{tr("Batches")}</td>
                           {data.menus.map((m) => {
                             const ls = d.rows[m.code]?.lots ?? [];
                             const first = ls.map((l) => l.expiresOn).filter(Boolean).sort()[0] as string | undefined;

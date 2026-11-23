@@ -80,7 +80,7 @@ export function ProductionSection({ section }: { section: Section }) {
     <Page eyebrow="Calf On The Road" media={def.icon} title={def.title()} subtitle={def.subtitle()} actions={section === "reports" ? <MonthlyExport /> : undefined}>
       {/* Jira-like (2026-11-23): one card, the tabs of the page in its head, the tab's own toolbar and content inside */}
       <WorkCard label={def.title()} active={tab} onTab={(k) => setTab(k)} tabs={def.tabs.map((t) => ({ key: t.key, label: t.label(), icon: t.icon }))}>
-        <CardBody>{BODY[tab]()}</CardBody>
+        <CardBody className="max-sm:p-1.5">{BODY[tab]()}</CardBody>
       </WorkCard>
     </Page>
   );

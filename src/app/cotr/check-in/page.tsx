@@ -5,7 +5,7 @@
 // the end), the reloads to approve or reject for the pool, the cost requests to approve or reject, and where the
 // drivers are (the GPS of their phone while the shift is open, on a map).
 
-import { Building2, CalendarDays, Camera, Check, LogIn, LogOut, MapPin, MapPinCheck, PackagePlus, TriangleAlert, Wallet } from "lucide-react";
+import { Building2, CalendarDays, Camera, Check, Fingerprint, LogIn, LogOut, MapPin, MapPinCheck, PackagePlus, TriangleAlert, Wallet } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Drawer from "@/so/ui/Drawer";
@@ -16,6 +16,7 @@ import { DayField, dmyOf } from "@/components/kc/ScopeBar";
 import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
 import { type ActiveFilter, FilterToolbar } from "@/so/ui/Filters";
 import { CardBody, QuickChips, Toolbar, WorkCard } from "@/so/ui/Jira";
+import { CotrAttendance } from "@/cotr/Attendance";
 import { call } from "@/so/features/checkin/checkin";
 import { Monitor, Reload, Shift, Stock } from "@/cotr/types";
 import { COTR_PAGE, CotrPager, rupiah, useMaster } from "@/cotr/ui";
@@ -34,7 +35,7 @@ const inCard = (s: Shift, c: Card) => c === "all" || (c === "open" ? s.status ==
 
 export default function CotrCheckInPage() {
   const [day, setDay] = useState(todayWib());
-  const [tab, setTab] = useState<"shifts" | "location" | "reloads">("shifts");
+  const [tab, setTab] = useState<"shifts" | "attendance" | "location" | "reloads">("shifts");
   const [data, setData] = useState<Monitor | null>(null);
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(async () => {
@@ -105,11 +106,12 @@ export default function CotrCheckInPage() {
       {/* Jira-like (2026-11-23): one card, the shifts / location / reloads as tabs; the driver requests have their own menu */}
       <WorkCard label={tr("Section")} active={tab} onTab={setTab} tabs={[
         { key: "shifts", label: tr("Shifts"), icon: <LogIn size={15} />, count: view?.shifts.length ?? null },
+        { key: "attendance", label: tr("HRMS Attendance"), icon: <Fingerprint size={15} /> },
         { key: "location", label: tr("Location"), icon: <MapPin size={15} /> },
         { key: "reloads", label: tr("Reloads"), icon: <PackagePlus size={15} />, count: pendingReloads || null },
       ]}>
         <Toolbar>
-          {tab !== "reloads" && <QuickChips label={tr("Show")} value={show} onChange={setShow} items={[
+          {tab !== "reloads" && tab !== "attendance" && <QuickChips label={tr("Show")} value={show} onChange={setShow} items={[
             { key: "all" as Card, label: tr("All"), count: cardCount("all") }, { key: "open" as Card, label: tr("On the road"), dot: "bg-emerald-500", count: cardCount("open") },
             { key: "closed" as Card, label: tr("Shift ended"), dot: "bg-neutral-400", count: cardCount("closed") },
             { key: "attention" as Card, label: tr("Needs attention"), dot: "bg-red-500", count: cardCount("attention") }]} />}
@@ -118,7 +120,8 @@ export default function CotrCheckInPage() {
         </Toolbar>
         {error ? <div className="p-4"><ErrorState message={error} onRetry={() => void load()} /></div> : !view ? (
           <div className="p-4"><div className="skeleton h-64 rounded-xl" /></div>
-        ) : tab === "shifts" ? <CardBody><Shifts data={view} show={show} /></CardBody>
+        ) : tab === "attendance" ? <CotrAttendance day={day} pool={pool} q={q} />
+          : tab === "shifts" ? <CardBody><Shifts data={view} show={show} /></CardBody>
           : tab === "location" ? <CardBody><DriverMap day={day} live={day === todayWib()} drivers={pool || q.trim() || show !== "all" ? new Set(view.shifts.filter((s) => inCard(s, show)).map((s) => s.driver)) : undefined} /></CardBody>
           : <Reloads data={view} />}
       </WorkCard>
