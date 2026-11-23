@@ -7,9 +7,9 @@
 // needs a login and is not collected.
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ExternalLink, Eye, Megaphone, Tag, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ChevronDown, Eye, Megaphone, Tag, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button, ErrorState, cx } from "@/so/ui";
-import Drawer, { DrawerSection } from "@/components/kc/Drawer";
+import { PostPreview } from "@/social/shared";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { CardFooter, Lozenge, type LozengeTone, QuickChips, Toolbar, WorkCard, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod } from "@/so/ui/MonitorFilters";
@@ -166,7 +166,7 @@ export default function SocialMediaPage() {
           </span></CardFooter>}
       </WorkCard>
 
-      {open && <Preview platform={open.platform} id={open.id} onClose={() => setOpen(null)} />}
+      {open && <PostPreview platform={open.platform} id={open.id} onClose={() => setOpen(null)} />}
       <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
         <Panel title={tr("Most influential accounts")} description={tr("The accounts whose mentions reached the most views in the period")}>
           {!sum ? <div className="skeleton m-4 h-40 rounded-lg" /> : sum.authors.length === 0 ? <p className="px-4 py-6 text-sm text-neutral-500">{tr("No mention in this period")}</p> : (
@@ -244,73 +244,5 @@ function Schedule({ sum }: { sum: Summary | null }) {
         </div>
       )}
     </section>
-  );
-}
-
-type Full = Post & { keyword: string | null; shares: number | null; firstSeen: string | null; lastSeen: string | null; raw: Record<string, unknown> };
-const SOURCE: Record<string, () => string> = {
-  search: () => tr("Search result"), comment: () => tr("Comment"), account: () => tr("Official account"), "google-news": () => tr("News article"), hashtag: () => tr("Hashtag"),
-};
-
-/** One mention in full (2026-11-23): the player of the video (YouTube / TikTok embed), the whole text, every figure, the
- *  dates and the source; the original opens on the platform. */
-function Preview({ platform, id, onClose }: { platform: string; id: string; onClose: () => void }) {
-  const [d, setD] = useState<Full | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    let alive = true;
-    call<Full>(`/api/social/post?platform=${encodeURIComponent(platform)}&id=${encodeURIComponent(id)}`)
-      .then((r) => { if (alive) setD(r); }).catch((e: Error) => { if (alive) setError(e.message); });
-    return () => { alive = false; };
-  }, [platform, id]);
-  const pf = PLATFORM[platform];
-  const video = d && d.source !== "comment" ? (platform === "youtube" ? `https://www.youtube-nocookie.com/embed/${d.post_id}`
-    : platform === "tiktok" ? `https://www.tiktok.com/embed/v2/${d.post_id}` : null) : null;
-  const full = (iso: string | null) => (iso ? new Date(iso).toLocaleString(locale(), { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
-  const title = typeof d?.raw?.title === "string" ? (d.raw.title as string) : null;
-  const fig = (label: string, v: number | null | undefined) => (
-    <div className="rounded-md border border-neutral-200 px-3 py-2"><p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{label}</p>
-      <p className="mt-0.5 text-base font-semibold tabular-nums text-neutral-900">{n(v)}</p></div>
-  );
-  return (
-    <Drawer open onClose={onClose} size="lg" icon={pf ? logo(pf.file, 18) : <Megaphone size={18} />} title={d?.author ?? (pf?.label ?? platform)}
-      description={d ? `${pf?.label ?? platform} · ${(SOURCE[d.source] ?? (() => d.source))()} · ${full(d.createdAt ?? d.firstSeen)}` : undefined}
-      footer={d?.url ? <a href={d.url} target="_blank" rel="noreferrer"><Button><ExternalLink size={15} /> {tr("Open on {0}", pf?.label ?? platform)}</Button></a> : undefined}>
-      {error ? <ErrorState message={error} /> : !d ? <div className="skeleton h-64 rounded-lg" /> : (
-        <>
-          {video && (
-            <DrawerSection>
-              <div className={cx("mx-auto overflow-hidden rounded-lg bg-black", platform === "tiktok" ? "aspect-[9/16] max-w-[325px]" : "aspect-video w-full")}>
-                <iframe src={video} title={title ?? tr("Video")} className="h-full w-full" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" />
-              </div>
-            </DrawerSection>
-          )}
-          <DrawerSection title={tr("Mention")}>
-            <div className="flex flex-wrap items-center gap-2">
-              {d.sentiment && <Lozenge tone={FEEL[d.sentiment].tone}>{FEEL[d.sentiment].label()}</Lozenge>}
-              {(d.keywords?.length ? d.keywords : d.keyword ? [d.keyword] : []).map((k) => <Lozenge key={k} tone="blue">{k}</Lozenge>)}
-            </div>
-            <p className="whitespace-pre-line break-words text-sm leading-relaxed text-neutral-900">{d.text || "—"}</p>
-          </DrawerSection>
-          <DrawerSection title={tr("Figures")}>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {fig(tr("Views"), d.views)}{fig(tr("Likes"), d.likes)}{fig(tr("Comments"), d.comments)}{fig(tr("Shares"), d.shares)}
-            </div>
-            {platform === "youtube" && <p className="text-[11px] text-neutral-500">{tr("YouTube likes and comments need a login from our server: only the views are collected.")}</p>}
-          </DrawerSection>
-          <DrawerSection title={tr("Details")}>
-            <dl className="grid grid-cols-[9rem_1fr] gap-x-3 gap-y-2 text-sm">
-              <dt className="text-neutral-500">{tr("Platform")}</dt><dd className="flex items-center gap-1.5 text-neutral-900">{pf && logo(pf.file, 14)}{pf?.label ?? platform}</dd>
-              <dt className="text-neutral-500">{tr("Account / source")}</dt><dd className="break-words text-neutral-900">{d.author ?? "—"}</dd>
-              <dt className="text-neutral-500">{tr("Kind")}</dt><dd className="text-neutral-900">{(SOURCE[d.source] ?? (() => d.source))()}</dd>
-              <dt className="text-neutral-500">{tr("Published")}</dt><dd className="text-neutral-900">{full(d.createdAt)}</dd>
-              <dt className="text-neutral-500">{tr("First found")}</dt><dd className="text-neutral-900">{full(d.firstSeen)}</dd>
-              <dt className="text-neutral-500">{tr("Figures updated")}</dt><dd className="text-neutral-900">{full(d.lastSeen)}</dd>
-              {d.url && <><dt className="text-neutral-500">{tr("Link")}</dt><dd className="break-all"><a href={d.url} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">{d.url}</a></dd></>}
-            </dl>
-          </DrawerSection>
-        </>
-      )}
-    </Drawer>
   );
 }

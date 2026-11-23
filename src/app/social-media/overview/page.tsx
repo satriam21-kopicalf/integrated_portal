@@ -9,9 +9,10 @@
 // in the validated categorical order of the portal.
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarRange, ExternalLink, Heart, MapPin, Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { CalendarRange, ChevronRight, ExternalLink, Heart, MapPin, Minus, Tag, TrendingDown, TrendingUp } from "lucide-react";
 import { ErrorState, cx } from "@/so/ui";
-import { Page, Panel } from "@/components/kc/compat";
+import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
+import { DrillDrawer, PostPreview, type Drill } from "@/social/shared";
 import { FilterRow, MonitorFilterSheet, QuickPeriod } from "@/so/ui/MonitorFilters";
 import { type ActiveFilter, FilterToolbar, dmy, wibDay } from "@/so/ui/Filters";
 import { Lozenge } from "@/so/ui/Jira";
@@ -54,6 +55,9 @@ export default function SocialOverviewPage() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pick, setPick] = useState<string | null>(null);
+  const [drill, setDrill] = useState<Drill | null>(null);
+  const [preview, setPreview] = useState<{ platform: string; id: string } | null>(null);
+  const range = { dateFrom: period.from, dateTo: period.to };
   useEffect(() => {
     let alive = true;
     setData(null); setError(null);
@@ -104,10 +108,13 @@ export default function SocialOverviewPage() {
     };
   }, [data]);
 
+  const heatAxes = useMemo(() => data?.heat.length ? {
+    weeks: [...new Set(data.heat.map((h) => h.week))].sort(),
+    kws: keywords.map((k) => k.keyword).filter((k) => data.heat.some((h) => h.keyword === k)).slice(0, 9).reverse(),
+  } : null, [data, keywords]);
   const heat = useMemo((): ChartOption | null => {
-    if (!data?.heat.length) return null;
-    const weeks = [...new Set(data.heat.map((h) => h.week))].sort();
-    const kws = keywords.map((k) => k.keyword).filter((k) => data.heat.some((h) => h.keyword === k)).slice(0, 9).reverse();
+    if (!data?.heat.length || !heatAxes) return null;
+    const { weeks, kws } = heatAxes;
     const max = Math.max(...data.heat.map((h) => h.n), 1);
     return {
       ...base,
@@ -119,7 +126,7 @@ export default function SocialOverviewPage() {
       series: [{ type: "heatmap", data: data.heat.filter((h) => kws.includes(h.keyword)).map((h) => [weeks.indexOf(h.week), kws.indexOf(h.keyword), h.n]),
         label: { show: weeks.length <= 16, color: INK.primary, fontSize: 10 }, itemStyle: { borderColor: "#fff", borderWidth: 2 } }],
     };
-  }, [data, keywords]);
+  }, [data, heatAxes]);
 
   return (
     <Page title={tr("Social Media Overview")} subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${tr("the analysis of every mention of Kopi Calf")}`}
@@ -132,44 +139,38 @@ export default function SocialOverviewPage() {
           </FilterRow>
         </MonitorFilterSheet>
       )}
+      {drill && <DrillDrawer drill={drill} onClose={() => setDrill(null)} />}
+      {preview && <PostPreview platform={preview.platform} id={preview.id} onClose={() => setPreview(null)} />}
       {error ? <ErrorState message={error} /> : (
         <>
-          {/* sentiment against the period before */}
-          <div className="grid gap-3 md:grid-cols-3">
+          {/* sentiment against the period before, then a card per channel: the Stat cards of every page; a tap lists the mentions */}
+          <StatStrip label={tr("Sentiment")} columns={3} gridClassName="grid-cols-2 sm:grid-cols-3">
             {FEEL.map((f) => {
               const s = data?.sentiment[f.key];
               const ch = s && s.before ? (s.now - s.before) / s.before : null;
               const good = ch === null ? null : f.key === "negative" ? ch <= 0 : ch >= 0;
               return (
-                <div key={f.key} className="relative overflow-hidden rounded-lg border border-neutral-200 bg-white p-4">
-                  <p className={cx("flex items-center gap-2 text-sm font-semibold", f.ink)}><Heart size={16} />{tr("{0} mention", f.label())}</p>
-                  {s ? <>
-                    <p className="mt-2 flex items-baseline gap-2"><span className="text-3xl font-bold tabular-nums text-neutral-900">{compactNumber(s.now)}</span>
-                      {ch !== null && <span className={cx("inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-semibold", good ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700")}>
-                        {ch > 0 ? <TrendingUp size={12} /> : ch < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}{Math.abs(ch * 100).toFixed(1)}%</span>}</p>
-                    <p className="mt-1 text-xs text-neutral-500"><b className="text-neutral-700">{n(s.before)}</b> {tr("in the {0} days before", data!.days)}</p>
-                  </> : <div className="skeleton mt-2 h-12 rounded" />}
-                </div>
+                <Stat key={f.key} label={tr("{0} mention", f.label())} icon={<Heart size={13} className={f.ink} />} emphasis={f.key === "negative" && !!s?.now}
+                  value={s ? <span className="inline-flex items-baseline gap-2">{compactNumber(s.now)}
+                    {ch !== null && <span className={cx("inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-semibold", good ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700")}>
+                      {ch > 0 ? <TrendingUp size={12} /> : ch < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}{Math.abs(ch * 100).toFixed(1)}%</span>}</span> : <StatSkeleton />}
+                  onClick={s ? () => setDrill({ ...range, sentiment: f.key, title: tr("{0} mention", f.label()), icon: <Heart size={18} /> }) : undefined}>
+                  {s && <p>{tr("{0} in the {1} days before", n(s.before), data!.days)}</p>}
+                </Stat>
               );
             })}
-          </div>
-
-          {/* one card per channel */}
-          <div className="grid gap-3 md:grid-cols-3">
+          </StatStrip>
+          <StatStrip label={tr("Channels")} columns={3} gridClassName="grid-cols-2 sm:grid-cols-3">
             {CHANNEL.map((c) => {
               const x = data?.channels.find((r) => r.platform === c.key);
               return (
-                <div key={c.key} className="rounded-lg border border-neutral-200 bg-white">
-                  <div className="border-b border-neutral-100 px-4 py-3"><p className="text-sm font-semibold text-neutral-900">{c.label}</p><p className="text-xs italic text-neutral-500">{c.note()}</p></div>
-                  <div className="flex items-center gap-4 px-4 py-4">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-neutral-50">{logo(c.file, 30)}</span>
-                    {data ? <span><span className="text-3xl font-bold tabular-nums text-neutral-900">{n(x?.posts ?? 0)}</span> <span className="text-sm italic text-neutral-500">{tr("posts")}</span>
-                      {c.key !== "news" && <span className="block text-xs text-neutral-500">{tr("{0} views", compactNumber(x?.views ?? 0))}</span>}</span> : <div className="skeleton h-10 w-28 rounded" />}
-                  </div>
-                </div>
+                <Stat key={c.key} label={c.label} icon={logo(c.file, 13)} value={data ? tr("{0} posts", n(x?.posts ?? 0)) : <StatSkeleton />}
+                  onClick={data ? () => setDrill({ ...range, platform: c.key, posts: true, title: c.label, description: c.note(), icon: logo(c.file, 18) }) : undefined}>
+                  {data && <p>{c.key === "news" ? c.note() : `${tr("{0} views", compactNumber(x?.views ?? 0))} · ${c.note()}`}</p>}
+                </Stat>
               );
             })}
-          </div>
+          </StatStrip>
 
           {/* tone per keyword */}
           <Panel title={tr("Keyword tone analysis")} description={tr("The tone of the mentions per keyword: Kopi Calf, its brands and its founders")}>
@@ -188,18 +189,20 @@ export default function SocialOverviewPage() {
                   ))}
                 </ul>
                 <div className="flex flex-col items-center justify-center">
-                  <p className="text-base font-semibold text-neutral-900">{chosen.keyword}</p>
+                  <button type="button" onClick={() => setDrill({ ...range, keyword: chosen.keyword, title: chosen.keyword, description: tr("Every mention labelled {0}", chosen.keyword), icon: <Tag size={18} /> })}
+                    className="inline-flex items-center gap-1 text-base font-semibold text-neutral-900 hover:text-brand-700">{chosen.keyword}<ChevronRight size={16} /></button>
                   {donut && <EChart option={donut} height={240} ariaLabel={tr("Tone of {0}", chosen.keyword)} className="w-full" />}
                 </div>
                 <div className="space-y-2">
                   {FEEL.map((f) => {
                     const pct = chosen.total ? (chosen[f.key] / chosen.total) * 100 : 0;
                     return (
-                      <div key={f.key} className="rounded-lg border border-neutral-200 px-4 py-3">
+                      <button type="button" key={f.key} onClick={() => setDrill({ ...range, keyword: chosen.keyword, sentiment: f.key, title: `${chosen.keyword} · ${f.label()}`, icon: <Tag size={18} /> })}
+                        className="block w-full rounded-lg border border-neutral-200 px-4 py-3 text-left hover:border-brand-300 hover:bg-neutral-50">
                         <p className="flex justify-between text-sm"><span className="text-neutral-800">{f.label()}</span><span className={cx("font-semibold tabular-nums", f.ink)}>{pct.toFixed(1)}%</span></p>
                         <span className="mt-2 block h-2 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full" style={{ width: `${pct}%`, background: f.color }} /></span>
                         <p className="mt-1 text-xs text-neutral-500">{tr("{0} posts", n(chosen[f.key]))}</p>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -209,11 +212,13 @@ export default function SocialOverviewPage() {
 
           <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
             <Panel title={tr("Media tone analysis")} description={tr("The tone of the mentions per source; the favourability index is in the tooltip")}>
-              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : mediaTone ? <EChart option={mediaTone} height={300} ariaLabel={tr("Media tone analysis")} />
+              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : mediaTone ? <EChart option={mediaTone} height={300} ariaLabel={tr("Media tone analysis")}
+                  onClick={(e) => { const m = data.media[e.dataIndex]; if (m) setDrill({ ...range, who: m.source, posts: true, title: m.source, description: tr("Mentions from this source"), icon: <Tag size={18} /> }); }} />
                 : <p className="py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p>}</div>
             </Panel>
             <Panel title={tr("Word cloud analysis")} description={tr("The words used most in the mentions")}>
-              {!data ? <div className="skeleton m-4 h-[300px] rounded-lg" /> : <WordCloud words={data.words} />}
+              {!data ? <div className="skeleton m-4 h-[300px] rounded-lg" /> : <WordCloud words={data.words}
+                onPick={(w) => setDrill({ ...range, q: w, title: `"${w}"`, description: tr("Mentions that use this word"), icon: <Tag size={18} /> })} />}
             </Panel>
           </div>
 
@@ -222,18 +227,25 @@ export default function SocialOverviewPage() {
               {!data ? <div className="skeleton m-4 h-40 rounded-lg" /> : data.cities.length === 0 ? <p className="px-4 py-8 text-center text-sm text-neutral-500">—</p> : (
                 <div className="grid gap-2 p-4 sm:grid-cols-2">
                   {data.cities.map((c) => (
-                    <div key={c.city} className="rounded-lg border border-neutral-200 px-3 py-2.5">
+                    <button type="button" key={c.city} onClick={() => setDrill({ ...range, q: c.city, title: c.city, description: tr("Mentions that name this city"), icon: <MapPin size={18} /> })}
+                      className="rounded-lg border border-neutral-200 px-3 py-2.5 text-left hover:border-brand-300 hover:bg-neutral-50">
                       <p className="flex items-center justify-between gap-2 text-sm"><span className="flex items-center gap-1.5 text-neutral-900"><MapPin size={13} className="text-neutral-400" />{c.city}</span>
                         <span className="text-xs italic text-neutral-500">{c.share}%</span></p>
                       <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-700" style={{ width: `${c.share}%` }} /></span>
                       <p className="mt-1 text-xs text-neutral-500">{tr("{0} mentions", n(c.n))}</p>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
             </Panel>
             <Panel title={tr("Keyword visibility")} description={tr("Mentions per keyword and week")}>
-              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : heat ? <EChart option={heat} height={300} ariaLabel={tr("Keyword visibility")} />
+              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : heat ? <EChart option={heat} height={300} ariaLabel={tr("Keyword visibility")} onClick={(e) => {
+                  const v = e.data as [number, number, number] | undefined;
+                  if (!v || !heatAxes) return;
+                  const wk = heatAxes.weeks[v[0]], kw = heatAxes.kws[v[1]];
+                  const end = new Date(`${wk}T00:00:00`); end.setDate(end.getDate() + 6);
+                  setDrill({ dateFrom: wk, dateTo: end.toISOString().slice(0, 10), keyword: kw, title: kw, description: tr("week of {0}", dmy(wk)), icon: <Tag size={18} /> });
+                }} />
                 : <p className="py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p>}</div>
             </Panel>
           </div>
@@ -241,7 +253,7 @@ export default function SocialOverviewPage() {
           <Panel title={tr("Trending highlights")} description={tr("The newest mentions and their reach")}>
             {!data ? <div className="skeleton m-4 h-64 rounded-lg" /> : (
               <div className="grid gap-3 p-4 md:grid-cols-2 2xl:grid-cols-4">
-                {data.trending.map((t) => <Highlight key={`${t.platform}:${t.post_id}`} t={t} />)}
+                {data.trending.map((t) => <Highlight key={`${t.platform}:${t.post_id}`} t={t} onOpen={() => setPreview({ platform: t.platform, id: t.post_id })} />)}
               </div>
             )}
           </Panel>
@@ -252,7 +264,7 @@ export default function SocialOverviewPage() {
 }
 
 /** The words used most, sized by how often (the most used larger and darker), in the colours of the portal. */
-function WordCloud({ words }: { words: { word: string; n: number }[] }) {
+function WordCloud({ words, onPick }: { words: { word: string; n: number }[]; onPick: (w: string) => void }) {
   if (!words.length) return <p className="px-4 py-8 text-center text-sm text-neutral-500">—</p>;
   const max = words[0].n, min = words.at(-1)!.n;
   const shuffled = [...words].sort((a, b) => (a.word.charCodeAt(1) % 7) - (b.word.charCodeAt(1) % 7));
@@ -260,21 +272,22 @@ function WordCloud({ words }: { words: { word: string; n: number }[] }) {
     <div className="flex min-h-[300px] flex-wrap content-center items-center justify-center gap-x-3 gap-y-1 p-4">
       {shuffled.map((w) => {
         const k = max === min ? 0.5 : (w.n - min) / (max - min);
-        return <span key={w.word} title={tr("{0} mentions", w.n)} className="font-semibold leading-tight"
-          style={{ fontSize: `${12 + k * 22}px`, color: SERIES_COLORS[w.word.length % 5], opacity: 0.55 + k * 0.45 }}>{w.word}</span>;
+        return <button type="button" key={w.word} title={tr("{0} mentions", w.n)} onClick={() => onPick(w.word)} className="font-semibold leading-tight hover:underline"
+          style={{ fontSize: `${12 + k * 22}px`, color: SERIES_COLORS[w.word.length % 5], opacity: 0.55 + k * 0.45 }}>{w.word}</button>;
       })}
     </div>
   );
 }
 
-function Highlight({ t }: { t: Data["trending"][number] }) {
+function Highlight({ t, onOpen }: { t: Data["trending"][number]; onOpen: () => void }) {
   const at = t.createdAt ? new Date(t.createdAt) : null;
   const ch = CHANNEL.find((c) => c.key === t.platform);
   const site = t.site ? t.site.replace(/^https?:\/\//, "").replace(/\/$/, "") : ch?.label;
   const kws = t.keywords ?? [];
   const [title, ...rest] = (t.text ?? "").split("\n").filter(Boolean);
   return (
-    <article className="flex flex-col rounded-lg border border-neutral-200 bg-white">
+    <article role="button" tabIndex={0} onClick={onOpen} onKeyDown={(e) => { if (e.key === "Enter") onOpen(); }}
+      className="flex cursor-pointer flex-col rounded-lg border border-neutral-200 bg-white transition-colors hover:border-brand-300 hover:shadow-sm">
       <header className="flex items-start gap-3 border-b border-neutral-100 p-3">
         <span className="w-14 flex-shrink-0 overflow-hidden rounded-md border border-neutral-200 text-center">
           <span className="block bg-red-500 py-0.5 text-[11px] font-semibold text-white">{at ? at.toLocaleDateString(locale(), { month: "short", timeZone: "Asia/Jakarta" }) : "—"}</span>
@@ -286,7 +299,7 @@ function Highlight({ t }: { t: Data["trending"][number] }) {
           <span className="block truncate text-sm font-semibold text-neutral-900">{t.author ?? "—"}</span>
           {t.views !== null && <span className="block text-[11px] text-neutral-500">{tr("{0} views", compactNumber(t.views))}{t.likes !== null ? ` · ${tr("{0} likes", compactNumber(t.likes))}` : ""}</span>}
         </span>
-        {t.url && <a href={t.url} target="_blank" rel="noreferrer" aria-label={tr("Open")} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-brand-800 text-white hover:bg-brand-900"><ExternalLink size={14} /></a>}
+        {t.url && <a href={t.url} target="_blank" rel="noreferrer" aria-label={tr("Open")} onClick={(e) => e.stopPropagation()} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-brand-800 text-white hover:bg-brand-900"><ExternalLink size={14} /></a>}
       </header>
       <div className="flex flex-1 flex-col p-3">
         <p className="line-clamp-2 text-sm font-semibold text-neutral-900">{title ?? "—"}</p>

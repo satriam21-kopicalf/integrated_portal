@@ -11,7 +11,7 @@ import { ArrowLeft, X } from 'lucide-react';
 import { tr } from '@/lib/i18n';
 
 export default function Drawer({
-  open, title, description, onClose, children, footer, size = 'md', locked = false, icon, onBack, titleExtra, focusFirstField = true,
+  open, title, description, onClose, children, footer, size = 'md', locked = false, icon, onBack, titleExtra, focusFirstField = true, iconPlain = false,
 }: {
   open: boolean;
   title: string;
@@ -29,6 +29,8 @@ export default function Drawer({
   icon?: ReactNode;
   /** false: focus the panel itself on open (e.g. when the first field is a date picker) */
   focusFirstField?: boolean;
+  /** a coloured logo (a brand) on a quiet tile instead of the brand-blue one (2026-11-23, Social Media) */
+  iconPlain?: boolean;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   // latest handler / lock state without re-running the effects (callers pass a new onClose on every render;
@@ -76,7 +78,7 @@ export default function Drawer({
                 <ArrowLeft size={17} />
               </button>
             )}
-            {icon && <span className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-brand-700 text-white [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
+            {icon && <span className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md [&>svg]:h-4 [&>svg]:w-4 ${iconPlain ? 'border border-neutral-200 bg-neutral-50 text-neutral-600' : 'bg-brand-700 text-white'}`}>{icon}</span>}
             <div className="min-w-0">
               <h2 className="flex items-center gap-1.5 text-base font-semibold leading-snug text-neutral-900">{tc(title)}{titleExtra}</h2>
               {description && <p className="mt-0.5 text-xs text-neutral-500">{description}</p>}
