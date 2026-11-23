@@ -153,9 +153,17 @@ export const rating: { title: string; hint: string; icon: typeof Users; items: C
   ] },
 ];
 
+// 2026-11-23 (migration 135): its own module, apart from the Aggregator (Google Maps and the delivery apps) — what the
+// public says about Kopi Calf, collected by the portal without an API key
+export const social: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
+  { get title() { return tr('Social Media'); }, get hint() { return tr('Mentions of Kopi Calf on YouTube, TikTok and the news'); }, icon: MessageSquareText, items: [
+    { get name() { return tr('Social Media Analytics'); }, href: '/social-media', icon: MessageSquareText, get description() { return tr('Mentions, sentiment & reach'); } },
+  ] },
+];
+
 /** The pop-up menus of the sidebar (same design): which pages, header and footer. */
 export type PopupConfig = { label: string; idle: string; title: string; subtitle: string; footer: string; icon: typeof Users; review?: boolean };
-export const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'rating' | 'management', PopupConfig & { sections: typeof costControl }> = {
+export const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'rating' | 'social' | 'management', PopupConfig & { sections: typeof costControl }> = {
   forms: {
     get label() { return tr('Form'); }, get idle() { return tr('PIC check in, product, outlet, maintenance & fund requests'); }, get title() { return tr('Form'); },
     get subtitle() { return tr('Forms the outlets and PICs fill in'); }, get footer() { return tr('All times in WIB · filled in per outlet'); },
@@ -184,6 +192,12 @@ export const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'r
     get footer() { return tr('Google Maps live · delivery apps being built'); },
     icon: Star, sections: rating,
   },
+  social: {
+    get label() { return tr('Social Media'); }, get idle() { return tr('Mentions, sentiment & reach of Kopi Calf'); }, get title() { return tr('Social Media'); },
+    get subtitle() { return tr('What the public says about Kopi Calf on YouTube, TikTok and the news'); },
+    get footer() { return tr('Collected by the portal every 6 hours · without an API key'); },
+    icon: MessageSquareText, sections: social,
+  },
   management: {
     get label() { return tr('Management'); }, get idle() { return tr('User accounts & activity logs'); }, get title() { return tr('Management'); },
     get subtitle() { return tr('Accounts, roles & pages, and the activity of every user'); }, get footer() { return tr('Super admins only'); },
@@ -194,7 +208,7 @@ export const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'r
 export type PopupKey = keyof typeof POPUPS;
 export type MenuSection = { title: string; hint: string; icon: typeof Users; items: CcItem[] };
 /** the order of the modules in the sidebar */
-export const POPUP_ORDER: PopupKey[] = ['forms', 'costControl', 'monitoring', 'cotr', 'rating', 'management'];
+export const POPUP_ORDER: PopupKey[] = ['forms', 'costControl', 'monitoring', 'cotr', 'rating', 'social', 'management'];
 
 /** Is the page at `href` the one open (or one of its sub-pages)? */
 export const under = (pathname: string, href: string) => pathname === href || (href !== '/cost-control' && pathname.startsWith(`${href}/`));
