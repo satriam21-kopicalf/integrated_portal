@@ -340,7 +340,7 @@ function MovesDrawer({ pool: p0, day: first, kind: k0, ledger, pools, onClose, o
     <Drawer open onClose={onClose} icon={<Truck size={18} />} title={tr("Arrived / Transfer")}
       description={kind === "transfer" ? tr("Cups moved from one pool to another: out at the first, in at the second") : tr("Cups that reached a pool; replaces what was entered for that pool and day")}
       footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!ready} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>}>
-      <div className="space-y-4">
+      <DrawerSection title={tr("When & where")}>
         <Segments value={kind} onChange={(v) => { setKind(v as typeof kind); setPeer(""); }}
           choices={[{ value: "arrived", label: tr("Product Arrived") }, { value: "transfer", label: tr("Transfer between pools") }]} />
         <div className="grid grid-cols-2 gap-3">
@@ -356,10 +356,16 @@ function MovesDrawer({ pool: p0, day: first, kind: k0, ledger, pools, onClose, o
           <p className="flex items-center gap-2 rounded-md border-l-[3px] border-l-blue-600 bg-blue-50 px-3 py-2 text-xs text-blue-900">
             <Truck size={14} /><b>{name(pool)}</b> → <b>{name(peer)}</b> · {tr("{0} cups", total)}</p>
         )}
-        {ledger.menus.map((m) => (
-          <Field key={m.code} label={m.name}><Input inputMode="numeric" value={lines[m.code] ?? ""} placeholder="0"
-            onChange={(e) => setLines((x) => ({ ...x, [m.code]: e.target.value.replace(/\D/g, "") }))} className="text-right tabular-nums" /></Field>
-        ))}
+      </DrawerSection>
+      <DrawerSection title={tr("Cups per menu")} description={total ? tr("{0} cups", total) : undefined}>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+          {ledger.menus.map((m) => (
+            <Field key={m.code} label={m.name}><Input inputMode="numeric" value={lines[m.code] ?? ""} placeholder="0"
+              onChange={(e) => setLines((x) => ({ ...x, [m.code]: e.target.value.replace(/\D/g, "") }))} className="text-right tabular-nums" /></Field>
+          ))}
+        </div>
+      </DrawerSection>
+      <DrawerSection>
         <Field label={tr("Note")}><Input value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} /></Field>
         {saved && saved.length > 0 && (
           <section>
@@ -376,7 +382,7 @@ function MovesDrawer({ pool: p0, day: first, kind: k0, ledger, pools, onClose, o
             </ul>
           </section>
         )}
-      </div>
+      </DrawerSection>
     </Drawer>
   );
 }

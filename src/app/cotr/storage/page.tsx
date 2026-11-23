@@ -195,7 +195,7 @@ export default function CotrStoragePage() {
             ...(Object.keys(FILTER_STATUS) as Exclude<DriverFilter, "">[]).map((k) => ({ key: k, label: FILTER_STATUS[k](), dot: DOT[k], count: data ? count(k) : null }))]} />}
           <FilterToolbar search={tab === "assign" ? q : undefined} onSearch={tab === "assign" ? setQ : undefined} placeholder={tr("Search driver or fleet")}
             filters={filters} onOpen={() => setSheet(true)} onClear={() => { setPool(""); setDay(todayWib()); }}
-            extra={tab === "assign" && rows.length > 0 ? <div className="flex flex-wrap gap-2 sm:ml-auto">
+            extra={tab === "assign" && rows.length > 0 ? <div className="grid w-full grid-cols-2 gap-2 sm:ml-auto sm:flex sm:w-auto [&>button]:h-auto [&>button]:min-h-9 [&>button]:min-w-0 [&>button]:py-1.5 [&>button]:text-left [&>button]:leading-tight">
               <Button size="sm" variant="secondary" onClick={fromAdvice}><Sparkles size={14} /> {tr("Use the advice for all")}</Button>
               <Button size="sm" variant="secondary" onClick={fromYesterday}><ClipboardCopy size={14} /> {tr("Fill from the last day")}</Button>
             </div> : undefined} />
@@ -271,7 +271,7 @@ export default function CotrStoragePage() {
     const lozenge = r.shift ? <Lozenge tone="green">{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Lozenge>
       : st ? <Lozenge tone={st.tone}>{st.label()}</Lozenge> : <Lozenge tone="grey">{tr("Not assigned")}</Lozenge>;
     return (
-      <li key={r.code} className={cx("rounded-lg border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-neutral-200")}>
+      <li key={r.code} className={cx("min-w-0 overflow-hidden rounded-lg border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-neutral-200")}>
         <div role="button" tabIndex={0} aria-expanded={open} onClick={() => setOpened((o) => ({ ...o, [r.code]: !open }))}
           onKeyDown={(e) => { if (e.key === "Enter") setOpened((o) => ({ ...o, [r.code]: !open })); }}
           className={cx("flex cursor-pointer items-center gap-3 px-4 py-3 sm:cursor-default", open ? "border-b border-neutral-100" : "border-b border-neutral-100 max-sm:border-b-0")}>
@@ -289,7 +289,7 @@ export default function CotrStoragePage() {
               {can && <button type="button" onClick={() => applyAdvice(r)} className="ml-auto rounded-md bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-violet-700">{tr("Use advice")}</button>}
             </div>
           )}
-          <table className={jTable}>
+          <table className={cx(jTable, "table-fixed")}>
             <thead><tr className={jHeadRow}><th className={jTh}>{tr("Product")}</th><th className={cx(jTh, "w-20 text-center")}>{tr("Sell")}</th>
               <th className={cx(jTh, "w-20 text-center")}>{tr("Cupping")}</th><th className={cx(jTh, "w-16 text-right")}>{tr("Carried")}</th></tr></thead>
             <tbody>

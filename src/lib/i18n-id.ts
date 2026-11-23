@@ -7268,4 +7268,6 @@ export const ID: Record<string, string> = {
   "out to {0}": "keluar ke {0}",
   "in from {0}": "masuk dari {0}",
   "transfer": "transfer",
+  "When & where": "Kapan & ke mana",
+  "Cups per menu": "Jumlah cup per menu",
 };

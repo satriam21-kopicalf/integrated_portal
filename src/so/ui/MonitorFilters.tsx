@@ -109,10 +109,13 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const box = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
     document.addEventListener('mousedown', close);
+    // the opened list comes into sight inside the drawer
+    requestAnimationFrame(() => list.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     return () => document.removeEventListener('mousedown', close);
   }, [open]);
   const current = options.find((o) => o.value === value);
@@ -125,7 +128,7 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
   const item = (v: string, label: string, hint?: string) => (
     <li key={v || 'all'}>
       <button type="button" onClick={() => pick(v)} aria-pressed={v === value}
-        className={cx('flex w-full items-center gap-2.5 border-l-2 px-3 py-2 text-left text-sm', v === value ? 'border-brand-700 bg-brand-50 font-medium text-brand-800' : 'border-transparent text-neutral-700 hover:bg-neutral-100')}>
+        className={cx('flex min-h-[44px] w-full items-center gap-2.5 border-l-2 px-3 py-2 text-left text-sm sm:min-h-0', v === value ? 'border-brand-700 bg-brand-50 font-medium text-brand-800' : 'border-transparent text-neutral-700 hover:bg-neutral-100')}>
         <span className="flex w-4 flex-shrink-0 justify-center">{v === value && <Check size={14} />}</span>
         <span className="min-w-0 flex-1 truncate">{label}</span>{hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{hint}</span>}
       </button>
@@ -134,7 +137,7 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
   return (
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className={cx(inputClass, 'flex h-9 items-center justify-between gap-2 rounded-[4px] bg-neutral-50 text-left hover:bg-neutral-100', open && 'border-brand-500 bg-white ring-2 ring-brand-500/20')}>
+        className={cx(inputClass, 'flex h-11 items-center justify-between gap-2 rounded-[4px] bg-neutral-50 text-left hover:bg-neutral-100 sm:h-9', open && 'border-brand-500 bg-white ring-2 ring-brand-500/20')}>
         <span className={cx('truncate text-sm', !current && 'text-neutral-500')}>{current ? current.label : allLabel}</span>
         <span className="flex flex-shrink-0 items-center gap-1 text-neutral-400">
           {current && <X size={14} className="hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); pick(''); }} aria-label={tr('Clear')} />}
@@ -142,12 +145,14 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
         </span>
       </button>
       {open && (
-        <div className="absolute z-30 mt-1 w-full min-w-[14rem] overflow-hidden rounded-md border border-neutral-200 bg-white shadow-xl">
+        // 2026-11-23: the list opens in the flow of the drawer (it pushes the next filters down) instead of floating:
+        // a floating list was cut by the scrolling drawer body and hidden under its footer on phones
+        <div ref={list} className="mt-1 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm">
           <div className="relative border-b border-neutral-100 p-2">
             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={placeholder} className={cx(searchClass, 'h-9 pl-8 text-sm')} />
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={placeholder} className={cx(searchClass, 'h-10 pl-8 text-base sm:h-9 sm:text-sm')} />
           </div>
-          <ul className="max-h-60 overflow-y-auto py-1">
+          <ul className="max-h-[min(16rem,45dvh)] overflow-y-auto overscroll-contain py-1">
             {!q && item('', allLabel)}
             {shown.map((o) => item(o.value, o.label, o.hint))}
             {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr('No match')}</li>}

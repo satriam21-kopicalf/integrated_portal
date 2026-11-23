@@ -18,7 +18,7 @@ import { type ActiveFilter, FilterToolbar } from "@/so/ui/Filters";
 import { CardBody, QuickChips, Toolbar, WorkCard } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { Monitor, Reload, Shift, Stock } from "@/cotr/types";
-import { COTR_PAGE, CotrPager, rupiah } from "@/cotr/ui";
+import { COTR_PAGE, CotrPager, rupiah, useMaster } from "@/cotr/ui";
 import { locale, tr } from "@/lib/i18n";
 import { thumb } from "@/lib/assets";
 
@@ -50,12 +50,14 @@ export default function CotrCheckInPage() {
   const [q, setQ] = useState("");
   const [sheet, setSheet] = useState(false);
   const [draft, setDraft] = useState({ day, pool });
+  const master = useMaster<{ code: string; name: string }>("pools");
   const pools = useMemo(() => {
     const m = new Map<string, string>();
-    data?.shifts.forEach((s) => s.pool && m.set(s.pool, s.poolName ?? s.pool));
-    data?.notStarted.forEach((d) => d.pool && !m.has(d.pool) && m.set(d.pool, d.pool));
+    const named = (code: string) => master.rows?.find((p) => p.code === code)?.name ?? code;
+    data?.shifts.forEach((s) => s.pool && m.set(s.pool, s.poolName ?? named(s.pool)));
+    data?.notStarted.forEach((d) => d.pool && !m.has(d.pool) && m.set(d.pool, named(d.pool)));
     return [...m.entries()].map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [data]);
+  }, [data, master.rows]);
   const view = useMemo((): Monitor | null => {
     if (!data) return null;
     const words = q.trim().toLowerCase();

@@ -16,7 +16,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { Monitor, Request } from "@/cotr/types";
 import { DriverRequests } from "@/cotr/DriverRequests";
 import { FleetIssues } from "@/cotr/FleetIssues";
-import { rupiah } from "@/cotr/ui";
+import { rupiah, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
@@ -46,12 +46,14 @@ export default function CotrRequestsPage() {
     data?.notStarted.forEach((d) => d.pool && m.set(d.code, d.pool));
     return m;
   }, [data]);
+  const master = useMaster<{ code: string; name: string }>("pools");
+  const poolName = (code: string) => master.rows?.find((p) => p.code === code)?.name ?? code;
   const pools = useMemo(() => [...new Set([...poolOf.values()].filter(Boolean))].sort(), [poolOf]);
   const all = useMemo(() => (data?.requests ?? []).filter((r) => (!pool || poolOf.get(r.driverCode) === pool)
     && (!q.trim() || `${r.driverCode} ${r.driverName ?? ""} ${r.note ?? ""}`.toLowerCase().includes(q.trim().toLowerCase()))), [data, pool, poolOf, q]);
   const rows = all.filter((r) => !show || r.status === show);
   const waiting = (data?.requests ?? []).filter((r) => r.status === "sent");
-  const filters: ActiveFilter[] = pool ? [{ key: "pool", label: `${tr("Pool / HUB")}: ${pool}`, onRemove: () => setPool("") }] : [];
+  const filters: ActiveFilter[] = pool ? [{ key: "pool", label: `${tr("Pool / HUB")}: ${poolName(pool)}`, onRemove: () => setPool("") }] : [];
   const onCount = useCallback((n: number) => setIssues(n), []);
 
   return (
@@ -69,8 +71,8 @@ export default function CotrRequestsPage() {
       }>
       {sheet && (
         <MonitorFilterSheet active={draft ? 1 : 0} onClose={() => setSheet(false)} onReset={() => setDraft("")} onApply={() => { setPool(draft); setSheet(false); }}>
-          <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={draft || null} onClear={() => setDraft("")}>
-            <ComboFilter value={draft} onChange={setDraft} allLabel={tr("All pools")} placeholder={tr("Search pool")} options={pools.map((p) => ({ value: p, label: p }))} />
+          <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={draft ? poolName(draft) : null} onClear={() => setDraft("")}>
+            <ComboFilter value={draft} onChange={setDraft} allLabel={tr("All pools")} placeholder={tr("Search pool")} options={pools.map((p) => ({ value: p, label: poolName(p) }))} />
           </FilterRow>
         </MonitorFilterSheet>
       )}
