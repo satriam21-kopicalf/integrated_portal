@@ -9,7 +9,9 @@
 import { AlertTriangle, BarChart3, CalendarDays, CalendarOff, Camera, CalendarPlus, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, Layers, MapPin, MessageSquareText, PenLine, Scale, Star,
   Store, UserRound, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged } from "@/so/ui";
+import { Badge, Empty, ErrorState, Page, PageNav, Panel, SkeletonRows, cx, fmtNumber, theadClass, usePaged, useToast } from "@/so/ui";
+import ExcelIconButton from "@/components/ExcelIconButton";
+import { downloadXlsx, type XlsxCell } from "@/lib/xlsx";
 import Drawer from "@/so/ui/Drawer";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { ActiveFilter, FilterToolbar, Period, dmy, wibDay } from "@/so/ui/Filters";
@@ -119,8 +121,27 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
   ];
   const toggle = (only: F["only"]) => { setTab("visits"); setF({ ...f, only: f.only === only ? "" : only }); };
 
+  // Export Excel (2026-11-23): the visits listed (the filters and the search applied), one row per visit
+  const toast = useToast();
+  const [exporting, setExporting] = useState(false);
+  const exportXlsx = () => {
+    const head = [tr("Sent (WIB)"), tr("Started (WIB)"), tr("Status"), tr("PIC"), tr("Account"), tr("Outlet code"), tr("Outlet"), tr("Score"),
+      "UNDER", "MEET", "EXCEED", tr("Items rated"), tr("Items"), tr("Distance (m)"), tr("Radius (m)"), tr("Outside the radius"), tr("GPS accuracy (m)"),
+      tr("Low accuracy"), tr("Photos"), tr("Signed by"), tr("Sent from"), tr("Map")];
+    const yes = (v: boolean | null | undefined) => (v ? tr("Yes") : tr("No"));
+    const app: Record<string, string> = { ATTENDANCE_APP: tr("Attendance app"), ATTENDANCE_PWA: tr("Attendance PWA"), OPERATIONS: "Operations" };
+    const out: XlsxCell[][] = rows.map((v) => [v.submittedAt ? wibDateTime(v.submittedAt) : "", wibDateTime(v.startedAt), v.status === "SUBMITTED" ? tr("Sent") : tr("Draft"),
+      v.name, v.username, v.branchCode, v.branchName, v.score ?? v.counts.score, v.counts.under, v.counts.meet, v.counts.exceed, v.counts.rated, v.counts.total,
+      v.distanceM, v.radiusM, yes(v.outsideRadius), v.accuracyM, yes(v.lowAccuracy), v.photoCount ?? v.photos?.length ?? null, v.signature?.name ?? "",
+      v.client ? app[v.client] ?? v.client : "", v.latitude !== null && v.longitude !== null ? mapsUrl(v.latitude, v.longitude) : ""]);
+    setExporting(true);
+    downloadXlsx({ fileName: `${title} ${f.period.from} - ${f.period.to}`, sheet: title, title: `${title} · ${dmy(f.period.from)} – ${dmy(f.period.to)}`, header: head, rows: out })
+      .catch((e) => toast((e as Error).message, "error")).finally(() => setExporting(false));
+  };
+
   return (
     <Page title={title} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${audit ? tr("SWAT audits of the outlets") : tr("visits of the PICs to the outlets")}`}
+      actions={<ExcelIconButton boxed label={tr("Export to Excel")} loading={exporting} disabled={!rows.length} onClick={exportXlsx} />}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={audit ? tr("Audits") : tr("Visits")} emphasis icon={<ClipboardList size={13} />} value={s ? fmtNumber(s.visits) : <StatSkeleton />}>

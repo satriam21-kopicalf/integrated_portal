@@ -27,6 +27,8 @@ import { DocActions } from "./DeForm";
 import { type Approver, type StepEdit, StepRow } from "@/so/features/pengajuan/PengajuanMonitor";
 import { useAuth } from "@/lib/auth";
 import { SkeletonList } from "@/components/kc/Skeleton";
+import ExcelIconButton from "@/components/ExcelIconButton";
+import { downloadXlsx, type XlsxCell } from "@/lib/xlsx";
 import { type Category, type CostItem, type CostKind, type Request, type Status, type Technician, type Urgency, type WorkLink, COST_KIND_LABEL, KIND_LABEL, OPEN, PORTAL_URLS, fundCleared,
   STATUS_LABEL, STEPS_OF, URGENCIES, statusLabel, type Kind, URGENCY_LABEL, WAGE_LABEL, WAGE_PER, WAGE_TYPES, fmtHours, fmtMb, fmtRp, monthlyPay, useLive, workUrl } from "./de";
 
@@ -85,6 +87,30 @@ export default function DeMonitor() {
     .sort((a, b) => (OPEN_SET.has(b.status) ? 1 : 0) - (OPEN_SET.has(a.status) ? 1 : 0) || urgRank(a.urgency) - urgRank(b.urgency)
       || (a.submittedAt ?? "").localeCompare(b.submittedAt ?? "")), [base, status]);
   const paged = usePaged(rows, rows.length + search + JSON.stringify(f) + status);
+  // Export Excel (2026-11-23): the requests listed (the kind, the status chip, the filters and the search applied), one row
+  // per item of a request (a request without items keeps one row)
+  const xlsxToast = useToast();
+  const [exporting, setExporting] = useState(false);
+  const exportXlsx = () => {
+    const head = [tr("Number"), tr("Kind"), tr("Status"), tr("Urgency"), tr("Outlet code"), tr("Outlet"), tr("PIC"), tr("Account"), tr("Created (WIB)"),
+      tr("Sent (WIB)"), tr("Closed (WIB)"), tr("Due (WIB)"), tr("Overdue"), tr("Work hours"), tr("Analysis"), tr("Cause"), tr("Impact / reason"), tr("Handled by"),
+      tr("Vendor"), tr("Estimated cost"), tr("Actual cost"), tr("Technicians"), tr("Fund request"), tr("Fund status"), tr("Amount approved"), tr("Paid"),
+      tr("Item group"), tr("Item category"), tr("Item"), tr("Qty"), tr("Location"), tr("Item note")];
+    const when = (v: string | null | undefined) => (v ? wibDateTime(v) : "");
+    const out: XlsxCell[][] = [];
+    for (const q of rows) {
+      const common: XlsxCell[] = [q.number, q.kindLabel, q.statusLabel, q.urgencyLabel, q.branchCode, q.branchName, q.picName, q.username, when(q.createdAt),
+        when(q.submittedAt), when(q.closedAt), when(q.tracker?.dueAt), q.tracker?.overdue ? tr("Yes") : tr("No"), q.tracker?.workHours ?? null, q.analysis, q.cause,
+        q.impact ?? q.reason ?? "", q.mode === "VENDOR" ? tr("Vendor") : q.mode === "INTERNAL" ? tr("Internal") : "", q.vendor, q.estCost, q.actualCost,
+        (q.technicians ?? []).join(", "), q.fund?.number ?? "", q.fund?.statusLabel ?? "", q.fund?.approvedAmount ?? null, q.fund?.paidAmount ?? null];
+      const items = q.items?.length ? q.items : [null];
+      for (const i of items) out.push([...common, i?.group ?? "", i?.category ?? "", i?.name ?? "", i?.qty ?? null, i?.location ?? "", i?.note ?? ""]);
+    }
+    const name = kind === "PROCUREMENT" ? tr("Procurement") : tr("Maintenance");
+    setExporting(true);
+    downloadXlsx({ fileName: `${name} ${f.period.from} - ${f.period.to}`, sheet: name, title: `${name} · ${dmy(f.period.from)} – ${dmy(f.period.to)}`, header: head, rows: out })
+      .catch((e) => xlsxToast((e as Error).message, "error")).finally(() => setExporting(false));
+  };
   const openRows = all.filter((r) => OPEN_SET.has(r.status));
   const done = all.filter((r) => r.status === "DONE");
   const avgDone = done.length ? done.reduce((a, r) => a + (r.tracker?.workHours ?? 0), 0) / done.length : null;
@@ -120,7 +146,10 @@ export default function DeMonitor() {
 
   return (
     <Page title={tr("Monitoring Maintenance & Procurement")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("repair & procurement requests of every outlet")}`}
-      actions={<Button variant="secondary" onClick={() => setApprovals(true)}><ListChecks size={15} /> {tr("Approvals")}</Button>}
+      actions={<div className="flex items-center gap-2">
+        <Button variant="secondary" onClick={() => setApprovals(true)}><ListChecks size={15} /> {tr("Approvals")}</Button>
+        <ExcelIconButton boxed label={tr("Export to Excel")} loading={exporting} disabled={!rows.length} onClick={exportXlsx} />
+      </div>}
       stats={tab !== "requests" ? undefined : 
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Open")} emphasis icon={<Wrench size={13} />} value={res ? fmtNumber(openRows.length) : <StatSkeleton />}>

@@ -22,6 +22,8 @@ import { type CheckIn, call, duration, photoUrl, suspect } from "@/so/features/c
 import { type Kind, kindSlug, setKind, swapClock, swapKind } from "@/so/features/checkin/checkin";
 import { locale, tr as baseTr } from "@/lib/i18n";
 import { thumb } from "@/lib/assets";
+import ExcelIconButton from "@/components/ExcelIconButton";
+import { downloadXlsx, type XlsxCell } from "@/lib/xlsx";
 import { CardFooter, Person, QuickChips, Toolbar, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 const tr = (key: string, ...args: (string | number | null | undefined)[]) => swapClock(baseTr(swapKind(key), ...args));
 /** "07.42" in WIB */
@@ -139,8 +141,28 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
     ...(f.location ? [{ key: "l", label: LOC[f.location](), onRemove: () => setF({ ...f, location: "" }) }] : []),
   ];
 
+  // Export Excel (2026-11-23): the check-ins listed (the filters and the search applied), in the order shown
+  const toast = useToast();
+  const [exporting, setExporting] = useState(false);
+  const exportXlsx = () => {
+    const head = [tr("Time (WIB)"), tr("PIC"), tr("Account"), tr("Role"), tr("Outlet code"), tr("Outlet"), tr("Source"), tr("Distance (m)"), tr("Radius (m)"),
+      tr("Outside the radius"), tr("GPS accuracy (m)"), tr("Low accuracy"), tr("Outlet located"), tr("Faces"), tr("Risk"), tr("Risk signals"),
+      tr("Review"), tr("Review note"), tr("Clock out (WIB)"), tr("Duration (min)"), tr("Note"), tr("Map")];
+    const yes = (v: boolean | null | undefined) => (v ? tr("Yes") : tr("No"));
+    const out: XlsxCell[][] = sorted.rows.map((c) => [wibDateTime(c.visitedAt), c.name, c.username, c.role, c.branchCode, c.branchName,
+      c.source === "attendance" ? tr("HRMS attendance") : tr("Form"), c.distanceM, c.radiusM, yes(c.outsideRadius), c.accuracyM, yes(c.lowAccuracy),
+      yes(c.outletLocated), c.faces, c.riskLevel ?? "", (c.riskSignals ?? []).map((x) => x.text).join("; "),
+      c.review ? (c.review.status === "valid" ? tr("Valid") : tr("Invalid")) : "", c.review?.note ?? "",
+      c.clockOut ? wibDateTime(c.clockOut.at) : "", c.clockOut?.durationMin ?? null, c.note ?? "", mapsUrl(c.latitude, c.longitude)]);
+    setExporting(true);
+    downloadXlsx({ fileName: `${tr("PIC Check In")} ${f.period.from} - ${f.period.to}`, sheet: tr("PIC Check In"),
+      title: `${tr("PIC Check In")} · ${dmy(f.period.from)} – ${dmy(f.period.to)}`, header: head, rows: out })
+      .catch((e) => toast((e as Error).message, "error")).finally(() => setExporting(false));
+  };
+
   return (
     <Page title={tr("PIC Check In")} subtitle={`${dmy(f.period.from)} – ${dmy(f.period.to)} · ${tr("visits of the PICs to the outlets")}`}
+      actions={<ExcelIconButton boxed label={tr("Export to Excel")} loading={exporting} disabled={!sorted.rows.length} onClick={exportXlsx} />}
       stats={
         <StatStrip label={tr("Summary")} columns={5}>
           <Stat label={tr("Check-ins")} emphasis icon={<CalendarDays size={13} />} onClick={s ? () => setDetail("checkins") : undefined} active={detail === "checkins"} value={s ? fmtNumber(s.total) : <StatSkeleton />}>
