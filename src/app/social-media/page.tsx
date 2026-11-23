@@ -7,18 +7,19 @@
 // needs a login and is not collected.
 
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Eye, Megaphone, RefreshCw, ThumbsDown, ThumbsUp } from "lucide-react";
-import { Button, ErrorState, cx, useToast } from "@/so/ui";
+import { ChevronDown, ExternalLink, Eye, Megaphone, Tag, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Button, ErrorState, cx } from "@/so/ui";
+import Drawer, { DrawerSection } from "@/components/kc/Drawer";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { CardFooter, Lozenge, type LozengeTone, QuickChips, Toolbar, WorkCard, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
-import { FilterRow, MonitorFilterSheet, QuickPeriod } from "@/so/ui/MonitorFilters";
+import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod } from "@/so/ui/MonitorFilters";
 import { type ActiveFilter, FilterToolbar, dmy, wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
-import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 
 type Post = { platform: string; post_id: string; source: string; url: string | null; author: string | null; text: string | null;
-  createdAt: string | null; likes: number | null; comments: number | null; views: number | null; sentiment: "positive" | "negative" | "neutral" | null };
+  createdAt: string | null; likes: number | null; comments: number | null; views: number | null; sentiment: "positive" | "negative" | "neutral" | null;
+  /** migration 137: every keyword the post names */ keywords?: string[] };
 type Summary = { platforms: { platform: string; posts: number; views: number; likes: number; comments: number; positive: number; negative: number }[];
   daily: { day: string; posts: number }[]; authors: { author: string; platform: string; posts: number; views: number }[];
   runs: { source: string; startedAt: string; finishedAt: string | null; found: number | null; added: number | null; error: string | null }[];
@@ -40,9 +41,11 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(loc
 const PAGE = 50;
 
 export default function SocialMediaPage() {
-  const toast = useToast();
-  const { user } = useAuth();
   const [period, setPeriod] = useState({ from: wibDay(-29), to: wibDay(0) });
+  const [keyword, setKeyword] = useState("");
+  const [kwDraft, setKwDraft] = useState("");
+  const [keywords, setKeywords] = useState<string[]>([]);
+  useEffect(() => { call<{ data: string[] }>("/api/social/keywords").then((r) => setKeywords(r.data)).catch(() => setKeywords([])); }, []);
   const [tab, setTab] = useState<Tab>("all");
   const [feel, setFeel] = useState<Feel>("");
   const [q, setQ] = useState("");
@@ -53,6 +56,7 @@ export default function SocialMediaPage() {
   const [sheet, setSheet] = useState(false);
   const [draft, setDraft] = useState(period);
   const [tick, setTick] = useState(0);
+  const [open, setOpen] = useState<{ platform: string; id: string } | null>(null);
   const range = `dateFrom=${period.from}&dateTo=${period.to}`;
   useEffect(() => {
     let alive = true;
@@ -62,7 +66,7 @@ export default function SocialMediaPage() {
   }, [range, tick]);
   const [debounced, setDebounced] = useState(q);
   useEffect(() => { const t = setTimeout(() => setDebounced(q), 300); return () => clearTimeout(t); }, [q]);
-  useEffect(() => setPage(0), [tab, feel, debounced, range]);
+  useEffect(() => setPage(0), [tab, feel, debounced, range, keyword]);
   useEffect(() => {
     let alive = true;
     setRows(null);
@@ -70,9 +74,10 @@ export default function SocialMediaPage() {
     if (tab !== "all") p.set("platform", tab);
     if (feel) p.set("sentiment", feel);
     if (debounced.trim()) p.set("q", debounced.trim());
+    if (keyword) p.set("keyword", keyword);
     call<{ total: number; data: Post[] }>(`/api/social/posts?${p}`).then((r) => { if (alive) setRows(r); }).catch((e: Error) => { if (alive) setError(e.message); });
     return () => { alive = false; };
-  }, [tab, feel, debounced, period, page, tick]);
+  }, [tab, feel, debounced, period, page, tick, keyword]);
   const tot = useMemo(() => {
     const ps = sum?.platforms ?? [];
     const pick = tab === "all" ? ps : ps.filter((p) => p.platform === tab);
@@ -82,15 +87,9 @@ export default function SocialMediaPage() {
   const count = (p: string) => sum ? (sum.platforms.find((x) => x.platform === p)?.posts ?? 0) : null;
   const filters: ActiveFilter[] = period.from !== wibDay(-29) || period.to !== wibDay(0)
     ? [{ key: "period", label: `${dmy(period.from)} – ${dmy(period.to)}`, onRemove: () => setPeriod({ from: wibDay(-29), to: wibDay(0) }) }] : [];
-  const admin = user?.role === "superadmin" || user?.role === "admin";
-  const runNow = async () => {  // every source now (the schedule panel runs one, or reaches back to 1 January)
-    try { await call("/api/social/run", { method: "POST" }); toast(tr("Collecting in the background: refresh in a few minutes")); }
-    catch (e) { toast((e as Error).message, "error"); }
-  };
-
+  if (keyword) filters.push({ key: "keyword", label: `${tr("Keyword")}: ${keyword}`, onRemove: () => setKeyword("") });
   return (
     <Page title={tr("Social Media Analytics")} subtitle={`${dmy(period.from)} – ${dmy(period.to)} · ${tr("what the public says about Kopi Calf")}`}
-      actions={admin ? <Button variant="secondary" onClick={() => void runNow()}><RefreshCw size={15} /> {tr("Collect now")}</Button> : undefined}
       stats={
         <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
           <Stat label={tr("Mentions")} icon={<Megaphone size={13} />} value={sum ? n(tot.posts) : <StatSkeleton />} onClick={sum ? () => setFeel("") : undefined} />
@@ -100,8 +99,12 @@ export default function SocialMediaPage() {
         </StatStrip>
       }>
       {sheet && (
-        <MonitorFilterSheet active={filters.length} onClose={() => setSheet(false)} onReset={() => setDraft({ from: wibDay(-29), to: wibDay(0) })}
-          onApply={() => { setPeriod(draft); setSheet(false); }}>
+        <MonitorFilterSheet active={filters.length} onClose={() => setSheet(false)} onReset={() => { setDraft({ from: wibDay(-29), to: wibDay(0) }); setKwDraft(""); }}
+          onApply={() => { setPeriod(draft); setKeyword(kwDraft); setSheet(false); }}>
+          <FilterRow icon={<Tag size={15} />} label={tr("Keyword")} value={kwDraft || null} onClear={() => setKwDraft("")}>
+            <ComboFilter value={kwDraft} onChange={setKwDraft} allLabel={tr("All keywords")} placeholder={tr("Search keyword")}
+              options={keywords.map((k) => ({ value: k, label: k }))} />
+          </FilterRow>
           <FilterRow icon={<Eye size={15} />} label={tr("Period")} value={`${dmy(draft.from)} – ${dmy(draft.to)}`}>
             <QuickPeriod value={draft} onChange={setDraft} />
           </FilterRow>
@@ -119,7 +122,7 @@ export default function SocialMediaPage() {
             { key: "" as Feel, label: tr("All") }, { key: "positive" as Feel, label: tr("Positive"), dot: "bg-emerald-500" },
             { key: "negative" as Feel, label: tr("Negative"), dot: "bg-red-500" }, { key: "neutral" as Feel, label: tr("Neutral"), dot: "bg-neutral-400" }]} />
           <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search text or account")} filters={filters}
-            onOpen={() => { setDraft(period); setSheet(true); }} onClear={() => setPeriod({ from: wibDay(-29), to: wibDay(0) })} />
+            onOpen={() => { setDraft(period); setKwDraft(keyword); setSheet(true); }} onClear={() => { setPeriod({ from: wibDay(-29), to: wibDay(0) }); setKeyword(""); }} />
         </Toolbar>
         {!rows ? <div className="p-4"><div className="skeleton h-64 rounded-lg" /></div> : rows.data.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p>
@@ -133,15 +136,16 @@ export default function SocialMediaPage() {
                 {rows.data.map((p) => {
                   const pf = PLATFORM[p.platform];
                   return (
-                    <tr key={`${p.platform}:${p.post_id}`} className="border-b border-neutral-100 align-top hover:bg-neutral-50">
+                    <tr key={`${p.platform}:${p.post_id}`} onClick={() => setOpen({ platform: p.platform, id: p.post_id })}
+                      className="group cursor-pointer border-b border-neutral-100 align-top hover:bg-neutral-50">
                       <td className={jTd} data-label={tr("Platform")}><span className="inline-flex items-center gap-1.5">
                         {pf ? logo(pf.file) : <Megaphone size={15} />}<span className="text-neutral-700">{pf?.label ?? p.platform}</span></span>
                         {p.source === "comment" && <span className="mt-0.5 block text-[11px] text-neutral-400">{tr("comment")}</span>}</td>
                       <td className={cx(jTd, "max-w-[34rem]")} data-label={tr("Mention")}>
                         <span className="block text-[11px] font-semibold text-neutral-500">{p.author ?? "—"}</span>
                         <span className="line-clamp-3 whitespace-pre-line text-neutral-900">{p.text}</span>
-                        {p.url && <a href={p.url} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:underline">
-                          {tr("Open")} <ExternalLink size={11} /></a>}
+                        {(p.keywords?.length ?? 0) > 0 && <span className="mt-1 flex flex-wrap gap-1">{p.keywords!.map((k) => <Lozenge key={k} tone="blue">{k}</Lozenge>)}</span>}
+                        <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-700 group-hover:underline">{tr("See details")}</span>
                       </td>
                       <td className={jTd} data-label={tr("Sentiment")}>{p.sentiment ? <Lozenge tone={FEEL[p.sentiment].tone}>{FEEL[p.sentiment].label()}</Lozenge> : "—"}</td>
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Views")}>{n(p.views)}</td>
@@ -162,76 +166,151 @@ export default function SocialMediaPage() {
           </span></CardFooter>}
       </WorkCard>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title={tr("Most influential accounts")} description={tr("By views in the period")}>
-          {!sum ? <div className="skeleton m-4 h-32 rounded-lg" /> : sum.authors.length === 0 ? <p className="px-4 py-6 text-sm text-neutral-500">—</p> : (
-            <ul className="divide-y divide-neutral-100">
-              {sum.authors.map((a) => (
-                <li key={`${a.platform}:${a.author}`} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
-                  <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{a.author}</span>
-                    <span className="flex items-center gap-1 text-[11px] text-neutral-500">{PLATFORM[a.platform] && logo(PLATFORM[a.platform].file, 12)}{PLATFORM[a.platform]?.label ?? a.platform} · {tr("{0} mentions", a.posts)}</span></span>
-                  <span className="flex-shrink-0 tabular-nums text-neutral-700">{n(a.views)} {tr("views")}</span>
-                </li>
-              ))}
-            </ul>
+      {open && <Preview platform={open.platform} id={open.id} onClose={() => setOpen(null)} />}
+      <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+        <Panel title={tr("Most influential accounts")} description={tr("The accounts whose mentions reached the most views in the period")}>
+          {!sum ? <div className="skeleton m-4 h-40 rounded-lg" /> : sum.authors.length === 0 ? <p className="px-4 py-6 text-sm text-neutral-500">{tr("No mention in this period")}</p> : (
+            <div className="overflow-x-auto">
+              <table className={cx(jTable, "m-cards")}>
+                <thead><tr className={jHeadRow}><th className={cx(jTh, "w-10")}>#</th><th className={jTh}>{tr("Account")}</th>
+                  <th className={cx(jTh, "text-right")}>{tr("Mentions")}</th><th className={cx(jTh, "w-[38%]")}>{tr("Views")}</th></tr></thead>
+                <tbody>
+                  {sum.authors.map((a, i) => {
+                    const pf = PLATFORM[a.platform];
+                    const top = sum.authors[0]?.views || 1;
+                    return (
+                      <tr key={`${a.platform}:${a.author}`} className="border-b border-neutral-100">
+                        <td className={cx(jTd, "tabular-nums text-neutral-400")} data-label="#">{i + 1}</td>
+                        <td className={jTd} data-label={tr("Account")}><span className="flex min-w-0 items-center gap-2">{pf && logo(pf.file)}
+                          <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{a.author}</span>
+                            <span className="block text-[11px] text-neutral-500">{pf?.label ?? a.platform}</span></span></span></td>
+                        <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Mentions")}>{n(a.posts)}</td>
+                        <td className={jTd} data-label={tr("Views")}><span className="flex items-center gap-2">
+                          <span className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${Math.max(2, (a.views / top) * 100)}%` }} /></span>
+                          <span className="w-20 text-right tabular-nums text-neutral-700">{n(a.views)}</span></span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </Panel>
-        <Schedule sum={sum} admin={admin} onChanged={() => setTick((t) => t + 1)} />
+        <Schedule sum={sum} />
       </div>
     </Page>
   );
 }
 
-/** The schedule of every source (migration 136): on / off, every how many hours, the last run and its result, the next
- *  run; superadmin / admin change it, run a source now or reach back to 1 January. */
-function Schedule({ sum, admin, onChanged }: { sum: Summary | null; admin: boolean; onChanged: () => void }) {
-  const toast = useToast();
-  const [busy, setBusy] = useState<string | null>(null);
+/** The schedule of every source (migration 136): runs by itself; folded by default, read only (2026-11-23, the
+ *  user: no Collect Now, the scheduler keeps the data up to date). */
+function Schedule({ sum }: { sum: Summary | null }) {
+  const [open, setOpen] = useState(false);
   const at = (iso: string | null) => (iso ? new Date(iso).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
-  const save = async (source: string, enabled: boolean, everyHours: number) => {
-    setBusy(source);
-    try { await call(`/api/social/schedule/${source}`, { method: "PUT", json: { enabled, everyHours } }); toast(tr("Schedule saved")); onChanged(); }
-    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(null); }
-  };
-  const run = async (source: string | null, backfillFrom?: string) => {
-    setBusy(source ?? "all");
-    try { await call("/api/social/run", { method: "POST", json: { source, backfillFrom: backfillFrom ?? null } }); toast(tr("Collecting in the background: refresh in a few minutes")); setTimeout(onChanged, 4000); }
-    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(null); }
-  };
+  const latest = sum?.schedule.map((x) => x.lastRunAt).filter(Boolean).sort().at(-1) ?? null;
   return (
-    <Panel title={tr("Data collection schedule")} description={tr("The portal checks every 5 minutes which source is due, without an API key. Instagram, Threads, X and LinkedIn need a login and are not collected.")}
-      actions={admin ? <Button size="sm" variant="secondary" loading={busy === "all"} onClick={() => void run(null, "2026-01-01")}>{tr("Collect since 1 January")}</Button> : undefined}>
-      {!sum ? <div className="skeleton m-4 h-32 rounded-lg" /> : (
-        <ul className="divide-y divide-neutral-100">
-          {sum.schedule.length === 0 && <li className="px-4 py-6 text-sm text-neutral-500">{tr("The first collection runs a few minutes after the server starts")}</li>}
-          {sum.schedule.map((x) => {
-            const last = sum.runs.find((r) => r.source === x.source);
-            const pf = PLATFORM[x.source];
-            return (
-              <li key={x.source} className="space-y-1.5 px-4 py-3 text-sm">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="flex items-center gap-2 font-medium text-neutral-900">{pf && logo(pf.file)}{pf?.label ?? x.source}</span>
-                  {x.enabled ? <Lozenge tone="green">{tr("Every {0} h", x.everyHours)}</Lozenge> : <Lozenge tone="grey">{tr("Off")}</Lozenge>}
-                  {x.backfillFrom && <Lozenge tone="blue">{tr("Backfill from {0}", dmy(x.backfillFrom))}</Lozenge>}
-                  {admin && <span className="ml-auto flex items-center gap-1.5">
-                    <select aria-label={tr("Interval")} value={x.everyHours} disabled={busy === x.source} onChange={(e) => void save(x.source, x.enabled, Number(e.target.value))}
-                      className="h-8 rounded-md border border-neutral-200 bg-white px-2 text-xs">
-                      {[1, 3, 6, 12, 24].map((h) => <option key={h} value={h}>{tr("Every {0} h", h)}</option>)}
-                    </select>
-                    <Button size="sm" variant="secondary" disabled={busy === x.source} onClick={() => void save(x.source, !x.enabled, x.everyHours)}>{x.enabled ? tr("Turn off") : tr("Turn on")}</Button>
-                    <Button size="sm" variant="secondary" loading={busy === x.source} onClick={() => void run(x.source)}><RefreshCw size={13} /></Button>
-                  </span>}
-                </div>
-                <p className="text-xs text-neutral-500">
-                  {tr("Last")}: {at(x.lastRunAt)}{last && (last.error ? <> · <span className="text-red-700">{tr("Failed")}: {last.error.slice(0, 80)}</span></>
-                    : !last.finishedAt ? <> · {tr("Running")}</> : <> · {tr("{0} found, {1} new", last.found ?? 0, last.added ?? 0)}</>)}
-                  {x.enabled && <> · {tr("Next")}: {at(x.nextRunAt)}</>}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
+    <section className="h-fit overflow-hidden rounded-lg border border-neutral-200 bg-white">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-neutral-900">{tr("Data collection schedule")}</span>
+          <span className="block text-xs text-neutral-500">{tr("Automatic · updated {0}", at(latest))}</span>
+        </span>
+        <span className="flex items-center gap-1">{sum?.schedule.map((x) => PLATFORM[x.source] && <span key={x.source}>{logo(PLATFORM[x.source].file, 14)}</span>)}</span>
+        <ChevronDown size={16} className={cx("text-neutral-400 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && sum && (
+        <div className="border-t border-neutral-200">
+          <ul className="divide-y divide-neutral-100">
+            {sum.schedule.map((x) => {
+              const last = sum.runs.find((r) => r.source === x.source);
+              const pf = PLATFORM[x.source];
+              return (
+                <li key={x.source} className="px-4 py-2.5 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="flex min-w-0 flex-1 items-center gap-2 font-medium text-neutral-900">{pf && logo(pf.file)}{pf?.label ?? x.source}</span>
+                    {x.enabled ? <Lozenge tone="green">{tr("Every {0} h", x.everyHours)}</Lozenge> : <Lozenge tone="grey">{tr("Off")}</Lozenge>}
+                  </div>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    {tr("Last")}: {at(x.lastRunAt)}{last && (last.error ? <> · <span className="text-red-700">{tr("Failed")}</span></>
+                      : !last.finishedAt ? <> · {tr("Running")}</> : <> · {tr("{0} found, {1} new", last.found ?? 0, last.added ?? 0)}</>)}
+                    {x.enabled && <> · {tr("Next")}: {at(x.nextRunAt)}</>}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="border-t border-neutral-100 px-4 py-2.5 text-[11px] text-neutral-500">{tr("Without an API key. Instagram, Threads, X and LinkedIn need a login and are not collected.")}</p>
+        </div>
       )}
-    </Panel>
+    </section>
+  );
+}
+
+type Full = Post & { keyword: string | null; shares: number | null; firstSeen: string | null; lastSeen: string | null; raw: Record<string, unknown> };
+const SOURCE: Record<string, () => string> = {
+  search: () => tr("Search result"), comment: () => tr("Comment"), account: () => tr("Official account"), "google-news": () => tr("News article"), hashtag: () => tr("Hashtag"),
+};
+
+/** One mention in full (2026-11-23): the player of the video (YouTube / TikTok embed), the whole text, every figure, the
+ *  dates and the source; the original opens on the platform. */
+function Preview({ platform, id, onClose }: { platform: string; id: string; onClose: () => void }) {
+  const [d, setD] = useState<Full | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    call<Full>(`/api/social/post?platform=${encodeURIComponent(platform)}&id=${encodeURIComponent(id)}`)
+      .then((r) => { if (alive) setD(r); }).catch((e: Error) => { if (alive) setError(e.message); });
+    return () => { alive = false; };
+  }, [platform, id]);
+  const pf = PLATFORM[platform];
+  const video = d && d.source !== "comment" ? (platform === "youtube" ? `https://www.youtube-nocookie.com/embed/${d.post_id}`
+    : platform === "tiktok" ? `https://www.tiktok.com/embed/v2/${d.post_id}` : null) : null;
+  const full = (iso: string | null) => (iso ? new Date(iso).toLocaleString(locale(), { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
+  const title = typeof d?.raw?.title === "string" ? (d.raw.title as string) : null;
+  const fig = (label: string, v: number | null | undefined) => (
+    <div className="rounded-md border border-neutral-200 px-3 py-2"><p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="mt-0.5 text-base font-semibold tabular-nums text-neutral-900">{n(v)}</p></div>
+  );
+  return (
+    <Drawer open onClose={onClose} size="lg" icon={pf ? logo(pf.file, 18) : <Megaphone size={18} />} title={d?.author ?? (pf?.label ?? platform)}
+      description={d ? `${pf?.label ?? platform} · ${(SOURCE[d.source] ?? (() => d.source))()} · ${full(d.createdAt ?? d.firstSeen)}` : undefined}
+      footer={d?.url ? <a href={d.url} target="_blank" rel="noreferrer"><Button><ExternalLink size={15} /> {tr("Open on {0}", pf?.label ?? platform)}</Button></a> : undefined}>
+      {error ? <ErrorState message={error} /> : !d ? <div className="skeleton h-64 rounded-lg" /> : (
+        <>
+          {video && (
+            <DrawerSection>
+              <div className={cx("mx-auto overflow-hidden rounded-lg bg-black", platform === "tiktok" ? "aspect-[9/16] max-w-[325px]" : "aspect-video w-full")}>
+                <iframe src={video} title={title ?? tr("Video")} className="h-full w-full" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" />
+              </div>
+            </DrawerSection>
+          )}
+          <DrawerSection title={tr("Mention")}>
+            <div className="flex flex-wrap items-center gap-2">
+              {d.sentiment && <Lozenge tone={FEEL[d.sentiment].tone}>{FEEL[d.sentiment].label()}</Lozenge>}
+              {(d.keywords?.length ? d.keywords : d.keyword ? [d.keyword] : []).map((k) => <Lozenge key={k} tone="blue">{k}</Lozenge>)}
+            </div>
+            <p className="whitespace-pre-line break-words text-sm leading-relaxed text-neutral-900">{d.text || "—"}</p>
+          </DrawerSection>
+          <DrawerSection title={tr("Figures")}>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {fig(tr("Views"), d.views)}{fig(tr("Likes"), d.likes)}{fig(tr("Comments"), d.comments)}{fig(tr("Shares"), d.shares)}
+            </div>
+            {platform === "youtube" && <p className="text-[11px] text-neutral-500">{tr("YouTube likes and comments need a login from our server: only the views are collected.")}</p>}
+          </DrawerSection>
+          <DrawerSection title={tr("Details")}>
+            <dl className="grid grid-cols-[9rem_1fr] gap-x-3 gap-y-2 text-sm">
+              <dt className="text-neutral-500">{tr("Platform")}</dt><dd className="flex items-center gap-1.5 text-neutral-900">{pf && logo(pf.file, 14)}{pf?.label ?? platform}</dd>
+              <dt className="text-neutral-500">{tr("Account / source")}</dt><dd className="break-words text-neutral-900">{d.author ?? "—"}</dd>
+              <dt className="text-neutral-500">{tr("Kind")}</dt><dd className="text-neutral-900">{(SOURCE[d.source] ?? (() => d.source))()}</dd>
+              <dt className="text-neutral-500">{tr("Published")}</dt><dd className="text-neutral-900">{full(d.createdAt)}</dd>
+              <dt className="text-neutral-500">{tr("First found")}</dt><dd className="text-neutral-900">{full(d.firstSeen)}</dd>
+              <dt className="text-neutral-500">{tr("Figures updated")}</dt><dd className="text-neutral-900">{full(d.lastSeen)}</dd>
+              {d.url && <><dt className="text-neutral-500">{tr("Link")}</dt><dd className="break-all"><a href={d.url} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">{d.url}</a></dd></>}
+            </dl>
+          </DrawerSection>
+        </>
+      )}
+    </Drawer>
   );
 }

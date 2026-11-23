@@ -157,6 +157,7 @@ export const rating: { title: string; hint: string; icon: typeof Users; items: C
 // public says about Kopi Calf, collected by the portal without an API key
 export const social: { title: string; hint: string; icon: typeof Users; items: CcItem[] }[] = [
   { get title() { return tr('Social Media'); }, get hint() { return tr('Mentions of Kopi Calf on YouTube, TikTok and the news'); }, icon: MessageSquareText, items: [
+    { get name() { return tr('Overview'); }, href: '/social-media/overview', icon: BarChart3, get description() { return tr('Every analysis since 1 January, in charts'); } },
     { get name() { return tr('Social Media Analytics'); }, href: '/social-media', icon: MessageSquareText, get description() { return tr('Mentions, sentiment & reach'); } },
   ] },
 ];
