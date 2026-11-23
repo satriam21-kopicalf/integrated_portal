@@ -56,7 +56,8 @@ export default function SocialMediaPage() {
   const range = `dateFrom=${period.from}&dateTo=${period.to}`;
   useEffect(() => {
     let alive = true;
-    call<Summary>(`/api/social/summary?${range}`).then((r) => { if (alive) setSum(r); }).catch((e: Error) => { if (alive) setError(e.message); });
+    // every list defaulted: a backend one release behind (no schedule yet) never breaks the page
+    call<Partial<Summary>>(`/api/social/summary?${range}`).then((r) => { if (alive) setSum({ platforms: r.platforms ?? [], daily: r.daily ?? [], authors: r.authors ?? [], runs: r.runs ?? [], schedule: r.schedule ?? [] }); }).catch((e: Error) => { if (alive) setError(e.message); });
     return () => { alive = false; };
   }, [range, tick]);
   const [debounced, setDebounced] = useState(q);
@@ -202,6 +203,7 @@ function Schedule({ sum, admin, onChanged }: { sum: Summary | null; admin: boole
       actions={admin ? <Button size="sm" variant="secondary" loading={busy === "all"} onClick={() => void run(null, "2026-01-01")}>{tr("Collect since 1 January")}</Button> : undefined}>
       {!sum ? <div className="skeleton m-4 h-32 rounded-lg" /> : (
         <ul className="divide-y divide-neutral-100">
+          {sum.schedule.length === 0 && <li className="px-4 py-6 text-sm text-neutral-500">{tr("The first collection runs a few minutes after the server starts")}</li>}
           {sum.schedule.map((x) => {
             const last = sum.runs.find((r) => r.source === x.source);
             const pf = PLATFORM[x.source];
