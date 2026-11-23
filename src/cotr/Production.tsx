@@ -31,9 +31,10 @@ import { CotrFilterBar } from "@/cotr/FilterBar";
 import { FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { CalculatorTab, UsageTab } from "@/cotr/Recipes";
+import { ReportSheet } from "@/cotr/ReportSheet";
 import { locale, tr } from "@/lib/i18n";
 
-type Tab = "cash" | "ship" | "pool" | "reconcile" | "names" | "report" | "codes" | "esb" | "stock" | "receipts" | "counts" | "calc" | "batch" | "plan" | "usage" | "waste";
+type Tab = "input" | "cash" | "ship" | "pool" | "reconcile" | "names" | "report" | "codes" | "esb" | "stock" | "receipts" | "counts" | "calc" | "batch" | "plan" | "usage" | "waste";
 type Plan = { days: number; menus: { code: string; name: string; average: number; highest: number; plan: number; bom: string | null }[]; materials: { item: string; qty: number; unit: string }[] };
 export type Section = "pool" | "hub" | "warehouse" | "reports";
 
@@ -52,7 +53,7 @@ export const SECTIONS: Record<Section, SectionDef> = {
     { key: "stock", label: () => tr("Stock"), icon: I(Boxes) }, { key: "receipts", label: () => tr("Goods In"), icon: I(PackagePlus) },
     { key: "counts", label: () => tr("Stock Opname"), icon: I(ClipboardCheck) }, { key: "usage", label: () => tr("Usage"), icon: I(TrendingDown) }] },
   reports: { href: "/cotr/reports", icon: <FileBarChart size={19} />, title: () => tr("Reports & Matching"), subtitle: () => tr("After the workbooks: Report Armada, the match with ESB, cash and the driver names"), tabs: [
-    { key: "report", label: () => tr("Report Armada"), icon: I(ClipboardCheck) }, { key: "reconcile", label: () => tr("Reconciliation"), icon: I(GitCompareArrows) },
+    { key: "input", label: () => tr("Report Armada Input"), icon: I(ClipboardCheck) }, { key: "report", label: () => tr("Report Armada"), icon: I(ClipboardCheck) }, { key: "reconcile", label: () => tr("Reconciliation"), icon: I(GitCompareArrows) },
     { key: "cash", label: () => tr("Cash"), icon: I(Banknote) }, { key: "names", label: () => tr("Driver Names"), icon: I(UserRoundSearch) },
     { key: "esb", label: () => tr("ESB COTR"), icon: I(Building2) }] },
 };
@@ -61,7 +62,7 @@ const BODY: Record<Tab, () => ReactNode> = {
   pool: () => <PoolLedger />, codes: () => <BatchCodes />, waste: () => <><PoolWaste /><StorageJournals /></>,
   plan: () => <PlanView />, ship: () => <ShipmentPlan />, batch: () => <BatchesTab />, calc: () => <CalculatorTab />,
   stock: () => <StockTab />, receipts: () => <ReceiptsTab />, counts: () => <CountsTab />, usage: () => <UsageTab />,
-  report: () => <ReportArmada />, reconcile: () => <Reconcile />, cash: () => <CashReconcile />, names: () => <DriverNames />, esb: () => <EsbCotr />,
+  input: () => <ReportSheet />, report: () => <ReportArmada />, reconcile: () => <Reconcile />, cash: () => <CashReconcile />, names: () => <DriverNames />, esb: () => <EsbCotr />,
 };
 
 /** a page of Storage & Production; an old link (/cotr/production?tab=plan) goes to the page its tab is on now */

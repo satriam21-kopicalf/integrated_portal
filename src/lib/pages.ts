@@ -13,7 +13,7 @@ export type PageKey =
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs' | 'cc.goods-receipt' | 'cc.purchase-plan' | 'cc.info' | 'cc.schedule'
   | 'cc.stock-list' | 'cc.stock-transfer'
-  | 'cotr.check-in' | 'cotr.storage' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule' | 'cotr.incentive' | 'cotr.areas' | 'cotr.requests';
+  | 'cotr.check-in' | 'cotr.storage' | 'cotr.finance' | 'cotr.management' | 'cotr.drivers' | 'cotr.fleet' | 'cotr.pools' | 'cotr.menu' | 'cotr.production' | 'cotr.schedule' | 'cotr.incentive' | 'cotr.areas' | 'cotr.requests';
 
 /** How the page shows in the menu: 'header' = icon in the header (not the sidebar), 'hidden' = no menu entry for now
  * (opened by URL; user decision 2026-10-17), 'soon' = menu entry marked Soon, 'building' = skeleton screen only. */
@@ -86,6 +86,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cotr.fleet', href: '/cotr/fleet', get label() { return tr('Master · Fleet & Accessories'); }, get group() { return tr('Calf On The Road'); } },
   { key: 'cotr.drivers', href: '/cotr/drivers', get label() { return tr('Master · Employees'); }, get group() { return tr('Calf On The Road'); } },
   { key: 'cotr.schedule', href: '/cotr/schedule', get label() { return tr('Master · Schedule'); }, get group() { return tr('Calf On The Road'); } },
+  { key: 'cotr.finance', href: '/cotr/office', get label() { return tr('COTR Office (QRIS, cash & operational)'); }, get group() { return tr('Calf On The Road'); }, state: 'hidden' },
   { key: 'cotr.requests', href: '/cotr/master/requests', get label() { return tr('Master · Requests'); }, get group() { return tr('Calf On The Road'); } },
   { key: 'cotr.incentive', href: '/cotr/incentive', get label() { return tr('Incentive Calculator'); }, get group() { return tr('Calf On The Road'); } },
 ];
