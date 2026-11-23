@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarRange, ChevronRight, ExternalLink, Heart, MapPin, Minus, Tag, TrendingDown, TrendingUp } from "lucide-react";
 import { ErrorState, cx } from "@/so/ui";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { DrillDrawer, PostPreview, type Drill } from "@/social/shared";
+import { DrillDrawer, PostPreview, contentDate, type Drill } from "@/social/shared";
 import { FilterRow, MonitorFilterSheet, QuickPeriod } from "@/so/ui/MonitorFilters";
 import { type ActiveFilter, FilterToolbar, dmy, wibDay } from "@/so/ui/Filters";
 import { Lozenge } from "@/so/ui/Jira";
@@ -31,7 +31,7 @@ type Data = { from: string; to: string; days: number;
   words: { word: string; n: number }[]; cities: { city: string; n: number; share: number }[];
   heat: { keyword: string; week: string; n: number }[];
   trending: { platform: string; post_id: string; source: string; author: string | null; url: string | null; text: string | null; createdAt: string | null;
-    views: number | null; likes: number | null; comments: number | null; sentiment: Feel | null; keywords: string[] | null; site: string | null }[] };
+    views: number | null; likes: number | null; comments: number | null; sentiment: Feel | null; keywords: string[] | null; site: string | null; dateApprox?: boolean }[] };
 
 const FEEL: { key: Feel; label: () => string; color: string; soft: string; ink: string }[] = [
   { key: "positive", label: () => tr("Positive"), color: "#1baf7a", soft: "bg-emerald-50", ink: "text-emerald-700" },
@@ -46,6 +46,7 @@ const CHANNEL = [
 const logo = (file: string, size = 14) => <img src={`/assets/brand/${file}.svg`} alt="" width={size} height={size} className="flex-shrink-0" />;
 const n = (v: number | null | undefined) => (v === null || v === undefined ? "—" : v.toLocaleString(locale()));
 const startOfYear = () => `${wibDay(0).slice(0, 4)}-01-01`;
+const month = (ym: string) => new Date(`${ym.slice(0, 7)}-01T00:00:00`).toLocaleDateString(locale(), { month: "short", year: "2-digit" });
 const initials = (s: string) => s.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 
 export default function SocialOverviewPage() {
@@ -88,23 +89,24 @@ export default function SocialOverviewPage() {
     const rows = data.media;
     return {
       ...base,
-      grid: { left: 8, right: 8, top: 36, bottom: 8, containLabel: true },
+      grid: { left: 8, right: 40, top: 32, bottom: 4, containLabel: true },
       legend: { top: 0, left: 0, icon: "roundRect", itemWidth: 10, itemHeight: 10, textStyle: { color: INK.secondary, fontSize: 12 } },
       tooltip: tooltip({ trigger: "axis", axisPointer: { type: "shadow" }, formatter: (ps: { dataIndex: number }[]) => {
-        const r = rows[ps[0].dataIndex];
+        const r = rows[rows.length - 1 - ps[0].dataIndex];
         const neutral = r.n - r.positive - r.negative;
         const fav = r.n ? ((r.positive - r.negative) / r.n).toFixed(2) : "0";
         return tipTitle(r.source) + tipRow(FEEL[0].color, n(r.positive), tr("Positive")) + tipRow(FEEL[1].color, n(neutral), tr("Neutral"))
           + tipRow(FEEL[2].color, n(r.negative), tr("Negative")) + `<div style="margin-top:4px;color:${INK.secondary}">${tr("Favourability index")}: <b>${fav}</b></div>`;
       } }),
-      xAxis: { type: "category", data: rows.map((r) => r.source), axisTick: { show: false }, axisLine: { lineStyle: { color: INK.axis } },
-        axisLabel: { color: INK.secondary, fontSize: 11, interval: 0, width: 90, overflow: "truncate" } },
-      yAxis: { type: "value", splitLine: { lineStyle: { color: INK.grid } }, axisLabel: { color: INK.muted, fontSize: 11 } },
+      // horizontal: the names of the sources stay readable; the largest on top
+      yAxis: { type: "category", data: [...rows].reverse().map((r) => r.source), axisTick: { show: false }, axisLine: { show: false },
+        axisLabel: { color: INK.secondary, fontSize: 11, width: 150, overflow: "truncate" } },
+      xAxis: { type: "value", minInterval: 1, splitLine: { lineStyle: { color: INK.grid } }, axisLabel: { color: INK.muted, fontSize: 11 } },
       series: [
         { name: tr("Positive"), key: "positive" }, { name: tr("Neutral"), key: "neutral" }, { name: tr("Negative"), key: "negative" },
-      ].map((s, i) => ({ name: s.name, type: "bar", stack: "t", barMaxWidth: 36, itemStyle: { color: FEEL[i].color, borderColor: "#fff", borderWidth: 1 },
-        label: i === 2 ? { show: true, position: "top", color: INK.primary, fontWeight: 600, fontSize: 11, formatter: (x: { dataIndex: number }) => String(rows[x.dataIndex].n) } : undefined,
-        data: rows.map((r) => (s.key === "positive" ? r.positive : s.key === "negative" ? r.negative : r.n - r.positive - r.negative)) })),
+      ].map((s, i) => ({ name: s.name, type: "bar", stack: "t", barMaxWidth: 16, itemStyle: { color: FEEL[i].color, borderColor: "#fff", borderWidth: 1 },
+        label: i === 2 ? { show: true, position: "right", color: INK.primary, fontWeight: 600, fontSize: 11, formatter: (x: { dataIndex: number }) => String([...rows].reverse()[x.dataIndex].n) } : undefined,
+        data: [...rows].reverse().map((r) => (s.key === "positive" ? r.positive : s.key === "negative" ? r.negative : r.n - r.positive - r.negative)) })),
     };
   }, [data]);
 
@@ -119,12 +121,12 @@ export default function SocialOverviewPage() {
     return {
       ...base,
       grid: { left: 8, right: 16, top: 8, bottom: 24, containLabel: true },
-      tooltip: tooltip({ formatter: (x: { data: [number, number, number] }) => tipTitle(`${kws[x.data[1]]} · ${tr("week of {0}", dmy(weeks[x.data[0]]))}`) + `<b>${n(x.data[2])}</b> ${tr("mentions")}` }),
-      xAxis: { type: "category", data: weeks.map((w) => dmy(w).slice(0, 5)), splitArea: { show: false }, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: INK.muted, fontSize: 10 } },
+      tooltip: tooltip({ formatter: (x: { data: [number, number, number] }) => tipTitle(`${kws[x.data[1]]} · ${month(weeks[x.data[0]])}`) + `<b>${n(x.data[2])}</b> ${tr("mentions")}` }),
+      xAxis: { type: "category", data: weeks.map(month), splitArea: { show: false }, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: INK.muted, fontSize: 10 } },
       yAxis: { type: "category", data: kws, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: INK.secondary, fontSize: 11 } },
       visualMap: { show: false, min: 0, max, inRange: { color: ["#eef4fd", "#2a78d6"] } },
       series: [{ type: "heatmap", data: data.heat.filter((h) => kws.includes(h.keyword)).map((h) => [weeks.indexOf(h.week), kws.indexOf(h.keyword), h.n]),
-        label: { show: weeks.length <= 16, color: INK.primary, fontSize: 10 }, itemStyle: { borderColor: "#fff", borderWidth: 2 } }],
+        label: { show: true, color: INK.primary, fontSize: 10, formatter: (x: { data: [number, number, number] }) => (x.data[2] ? String(x.data[2]) : "") }, itemStyle: { borderColor: "#fff", borderWidth: 2 } }],
     };
   }, [data, heatAxes]);
 
@@ -176,12 +178,12 @@ export default function SocialOverviewPage() {
           <Panel title={tr("Keyword tone analysis")} description={tr("The tone of the mentions per keyword: Kopi Calf, its brands and its founders")}>
             {!data ? <div className="skeleton m-4 h-64 rounded-lg" /> : !chosen ? <p className="px-4 py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p> : (
               <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
-                <ul className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
+                <ul className="space-y-1.5">
                   {keywords.map((k) => (
                     <li key={k.keyword}>
                       <button type="button" onClick={() => setPick(k.keyword)}
-                        className={cx("flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition-colors", k.keyword === chosen.keyword ? "border-brand-600 bg-brand-50" : "border-neutral-200 hover:bg-neutral-50")}>
-                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-800 text-[11px] font-bold text-white">{initials(k.keyword)}</span>
+                        className={cx("flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-1.5 text-left text-sm transition-colors", k.keyword === chosen.keyword ? "border-brand-600 bg-brand-50" : "border-neutral-200 hover:bg-neutral-50")}>
+                        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-800 text-[10px] font-bold text-white">{initials(k.keyword)}</span>
                         <span className="min-w-0 flex-1 truncate text-neutral-900">{k.keyword}</span>
                         <span className="flex-shrink-0 text-xs tabular-nums text-neutral-600">{tr("{0} posts", n(k.total))}</span>
                       </button>
@@ -211,9 +213,9 @@ export default function SocialOverviewPage() {
           </Panel>
 
           <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
-            <Panel title={tr("Media tone analysis")} description={tr("The tone of the mentions per source; the favourability index is in the tooltip")}>
+            <Panel title={tr("Media tone analysis")} description={tr("Outside sources (not the official account): the tone of their mentions; the favourability index is in the tooltip")}>
               <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : mediaTone ? <EChart option={mediaTone} height={300} ariaLabel={tr("Media tone analysis")}
-                  onClick={(e) => { const m = data.media[e.dataIndex]; if (m) setDrill({ ...range, who: m.source, posts: true, title: m.source, description: tr("Mentions from this source"), icon: <Tag size={18} /> }); }} />
+                  onClick={(e) => { const m = [...data.media].reverse()[e.dataIndex]; if (m) setDrill({ ...range, who: m.source, posts: true, title: m.source, description: tr("Mentions from this source"), icon: <Tag size={18} /> }); }} />
                 : <p className="py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p>}</div>
             </Panel>
             <Panel title={tr("Word cloud analysis")} description={tr("The words used most in the mentions")}>
@@ -222,7 +224,7 @@ export default function SocialOverviewPage() {
             </Panel>
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[2fr_3fr]">
+          <div className="grid items-start gap-4 xl:grid-cols-[2fr_3fr]">
             <Panel title={tr("Cities named")} description={tr("The cities the mentions name (new outlets, events)")}>
               {!data ? <div className="skeleton m-4 h-40 rounded-lg" /> : data.cities.length === 0 ? <p className="px-4 py-8 text-center text-sm text-neutral-500">—</p> : (
                 <div className="grid gap-2 p-4 sm:grid-cols-2">
@@ -238,13 +240,14 @@ export default function SocialOverviewPage() {
                 </div>
               )}
             </Panel>
-            <Panel title={tr("Keyword visibility")} description={tr("Mentions per keyword and week")}>
-              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : heat ? <EChart option={heat} height={300} ariaLabel={tr("Keyword visibility")} onClick={(e) => {
+            <Panel title={tr("Keyword visibility")} description={tr("Mentions per keyword and month")}>
+              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : heat ? <EChart option={heat} height={Math.max(220, (heatAxes?.kws.length ?? 0) * 30 + 40)} ariaLabel={tr("Keyword visibility")} onClick={(e) => {
                   const v = e.data as [number, number, number] | undefined;
                   if (!v || !heatAxes) return;
-                  const wk = heatAxes.weeks[v[0]], kw = heatAxes.kws[v[1]];
-                  const end = new Date(`${wk}T00:00:00`); end.setDate(end.getDate() + 6);
-                  setDrill({ dateFrom: wk, dateTo: end.toISOString().slice(0, 10), keyword: kw, title: kw, description: tr("week of {0}", dmy(wk)), icon: <Tag size={18} /> });
+                  const m0 = heatAxes.weeks[v[0]], kw = heatAxes.kws[v[1]];
+                  const end = new Date(`${m0}T00:00:00`); end.setMonth(end.getMonth() + 1); end.setDate(0);
+                  setDrill({ dateFrom: m0, dateTo: `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`,
+                    keyword: kw, title: kw, description: month(m0), icon: <Tag size={18} /> });
                 }} />
                 : <p className="py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p>}</div>
             </Panel>
@@ -290,9 +293,9 @@ function Highlight({ t, onOpen }: { t: Data["trending"][number]; onOpen: () => v
       className="flex cursor-pointer flex-col rounded-lg border border-neutral-200 bg-white transition-colors hover:border-brand-300 hover:shadow-sm">
       <header className="flex items-start gap-3 border-b border-neutral-100 p-3">
         <span className="w-14 flex-shrink-0 overflow-hidden rounded-md border border-neutral-200 text-center">
-          <span className="block bg-red-500 py-0.5 text-[11px] font-semibold text-white">{at ? at.toLocaleDateString(locale(), { month: "short", timeZone: "Asia/Jakarta" }) : "—"}</span>
-          <span className="block text-xl font-bold leading-7 text-neutral-900">{at ? at.toLocaleDateString(locale(), { day: "numeric", timeZone: "Asia/Jakarta" }) : "—"}</span>
-          <span className="block pb-0.5 text-[10px] text-neutral-500">{at?.getFullYear() ?? ""}</span>
+          <span className={cx("block py-0.5 text-[11px] font-semibold text-white", t.dateApprox || !at ? "bg-neutral-400" : "bg-red-500")}>{at ? at.toLocaleDateString(locale(), { month: "short", timeZone: "Asia/Jakarta" }) : "—"}</span>
+          <span className="block text-xl font-bold leading-7 text-neutral-900" title={contentDate(t.createdAt, t.dateApprox)}>{at && !t.dateApprox ? at.toLocaleDateString(locale(), { day: "numeric", timeZone: "Asia/Jakarta" }) : at ? "≈" : "?"}</span>
+          <span className="block pb-0.5 text-[10px] text-neutral-500">{t.dateApprox ? "≈" : ""}{at?.getFullYear() ?? ""}</span>
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5 truncate text-xs text-brand-700">{ch && logo(ch.file, 12)}{site}</span>

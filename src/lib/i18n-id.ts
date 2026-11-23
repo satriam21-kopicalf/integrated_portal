@@ -7428,4 +7428,8 @@ export const ID: Record<string, string> = {
   "Mentions that use this word": "Mention yang memakai kata ini",
   "Mentions that name this city": "Mention yang menyebut kota ini",
   "Sentiment of the mentions": "Sentimen mention",
+  "Outside sources (not the official account): the tone of their mentions; the favourability index is in the tooltip": "Sumber luar (bukan akun resmi): tone mention mereka; indeks favorabilitas ada di tooltip",
+  "Mentions per keyword and month": "Mention per keyword dan bulan",
+  "Date unknown": "Tanggal tidak diketahui",
+  "approximate, from the age YouTube shows": "perkiraan, dari usia video yang ditampilkan YouTube",
 };

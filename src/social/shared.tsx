@@ -16,7 +16,8 @@ import { locale, tr } from "@/lib/i18n";
 
 export type Feel = "positive" | "neutral" | "negative";
 export type Post = { platform: string; post_id: string; source: string; url: string | null; author: string | null; text: string | null;
-  createdAt: string | null; likes: number | null; comments: number | null; views: number | null; sentiment: Feel | null; keywords?: string[] };
+  createdAt: string | null; likes: number | null; comments: number | null; views: number | null; sentiment: Feel | null; keywords?: string[];
+  /** the date is the age the search showed ("3mo ago"), not the exact upload */ dateApprox?: boolean };
 type Full = Post & { keyword: string | null; shares: number | null; firstSeen: string | null; lastSeen: string | null; raw: Record<string, unknown> };
 
 /** the real logos of the platforms (simple-icons, CC0, in their brand colour): public/assets/brand */
@@ -35,6 +36,15 @@ const SOURCE: Record<string, () => string> = {
 };
 export const num = (v: number | null | undefined) => (v === null || v === undefined ? "—" : v.toLocaleString(locale()));
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" }) : "—");
+/** The date of a content (2026-11-23): exact as published, "≈ month year" when only its age was known, "date unknown" —
+ *  never the day it was collected. */
+export function contentDate(iso: string | null | undefined, approx?: boolean, long = false): string {
+  if (!iso) return tr("Date unknown");
+  const d = new Date(iso);
+  if (approx) return `≈ ${d.toLocaleDateString(locale(), { month: "short", year: "numeric", timeZone: "Asia/Jakarta" })}`;
+  return long ? d.toLocaleString(locale(), { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })
+    : d.toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
+}
 const full = (iso: string | null) => (iso ? new Date(iso).toLocaleString(locale(), { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
 
 /** A strip of figures in one ruled row (the summary of a drawer). */
@@ -79,7 +89,7 @@ export function PostPreview({ platform, id, onClose, onBack }: { platform: strin
   const [title, ...body] = (d?.text ?? "").split("\n");
   return (
     <Drawer open iconPlain onClose={onClose} onBack={onBack} size="lg" icon={pf ? logo(pf.file, 18) : <Megaphone size={18} />} title={d?.author ?? (pf?.label ?? platform)}
-      description={d ? `${pf?.label ?? platform} · ${(SOURCE[d.source] ?? (() => d.source))()} · ${day(d.createdAt ?? d.firstSeen)}` : undefined}
+      description={d ? `${pf?.label ?? platform} · ${(SOURCE[d.source] ?? (() => d.source))()} · ${contentDate(d.createdAt, d.dateApprox)}` : undefined}
       footer={d?.url ? <a href={d.url} target="_blank" rel="noreferrer"><Button><ExternalLink size={15} /> {tr("Open on {0}", pf?.label ?? platform)}</Button></a> : undefined}>
       {error ? <ErrorState message={error} /> : !d ? <div className="space-y-3"><div className="skeleton h-48 rounded-lg" /><div className="skeleton h-24 rounded-lg" /></div> : (
         <div className="space-y-5">
@@ -114,7 +124,7 @@ export function PostPreview({ platform, id, onClose, onBack }: { platform: strin
                 [tr("Account / source"), d.author ?? "—"],
                 ...(site ? [[tr("Site"), site]] as [string, React.ReactNode][] : []),
                 [tr("Kind"), (SOURCE[d.source] ?? (() => d.source))()],
-                [tr("Published"), full(d.createdAt)],
+                [tr("Published"), d.dateApprox ? `${contentDate(d.createdAt, true)} · ${tr("approximate, from the age YouTube shows")}` : contentDate(d.createdAt, false, true)],
                 [tr("First found"), full(d.firstSeen)],
                 [tr("Figures updated"), full(d.lastSeen)],
               ] as [string, React.ReactNode][]).map(([k, v]) => (
@@ -182,7 +192,7 @@ export function DrillDrawer({ drill, onClose }: { drill: Drill; onClose: () => v
                       <button type="button" onClick={() => setOpen(p)} className="flex w-full gap-3 px-3 py-2.5 text-left hover:bg-neutral-50">
                         <span className="pt-0.5">{pf ? logo(pf.file, 16) : <Megaphone size={16} />}</span>
                         <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-2 text-[11px] text-neutral-500"><span className="truncate font-semibold text-neutral-700">{p.author ?? "—"}</span><span>· {day(p.createdAt)}</span></span>
+                          <span className="flex items-center gap-2 text-[11px] text-neutral-500"><span className="truncate font-semibold text-neutral-700">{p.author ?? "—"}</span><span>· {contentDate(p.createdAt, p.dateApprox)}</span></span>
                           <span className="line-clamp-2 text-sm text-neutral-900">{first || "—"}</span>
                           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-neutral-500">
                             {p.sentiment && <Lozenge tone={FEEL[p.sentiment].tone}>{FEEL[p.sentiment].label()}</Lozenge>}

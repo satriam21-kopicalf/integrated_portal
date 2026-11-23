@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, Eye, Megaphone, Tag, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button, ErrorState, cx } from "@/so/ui";
-import { PostPreview } from "@/social/shared";
+import { PostPreview, contentDate } from "@/social/shared";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { CardFooter, Lozenge, type LozengeTone, QuickChips, Toolbar, WorkCard, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod } from "@/so/ui/MonitorFilters";
@@ -19,7 +19,7 @@ import { locale, tr } from "@/lib/i18n";
 
 type Post = { platform: string; post_id: string; source: string; url: string | null; author: string | null; text: string | null;
   createdAt: string | null; likes: number | null; comments: number | null; views: number | null; sentiment: "positive" | "negative" | "neutral" | null;
-  /** migration 137: every keyword the post names */ keywords?: string[] };
+  /** migration 137: every keyword the post names */ keywords?: string[]; dateApprox?: boolean };
 type Summary = { platforms: { platform: string; posts: number; views: number; likes: number; comments: number; positive: number; negative: number }[];
   daily: { day: string; posts: number }[]; authors: { author: string; platform: string; posts: number; views: number }[];
   runs: { source: string; startedAt: string; finishedAt: string | null; found: number | null; added: number | null; error: string | null }[];
@@ -37,7 +37,6 @@ const FEEL: Record<string, { label: () => string; tone: LozengeTone }> = {
   positive: { label: () => tr("Positive"), tone: "green" }, negative: { label: () => tr("Negative"), tone: "red" }, neutral: { label: () => tr("Neutral"), tone: "grey" },
 };
 const n = (v: number | null | undefined) => (v === null || v === undefined ? "—" : v.toLocaleString(locale()));
-const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" }) : "—");
 const PAGE = 50;
 
 export default function SocialMediaPage() {
@@ -151,7 +150,7 @@ export default function SocialMediaPage() {
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Views")}>{n(p.views)}</td>
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Likes")}>{n(p.likes)}</td>
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Comments")}>{n(p.comments)}</td>
-                      <td className={cx(jTd, "whitespace-nowrap text-neutral-600")} data-label={tr("Date")}>{when(p.createdAt)}</td>
+                      <td className={cx(jTd, "whitespace-nowrap text-neutral-600")} data-label={tr("Date")}>{contentDate(p.createdAt, p.dateApprox)}</td>
                     </tr>
                   );
                 })}
