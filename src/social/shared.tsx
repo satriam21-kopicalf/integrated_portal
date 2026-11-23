@@ -73,7 +73,7 @@ export function PostPreview({ platform, id, onClose, onBack }: { platform: strin
   }, [platform, id]);
   const pf = PLATFORM[platform];
   const video = d && d.source !== "comment" ? (platform === "youtube" ? `https://www.youtube-nocookie.com/embed/${d.post_id}`
-    : platform === "tiktok" ? `https://www.tiktok.com/embed/v2/${d.post_id}` : null) : null;
+    : platform === "tiktok" ? `https://www.tiktok.com/player/v1/${d.post_id}?music_info=1&description=1&rel=0` : null) : null;
   const kws = d ? (d.keywords?.length ? d.keywords : d.keyword ? [d.keyword] : []) : [];
   const site = typeof d?.raw?.site === "string" ? (d.raw.site as string).replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
   const [title, ...body] = (d?.text ?? "").split("\n");
@@ -89,9 +89,10 @@ export function PostPreview({ platform, id, onClose, onBack }: { platform: strin
           </div>
           {video && (
             platform === "tiktok" ? (
-              // the TikTok player keeps its own size (325 x 575, the official embed): a ratio box squeezed it
+              // the official TikTok player (the URL TikTok's own oEmbed gives, player/v1; embed/v2 could show another video),
+              // at its own size 325 x 578
               <div className="mx-auto w-full max-w-[325px] overflow-hidden rounded-lg border border-neutral-200 bg-white">
-                <iframe src={video} title={title || tr("Video")} width="325" height="575" className="block h-[575px] w-full" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" />
+                <iframe src={video} title={title || tr("Video")} width="325" height="578" className="block h-[578px] w-full" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" />
               </div>
             ) : (
               <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
