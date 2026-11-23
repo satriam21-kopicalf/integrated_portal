@@ -13,8 +13,8 @@ import { EmptyState, IconButton, SearchInput, StatCard, StatGrid, ValueSkeleton,
 import Drawer, { DrawerSection } from "@/components/kc/Drawer";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { dmyOf } from "@/components/kc/ScopeBar";
-import { CotrFilterBar } from "@/cotr/FilterBar";
-import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
+import { CotrChips, CotrFilterBar } from "@/cotr/FilterBar";
+import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool } from "@/cotr/types";
 import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
@@ -79,21 +79,18 @@ export function PoolWaste({ pool: fixed, day }: { pool?: string; day?: string })
   const cupsOf = (f: (w: Waste) => boolean) => listed.filter((w) => w.menu_code && f(w)).reduce((a, w) => a + Number(w.qty), 0);
   const usedPools = new Set((rows ?? []).map((w) => w.pool_code));
   const valid = !!form.pool_code && form.qty > 0 && !!form.reason.trim() && (form.target === "menu" ? !!form.menu_code : !!form.item.trim());
-  const actions = (
-    <div className="flex flex-wrap items-center gap-2">
-      <SearchInput value={q} onChange={setQ} placeholder={tr("Search item or reason")} />
-      <Button variant="secondary" onClick={() => open("cupping")}><Coffee size={15} /> {tr("Record Cupping")}</Button>
-      <Button onClick={() => open("storage")}><Plus size={15} /> {tr("Record Waste")}</Button>
-    </div>
-  );
+  // one toolbar row (2026-11-23): filters, search and the waste / cupping chips at the left, the two buttons at the right
+  const buttons = (<>
+    <Button variant="secondary" onClick={() => open("cupping")}><Coffee size={15} /> {tr("Record Cupping")}</Button>
+    <Button onClick={() => open("storage")}><Plus size={15} /> {tr("Record Waste")}</Button>
+  </>);
+  const chips = <CotrChips label={tr("Type")} value={kindF} onChange={setKindF}
+    choices={[{ value: "" as const, label: tr("All") }, { value: "waste" as const, label: tr("Waste") }, { value: "cupping" as const, label: tr("Cupping") }]} />;
   return (
     <>
-      {fixed ? <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div> : (
-        <CotrFilterBar onOpen={() => { setDraft(poolF); setSheet(true); }} right={actions}
-          scopes={[{ key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolF ? poolName(poolF) : tr("All pools"), active: !!poolF }]} />
-      )}
-      <Segments value={kindF} onChange={(v) => setKindF(v as "" | "waste" | "cupping")}
-        choices={[{ value: "", label: tr("All") }, { value: "waste", label: tr("Waste") }, { value: "cupping", label: tr("Cupping") }]} />
+      <CotrFilterBar onOpen={fixed ? undefined : () => { setDraft(poolF); setSheet(true); }} right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search item or reason")} />}
+        chips={chips} actions={buttons}
+        scopes={fixed ? [] : [{ key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: poolF ? poolName(poolF) : tr("All pools"), active: !!poolF }]} />
       <StatGrid label={tr("Waste & Cupping of the Pools")} cols={4}>
         <StatCard label={tr("Entries")} icon={<ClipboardList />} value={rows ? listed.length : <ValueSkeleton />} sub={tr("Last 30 Days")} />
         <StatCard label={tr("Waste (cups)")} tone="warn" icon={<Trash2 />} value={rows ? cupsOf((w) => w.kind !== "cupping") : <ValueSkeleton />} sub={tr("menus")} />

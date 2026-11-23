@@ -21,7 +21,7 @@ import { MonthlyExport } from "@/cotr/MonthlyExport";
 import { CashReconcile } from "@/cotr/CashReconcile";
 import { StorageJournals } from "@/cotr/StorageJournals";
 import { useFlowTab } from "@/cotr/FlowNav";
-import { Tabs } from "@/components/kc";
+import { CardBody, WorkCard } from "@/so/ui/Jira";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Badge, Empty, ErrorState, Input } from "@/so/ui";
 import { Page, Panel } from "@/components/kc/compat";
@@ -78,11 +78,10 @@ export function ProductionSection({ section }: { section: Section }) {
   }, [section]);
   return (
     <Page eyebrow="Calf On The Road" media={def.icon} title={def.title()} subtitle={def.subtitle()} actions={section === "reports" ? <MonthlyExport /> : undefined}>
-      {def.tabs.length > 1 && (
-        <Tabs label={def.title()} value={tab} onChange={(k) => setTab(k as Tab)}
-          tabs={def.tabs.map((t) => ({ key: t.key, label: <span className="inline-flex items-center gap-1.5">{t.icon}{t.label()}</span> }))} />
-      )}
-      {BODY[tab]()}
+      {/* Jira-like (2026-11-23): one card, the tabs of the page in its head, the tab's own toolbar and content inside */}
+      <WorkCard label={def.title()} active={tab} onTab={(k) => setTab(k)} tabs={def.tabs.map((t) => ({ key: t.key, label: t.label(), icon: t.icon }))}>
+        <CardBody>{BODY[tab]()}</CardBody>
+      </WorkCard>
     </Page>
   );
 }

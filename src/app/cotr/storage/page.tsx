@@ -5,21 +5,20 @@
 // settles the differences a driver reports (the final cups = the start stock of the shift), and decides the reloads:
 // approve with the cups sent (fewer when short) or reject, then settle a difference found on arrival.
 
-import { ChevronDown, AlertTriangle, Building2, CalendarDays, Check, ClipboardCopy, Coffee, PackagePlus, Save, Send, Sparkles, UserRound, Warehouse, X } from "lucide-react";
+import { ChevronDown, AlertTriangle, Boxes, Building2, CalendarDays, Check, ClipboardCopy, Coffee, Moon, PackagePlus, Save, Send, Sparkles, UserRound, Warehouse, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, Empty, ErrorState, Input, cx, usePaged, useToast } from "@/so/ui";
+import { Button, Empty, ErrorState, Input, cx, usePaged, useToast } from "@/so/ui";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { SearchInput } from "@/components/kc";
 import { DayField, dmyOf } from "@/components/kc/ScopeBar";
-import { CotrFilterBar } from "@/cotr/FilterBar";
-import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
+import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
+import { type ActiveFilter, FilterToolbar } from "@/so/ui/Filters";
+import { CardBody, CardFooter, Lozenge, type LozengeTone, Person, QuickChips, Toolbar, WorkCard, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { Menu, Pool, Stock } from "@/cotr/types";
 import { useAuth } from "@/lib/auth";
 import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
 import { PoolBatches } from "@/cotr/Batches";
 import { PoolWaste } from "@/cotr/PoolWaste";
-import { PoolLedger } from "@/cotr/PoolLedger";
 import { ClosingBar } from "@/cotr/Closing";
 import { FifoPanel } from "@/cotr/Fifo";
 import { PoolAvailable } from "@/cotr/PoolAvailable";
@@ -56,7 +55,8 @@ const FILTER_STATUS: Record<Exclude<DriverFilter, "">, () => string> = {
 };
 const matchStatus = (r: Row, f: DriverFilter) => !f || (f === "road" ? !!r.shift : f === "none" ? !r.dispatch && !r.shift : !r.shift && r.dispatch?.status === f);
 
-const STATUS: Record<Dispatch["status"], { label: () => string; tone: "blue" | "red" | "green" }> = {
+const DOT: Record<Exclude<DriverFilter, "">, string> = { none: "bg-neutral-400", assigned: "bg-blue-500", disputed: "bg-red-500", accepted: "bg-emerald-500", road: "bg-teal-500" };
+const STATUS: Record<Dispatch["status"], { label: () => string; tone: LozengeTone }> = {
   assigned: { label: () => tr("Waiting for the driver's check"), tone: "blue" },
   disputed: { label: () => tr("Difference Reported"), tone: "red" },
   accepted: { label: () => tr("Accepted"), tone: "green" },
@@ -79,6 +79,7 @@ export default function CotrStoragePage() {
   const hub = user?.hubPool ?? null;
   const poolCode = hub ?? pool;  // "" = every pool (the default)
   const [status, setStatus] = useState<DriverFilter>("");
+  const [tab, setTab] = useState<"assign" | "settle" | "stock" | "waste" | "closing">("assign");
   const [q, setQ] = useState("");
   // #17: on phones a driver card folds; the ones still to assign open by themselves
   const [opened, setOpened] = useState<Record<string, boolean>>({});
@@ -143,188 +144,188 @@ export default function CotrStoragePage() {
   const name = (code: string) => rows.find((r) => r.code === code)?.name ?? code;
   const listed = rows.filter((r) => matchStatus(r, status) && (!q.trim() || `${r.name} ${r.nickname ?? ""} ${r.code} ${r.fleet ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())));
 
+  const poolLabel = usable.find((p) => p.code === poolCode)?.name ?? poolCode;
+  const filters: ActiveFilter[] = [
+    ...(poolCode && !hub ? [{ key: "pool", label: `${tr("Pool / HUB")}: ${poolLabel}`, onRemove: () => setPool("") }] : []),
+    ...(day !== todayWib() ? [{ key: "day", label: `${tr("Day")}: ${dmyOf(day)}`, onRemove: () => setDay(todayWib()) }] : []),
+  ];
+  const count = (f: DriverFilter) => rows.filter((r) => matchStatus(r, f)).length;
+  const settleCount = disputes.length + reloads.length;
+  const needPool = <Empty icon={<Building2 size={28} />} title={tr("Choose a pool first")}>{tr("Open Filters and choose the pool / HUB: this part works on one pool at a time.")}</Empty>;
+
   return (
-    <Page eyebrow="Calf On The Road" media={<Warehouse size={19} />} title={tr("Storage & Assignment")} subtitle={tr("Products every driver takes, differences and reloads of the pool")}
-      stats={<>
-        <CotrFilterBar onOpen={() => setSheet(true)} scopes={[
-          { key: "pool", icon: <Building2 />, label: hub ? tr("Your pool / HUB") : tr("Pool / HUB"), value: usable.find((p) => p.code === poolCode)?.name ?? (poolCode || tr("All pools")), active: !!poolCode && !hub },
-          { key: "day", icon: <CalendarDays />, label: tr("Day"), value: day === todayWib() ? tr("Today") : dmyOf(day) },
-          { key: "status", icon: <UserRound />, label: tr("Drivers"), value: status ? FILTER_STATUS[status]() : tr("All"), active: !!status },
-        ]} />
-        <StatStrip label={tr("Summary")} columns={5}>
-          <Stat label={tr("Drivers")} icon={<Warehouse size={16} />} value={data ? rows.length : <StatSkeleton />} />
-          <Stat label={tr("Assigned")} icon={<Send size={16} />} value={data ? rows.filter((r) => r.dispatch).length : <StatSkeleton />} />
-          <Stat label={tr("Accepted")} icon={<Check size={16} />} value={data ? rows.filter((r) => r.dispatch?.status === "accepted").length : <StatSkeleton />} />
-          <Stat label={tr("Differences to Settle")} icon={<AlertTriangle size={16} />} value={data ? disputes.length : <StatSkeleton />} emphasis={disputes.length > 0} />
-          <Stat label={tr("Reloads to Decide")} icon={<PackagePlus size={16} />} value={data ? reloads.length : <StatSkeleton />} emphasis={reloads.length > 0} />
+    <Page eyebrow="Calf On The Road" media={<Warehouse size={19} />} title={tr("Storage & Assignment")}
+      subtitle={`${hub ? poolLabel : poolCode ? poolLabel : tr("All pools")} · ${day === todayWib() ? tr("Today") : dmyOf(day)}`}
+      stats={
+        <StatStrip label={tr("Summary")} columns={5} gridClassName="grid-cols-2 xl:grid-cols-5">
+          <Stat label={tr("Drivers")} icon={<UserRound size={13} />} value={data ? rows.length : <StatSkeleton />} onClick={data ? () => { setTab("assign"); setStatus(""); } : undefined} />
+          <Stat label={tr("Not assigned")} icon={<Send size={13} />} value={data ? count("none") : <StatSkeleton />} active={tab === "assign" && status === "none"}
+            onClick={data ? () => { setTab("assign"); setStatus("none"); } : undefined} />
+          <Stat label={tr("Accepted")} icon={<Check size={13} />} value={data ? count("accepted") : <StatSkeleton />} active={tab === "assign" && status === "accepted"}
+            onClick={data ? () => { setTab("assign"); setStatus("accepted"); } : undefined} />
+          <Stat label={tr("Differences to Settle")} icon={<AlertTriangle size={13} />} value={data ? disputes.length : <StatSkeleton />} emphasis={disputes.length > 0}
+            onClick={data ? () => setTab("settle") : undefined} />
+          <Stat label={tr("Reloads to Decide")} icon={<PackagePlus size={13} />} value={data ? reloads.length : <StatSkeleton />} emphasis={reloads.length > 0}
+            onClick={data ? () => setTab("settle") : undefined} />
         </StatStrip>
-      </>}>
+      }>
       {sheet && (
-        <MonitorFilterSheet active={status ? 1 : 0} onClose={() => setSheet(false)} onReset={() => setDraftF({ pool: "", day: todayWib(), status: "" })}
-          onApply={() => { setPool(draftF.pool); setDay(draftF.day); setStatus(draftF.status); setSheet(false); }}>
-          {!hub && <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={usable.find((p) => p.code === draftF.pool)?.name ?? null}>
+        <MonitorFilterSheet active={[draftF.pool && !hub, draftF.day !== todayWib()].filter(Boolean).length} onClose={() => setSheet(false)} onReset={() => setDraftF({ pool: "", day: todayWib(), status })}
+          onApply={() => { setPool(draftF.pool); setDay(draftF.day); setSheet(false); }}>
+          {!hub && <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={usable.find((p) => p.code === draftF.pool)?.name ?? null} onClear={() => setDraftF({ ...draftF, pool: "" })}>
             <ComboFilter value={draftF.pool} onChange={(v) => setDraftF({ ...draftF, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
               options={usable.map((p) => ({ value: p.code, label: p.name, hint: p.city }))} />
           </FilterRow>}
           <FilterRow icon={<CalendarDays size={15} />} label={tr("Day")} value={dmyOf(draftF.day)}>
             <DayField value={draftF.day} onChange={(v) => setDraftF({ ...draftF, day: v })} future />
           </FilterRow>
-          <FilterRow icon={<UserRound size={15} />} label={tr("Drivers")} value={draftF.status ? FILTER_STATUS[draftF.status]() : null} onClear={() => setDraftF({ ...draftF, status: "" })}>
-            <OptionList value={draftF.status} onChange={(v) => setDraftF({ ...draftF, status: v as DriverFilter })}
-              choices={[{ value: "", label: tr("Every Driver") }, ...(Object.keys(FILTER_STATUS) as Exclude<DriverFilter, "">[]).map((k) => ({ value: k, label: FILTER_STATUS[k]() }))]} />
-          </FilterRow>
         </MonitorFilterSheet>
       )}
-      {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !data ? <SkeletonList rows={5} /> : (
-        <>
-          {/* migration 094: the night closing of the pool (one pool chosen) */}
-          {poolCode && <ClosingBar key={`${poolCode}:${day}`} pool={poolCode} poolName={usable.find((p) => p.code === poolCode)?.name ?? poolCode} day={day} />}
-
-          {disputes.length > 0 && (
-            <Panel title={tr("Differences reported by the drivers")} description={tr("Set the final cups: they become the start stock of the shift")}>
-              <div className="grid gap-3 p-4 lg:grid-cols-2">
-                {disputes.map((r) => <Settle key={r.code} title={`${r.name} · ${r.fleet ?? ""}`} menus={menus} expected={r.dispatch!.lines}
-                  found={r.dispatch!.driverCounts ?? {}} note={r.dispatch!.driverNote} url={`/api/cotr/dispatch/${r.dispatch!.id}/resolve`} onDone={load} />)}
+      {/* Jira-like (2026-11-23, the COTR team: one page of many blocks was confusing): one card, one job per tab */}
+      <WorkCard label={tr("Section")} active={tab} onTab={setTab} tabs={[
+        { key: "assign", label: tr("Assignment"), icon: <Send size={15} />, count: data ? rows.length : null },
+        { key: "settle", label: tr("Differences & Reloads"), icon: <AlertTriangle size={15} />, count: data ? settleCount : null },
+        { key: "stock", label: tr("Stock Ready"), icon: <Boxes size={15} /> },
+        { key: "waste", label: tr("Waste & Cupping"), icon: <Coffee size={15} /> },
+        { key: "closing", label: tr("Night Closing"), icon: <Moon size={15} /> },
+      ]}>
+        <Toolbar>
+          {tab === "assign" && <QuickChips label={tr("Drivers")} value={status} onChange={setStatus} items={[
+            { key: "" as DriverFilter, label: tr("All"), count: data ? rows.length : null },
+            ...(Object.keys(FILTER_STATUS) as Exclude<DriverFilter, "">[]).map((k) => ({ key: k, label: FILTER_STATUS[k](), dot: DOT[k], count: data ? count(k) : null }))]} />}
+          <FilterToolbar search={tab === "assign" ? q : undefined} onSearch={tab === "assign" ? setQ : undefined} placeholder={tr("Search driver or fleet")}
+            filters={filters} onOpen={() => setSheet(true)} onClear={() => { setPool(""); setDay(todayWib()); }}
+            extra={tab === "assign" && rows.length > 0 ? <div className="flex flex-wrap gap-2 sm:ml-auto">
+              <Button size="sm" variant="secondary" onClick={fromAdvice}><Sparkles size={14} /> {tr("Use the advice for all")}</Button>
+              <Button size="sm" variant="secondary" onClick={fromYesterday}><ClipboardCopy size={14} /> {tr("Fill from the last day")}</Button>
+            </div> : undefined} />
+        </Toolbar>
+        {error ? <div className="p-4"><ErrorState message={error} onRetry={() => void load()} /></div> : !data ? <div className="p-4"><SkeletonList rows={5} /></div> : tab === "assign" ? (
+          <>
+            {need.some((n) => n.sell + n.cupping > 0) && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-neutral-100 bg-neutral-50/60 px-4 py-2 text-xs text-neutral-600 sm:px-5">
+                <span className="font-semibold text-neutral-700">{tr("The pool prepares")}</span>
+                {need.filter((n) => n.sell + n.cupping > 0).map((n) => (
+                  <span key={n.menu.code} className="tabular-nums"><b className="text-neutral-900">{n.sell + n.cupping}</b> {n.menu.name}{n.cupping ? ` (${tr("{0} cupping", n.cupping)})` : ""}</span>
+                ))}
               </div>
-            </Panel>
-          )}
-
-          {reloads.length > 0 && (
-            <Panel title={tr("Reloads")} description={tr("Approve with the cups sent (fewer when short) or reject; settle a difference found on arrival")}>
-              <div className="grid gap-3 p-4 lg:grid-cols-2">
-                {reloadPage.rows.map((r) => r.status === "requested"
-                  ? <ReloadDecide key={r.id} r={r} title={`${name(r.driver)} · ${time(r.at)}`} menus={menus} onDone={load} />
-                  : <Settle key={r.id} title={`${tr("Reload")} · ${name(r.driver)} · ${time(r.at)}`} menus={menus} expected={r.approvedLines ?? r.lines}
-                      found={r.driverCounts ?? {}} note={r.driverNote} url={`/api/cotr/reloads/${r.id}/resolve`} onDone={load} />)}
-              </div>
-              <CotrPager paged={reloadPage} className="px-4 pb-3" />
-            </Panel>
-          )}
-
-          {/* migration 090: what the pool can still assign today (ESB COTR transfers in) */}
-          <PoolAvailable pool={poolCode} day={day} version={tick} />
-
-          {/* #13: the batch codes to give, first expiring first (one pool chosen) */}
-          {poolCode && <FifoPanel pool={poolCode} day={day} version={tick} />}
-
-          <PoolBatches pool={poolCode} />
-
-          {/* migration 089: the cups per menu at the pool, from the opening stock */}
-          <PoolLedger pool={poolCode} day={day} embedded />
-
-          {/* migration 088: the waste and the cupping of this pool / HUB */}
-          <PoolWaste pool={poolCode} day={day} />
-
-          <Panel title={tr("What the pool prepares today")} description={tr("Total per product of the assignments below: to sell and for cupping")}>
-            <div className="grid grid-cols-2 gap-px bg-neutral-100 sm:grid-cols-3 lg:grid-cols-6">
-              {need.map((n) => (
-                <div key={n.menu.code} className="bg-white px-3 py-2.5">
-                  <p className="truncate text-xs font-medium text-neutral-600" title={n.menu.name}>{n.menu.name}</p>
-                  <p className="text-xl font-bold tabular-nums text-neutral-900">{n.sell + n.cupping}</p>
-                  <p className="text-[11px] text-neutral-500">{tr("{0} to sell · {1} cupping", n.sell, n.cupping)}</p>
-                </div>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel title={tr("Assignment of the Day")} description={tr("Products every driver carries, set per driver from his sales: what to sell and what is for cupping")}
-            toolbar={rows.length > 0 ? <div className="flex flex-wrap items-center gap-2">
-              <SearchInput value={q} onChange={setQ} placeholder={tr("Search driver or fleet")} />
-              <span className="text-xs tabular-nums text-neutral-500">{tr("{0} of {1}", listed.length, rows.length)}</span>
-            </div> : undefined}
-            actions={<>
-              <Button size="sm" variant="secondary" onClick={fromAdvice}><Sparkles size={14} /> <span className="hidden sm:inline">{tr("Use the advice for all")}</span></Button>
-              <Button size="sm" variant="secondary" onClick={fromYesterday}><ClipboardCopy size={14} /> <span className="hidden sm:inline">{tr("Fill from the last day")}</span></Button>
-            </>}>
+            )}
             {rows.length === 0 ? <Empty title={tr("No driver in this pool")}>{tr("Add the drivers in Master Driver.")}</Empty> : listed.length === 0 ? <Empty title={tr("No driver matches the search or filters")} /> : (
-              <ul className="grid gap-3 p-3 sm:p-4 xl:grid-cols-2">
-                {listed.map((r) => {
-                  const can = editable(r);
-                  const plan = draft[r.code] ?? { sell: {}, cupping: {} };
-                  const shown = can ? plan : planOf(r.dispatch);
-                  const st = r.dispatch ? STATUS[r.dispatch.status] : null;
-                  const a = r.advice;
-                  const open = opened[r.code] ?? (can && (!r.dispatch || changed(r)));
-                  const total = cups(shown.sell) + cups(shown.cupping);
-                  return (
-                    <li key={r.code} className={cx("rounded-md border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-neutral-200")}>
-                      <div role="button" tabIndex={0} aria-expanded={open} onClick={() => setOpened((o) => ({ ...o, [r.code]: !open }))}
-                        onKeyDown={(e) => { if (e.key === "Enter") setOpened((o) => ({ ...o, [r.code]: !open })); }}
-                        className={cx("flex cursor-pointer items-start gap-3 px-4 py-3 sm:cursor-default", open ? "border-b border-neutral-100" : "border-b border-neutral-100 max-sm:border-b-0")}>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-neutral-900">{r.name}</p>
-                          <p className="text-[11px] text-neutral-500">{[r.nickname, r.fleet ?? r.code].filter(Boolean).join(" · ")}</p>
-                          <span className="mt-1 block sm:hidden">{r.shift ? <Badge tone="green" dot>{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Badge>
-                          : st ? <Badge tone={st.tone}>{st.label()}</Badge> : <Badge tone="slate">{tr("Not assigned")}</Badge>}</span>
-                        </div>
-                        {total > 0 && <span className="flex-shrink-0 pt-0.5 text-sm font-bold tabular-nums text-neutral-900 sm:hidden">{tr("{0} cups", total)}</span>}
-                        <ChevronDown size={16} className={cx("mt-0.5 flex-shrink-0 text-neutral-400 transition-transform sm:hidden", open && "rotate-180")} />
-                        <span className="max-sm:hidden">{r.shift ? <Badge tone="green" dot>{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Badge>
-                          : st ? <Badge tone={st.tone}>{st.label()}</Badge> : <Badge tone="slate">{tr("Not assigned")}</Badge>}</span>
-                      </div>
-                      <div className={cx(!open && "max-sm:hidden")}>
-                      {a && (
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-neutral-50/70 px-4 py-2 text-[11px] text-neutral-600">
-                          <span className="inline-flex items-center gap-1 font-medium text-neutral-700"><Sparkles size={12} className="text-violet-600" />
-                            {a.source === "pool" ? tr("Advice from the pool average") : tr("Advice from {0} days worked", a.days)}</span>
-                          {a.wasteRate !== null && <span className={cx(a.wasteRate > 0.15 ? "font-semibold text-red-700" : "")}>{tr("waste {0}%", Math.round(a.wasteRate * 100))}</span>}
-                          {can && <button type="button" onClick={() => applyAdvice(r)} className="ml-auto rounded-md bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-violet-700">{tr("Use advice")}</button>}
-                        </div>
-                      )}
-                      <table className="w-full text-sm">
-                        <thead className="text-xs font-semibold capitalize text-neutral-400">
-                          <tr><th className="px-4 pb-1 pt-2 text-left">{tr("Product")}</th><th className="w-20 px-1 pb-1 pt-2 text-center">{tr("Sell")}</th>
-                            <th className="w-20 px-1 pb-1 pt-2 text-center"><span className="inline-flex items-center gap-0.5"><Coffee size={10} />{tr("Cupping")}</span></th><th className="w-16 px-3 pb-1 pt-2 text-right">{tr("Carried")}</th></tr>
-                        </thead>
-                        <tbody>
-                          {menus.map((m) => {
-                            const sell = shown.sell[m.code] ?? 0, taste = shown.cupping[m.code] ?? 0;
-                            const hint = a ? `${tr("avg {0}/day", a.avgSold[m.code] ?? 0)} · ${tr("advice {0}", a.sell[m.code] ?? 0)}` : undefined;
-                            return (
-                              <tr key={m.code} className="border-t border-neutral-50">
-                                <td className="px-4 py-1"><span className="block truncate text-[13px] text-neutral-800">{m.name}</span>{hint && <span className="block text-[10px] text-neutral-400">{hint}</span>}</td>
-                                {(["sell", "cupping"] as const).map((part) => (
-                                  <td key={part} className="px-1 py-1 text-center">
-                                    {can ? (
-                                      <input inputMode="numeric" value={(part === "sell" ? sell : taste) || ""} placeholder="0" aria-label={`${r.name} · ${m.name} · ${part === "sell" ? tr("Sell") : tr("Cupping")}`}
-                                        onChange={(e) => setQty(r.code, part, m.code, Number(e.target.value.replace(/\D/g, "")) || 0)}
-                                        className={cx("h-10 w-full rounded-lg border text-center text-base tabular-nums focus:border-brand-500 focus:outline-none sm:h-9 sm:text-sm", part === "cupping" ? "border-amber-200 bg-amber-50/40" : "border-neutral-200")} />
-                                    ) : <span className="tabular-nums text-neutral-700">{(part === "sell" ? sell : taste) || "—"}</span>}
-                                  </td>
-                                ))}
-                                <td className="px-3 py-1 text-right font-semibold tabular-nums text-neutral-900">{sell + taste || "—"}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                        <tfoot>
-                          <tr className="border-t border-neutral-200 text-xs">
-                            <td className="px-4 py-2 font-semibold text-neutral-600">{tr("Total")}</td>
-                            <td className="px-1 py-2 text-center font-semibold tabular-nums">{cups(shown.sell)}</td>
-                            <td className="px-1 py-2 text-center font-semibold tabular-nums text-amber-700">{cups(shown.cupping)}</td>
-                            <td className="px-3 py-2 text-right font-bold tabular-nums">{cups(shown.sell) + cups(shown.cupping)}</td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                      </div>
-                    </li>
-                  );
-                })}
+              <ul className="grid gap-3 bg-neutral-50/60 p-3 sm:p-4 xl:grid-cols-2">
+                {listed.map((r) => driverCard(r))}
               </ul>
             )}
-          </Panel>
-
-          {toSave.length > 0 && (
-            <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-5 flex items-center gap-3 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mb-6 lg:px-8"
-              style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-              <p className="min-w-0 flex-1 text-xs text-neutral-600">{tr("{0} assignments not saved yet", toSave.length)}</p>
-              <Button loading={busy === "save"} onClick={() => void save(toSave)}><Save size={15} /> {tr("Save {0}", toSave.length)}</Button>
-            </div>
-          )}
-        </>
-      )}
+            <CardFooter><span>{tr("{0} of {1}", listed.length, rows.length)}</span>
+              {toSave.length > 0 && <span className="flex items-center gap-3"><span className="text-amber-700">{tr("{0} assignments not saved yet", toSave.length)}</span>
+                <Button size="sm" loading={busy === "save"} onClick={() => void save(toSave)}><Save size={14} /> {tr("Save {0}", toSave.length)}</Button></span>}
+            </CardFooter>
+          </>
+        ) : tab === "settle" ? (
+          <CardBody>
+            {settleCount === 0 ? <Empty icon={<Check size={28} />} title={tr("Nothing to settle")}>{tr("Differences reported by the drivers and reloads asked appear here.")}</Empty> : null}
+            {disputes.length > 0 && (
+              <Panel title={tr("Differences reported by the drivers")} description={tr("Set the final cups: they become the start stock of the shift")}>
+                <div className="grid gap-3 p-4 lg:grid-cols-2">
+                  {disputes.map((r) => <Settle key={r.code} title={`${r.name} · ${r.fleet ?? ""}`} menus={menus} expected={r.dispatch!.lines}
+                    found={r.dispatch!.driverCounts ?? {}} note={r.dispatch!.driverNote} url={`/api/cotr/dispatch/${r.dispatch!.id}/resolve`} onDone={load} />)}
+                </div>
+              </Panel>
+            )}
+            {reloads.length > 0 && (
+              <Panel title={tr("Reloads")} description={tr("Approve with the cups sent (fewer when short) or reject; settle a difference found on arrival")}>
+                <div className="grid gap-3 p-4 lg:grid-cols-2">
+                  {reloadPage.rows.map((r) => r.status === "requested"
+                    ? <ReloadDecide key={r.id} r={r} title={`${name(r.driver)} · ${time(r.at)}`} menus={menus} onDone={load} />
+                    : <Settle key={r.id} title={`${tr("Reload")} · ${name(r.driver)} · ${time(r.at)}`} menus={menus} expected={r.approvedLines ?? r.lines}
+                        found={r.driverCounts ?? {}} note={r.driverNote} url={`/api/cotr/reloads/${r.id}/resolve`} onDone={load} />)}
+                </div>
+                <CotrPager paged={reloadPage} className="px-4 pb-3" />
+              </Panel>
+            )}
+          </CardBody>
+        ) : tab === "stock" ? (
+          <CardBody>
+            {/* migration 090: what the pool can still assign today (ESB COTR transfers in) */}
+            <PoolAvailable pool={poolCode} day={day} version={tick} />
+            {/* #13: the batch codes to give, first expiring first (one pool chosen) */}
+            {poolCode && <FifoPanel pool={poolCode} day={day} version={tick} />}
+            <PoolBatches pool={poolCode} />
+          </CardBody>
+        ) : tab === "waste" ? (
+          <CardBody>{poolCode ? <PoolWaste pool={poolCode} day={day} /> : needPool}</CardBody>
+        ) : (
+          <CardBody>{poolCode ? <ClosingBar key={`${poolCode}:${day}`} pool={poolCode} poolName={poolLabel} day={day} /> : needPool}</CardBody>
+        )}
+      </WorkCard>
     </Page>
   );
+
+  function driverCard(r: Row) {
+    const can = editable(r);
+    const plan = draft[r.code] ?? { sell: {}, cupping: {} };
+    const shown = can ? plan : planOf(r.dispatch);
+    const st = r.dispatch ? STATUS[r.dispatch.status] : null;
+    const a = r.advice;
+    const open = opened[r.code] ?? (can && (!r.dispatch || changed(r)));
+    const total = cups(shown.sell) + cups(shown.cupping);
+    const lozenge = r.shift ? <Lozenge tone="green">{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Lozenge>
+      : st ? <Lozenge tone={st.tone}>{st.label()}</Lozenge> : <Lozenge tone="grey">{tr("Not assigned")}</Lozenge>;
+    return (
+      <li key={r.code} className={cx("rounded-lg border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-neutral-200")}>
+        <div role="button" tabIndex={0} aria-expanded={open} onClick={() => setOpened((o) => ({ ...o, [r.code]: !open }))}
+          onKeyDown={(e) => { if (e.key === "Enter") setOpened((o) => ({ ...o, [r.code]: !open })); }}
+          className={cx("flex cursor-pointer items-center gap-3 px-4 py-3 sm:cursor-default", open ? "border-b border-neutral-100" : "border-b border-neutral-100 max-sm:border-b-0")}>
+          <div className="min-w-0 flex-1"><Person name={r.name} sub={[r.nickname, r.fleet ?? r.code].filter(Boolean).join(" · ")} size={28} /></div>
+          {total > 0 && <span className="flex-shrink-0 text-xs font-semibold tabular-nums text-neutral-600">{tr("{0} cups", total)}</span>}
+          {lozenge}
+          <ChevronDown size={16} className={cx("flex-shrink-0 text-neutral-400 transition-transform sm:hidden", open && "rotate-180")} />
+        </div>
+        <div className={cx(!open && "max-sm:hidden")}>
+          {a && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-neutral-50/70 px-4 py-2 text-[11px] text-neutral-600">
+              <span className="inline-flex items-center gap-1 font-medium text-neutral-700"><Sparkles size={12} className="text-violet-600" />
+                {a.source === "pool" ? tr("Advice from the pool average") : tr("Advice from {0} days worked", a.days)}</span>
+              {a.wasteRate !== null && <span className={cx(a.wasteRate > 0.15 ? "font-semibold text-red-700" : "")}>{tr("waste {0}%", Math.round(a.wasteRate * 100))}</span>}
+              {can && <button type="button" onClick={() => applyAdvice(r)} className="ml-auto rounded-md bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-violet-700">{tr("Use advice")}</button>}
+            </div>
+          )}
+          <table className={jTable}>
+            <thead><tr className={jHeadRow}><th className={jTh}>{tr("Product")}</th><th className={cx(jTh, "w-20 text-center")}>{tr("Sell")}</th>
+              <th className={cx(jTh, "w-20 text-center")}>{tr("Cupping")}</th><th className={cx(jTh, "w-16 text-right")}>{tr("Carried")}</th></tr></thead>
+            <tbody>
+              {menus.map((m) => {
+                const sell = shown.sell[m.code] ?? 0, taste = shown.cupping[m.code] ?? 0;
+                const hint = a ? `${tr("avg {0}/day", a.avgSold[m.code] ?? 0)} · ${tr("advice {0}", a.sell[m.code] ?? 0)}` : undefined;
+                return (
+                  <tr key={m.code} className="border-b border-neutral-50">
+                    <td className={jTd}><span className="block truncate text-neutral-800">{m.name}</span>{hint && <span className="block text-[10px] text-neutral-400">{hint}</span>}</td>
+                    {(["sell", "cupping"] as const).map((part) => (
+                      <td key={part} className="px-1 py-1 text-center">
+                        {can ? (
+                          <input inputMode="numeric" value={(part === "sell" ? sell : taste) || ""} placeholder="0" aria-label={`${r.name} · ${m.name} · ${part === "sell" ? tr("Sell") : tr("Cupping")}`}
+                            onChange={(e) => setQty(r.code, part, m.code, Number(e.target.value.replace(/\D/g, "")) || 0)}
+                            className={cx("h-10 w-full rounded-md border text-center text-base tabular-nums focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100 sm:h-9 sm:text-sm", part === "cupping" ? "border-amber-200 bg-amber-50/40" : "border-neutral-200")} />
+                        ) : <span className="tabular-nums text-neutral-700">{(part === "sell" ? sell : taste) || "—"}</span>}
+                      </td>
+                    ))}
+                    <td className={cx(jTd, "text-right font-semibold tabular-nums text-neutral-900")}>{sell + taste || "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-neutral-200 text-xs">
+                <td className={cx(jTd, "font-semibold text-neutral-600")}>{tr("Total")}</td>
+                <td className="px-1 py-2 text-center font-semibold tabular-nums">{cups(shown.sell)}</td>
+                <td className="px-1 py-2 text-center font-semibold tabular-nums text-amber-700">{cups(shown.cupping)}</td>
+                <td className={cx(jTd, "text-right font-bold tabular-nums")}>{total}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </li>
+    );
+  }
 }
 
 /** A difference to settle: expected vs found per menu, the final cups (the driver's counts by default). */

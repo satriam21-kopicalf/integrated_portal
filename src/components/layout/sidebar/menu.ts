@@ -117,6 +117,7 @@ export const cotr: { title: string; hint: string; icon: typeof Users; items: CcI
     { get name() { return tr('Dashboard'); }, href: '/cotr/dashboard', icon: LayoutDashboard, get description() { return tr('One day of every pool: cups, waste, leftover & what waits'); } },
     { get name() { return tr('Storage & Assignment'); }, href: '/cotr/storage', icon: Warehouse, get description() { return tr('Morning assignment, reloads, night closing'); } },
     { get name() { return tr('Monitoring Armada - Driver'); }, href: '/cotr/check-in', icon: MapPinCheck, get description() { return tr('Shifts, sales, stock, cupping & waste of every driver'); } },
+    { get name() { return tr('Requests & Maintenance'); }, href: '/cotr/requests', icon: ClipboardList, get description() { return tr('Driver cost requests and fleet maintenance'); } },
     { get name() { return tr('Pool Stock'); }, href: '/cotr/production', icon: Boxes, get description() { return tr('Every night: leftover, batch codes, waste'); } },
   ] },
   { get title() { return tr('HUB & Warehouse'); }, get hint() { return tr('Production of the HUB and the storage warehouse'); }, icon: CookingPot, items: [

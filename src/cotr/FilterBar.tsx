@@ -82,29 +82,58 @@ export function CotrFilters({ fields, value, onApply, right, actions, onRefresh,
   );
 }
 
-export function CotrFilterBar({ scopes, onOpen, onRefresh, refreshing, right }: {
-  scopes: Scope[]; onOpen: () => void; onRefresh?: () => void; refreshing?: boolean; right?: ReactNode;
+/** Quick choices of a toolbar (status of the drivers, of the shifts …): one tap, the count beside each. */
+export function CotrChips<T extends string>({ value, onChange, choices, label }: {
+  value: T; onChange: (v: T) => void; label: string; choices: { value: T; label: string; count?: number; tone?: "warn" }[];
+}) {
+  return (
+    <div role="radiogroup" aria-label={label} className="flex max-w-full flex-wrap gap-1">
+      {choices.map((c) => {
+        const on = c.value === value;
+        return (
+          <button key={c.value} type="button" role="radio" aria-checked={on} onClick={() => onChange(c.value)}
+            className={cx("inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 text-xs font-medium transition-colors",
+              on ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50")}>
+            {c.label}
+            {c.count !== undefined && <span className={cx("tabular-nums", on ? "text-white/75" : c.tone === "warn" && c.count > 0 ? "font-semibold text-red-600" : "text-neutral-400")}>{c.count}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The one toolbar row of a COTR tab (2026-11-23, the team found the filters, search and buttons scattered): the Filters
+ * button (when there is a drawer), the search, the quick choices (`chips`), then the buttons of the tab at the right.
+ * On a phone the buttons go to their own line, full width.
+ */
+export function CotrFilterBar({ scopes, onOpen, onRefresh, refreshing, right, chips, actions }: {
+  scopes: Scope[]; onOpen?: () => void; onRefresh?: () => void; refreshing?: boolean; right?: ReactNode;
+  /** quick choices beside the search (status chips) */ chips?: ReactNode; /** the buttons of the tab, at the right */ actions?: ReactNode;
 }) {
   const count = scopes.filter((s) => s.active).length;
   return (
     <div className="space-y-1.5">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={onOpen} aria-label={count ? tr("Filters, {0} active", count) : tr("Filters")}
+        {onOpen && <button type="button" onClick={onOpen} aria-label={count ? tr("Filters, {0} active", count) : tr("Filters")}
           className={cx("inline-flex h-10 items-center gap-2 rounded-lg border px-3.5 text-[13px] font-semibold shadow-sm transition-colors sm:h-9",
             count ? "border-brand-600 bg-brand-600 text-white hover:bg-brand-700" : "border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50")}>
           <SlidersHorizontal size={15} /> {tr("Filters")}
           {count > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-bold tabular-nums text-brand-700">{count}</span>}
-        </button>
-        {right && <div className="min-w-0 flex-1 sm:max-w-sm">{right}</div>}
+        </button>}
+        {right && <div className="min-w-0 flex-1 sm:max-w-xs">{right}</div>}
+        {chips && <div className="flex max-w-full flex-wrap items-center gap-1">{chips}</div>}
         {onRefresh && (
           <button type="button" onClick={onRefresh} title={tr("Refresh")} aria-label={tr("Refresh")}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 shadow-sm hover:bg-neutral-50 hover:text-neutral-900 sm:h-9 sm:w-9">
             <RefreshCw size={15} className={refreshing ? "animate-spin" : undefined} />
           </button>
         )}
+        {actions && <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto [&>*]:max-sm:flex-1">{actions}</div>}
       </div>
       {scopes.length > 0 && (
-        <button type="button" onClick={onOpen} className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-left text-xs text-neutral-500 hover:text-neutral-800">
+        <button type="button" onClick={onOpen} disabled={!onOpen} className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-left text-xs text-neutral-500 hover:text-neutral-800">
           {scopes.map((s, i) => (
             <span key={s.key} className="inline-flex min-w-0 items-center gap-1">
               {i > 0 && <span className="text-neutral-300" aria-hidden>·</span>}

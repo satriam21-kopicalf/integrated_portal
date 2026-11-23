@@ -95,6 +95,7 @@ export function pageOf(pathname: string): PageKey | 'superadmin' | null {
   if (pathname === '/users' || pathname.startsWith('/users/') || pathname === '/activity' || pathname.startsWith('/activity/')) return 'superadmin';
   if (pathname === '/cost-control') return 'cc.cogs';
   if (pathname === '/cotr/dashboard') return 'cotr.check-in';  // the COTR dashboard: whoever monitors the drivers
+  if (pathname === '/cotr/requests') return 'cotr.check-in';  // Requests & Maintenance (2026-11-23): driver costs + fleet issues
   // the pages of Storage & Production (2026-11-22, src/cotr/Production.tsx): one page key, four pages
   if (['/cotr/hub', '/cotr/warehouse', '/cotr/reports'].includes(pathname)) return 'cotr.production';
   // Form → Procurement (2026-11-16) opens with the same page as Form → Maintenance

@@ -5,40 +5,36 @@
 // the end), the reloads to approve or reject for the pool, the cost requests to approve or reject, and where the
 // drivers are (the GPS of their phone while the shift is open, on a map).
 
-import { Building2, CalendarDays, Camera, Check, LogIn, LogOut, MapPin, MapPinCheck, PackagePlus, TriangleAlert, Wallet, X } from "lucide-react";
+import { Building2, CalendarDays, Camera, Check, LogIn, LogOut, MapPin, MapPinCheck, PackagePlus, TriangleAlert, Wallet } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Drawer from "@/so/ui/Drawer";
-import { Badge, Button, Empty, ErrorState, Input, cx, usePaged, useToast } from "@/so/ui";
-import { SearchInput, Tabs } from "@/components/kc";
+import { Badge, Button, Empty, ErrorState, cx, usePaged } from "@/so/ui";
+import { SearchInput } from "@/components/kc";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { DayField, dmyOf } from "@/components/kc/ScopeBar";
-import { CotrFilterBar } from "@/cotr/FilterBar";
-import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList } from "@/so/ui/MonitorFilters";
+import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
+import { type ActiveFilter, FilterToolbar } from "@/so/ui/Filters";
+import { CardBody, QuickChips, Toolbar, WorkCard } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
-import { Monitor, Reload, Request, Shift, Stock } from "@/cotr/types";
-import { COTR_PAGE, CotrPager, rupiah, useMaster } from "@/cotr/ui";
-import type { RequestKind } from "@/cotr/RequestKinds";
+import { Monitor, Reload, Shift, Stock } from "@/cotr/types";
+import { COTR_PAGE, CotrPager, rupiah } from "@/cotr/ui";
 import { locale, tr } from "@/lib/i18n";
 import { thumb } from "@/lib/assets";
 
 const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
 const cups = (s: Stock) => Object.values(s ?? {}).reduce((a, v) => a + v, 0);
 const photoUrl = (kind: "check-in" | "signature" | "request", id: string) => `/api/cotr/photos/${kind}/${id}`;
-const KINDS: Record<string, () => string> = { fuel: () => tr("Fuel"), ice: () => tr("Ice"), stall: () => tr("Stall rent"), repair: () => tr("Fleet repair"), parking: () => tr("Parking / levy"), other: () => tr("Other") };
 // the map reads window (Leaflet): loaded in the browser only
 const DriverMap = dynamic(() => import("@/cotr/DriverMap"), { ssr: false, loading: () => <div className="skeleton h-[480px] rounded-xl" /> });
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
-type ShiftFilter = "" | "open" | "closed" | "difference" | "short";
-const SHIFT_FILTER: Record<Exclude<ShiftFilter, "">, () => string> = {
-  open: () => tr("On the road"), closed: () => tr("Shift ended"), difference: () => tr("Stock difference"), short: () => tr("Cash Short"),
-};
-const matchShift = (s: Shift, f: ShiftFilter) => !f || (f === "open" ? s.status === "open" : f === "closed" ? s.status === "closed"
-  : f === "difference" ? !!(s.recap.difference && Object.keys(s.recap.difference).length) : (s.recap.balance ?? 0) < 0);
+type Card = "all" | "open" | "closed" | "attention";
+const attention = (s: Shift) => !!(s.recap.difference && Object.keys(s.recap.difference).length) || (s.recap.balance ?? 0) < 0 || s.recap.voided > 0;
+const inCard = (s: Shift, c: Card) => c === "all" || (c === "open" ? s.status === "open" : c === "closed" ? s.status === "closed" : attention(s));
 
 export default function CotrCheckInPage() {
   const [day, setDay] = useState(todayWib());
-  const [tab, setTab] = useState<"shifts" | "location" | "reloads" | "requests">("shifts");
+  const [tab, setTab] = useState<"shifts" | "location" | "reloads">("shifts");
   const [data, setData] = useState<Monitor | null>(null);
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(async () => {
@@ -48,12 +44,12 @@ export default function CotrCheckInPage() {
   useEffect(() => { void load(); }, [load]);
   // no refresh button (2026-11-09): read again every 60 s while the page is shown
   useEffect(() => { const t = setInterval(() => { if (document.visibilityState === "visible") void load(); }, 60_000); return () => clearInterval(t); }, [load]);
-  // the filters (pool, state of the shift, a driver) narrow every tab
+  // the filters (day, pool in the drawer; the state of the shift as quick chips; a driver by search) narrow every tab
   const [pool, setPool] = useState("");
-  const [state, setState] = useState<ShiftFilter>("");
+  const [show, setShow] = useState<Card>("all");
   const [q, setQ] = useState("");
   const [sheet, setSheet] = useState(false);
-  const [draft, setDraft] = useState({ day, pool, state });
+  const [draft, setDraft] = useState({ day, pool });
   const pools = useMemo(() => {
     const m = new Map<string, string>();
     data?.shifts.forEach((s) => s.pool && m.set(s.pool, s.poolName ?? s.pool));
@@ -64,44 +60,37 @@ export default function CotrCheckInPage() {
     if (!data) return null;
     const words = q.trim().toLowerCase();
     const who = (code: string, name?: string | null) => !words || `${code} ${name ?? ""}`.toLowerCase().includes(words);
-    const shifts = data.shifts.filter((s) => (!pool || s.pool === pool) && matchShift(s, state) && who(s.driver, s.driverName));
-    const notStarted = state ? [] : data.notStarted.filter((d) => (!pool || d.pool === pool) && who(d.code, d.name));
+    const shifts = data.shifts.filter((s) => (!pool || s.pool === pool) && who(s.driver, s.driverName));
+    const notStarted = data.notStarted.filter((d) => (!pool || d.pool === pool) && who(d.code, d.name));
     const inScope = new Set([...data.shifts.filter((s) => !pool || s.pool === pool).map((s) => s.driver), ...data.notStarted.filter((d) => !pool || d.pool === pool).map((d) => d.code)]);
-    return { ...data, shifts, notStarted,
-      reloads: data.reloads.filter((r) => (!r.driver || inScope.has(r.driver)) && who(r.driver ?? "")),
-      requests: data.requests.filter((r) => inScope.has(r.driverCode) && who(r.driverCode, r.driverName)) };
-  }, [data, pool, state, q]);
+    return { ...data, shifts, notStarted, reloads: data.reloads.filter((r) => (!r.driver || inScope.has(r.driver)) && who(r.driver ?? "")) };
+  }, [data, pool, q]);
   const pendingReloads = view?.reloads.filter((r) => r.status === "requested").length ?? 0;
-  const pendingRequests = view?.requests.filter((r) => r.status === "sent").length ?? 0;
+  const filters: ActiveFilter[] = [
+    ...(day !== todayWib() ? [{ key: "day", label: `${tr("Day")}: ${dmyOf(day)}`, onRemove: () => setDay(todayWib()) }] : []),
+    ...(pool ? [{ key: "pool", label: `${tr("Pool / HUB")}: ${pools.find((p) => p.code === pool)?.name ?? pool}`, onRemove: () => setPool("") }] : []),
+  ];
+  const cardCount = (c: Card) => (view ? view.shifts.filter((s) => inCard(s, c)).length : null);
 
   return (
-    <Page eyebrow="Calf On The Road" media={<MapPinCheck size={19} />} title={tr("Monitoring Armada - Driver")} subtitle={tr("Shifts, sales, deductions, cash, stock, reloads and requests of every driver")}
-      stats={<>
-        <CotrFilterBar onOpen={() => { setDraft({ day, pool, state }); setSheet(true); }}
-          right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
-          scopes={[
-            { key: "day", icon: <CalendarDays />, label: tr("Day"), value: day === todayWib() ? tr("Today") : dmyOf(day) },
-            { key: "pool", icon: <Building2 />, label: tr("Pool / HUB"), value: pools.find((p) => p.code === pool)?.name ?? tr("All pools"), active: !!pool },
-            { key: "state", icon: <LogIn />, label: tr("Shift"), value: state ? SHIFT_FILTER[state]() : tr("All"), active: !!state },
-          ]} />
-        <StatStrip label={tr("Summary")} columns={5}>
-          <Stat label={tr("Drivers Checked in")} icon={<LogIn size={16} />} value={view ? `${view.shifts.length} / ${view.shifts.length + view.notStarted.length}` : <StatSkeleton />} />
-          <Stat label={tr("Cups Sold")} icon={<Check size={16} />} value={view ? view.shifts.reduce((a, s) => a + s.recap.cups, 0) : <StatSkeleton />} />
-          <Stat label={tr("Cash to Hand Over")} icon={<Wallet size={16} />} value={view ? rupiah(view.shifts.reduce((a, s) => a + s.recap.cashExpected, 0)) : <StatSkeleton />} />
-          <Stat label={tr("To Decide")} icon={<PackagePlus size={16} />} value={view ? pendingReloads + pendingRequests : <StatSkeleton />} emphasis={pendingReloads + pendingRequests > 0} />
-          <Stat label={tr("Cash Short")} icon={<TriangleAlert size={16} />} value={view ? rupiah(view.shifts.reduce((a, s) => a + Math.min(0, s.recap.balance ?? 0), 0)) : <StatSkeleton />} />
+    <Page eyebrow="Calf On The Road" media={<MapPinCheck size={19} />} title={tr("Monitoring Armada - Driver")}
+      subtitle={`${day === todayWib() ? tr("Today") : dmyOf(day)} · ${pool ? pools.find((p) => p.code === pool)?.name ?? pool : tr("All pools")}`}
+      stats={
+        <StatStrip label={tr("Summary")} columns={5} gridClassName="grid-cols-2 xl:grid-cols-5">
+          <Stat label={tr("Drivers Checked in")} icon={<LogIn size={13} />} value={view ? `${view.shifts.length} / ${view.shifts.length + view.notStarted.length}` : <StatSkeleton />}
+            onClick={view ? () => { setTab("shifts"); setShow("all"); } : undefined} />
+          <Stat label={tr("Cups Sold")} icon={<Check size={13} />} value={view ? view.shifts.reduce((a, s) => a + s.recap.cups, 0) : <StatSkeleton />} />
+          <Stat label={tr("Cash to Hand Over")} icon={<Wallet size={13} />} value={view ? rupiah(view.shifts.reduce((a, s) => a + s.recap.cashExpected, 0)) : <StatSkeleton />} />
+          <Stat label={tr("Reloads to Decide")} icon={<PackagePlus size={13} />} value={view ? pendingReloads : <StatSkeleton />} emphasis={pendingReloads > 0}
+            onClick={view ? () => setTab("reloads") : undefined} active={tab === "reloads"} />
+          <Stat label={tr("Cash Short")} icon={<TriangleAlert size={13} />} value={view ? rupiah(view.shifts.reduce((a, s) => a + Math.min(0, s.recap.balance ?? 0), 0)) : <StatSkeleton />}
+            onClick={view ? () => { setTab("shifts"); setShow("attention"); } : undefined} />
         </StatStrip>
-      </>}>
-      <Tabs label={tr("Section")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={[
-        { key: "shifts", label: <span className="inline-flex items-center gap-1.5"><LogIn size={15} />{tr("Shifts")}</span>, count: view?.shifts.length },
-        { key: "location", label: <span className="inline-flex items-center gap-1.5"><MapPin size={15} />{tr("Location")}</span> },
-        { key: "reloads", label: <span className="inline-flex items-center gap-1.5"><PackagePlus size={15} />{tr("Reloads")}</span>, count: pendingReloads || undefined },
-        { key: "requests", label: <span className="inline-flex items-center gap-1.5"><Wallet size={15} />{tr("Requests")}</span>, count: pendingRequests || undefined },
-      ]} />
+      }>
       {sheet && (
-        <MonitorFilterSheet active={[draft.pool, draft.state].filter(Boolean).length} onClose={() => setSheet(false)}
-          onReset={() => setDraft({ day: todayWib(), pool: "", state: "" })}
-          onApply={() => { setDay(draft.day); setPool(draft.pool); setState(draft.state); setSheet(false); }}>
+        <MonitorFilterSheet active={[draft.pool, draft.day !== todayWib()].filter(Boolean).length} onClose={() => setSheet(false)}
+          onReset={() => setDraft({ day: todayWib(), pool: "" })}
+          onApply={() => { setDay(draft.day); setPool(draft.pool); setSheet(false); }}>
           <FilterRow icon={<CalendarDays size={15} />} label={tr("Day")} value={dmyOf(draft.day)}>
             <DayField value={draft.day} onChange={(v) => setDraft({ ...draft, day: v })} max={todayWib()} />
           </FilterRow>
@@ -109,40 +98,40 @@ export default function CotrCheckInPage() {
             <ComboFilter value={draft.pool} onChange={(v) => setDraft({ ...draft, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
               options={pools.map((p) => ({ value: p.code, label: p.name }))} />
           </FilterRow>
-          <FilterRow icon={<LogIn size={15} />} label={tr("Shift")} value={draft.state ? SHIFT_FILTER[draft.state]() : null} onClear={() => setDraft({ ...draft, state: "" })}>
-            <OptionList value={draft.state} onChange={(v) => setDraft({ ...draft, state: v as ShiftFilter })}
-              choices={[{ value: "", label: tr("Every Shift") }, ...(Object.keys(SHIFT_FILTER) as Exclude<ShiftFilter, "">[]).map((k) => ({ value: k, label: SHIFT_FILTER[k]() }))]} />
-          </FilterRow>
         </MonitorFilterSheet>
       )}
-      {error ? <Panel><ErrorState message={error} onRetry={() => void load()} /></Panel> : !view ? (
-        <div className="skeleton h-64 rounded-xl" />
-      ) : tab === "shifts" ? <Shifts data={view} /> : tab === "location" ? <DriverMap day={day} live={day === todayWib()} drivers={pool || q.trim() || state ? new Set([...view.shifts.map((s) => s.driver)]) : undefined} /> : tab === "reloads" ? <Reloads data={view} /> : <Requests data={view} onDone={load} />}
+      {/* Jira-like (2026-11-23): one card, the shifts / location / reloads as tabs; the driver requests have their own menu */}
+      <WorkCard label={tr("Section")} active={tab} onTab={setTab} tabs={[
+        { key: "shifts", label: tr("Shifts"), icon: <LogIn size={15} />, count: view?.shifts.length ?? null },
+        { key: "location", label: tr("Location"), icon: <MapPin size={15} /> },
+        { key: "reloads", label: tr("Reloads"), icon: <PackagePlus size={15} />, count: pendingReloads || null },
+      ]}>
+        <Toolbar>
+          {tab !== "reloads" && <QuickChips label={tr("Show")} value={show} onChange={setShow} items={[
+            { key: "all" as Card, label: tr("All"), count: cardCount("all") }, { key: "open" as Card, label: tr("On the road"), dot: "bg-emerald-500", count: cardCount("open") },
+            { key: "closed" as Card, label: tr("Shift ended"), dot: "bg-neutral-400", count: cardCount("closed") },
+            { key: "attention" as Card, label: tr("Needs attention"), dot: "bg-red-500", count: cardCount("attention") }]} />}
+          <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search driver")} filters={filters}
+            onOpen={() => { setDraft({ day, pool }); setSheet(true); }} onClear={() => { setDay(todayWib()); setPool(""); }} />
+        </Toolbar>
+        {error ? <div className="p-4"><ErrorState message={error} onRetry={() => void load()} /></div> : !view ? (
+          <div className="p-4"><div className="skeleton h-64 rounded-xl" /></div>
+        ) : tab === "shifts" ? <CardBody><Shifts data={view} show={show} /></CardBody>
+          : tab === "location" ? <CardBody><DriverMap day={day} live={day === todayWib()} drivers={pool || q.trim() || show !== "all" ? new Set(view.shifts.filter((s) => inCard(s, show)).map((s) => s.driver)) : undefined} /></CardBody>
+          : <Reloads data={view} />}
+      </WorkCard>
     </Page>
   );
 }
 
-type Card = "all" | "open" | "closed" | "attention";
 
-function Shifts({ data }: { data: Monitor }) {
+function Shifts({ data, show }: { data: Monitor; show: Card }) {
   const [open, setOpen] = useState<Shift | null>(null);
-  const [show, setShow] = useState<Card>("all");
-  const attention = (s: Shift) => !!(s.recap.difference && Object.keys(s.recap.difference).length) || (s.recap.balance ?? 0) < 0 || s.recap.voided > 0;
-  const list = data.shifts.filter((s) => show === "all" || (show === "open" ? s.status === "open" : show === "closed" ? s.status === "closed" : attention(s)))
+  const list = data.shifts.filter((s) => inCard(s, show))
     .sort((x, y) => Number(attention(y)) - Number(attention(x)) || Number(y.status === "open") - Number(x.status === "open") || (x.driverName ?? "").localeCompare(y.driverName ?? ""));
   const paged = usePaged(list, show + list.length, COTR_PAGE);
-  const count = (c: Card) => data.shifts.filter((s) => c === "all" || (c === "open" ? s.status === "open" : c === "closed" ? s.status === "closed" : attention(s))).length;
   return (
     <>
-      <div role="radiogroup" aria-label={tr("Show")} className="inline-flex max-w-full flex-wrap gap-1">
-        {([["all", tr("All")], ["open", tr("On the road")], ["closed", tr("Shift ended")], ["attention", tr("Needs attention")]] as [Card, string][]).map(([k, label]) => (
-          <button key={k} type="button" role="radio" aria-checked={show === k} onClick={() => setShow(k)}
-            className={cx("flex items-center gap-1.5 whitespace-nowrap rounded-[4px] border px-2.5 py-1 text-xs font-medium",
-              show === k ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
-            {label}<span className={cx("tabular-nums", show === k ? "text-white/70" : "text-neutral-400")}>{count(k)}</span>
-          </button>
-        ))}
-      </div>
       {list.length === 0 ? <Panel><Empty title={data.shifts.length ? tr("No shift matches") : tr("No driver has checked in on this day")} /></Panel> : (
         <ul className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
           {paged.rows.map((s) => {
@@ -187,7 +176,7 @@ function Shifts({ data }: { data: Monitor }) {
         </ul>
       )}
       <CotrPager paged={paged} />
-      {data.notStarted.length > 0 && <NotStarted people={data.notStarted} />}
+      {show === "all" && data.notStarted.length > 0 && <NotStarted people={data.notStarted} />}
       {open && <ShiftDrawer s={open} onClose={() => setOpen(null)} />}
     </>
   );
@@ -368,31 +357,12 @@ const RELOAD: Record<Reload["status"], { label: () => string; tone: "amber" | "v
   disputed: { label: () => tr("Difference Reported"), tone: "red" },
 };
 
-function Decide({ url, onDone, needNote }: { url: string; onDone: () => Promise<void>; needNote?: boolean }) {
-  const toast = useToast();
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-  const decide = async (approve: boolean) => {
-    if (!approve && needNote && !note.trim()) { toast(tr("Write the reason for the rejection"), "error"); return; }
-    setBusy(true);
-    try { await call(url, { method: "POST", json: { approve, note: note.trim() || null } }); toast(approve ? tr("Approved") : tr("Rejected")); await onDone(); }
-    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
-  };
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (optional)")} className="h-9 w-44" />
-      <Button size="sm" loading={busy} onClick={() => void decide(true)}><Check size={14} /> {tr("Approve")}</Button>
-      <Button size="sm" variant="secondary" disabled={busy} className="text-red-600" onClick={() => void decide(false)}><X size={14} /> {tr("Reject")}</Button>
-    </div>
-  );
-}
-
 function Reloads({ data }: { data: Monitor }) {
   const name = (code: string | null) => data.shifts.find((s) => s.driver === code)?.driverName ?? code ?? "—";
   const sorted = [...data.reloads].sort((a, b) => Number(b.status === "requested") - Number(a.status === "requested") || b.at.localeCompare(a.at));
   const paged = usePaged(sorted, sorted.length, COTR_PAGE);
   return (
-    <Panel title={tr("Reloads")} description={tr("Decided and settled by the storage team in Storage & Assignment")}>
+    <div>
       {data.reloads.length === 0 ? <Empty title={tr("No reload on this day")} /> : (
         <ul className="divide-y divide-neutral-100">
           {paged.rows.map((r) => (
@@ -408,44 +378,7 @@ function Reloads({ data }: { data: Monitor }) {
         </ul>
       )}
       <CotrPager paged={paged} className="px-4 pb-3" />
-    </Panel>
-  );
-}
-
-const REQUEST: Record<Request["status"], { label: () => string; tone: "amber" | "green" | "red" }> = {
-  sent: { label: () => tr("Waiting"), tone: "amber" }, approved: { label: () => tr("Approved"), tone: "green" }, rejected: { label: () => tr("Rejected"), tone: "red" },
-};
-
-function Requests({ data, onDone }: { data: Monitor; onDone: () => Promise<void> }) {
-  // the names come from Master → Pengajuan (migration 083); the built-in labels stay for the older codes
-  const kinds = useMaster<RequestKind>("request-kinds");
-  const kindName = (code: string) => kinds.rows?.find((k) => k.code === code)?.name ?? (KINDS[code] ?? (() => code))();
-  const sorted = [...data.requests].sort((a, b) => Number(b.status === "sent") - Number(a.status === "sent") || b.at.localeCompare(a.at));
-  const paged = usePaged(sorted, sorted.length, COTR_PAGE);
-  return (
-    <Panel title={tr("Requests")} description={tr("Costs on the road with the receipt; the ones still waiting are listed whatever their day")}>
-      {data.requests.length === 0 ? <Empty title={tr("No request")} /> : (
-        <ul className="divide-y divide-neutral-100">
-          {paged.rows.map((r) => (
-            <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
-              <span className="flex min-w-0 items-center gap-3">
-                <a href={photoUrl("request", r.id)} target="_blank" rel="noreferrer" className="flex-shrink-0 overflow-hidden rounded-lg ring-1 ring-neutral-200">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={thumb(photoUrl("request", r.id), 160)} decoding="async" alt={tr("Receipt")} className="h-14 w-14 object-cover" loading="lazy" />
-                </a>
-                <span className="min-w-0">
-                  <span className="block font-medium text-neutral-900">{r.driverName ?? r.driverCode} · {kindName(r.kind)} · {rupiah(r.amount)}</span>
-                  <span className="text-xs text-neutral-500">{new Date(r.at).toLocaleDateString(locale(), { day: "numeric", month: "short", timeZone: "Asia/Jakarta" })} {time(r.at)} · {r.note}</span>
-                  {r.decisionNote && <span className="block text-xs text-neutral-400">{r.decisionNote}</span>}
-                </span>
-              </span>
-              {r.status === "sent" ? <Decide url={`/api/cotr/requests/${r.id}/decide`} onDone={onDone} needNote />
-                : <Badge tone={REQUEST[r.status].tone}>{REQUEST[r.status].label()}</Badge>}
-            </li>
-          ))}
-        </ul>
-      )}
-      <CotrPager paged={paged} className="px-4 pb-3" />
-    </Panel>
+      <p className="border-t border-neutral-100 px-4 py-2.5 text-[11px] text-neutral-500 sm:px-5">{tr("Decided and settled by the storage team in Storage & Assignment")}</p>
+    </div>
   );
 }
