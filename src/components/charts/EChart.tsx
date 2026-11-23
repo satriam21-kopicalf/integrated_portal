@@ -4,7 +4,7 @@
 
 import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts/core';
-import { BarChart, HeatmapChart, LineChart } from 'echarts/charts';
+import { BarChart, HeatmapChart, LineChart, PieChart } from 'echarts/charts';
 import {
   DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent, MarkPointComponent, TooltipComponent,
   VisualMapComponent,
@@ -14,7 +14,7 @@ import type { EChartsCoreOption } from 'echarts/core';
 import { darkOption, useTheme } from '@/lib/theme';
 
 echarts.use([
-  BarChart, HeatmapChart, LineChart, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent,
+  BarChart, HeatmapChart, LineChart, PieChart, DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent,
   MarkPointComponent, TooltipComponent, VisualMapComponent, CanvasRenderer,
 ]);
 
