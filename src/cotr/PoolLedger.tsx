@@ -131,8 +131,9 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
       )}
       <Panel title={tr("Product stock of the pool")}
         description={data?.start ? tr("Counted from {0}; the physical leftover of a day is the opening stock of the next", dmyOf(data.start)) : tr("Cups per menu at the pool / HUB, as the sheet Product")}
-        actions={!pool ? <span className="text-xs text-neutral-500">{tr("All pools added up; choose a pool to enter")}</span> : <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" disabled={!pool} onClick={() => setMoves({ day: to, kind: "arrived" })}><Truck size={15} /> {tr("Arrived / Transfer")}</Button>
+        actions={!pool ? <div className="flex flex-wrap items-center gap-2"><span className="text-xs text-neutral-500">{tr("All pools added up; choose a pool to enter")}</span>
+          <Button variant="secondary" onClick={() => setMoves({ day: to, kind: "arrived" })}><Truck size={15} /> {tr("Arrived / Transfer")}</Button></div> : <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={() => setMoves({ day: to, kind: "arrived" })}><Truck size={15} /> {tr("Arrived / Transfer")}</Button>
           <Button disabled={!pool} onClick={() => setCount(to)}><PackageOpen size={15} /> {data?.start ? tr("Physical leftover") : tr("Set opening stock")}</Button>
         </div>}>
         {error ? <ErrorState message={error} onRetry={reload} /> : !data ? <SkeletonTable cols={6} /> : !data.start ? (
@@ -243,7 +244,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
         )}
       </Panel>
       {count && data && <CountDrawer pool={pool} day={count} ledger={data} onClose={() => setCount(null)} onSaved={() => { setCount(null); reload(); }} />}
-      {moves && data && <MovesDrawer pool={pool} {...moves} ledger={data} onClose={() => setMoves(null)} onSaved={() => { setMoves(null); reload(); }} />}
+      {moves && data && <MovesDrawer pool={pool} {...moves} ledger={data} pools={(pools.rows ?? []).filter((x) => x.is_active !== false)} onClose={() => setMoves(null)} onSaved={() => { setMoves(null); reload(); }} />}
       {importing && <ImportDrawer pools={usable} pool={pool} onClose={() => setImporting(false)} onSaved={() => { setImporting(false); reload(); }} />}
     </>
   );
@@ -295,36 +296,86 @@ export function CountDrawer({ pool, day: first, ledger, onClose, onSaved }: { po
   );
 }
 
-/** The cups arrived from the storage (besides the batches received in the app) or moved in / out (transfer) on a day. */
-function MovesDrawer({ pool, day: first, kind: k0, ledger, onClose, onSaved }: { pool: string; day: string; kind: "transfer" | "arrived"; ledger: Ledger; onClose: () => void; onSaved: () => void }) {
+type Move = { menu: string; kind: "transfer" | "arrived"; qty: number; peer: string | null; note: string | null };
+
+/** The cups arrived at a pool or moved from one pool to another on a day (2026-11-23, migration 133: with the pools).
+ *  Arrived: the pool that received them and where they came from. Transfer: from which pool to which pool, the cups
+ *  positive; the backend keeps it as a pair (out at the first, in at the second). */
+function MovesDrawer({ pool: p0, day: first, kind: k0, ledger, pools, onClose, onSaved }: { pool: string; day: string; kind: "transfer" | "arrived"; ledger: Ledger;
+  pools: { code: string; name: string; kind?: string }[]; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
   const [day, setDay] = useState(first);
   const [kind, setKind] = useState(k0);
+  const [pool, setPool] = useState(p0);
+  const [peer, setPeer] = useState("");
   const [lines, setLines] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState<Move[] | null>(null);
+  const name = (code: string | null) => (code ? pools.find((x) => x.code === code)?.name ?? code : "—");
+  const menuName = (code: string) => ledger.menus.find((m) => m.code === code)?.name ?? code;
+  useEffect(() => {
+    if (!pool) { setSaved([]); return; }
+    let alive = true;
+    call<{ data: Move[] }>(`/api/cotr/pool-moves?pool=${encodeURIComponent(pool)}&day=${day}`).then((r) => { if (alive) setSaved(r.data); }).catch(() => { if (alive) setSaved([]); });
+    return () => { alive = false; };
+  }, [pool, day]);
+  const total = Object.values(lines).reduce((a, v) => a + (Number(v) || 0), 0);
+  const ready = !!pool && total > 0 && (kind === "arrived" || (!!peer && peer !== pool));
   const save = async () => {
     setBusy(true);
     try {
-      await call("/api/cotr/pool-moves", { method: "PUT", json: { pool, day, kind, note: note.trim() || null,
+      await call("/api/cotr/pool-moves", { method: "PUT", json: { pool, day, kind, note: note.trim() || null, peer: peer || null,
         lines: Object.fromEntries(Object.entries(lines).map(([m, v]) => [m, Number(v) || 0]).filter(([, v]) => v)) } });
-      toast(tr("Saved")); onSaved();
+      toast(kind === "transfer" ? tr("Transfer saved: {0} → {1}", name(pool), name(peer)) : tr("Saved")); onSaved();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
+  const poolSelect = (value: string, set: (v: string) => void, all: boolean, skip?: string) => (
+    <Select value={value} onChange={(e) => set(e.target.value)}>
+      <option value="">{all ? tr("— (not recorded)") : tr("Choose a pool")}</option>
+      {pools.filter((x) => x.code !== skip).map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
+    </Select>
+  );
   return (
-    <Drawer open onClose={onClose} icon={<Truck size={18} />} title={tr("Arrived / Transfer")} description={tr("Entered by hand; replaces what was entered for that day and kind")}
-      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>}>
+    <Drawer open onClose={onClose} icon={<Truck size={18} />} title={tr("Arrived / Transfer")}
+      description={kind === "transfer" ? tr("Cups moved from one pool to another: out at the first, in at the second") : tr("Cups that reached a pool; replaces what was entered for that pool and day")}
+      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!ready} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>}>
       <div className="space-y-4">
+        <Segments value={kind} onChange={(v) => { setKind(v as typeof kind); setPeer(""); }}
+          choices={[{ value: "arrived", label: tr("Product Arrived") }, { value: "transfer", label: tr("Transfer between pools") }]} />
         <div className="grid grid-cols-2 gap-3">
           <Field label={tr("Day")}><Input type="date" value={day} max={todayWib()} onChange={(e) => setDay(e.target.value)} /></Field>
-          <Field label={tr("Kind")}><Select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
-            <option value="arrived">{tr("Product Arrived (from the storage)")}</option><option value="transfer">{tr("Product Transfer (minus = out)")}</option></Select></Field>
+          {kind === "arrived"
+            ? <Field label={tr("Destination pool (received)")}>{poolSelect(pool, setPool, false)}</Field>
+            : <Field label={tr("From pool")}>{poolSelect(pool, (v) => { setPool(v); if (v === peer) setPeer(""); }, false)}</Field>}
         </div>
+        {kind === "arrived"
+          ? <Field label={tr("Came from (optional)")}>{poolSelect(peer, setPeer, true, pool)}</Field>
+          : <Field label={tr("To pool (destination)")}>{poolSelect(peer, setPeer, false, pool)}</Field>}
+        {kind === "transfer" && pool && peer && (
+          <p className="flex items-center gap-2 rounded-md border-l-[3px] border-l-blue-600 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+            <Truck size={14} /><b>{name(pool)}</b> → <b>{name(peer)}</b> · {tr("{0} cups", total)}</p>
+        )}
         {ledger.menus.map((m) => (
           <Field key={m.code} label={m.name}><Input inputMode="numeric" value={lines[m.code] ?? ""} placeholder="0"
-            onChange={(e) => setLines((s) => ({ ...s, [m.code]: e.target.value.replace(kind === "transfer" ? /[^\d-]/g : /\D/g, "") }))} className="text-right tabular-nums" /></Field>
+            onChange={(e) => setLines((x) => ({ ...x, [m.code]: e.target.value.replace(/\D/g, "") }))} className="text-right tabular-nums" /></Field>
         ))}
         <Field label={tr("Note")}><Input value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} /></Field>
+        {saved && saved.length > 0 && (
+          <section>
+            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-neutral-500">{tr("Entered for {0} on this day", name(pool))}</p>
+            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-xs">
+              {saved.map((x, i) => (
+                <li key={i} className="flex items-center justify-between gap-2 px-3 py-2">
+                  <span className="min-w-0 truncate"><b className="text-neutral-800">{menuName(x.menu)}</b>{" "}
+                    <span className="text-neutral-500">{x.kind === "arrived" ? tr("arrived{0}", x.peer ? ` · ${tr("from {0}", name(x.peer))}` : "")
+                      : x.qty < 0 ? tr("out to {0}", name(x.peer)) : x.peer ? tr("in from {0}", name(x.peer)) : tr("transfer")}</span></span>
+                  <span className={`font-semibold tabular-nums ${x.qty < 0 ? "text-red-700" : "text-emerald-700"}`}>{x.qty > 0 ? `+${x.qty}` : x.qty}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </Drawer>
   );
