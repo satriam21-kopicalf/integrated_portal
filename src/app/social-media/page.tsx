@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, Eye, Megaphone, Tag, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Button, ErrorState, cx } from "@/so/ui";
 import { PostPreview, contentDate } from "@/social/shared";
-import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
+import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { CardFooter, Lozenge, type LozengeTone, QuickChips, Toolbar, WorkCard, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod } from "@/so/ui/MonitorFilters";
 import { type ActiveFilter, FilterToolbar, dmy, wibDay } from "@/so/ui/Filters";
@@ -167,34 +167,7 @@ export default function SocialMediaPage() {
 
       {open && <PostPreview platform={open.platform} id={open.id} onClose={() => setOpen(null)} />}
       <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
-        <Panel title={tr("Most influential accounts")} description={tr("The accounts whose mentions reached the most views in the period")}>
-          {!sum ? <div className="skeleton m-4 h-40 rounded-lg" /> : sum.authors.length === 0 ? <p className="px-4 py-6 text-sm text-neutral-500">{tr("No mention in this period")}</p> : (
-            <div className="overflow-x-auto">
-              <table className={cx(jTable, "m-cards")}>
-                <thead><tr className={jHeadRow}><th className={cx(jTh, "w-10")}>#</th><th className={jTh}>{tr("Account")}</th>
-                  <th className={cx(jTh, "text-right")}>{tr("Mentions")}</th><th className={cx(jTh, "w-[38%]")}>{tr("Views")}</th></tr></thead>
-                <tbody>
-                  {sum.authors.map((a, i) => {
-                    const pf = PLATFORM[a.platform];
-                    const top = sum.authors[0]?.views || 1;
-                    return (
-                      <tr key={`${a.platform}:${a.author}`} className="border-b border-neutral-100">
-                        <td className={cx(jTd, "tabular-nums text-neutral-400")} data-label="#">{i + 1}</td>
-                        <td className={jTd} data-label={tr("Account")}><span className="flex min-w-0 items-center gap-2">{pf && logo(pf.file)}
-                          <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{a.author}</span>
-                            <span className="block text-[11px] text-neutral-500">{pf?.label ?? a.platform}</span></span></span></td>
-                        <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Mentions")}>{n(a.posts)}</td>
-                        <td className={jTd} data-label={tr("Views")}><span className="flex items-center gap-2">
-                          <span className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${Math.max(2, (a.views / top) * 100)}%` }} /></span>
-                          <span className="w-20 text-right tabular-nums text-neutral-700">{n(a.views)}</span></span></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Panel>
+        <Accounts sum={sum} />
         <Schedule sum={sum} />
       </div>
     </Page>
@@ -242,6 +215,50 @@ function Schedule({ sum }: { sum: Summary | null }) {
           <p className="border-t border-neutral-100 px-4 py-2.5 text-[11px] text-neutral-500">{tr("Without an API key. Instagram, Threads, X and LinkedIn need a login and are not collected.")}</p>
         </div>
       )}
+    </section>
+  );
+}
+
+/** The accounts that reached most (2026-11-24): folded by default like the schedule, a tap opens the table. */
+function Accounts({ sum }: { sum: Summary | null }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="h-fit overflow-hidden rounded-lg border border-neutral-200 bg-white">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-neutral-900">{tr("Most influential accounts")}</span>
+          <span className="block text-xs text-neutral-500">{sum ? tr("{0} accounts · the most views in the period", sum.authors.length) : tr("The accounts whose mentions reached the most views in the period")}</span>
+        </span>
+        <ChevronDown size={16} className={cx("text-neutral-400 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && <div className="border-t border-neutral-200">
+{!sum ? <div className="skeleton m-4 h-40 rounded-lg" /> : sum.authors.length === 0 ? <p className="px-4 py-6 text-sm text-neutral-500">{tr("No mention in this period")}</p> : (
+            <div className="overflow-x-auto">
+              <table className={cx(jTable, "m-cards")}>
+                <thead><tr className={jHeadRow}><th className={cx(jTh, "w-10")}>#</th><th className={jTh}>{tr("Account")}</th>
+                  <th className={cx(jTh, "text-right")}>{tr("Mentions")}</th><th className={cx(jTh, "w-[38%]")}>{tr("Views")}</th></tr></thead>
+                <tbody>
+                  {sum.authors.map((a, i) => {
+                    const pf = PLATFORM[a.platform];
+                    const top = sum.authors[0]?.views || 1;
+                    return (
+                      <tr key={`${a.platform}:${a.author}`} className="border-b border-neutral-100">
+                        <td className={cx(jTd, "tabular-nums text-neutral-400")} data-label="#">{i + 1}</td>
+                        <td className={jTd} data-label={tr("Account")}><span className="flex min-w-0 items-center gap-2">{pf && logo(pf.file)}
+                          <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{a.author}</span>
+                            <span className="block text-[11px] text-neutral-500">{pf?.label ?? a.platform}</span></span></span></td>
+                        <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Mentions")}>{n(a.posts)}</td>
+                        <td className={jTd} data-label={tr("Views")}><span className="flex items-center gap-2">
+                          <span className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${Math.max(2, (a.views / top) * 100)}%` }} /></span>
+                          <span className="w-20 text-right tabular-nums text-neutral-700">{n(a.views)}</span></span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+              </div>}
     </section>
   );
 }

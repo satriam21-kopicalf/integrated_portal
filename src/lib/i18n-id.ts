@@ -7460,4 +7460,7 @@ export const ID: Record<string, string> = {
   "Amount approved": "Jumlah disetujui",
   "Item category": "Kategori item",
   "Item note": "Catatan item",
+  "The overview is being prepared": "Overview sedang disiapkan",
+  "Meanwhile every mention, its sentiment and its reach are in Social Media Analytics.": "Sementara itu seluruh mention, sentimen dan jangkauannya ada di Social Media Analytics.",
+  "{0} accounts · the most views in the period": "{0} akun · views terbanyak pada periode",
 };
