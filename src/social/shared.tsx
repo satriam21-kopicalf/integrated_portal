@@ -18,7 +18,7 @@ export type Feel = "positive" | "neutral" | "negative";
 export type Post = { platform: string; post_id: string; source: string; url: string | null; author: string | null; text: string | null;
   createdAt: string | null; likes: number | null; comments: number | null; views: number | null; sentiment: Feel | null; keywords?: string[];
   /** the date is the age the search showed ("3mo ago"), not the exact upload */ dateApprox?: boolean };
-type Full = Post & { keyword: string | null; shares: number | null; firstSeen: string | null; lastSeen: string | null; raw: Record<string, unknown> };
+type Full = Post & { transcript?: string | null; transcriptError?: string | null; keyword: string | null; shares: number | null; firstSeen: string | null; lastSeen: string | null; raw: Record<string, unknown> };
 
 /** the real logos of the platforms (simple-icons, CC0, in their brand colour): public/assets/brand */
 export const PLATFORM: Record<string, { label: string; file: string }> = {
@@ -117,6 +117,14 @@ export function PostPreview({ platform, id, onClose, onBack }: { platform: strin
               {body.join("\n").trim() && <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-neutral-700">{body.join("\n").trim()}</p>}
             </div>
           </Section>
+          {platform === "tiktok" && d.source !== "comment" && (
+            <Section title={tr("What is said in the video")} aside={<span className="text-[11px] text-neutral-500">{tr("Transcribed on our server")}</span>}>
+              <div className="rounded-lg border border-neutral-200 bg-white p-4">
+                {d.transcript ? <p className="whitespace-pre-line break-words text-sm leading-relaxed text-neutral-700">{d.transcript}</p>
+                  : <p className="text-sm text-neutral-500">{d.transcriptError ? tr("The audio of this video could not be read.") : tr("Not transcribed yet: the newest videos are done first, a few every minute.")}</p>}
+              </div>
+            </Section>
+          )}
           <Section title={tr("Details")}>
             <dl className="divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200 text-sm">
               {([

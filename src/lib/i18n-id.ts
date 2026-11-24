@@ -7463,4 +7463,8 @@ export const ID: Record<string, string> = {
   "The overview is being prepared": "Overview sedang disiapkan",
   "Meanwhile every mention, its sentiment and its reach are in Social Media Analytics.": "Sementara itu seluruh mention, sentimen dan jangkauannya ada di Social Media Analytics.",
   "{0} accounts · the most views in the period": "{0} akun · views terbanyak pada periode",
+  "What is said in the video": "Isi ucapan dalam video",
+  "Transcribed on our server": "Ditranskripsi di server kita",
+  "The audio of this video could not be read.": "Audio video ini tidak dapat dibaca.",
+  "Not transcribed yet: the newest videos are done first, a few every minute.": "Belum ditranskripsi: video terbaru dikerjakan lebih dulu, beberapa setiap menit.",
 };
