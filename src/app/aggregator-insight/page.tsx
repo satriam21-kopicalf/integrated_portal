@@ -5,10 +5,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Drawer from "@/components/kc/Drawer";
 import { AlertTriangle, CalendarDays, ChevronRight, Database, LayoutDashboard } from "lucide-react";
 import { ErrorState } from "@/so/ui";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { Lozenge } from "@/so/ui/Jira";
+import { JSelect, Lozenge } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 import { MODULES, type Handle, type Status, ago } from "@/aggregator/shared";
@@ -19,6 +20,7 @@ export default function AggregatorOverview() {
   const [st, setSt] = useState<Status | null>(null);
   const [h, setH] = useState<Handle | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
   const load = () => {
     setErr(null);
     call<Status>("/api/aggregator/status").then((x) => setSt({ ...x, stale: !!x.syncedMedian && Date.now() - new Date(x.syncedMedian).getTime() > 3 * 3600_000 })).catch((e) => setErr(e.message));
@@ -62,7 +64,7 @@ export default function AggregatorOverview() {
                   [tr("BotFood read the platforms (median)"), ago(st?.syncedMedian ?? null)],
                   [tr("BotFood read the platforms (oldest)"), ago(st?.syncedOldest ?? null)],
                   [tr("Reviews kept from"), st?.reviewsFrom ? new Date(st.reviewsFrom).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—"],
-                  [tr("Outlets not matched to ours"), st ? (st.unmapped ? <Lozenge tone="amber">{n(st.unmapped)}</Lozenge> : <Lozenge tone="green">0</Lozenge>) : "—"],
+                  [tr("Outlets not matched to ours"), st ? <button type="button" onClick={() => setMapOpen(true)} className="inline-flex items-center gap-2 hover:underline">{st.unmapped ? <Lozenge tone="amber">{n(st.unmapped)}</Lozenge> : <Lozenge tone="green">0</Lozenge>}<span className="text-xs text-brand-700">{tr("Match")}</span></button> : "—"],
                 ].map(([k, v], i) => (
                   <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5"><dt className="text-neutral-500">{k}</dt><dd className="text-right font-medium text-neutral-900">{v}</dd></div>
                 ))}
@@ -100,6 +102,41 @@ export default function AggregatorOverview() {
           </Panel>
         </div>
       )}
+      {mapOpen && <MatchDrawer onClose={() => { setMapOpen(false); load(); }} />}
     </Page>
+  );
+}
+
+type MapRow = { bfBranchId: number; bfName: string; branchCode: string | null; matched: "auto" | "manual"; branchName: string | null };
+
+/** BotFood outlet → our outlet: matched by name automatically; the ones without a single match are chosen here. */
+function MatchDrawer({ onClose }: { onClose: () => void }) {
+  const [rows, setRows] = useState<MapRow[] | null>(null);
+  const [outs, setOuts] = useState<{ value: string; label: string; hint?: string }[]>([]);
+  const [all, setAll] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const load = () => call<{ map: MapRow[]; outlets: { branch_code: string; branch_name: string }[] }>("/api/aggregator/branch-map")
+    .then((r) => { setRows(r.map); setOuts(r.outlets.map((o) => ({ value: o.branch_code, label: o.branch_name, hint: o.branch_code }))); })
+    .catch((e) => setErr(e.message));
+  useEffect(() => { load(); }, []);
+  const save = (id: number, code: string) => call(`/api/aggregator/branch-map/${id}`, { method: "PUT", json: { branchCode: code || null } }).then(load).catch((e) => setErr(e.message));
+  const shown = (rows ?? []).filter((r) => all || !r.branchCode);
+  return (
+    <Drawer open size="lg" title={tr("Match the BotFood outlets")} description={tr("Each BotFood outlet to our outlet, so its figures count for the right branch and member.")} onClose={onClose} icon={<Database size={18} />}>
+      <div className="space-y-3 p-4">
+        <label className="flex items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} /> {tr("Show the matched ones too")}</label>
+        {err && <p className="text-sm text-red-600">{err}</p>}
+        {!rows ? <p className="text-sm text-neutral-500">…</p> : shown.length === 0 ? <p className="rounded-lg bg-emerald-50 px-3 py-3 text-sm text-emerald-800">{tr("Every BotFood outlet is matched.")}</p> : (
+          <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
+            {shown.map((r) => (
+              <li key={r.bfBranchId} className="grid gap-2 px-3 py-2.5 sm:grid-cols-[1fr_1.3fr] sm:items-center">
+                <span className="text-sm font-medium text-neutral-900">{r.bfName}{r.matched === "manual" && <span className="ml-2 text-[11px] font-normal text-neutral-400">{tr("by hand")}</span>}</span>
+                <JSelect value={r.branchCode ?? ""} onChange={(v) => save(r.bfBranchId, v)} options={outs} placeholder={tr("Choose our outlet")} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Drawer>
   );
 }

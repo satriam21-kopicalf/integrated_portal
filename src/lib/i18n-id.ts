@@ -7543,4 +7543,10 @@ export const ID: Record<string, string> = {
   "Excel with a summary, per period": "Excel dengan summary, per periode",
   "Handle schedule, monitoring & reports": "Jadwal handle, monitoring & laporan",
   "BotFood data every hour · check the merchant account when a status differs": "Data BotFood setiap jam · cek akun merchant bila status berbeda",
+  "Match the BotFood outlets": "Cocokkan outlet BotFood",
+  "Each BotFood outlet to our outlet, so its figures count for the right branch and member.": "Setiap outlet BotFood ke outlet kita, agar angkanya dihitung untuk cabang dan anggota yang benar.",
+  "Show the matched ones too": "Tampilkan juga yang sudah cocok",
+  "Every BotFood outlet is matched.": "Semua outlet BotFood sudah dicocokkan.",
+  "by hand": "manual",
+  "Choose our outlet": "Pilih outlet kita",
 };
