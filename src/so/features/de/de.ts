@@ -23,7 +23,7 @@ export type DeEvent = { id: number; at: string; actor: string | null; kind: "SUB
   from: Status | null; to: Status | null; note: string | null; details: Record<string, unknown> };
 export type Assignment = { id: number; technicianId: number; name: string; kind: string; company: string | null; phone: string | null;
   scheduledFor: string | null; status: "ACTIVE" | "RELEASED" | "DONE"; note: string | null; assignedAt: string; assignedBy: string | null;
-  releasedAt: string | null; releasedNote: string | null };
+  releasedAt: string | null; releasedNote: string | null; bank?: string | null; accountNo?: string | null; accountName?: string | null };
 export type Tracker = { stages: { status: Status; label: string; hours: number }[]; totalHours: number | null; holdHours: number;
   workHours: number | null; slaHours: number | null; overdue: boolean; progress: number;
   /** due time: the team's adjusted target, else from the urgency */ dueAt?: string | null; targetAdjusted?: boolean; late?: boolean };
@@ -45,6 +45,8 @@ export type Request = {
   workLinks?: WorkLink[]; mode?: Mode | null; handover?: Handover | null; costItems?: CostItem[]; transactionOptions?: TransactionOption[]; labor?: Labor[];
   /** the request's money in Fund Request (Finance, 2026-11-21); null until the team asks for it */
   fund?: Fund | null;
+  /** the technicians' Cash in Advance (migration 143) and the account types of Fund Request */
+  advances?: import("./DeAdvance").Advance[]; accountTypes?: { id: number; name: string }[];
   target?: { at: string; note: string | null; by: string | null; setAt: string | null; changes: number } | null;
 };
 /** the photo link of a technician (no sign-in, 1 hour): OPEN, SENT (photos sent), EXPIRED or CLOSED (replaced / work stopped) */

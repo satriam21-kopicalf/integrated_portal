@@ -23,6 +23,7 @@ import { tr } from "@/lib/i18n";
 import RequestView, { Gallery, Invoices, RequestHero, StatusBadge, UrgencyBadge, summary } from "./RequestView";
 import DeOverview from "./DeOverview";
 import FundCard from "./DeFund";
+import AdvanceCard from "./DeAdvance";
 import { DocActions } from "./DeForm";
 import { type Approver, type StepEdit, StepRow } from "@/so/features/pengajuan/PengajuanMonitor";
 import { useAuth } from "@/lib/auth";
@@ -772,6 +773,10 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
               <FormCard n={next()} title={tr("Finance Funds")} hint={tr("The money of this request goes through Fund Request: the work starts once Finance approved it")}
                 aside={(r.estCost ?? 0) > 0 && !fundCleared(r) ? <Badge tone="red">{tr("Required")}</Badge> : undefined}>
                 <FundCard r={r} busy={busy} act={act} />
+              </FormCard>
+
+              <FormCard n={next()} title={tr("Cash in Advance for technicians")} hint={tr("Money a technician needs for this job, settled afterwards with the receipts")}>
+                <AdvanceCard r={r} busy={busy} act={act} />
               </FormCard>
 
               {(r.related ?? []).length > 0 && (
