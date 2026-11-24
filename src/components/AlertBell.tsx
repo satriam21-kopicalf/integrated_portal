@@ -11,7 +11,7 @@ import { Tabs } from "@/components/kc";
 import { useRouter } from "next/navigation";
 import Drawer from "@/so/ui/Drawer";
 import { cx, Empty } from "@/so/ui";
-import { hasPage, useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { type Alert, markAlertsRead, useAlerts } from "@/lib/alerts";
 import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
@@ -21,7 +21,7 @@ import { useCompany } from "@/lib/company";
 /** The notifications of the signed-in user: {enabled, unread, data}. */
 export function useNotifications() {
   const { user } = useAuth();
-  const enabled = (["cc.goods-receipt", "cc.cogs", "cc.info", "cc.purchase-plan", "cc.ratio", "cc.sales-calc", "cc.reviews", "cc.waste-review"] as const).some((p) => hasPage(user, p));
+  const enabled = !!user; // every account: its own (an overdue proof); the Cost Control ones come only with their pages
   return { enabled, ...useAlerts(enabled) };
 }
 
@@ -76,7 +76,7 @@ export function NotificationsDrawer({ open, onClose, onNavigate }: { open: boole
   const groups = (["today", "yesterday", "earlier"] as const).map((g) => ({ g, items: shown.filter((a) => dayGroup(a.at) === g) })).filter((x) => x.items.length);
   return (
     <Drawer open={open} onClose={onClose} size="sm" icon={<Bell size={18} />} title={tr("Notifications")}
-      description={tr("Goods receipts and ESB documents that need a look, and the daily summaries")}
+      description={tr("Proofs of funds that are overdue, documents that need a look, and the daily summaries")}
       footer={unread > 0 ? (
         <button type="button" onClick={() => void markAlertsRead("all")} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline">
           <CheckCheck size={15} />{tr("Mark all as read")}

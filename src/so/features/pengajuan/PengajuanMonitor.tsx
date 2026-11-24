@@ -9,7 +9,7 @@
 // steps of every kind with their users (superadmin) and the petty cash plafon (superadmin, Finance).
 
 import { CardFooter, JSelect, Lozenge, NativeSelect, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet, Store, UserRound, ListChecks, ChevronRight, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, GripVertical, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet, Store, UserRound, ListChecks, ChevronRight, Wrench } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -33,9 +33,9 @@ type F = { period: Period; bgroup: string; branch: string; kind: Kind | ""; acco
 const NO_F = (): F => ({ period: { from: wibOffset(-89), to: wibOffset(0) }, bgroup: "", branch: "", kind: "", account: "", category: "", flag: "" });
 type GroupOpt = { id: string; code: string; name: string };
 type Tab = Status | "" | "OPEN" | "MINE";
-const TABS: Tab[] = ["MINE", "OPEN", "", "SUBMITTED", "APPROVED", "REVISION", "PAID", "VERIFYING", "DONE", "REJECTED"];
+const TABS: Tab[] = ["MINE", "OPEN", "", "SUBMITTED", "APPROVED", "REVISION", "PAID", "VERIFYING", "DONE", "REJECTED", "CANCELLED"];
 const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-brand-500", APPROVED: "bg-cyan-500", REVISION: "bg-amber-500",
-  PAID: "bg-violet-500", VERIFYING: "bg-amber-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
+  PAID: "bg-violet-500", VERIFYING: "bg-amber-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500", CANCELLED: "bg-neutral-400" };
 const sum = (rows: Pengajuan[], f: (p: Pengajuan) => number | null | undefined) => rows.reduce((a, p) => a + (f(p) ?? 0), 0);
 const flagged = (p: Pengajuan) => ({
   reused: (p.reusedFiles ?? 0) > 0, negative: (p.closingBalance ?? 0) < 0,
@@ -333,7 +333,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
 
   const next = p?.can?.next ?? [];
   const payment: PgFile[] = (p?.files ?? []).filter((x) => x.kind === "PAYMENT");
-  const needNote = action === "REVISION" || action === "REJECTED";
+  const needNote = action === "REVISION" || action === "REJECTED" || action === "CANCELLED";
   return (
     <Drawer open onClose={onClose} size="xl" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund Request")}
       description={p ? `${placeOf(p)} · @${p.username} · ${wibDateTime(p.submittedAt)}` : undefined}
@@ -363,7 +363,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
                   onClick={() => void go(action)}><Send size={15} /> {ACTION_LABEL[action]()}</Button>
               </>
             ) : next.map((s) => (
-              <Button key={s} variant={s === "REJECTED" ? "danger" : s === "REVISION" ? "secondary" : "primary"} onClick={() => setAction(s)}>{ACTION_LABEL[s]()}</Button>
+              <Button key={s} variant={s === "REJECTED" ? "danger" : s === "CANCELLED" ? "ghost" : s === "REVISION" ? "secondary" : "primary"} onClick={() => setAction(s)}>{ACTION_LABEL[s]()}</Button>
             ))}
           </div>
         </div>
@@ -656,7 +656,23 @@ function OptionTable({ data, list, onChanged, onFlow, onRename }: { data: Settin
   const [editing, setEditing] = useState<FundOption | "new" | null>(null);
   const edit = data.canOptions;
   const purpose = list === "PURPOSE";
-  const all = data.options[list];
+  const toast = useToast();
+  // dragged order, shown at once and saved on drop; the arrow keys on the handle do the same
+  const [order, setOrder] = useState<number[] | null>(null);
+  const [drag, setDrag] = useState<number | null>(null);
+  const [over, setOver] = useState<number | null>(null);
+  const base = data.options[list];
+  const all = order ? [...base].sort((a, b) => (order.indexOf(a.id) + 1 || 1e6) - (order.indexOf(b.id) + 1 || 1e6)) : base;
+  const move = async (id: number, to: number) => {
+    const ids = all.map((o) => o.id);
+    const a = ids.indexOf(id), z = ids.indexOf(to);
+    if (a < 0 || z < 0 || a === z) return;
+    ids.splice(z, 0, ...ids.splice(a, 1));
+    setOrder(ids);
+    try { await call("/api/pengajuan/settings/options/order", { method: "PUT", json: { list, ids } }); onChanged(); }
+    catch (e) { setOrder(null); toast((e as Error).message, "error"); }
+  };
+  const step = (id: number, d: -1 | 1) => { const i = rows.findIndex((o) => o.id === id); const t = rows[i + d]; if (t) void move(id, t.id); };
   const rows = all.filter((o) => (show === "all" || (show === "active") === o.isActive) && (!q.trim() || o.name.toLowerCase().includes(q.trim().toLowerCase())));
   const steps = (o: FundOption) => data.flows[`PERSONAL:${o.id}`]?.filter((x) => x.type === "APPROVE").length ?? 0;
   const HINT: Record<OptionList, string> = {
@@ -692,8 +708,14 @@ function OptionTable({ data, list, onChanged, onFlow, onRename }: { data: Settin
               const t = PURPOSE_TYPE[o.settings.type ?? ""] ?? PURPOSE_TYPE[""];
               const n = steps(o);
               return (
-                <tr key={o.id} className={jRow} onClick={() => edit && setEditing(o)}>
-                  <td className={jTd}><span className={cx(edit ? jKey : "font-medium text-neutral-900", !o.isActive && "text-neutral-400 no-underline")}>{o.name}</span></td>
+                <tr key={o.id} className={cx(jRow, drag === o.id && "opacity-40", over === o.id && drag !== o.id && "bg-brand-50")} onClick={() => edit && setEditing(o)}
+                  onDragOver={(e) => { if (drag != null) { e.preventDefault(); setOver(o.id); } }}
+                  onDrop={(e) => { e.preventDefault(); if (drag != null) void move(drag, o.id); setDrag(null); setOver(null); }}>
+                  <td className={jTd}>{edit && <button type="button" draggable aria-label={tr("Move {0}: drag, or the arrow keys", o.name)} title={tr("Drag to order")}
+                    onClick={(e) => e.stopPropagation()} onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(o.id)); setDrag(o.id); }}
+                    onDragEnd={() => { setDrag(null); setOver(null); }}
+                    onKeyDown={(e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); step(o.id, e.key === "ArrowUp" ? -1 : 1); } }}
+                    className="mr-1.5 inline-flex cursor-grab align-middle text-neutral-300 hover:text-neutral-600 active:cursor-grabbing"><GripVertical size={15} /></button>}<span className={cx(edit ? jKey : "font-medium text-neutral-900", !o.isActive && "text-neutral-400 no-underline")}>{o.name}</span></td>
                   {purpose && <>
                     <td className={jTd}><Lozenge tone={t.tone}>{t.label()}</Lozenge></td>
                     <td className={jTd}><span className="flex gap-1 whitespace-nowrap">

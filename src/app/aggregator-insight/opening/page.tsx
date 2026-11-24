@@ -17,9 +17,9 @@ import { PeriodBar, daysAgo, downloadSheets, hours } from "@/aggregator/ui";
 type Row = {
   day: string; outlet: string; branchCode: string | null; platform: string; openTime: string | null; closeTime: string | null;
   status: "on_time" | "late" | "not_opened" | "waiting" | "no_hours" | "no_data"; openedAt: string | null;
-  lateMin: number | null; earlyMin: number | null; pauseMin: number; member: string | null; source: "report" | "live"; itemsPct: number | null;
+  lateMin: number | null; earlyMin: number | null; pauseMin: number; member: string | null; source: "report" | "live"; itemsPct: number | null; /** "order": the first POS order of the platform proves it was open by then */ evidence: "botfood" | "order";
 };
-type Res = { summary: { grace: number; counted: number; onTime: number; late: number; notOpened: number; earlyClose: number; pauseMin: number; noHours: number; reportFrom: string }; rows: Row[] };
+type Res = { summary: { byOrder: number; grace: number; counted: number; onTime: number; late: number; notOpened: number; earlyClose: number; pauseMin: number; noHours: number; reportFrom: string }; rows: Row[] };
 
 const STATUS: Record<Row["status"], { label: () => string; tone: LozengeTone }> = {
   on_time: { label: () => tr("On time"), tone: "green" }, late: { label: () => tr("Late"), tone: "amber" },
@@ -71,13 +71,13 @@ export default function OpeningClosing() {
       await downloadSheets(`Opening & Closing ${from} - ${to}`, [
         { sheet: "Summary", title: `Opening & Closing ${from} – ${to}${platform ? ` · ${platform}` : ""} (menurut BotFood, toleransi ${t.grace} menit)`,
           header: [tr("Measure"), tr("Value")], rows: [
-            [tr("Outlet-days counted"), t.counted], [tr("On time"), t.onTime], [tr("On time %"), t.counted ? Math.round((t.onTime / t.counted) * 1000) / 10 : null],
+            [tr("Outlet-days counted"), t.counted], [tr("On time"), t.onTime], [tr("On time % (at least)"), t.counted ? Math.round((t.onTime / t.counted) * 1000) / 10 : null],
             [tr("Late"), t.late], [tr("Not opened"), t.notOpened], [tr("Closed early"), t.earlyClose], [tr("Pause (minutes)"), t.pauseMin],
           ] },
         { sheet: "Per outlet", header: [tr("Outlet"), tr("Platform"), tr("Days"), tr("On time"), tr("On time %"), tr("Late"), tr("Not opened"), tr("Closed early"), tr("Pause (minutes)"), tr("Handled by")],
           rows: [...per.entries()].sort().map(([k, p]) => [...k.split("|"), p.days, p.on, p.days ? Math.round((p.on / p.days) * 1000) / 10 : null, p.late, p.no, p.early, p.pause, p.member]) },
-        { sheet: "Data", header: [tr("Date"), tr("Outlet"), tr("Platform"), tr("Opening hour"), tr("Closing hour"), tr("Opened at"), tr("Status"), tr("Late (min)"), tr("Closed early (min)"), tr("Pause (min)"), tr("Items available %"), tr("Handled by"), tr("Source")],
-          rows: data.rows.map((r) => [r.day, r.outlet, r.platform, r.openTime, r.closeTime, r.openedAt, STATUS[r.status].label(), r.lateMin, r.earlyMin, r.pauseMin, r.itemsPct, r.member, r.source === "report" ? "BotFood report" : "Live"]) },
+        { sheet: "Data", header: [tr("Date"), tr("Outlet"), tr("Platform"), tr("Opening hour"), tr("Closing hour"), tr("Opened at"), tr("Status"), tr("Late (min)"), tr("Closed early (min)"), tr("Pause (min)"), tr("Items available %"), tr("Handled by"), tr("Source"), tr("Evidence")],
+          rows: data.rows.map((r) => [r.day, r.outlet, r.platform, r.openTime, r.closeTime, r.openedAt, STATUS[r.status].label(), r.lateMin, r.earlyMin, r.pauseMin, r.itemsPct, r.member, r.source === "report" ? "BotFood report" : "Live", r.evidence === "order" ? "POS order" : "BotFood"]) },
       ]);
     } catch (e) { toast((e as Error).message, "error"); }
   };
@@ -89,12 +89,13 @@ export default function OpeningClosing() {
       {err ? <ErrorState message={err} onRetry={load} /> : (
         <div className="space-y-4">
           <StatStrip columns={5} label={tr("Period")} gridClassName="grid-cols-2 lg:grid-cols-5">
-            <Stat label={tr("On time")} value={s ? `${pct ?? "—"}%` : <StatSkeleton />} />
-            <Stat label={tr("Late")} value={s ? s.late : <StatSkeleton />} />
+            <Stat label={tr("On time, at least")} value={s ? `≥ ${pct ?? "—"}%` : <StatSkeleton />} />
+            <Stat label={tr("Late, at most")} value={s ? s.late : <StatSkeleton />} />
             <Stat label={tr("Not opened")} value={s ? s.notOpened : <StatSkeleton />} />
             <Stat label={tr("Closed early")} value={s ? s.earlyClose : <StatSkeleton />} />
             <Stat label={tr("Pauses")} value={s ? hours(s.pauseMin) : <StatSkeleton />} />
           </StatStrip>
+          {s && <p className="text-xs text-neutral-600">{tr("BotFood sees an opening late, so a late row is an upper bound. A POS order of the platform before that time proves the outlet was open: {0} outlet-days became on time this way. Do not judge a member of the team on late rows marked BotFood only.", s.byOrder)}</p>}
           <WorkCard tabs={[{ key: "list", label: tr("Outlet-days"), count: data?.rows.length ?? null }]} active="list" onTab={() => {}}
             left={<PeriodBar from={from} to={to} onFrom={setFrom} onTo={setTo} platform={platform} onPlatform={setPlatform} />}>
             <Toolbar>
@@ -125,7 +126,7 @@ export default function OpeningClosing() {
                         <td className={jTd}>{r.platform}</td>
                         <td className={cx(jTd, "whitespace-nowrap text-neutral-600")}>{r.openTime ? `${r.openTime}–${r.closeTime ?? ""}` : "—"}</td>
                         <td className={jTd}>{r.openedAt ?? (r.status === "on_time" ? tr("before") : "—")}</td>
-                        <td className={jTd}><Lozenge tone={STATUS[r.status].tone}>{STATUS[r.status].label()}{r.lateMin ? ` +${r.lateMin}m` : ""}</Lozenge></td>
+                        <td className={jTd}><Lozenge tone={STATUS[r.status].tone}>{STATUS[r.status].label()}{r.lateMin ? ` ≤ ${r.lateMin}m` : ""}</Lozenge>{r.evidence === "order" ? <span className="ml-1.5 text-[10px] text-emerald-700">{tr("POS order")}</span> : r.status === "late" ? <span className="ml-1.5 text-[10px] text-neutral-400">{tr("BotFood only")}</span> : null}</td>
                         <td className={jTd}>{r.earlyMin ? <span className="text-red-700">{hours(r.earlyMin)}</span> : ""}</td>
                         <td className={jTd}>{r.pauseMin ? hours(r.pauseMin) : ""}</td>
                         <td className={cx(jTd, "text-neutral-600")}>{r.itemsPct != null ? `${Math.round(r.itemsPct)}%` : ""}</td>

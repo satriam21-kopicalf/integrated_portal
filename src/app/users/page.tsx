@@ -22,7 +22,7 @@ import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
-import { AuthUser, branchScoped, BusinessLine, GENDER_LABELS, LINE_COMPANY, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
+import { AuthUser, branchLimitable, branchScoped, BusinessLine, GENDER_LABELS, LINE_COMPANY, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
 
 /** The business lines of User Accounts (migration 054): accounts and branches of each line apart. */
 const LINES: { key: BusinessLine; label: string; logo: string }[] = [
@@ -430,7 +430,7 @@ function StatusBadge({ user }: { user: AuthUser }) {
 
 /** Branches the account may see: superadmins every branch; a user without branches sees no data. */
 function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code: string) => string }) {
-  if (!branchScoped(user.role)) return <span className="whitespace-nowrap text-xs text-neutral-500">{tr('All Branches')}</span>;
+  if (!branchScoped(user.role) && !(branchLimitable(user.role) && user.branches?.length)) return <span className="whitespace-nowrap text-xs text-neutral-500">{tr('All Branches')}</span>;
   const codes = user.branches ?? [];
   if (!codes.length) return <Pill tone="red" icon={<CircleAlert size={11} />} title={tr('This user sees no data until branches are assigned')}>{tr('No branch')}</Pill>;
   const label = codes.length === 1 ? branchName(codes[0]) : tr('{0} branches', codes.length);
@@ -620,7 +620,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
       }
     }
     if (form.password) body.password = form.password;
-    if (branchScoped(form.role)) body.branches = branchCodes;
+    if (branchScoped(form.role) || branchLimitable(form.role)) body.branches = branchCodes;
     if (form.role !== 'superadmin') body.pageOverrides = pageOverrides;
     else {
       body.hiddenPages = hiddenPages;
@@ -817,8 +817,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
           <p className="mt-6 flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">
             <Info size={16} className="mt-0.5 flex-shrink-0 text-brand-700" /> {tr('No ESB branches for the COTR team: the pool comes from the employee in Master Driver.')}
           </p>
-        ) : branchScoped(form.role) ? (
-          <DrawerSection title={tr('Branch Access')} description={tr('Dashboard, Sales Transactions, Stock Opname and the forms show only these branches, exports too. Required for the roles User and Outlet/HUB.')}>
+        ) : branchScoped(form.role) || branchLimitable(form.role) ? (
+          <DrawerSection title={tr('Branch Access')} description={branchLimitable(form.role) ? tr('Optional: choose branches to narrow this account. None chosen = every branch.') : tr('Dashboard, Sales Transactions, Stock Opname and the forms show only these branches, exports too. Required for the roles User and Outlet/HUB.')}>
             <BranchAssign branches={lineBranches(branches, businessLine)} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
@@ -957,6 +957,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
   const filled = PROFILE_REQUIRED.filter(f => user[f.key]).length;
   const missing = PROFILE_REQUIRED.filter(f => !user[f.key]).map(f => f.label);
   const branchCodes = user.branches ?? [];
+  const limited = branchScoped(user.role) || (branchLimitable(user.role) && branchCodes.length > 0);
 
   return (
     <Drawer open onClose={onClose} size="lg" icon={<UserRound size={18} />} title={tr('User Details')} description={isMe ? tr('This is your account') : `@${user.username}`}
@@ -985,15 +986,15 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       {/* at a glance */}
       <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-neutral-200 bg-neutral-200 sm:grid-cols-4">
         <Glance label={tr('Last Sign-in')} value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('has not signed in')} />
-        <Glance label={tr('Branch Access')} value={!branchScoped(user.role) ? 'All' : formatNumber(branchCodes.length)}
-          sub={!branchScoped(user.role) ? ROLE_LABELS[user.role] : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}
+        <Glance label={tr('Branch Access')} value={!limited ? 'All' : formatNumber(branchCodes.length)}
+          sub={!limited ? ROLE_LABELS[user.role] : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}
           tone={branchScoped(user.role) && !branchCodes.length ? 'bad' : undefined} />
         <Glance label={tr('Profile')} value={`${filled}/${PROFILE_REQUIRED.length}`} sub={missing.length ? tr('missing: {0}', missing.join(', ')) : tr('complete')}
           tone={missing.length ? 'warn' : 'good'} />
         <Glance label={tr('Activity, 30 Days')} value={counts ? formatNumber(counts.total) : '…'} sub={counts ? tr('{0} exports', formatNumber(counts.exports)) : ''} />
       </div>
 
-      <DrawerSection title={tr('Branch Access')} description={!branchScoped(user.role) ? tr('{0} sees every branch', ROLE_LABELS[user.role]) : tr('Overview, Sales Transactions and exports are limited to these branches')}>
+      <DrawerSection title={tr('Branch Access')} description={!limited ? tr('{0} sees every branch', ROLE_LABELS[user.role]) : tr('Overview, Sales Transactions and exports are limited to these branches')}>
         {!branchScoped(user.role) ? (
           <p className="flex items-center gap-2 text-sm text-neutral-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All Branches')}</p>
         ) : branchCodes.length ? (
@@ -1119,7 +1120,7 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
   const { user, password, created } = issued;
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
-  const branches = !branchScoped(user.role) ? 'Semua cabang' : (user.branches ?? []).map(branchName).join(', ') || '—';
+  const branches = !branchScoped(user.role) && !(branchLimitable(user.role) && user.branches?.length) ? 'Semua cabang' : (user.branches ?? []).map(branchName).join(', ') || '—';
   const text = [
     'Login Kopi Calf Integrated Portal',
     `URL: ${typeof window !== 'undefined' ? window.location.origin : ''}`,

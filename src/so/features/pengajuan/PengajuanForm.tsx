@@ -23,7 +23,7 @@ import { TZ, wibDate, wibDateTime, wibDay } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import PengajuanView, { Balances, FileChip, StatusBadge } from "./PengajuanView";
-import { ProofPanel } from "./PengajuanLife";
+import { CancelPanel, ProofPanel } from "./PengajuanLife";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Barista, type FileKind, type FormState, type Kind, type Line, type Pengajuan, type PgFile, CATEGORY_LABEL, DOC_LABEL, KINDS, KIND_HINT,
   NEEDED_LABEL, OPEN, STATUS_LABEL, fmtRp, kindLabel, parseRp, placeOf, requestLabel, setKindLabels, typeRp, upload } from "./pengajuan";
@@ -61,6 +61,12 @@ export default function PengajuanForm() {
     }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  // opened from a notification: /forms/pengajuan?view=<id>
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("view");
+     
+    if (id) { setView(id); window.history.replaceState(null, "", window.location.pathname); }
+  }, []);
 
   const open = async (id?: string) => {
     setOpening(true);
@@ -204,13 +210,13 @@ export default function PengajuanForm() {
           </section>
         </div>
       )}
-      {view && <MineDrawer id={view} onClose={() => setView(null)} onEdit={(id) => { setView(null); void open(id); }} />}
+      {view && <MineDrawer id={view} onChanged={() => void load()} onClose={() => setView(null)} onEdit={(id) => { setView(null); void open(id); }} />}
     </Page>
   );
 }
 
 /** One of the outlet's sent pengajuan, read-only. */
-function MineDrawer({ id, onClose, onEdit }: { id: string; onClose: () => void; onEdit: (id: string) => void }) {
+function MineDrawer({ id, onClose, onEdit, onChanged }: { id: string; onClose: () => void; onEdit: (id: string) => void; onChanged: () => void }) {
   const [p, setP] = useState<Pengajuan | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => { call<Pengajuan>(`/api/pengajuan/requests/${id}`).then(setP).catch((e) => setError((e as Error).message)); }, [id]);
@@ -218,7 +224,7 @@ function MineDrawer({ id, onClose, onEdit }: { id: string; onClose: () => void; 
     <Drawer open onClose={onClose} size="lg" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund Request")}
       description={p ? `${p.branchName} · ${STATUS_LABEL[p.status]()}` : undefined}
       footer={p?.status === "REVISION" ? <Button onClick={() => onEdit(p.id)}>{tr("Correct and Send Again")}</Button> : undefined}>
-      {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : <div className="space-y-5">{p.scope !== "DE" && <ProofPanel key={`${p.status}${p.files?.length}`} p={p} onChanged={setP} />}<PengajuanView p={p} /></div>}
+      {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : <div className="space-y-5">{p.scope !== "DE" && <ProofPanel key={`${p.status}${p.files?.length}`} p={p} onChanged={setP} />}<PengajuanView p={p} /><CancelPanel p={p} onChanged={(x) => { setP(x); onChanged(); }} /></div>}
     </Drawer>
   );
 }

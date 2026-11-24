@@ -57,7 +57,7 @@ function Figures({ fund }: { fund: Fund }) {
 export default function FundCard({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   const [asking, setAsking] = useState(false);
   const fund = r.fund ?? null;
-  const canAsk = ASK_FROM.includes(r.status) && (r.estCost ?? 0) > 0 && (!fund || fund.status === "REVISION" || fund.status === "REJECTED");
+  const canAsk = ASK_FROM.includes(r.status) && (r.estCost ?? 0) > 0 && (!fund || fund.status === "REVISION" || fund.status === "REJECTED" || fund.status === "CANCELLED");
   if (!fund && !(r.estCost ?? 0)) {
     return <p className="text-xs text-neutral-500">{tr("No cost yet: fill in the estimated cost lines above, then ask Finance for the funds.")}</p>;
   }

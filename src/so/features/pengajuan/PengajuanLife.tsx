@@ -6,7 +6,7 @@
 // request; ProofPanel lets its owner attach the proof and send it; VerifyPanel is Finance's (adjust the accepted amount,
 // send back for missing proof, pay the shortfall, Done); RulesPanel sets the rules of every kind.
 
-import { AlertTriangle, CheckCircle2, Paperclip, Receipt, Scale, Send, Undo2 } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, Paperclip, Receipt, Scale, Send, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { Button, cx, inputClass, useToast } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
@@ -124,6 +124,34 @@ export function ProofPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Peng
       )}
       {(p.proofMissing ?? []).length > 0 && <ul className="list-disc pl-5 text-xs text-red-700">{p.proofMissing!.map((m) => <li key={m}>{m}</li>)}</ul>}
       <div className="flex justify-end"><Button loading={busy} disabled={!proof.length || spent == null} onClick={() => void send()}><Send size={14} /> {tr("Send proof")}</Button></div>
+    </section>
+  );
+}
+
+/** The owner withdraws the request while the money is not out yet (Dibatalkan); a reason is required. */
+export function CancelPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Pengajuan) => void }) {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  if (!["SUBMITTED", "REVISION", "APPROVED"].includes(p.status)) return null;
+  const send = async () => {
+    setBusy(true);
+    try {
+      onChanged(await call<Pengajuan>(`/api/pengajuan/requests/${p.id}/cancel`, { method: "POST", json: { note: note.trim() } }));
+      toast(tr("Request cancelled"));
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  if (!open) return <div className="flex justify-end"><Button variant="ghost" onClick={() => setOpen(true)}><Ban size={14} /> {tr("Cancel request")}</Button></div>;
+  return (
+    <section className="space-y-2 rounded-md border border-red-200 bg-red-50/40 p-4">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900"><Ban size={15} className="text-red-700" /> {tr("Cancel request")}</h3>
+      <p className="text-xs text-neutral-600">{tr("The request stops here and cannot be reopened. Only possible before Finance pays.")}</p>
+      <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Reason for cancelling (required)")} className={cx(inputClass, "h-auto py-2 text-sm")} />
+      <div className="flex justify-end gap-2">
+        <Button variant="secondary" disabled={busy} onClick={() => setOpen(false)}>{tr("Back")}</Button>
+        <Button variant="danger" loading={busy} disabled={!note.trim()} onClick={() => void send()}>{tr("Cancel request")}</Button>
+      </div>
     </section>
   );
 }

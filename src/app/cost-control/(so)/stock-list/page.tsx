@@ -31,8 +31,9 @@ type Row = { branch: string; branchName: string; code: string; name: string; cat
   estimate: number; ending: number | null; system: number; actual: number | null; variance: number | null; variancePct: number | null;
   price: number | null; estimateValue: number | null };
 type Head = { branch: string; branchName: string; prevDate: string | null; prevRefs: string[]; endDate: string | null; endRefs: string[];
-  from: string; to: string; items: number; estimateValue: number };
-type Data = { month: string; from: string; to: string; upto: string; branches: Head[]; rows: Row[] };
+  from: string; to: string; items: number; estimateValue: number; /** the last day ESB has made its usage */ usageUntil?: string | null };
+type Usage = "esb" | "recipe";
+type Data = { usage?: Usage; month: string; from: string; to: string; upto: string; branches: Head[]; rows: Row[] };
 type Transit = { id: string; branch: string; code: string; name: string; unit: string; qty: number; direction: "in" | "out"; date: string; note: string | null; createdBy: string };
 type View = "branch" | "material";
 type SortKey = "branch" | "material" | "prev" | "received" | "tin" | "trin" | "sales" | "nonSales" | "tout" | "trout" | "journal" | "product"
@@ -56,8 +57,10 @@ export default function StockListPage() {
   const [sheet, setSheet] = useState(false);
   const [calc, setCalc] = useState<Row | null>(null);
   const [transit, setTransit] = useState(false);
-  const load = () => { setError(null); setData(null); call<Data>(`/api/monitoring/stock/list?month=${month}`).then(setData).catch((e: Error) => setError(e.message)); };
-  useEffect(load, [month]);
+  // 2026-11-24: POS Sales from the material usage ESB books itself (its Stock Card) or from the recipe cards of the portal
+  const [usage, setUsage] = useState<Usage>("esb");
+  const load = () => { setError(null); setData(null); call<Data>(`/api/monitoring/stock/list?month=${month}&usage=${usage}`).then(setData).catch((e: Error) => setError(e.message)); };
+  useEffect(load, [month, usage]);   
   const rows = useMemo(() => (data?.rows ?? []).filter((r) => (!branch || r.branch === branch) && (!category || r.category === category)
     && (!q || `${r.name} ${r.code} ${r.branchName}`.toLowerCase().includes(q.toLowerCase()))), [data, branch, category, q]);
   const materials = useMemo(() => {
@@ -82,7 +85,7 @@ export default function StockListPage() {
     ...(branch ? [{ key: "b", label: heads.find((h) => h.branch === branch)?.branchName ?? branch, onRemove: () => setBranch("") }] : []),
     ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
   ];
-  const exportRows = () => downloadXlsx({ fileName: `Stock List ${month}`, sheet: "Stock", title: `Stock List ${month}`,
+  const exportRows = () => downloadXlsx({ fileName: `Stock List ${month}`, sheet: "Stock", title: `Stock List ${month} · POS Sales: ${usage === "esb" ? "ESB" : "Recipe"}`,
     header: ["Cabang", "Previous Balance (tgl)", "Ending Stock (tgl)", "Kode", "Material", "Kategori", "Satuan", "Previous Balance",
       "IN: Goods Receipt", "IN: Transfer In", "IN: Transit In", "OUT: POS Sales", "OUT: POS Non Sales", "OUT: Transfer Out", "OUT: Transit Out",
       "OUT: Item Journal", "OUT: Product Sales", "Estimate Stock", "Ending Stock", "System Usage", "Actual Usage", "Variance (Qty)", "Variance (%)", "Harga", "Estimate Value"],
@@ -109,6 +112,12 @@ export default function StockListPage() {
             <Button size="sm" variant="secondary" onClick={() => setTransit(true)}><ArrowLeftRight size={14} />{tr("Transit")}</Button>
             <ExcelIconButton boxed label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))} />
           </div>} />
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Segmented label={tr("POS Sales from")} value={usage} onChange={setUsage} options={[{ value: "esb", label: tr("ESB usage") }, { value: "recipe", label: tr("Recipe cards") }]} />
+        <p className="text-xs text-neutral-500">{usage === "esb"
+          ? tr("SO, receipts and waste of the portal; POS Sales as ESB books it (its Stock Card), today from the recipe cards. POS Non Sales stays apart: ESB takes no stock for cupping.")
+          : tr("SO, receipts and waste of the portal; POS Sales from the recipe cards.")}</p>
+        </div>
         <Segmented label={tr("View")} value={view} onChange={setView} options={[{ value: "branch", label: tr("Per Branch") }, { value: "material", label: tr("Per Material") }]} />
       </div>} footer={data ? <><span>{tr("{0} shown", fmtNumber(view === "branch" ? rows.length : materials.length))}</span><PageNav paged={view === "branch" ? paged : pagedM} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : !data ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table>

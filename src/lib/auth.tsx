@@ -112,6 +112,8 @@ export const OPERATIONS_PAGES: PageKey[] = ['overview', 'sales', 'rating.grabfoo
   'form.outlet', 'form.damaged-equipment', 'form.pengajuan', 'form.wwwr'];
 /** Roles that see their assigned branches only (the others see every branch). */
 export const branchScoped = (role: Role) => role === 'user' || role === 'outlet';
+/** may be narrowed to some branches, none chosen = every branch (2026-11-24; backend accounts.LIMITABLE_ROLES) */
+export const branchLimitable = (role: Role) => role === 'superadmin' || role === 'admin';
 export function operationsOnly(role: Role, pages: PageKey[]): boolean {
   return role !== 'superadmin' && pages.some(p => p.startsWith('form.')) && pages.every(p => OPERATIONS_PAGES.includes(p));
 }

@@ -14,7 +14,7 @@ export type OptionList = "PURPOSE" | "TRANSACTION" | "PROJECT" | "ACCOUNT";
 export type PurposeSettings = { receipt?: boolean; outlet?: boolean; deptPlafon?: boolean; type?: "ADVANCE" | "SETTLEMENT" | null };
 export type FundOption = { id: number; list: OptionList; name: string; isActive: boolean; sort: number; settings: PurposeSettings };
 export type Advance = { id: string; number: string; paidAmount: number | null; paidOn: string | null; purpose: string | null };
-export type Action = "APPROVE" | "REVISION" | "REJECTED" | "PAID";
+export type Action = "APPROVE" | "REVISION" | "REJECTED" | "PAID" | "CANCELLED";
 export type Step = { position: number; label: string; type: "APPROVE" | "PAY"; users: string[] };
 export type FileKind = "LINE" | "INCOME" | "OTHER" | "PAYMENT" | "REFUND" | "PROOF" | "TOPUP";
 export type Barista = { name: string; userId?: string };
@@ -81,6 +81,7 @@ export const OPEN: Status[] = ["SUBMITTED", "REVISION", "APPROVED", "PAID", "VER
 export const PAID_OUT: Status[] = ["PAID", "VERIFYING", "DONE"];
 export const ACTION_LABEL: Record<Action, () => string> = {
   APPROVE: () => tr("Approve"), PAID: () => tr("Record payment"), REVISION: () => tr("Send back for revision"), REJECTED: () => tr("Reject"),
+  CANCELLED: () => tr("Cancel request"),
 };
 export const KINDS: Kind[] = ["PETTY_CASH", "EMERGENCY", "MARKETING", "EVENT", "BILL"];
 /** asked from a Maintenance & Procurement request by the team, never from the outlet form */
