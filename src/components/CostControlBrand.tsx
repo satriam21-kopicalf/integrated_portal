@@ -8,7 +8,7 @@ import { Fragment, type ReactNode } from 'react';
 import { useCompany } from '@/lib/company';
 
 /** the pages whose brand is chosen in the top bar (desktop TopBar, phone AppBar; 2026-11-18) */
-export const brandInTopBar = (path: string) => path.startsWith('/cost-control') || path.startsWith('/monitoring');
+export const brandInTopBar = (path: string) => path.startsWith('/cost-control') || (path.startsWith('/monitoring') && !path.startsWith('/monitoring/pengajuan'));  // Fund Request has its unit tabs
 
 export default function CostControlBrand({ children }: { children: ReactNode }) {
   const { company } = useCompany();

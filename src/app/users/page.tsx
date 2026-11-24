@@ -22,6 +22,7 @@ import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
+import FundUnits from '@/components/access/FundUnits';
 import { AuthUser, branchLimitable, branchScoped, BusinessLine, GENDER_LABELS, LINE_COMPANY, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
 
 /** The business lines of User Accounts (migration 054): accounts and branches of each line apart. */
@@ -995,7 +996,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       </div>
 
       <DrawerSection title={tr('Branch Access')} description={!limited ? tr('{0} sees every branch', ROLE_LABELS[user.role]) : tr('Overview, Sales Transactions and exports are limited to these branches')}>
-        {!branchScoped(user.role) ? (
+        {!limited ? (
           <p className="flex items-center gap-2 text-sm text-neutral-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All Branches')}</p>
         ) : branchCodes.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
@@ -1011,6 +1012,8 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> {tr('No branch assigned — this user sees no data.')}</p>
         )}
       </DrawerSection>
+
+      <FundUnits userId={user.id} />
 
       <DrawerSection title={tr('Pages')} description={user.role === 'superadmin' ? tr('A Superadmin opens every page') : tr('Pages of the role {0}, plus the exceptions of this user', ROLE_LABELS[user.role])}>
         <ul className="flex flex-wrap gap-1.5">

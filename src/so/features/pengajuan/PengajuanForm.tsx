@@ -25,7 +25,7 @@ import { locale, tr } from "@/lib/i18n";
 import PengajuanView, { Balances, FileChip, StatusBadge } from "./PengajuanView";
 import { CancelPanel, ProofPanel } from "./PengajuanLife";
 import { SkeletonList } from "@/components/kc/Skeleton";
-import { type Barista, type FileKind, type FormState, type Kind, type Line, type Pengajuan, type PgFile, CATEGORY_LABEL, DOC_LABEL, KINDS, KIND_HINT,
+import { type Barista, type FileKind, type FormState, type Kind, type Line, type Pengajuan, type PgFile, type Unit, CATEGORY_LABEL, DOC_LABEL, KINDS, KIND_HINT,
   NEEDED_LABEL, OPEN, STATUS_LABEL, fmtRp, kindLabel, parseRp, placeOf, requestLabel, setKindLabels, typeRp, upload } from "./pengajuan";
 
 export default function PengajuanForm() {
@@ -36,7 +36,8 @@ export default function PengajuanForm() {
   const [branch, setBranch] = useState("");
   const [kind, setKind] = useState<Kind>("PETTY_CASH");
   // Outlet (petty cash, budget of the outlet) or Personal (the person's own request, 2026-11-20)
-  const [scope, setScope] = useState<"OUTLET" | "PERSONAL">("OUTLET");
+  const [scope, setScope] = useState<"OUTLET" | "PERSONAL" | "VENDOR">("OUTLET");
+  const [unit, setUnit] = useState("");
   const [draft, setDraft] = useState<Pengajuan | null>(null);
   const [sent, setSent] = useState<Pengajuan | null>(null);
   const [opening, setOpening] = useState(false);
@@ -55,6 +56,8 @@ export default function PengajuanForm() {
       const d = await call<FormState>("/api/pengajuan/form");
       setKindLabels(d.kindLabels);
       setData(d);
+      setUnit((u) => u || (d.units?.length === 1 ? d.units[0].code : ""));
+      if (!d.branches.length) setScope((s) => (s === "OUTLET" ? "PERSONAL" : s));
       setBranch((b) => b || (d.branches.length === 1 ? d.branches[0].code : ""));
     } catch (e) {
       setError((e as Error).message);
@@ -68,10 +71,13 @@ export default function PengajuanForm() {
     if (id) { setView(id); window.history.replaceState(null, "", window.location.pathname); }
   }, []);
 
+  // the units this account asks for; a vendor payment those that have it (Roastery, Warehouse, Central Kitchen)
+  const unitChoices = (data?.units ?? []).filter((u) => scope !== "VENDOR" || u.vendor);
+  const pickedUnit = unitChoices.some((u) => u.code === unit) ? unit : unitChoices.length === 1 ? unitChoices[0].code : "";
   const open = async (id?: string) => {
     setOpening(true);
     try {
-      setDraft(id ? await call<Pengajuan>(`/api/pengajuan/requests/${id}`) : await call<Pengajuan>("/api/pengajuan/requests", { method: "POST", json: scope === "PERSONAL" ? { kind: "PERSONAL", branchCode: branch || null } : { branchCode: branch, kind } }));
+      setDraft(id ? await call<Pengajuan>(`/api/pengajuan/requests/${id}`) : await call<Pengajuan>("/api/pengajuan/requests", { method: "POST", json: scope !== "OUTLET" ? { kind: scope, branchCode: branch || null, unit: pickedUnit || null } : { branchCode: branch, kind } }));
       setSent(null);
       window.scrollTo({ top: 0 });
     } catch (e) {
@@ -82,7 +88,7 @@ export default function PengajuanForm() {
   };
 
   if (draft && data) {
-    if (draft.kind === "PERSONAL") return <PersonalEditor data={data} initial={draft} onClose={() => { setDraft(null); void load(); }}
+    if (draft.kind === "PERSONAL" || draft.kind === "VENDOR") return <PersonalEditor data={data} initial={draft} onClose={() => { setDraft(null); void load(); }}
       onSent={(p) => { setDraft(null); setSent(p); void load(); window.scrollTo({ top: 0 }); }} />;
     return <Editor data={data} initial={draft} onClose={() => { setDraft(null); void load(); }}
       onSent={(p) => { setDraft(null); setSent(p); void load(); window.scrollTo({ top: 0 }); }} />;
@@ -120,10 +126,12 @@ export default function PengajuanForm() {
             </div>
             <div className="space-y-4 p-4 sm:p-5">
               <Segmented label={tr("Request for")} value={scope} onChange={setScope}
-                options={[{ value: "OUTLET", label: tr("Outlet") }, { value: "PERSONAL", label: tr("Personal / Department") }]} />
-              {scope === "PERSONAL" ? (<>
-                <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">{KIND_HINT.PERSONAL()}</p>
-                <Button className="w-full sm:w-auto" loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create: {0}", kindLabel("PERSONAL"))}</Button>
+                options={[{ value: "OUTLET", label: tr("Outlet") }, { value: "PERSONAL", label: tr("Personal / Department") },
+                  ...(data.units?.some((u) => u.vendor) ? [{ value: "VENDOR" as const, label: tr("Vendor Payment") }] : [])]} />
+              {scope !== "OUTLET" ? (<>
+                <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">{KIND_HINT[scope]()}</p>
+                <UnitChoice units={unitChoices} value={pickedUnit} onChange={setUnit} />
+                <Button className="w-full sm:w-auto" loading={opening} disabled={!pickedUnit} onClick={() => void open()}><Plus size={15} /> {tr("Create: {0}", kindLabel(scope))}</Button>
               </>) : (<>
               <div>
                 <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Branch")}</p>
@@ -212,6 +220,25 @@ export default function PengajuanForm() {
       )}
       {view && <MineDrawer id={view} onChanged={() => void load()} onClose={() => setView(null)} onEdit={(id) => { setView(null); void open(id); }} />}
     </Page>
+  );
+}
+
+/** The unit that asks: it decides the PT that pays (2026-11-24), so it is chosen, never guessed. */
+function UnitChoice({ units, value, onChange }: { units: Unit[]; value: string; onChange: (code: string) => void }) {
+  if (!units.length) return <p className="rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-900">{tr("Your account has no unit for this: ask your administrator.")}</p>;
+  return (
+    <div>
+      <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Unit that asks")}</p>
+      <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={tr("Unit that asks")}>
+        {units.map((u) => (
+          <button key={u.code} type="button" role="radio" aria-checked={value === u.code} onClick={() => onChange(u.code)}
+            className={cx("rounded-md border px-3 py-2.5 text-left transition-colors", value === u.code ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500" : "border-neutral-200 bg-white hover:bg-neutral-50")}>
+            <span className="block text-sm font-semibold text-neutral-900">{u.name}</span>
+            <span className="block text-[11px] text-neutral-500">{tr("Paid from {0}", u.payer)}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -662,13 +689,15 @@ function Attachments({ files, docTypes, required, onAdd, onRemove }: { files: Pg
  * settles. Saved as it is filled, like the outlet form. */
 type PLocal = { neededOn: string; purposeId: string; transactionTypeId: string; projectId: string; accountTypeId: string; purpose: string;
   amount: string; branchCode: string; payeeBank: string; payeeAccount: string; payeeName: string; settlesId: string; note: string;
-  payeeType: "BANK" | "VA"; vaProvider: string; invoiceNo: string };
+  payeeType: "BANK" | "VA"; vaProvider: string; invoiceNo: string;
+  unit: string; vendorName: string; paymentTerm: string; invoiceDate: string; outstanding: string };
 const pLocal = (p: Pengajuan): PLocal => ({ neededOn: p.neededOn ?? "", purposeId: p.purposeId ? String(p.purposeId) : "",
   transactionTypeId: p.transactionTypeId ? String(p.transactionTypeId) : "", projectId: p.projectId ? String(p.projectId) : "",
   accountTypeId: p.accountTypeId ? String(p.accountTypeId) : "", purpose: p.purpose ?? "", amount: typeRp(p.requestedAmount),
   branchCode: p.branchCode ?? "", payeeBank: p.payeeBank ?? "", payeeAccount: p.payeeAccount ?? "", payeeName: p.payeeName ?? "",
   settlesId: p.settlesId ?? "", note: p.note ?? "",
-  payeeType: p.payeeType ?? "BANK", vaProvider: p.vaProvider ?? "", invoiceNo: p.invoiceNo ?? "" });
+  payeeType: p.payeeType ?? "BANK", vaProvider: p.vaProvider ?? "", invoiceNo: p.invoiceNo ?? "",
+  unit: p.unit ?? "", vendorName: p.vendorName ?? "", paymentTerm: p.paymentTerm ?? "", invoiceDate: p.invoiceDate ?? "", outstanding: typeRp(p.outstandingAmount ?? null) });
 const num = (v: string) => (v ? Number(v) : null);
 
 function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; initial: Pengajuan; onClose: () => void; onSent: (p: Pengajuan) => void }) {
@@ -694,7 +723,8 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
         neededOn: l.neededOn || null, purposeId: num(l.purposeId), transactionTypeId: num(l.transactionTypeId), projectId: num(l.projectId),
         accountTypeId: num(l.accountTypeId), purpose: l.purpose, requestedAmount: parseRp(l.amount), branchCode: l.branchCode || null,
         payeeBank: l.payeeBank, payeeAccount: l.payeeAccount, payeeName: l.payeeName, settlesId: l.settlesId || null, note: l.note,
-        payeeType: l.payeeType, vaProvider: l.vaProvider, invoiceNo: l.invoiceNo } });
+        payeeType: l.payeeType, vaProvider: l.vaProvider, invoiceNo: l.invoiceNo, unit: l.unit || null,
+        ...(initial.kind === "VENDOR" ? { vendorName: l.vendorName, paymentTerm: l.paymentTerm, invoiceDate: l.invoiceDate || null, outstandingAmount: parseRp(l.outstanding) } : {}) } });
       setServer(p);
       setFiles(p.files ?? []);
       setSaving("idle");
@@ -704,7 +734,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
       toast((e as Error).message, "error");
       return null;
     }
-  }, [base, toast]);
+  }, [base, toast, initial.kind]);
   const update = (patch: Partial<PLocal>) => {
     setLocal((cur) => { const next = { ...cur, ...patch }; localRef.current = next; return next; });
     setSaving("pending");
@@ -716,6 +746,8 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
   const opts = data.options;
   const purpose = opts.PURPOSE.find((o) => String(o.id) === local.purposeId);
   const flags = useMemo(() => purpose?.settings ?? {}, [purpose]);
+  const bill = initial.kind === "VENDOR";  // the vendor payment: the fields of an invoice instead of Keperluan Dana
+  const title = bill ? local.vendorName || kindLabel("VENDOR") : undefined;
   const settling = flags.type === "SETTLEMENT";
   const vendor = !!server.rule?.vendor && String(server.purposeId ?? "") === local.purposeId;
   const amount = parseRp(local.amount);
@@ -723,6 +755,22 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
   const diff = settling && advance && amount !== null ? amount - (advance.paidAmount ?? 0) : null;
   const todo = useMemo(() => {
     const out: string[] = [];
+    if (bill) {
+      const owed = parseRp(local.outstanding);
+      if (!local.vendorName.trim()) out.push(tr("Fill in the vendor"));
+      if (!local.paymentTerm) out.push(tr("Choose the payment term"));
+      if (!local.invoiceNo.trim()) out.push(tr("Fill in the invoice number (- when there is none)"));
+      if (!local.invoiceDate) out.push(tr("Fill in the invoice date"));
+      if (!local.neededOn) out.push(tr("Fill in the due date"));
+      if (local.invoiceDate && local.neededOn && local.neededOn < local.invoiceDate) out.push(tr("The due date is before the invoice date"));
+      if (!local.purpose.trim()) out.push(tr("Write the description and details"));
+      if (!amount || amount <= 0) out.push(tr("Fill in the total requested"));
+      else if (owed !== null && amount > owed) out.push(tr("More than the outstanding invoice"));
+      if (local.payeeType === "VA") { if (!local.vaProvider.trim() || !local.payeeAccount.trim()) out.push(tr("Fill in the Virtual Account: provider and number")); }
+      else if (!local.payeeBank.trim() || !local.payeeAccount.trim() || !local.payeeName.trim()) out.push(tr("Fill in the bank account: bank, number and holder"));
+      if (!files.some((f) => f.kind === "OTHER")) out.push(tr("Attach the invoice or supporting document"));
+      return out;
+    }
     if (!purpose) out.push(tr("Choose the purpose of the funds"));
     if (!local.transactionTypeId) out.push(tr("Choose the transaction type"));
     if (!local.neededOn) out.push(tr("Fill in the date the funds are needed"));
@@ -738,7 +786,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
     if (settling && !local.settlesId) out.push(tr("Choose the Cash in Advance being settled"));
     if (flags.receipt && !files.some((f) => f.kind === "OTHER")) out.push(tr("Attach the supporting documents (bill, receipt, photo)"));
     return out;
-  }, [local, purpose, flags, settling, amount, files, vendor]);
+  }, [local, purpose, flags, settling, amount, files, vendor, bill]);
 
   const attach = async (file: File, docType: string) => {
     try {
@@ -776,7 +824,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
         <div className="mx-auto flex max-w-3xl items-center gap-2">
           <button type="button" onClick={() => void flush().then(onClose)} className="-ml-1.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-semibold text-neutral-900">{server.number ?? tr("New fund request")} · {purpose?.name ?? kindLabel("PERSONAL")}</p>
+            <p className="truncate text-base font-semibold text-neutral-900">{server.number ?? tr("New fund request")} · {title ?? purpose?.name ?? kindLabel("PERSONAL")}</p>
             <p className="truncate text-xs text-neutral-500">{[server.department, server.jobTitle].filter(Boolean).join(" · ") || tr("Personal")}</p>
           </div>
           <span className="flex items-center gap-1 text-xs text-neutral-500" aria-live="polite">
@@ -801,7 +849,34 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
         </FormCard>
 
         <FormCard n={2} title={tr("Request")} hint={tr("What the funds are for")}>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="mb-3 rounded-md bg-neutral-50 px-3 py-2.5 text-xs text-neutral-600">
+            {(data.units?.length ?? 0) > 1 && server.status === "DRAFT" ? (
+              <UnitChoice units={(data.units ?? []).filter((u) => !bill || u.vendor)} value={local.unit} onChange={(unit) => update({ unit, branchCode: "" })} />
+            ) : <><span className="font-semibold text-neutral-800">{data.units?.find((u) => u.code === local.unit)?.name ?? local.unit}</span> · {tr("Paid from {0}", data.units?.find((u) => u.code === local.unit)?.payer ?? server.payer ?? "—")}</>}
+          </div>
+          {bill && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2"><Field label={tr("Vendor")} value={local.vendorName} onChange={(v) => update({ vendorName: v })} max={120} placeholder="SUKANDA DJAYA" /></div>
+              <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Payment term")}<span className="text-red-600"> *</span></span>
+                <select value={local.paymentTerm} onChange={(e) => update({ paymentTerm: e.target.value })} aria-label={tr("Payment term")} className={cx(inputClass, "h-11 w-full")}>
+                  <option value="">{tr("Choose")}</option><option value="COD">{tr("COD · paid on delivery")}</option><option value="TOP">{tr("TOP · paid by its due date")}</option><option value="CBD">{tr("CBD · paid before delivery")}</option>
+                </select></label>
+              <Field label={tr("Invoice number")} value={local.invoiceNo} onChange={(v) => update({ invoiceNo: v })} max={80} />
+              <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Invoice date")}<span className="text-red-600"> *</span></span>
+                <input type="date" value={local.invoiceDate} onChange={(e) => update({ invoiceDate: e.target.value })} className={cx(inputClass, "h-11")} /></label>
+              <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Due date")}<span className="text-red-600"> *</span></span>
+                <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11")} />
+                {local.neededOn && local.neededOn < wibDate() && <span className="mt-1 block text-xs font-medium text-amber-700">{tr("The due date has passed")}</span>}</label>
+              <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Location")}</span>
+                <select value={local.branchCode} onChange={(e) => update({ branchCode: e.target.value })} aria-label={tr("Location")} className={cx(inputClass, "h-11 w-full")}>
+                  <option value="">{tr("None")}</option>
+                  {data.branches.filter((b) => b.unit === local.unit).map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
+                </select></label>
+              <div className="sm:col-span-2"><p className="mb-1 text-xs font-medium text-neutral-600">{tr("Total outstanding invoice")}</p>
+                <RpInput value={local.outstanding} onChange={(v) => update({ outstanding: v })} label={tr("Total outstanding invoice")} /></div>
+            </div>
+          )}
+          {!bill && <div className="grid gap-3 sm:grid-cols-2">
             {select("purposeId", "PURPOSE", data.listNames?.PURPOSE ?? tr("Purpose of Funds"))}
             {select("transactionTypeId", "TRANSACTION", data.listNames?.TRANSACTION ?? tr("Transaction Type"))}
             <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{vendor ? tr("Due date") : tr("Date Funds Needed")}<span className="text-red-600"> *</span></span>
@@ -811,9 +886,9 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
             <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Outlet")}{flags.outlet && <span className="text-red-600"> *</span>}</span>
               <NativeSelect value={local.branchCode} onChange={(e) => update({ branchCode: e.target.value })} aria-label={tr("Outlet")} className={cx(inputClass, "h-11 w-full")}>
                 <option value="">{flags.outlet ? tr("Choose the outlet") : tr("No outlet")}</option>
-                {data.outlets.map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
+                {[...data.branches.filter((b) => b.unit === local.unit && !data.outlets.some((o) => o.code === b.code)), ...data.outlets].map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
               </NativeSelect></label>
-          </div>
+          </div>}
           {settling && (
             <div className="mt-3 rounded-md border border-sky-200 bg-sky-50/60 p-3">
               <label className="block"><span className="mb-1 block text-xs font-medium text-sky-900">{tr("Cash in Advance being settled")}<span className="text-red-600"> *</span></span>
@@ -842,7 +917,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
 
         <FormCard n={5} title={tr("Destination Account")} hint={tr("The transfer goes to this account")}>
           <div className="grid gap-2 sm:grid-cols-2">
-            <div className="sm:col-span-2">{select("accountTypeId", "ACCOUNT", data.listNames?.ACCOUNT ?? tr("Account Type"))}</div>
+            {!bill && <div className="sm:col-span-2">{select("accountTypeId", "ACCOUNT", data.listNames?.ACCOUNT ?? tr("Account Type"))}</div>}
             <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Pay to")}</span>
               <select value={local.payeeType} onChange={(e) => update({ payeeType: e.target.value as "BANK" | "VA" })} aria-label={tr("Pay to")} className={cx(inputClass, "h-11 w-full")}>
                 <option value="BANK">{tr("Bank account")}</option><option value="VA">{tr("Virtual Account (Shopee, Tokopedia …)")}</option>
@@ -854,8 +929,8 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
           </div>
         </FormCard>
 
-        <FormCard n={6} title={tr("Supporting Documents")} hint={flags.receipt ? tr("Required: bill, receipt or photo") : tr("Bill, receipt, quotation or photo (optional)")}>
-          <Attachments files={files.filter((f) => f.kind === "OTHER")} docTypes={["NOTA", "KWITANSI", "INVOICE", "STRUK", "FOTO", "QUOTE", "OTHER"]} required={!!flags.receipt}
+        <FormCard n={6} title={tr("Supporting Documents")} hint={bill || flags.receipt ? tr("Required: bill, receipt or photo") : tr("Bill, receipt, quotation or photo (optional)")}>
+          <Attachments files={files.filter((f) => f.kind === "OTHER")} docTypes={["NOTA", "KWITANSI", "INVOICE", "STRUK", "FOTO", "QUOTE", "OTHER"]} required={bill || !!flags.receipt}
             onAdd={attach} onRemove={removeFile} />
           <textarea value={local.note} onChange={(e) => update({ note: e.target.value })} rows={2} maxLength={1000}
             placeholder={tr("Note for management / Finance (optional)")} className={cx(inputClass, "mt-3 h-auto py-2 text-sm")} />
@@ -877,7 +952,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1 text-xs text-neutral-500">
               <p className="font-semibold tabular-nums text-neutral-900">{tr("Asked {0}", fmtRp(amount))}</p>
-              <p className="truncate">{purpose?.name ?? kindLabel("PERSONAL")}</p>
+              <p className="truncate">{title ?? purpose?.name ?? kindLabel("PERSONAL")}</p>
             </div>
             <Button disabled={todo.length > 0 || saving === "saving"} onClick={() => setConfirm(true)}><Send size={15} /> {server.status === "REVISION" ? tr("Send again") : tr("Send")}</Button>
           </div>
@@ -885,7 +960,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
       </div>
       <ConfirmDialog open={confirm} onClose={() => setConfirm(false)} onConfirm={() => void submit()} busy={sending}
         title={tr("Send this fund request?")} confirmLabel={tr("Send")}
-        description={tr("{0}: {1} asked. After sending it cannot be changed unless the approver sends it back for a revision.", purpose?.name ?? kindLabel("PERSONAL"), fmtRp(amount))} />
+        description={tr("{0}: {1} asked. After sending it cannot be changed unless the approver sends it back for a revision.", title ?? purpose?.name ?? kindLabel("PERSONAL"), fmtRp(amount))} />
       <ConfirmDialog open={discarding} onClose={() => setDiscarding(false)} onConfirm={() => void discard()} danger
         title={tr("Delete this draft?")} confirmLabel={tr("Delete")} description={tr("Every figure and attachment of this draft is removed.")} />
     </div>

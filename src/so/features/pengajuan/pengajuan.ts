@@ -8,7 +8,9 @@ import type { Tone } from "@/so/ui";
 export type Status = "DRAFT" | "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "VERIFYING" | "DONE" | "REJECTED" | "CANCELLED";
 /** the rules of a kind, set by Finance (backend app/fund_lifecycle.py) */
 export type Rule = { proofAfter: boolean; proofDays: number; proofDocs: string[]; vendor: boolean };
-export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL" | "PERSONAL" | "MAINTENANCE" | "PROCUREMENT";
+export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL" | "PERSONAL" | "MAINTENANCE" | "PROCUREMENT" | "VENDOR";
+/** the unit that asks and the PT that pays it (2026-11-24, backend app/fund_units.py) */
+export type Unit = { code: string; name: string; payer: string; vendor: boolean };
 /** the lists of the personal form, set by management (migration 124) */
 export type OptionList = "PURPOSE" | "TRANSACTION" | "PROJECT" | "ACCOUNT";
 export type PurposeSettings = { receipt?: boolean; outlet?: boolean; deptPlafon?: boolean; type?: "ADVANCE" | "SETTLEMENT" | null };
@@ -35,7 +37,8 @@ export type Pengajuan = {
   payeeBank: string | null; payeeAccount: string | null; payeeName: string | null; purpose: string | null; neededOn: string | null;
   plafon: number | null; requestedAmount: number | null;
   /** personal (2026-11-20): identity from the account, the lists set by management, the Cash in Advance it settles */
-  scope?: "OUTLET" | "PERSONAL" | "DE"; email?: string | null; department?: string | null; jobTitle?: string | null;
+  scope?: "OUTLET" | "PERSONAL" | "DE" | "VENDOR"; unit?: string; payer?: string | null; vendorName?: string | null; paymentTerm?: "COD" | "TOP" | "CBD" | null;
+  invoiceDate?: string | null; outstandingAmount?: number | null; /** other requests to the same account with the same amount within 30 days */ similar?: string[]; twin?: boolean; email?: string | null; department?: string | null; jobTitle?: string | null;
   purposeId?: number | null; transactionTypeId?: number | null; projectId?: number | null; accountTypeId?: number | null; settlesId?: string | null;
   purposeName?: string | null; transactionTypeName?: string | null; projectName?: string | null; accountTypeName?: string | null;
   settles?: { id: string; number: string; paidAmount: number | null; paidOn: string | null; diff: number; outcome: "PAY" | "RETURN" | "EVEN" } | null;
@@ -61,7 +64,7 @@ export type Pengajuan = {
   payeeType?: "BANK" | "VA"; vaProvider?: string | null; invoiceNo?: string | null;
   rule?: Rule; proofMissing?: string[];
 };
-export type FormState = { user: { id: string; username: string; name: string }; branches: { code: string; name: string }[];
+export type FormState = { user: { id: string; username: string; name: string }; branches: { code: string; name: string; unit?: string }[]; units?: Unit[];
   requests: Pengajuan[]; categories: Record<string, string>; categoriesOf: Record<Kind, Record<string, string>>; kinds: Record<Kind, string>;
   neededOn: Partial<Record<Kind, string>>; receiptRequired: Kind[]; docTypes: Record<string, string>; baristas: Record<string, { id: string; name: string }[]>;
   profile: { email: string | null; name: string; department: string | null; jobTitle: string | null };
@@ -88,7 +91,7 @@ export const KINDS: Kind[] = ["PETTY_CASH", "EMERGENCY", "MARKETING", "EVENT", "
 export const DE_KINDS: Kind[] = ["MAINTENANCE", "PROCUREMENT"];
 export const KIND_LABEL: Record<Kind, () => string> = {
   PETTY_CASH: () => tr("Weekly Petty Cash"), EMERGENCY: () => tr("Emergency Purchase"), MARKETING: () => tr("Marketing & Promo"),
-  EVENT: () => tr("Event & Bazaar"), BILL: () => tr("Outlet Bills"), PERSONAL: () => tr("Personal Request"),
+  EVENT: () => tr("Event & Bazaar"), BILL: () => tr("Outlet Bills"), PERSONAL: () => tr("Personal Request"), VENDOR: () => tr("Vendor Payment"),
   MAINTENANCE: () => tr("Maintenance"), PROCUREMENT: () => tr("Procurement"),
 };
 /** the names management gave the outlet kinds (2026-11-20, backend migration 127), set from every answer that carries them */
@@ -100,6 +103,7 @@ export const KIND_HINT: Record<Kind, () => string> = {
   MARKETING: () => tr("Banners, flyers, vouchers, sampling for the outlet"),
   EVENT: () => tr("Booth, equipment, stock and crew of an event or bazaar"),
   BILL: () => tr("Electricity, water, internet, waste, security, rent"),
+  VENDOR: () => tr("An invoice of a vendor: term, invoice number, due date and the account to pay"),
   PERSONAL: () => tr("Cash in advance, reimbursement, refund, department petty cash …"),
   MAINTENANCE: () => tr("The funds of a repair, asked by the Maintenance team from its request"),
   PROCUREMENT: () => tr("The funds of a purchase, asked by the Procurement team from its request"),
@@ -109,7 +113,7 @@ export const kindLabel = (k: Kind) => kindNames[k] || (KIND_LABEL[k]?.() ?? k);
 /** the label of a request: a personal one shows its Keperluan Dana */
 export const requestLabel = (p: Pick<Pengajuan, "kind" | "purposeName">) => (p.kind === "PERSONAL" && p.purposeName) || kindLabel(p.kind);
 /** where a request belongs: the outlet, else the department of a personal one */
-export const placeOf = (p: Pick<Pengajuan, "branchName" | "department" | "kind">) => p.branchName || (p.kind === "PERSONAL" ? p.department || tr("Personal") : "—");
+export const placeOf = (p: Pick<Pengajuan, "branchName" | "department" | "kind" | "vendorName">) => (p.kind === "VENDOR" && p.vendorName) || p.branchName || (p.kind === "PERSONAL" ? p.department || tr("Personal") : "—");
 export const CATEGORY_LABEL: Record<string, () => string> = {
   RAW: () => tr("Raw Materials"), OPERATIONAL: () => tr("Outlet operations"), GAS_WATER: () => tr("Gas & gallon water"),
   TRANSPORT: () => tr("Transport & delivery"), CLEANING: () => tr("Cleaning & stationery"), REPAIR: () => tr("Small repairs"),

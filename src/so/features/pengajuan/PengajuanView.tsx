@@ -130,6 +130,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
   const differs = p.openingExpected !== null && p.openingBalance !== null && p.openingBalance !== p.openingExpected;
   const petty = p.kind === "PETTY_CASH";
   const personal = p.kind === "PERSONAL";
+  const vendor = p.kind === "VENDOR";
   return (
     <div className="space-y-5">
       <section className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
@@ -139,6 +140,16 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
           <Info k={personal ? tr("Purpose of Funds") : tr("Kind")} v={personal ? p.purposeName ?? kindLabel(p.kind) : kindLabel(p.kind)} />
           {p.deRequest && <DeSource de={p.deRequest} />}
           {p.refundAmount != null && <Info k={tr("Money back")} v={`${fmtRp(p.refundAmount)} · ${p.refundedAt ? tr("received {0}", wibDay(p.refundedAt)) : tr("not received yet")}`} />}
+          {p.payer && <Info k={tr("Paid from")} v={p.payer} />}
+          {vendor && <>
+            <Info k={tr("Vendor")} v={p.vendorName ?? "—"} />
+            <Info k={tr("Payment term")} v={p.paymentTerm ?? "—"} />
+            <Info k={tr("Invoice date")} v={p.invoiceDate ? wibDay(p.invoiceDate) : "—"} />
+            <Info k={tr("Due date")} v={p.neededOn ? wibDay(p.neededOn) : "—"} />
+            <Info k={tr("Total outstanding invoice")} v={fmtRp(p.outstandingAmount ?? null)} />
+            <Info k={tr("Department · Job Title")} v={[p.department, p.jobTitle].filter(Boolean).join(" · ") || "—"} />
+            {p.branchName && <Info k={tr("Location")} v={p.branchName} />}
+          </>}
           {personal && <>
             <Info k={tr("Transaction Type")} v={p.transactionTypeName ?? "—"} />
             <Info k={tr("Date Funds Needed")} v={p.neededOn ? wibDay(p.neededOn) : "—"} />
@@ -152,7 +163,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
           {personal ? null : petty ? <Info k={tr("Period")} v={p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : "—"} />
             : NEEDED_LABEL[p.kind] ? <Info k={NEEDED_LABEL[p.kind]!()} v={p.neededOn ? wibDay(p.neededOn) : "—"} /> : null}
           <Info k={tr("Sent by")} v={`${p.requesterName ?? p.name}${p.requesterPhone ? ` · ${p.requesterPhone}` : ""} (@${p.username})`} />
-          {!personal && <Info k={tr("Lines accepted")} v={`${fmtRp(acceptedTotal(lines))}${rejected.length ? ` · ${tr("{0} rejected", rejected.length)}` : ""}`} />}
+          {!personal && !vendor && <Info k={tr("Lines accepted")} v={`${fmtRp(acceptedTotal(lines))}${rejected.length ? ` · ${tr("{0} rejected", rejected.length)}` : ""}`} />}
           <Info k={petty ? tr("Top-up asked") : tr("Amount Asked")} v={`${fmtRp(p.requestedAmount ?? p.totalOut)}${petty && p.plafon !== null ? ` · ${tr("plafon {0}", fmtRp(p.plafon))}` : ""}`} />
           {p.invoiceNo && <Info k={tr("Invoice number")} v={p.invoiceNo} />}
           {p.approvedAmount !== null && <Info k={tr("Approved amount")} v={fmtRp(p.approvedAmount)} />}
@@ -169,6 +180,10 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
             <span className="font-semibold text-neutral-800">{tr("Reference: Simple Purchase in ESB")}</span> · {tr("{0} weeks up to {1}", p.purchaseRef.weeks, wibDay(p.purchaseRef.until))}:
             {" "}{tr("average {0} a week", fmtRp(p.purchaseRef.avgWeek))} · {tr("last 7 days {0}", fmtRp(p.purchaseRef.lastWeek))} · {tr("{0} documents", p.purchaseRef.docs)}
           </p>
+        )}
+        {(p.similar ?? []).length > 0 && (
+          <p className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-xs text-amber-900"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
+            {tr("Same account and same amount within 30 days: {0}. Check that it is not paid twice.", p.similar!.join(", "))}</p>
         )}
         {(differs || reused.length > 0 || (p.closingBalance ?? 0) < 0) && (
           <ul className="space-y-1 text-xs">
