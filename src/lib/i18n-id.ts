@@ -7592,4 +7592,5 @@ export const ID: Record<string, string> = {
   "Include packaging": "Termasuk packaging",
   "Time out": "Lama habis",
   "The history of stock changes is kept from {0}.": "Riwayat perubahan stok disimpan sejak {0}.",
+  "{0} items inactive for over {1} days are left out: switched off, not out of stock.": "{0} item nonaktif lebih dari {1} hari tidak dihitung: menu dimatikan, bukan stok habis.",
 };

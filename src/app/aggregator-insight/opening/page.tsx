@@ -106,8 +106,8 @@ export default function OpeningClosing() {
                   { key: "pause", label: tr("Paused") },
                 ]} />
               </div>
-              <label className="flex items-center gap-2 text-xs text-neutral-600">{tr("Grace (min)")}
-                <Input type="number" min={0} max={180} value={grace} onChange={(e) => setGrace(e.target.value)} className="h-8 w-16" />
+              <label className="flex flex-shrink-0 items-center gap-2 whitespace-nowrap text-xs text-neutral-600">{tr("Grace (min)")}
+                <Input type="number" min={0} max={180} value={grace} onChange={(e) => setGrace(e.target.value)} className="h-8 !w-20" />
                 <Button size="sm" variant="ghost" disabled={!grace || Number(grace) === s?.grace} onClick={saveGrace}>{tr("Save")}</Button></label>
             </Toolbar>
             <div className="overflow-x-auto">

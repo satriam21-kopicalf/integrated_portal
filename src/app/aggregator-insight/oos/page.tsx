@@ -16,7 +16,7 @@ import { PeriodBar, daysAgo, downloadSheets, hours } from "@/aggregator/ui";
 type Now = { outlet: string; platform: string; category: string; item: string; since: string | null };
 type Per = { outlet: string; platform: string; category: string; item: string; times: number; minutes: number; remarks: string };
 type Res = {
-  summary: { outNow: number; outletsWithOos: number; itemsInPeriod: number; timesInPeriod: number; minutesInPeriod: number; dataFrom: string | null };
+  summary: { outNow: number; inactiveLong: number; staleDays: number; outletsWithOos: number; itemsInPeriod: number; timesInPeriod: number; minutesInPeriod: number; dataFrom: string | null };
   byCategory: { category: string; n: number }[]; byOutlet: { outlet: string; n: number }[]; current: Now[]; items: Per[];
 };
 type Tab = "now" | "period" | "category" | "outlet";
@@ -126,7 +126,7 @@ export default function OutOfStock() {
                   </table>
                 </div>
               )}
-            <CardFooter><span className="text-xs text-neutral-500">{tr("The history of stock changes is kept from {0}.", s?.dataFrom ? since(s.dataFrom) : "—")}</span></CardFooter>
+            <CardFooter><span className="text-xs text-neutral-500">{tr("The history of stock changes is kept from {0}.", s?.dataFrom ? since(s.dataFrom) : "—")} {s ? tr("{0} items inactive for over {1} days are left out: switched off, not out of stock.", s.inactiveLong.toLocaleString("id-ID"), s.staleDays) : ""}</span></CardFooter>
           </WorkCard>
         </div>
       )}

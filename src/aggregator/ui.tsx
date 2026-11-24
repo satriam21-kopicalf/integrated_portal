@@ -18,9 +18,9 @@ export function PeriodBar({ from, to, onFrom, onTo, platform, onPlatform }: {
   const quick = [[tr("Today"), 0, 0], [tr("Yesterday"), 1, 1], [tr("7 days"), 6, 0], [tr("30 days"), 29, 0]] as const;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Input type="date" value={from} max={to} onChange={(e) => e.target.value && onFrom(e.target.value)} className="h-9 w-auto" aria-label={tr("From")} />
+      <Input type="date" value={from} max={to} onChange={(e) => e.target.value && onFrom(e.target.value)} className="h-9 !w-40" aria-label={tr("From")} />
       <span className="text-neutral-400">–</span>
-      <Input type="date" value={to} min={from} onChange={(e) => e.target.value && onTo(e.target.value)} className="h-9 w-auto" aria-label={tr("To")} />
+      <Input type="date" value={to} min={from} onChange={(e) => e.target.value && onTo(e.target.value)} className="h-9 !w-40" aria-label={tr("To")} />
       <div className="flex gap-1">
         {quick.map(([label, a, b]) => (
           <button key={label} type="button" onClick={() => { onFrom(daysAgo(a)); onTo(daysAgo(b)); }}
