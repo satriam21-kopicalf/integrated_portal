@@ -1086,8 +1086,10 @@ function CategoriesDrawer({ kind, bgroups, onClose }: { kind: Kind; bgroups: Gro
 // ------------------------------------------------------------------------------------------------- cost lines & labour
 
 type Act = (path: string, json: unknown, ok: string, method?: string) => Promise<boolean>;
-type LineDraft = { id?: number; kind: CostKind; description: string; qty: string; est: string; actual: string };
-const blankLine = (): LineDraft => ({ kind: "MATERIAL", description: "", qty: "1", est: "", actual: "" });
+// 2026-11-24: a line takes a Jenis Transaksi of Fund Request (migration 142) and its price per unit; the totals are qty × price
+type LineDraft = { id?: number; kind: CostKind; trx: string; description: string; qty: string; est: string; actual: string };
+const blankLine = (): LineDraft => ({ kind: "OTHER", trx: "", description: "", qty: "1", est: "", actual: "" });
+const unitOf = (total: number | null, qty: number) => (total == null ? "" : String(Math.round(total / (qty || 1))));
 const digits = (v: string) => v.replace(/[^0-9]/g, "");
 
 /** The cost of a request: lines (kind, description, qty, estimate, actual) and the labour of every technician (rate × time
@@ -1100,32 +1102,38 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   const base = `/api/de/monitor/${r.id}`;
   const save = async () => {
     if (!line) return;
-    const body = { kind: line.kind, description: line.description, qty: Number(line.qty) || 1,
-      estAmount: line.est ? Number(line.est) : null, actualAmount: line.actual ? Number(line.actual) : null };
+    const q = Number(line.qty) || 1;
+    const body = { kind: line.kind, transactionId: Number(line.trx) || null, description: line.description, qty: q,
+      estAmount: line.est ? Number(line.est) * q : null, actualAmount: line.actual ? Number(line.actual) * q : null };
     if (await act(line.id ? `${base}/cost-items/${line.id}` : `${base}/cost-items`, body, line.id ? tr("Cost line saved") : tr("Cost line added"), line.id ? "PATCH" : "POST")) setLine(null);
   };
-  const edit = (i: CostItem) => setLine({ id: i.id, kind: i.kind, description: i.description, qty: String(i.qty), est: i.estAmount?.toString() ?? "", actual: i.actualAmount?.toString() ?? "" });
+  const edit = (i: CostItem) => setLine({ id: i.id, kind: i.kind, trx: i.transactionId ? String(i.transactionId) : "", description: i.description, qty: String(i.qty),
+    est: unitOf(i.estAmount, i.qty), actual: unitOf(i.actualAmount, i.qty) });
+  const qtyN = Number(line?.qty) || 1;
+  const trxOptions = (r.transactionOptions ?? []).map((o) => ({ value: String(o.id), label: o.name }));
   const laborTotal = work.reduce((a, x) => a + (x.amount ?? 0), 0);
   const diff = r.estCost !== null && r.actualCost !== null ? r.actualCost - r.estCost : null;
   const form = line && (
     <div className="space-y-2 rounded-md border border-brand-200 bg-brand-50/40 p-3">
-      <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_5rem]">
-        <JSelect value={line.kind} onChange={(v) => setLine({ ...line, kind: v as CostKind })} label={tr("Kind of Cost")} placeholder={tr("Kind of Cost")}
-          options={(Object.keys(COST_KIND_LABEL) as CostKind[]).map((k) => ({ value: k, label: COST_KIND_LABEL[k]() }))} />
+      <JSelect value={line.trx} onChange={(v) => setLine({ ...line, trx: v })} label={tr("Jenis Transaksi")} placeholder={tr("Jenis Transaksi (Fund Request)")} options={trxOptions} />
+      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_5rem]">
         <input value={line.description} onChange={(e) => setLine({ ...line, description: e.target.value })} maxLength={200} autoFocus
           placeholder={tr("Description, e.g. burr grinder 64 mm")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Description")} />
-        <input value={line.qty} onChange={(e) => setLine({ ...line, qty: e.target.value.replace(/[^0-9.]/g, "") })} inputMode="decimal" className={cx(inputClass, "h-9 bg-white text-right text-sm")} aria-label="Qty" />
+        <label className="relative block"><span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400">Qty</span>
+          <input value={line.qty} onChange={(e) => setLine({ ...line, qty: e.target.value.replace(/[^0-9.]/g, "") })} inputMode="decimal" className={cx(inputClass, "h-9 bg-white pl-9 text-right text-sm")} aria-label="Qty" /></label>
       </div>
       <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400">{tr("Estimate")}</span>
+        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400">{tr("Est. / unit")}</span>
           <input value={line.est} onChange={(e) => setLine({ ...line, est: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white pl-20 text-right text-sm tabular-nums")} aria-label={tr("Estimated (Rp)")} /></label>
-        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400">{tr("Actual")}</span>
+        <label className="relative block"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400">{tr("Actual / unit")}</span>
           <input value={line.actual} onChange={(e) => setLine({ ...line, actual: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white pl-20 text-right text-sm tabular-nums")} aria-label={tr("Actual (Rp)")} /></label>
         <span className="flex gap-2">
           <Button size="sm" variant="secondary" onClick={() => setLine(null)}>{tr("Cancel")}</Button>
-          <Button size="sm" disabled={busy || !line.description.trim()} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button>
+          <Button size="sm" disabled={busy || !line.description.trim() || !line.trx} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button>
         </span>
       </div>
+      <p className="text-[11px] text-neutral-500">{tr("Total: estimate {0} · actual {1} ({2} × price per unit)",
+        line.est ? fmtRp(Number(line.est) * qtyN) : "—", line.actual ? fmtRp(Number(line.actual) * qtyN) : "—", qtyN)}</p>
     </div>
   );
   return (
@@ -1141,7 +1149,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
             {items.map((i) => (
               <tr key={i.id} className={cx(line?.id === i.id && "bg-brand-50/50")}>
                 <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{i.description}</span>
-                  <span className="text-[11px] text-neutral-500">{COST_KIND_LABEL[i.kind]()}<span className="sm:hidden"> · {i.qty} ×</span></span></td>
+                  <span className="text-[11px] text-neutral-500">{i.transactionName ?? COST_KIND_LABEL[i.kind]()}<span className="sm:hidden"> · {i.qty} ×</span></span></td>
                 <td className="hidden px-2 py-2 text-right tabular-nums text-neutral-600 sm:table-cell">{i.qty}</td>
                 <td className="px-2 py-2 text-right tabular-nums text-neutral-700">{fmtRp(i.estAmount)}</td>
                 <td className="px-2 py-2 text-right font-semibold tabular-nums text-neutral-900">{fmtRp(i.actualAmount)}</td>

@@ -7593,4 +7593,9 @@ export const ID: Record<string, string> = {
   "Time out": "Lama habis",
   "The history of stock changes is kept from {0}.": "Riwayat perubahan stok disimpan sejak {0}.",
   "{0} items inactive for over {1} days are left out: switched off, not out of stock.": "{0} item nonaktif lebih dari {1} hari tidak dihitung: menu dimatikan, bukan stok habis.",
+  "Jenis Transaksi": "Jenis Transaksi",
+  "Jenis Transaksi (Fund Request)": "Jenis Transaksi (Fund Request)",
+  "Est. / unit": "Estimasi / unit",
+  "Actual / unit": "Aktual / unit",
+  "Total: estimate {0} · actual {1} ({2} × price per unit)": "Total: estimasi {0} · aktual {1} ({2} × harga per unit)",
 };

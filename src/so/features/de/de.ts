@@ -42,7 +42,7 @@ export type Request = {
   lastNote?: DeEvent | null; openInBranch?: Request[]; related?: Request[]; allowed?: Status[];
   /** Review → Accept: the approval step waiting (set by management, 2026-10-29); null when the kind has no step */
   approval?: { position: number; total: number; label: string; users: string[]; userIds: string[]; steps: { label: string; users: string[] }[] } | null; shareUrl?: string | null;
-  workLinks?: WorkLink[]; mode?: Mode | null; handover?: Handover | null; costItems?: CostItem[]; labor?: Labor[];
+  workLinks?: WorkLink[]; mode?: Mode | null; handover?: Handover | null; costItems?: CostItem[]; transactionOptions?: TransactionOption[]; labor?: Labor[];
   /** the request's money in Fund Request (Finance, 2026-11-21); null until the team asks for it */
   fund?: Fund | null;
   target?: { at: string; note: string | null; by: string | null; setAt: string | null; changes: number } | null;
@@ -75,7 +75,10 @@ export type CostKind = "MATERIAL" | "SERVICE" | "TRANSPORT" | "OTHER";
 export const COST_KIND_LABEL: Record<CostKind, () => string> = {
   MATERIAL: () => tr("Material / parts"), SERVICE: () => tr("Service"), TRANSPORT: () => tr("Transport"), OTHER: () => tr("Other"),
 };
-export type CostItem = { id: number; kind: CostKind; description: string; qty: number; estAmount: number | null; actualAmount: number | null; by: string | null; at: string };
+export type CostItem = { id: number; kind: CostKind; transactionId: number | null; transactionName: string | null; description: string; qty: number;
+  estAmount: number | null; actualAmount: number | null; by: string | null; at: string };
+/** A Jenis Transaksi of Fund Request: the category of a cost line (migration 142). */
+export type TransactionOption = { id: number; name: string };
 /** the labour of a technician: rate × units from the time worked, or the team's adjustment */
 export type Labor = { assignmentId: number; technician: string; kind: "INTERNAL" | "VENDOR"; company: string | null; status: string; wageType: WageType;
   rate: number; hours: number; units: number; unit: string; computed: number; adjust: number | null; note: string | null; amount: number };
