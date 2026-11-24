@@ -147,9 +147,9 @@ export const rating: { title: string; hint: string; icon: typeof Users; items: C
     { get name() { return tr('Google Maps'); }, href: '/rating/google-maps', icon: MapPin, logo: '/assets/googlemaps.png', get description() { return tr('Rating & reviews per outlet'); } },
   ] },
   { get title() { return tr('Online Delivery'); }, get hint() { return tr('Ratings on the delivery apps'); }, icon: MessageSquareText, items: [
-    { get name() { return tr('ShopeeFood'); }, href: '/rating/shopeefood', icon: Star, logo: '/assets/shopeefood.png', get description() { return tr('Rating & reviews per outlet'); } },
-    { get name() { return tr('GoFood'); }, href: '/rating/gofood', icon: Star, logo: '/assets/gofood.png', get description() { return tr('Rating & reviews per outlet'); } },
-    { get name() { return tr('GrabFood'); }, href: '/rating/grabfood', icon: Star, logo: '/assets/grabfood.svg', get description() { return tr('Rating & reviews per outlet'); } },
+    { get name() { return tr('ShopeeFood'); }, href: '/rating/shopeefood', icon: Star, soon: true, logo: '/assets/shopeefood.png', get description() { return tr('Rating & reviews per outlet'); } },
+    { get name() { return tr('GoFood'); }, href: '/rating/gofood', icon: Star, soon: true, logo: '/assets/gofood.png', get description() { return tr('Rating & reviews per outlet'); } },
+    { get name() { return tr('GrabFood'); }, href: '/rating/grabfood', icon: Star, soon: true, logo: '/assets/grabfood.svg', get description() { return tr('Rating & reviews per outlet'); } },
   ] },
 ];
 
@@ -190,7 +190,7 @@ export const POPUPS: Record<'forms' | 'costControl' | 'monitoring' | 'cotr' | 'r
   rating: {
     get label() { return tr('Aggregator'); }, get idle() { return tr('Google Maps & delivery apps'); }, get title() { return tr('Aggregator'); },
     get subtitle() { return tr('Ratings and reviews of the outlets on Google Maps and the delivery apps'); },
-    get footer() { return tr('Google Maps live · delivery apps being built'); },
+    get footer() { return tr('Google Maps live · delivery apps coming soon'); },
     icon: Star, sections: rating,
   },
   social: {

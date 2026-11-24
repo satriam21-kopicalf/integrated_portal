@@ -10,7 +10,8 @@ import { Card, Pill } from '@/components/kc';
 import { Page } from '@/components/kc/compat';
 import { tr } from '@/lib/i18n';
 
-export default function FeatureSkeleton({ title, subtitle, endpoint, steps, icon, logo, eyebrow }: {
+export default function FeatureSkeleton({ title, subtitle, endpoint, steps, icon, logo, eyebrow, soon }: {
+  /** Coming Soon (2026-11-24): the page waits for a valid data source, with the reason */ soon?: string;
   title: ReactNode; eyebrow?: ReactNode; subtitle: string; endpoint: string; steps?: string[]; icon: ReactNode; /** the icon is a brand logo (wide, on white) */ logo?: boolean;
 }) {
   const [access, setAccess] = useState<'checking' | 'ok' | 'denied'>('checking');
@@ -25,8 +26,8 @@ export default function FeatureSkeleton({ title, subtitle, endpoint, steps, icon
       <Card>
         <div className="flex flex-col items-center px-4 py-10 text-center sm:py-14">
           <span className={logo ? "mb-3 flex h-12 items-center justify-center rounded-xl bg-white px-4 ring-1 ring-neutral-200" : "mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600"}>{icon}</span>
-          <Pill tone="gray" icon={<Construction size={12} />} className="uppercase tracking-wide">{tr('Being built')}</Pill>
-          <p className="mt-3 max-w-md text-[13px] text-neutral-600">{tr('This page is ready in the menu and in the access settings (User Accounts → Roles & pages). The screens come next.')}</p>
+          <Pill tone="gray" icon={<Construction size={12} />} className="uppercase tracking-wide">{soon ? tr('Coming Soon') : tr('Being built')}</Pill>
+          <p className="mt-3 max-w-md text-[13px] text-neutral-600">{soon ?? tr('This page is ready in the menu and in the access settings (User Accounts → Roles & pages). The screens come next.')}</p>
           <ol className="mt-6 w-full max-w-md space-y-2 text-left">
             {(steps ?? []).map((s, i) => (
               <li key={s} className="flex items-start gap-3 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-[13px] text-neutral-700">

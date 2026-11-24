@@ -7467,4 +7467,6 @@ export const ID: Record<string, string> = {
   "Transcribed on our server": "Ditranskripsi di server kita",
   "The audio of this video could not be read.": "Audio video ini tidak dapat dibaca.",
   "Not transcribed yet: the newest videos are done first, a few every minute.": "Belum ditranskripsi: video terbaru dikerjakan lebih dulu, beberapa setiap menit.",
+  "Coming soon: there is no valid data source for {0} yet. Meanwhile check the merchant account.": "Segera hadir: belum ada sumber data yang valid untuk {0}. Sementara itu cek langsung di akun merchant.",
+  "Google Maps live · delivery apps coming soon": "Google Maps live · aplikasi delivery segera hadir",
 };
