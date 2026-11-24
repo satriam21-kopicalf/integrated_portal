@@ -9,7 +9,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Building2, CalendarDays, Check, ClipboardList, Save, Smartphone } from "lucide-react";
-import { Button, Empty, ErrorState, cx, useToast } from "@/so/ui";
+import { Button, Empty, ErrorState, PageNav, cx, usePaged, useToast } from "@/so/ui";
 import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
 import { FilterToolbar, type ActiveFilter } from "@/so/ui/Filters";
 import { DayField, dmyOf } from "@/components/kc/ScopeBar";
@@ -22,10 +22,10 @@ import { tr } from "@/lib/i18n";
 type Part = "b" | "s" | "c" | "w";
 type Line = Record<Part | "t", number>;
 type App = { lines: Record<string, Partial<Line>>; qris: number; cash: number; cashActual: number | null; total: number } | null;
-type Armada = { driver: string; name: string; nickname: string | null; fleet: string | null; fleetName: string | null; source: string | null;
+type Armada = { pool?: string; poolName?: string; driver: string; name: string; nickname: string | null; fleet: string | null; fleetName: string | null; source: string | null;
   lines: Record<string, Line>; total: number; qris: number | null; cash: number; cashActual: number | null; operational: number; operationalWaiting: number;
   balance: number | null; productsBy: string | null; productsAt: string | null; moneyBy: string | null; moneyAt: string | null; app: App };
-type Sheet = { pool: string; day: string; menus: { code: string; name: string; price: number }[]; armadas: Armada[]; canProducts: boolean; canMoney: boolean };
+type Sheet = { pool: string | null; day: string; menus: { code: string; name: string; price: number }[]; armadas: Armada[]; canProducts: boolean; canMoney: boolean };
 
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 const PARTS: Part[] = ["b", "s", "c", "w"];
@@ -44,18 +44,25 @@ export function ReportSheet() {
   const [sheet, setSheet] = useState(false);
   const [draft, setDraft] = useState({ pool, day });
   const poolCode = own ?? pool;
-  useEffect(() => { if (!poolCode && usable.length) setPool(usable[0].code); }, [poolCode, usable]);
   useEffect(() => {
-    if (!poolCode) return;
     let alive = true;
     setData(null); setError(null);
-    call<Sheet>(`/api/cotr/report-sheet?pool=${encodeURIComponent(poolCode)}&day=${day}`).then((r) => { if (alive) setData(r); }).catch((e: Error) => { if (alive) setError(e.message); });
+    call<Sheet>(`/api/cotr/report-sheet?day=${day}${poolCode ? `&pool=${encodeURIComponent(poolCode)}` : ""}`).then((r) => { if (alive) setData(r); }).catch((e: Error) => { if (alive) setError(e.message); });
     return () => { alive = false; };
   }, [poolCode, day]);
   const words = q.trim().toLowerCase();
-  const listed = useMemo(() => (data?.armadas ?? []).filter((a) => !words || `${a.name} ${a.nickname ?? ""} ${a.fleet ?? ""}`.toLowerCase().includes(words)), [data, words]);
-  const poolName = usable.find((p) => p.code === poolCode)?.name ?? poolCode;
-  const filters: ActiveFilter[] = day !== todayWib() ? [{ key: "day", label: `${tr("Day")}: ${dmyOf(day)}`, onRemove: () => setDay(todayWib()) }] : [];
+  const listed = useMemo(() => (data?.armadas ?? []).filter((a) => !words || `${a.name} ${a.nickname ?? ""} ${a.fleet ?? ""} ${a.poolName ?? ""}`.toLowerCase().includes(words)), [data, words]);
+  const poolName = poolCode ? usable.find((p) => p.code === poolCode)?.name ?? poolCode : tr("All pools");  // every pool first, a pool through the filter
+  const filters: ActiveFilter[] = [
+    ...(pool && !own ? [{ key: "pool", label: poolName, onRemove: () => setPool("") }] : []),
+    ...(day !== todayWib() ? [{ key: "day", label: `${tr("Day")}: ${dmyOf(day)}`, onRemove: () => setDay(todayWib()) }] : []),
+  ];
+  // a save answers with the sheet of its pool: on every pool only those armadas are replaced
+  const merge = (s: Sheet) => setData((cur) => (!cur || cur.pool ? s : { ...cur, armadas: cur.armadas.map((a) => {
+    const n = a.pool === s.pool ? s.armadas.find((x) => x.driver === a.driver) : undefined;
+    return n ? { ...n, pool: a.pool, poolName: a.poolName } : a;
+  }) }));
+  const paged = usePaged(listed, `${poolCode}|${day}|${words}`, 20);
   const sum = (f: (a: Armada) => number) => listed.reduce((s, a) => s + f(a), 0);
 
   return (
@@ -63,13 +70,13 @@ export function ReportSheet() {
       <div className="space-y-2">
         <p className="text-sm font-semibold text-neutral-900">{poolName} · {dmyOf(day)}</p>
         <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search armada or driver")} filters={filters}
-          onOpen={() => { setDraft({ pool: poolCode, day }); setSheet(true); }} onClear={() => setDay(todayWib())} />
+          onOpen={() => { setDraft({ pool: poolCode, day }); setSheet(true); }} onClear={() => { setDay(todayWib()); if (!own) setPool(""); }} />
       </div>
       {sheet && (
-        <MonitorFilterSheet active={draft.day !== todayWib() ? 1 : 0} onClose={() => setSheet(false)} onReset={() => setDraft({ ...draft, day: todayWib() })}
+        <MonitorFilterSheet active={(draft.day !== todayWib() ? 1 : 0) + (draft.pool && !own ? 1 : 0)} onClose={() => setSheet(false)} onReset={() => setDraft({ pool: own ?? "", day: todayWib() })}
           onApply={() => { if (!own) setPool(draft.pool); setDay(draft.day); setSheet(false); }}>
           {!own && <FilterRow icon={<Building2 size={15} />} label={tr("Pool / HUB")} value={usable.find((p) => p.code === draft.pool)?.name ?? null}>
-            <ComboFilter value={draft.pool} onChange={(v) => setDraft({ ...draft, pool: v })} allLabel={tr("Choose a pool")} placeholder={tr("Search pool")}
+            <ComboFilter value={draft.pool} onChange={(v) => setDraft({ ...draft, pool: v })} allLabel={tr("All pools")} placeholder={tr("Search pool")}
               options={usable.map((p) => ({ value: p.code, label: p.name }))} />
           </FilterRow>}
           <FilterRow icon={<CalendarDays size={15} />} label={tr("Day")} value={dmyOf(draft.day)}>
@@ -89,7 +96,7 @@ export function ReportSheet() {
       {error ? <ErrorState message={error} /> : !data ? <div className="skeleton h-64 rounded-lg" /> : listed.length === 0 ? (
         <Empty icon={<ClipboardList size={28} />} title={tr("No armada in this pool")} />
       ) : (
-        <div className="space-y-3">{listed.map((a) => <Block key={a.driver} a={a} sheet={data} onSaved={setData} />)}</div>
+        <div className="space-y-3">{paged.rows.map((a) => <Block key={a.driver} a={a} sheet={data} onSaved={merge} />)}<PageNav paged={paged} /></div>
       )}
     </div>
   );
@@ -102,7 +109,8 @@ function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sh
   const [lines, setLines] = useState(blank);
   const [qris, setQris] = useState(a.qris !== null ? String(a.qris) : "");
   const [actual, setActual] = useState(a.cashActual !== null ? String(a.cashActual) : "");
-  const [busy, setBusy] = useState<"p" | "m" | null>(null);
+  const [busy, setBusy] = useState(false);
+  const pool = a.pool ?? sheet.pool ?? "";
   const [showApp, setShowApp] = useState(false);
   useEffect(() => { setLines(blank()); setQris(a.qris !== null ? String(a.qris) : ""); setActual(a.cashActual !== null ? String(a.cashActual) : ""); }, [a]); // eslint-disable-line react-hooks/exhaustive-deps
   const row = (code: string) => { const l = lines[code]; const v = (p: Part) => num(l?.[p] ?? ""); const t = v("b") - v("s") - v("c") - v("w"); return { ...Object.fromEntries(PARTS.map((p) => [p, v(p)])), t } as Line; };
@@ -116,18 +124,23 @@ function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sh
   const bad = rows.some((r) => r.l.t < 0);
   const dirtyP = JSON.stringify(rows.map((r) => PARTS.map((p) => r.l[p]))) !== JSON.stringify(sheet.menus.map((m) => PARTS.map((p) => a.lines[m.code]?.[p] ?? 0)));
   const dirtyM = q !== (a.qris ?? 0) || act !== a.cashActual;
-  const saveP = async () => {
-    setBusy("p");
+  // one button (2026-11-24): the products (storage) and the QRIS / cash (office) in one go, what changed and is allowed
+  const canP = sheet.canProducts && dirtyP, canM = sheet.canMoney && dirtyM;
+  const save = async () => {
+    setBusy(true);
     try {
-      onSaved(await call<Sheet>("/api/cotr/report-sheet/products", { method: "PUT", json: { pool: sheet.pool, day: sheet.day, driver: a.driver,
-        lines: Object.fromEntries(rows.filter((r) => PARTS.some((p) => r.l[p])).map((r) => [r.m.code, Object.fromEntries(PARTS.map((p) => [p, r.l[p]]))])) } }));
-      toast(tr("Products saved"));
-    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(null); }
-  };
-  const saveM = async () => {
-    setBusy("m");
-    try { onSaved(await call<Sheet>("/api/cotr/report-sheet/money", { method: "PUT", json: { pool: sheet.pool, day: sheet.day, driver: a.driver, qris: q, cashActual: act } })); toast(tr("Money saved")); }
-    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(null); }
+      let out: Sheet | null = null;
+      if (canP) out = await call<Sheet>("/api/cotr/report-sheet/products", { method: "PUT", json: { pool, day: sheet.day, driver: a.driver,
+        lines: Object.fromEntries(rows.filter((r) => PARTS.some((p) => r.l[p])).map((r) => [r.m.code, Object.fromEntries(PARTS.map((p) => [p, r.l[p]]))])) } });
+      if (canM) {
+        try { out = await call<Sheet>("/api/cotr/report-sheet/money", { method: "PUT", json: { pool, day: sheet.day, driver: a.driver, qris: q, cashActual: act } }); }
+        catch (e) {
+          // the products are saved, the money is not: say so and keep what was typed
+          throw new Error(canP ? tr("Products saved, QRIS & cash not: {0}", (e as Error).message) : (e as Error).message);
+        }
+      }
+      if (out) { onSaved(out); toast(tr("Report saved")); }
+    } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   const cell = "border border-neutral-300 px-1.5 py-1";
   const inp = (val: string, set: (v: string) => void, can: boolean, label: string, wide?: boolean) => can
@@ -143,6 +156,7 @@ function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sh
       <header className="flex flex-wrap items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2">
         <span className="rounded-[3px] bg-yellow-300 px-1.5 py-0.5 text-xs font-bold text-neutral-900">{a.fleet ?? "—"}</span>
         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-neutral-900">{a.name}{a.nickname ? ` (${a.nickname})` : ""}</span>
+        {a.poolName && <span className="text-[11px] text-neutral-500">{a.poolName}</span>}
         {a.productsAt && <span className="text-[11px] text-neutral-500">{tr("Products: {0}", a.productsBy ?? "—")}</span>}
         {a.moneyAt && <span className="text-[11px] text-neutral-500">· {tr("Money: {0}", a.moneyBy ?? "—")}</span>}
         {a.app && <button type="button" onClick={() => setShowApp((x) => !x)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-brand-700 hover:bg-brand-50">
@@ -184,10 +198,8 @@ function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sh
       {(sheet.canProducts || sheet.canMoney) && (
         <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-200 px-3 py-2">
           {bad && <span className="mr-auto text-xs text-red-700">{tr("Left + cupping + waste is more than brought")}</span>}
-          {sheet.canProducts && <Button size="sm" variant={dirtyP ? "primary" : "secondary"} disabled={!dirtyP || bad} loading={busy === "p"} onClick={() => void saveP()}>
-            {a.productsAt && !dirtyP ? <Check size={14} /> : <Save size={14} />} {tr("Save products")}</Button>}
-          {sheet.canMoney && <Button size="sm" variant={dirtyM ? "primary" : "secondary"} disabled={!dirtyM} loading={busy === "m"} onClick={() => void saveM()}>
-            {a.moneyAt && !dirtyM ? <Check size={14} /> : <Save size={14} />} {tr("Save QRIS & cash")}</Button>}
+          <Button size="sm" variant={canP || canM ? "primary" : "secondary"} disabled={!(canP || canM) || (canP && bad)} loading={busy} onClick={() => void save()}>
+            {(a.productsAt || a.moneyAt) && !canP && !canM ? <Check size={14} /> : <Save size={14} />} {tr("Save report")}</Button>
         </footer>
       )}
     </section>

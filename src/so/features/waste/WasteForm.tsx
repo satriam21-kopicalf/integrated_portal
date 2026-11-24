@@ -495,6 +495,25 @@ export default function WasteForm() {
   );
 }
 
+/** What Cost Control corrected on an entry, shown to the place it belongs to (2026-11-24). */
+function OwnCorrections({ entry }: { entry: Entry }) {
+  const [rows, setRows] = useState<{ field: string; old: string | null; new: string | null; reason: string | null; by: string | null }[]>([]);
+  const n = entry.corrections ?? 0;
+  useEffect(() => {
+    if (!n) return;
+    let off = false;
+    call<{ data: typeof rows }>(`/api/waste/entries/${entry.id}/corrections`).then((r) => { if (!off) setRows(r.data); }).catch(() => { /* the entry shows its corrected figures anyway */ });
+    return () => { off = true; };
+  }, [entry.id, n]);
+  if (!n) return null;
+  return (
+    <div className="mt-1 rounded-md bg-sky-50 px-2 py-1 text-[11px] text-sky-900">
+      <p className="font-semibold">{tr("Corrected by Cost Control")}</p>
+      {rows.map((x, i) => <p key={i}>{x.field}: {x.old ?? "—"} → {x.new ?? "—"}{x.reason ? ` · ${x.reason}` : ""}{x.by ? ` (${x.by})` : ""}</p>)}
+    </div>
+  );
+}
+
 function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; branch: string; day: string; me: string; onRemove: (e: Entry) => void }) {
   return (
     <section className="h-fit rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
@@ -525,6 +544,7 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
                 {(e.productionDate || e.expiredDate) && <p className="text-[11px] text-neutral-500">{tr("Production")} {e.productionDate ?? "—"} · {tr("Expired")} {e.expiredDate ?? "—"}</p>}
                 {e.note && <p className="mt-0.5 text-xs text-neutral-500">“{e.note}”</p>}
                 {e.review?.note && <p className="mt-0.5 text-xs text-neutral-500">{tr("Cost Control")}: {e.review.note}</p>}
+                <OwnCorrections entry={e} />
                 <p className="mt-0.5 text-[11px] text-neutral-400">{e.name} · {wibDateTime(e.createdAt)}</p>
               </div>
               {e.status === "submitted" && e.userId === me && (

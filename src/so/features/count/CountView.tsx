@@ -378,6 +378,11 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-2 text-sm font-medium leading-snug text-neutral-900">{l.item_name}</p>
                       <p className="mt-0.5 truncate text-[11px] text-neutral-400"><span className="font-mono">{l.item_code}</span>{l.counted_by_name ? ` · ${l.counted_by_name}` : ""}</p>
+                      {l.flags.includes("CORRECTED") && (
+                        <p className="mt-1 rounded-md bg-sky-50 px-2 py-1 text-[11px] text-sky-900">
+                          <span className="font-semibold">{tr("Corrected by Cost Control")}</span>{(() => { const old = count.lines.find((x) => x.id === l.recount_of)?.qty_base; return old != null ? ` · ${tr("you counted {0}", fmtQty(old))}` : ""; })()}
+                          {l.correction_note ? ` · ${l.correction_note}` : ""}{l.corrected_by_name ? ` (${l.corrected_by_name})` : ""}</p>
+                      )}
                       {(l.flags.includes("RECOUNT") || l.flags.includes("SPIKE")) && (
                         <span className="mt-1 flex flex-wrap gap-1">
                           {l.flags.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}

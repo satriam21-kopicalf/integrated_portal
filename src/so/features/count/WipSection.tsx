@@ -122,6 +122,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                       <span className="mt-0.5 flex flex-wrap gap-1">
                         {l.flags?.includes("RECOUNT") && <Badge tone="amber">{tr("Recount")}</Badge>}
                         {l.flags?.includes("RECOUNTED") && <Badge tone="green">{tr("Recounted")}</Badge>}
+                        {l.flags?.includes("CORRECTED") && <Badge tone="blue" title={`${l.corrected_by_name ?? ""}: ${l.correction_note ?? ""}`}>{tr("Corrected by Cost Control")}{l.correction_note ? ` · ${l.correction_note}` : ""}</Badge>}
                       </span>
                       {l.previous_qty !== null && l.previous_qty !== undefined && <span className="block text-[11px] text-neutral-500">{tr("Before the recount: {0} {1}", l.previous_qty, isGram(l.uom) ? "g" : l.uom)}</span>}
                     </span>

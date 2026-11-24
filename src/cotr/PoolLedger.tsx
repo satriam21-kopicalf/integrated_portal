@@ -158,9 +158,10 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                     {d.source === "esb" && <Badge tone="blue">{tr("From ESB COTR")}</Badge>}
                     {d.source === "sheet" && d.arrivedSource === "esb" && <Badge tone="blue">{tr("Arrived: ESB")}</Badge>}
                     {Object.values(d.rows).some((c) => c.actual === null) && <Badge tone="amber">{tr("Not counted yet")}</Badge>}
+                    {!pool && !embedded && <span className="ml-auto"><Button variant="ghost" onClick={() => setCount(d.day)}>{tr("Revise")}</Button></span>}
                     {pool && <span className="ml-auto flex gap-1.5">
                       <Button variant="ghost" onClick={() => setMoves({ day: d.day, kind: "arrived" })}>{tr("Arrived / Transfer")}</Button>
-                      <Button variant="ghost" onClick={() => setCount(d.day)}>{tr("Physical leftover")}</Button>
+                      <Button variant="ghost" onClick={() => setCount(d.day)}>{Object.values(d.rows).some((c) => c.actual !== null) ? tr("Revise") : tr("Physical leftover")}</Button>
                     </span>}
                   </header>
                   <div className="overflow-x-auto">
@@ -246,7 +247,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
           </div>
         )}
       </Panel>
-      {count && data && <CountDrawer pool={pool} day={count} ledger={data} onClose={() => setCount(null)} onSaved={() => { setCount(null); reload(); }} />}
+      {count && data && <CountDrawer pool={pool} pools={usable} day={count} ledger={data} onClose={() => setCount(null)} onSaved={() => { setCount(null); reload(); }} />}
       {moves && data && <MovesDrawer pool={pool} {...moves} ledger={data} pools={(pools.rows ?? []).filter((x) => x.is_active !== false)} onClose={() => setMoves(null)} onSaved={() => { setMoves(null); reload(); }} />}
       {importing && <ImportDrawer pools={usable} pool={pool} onClose={() => setImporting(false)} onSaved={() => { setImporting(false); reload(); }} />}
     </>
@@ -256,34 +257,64 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
 type LotRow = { menu: string; batch: string; qty: string };
 
 /** The physical leftover at the end of a day, per menu and batch code (the first count is the opening stock). */
-export function CountDrawer({ pool, day: first, ledger, onClose, onSaved }: { pool: string; day: string; ledger: Ledger; onClose: () => void; onSaved: () => void }) {
+type Revision = { day: string; menu: string; old: number; new: number; reason: string | null; by: string | null; at: string };
+export function CountDrawer({ pool: p0, pools = [], day: first, ledger: shown, onClose, onSaved }: { pool: string; pools?: Pool[]; day: string; ledger: Ledger; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
   const [day, setDay] = useState(first);
-  const known = ledger.days.find((d) => d.day === first);
-  const [rows, setRows] = useState<LotRow[]>(() => {
+  // opened from every pool (2026-11-24): the pool is chosen here and its own figures are read
+  const [pool, setPool] = useState(p0);
+  const fill = (l: Ledger, on: string): LotRow[] => {
+    const known = l.days.find((d) => d.day === on);
     const out: LotRow[] = [];
-    for (const m of ledger.menus) for (const l of known?.rows[m.code]?.lots ?? []) out.push({ menu: m.code, batch: l.batchNo ?? "", qty: String(l.qty) });
-    return out.length ? out : ledger.menus.map((m) => ({ menu: m.code, batch: "", qty: "" }));
-  });
+    for (const m of l.menus) for (const x of known?.rows[m.code]?.lots ?? []) out.push({ menu: m.code, batch: x.batchNo ?? "", qty: String(x.qty) });
+    return out.length ? out : l.menus.map((m) => ({ menu: m.code, batch: "", qty: "" }));
+  };
+  const [ledger, setLedger] = useState<Ledger>(shown);
+  const [rows, setRows] = useState<LotRow[]>(() => (p0 ? fill(shown, first) : []));
+  const [revs, setRevs] = useState<Revision[]>([]);
+  const [reason, setReason] = useState("");
+  useEffect(() => {
+    if (!pool) return;
+    let alive = true;
+    const q = `pool=${encodeURIComponent(pool)}&dateFrom=${day}&dateTo=${day}`;
+    if (pool !== p0 || day !== first) call<Ledger>(`/api/cotr/pool-ledger?${q}`).then((l) => { if (alive) { setLedger(l); setRows(fill(l, day)); } }).catch(() => { /* the form stays as it is */ });
+    call<{ data: Revision[] }>(`/api/cotr/pool-revisions?${q}`).then((x) => { if (alive) setRevs(x.data); }).catch(() => { if (alive) setRevs([]); });
+    return () => { alive = false; };
+  }, [pool, day, p0, first]);
+  const cells = pool ? ledger.days.find((d) => d.day === day)?.rows ?? {} : {};
+  const counted = Object.values(cells).some((c) => c.actual !== null && c.actual !== undefined);
   const [busy, setBusy] = useState(false);
   const total = (code: string) => rows.filter((r) => r.menu === code).reduce((a, r) => a + (Number(r.qty) || 0), 0);
   const set = (i: number, k: keyof LotRow, v: string) => setRows((s) => s.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
   const save = async () => {
     setBusy(true);
     try {
-      await call("/api/cotr/pool-count", { method: "PUT", json: { pool, day, lines: rows.filter((r) => Number(r.qty) > 0).map((r) => ({ menu: r.menu, qty: Number(r.qty), batchNo: r.batch.trim() || null })) } });
+      await call("/api/cotr/pool-count", { method: "PUT", json: { pool, day, reason: reason.trim() || null, lines: rows.filter((r) => Number(r.qty) > 0).map((r) => ({ menu: r.menu, qty: Number(r.qty), batchNo: r.batch.trim() || null })) } });
       toast(tr("Saved")); onSaved();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   return (
     <Drawer open onClose={onClose} icon={<PackageOpen size={18} />} title={ledger.start ? tr("Physical leftover") : tr("Opening stock of the pool")}
       description={tr("Counted at the pool at the end of the day, per production / batch code; it is the opening stock of the next day")}
-      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!pool || (counted && !reason.trim())} onClick={() => void save()}><Save size={15} /> {counted ? tr("Save revision") : tr("Save")}</Button></>}>
       <div className="space-y-4">
+        {!p0 && <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPool(e.target.value)}>
+          <option value="">{tr("Choose a pool")}</option>{pools.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}</Select></Field>}
         <Field label={tr("End of the day")}><Input type="date" value={day} max={todayWib()} onChange={(e) => setDay(e.target.value)} /></Field>
         <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">{tr("Batch code SSDD: the batch of the day and the day it was made (0210 = batch 2 of the 10th); the expiry follows the shelf life of the menu.")}</p>
-        {ledger.menus.map((m) => (
-          <DrawerSection key={m.code} title={`${m.name} · ${tr("{0} cups", total(m.code))}`}>
+        {counted && <Field label={tr("Reason for the revision")}><Input value={reason} maxLength={300} onChange={(e) => setReason(e.target.value)} placeholder={tr("e.g. 12 cups typed as 21 at the night count")} /></Field>}
+        {revs.length > 0 && (
+          <section>
+            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-neutral-500">{tr("Revisions of this day")}</p>
+            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-xs">
+              {revs.map((x, i) => <li key={i} className="px-3 py-2"><b className="text-neutral-800">{ledger.menus.find((m) => m.code === x.menu)?.name ?? x.menu}</b> <span className="tabular-nums">{x.old} → {x.new}</span>
+                <span className="block text-neutral-500">{x.reason ?? "—"} · {x.by ?? "—"}</span></li>)}
+            </ul>
+          </section>
+        )}
+        {pool && ledger.menus.map((m) => (
+          <DrawerSection key={m.code} title={`${m.name} · ${tr("{0} cups", total(m.code))}`}
+            description={cells[m.code] ? tr("Calculated {0} · balance with this figure {1}", cells[m.code].calculated ?? 0, total(m.code) - (cells[m.code].calculated ?? 0)) : undefined}>
             {rows.map((r, i) => r.menu !== m.code ? null : (
               <div key={i} className="flex items-center gap-2">
                 <Input value={r.batch} placeholder={tr("Batch code")} maxLength={20} onChange={(e) => set(i, "batch", e.target.value.toUpperCase())} className="h-9 w-32" />
