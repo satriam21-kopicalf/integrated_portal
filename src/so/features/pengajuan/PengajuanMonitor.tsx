@@ -23,6 +23,7 @@ import ExcelIconButton from "@/components/ExcelIconButton";
 import { type XlsxCell, downloadXlsx } from "@/lib/xlsx";
 import PengajuanView, { FileChip, StatusBadge } from "./PengajuanView";
 import RefundPanel from "./PengajuanRefund";
+import { type Lifecycle, type RuleRow, RulesPanel, VerifyPanel } from "./PengajuanLife";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Action, type Kind, type Pengajuan, type PgFile, type Status, ACTION_LABEL, CATEGORY_LABEL, DE_KINDS, KINDS, KIND_LABEL, OPEN, STATUS_LABEL, acceptedTotal,
   categoryLabel, fmtRp, kindLabel, parseRp, placeOf, requestLabel, setKindLabels, typeRp, upload, type FundOption, type OptionList } from "./pengajuan";
@@ -32,9 +33,9 @@ type F = { period: Period; bgroup: string; branch: string; kind: Kind | ""; acco
 const NO_F = (): F => ({ period: { from: wibOffset(-89), to: wibOffset(0) }, bgroup: "", branch: "", kind: "", account: "", category: "", flag: "" });
 type GroupOpt = { id: string; code: string; name: string };
 type Tab = Status | "" | "OPEN" | "MINE";
-const TABS: Tab[] = ["MINE", "OPEN", "", "SUBMITTED", "APPROVED", "REVISION", "PAID", "REJECTED"];
+const TABS: Tab[] = ["MINE", "OPEN", "", "SUBMITTED", "APPROVED", "REVISION", "PAID", "VERIFYING", "DONE", "REJECTED"];
 const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-brand-500", APPROVED: "bg-cyan-500", REVISION: "bg-amber-500",
-  PAID: "bg-emerald-500", REJECTED: "bg-red-500" };
+  PAID: "bg-violet-500", VERIFYING: "bg-amber-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
 const sum = (rows: Pengajuan[], f: (p: Pengajuan) => number | null | undefined) => rows.reduce((a, p) => a + (f(p) ?? 0), 0);
 const flagged = (p: Pengajuan) => ({
   reused: (p.reusedFiles ?? 0) > 0, negative: (p.closingBalance ?? 0) < 0,
@@ -78,11 +79,12 @@ export default function PengajuanMonitor() {
       && (!s || `${p.number} ${p.branchName} ${p.name} ${p.username} ${p.requesterName ?? ""} ${p.purpose ?? ""} ${p.baristas.map((b) => b.name).join(" ")} ${(p.lines ?? []).map((l) => l.description).join(" ")}`.toLowerCase().includes(s)));
   }, [all, f, search]);
   // my turn: waiting at a step of mine (a step without users: the superadmins)
-  const mine = useCallback((p: Pengajuan) => !!res && !!p.step && (p.status === "SUBMITTED" || p.status === "APPROVED")
+  const mine = useCallback((p: Pengajuan) => !!res && !!p.step && ["SUBMITTED", "APPROVED", "VERIFYING"].includes(p.status)
     && (p.step.userIds.includes(res.me) || (res.superadmin && !p.step.userIds.length)), [res]);
   const inTab = (p: Pengajuan, t: Tab) => !t || (t === "OPEN" ? OPEN.includes(p.status) : t === "MINE" ? mine(p) : p.status === t);
   const rows = useMemo(() => base.filter((p) => inTab(p, status))
-    .sort((a, b) => (OPEN.includes(b.status) ? 1 : 0) - (OPEN.includes(a.status) ? 1 : 0) || (a.submittedAt ?? "").localeCompare(b.submittedAt ?? "")),
+    .sort((a, b) => (OPEN.includes(b.status) ? 1 : 0) - (OPEN.includes(a.status) ? 1 : 0) || (status === "APPROVED" ? (a.neededOn ?? "9999").localeCompare(b.neededOn ?? "9999") : status === "PAID" ? (a.proofDueOn ?? "9999").localeCompare(b.proofDueOn ?? "9999") : 0)
+      || (a.submittedAt ?? "").localeCompare(b.submittedAt ?? "")),
   // eslint-disable-next-line react-hooks/exhaustive-deps -- inTab follows `mine`
   [base, status, mine]);
   const paged = usePaged(rows, rows.length + search + JSON.stringify(f) + status);
@@ -106,14 +108,15 @@ export default function PengajuanMonitor() {
     const head = [tr("Number"), tr("Kind"), tr("Status"), tr("Step waiting"), tr("Outlet"), tr("Code"), tr("Account"), tr("Submitted by"), tr("Phone"),
       tr("Bank"), tr("Account number"), tr("Account holder"), tr("Purpose"), tr("Date needed"), tr("Baristas"), tr("Period from"), tr("Period to"),
       tr("Opening Balance"), tr("Money in"), tr("Total money out"), tr("Closing balance"), tr("Plafon"), tr("Amount Asked"), tr("Approved amount"), tr("Paid"),
-      tr("Transfer date"), tr("Line date"), tr("Category"), tr("Description"), tr("Amount"), tr("Line check"), tr("Check note")];
+      tr("Transfer date"), tr("Proof due"), tr("Spent (requester)"), tr("Accepted by Finance"), tr("Difference"), tr("Invoice number"), tr("Line date"), tr("Category"), tr("Description"), tr("Amount"), tr("Line check"), tr("Check note")];
     const out: XlsxCell[][] = [];
     for (const p of rows) {
       const common = [p.number, kindLabel(p.kind), STATUS_LABEL[p.status](), p.step?.label, p.branchName, p.branchCode, p.username, p.requesterName, p.requesterPhone,
-        p.payeeBank, p.payeeAccount, p.payeeName, p.purpose, p.neededOn, p.baristas.map((b) => b.name).join(" / "), p.periodFrom, p.periodTo,
-        p.openingBalance, p.incomeAmount, p.totalOut, p.closingBalance, p.plafon, p.requestedAmount, p.approvedAmount, p.paidAmount, p.paidOn];
+        (p.payeeType === "VA" ? `VA ${p.vaProvider ?? p.payeeBank ?? ""}` : p.payeeBank), p.payeeAccount, p.payeeName, p.purpose, p.neededOn, p.baristas.map((b) => b.name).join(" / "), p.periodFrom, p.periodTo,
+        p.openingBalance, p.incomeAmount, p.totalOut, p.closingBalance, p.plafon, p.requestedAmount, p.approvedAmount, p.paidAmount, p.paidOn,
+        p.proofDueOn, p.actualAmount, p.verifiedAmount ?? p.actualAmount, p.difference, p.invoiceNo];
       const lines = p.lines?.length ? p.lines : [null];
-      for (const l of lines) out.push([...common, l?.spentOn, l ? categoryLabel(l.category) : "", l?.description, l?.amount, l?.review === "REJECTED" ? tr("Rejected") : l ? "OK" : "", l?.reviewNote]);
+      for (const l of lines) out.push([...common, l?.spentOn, l ? categoryLabel(l.category, l.categoryLabel) : "", l?.description, l?.amount, l?.review === "REJECTED" ? tr("Rejected") : l ? "OK" : "", l?.reviewNote]);
     }
     setExporting(true);
     downloadXlsx({ fileName: `${tr("Fund Request")} ${f.period.from} - ${f.period.to}`, sheet: tr("Fund Request"),
@@ -128,16 +131,16 @@ export default function PengajuanMonitor() {
         <ExcelIconButton label={tr("Export to Excel")} loading={exporting} disabled={!rows.length} onClick={exportCsv} />
       </div>}
       stats={
-        <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">
+        <StatStrip label={tr("Summary")} columns={5} gridClassName="grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Stat label={tr("My Turn")} emphasis onClick={res ? () => setStatus("MINE") : undefined} active={status === "MINE"} icon={<UserCheck size={13} />}
             value={res ? fmtNumber(base.filter(mine).length) : <StatSkeleton />}>
             {res && <p className="tabular-nums">{fmtRp(sum(base.filter(mine), (p) => p.approvedAmount ?? p.requestedAmount))}</p>}
           </Stat>
-          {(["SUBMITTED", "APPROVED", "PAID"] as Status[]).map((s) => (
+          {(["SUBMITTED", "APPROVED", "PAID", "VERIFYING"] as Status[]).map((s) => (
             <Stat key={s} label={STATUS_LABEL[s]()} onClick={res ? () => setStatus(s) : undefined} active={status === s}
-              icon={s === "PAID" ? <CheckCircle2 size={13} /> : s === "APPROVED" ? <Wallet size={13} /> : <ClipboardList size={13} />}
+              icon={s === "PAID" || s === "VERIFYING" ? <CheckCircle2 size={13} /> : s === "APPROVED" ? <Wallet size={13} /> : <ClipboardList size={13} />}
               value={res ? fmtNumber(by(s).length) : <StatSkeleton />}>
-              {res && <p className="tabular-nums">{fmtRp(sum(by(s), (p) => (s === "PAID" ? p.paidAmount : s === "APPROVED" ? p.approvedAmount : p.requestedAmount)))}</p>}
+              {res && <p className="tabular-nums">{fmtRp(sum(by(s), (p) => (s === "PAID" || s === "VERIFYING" ? p.paidAmount : s === "APPROVED" ? p.approvedAmount : p.requestedAmount)))}</p>}
             </Stat>
           ))}
         </StatStrip>
@@ -216,13 +219,22 @@ export default function PengajuanMonitor() {
 }
 
 const KIND_TONE: Partial<Record<Kind, string>> = { PETTY_CASH: "bg-emerald-600", EMERGENCY: "bg-red-600", MARKETING: "bg-violet-600", EVENT: "bg-sky-600", BILL: "bg-amber-600" };
-const PG_TONE: Record<Status, LozengeTone> = { DRAFT: "grey", SUBMITTED: "blue", REVISION: "amber", APPROVED: "cyan", PAID: "green", REJECTED: "red" };
+const PG_TONE: Record<Status, LozengeTone> = { DRAFT: "grey", SUBMITTED: "blue", REVISION: "amber", APPROVED: "cyan", PAID: "violet", VERIFYING: "amber", DONE: "green", REJECTED: "red", CANCELLED: "grey" };
 function PgLozenge({ s }: { s: Status }) {
   return <Lozenge tone={PG_TONE[s]}>{STATUS_LABEL[s]()}</Lozenge>;
 }
 
 function StepWaiting({ p }: { p: Pengajuan }) {
-  if (!p.step || (p.status !== "SUBMITTED" && p.status !== "APPROVED")) return null;
+  const today = wibDate();
+  const days = (d: string) => Math.round((Date.parse(d) - Date.parse(today)) / 86400000);
+  if (p.status === "PAID" && p.proofDueOn) return <span className={cx("mt-0.5 block truncate text-[11px]", p.proofOverdue ? "font-semibold text-red-700" : "text-neutral-500")}>
+    {p.proofOverdue ? tr("Proof overdue since {0}", wibDay(p.proofDueOn)) : tr("Proof due {0}", wibDay(p.proofDueOn))}</span>;
+  if (p.status === "APPROVED" && p.neededOn) {
+    const n = days(p.neededOn);
+    return <span className={cx("mt-0.5 block truncate text-[11px]", n < 0 ? "font-semibold text-red-700" : n <= 3 ? "font-semibold text-amber-700" : "text-neutral-500")}>
+      {n < 0 ? tr("Due date passed: {0}", wibDay(p.neededOn)) : n === 0 ? tr("Due today") : tr("Due {0}", wibDay(p.neededOn))}</span>;
+  }
+  if (!p.step || !["SUBMITTED", "APPROVED", "VERIFYING"].includes(p.status)) return null;
   return <span className="mt-0.5 block truncate text-[11px] text-neutral-500">{p.step.label} · {p.step.users.length ? p.step.users.join(", ") : "Superadmin"}</span>;
 }
 
@@ -358,9 +370,9 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
       ) : undefined}>
       {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : (
         <div className="space-y-5">
-          {p.can?.step && (p.status === "SUBMITTED" || p.status === "APPROVED") && (
+          {p.can?.step && ["SUBMITTED", "APPROVED", "VERIFYING"].includes(p.status) && (
             <p className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 ring-1 ring-neutral-200"><UserCheck size={14} className="flex-shrink-0 text-neutral-500" />
-              {tr("Waiting at {0}: {1}", p.can.step, p.can.stepUsers.length ? p.can.stepUsers.join(", ") : "Superadmin")}{!p.can.next.length && ` · ${tr("not your step")}`}</p>
+              {tr("Waiting at {0}: {1}", p.can.step, p.can.stepUsers.length ? p.can.stepUsers.join(", ") : "Superadmin")}{!p.can.next.length && !p.can.verify && ` · ${tr("not your step")}`}</p>
           )}
           {p.can?.reviewLines && (
             <p className="flex items-start gap-2 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900"><AlertTriangle size={14} className="mt-px flex-shrink-0" />
@@ -378,6 +390,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               </div>
             </section>
           )}
+          <VerifyPanel p={p} base={base} onChanged={changed} />
           {p.can?.refund && <RefundPanel p={p} base={base} onChanged={changed} />}
           <PengajuanView p={p} onReview={p.can?.reviewLines ? review : undefined} />
           <section>
@@ -398,10 +411,11 @@ export type Approver = { id: string; name: string; username: string; role: strin
 type Settings = { kinds: Record<Kind, string>; flows: Record<string, { label: string; type: "APPROVE" | "PAY"; users: { id: string; name: string }[] }[]>;
   options: Record<OptionList, FundOption[]>; lists: Record<OptionList, string>; listDefaults?: Record<OptionList, string>; kindLabels?: Partial<Record<Kind, string>>; deptPlafon: { department: string; amount: number }[]; departments: string[]; canOptions: boolean;
   users: Approver[]; plafon: { default: number | null; branches: { branchCode: string; amount: number }[] }; canEdit: boolean; canPlafon: boolean;
+  /** the life after the payment (migration 144) */ rules?: RuleRow[]; lifecycle?: Lifecycle; canRules?: boolean; proofDocs?: Record<string, string>;
   /** every outlet, for the plafon per outlet */ outlets?: { code: string; name: string }[] };
 
 /** The approval steps of every kind (any number, in order, each with its users; then the payment) and the petty cash plafon. */
-type View = { type: "flow"; key: string } | { type: "list"; list: OptionList } | { type: "plafon" } | { type: "dept" };
+type View = { type: "flow"; key: string } | { type: "list"; list: OptionList } | { type: "plafon" } | { type: "dept" } | { type: "rules" };
 const viewKey = (v: View) => (v.type === "flow" ? `flow:${v.key}` : v.type === "list" ? `list:${v.list}` : v.type);
 const PURPOSE_TYPE: Record<string, { label: () => string; tone: LozengeTone }> = {
   "": { label: () => tr("Regular"), tone: "grey" }, ADVANCE: { label: () => tr("Cash in Advance"), tone: "blue" },
@@ -442,6 +456,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
       items: DE_KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
     { title: tr("Approval Flow · Personal"), hint: tr("One flow per purpose of funds"), icon: <UserRound size={13} />, items: [{ view: { type: "flow", key: "PERSONAL" }, label: tr("Default Flow") },
       ...purposes.filter((o) => o.isActive).map((o) => ({ view: { type: "flow", key: `PERSONAL:${o.id}` } as View, label: o.name, muted: !data?.flows[`PERSONAL:${o.id}`]?.length }))] },
+    { title: tr("Rules"), hint: tr("Proof, due date and vendor payments"), icon: <CheckCircle2 size={13} />, items: [{ view: { type: "rules" }, label: tr("Rules after the payment") }] },
     { title: tr("Personal Form Lists"), hint: tr("The choices on the personal form"), icon: <ListChecks size={13} />, items: (Object.keys(data?.lists ?? {}) as OptionList[]).map((l) => ({ view: { type: "list", list: l }, label: data!.lists[l], count: data!.options[l].length })) },
     { title: tr("Plafon"), hint: tr("The most that can be asked"), icon: <Wallet size={13} />, items: [{ view: { type: "plafon" }, label: tr("Outlet Petty Cash") }, { view: { type: "dept" }, label: tr("Department Plafon") }] },
   ];
@@ -580,6 +595,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
               </section>
             )}
 
+            {view.type === "rules" && data.rules && data.lifecycle && <RulesPanel rules={data.rules} lifecycle={data.lifecycle} docs={data.proofDocs ?? {}} edit={!!data.canRules} onChanged={() => void load()} />}
             {view.type === "dept" && <DeptPlafon data={data} onChanged={() => void load()} />}
             {renaming && "code" in renaming && <RenameKind {...renaming} onClose={() => setRenaming(null)}
               onSaved={() => { setRenaming(null); void load(); onChanged(); }} />}
@@ -723,6 +739,11 @@ function OptionDialog({ list, label, option, onClose, onSaved }: { list: OptionL
       onSaved();
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
+  const remove = async () => {
+    setBusy(true);
+    try { await call(`/api/pengajuan/settings/options/${option!.id}`, { method: "DELETE" }); toast(tr("Deleted")); onSaved(); }
+    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
   const rule = (key: keyof typeof rules, title: string, hint: string) => (
     <label className="flex cursor-pointer items-start gap-3 rounded border border-neutral-200 px-3 py-2.5 hover:bg-neutral-50">
       <input type="checkbox" className="mt-0.5" checked={rules[key]} onChange={(e) => setRules({ ...rules, [key]: e.target.checked })} />
@@ -733,6 +754,7 @@ function OptionDialog({ list, label, option, onClose, onSaved }: { list: OptionL
     <Dialog open onClose={onClose} size="md" title={option ? tr("Edit {0}", label) : tr("Create {0}", label)}
       description={purpose ? tr("The name shown on the form, its type and the rules checked before sending.") : undefined}
       footer={<div className="flex w-full justify-end gap-2">
+        {option && <Button variant="ghost" className="mr-auto text-red-600" disabled={busy} title={tr("Only when never used; otherwise switch it off")} onClick={() => void remove()}><Trash2 size={14} /> {tr("Delete")}</Button>}
         <Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!name.trim()} onClick={() => void submit()}>{option ? tr("Save") : tr("Create")}</Button>
       </div>}>
@@ -741,7 +763,7 @@ function OptionDialog({ list, label, option, onClose, onSaved }: { list: OptionL
           <input autoFocus value={name} maxLength={120} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && name.trim() && !purpose) void submit(); }}
             className={cx(inputClass, "h-10")} /></Field>
         {purpose && <>
-          <Field label={tr("Type")} hint={type === "ADVANCE" ? tr("Paid ahead; settled later with a Settlement request") : type === "SETTLEMENT" ? tr("Picks the Cash in Advance it settles and shows the difference") : tr("A normal request")}>
+          <Field label={tr("Type")} hint={type === "ADVANCE" ? tr("Paid ahead; the proof and the amount spent follow in the same request") : type === "SETTLEMENT" ? tr("Picks the Cash in Advance it settles and shows the difference") : tr("A normal request")}>
             <NativeSelect value={type} onChange={(e) => setType(e.target.value)} aria-label={tr("Type")} className={cx(inputClass, "h-10 w-full")}>
               <option value="">{tr("Regular")}</option><option value="ADVANCE">{tr("Cash in Advance")}</option><option value="SETTLEMENT">{tr("Settlement of a Cash in Advance")}</option>
             </NativeSelect></Field>

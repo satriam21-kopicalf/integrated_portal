@@ -4,7 +4,10 @@
 import { serverMsg, tr } from "@/lib/i18n";
 import type { Tone } from "@/so/ui";
 
-export type Status = "DRAFT" | "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "REJECTED";
+/** 2026-11-24 (backend migration 144): Pending → Approved → In Progress (PAID: money out, proof awaited) → Verifikasi → Done */
+export type Status = "DRAFT" | "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "VERIFYING" | "DONE" | "REJECTED" | "CANCELLED";
+/** the rules of a kind, set by Finance (backend app/fund_lifecycle.py) */
+export type Rule = { proofAfter: boolean; proofDays: number; proofDocs: string[]; vendor: boolean };
 export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL" | "PERSONAL" | "MAINTENANCE" | "PROCUREMENT";
 /** the lists of the personal form, set by management (migration 124) */
 export type OptionList = "PURPOSE" | "TRANSACTION" | "PROJECT" | "ACCOUNT";
@@ -13,13 +16,13 @@ export type FundOption = { id: number; list: OptionList; name: string; isActive:
 export type Advance = { id: string; number: string; paidAmount: number | null; paidOn: string | null; purpose: string | null };
 export type Action = "APPROVE" | "REVISION" | "REJECTED" | "PAID";
 export type Step = { position: number; label: string; type: "APPROVE" | "PAY"; users: string[] };
-export type FileKind = "LINE" | "INCOME" | "OTHER" | "PAYMENT" | "REFUND";
+export type FileKind = "LINE" | "INCOME" | "OTHER" | "PAYMENT" | "REFUND" | "PROOF" | "TOPUP";
 export type Barista = { name: string; userId?: string };
 export type Line = { id?: number; spentOn: string | null; category: string; categoryLabel?: string; description: string; amount: number | null;
   review?: "OK" | "REJECTED"; reviewNote?: string | null; reviewedBy?: string | null; key?: string };
 export type PgFile = { id: string; lineId: number | null; kind: FileKind; docType: string; mime: string; bytes: number; fileName: string | null;
   uploadedAt: string; uploadedBy: string | null; /** numbers of other pengajuan with the same file */ usedIn: string[] };
-export type PgEvent = { at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "LINE" | "NOTE" | "REFUND"; from: Status | null; to: Status | null;
+export type PgEvent = { at: string; actor: string | null; kind: "SUBMIT" | "STATUS" | "LINE" | "NOTE" | "REFUND" | "PROOF" | "VERIFY"; from: Status | null; to: Status | null;
   note: string | null; details: Record<string, unknown> };
 export type Pengajuan = {
   id: string; number: string | null; status: Status; statusLabel: string; userId: string; username: string; name: string;
@@ -50,7 +53,13 @@ export type Pengajuan = {
   refundAmount?: number | null; refundedAt?: string | null; refundedBy?: string | null; refundedNote?: string | null;
   lines?: Line[]; files?: PgFile[]; events?: PgEvent[]; missing?: string[]; fileCount?: number; reusedFiles?: number;
   /** monitoring: what the signed-in checker may do now */
-  can?: { next: Action[]; reviewLines: boolean; payment: boolean; refund?: boolean; step: string | null; stepUsers: string[] };
+  can?: { next: Action[]; reviewLines: boolean; payment: boolean; refund?: boolean; verify?: boolean; step: string | null; stepUsers: string[] };
+  /** after the money went out (migration 144): the proof, the amount spent, Finance's accepted amount and the difference */
+  proofDueOn?: string | null; proofOverdue?: boolean; proofSubmittedAt?: string | null; actualAmount?: number | null; actualNote?: string | null;
+  verifiedAmount?: number | null; verifiedNote?: string | null; verifiedAt?: string | null; verifiedBy?: string | null; doneAt?: string | null;
+  topupAmount?: number | null; topupPaidAt?: string | null; /** accepted − paid */ difference?: number | null; /** what is still to settle */ outstanding?: number | null;
+  payeeType?: "BANK" | "VA"; vaProvider?: string | null; invoiceNo?: string | null;
+  rule?: Rule; proofMissing?: string[];
 };
 export type FormState = { user: { id: string; username: string; name: string }; branches: { code: string; name: string }[];
   requests: Pengajuan[]; categories: Record<string, string>; categoriesOf: Record<Kind, Record<string, string>>; kinds: Record<Kind, string>;
@@ -61,11 +70,15 @@ export type FormState = { user: { id: string; username: string; name: string }; 
   kindLabels?: Partial<Record<Kind, string>>; /** the titles of the lists, as management named them */ listNames?: Record<OptionList, string> };
 
 export const STATUS_LABEL: Record<Status, () => string> = {
-  DRAFT: () => tr("Draft"), SUBMITTED: () => tr("Waiting for approval"), REVISION: () => tr("Revision"),
-  APPROVED: () => tr("Waiting for payment"), PAID: () => tr("Paid"), REJECTED: () => tr("Rejected"),
+  DRAFT: () => tr("Draft"), SUBMITTED: () => tr("Pending"), REVISION: () => tr("Revision"),
+  APPROVED: () => tr("Approved · ready to pay"), PAID: () => tr("In Progress · proof awaited"), VERIFYING: () => tr("Verifying"),
+  DONE: () => tr("Done"), REJECTED: () => tr("Rejected"), CANCELLED: () => tr("Cancelled"),
 };
-export const STATUS_TONE: Record<Status, Tone> = { DRAFT: "slate", SUBMITTED: "blue", REVISION: "amber", APPROVED: "cyan", PAID: "green", REJECTED: "red" };
-export const OPEN: Status[] = ["SUBMITTED", "REVISION", "APPROVED"];
+export const STATUS_TONE: Record<Status, Tone> = { DRAFT: "slate", SUBMITTED: "blue", REVISION: "amber", APPROVED: "cyan", PAID: "violet",
+  VERIFYING: "amber", DONE: "green", REJECTED: "red", CANCELLED: "slate" };
+export const OPEN: Status[] = ["SUBMITTED", "REVISION", "APPROVED", "PAID", "VERIFYING"];
+/** the money went out (In Progress, Verifikasi or Done) */
+export const PAID_OUT: Status[] = ["PAID", "VERIFYING", "DONE"];
 export const ACTION_LABEL: Record<Action, () => string> = {
   APPROVE: () => tr("Approve"), PAID: () => tr("Record payment"), REVISION: () => tr("Send back for revision"), REJECTED: () => tr("Reject"),
 };
@@ -110,7 +123,8 @@ export const DOC_LABEL: Record<string, () => string> = {
   NOTA: () => tr("Bill (nota)"), KWITANSI: () => tr("Signed receipt (kwitansi)"), INVOICE: () => "Invoice", STRUK: () => tr("Till slip (struk)"),
   TRANSFER: () => tr("Transfer proof"), FOTO: () => tr("Photo of the goods"), QUOTE: () => tr("Price quotation"), OTHER: () => tr("Other"),
 };
-export const categoryLabel = (c: string) => (CATEGORY_LABEL[c] ?? (() => c))();
+/** the category of a line: a Jenis Transaksi (TRX:<id>, Maintenance & Procurement) carries its name from the backend */
+export const categoryLabel = (c: string, name?: string | null) => (CATEGORY_LABEL[c] ?? (() => name || c))();
 export const docLabel = (d: string) => (DOC_LABEL[d] ?? (() => d))();
 
 export const fileUrl = (id: string) => `/api/pengajuan/files/${id}`;

@@ -23,6 +23,7 @@ import { TZ, wibDate, wibDateTime, wibDay } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import PengajuanView, { Balances, FileChip, StatusBadge } from "./PengajuanView";
+import { ProofPanel } from "./PengajuanLife";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Barista, type FileKind, type FormState, type Kind, type Line, type Pengajuan, type PgFile, CATEGORY_LABEL, DOC_LABEL, KINDS, KIND_HINT,
   NEEDED_LABEL, OPEN, STATUS_LABEL, fmtRp, kindLabel, parseRp, placeOf, requestLabel, setKindLabels, typeRp, upload } from "./pengajuan";
@@ -83,7 +84,7 @@ export default function PengajuanForm() {
 
   const editable = (data?.requests ?? []).filter((r) => r.status === "DRAFT" || r.status === "REVISION");
   const mine = (data?.requests ?? []).filter((r) => r.status !== "DRAFT");
-  const shown = mine.filter((r) => show === "all" || (show === "open" ? OPEN.includes(r.status) : show === "paid" ? r.status === "PAID" : r.status === "REJECTED"));
+  const shown = mine.filter((r) => show === "all" || (show === "open" ? OPEN.includes(r.status) : show === "paid" ? r.status === "DONE" : r.status === "REJECTED"));
   return (
     <Page title={tr("Fund Request")} actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
@@ -179,7 +180,7 @@ export default function PengajuanForm() {
               </div>
               <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
                 { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In Progress")} ${mine.filter((r) => OPEN.includes(r.status)).length}` },
-                { value: "paid", label: `${tr("Paid")} ${mine.filter((r) => r.status === "PAID").length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.filter((r) => r.status === "REJECTED").length}` }]} />
+                { value: "paid", label: `${tr("Done")} ${mine.filter((r) => r.status === "DONE").length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.filter((r) => r.status === "REJECTED").length}` }]} />
             </div>
             {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{mine.length ? tr("Nothing in this view") : tr("No fund request sent yet")}</p> : (
               <ul className="divide-y divide-neutral-100">
@@ -217,14 +218,14 @@ function MineDrawer({ id, onClose, onEdit }: { id: string; onClose: () => void; 
     <Drawer open onClose={onClose} size="lg" icon={<ClipboardList size={18} />} title={p?.number ?? tr("Fund Request")}
       description={p ? `${p.branchName} · ${STATUS_LABEL[p.status]()}` : undefined}
       footer={p?.status === "REVISION" ? <Button onClick={() => onEdit(p.id)}>{tr("Correct and Send Again")}</Button> : undefined}>
-      {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : <PengajuanView p={p} />}
+      {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : <div className="space-y-5">{p.scope !== "DE" && <ProofPanel key={`${p.status}${p.files?.length}`} p={p} onChanged={setP} />}<PengajuanView p={p} /></div>}
     </Drawer>
   );
 }
 
 type Local = { baristas: Barista[]; periodFrom: string; periodTo: string; opening: string; openingNote: string; income: string; incomeNote: string;
   note: string; lines: (Line & { key: string })[]; requesterName: string; requesterPhone: string; payeeBank: string; payeeAccount: string;
-  payeeName: string; purpose: string; neededOn: string };
+  payeeName: string; purpose: string; neededOn: string; invoiceNo: string };
 let seq = 0;
 const newKey = () => `n${++seq}`;
 const toLocal = (p: Pengajuan): Local => ({
@@ -232,13 +233,14 @@ const toLocal = (p: Pengajuan): Local => ({
   income: p.incomeAmount ? typeRp(p.incomeAmount) : "", incomeNote: p.incomeNote ?? "", note: p.note ?? "",
   lines: (p.lines ?? []).map((l) => ({ ...l, key: `l${l.id}` })), requesterName: p.requesterName ?? "", requesterPhone: p.requesterPhone ?? "",
   payeeBank: p.payeeBank ?? "", payeeAccount: p.payeeAccount ?? "", payeeName: p.payeeName ?? "", purpose: p.purpose ?? "", neededOn: p.neededOn ?? "",
+  invoiceNo: p.invoiceNo ?? "",
 });
 const payload = (l: Local) => ({
   baristas: l.baristas, periodFrom: l.periodFrom || null, periodTo: l.periodTo || null, openingBalance: parseRp(l.opening), openingNote: l.openingNote,
   incomeAmount: parseRp(l.income) ?? 0, incomeNote: l.incomeNote, note: l.note,
   lines: l.lines.map((x) => ({ id: x.id ?? null, spentOn: x.spentOn || null, category: x.category, description: x.description, amount: x.amount })),
   requesterName: l.requesterName, requesterPhone: l.requesterPhone, payeeBank: l.payeeBank, payeeAccount: l.payeeAccount, payeeName: l.payeeName,
-  purpose: l.purpose, neededOn: l.neededOn || null,
+  purpose: l.purpose, neededOn: l.neededOn || null, invoiceNo: l.invoiceNo,
 });
 
 function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: Pengajuan; onClose: () => void; onSent: (p: Pengajuan) => void }) {
@@ -350,7 +352,10 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
       if (income > 0 && !local.incomeNote.trim()) out.push(tr("Write where the money in comes from"));
       if (income > 0 && !files.some((f) => f.kind === "INCOME")) out.push(tr("Attach the proof of the money in"));
     } else if (!local.purpose.trim()) out.push(tr("Write the purpose of the request"));
-    if (NEEDED_LABEL[kind] && !local.neededOn) out.push(tr("Fill in: {0}", NEEDED_LABEL[kind]!().toLowerCase()));
+    const vendor = !!server.rule?.vendor;
+    if ((NEEDED_LABEL[kind] || vendor) && !local.neededOn) out.push(tr("Fill in: {0}", (NEEDED_LABEL[kind]?.() ?? tr("Due date")).toLowerCase()));
+    else if (vendor && local.neededOn < wibDate()) out.push(tr("The due date has passed"));
+    if (vendor && !local.invoiceNo.trim()) out.push(tr("Fill in the vendor's invoice number"));
     if (!local.lines.length) out.push(petty || kind === "EMERGENCY" ? tr("Add at least one expense") : tr("Add at least one cost line"));
     local.lines.forEach((l, i) => {
       const p: string[] = [];
@@ -363,7 +368,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
     });
     if (petty && closing !== null && closing < 0 && !local.note.trim()) out.push(tr("Negative closing balance: explain it in the note"));
     return out;
-  }, [local, files, opening, income, closing, server.openingExpected, petty, kind, lineDate, receipts, lineWord]);
+  }, [local, files, opening, income, closing, server.openingExpected, petty, kind, lineDate, receipts, lineWord, server.rule?.vendor]);
 
   const revision = server.status === "REVISION" ? [...(server.events ?? [])].reverse().find((e) => e.to === "REVISION") : undefined;
   const rejectedLines = (server.lines ?? []).filter((l) => l.review === "REJECTED");
@@ -461,10 +466,11 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           <textarea value={local.purpose} onChange={(e) => update({ purpose: e.target.value })} rows={3} maxLength={1000}
             placeholder={kind === "EVENT" ? tr("Name and place of the event, target sales …") : kind === "BILL" ? tr("Which bill and period, e.g. PLN October") : tr("What it is for and why it is needed")}
             className={cx(inputClass, "h-auto py-2 text-sm", !local.purpose.trim() && "border-red-300")} />
-          {NEEDED_LABEL[kind] && (
-            <label className="mt-2 block"><span className="mb-1 block text-xs font-medium text-neutral-600">{NEEDED_LABEL[kind]!()}</span>
+          {(NEEDED_LABEL[kind] || server.rule?.vendor) && (
+            <label className="mt-2 block"><span className="mb-1 block text-xs font-medium text-neutral-600">{NEEDED_LABEL[kind]?.() ?? tr("Due date")}</span>
               <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-red-300")} /></label>
           )}
+          {server.rule?.vendor && <div className="mt-2"><Field label={tr("Invoice number")} value={local.invoiceNo} onChange={(v) => update({ invoiceNo: v })} max={80} /></div>}
         </FormCard>
         )}
 
@@ -649,12 +655,14 @@ function Attachments({ files, docTypes, required, onAdd, onRemove }: { files: Pg
  * Transaksi, Project and Jenis Rekening are the lists management sets; a Laporan Penyelesaian picks the Cash in Advance it
  * settles. Saved as it is filled, like the outlet form. */
 type PLocal = { neededOn: string; purposeId: string; transactionTypeId: string; projectId: string; accountTypeId: string; purpose: string;
-  amount: string; branchCode: string; payeeBank: string; payeeAccount: string; payeeName: string; settlesId: string; note: string };
+  amount: string; branchCode: string; payeeBank: string; payeeAccount: string; payeeName: string; settlesId: string; note: string;
+  payeeType: "BANK" | "VA"; vaProvider: string; invoiceNo: string };
 const pLocal = (p: Pengajuan): PLocal => ({ neededOn: p.neededOn ?? "", purposeId: p.purposeId ? String(p.purposeId) : "",
   transactionTypeId: p.transactionTypeId ? String(p.transactionTypeId) : "", projectId: p.projectId ? String(p.projectId) : "",
   accountTypeId: p.accountTypeId ? String(p.accountTypeId) : "", purpose: p.purpose ?? "", amount: typeRp(p.requestedAmount),
   branchCode: p.branchCode ?? "", payeeBank: p.payeeBank ?? "", payeeAccount: p.payeeAccount ?? "", payeeName: p.payeeName ?? "",
-  settlesId: p.settlesId ?? "", note: p.note ?? "" });
+  settlesId: p.settlesId ?? "", note: p.note ?? "",
+  payeeType: p.payeeType ?? "BANK", vaProvider: p.vaProvider ?? "", invoiceNo: p.invoiceNo ?? "" });
 const num = (v: string) => (v ? Number(v) : null);
 
 function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; initial: Pengajuan; onClose: () => void; onSent: (p: Pengajuan) => void }) {
@@ -679,7 +687,8 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
       const p = await call<Pengajuan>(base, { method: "PATCH", json: {
         neededOn: l.neededOn || null, purposeId: num(l.purposeId), transactionTypeId: num(l.transactionTypeId), projectId: num(l.projectId),
         accountTypeId: num(l.accountTypeId), purpose: l.purpose, requestedAmount: parseRp(l.amount), branchCode: l.branchCode || null,
-        payeeBank: l.payeeBank, payeeAccount: l.payeeAccount, payeeName: l.payeeName, settlesId: l.settlesId || null, note: l.note } });
+        payeeBank: l.payeeBank, payeeAccount: l.payeeAccount, payeeName: l.payeeName, settlesId: l.settlesId || null, note: l.note,
+        payeeType: l.payeeType, vaProvider: l.vaProvider, invoiceNo: l.invoiceNo } });
       setServer(p);
       setFiles(p.files ?? []);
       setSaving("idle");
@@ -702,6 +711,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
   const purpose = opts.PURPOSE.find((o) => String(o.id) === local.purposeId);
   const flags = useMemo(() => purpose?.settings ?? {}, [purpose]);
   const settling = flags.type === "SETTLEMENT";
+  const vendor = !!server.rule?.vendor && String(server.purposeId ?? "") === local.purposeId;
   const amount = parseRp(local.amount);
   const advance = data.advances.find((a) => a.id === local.settlesId);
   const diff = settling && advance && amount !== null ? amount - (advance.paidAmount ?? 0) : null;
@@ -714,11 +724,15 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
     if (!amount || amount <= 0) out.push(tr("Fill in the total requested"));
     if (flags.outlet && !local.branchCode) out.push(tr("Choose the outlet"));
     if (!local.accountTypeId) out.push(tr("Choose the account type"));
-    if (!local.payeeBank.trim() || !local.payeeAccount.trim() || !local.payeeName.trim()) out.push(tr("Fill in the bank account: bank, number and holder"));
+    if (vendor && local.neededOn && local.neededOn < wibDate()) out.push(tr("The due date has passed"));
+    if (vendor && !local.invoiceNo.trim()) out.push(tr("Fill in the vendor's invoice number"));
+    if (vendor && !files.some((f) => f.docType === "INVOICE")) out.push(tr("Attach the vendor's invoice"));
+    if (local.payeeType === "VA") { if (!local.vaProvider.trim() || !local.payeeAccount.trim()) out.push(tr("Fill in the Virtual Account: provider and number")); }
+    else if (!local.payeeBank.trim() || !local.payeeAccount.trim() || !local.payeeName.trim()) out.push(tr("Fill in the bank account: bank, number and holder"));
     if (settling && !local.settlesId) out.push(tr("Choose the Cash in Advance being settled"));
     if (flags.receipt && !files.some((f) => f.kind === "OTHER")) out.push(tr("Attach the supporting documents (bill, receipt, photo)"));
     return out;
-  }, [local, purpose, flags, settling, amount, files]);
+  }, [local, purpose, flags, settling, amount, files, vendor]);
 
   const attach = async (file: File, docType: string) => {
     try {
@@ -784,8 +798,9 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
           <div className="grid gap-3 sm:grid-cols-2">
             {select("purposeId", "PURPOSE", data.listNames?.PURPOSE ?? tr("Purpose of Funds"))}
             {select("transactionTypeId", "TRANSACTION", data.listNames?.TRANSACTION ?? tr("Transaction Type"))}
-            <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Date Funds Needed")}<span className="text-red-600"> *</span></span>
+            <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{vendor ? tr("Due date") : tr("Date Funds Needed")}<span className="text-red-600"> *</span></span>
               <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-red-300")} /></label>
+            {vendor && <Field label={tr("Invoice number")} value={local.invoiceNo} onChange={(v) => update({ invoiceNo: v })} max={80} />}
             {select("projectId", "PROJECT", data.listNames?.PROJECT ?? tr("Project"), false)}
             <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Outlet")}{flags.outlet && <span className="text-red-600"> *</span>}</span>
               <NativeSelect value={local.branchCode} onChange={(e) => update({ branchCode: e.target.value })} aria-label={tr("Outlet")} className={cx(inputClass, "h-11 w-full")}>
@@ -822,8 +837,13 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
         <FormCard n={5} title={tr("Destination Account")} hint={tr("The transfer goes to this account")}>
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="sm:col-span-2">{select("accountTypeId", "ACCOUNT", data.listNames?.ACCOUNT ?? tr("Account Type"))}</div>
-            <Field label={tr("Bank")} value={local.payeeBank} onChange={(v) => update({ payeeBank: v })} max={60} placeholder="BCA" />
-            <Field label={tr("Account Number")} value={local.payeeAccount} onChange={(v) => update({ payeeAccount: v })} max={40} inputMode="numeric" />
+            <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Pay to")}</span>
+              <select value={local.payeeType} onChange={(e) => update({ payeeType: e.target.value as "BANK" | "VA" })} aria-label={tr("Pay to")} className={cx(inputClass, "h-11 w-full")}>
+                <option value="BANK">{tr("Bank account")}</option><option value="VA">{tr("Virtual Account (Shopee, Tokopedia …)")}</option>
+              </select></label>
+            {local.payeeType === "VA" ? <Field label={tr("VA provider")} value={local.vaProvider} onChange={(v) => update({ vaProvider: v })} max={60} placeholder="Shopee" />
+              : <Field label={tr("Bank")} value={local.payeeBank} onChange={(v) => update({ payeeBank: v })} max={60} placeholder="BCA" />}
+            <Field label={local.payeeType === "VA" ? tr("VA number") : tr("Account Number")} value={local.payeeAccount} onChange={(v) => update({ payeeAccount: v })} max={40} inputMode="numeric" />
             <div className="sm:col-span-2"><Field label={tr("Account holder")} value={local.payeeName} onChange={(v) => update({ payeeName: v })} max={80} /></div>
           </div>
         </FormCard>

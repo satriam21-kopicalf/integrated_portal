@@ -5,21 +5,25 @@
 // "Deposit / Cash in Advance" (its own approval flow), paid to the technician's account and settled afterwards with the
 // receipts (Laporan Penyelesaian, in Fund Request). The card shows each advance and whether it is settled yet.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HandCoins, Plus, Send } from "lucide-react";
 import { Badge, Button, Field, cx, inputClass, type Tone } from "@/so/ui";
 import Dialog from "@/so/ui/Dialog";
 import { JSelect } from "@/so/ui/Jira";
+import { call } from "@/so/features/checkin/checkin";
+import { LifeSummary, ProofPanel } from "@/so/features/pengajuan/PengajuanLife";
+import type { Pengajuan } from "@/so/features/pengajuan/pengajuan";
+import { useAuth } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
 import { type Request, fmtRp } from "./de";
 
 type Act = (path: string, json: unknown, ok: string, method?: string) => Promise<boolean>;
 export type Advance = {
-  id: string; number: string | null; status: "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "REJECTED" | "DRAFT"; statusLabel: string;
+  id: string; number: string | null; status: "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "VERIFYING" | "DONE" | "REJECTED" | "CANCELLED" | "DRAFT"; statusLabel: string;
   technician: string; amount: number | null; approvedAmount: number | null; paidAmount: number | null;
-  settlement: { number: string; status: string; statusLabel: string; amount: number | null } | null;
+  /** the team member who asked it: they send its proof */ userId: string;
 };
-const TONE: Record<string, Tone> = { SUBMITTED: "amber", REVISION: "red", APPROVED: "blue", PAID: "green", REJECTED: "red", DRAFT: "slate" };
+const TONE: Record<string, Tone> = { SUBMITTED: "amber", REVISION: "red", APPROVED: "blue", PAID: "violet", VERIFYING: "amber", DONE: "green", REJECTED: "red", DRAFT: "slate", CANCELLED: "slate" };
 const ASK_FROM = ["ACCEPTED", "IN_PROGRESS", "ORDERED", "ON_HOLD"];
 const digits = (v: string) => v.replace(/[^0-9]/g, "");
 
@@ -42,7 +46,7 @@ function AskDialog({ r, busy, act, onClose }: { r: Request; busy: boolean; act: 
   };
   return (
     <Dialog open onClose={onClose} title={tr("Cash in Advance for a technician")}
-      description={tr("A Fund Request (Deposit / Cash in Advance) on behalf of the technician; settle it later with the receipts in Fund Request.")}
+      description={tr("A Fund Request (Deposit / Cash in Advance) on behalf of the technician; send its receipts here afterwards.")}
       footer={<div className="flex w-full justify-end gap-2">
         <Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!ready} onClick={() => void send()}><Send size={14} /> {tr("Send to Finance")}</Button></div>}>
@@ -66,8 +70,23 @@ function AskDialog({ r, busy, act, onClose }: { r: Request; busy: boolean; act: 
   );
 }
 
-export default function AdvanceCard({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
+/** The proof of a technician's advance, sent by the team member who asked it (the same panel as Fund Request). */
+function ProofDialog({ id, onClose }: { id: string; onClose: () => void }) {
+  const [p, setP] = useState<Pengajuan | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { call<Pengajuan>(`/api/pengajuan/requests/${id}`).then(setP).catch((e) => setError((e as Error).message)); }, [id]);
+  return (
+    <Dialog open onClose={onClose} title={p?.number ?? tr("Proof")} description={tr("The receipts and the amount the technician really spent")}>
+      {error ? <p className="text-sm text-red-600">{error}</p> : !p ? <p className="text-sm text-neutral-500">…</p>
+        : p.status === "PAID" ? <ProofPanel key={p.files?.length} p={p} onChanged={setP} /> : <LifeSummary p={p} />}
+    </Dialog>
+  );
+}
+
+export default function AdvanceCard({ r, busy, act, onChanged }: { r: Request; busy: boolean; act: Act; onChanged?: () => void }) {
   const [open, setOpen] = useState(false);
+  const [proof, setProof] = useState<string | null>(null);
+  const { user } = useAuth();
   const list = r.advances ?? [];
   const can = ASK_FROM.includes(r.status) && (r.assignments ?? []).some((a) => a.status !== "RELEASED");
   return (
@@ -80,14 +99,13 @@ export default function AdvanceCard({ r, busy, act }: { r: Request; busy: boolea
               <span className="min-w-0 flex-1"><span className="font-medium text-neutral-900">{a.technician}</span>
                 <span className="block text-[11px] text-neutral-500">{a.number} · {fmtRp(a.paidAmount ?? a.approvedAmount ?? a.amount)}</span></span>
               <Badge tone={TONE[a.status] ?? "slate"}>{a.statusLabel}</Badge>
-              {a.status === "PAID" && (a.settlement
-                ? <Badge tone={a.settlement.status === "PAID" || a.settlement.status === "APPROVED" ? "green" : "amber"}>{tr("Settlement {0}: {1}", a.settlement.number, a.settlement.statusLabel)}</Badge>
-                : <Badge tone="red">{tr("Not settled yet")}</Badge>)}
+              {a.status === "PAID" && a.userId === user?.id && <Button size="sm" variant="secondary" onClick={() => setProof(a.id)}><Send size={13} /> {tr("Send proof")}</Button>}
             </li>
           ))}
         </ul>
       )}
       {can && <Button size="sm" variant="secondary" onClick={() => setOpen(true)}><Plus size={14} /> {tr("Cash in Advance for a technician")}</Button>}
+      {proof && <ProofDialog id={proof} onClose={() => { setProof(null); onChanged?.(); }} />}
       {open && <AskDialog r={r} busy={busy} act={act} onClose={() => setOpen(false)} />}
     </div>
   );

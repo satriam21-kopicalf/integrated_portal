@@ -776,7 +776,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
               </FormCard>
 
               <FormCard n={next()} title={tr("Cash in Advance for technicians")} hint={tr("Money a technician needs for this job, settled afterwards with the receipts")}>
-                <AdvanceCard r={r} busy={busy} act={act} />
+                <AdvanceCard r={r} busy={busy} act={act} onChanged={() => { call<Request>(`/api/de/monitor/${r.id}`).then(setR).catch(() => {}); }} />
               </FormCard>
 
               {(r.related ?? []).length > 0 && (

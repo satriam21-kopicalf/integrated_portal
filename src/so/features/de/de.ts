@@ -144,7 +144,7 @@ export function fmtHours(h: number | null | undefined): string {
 }
 /** a Fund Request of the request (kind MAINTENANCE / PROCUREMENT) and the top-ups of its settlement at Done */
 export type Fund = {
-  id: string; number: string; status: "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "REJECTED"; statusLabel: string;
+  id: string; number: string; status: "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "VERIFYING" | "DONE" | "REJECTED" | "CANCELLED"; statusLabel: string;
   requestedAmount: number | null; approvedAmount: number | null; paidAmount: number | null; paidOn: string | null;
   payeeBank: string | null; payeeAccount: string | null; payeeName: string | null; approvalStep: number; step: string | null;
   refundAmount: number | null; refundedAt: string | null;
@@ -152,7 +152,7 @@ export type Fund = {
 };
 /** the work of a request with a cost starts once Finance approved its fund (backend app/de_funds.py gate) */
 export const fundCleared = (r: { estCost: number | null; fund?: Fund | null }) =>
-  !(r.estCost ?? 0) || r.fund?.status === "APPROVED" || r.fund?.status === "PAID";
+  !(r.estCost ?? 0) || ["APPROVED", "PAID", "VERIFYING", "DONE"].includes(r.fund?.status ?? "");
 
 export const fmtRp = (v: number | null | undefined) => (v === null || v === undefined ? "—" : `Rp ${Math.round(v).toLocaleString("id-ID")}`);
 export const fmtMb = (bytes: number) => `${(bytes / 1048576).toFixed(1)} MB`;

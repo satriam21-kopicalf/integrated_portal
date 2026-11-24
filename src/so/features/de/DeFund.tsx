@@ -13,13 +13,13 @@ import { type Fund, type Request, fmtRp } from "./de";
 
 type Act = (path: string, json: unknown, ok: string, method?: string) => Promise<boolean>;
 
-const TONE: Record<Fund["status"], Tone> = { SUBMITTED: "amber", REVISION: "red", APPROVED: "blue", PAID: "green", REJECTED: "red" };
+const TONE: Record<Fund["status"], Tone> = { SUBMITTED: "amber", REVISION: "red", APPROVED: "blue", PAID: "violet", VERIFYING: "amber", DONE: "green", REJECTED: "red", CANCELLED: "slate" };
 const ASK_FROM = ["ACCEPTED", "IN_PROGRESS", "ORDERED", "ON_HOLD"];
 
 function AskDialog({ r, fund, busy, act, onClose }: { r: Request; fund: Fund | null; busy: boolean; act: Act; onClose: () => void }) {
-  const [payee, setPayee] = useState({ bank: fund?.payeeBank ?? "", account: fund?.payeeAccount ?? "", name: fund?.payeeName ?? r.vendor ?? "" });
+  const [payee, setPayee] = useState({ type: "BANK" as "BANK" | "VA", bank: fund?.payeeBank ?? "", account: fund?.payeeAccount ?? "", name: fund?.payeeName ?? r.vendor ?? "" });
   const [note, setNote] = useState("");
-  const ready = payee.bank.trim() && payee.account.trim() && payee.name.trim();
+  const ready = payee.bank.trim() && payee.account.trim() && (payee.type === "VA" || payee.name.trim());
   const send = async () => {
     if (await act(`/api/de/monitor/${r.id}/funds`, { ...payee, note: note.trim() || null }, tr("Funds requested from Finance"))) onClose();
   };
@@ -30,9 +30,11 @@ function AskDialog({ r, fund, busy, act, onClose }: { r: Request; fund: Fund | n
         <Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!ready} onClick={() => void send()}><Send size={14} /> {tr("Send to Finance")}</Button></div>}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={tr("Bank")} required><input value={payee.bank} maxLength={120} onChange={(e) => setPayee({ ...payee, bank: e.target.value })} className={cx(inputClass, "h-10")} /></Field>
-        <Field label={tr("Account number")} required><input value={payee.account} maxLength={120} inputMode="numeric" onChange={(e) => setPayee({ ...payee, account: e.target.value })} className={cx(inputClass, "h-10")} /></Field>
-        <Field label={tr("Account name")} required className="sm:col-span-2"><input value={payee.name} maxLength={120} onChange={(e) => setPayee({ ...payee, name: e.target.value })} className={cx(inputClass, "h-10")} /></Field>
+        <Field label={tr("Pay to")} className="sm:col-span-2"><select value={payee.type} onChange={(e) => setPayee({ ...payee, type: e.target.value as "BANK" | "VA" })} className={cx(inputClass, "h-10")}>
+          <option value="BANK">{tr("Bank account")}</option><option value="VA">{tr("Virtual Account (Shopee, Tokopedia …)")}</option></select></Field>
+        <Field label={payee.type === "VA" ? tr("VA provider") : tr("Bank")} required><input value={payee.bank} maxLength={120} onChange={(e) => setPayee({ ...payee, bank: e.target.value })} className={cx(inputClass, "h-10")} /></Field>
+        <Field label={payee.type === "VA" ? tr("VA number") : tr("Account number")} required><input value={payee.account} maxLength={120} inputMode="numeric" onChange={(e) => setPayee({ ...payee, account: e.target.value })} className={cx(inputClass, "h-10")} /></Field>
+        <Field label={tr("Account name")} required={payee.type === "BANK"} className="sm:col-span-2"><input value={payee.name} maxLength={120} onChange={(e) => setPayee({ ...payee, name: e.target.value })} className={cx(inputClass, "h-10")} /></Field>
         <Field label={tr("Note for Finance")} className="sm:col-span-2"><textarea value={note} maxLength={2000} rows={2} onChange={(e) => setNote(e.target.value)} className={cx(inputClass, "py-2")} /></Field>
       </div>
     </Dialog>
@@ -79,6 +81,12 @@ export default function FundCard({ r, busy, act }: { r: Request; busy: boolean; 
             <p key={t.id} className="text-xs text-neutral-600">{tr("Top-up for the actual cost")} · <a href={`/monitoring/pengajuan?open=${t.id}`} className="font-medium text-brand-700 hover:underline">{t.number}</a> · {fmtRp(t.amount)} · {t.statusLabel}</p>
           ))}
         </div>
+      )}
+      {fund?.status === "PAID" && (r.status === "HANDOVER" || r.status === "DONE") && (
+        <Button disabled={busy} onClick={() => void act(`/api/de/monitor/${r.id}/fund-proof`, {}, tr("Proof sent to Finance"))}><Send size={14} /> {tr("Send the invoices as proof")}</Button>
+      )}
+      {fund?.status === "PAID" && r.status !== "HANDOVER" && r.status !== "DONE" && (
+        <p className="text-xs text-neutral-500">{tr("Paid: the invoices go to Finance as proof once the goods are received / the work is handed over.")}</p>
       )}
       {canAsk && (
         <Button variant={fund ? "secondary" : "primary"} disabled={busy} onClick={() => setAsking(true)}>

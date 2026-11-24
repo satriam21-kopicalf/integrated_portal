@@ -11,6 +11,7 @@ import { wibDateTime, wibDay } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 import { type Line, type Pengajuan, type PgFile, type Status, NEEDED_LABEL, STATUS_LABEL, STATUS_TONE, acceptedTotal, categoryLabel, docLabel,
   fileUrl, fmtRp, kindLabel } from "./pengajuan";
+import { LifeSummary } from "./PengajuanLife";
 
 export function StatusBadge({ s }: { s: Status }) {
   return <Badge tone={STATUS_TONE[s]} dot>{STATUS_LABEL[s]()}</Badge>;
@@ -20,20 +21,26 @@ export function StatusBadge({ s }: { s: Status }) {
 export function Steps({ p }: { p: Pengajuan }) {
   const approvals = (p.steps ?? []).filter((x) => x.type === "APPROVE");
   const pay = (p.steps ?? []).find((x) => x.type === "PAY");
+  // 2026-11-24 (migration 144): a kind with proof after the money adds the proof and Finance's verification
+  const proof = !!p.rule?.proofAfter || p.status === "VERIFYING" || (p.status === "DONE" && !!p.proofSubmittedAt);
   const cells = [{ label: tr("Sent"), users: [p.name] }, ...approvals.map((x) => ({ label: x.label, users: x.users })),
-    { label: pay?.label ?? tr("Paid"), users: pay?.users ?? [] }];
-  // index of the cell waiting: sent = 0 done; SUBMITTED at approval step n → cell n; APPROVED → the payment; PAID → all done
-  const at = p.status === "PAID" ? cells.length : p.status === "APPROVED" ? cells.length - 1 : p.status === "DRAFT" ? 0
-    : Math.min(Math.max(p.approvalStep, 1), approvals.length || 1);
-  const stopped = p.status === "REVISION" || p.status === "REJECTED";
+    { label: pay?.label ?? tr("Paid"), users: pay?.users ?? [] },
+    ...(proof ? [{ label: tr("Proof"), users: [p.name] }, { label: tr("Verifying"), users: pay?.users ?? [] }] : [])];
+  const payAt = approvals.length + 1;
+  // index of the cell waiting: SUBMITTED at approval step n → cell n; APPROVED → the payment; PAID → the proof;
+  // VERIFYING → Finance; DONE (or paid without proof) → all done
+  const finished = p.status === "DONE" || (p.status === "PAID" && !proof);
+  const at = finished ? cells.length : p.status === "VERIFYING" ? payAt + 2 : p.status === "PAID" ? payAt + 1 : p.status === "APPROVED" ? payAt
+    : p.status === "DRAFT" ? 0 : Math.min(Math.max(p.approvalStep, 1), approvals.length || 1);
+  const stopped = p.status === "REVISION" || p.status === "REJECTED" || p.status === "CANCELLED";
   return (
     <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}>
       {cells.map((c, i) => {
         const done = i < at;
-        const here = i === at && p.status !== "PAID";
+        const here = i === at && !finished;
         return (
           <li key={i} className="min-w-0">
-            <span className={cx("block h-1.5 rounded-full", here && stopped ? (p.status === "REJECTED" ? "bg-red-500" : "bg-amber-500") : done ? (p.status === "PAID" ? "bg-emerald-500" : "bg-brand-600") : here ? "bg-brand-200" : "bg-neutral-200")} />
+            <span className={cx("block h-1.5 rounded-full", here && stopped ? (p.status === "REJECTED" ? "bg-red-500" : "bg-amber-500") : done ? (finished ? "bg-emerald-500" : "bg-brand-600") : here ? "bg-brand-200" : "bg-neutral-200")} />
             <p className={cx("mt-1 truncate text-[11px] font-semibold", done ? "text-neutral-800" : here ? (stopped ? (p.status === "REJECTED" ? "text-red-700" : "text-amber-700") : "text-brand-700") : "text-neutral-400")} title={c.label}>
               {here && stopped ? STATUS_LABEL[p.status]() : c.label}</p>
             <p className="truncate text-[10px] text-neutral-400" title={c.users.join(", ")}>{i === 0 ? wibDateTime(p.firstSubmittedAt ?? p.submittedAt) : c.users.length ? c.users.join(", ") : "Superadmin"}</p>
@@ -147,6 +154,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
           <Info k={tr("Sent by")} v={`${p.requesterName ?? p.name}${p.requesterPhone ? ` · ${p.requesterPhone}` : ""} (@${p.username})`} />
           {!personal && <Info k={tr("Lines accepted")} v={`${fmtRp(acceptedTotal(lines))}${rejected.length ? ` · ${tr("{0} rejected", rejected.length)}` : ""}`} />}
           <Info k={petty ? tr("Top-up asked") : tr("Amount Asked")} v={`${fmtRp(p.requestedAmount ?? p.totalOut)}${petty && p.plafon !== null ? ` · ${tr("plafon {0}", fmtRp(p.plafon))}` : ""}`} />
+          {p.invoiceNo && <Info k={tr("Invoice number")} v={p.invoiceNo} />}
           {p.approvedAmount !== null && <Info k={tr("Approved amount")} v={fmtRp(p.approvedAmount)} />}
           {p.paidAmount !== null && <Info k={tr("Paid")} v={`${fmtRp(p.paidAmount)}${p.paidOn ? ` · ${wibDay(p.paidOn)}` : ""}`} />}
         </div>
@@ -174,10 +182,12 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
         )}
       </section>
 
+      <LifeSummary p={p} />
+
       <section className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-md border border-neutral-200 p-3 text-sm">
-          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><Landmark size={12} /> {tr("Transfer to")}</p>
-          <p className="font-semibold text-neutral-900">{p.payeeBank ?? "—"} · <span className="tabular-nums">{p.payeeAccount ?? "—"}</span></p>
+          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><Landmark size={12} /> {p.payeeType === "VA" ? tr("Virtual Account") : tr("Transfer to")}</p>
+          <p className="font-semibold text-neutral-900">{(p.payeeType === "VA" ? p.vaProvider : null) ?? p.payeeBank ?? "—"} · <span className="tabular-nums">{p.payeeAccount ?? "—"}</span></p>
           <p className="text-neutral-600">a/n {p.payeeName ?? "—"}{p.accountTypeName ? ` · ${p.accountTypeName}` : ""}</p>
         </div>
         {!petty && (
@@ -215,7 +225,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
                     <span className={cx("font-medium text-neutral-900", l.review === "REJECTED" && "line-through decoration-red-400")}>{l.description || "—"}</span>
                     <span className="ml-auto font-semibold tabular-nums text-neutral-900">{fmtRp(l.amount)}</span>
                   </p>
-                  <p className="text-xs text-neutral-500">{l.spentOn ? `${wibDay(l.spentOn)} · ` : ""}{categoryLabel(l.category)}</p>
+                  <p className="text-xs text-neutral-500">{l.spentOn ? `${wibDay(l.spentOn)} · ` : ""}{categoryLabel(l.category, l.categoryLabel)}</p>
                   {l.review === "REJECTED" && <p className="mt-1 text-xs font-medium text-red-700">{tr("Rejected")}{l.reviewedBy ? ` (${l.reviewedBy})` : ""}: {l.reviewNote}</p>}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {byLine(l.id).length ? byLine(l.id).map((f) => <FileChip key={f.id} f={f} />) : <span className={cx("text-xs", ["PETTY_CASH", "EMERGENCY", "BILL"].includes(p.kind) ? "text-red-600" : "text-neutral-400")}>{tr("No receipt")}</span>}
@@ -288,6 +298,10 @@ function eventText(e: NonNullable<Pengajuan["events"]>[number]): string {
   if (e.kind === "STATUS" && e.details.action === "APPROVE") return tr("Approved: {0}", String(e.details.step ?? ""));
   if (e.kind === "STATUS" && e.to) return `${tr("Status: {0}", STATUS_LABEL[e.to]())}${e.details.step ? ` (${String(e.details.step)})` : ""}`;
   if (e.kind === "LINE") return e.details.review === "REJECTED" ? tr("Line rejected: {0}", String(e.details.description ?? "")) : tr("Line accepted again: {0}", String(e.details.description ?? ""));
+  if (e.kind === "PROOF") return tr("Proof sent: {0} spent", fmtRp(e.details.actual == null ? null : Number(e.details.actual)));
+  if (e.kind === "VERIFY") return e.details.action === "ADJUST" ? tr("Finance adjusted the accepted amount to {0}", fmtRp(Number(e.details.to)))
+    : e.details.action === "TOPUP" ? tr("Finance paid the shortfall {0}", fmtRp(Number(e.details.amount))) : tr("Proof sent back: something is missing");
+  if (e.kind === "REFUND") return tr("Money back confirmed");
   return tr("Note");
 }
 
