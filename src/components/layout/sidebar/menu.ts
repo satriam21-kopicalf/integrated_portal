@@ -163,13 +163,13 @@ export const aggInsight: { title: string; hint: string; icon: typeof Users; item
   { get title() { return tr('Monitoring'); }, get hint() { return tr('From the BotFood data'); }, icon: Gauge, items: [
     { get name() { return tr('Opening & Closing'); }, href: '/aggregator-insight/opening', icon: Store, get description() { return tr('On-time opening, early closing, pauses'); } },
     { get name() { return tr('Out of Stock'); }, href: '/aggregator-insight/oos', icon: Package, get description() { return tr('Items out of stock per category'); } },
-    { get name() { return tr('Reviews & Rating'); }, href: '/aggregator-insight/reviews', icon: Star, soon: true, get description() { return tr('Low ratings, replies, tags'); } },
-    { get name() { return tr('Price & Menu'); }, href: '/aggregator-insight/menu', icon: ListChecks, soon: true, get description() { return tr('Prices that differ, new outlets'); } },
+    { get name() { return tr('Reviews & Rating'); }, href: '/aggregator-insight/reviews', icon: Star, get description() { return tr('Low ratings, replies, tags'); } },
+    { get name() { return tr('Price & Menu'); }, href: '/aggregator-insight/menu', icon: ListChecks, get description() { return tr('Prices that differ, new outlets'); } },
   ] },
   { get title() { return tr('Work'); }, get hint() { return tr('What the team enters'); }, icon: ClipboardList, items: [
-    { get name() { return tr('Complaints'); }, href: '/aggregator-insight/complaints', icon: MessageSquareText, soon: true, get description() { return tr('Tickets with response times'); } },
-    { get name() { return tr('Void Order'); }, href: '/aggregator-insight/void', icon: Receipt, soon: true, get description() { return tr('ESB and manual voids'); } },
-    { get name() { return tr('Reports'); }, href: '/aggregator-insight/reports', icon: FileBarChart, soon: true, get description() { return tr('Excel with a summary, per period'); } },
+    { get name() { return tr('Complaints'); }, href: '/aggregator-insight/complaints', icon: MessageSquareText, get description() { return tr('Tickets with response times'); } },
+    { get name() { return tr('Void Order'); }, href: '/aggregator-insight/void', icon: Receipt, get description() { return tr('ESB and manual voids'); } },
+    { get name() { return tr('Reports'); }, href: '/aggregator-insight/reports', icon: FileBarChart, get description() { return tr('Excel with a summary, per period'); } },
   ] },
 ];
 
@@ -238,4 +238,4 @@ export type MenuSection = { title: string; hint: string; icon: typeof Users; ite
 export const POPUP_ORDER: PopupKey[] = ['forms', 'costControl', 'monitoring', 'cotr', 'rating', 'aggInsight', 'social', 'management'];
 
 /** Is the page at `href` the one open (or one of its sub-pages)? */
-export const under = (pathname: string, href: string) => pathname === href || (href !== '/cost-control' && pathname.startsWith(`${href}/`));
+export const under = (pathname: string, href: string) => pathname === href || (href !== '/cost-control' && href !== '/aggregator-insight' && pathname.startsWith(`${href}/`));

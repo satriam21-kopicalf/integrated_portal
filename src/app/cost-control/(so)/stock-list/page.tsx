@@ -59,6 +59,7 @@ export default function StockListPage() {
   const [transit, setTransit] = useState(false);
   // 2026-11-24: POS Sales from the material usage ESB books itself (its Stock Card) or from the recipe cards of the portal
   const [usage, setUsage] = useState<Usage>("esb");
+  const [unexplained, setUnexplained] = useState(false);
   const load = () => { setError(null); setData(null); call<Data>(`/api/monitoring/stock/list?month=${month}&usage=${usage}`).then(setData).catch((e: Error) => setError(e.message)); };
   useEffect(load, [month, usage]);   
   const rows = useMemo(() => (data?.rows ?? []).filter((r) => (!branch || r.branch === branch) && (!category || r.category === category)
@@ -109,6 +110,7 @@ export default function StockListPage() {
         <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search material or branch")} filters={chips} onOpen={() => setSheet(true)} onClear={() => { setBranch(""); setCategory(""); }}
           extra={<div className="ml-auto flex items-center gap-2">
             <input type="month" value={month} max={thisMonth()} onChange={(e) => e.target.value && setMonth(e.target.value)} aria-label={tr("Month")} className={cx(inputClass, "h-9 w-[10rem]")} />
+            <Button size="sm" variant="secondary" onClick={() => setUnexplained(true)}>{tr("No recipe")}</Button>
             <Button size="sm" variant="secondary" onClick={() => setTransit(true)}><ArrowLeftRight size={14} />{tr("Transit")}</Button>
             <ExcelIconButton boxed label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))} />
           </div>} />
@@ -201,6 +203,7 @@ export default function StockListPage() {
           )}
       </Panel>
       {calc && <CalcDrawer r={calc} h={heads.find((x) => x.branch === calc.branch)} onClose={() => setCalc(null)} />}
+      {unexplained && <UnexplainedDrawer month={month} onClose={() => setUnexplained(false)} />}
       {transit && data && <TransitDrawer month={month} data={data} onClose={() => setTransit(false)} onChanged={load} />}
       {sheet && <StockFilters branch={branch} category={category} heads={heads} categories={categories} onClose={() => setSheet(false)}
         onApply={(b, c) => { setBranch(b); setCategory(c); setSheet(false); }} />}
@@ -262,6 +265,29 @@ function CalcDrawer({ r, h, onClose }: { r: Row; h?: Head; onClose: () => void }
         <p className="px-1 text-xs text-neutral-500">{tr("Estimate Value")}: <span className="font-semibold text-neutral-800">{r.estimateValue == null ? tr("No price") : rpText(r.estimateValue)}</span>
           {r.price != null && <> · {tr("price {0} per {1}", rpText(r.price), r.unit)}</>}</p>
       </div>
+    </Drawer>
+  );
+}
+
+type Unexplained = { code: string; name: string; category: string; unit: string; outlets: number; used: number; perDay: number | null; per100Bills: number | null; value: number };
+
+/** The items no recipe, option or additional item uses (plastic clips, gloves …): all they lose reads as a difference. What
+ *  the counts show they really use, to be entered as an Additional item of the recipe calculator. */
+function UnexplainedDrawer({ month, onClose }: { month: string; onClose: () => void }) {
+  const [rows, setRows] = useState<Unexplained[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { call<{ data: Unexplained[] }>(`/api/monitoring/stock/unexplained?month=${month}`).then((r) => setRows(r.data)).catch((e: Error) => setError(e.message)); }, [month]);
+  return (
+    <Drawer open onClose={onClose} size="xl" icon={<Package size={18} />} title={tr("Items without a recipe")} description={tr("Nothing uses them, so everything they lose is a difference. Enter the usage under Sales Calculator → Additional items and the Stock List estimates them.")}>
+      {error ? <ErrorState message={error} /> : !rows ? <p className="text-sm text-neutral-500">{tr("Working it out …")}</p> : !rows.length ? <Empty icon={<Boxes size={26} />} title={tr("Every item is used by something")} /> : (
+        <div className="overflow-x-auto rounded border border-neutral-200">
+          <table className="w-full min-w-[640px] text-sm"><thead className={theadClass}><tr>{[tr("Material"), tr("Outlets"), tr("Used"), tr("Per outlet a day"), tr("Per 100 bills"), tr("Value")].map((h, i) => <th key={h} className={cx("px-3 py-2", i ? "text-right" : "text-left")}>{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-neutral-100">{rows.map((r) => (
+              <tr key={r.code}><td className="px-3 py-2"><span className="block font-medium text-neutral-900">{r.name}</span><span className="block text-[11px] text-neutral-500">{r.code} · {r.unit}</span></td>
+                <td className="px-3 py-2 text-right tabular-nums">{r.outlets}</td><td className="px-3 py-2 text-right tabular-nums">{fmtNumber(r.used)}</td><td className="px-3 py-2 text-right tabular-nums">{r.perDay ?? "—"}</td>
+                <td className="px-3 py-2 text-right font-semibold tabular-nums">{r.per100Bills ?? "—"}</td><td className="px-3 py-2 text-right tabular-nums">{rpText(r.value)}</td></tr>))}</tbody></table>
+        </div>
+      )}
     </Drawer>
   );
 }

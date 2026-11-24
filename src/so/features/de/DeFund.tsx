@@ -53,6 +53,20 @@ function Figures({ fund }: { fund: Fund }) {
   );
 }
 
+/** The team withdraws the fund while Finance has not paid it; a reason is required. */
+function CancelFund({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState("");
+  if (!open) return <Button variant="ghost" disabled={busy} onClick={() => setOpen(true)}>{tr("Cancel the fund")}</Button>;
+  return (
+    <div className="space-y-2 rounded-md border border-red-200 bg-red-50/40 p-3">
+      <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Reason for cancelling (required)")} className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm" />
+      <div className="flex justify-end gap-2"><Button variant="secondary" disabled={busy} onClick={() => setOpen(false)}>{tr("Back")}</Button>
+        <Button variant="danger" disabled={busy || !note.trim()} onClick={() => void act(`/api/de/monitor/${r.id}/fund-cancel`, { note: note.trim() }, tr("Request cancelled"))}>{tr("Cancel the fund")}</Button></div>
+    </div>
+  );
+}
+
 /** The fund of the request: ask, where it waits, the settlement. */
 export default function FundCard({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   const [asking, setAsking] = useState(false);
@@ -82,6 +96,7 @@ export default function FundCard({ r, busy, act }: { r: Request; busy: boolean; 
           ))}
         </div>
       )}
+      {fund && ["SUBMITTED", "REVISION", "APPROVED"].includes(fund.status) && <CancelFund r={r} busy={busy} act={act} />}
       {fund?.status === "PAID" && (r.status === "HANDOVER" || r.status === "DONE") && (
         <Button disabled={busy} onClick={() => void act(`/api/de/monitor/${r.id}/fund-proof`, {}, tr("Proof sent to Finance"))}><Send size={14} /> {tr("Send the invoices as proof")}</Button>
       )}

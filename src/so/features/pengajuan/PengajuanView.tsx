@@ -130,7 +130,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
   const differs = p.openingExpected !== null && p.openingBalance !== null && p.openingBalance !== p.openingExpected;
   const petty = p.kind === "PETTY_CASH";
   const personal = p.kind === "PERSONAL";
-  const vendor = p.kind === "VENDOR";
+  const vendor = p.kind === "VENDOR" || p.kind === "INTERCOMPANY";
   return (
     <div className="space-y-5">
       <section className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
@@ -141,7 +141,13 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
           {p.deRequest && <DeSource de={p.deRequest} />}
           {p.refundAmount != null && <Info k={tr("Money back")} v={`${fmtRp(p.refundAmount)} · ${p.refundedAt ? tr("received {0}", wibDay(p.refundedAt)) : tr("not received yet")}`} />}
           {p.payer && <Info k={tr("Paid from")} v={p.payer} />}
-          {vendor && <>
+          {p.kind === "INTERCOMPANY" && <>
+            <Info k={tr("Received by")} v={p.payeePt ?? "—"} />
+            <Info k={tr("Report period")} v={p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : "—"} />
+            <Info k={tr("Location")} v={p.branchName ?? tr("The whole unit")} />
+            {p.receivedAt && <Info k={tr("Money is in")} v={`${wibDay(p.receivedAt)} · ${p.receivedBy ?? "—"}${p.receivedNote ? ` · ${p.receivedNote}` : ""}`} />}
+          </>}
+          {p.kind === "VENDOR" && <>
             <Info k={tr("Vendor")} v={p.vendorName ?? "—"} />
             <Info k={tr("Payment term")} v={p.paymentTerm ?? "—"} />
             <Info k={tr("Invoice date")} v={p.invoiceDate ? wibDay(p.invoiceDate) : "—"} />
@@ -227,7 +233,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
         </div>
       </section>}
 
-      <section>
+      {!vendor && <section>
         <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><ArrowUpRight size={15} className="text-red-600" /> {petty || p.kind === "EMERGENCY" ? tr("Money out ({0})", lines.length) : tr("Cost details ({0})", lines.length)}
           <span className="ml-auto text-sm tabular-nums">{fmtRp(p.totalOut)}</span></h3>
         <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
@@ -252,7 +258,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
           ))}
           {!lines.length && <li className="px-3 py-4 text-center text-sm text-neutral-400">{tr("No expense")}</li>}
         </ul>
-      </section>
+      </section>}
 
       {petty && p.purchaseDocs && (
         <section>

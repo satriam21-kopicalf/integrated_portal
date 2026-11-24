@@ -16,15 +16,6 @@ export type OutletRow = { branchCode: string; branchName: string; slots: Record<
 export type Handle = { date: string; slots: Slot[]; outlets: OutletRow[] };
 export type Member = { id: string; name: string; jobTitle: string | null; hrmsLinked: boolean };
 
-/** The modules of Aggregator Insight still to come (stage 2 onwards): shown as Coming Soon. */
-export const MODULES: Record<string, { title: () => string; text: () => string }> = {
-  reviews: { title: () => tr("Reviews & Rating"), text: () => tr("The reviews of the customers: low ratings, replied or not, tags and the rating trend.") },
-  complaints: { title: () => tr("Complaints"), text: () => tr("Complaint tickets from chat and the delivery apps, with response and resolution times.") },
-  void: { title: () => tr("Void Order"), text: () => tr("Voids from ESB and the manual voids the team enters, matched per order.") },
-  menu: { title: () => tr("Price & Menu"), text: () => tr("Prices that differ between outlets, items not uniform, the checklist of a new outlet.") },
-  reports: { title: () => tr("Reports"), text: () => tr("Every report as Excel per period, a summary sheet first.") },
-};
-
 /** "2 h ago" from an ISO time */
 export function ago(iso: string | null): string {
   if (!iso) return "—";

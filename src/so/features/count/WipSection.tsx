@@ -173,6 +173,10 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                           </NativeSelect>
                         ) : <span className="text-sm text-neutral-600">{isGram(unit.uom) ? "g" : unit.uom}</span>}
                       </span>
+                      {!isGram(uom) && (Number(values[k]) >= 1000 || grams >= 100_000) && (
+                        <span role="alert" className="w-full rounded-md bg-amber-50 px-2 py-1.5 text-[11px] font-medium text-amber-900">
+                          {tr("{0} {1} is {2} kg. If you typed grams, change the unit to g.", values[k], uom, fmtG(Math.round(grams / 1000)))}</span>
+                      )}
                       {grams > 0 && !isGram(uom) && <span className="w-full text-right text-[11px] tabular-nums text-violet-700 sm:w-auto">= {fmtG(grams)} g</span>}
                     </li>
                   );

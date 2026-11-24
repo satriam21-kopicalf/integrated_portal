@@ -6,7 +6,8 @@
 // are when it saw the change, so a grace period applies (set here).
 
 import { useEffect, useMemo, useState } from "react";
-import { Download, Store } from "lucide-react";
+import { Clock, Download, Save, Store } from "lucide-react";
+import Drawer from "@/components/kc/Drawer";
 import { Button, ErrorState, Input, SearchBox, cx, useToast } from "@/so/ui";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { CardFooter, Lozenge, type LozengeTone, QuickChips, Toolbar, WorkCard, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
@@ -28,6 +29,47 @@ const STATUS: Record<Row["status"], { label: () => string; tone: LozengeTone }> 
 };
 type Only = "all" | "late" | "not_opened" | "early" | "pause";
 
+type Hour = { code: string; name: string; botfood: string | null; open: string | null; close: string | null; by: string | null };
+
+/** The hours of the outlets BotFood has none for (~60% of the rows): entered by the team, used at once for every day. */
+function HoursDrawer({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const toast = useToast();
+  const [rows, setRows] = useState<Hour[] | null>(null);
+  const [edit, setEdit] = useState<Record<string, { open: string; close: string }>>({});
+  const [all, setAll] = useState(false);
+  const [q, setQ] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { call<{ data: Hour[] }>("/api/aggregator/hours").then((r) => setRows(r.data)).catch((e) => toast((e as Error).message, "error")); }, [toast]);
+  const shown = (rows ?? []).filter((r) => (all || !r.botfood) && (!q.trim() || r.name.toLowerCase().includes(q.trim().toLowerCase())));
+  const val = (r: Hour) => edit[r.code] ?? { open: r.open ?? "", close: r.close ?? "" };
+  const save = async () => {
+    setBusy(true);
+    try { await call("/api/aggregator/hours", { method: "PUT", json: { rows: Object.entries(edit).map(([code, v]) => ({ code, open: v.open || null, close: v.close || null })) } }); toast(tr("Saved")); onSaved(); }
+    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  return (
+    <Drawer open onClose={onClose} size="lg" icon={<Clock size={18} />} title={tr("Outlet hours")} description={tr("BotFood has no hours for these outlets: enter them once, every day is worked out again")}
+      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!Object.keys(edit).length} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button></>}>
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3"><div className="w-full sm:w-64"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet")} /></div>
+          <label className="flex items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} /> {tr("Show those with BotFood hours too")}</label></div>
+        {!rows ? <p className="text-sm text-neutral-500">…</p> : (
+          <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
+            {shown.map((r) => (
+              <li key={r.code} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
+                <span className="min-w-0 flex-1 basis-full sm:basis-40"><span className="block truncate font-medium text-neutral-900">{r.name}</span><span className="block text-[11px] text-neutral-500">{r.botfood ? `BotFood ${r.botfood}` : r.by ?? ""}</span></span>
+                <Input type="time" value={val(r).open} aria-label={`${r.name} ${tr("Opening hour")}`} onChange={(e) => setEdit((x) => ({ ...x, [r.code]: { ...val(r), open: e.target.value } }))} className="h-9 !w-28" />
+                <span className="text-neutral-400">–</span>
+                <Input type="time" value={val(r).close} aria-label={`${r.name} ${tr("Closing hour")}`} onChange={(e) => setEdit((x) => ({ ...x, [r.code]: { ...val(r), close: e.target.value } }))} className="h-9 !w-28" />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Drawer>
+  );
+}
+
 export default function OpeningClosing() {
   const toast = useToast();
   const [from, setFrom] = useState(daysAgo(6));
@@ -38,6 +80,7 @@ export default function OpeningClosing() {
   const [q, setQ] = useState("");
   const [only, setOnly] = useState<Only>("all");
   const [grace, setGrace] = useState("");
+  const [hoursOpen, setHoursOpen] = useState(false);
   const load = () => {
     setData(null); setErr(null);
     call<Res>(`/api/aggregator/opening?dateFrom=${from}&dateTo=${to}${platform ? `&platform=${platform}` : ""}`)
@@ -85,7 +128,7 @@ export default function OpeningClosing() {
 
   return (
     <Page title={tr("Opening & Closing")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Opening on time, closing early and pauses per outlet and platform, according to BotFood")} media={<Store size={19} />}
-      actions={<Button variant="secondary" size="sm" disabled={!data} onClick={exportXlsx}><Download size={14} /> {tr("Excel")}</Button>}>
+      actions={<div className="flex gap-2"><Button variant="secondary" size="sm" onClick={() => setHoursOpen(true)}><Clock size={14} /> {tr("Outlet hours")}</Button><Button variant="secondary" size="sm" disabled={!data} onClick={exportXlsx}><Download size={14} /> {tr("Excel")}</Button></div>}>
       {err ? <ErrorState message={err} onRetry={load} /> : (
         <div className="space-y-4">
           <StatStrip columns={5} label={tr("Period")} gridClassName="grid-cols-2 lg:grid-cols-5">
@@ -142,6 +185,7 @@ export default function OpeningClosing() {
           </WorkCard>
         </div>
       )}
+      {hoursOpen && <HoursDrawer onClose={() => setHoursOpen(false)} onSaved={() => { setHoursOpen(false); load(); }} />}
     </Page>
   );
 }

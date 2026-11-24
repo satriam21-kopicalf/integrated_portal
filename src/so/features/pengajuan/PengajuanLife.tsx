@@ -20,7 +20,7 @@ const DOCS = ["NOTA", "KWITANSI", "INVOICE", "STRUK", "FOTO", "TRANSFER", "OTHER
 
 /** Paid, spent, accepted and the difference (+ Finance still pays, − money back), with the proof attached. */
 export function LifeSummary({ p }: { p: Pengajuan }) {
-  if (!PAID_OUT.includes(p.status) && !p.proofDueOn) return null;
+  if (p.kind === "INTERCOMPANY" || (!PAID_OUT.includes(p.status) && !p.proofDueOn)) return null;
   const proof = (p.files ?? []).filter((f) => f.kind === "PROOF");
   const topup = (p.files ?? []).filter((f) => f.kind === "TOPUP");
   const accepted = p.verifiedAmount ?? p.actualAmount;
@@ -71,7 +71,7 @@ export function ProofPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Peng
   const [amount, setAmount] = useState(typeRp(p.actualAmount ?? p.paidAmount));
   const [note, setNote] = useState(p.actualNote ?? "");
   const [busy, setBusy] = useState(false);
-  if (p.status !== "PAID") return null;
+  if (p.status !== "PAID" || p.kind === "INTERCOMPANY") return null;
   const base = `/api/pengajuan/requests/${p.id}`;
   const proof = (p.files ?? []).filter((f) => f.kind === "PROOF");
   const spent = parseRp(amount);

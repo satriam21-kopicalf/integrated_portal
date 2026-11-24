@@ -7,6 +7,9 @@
 // Pages that list the branches of every brand (User Accounts, profile, monitoring) ask `?company=all`.
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
+import { tr } from '@/lib/i18n';
 import { AppSkeleton } from '@/components/kc/Skeleton';
 import { useAuth } from '@/lib/auth';
 
@@ -45,9 +48,11 @@ export function ccUrl(url: string): string {
   return CC_API.some((p) => url.startsWith(p)) ? withCompany(url, current) : url;
 }
 
-interface CompanyState { companies: Company[]; company: string; setCompany: (code: string) => void }
+/** the units of the Fund Request the account reads (Roastery, Warehouse, Central Kitchen, COTR …, 2026-11-25) */
+export type UnitTab = { code: string; name: string };
+interface CompanyState { companies: Company[]; company: string; setCompany: (code: string) => void; units: UnitTab[] }
 
-const CompanyContext = createContext<CompanyState>({ companies: [], company: MAIN_COMPANY, setCompany: () => {} });
+const CompanyContext = createContext<CompanyState>({ companies: [], company: MAIN_COMPANY, setCompany: () => {}, units: [] });
 
 export function CompanyProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -55,6 +60,13 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const [company, setState] = useState(MAIN_COMPANY);
   // the pages wait for the brand: a Wasgee-only account never reads the Kopi Calf outlets first
   const [loaded, setLoaded] = useState(false);
+  const [units, setUnits] = useState<UnitTab[]>([]);
+  useEffect(() => {
+    if (!user) return;
+    let off = false;
+    fetch('/api/pengajuan/units', { cache: 'no-store' }).then(r => (r.ok ? r.json() : { data: [] })).then((r: { data: UnitTab[] }) => { if (!off) setUnits(r.data ?? []); }).catch(() => {});
+    return () => { off = true; };
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -91,7 +103,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   }, [company, user]);
 
   if (user && !loaded) return <AppSkeleton />;  // the app in its loading shape (2026-11-10)
-  return <CompanyContext.Provider value={{ companies, company, setCompany }}>{children}</CompanyContext.Provider>;
+  return <CompanyContext.Provider value={{ companies, company, setCompany, units }}>{children}</CompanyContext.Provider>;
 }
 
 export const useCompany = () => useContext(CompanyContext);
@@ -106,29 +118,72 @@ export function CompanySwitch({ className = '', extra = [], value, onChange, com
   className?: string; extra?: { code: string; name: string }[]; value?: string; onChange?: (code: string) => void;
   /** small logo buttons for the top bar (2026-11-18) */ compact?: boolean;
 }) {
-  const { companies, company, setCompany } = useCompany();
-  const tabs = [...companies, ...extra];
+  const { companies, company, setCompany, units } = useCompany();
+  const [missing, setMissing] = useState<UnitTab | null>(null);
+  const own = [...companies, ...extra];
+  const more = units.filter(u => !own.some(t => t.code === u.code));
+  const tabs = [...own, ...more];
   if (tabs.length < 2) return null;
+  // a unit this page has no view of: said in a pop up, with the pages that do have one; the brand stays as it was
+  const choose = (code: string) => {
+    const none = more.find(u => u.code === code);
+    if (none) setMissing(none);
+    else if (onChange) onChange(code);
+    else setCompany(code);
+  };
+  const alert = missing && <NoView unit={missing} onClose={() => setMissing(null)} />;
   const shown = value ?? company;
-  if (compact) return <BrandMenu tabs={tabs} shown={shown} pick={(code) => (onChange ? onChange(code) : setCompany(code))} className={className} />;
+  if (compact) return <><BrandMenu tabs={tabs} shown={shown} pick={choose} className={className} />{alert}</>;
   return (
-    <div role="radiogroup" aria-label="Brand" className={`inline-flex max-w-full gap-1 ${className}`}>
+    <>
+    <div role="radiogroup" aria-label="Brand" className={`inline-flex max-w-full gap-1 overflow-x-auto [scrollbar-width:none] ${className}`}>
       {tabs.map(c => {
         const on = c.code === shown;
         return (
-          <button key={c.code} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name} onClick={() => (onChange ? onChange(c.code) : setCompany(c.code))}
-            className={`flex ${compact ? 'h-7 w-14 px-1.5' : 'h-8 w-20 px-2'} min-w-0 items-center justify-center rounded-[4px] border transition-colors ${
+          <button key={c.code} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name} onClick={() => choose(c.code)}
+            className={`flex flex-shrink-0 ${LOGOS[c.code] ? 'h-8 w-20 px-2' : 'h-8 px-3'} min-w-0 items-center justify-center rounded-[4px] border transition-colors ${
               on ? 'border-brand-700 bg-white ring-1 ring-brand-700' : 'border-neutral-200 bg-neutral-50 hover:bg-neutral-100'}`}>
             {/* the logo only (2026-11-02); the name is the label */}
             {LOGOS[c.code]
               // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`${compact ? 'max-h-4' : 'max-h-5'} max-w-full object-contain transition ${on ? '' : 'opacity-60 grayscale'}`} />
+              ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`max-h-5 max-w-full object-contain transition ${on ? '' : 'opacity-60 grayscale'}`} />
               : <span className="truncate text-xs font-semibold text-neutral-600">{c.name}</span>}
           </button>
         );
       })}
     </div>
+    {alert}
+    </>
   );
+}
+
+/** The chosen unit has no view on this page: where it has one. */
+function NoView({ unit, onClose }: { unit: UnitTab; onClose: () => void }) {
+  const { user } = useAuth();
+  const router = useRouter();
+  const fund = user?.role === 'superadmin' || (user?.pages ?? []).includes('mon.pengajuan');
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
+  }, [onClose]);
+  const open = (href: string) => {
+    try { window.localStorage.setItem('portal.fund-unit', unit.code); } catch { /* not remembered */ }
+    onClose();
+    router.push(href);
+  };
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-neutral-900/50 p-0 sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div role="alertdialog" aria-modal="true" aria-labelledby="no-view-title" className="w-full rounded-t-lg bg-white p-5 shadow-xl sm:max-w-md sm:rounded-lg" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+        <p id="no-view-title" className="text-base font-semibold text-neutral-900">{tr('No view for {0} here', unit.name)}</p>
+        <p className="mt-1.5 text-sm text-neutral-600">{tr('This page has no data of {0}. It is available in Fund Request; the page stays on the brand shown now.', unit.name)}</p>
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <button type="button" onClick={onClose} className="h-9 rounded-[4px] border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50">{tr('Close')}</button>
+          {unit.code === 'COTR' && <button type="button" onClick={() => open('/overview')} className="h-9 rounded-[4px] border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50">{tr('Dashboard')}</button>}
+          {fund && <button type="button" autoFocus onClick={() => open('/monitoring/pengajuan')} className="h-9 rounded-[4px] bg-brand-700 px-3 text-sm font-medium text-white hover:bg-brand-800">{tr('Open Fund Request')}</button>}
+        </div>
+      </div>
+    </div>, document.body);
 }
 
 /** The brand as one dropdown of the top bar (2026-11-18): the chosen logo and a chevron; the menu lists every brand

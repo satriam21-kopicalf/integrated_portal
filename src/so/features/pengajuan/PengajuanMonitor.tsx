@@ -10,7 +10,7 @@
 
 import { CardFooter, JSelect, Lozenge, NativeSelect, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, GripVertical, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet, Store, UserRound, ListChecks, ChevronRight, Wrench } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
 import Dialog from "@/so/ui/Dialog";
@@ -22,8 +22,10 @@ import { tr } from "@/lib/i18n";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { type XlsxCell, downloadXlsx } from "@/lib/xlsx";
 import { downloadSheets } from "@/aggregator/ui";
+import { useCompany } from "@/lib/company";
 import PengajuanView, { FileChip, StatusBadge } from "./PengajuanView";
 import RefundPanel from "./PengajuanRefund";
+import { BulkBar, ReceivePanel } from "./PengajuanBulk";
 import { type Lifecycle, type RuleRow, RulesPanel, VerifyPanel } from "./PengajuanLife";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Action, type Kind, type Pengajuan, type PgFile, type Status, type Unit, ACTION_LABEL, CATEGORY_LABEL, DE_KINDS, KINDS, KIND_LABEL, OPEN, STATUS_LABEL, acceptedTotal,
@@ -38,6 +40,8 @@ const TABS: Tab[] = ["MINE", "OPEN", "", "SUBMITTED", "APPROVED", "REVISION", "P
 const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-brand-500", APPROVED: "bg-cyan-500", REVISION: "bg-amber-500",
   PAID: "bg-violet-500", VERIFYING: "bg-amber-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500", CANCELLED: "bg-neutral-400" };
 const sum = (rows: Pengajuan[], f: (p: Pengajuan) => number | null | undefined) => rows.reduce((a, p) => a + (f(p) ?? 0), 0);
+/** the requests that are a cost: the money between the PTs stays out of every total */
+const cost = (rows: Pengajuan[]) => rows.filter((p) => p.kind !== "INTERCOMPANY");
 const flagged = (p: Pengajuan) => ({
   reused: (p.reusedFiles ?? 0) > 0, negative: (p.closingBalance ?? 0) < 0,
   opening: p.openingExpected !== null && p.openingBalance !== null && p.openingExpected !== p.openingBalance,
@@ -50,11 +54,17 @@ export default function PengajuanMonitor() {
   const [status, setStatus] = useState<Tab>("OPEN");
   // the unit shown (Kopi Calf, Wasgee, COTR, Roastery, Warehouse, Central Kitchen): never mixed; remembered on the device
   const [unit, setUnit] = useState(() => { try { return (typeof window !== "undefined" && window.localStorage.getItem("portal.fund-unit")) || ""; } catch { return ""; } });
-  const pickUnit = (code: string) => { setRes(null); setUnit(code); try { window.localStorage.setItem("portal.fund-unit", code); } catch { /* not remembered */ } };
+  const { companies, setCompany } = useCompany();
+  // Kopi Calf / Wasgee chosen here is the brand of the other pages too
+  const pickUnit = (code: string) => { setRes(null); setUnit(code); if (companies.some((c) => c.code === code)) setCompany(code); try { window.localStorage.setItem("portal.fund-unit", code); } catch { /* not remembered */ } };
   const [settings, setSettings] = useState(false);
   const [exporting, setExporting] = useState(false);
   const toast = useToast();
   const [res, setRes] = useState<Result | null>(null);
+  // phones: the chosen unit in sight (the row only, the page does not move)
+  const unitBar = useRef<HTMLDivElement>(null);
+  const hasRes = !!res;
+  useEffect(() => { const bar = unitBar.current; const el = bar?.querySelector<HTMLElement>("[data-on]"); if (bar && el) bar.scrollLeft = el.offsetLeft - bar.offsetLeft - 16; }, [unit, hasRes]);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sheet, setSheet] = useState(false);
@@ -94,6 +104,11 @@ export default function PengajuanMonitor() {
       || (a.submittedAt ?? "").localeCompare(b.submittedAt ?? "")),
   // eslint-disable-next-line react-hooks/exhaustive-deps -- inTab follows `mine`
   [base, status, mine]);
+  // several at once: what waits at the signed-in account (approve or pay), never Antar-PT
+  const [pick, setPick] = useState<Set<string>>(new Set());
+  const canPick = (p: Pengajuan) => mine(p) && (p.status === "SUBMITTED" || p.status === "APPROVED") && p.kind !== "INTERCOMPANY";
+  const picked = rows.filter((p) => pick.has(p.id) && canPick(p));
+  const togglePick = (id: string) => setPick((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const paged = usePaged(rows, rows.length + search + JSON.stringify(f) + status);
   const by = (s: Status) => base.filter((p) => p.status === s);
 
@@ -116,7 +131,7 @@ export default function PengajuanMonitor() {
   const exportRecap = () => {
     const head = [tr("Timestamp"), tr("Email"), tr("Requester"), tr("Department"), tr("Job Title"), tr("Vendor"), tr("Payment term"), tr("Description and Details"),
       tr("Invoice number"), tr("Invoice date"), tr("Due date"), tr("Total outstanding invoice"), tr("Total Requested"), tr("Account number"), tr("Account holder"), tr("Bank"),
-      tr("Status"), tr("Step waiting"), tr("Request number"), tr("Unit"), tr("Paid from"), tr("Check twice")];
+      tr("Status"), tr("Step waiting"), tr("Request number"), tr("Business unit"), tr("Paid from"), tr("Check twice")];
     const list = rows.filter((p) => p.kind !== "PETTY_CASH" || p.status === "APPROVED");
     const payers = [...new Set(list.map((p) => p.payer ?? "—"))];
     setExporting(true);
@@ -129,7 +144,7 @@ export default function PengajuanMonitor() {
   };
 
   const exportCsv = () => {
-    const head = [tr("Number"), tr("Unit"), tr("Paid from"), tr("Kind"), tr("Status"), tr("Step waiting"), tr("Outlet"), tr("Code"), tr("Account"), tr("Submitted by"), tr("Phone"),
+    const head = [tr("Number"), tr("Business unit"), tr("Paid from"), tr("Kind"), tr("Status"), tr("Step waiting"), tr("Outlet"), tr("Code"), tr("Account"), tr("Submitted by"), tr("Phone"),
       tr("Bank"), tr("Account number"), tr("Account holder"), tr("Purpose"), tr("Date needed"), tr("Baristas"), tr("Period from"), tr("Period to"),
       tr("Opening Balance"), tr("Money in"), tr("Total money out"), tr("Closing balance"), tr("Plafon"), tr("Amount Asked"), tr("Approved amount"), tr("Paid"),
       tr("Transfer date"), tr("Proof due"), tr("Spent (requester)"), tr("Accepted by Finance"), tr("Difference"), tr("Invoice number"), tr("Line date"), tr("Category"), tr("Description"), tr("Amount"), tr("Line check"), tr("Check note")];
@@ -158,32 +173,32 @@ export default function PengajuanMonitor() {
       stats={
         <>
         {(res?.units?.length ?? 0) > 1 && (
-          <div role="radiogroup" aria-label={tr("Unit")} className="mb-3 flex flex-wrap gap-1.5">
+          <div role="radiogroup" ref={unitBar} aria-label={tr("Business unit")} className="-mx-4 mb-3 flex items-center gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0">
             {res!.units!.map((u) => {
               const on = u.code === unit;
               const n = res!.openByUnit?.[u.code] ?? 0;
               return (
-                <button key={u.code} type="button" role="radio" aria-checked={on} onClick={() => !on && pickUnit(u.code)} title={u.payer}
-                  className={cx("inline-flex h-9 items-center gap-2 rounded border px-3 text-sm font-medium transition-colors", on ? "border-brand-700 bg-white text-brand-800 ring-1 ring-brand-700" : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100")}>
+                <button key={u.code} type="button" role="radio" aria-checked={on} data-on={on || undefined} onClick={() => !on && pickUnit(u.code)} title={u.payer}
+                  className={cx("inline-flex h-9 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors", on ? "border-brand-700 bg-white text-brand-800 ring-1 ring-brand-700" : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100")}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {UNIT_LOGO[u.code] && <img src={UNIT_LOGO[u.code]} alt="" aria-hidden className={cx("max-h-4 max-w-12 object-contain", !on && "opacity-60 grayscale")} />}
                   {u.name}{n > 0 && <span className="rounded-full bg-neutral-200/80 px-1.5 text-[11px] tabular-nums text-neutral-700">{n}</span>}
                 </button>
               );
             })}
-            <span className="ml-auto self-center text-xs text-neutral-500">{tr("Paid from {0}", res!.units!.find((u) => u.code === unit)?.payer ?? "—")}</span>
+            <span className="ml-auto hidden self-center text-xs text-neutral-500 sm:inline">{tr("Paid from {0}", res!.units!.find((u) => u.code === unit)?.payer ?? "—")}</span>
           </div>
         )}
         <StatStrip label={tr("Summary")} columns={5} gridClassName="grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Stat label={tr("My Turn")} emphasis onClick={res ? () => setStatus("MINE") : undefined} active={status === "MINE"} icon={<UserCheck size={13} />}
             value={res ? fmtNumber(base.filter(mine).length) : <StatSkeleton />}>
-            {res && <p className="tabular-nums">{fmtRp(sum(base.filter(mine), (p) => p.approvedAmount ?? p.requestedAmount))}</p>}
+            {res && <p className="tabular-nums">{fmtRp(sum(cost(base.filter(mine)), (p) => p.approvedAmount ?? p.requestedAmount))}</p>}
           </Stat>
           {(["SUBMITTED", "APPROVED", "PAID", "VERIFYING"] as Status[]).map((s) => (
             <Stat key={s} label={STATUS_LABEL[s]()} onClick={res ? () => setStatus(s) : undefined} active={status === s}
               icon={s === "PAID" || s === "VERIFYING" ? <CheckCircle2 size={13} /> : s === "APPROVED" ? <Wallet size={13} /> : <ClipboardList size={13} />}
               value={res ? fmtNumber(by(s).length) : <StatSkeleton />}>
-              {res && <p className="tabular-nums">{fmtRp(sum(by(s), (p) => (s === "PAID" || s === "VERIFYING" ? p.paidAmount : s === "APPROVED" ? p.approvedAmount : p.requestedAmount)))}</p>}
+              {res && <p className="tabular-nums">{fmtRp(sum(cost(by(s)), (p) => (s === "PAID" || s === "VERIFYING" ? p.paidAmount : s === "APPROVED" ? p.approvedAmount : p.requestedAmount)))}</p>}
             </Stat>
           ))}
         </StatStrip>
@@ -192,7 +207,7 @@ export default function PengajuanMonitor() {
       {/* Jira-like (2026-11-18): one card, the kinds as tabs, the status as quick filters, the requests as an issue table */}
       <WorkCard label={tr("Kind")} active={f.kind || "ALL"} onTab={(k) => setF({ ...f, kind: k === "ALL" ? "" : (k as Kind) })}
         tabs={[{ key: "ALL", label: tr("All kinds"), icon: <Wallet size={15} />, count: all.length },
-          ...[...KINDS, "PERSONAL" as Kind, "VENDOR" as Kind, ...DE_KINDS].filter((k) => k !== "VENDOR" || !!res?.units?.find((u) => u.code === unit)?.vendor || all.some((p) => p.kind === "VENDOR")).map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
+          ...[...KINDS, "PERSONAL" as Kind, "VENDOR" as Kind, "INTERCOMPANY" as Kind, ...DE_KINDS].filter((k) => (k !== "VENDOR" && k !== "INTERCOMPANY") || !!res?.units?.find((u) => u.code === unit)?.vendor || all.some((p) => p.kind === k)).map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
         <Toolbar>
           <QuickChips label={tr("Status")} value={status} onChange={setStatus}
             items={TABS.map((t) => ({ key: t, label: t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My Turn") : t ? STATUS_LABEL[t as Status]() : tr("All"),
@@ -200,6 +215,7 @@ export default function PengajuanMonitor() {
           <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search number, outlet, requester, purpose or line")} filters={chips.filter((c) => c.key !== "k")}
             onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
         </Toolbar>
+        <BulkBar rows={picked} onClear={() => setPick(new Set())} onDone={() => { setPick(new Set()); void load(); }} />
         {error ? <div className="p-4"><ErrorState message={error} onRetry={load} /></div> : res && rows.length === 0 ? (
           <Empty icon={<ClipboardList size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No fund request yet")}>
             {!all.length && tr("Fund requests appear here as soon as they are sent from Form → Fund requests.")}
@@ -210,7 +226,7 @@ export default function PengajuanMonitor() {
               {paged.rows.map((p) => (
                 <li key={p.id}>
                   <button type="button" onClick={() => setOpen(p.id)} className="w-full px-4 py-3 text-left hover:bg-neutral-50">
-                    <span className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-brand-700">{p.number}</span><PgLozenge s={p.status} /></span>
+                    <span className="flex items-center justify-between gap-2"><span className="flex items-center gap-2 text-xs font-semibold text-brand-700">{canPick(p) && <input type="checkbox" className="h-4 w-4" aria-label={p.number ?? p.id} checked={pick.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => togglePick(p.id)} />}{p.number}</span><PgLozenge s={p.status} /></span>
                     <span className="mt-1 flex items-baseline justify-between gap-2"><span className="truncate text-sm font-semibold text-neutral-900">{placeOf(p)}</span>
                       <span className="flex-shrink-0 text-sm font-semibold tabular-nums">{fmtRp(p.requestedAmount ?? p.totalOut)}</span></span>
                     <span className="block truncate text-xs text-neutral-500">{requestLabel(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</span>
@@ -224,7 +240,7 @@ export default function PengajuanMonitor() {
               <table className={cx(jTable, "min-w-[1100px]")}>
                 <thead>
                   <tr className={cx(jHeadRow, "whitespace-nowrap")}>
-                    <th className={cx(jTh, "w-8")} aria-label={tr("Kind")} /><th className={jTh}>Key</th><th className={jTh}>{tr("Summary")}</th>
+                    <th className={cx(jTh, "w-8")}>{paged.rows.some(canPick) && <input type="checkbox" aria-label={tr("Choose all shown")} checked={paged.rows.filter(canPick).every((p) => pick.has(p.id))} onChange={(e) => setPick((s) => { const n = new Set(s); paged.rows.filter(canPick).forEach((p) => (e.target.checked ? n.add(p.id) : n.delete(p.id))); return n; })} />}</th><th className={jTh}>Key</th><th className={jTh}>{tr("Summary")}</th>
                     <th className={jTh}>{tr("Status")}</th><th className={jTh}>{tr("Reporter")}</th>
                     <th className={cx(jTh, "text-right")}>{tr("Money Out")}</th><th className={cx(jTh, "text-right")}>{tr("Amount Asked")}</th><th className={jTh}>{tr("Created")}</th>
                   </tr>
@@ -232,7 +248,7 @@ export default function PengajuanMonitor() {
                 <tbody>
                   {paged.rows.map((p) => (
                     <tr key={p.id} onClick={() => setOpen(p.id)} className={jRow}>
-                      <td className={jTd}><TypeIcon tone={KIND_TONE[p.kind] ?? "bg-neutral-500"} title={requestLabel(p)}><Wallet size={11} /></TypeIcon></td>
+                      <td className={jTd}><span className="flex items-center gap-2">{canPick(p) && <input type="checkbox" aria-label={p.number ?? p.id} checked={pick.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => togglePick(p.id)} />}<TypeIcon tone={KIND_TONE[p.kind] ?? "bg-neutral-500"} title={requestLabel(p)}><Wallet size={11} /></TypeIcon></span></td>
                       <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{p.number}</span></td>
                       <td className={cx(jTd, "max-w-[22rem]")}>
                         <span className="block truncate text-neutral-900">{placeOf(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? requestLabel(p)}</span>
@@ -251,7 +267,7 @@ export default function PengajuanMonitor() {
             </div>
           </>
         )}
-        {res && <CardFooter><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))} · {fmtRp(sum(rows, (p) => p.requestedAmount ?? p.totalOut))}</span><PageNav paged={paged} /></CardFooter>}
+        {res && <CardFooter><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(all.length))} · {fmtRp(sum(cost(rows), (p) => p.requestedAmount ?? p.totalOut))}{rows.some((p) => p.kind === "INTERCOMPANY") ? ` · ${tr("between PTs {0}", fmtRp(sum(rows.filter((p) => p.kind === "INTERCOMPANY"), (p) => p.requestedAmount)))}` : ""}</span><PageNav paged={paged} /></CardFooter>}
       </WorkCard>
 
       {settings && <SettingsDrawer branches={branchOpts} onClose={() => setSettings(false)} onChanged={load} />}
@@ -311,7 +327,7 @@ function MonitorFilters({ value, bgroups, branches, accounts, categories, flagLa
       </FilterSection>
       <FilterSection title={tr("Kind")}>
         <ChoiceGroup label="" value={v.kind} onChange={(kind) => setV({ ...v, kind: kind as F["kind"] })}
-          choices={[{ value: "", label: tr("All") }, ...[...KINDS, "PERSONAL" as Kind, "VENDOR" as Kind, ...DE_KINDS].map((k) => ({ value: k, label: kindLabel(k) }))]} />
+          choices={[{ value: "", label: tr("All") }, ...[...KINDS, "PERSONAL" as Kind, "VENDOR" as Kind, "INTERCOMPANY" as Kind, ...DE_KINDS].map((k) => ({ value: k, label: kindLabel(k) }))]} />
       </FilterSection>
       <FilterSection title={tr("Outlet")}><SearchChoice label="" anyLabel={tr("Every Outlet")} options={branches} value={v.branch} onChange={(branch) => setV({ ...v, branch })} placeholder={tr("Search outlet")} /></FilterSection>
       <FilterSection title={tr("Account")}><SearchChoice label="" anyLabel={tr("Every account")} options={accounts} value={v.account} onChange={(account) => setV({ ...v, account })} placeholder={tr("Search account")} /></FilterSection>
@@ -437,6 +453,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
             </section>
           )}
           <VerifyPanel p={p} base={base} onChanged={changed} />
+          <ReceivePanel p={p} base={base} onChanged={changed} />
           {p.can?.refund && <RefundPanel p={p} base={base} onChanged={changed} />}
           <PengajuanView p={p} onReview={p.can?.reviewLines ? review : undefined} />
           <section>
@@ -458,7 +475,7 @@ type Settings = { kinds: Record<Kind, string>; flows: Record<string, { label: st
   options: Record<OptionList, FundOption[]>; lists: Record<OptionList, string>; listDefaults?: Record<OptionList, string>; kindLabels?: Partial<Record<Kind, string>>; deptPlafon: { department: string; amount: number }[]; departments: string[]; canOptions: boolean;
   users: Approver[]; plafon: { default: number | null; branches: { branchCode: string; amount: number }[] }; canEdit: boolean; canPlafon: boolean;
   /** the life after the payment (migration 144) */ rules?: RuleRow[]; lifecycle?: Lifecycle; canRules?: boolean; proofDocs?: Record<string, string>;
-  /** every outlet, for the plafon per outlet */ outlets?: { code: string; name: string }[]; units?: Unit[] };
+  /** every outlet, for the plafon per outlet */ outlets?: { code: string; name: string }[]; units?: Unit[]; receivers?: Record<string, string[]> };
 
 /** The approval steps of every kind (any number, in order, each with its users; then the payment) and the petty cash plafon. */
 type View = { type: "flow"; key: string } | { type: "list"; list: OptionList } | { type: "plafon" } | { type: "dept" } | { type: "rules" } | { type: "units" };
@@ -505,8 +522,8 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
       items: DE_KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
     { title: tr("Approval Flow · Personal"), hint: tr("One flow per purpose of funds"), icon: <UserRound size={13} />, items: [{ view: { type: "flow", key: "PERSONAL" }, label: tr("Default Flow") },
       ...purposes.filter((o) => o.isActive).map((o) => ({ view: { type: "flow", key: `PERSONAL:${o.id}` } as View, label: o.name, muted: !data?.flows[`PERSONAL:${o.id}`]?.length }))] },
-    { title: tr("Approval Flow · Vendor"), hint: tr("Vendor payments of Roastery, Warehouse and Central Kitchen"), icon: <Wallet size={13} />, items: [{ view: { type: "flow", key: "VENDOR" }, label: kindLabel("VENDOR") }] },
-    { title: tr("Unit"), hint: tr("The PT that pays every unit"), icon: <Store size={13} />, items: [{ view: { type: "units" }, label: tr("Paying PT") }] },
+    { title: tr("Approval Flow · Vendor"), hint: tr("Vendor payments of Roastery, Warehouse and Central Kitchen"), icon: <Wallet size={13} />, items: [{ view: { type: "flow", key: "VENDOR" }, label: kindLabel("VENDOR") }, { view: { type: "flow", key: "INTERCOMPANY" }, label: kindLabel("INTERCOMPANY") }] },
+    { title: tr("Business unit"), hint: tr("The PT that pays every unit"), icon: <Store size={13} />, items: [{ view: { type: "units" }, label: tr("Paying PT") }] },
     { title: tr("Rules"), hint: tr("Proof, due date and vendor payments"), icon: <CheckCircle2 size={13} />, items: [{ view: { type: "rules" }, label: tr("Rules after the payment") }] },
     { title: tr("Personal Form Lists"), hint: tr("The choices on the personal form"), icon: <ListChecks size={13} />, items: (Object.keys(data?.lists ?? {}) as OptionList[]).map((l) => ({ view: { type: "list", list: l }, label: data!.lists[l], count: data!.options[l].length })) },
     { title: tr("Plafon"), hint: tr("The most that can be asked"), icon: <Wallet size={13} />, items: [{ view: { type: "plafon" }, label: tr("Outlet Petty Cash") }, { view: { type: "dept" }, label: tr("Department Plafon") }] },
@@ -605,8 +622,8 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
                   ? tr("The approvers of this purpose of funds, in order, then the payment by Finance.")
                   : tr("Who approves this kind of outlet request, in order, then the payment by Finance.")} />
                 <div className="flex flex-wrap items-center gap-2">
-                  <QuickChips label={tr("Unit")} value={flowUnit} onChange={setFlowUnit} items={[{ key: "", label: tr("Every unit") },
-                    ...(data.units ?? []).filter((u) => kind !== "VENDOR" || u.vendor).map((u) => ({ key: u.code, label: u.name, dot: data.flows[`${kind}@${u.code}`]?.length ? "bg-brand-600" : undefined }))]} />
+                  <QuickChips label={tr("Business unit")} value={flowUnit} onChange={setFlowUnit} items={[{ key: "", label: tr("Every unit") },
+                    ...(data.units ?? []).filter((u) => (kind !== "VENDOR" && kind !== "INTERCOMPANY") || u.vendor).map((u) => ({ key: u.code, label: u.name, dot: data.flows[`${kind}@${u.code}`]?.length ? "bg-brand-600" : undefined }))]} />
                   {flowUnit && ownFlow && edit && <Button variant="ghost" size="sm" disabled={busy} onClick={() => void dropUnitFlow()}>{tr("Use the flow of every unit")}</Button>}
                 </div>
                 {flowUnit && !ownFlow && <p className="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">{tr("This unit follows the flow of every unit. Saving here gives it its own.")}</p>}
@@ -658,7 +675,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
             )}
 
             {view.type === "rules" && data.rules && data.lifecycle && <RulesPanel rules={data.rules} lifecycle={data.lifecycle} docs={data.proofDocs ?? {}} edit={!!data.canRules} onChanged={() => void load()} />}
-            {view.type === "units" && <UnitsPanel units={data.units ?? []} edit={!!data.canRules} onChanged={() => void load()} />}
+            {view.type === "units" && <UnitsPanel users={data.users} names={names} receivers={data.receivers ?? {}} admin={data.canEdit} units={data.units ?? []} edit={!!data.canRules} onChanged={() => void load()} />}
             {view.type === "dept" && <DeptPlafon data={data} onChanged={() => void load()} />}
             {renaming && "code" in renaming && <RenameKind {...renaming} onClose={() => setRenaming(null)}
               onSaved={() => { setRenaming(null); void load(); onChanged(); }} />}
@@ -672,18 +689,27 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
 }
 
 /** The PT that pays every unit; requests already sent keep the PT they were sent with. */
-function UnitsPanel({ units, edit, onChanged }: { units: Unit[]; edit: boolean; onChanged: () => void }) {
+function UnitsPanel({ units, edit, onChanged, users, names, receivers, admin }: { units: Unit[]; edit: boolean; onChanged: () => void; users: Approver[]; names: Map<string, string>;
+  receivers: Record<string, string[]>; admin: boolean }) {
   const toast = useToast();
   const save = async (u: Unit, payer: string) => {
     if (!payer.trim() || payer.trim() === u.payer) return;
     try { await call(`/api/pengajuan/settings/units/${u.code}`, { method: "PUT", json: { payer: payer.trim() } }); toast(tr("Saved")); onChanged(); } catch (e) { toast((e as Error).message, "error"); }
+  };
+  const setReceivers = async (payer: string, userIds: string[]) => {
+    try { await call("/api/pengajuan/settings/receivers", { method: "PUT", json: { payer, userIds } }); toast(tr("Saved")); onChanged(); } catch (e) { toast((e as Error).message, "error"); }
+  };
+  const history = async (f: File | undefined) => {
+    if (!f) return;
+    try { const r = await upload<{ rows: number; added: number; total: number }>("/api/pengajuan/vendor/history", f); toast(tr("{0} invoices added ({1} known)", r.added, r.total)); }
+    catch (e) { toast((e as Error).message, "error"); }
   };
   return (
     <section className="space-y-3">
       <PanelHead title={tr("Paying PT")} text={tr("The account each unit is paid from. Requests already sent keep the PT they were sent with.")} />
       <div className="overflow-x-auto rounded border border-neutral-200">
         <table className={cx(jTable, "min-w-[460px]")}>
-          <thead><tr className={jHeadRow}><th className={jTh}>{tr("Unit")}</th><th className={jTh}>{tr("Paid from")}</th></tr></thead>
+          <thead><tr className={jHeadRow}><th className={jTh}>{tr("Business unit")}</th><th className={jTh}>{tr("Paid from")}</th></tr></thead>
           <tbody>{units.map((u) => (
             <tr key={u.code} className="border-b border-neutral-100">
               <td className={cx(jTd, "font-medium text-neutral-900")}>{u.name}</td>
@@ -692,6 +718,20 @@ function UnitsPanel({ units, edit, onChanged }: { units: Unit[]; edit: boolean; 
         </table>
       </div>
       {!edit && <p className="text-xs text-neutral-500">{tr("Only management or Finance changes these rules.")}</p>}
+      <PanelHead title={tr("Who confirms the money a PT receives")} text={tr("Between PTs: the request is done once one of them confirms; none = a superadmin. Who recorded the payment never confirms it.")} />
+      <ol className="space-y-2">
+        {[...new Set(units.map((u) => u.payer))].map((payer, i) => (
+          <StepRow key={payer} n={i + 1} step={{ label: payer, type: "APPROVE", userIds: receivers[payer] ?? [] }} users={users} names={names} edit={admin} fixedName
+            onChange={(x) => void setReceivers(payer, x.userIds)} />
+        ))}
+      </ol>
+      {edit && (
+        <>
+          <PanelHead title={tr("Already paid through the Google Form")} text={tr("Upload the recap of what was paid there: the same account, invoice number and amount is refused here, so nothing is paid twice while both are used.")}
+            action={<label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-200 px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50"><Plus size={13} /> {tr("Upload recap")}
+              <input type="file" accept=".xlsx" className="hidden" onChange={(e) => { void history(e.target.files?.[0]); e.target.value = ""; }} /></label>} />
+        </>
+      )}
     </section>
   );
 }
@@ -925,14 +965,14 @@ function DeptPlafon({ data, onChanged }: { data: Settings; onChanged: () => void
   );
 }
 
-export function StepRow({ n, step, users, names, edit, payment, onChange, onUp, onDown, onRemove }: { n: number; step: StepEdit; users: Approver[];
-  names: Map<string, string>; edit: boolean; payment?: boolean; onChange: (s: StepEdit) => void; onUp?: () => void; onDown?: () => void; onRemove?: () => void }) {
+export function StepRow({ n, step, users, names, edit, payment, fixedName, onChange, onUp, onDown, onRemove }: { n: number; step: StepEdit; users: Approver[];
+  names: Map<string, string>; edit: boolean; payment?: boolean; /** the name is not edited (a PT) */ fixedName?: boolean; onChange: (s: StepEdit) => void; onUp?: () => void; onDown?: () => void; onRemove?: () => void }) {
   const [pick, setPick] = useState("");
   return (
     <li className={cx("rounded-md border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-neutral-200 bg-white")}>
       <div className="flex items-center gap-2">
         <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-cyan-600" : "bg-brand-600")}>{n}</span>
-        {edit ? <input value={step.label} maxLength={60} onChange={(e) => onChange({ ...step, label: e.target.value })} aria-label={tr("Step Name")}
+        {edit && !fixedName ? <input value={step.label} maxLength={60} onChange={(e) => onChange({ ...step, label: e.target.value })} aria-label={tr("Step Name")}
           className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm font-semibold")} /> : <p className="flex-1 text-sm font-semibold text-neutral-900">{step.label}</p>}
         {payment && <Badge tone="cyan">{tr("Payment")}</Badge>}
         {edit && onUp && <button type="button" onClick={onUp} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move Up")}><ArrowUp size={15} /></button>}

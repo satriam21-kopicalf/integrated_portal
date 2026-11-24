@@ -12,8 +12,10 @@ import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/comp
 import { JSelect, Lozenge } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
-import { MODULES, type Handle, type Status, ago } from "@/aggregator/shared";
+import { type Handle, type Status, ago } from "@/aggregator/shared";
 
+type Brief = { reviews: { n: number; avg: number | null; low: number; noTicket: number }; topics: { topic: string; n: number }[]; complaints: { open: number; progress: number; done: number };
+  voids: { n: number; noReason: number; pct: number | null; amount: number }; worst: { outlet: string; low: number; avg: number | null; n: number }[]; menu: { spread: number; missing: number } };
 const n = (v: number | null | undefined) => (v == null ? "—" : v.toLocaleString("id-ID"));
 
 export default function AggregatorOverview() {
@@ -21,6 +23,8 @@ export default function AggregatorOverview() {
   const [h, setH] = useState<Handle | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
+  const [brief, setBrief] = useState<Brief | null>(null);
+  useEffect(() => { let off = false; call<Brief>("/api/aggregator/brief").then((r) => { if (!off) setBrief(r); }).catch(() => { /* the rest of the page stays */ }); return () => { off = true; }; }, []);
   const load = () => {
     setErr(null);
     call<Status>("/api/aggregator/status").then((x) => setSt({ ...x, stale: !!x.syncedMedian && Date.now() - new Date(x.syncedMedian).getTime() > 3 * 3600_000 })).catch((e) => setErr(e.message));
@@ -64,7 +68,7 @@ export default function AggregatorOverview() {
                   [tr("BotFood read the platforms (median)"), ago(st?.syncedMedian ?? null)],
                   [tr("BotFood read the platforms (oldest)"), ago(st?.syncedOldest ?? null)],
                   [tr("Reviews kept from"), st?.reviewsFrom ? new Date(st.reviewsFrom).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—"],
-                  [tr("Outlets not matched to ours"), st ? <button type="button" onClick={() => setMapOpen(true)} className="inline-flex items-center gap-2 hover:underline">{st.unmapped ? <Lozenge tone="amber">{n(st.unmapped)}</Lozenge> : <Lozenge tone="green">0</Lozenge>}<span className="text-xs text-brand-700">{tr("Match")}</span></button> : "—"],
+                  [tr("Outlets not matched to ours"), st ? <button type="button" onClick={() => setMapOpen(true)} className="inline-flex items-center gap-2 hover:underline">{st.unmapped ? <Lozenge tone="amber">{n(st.unmapped)}</Lozenge> : <Lozenge tone="green">0</Lozenge>}<span className="text-xs text-brand-700">{tr("Match outlets")}</span></button> : "—"],
                 ].map(([k, v], i) => (
                   <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5"><dt className="text-neutral-500">{k}</dt><dd className="text-right font-medium text-neutral-900">{v}</dd></div>
                 ))}
@@ -89,16 +93,22 @@ export default function AggregatorOverview() {
             </Panel>
           </div>
 
-          <Panel title={tr("Coming next")} description={tr("Built on the BotFood data now kept by the portal")}>
-            <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3">
-              {Object.entries(MODULES).map(([k, m]) => (
-                <Link key={k} href={`/aggregator-insight/${k}`} className="flex items-start gap-3 rounded-lg border border-neutral-200 px-3 py-3 hover:bg-neutral-50">
-                  <Database size={16} className="mt-0.5 text-neutral-400" />
-                  <span className="min-w-0 flex-1"><span className="flex items-center gap-2 text-sm font-semibold text-neutral-900">{m.title()} <Lozenge>{tr("Soon")}</Lozenge></span>
-                    <span className="mt-0.5 block text-xs text-neutral-500">{m.text()}</span></span>
-                </Link>
+          <Panel title={tr("Last 7 days")} description={tr("Reviews, complaints, voids and menus; open a figure to work on it")}>
+            <div className="grid grid-cols-2 gap-px bg-neutral-200 lg:grid-cols-4">
+              {([["reviews", tr("Low reviews"), brief ? n(brief.reviews.low) : "…", brief ? tr("rating {0} · {1} without a ticket", brief.reviews.avg ?? "—", n(brief.reviews.noTicket)) : ""],
+                ["complaints", tr("Open complaints"), brief ? n(brief.complaints.open + brief.complaints.progress) : "…", brief ? tr("{0} done", n(brief.complaints.done)) : ""],
+                ["void", tr("Void orders"), brief ? n(brief.voids.n) : "…", brief ? tr("{0}% of the orders · {1} without a reason", brief.voids.pct ?? "—", n(brief.voids.noReason)) : ""],
+                ["menu", tr("Menus with different prices"), brief ? n(brief.menu.spread) : "…", brief ? tr("{0} missing at an outlet", n(brief.menu.missing)) : ""]] as [string, string, string, string][]).map(([k, label, v, sub]) => (
+                <Link key={k} href={`/aggregator-insight/${k}`} className="bg-white px-4 py-3 hover:bg-neutral-50"><p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{label}</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-neutral-900">{v}</p><p className="mt-0.5 text-xs text-neutral-500">{sub}</p></Link>
               ))}
             </div>
+            {brief && (
+              <div className="grid gap-4 p-4 sm:grid-cols-2">
+                <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("Topics of low reviews")}</p><ul className="space-y-1 text-sm">{brief.topics.map((x) => <li key={x.topic} className="flex justify-between gap-3"><span className="truncate">{x.topic}</span><span className="tabular-nums text-neutral-600">{x.n}</span></li>)}</ul></div>
+                <div><p className="mb-1.5 text-xs font-semibold text-neutral-500">{tr("Outlets with the most low reviews")}</p><ul className="space-y-1 text-sm">{brief.worst.filter((x) => x.low).map((x) => <li key={x.outlet} className="flex justify-between gap-3"><span className="truncate">{x.outlet}</span><span className="tabular-nums text-red-700">{x.low}</span></li>)}</ul></div>
+              </div>
+            )}
           </Panel>
         </div>
       )}
