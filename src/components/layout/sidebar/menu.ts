@@ -161,8 +161,8 @@ export const aggInsight: { title: string; hint: string; icon: typeof Users; item
     { get name() { return tr('Handle Schedule'); }, href: '/aggregator-insight/schedule', icon: CalendarDays, get description() { return tr('Which member works on which outlet'); } },
   ] },
   { get title() { return tr('Monitoring'); }, get hint() { return tr('From the BotFood data'); }, icon: Gauge, items: [
-    { get name() { return tr('Opening & Closing'); }, href: '/aggregator-insight/opening', icon: Store, soon: true, get description() { return tr('On-time opening, early closing, pauses'); } },
-    { get name() { return tr('Out of Stock'); }, href: '/aggregator-insight/oos', icon: Package, soon: true, get description() { return tr('Items out of stock per category'); } },
+    { get name() { return tr('Opening & Closing'); }, href: '/aggregator-insight/opening', icon: Store, get description() { return tr('On-time opening, early closing, pauses'); } },
+    { get name() { return tr('Out of Stock'); }, href: '/aggregator-insight/oos', icon: Package, get description() { return tr('Items out of stock per category'); } },
     { get name() { return tr('Reviews & Rating'); }, href: '/aggregator-insight/reviews', icon: Star, soon: true, get description() { return tr('Low ratings, replies, tags'); } },
     { get name() { return tr('Price & Menu'); }, href: '/aggregator-insight/menu', icon: ListChecks, soon: true, get description() { return tr('Prices that differ, new outlets'); } },
   ] },

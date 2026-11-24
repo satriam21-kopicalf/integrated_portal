@@ -18,8 +18,6 @@ export type Member = { id: string; name: string; jobTitle: string | null; hrmsLi
 
 /** The modules of Aggregator Insight still to come (stage 2 onwards): shown as Coming Soon. */
 export const MODULES: Record<string, { title: () => string; text: () => string }> = {
-  opening: { title: () => tr("Opening & Closing"), text: () => tr("On-time opening per platform, early closing and pauses, from the open state of every outlet.") },
-  oos: { title: () => tr("Out of Stock"), text: () => tr("Items out of stock per category, outlet and week, from the stock of every item.") },
   reviews: { title: () => tr("Reviews & Rating"), text: () => tr("The reviews of the customers: low ratings, replied or not, tags and the rating trend.") },
   complaints: { title: () => tr("Complaints"), text: () => tr("Complaint tickets from chat and the delivery apps, with response and resolution times.") },
   void: { title: () => tr("Void Order"), text: () => tr("Voids from ESB and the manual voids the team enters, matched per order.") },

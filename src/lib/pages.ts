@@ -9,7 +9,7 @@ export type PageKey =
   | 'form.pic-check-in' | 'form.surveyor-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan' | 'form.wwwr' | 'form.stock-transfer'
   | 'mon.overview' | 'mon.pic-check-in' | 'mon.surveyor-check-in' | 'mon.outlet' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
   | 'mon.pengajuan' | 'mon.wwwr'
-  | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood' | 'social.analytics' | 'agg.overview' | 'agg.schedule'
+  | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood' | 'social.analytics' | 'agg.overview' | 'agg.schedule' | 'agg.opening' | 'agg.oos'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
   | 'cc.premix' | 'cc.sales-calc' | 'cc.pricelist' | 'cc.locations' | 'cc.waste-monitor' | 'cc.waste-review' | 'cc.ratio' | 'cc.cogs' | 'cc.goods-receipt' | 'cc.purchase-plan' | 'cc.info' | 'cc.schedule'
   | 'cc.stock-list' | 'cc.stock-transfer'
@@ -71,6 +71,8 @@ export const PAGES: PageInfo[] = [
   // the two approval steps of Pengajuan: rights inside /monitoring/pengajuan, not menu entries of their own
   { key: 'agg.overview', href: '/aggregator-insight', get label() { return tr('Overview'); }, get group() { return tr('Aggregator Insight'); } },
   { key: 'agg.schedule', href: '/aggregator-insight/schedule', get label() { return tr('Handle Schedule'); }, get group() { return tr('Aggregator Insight'); } },
+  { key: 'agg.opening', href: '/aggregator-insight/opening', get label() { return tr('Opening & Closing'); }, get group() { return tr('Aggregator Insight'); } },
+  { key: 'agg.oos', href: '/aggregator-insight/oos', get label() { return tr('Out of Stock'); }, get group() { return tr('Aggregator Insight'); } },
   { key: 'social.analytics', href: '/social-media', get label() { return tr('Social Media Analytics'); }, get group() { return tr('Social Media'); } },
   { key: 'rating.google-maps', href: '/rating/google-maps', get label() { return tr('Google Maps'); }, get group() { return tr('Aggregator'); } },
   { key: 'rating.shopeefood', href: '/rating/shopeefood', get label() { return tr('ShopeeFood'); }, get group() { return tr('Aggregator'); }, state: 'building' },
