@@ -7944,4 +7944,6 @@ export const ID: Record<string, string> = {
   "These quantities are far above the usual. Is the unit right?": "Jumlah ini jauh di atas biasanya. Apakah satuannya sudah benar?",
   "Check again": "Periksa lagi",
   "It is right, save": "Sudah benar, simpan",
+  "the reason of the unusual quantity": "alasan jumlah tidak wajar",
+  "Reason (required: unusual quantity)": "Alasan (wajib: jumlah tidak wajar)",
 };

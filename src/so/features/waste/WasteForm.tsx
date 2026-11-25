@@ -178,13 +178,6 @@ export default function WasteForm() {
     return q ? all.filter((i) => i.name.toLowerCase().includes(q) || i.code.toLowerCase().includes(q)) : all;
   }, [data, usageSearch]);
   const usageFilled = (data?.items.usage ?? []).filter((i) => uFilled(usage[i.code] ?? UEMPTY)).length;
-  const usageIncomplete = [...usageChanged].filter((c) => uFilled(usage[c] ?? UEMPTY) && uLacks(usage[c]).length).length;
-  const setULine = (code: string, patch: Partial<ULine>) => {
-    setUsage((all) => ({ ...all, [code]: { ...(all[code] ?? UEMPTY), ...patch } }));
-    setUsageChanged((s) => new Set(s).add(code));
-  };
-
-  // every changed SKU on its own request (photos are large)
   // a quantity far above the usual one of the item (app/usage_fix.py limits, 2026-11-25): shown in the row, asked before saving
   const usageOdd = (code: string) => {
     const u = data?.usageUsual?.[code];
@@ -193,6 +186,15 @@ export default function WasteForm() {
     const packs = u.packSize ? Math.round((q / u.packSize) * 1000) / 1000 : null;
     return { qty: q, usual: u.usual, suggested: packs && packs < u.limit ? packs : null };
   };
+  // an unusual quantity needs its reason (2026-11-25), so Cost Control knows it is meant
+  const uLacksOf = (code: string) => { const l = usage[code] ?? UEMPTY; return [...uLacks(l), ...(usageChanged.has(code) && usageOdd(code) && l.note.trim().length < 3 ? [tr("the reason of the unusual quantity")] : [])]; };
+  const usageIncomplete = [...usageChanged].filter((c) => uFilled(usage[c] ?? UEMPTY) && uLacksOf(c).length).length;
+  const setULine = (code: string, patch: Partial<ULine>) => {
+    setUsage((all) => ({ ...all, [code]: { ...(all[code] ?? UEMPTY), ...patch } }));
+    setUsageChanged((s) => new Set(s).add(code));
+  };
+
+  // every changed SKU on its own request (photos are large)
   const usageOdds = [...usageChanged].flatMap((c) => { const o = usageOdd(c); const i = data?.items.usage.find((x) => x.code === c); return o && i ? [{ ...o, item: i }] : []; });
   const saveUsage = async (signature: string) => {
     if (!b || !usageChanged.size || usageIncomplete) return;
@@ -435,7 +437,7 @@ export default function WasteForm() {
                           {usageItems.map((i) => {
                             const l = usage[i.code] ?? UEMPTY;
                             const on = uFilled(l);
-                            const lack = on ? uLacks(l) : [];
+                            const lack = on ? uLacksOf(i.code) : [];
                             const odd = usageChanged.has(i.code) ? usageOdd(i.code) : null;
                             return (
                               <Fragment key={i.code}>
@@ -464,7 +466,7 @@ export default function WasteForm() {
                                           <option value="">{tr("Choose the category")}</option>
                                           {(data.usageCategories ?? data.categories).map((c) => <option key={c} value={c}>{c}</option>)}
                                         </NativeSelect>
-                                        <input className={cx(inputClass, "h-9")} value={l.note} maxLength={500} onChange={(e) => setULine(i.code, { note: e.target.value })} placeholder={tr("Reason (optional)")} />
+                                        <input className={cx(inputClass, "h-9")} value={l.note} maxLength={500} onChange={(e) => setULine(i.code, { note: e.target.value })} placeholder={odd ? tr("Reason (required: unusual quantity)") : tr("Reason (optional)")} aria-required={!!odd} />
                                         <div className="flex items-center gap-2 sm:col-span-2">
                                           {l.photo || l.hasPhoto ? (
                                             <>
@@ -510,7 +512,8 @@ export default function WasteForm() {
         <ul className="divide-y divide-neutral-100 text-sm">{usageOdds.map((o) => (
           <li key={o.item.code} className="flex items-start justify-between gap-3 py-2"><span className="min-w-0 text-neutral-800">{o.item.name}</span>
             <span className="shrink-0 text-right tabular-nums"><b className="text-amber-800">{fmtQty(o.qty)}</b> <span className="text-xs text-neutral-500">{o.item.unit}</span>
-              <span className="block text-[11px] text-neutral-500">{tr("usual {0}", fmtQty(o.usual))}{o.suggested != null && ` · ${tr("suggested {0}", fmtQty(o.suggested))}`}</span></span></li>))}</ul>
+              <span className="block text-[11px] text-neutral-500">{tr("usual {0}", fmtQty(o.usual))}{o.suggested != null && ` · ${tr("suggested {0}", fmtQty(o.suggested))}`}</span>
+              <span className="block max-w-[12rem] text-[11px] text-neutral-600">“{usage[o.item.code]?.note}”</span></span></li>))}</ul>
       </Dialog>
       {signing && <SignDialog what={signing} count={signing === "waste" ? filled.length : usageChanged.size}
         onClose={() => setSigning(null)}
