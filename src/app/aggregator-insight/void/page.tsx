@@ -3,117 +3,124 @@
 // Aggregator Insight → Void Order (page agg.void, 2026-11-25): the void and cancelled bills of the delivery apps in ESB,
 // each with the reason the team gives (several at once), and the voids entered by hand that are not in ESB.
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Plus, Receipt, Save } from "lucide-react";
-import { Button, ErrorState, Field, Input, PageNav, SearchBox, cx, usePaged, useToast } from "@/so/ui";
+import { Button, ErrorState, Field, Input, SearchBox, useToast } from "@/so/ui";
 import Drawer from "@/components/kc/Drawer";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { CardFooter, JSelect, Lozenge, QuickChips, Toolbar, WorkCard, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
+import { JSelect, Lozenge, QuickChips, Toolbar, WorkCard } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
-import { PLATFORMS, PeriodBar, daysAgo, downloadSheets } from "@/aggregator/ui";
+import { downloadSheets } from "@/aggregator/ui";
+import { Bars, DataTable, FilterBar, OutletCell, PLATFORMS, Platform, noMembers, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
+import { daysAgo, fmtDay, fmtPeriod, nf, pct, rp } from "@/aggregator/time";
 
-type Row = { key: string; manual: boolean; orderNo: string; outlet: string; platform: string; day: string; time: string | null; amount: number; editedBy: string | null; reason: string | null; note: string | null; by: string | null; member: string | null };
-type Res = { summary: { n: number; amount: number; noReason: number; manual: number; bills: number; pct: number | null }; reasons: { reason: string; n: number }[]; byOutlet: { outlet: string; n: number; amount: number }[];
-  choices: string[]; outlets: { code: string; name: string }[]; data: Row[] };
-type Tab = "list" | "outlet" | "reason";
-const rp = (v: number) => `Rp ${Math.round(v).toLocaleString("id-ID")}`;
-const dm = (d: string) => `${d.slice(8)}/${d.slice(5, 7)}`;
+type Row = { key: string; manual: boolean; orderNo: string; bill?: string | null; branchCode: string | null; outlet: string; platform: string; day: string; time: string | null; amount: number; editedBy: string | null; reason: string | null; note: string | null; by: string | null; member: string | null };
+type Res = { summary: { n: number; amount: number; noReason: number; manual: number; bills: number; pct: number | null }; choices: string[]; outlets: { code: string; name: string }[]; data: Row[] };
+type Tab = "list" | "outlet" | "cashier" | "reason" | "hour";
+type Out = { outlet: string; branchCode: string | null; n: number; amount: number; noReason: number };
+const NONE = "__none";
 
 export default function VoidOrder() {
   const toast = useToast();
-  const [from, setFrom] = useState(daysAgo(6));
-  const [to, setTo] = useState(daysAgo(0));
-  const [platform, setPlatform] = useState("");
+  const ctx = useCtx();
+  const a = useFilters();
   const [data, setData] = useState<Res | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("list");
   const [only, setOnly] = useState<"none" | "all" | "manual">("none");
+  const [cashier, setCashier] = useState("");
+  const [why, setWhy] = useState("");
   const [q, setQ] = useState("");
   const [pick, setPick] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [adding, setAdding] = useState(false);
-  const load = () => {
-    setErr(null); setPick(new Set());
-    call<Res>(`/api/aggregator/voids?dateFrom=${from}&dateTo=${to}${platform ? `&platform=${platform}` : ""}`).then(setData).catch((e) => setErr(e.message));
-  };
-  useEffect(load, [from, to, platform]);
+  const load = useCallback(() => { setErr(null); setPick(new Set()); call<Res>(`/api/aggregator/voids?${a.query}`).then(setData).catch((e: Error) => setErr(e.message)); }, [a.query]);
+  useEffect(() => {
+    if (!a.ready) return;
+    let off = false;
+    setData(null); setErr(null);
+    call<Res>(`/api/aggregator/voids?${a.query}`).then((r) => { if (!off) setData(r); }).catch((e: Error) => { if (!off) setErr(e.message); });
+    return () => { off = true; };
+  }, [a.ready, a.query]);
   const t = q.trim().toLowerCase();
-  const rows = useMemo(() => (data?.data ?? []).filter((r) => (only === "all" || (only === "none" ? !r.reason : r.manual)) && (!t || `${r.outlet} ${r.orderNo} ${r.reason ?? ""} ${r.member ?? ""}`.toLowerCase().includes(t))), [data, only, t]);
-  const paged = usePaged(rows, `${from}${to}${platform}${only}${t}`, 50);
+  const key = `${a.query}${a.f.outlet}${a.f.group}${only}${cashier}${why}${t}${tab}`;
+  // a choice only holds for the rows on screen: another filter clears it, so nothing unseen gets a reason
+  useEffect(() => { setPick(new Set()); }, [key]);
+  const inScope = useScope(data?.data, a.f, ctx);
+  const scoped = useMemo(() => inScope.filter((r) => (!cashier || r.editedBy === cashier) && (!why || (why === NONE ? !r.reason : r.reason === why))), [inScope, cashier, why]);
+  const rows = scoped.filter((r) => (only === "all" || (only === "none" ? !r.reason : r.manual)) && (!t || `${r.outlet} ${r.orderNo} ${r.bill ?? ""} ${r.reason ?? ""} ${r.editedBy ?? ""} ${r.member ?? ""}`.toLowerCase().includes(t)));
+  const cashiers = useMemo(() => [...new Set(inScope.flatMap((r) => (r.editedBy ? [r.editedBy] : [])))].sort(), [inScope]);
+  const count = (k: (r: Row) => string) => Object.entries(scoped.reduce<Record<string, number>>((m, r) => { m[k(r)] = (m[k(r)] ?? 0) + 1; return m; }, {})).map(([key, n]) => ({ key, label: key, n }));
+  const outs = useMemo(() => {
+    const m = new Map<string, Out>();
+    for (const r of scoped) { const x = m.get(r.outlet) ?? { outlet: r.outlet, branchCode: r.branchCode, n: 0, amount: 0, noReason: 0 }; x.n++; x.amount += r.amount; if (!r.reason) x.noReason++; m.set(r.outlet, x); }
+    return [...m.values()];
+  }, [scoped]);
+  const amount = scoped.reduce((x, r) => x + r.amount, 0), noReason = scoped.filter((r) => !r.reason).length, manual = scoped.filter((r) => r.manual).length;
+  const narrowed = !!(a.f.outlet || a.f.group || cashier || why);
   const s = data?.summary;
   const save = async () => {
     setBusy(true);
     try { await call("/api/aggregator/voids/reason", { method: "PUT", json: { keys: [...pick], reason, note: note.trim() || null } }); toast(tr("Saved")); setNote(""); load(); }
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
-  const toggle = (k: string) => setPick((x) => { const n = new Set(x); if (n.has(k)) n.delete(k); else n.add(k); return n; });
+  const cols: Col<Row>[] = [
+    { key: "at", label: tr("Time (WIB)"), sort: (r) => `${r.day} ${r.time ?? ""}`, first: "desc", className: "whitespace-nowrap", render: (r) => <>{fmtDay(r.day)}<span className="block text-[11px] text-neutral-500">{r.time ?? tr("no time")}</span></> },
+    { key: "outlet", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
+    { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
+    { key: "order", label: tr("Order no."), sort: (r) => r.orderNo, className: "text-xs", render: (r) => <><span className="text-neutral-900">{r.orderNo}</span>{r.manual && <span className="ml-1.5"><Lozenge>{tr("Manual")}</Lozenge></span>}{r.bill && <span className="block text-[11px] text-neutral-400">{r.bill}</span>}</> },
+    { key: "amount", label: tr("Value"), sort: (r) => r.amount, first: "desc", right: true, className: "whitespace-nowrap", render: (r) => rp(r.amount) },
+    { key: "cashier", label: tr("Voided by"), sort: (r) => r.editedBy, className: "text-xs text-neutral-600", render: (r) => r.editedBy ?? "—" },
+    { key: "reason", label: tr("Reason"), sort: (r) => r.reason, render: (r) => r.reason ? <><span className="text-neutral-900">{r.reason}</span>{(r.note || r.by) && <span className="block text-[11px] text-neutral-500">{[r.note, r.by].filter(Boolean).join(" · ")}</span>}</> : <Lozenge tone="amber">{tr("No reason yet")}</Lozenge> },
+    { key: "member", label: tr("On duty"), sort: (r) => r.member, hide: noMembers(scoped), render: (r) => r.member ?? "—" },
+  ];
   const exportXlsx = async () => {
     if (!data) return;
     try {
-      await downloadSheets(`Void ${from} - ${to}`, [
-        { sheet: "Summary", title: `Void ${from} – ${to}${platform ? ` · ${platform}` : ""}`, header: [tr("Measure"), tr("Value")], rows: [[tr("Void orders"), data.summary.n], [tr("Value"), Math.round(data.summary.amount)], [tr("Void % of the orders"), data.summary.pct], [tr("Without a reason"), data.summary.noReason], ...data.reasons.map((x) => [x.reason, x.n])] },
-        { sheet: "Per outlet", header: [tr("Outlet"), tr("Void orders"), tr("Value")], rows: data.byOutlet.map((x) => [x.outlet, x.n, Math.round(x.amount)]) },
-        { sheet: "Data", header: [tr("Date"), tr("Time"), tr("Outlet"), tr("Platform"), tr("Order no."), tr("Value"), tr("Reason"), tr("Note"), tr("Source"), tr("Entered by"), tr("On duty")],
-          rows: data.data.map((r) => [r.day, r.time, r.outlet, r.platform, r.orderNo, r.amount, r.reason, r.note, r.manual ? "Manual" : "ESB", r.by, r.member]) },
+      await downloadSheets(`Void ${a.f.from} - ${a.f.to}`, [
+        { sheet: "Summary", title: `Void · ${fmtPeriod(a.f.from, a.f.to)}${a.f.platform ? ` · ${a.f.platform}` : ""} · WIB`, header: [tr("Measure"), tr("Value")], rows: [[tr("Void orders"), scoped.length], [tr("Value"), Math.round(amount)], ...(narrowed ? [] : [[tr("Void % of the orders"), data.summary.pct] as [string, number | null]]), [tr("Without a reason"), noReason], ...count((r) => r.reason ?? tr("No reason yet")).map((x): [string, number] => [x.key, x.n])] },
+        { sheet: "Per outlet", header: [tr("Outlet"), tr("Void orders"), tr("Value"), tr("Without a reason")], rows: outs.map((x) => [x.outlet, x.n, Math.round(x.amount), x.noReason]) },
+        { sheet: "Data", header: [tr("Date"), tr("Time (WIB)"), tr("Outlet"), tr("Platform"), tr("Order no."), tr("Bill"), tr("Value"), tr("Voided by"), tr("Reason"), tr("Note"), tr("Source"), tr("Entered by"), tr("On duty")],
+          rows: rows.map((r) => [r.day, r.time, r.outlet, r.platform, r.orderNo, r.bill ?? null, r.amount, r.editedBy, r.reason, r.note, r.manual ? "Manual" : "ESB", r.by, r.member]) },
       ]);
     } catch (e) { toast((e as Error).message, "error"); }
   };
   return (
     <Page title={tr("Void Order")} eyebrow={tr("Aggregator Insight")} subtitle={tr("The void orders of the delivery apps in ESB and those the team enters, with their reason")} media={<Receipt size={19} />}
-      actions={<div className="flex gap-2"><Button size="sm" disabled={!data} onClick={() => setAdding(true)}><Plus size={14} /> {tr("Manual void")}</Button><Button variant="secondary" size="sm" disabled={!data} onClick={exportXlsx}><Download size={14} /> {tr("Excel")}</Button></div>}>
+      actions={<><Button variant="secondary" size="sm" disabled={!data} onClick={() => void exportXlsx()}><Download size={14} /> {tr("Excel")}</Button><Button size="sm" disabled={!data} onClick={() => setAdding(true)}><Plus size={14} /> {tr("Manual void")}</Button></>}>
+      <FilterBar a={a} ctx={ctx} extra={[{ key: "why", label: tr("Reason"), value: why, onChange: setWhy, options: [{ value: NONE, label: tr("No reason yet") }, ...(data?.choices ?? []).map((c) => ({ value: c, label: c }))] }, { key: "cashier", label: tr("Voided by"), value: cashier, onChange: setCashier, options: cashiers.map((c) => ({ value: c, label: c })) }]} />
       {err ? <ErrorState message={err} onRetry={load} /> : (
-        <div className="space-y-4">
+        <>
           <StatStrip columns={4} label={tr("Void Order")} gridClassName="grid-cols-2 lg:grid-cols-4">
-            <Stat label={tr("Void orders")} value={s ? s.n.toLocaleString("id-ID") : <StatSkeleton />}>{s && <p>{tr("{0} entered by hand", s.manual)}</p>}</Stat>
-            <Stat label={tr("Value")} value={s ? rp(s.amount) : <StatSkeleton />} />
-            <Stat label={tr("Void % of the orders")} value={s ? `${s.pct ?? "—"}%` : <StatSkeleton />}>{s && <p>{tr("{0} orders finished", s.bills.toLocaleString("id-ID"))}</p>}</Stat>
-            <Stat label={tr("Without a reason")} value={s ? s.noReason.toLocaleString("id-ID") : <StatSkeleton />} />
+            <Stat label={tr("Void orders")} value={s ? nf(scoped.length) : <StatSkeleton />}>{s && <p>{tr("{0} entered by hand", manual)}</p>}</Stat>
+            <Stat label={tr("Value")} value={s ? rp(amount) : <StatSkeleton />}>{s && scoped.length > 0 && <p>{tr("{0} on average", rp(amount / scoped.length))}</p>}</Stat>
+            <Stat label={tr("Void % of the orders")} value={s ? (narrowed ? "—" : pct(s.pct, 2)) : <StatSkeleton />}>{s && <p>{narrowed ? tr("only without an outlet, reason or cashier filter") : tr("{0} orders finished", nf(s.bills))}</p>}</Stat>
+            <Stat label={tr("Without a reason")} value={s ? nf(noReason) : <StatSkeleton />}>{s && scoped.length > 0 && <p>{pct((noReason / scoped.length) * 100)}</p>}</Stat>
           </StatStrip>
-          <WorkCard active={tab} onTab={setTab} tabs={[{ key: "list", label: tr("Orders"), count: data?.data.length ?? null }, { key: "outlet", label: tr("Per outlet") }, { key: "reason", label: tr("Per reason") }]}
-            left={<PeriodBar from={from} to={to} onFrom={setFrom} onTo={setTo} platform={platform} onPlatform={setPlatform} />}>
-            {tab === "list" && <Toolbar>
-              <div className="flex flex-1 flex-wrap items-center gap-2"><div className="w-full sm:w-64"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet, order or member")} /></div>
-                <QuickChips value={only} onChange={setOnly} label={tr("Filter")} items={[{ key: "none", label: tr("Without a reason"), count: s?.noReason ?? null }, { key: "all", label: tr("All") }, { key: "manual", label: tr("Manual"), count: s?.manual ?? null }]} /></div>
-            </Toolbar>}
-            {tab === "list" && pick.size > 0 && (
-              <div className="flex flex-wrap items-center gap-2 border-b border-brand-200 bg-brand-50/60 px-4 py-2.5 text-sm">
-                <span className="font-semibold">{tr("{0} chosen", pick.size)}</span>
-                <div className="w-full sm:w-56"><JSelect value={reason} onChange={setReason} placeholder={tr("Choose the reason")} options={(data?.choices ?? []).map((c) => ({ value: c, label: c }))} /></div>
-                <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder={tr("Note (optional)")} className="h-9 w-full sm:!w-64" />
-                <Button size="sm" loading={busy} disabled={!reason || (reason === "Lainnya" && !note.trim())} onClick={() => void save()}><Save size={13} /> {tr("Save")}</Button>
-              </div>
-            )}
-            {!data ? <p className="px-5 py-8 text-center text-sm text-neutral-500">…</p> : tab !== "list" ? (
-              <div className="overflow-x-auto"><table className={cx(jTable, "min-w-[860px]")}>
-                <thead><tr className={jHeadRow}>{(tab === "outlet" ? [tr("Outlet"), tr("Void orders"), tr("Value")] : [tr("Reason"), tr("Void orders")]).map((h) => <th key={h} className={jTh}>{h}</th>)}</tr></thead>
-                <tbody>{tab === "outlet" ? data.byOutlet.map((o) => <tr key={o.outlet} className="border-b border-neutral-100"><td className={cx(jTd, "font-medium text-neutral-900")}>{o.outlet}</td><td className={cx(jTd, "tabular-nums")}>{o.n}</td><td className={cx(jTd, "tabular-nums")}>{rp(o.amount)}</td></tr>)
-                  : data.reasons.map((o) => <tr key={o.reason} className="border-b border-neutral-100"><td className={cx(jTd, "font-medium text-neutral-900")}>{o.reason}</td><td className={cx(jTd, "tabular-nums")}>{o.n}</td></tr>)}</tbody></table></div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className={cx(jTable, "min-w-[860px]")}>
-                  <thead><tr className={jHeadRow}><th className={cx(jTh, "w-8")}><input type="checkbox" aria-label={tr("Choose all shown")} checked={paged.rows.length > 0 && paged.rows.every((r) => pick.has(r.key))}
-                    onChange={(e) => setPick((x) => { const n = new Set(x); paged.rows.forEach((r) => (e.target.checked ? n.add(r.key) : n.delete(r.key))); return n; })} /></th>
-                    {[tr("Date"), tr("Outlet"), tr("Platform"), tr("Order no."), tr("Value"), tr("Reason"), tr("On duty")].map((h) => <th key={h} className={jTh}>{h}</th>)}</tr></thead>
-                  <tbody>
-                    {rows.length === 0 ? <tr><td colSpan={8} className="px-5 py-8 text-center text-sm text-neutral-500">{tr("Nothing in this period")}</td></tr> : paged.rows.map((r) => (
-                      <tr key={r.key} className="border-b border-neutral-100 hover:bg-neutral-50">
-                        <td className={jTd}><input type="checkbox" aria-label={r.orderNo} checked={pick.has(r.key)} onChange={() => toggle(r.key)} /></td>
-                        <td className={cx(jTd, "whitespace-nowrap text-neutral-600")}>{dm(r.day)} {r.time ?? ""}</td><td className={cx(jTd, "font-medium text-neutral-900")}>{r.outlet}</td><td className={jTd}>{r.platform}</td>
-                        <td className={cx(jTd, "text-xs")}>{r.orderNo}{r.manual && <span className="ml-1.5"><Lozenge>{tr("Manual")}</Lozenge></span>}</td><td className={cx(jTd, "whitespace-nowrap tabular-nums")}>{rp(r.amount)}</td>
-                        <td className={jTd}>{r.reason ? <><span className="text-neutral-900">{r.reason}</span>{(r.note || r.by) && <span className="block text-[11px] text-neutral-500">{[r.note, r.by].filter(Boolean).join(" · ")}</span>}</> : <Lozenge tone="amber">{tr("No reason yet")}</Lozenge>}</td>
-                        <td className={cx(jTd, "text-neutral-600")}>{r.member ?? "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {tab === "list" && <CardFooter><span className="text-xs text-neutral-500">{tr("ESB gives no reason for a void: the team fills it in.")}</span><PageNav paged={paged} /></CardFooter>}
+          {tab === "list" && pick.size > 0 && (
+            <div className="sticky top-16 z-[15] flex flex-wrap items-center gap-2 rounded-xl border border-brand-200 bg-white px-4 py-2.5 text-sm shadow-lg">
+              <span className="font-semibold">{tr("{0} chosen", nf(pick.size))}</span>
+              <div className="w-full sm:w-56"><JSelect value={reason} onChange={setReason} placeholder={tr("Choose the reason")} options={(data?.choices ?? []).map((c) => ({ value: c, label: c }))} /></div>
+              <span className="block w-full sm:w-64"><Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder={reason === "Lainnya" ? tr("Note (required)") : tr("Note (optional)")} className="h-9" /></span>
+              <Button size="sm" loading={busy} disabled={!reason || (reason === "Lainnya" && !note.trim())} onClick={() => void save()}><Save size={13} /> {tr("Save")}</Button>
+              <Button size="sm" variant="ghost" onClick={() => setPick(new Set())}>{tr("Cancel")}</Button>
+            </div>)}
+          <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "list", label: tr("Orders"), count: s ? scoped.length : null }, { key: "outlet", label: tr("Per outlet"), count: s ? outs.length : null }, { key: "cashier", label: tr("Per cashier") }, { key: "reason", label: tr("Per reason") }, { key: "hour", label: tr("Per hour") }]}>
+            {tab === "list" && <Toolbar><div className="flex flex-wrap items-center gap-2"><div className="w-full sm:w-72"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet, order, bill or cashier")} /></div>
+              <QuickChips<"none" | "all" | "manual"> value={only} onChange={setOnly} label={tr("Filter")} items={[{ key: "none", label: tr("Without a reason"), dot: "bg-amber-400", count: noReason }, { key: "all", label: tr("All"), count: scoped.length }, { key: "manual", label: tr("Manual"), count: manual }]} /></div></Toolbar>}
+            {tab === "outlet" ? <DataTable key={tab} rows={outs} loading={!data} rowKey={(r) => r.outlet} resetKey={key} initial={{ key: "n", dir: "desc" }} minWidth={560} onRow={(r) => { setQ(r.outlet); setOnly("all"); setTab("list"); }}
+                cols={[{ key: "o", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "n", label: tr("Void orders"), sort: (r) => r.n, first: "desc", right: true, render: (r) => nf(r.n) }, { key: "a", label: tr("Value"), sort: (r) => r.amount, first: "desc", right: true, render: (r) => rp(r.amount) }, { key: "x", label: tr("Without a reason"), sort: (r) => r.noReason, first: "desc", right: true, render: (r) => nf(r.noReason) }]} />
+              : tab === "cashier" ? <DataTable key={tab} rows={count((r) => r.editedBy ?? "—")} loading={!data} rowKey={(r) => r.key} resetKey={key} initial={{ key: "n", dir: "desc" }} minWidth={360} onRow={(r) => { if (r.key !== "—") { setCashier(r.key); setOnly("all"); setTab("list"); } }}
+                cols={[{ key: "c", label: tr("Voided by"), sort: (r) => r.label, render: (r) => <span className="font-medium text-neutral-900">{r.label}</span> }, { key: "n", label: tr("Void orders"), sort: (r) => r.n, first: "desc", right: true, render: (r) => nf(r.n) }]} note={tr("The POS account that changed the bill; a shared account is not one person.")} />
+              : tab === "reason" ? <Bars rows={count((r) => r.reason ?? tr("No reason yet")).sort((x, y) => y.n - x.n)} />
+              : tab === "hour" ? <Bars rows={count((r) => (r.time ? `${r.time.slice(0, 2)}:00` : "—")).sort((x, y) => (x.key < y.key ? -1 : 1))} />
+              : <DataTable key={tab} cols={cols} rows={rows} loading={!data} rowKey={(r) => r.key} resetKey={key} initial={{ key: "at", dir: "desc" }} minWidth={1060} select={{ picked: pick, onChange: setPick, label: (r) => r.orderNo }}
+                note={tr("ESB gives no reason for a void: the team fills it in.")} />}
           </WorkCard>
-        </div>
+        </>
       )}
       {adding && data && <Add res={data} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); load(); }} />}
     </Page>

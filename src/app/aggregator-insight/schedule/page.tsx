@@ -4,106 +4,84 @@
 // which outlet. A weekly template (member, outlets, slot, weekdays, from a date) with exceptions for one date; a change
 // starts on its date, so every past day keeps who handled it (the reports stamp each event with that member).
 
-import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, UserRoundCheck } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight, UserRoundCheck } from "lucide-react";
 import Drawer from "@/components/kc/Drawer";
 import { Button, ErrorState, Input, SearchBox, cx, useToast } from "@/so/ui";
-import { Page } from "@/components/kc/compat";
-import { CardFooter, JSelect, Lozenge, QuickChips, Toolbar, WorkCard, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
+import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
+import { JSelect, Lozenge, QuickChips, Toolbar, WorkCard } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 import { type Handle, type Member, type OutletRow, WEEKDAYS } from "@/aggregator/shared";
+import { DataTable, FilterBar, Label, OutletCell, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
+import { daysAgo, fmtDay, nf } from "@/aggregator/time";
 
-const todayWib = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+const step = (day: string, n: number) => new Date(new Date(`${day}T12:00:00Z`).getTime() + n * 86400_000).toISOString().slice(0, 10);
 
 export default function HandleSchedule() {
   const toast = useToast();
-  const [day, setDay] = useState(todayWib());
+  const ctx = useCtx();
+  const a = useFilters();
+  const [day, setDay] = useState(daysAgo(0));
   const [data, setData] = useState<Handle | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [slot, setSlot] = useState("day");
   const [q, setQ] = useState("");
-  const [only, setOnly] = useState<"all" | "none" | "mine">("all");
+  const [only, setOnly] = useState<"all" | "none" | "handled" | "exc">("all");
   const [who, setWho] = useState("");
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [assignOpen, setAssignOpen] = useState(false);
   const [exc, setExc] = useState<OutletRow | null>(null);
-
-  const load = () => {
-    setErr(null);
-    call<Handle>(`/api/aggregator/handle?date=${day}`).then(setData).catch((e) => setErr(e.message));
-  };
-  useEffect(load, [day]);
+  const load = useCallback(() => { setErr(null); call<Handle>(`/api/aggregator/handle?date=${day}`).then(setData).catch((e: Error) => setErr(e.message)); }, [day]);
+  useEffect(() => {
+    let off = false;
+    setData(null); setErr(null);
+    call<Handle>(`/api/aggregator/handle?date=${day}`).then((r) => { if (!off) setData(r); }).catch((e: Error) => { if (!off) setErr(e.message); });
+    return () => { off = true; };
+  }, [day]);
   useEffect(() => { call<Member[]>("/api/aggregator/members").then(setMembers).catch(() => setMembers([])); }, []);
-
-  const rows = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    return (data?.outlets ?? []).filter((o) => {
-      const a = o.slots[slot];
-      if (only === "none" && a?.userId) return false;
-      if (only === "mine" && (!who || a?.userId !== who)) return false;
-      return !t || o.branchName.toLowerCase().includes(t) || o.branchCode.toLowerCase().includes(t) || (a?.name ?? "").toLowerCase().includes(t);
-    });
-  }, [data, q, only, who, slot]);
-  const unhandled = (data?.outlets ?? []).filter((o) => !o.slots[slot]?.userId).length;
-  const allSel = rows.length > 0 && rows.every((r) => sel.has(r.branchCode));
-  const toggle = (c: string) => setSel((s) => { const x = new Set(s); if (x.has(c)) x.delete(c); else x.add(c); return x; });
+  const t = q.trim().toLowerCase();
+  const key = `${day}${slot}${a.f.outlet}${a.f.group}${only}${who}${t}`;
+  // only what is on screen may be assigned
+  useEffect(() => { setSel(new Set()); }, [key]);
+  const scoped = useScope(data?.outlets, a.f, ctx).filter((o) => !who || o.slots[slot]?.userId === who);
+  const is = (o: OutletRow, k: typeof only) => k === "all" || (k === "none" ? !o.slots[slot]?.userId : k === "handled" ? !!o.slots[slot]?.userId : o.slots[slot]?.source === "exception");
+  const n = (k: typeof only) => scoped.filter((o) => is(o, k)).length;
+  const rows = scoped.filter((o) => is(o, only) && (!t || `${o.branchName} ${o.branchCode} ${o.slots[slot]?.name ?? ""}`.toLowerCase().includes(t)));
+  const load_ = Object.entries(scoped.reduce<Record<string, number>>((m, o) => { const x = o.slots[slot]; if (x?.userId && x.name) m[x.name] = (m[x.name] ?? 0) + 1; return m; }, {})).sort((x, y) => y[1] - x[1]);
   const memberOpts = members.map((m) => ({ value: m.id, label: m.name, hint: m.jobTitle ?? undefined }));
-
+  const cols: Col<OutletRow>[] = [
+    { key: "o", label: tr("Outlet"), sort: (o) => o.branchName, render: (o) => <OutletCell name={o.branchName} code={o.branchCode} ctx={ctx} /> },
+    { key: "g", label: tr("Branch group"), sort: (o) => ctx?.outlets.find((x) => x.code === o.branchCode)?.group ?? "", className: "text-neutral-600", render: (o) => ctx?.outlets.find((x) => x.code === o.branchCode)?.group ?? "—" },
+    { key: "m", label: tr("Handled by"), sort: (o) => o.slots[slot]?.name ?? "", render: (o) => { const x = o.slots[slot]; return x?.userId ? <span className="inline-flex flex-wrap items-center gap-2 font-medium text-neutral-900">{x.name}{x.source === "exception" && <Lozenge tone="violet" title={x.note ?? undefined}>{tr("This date only")}</Lozenge>}</span> : x?.source === "exception" ? <Lozenge tone="amber" title={x.note ?? undefined}>{tr("Nobody this date")}</Lozenge> : <span className="text-neutral-400">{tr("Not handled")}</span>; } },
+    { key: "d", label: tr("Days"), className: "text-xs text-neutral-500", render: (o) => { const x = o.slots[slot]; return x?.source === "template" ? (x.weekdays?.length ? x.weekdays.map((w) => WEEKDAYS()[w - 1]).join(", ") : tr("Every day")) : "—"; } },
+    { key: "x", label: "", right: true, render: (o) => <button type="button" className="whitespace-nowrap text-xs font-semibold text-brand-700 hover:underline" onClick={(e) => { e.stopPropagation(); setExc(o); }}>{tr("Change this date")}</button> },
+  ];
   return (
-    <Page title={tr("Handle Schedule")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Which member of the Aggregator team works on which outlet")} media={<CalendarDays size={19} />}>
+    <Page title={tr("Handle Schedule")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Which member of the Aggregator team works on which outlet")} media={<CalendarDays size={19} />}
+      actions={<Button size="sm" disabled={sel.size === 0} onClick={() => setAssignOpen(true)}><UserRoundCheck size={14} /> {tr("Assign {0} outlets", sel.size)}</Button>}>
+      <FilterBar a={a} ctx={ctx} period={false} platform={false} note={`${tr("The schedule of {0}", fmtDay(day))}${day === daysAgo(0) ? ` · ${tr("Today")}` : ""}`}
+        extra={[{ key: "who", label: tr("Member"), value: who, onChange: setWho, options: memberOpts }]}
+        lead={<div className="min-w-0 col-span-2"><Label t={tr("Date")} /><div className="flex items-center gap-1.5"><Button variant="secondary" size="sm" className="h-9 px-2" aria-label={tr("The day before")} onClick={() => setDay(step(day, -1))}><ChevronLeft size={15} /></Button>
+          <Input type="date" value={day} aria-label={tr("Date")} onChange={(e) => e.target.value && setDay(e.target.value)} className="h-9" /><Button variant="secondary" size="sm" className="h-9 px-2" aria-label={tr("The day after")} onClick={() => setDay(step(day, 1))}><ChevronRight size={15} /></Button>
+          {day !== daysAgo(0) && <Button variant="ghost" size="sm" className="h-9" onClick={() => setDay(daysAgo(0))}>{tr("Today")}</Button>}</div></div>} />
       {err ? <ErrorState message={err} onRetry={load} /> : (
-        <WorkCard tabs={(data?.slots ?? [{ code: "day", label: tr("All day") }]).map((s) => ({ key: s.code, label: s.label }))} active={slot}
-          onTab={setSlot} label={tr("Slots")}
-          left={<label className="flex items-center gap-2 text-sm text-neutral-600">{tr("Date")}
-            <Input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} className="h-9 w-auto" /></label>}>
-          <Toolbar>
-            <div className="flex flex-1 flex-wrap items-center gap-2">
-              <div className="w-full sm:w-64"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet or member")} /></div>
-              <QuickChips value={only} onChange={setOnly} label={tr("Filter")} items={[
-                { key: "all", label: tr("All"), count: data?.outlets.length ?? null },
-                { key: "none", label: tr("Not handled"), count: unhandled },
-                { key: "mine", label: tr("One member") },
-              ]} />
-              {only === "mine" && <JSelect value={who} onChange={setWho} options={memberOpts} placeholder={tr("Choose a member")} className="w-56" />}
-            </div>
-            <Button size="sm" disabled={sel.size === 0} onClick={() => setAssignOpen(true)}><UserRoundCheck size={14} /> {tr("Assign {0} outlets", sel.size)}</Button>
-          </Toolbar>
-          <div className="overflow-x-auto">
-            <table className={jTable}>
-              <thead><tr className={jHeadRow}>
-                <th className={cx(jTh, "w-10")}><input type="checkbox" aria-label={tr("Select all")} checked={allSel}
-                  onChange={() => setSel(allSel ? new Set() : new Set(rows.map((r) => r.branchCode)))} /></th>
-                <th className={jTh}>{tr("Outlet")}</th><th className={jTh}>{tr("Handled by")}</th><th className={jTh}>{tr("Days")}</th><th className={cx(jTh, "text-right")} />
-              </tr></thead>
-              <tbody>
-                {!data ? <tr><td colSpan={5} className="px-5 py-8 text-center text-sm text-neutral-500">…</td></tr>
-                  : rows.length === 0 ? <tr><td colSpan={5} className="px-5 py-8 text-center text-sm text-neutral-500">{tr("No outlet")}</td></tr>
-                  : rows.map((o) => {
-                    const a = o.slots[slot];
-                    return (
-                      <tr key={o.branchCode} className="border-b border-neutral-100 hover:bg-neutral-50">
-                        <td className={jTd}><input type="checkbox" aria-label={o.branchName} checked={sel.has(o.branchCode)} onChange={() => toggle(o.branchCode)} /></td>
-                        <td className={jTd}><span className="font-medium text-neutral-900">{o.branchName}</span> <span className="text-xs text-neutral-400">{o.branchCode}</span></td>
-                        <td className={jTd}>{a?.userId ? <span className="flex items-center gap-2">{a.name}{a.source === "exception" && <Lozenge tone="violet" title={a.note ?? undefined}>{tr("This date only")}</Lozenge>}</span>
-                          : a?.source === "exception" ? <Lozenge tone="amber" title={a.note ?? undefined}>{tr("Nobody this date")}</Lozenge>
-                          : <span className="text-neutral-400">{tr("Not handled")}</span>}</td>
-                        <td className={cx(jTd, "text-xs text-neutral-500")}>{a?.source === "template" ? (a.weekdays?.length ? a.weekdays.map((w) => WEEKDAYS()[w - 1]).join(", ") : tr("Every day")) : ""}</td>
-                        <td className={cx(jTd, "text-right")}><button type="button" className="text-xs font-medium text-brand-700 hover:underline" onClick={() => setExc(o)}>{tr("Change this date")}</button></td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-          <CardFooter><span className="text-xs text-neutral-500">{tr("{0} of {1} outlets", rows.length, data?.outlets.length ?? 0)}</span></CardFooter>
-        </WorkCard>
+        <>
+          <StatStrip columns={4} label={tr("Handle Schedule")} gridClassName="grid-cols-2 lg:grid-cols-4">
+            <Stat label={tr("Outlets")} value={data ? nf(scoped.length) : <StatSkeleton />} /><Stat label={tr("Handled")} value={data ? nf(n("handled")) : <StatSkeleton />} />
+            <Stat label={tr("Not handled")} value={data ? nf(n("none")) : <StatSkeleton />} />
+            <Stat label={tr("Members on duty")} value={data ? nf(load_.length) : <StatSkeleton />}>{load_.length > 0 && <p className="truncate">{load_.slice(0, 3).map(([m, c]) => `${m} ${c}`).join(" · ")}</p>}</Stat>
+          </StatStrip>
+          <WorkCard tabs={(data?.slots ?? [{ code: "day", label: tr("All day") }]).map((s) => ({ key: s.code, label: s.label }))} active={slot} onTab={setSlot} label={tr("Slots")}>
+            <Toolbar><div className="flex flex-wrap items-center gap-2"><div className="w-full sm:w-72"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet or member")} /></div>
+              <QuickChips<typeof only> value={only} onChange={setOnly} label={tr("Filter")} items={[{ key: "all", label: tr("All"), count: n("all") }, { key: "none", label: tr("Not handled"), dot: "bg-amber-400", count: n("none") }, { key: "handled", label: tr("Handled"), dot: "bg-emerald-500", count: n("handled") }, { key: "exc", label: tr("This date only"), count: n("exc") }]} /></div></Toolbar>
+            <DataTable cols={cols} rows={rows} loading={!data} rowKey={(o) => o.branchCode} resetKey={key} initial={{ key: "o", dir: "asc" }} minWidth={720} empty={tr("No outlet")} select={{ picked: sel, onChange: setSel, label: (o) => o.branchName }} note={tr("Choose outlets, then assign them to a member from a date; the days before keep who handled them.")} />
+          </WorkCard>
+        </>
       )}
-      {assignOpen && <AssignDrawer codes={[...sel]} slot={slot} day={day} members={memberOpts} onClose={() => setAssignOpen(false)}
-        onDone={(m) => { setAssignOpen(false); setSel(new Set()); toast(m); load(); }} />}
-      {exc && <ExceptionDrawer outlet={exc} slot={slot} day={day} members={memberOpts} onClose={() => setExc(null)}
-        onDone={(m) => { setExc(null); toast(m); load(); }} />}
+      {assignOpen && <AssignDrawer codes={[...sel]} slot={slot} day={day} members={memberOpts} onClose={() => setAssignOpen(false)} onDone={(m) => { setAssignOpen(false); setSel(new Set()); toast(m); load(); }} />}
+      {exc && <ExceptionDrawer outlet={exc} slot={slot} day={day} members={memberOpts} onClose={() => setExc(null)} onDone={(m) => { setExc(null); toast(m); load(); }} />}
     </Page>
   );
 }
@@ -120,7 +98,7 @@ function AssignDrawer({ codes, slot, day, members, onClose, onDone }: {
     setBusy(true); setErr(null);
     (remove ? call("/api/aggregator/handle/remove", { method: "POST", json: { branchCodes: codes, slot, validFrom: from } })
       : call("/api/aggregator/handle", { method: "PUT", json: { memberId: member, branchCodes: codes, slot, weekdays: days.length ? days : null, validFrom: from } }))
-      .then(() => onDone(remove ? tr("{0} outlets no longer handled from {1}", codes.length, from) : tr("{0} outlets assigned from {1}", codes.length, from)))
+      .then(() => onDone(remove ? tr("{0} outlets no longer handled from {1}", codes.length, fmtDay(from)) : tr("{0} outlets assigned from {1}", codes.length, fmtDay(from))))
       .catch((e) => { setErr(e.message); setBusy(false); });
   };
   return (
@@ -161,11 +139,11 @@ function ExceptionDrawer({ outlet, slot, day, members, onClose, onDone }: {
   const send = (clear: boolean) => {
     setBusy(true); setErr(null);
     call("/api/aggregator/handle/exception", { method: "PUT", json: { date: day, branchCode: outlet.branchCode, slot, memberId: member === "none" ? null : member || null, note: note || null, clear } })
-      .then(() => onDone(clear ? tr("Back to the weekly schedule") : tr("Saved for {0}", day)))
+      .then(() => onDone(clear ? tr("Back to the weekly schedule") : tr("Saved for {0}", fmtDay(day))))
       .catch((e) => { setErr(e.message); setBusy(false); });
   };
   return (
-    <Drawer open title={outlet.branchName} description={tr("Only for {0}: leave, swap or a replacement. The weekly schedule stays.", day)} onClose={onClose} icon={<CalendarDays size={18} />}
+    <Drawer open title={outlet.branchName} description={tr("Only for {0}: leave, swap or a replacement. The weekly schedule stays.", fmtDay(day))} onClose={onClose} icon={<CalendarDays size={18} />}
       footer={<div className="flex w-full flex-wrap justify-between gap-2">
         {cur?.source === "exception" ? <Button variant="ghost" disabled={busy} onClick={() => send(true)}>{tr("Back to the weekly schedule")}</Button> : <span />}
         <Button disabled={!member} loading={busy} onClick={() => send(false)}>{tr("Save")}</Button></div>}>
