@@ -26,7 +26,8 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { mapsUrl } from "@/so/lib/counts";
 import { tr } from "@/lib/i18n";
-import { DailyReport, EsbCompare, UsageReport } from "./WasteDaily";
+import { UsageReport } from "./UsageReport";
+import { DailyReport, EsbCompare } from "./WasteDaily";
 import WasteAnalysis from "./WasteAnalysis";
 import WasteCorrect, { CorrectionHistory } from "./WasteCorrect";
 import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
@@ -175,9 +176,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const exportUsage = async () => {
     const u = await call<{ data: UsageRow[] }>(`/api/waste/usage?${q()}`);
     await downloadXlsx({ fileName: file("Usage Management"), sheet: "Usage Management", title: `Usage Management ${dmy(period.from)} – ${dmy(period.to)}`,
-      header: ["Tanggal", "Cabang", "Kode", "Item", "Qty", "Satuan", "Kategori", "Alasan", "Diisi oleh", "Waktu", "Foto"],
+      header: ["Tanggal", "Cabang", "Kode", "Item", "Qty", "Satuan", "Kategori", "Alasan", "Diisi oleh", "Waktu", "Foto", "Tidak wajar", "Dikoreksi"],
       rows: u.data.map((r) => [r.businessDate, r.branchName, r.itemCode, r.itemName, r.qty, r.unit, r.category, r.note, r.by,
-        wibDateTime(r.updatedAt), r.hasPhoto ? `${location.origin}${usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)}` : ""]) });
+        wibDateTime(r.updatedAt), r.hasPhoto ? `${location.origin}${usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)}` : "", r.unusual ? "Ya" : "", r.corrections ? "Ya" : ""]) });
   };
   const safe = (f: () => Promise<void>) => async () => { try { await f(); } catch (e) { toast((e as Error).message, "error"); } };
 
@@ -251,7 +252,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
         footer={res && view === "entries" ? <><span>{tr("{0} of {1} shown", fmtNumber(rows.length), fmtNumber(res.data.length))}{res.truncated ? ` · ${tr("the latest 50,000: search or narrow the filters to find older entries")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
         {view === "investigations" ? <InvestigationList key={String(investigation)} onOpen={setInvestigation} />
           : view === "daily" ? <DailyReport period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
-          : view === "usage" ? <UsageReport period={period} branch={branch} />
+          : view === "usage" ? <UsageReport period={period} branch={branch} canFix={canFix} />
           : view === "esb" ? <EsbCompare period={period} branch={branch} onBranch={(c) => { setBranch(c); setView("entries"); }} />
           : error ? <ErrorState message={error} onRetry={() => void load()} />
           : view === "analysis" ? <WasteAnalysis res={res} onBranch={(c) => { setBranch(c); setView("entries"); }} onItem={(n) => { setSearch(n); setView("entries"); }} />

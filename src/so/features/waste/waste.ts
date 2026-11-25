@@ -43,7 +43,9 @@ export type DailyData = {
   branches: { code: string; name: string; days: DailyCell[]; reported: number; missing: number; usageDays: number }[];
 };
 export type UsageRow = { branchCode: string; branchName: string; businessDate: string; itemCode: string; itemName: string; unit: string; qty: number; by: string; updatedAt: string;
-  category?: string | null; note?: string | null; hasPhoto?: boolean };
+  category?: string | null; note?: string | null; hasPhoto?: boolean;
+  // judged by app/usage_fix.py (2026-11-25)
+  corrections?: number; unusual?: boolean; usual?: number | null; packSize?: number | null; suggested?: number | null };
 export type MonitorData = {
   period: { from: string; to: string }; categories: string[]; data: Entry[]; truncated: boolean;
   summary: { entries: number; branches: number; items: number; people: number; submitted: number; investigating?: number; approved: number; rejected: number; value?: number; unpriced?: number };

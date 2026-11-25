@@ -1,9 +1,9 @@
 "use client";
 
-// The daily side of the waste monitor (integrated_portal_be app/waste.py daily / usage_report, migration 041): every
+// The daily side of the waste monitor (integrated_portal_be app/waste.py daily, migration 041): every
 // branch reports its waste each day (an entry or "no waste today"); the branches not reported on the last day of the
 // period, and per branch a cell per day. Only the outlets open in the period (2026-11-06); the summary, a search, a
-// status filter and pages of 25 branches. Usage Management: the quantities the branches filled for the period.
+// status filter and pages of 25 branches.
 
 import { AlertTriangle, CheckCircle2, Search } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
@@ -12,10 +12,8 @@ import { SkeletonCards, SkeletonTable } from "@/components/kc/Skeleton";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { type Period, dmy } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
-import { wibDateTime } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
-import { type DailyData, type UsageRow, fmtQty, usagePhotoUrl } from "./waste";
-import { thumb } from "@/lib/assets";
+import { type DailyData } from "./waste";
 
 const query = (period: Period, branch: string) =>
   new URLSearchParams({ dateFrom: period.from, dateTo: period.to, ...(branch ? { branch } : {}) });
@@ -159,64 +157,6 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
 type DailyRow = DailyData["branches"][number];
 type DKey = "branch" | "reported" | "usage";
 const dValue = (b: DailyRow, k: DKey) => ({ branch: b.name, reported: b.reported, usage: b.usageDays }[k]);
-type UKey = "day" | "branch" | "item" | "qty" | "category" | "by";
-const uValue = (r: UsageRow, k: UKey) => ({ day: r.businessDate, branch: r.branchName, item: r.itemName, qty: r.qty, category: r.category ?? "", by: r.by }[k]);
-
-export function UsageReport({ period, branch }: { period: Period; branch: string }) {
-  const { data, error, retry } = useLoad<{ data: UsageRow[] }>(`/api/waste/usage?${query(period, branch)}`);
-  const [search, setSearch] = useState("");
-  const rows = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    return (data?.data ?? []).filter((r) => !s || r.itemName.toLowerCase().includes(s) || r.branchName.toLowerCase().includes(s));
-  }, [data, search]);
-  const sorted = useSort<UsageRow, UKey>(rows, uValue, { key: "day", dir: "desc" });
-  const paged = usePaged(sorted.rows, search + rows.length + JSON.stringify(sorted.sort));
-  if (error) return <ErrorState message={error} onRetry={retry} />;
-  if (!data) return <SkeletonTable cols={7} />;
-  return (
-    <div>
-      <div className="flex flex-col gap-2 border-b border-neutral-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <input className="h-9 rounded-lg border border-neutral-200 px-3 text-sm sm:max-w-xs" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tr("Search item or branch")} />
-      </div>
-      {!rows.length ? <Empty title={tr("No Usage Management list filled in this period")} /> : (
-        <div className="overflow-x-auto">
-          <table className="m-cards w-full text-sm">
-            <thead className={theadClass}>
-              <tr><SortTh k="day" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2" first="desc">{tr("Day")}</SortTh>
-                <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2">{tr("Branch")}</SortTh>
-                <SortTh k="item" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2">{tr("Item")}</SortTh>
-                <SortTh k="qty" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2" align="right" first="desc">{tr("Quantity")}</SortTh>
-                <SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2">{tr("Category")}</SortTh>
-                <th className="px-4 py-2">{tr("Photo")}</th>
-                <SortTh k="by" sort={sorted.sort} onSort={sorted.toggle} pad="px-4 py-2">{tr("Filled by")}</SortTh></tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100">
-              {paged.rows.map((r) => (
-                <tr key={`${r.branchCode}-${r.businessDate}-${r.itemCode}`}>
-                  <td className="px-4 py-2 text-neutral-600">{dmy(r.businessDate)}</td>
-                  <td className="px-4 py-2 text-neutral-800">{r.branchName}</td>
-                  <td className="px-4 py-2"><span className="text-neutral-800">{r.itemName}</span> <span className="text-[11px] text-neutral-400">{r.itemCode}</span></td>
-                  <td className="px-4 py-2 text-right tabular-nums">{fmtQty(r.qty)} <span className="text-xs text-neutral-500">{r.unit}</span></td>
-                  <td className="px-4 py-2 text-xs text-neutral-600">{r.category ?? "—"}{r.note && <span className="block text-neutral-400">“{r.note}”</span>}</td>
-                  <td className="px-4 py-2">{r.hasPhoto ? (
-                    <a href={usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)} target="_blank" rel="noreferrer">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={thumb(usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode), 96)} decoding="async" alt="" loading="lazy" className="h-10 w-10 rounded-md bg-neutral-100 object-cover" />
-                    </a>) : <span className="text-xs text-neutral-400">—</span>}</td>
-                  <td className="px-4 py-2 text-xs text-neutral-500">{r.by} · {wibDateTime(r.updatedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex items-center justify-between gap-2 border-t border-neutral-100 px-4 py-2 text-[11px] text-neutral-500">
-            <span>{tr("{0} lines", fmtNumber(rows.length))}</span><PageNav paged={paged} />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ---------------------------------------------------------------- portal vs ESB (2026-11-13) */
 
 type CompareRow = { branchCode: string; branchName: string; portalApproved: number; portalWaiting: number; portalEntries: number; portalUnpriced: number;
