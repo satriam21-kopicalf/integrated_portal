@@ -7,26 +7,29 @@
 import { useEffect, useState } from "react";
 import { Clock, Save, Store } from "lucide-react";
 import Drawer from "@/components/kc/Drawer";
-import { Button, ErrorState, SearchBox, cx, useToast } from "@/so/ui";
+import { Button, ErrorState, cx, useToast } from "@/so/ui";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { Lozenge, type LozengeTone, QuickChips, WorkCard } from "@/so/ui/Jira";
-import { SkeletonList } from "@/components/kc/Skeleton";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 import { Tip } from "@/aggregator/info";
-import { TimeField, ctl } from "@/aggregator/fields";
+import { DateField, Facts, Group, Row as Line, TimeField, ctl } from "@/aggregator/fields";
 import { DataTable, FilterBar, FreshLine, OutletCell, Platform, noMembers, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
 import { downloadSheets } from "@/aggregator/ui";
-import { fmtDay, fmtPeriod, fmtSpan, nf, pct } from "@/aggregator/time";
+import { daysAgo, fmtDay, fmtPeriod, fmtSpan, fmtStamp, nf, pct } from "@/aggregator/time";
 
 type Status = "on_time" | "late" | "not_opened" | "waiting" | "no_hours" | "no_data";
 type Row = { day: string; channelId: number; outlet: string; branchCode: string | null; platform: string; openTime: string | null; closeTime: string | null; status: Status; openedAt: string | null; closedAt: string | null;
-  lateMin: number | null; earlyMin: number | null; pauseMin: number; member: string | null; source: "report" | "live"; itemsPct: number | null; /** "order": a POS order proves it was open by then */ evidence: "botfood" | "order" };
+  lateMin: number | null; earlyMin: number | null; pauseMin: number; member: string | null; source: "report" | "live"; hours: string[]; /** "ok" checked, the same; "team" checked, other hours; "app" read from the merchant app; "botfood" typed into BotFood */ hoursFrom: "ok" | "team" | "app" | "botfood" | null; itemsPct: number | null; /** "order": a POS order proves it was open by then */ evidence: "botfood" | "order" };
 type Res = { summary: { byOrder: number; grace: number; reportFrom: string }; rows: Row[]; noHours: { outlet: string; branchCode: string | null; platforms: string[] }[] };
 const STATUS: Record<Status, { label: () => string; tone: LozengeTone }> = {
   on_time: { label: () => tr("On time"), tone: "green" }, late: { label: () => tr("Late"), tone: "amber" }, not_opened: { label: () => tr("Not opened"), tone: "red" },
   waiting: { label: () => tr("Not yet"), tone: "grey" }, no_hours: { label: () => tr("No hours"), tone: "grey" }, no_data: { label: () => tr("No data"), tone: "grey" },
 };
+const FROM: Record<"ok" | "team" | "app" | "botfood", () => string> = { ok: () => tr("checked by the team"), team: () => tr("corrected by the team"), app: () => tr("merchant app"), botfood: () => tr("BotFood setting") };
+type Check = { code: string; branchCode: string; name: string; platform: string; app: string | null; kinds: number; from: "app" | "botfood" | null; state: "unchecked" | "ok" | "diff" | "recheck"; status: "ok" | "diff" | null; open: string | null; close: string | null; by: string | null; at: string | null; validFrom: string | null };
+const STATE: Record<Check["state"], { label: () => string; tone: LozengeTone }> = { unchecked: { label: () => tr("Not checked yet"), tone: "amber" }, recheck: { label: () => tr("Check again"), tone: "red" }, ok: { label: () => tr("The same"), tone: "green" }, diff: { label: () => tr("Different"), tone: "blue" } };
+type CheckOnly = "todo" | "all" | Check["state"];
 type Only = "all" | "on_time" | "late" | "not_opened" | "early" | "pause";
 type Tab = "outlet" | "days" | "hours";
 type Per = { key: string; outlet: string; branchCode: string | null; platform: string; days: number; on: number; late: number; lateAvg: number | null; proven: number; no: number; early: number; pause: number; rate: number; member: string | null };
@@ -41,7 +44,11 @@ export default function OpeningClosing() {
   const [q, setQ] = useState("");
   const [only, setOnly] = useState<Only>("all");
   const [grace, setGrace] = useState("");
-  const [hoursOpen, setHoursOpen] = useState(false);
+  const [checks, setChecks] = useState<Check[] | null>(null);
+  const [checkOnly, setCheckOnly] = useState<CheckOnly>("todo");
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [editing, setEditing] = useState<Check | null>(null);
+  const [busy, setBusy] = useState(false);
   const [version, setVersion] = useState(0);
   useEffect(() => {
     if (!a.ready) return;
@@ -50,6 +57,8 @@ export default function OpeningClosing() {
     call<Res>(`/api/aggregator/opening?${a.query}`).then((r) => { if (!off) { setData(r); setGrace(String(r.summary.grace)); } }).catch((e: Error) => { if (!off) setErr(e.message); });
     return () => { off = true; };
   }, [a.ready, a.query, version]);
+  const put = (r: { data: Omit<Check, "branchCode">[] }) => setChecks(r.data.map((x) => ({ ...x, branchCode: x.code })));
+  useEffect(() => { let off = false; call<{ data: Omit<Check, "branchCode">[] }>("/api/aggregator/hours").then((r) => { if (!off) put(r); }).catch(() => { if (!off) setChecks([]); }); return () => { off = true; }; }, []);
   const scoped = useScope(data?.rows, a.f, ctx);
   const t = q.trim().toLowerCase();
   const hit = (o: string, m?: string | null) => !t || o.toLowerCase().includes(t) || (m ?? "").toLowerCase().includes(t);
@@ -69,18 +78,36 @@ export default function OpeningClosing() {
     return [...m.values()].map((p) => ({ ...p, rate: p.days ? (p.on / p.days) * 100 : 0, lateAvg: p.late ? p.lateSum / p.late : null }));
   })();
   const perShown = per.filter((p) => hit(p.outlet, p.member));
-  const noHours = useScope(data?.noHours, a.f, ctx).filter((x) => hit(x.outlet));
+  const checkAll = useScope(checks ?? undefined, a.f, ctx).filter((x) => (!a.f.platform || x.platform === a.f.platform));
+  const isCheck = (x: Check, k: CheckOnly) => k === "all" || (k === "todo" ? x.state === "unchecked" || x.state === "recheck" : x.state === k);
+  const checkN = (k: CheckOnly) => checkAll.filter((x) => isCheck(x, k)).length;
+  const checkRows = checkAll.filter((x) => isCheck(x, checkOnly) && hit(x.name, x.by));
+  const noHours = data?.noHours ?? [];
   const hideMember = noMembers(scoped);
+  const checkTodo = checkN("todo");
   const s = data?.summary;
   const on = counted.filter((r) => r.status === "on_time").length;
   const pauseSum = scoped.reduce((x, r) => x + r.pauseMin, 0);
-  const key = `${a.query}${a.f.outlet}${a.f.group}${only}${t}${tab}`;
-  const hoursText = (r: Row) => (r.openTime ? `${r.openTime} – ${r.closeTime ?? "?"}` : "—");
+  const key = `${a.query}${a.f.outlet}${a.f.group}${only}${t}${tab}${checkOnly}`;
+  useEffect(() => { setPicked(new Set()); }, [key]);
+  const saveChecks = async (rows: { code: string; platform: string; status: "ok" | "diff"; open?: string; close?: string; validFrom?: string }[]) => {
+    setBusy(true);
+    try { put(await call<{ data: Omit<Check, "branchCode">[] }>("/api/aggregator/hours", { method: "PUT", json: { rows } })); toast(tr("Saved")); setEditing(null); setPicked(new Set()); setVersion((v) => v + 1); }
+    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  const checkCols: Col<Check>[] = [
+    { key: "o", card: "title", label: tr("Outlet"), sort: (x) => x.name, render: (x) => <OutletCell name={x.name} code={x.code} ctx={ctx} /> },
+    { key: "p", label: tr("Platform"), sort: (x) => x.platform, render: (x) => <Platform p={x.platform} /> },
+    { key: "app", label: tr("Hours in BotFood"), sort: (x) => x.app, className: "whitespace-nowrap tabular-nums", render: (x) => <>{x.app ? x.app.split("; ").map((h) => <span key={h} className="block">{h}</span>) : "—"}<span className="block text-[11px] text-neutral-400">{x.from === "botfood" ? tr("BotFood setting, not the app") : x.from === "app" ? tr("read from the app") : ""}{x.kinds > 1 ? ` · ${tr("{0} kinds in 14 days", x.kinds)}` : ""}</span></> },
+    { key: "real", label: tr("Hours in the merchant app"), className: "whitespace-nowrap tabular-nums", render: (x) => x.status === "diff" ? <b className="font-semibold">{x.open} - {x.close}</b> : x.status === "ok" ? tr("the same") : <span className="text-neutral-400">{tr("not checked")}</span> },
+    { key: "state", card: "side", label: tr("Status"), sort: (x) => ["recheck", "unchecked", "diff", "ok"].indexOf(x.state), render: (x) => <Lozenge tone={STATE[x.state].tone}>{STATE[x.state].label()}</Lozenge> },
+    { key: "by", label: tr("Checked by"), sort: (x) => x.at, first: "desc", className: "text-xs text-neutral-600", render: (x) => x.by ? <>{x.by}<span className="block text-[11px] text-neutral-400">{fmtStamp(x.at)}</span></> : "—" },
+  ];
   const cols: Col<Row>[] = [
     { key: "day", label: tr("Date"), sort: (r) => r.day, first: "desc", className: "whitespace-nowrap text-neutral-600", render: (r) => <>{fmtDay(r.day)}{r.source === "live" && <span className="ml-1.5"><Lozenge tone="blue">{tr("Today, live")}</Lozenge></span>}</> },
     { key: "outlet", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
     { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "hours", label: tr("Opening hours"), sort: (r) => r.openTime, className: "whitespace-nowrap tabular-nums text-neutral-600", render: hoursText },
+    { key: "hours", label: tr("Opening hours"), sort: (r) => r.openTime, className: "whitespace-nowrap tabular-nums text-neutral-600", render: (r) => <>{r.hours.length ? r.hours.map((h) => <span key={h} className="block">{h}</span>) : "—"}{r.hoursFrom && <span className="block text-[11px] text-neutral-400">{FROM[r.hoursFrom]()}</span>}</> },
     { key: "opened", label: tr("Open at the latest"), sort: (r) => r.openedAt, className: "whitespace-nowrap", render: (r) => <span className="tabular-nums">{r.openedAt ?? (r.status === "on_time" ? tr("before opening") : "—")}<span className="block text-[11px] text-neutral-400">{r.openedAt ? (r.evidence === "order" ? tr("first POS order") : tr("seen by BotFood")) : ""}</span></span> },
     { key: "status", card: "side", label: tr("Status"), sort: (r) => r.status, render: (r) => <><Lozenge tone={STATUS[r.status].tone}>{STATUS[r.status].label()}</Lozenge>{r.lateMin ? <span className="block whitespace-nowrap text-[11px] text-amber-800">{tr("at most {0}", fmtSpan(r.lateMin))}</span> : null}</> },
     { key: "early", label: tr("Closed early"), sort: (r) => r.earlyMin ?? 0, first: "desc", className: "whitespace-nowrap", render: (r) => r.earlyMin ? <span className="text-red-700">{fmtSpan(r.earlyMin)}<span className="block text-[11px] text-neutral-400">{tr("last open {0}", r.closedAt ?? "—")}</span></span> : <span className="text-neutral-300">—</span> },
@@ -105,17 +132,18 @@ export default function OpeningClosing() {
     try {
       await downloadSheets(`Opening & Closing ${a.f.from} - ${a.f.to}`, [
         { sheet: "Summary", title: `Opening & Closing · ${fmtPeriod(a.f.from, a.f.to)}${a.f.platform ? ` · ${a.f.platform}` : ""} · WIB · ${tr("grace {0} min", data.summary.grace)}`, header: [tr("Measure"), tr("Value")], rows: [[tr("Outlet-days counted"), counted.length], [tr("On time"), on],
-          [tr("On time % (at least)"), counted.length ? Math.round((on / counted.length) * 1000) / 10 : null], [tr("Late"), n("late")], [tr("Not opened"), n("not_opened")], [tr("Closed early"), n("early")], [tr("Pause (minutes)"), pauseSum], [tr("Outlets without hours"), noHours.length]] },
+          [tr("On time % (at least)"), counted.length ? Math.round((on / counted.length) * 1000) / 10 : null], [tr("Late"), n("late")], [tr("Not opened"), n("not_opened")], [tr("Closed early"), n("early")], [tr("Pause (minutes)"), pauseSum], [tr("Outlets without hours"), noHours.length], [tr("Hours not checked in the merchant app"), checkTodo]] },
         { sheet: "Per outlet", header: [tr("Outlet"), tr("Platform"), tr("Days"), tr("On time"), tr("On time %"), tr("Late"), tr("Average late (min)"), tr("Not opened"), tr("Closed early"), tr("Pause (minutes)"), tr("Handled by")],
           rows: perShown.map((p) => [p.outlet, p.platform, p.days, p.on, Math.round(p.rate * 10) / 10, p.late, p.lateAvg ? Math.round(p.lateAvg) : null, p.no, p.early, p.pause, p.member]) },
-        { sheet: "Per day", header: [tr("Date"), tr("Outlet"), tr("Platform"), tr("Opening hour"), tr("Closing hour"), tr("Open at the latest"), tr("Evidence"), tr("Status"), tr("Late (min)"), tr("Last open"), tr("Closed early (min)"), tr("Pause (min)"), tr("Items active %"), tr("Handled by")],
-          rows: rows.map((r) => [r.day, r.outlet, r.platform, r.openTime, r.closeTime, r.openedAt, r.evidence === "order" ? "POS" : "BotFood", STATUS[r.status].label(), r.lateMin, r.closedAt, r.earlyMin, r.pauseMin, r.itemsPct, r.member]) },
+        { sheet: "Per day", header: [tr("Date"), tr("Outlet"), tr("Platform"), tr("Opening hour"), tr("Closing hour"), tr("Hours from"), tr("Open at the latest"), tr("Evidence"), tr("Status"), tr("Late (min)"), tr("Last open"), tr("Closed early (min)"), tr("Pause (min)"), tr("Items active %"), tr("Handled by")],
+          rows: rows.map((r) => [r.day, r.outlet, r.platform, r.openTime, r.closeTime, r.hoursFrom ? FROM[r.hoursFrom]() : null, r.openedAt, r.evidence === "order" ? "POS" : "BotFood", STATUS[r.status].label(), r.lateMin, r.closedAt, r.earlyMin, r.pauseMin, r.itemsPct, r.member]) },
       ]);
     } catch (e) { toast((e as Error).message, "error"); }
   };
   const saveGrace = () => call("/api/aggregator/opening/grace", { method: "PUT", json: { minutes: Number(grace) } }).then(() => { toast(tr("Saved")); setVersion((v) => v + 1); }).catch((e: Error) => toast(e.message, "error"));
   const filter = (
-    <FilterBar a={a} ctx={ctx} q={q} onQ={setQ} placeholder={tr("Search outlet or member")} excel={() => void exportXlsx()} excelOff={!data}>{tab === "days" && <QuickChips<Only> value={only} onChange={setOnly} label={tr("Status")} items={[{ key: "all", label: tr("All") }, { key: "on_time", label: tr("On time"), dot: "bg-emerald-500", count: n("on_time") }, { key: "late", label: tr("Late"), dot: "bg-amber-400", count: n("late") },
+    <FilterBar a={a} ctx={ctx} q={q} onQ={setQ} placeholder={tr("Search outlet or member")} excel={() => void exportXlsx()} excelOff={!data}>{tab === "hours" && <QuickChips<CheckOnly> value={checkOnly} onChange={setCheckOnly} label={tr("Status")} items={[{ key: "todo", label: tr("To check"), dot: "bg-amber-400", count: checkN("todo") }, { key: "recheck", label: tr("Check again"), dot: "bg-red-500", count: checkN("recheck") }, { key: "ok", label: tr("The same"), dot: "bg-emerald-500", count: checkN("ok") }, { key: "diff", label: tr("Different"), dot: "bg-blue-500", count: checkN("diff") }, { key: "all", label: tr("All"), count: checkN("all") }]} />}
+                {tab === "days" && <QuickChips<Only> value={only} onChange={setOnly} label={tr("Status")} items={[{ key: "all", label: tr("All") }, { key: "on_time", label: tr("On time"), dot: "bg-emerald-500", count: n("on_time") }, { key: "late", label: tr("Late"), dot: "bg-amber-400", count: n("late") },
                   { key: "not_opened", label: tr("Not opened"), dot: "bg-red-500", count: n("not_opened") }, { key: "early", label: tr("Closed early"), count: n("early") }, { key: "pause", label: tr("Paused"), count: n("pause") }]} />}
                 <label className="flex w-full items-center gap-2 whitespace-nowrap text-xs text-neutral-600 sm:ml-auto sm:w-auto"><span>{tr("Grace before late (minutes)")}</span><span className="ml-auto block w-20"><input type="number" inputMode="numeric" min={0} max={180} value={grace} onChange={(e) => setGrace(e.target.value)} className={cx(ctl, "text-right tabular-nums")} /></span>
                   <Button size="sm" variant="ghost" disabled={!grace || Number(grace) === s?.grace} onClick={() => void saveGrace()}>{tr("Save")}</Button></label></FilterBar>
@@ -123,7 +151,7 @@ export default function OpeningClosing() {
   const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
   return (
     <Page title={tr("Opening & Closing")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Opening on time, closing early and pauses per outlet and platform")} media={<Store size={19} />}
-      actions={<><Button variant="secondary" size="sm" onClick={() => setHoursOpen(true)}><Clock size={14} /> {tr("Outlet hours")}</Button></>}>
+      actions={<><Button variant="secondary" size="sm" onClick={() => { setTab("hours"); setCheckOnly("todo"); }}><Clock size={14} /> {tr("Check the hours")}{checks && checkTodo > 0 ? ` (${nf(checkTodo)})` : ""}</Button></>}>
       <FreshLine ctx={ctx} sources={["status", "daily"]} />
       {err ? <>{card}<ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /></> : (
         <>
@@ -134,66 +162,50 @@ export default function OpeningClosing() {
             <Stat label={tr("Closed early")} info={<Tip k="early" />} value={s ? nf(n("early")) : <StatSkeleton />} />
             <Stat label={tr("Paused in all")} info={<Tip k="pause" />} value={s ? fmtSpan(pauseSum) : <StatSkeleton />}>{s && <p>{tr("{0} outlet-days", nf(n("pause")))}</p>}</Stat>
           </StatStrip>
-          <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "outlet", label: tr("Per outlet"), count: data ? per.length : null }, { key: "days", label: tr("Per day"), count: data ? scoped.length : null }, { key: "hours", label: tr("Without hours"), count: data ? noHours.length : null }]}>
+          {tab === "hours" && picked.size > 0 && (
+            <section aria-label={tr("Confirm")} className="sticky top-16 z-[15] flex flex-wrap items-center gap-2 rounded-xl border border-brand-200 bg-white p-3 shadow-lg sm:p-4">
+              <p className="mr-auto text-sm font-semibold text-neutral-900">{tr("{0} checked in the merchant app: the same as BotFood?", nf(picked.size))}</p>
+              <Button variant="secondary" onClick={() => setPicked(new Set())}>{tr("Cancel")}</Button>
+              <Button loading={busy} onClick={() => void saveChecks([...picked].map((k) => { const [code, platform] = k.split("|"); return { code, platform, status: "ok" }; }))}><Save size={14} /> {tr("Yes, the same")}</Button>
+            </section>)}
+          <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "outlet", label: tr("Per outlet"), count: data ? per.length : null }, { key: "days", label: tr("Per day"), count: data ? scoped.length : null }, { key: "hours", label: tr("Merchant app hours"), count: checks ? checkTodo : null }]}>
             {filter}
             {tab === "outlet" ? <DataTable key={tab} cols={perCols} rows={perShown} loading={!data} rowKey={(r) => r.key} resetKey={key} initial={{ key: "rate", dir: "asc" }} minWidth={940} onRow={(r) => { setQ(r.outlet); setTab("days"); setOnly("all"); }}
                 note={tr("BotFood reads the apps about every hour, so late and closed early are the most it can be. An order of the platform proves the outlet was open.")} />
               : tab === "days" ? <DataTable key={tab} cols={cols} rows={rows} loading={!data} rowKey={(r) => `${r.day}${r.channelId}`} resetKey={key} initial={{ key: "day", dir: "desc" }} minWidth={1080}
                 note={tr("Past days come from the daily report of BotFood, today is live. Do not judge a member on times only seen by BotFood.")} />
-              : <DataTable key={tab} cols={[{ key: "o", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{r.platforms.map((p) => <Platform key={p} p={p} />)}</span> },
-                { key: "a", label: "", right: true, render: (r) => r.branchCode ? <button type="button" className="text-xs font-semibold text-brand-700 hover:underline" onClick={() => setHoursOpen(true)}>{tr("Enter the hours")}</button> : <span className="text-xs text-amber-800">{tr("Match the outlet first (Overview)")}</span> }]}
-                rows={noHours} loading={!data} rowKey={(r) => r.branchCode ?? r.outlet} resetKey={key} minWidth={560} empty={tr("Every outlet has its hours")} note={tr("BotFood has no opening hours for these outlets: they are left out of every figure until the hours are entered.")} />}
+              : <DataTable key={tab} cols={checkCols} rows={checkRows} loading={!checks} rowKey={(x) => `${x.code}|${x.platform}`} resetKey={key} initial={{ key: "state", dir: "asc" }} minWidth={900} onRow={setEditing} empty={tr("Every outlet is checked")}
+                select={{ picked, onChange: setPicked, label: (x) => `${x.name} ${x.platform}` }} note={tr("The hours of the merchant app decide what is late. Open the merchant app, compare, and confirm or correct. The times are on the outlet's own clock. Corrected hours hold until the next check.")} />}
           </WorkCard>
         </>
       )}
-      {hoursOpen && <HoursDrawer onClose={() => setHoursOpen(false)} onSaved={() => { setHoursOpen(false); setVersion((v) => v + 1); }} zone={(c) => ctx?.outlets.find((o) => o.code === c)?.zone ?? "WIB"} />}
+      {editing && <CheckDrawer key={`${editing.code}${editing.platform}`} row={editing} busy={busy} zone={ctx?.outlets.find((o) => o.code === editing.code)?.zone ?? "WIB"} onClose={() => setEditing(null)} onSave={(v) => void saveChecks([{ code: editing.code, platform: editing.platform, ...v }])} />}
     </Page>
   );
 }
 
-type Hour = { code: string; name: string; botfood: string | null; open: string | null; close: string | null; by: string | null };
-
-/** The hours of the outlets BotFood has none for: entered by the team on the outlet's own clock, used at once for every day. */
-function HoursDrawer({ onClose, onSaved, zone }: { onClose: () => void; onSaved: () => void; zone: (code: string) => string }) {
-  const toast = useToast();
-  const [rows, setRows] = useState<Hour[] | null>(null);
-  const [edit, setEdit] = useState<Record<string, { open: string; close: string }>>({});
-  const [all, setAll] = useState(false);
-  const [q, setQ] = useState("");
-  const [busy, setBusy] = useState(false);
-  useEffect(() => { call<{ data: Hour[] }>("/api/aggregator/hours").then((r) => setRows(r.data)).catch((e) => toast((e as Error).message, "error")); }, [toast]);
-  const shown = (rows ?? []).filter((r) => (all || !r.botfood) && (!q.trim() || r.name.toLowerCase().includes(q.trim().toLowerCase())));
-  const val = (r: Hour) => edit[r.code] ?? { open: r.open ?? "", close: r.close ?? "" };
-  const put = (list: Hour[], v: { open: string; close: string }) => setEdit((x) => ({ ...x, ...Object.fromEntries(list.map((r) => [r.code, v])) }));
-  const save = async () => {
-    setBusy(true);
-    try { await call("/api/aggregator/hours", { method: "PUT", json: { rows: Object.entries(edit).map(([code, v]) => ({ code, open: v.open || null, close: v.close || null })) } }); toast(tr("Saved")); onSaved(); }
-    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
-  };
-  const empty = shown.filter((r) => !val(r).open);
-  const [same, setSame] = useState({ open: "07:00", close: "22:00" });
-  const name = (n: string) => n.replace(/^Kopi Calf (To Go )?/, "");
+/** One outlet and platform against the merchant app: the same, or the hours the app really shows from a date on. */
+function CheckDrawer({ row, busy, zone, onClose, onSave }: { row: Check; busy: boolean; zone: string; onClose: () => void; onSave: (v: { status: "ok" | "diff"; open?: string; close?: string; validFrom?: string }) => void }) {
+  const [status, setStatus] = useState<"ok" | "diff">(row.status ?? (row.app ? "ok" : "diff"));
+  const [open, setOpen] = useState(row.open ?? row.app?.slice(0, 5) ?? "");
+  const [close, setClose] = useState(row.close ?? row.app?.slice(-5) ?? "");
+  const [from, setFrom] = useState(daysAgo(0));
+  const bad = status === "diff" && !(open && close && open < close);
   return (
-    <Drawer open onClose={onClose} size="lg" icon={<Clock size={18} />} title={tr("Outlet hours")} description={tr("On the outlet's own clock; every day is worked out again")}
-      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!Object.keys(edit).length} onClick={() => void save()}><Save size={14} /> {tr("Save {0} outlets", Object.keys(edit).length)}</Button></>}>
-      <div className="space-y-4">
-        <SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet")} />
-        <label className="flex min-h-11 items-center gap-2.5 text-sm text-neutral-700 sm:min-h-0"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={all} onChange={(e) => setAll(e.target.checked)} /> {tr("Show those with BotFood hours too")}</label>
-        {empty.length > 1 && <section className="space-y-2.5 rounded-xl border border-neutral-200 bg-neutral-50 p-3"><div><p className="text-sm font-semibold text-neutral-900">{tr("Fill several at once")}</p><p className="text-xs text-neutral-500">{tr("The same hours for the {0} empty ones shown", empty.length)}</p></div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_auto]"><TimeField label={tr("Opening hour")} prefix={tr("Opens at")} value={same.open} onChange={(v) => setSame((x) => ({ ...x, open: v }))} /><TimeField label={tr("Closing hour")} prefix={tr("Closes at")} value={same.close} onChange={(v) => setSame((x) => ({ ...x, close: v }))} />
-            <Button variant="secondary" className="col-span-2 sm:col-span-1 sm:!h-10" disabled={!same.open || !same.close} onClick={() => put(empty, same)}>{tr("Fill in")}</Button></div></section>}
-        {!rows ? <SkeletonList rows={8} /> : (
-          <div><p className="mb-2 text-xs font-medium text-neutral-500">{tr("{0} outlets · {1} without hours", shown.length, empty.length)}</p>
-            <ul className="divide-y divide-neutral-200 rounded-xl border border-neutral-200">
-              {shown.map((r) => (
-                <li key={r.code} className={cx("space-y-2 px-3 py-3", edit[r.code] && "bg-brand-50/40")}>
-                  <div className="flex items-start justify-between gap-2"><span className="min-w-0"><span className="block font-medium text-neutral-900">{name(r.name)}</span><span className="block text-[11px] text-neutral-500">{r.code}{zone(r.code) !== "WIB" ? ` · ${tr("Times in {0}", zone(r.code))}` : ""}</span></span>
-                    <Lozenge tone={edit[r.code] ? "blue" : r.open || r.botfood ? "green" : "amber"}>{edit[r.code] ? tr("Not saved yet") : r.open ? tr("By the team") : r.botfood ? `BotFood ${r.botfood}` : tr("Not filled in")}</Lozenge></div>
-                  <div className="grid grid-cols-2 gap-2"><TimeField label={`${r.name} ${tr("Opening hour")}`} prefix={tr("Opens at")} value={val(r).open} onChange={(v) => put([r], { ...val(r), open: v })} /><TimeField label={`${r.name} ${tr("Closing hour")}`} prefix={tr("Closes at")} value={val(r).close} onChange={(v) => put([r], { ...val(r), close: v })} /></div>
-                  {r.by && !edit[r.code] && <p className="text-[11px] text-neutral-500">{tr("Filled in by {0}", r.by)}</p>}
-                </li>))}
-            </ul></div>)}
-      </div>
+    <Drawer open onClose={onClose} icon={<Clock size={18} />} title={tr("Check the merchant app")} description={tr("Open the merchant app of this outlet and compare its opening hours")}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={bad} onClick={() => onSave(status === "ok" ? { status } : { status, open, close, validFrom: from })}><Save size={14} /> {tr("Save")}</Button></>}>
+      <Group title={tr("In BotFood now")}>
+        <Facts rows={[[tr("Outlet"), row.name], [tr("Platform"), <Platform key="p" p={row.platform} />], [tr("Hours in BotFood"), row.app ?? "—"], [tr("Where from"), row.from === "botfood" ? tr("BotFood setting, not the app") : row.from === "app" ? tr("read from the app") : "—"], [tr("Clock"), zone],
+          ...(row.by ? [[tr("Last check"), `${row.by} · ${fmtStamp(row.at)}`] as [string, string]] : [])]} />
+        {row.state === "recheck" && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{tr("The hours in BotFood have changed since the last check.")}</p>}
+      </Group>
+      <Group title={tr("In the merchant app")}>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={tr("In the merchant app")}>{(["ok", "diff"] as const).map((x) => <button key={x} type="button" role="radio" aria-checked={status === x} disabled={x === "ok" && !row.app} onClick={() => setStatus(x)} className={cx("h-11 rounded-lg border text-sm font-medium disabled:opacity-40 sm:h-10", status === x ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-700 hover:bg-neutral-50")}>{x === "ok" ? tr("The same") : tr("Different")}</button>)}</div>
+        {status === "diff" && <>
+          <div className="grid grid-cols-2 gap-2"><Line label={tr("Opening hour")} required><TimeField label={tr("Opening hour")} prefix={tr("Opens at")} value={open} onChange={setOpen} /></Line><Line label={tr("Closing hour")} required><TimeField label={tr("Closing hour")} prefix={tr("Closes at")} value={close} onChange={setClose} /></Line></div>
+          <Line label={tr("Holds from")} required hint={tr("The days from this date are worked out again")} error={open && close && open >= close ? tr("The closing hour must be after the opening hour") : null}><DateField label={tr("Holds from")} value={from} max={daysAgo(0)} onChange={setFrom} /></Line>
+        </>}
+      </Group>
     </Drawer>
   );
 }

@@ -7,7 +7,7 @@ import InfoTip from "@/components/ui/InfoTip";
 type T = { title: string; definition: string[]; source: string[]; formula?: string[] };
 const BOT = "BotFood, which reads the delivery apps about every hour", ESB = "ESB POS bills of GoFood, GrabFood and ShopeeFood", OURS = "Entered by the team in this portal", BILLS = "The first POS order of the platform on that day";
 const INFO = {
-  onTime: { title: "On time, at least", formula: ["On time ÷ outlet-days counted × 100"], definition: ["An outlet on one platform on one day counts as one outlet-day.", "On time = open before the opening hour plus the grace.", "At least: BotFood may see an opening up to an hour late.", "Outlets without opening hours are left out."], source: [BOT, BILLS] },
+  onTime: { title: "On time, at least", formula: ["On time ÷ outlet-days counted × 100"], definition: ["An outlet on one platform on one day counts as one outlet-day.", "On time = open before the opening hour plus the grace.", "At least: BotFood may see an opening up to an hour late.", "The opening hours are those of the merchant app: as the team checked, else as BotFood read them that day."], source: [BOT, BILLS] },
   late: { title: "Late, at most", definition: ["Seen open after the opening hour plus the grace.", "Proven by orders = the first POS order also came after it."], source: [BOT, BILLS] },
   notOpened: { title: "Not opened", definition: ["Not seen open and no POS order on the whole day."], source: [BOT, BILLS] },
   early: { title: "Closed early", definition: ["Closed before the closing hour and not open again; the last order counts as still open.", "At most: BotFood may see a closing up to an hour late or early."], source: [BOT, BILLS] },
