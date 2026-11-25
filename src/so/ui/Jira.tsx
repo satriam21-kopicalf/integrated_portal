@@ -6,11 +6,13 @@
 // Monitoring page so they read as one system.
 
 import { Check, ChevronDown, Search } from "lucide-react";
-import { Children, isValidElement, useEffect, useMemo, useRef, useState } from "react";
+import { Children, isValidElement, useMemo, useRef, useState } from "react";
+import Floating, { usePhone } from "@/components/kc/Floating";
 import { cx } from "@/so/ui";
 import { tr } from "@/lib/i18n";
 
-export type JOption = { value: string; label: string; hint?: string; group?: string; disabled?: boolean };
+export type JOption = { value: string; label: string; hint?: string; group?: string; disabled?: boolean;
+  /** a logo shown instead of the label */ icon?: React.ReactNode };
 
 type SelectChange = { target: { value: string }; currentTarget: { value: string } };
 const textOf = (n: React.ReactNode): string =>
@@ -48,65 +50,62 @@ export function NativeSelect({ value, onChange, children, className, disabled, .
 
 /** A Jira dropdown (2026-11-18): a flat trigger, a popover with a search box, options grouped under small caps, the
  *  chosen one marked by a blue bar and a check. Replaces the native select on the Monitoring pages. */
+/** A list field. Phones and the PWA: a bottom sheet with its name and rows big enough to tap; else a list under the field. */
 export function JSelect({ value, onChange, options, placeholder, label, className, disabled }: {
   value: string; onChange: (v: string) => void; options: JOption[]; placeholder: string; label?: string; className?: string; disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [wide, setWide] = useState(256);
+  const phone = usePhone();
   const box = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); setOpen(false); } };
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", esc, true);
-    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc, true); };
-  }, [open]);
+  const close = () => { setOpen(false); setQ(""); };
   const current = options.find((o) => o.value === value);
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
     return s ? options.filter((o) => `${o.label} ${o.hint ?? ""} ${o.group ?? ""}`.toLowerCase().includes(s)) : options;
   }, [options, q]);
   const groups = [...new Set(shown.map((o) => o.group ?? ""))];
-  const pick = (v: string) => { onChange(v); setOpen(false); setQ(""); };
-  return (
-    <div ref={box} className={cx("relative", className)}>
-      <button type="button" disabled={disabled} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="listbox" aria-label={label ?? placeholder}
-        className={cx("flex h-9 w-full items-center justify-between gap-2 rounded-[4px] border border-neutral-200 bg-neutral-50 px-2.5 text-left text-sm transition-colors hover:bg-neutral-100 disabled:opacity-50",
-          open && "border-brand-500 bg-white ring-2 ring-brand-500/20")}>
-        <span className={cx("min-w-0 truncate", !current && "text-neutral-500")}>{current ? current.label : placeholder}</span>
-        <ChevronDown size={15} className={cx("flex-shrink-0 text-neutral-400 transition", open && "rotate-180")} />
-      </button>
-      {open && (
-        <div className="absolute z-40 mt-1 w-full min-w-[16rem] overflow-hidden rounded-md border border-neutral-200 bg-white shadow-xl">
-          <div className="relative border-b border-neutral-100 p-2">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search")} aria-label={tr("Search")}
-              className="h-8 w-full rounded-[4px] border border-neutral-200 bg-white pl-8 pr-2 text-sm outline-none focus:border-brand-500" />
-          </div>
-          <ul role="listbox" className="max-h-64 overflow-y-auto py-1">
-            {groups.map((g) => (
-              <li key={g || "_"}>
-                {g && <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{g}</p>}
-                <ul>
-                  {shown.filter((o) => (o.group ?? "") === g).map((o) => (
-                    <li key={o.value || "_none"}>
-                      <button type="button" role="option" aria-selected={o.value === value} disabled={o.disabled} onClick={() => pick(o.value)}
-                        className={cx("flex w-full items-center gap-2 border-l-2 px-3 py-1.5 text-left text-sm disabled:opacity-40",
-                          o.value === value ? "border-brand-700 bg-brand-50 font-medium text-brand-800" : "border-transparent text-neutral-700 hover:bg-neutral-100")}>
-                        <span className="min-w-0 flex-1 truncate">{o.label}</span>
-                        {o.hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{o.hint}</span>}
-                        {o.value === value && <Check size={14} className="flex-shrink-0" />}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+  const pick = (v: string) => { onChange(v); close(); };
+  const search = options.length > 8 && (
+    <div className="sticky top-0 z-10 border-b border-neutral-100 bg-white p-2">
+      <div className="relative"><Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <input autoFocus={!phone} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search")} aria-label={tr("Search")}
+          className="h-11 w-full rounded-lg border border-neutral-200 bg-white pl-8 pr-2 text-base outline-none focus:border-brand-500 sm:h-8 sm:rounded-[4px] sm:text-sm" /></div>
+    </div>
+  );
+  const list = (
+    <ul role="listbox" aria-label={label ?? placeholder} className="py-1">
+      {groups.map((g) => (
+        <li key={g || "_"}>
+          {g && <p className="px-4 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400 sm:px-3">{g}</p>}
+          <ul>
+            {shown.filter((o) => (o.group ?? "") === g).map((o) => (
+              <li key={o.value || "_none"}>
+                <button type="button" role="option" aria-selected={o.value === value} disabled={o.disabled} onClick={() => pick(o.value)}
+                  className={cx("flex min-h-12 w-full items-center gap-2 border-l-2 px-4 py-2 text-left text-[15px] disabled:opacity-40 sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-sm",
+                    o.value === value ? "border-brand-700 bg-brand-50 font-medium text-brand-800" : "border-transparent text-neutral-700 hover:bg-neutral-100")}>
+                  <span className="min-w-0 flex-1 break-words sm:truncate">{o.icon ?? o.label}</span>
+                  {o.hint && <span className="flex-shrink-0 text-xs text-neutral-400 sm:text-[11px]">{o.hint}</span>}
+                  {o.value === value && <Check size={16} className="flex-shrink-0" />}
+                </button>
               </li>
             ))}
-            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr("No match")}</li>}
           </ul>
-        </div>
-      )}
+        </li>
+      ))}
+      {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr("No match")}</li>}
+    </ul>
+  );
+  return (
+    <div ref={box} className={cx("relative", className)}>
+      <button type="button" disabled={disabled} onClick={() => { if (open) close(); else { setWide(Math.max(256, box.current?.offsetWidth ?? 0)); setOpen(true); } }} aria-expanded={open} aria-haspopup="listbox" aria-label={label ?? placeholder}
+        className={cx("flex h-11 w-full items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 text-left text-[15px] transition-colors hover:bg-neutral-50 disabled:opacity-50 sm:h-9 sm:rounded-[4px] sm:bg-neutral-50 sm:px-2.5 sm:text-sm sm:hover:bg-neutral-100",
+          open && "border-brand-500 ring-2 ring-brand-500/20")}>
+        <span className={cx("min-w-0 truncate", !current && "text-neutral-500")}>{current ? current.icon ?? current.label : placeholder}</span>
+        <ChevronDown size={15} className={cx("flex-shrink-0 text-neutral-400 transition", open && "rotate-180")} />
+      </button>
+      <Floating open={open} onClose={close} title={label ?? placeholder} anchor={box} width={wide} maxHeight={320}>{search}{list}</Floating>
     </div>
   );
 }

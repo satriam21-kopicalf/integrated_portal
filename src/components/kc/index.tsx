@@ -128,7 +128,7 @@ export function StatBody({ label, value, sub, icon, tone = 'default', info, titl
         <span className={cx('relative hidden h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg', longValue(value) ? '2xl:flex' : 'sm:flex', ' [&>svg]:h-4 [&>svg]:w-4', CHIP_TONE[tone] ?? 'bg-neutral-100 text-neutral-500')}>{icon ?? <StatIcon label={label} />}</span>)}
       <span className="relative min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
-          <span className="flex min-w-0 items-center gap-1 truncate text-xs font-medium text-neutral-500">{tc(label)}{info}</span>
+          <span className="flex min-w-0 items-start gap-1 text-xs font-medium text-neutral-500"><span className="line-clamp-2 min-w-0 leading-5">{tc(label)}</span>{info}</span>
           {arrow && <ArrowUpRight size={14} className="flex-shrink-0 text-neutral-300 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-brand-700" aria-hidden />}
         </span>
         <span title={title ?? (typeof value === 'string' ? value : undefined)}

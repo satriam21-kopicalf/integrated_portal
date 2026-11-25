@@ -5,14 +5,16 @@
 // limits: seen open at 08:51 = open at 08:51 at the latest. A POS order of the platform proves it was open by then.
 
 import { useEffect, useState } from "react";
-import { Clock, Download, Save, Store } from "lucide-react";
+import { Clock, Save, Store } from "lucide-react";
 import Drawer from "@/components/kc/Drawer";
-import { Button, ErrorState, Input, SearchBox, cx, useToast } from "@/so/ui";
+import { Button, ErrorState, SearchBox, cx, useToast } from "@/so/ui";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { Lozenge, type LozengeTone, QuickChips, Toolbar, WorkCard } from "@/so/ui/Jira";
+import { Lozenge, type LozengeTone, QuickChips, WorkCard } from "@/so/ui/Jira";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
+import { Tip } from "@/aggregator/info";
+import { TimeField, ctl } from "@/aggregator/fields";
 import { DataTable, FilterBar, FreshLine, OutletCell, Platform, noMembers, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
 import { downloadSheets } from "@/aggregator/ui";
 import { fmtDay, fmtPeriod, fmtSpan, nf, pct } from "@/aggregator/time";
@@ -76,21 +78,21 @@ export default function OpeningClosing() {
   const hoursText = (r: Row) => (r.openTime ? `${r.openTime} – ${r.closeTime ?? "?"}` : "—");
   const cols: Col<Row>[] = [
     { key: "day", label: tr("Date"), sort: (r) => r.day, first: "desc", className: "whitespace-nowrap text-neutral-600", render: (r) => <>{fmtDay(r.day)}{r.source === "live" && <span className="ml-1.5"><Lozenge tone="blue">{tr("Today, live")}</Lozenge></span>}</> },
-    { key: "outlet", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
+    { key: "outlet", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
     { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
     { key: "hours", label: tr("Opening hours"), sort: (r) => r.openTime, className: "whitespace-nowrap tabular-nums text-neutral-600", render: hoursText },
     { key: "opened", label: tr("Open at the latest"), sort: (r) => r.openedAt, className: "whitespace-nowrap", render: (r) => <span className="tabular-nums">{r.openedAt ?? (r.status === "on_time" ? tr("before opening") : "—")}<span className="block text-[11px] text-neutral-400">{r.openedAt ? (r.evidence === "order" ? tr("first POS order") : tr("seen by BotFood")) : ""}</span></span> },
-    { key: "status", label: tr("Status"), sort: (r) => r.status, render: (r) => <><Lozenge tone={STATUS[r.status].tone}>{STATUS[r.status].label()}</Lozenge>{r.lateMin ? <span className="block whitespace-nowrap text-[11px] text-amber-800">{tr("at most {0}", fmtSpan(r.lateMin))}</span> : null}</> },
+    { key: "status", card: "side", label: tr("Status"), sort: (r) => r.status, render: (r) => <><Lozenge tone={STATUS[r.status].tone}>{STATUS[r.status].label()}</Lozenge>{r.lateMin ? <span className="block whitespace-nowrap text-[11px] text-amber-800">{tr("at most {0}", fmtSpan(r.lateMin))}</span> : null}</> },
     { key: "early", label: tr("Closed early"), sort: (r) => r.earlyMin ?? 0, first: "desc", className: "whitespace-nowrap", render: (r) => r.earlyMin ? <span className="text-red-700">{fmtSpan(r.earlyMin)}<span className="block text-[11px] text-neutral-400">{tr("last open {0}", r.closedAt ?? "—")}</span></span> : <span className="text-neutral-300">—</span> },
     { key: "pause", label: tr("Paused"), sort: (r) => r.pauseMin, first: "desc", right: true, render: (r) => (r.pauseMin ? fmtSpan(r.pauseMin) : <span className="text-neutral-300">—</span>) },
     { key: "items", label: tr("Items active"), sort: (r) => r.itemsPct, right: true, render: (r) => pct(r.itemsPct, 0) },
     { key: "member", label: tr("Handled by"), sort: (r) => r.member, hide: hideMember, render: (r) => r.member ?? "—" },
   ];
   const perCols: Col<Per>[] = [
-    { key: "outlet", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
+    { key: "outlet", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
     { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
     { key: "days", label: tr("Days"), sort: (r) => r.days, first: "desc", right: true, render: (r) => nf(r.days) },
-    { key: "rate", label: tr("On time, at least"), sort: (r) => r.rate, right: true, render: (r) => <span className={cx("font-semibold", r.rate >= 80 ? "text-emerald-700" : r.rate >= 50 ? "text-amber-700" : "text-red-700")}>{pct(r.rate, 0)}<span className="block text-[11px] font-normal text-neutral-400">{tr("{0} of {1} days", r.on, r.days)}</span></span> },
+    { key: "rate", card: "side", label: tr("On time, at least"), sort: (r) => r.rate, right: true, render: (r) => <span className={cx("font-semibold", r.rate >= 80 ? "text-emerald-700" : r.rate >= 50 ? "text-amber-700" : "text-red-700")}>{pct(r.rate, 0)}<span className="block text-[11px] font-normal text-neutral-400">{tr("{0} of {1} days", r.on, r.days)}</span></span> },
     { key: "late", label: tr("Late, at most"), sort: (r) => r.late, first: "desc", right: true, render: (r) => r.late ? <>{tr("{0} days", r.late)}<span className="block text-[11px] text-neutral-400">{tr("{0} proven by orders", r.proven)}</span></> : "—" },
     { key: "avg", label: tr("Average late"), sort: (r) => r.lateAvg ?? 0, first: "desc", right: true, render: (r) => (r.lateAvg ? fmtSpan(r.lateAvg) : "—") },
     { key: "no", label: tr("Not opened"), sort: (r) => r.no, first: "desc", right: true, render: (r) => r.no || "—" },
@@ -112,33 +114,33 @@ export default function OpeningClosing() {
     } catch (e) { toast((e as Error).message, "error"); }
   };
   const saveGrace = () => call("/api/aggregator/opening/grace", { method: "PUT", json: { minutes: Number(grace) } }).then(() => { toast(tr("Saved")); setVersion((v) => v + 1); }).catch((e: Error) => toast(e.message, "error"));
+  const filter = (
+    <FilterBar a={a} ctx={ctx} q={q} onQ={setQ} placeholder={tr("Search outlet or member")} excel={() => void exportXlsx()} excelOff={!data}>{tab === "days" && <QuickChips<Only> value={only} onChange={setOnly} label={tr("Status")} items={[{ key: "all", label: tr("All") }, { key: "on_time", label: tr("On time"), dot: "bg-emerald-500", count: n("on_time") }, { key: "late", label: tr("Late"), dot: "bg-amber-400", count: n("late") },
+                  { key: "not_opened", label: tr("Not opened"), dot: "bg-red-500", count: n("not_opened") }, { key: "early", label: tr("Closed early"), count: n("early") }, { key: "pause", label: tr("Paused"), count: n("pause") }]} />}
+                <label className="flex w-full items-center gap-2 whitespace-nowrap text-xs text-neutral-600 sm:ml-auto sm:w-auto"><span>{tr("Grace before late (minutes)")}</span><span className="ml-auto block w-20"><input type="number" inputMode="numeric" min={0} max={180} value={grace} onChange={(e) => setGrace(e.target.value)} className={cx(ctl, "text-right tabular-nums")} /></span>
+                  <Button size="sm" variant="ghost" disabled={!grace || Number(grace) === s?.grace} onClick={() => void saveGrace()}>{tr("Save")}</Button></label></FilterBar>
+  );
+  const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
   return (
     <Page title={tr("Opening & Closing")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Opening on time, closing early and pauses per outlet and platform")} media={<Store size={19} />}
-      actions={<><Button variant="secondary" size="sm" onClick={() => setHoursOpen(true)}><Clock size={14} /> {tr("Outlet hours")}</Button><Button variant="secondary" size="sm" disabled={!data} onClick={() => void exportXlsx()}><Download size={14} /> {tr("Excel")}</Button></>}>
+      actions={<><Button variant="secondary" size="sm" onClick={() => setHoursOpen(true)}><Clock size={14} /> {tr("Outlet hours")}</Button></>}>
       <FreshLine ctx={ctx} sources={["status", "daily"]} />
-      <FilterBar a={a} ctx={ctx} />
-      {err ? <ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /> : (
+      {err ? <>{card}<ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /></> : (
         <>
           <StatStrip columns={5} label={tr("Period")} gridClassName="grid-cols-2 lg:grid-cols-5">
-            <Stat label={tr("On time, at least")} value={s ? (counted.length ? pct((on / counted.length) * 100, 0) : "—") : <StatSkeleton />}>{s && <p>{tr("{0} of {1} outlet-days", nf(on), nf(counted.length))}</p>}</Stat>
-            <Stat label={tr("Late, at most")} value={s ? nf(n("late")) : <StatSkeleton />}>{s && <p>{tr("{0} proven by orders", nf(scoped.filter((r) => r.status === "late" && r.evidence === "order").length))}</p>}</Stat>
-            <Stat label={tr("Not opened")} value={s ? nf(n("not_opened")) : <StatSkeleton />} />
-            <Stat label={tr("Closed early")} value={s ? nf(n("early")) : <StatSkeleton />} />
-            <Stat label={tr("Paused in all")} value={s ? fmtSpan(pauseSum) : <StatSkeleton />}>{s && <p>{tr("{0} outlet-days", nf(n("pause")))}</p>}</Stat>
+            <Stat label={tr("On time, at least")} info={<Tip k="onTime" />} value={s ? (counted.length ? pct((on / counted.length) * 100, 0) : "—") : <StatSkeleton />}>{s && <p>{tr("{0} of {1} outlet-days", nf(on), nf(counted.length))}</p>}</Stat>
+            <Stat label={tr("Late, at most")} info={<Tip k="late" />} value={s ? nf(n("late")) : <StatSkeleton />}>{s && <p>{tr("{0} proven by orders", nf(scoped.filter((r) => r.status === "late" && r.evidence === "order").length))}</p>}</Stat>
+            <Stat label={tr("Not opened")} info={<Tip k="notOpened" />} value={s ? nf(n("not_opened")) : <StatSkeleton />} />
+            <Stat label={tr("Closed early")} info={<Tip k="early" />} value={s ? nf(n("early")) : <StatSkeleton />} />
+            <Stat label={tr("Paused in all")} info={<Tip k="pause" />} value={s ? fmtSpan(pauseSum) : <StatSkeleton />}>{s && <p>{tr("{0} outlet-days", nf(n("pause")))}</p>}</Stat>
           </StatStrip>
           <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "outlet", label: tr("Per outlet"), count: data ? per.length : null }, { key: "days", label: tr("Per day"), count: data ? scoped.length : null }, { key: "hours", label: tr("Without hours"), count: data ? noHours.length : null }]}>
-            <Toolbar>
-              <div className="flex flex-wrap items-center gap-2"><div className="w-full sm:w-64"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet or member")} /></div>
-                {tab === "days" && <QuickChips<Only> value={only} onChange={setOnly} label={tr("Status")} items={[{ key: "all", label: tr("All") }, { key: "on_time", label: tr("On time"), dot: "bg-emerald-500", count: n("on_time") }, { key: "late", label: tr("Late"), dot: "bg-amber-400", count: n("late") },
-                  { key: "not_opened", label: tr("Not opened"), dot: "bg-red-500", count: n("not_opened") }, { key: "early", label: tr("Closed early"), count: n("early") }, { key: "pause", label: tr("Paused"), count: n("pause") }]} />}
-                <label className="flex items-center gap-2 whitespace-nowrap text-xs text-neutral-600 sm:ml-auto">{tr("Grace (min)")}<span className="block w-20"><Input type="number" min={0} max={180} value={grace} onChange={(e) => setGrace(e.target.value)} className="h-8" /></span>
-                  <Button size="sm" variant="ghost" disabled={!grace || Number(grace) === s?.grace} onClick={() => void saveGrace()}>{tr("Save")}</Button></label></div>
-            </Toolbar>
+            {filter}
             {tab === "outlet" ? <DataTable key={tab} cols={perCols} rows={perShown} loading={!data} rowKey={(r) => r.key} resetKey={key} initial={{ key: "rate", dir: "asc" }} minWidth={940} onRow={(r) => { setQ(r.outlet); setTab("days"); setOnly("all"); }}
                 note={tr("BotFood reads the apps about every hour, so late and closed early are the most it can be. An order of the platform proves the outlet was open.")} />
               : tab === "days" ? <DataTable key={tab} cols={cols} rows={rows} loading={!data} rowKey={(r) => `${r.day}${r.channelId}`} resetKey={key} initial={{ key: "day", dir: "desc" }} minWidth={1080}
                 note={tr("Past days come from the daily report of BotFood, today is live. Do not judge a member on times only seen by BotFood.")} />
-              : <DataTable key={tab} cols={[{ key: "o", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{r.platforms.map((p) => <Platform key={p} p={p} />)}</span> },
+              : <DataTable key={tab} cols={[{ key: "o", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{r.platforms.map((p) => <Platform key={p} p={p} />)}</span> },
                 { key: "a", label: "", right: true, render: (r) => r.branchCode ? <button type="button" className="text-xs font-semibold text-brand-700 hover:underline" onClick={() => setHoursOpen(true)}>{tr("Enter the hours")}</button> : <span className="text-xs text-amber-800">{tr("Match the outlet first (Overview)")}</span> }]}
                 rows={noHours} loading={!data} rowKey={(r) => r.branchCode ?? r.outlet} resetKey={key} minWidth={560} empty={tr("Every outlet has its hours")} note={tr("BotFood has no opening hours for these outlets: they are left out of every figure until the hours are entered.")} />}
           </WorkCard>
@@ -170,25 +172,27 @@ function HoursDrawer({ onClose, onSaved, zone }: { onClose: () => void; onSaved:
   };
   const empty = shown.filter((r) => !val(r).open);
   const [same, setSame] = useState({ open: "07:00", close: "22:00" });
+  const name = (n: string) => n.replace(/^Kopi Calf (To Go )?/, "");
   return (
     <Drawer open onClose={onClose} size="lg" icon={<Clock size={18} />} title={tr("Outlet hours")} description={tr("On the outlet's own clock; every day is worked out again")}
-      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!Object.keys(edit).length} onClick={() => void save()}><Save size={14} /> {tr("Save {0} outlets", Object.keys(edit).length)}</Button></>}>
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3"><div className="w-full sm:w-64"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet")} /></div>
-          <label className="flex items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} /> {tr("Show those with BotFood hours too")}</label></div>
-        {empty.length > 1 && <div className="flex flex-wrap items-center gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-sm"><span className="text-neutral-600">{tr("The same hours for the {0} empty ones shown", empty.length)}</span>
-          <span className="block w-28"><Input type="time" aria-label={tr("Opening hour")} value={same.open} onChange={(e) => setSame({ ...same, open: e.target.value })} className="h-9" /></span>–<span className="block w-28"><Input type="time" aria-label={tr("Closing hour")} value={same.close} onChange={(e) => setSame({ ...same, close: e.target.value })} className="h-9" /></span>
-          <Button size="sm" variant="secondary" disabled={!same.open} onClick={() => put(empty, same)}>{tr("Fill in")}</Button></div>}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!Object.keys(edit).length} onClick={() => void save()}><Save size={14} /> {tr("Save {0} outlets", Object.keys(edit).length)}</Button></>}>
+      <div className="space-y-4">
+        <SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet")} />
+        <label className="flex min-h-11 items-center gap-2.5 text-sm text-neutral-700 sm:min-h-0"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={all} onChange={(e) => setAll(e.target.checked)} /> {tr("Show those with BotFood hours too")}</label>
+        {empty.length > 1 && <section className="space-y-2.5 rounded-xl border border-neutral-200 bg-neutral-50 p-3"><div><p className="text-sm font-semibold text-neutral-900">{tr("Fill several at once")}</p><p className="text-xs text-neutral-500">{tr("The same hours for the {0} empty ones shown", empty.length)}</p></div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_auto]"><TimeField label={tr("Opening hour")} prefix={tr("Opens at")} value={same.open} onChange={(v) => setSame((x) => ({ ...x, open: v }))} /><TimeField label={tr("Closing hour")} prefix={tr("Closes at")} value={same.close} onChange={(v) => setSame((x) => ({ ...x, close: v }))} />
+            <Button variant="secondary" className="col-span-2 sm:col-span-1 sm:!h-10" disabled={!same.open || !same.close} onClick={() => put(empty, same)}>{tr("Fill in")}</Button></div></section>}
         {!rows ? <SkeletonList rows={8} /> : (
-          <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
-            {shown.map((r) => (
-              <li key={r.code} className={cx("flex flex-wrap items-center gap-2 px-3 py-2 text-sm", edit[r.code] && "bg-brand-50/40")}>
-                <span className="min-w-0 flex-1 basis-full sm:basis-40"><span className="block truncate font-medium text-neutral-900">{r.name}{zone(r.code) !== "WIB" && <span className="ml-1.5 rounded bg-violet-100 px-1 text-[10px] font-bold text-violet-800">{zone(r.code)}</span>}</span><span className="block text-[11px] text-neutral-500">{r.botfood ? `BotFood ${r.botfood}` : r.by ?? tr("not entered yet")}</span></span>
-                <span className="block w-28"><Input type="time" value={val(r).open} aria-label={`${r.name} ${tr("Opening hour")}`} onChange={(e) => put([r], { ...val(r), open: e.target.value })} className="h-9" /></span>
-                <span className="text-neutral-400">–</span>
-                <span className="block w-28"><Input type="time" value={val(r).close} aria-label={`${r.name} ${tr("Closing hour")}`} onChange={(e) => put([r], { ...val(r), close: e.target.value })} className="h-9" /></span>
-              </li>))}
-          </ul>)}
+          <div><p className="mb-2 text-xs font-medium text-neutral-500">{tr("{0} outlets · {1} without hours", shown.length, empty.length)}</p>
+            <ul className="divide-y divide-neutral-200 rounded-xl border border-neutral-200">
+              {shown.map((r) => (
+                <li key={r.code} className={cx("space-y-2 px-3 py-3", edit[r.code] && "bg-brand-50/40")}>
+                  <div className="flex items-start justify-between gap-2"><span className="min-w-0"><span className="block font-medium text-neutral-900">{name(r.name)}</span><span className="block text-[11px] text-neutral-500">{r.code}{zone(r.code) !== "WIB" ? ` · ${tr("Times in {0}", zone(r.code))}` : ""}</span></span>
+                    <Lozenge tone={edit[r.code] ? "blue" : r.open || r.botfood ? "green" : "amber"}>{edit[r.code] ? tr("Not saved yet") : r.open ? tr("By the team") : r.botfood ? `BotFood ${r.botfood}` : tr("Not filled in")}</Lozenge></div>
+                  <div className="grid grid-cols-2 gap-2"><TimeField label={`${r.name} ${tr("Opening hour")}`} prefix={tr("Opens at")} value={val(r).open} onChange={(v) => put([r], { ...val(r), open: v })} /><TimeField label={`${r.name} ${tr("Closing hour")}`} prefix={tr("Closes at")} value={val(r).close} onChange={(v) => put([r], { ...val(r), close: v })} /></div>
+                  {r.by && !edit[r.code] && <p className="text-[11px] text-neutral-500">{tr("Filled in by {0}", r.by)}</p>}
+                </li>))}
+            </ul></div>)}
       </div>
     </Drawer>
   );

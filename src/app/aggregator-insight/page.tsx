@@ -105,15 +105,15 @@ function MatchDrawer({ onClose }: { onClose: () => void }) {
   const shown = (rows ?? []).filter((r) => all || !r.branchCode);
   return (
     <Drawer open size="lg" title={tr("Match the BotFood outlets")} description={tr("Each BotFood outlet to our outlet, so its figures count for the right branch and member.")} onClose={onClose} icon={<Database size={18} />}>
-      <div className="space-y-3 p-4">
-        <label className="flex items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} /> {tr("Show the matched ones too")}</label>
+      <div className="space-y-4">
+        <label className="flex min-h-11 items-center gap-2.5 text-sm text-neutral-700 sm:min-h-0"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={all} onChange={(e) => setAll(e.target.checked)} /> {tr("Show the matched ones too")}</label>
         {err && <p className="text-sm text-red-600">{err}</p>}
-        {!rows ? <p className="text-sm text-neutral-500">…</p> : shown.length === 0 ? <p className="rounded-lg bg-emerald-50 px-3 py-3 text-sm text-emerald-800">{tr("Every BotFood outlet is matched.")}</p> : (
+        {!rows ? <SkeletonList rows={6} /> : shown.length === 0 ? <p className="rounded-lg bg-emerald-50 px-3 py-3 text-sm text-emerald-800">{tr("Every BotFood outlet is matched.")}</p> : (
           <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
             {shown.map((r) => (
-              <li key={r.bfBranchId} className="grid gap-2 px-3 py-2.5 sm:grid-cols-[1fr_1.3fr] sm:items-center">
-                <span className="text-sm font-medium text-neutral-900">{r.bfName}{r.matched === "manual" && <span className="ml-2 text-[11px] font-normal text-neutral-400">{tr("by hand")}</span>}</span>
-                <JSelect value={r.branchCode ?? ""} onChange={(v) => save(r.bfBranchId, v)} options={outs} placeholder={tr("Choose our outlet")} />
+              <li key={r.bfBranchId} className="grid gap-2 px-3 py-3 sm:grid-cols-[1fr_1.3fr] sm:items-center">
+                <span className="text-sm font-medium text-neutral-900"><span className="block text-[11px] font-normal text-neutral-500">{tr("Name in BotFood")}</span>{r.bfName}{r.matched === "manual" && <span className="ml-2 text-[11px] font-normal text-neutral-400">{tr("by hand")}</span>}</span>
+                <JSelect value={r.branchCode ?? ""} onChange={(v) => save(r.bfBranchId, v)} options={outs} label={tr("Our outlet")} placeholder={tr("Choose our outlet")} />
               </li>
             ))}
           </ul>

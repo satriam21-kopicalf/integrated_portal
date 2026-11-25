@@ -4,15 +4,16 @@
 // in a period how often each item went out and for how long — only the minutes inside the opening hours of the outlet.
 
 import { useEffect, useState } from "react";
-import { Download, Package } from "lucide-react";
-import { Button, ErrorState, SearchBox, cx, useToast } from "@/so/ui";
+import { Package } from "lucide-react";
+import { ErrorState, cx, useToast } from "@/so/ui";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { Lozenge, Toolbar, WorkCard } from "@/so/ui/Jira";
+import { Lozenge, QuickChips, WorkCard } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
+import { Tip } from "@/aggregator/info";
 import { Bars, DataTable, FilterBar, FreshLine, OutletCell, Platform, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
 import { downloadSheets } from "@/aggregator/ui";
-import { ago, fmtPeriod, fmtSpan, fmtStamp, nf, xlStamp } from "@/aggregator/time";
+import { ago, dayOf, fmtPeriod, fmtSpan, fmtStamp, nf, xlStamp } from "@/aggregator/time";
 
 type Now = { outlet: string; branchCode: string | null; platform: string; category: string; item: string; since: string | null };
 type Per = { outlet: string; branchCode: string | null; platform: string; category: string; item: string; times: number; minutes: number; remarks: string; last: string | null; stillOut: boolean; hoursKnown: boolean };
@@ -29,6 +30,7 @@ export default function OutOfStock() {
   const [tab, setTab] = useState<Tab>("now");
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
+  const [only, setOnly] = useState<"period" | "all">("period");
   const [version, setVersion] = useState(0);
   useEffect(() => {
     if (!a.ready) return;
@@ -40,7 +42,8 @@ export default function OutOfStock() {
   const t = q.trim().toLowerCase();
   const match = (r: { outlet: string; item: string; category: string }) => (!cat || r.category === cat) && (!t || `${r.outlet} ${r.item} ${r.category}`.toLowerCase().includes(t));
   const nowAll = useScope(data?.current, a.f, ctx), perAll = useScope(data?.items, a.f, ctx);
-  const now = nowAll.filter(match), per = perAll.filter(match);
+  const inPeriod = (r: Now) => { const d = r.since ? dayOf(r.since) : ""; return d >= a.f.from && d <= a.f.to; };
+  const now = nowAll.filter((r) => match(r) && (only === "all" || inPeriod(r))), per = perAll.filter(match);
   const cats = [...new Set([...(data?.current ?? []), ...(data?.items ?? [])].map((r) => r.category))].sort();
   const group = (k: (r: Now) => string) => Object.entries(now.reduce<Record<string, number>>((m, r) => { m[k(r)] = (m[k(r)] ?? 0) + 1; return m; }, {})).map(([key, n]) => ({ key, label: key, n })).sort((x, y) => y.n - x.n);
   const items = (() => {
@@ -50,18 +53,18 @@ export default function OutOfStock() {
   })();
   const s = data?.summary;
   const minutes = perAll.reduce((x, r) => x + r.minutes, 0);
-  const key = `${a.query}${a.f.outlet}${a.f.group}${cat}${t}${tab}${packaging}`;
+  const key = `${a.query}${a.f.outlet}${a.f.group}${cat}${t}${tab}${packaging}${only}`;
   const O = (r: { outlet: string; branchCode: string | null }) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} />;
   const nowCols: Col<Now>[] = [
-    { key: "outlet", label: tr("Outlet"), sort: (r) => r.outlet, render: O }, { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "item", label: tr("Item"), sort: (r) => r.item, className: "text-neutral-900", render: (r) => r.item }, { key: "category", label: tr("Category"), sort: (r) => r.category, className: "text-xs text-neutral-500", render: (r) => r.category },
+    { key: "outlet", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: O }, { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
+    { key: "item", card: "title", label: tr("Item"), sort: (r) => r.item, className: "text-neutral-900", render: (r) => r.item }, { key: "category", label: tr("Category"), sort: (r) => r.category, className: "text-xs text-neutral-500", render: (r) => r.category },
     { key: "since", label: tr("Out since (WIB)"), sort: (r) => r.since, className: "whitespace-nowrap", render: (r) => <>{fmtStamp(r.since).replace(" WIB", "")}<span className="block text-[11px] text-neutral-400">{ago(r.since)}</span></> },
   ];
   const perCols: Col<Per>[] = [
-    { key: "outlet", label: tr("Outlet"), sort: (r) => r.outlet, render: O }, { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "item", label: tr("Item"), sort: (r) => r.item, render: (r) => <><span className="text-neutral-900">{r.item}</span><span className="block text-[11px] text-neutral-400">{r.category}</span></> },
+    { key: "outlet", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: O }, { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
+    { key: "item", card: "title", label: tr("Item"), sort: (r) => r.item, render: (r) => <><span className="text-neutral-900">{r.item}</span><span className="block text-[11px] text-neutral-400">{r.category}</span></> },
     { key: "times", label: tr("Times out"), sort: (r) => r.times, first: "desc", right: true, render: (r) => `${nf(r.times)}×` },
-    { key: "minutes", label: tr("Time out"), sort: (r) => r.minutes, first: "desc", right: true, render: (r) => <span className="whitespace-nowrap">{fmtSpan(r.minutes)}<span className="block text-[11px] text-neutral-400">{r.hoursKnown ? tr("opening hours") : tr("day and night")}</span></span> },
+    { key: "minutes", card: "side", label: tr("Time out"), sort: (r) => r.minutes, first: "desc", right: true, render: (r) => <span className="whitespace-nowrap">{fmtSpan(r.minutes)}<span className="block text-[11px] text-neutral-400">{r.hoursKnown ? tr("opening hours") : tr("day and night")}</span></span> },
     { key: "last", label: tr("Last out (WIB)"), sort: (r) => r.last, first: "desc", className: "whitespace-nowrap", render: (r) => <>{r.last ? fmtStamp(r.last).replace(" WIB", "") : "—"}{r.stillOut && <span className="ml-1.5"><Lozenge tone="red">{tr("Still out")}</Lozenge></span>}</> },
     { key: "remarks", label: tr("Remarks"), className: "text-xs text-neutral-500", hide: !per.some((r) => r.remarks), render: (r) => r.remarks },
   ];
@@ -77,26 +80,28 @@ export default function OutOfStock() {
       ]);
     } catch (e) { toast((e as Error).message, "error"); }
   };
+  const filter = (
+    <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((c) => ({ value: c, label: c })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, item or category")} excel={() => void exportXlsx()} excelOff={!data}>{tab !== "period" && <QuickChips<"period" | "all"> value={only} onChange={setOnly} label={tr("Out since")} items={[{ key: "period", label: tr("Went out in the period"), dot: "bg-red-500", count: nowAll.filter(inPeriod).length }, { key: "all", label: tr("All still out"), count: nowAll.length }]} />}
+              <label className="flex min-h-9 items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={packaging} onChange={(e) => setPackaging(e.target.checked)} /> {tr("Include packaging")}</label></FilterBar>
+  );
+  const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
   return (
-    <Page title={tr("Out of Stock")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Items out of stock on the delivery apps, per outlet, platform and category")} media={<Package size={19} />}
-      actions={<Button variant="secondary" size="sm" disabled={!data} onClick={() => void exportXlsx()}><Download size={14} /> {tr("Excel")}</Button>}>
+    <Page title={tr("Out of Stock")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Items out of stock on the delivery apps, per outlet, platform and category")} media={<Package size={19} />}>
       <FreshLine ctx={ctx} sources={["menu", "status"]} />
-      <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((c) => ({ value: c, label: c })) }]} />
-      {err ? <ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /> : (
+      {err ? <>{card}<ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /></> : (
         <>
           <StatStrip columns={4} label={tr("Out of stock")} gridClassName="grid-cols-2 lg:grid-cols-4">
-            <Stat label={tr("Items out now")} value={s ? nf(nowAll.length) : <StatSkeleton />} />
+            <Stat label={tr("Items out now")} info={<Tip k="oosNow" />} value={s ? nf(nowAll.length) : <StatSkeleton />} />
             <Stat label={tr("Outlets with an item out")} value={s ? nf(new Set(nowAll.map((r) => r.outlet)).size) : <StatSkeleton />} />
-            <Stat label={tr("Times out in the period")} value={s ? nf(perAll.reduce((x, r) => x + r.times, 0)) : <StatSkeleton />}>{s && <p>{tr("{0} items", nf(perAll.length))}</p>}</Stat>
-            <Stat label={tr("Average time out")} value={s ? (perAll.length ? fmtSpan(minutes / perAll.length) : "—") : <StatSkeleton />}>{s && <p>{tr("per item and outlet")}</p>}</Stat>
+            <Stat label={tr("Times out in the period")} info={<Tip k="oosTimes" />} value={s ? nf(perAll.reduce((x, r) => x + r.times, 0)) : <StatSkeleton />}>{s && <p>{tr("{0} items", nf(perAll.length))}</p>}</Stat>
+            <Stat label={tr("Average time out")} info={<Tip k="oosAvg" />} value={s ? (perAll.length ? fmtSpan(minutes / perAll.length) : "—") : <StatSkeleton />}>{s && <p>{tr("per item and outlet")}</p>}</Stat>
           </StatStrip>
-          <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "now", label: tr("Out now"), count: data ? nowAll.length : null }, { key: "period", label: tr("In the period"), count: data ? perAll.length : null }, { key: "item", label: tr("Per item") }, { key: "category", label: tr("Per category") }, { key: "outlet", label: tr("Per outlet") }]}>
-            <Toolbar><div className="flex flex-wrap items-center gap-3"><div className="w-full sm:w-72"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet, item or category")} /></div>
-              <label className="flex items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={packaging} onChange={(e) => setPackaging(e.target.checked)} /> {tr("Include packaging")}</label></div></Toolbar>
+          <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "now", label: tr("Out now"), count: data ? now.length : null }, { key: "period", label: tr("In the period"), count: data ? perAll.length : null }, { key: "item", label: tr("Per item") }, { key: "category", label: tr("Per category") }, { key: "outlet", label: tr("Per outlet") }]}>
+            {filter}
             {tab === "category" ? <Bars rows={group((r) => r.category)} onPick={(k) => { setCat(k); setTab("now"); }} empty={tr("Nothing out of stock")} />
               : tab === "outlet" ? <Bars rows={group((r) => r.outlet)} onPick={(k) => { setQ(k); setTab("now"); }} empty={tr("Nothing out of stock")} />
               : tab === "item" ? <DataTable key={tab} rows={items} loading={!data} rowKey={(r) => r.item} resetKey={key} initial={{ key: "n", dir: "desc" }} minWidth={620} empty={tr("Nothing out of stock")} onRow={(r) => { setQ(r.item); setTab("now"); }} note={tr("The situation now.")}
-                cols={[{ key: "i", label: tr("Item"), sort: (r) => r.item, render: (r) => <><span className="font-medium text-neutral-900">{r.item}</span><span className="block text-[11px] text-neutral-400">{r.category}</span></> }, { key: "n", label: tr("Outlets"), sort: (r) => r.outlets, first: "desc", right: true, render: (r) => nf(r.outlets) }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{r.platforms.map((p) => <Platform key={p} p={p} />)}</span> }]} />
+                cols={[{ key: "i", card: "title", label: tr("Item"), sort: (r) => r.item, render: (r) => <><span className="font-medium text-neutral-900">{r.item}</span><span className="block text-[11px] text-neutral-400">{r.category}</span></> }, { key: "n", label: tr("Outlets"), sort: (r) => r.outlets, first: "desc", right: true, render: (r) => nf(r.outlets) }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{r.platforms.map((p) => <Platform key={p} p={p} />)}</span> }]} />
               : tab === "now" ? <DataTable key={tab} cols={nowCols} rows={now} loading={!data} rowKey={(r) => `${r.outlet}${r.platform}${r.item}${r.category}`} resetKey={key} initial={{ key: "since", dir: "desc" }} empty={tr("Nothing out of stock")}
                 note={s ? tr("{0} items inactive for over {1} days are left out: switched off, not out of stock.", nf(s.inactiveLong), s.staleDays) : undefined} />
               : <DataTable key={tab} cols={perCols} rows={per} loading={!data} rowKey={(r) => `${r.outlet}${r.platform}${r.item}`} resetKey={key} initial={{ key: "minutes", dir: "desc" }} minWidth={940}

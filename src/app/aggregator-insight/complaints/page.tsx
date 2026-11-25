@@ -4,15 +4,17 @@
 // by hand (chat, app), with the first response, the resolution and the compensation. Open ones always stay in the list.
 
 import { useCallback, useEffect, useState } from "react";
-import { Download, MessageSquareText, Plus, Save } from "lucide-react";
-import { Button, ErrorState, Field, Input, SearchBox, cx, inputClass, useToast } from "@/so/ui";
+import { MessageSquareText, Plus, Save } from "lucide-react";
+import { Button, ErrorState, cx, useToast } from "@/so/ui";
 import Drawer from "@/components/kc/Drawer";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { JSelect, Lozenge, type LozengeTone, QuickChips, Toolbar, WorkCard } from "@/so/ui/Jira";
+import { JSelect, Lozenge, type LozengeTone, QuickChips, WorkCard } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
+import { Tip } from "@/aggregator/info";
+import { Facts, Group, DateField, Row, ctl } from "@/aggregator/fields";
 import { downloadSheets } from "@/aggregator/ui";
-import { DataTable, FilterBar, FreshLine, OutletCell, PLATFORMS, Platform, noMembers, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
+import { DataTable, FilterBar, FreshLine, OutletCell, platformOptions, Platform, noMembers, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
 import { ago, daysAgo, fmtDay, fmtPeriod, fmtSpan, fmtStamp, nf, rp, xlStamp } from "@/aggregator/time";
 
 type Status = "open" | "progress" | "done";
@@ -22,7 +24,7 @@ type Res = { summary: { n: number; open: number; progress: number; done: number;
   categories: { category: string; n: number }[]; topics: string[]; outlets: { code: string; name: string }[]; data: Row[] };
 const TONE: Record<Status, LozengeTone> = { open: "red", progress: "amber", done: "green" };
 const LABEL: Record<Status, () => string> = { open: () => tr("Open"), progress: () => tr("In Progress"), done: () => tr("Done") };
-const SOURCE: Record<string, () => string> = { review: () => tr("Review"), chat: () => tr("Chat"), app: () => tr("Delivery app"), other: () => tr("Other") };
+const SOURCE: Record<string, () => string> = { review: () => tr("Customer review"), chat: () => tr("Chat"), app: () => tr("Delivery app"), other: () => tr("Other") };
 const median = (v: number[]) => { if (!v.length) return null; const x = [...v].sort((a, b) => a - b), m = x.length >> 1; return x.length % 2 ? x[m] : (x[m - 1] + x[m]) / 2; };
 
 export default function Complaints() {
@@ -55,11 +57,11 @@ export default function Complaints() {
   const cols: Col<Row>[] = [
     { key: "id", label: "#", sort: (r) => r.id, first: "desc", className: "font-semibold text-brand-700", render: (r) => r.id },
     { key: "day", label: tr("Date"), sort: (r) => r.day, first: "desc", className: "whitespace-nowrap", render: (r) => <>{fmtDay(r.day)}<span className="block text-[11px] text-neutral-400" title={fmtStamp(r.createdAt)}>{tr("ticket {0}", ago(r.createdAt))}</span></> },
-    { key: "outlet", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
+    { key: "outlet", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
     { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "detail", label: tr("Complaint"), className: "max-w-[26rem]", render: (r) => <><span className="line-clamp-3 text-neutral-900">{r.detail}</span><span className="block text-[11px] text-neutral-500">{r.category} · {SOURCE[r.source]?.() ?? r.source}{r.orderNo ? ` · ${r.orderNo}` : ""}</span>{r.resolution && <span className="block text-[11px] text-emerald-700">{r.resolution}</span>}</> },
-    { key: "status", label: tr("Status"), sort: (r) => ["open", "progress", "done"].indexOf(r.status), render: (r) => <Lozenge tone={TONE[r.status]}>{LABEL[r.status]()}</Lozenge> },
-    { key: "resp", label: tr("First response"), sort: (r) => r.responseMin, right: true, className: "whitespace-nowrap", render: (r) => r.responseMin != null ? fmtSpan(r.responseMin) : <span className="text-red-700">{tr("waiting {0}", fmtSpan((Date.now() - new Date(r.createdAt).getTime()) / 60000))}</span> },
+    { key: "detail", card: "wide", label: tr("Complaint"), className: "max-w-[26rem]", render: (r) => <><span className="line-clamp-3 text-neutral-900">{r.detail}</span><span className="block text-[11px] text-neutral-500">{r.category} · {SOURCE[r.source]?.() ?? r.source}{r.orderNo ? ` · ${r.orderNo}` : ""}</span>{r.resolution && <span className="block text-[11px] text-emerald-700">{r.resolution}</span>}</> },
+    { key: "status", card: "side", label: tr("Status"), sort: (r) => ["open", "progress", "done"].indexOf(r.status), render: (r) => <Lozenge tone={TONE[r.status]}>{LABEL[r.status]()}</Lozenge> },
+    { key: "resp", label: tr("First response"), sort: (r) => r.responseMin, right: true, className: "whitespace-nowrap", render: (r) => r.responseMin != null ? fmtSpan(r.responseMin) : <span className="text-red-700">{tr("not yet")}</span> },
     { key: "reso", label: tr("Resolved in"), sort: (r) => r.resolveMin, right: true, className: "whitespace-nowrap", render: (r) => fmtSpan(r.resolveMin) },
     { key: "comp", label: tr("Compensation"), sort: (r) => r.compensation, first: "desc", right: true, hide: !scoped.some((r) => r.compensation), className: "whitespace-nowrap", render: (r) => rp(r.compensation) },
     { key: "member", label: tr("On duty"), sort: (r) => r.member, hide: noMembers(scoped), render: (r) => r.member ?? "—" },
@@ -75,23 +77,25 @@ export default function Complaints() {
       ]);
     } catch (e) { toast((e as Error).message, "error"); }
   };
+  const filter = (
+    <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: (data?.topics ?? []).map((c) => ({ value: c, label: c })) },
+        { key: "source", label: tr("Source"), value: source, onChange: setSource, options: Object.entries(SOURCE).map(([value, l]) => ({ value, label: l() })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, order or complaint")} excel={() => void exportXlsx()} excelOff={!data}><QuickChips<Status | "all"> value={only} onChange={setOnly} label={tr("Status")} items={[{ key: "open", label: LABEL.open(), dot: "bg-red-500", count: n("open") }, { key: "progress", label: LABEL.progress(), dot: "bg-amber-400", count: n("progress") }, { key: "done", label: LABEL.done(), dot: "bg-emerald-500", count: n("done") }, { key: "all", label: tr("All"), count: scoped.length }]} /></FilterBar>
+  );
+  const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
   return (
     <Page title={tr("Complaints")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Tickets from low reviews, chat and the delivery apps, with response and resolution times")} media={<MessageSquareText size={19} />}
-      actions={<><Button variant="secondary" size="sm" disabled={!data} onClick={() => void exportXlsx()}><Download size={14} /> {tr("Excel")}</Button><Button size="sm" onClick={() => setAdding(true)} disabled={!data}><Plus size={14} /> {tr("New complaint")}</Button></>}>
+      actions={<><Button size="sm" onClick={() => setAdding(true)} disabled={!data}><Plus size={14} /> {tr("New complaint")}</Button></>}>
       <FreshLine ctx={ctx} sources={["reviews"]} />
-      <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: (data?.topics ?? []).map((c) => ({ value: c, label: c })) },
-        { key: "source", label: tr("Source"), value: source, onChange: setSource, options: Object.entries(SOURCE).map(([value, l]) => ({ value, label: l() })) }]} />
-      {err ? <ErrorState message={err} onRetry={load} /> : (
+      {err ? <>{card}<ErrorState message={err} onRetry={load} /></> : (
         <>
           <StatStrip columns={4} label={tr("Complaints")} gridClassName="grid-cols-2 lg:grid-cols-4">
             <Stat label={tr("Open")} value={ok ? nf(n("open")) : <StatSkeleton />}>{ok && <p>{tr("{0} in progress", n("progress"))}</p>}</Stat>
             <Stat label={tr("Done")} value={ok ? nf(n("done")) : <StatSkeleton />} />
-            <Stat label={tr("Median first response")} value={ok ? fmtSpan(resp) : <StatSkeleton />}>{reso != null && <p>{tr("resolved in {0}", fmtSpan(reso))}</p>}</Stat>
+            <Stat label={tr("Median first response")} info={<Tip k="response" />} value={ok ? fmtSpan(resp) : <StatSkeleton />}>{reso != null && <p>{tr("resolved in {0}", fmtSpan(reso))}</p>}</Stat>
             <Stat label={tr("Compensation")} value={ok ? rp(comp) : <StatSkeleton />} />
           </StatStrip>
           <WorkCard tabs={[{ key: "list", label: tr("Tickets"), count: ok ? scoped.length : null }]} active="list" onTab={() => {}}>
-            <Toolbar><div className="flex flex-wrap items-center gap-2"><div className="w-full sm:w-72"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet, order or complaint")} /></div>
-              <QuickChips<Status | "all"> value={only} onChange={setOnly} label={tr("Status")} items={[{ key: "open", label: LABEL.open(), dot: "bg-red-500", count: n("open") }, { key: "progress", label: LABEL.progress(), dot: "bg-amber-400", count: n("progress") }, { key: "done", label: LABEL.done(), dot: "bg-emerald-500", count: n("done") }, { key: "all", label: tr("All"), count: scoped.length }]} /></div></Toolbar>
+            {filter}
             <DataTable cols={cols} rows={rows} loading={!data} rowKey={(r) => String(r.id)} resetKey={`${a.query}${a.f.outlet}${a.f.group}${only}${cat}${source}${t}`} initial={{ key: "id", dir: "desc" }} minWidth={1020} onRow={setEdit} empty={tr("No complaint here")} note={tr("Tickets not done yet stay in the list whatever the period.")} />
           </WorkCard>
         </>
@@ -100,12 +104,6 @@ export default function Complaints() {
       {adding && data && <Add res={data} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); load(); }} />}
     </Page>
   );
-}
-
-/** when the ticket was made, first answered and closed */
-function Timeline({ row }: { row: Row }) {
-  const steps = [[tr("Made"), row.createdAt, row.createdBy], [tr("First response"), row.firstResponseAt, fmtSpan(row.responseMin)], [tr("Done"), row.resolvedAt, fmtSpan(row.resolveMin)]] as const;
-  return <dl className="grid gap-2 text-xs sm:grid-cols-3">{steps.map(([l, at, sub]) => <div key={l} className="rounded-lg border border-neutral-200 px-3 py-2"><dt className="font-semibold text-neutral-500">{l}</dt><dd className="mt-0.5 text-neutral-900">{fmtStamp(at)}</dd>{at && sub && <dd className="text-neutral-500">{sub}</dd>}</div>)}</dl>;
 }
 
 function Edit({ row, topics, onClose, onSaved }: { row: Row; topics: string[]; onClose: () => void; onSaved: () => void }) {
@@ -120,17 +118,23 @@ function Edit({ row, topics, onClose, onSaved }: { row: Row; topics: string[]; o
     try { await call(`/api/aggregator/complaints/${row.id}`, { method: "PATCH", json: { status, category, resolution: resolution.trim() || null, compensation: comp ? Number(comp) : null } }); toast(tr("Saved")); onSaved(); }
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
+  const steps = [[tr("Ticket made"), row.createdAt, row.createdBy], [tr("First response"), row.firstResponseAt, row.responseMin != null ? tr("after {0}", fmtSpan(row.responseMin)) : null], [tr("Done"), row.resolvedAt, row.resolveMin != null ? tr("after {0}", fmtSpan(row.resolveMin)) : null]] as const;
   return (
-    <Drawer open onClose={onClose} icon={<MessageSquareText size={18} />} title={tr("Complaint #{0}", row.id)} description={`${row.outlet} · ${row.platform} · ${fmtDay(row.day)}${row.orderNo ? ` · ${row.orderNo}` : ""}`}
-      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={status === "done" && !resolution.trim()} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button></>}>
-      <div className="space-y-4">
-        <Timeline row={row} />
+    <Drawer open onClose={onClose} icon={<MessageSquareText size={18} />} title={tr("Complaint #{0}", row.id)} description={row.outlet}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={status === "done" && !resolution.trim()} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button></>}>
+      <Group title={tr("The complaint")}>
         <p className="whitespace-pre-line rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800">{row.detail}</p>
-        <Field label={tr("Status")}><JSelect placeholder={tr("Status")} value={status} onChange={(v) => setStatus(v as Status)} options={(["open", "progress", "done"] as Status[]).map((s) => ({ value: s, label: LABEL[s]() }))} /></Field>
-        <Field label={tr("Category")}><JSelect placeholder={tr("Category")} value={category} onChange={setCategory} options={[...new Set([...topics, category])].map((c) => ({ value: c, label: c }))} /></Field>
-        <Field label={tr("Resolution")} hint={tr("Required to close the ticket")}><textarea value={resolution} onChange={(e) => setResolution(e.target.value)} rows={4} maxLength={2000} className={cx(inputClass, "h-auto py-2 text-sm")} /></Field>
-        <Field label={tr("Compensation (Rp)")}><Input inputMode="numeric" value={comp} onChange={(e) => setComp(e.target.value.replace(/\D/g, ""))} /></Field>
-      </div>
+        <Facts rows={[[tr("Outlet"), row.outlet], [tr("Platform"), <Platform key="p" p={row.platform} />], [tr("Date"), fmtDay(row.day)], [tr("Order no."), row.orderNo ?? "—"], [tr("Source"), SOURCE[row.source]?.() ?? row.source], ...(row.member ? [[tr("On duty"), row.member] as [string, string]] : [])]} />
+      </Group>
+      <Group title={tr("Handling times")} note={tr("All times in WIB")}>
+        <ol className="space-y-3">{steps.map(([l, at, sub]) => <li key={l} className="flex gap-3"><span className={cx("mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full", at ? "bg-brand-700" : "border border-neutral-300")} aria-hidden /><span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{l}</span><span className="block text-xs text-neutral-500">{at ? [fmtStamp(at), sub].filter(Boolean).join(" · ") : tr("not yet")}</span></span></li>)}</ol>
+      </Group>
+      <Group title={tr("Follow-up")}>
+        <Row label={tr("Status")}><div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={tr("Status")}>{(["open", "progress", "done"] as Status[]).map((x) => <button key={x} type="button" role="radio" aria-checked={status === x} onClick={() => setStatus(x)} className={cx("h-11 rounded-lg border text-sm font-medium sm:h-10", status === x ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-700 hover:bg-neutral-50")}>{LABEL[x]()}</button>)}</div></Row>
+        <Row label={tr("Category")}><JSelect label={tr("Category")} placeholder={tr("Category")} value={category} onChange={setCategory} options={[...new Set([...topics, category])].map((c) => ({ value: c, label: c }))} /></Row>
+        <Row label={tr("Resolution")} required={status === "done"} hint={tr("Required to close the ticket")}><textarea aria-label={tr("Resolution")} value={resolution} onChange={(e) => setResolution(e.target.value)} rows={4} maxLength={2000} className={cx(ctl, "!h-auto py-2.5")} /></Row>
+        <Row label={tr("Compensation (Rp)")} hint={comp ? rp(Number(comp)) : tr("Leave empty when there is none")}><input aria-label={tr("Compensation (Rp)")} inputMode="numeric" value={comp} onChange={(e) => setComp(e.target.value.replace(/\D/g, ""))} className={cx(ctl, "tabular-nums")} /></Row>
+      </Group>
     </Drawer>
   );
 }
@@ -146,18 +150,18 @@ function Add({ res, onClose, onSaved }: { res: Res; onClose: () => void; onSaved
   };
   return (
     <Drawer open onClose={onClose} icon={<Plus size={18} />} title={tr("New complaint")} description={tr("A complaint from chat or a delivery app that is not a review")}
-      footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!f.branchCode || !f.platform || !f.detail.trim()} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button></>}>
-      <div className="space-y-4">
-        <Field label={tr("Outlet")}><JSelect value={f.branchCode} onChange={(v) => setF({ ...f, branchCode: v })} placeholder={tr("Choose the outlet")} options={res.outlets.map((o) => ({ value: o.code, label: o.name }))} /></Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={tr("Platform")}><JSelect value={f.platform} onChange={(v) => setF({ ...f, platform: v })} placeholder={tr("Choose")} options={PLATFORMS.map((p) => ({ value: p, label: p }))} /></Field>
-          <Field label={tr("Source")}><JSelect placeholder={tr("Source")} value={f.source} onChange={(v) => setF({ ...f, source: v })} options={["chat", "app", "other"].map((s) => ({ value: s, label: SOURCE[s]() }))} /></Field>
-          <Field label={tr("Date")}><Input type="date" value={f.day} max={daysAgo(0)} onChange={(e) => setF({ ...f, day: e.target.value })} /></Field>
-          <Field label={tr("Order no.")}><Input value={f.orderNo} maxLength={60} onChange={(e) => setF({ ...f, orderNo: e.target.value })} /></Field>
-        </div>
-        <Field label={tr("Category")}><JSelect value={f.category} onChange={(v) => setF({ ...f, category: v })} placeholder={tr("Read from the words")} options={res.topics.map((c) => ({ value: c, label: c }))} /></Field>
-        <Field label={tr("Complaint")}><textarea value={f.detail} onChange={(e) => setF({ ...f, detail: e.target.value })} rows={4} maxLength={2000} className={cx(inputClass, "h-auto py-2 text-sm")} /></Field>
-      </div>
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!f.branchCode || !f.platform || !f.detail.trim()} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button></>}>
+      <Group title={tr("The order")}>
+        <Row label={tr("Outlet")} required><JSelect label={tr("Outlet")} value={f.branchCode} onChange={(v) => setF({ ...f, branchCode: v })} placeholder={tr("Choose the outlet")} options={res.outlets.map((o) => ({ value: o.code, label: o.name }))} /></Row>
+        <Row label={tr("Platform")} required><JSelect label={tr("Platform")} value={f.platform} onChange={(v) => setF({ ...f, platform: v })} placeholder={tr("Choose the platform")} options={platformOptions()} /></Row>
+        <Row label={tr("Date of the complaint")} required><DateField label={tr("Date of the complaint")} value={f.day} max={daysAgo(0)} onChange={(v) => setF({ ...f, day: v })} /></Row>
+        <Row label={tr("Order no.")} hint={tr("As shown in the delivery app; may stay empty")}><input aria-label={tr("Order no.")} value={f.orderNo} maxLength={60} onChange={(e) => setF({ ...f, orderNo: e.target.value })} className={ctl} /></Row>
+      </Group>
+      <Group title={tr("The complaint")}>
+        <Row label={tr("Source")}><JSelect label={tr("Source")} placeholder={tr("Source")} value={f.source} onChange={(v) => setF({ ...f, source: v })} options={["chat", "app", "other"].map((x) => ({ value: x, label: SOURCE[x]() }))} /></Row>
+        <Row label={tr("Category")} hint={tr("Empty = read from the words of the complaint")}><JSelect label={tr("Category")} value={f.category} onChange={(v) => setF({ ...f, category: v })} placeholder={tr("Read from the words")} options={res.topics.map((c) => ({ value: c, label: c }))} /></Row>
+        <Row label={tr("What the customer says")} required><textarea aria-label={tr("What the customer says")} value={f.detail} onChange={(e) => setF({ ...f, detail: e.target.value })} rows={4} maxLength={2000} className={cx(ctl, "!h-auto py-2.5")} /></Row>
+      </Group>
     </Drawer>
   );
 }

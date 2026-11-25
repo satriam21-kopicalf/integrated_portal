@@ -4,12 +4,13 @@
 // menus most outlets have and one misses, the price changes, and what sells better on a platform than elsewhere.
 
 import { useCallback, useEffect, useState } from "react";
-import { Download, ListChecks } from "lucide-react";
-import { Button, ErrorState, SearchBox, cx, useToast } from "@/so/ui";
+import { ListChecks } from "lucide-react";
+import { ErrorState, cx, useToast } from "@/so/ui";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { Toolbar, WorkCard } from "@/so/ui/Jira";
+import { WorkCard } from "@/so/ui/Jira";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
+import { Tip } from "@/aggregator/info";
 import { downloadSheets } from "@/aggregator/ui";
 import { DataTable, FilterBar, FreshLine, OutletCell, Platform, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
 import { fmtPeriod, fmtStamp, nf, pct, rp, xlStamp } from "@/aggregator/time";
@@ -57,23 +58,23 @@ export default function PriceMenu() {
   const s = data?.summary;
   const key = `${platform}${outlet}${a.f.group}${t}${tab}`;
   const spreadCols: Col<Spread>[] = [
-    { key: "menu", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="font-medium text-neutral-900">{r.menu}</span> }, { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
+    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="font-medium text-neutral-900">{r.menu}</span> }, { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
     { key: "usual", label: tr("Usual price"), sort: (r) => r.usual, right: true, render: (r) => rp(r.usual) }, { key: "min", label: tr("Lowest"), sort: (r) => r.min, right: true, render: (r) => rp(r.min) }, { key: "max", label: tr("Highest"), sort: (r) => r.max, right: true, render: (r) => rp(r.max) },
-    { key: "d", label: tr("Outlets that differ"), sort: (r) => r.different, first: "desc", right: true, render: (r) => tr("{0} of {1}", r.different, r.outlets) },
+    { key: "d", card: "side", label: tr("Outlets that differ"), sort: (r) => r.different, first: "desc", right: true, render: (r) => tr("{0} of {1}", r.different, r.outlets) },
   ];
   const missCols: Col<Missing>[] = [
-    { key: "o", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "menu", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="text-neutral-900">{r.menu}</span> }, { key: "have", label: tr("Outlets that have it"), sort: (r) => r.have / r.of, first: "desc", right: true, render: (r) => <>{tr("{0} of {1}", r.have, r.of)}<span className="block text-[11px] text-neutral-400">{pct((r.have / r.of) * 100, 0)}</span></> },
+    { key: "o", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
+    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="text-neutral-900">{r.menu}</span> }, { key: "have", card: "side", label: tr("Outlets that have it"), sort: (r) => r.have / r.of, first: "desc", right: true, render: (r) => <>{tr("{0} of {1}", r.have, r.of)}<span className="block text-[11px] text-neutral-400">{pct((r.have / r.of) * 100, 0)}</span></> },
   ];
   const changeCols: Col<Change>[] = [
-    { key: "at", label: tr("Time (WIB)"), sort: (r) => r.at, first: "desc", className: "whitespace-nowrap", render: (r) => fmtStamp(r.at).replace(" WIB", "") }, { key: "o", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
-    { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> }, { key: "menu", label: tr("Menu"), sort: (r) => r.menu, render: (r) => r.menu }, { key: "old", label: tr("Old"), sort: (r) => r.old, right: true, render: (r) => rp(r.old) },
+    { key: "at", label: tr("Time (WIB)"), sort: (r) => r.at, first: "desc", className: "whitespace-nowrap", render: (r) => fmtStamp(r.at).replace(" WIB", "") }, { key: "o", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
+    { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> }, { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => r.menu }, { key: "old", label: tr("Old"), sort: (r) => r.old, right: true, render: (r) => rp(r.old) },
     { key: "new", label: tr("New"), sort: (r) => r.new, right: true, render: (r) => <>{rp(r.new)}<span className={cx("block text-[11px]", r.new < r.old ? "text-red-700" : "text-emerald-700")}>{r.old ? `${r.new > r.old ? "+" : ""}${pct(((r.new - r.old) / r.old) * 100)}` : ""}</span></> },
   ];
   const fitCols: Col<Fit>[] = [
-    { key: "menu", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="font-medium text-neutral-900">{r.menu}</span> }, { key: "qty", label: tr("Portions"), sort: (r) => r.qty, first: "desc", right: true, render: (r) => nf(r.qty) }, { key: "amount", label: tr("Sales"), sort: (r) => r.amount, first: "desc", right: true, render: (r) => rp(r.amount) },
+    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="font-medium text-neutral-900">{r.menu}</span> }, { key: "qty", label: tr("Portions"), sort: (r) => r.qty, first: "desc", right: true, render: (r) => nf(r.qty) }, { key: "amount", label: tr("Sales"), sort: (r) => r.amount, first: "desc", right: true, render: (r) => rp(r.amount) },
     { key: "share", label: tr("Share here %"), sort: (r) => r.share, first: "desc", right: true, render: (r) => pct(r.share, 2) }, { key: "else", label: tr("Share elsewhere %"), sort: (r) => r.shareElsewhere, first: "desc", right: true, render: (r) => pct(r.shareElsewhere, 2) },
-    { key: "lift", label: tr("Strength"), sort: (r) => r.lift ?? 999, first: "desc", right: true, render: (r) => <span className={cx("font-semibold", r.lift == null ? "text-neutral-400" : r.lift >= 1.3 ? "text-emerald-700" : r.lift <= 0.7 ? "text-red-700" : "")}>{r.lift == null ? tr("only here") : `${nf(r.lift, 2)}×`}</span> },
+    { key: "lift", card: "side", label: tr("Strength"), sort: (r) => r.lift ?? 999, first: "desc", right: true, render: (r) => <span className={cx("font-semibold", r.lift == null ? "text-neutral-400" : r.lift >= 1.3 ? "text-emerald-700" : r.lift <= 0.7 ? "text-red-700" : "")}>{r.lift == null ? tr("only here") : `${nf(r.lift, 2)}×`}</span> },
   ];
   const exportXlsx = async () => {
     if (!data) return;
@@ -87,24 +88,26 @@ export default function PriceMenu() {
       ]);
     } catch (e) { toast((e as Error).message, "error"); }
   };
+  const filter = (
+    <FilterBar a={a} ctx={ctx} period={false} note={tab === "fit" ? (fit ? tr("Sales of {0}", fmtPeriod(fit.from, fit.to)) : "…") : tab === "changes" ? tr("Price changes since 25 Nov 2026 · all times in WIB") : undefined} q={q} onQ={setQ} placeholder={tr("Search menu or outlet")} excel={() => void exportXlsx()} excelOff={!data} />
+  );
+  const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
   return (
-    <Page title={tr("Price & Menu")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Prices and menus that are not the same at every outlet, and what sells on each platform")} media={<ListChecks size={19} />}
-      actions={<Button variant="secondary" size="sm" disabled={!data} onClick={() => void exportXlsx()}><Download size={14} /> {tr("Excel")}</Button>}>
+    <Page title={tr("Price & Menu")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Prices and menus that are not the same at every outlet, and what sells on each platform")} media={<ListChecks size={19} />}>
       <FreshLine ctx={ctx} sources={["menu"]} />
-      <FilterBar a={a} ctx={ctx} period={false} note={tab === "fit" ? (fit ? tr("Sales of {0}", fmtPeriod(fit.from, fit.to)) : "…") : tab === "changes" ? tr("Price changes since 25 Nov 2026 · all times in WIB") : undefined} />
-      {err ? <ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /> : (
+      {err ? <>{card}<ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /></> : (
         <>
           <StatStrip columns={4} label={tr("Price & Menu")} gridClassName="grid-cols-2 lg:grid-cols-4">
             <Stat label={tr("Menu items read")} value={s ? nf(s.items) : <StatSkeleton />} />
-            <Stat label={tr("Menus missing at an outlet")} value={s ? nf(missAll.length) : <StatSkeleton />}>{s && <p>{tr("{0} outlets", nf(new Set(missAll.map((r) => r.outlet)).size))}</p>}</Stat>
-            <Stat label={tr("Menus with different prices")} value={s ? nf(s.spread) : <StatSkeleton />}>{s && <p>{tr("{0} outlet prices", nf(s.differ))}</p>}</Stat>
+            <Stat label={tr("Menus missing at an outlet")} info={<Tip k="missing" />} value={s ? nf(missAll.length) : <StatSkeleton />}>{s && <p>{tr("{0} outlets", nf(new Set(missAll.map((r) => r.outlet)).size))}</p>}</Stat>
+            <Stat label={tr("Menus with different prices")} info={<Tip k="spread" />} value={s ? nf(s.spread) : <StatSkeleton />}>{s && <p>{tr("{0} outlet prices", nf(s.differ))}</p>}</Stat>
             <Stat label={tr("Price changes")} value={s ? nf(changesAll.length) : <StatSkeleton />}><p>{tr("since 25 Nov 2026")}</p></Stat>
           </StatStrip>
           <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "missing", label: tr("Missing menus"), count: s ? missAll.length : null }, { key: "outlet", label: tr("Missing per outlet") }, { key: "spread", label: tr("Different prices"), count: s ? s.spread : null }, { key: "changes", label: tr("Price changes"), count: s ? changesAll.length : null }, { key: "fit", label: tr("What fits") }]}>
-            <Toolbar><div className="w-full sm:w-72"><SearchBox value={q} onChange={setQ} placeholder={tr("Search menu or outlet")} /></div></Toolbar>
+            {filter}
             {tab === "missing" ? <DataTable key={tab} cols={missCols} rows={missing} loading={!data} rowKey={(r) => `${r.outlet}${r.platform}${r.menu}`} resetKey={key} initial={{ key: "o", dir: "asc" }} minWidth={700} empty={tr("No menu is missing")} note={tr("A menu at least 80% of the outlets of the platform have. Seasonal or limited menus may be missing on purpose.")} />
               : tab === "outlet" ? <DataTable key={tab} rows={perOutlet} loading={!data} rowKey={(r) => r.outlet} resetKey={key} initial={{ key: "n", dir: "desc" }} minWidth={520} empty={tr("No menu is missing")} onRow={(r) => { setQ(r.outlet); setTab("missing"); }}
-                cols={[{ key: "o", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{[...r.platforms].map((p) => <Platform key={p} p={p} />)}</span> }, { key: "n", label: tr("Missing menus"), sort: (r) => r.n, first: "desc", right: true, render: (r) => nf(r.n) }]} />
+                cols={[{ key: "o", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{[...r.platforms].map((p) => <Platform key={p} p={p} />)}</span> }, { key: "n", label: tr("Missing menus"), sort: (r) => r.n, first: "desc", right: true, render: (r) => nf(r.n) }]} />
               : tab === "spread" ? <DataTable key={tab} cols={spreadCols} rows={spread} loading={!data} rowKey={(r) => `${r.platform}${r.menu}`} resetKey={key} initial={{ key: "d", dir: "desc" }} empty={tr("Every outlet has the same price")} note={tr("The usual price is the one most outlets have; a different price may be a promo or another city.")}
                 expand={(r) => <ul className="grid gap-x-6 gap-y-1 text-xs sm:grid-cols-2 lg:grid-cols-3">{r.who.map((w) => <li key={w.outlet} className="flex justify-between gap-3"><span className="truncate">{w.outlet}</span><span className={cx("tabular-nums", w.price < r.usual ? "text-red-700" : "text-emerald-700")}>{rp(w.price)}</span></li>)}</ul>} />
               : tab === "changes" ? <DataTable key={tab} cols={changeCols} rows={changes} loading={!data} rowKey={(r) => `${r.at}${r.outlet}${r.platform}${r.menu}`} resetKey={key} initial={{ key: "at", dir: "desc" }} empty={tr("No price change seen yet")} />
