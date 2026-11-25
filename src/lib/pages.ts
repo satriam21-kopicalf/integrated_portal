@@ -6,8 +6,8 @@ import { tr } from './i18n';
 
 export type PageKey =
   | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
-  | 'form.pic-check-in' | 'form.surveyor-check-in' | 'form.outlet' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan' | 'form.wwwr' | 'form.stock-transfer'
-  | 'mon.overview' | 'mon.pic-check-in' | 'mon.surveyor-check-in' | 'mon.outlet' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
+  | 'form.pic-check-in' | 'form.surveyor-check-in' | 'form.outlet' | 'form.travel' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan' | 'form.wwwr' | 'form.stock-transfer'
+  | 'mon.overview' | 'mon.pic-check-in' | 'mon.surveyor-check-in' | 'mon.outlet' | 'mon.travel' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
   | 'mon.pengajuan' | 'mon.wwwr'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood' | 'social.analytics' | 'agg.overview' | 'agg.schedule' | 'agg.opening' | 'agg.oos' | 'agg.reviews' | 'agg.menu' | 'agg.complaints' | 'agg.void' | 'agg.reports'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
@@ -31,6 +31,7 @@ export const PAGES: PageInfo[] = [
   { key: 'form.surveyor-check-in', href: '/forms/surveyor-check-in', get label() { return tr('Cost Control Clock In (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.product', href: '/forms/product', get label() { return 'Product (form)'; }, get group() { return tr('Form'); } },
   { key: 'form.outlet', href: '/forms/outlet', get label() { return 'Outlet (form)'; }, get group() { return tr('Form'); } },
+  { key: 'form.travel', href: '/forms/travel', get label() { return 'Travel Path (form)'; }, get group() { return tr('Form'); } },
   { key: 'form.damaged-equipment', href: '/forms/damaged-equipment', get label() { return tr('Maintenance & Procurement (form)'); }, get group() { return tr('Form'); } },
   { key: 'form.pengajuan', href: '/forms/pengajuan', get label() { return tr('Fund Request (Form)'); }, get group() { return tr('Form'); } },
   // the SWAT audit (2026-11-03): given per account
@@ -64,6 +65,7 @@ export const PAGES: PageInfo[] = [
   { key: 'cc.schedule', href: '/cost-control/schedule', get label() { return tr('Cost Control Schedule'); }, get group() { return tr('Cost Control · Clock In'); } },
   { key: 'mon.product', href: '/monitoring/product', get label() { return 'Product'; }, get group() { return tr('Operations'); } },
   { key: 'mon.outlet', href: '/monitoring/outlet', get label() { return 'Outlet'; }, get group() { return tr('Operations'); } },
+  { key: 'mon.travel', href: '/monitoring/travel', label: 'Travel Path', get group() { return tr('Operations'); } },
   { key: 'mon.wwwr', href: '/monitoring/wwwr', label: 'WW-WR', get group() { return tr('Operations'); } },
   { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Maintenance & Procurement'); }, get group() { return tr('Operations'); } },
   { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch Groups'); }, get group() { return tr('Operations'); } },

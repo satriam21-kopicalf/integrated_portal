@@ -238,6 +238,14 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
         ]} />,
       },
       {
+        id: 'form-travel', title: S('Travel Path (foto checklist outlet)', 'Travel Path (outlet photo check)'),
+        body: <Steps items={[
+          L(<>Diisi akun outlet di Operations, beberapa sesi per hari (Opening, pukul 15.00, Closing), zona 1 sampai 5 berurutan. Satu laporan per outlet per sesi; beberapa HP bisa mengisi bersama.</>, <>Filled by the outlet accounts in Operations, several sessions a day (opening, 3 PM, closing), zone 1 to 5 in order. One report per outlet and session; several phones can fill it.</>),
+          L(<><b>Sesuai</b> perlu foto, <b>Tidak sesuai</b> perlu foto dan temuannya, <b>N/A</b> perlu alasan. Temuan yang langsung diperbaiki diberi foto after; sisanya punya batas waktu menurut kategori.</>, <><b>Meets</b> needs a photo, <b>Does not meet</b> a photo and what was found, <b>N/A</b> the reason. A finding repaired at once gets its after photo; the others have a deadline by category.</>),
+          L(<>Pantau di <P href="/monitoring/travel" t="Travel Path" />: kepatuhan per sesi, laporan, temuan. Area, kategori, grup dan outlet diatur di Grup Cabang → Butir Form; jam sesi, skor dan batas waktu di Grup Cabang → Travel Path.</>, <>Watch it in <P href="/monitoring/travel" t="Travel Path" />: compliance per session, reports, findings. Areas, categories, groups and outlets are set in Branch Groups → Form Items; session times, score and deadlines in Branch Groups → Travel Path.</>),
+        ]} />,
+      },
+      {
         id: 'form-wwwr', title: S('WW-WR (audit tim SWAT)', 'WW-WR (SWAT audit)'),
         body: <Steps items={[
           L(<><P href="/forms/wwwr" t="WW-WR" /> menampilkan audit yang dijadwalkan untuk Anda (dari Operations → WW-WR).</>, <><P href="/forms/wwwr" t="WW-WR" /> lists the audits you are scheduled for (from Operations → WW-WR).</>),

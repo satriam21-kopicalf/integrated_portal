@@ -108,13 +108,13 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
 /* ---------------------------------------------------------------- form items per group */
 
 type Cell = { shown: boolean; default: boolean; changed: boolean };
-type Matrix = { groups: string[]; forms: { form: "product" | "outlet"; sections: { key: string; title: string; titleEn: string; group: string; groupTitle?: string;
+type Matrix = { groups: string[]; forms: { form: "product" | "outlet" | "travel"; sections: { key: string; title: string; titleEn: string; group: string; groupTitle?: string;
   items: MatrixItem[] }[] }[] };
 /** migration 085: branches = {outlet code: shown} of the outlets set apart from their group */
 type MatrixItem = { key: string; no: number; label: string; labelEn: string; required: boolean; groups: Record<string, Cell>; branches?: Record<string, boolean> };
 
 /** The outlets of one item (migration 085): each follows its group or is set apart — shown or hidden at that outlet only. */
-function ItemOutlets({ form, item, canEdit, onClose, onSaved }: { form: "product" | "outlet"; item: MatrixItem; canEdit: boolean; onClose: () => void; onSaved: () => void }) {
+function ItemOutlets({ form, item, canEdit, onClose, onSaved }: { form: "product" | "outlet" | "travel"; item: MatrixItem; canEdit: boolean; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
   const { lang } = useLang();
   const [outlets, setOutlets] = useState<OutletSetting[] | null>(null);
@@ -188,7 +188,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
   const en = lang === "en";
   const [res, setRes] = useState<Matrix | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<"product" | "outlet">("product");
+  const [form, setForm] = useState<"product" | "outlet" | "travel">("product");
   const [q, setQ] = useState("");
   const [changes, setChanges] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
@@ -247,15 +247,15 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
       toolbar={
         <div className="flex flex-wrap items-center gap-2">
           <div role="radiogroup" aria-label={tr("Form")} className="flex gap-1">
-            {(["product", "outlet"] as const).map((f) => (
+            {(["product", "outlet", "travel"] as const).map((f) => (
               <button key={f} type="button" role="radio" aria-checked={form === f} onClick={() => setForm(f)}
                 className={cx("rounded-md px-3 py-1 text-xs font-semibold", form === f ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "text-neutral-500")}>
-                {f === "product" ? "Form Product" : "Form Outlet"}
+                {f === "product" ? "Form Product" : f === "outlet" ? "Form Outlet" : "Travel Path"}
               </button>
             ))}
           </div>
           <SearchInput value={q} onChange={setQ} placeholder={tr("Search item")} />
-          {canEdit && ed && <Button size="sm" variant="secondary" onClick={() => setWeightsOpen(true)}><WeightIcon size={14} /> {tr("Category weights")}</Button>}
+          {canEdit && ed && form !== "travel" && <Button size="sm" variant="secondary" onClick={() => setWeightsOpen(true)}><WeightIcon size={14} /> {tr("Category weights")}</Button>}
         </div>
       }>
       {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={4} /></tbody></table> : (

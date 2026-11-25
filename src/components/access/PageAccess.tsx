@@ -38,7 +38,7 @@ export function loadRolePages(fresh = false): Promise<RolePages> {
 const PICK_LABEL: Partial<Record<PageKey, () => string>> = {
   'stock-opname': () => tr('Form Stock Opname'), waste: () => tr('Form Waste'),
   'form.pic-check-in': () => tr('Form PIC Check In'), 'form.surveyor-check-in': () => tr('Form Cost Control Check In'),
-  'form.product': () => tr('Form Product'), 'form.outlet': () => tr('Form Outlet'),
+  'form.product': () => tr('Form Product'), 'form.outlet': () => tr('Form Outlet'), 'form.travel': () => 'Form Travel Path',
   'form.damaged-equipment': () => tr('Form Maintenance & Procurement'), 'form.pengajuan': () => tr('Form Fund Request'),
   'form.stock-transfer': () => tr('Form Transfer Stock (TITO)'), 'form.wwwr': () => tr('Form WW-WR (SWAT)'),
 };

@@ -100,8 +100,8 @@ export default function LoginPage() {
     <main className="flex min-h-dvh bg-white">
       <BrandPanel />
 
-      <div className="relative flex min-h-dvh flex-1 flex-col bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 lg:bg-none">
-        {/* phones and tablets: the blue header of the app, the logo as a watermark (the brand panel is hidden) */}
+      <div className="relative flex min-h-dvh flex-1 flex-col bg-gradient-to-br from-[#050A4A] via-[#080F68] to-[#0B1385] lg:bg-none">
+        {/* phones and tablets: the navy header of the app, as Operations (2026-11-25), the logo as a watermark (the brand panel is hidden) */}
         <div className="relative overflow-hidden px-6 pb-16 text-white lg:hidden" style={{ paddingTop: 'max(3.5rem, calc(env(safe-area-inset-top) + 2.5rem))' }}>
           <GridPattern />
           <BrandWatermark className="-right-24 bottom-2 w-[520px] -rotate-[8deg] opacity-[0.11]" />
@@ -204,7 +204,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-brand-700 lg:h-11  text-sm font-semibold text-white shadow-sm shadow-brand-600/20 transition-colors hover:bg-brand-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/25 disabled:cursor-wait disabled:bg-brand-600/80"
+                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-[#0B1385] lg:h-11  text-sm font-semibold text-white shadow-sm shadow-[#050A4A]/20 transition-colors hover:bg-[#050A4A] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/25 disabled:cursor-wait disabled:bg-[#0B1385]/80"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
                   {submitting ? tr('Signing in…') : tr('Sign in')}
@@ -251,9 +251,9 @@ function Field({ id, label, error, hint, children }: {
 /** Large screens: the brand side, the blue of the logo with white and a touch of dark red; decorative, no real figures. */
 function BrandPanel() {
   return (
-    <aside className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-10 text-white lg:flex xl:p-14">
+    <aside className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-gradient-to-br from-[#050A4A] via-[#080F68] to-[#0B1385] p-10 text-white lg:flex xl:p-14">
       <GridPattern />
-      <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-brand-500/40 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-white/[0.06] blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-maroon-700/45 blur-3xl" aria-hidden />
 
       <BrandWatermark className="-bottom-10 -right-40 w-[760px] -rotate-[8deg] opacity-[0.08]" />
@@ -296,36 +296,36 @@ function DashboardIllustration() {
         <div className="flex items-center justify-between">
           <span className="space-y-1.5">
             <span className="block h-2 w-20 rounded-full bg-neutral-200" />
-            <span className="block h-3 w-32 rounded-full bg-brand-600" />
+            <span className="block h-3 w-32 rounded-full bg-[#0B1385]" />
           </span>
           <span className="flex gap-1.5">
-            <span className="h-6 w-12 rounded-md bg-brand-50" /><span className="h-6 w-12 rounded-md bg-brand-600" />
+            <span className="h-6 w-12 rounded-md bg-[#ECEEF9]" /><span className="h-6 w-12 rounded-md bg-[#0B1385]" />
           </span>
         </div>
         <svg viewBox="0 0 300 110" className="mt-4 h-32 w-full">
           <defs>
             <linearGradient id="login-area" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="#0e46c7" stopOpacity=".18" /><stop offset="1" stopColor="#0e46c7" stopOpacity="0" />
+              <stop offset="0" stopColor="#0B1385" stopOpacity=".18" /><stop offset="1" stopColor="#0B1385" stopOpacity="0" />
             </linearGradient>
           </defs>
           {[26, 54, 82].map(y => <line key={y} x1="0" x2="300" y1={y} y2={y} stroke="#e2e8f0" />)}
           <path d="M0,92 C30,84 45,66 75,70 S120,44 150,50 S200,28 225,34 S270,16 300,20 L300,110 L0,110 Z" fill="url(#login-area)" />
-          <path d="M0,98 C35,94 50,84 80,86 S125,70 155,74 S205,58 230,62 S270,48 300,50" fill="none" stroke="#93b2f8" strokeWidth="2" strokeDasharray="5 5" />
-          <path d="M0,92 C30,84 45,66 75,70 S120,44 150,50 S200,28 225,34 S270,16 300,20" fill="none" stroke="#0e46c7" strokeWidth="2.5" />
-          <circle cx="225" cy="34" r="5" fill="#fff" stroke="#0e46c7" strokeWidth="2.5" />
+          <path d="M0,98 C35,94 50,84 80,86 S125,70 155,74 S205,58 230,62 S270,48 300,50" fill="none" stroke="#8A93D6" strokeWidth="2" strokeDasharray="5 5" />
+          <path d="M0,92 C30,84 45,66 75,70 S120,44 150,50 S200,28 225,34 S270,16 300,20" fill="none" stroke="#0B1385" strokeWidth="2.5" />
+          <circle cx="225" cy="34" r="5" fill="#fff" stroke="#0B1385" strokeWidth="2.5" />
         </svg>
         <div className="mt-4 flex h-16 items-end gap-2">
           {bars.map((h, i) => (
-            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-brand-600' : 'bg-brand-100'}`} style={{ height: `${h}%` }} />
+            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-[#0B1385]' : 'bg-[#D9DCF3]'}`} style={{ height: `${h}%` }} />
           ))}
         </div>
       </div>
       {/* floating KPI chip */}
       <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-[4px] bg-white px-3 py-2.5 shadow-xl shadow-brand-950/25">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-600"><TrendingUp size={16} /></span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ECEEF9] text-[#0B1385]"><TrendingUp size={16} /></span>
         <span className="space-y-1.5">
           <span className="block h-1.5 w-12 rounded-full bg-neutral-200" />
-          <span className="block h-2.5 w-16 rounded-full bg-brand-600" />
+          <span className="block h-2.5 w-16 rounded-full bg-[#0B1385]" />
         </span>
       </div>
     </div>

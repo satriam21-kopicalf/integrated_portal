@@ -2,7 +2,7 @@
 // COTR, Aggregator, Management). Only data: what is shown is filtered per account by inMenu (lib/auth). A new page is
 // added here, in lib/pages.ts and in the backend page catalog (integrated_portal_be app/access.py).
 
-import {
+import { Footprints,
   Activity, BarChart3, Bike, Warehouse, CookingPot, Download, Boxes, Calculator, ClipboardPen, FileBarChart,
   FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ClipboardCheck, ClipboardList, ListChecks,
   Settings2, History, LayoutDashboard, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, Users, Wallet, UserRoundCheck,
@@ -95,6 +95,7 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
   { get title() { return tr('Product & Outlet'); }, get hint() { return tr('Checklists of every outlet'); }, icon: Store, items: [
     { get name() { return 'Product'; }, href: '/monitoring/product', icon: Package, get description() { return tr('Product checklists & findings'); } },
     { get name() { return 'Outlet'; }, href: '/monitoring/outlet', icon: Store, get description() { return tr('Outlet checklists & findings'); } },
+    { get name() { return 'Travel Path'; }, href: '/monitoring/travel', icon: Footprints, get description() { return tr('Photo check of every outlet, several times a day'); } },
     { get name() { return 'WW-WR'; }, href: '/monitoring/wwwr', icon: ShieldCheck, get description() { return tr('SWAT audits, comparison with the PIC & schedule'); } },
   ] },
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Requests of every outlet'); }, icon: Wrench, items: [

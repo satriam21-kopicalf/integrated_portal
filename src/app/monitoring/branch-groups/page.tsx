@@ -4,7 +4,7 @@
 // Check In, Monitoring Product and Monitoring Outlet are judged by. One group per branch; a branch picked for a group
 // moves out of its former group. Used by Monitoring → Overview and the group filter of the monitoring pages.
 
-import { AlarmClock, Boxes, Check, ListChecks, Plus, Save, Store, Trash2, TrendingUp } from "lucide-react";
+import { AlarmClock, Boxes, Check, Footprints, ListChecks, Plus, Save, Store, Trash2, TrendingUp } from "lucide-react";
 import { CardBody, CardFooter, Lozenge, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, Page, cx, inputClass, useToast } from "@/so/ui";
@@ -15,6 +15,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { useAuth, hasPage } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
 import { CheckInDeadlines, FormItems, SalesTargets } from "./settings";
+import { TravelSettings } from "./travel";
 
 type Branch = { code: string; name: string };
 type Group = { id: string; code: string; name: string; description: string | null; sort: number; branches: Branch[];
@@ -47,8 +48,9 @@ export default function BranchGroupsPage() {
       {/* Jira-like (2026-11-18): one card, the settings as tabs, the groups as an issue table */}
       <WorkCard label={tr("Branch Groups")} active={tab} onTab={setTab}
         tabs={[{ key: "groups", label: tr("Groups"), icon: <Boxes size={15} />, count: data?.groups.length }, { key: "deadlines", label: tr("Check-In Deadlines"), icon: <AlarmClock size={15} /> },
-          { key: "items", label: tr("Form Items"), icon: <ListChecks size={15} /> }, { key: "targets", label: tr("Net Sales"), icon: <TrendingUp size={15} /> }]}>
+          { key: "items", label: tr("Form Items"), icon: <ListChecks size={15} /> }, { key: "travel", label: "Travel Path", icon: <Footprints size={15} /> }, { key: "targets", label: tr("Net Sales"), icon: <TrendingUp size={15} /> }]}>
       {tab === "deadlines" ? <CardBody><CheckInDeadlines canEdit={canEdit} /></CardBody> : tab === "items" ? <CardBody><FormItems canEdit={canEdit} /></CardBody>
+        : tab === "travel" ? <CardBody><TravelSettings canEdit={canEdit} /></CardBody>
         : tab === "targets" ? <CardBody><SalesTargets /></CardBody> : error ? <div className="p-4"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-10 rounded-md" />)}</div>
       ) : (

@@ -19,7 +19,7 @@ export type EditorItem = {
   changed: boolean; code: { label: string; category: string | null; note: Level; photo: Level; required: boolean } | null;
 };
 export type EditorSection = { key: string; title: string; titleEn: string; group: string; groupTitle: string; items: EditorItem[] };
-export type Editor = { forms: { form: "product" | "outlet"; sections: EditorSection[] }[]; weights: { category: string; categoryEn: string; weight: number }[] };
+export type Editor = { forms: { form: "product" | "outlet" | "travel"; sections: EditorSection[] }[]; weights: { category: string; categoryEn: string; weight: number }[] };
 
 const CATEGORIES = ["Kritikal", "Mayor", "Minor"];
 const CATEGORY_LABEL: Record<string, () => string> = { Kritikal: () => tr("Critical"), Mayor: () => tr("Major"), Minor: () => tr("Minor") };
@@ -32,7 +32,7 @@ const LEVELS: { value: Level; label: () => string }[] = [
 
 /** Edit an item (item set) or add one to a section (section set, item null). */
 export function ItemDialog({ form, item, section, onClose, onSaved }: {
-  form: "product" | "outlet"; item: EditorItem | null; section: EditorSection | null; onClose: () => void; onSaved: () => void;
+  form: "product" | "outlet" | "travel"; item: EditorItem | null; section: EditorSection | null; onClose: () => void; onSaved: () => void;
 }) {
   const toast = useToast();
   const [d, setD] = useState(() => ({
@@ -70,7 +70,7 @@ export function ItemDialog({ form, item, section, onClose, onSaved }: {
           <Field label={tr("Item name (EN)")}><Input value={d.labelEn} onChange={(e) => set({ labelEn: e.target.value })} maxLength={300} placeholder={d.label} /></Field>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Field label={tr("Category")} hint={tr("Its weight in the final score")}>
+          <Field label={tr("Category")} hint={form === "travel" ? tr("Sets the repair deadline; a critical finding caps the score") : tr("Its weight in the final score")}>
             <Select value={isOther ? "__other" : d.category} onChange={(e) => set({ category: e.target.value === "__other" ? (d.other || "Lainnya") : e.target.value })}>
               <option value="">{tr("No category")}</option>
               {CATEGORIES.map((c) => <option key={c} value={c}>{categoryLabel(c)}</option>)}

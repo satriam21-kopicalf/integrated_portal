@@ -109,7 +109,7 @@ export const OPERATIONS_URL = 'https://operations.kopicalf.co.id';
 /** Pages Operations has (same list as app/access.py OPERATIONS_PAGES): an account whose pages are all here and include
  * a form signs in there, not in the portal. */
 export const OPERATIONS_PAGES: PageKey[] = ['overview', 'sales', 'rating.grabfood', 'rating.google-maps', 'rating.shopeefood', 'rating.gofood', 'stock-opname', 'waste', 'guide', 'form.pic-check-in', 'form.surveyor-check-in', 'form.product',
-  'form.outlet', 'form.damaged-equipment', 'form.pengajuan', 'form.wwwr'];
+  'form.outlet', 'form.travel', 'form.damaged-equipment', 'form.pengajuan', 'form.wwwr'];
 /** Roles that see their assigned branches only (the others see every branch). */
 export const branchScoped = (role: Role) => role === 'user' || role === 'outlet';
 /** may be narrowed to some branches, none chosen = every branch (2026-11-24; backend accounts.LIMITABLE_ROLES) */
