@@ -22,7 +22,7 @@ import { tr } from "@/lib/i18n";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { type XlsxCell, downloadXlsx } from "@/lib/xlsx";
 import { downloadSheets } from "@/aggregator/ui";
-import { useCompany } from "@/lib/company";
+import { LOGOS, useCompany } from "@/lib/company";
 import PengajuanView, { FileChip, StatusBadge } from "./PengajuanView";
 import RefundPanel from "./PengajuanRefund";
 import { BulkBar, ReceivePanel } from "./PengajuanBulk";
@@ -181,7 +181,7 @@ export default function PengajuanMonitor() {
                 <button key={u.code} type="button" role="radio" aria-checked={on} data-on={on || undefined} onClick={() => !on && pickUnit(u.code)} title={u.payer}
                   className={cx("inline-flex h-9 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors", on ? "border-brand-700 bg-white text-brand-800 ring-1 ring-brand-700" : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100")}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {UNIT_LOGO[u.code] && <img src={UNIT_LOGO[u.code]} alt="" aria-hidden className={cx("max-h-4 max-w-12 object-contain", !on && "opacity-60 grayscale")} />}
+                  {LOGOS[u.code] && <img src={LOGOS[u.code]} alt="" aria-hidden className={cx("max-h-6 max-w-14 object-contain", !on && "opacity-60 grayscale")} />}
                   {u.name}{n > 0 && <span className="rounded-full bg-neutral-200/80 px-1.5 text-[11px] tabular-nums text-neutral-700">{n}</span>}
                 </button>
               );
@@ -278,7 +278,6 @@ export default function PengajuanMonitor() {
   );
 }
 
-const UNIT_LOGO: Record<string, string> = { CALF: "/assets/calf-logo.png", CALF7: "/assets/Logo-Wasgee.png", COTR: "/assets/Logo-COTR.png" };
 const KIND_TONE: Partial<Record<Kind, string>> = { PETTY_CASH: "bg-emerald-600", EMERGENCY: "bg-red-600", MARKETING: "bg-violet-600", EVENT: "bg-sky-600", BILL: "bg-amber-600" };
 const PG_TONE: Record<Status, LozengeTone> = { DRAFT: "grey", SUBMITTED: "blue", REVISION: "amber", APPROVED: "cyan", PAID: "violet", VERIFYING: "amber", DONE: "green", REJECTED: "red", CANCELLED: "grey" };
 function PgLozenge({ s }: { s: Status }) {
@@ -712,7 +711,9 @@ function UnitsPanel({ units, edit, onChanged, users, names, receivers, admin }: 
           <thead><tr className={jHeadRow}><th className={jTh}>{tr("Business unit")}</th><th className={jTh}>{tr("Paid from")}</th></tr></thead>
           <tbody>{units.map((u) => (
             <tr key={u.code} className="border-b border-neutral-100">
-              <td className={cx(jTd, "font-medium text-neutral-900")}>{u.name}</td>
+              <td className={cx(jTd, "font-medium text-neutral-900")}><span className="flex items-center gap-2.5"><span className="flex h-8 w-14 flex-shrink-0 items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {LOGOS[u.code] && <img src={LOGOS[u.code]} alt="" aria-hidden className="max-h-8 max-w-full object-contain" />}</span>{u.name}</span></td>
               <td className={jTd}><input defaultValue={u.payer} disabled={!edit} maxLength={80} aria-label={tr("Paid from")} onBlur={(e) => void save(u, e.target.value)} className={cx(inputClass, "h-9 text-sm")} /></td>
             </tr>))}</tbody>
         </table>

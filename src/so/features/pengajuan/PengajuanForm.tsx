@@ -21,6 +21,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { call } from "@/so/features/checkin/checkin";
 import { TZ, wibDate, wibDateTime, wibDay } from "@/so/lib/wib";
 import { useAuth } from "@/lib/auth";
+import { LOGOS } from "@/lib/company";
 import { locale, tr } from "@/lib/i18n";
 import PengajuanView, { Balances, FileChip, StatusBadge } from "./PengajuanView";
 import { CancelPanel, ProofPanel } from "./PengajuanLife";
@@ -234,9 +235,12 @@ function UnitChoice({ units, value, onChange }: { units: Unit[]; value: string; 
       <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={tr("Unit that asks")}>
         {units.map((u) => (
           <button key={u.code} type="button" role="radio" aria-checked={value === u.code} onClick={() => onChange(u.code)}
-            className={cx("rounded-md border px-3 py-2.5 text-left transition-colors", value === u.code ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500" : "border-neutral-200 bg-white hover:bg-neutral-50")}>
-            <span className="block text-sm font-semibold text-neutral-900">{u.name}</span>
-            <span className="block text-[11px] text-neutral-500">{tr("Paid from {0}", u.payer)}</span>
+            className={cx("flex items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-colors", value === u.code ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500" : "border-neutral-200 bg-white hover:bg-neutral-50")}>
+            <span className="flex h-10 w-16 flex-shrink-0 items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {LOGOS[u.code] && <img src={LOGOS[u.code]} alt="" aria-hidden className="max-h-10 max-w-full object-contain" />}</span>
+            <span className="min-w-0"><span className="block text-sm font-semibold text-neutral-900">{u.name}</span>
+              <span className="block text-[11px] text-neutral-500">{tr("Paid from {0}", u.payer)}</span></span>
           </button>
         ))}
       </div>

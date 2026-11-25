@@ -16,27 +16,45 @@ import HrmsEmployeePicker, { HRMS_FIELDS, followsHrms, hrmsValue, type HrmsEmplo
 import HrmsSyncDrawer from '@/components/access/HrmsSyncDrawer';
 import { AccessSettingsDrawer, PageAccessEditor } from '@/components/access/PageAccess';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
-import { Card, EmptyState, ErrorBlock, IconButton, PageHeader, PageShell, Pill, type PillTone, SearchInput, StatCard, StatGrid, Tabs, Toolbar, ValueSkeleton, btn, kcTable } from '@/components/kc';
+import { EmptyState, ErrorBlock, IconButton, PageHeader, PageShell, Pill, type PillTone, SearchInput, StatCard, StatGrid, Toolbar, ValueSkeleton, btn } from '@/components/kc';
+import { CardFooter, Toolbar as JToolbar, WorkCard, jHeadRow, jRow, jTable, jTd, jTh } from '@/so/ui/Jira';
+import { Segmented } from '@/so/ui/Simple';
 import ActionMenu, { ActionItem } from '@/components/ui/ActionMenu';
 import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
 import Drawer, { DrawerSection } from '@/components/ui/Drawer';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
 import FundUnits from '@/components/access/FundUnits';
-import { AuthUser, branchLimitable, branchScoped, BusinessLine, GENDER_LABELS, LINE_COMPANY, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
+import { LOGOS } from '@/lib/company';
+import { AuthUser, branchLimitable, branchScoped, BusinessLine, GENDER_LABELS, Role, ROLE_LABELS, useAuth } from '@/lib/auth';
 
-/** The business lines of User Accounts (migration 054): accounts and branches of each line apart. */
-const LINES: { key: BusinessLine; label: string; logo: string }[] = [
-  { key: 'kopicalf', label: 'Kopi Calf', logo: '/assets/calf-logo.png' },
-  { key: 'wasgee', label: 'Wasgee Tea', logo: '/assets/Logo-Wasgee.png' },
-  { key: 'cotr', label: 'Calf On The Road', logo: '/assets/Logo-COTR.png' },
+/** The tabs of User Accounts (2026-11-25): the three business lines (migration 054), and Roastery, Warehouse and Central
+ *  Kitchen — accounts of the Kopi Calf line whose places are all of that unit (backend accounts.TABS). */
+type Tab = BusinessLine | 'roastery' | 'warehouse' | 'ck';
+const LINES: { key: Tab; label: string; unit: string }[] = [
+  { key: 'kopicalf', label: 'Kopi Calf', unit: 'CALF' },
+  { key: 'wasgee', label: 'Wasgee Tea', unit: 'CALF7' },
+  { key: 'cotr', label: 'Calf On The Road', unit: 'COTR' },
+  { key: 'roastery', label: 'Roastery', unit: 'ROASTERY' },
+  { key: 'warehouse', label: 'Warehouse', unit: 'WAREHOUSE' },
+  { key: 'ck', label: 'Central Kitchen', unit: 'CK' },
 ];
-/** The branches of a line: its ESB company (sites without an ESB company — HUB WH / CK — belong to Kopi Calf);
- * Calf On The Road works with pools, every branch may still be given. */
-function lineBranches(branches: Branch[], line: BusinessLine): Branch[] {
-  const company = LINE_COMPANY[line];
-  if (!company) return branches;
-  return branches.filter(b => (b.company_code ?? 'CALF') === company);
+const UNIT_TABS: Record<string, Tab> = { ROASTERY: 'roastery', WAREHOUSE: 'warehouse', CK: 'ck' };
+const lineOf = (tab: Tab): BusinessLine => (tab === 'wasgee' || tab === 'cotr' ? tab : 'kopicalf');
+/** The places that can be given in a tab. Kopi Calf: everything that is not Wasgee (a PIC may hold a hub too); Calf On The
+ *  Road works with pools, every place may still be given. */
+function tabBranches(branches: Branch[], tab: Tab): Branch[] {
+  if (tab === 'cotr') return branches;
+  if (tab === 'wasgee') return branches.filter(b => b.unit === 'CALF7');
+  if (tab === 'kopicalf') return branches.filter(b => b.unit !== 'CALF7');
+  return branches.filter(b => b.unit && UNIT_TABS[b.unit] === tab);
+}
+/** The tab an account is listed in (same rule as the backend, without the Fund Request units given by hand). */
+function tabOf(u: AuthUser, branches: Branch[]): Tab {
+  const line = u.businessLine ?? 'kopicalf';
+  if (line !== 'kopicalf' || (u.role !== 'user' && u.role !== 'outlet')) return line;
+  const units = new Set((u.branches ?? []).map(c => branches.find(b => b.branch_code === c)?.unit ?? 'CALF'));
+  return units.size === 1 ? UNIT_TABS[[...units][0]] ?? line : line;
 }
 import { PAGES } from '@/lib/pages';
 import { formatDate, formatDateTime, formatNumber, parseLocalDate, toIsoDate } from '@/lib/format';
@@ -59,7 +77,8 @@ interface UsersSummary {
   neverSignedIn: number;
   active7d: number;
   branchesCovered: number;
-  lines?: Record<BusinessLine, number>;
+  lines?: Partial<Record<Tab, number>>;
+  /** the accounts per role of every tab */ roles?: Partial<Record<Tab, Partial<Record<Role, number>>>>;
 }
 
 interface ListResponse {
@@ -120,7 +139,7 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AuthUser | 'new' | null>(null);
   const [panel, setPanel] = useState<'access' | 'hrms' | null>(null);
-  const [line, setLine] = useState<BusinessLine>('kopicalf');
+  const [line, setLine] = useState<Tab>('kopicalf');
   const [viewing, setViewing] = useState<AuthUser | null>(null);
   const [deleting, setDeleting] = useState<AuthUser | null>(null);
   const [toast, setToast] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
@@ -136,16 +155,9 @@ export default function UsersPage() {
     if (!allowed) return;
     // ESB branches of every brand (Kopi Calf, Wasgee Tea from its own ESB company) + sites without an ESB branch
     // (HUB WH / HUB CK, outlets not in ESB yet), assignable to role User
-    const type = (t: string) => ({ HUB_WH: 'HUB WH', HUB_CK: 'HUB CK', OUTLET: 'Outlet' } as Record<string, string>)[t] ?? t.replace(/_/g, ' ');
-    Promise.all([
-      fetch('/api/branches?company=all').then(res => (res.ok ? res.json() : [])),
-      fetch('/api/so-sites').then(res => (res.ok ? res.json() : [])).catch(() => []),
-    ])
-      .then(([esb, sites]: [Branch[], { branch_code: string; branch_name: string; facility_type: string }[]]) => setBranches([
-        ...esb,
-        ...sites.filter(x => !esb.some(b => b.branch_code === x.branch_code))
-          .map(x => ({ branch_code: x.branch_code, branch_name: `${type(x.facility_type)} · ${x.branch_name}`, count: 0 })),
-      ]))
+    // (a superadmin: of every brand, whatever its own data is narrowed to, 2026-11-25)
+    fetch('/api/users/branches').then(res => (res.ok ? res.json() : []))
+      .then((rows: Branch[]) => setBranches(rows))
       .catch(error => console.error('Error fetching branches:', error))
       .finally(() => setBranchesLoading(false));
   }, [allowed]);
@@ -166,7 +178,7 @@ export default function UsersPage() {
       params.set('line', line);
       const [body, counts] = await Promise.all([
         api<ListResponse>(`/api/users?${params}`),
-        api<UsersSummary>('/api/users/summary').catch(() => null),
+        api<UsersSummary>(`/api/users/summary?line=${line}`).catch(() => null),
       ]);
       setRows(body.data);
       setTotal(body.total);
@@ -249,12 +261,13 @@ export default function UsersPage() {
   }
 
   const s = summary;
-  const lineTabs = LINES.filter(l => !cotrAdmin || l.key === 'cotr').map(l => ({
-    key: l.key, title: l.label, count: s?.lines ? formatNumber(s.lines[l.key] ?? 0) : undefined,
-    // the logo only (2026-11-02); the name is the label
-    // eslint-disable-next-line @next/next/no-img-element
-    label: <img src={l.logo} alt="" aria-hidden className={`max-h-5 max-w-[5.5rem] object-contain transition ${line === l.key ? '' : 'opacity-50 grayscale'}`} />,
-  }));
+  const ofRole = s?.roles?.[line];
+  const roleTabs = [
+    { key: '', label: tr('All'), count: s?.lines?.[line] ?? null },
+    ...(['user', 'outlet', 'driver', 'cotr_admin', 'cost_control', 'admin', 'superadmin'] as Role[]).filter(r => ofRole?.[r] || filters.role === r)
+      .map(r => ({ key: r as string, label: r === 'user' ? tr('User / PIC') : ROLE_LABELS[r], count: ofRole?.[r] ?? 0 })),
+  ];
+  const pickTab = (k: Tab) => { if (k === line) return; setLine(k); setRows([]); setPage(1); applyFilters(NO_FILTERS); };
   return (
     <DashboardLayout>
       <PageShell>
@@ -267,7 +280,20 @@ export default function UsersPage() {
             <button type="button" className={btn('solid')} onClick={() => setEditing('new')}><Plus size={15} /> {tr('New User')}</button>
           </>} />
 
-        <Tabs variant="card" label={tr('Business Line')} tabs={lineTabs} value={line} onChange={k => { setLine(k as BusinessLine); setPage(1); applyFilters(NO_FILTERS); }} />
+        {/* the same tabs as Fund Request: logo, name, count (2026-11-25) */}
+        <div role="radiogroup" aria-label={tr('Business Line')} className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0">
+          {LINES.filter(l => !cotrAdmin || l.key === 'cotr').map(l => {
+            const on = l.key === line;
+            return (
+              <button key={l.key} type="button" role="radio" aria-checked={on} onClick={() => pickTab(l.key)}
+                className={`inline-flex h-9 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors ${on ? 'border-brand-700 bg-white text-brand-800 ring-1 ring-brand-700' : 'border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100'}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={LOGOS[l.unit]} alt="" aria-hidden className={`max-h-6 max-w-14 object-contain ${on ? '' : 'opacity-60 grayscale'}`} />
+                {l.label}{s?.lines && <span className="rounded-full bg-neutral-200/80 px-1.5 text-[11px] tabular-nums text-neutral-700">{formatNumber(s.lines[l.key] ?? 0)}</span>}
+              </button>
+            );
+          })}
+        </div>
 
         <StatGrid label={tr('User Summary')} cols={5}>
           <StatCard label={tr('Users')} icon={<Users />} value={s ? formatNumber(s.total) : <ValueSkeleton />}
@@ -282,38 +308,30 @@ export default function UsersPage() {
             sub={s && (s.withoutBranch ? tr('PIC / outlet accounts see no data until assigned') : tr('every PIC and outlet account has a branch'))} />
         </StatGrid>
 
-        <Card flush
-          toolbar={<Toolbar
+        <WorkCard tabs={roleTabs} active={filters.role} onTab={r => applyFilters({ ...filters, role: r })} label={tr('Role')}>
+          <JToolbar><Toolbar
             search={<SearchInput value={search} onChange={onSearch} placeholder={tr('Search name, username, email, phone or job title')} label={tr('Search Users')} />}
             chips={<ActiveFilters filters={activeFilters} onClear={() => applyFilters(NO_FILTERS)} />}>
             <FilterButton count={activeFilters.length} onClick={() => setFiltersOpen(true)} />
-          </Toolbar>}
-          footer={<>
-            <span>{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
-            <div className="flex items-center gap-2">
-              <button type="button" className={btn('outline', 'sm')} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous Page')}><ChevronLeft size={15} /></button>
-              <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
-              <button type="button" className={btn('outline', 'sm')} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next Page')}><ChevronRight size={15} /></button>
-            </div>
-          </>}>
+          </Toolbar></JToolbar>
           {error ? <ErrorBlock message={error} onRetry={load} /> : !loading && rows.length === 0 ? (
             <EmptyState icon={<UserRound size={22} />} title={filtersActive ? tr('No users match the search or filters') : tr('No users yet')} />
           ) : (
             <div className={loading && rows.length ? 'opacity-60' : ''}>
               <div className="hidden overflow-x-auto md:block">
-                <table className={`${kcTable.table} min-w-[760px]`}>
-                  <thead className={kcTable.thead}>
-                    <tr>
-                      <th scope="col" className={kcTable.th}>{tr('User')}</th>
-                      <th scope="col" className={`${kcTable.th} hidden lg:table-cell`}>{tr('Contact')}</th>
-                      <th scope="col" className={kcTable.th}>{tr('Role')}</th>
-                      <th scope="col" className={kcTable.th}>{tr('Branch Access')}</th>
-                      <th scope="col" className={kcTable.th}>{tr('Status')}</th>
-                      <th scope="col" className={`${kcTable.th} hidden xl:table-cell`}>{tr('Last Sign-in')}</th>
+                <table className={`${jTable} min-w-[760px]`}>
+                  <thead>
+                    <tr className={jHeadRow}>
+                      <th scope="col" className={jTh}>{tr('User')}</th>
+                      <th scope="col" className={`${jTh} hidden lg:table-cell`}>{tr('Contact')}</th>
+                      <th scope="col" className={jTh}>{tr('Role')}</th>
+                      <th scope="col" className={jTh}>{tr('Branch Access')}</th>
+                      <th scope="col" className={jTh}>{tr('Status')}</th>
+                      <th scope="col" className={`${jTh} hidden xl:table-cell`}>{tr('Last Sign-in')}</th>
                       <th scope="col" className="w-14 px-3 py-2.5"><span className="sr-only">{tr('Actions')}</span></th>
                     </tr>
                   </thead>
-                  <tbody className={kcTable.tbody}>
+                  <tbody>
                     {(loading && !rows.length ? Array.from({ length: 6 }) : rows).map((u, i) => u ? (
                       <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
                         onView={() => setViewing(u as AuthUser)} actions={actionsFor(u as AuthUser)} />
@@ -338,10 +356,18 @@ export default function UsersPage() {
               </ul>
             </div>
           )}
-        </Card>
+          <CardFooter>
+            <span className="text-xs text-neutral-500">{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
+            <div className="flex items-center gap-2 text-xs text-neutral-500">
+              <button type="button" className={btn('outline', 'sm')} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous Page')}><ChevronLeft size={15} /></button>
+              <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
+              <button type="button" className={btn('outline', 'sm')} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next Page')}><ChevronRight size={15} /></button>
+            </div>
+          </CardFooter>
+        </WorkCard>
       </PageShell>
 
-      {filtersOpen && <UserFiltersDrawer value={filters} branches={lineBranches(branches, line)} branchesLoading={branchesLoading}
+      {filtersOpen && <UserFiltersDrawer value={filters} branches={tabBranches(branches, line)} branchesLoading={branchesLoading}
         onApply={next => { applyFilters(next); setFiltersOpen(false); }} onClose={() => setFiltersOpen(false)} />}
       {editing && <UserFormDrawer user={editing === 'new' ? null : editing} isMe={editing !== 'new' && editing.id === me?.id}
         branches={branches} branchesLoading={branchesLoading} line={line}
@@ -492,9 +518,9 @@ function UserRow({ user, isMe, branchName, onView, actions }: {
   user: AuthUser; isMe: boolean; branchName: (code: string) => string; onView: () => void; actions: ActionItem[];
 }) {
   return (
-    <tr className={kcTable.row}>
-      <td className={`${kcTable.td} max-w-[18rem]`}>
-        <button type="button" onClick={onView} className="flex min-w-0 items-center gap-3 text-left">
+    <tr className={jRow} onClick={onView}>
+      <td className={`${jTd} max-w-[18rem]`}>
+        <button type="button" onClick={e => { e.stopPropagation(); onView(); }} className="flex min-w-0 items-center gap-3 text-left">
           <Avatar user={user} />
           <span className="min-w-0">
             <span className="block truncate font-medium text-neutral-900 group-hover:text-brand-700">
@@ -507,15 +533,15 @@ function UserRow({ user, isMe, branchName, onView, actions }: {
           </span>
         </button>
       </td>
-      <td className={`${kcTable.td} hidden max-w-[16rem] lg:table-cell`}>
+      <td className={`${jTd} hidden max-w-[16rem] lg:table-cell`}>
         <span className="block truncate text-neutral-700">{user.email}</span>
         <span className="block truncate text-xs text-neutral-400">{user.phoneNumber || '—'}</span>
       </td>
-      <td className={kcTable.td}><RoleBadge role={user.role} /></td>
-      <td className={kcTable.td}><BranchesBadge user={user} branchName={branchName} /></td>
-      <td className={kcTable.td}><StatusBadge user={user} /></td>
-      <td className={`${kcTable.td} hidden whitespace-nowrap text-xs text-neutral-500 xl:table-cell`}>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('Never')}</td>
-      <td className="px-3 py-3 text-right"><ActionMenu items={actions} label={tr('Actions for {0}', user.username)} /></td>
+      <td className={jTd}><RoleBadge role={user.role} /></td>
+      <td className={jTd}><BranchesBadge user={user} branchName={branchName} /></td>
+      <td className={jTd}><StatusBadge user={user} /></td>
+      <td className={`${jTd} hidden whitespace-nowrap text-xs text-neutral-500 xl:table-cell`}>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('Never')}</td>
+      <td className={`${jTd} text-right`} onClick={e => e.stopPropagation()}><ActionMenu items={actions} label={tr('Actions for {0}', user.username)} /></td>
     </tr>
   );
 }
@@ -538,7 +564,7 @@ interface AccountForm {
  * Edit: everything, incl. correcting the profile and the photo.
  */
 function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, onSaved }: {
-  user: AuthUser | null; isMe: boolean; branches: Branch[]; branchesLoading: boolean; line: BusinessLine; onClose: () => void;
+  user: AuthUser | null; isMe: boolean; branches: Branch[]; branchesLoading: boolean; line: Tab; onClose: () => void;
   onSaved: (u: AuthUser, created: boolean, password?: string) => void;
 }) {
   const creating = !user;
@@ -550,7 +576,10 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
   const [profile, setProfile] = useState<ProfileValues>(() => profileValues(user));
   const [branchCodes, setBranchCodes] = useState<string[]>(() => user?.branches ?? []);
   const [pageOverrides, setPageOverrides] = useState<Record<string, boolean>>(() => user?.pageOverrides ?? {});
-  const [businessLine, setBusinessLine] = useState<BusinessLine>(() => user?.businessLine ?? line);
+  const [tab, setTab] = useState<Tab>(() => (user ? tabOf(user, branches) : line));
+  const businessLine = lineOf(tab);
+  // superadmin / admin: every branch (nothing stored, new branches included) or the chosen ones only (2026-11-25)
+  const [everyBranch, setEveryBranch] = useState(() => !(user?.branches ?? []).length);
   const [hiddenPages, setHiddenPages] = useState<string[]>(() => user?.hiddenPages ?? []);
   // Calf On The Road (2026-11-12): the account is made from its employee in Master Driver and a kind that sets the pages
   const [cotrEmployee, setCotrEmployee] = useState<CotrEmployee | null>(() => (user?.cotrDriver ? { ...user.cotrDriver, phone: null, position: null } : null));
@@ -621,7 +650,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
       }
     }
     if (form.password) body.password = form.password;
-    if (branchScoped(form.role) || branchLimitable(form.role)) body.branches = branchCodes;
+    if (branchScoped(form.role)) body.branches = branchCodes;
+    if (branchLimitable(form.role)) body.branches = everyBranch ? [] : branchCodes;
     if (form.role !== 'superadmin') body.pageOverrides = pageOverrides;
     else {
       body.hiddenPages = hiddenPages;
@@ -638,10 +668,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
       delete body.branches;
     }
     return body;
-  }, [form, profile, creating, branchCodes, pageOverrides, businessLine, hiddenPages, cotrMode, cotrEmployee, cotrKind, userRolePages, person, accountKind, hrmsChange, hrmsLinked, hrmsFields]);
+  }, [form, profile, creating, branchCodes, everyBranch, pageOverrides, businessLine, hiddenPages, cotrMode, cotrEmployee, cotrKind, userRolePages, person, accountKind, hrmsChange, hrmsLinked, hrmsFields]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (branchLimitable(form.role) && !everyBranch && !branchCodes.length) { setError({ text: tr('Choose at least one branch, or Every branch'), field: 'branches' }); return; }
     setSaving(true);
     setError(null);
     try {
@@ -783,7 +814,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         <DrawerSection title={tr('Access')}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={tr('Business Line')} htmlFor="f-line" error={fieldError('businessLine')} hint={tr('The tab of User Accounts the account is listed in; its branches are of this line')}>
-              <NativeSelect id="f-line" value={businessLine} disabled={me?.role === 'cotr_admin'} onChange={e => { const v = e.target.value as BusinessLine; setBusinessLine(v); setBranchCodes([]); if (v === 'cotr' && creating) pickKind('driver'); else if (form.role === 'driver') set('role', 'user'); }} className={inputClass}>
+              <NativeSelect id="f-line" value={tab} disabled={me?.role === 'cotr_admin'} onChange={e => { const v = e.target.value as Tab; setTab(v); if (!branchLimitable(form.role)) setBranchCodes([]); if (v === 'cotr' && creating) pickKind('driver'); else if (form.role === 'driver') set('role', 'user'); }} className={inputClass}>
                 {LINES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
               </NativeSelect>
             </Field>
@@ -820,7 +851,22 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
           </p>
         ) : branchScoped(form.role) || branchLimitable(form.role) ? (
           <DrawerSection title={tr('Branch Access')} description={branchLimitable(form.role) ? tr('Optional: choose branches to narrow this account. None chosen = every branch.') : tr('Dashboard, Sales Transactions, Stock Opname and the forms show only these branches, exports too. Required for the roles User and Outlet/HUB.')}>
-            <BranchAssign branches={lineBranches(branches, businessLine)} loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
+            {branchLimitable(form.role) && (
+              <Segmented label={tr('Branch Access')} value={everyBranch ? 'all' : 'some'} onChange={v => setEveryBranch(v === 'all')}
+                options={[{ value: 'all', label: tr('Every branch') }, { value: 'some', label: tr('Chosen branches') }]} />
+            )}
+            {branchLimitable(form.role) && everyBranch ? (
+              <p className="mt-2 text-xs text-neutral-500">{tr('Every brand and unit, new branches included.')}</p>
+            ) : (
+              <div className={branchLimitable(form.role) ? 'mt-3' : ''}>
+                {/* what the account already holds outside this tab stays visible, never silently kept or lost */}
+                <BranchAssign branches={branchLimitable(form.role) ? branches : [...tabBranches(branches, tab), ...branches.filter(b => branchCodes.includes(b.branch_code) && !tabBranches(branches, tab).includes(b))]}
+                  loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
+                {branchLimitable(form.role) && branchCodes.length > 0 && !branches.some(b => b.unit === 'CALF7' && branchCodes.includes(b.branch_code)) && (
+                  <p className="mt-1.5 text-xs text-amber-800">{tr('No Wasgee branch chosen: this account will not see the figures of Wasgee.')}</p>
+                )}
+              </div>
+            )}
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
         ) : (
@@ -828,6 +874,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {form.role === 'driver' ? tr('Drivers have no branches: their pool and fleet are set in Master Driver.') : tr('A Superadmin sees every branch.')}
           </p>
         )}
+
+        {!creating && <FundUnits userId={user!.id} />}
 
         {creating ? (
           <>

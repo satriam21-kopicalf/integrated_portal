@@ -12,6 +12,7 @@ export interface Branch {
   branch_code: string;
   branch_name: string;
   company_code?: string;
+  /** User Accounts: the unit of the place (backend app/fund_units.py) */ unit?: string;
   count: number;
 }
 

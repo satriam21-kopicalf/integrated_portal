@@ -111,8 +111,12 @@ export const useCompany = () => useContext(CompanyContext);
 /** The brand switch of the sales pages (Kopi Calf | Wasgee Tea); nothing when the user sees one brand only. `extra`
  *  adds tabs that are not ESB companies (Calf On The Road on the Dashboard, 2026-11-01): the page handles them through
  *  `value` / `onChange`. */
-/** The logo of a brand tab (public/assets); none for an unknown code. */
-const LOGOS: Record<string, string> = { CALF: '/assets/calf-logo.png', CALF7: '/assets/Logo-Wasgee.png', COTR: '/assets/Logo-COTR.png' };
+/** The logo of a brand or unit (public/assets); none for an unknown code. unit-*.png: trimmed, transparent, small copies
+ *  of the Logo-Stivo (Roastery), Logo-Warehouse and Logo-CK files (2026-11-25). */
+export const LOGOS: Record<string, string> = { CALF: '/assets/calf-logo.png', CALF7: '/assets/Logo-Wasgee.png', COTR: '/assets/Logo-COTR.png',
+  ROASTERY: '/assets/unit-roastery.png', WAREHOUSE: '/assets/unit-warehouse.png', CK: '/assets/unit-ck.png' };
+// too detailed to be read at the size of a tab: the name stays beside the logo
+const NAMED = new Set(['ROASTERY', 'WAREHOUSE', 'CK']);
 
 export function CompanySwitch({ className = '', extra = [], value, onChange, compact = false }: {
   className?: string; extra?: { code: string; name: string }[]; value?: string; onChange?: (code: string) => void;
@@ -141,13 +145,14 @@ export function CompanySwitch({ className = '', extra = [], value, onChange, com
         const on = c.code === shown;
         return (
           <button key={c.code} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name} onClick={() => choose(c.code)}
-            className={`flex flex-shrink-0 ${LOGOS[c.code] ? 'h-8 w-20 px-2' : 'h-8 px-3'} min-w-0 items-center justify-center rounded-[4px] border transition-colors ${
+            className={`flex flex-shrink-0 ${LOGOS[c.code] && !NAMED.has(c.code) ? 'h-8 w-20 px-2' : 'h-8 px-3'} min-w-0 items-center gap-2 justify-center rounded-[4px] border transition-colors ${
               on ? 'border-brand-700 bg-white ring-1 ring-brand-700' : 'border-neutral-200 bg-neutral-50 hover:bg-neutral-100'}`}>
             {/* the logo only (2026-11-02); the name is the label */}
             {LOGOS[c.code]
               // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`max-h-5 max-w-full object-contain transition ${on ? '' : 'opacity-60 grayscale'}`} />
-              : <span className="truncate text-xs font-semibold text-neutral-600">{c.name}</span>}
+              ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`object-contain transition ${NAMED.has(c.code) ? 'max-h-6 max-w-14' : 'max-h-5 max-w-full'} ${on ? '' : 'opacity-60 grayscale'}`} />
+              : null}
+            {(!LOGOS[c.code] || NAMED.has(c.code)) && <span className="truncate text-xs font-semibold text-neutral-600">{c.name}</span>}
           </button>
         );
       })}
@@ -162,6 +167,8 @@ function NoView({ unit, onClose }: { unit: UnitTab; onClose: () => void }) {
   const { user } = useAuth();
   const router = useRouter();
   const fund = user?.role === 'superadmin' || (user?.pages ?? []).includes('mon.pengajuan');
+  // a brand (Kopi Calf, Wasgee) does have its figures here: the account has no branch of it (2026-11-25)
+  const brand = unit.code === MAIN_COMPANY || unit.code in BRAND_CLASS;
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', key);
@@ -175,12 +182,16 @@ function NoView({ unit, onClose }: { unit: UnitTab; onClose: () => void }) {
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-neutral-900/50 p-0 sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div role="alertdialog" aria-modal="true" aria-labelledby="no-view-title" className="w-full rounded-t-lg bg-white p-5 shadow-xl sm:max-w-md sm:rounded-lg" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
-        <p id="no-view-title" className="text-base font-semibold text-neutral-900">{tr('No view for {0} here', unit.name)}</p>
-        <p className="mt-1.5 text-sm text-neutral-600">{tr('This page has no data of {0}. It is available in Fund Request; the page stays on the brand shown now.', unit.name)}</p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {LOGOS[unit.code] && <img src={LOGOS[unit.code]} alt="" aria-hidden className="mb-3 max-h-14 max-w-36 object-contain" />}
+        <p id="no-view-title" className="text-base font-semibold text-neutral-900">{brand ? tr('Your account has no {0} branch', unit.name) : tr('No view for {0} here', unit.name)}</p>
+        <p className="mt-1.5 text-sm text-neutral-600">{brand ? tr('The figures of {0} are here, but the Branch Access of your account holds none of its branches. A Superadmin adds them in User Accounts.', unit.name)
+          : tr('This page has no data of {0}. It is available in Fund Request; the page stays on the brand shown now.', unit.name)}</p>
         <div className="mt-4 flex flex-wrap justify-end gap-2">
           <button type="button" onClick={onClose} className="h-9 rounded-[4px] border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50">{tr('Close')}</button>
           {unit.code === 'COTR' && <button type="button" onClick={() => open('/overview')} className="h-9 rounded-[4px] border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50">{tr('Dashboard')}</button>}
-          {fund && <button type="button" autoFocus onClick={() => open('/monitoring/pengajuan')} className="h-9 rounded-[4px] bg-brand-700 px-3 text-sm font-medium text-white hover:bg-brand-800">{tr('Open Fund Request')}</button>}
+          {brand && user?.role === 'superadmin' && <button type="button" autoFocus onClick={() => open('/users')} className="h-9 rounded-[4px] bg-brand-700 px-3 text-sm font-medium text-white hover:bg-brand-800">{tr('Open User Accounts')}</button>}
+          {!brand && fund && <button type="button" autoFocus onClick={() => open('/monitoring/pengajuan')} className="h-9 rounded-[4px] bg-brand-700 px-3 text-sm font-medium text-white hover:bg-brand-800">{tr('Open Fund Request')}</button>}
         </div>
       </div>
     </div>, document.body);
@@ -218,7 +229,7 @@ function BrandMenu({ tabs, shown, pick, className }: { tabs: { code: string; nam
             return (
               <button key={t.code} type="button" role="menuitemradio" aria-checked={on} onClick={() => { setOpen(false); if (!on) pick(t.code); }}
                 className={`relative flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] ${on ? 'bg-brand-50 font-medium text-brand-800 before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:bg-brand-700' : 'text-neutral-800 hover:bg-neutral-100'}`}>
-                <span className="flex h-6 w-14 flex-shrink-0 items-center justify-center rounded-[4px] border border-neutral-200 bg-white px-1">{logo(t.code, t.name, 'max-h-4 max-w-full')}</span>
+                <span className="flex h-8 w-14 flex-shrink-0 items-center justify-center rounded-[4px] border border-neutral-200 bg-white px-1">{logo(t.code, t.name, NAMED.has(t.code) ? 'max-h-7 max-w-full' : 'max-h-4 max-w-full')}</span>
                 <span className="min-w-0 flex-1 truncate">{t.name}</span>
                 {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden><path d="M20 6 9 17l-5-5" /></svg>}
               </button>
