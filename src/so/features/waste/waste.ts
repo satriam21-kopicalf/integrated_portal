@@ -35,6 +35,8 @@ export type FormData = {
   usage?: Record<string, number>;
   /** migration 045: category, reason and whether a photo is saved, per Usage Management SKU */
   usageDetail?: Record<string, { qty: number; category: string | null; note: string | null; hasPhoto: boolean }>;
+  /** 2026-11-25: from `limit` on a Usage Management quantity is asked about (app/usage_fix.py limits) */
+  usageUsual?: Record<string, { usual: number; limit: number; packSize: number | null }>;
   noWaste?: { by: string; at: string } | null;
 };
 export type DailyCell = { date: string; entries: number; noWaste: boolean; usage: number; reported: boolean };

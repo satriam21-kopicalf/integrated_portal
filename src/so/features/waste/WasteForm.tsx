@@ -15,7 +15,7 @@
 // Management list, the quantity of every usage item (saved again to correct it). Usage is not a single waste entry.
 
 import { NativeSelect } from "@/so/ui/Jira";
-import { Camera, CheckCircle2, ClipboardList, FlaskConical, PenLine, Plus, Save, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle2, ClipboardList, FlaskConical, PenLine, Plus, Save, Search, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, ErrorState, inputClass, Page, useToast, searchClass } from "@/so/ui";
 import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
@@ -77,6 +77,7 @@ export default function WasteForm() {
   // the signature asked before submitting (migration 055): the waste SKUs or the Usage Management list
   const [signing, setSigning] = useState<"waste" | "usage" | null>(null);
   const [usageSearch, setUsageSearch] = useState("");
+  const [oddAsk, setOddAsk] = useState(false);
   const [flagging, setFlagging] = useState(false);
 
   const load = useCallback(async (b: string, d: string) => {
@@ -184,6 +185,15 @@ export default function WasteForm() {
   };
 
   // every changed SKU on its own request (photos are large)
+  // a quantity far above the usual one of the item (app/usage_fix.py limits, 2026-11-25): shown in the row, asked before saving
+  const usageOdd = (code: string) => {
+    const u = data?.usageUsual?.[code];
+    const q = Number((usage[code]?.qty ?? "").replace(",", "."));
+    if (!u || !(q >= u.limit)) return null;
+    const packs = u.packSize ? Math.round((q / u.packSize) * 1000) / 1000 : null;
+    return { qty: q, usual: u.usual, suggested: packs && packs < u.limit ? packs : null };
+  };
+  const usageOdds = [...usageChanged].flatMap((c) => { const o = usageOdd(c); const i = data?.items.usage.find((x) => x.code === c); return o && i ? [{ ...o, item: i }] : []; });
   const saveUsage = async (signature: string) => {
     if (!b || !usageChanged.size || usageIncomplete) return;
     setUsageSaving(true);
@@ -426,6 +436,7 @@ export default function WasteForm() {
                             const l = usage[i.code] ?? UEMPTY;
                             const on = uFilled(l);
                             const lack = on ? uLacks(l) : [];
+                            const odd = usageChanged.has(i.code) ? usageOdd(i.code) : null;
                             return (
                               <Fragment key={i.code}>
                                 <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-brand-50/40"))}>
@@ -442,6 +453,12 @@ export default function WasteForm() {
                                   <tr className={lack.length ? "bg-amber-50/60" : "bg-brand-50/40"}>
                                     <td />
                                     <td colSpan={4} className="px-2 pb-3">
+                                      {odd && (
+                                        <div role="alert" className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                          <AlertTriangle size={14} className="shrink-0" aria-hidden />
+                                          <span className="min-w-0 flex-1">{tr("{0} {1}? Usually about {2}.", fmtQty(odd.qty), i.unit, fmtQty(odd.usual))}{odd.suggested != null && ` ${tr("Did you mean {0} {1}?", fmtQty(odd.suggested), i.unit)}`}</span>
+                                          {odd.suggested != null && <Button variant="secondary" size="sm" onClick={() => setULine(i.code, { qty: String(odd.suggested) })}>{tr("Use {0}", fmtQty(odd.suggested))}</Button>}
+                                        </div>)}
                                       <div className="grid gap-2 sm:grid-cols-2">
                                         <NativeSelect className={cx(inputClass, "h-9")} value={l.category} onChange={(e) => setULine(i.code, { category: e.target.value })} aria-label={tr("Category")}>
                                           <option value="">{tr("Choose the category")}</option>
@@ -473,7 +490,7 @@ export default function WasteForm() {
                     </div>
                     <div className="flex flex-col gap-2 border-t border-neutral-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
                       <p className="flex items-center gap-1.5 text-xs text-neutral-500"><ClipboardList size={14} />{tr("{0} of {1} items filled", usageFilled, data.items.usage.length)}{usageChanged.size ? ` · ${usageIncomplete ? tr("{0} SKUs filled, {1} still incomplete", usageChanged.size, usageIncomplete) : tr("not saved yet")}` : ""}</p>
-                      <Button onClick={() => setSigning("usage")} loading={usageSaving} disabled={!usageChanged.size || usageIncomplete > 0}><Save size={16} />{tr("Save Usage Management")}</Button>
+                      <Button onClick={() => (usageOdds.length ? setOddAsk(true) : setSigning("usage"))} loading={usageSaving} disabled={!usageChanged.size || usageIncomplete > 0}><Save size={16} />{tr("Save Usage Management")}</Button>
                     </div>
                   </>
                 )}
@@ -488,6 +505,13 @@ export default function WasteForm() {
         onClose={() => setShooting(null)} onShot={async (s) => { if (shooting?.usage) setULine(shooting.code, { photo: s }); else if (shooting) setRow(shooting.code, { photo: s }); setShooting(null); }} />
       <ConfirmDialog open={!!remove} title={tr("Delete this waste?")} danger confirmLabel={tr("Delete")} busy={removing}
         description={remove ? `${remove.itemName} · ${fmtQty(remove.qty)} ${remove.unit}` : ""} onConfirm={() => void confirmRemove()} onClose={() => setRemove(null)} />
+      <Dialog open={oddAsk} onClose={() => setOddAsk(false)} title={tr("Check the quantity")} description={tr("These quantities are far above the usual. Is the unit right?")}
+        footer={<><Button variant="secondary" onClick={() => setOddAsk(false)}>{tr("Check again")}</Button><Button onClick={() => { setOddAsk(false); setSigning("usage"); }}>{tr("It is right, save")}</Button></>}>
+        <ul className="divide-y divide-neutral-100 text-sm">{usageOdds.map((o) => (
+          <li key={o.item.code} className="flex items-start justify-between gap-3 py-2"><span className="min-w-0 text-neutral-800">{o.item.name}</span>
+            <span className="shrink-0 text-right tabular-nums"><b className="text-amber-800">{fmtQty(o.qty)}</b> <span className="text-xs text-neutral-500">{o.item.unit}</span>
+              <span className="block text-[11px] text-neutral-500">{tr("usual {0}", fmtQty(o.usual))}{o.suggested != null && ` · ${tr("suggested {0}", fmtQty(o.suggested))}`}</span></span></li>))}</ul>
+      </Dialog>
       {signing && <SignDialog what={signing} count={signing === "waste" ? filled.length : usageChanged.size}
         onClose={() => setSigning(null)}
         onSign={(sig) => { const w = signing; setSigning(null); void (w === "waste" ? save(sig) : saveUsage(sig)); }} />}

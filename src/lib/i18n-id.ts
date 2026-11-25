@@ -7937,4 +7937,11 @@ export const ID: Record<string, string> = {
   "Entered in pieces or grams? {0} ÷ {1} = {2} {3}": "Diisi dalam pcs atau gram? {0} ÷ {1} = {2} {3}",
   "The outlet is told and can not change this line again": "Outlet diberi tahu dan tidak bisa mengubah baris ini lagi",
   "e.g. the branch entered pieces instead of packs": "mis. cabang mengisi pcs, seharusnya pack",
+  "{0} {1}? Usually about {2}.": "{0} {1}? Biasanya sekitar {2}.",
+  "Did you mean {0} {1}?": "Mungkin maksudnya {0} {1}?",
+  "Use {0}": "Pakai {0}",
+  "Check the quantity": "Periksa jumlahnya",
+  "These quantities are far above the usual. Is the unit right?": "Jumlah ini jauh di atas biasanya. Apakah satuannya sudah benar?",
+  "Check again": "Periksa lagi",
+  "It is right, save": "Sudah benar, simpan",
 };
