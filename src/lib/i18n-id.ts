@@ -8299,4 +8299,5 @@ export const ID: Record<string, string> = {
   "At most 93 days": "Maksimal 93 hari",
   "In the whole units of the HUB stock opname. Stock of {0} from its SO of {1}: information for Cost Control, not a limit": "Dalam satuan utuh SO HUB. Stok {0} dari SO {1}: informasi untuk Cost Control, bukan batas",
   "In the whole units of the HUB stock opname. This outlet has no SO in the portal: its stock is unknown.": "Dalam satuan utuh SO HUB. Outlet ini belum punya SO di portal: stoknya tidak diketahui.",
+  "Keyboard: ↑ ↓ or Enter between rows, ← → between columns": "Keyboard: ↑ ↓ atau Enter antar baris, ← → antar kolom",
 };

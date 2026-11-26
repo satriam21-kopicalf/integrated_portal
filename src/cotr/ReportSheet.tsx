@@ -31,6 +31,38 @@ const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 
 const PARTS: Part[] = ["b", "s", "c", "w"];
 const num = (v: string) => Number(v.replace(/\D/g, "")) || 0;
 
+/** Arrow keys between the cells of the sheet (2026-11-26): up / down (and Enter) a row, left / right a column when the caret
+ *  is at the edge of the number; past the first or last row of an armada into the one before or after, the same column. */
+function move(e: React.KeyboardEvent<HTMLInputElement>) {
+  const el = e.currentTarget;
+  const k = e.key === "Enter" ? (e.shiftKey ? "ArrowUp" : "ArrowDown") : e.key;
+  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(k)) return;
+  const at = el.selectionStart ?? 0, end = el.selectionEnd ?? 0, len = el.value.length;
+  if (k === "ArrowLeft" && !(at === 0 && end === 0 || (at === 0 && end === len))) return;
+  if (k === "ArrowRight" && !(at === len || (at === 0 && end === len))) return;
+  const cells = [...document.querySelectorAll<HTMLInputElement>("input[data-r]")];
+  const pos = (x: HTMLInputElement) => ({ b: Number(x.dataset.b), r: Number(x.dataset.r), c: Number(x.dataset.c) });
+  const me = pos(el);
+  const order = (x: { b: number; r: number }) => x.b * 1000 + x.r;
+  let next: HTMLInputElement | undefined;
+  if (k === "ArrowLeft" || k === "ArrowRight") {
+    const row = cells.filter((x) => { const p = pos(x); return p.b === me.b && p.r === me.r; }).sort((a, b) => pos(a).c - pos(b).c);
+    next = row[row.indexOf(el) + (k === "ArrowLeft" ? -1 : 1)];
+  } else {
+    const rows = [...new Set(cells.map((x) => order(pos(x))))].sort((a, b) => a - b);
+    const want = rows[rows.indexOf(order(me)) + (k === "ArrowUp" ? -1 : 1)];
+    if (want !== undefined) {
+      const row = cells.filter((x) => order(pos(x)) === want).sort((a, b) => pos(a).c - pos(b).c);
+      next = row.find((x) => pos(x).c === me.c) ?? row[Math.min(me.c, row.length - 1)];
+    }
+  }
+  if (!next) return;
+  e.preventDefault();
+  next.focus();
+  next.select();
+  next.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
 export function ReportSheet() {
   const { user } = useAuth();
   const pools = useMaster<Pool>("pools");
@@ -96,14 +128,14 @@ export function ReportSheet() {
       {error ? <ErrorState message={error} /> : !data ? <div className="skeleton h-64 rounded-lg" /> : listed.length === 0 ? (
         <Empty icon={<ClipboardList size={28} />} title={tr("No armada in this pool")} />
       ) : (
-        <div className="space-y-3">{paged.rows.map((a) => <Block key={a.driver} a={a} sheet={data} onSaved={merge} />)}<PageNav paged={paged} /></div>
+        <div className="space-y-3">{paged.rows.map((a, i) => <Block key={a.driver} n={i} a={a} sheet={data} onSaved={merge} />)}<PageNav paged={paged} /></div>
       )}
     </div>
   );
 }
 
 /** One armada as the block of the sheet. */
-function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sheet) => void }) {
+function Block({ n, a, sheet, onSaved }: { n: number; a: Armada; sheet: Sheet; onSaved: (s: Sheet) => void }) {
   const toast = useToast();
   const blank = () => Object.fromEntries(sheet.menus.map((m) => [m.code, Object.fromEntries(PARTS.map((p) => [p, a.lines[m.code]?.[p] ? String(a.lines[m.code][p]) : ""]))])) as Record<string, Record<Part, string>>;
   const [lines, setLines] = useState(blank);
@@ -143,8 +175,9 @@ function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sh
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   const cell = "border border-neutral-300 px-1.5 py-1";
-  const inp = (val: string, set: (v: string) => void, can: boolean, label: string, wide?: boolean) => can
+  const inp = (val: string, set: (v: string) => void, can: boolean, label: string, wide?: boolean, at?: [number, number]) => can
     ? <input inputMode="numeric" value={val} onChange={(e) => set(e.target.value.replace(/\D/g, ""))} aria-label={label} placeholder="0"
+        data-b={n} data-r={at?.[0]} data-c={at?.[1]} onKeyDown={move} onFocus={(e) => e.currentTarget.select()} enterKeyHint="next"
         className={cx("h-8 w-full rounded-sm border border-transparent bg-white px-1 text-right tabular-nums hover:border-neutral-300 focus:border-brand-700 focus:outline-none", wide && "text-sm")} />
     : <span className="block text-right tabular-nums">{val || ""}</span>;
   const money = (label: string, value: React.ReactNode, tone: string, note?: React.ReactNode) => (
@@ -162,6 +195,7 @@ function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sh
         {a.app && <button type="button" onClick={() => setShowApp((x) => !x)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-brand-700 hover:bg-brand-50">
           <Smartphone size={12} />{showApp ? tr("Hide driver app") : tr("Driver app")}</button>}
       </header>
+      <p className="border-b border-neutral-100 px-3 py-1.5 text-[11px] text-neutral-400">{tr("Keyboard: ↑ ↓ or Enter between rows, ← → between columns")}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[620px] table-fixed border-collapse text-xs">
           <thead><tr className="bg-red-600 text-white">
@@ -169,10 +203,10 @@ function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sh
             {(["B", "S", "C", "W", "T"]).map((h) => <th key={h} className={cx(cell, "text-center")}>{h}</th>)}<th className={cx(cell, "w-[16%] text-right")}>TOTAL</th>
           </tr></thead>
           <tbody>
-            {rows.map(({ m, l }) => (
+            {rows.map(({ m, l }, ri) => (
               <tr key={m.code}>
                 <td className={cx(cell, "whitespace-nowrap text-neutral-800")}>{m.name}</td><td className={cx(cell, "text-right tabular-nums text-neutral-500")}>{rupiah(m.price)}</td>
-                {PARTS.map((p) => <td key={p} className={cx(cell, "p-0.5")}>{inp(lines[m.code]?.[p] ?? "", (v) => setLines((x) => ({ ...x, [m.code]: { ...x[m.code], [p]: v } })), sheet.canProducts, `${a.fleet} ${m.name} ${p.toUpperCase()}`)}
+                {PARTS.map((p) => <td key={p} className={cx(cell, "p-0.5")}>{inp(lines[m.code]?.[p] ?? "", (v) => setLines((x) => ({ ...x, [m.code]: { ...x[m.code], [p]: v } })), sheet.canProducts, `${a.fleet} ${m.name} ${p.toUpperCase()}`, false, [ri, PARTS.indexOf(p)])}
                   {showApp && a.app && <span className="block px-1 text-right text-[10px] text-sky-700">{a.app.lines[m.code]?.[p] ?? 0}</span>}</td>)}
                 <td className={cx(cell, "text-right font-semibold tabular-nums", l.t < 0 && "bg-red-50 text-red-700")}>{l.t}
                   {showApp && a.app && <span className="block text-[10px] font-normal text-sky-700">{a.app.lines[m.code]?.t ?? 0}</span>}</td>
@@ -182,9 +216,9 @@ function Block({ a, sheet, onSaved }: { a: Armada; sheet: Sheet; onSaved: (s: Sh
             <tr className="bg-neutral-300 font-semibold"><td colSpan={2} className={cx(cell, "text-center text-[11px] uppercase")}>{tr("Total products")}</td>
               {(["b", "s", "c", "w", "t"] as const).map((k) => <td key={k} className={cx(cell, "text-right tabular-nums")}>{tot(k)}</td>)}<td className={cell} /></tr>
             {money(tr("Total revenue"), rupiah(revenue), "bg-blue-700 text-cyan-200")}
-            {money(tr("QRIS revenue"), inp(qris, setQris, sheet.canMoney, `${a.fleet} QRIS`, true), "bg-sky-300 text-neutral-900", showApp && a.app ? tr("App: {0}", rupiah(a.app.qris)) : undefined)}
+            {money(tr("QRIS revenue"), inp(qris, setQris, sheet.canMoney, `${a.fleet} QRIS`, true, [rows.length, 0]), "bg-sky-300 text-neutral-900", showApp && a.app ? tr("App: {0}", rupiah(a.app.qris)) : undefined)}
             {money(tr("Cash revenue"), rupiah(cash), "bg-green-300 text-neutral-900")}
-            {money(tr("Actual cash"), inp(actual, setActual, sheet.canMoney, `${a.fleet} actual cash`, true), "bg-green-300 text-neutral-900",
+            {money(tr("Actual cash"), inp(actual, setActual, sheet.canMoney, `${a.fleet} actual cash`, true, [rows.length + 1, 0]), "bg-green-300 text-neutral-900",
               showApp && a.app?.cashActual != null ? tr("App: {0}", rupiah(a.app.cashActual)) : undefined)}
             {money(tr("Operational"), rupiah(a.operational), "bg-green-300 text-neutral-900",
               a.operationalWaiting ? <span className="text-amber-700">{tr("{0} waiting for the office in Requests & Maintenance", rupiah(a.operationalWaiting))}</span> : tr("Driver requests approved by the office"))}
