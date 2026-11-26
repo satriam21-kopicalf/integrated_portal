@@ -11,13 +11,14 @@ export type TravelPhoto = { id: string; item: string; kind: "MAIN" | "AFTER"; ta
 export type Report = { id: string; branchCode: string; branchName: string; branchGroup: string | null; day: string; session: string; sessionLabel: string;
   status: "DRAFT" | "SUBMITTED"; crew: string | null; supervisor: string | null; startedBy: string; startedAt: string; updatedAt: string;
   submittedBy: string | null; submittedAt: string | null; windowEnd: string | null; late: boolean; reportLate: boolean; counts: Counts | null;
-  score: number | null; band: Band | null; distanceM: number | null; outsideRadius: boolean; photoCount: number };
+  score: number | null; band: Band | null; distanceM: number | null; outsideRadius: boolean; photoCount: number;
+  /** the link anyone may open, for the WhatsApp group (2026-11-26) */ shareUrl?: string | null };
 export type Finding = { id: string; reportId: string; branchCode: string; branchName: string; day: string; session: string; itemKey: string; label: string;
   zone: string | null; category: string | null; note: string | null; dueAt: string | null; status: "OPEN" | "FIXED"; overdue: boolean; fixedLate: boolean;
   fixNote: string | null; fixedBy: string | null; fixedAt: string | null; reopenedNote: string | null; reopenedBy: string | null; reopenedAt: string | null;
   createdAt: string; photos: { MAIN?: string[]; AFTER?: string[] } };
 export type FullReport = Report & { answers: Record<string, Answer>; photos: TravelPhoto[]; definition: Definition; needSupervisor: boolean;
-  findings?: Finding[]; text?: string };
+  findings?: Finding[]; text?: string; evaluation?: string[] };
 export type Session = { key: string; label: string; labelEn: string; from: string; to: string; fromText: string; toText: string;
   state: "done" | "open" | "late" | "early"; report: Report | null };
 export type State = { branches: { code: string; name: string; group: string | null }[]; branch: string | null; day?: string; sessions?: Session[]; areas?: number;
