@@ -8292,4 +8292,9 @@ export const ID: Record<string, string> = {
   "When the outlets walk the Travel Path. Sent after the end of its session counts as late.": "Kapan outlet menjalankan Travel Path. Dikirim setelah sesi berakhir dihitung terlambat.",
   "e.g. Area Supervisor": "mis. Area Supervisor",
   "e.g. Opening": "mis. Opening",
+  "Up to date": "Sampai tanggal",
+  "End of the month": "Akhir bulan",
+  "no SO": "belum SO",
+  "The period and the branch group of the monitor": "Periode dan grup cabang monitoring",
+  "At most 93 days": "Maksimal 93 hari",
 };

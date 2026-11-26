@@ -15,10 +15,13 @@ import Drawer from "@/so/ui/Drawer";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { type ActiveFilter, FilterToolbar, dmy } from "@/so/ui/Filters";
-import { ComboFilter, FilterRow, MonitorFilterSheet } from "@/so/ui/MonitorFilters";
+import { dmy } from "@/so/ui/Filters";
+import { DateField, Row as FRow } from "@/aggregator/fields";
+import { JSelect } from "@/so/ui/Jira";
+import { RotateCcw, Search } from "lucide-react";
 import { Segmented } from "@/so/ui/Simple";
 import { NativeSelect } from "@/so/ui/Jira";
+import { locale } from "@/lib/i18n";
 import { call } from "@/so/features/checkin/checkin";
 import { downloadXlsx } from "@/lib/xlsx";
 import { tr } from "@/lib/i18n";
@@ -42,26 +45,32 @@ const sortValue = (r: Row, k: SortKey) => ({ branch: r.branchName, material: r.n
   sales: r.sales, nonSales: r.nonSales, tout: r.transferOut, trout: r.transitOut, journal: r.journal, product: r.productSales, estimate: r.estimate,
   ending: r.ending ?? -Infinity, system: r.system, actual: r.actual ?? -Infinity, variance: r.variance ?? -Infinity, variancePct: r.variancePct ?? -Infinity,
   value: r.estimateValue ?? -Infinity }[k]);
-const thisMonth = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 7);
+const today = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+const thisMonth = () => today().slice(0, 7);
+const lastDay = (m: string) => new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 0)).toISOString().slice(0, 10);
+/** the last 13 months, newest first */
+const MONTHS = () => Array.from({ length: 13 }, (_, i) => { const d = new Date(Date.UTC(Number(thisMonth().slice(0, 4)), Number(thisMonth().slice(5, 7)) - 1 - i, 1)); return d.toISOString().slice(0, 7); });
+const monthName = (m: string) => new Date(`${m}-15T00:00:00Z`).toLocaleDateString(locale(), { month: "long", year: "numeric", timeZone: "UTC" });
 const pct = (v: number | null) => (v == null ? "—" : `${v > 0 ? "+" : ""}${(v * 100).toLocaleString("id-ID", { maximumFractionDigits: 1 })}%`);
 
 export default function StockListPage() {
   const toast = useToast();
   const [month, setMonth] = useState(thisMonth);
+  // 2026-11-26: up to a day of the month (empty = today / the end of the month)
+  const [until, setUntil] = useState("");
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>("branch");
   const [q, setQ] = useState("");
   const [branch, setBranch] = useState("");
   const [category, setCategory] = useState("");
-  const [sheet, setSheet] = useState(false);
   const [calc, setCalc] = useState<Row | null>(null);
   const [transit, setTransit] = useState(false);
   // 2026-11-24: POS Sales from the material usage ESB books itself (its Stock Card) or from the recipe cards of the portal
   const [usage, setUsage] = useState<Usage>("esb");
   const [unexplained, setUnexplained] = useState(false);
-  const load = () => { setError(null); setData(null); call<Data>(`/api/monitoring/stock/list?month=${month}&usage=${usage}`).then(setData).catch((e: Error) => setError(e.message)); };
-  useEffect(load, [month, usage]);   
+  const load = () => { setError(null); setData(null); call<Data>(`/api/monitoring/stock/list?month=${month}&usage=${usage}${until ? `&until=${until}` : ""}`).then(setData).catch((e: Error) => setError(e.message)); };
+  useEffect(load, [month, usage, until]);
   const rows = useMemo(() => (data?.rows ?? []).filter((r) => (!branch || r.branch === branch) && (!category || r.category === category)
     && (!q || `${r.name} ${r.code} ${r.branchName}`.toLowerCase().includes(q.toLowerCase()))), [data, branch, category, q]);
   const materials = useMemo(() => {
@@ -82,11 +91,10 @@ export default function StockListPage() {
   const estTotal = rows.reduce((a, r) => a + (r.estimateValue ?? 0), 0);
   const varValue = rows.reduce((a, r) => a + (r.variance != null && r.price != null ? r.variance * r.price : 0), 0);
   const counted = heads.filter((h) => h.endDate).length;
-  const chips: ActiveFilter[] = [
-    ...(branch ? [{ key: "b", label: heads.find((h) => h.branch === branch)?.branchName ?? branch, onRemove: () => setBranch("") }] : []),
-    ...(category ? [{ key: "c", label: category, onRemove: () => setCategory("") }] : []),
-  ];
-  const exportRows = () => downloadXlsx({ fileName: `Stock List ${month}`, sheet: "Stock", title: `Stock List ${month} · POS Sales: ${usage === "esb" ? "ESB" : "Recipe"}`,
+  const changed = month !== thisMonth() || !!until || !!branch || !!category || !!q;
+  const maxDay = month === thisMonth() ? today() : lastDay(month);
+  const reset = () => { setMonth(thisMonth()); setUntil(""); setBranch(""); setCategory(""); setQ(""); };
+  const exportRows = () => downloadXlsx({ fileName: `Stock List ${month}`, sheet: "Stock", title: `Stock List ${month}${data ? ` (${data.from} – ${data.upto})` : ""} · POS Sales: ${usage === "esb" ? "ESB" : "Recipe"}`,
     header: ["Cabang", "Previous Balance (tgl)", "Ending Stock (tgl)", "Kode", "Material", "Kategori", "Satuan", "Previous Balance",
       "IN: Goods Receipt", "IN: Transfer In", "IN: Transit In", "OUT: POS Sales", "OUT: POS Non Sales", "OUT: Transfer Out", "OUT: Transit Out",
       "OUT: Item Journal", "OUT: Product Sales", "Estimate Stock", "Ending Stock", "System Usage", "Actual Usage", "Variance (Qty)", "Variance (%)", "Harga", "Estimate Value"],
@@ -107,25 +115,49 @@ export default function StockListPage() {
       }>
       <DataSources keys={['esbIntegrity', 'so', 'gr', 'transfers', 'waste']} />
       <Panel toolbar={<div className="space-y-3">
-        <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search material or branch")} filters={chips} onOpen={() => setSheet(true)} onClear={() => { setBranch(""); setCategory(""); }}
-          extra={<div className="ml-auto flex items-center gap-2">
-            <input type="month" value={month} max={thisMonth()} onChange={(e) => e.target.value && setMonth(e.target.value)} aria-label={tr("Month")} className={cx(inputClass, "h-9 w-[10rem]")} />
-            <Button size="sm" variant="secondary" onClick={() => setUnexplained(true)}>{tr("No recipe")}</Button>
-            <Button size="sm" variant="secondary" onClick={() => setTransit(true)}><ArrowLeftRight size={14} />{tr("Transit")}</Button>
-            <ExcelIconButton boxed label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))} />
-          </div>} />
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <Segmented label={tr("POS Sales from")} value={usage} onChange={setUsage} options={[{ value: "esb", label: tr("ESB usage") }, { value: "recipe", label: tr("Recipe cards") }]} />
-        <p className="text-xs text-neutral-500">{usage === "esb"
-          ? tr("SO, receipts and waste of the portal; POS Sales as ESB books it (its Stock Card), today from the recipe cards. POS Non Sales stays apart: ESB takes no stock for cupping.")
-          : tr("SO, receipts and waste of the portal; POS Sales from the recipe cards.")}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-0 flex-1 basis-60"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input className={cx(inputClass, "h-10 pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search material or branch")} aria-label={tr("Search")} /></div>
+          <Button size="sm" variant="secondary" className="!h-10" onClick={() => setUnexplained(true)}><Package size={14} />{tr("No recipe")}</Button>
+          <Button size="sm" variant="secondary" className="!h-10" onClick={() => setTransit(true)}><ArrowLeftRight size={14} />{tr("Transit")}</Button>
+          <ExcelIconButton boxed label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))} />
         </div>
-        <Segmented label={tr("View")} value={view} onChange={setView} options={[{ value: "branch", label: tr("Per Branch") }, { value: "material", label: tr("Per Material") }]} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <FRow label={tr("Month")}><JSelect value={month} onChange={(v) => { setMonth(v); setUntil(""); }} label={tr("Month")} placeholder={tr("Month")} options={MONTHS().map((m) => ({ value: m, label: monthName(m) }))} /></FRow>
+          <FRow label={tr("Up to date")}>
+            {until ? <span className="flex items-center gap-1"><span className="min-w-0 flex-1"><DateField label={tr("Up to date")} value={until} min={`${month}-01`} max={maxDay} quick={false} onChange={setUntil} /></span>
+              <button type="button" onClick={() => setUntil("")} aria-label={tr("Clear")} className="flex h-10 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100"><RotateCcw size={14} /></button></span>
+              : <button type="button" onClick={() => setUntil(maxDay)} className="flex h-11 w-full items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 text-left text-sm text-neutral-600 hover:border-neutral-300 sm:h-10"><CalendarDays size={15} className="text-neutral-400" />{month === thisMonth() ? tr("Today") : tr("End of the month")}</button>}
+          </FRow>
+          <FRow label={tr("Branch")}><JSelect value={branch} onChange={setBranch} label={tr("Branch")} placeholder={tr("All Branches")} options={[{ value: "", label: tr("All Branches") }, ...heads.map((h) => ({ value: h.branch, label: h.branchName, hint: h.endDate ? tr("SO {0}", dmy(h.endDate)) : tr("no SO") }))]} /></FRow>
+          <FRow label={tr("Category")}><JSelect value={category} onChange={setCategory} label={tr("Category")} placeholder={tr("All categories")} options={[{ value: "", label: tr("All categories") }, ...categories.map((x) => ({ value: x, label: x }))]} /></FRow>
+          <FRow label={tr("POS Sales from")}><JSelect value={usage} onChange={(v) => setUsage(v as Usage)} label={tr("POS Sales from")} placeholder="" options={[{ value: "esb", label: tr("ESB usage") }, { value: "recipe", label: tr("Recipe cards") }]} /></FRow>
+          <FRow label={tr("View")}><JSelect value={view} onChange={(v) => setView(v as View)} label={tr("View")} placeholder="" options={[{ value: "branch", label: tr("Per Branch") }, { value: "material", label: tr("Per Material") }]} /></FRow>
+        </div>
+        <div className="flex flex-wrap items-start justify-between gap-2 text-xs text-neutral-500">
+          <p className="max-w-3xl">{data ? <b className="font-semibold text-neutral-700">{dmy(data.from)} – {dmy(data.upto)} · </b> : null}{usage === "esb"
+            ? tr("SO, receipts and waste of the portal; POS Sales as ESB books it (its Stock Card), today from the recipe cards. POS Non Sales stays apart: ESB takes no stock for cupping.")
+            : tr("SO, receipts and waste of the portal; POS Sales from the recipe cards.")}</p>
+          {changed && <button type="button" onClick={reset} className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline"><RotateCcw size={12} /> {tr("Clear the filters")}</button>}
+        </div>
       </div>} footer={data ? <><span>{tr("{0} shown", fmtNumber(view === "branch" ? rows.length : materials.length))}</span><PageNav paged={view === "branch" ? paged : pagedM} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={load} /> : !data ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table>
           : !rows.length ? <Empty icon={<Boxes size={26} />} title={tr("No stock matches")} />
-          : view === "branch" ? (
-            <div className="overflow-x-auto"><table className="w-full min-w-[2100px] border-separate border-spacing-0 text-[13px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
+          : view === "branch" ? (<>
+            <ul className="divide-y divide-neutral-100 md:hidden">{paged.rows.map((r) => {
+              const vTone = r.variance == null ? "text-neutral-400" : r.variance > 1e-6 ? "text-red-700" : r.variance < -1e-6 ? "text-emerald-700" : "text-neutral-600";
+              return (
+                <li key={`${r.branch}:${r.code}`}><button type="button" onClick={() => setCalc(r)} className="block w-full px-4 py-3 text-left active:bg-neutral-50">
+                  <span className="block font-medium text-neutral-900">{r.name}</span>
+                  <span className="block text-[11px] text-neutral-500">{r.branchName} · {r.code}</span>
+                  <span className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                    <span><span className="block text-[10px] uppercase text-neutral-400">{tr("Estimate Stock")}</span><span className="font-semibold tabular-nums text-neutral-900">{qtyText(r.estimate)} {r.unit}</span></span>
+                    <span><span className="block text-[10px] uppercase text-neutral-400">{tr("Ending Stock")}</span><span className="tabular-nums">{r.ending == null ? "—" : qtyText(r.ending)}</span></span>
+                    <span><span className="block text-[10px] uppercase text-neutral-400">{tr("Variance (Qty)")}</span><span className={cx("font-semibold tabular-nums", vTone)}>{r.variance == null ? "—" : `${r.variance > 0 ? "+" : ""}${qtyText(r.variance)}`}</span></span>
+                  </span>
+                </button></li>);
+            })}</ul>
+            <div className="hidden overflow-x-auto md:block"><table className="w-full min-w-[2100px] border-separate border-spacing-0 text-[13px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
               <thead className={theadClass}>
                 <tr className="[&>th]:border-b [&>th]:border-neutral-200 [&>th]:px-3 [&>th]:py-1.5 [&>th]:text-center">
                   <th colSpan={3} className="sticky left-0 z-[2] bg-white" /><th colSpan={3} className="border-l text-emerald-700">{tr("Items In")}</th>
@@ -189,7 +221,7 @@ export default function StockListPage() {
                 );
               })}</tbody>
             </table></div>
-          ) : (
+          </>) : (
             <ul className="divide-y divide-neutral-100">{pagedM.rows.map((m) => (
               <li key={m.code} className="px-5 py-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -205,27 +237,7 @@ export default function StockListPage() {
       {calc && <CalcDrawer r={calc} h={heads.find((x) => x.branch === calc.branch)} onClose={() => setCalc(null)} />}
       {unexplained && <UnexplainedDrawer month={month} onClose={() => setUnexplained(false)} />}
       {transit && data && <TransitDrawer month={month} data={data} onClose={() => setTransit(false)} onChanged={load} />}
-      {sheet && <StockFilters branch={branch} category={category} heads={heads} categories={categories} onClose={() => setSheet(false)}
-        onApply={(b, c) => { setBranch(b); setCategory(c); setSheet(false); }} />}
     </Page>
-  );
-}
-
-function StockFilters({ branch, category, heads, categories, onApply, onClose }: {
-  branch: string; category: string; heads: Head[]; categories: string[]; onApply: (b: string, c: string) => void; onClose: () => void;
-}) {
-  const [b, setB] = useState(branch);
-  const [c, setC] = useState(category);
-  return (
-    <MonitorFilterSheet active={[b, c].filter(Boolean).length} onClose={onClose} onApply={() => onApply(b, c)} onReset={() => { setB(""); setC(""); }}>
-      <FilterRow icon={<Store size={15} />} label={tr("Branch")} value={heads.find((h) => h.branch === b)?.branchName ?? null} onClear={() => setB("")}>
-        <ComboFilter value={b} onChange={setB} allLabel={tr("All Branches")} placeholder={tr("Search branch")}
-          options={heads.map((h) => ({ value: h.branch, label: h.branchName, hint: h.endDate ? tr("SO {0}", dmy(h.endDate)) : undefined }))} />
-      </FilterRow>
-      <FilterRow icon={<Package size={15} />} label={tr("Category")} value={c || null} onClear={() => setC("")}>
-        <ComboFilter value={c} onChange={setC} allLabel={tr("All categories")} placeholder={tr("Search category")} options={categories.map((x) => ({ value: x, label: x }))} />
-      </FilterRow>
-    </MonitorFilterSheet>
   );
 }
 

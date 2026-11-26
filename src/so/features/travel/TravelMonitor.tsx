@@ -4,16 +4,17 @@
 // of the day, the reports with their photos and score, and the findings with their deadline and after photo.
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, BarChart3, CalendarCheck, Download, FileText, Footprints, RotateCcw, Wrench } from "lucide-react";
-import { Button, Empty, ErrorState, Field, Input, PageNav, SearchBox, Select, cx, fmtNumber, usePaged, useToast } from "@/so/ui";
+import { AlertTriangle, BarChart3, CalendarCheck, CalendarDays, Download, FileText, Footprints, RotateCcw, SlidersHorizontal, Wrench, X } from "lucide-react";
+import { Button, Empty, ErrorState, Field, PageNav, SearchBox, cx, fmtNumber, usePaged, useToast } from "@/so/ui";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
-import { CardFooter, Lozenge, QuickChips, Toolbar, WorkCard, jHeadRow, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
+import { CardFooter, JSelect, Lozenge, QuickChips, Toolbar, WorkCard, jHeadRow, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import Drawer from "@/so/ui/Drawer";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { dmy } from "@/so/ui/Filters";
 import { daysAgo, downloadSheets } from "@/aggregator/ui";
+import { PeriodField, Row as FRow } from "@/aggregator/fields";
 import { tl } from "@/so/features/visit/visit";
 import { thumb } from "@/lib/assets";
 import { tr } from "@/lib/i18n";
@@ -60,6 +61,7 @@ export default function TravelMonitor() {
   const [open, setOpen] = useState<string | null>(null);
   const [reopening, setReopening] = useState<Finding | null>(null);
   const [version, setVersion] = useState(0);
+  const [filtering, setFiltering] = useState(false);
   useEffect(() => { call<{ groups: { id: string; code: string }[] }>("/api/monitoring/branch-groups").then((r) => setGroups(r.groups)).catch(() => setGroups([])); }, []);
   useEffect(() => {
     let live = true;
@@ -91,7 +93,8 @@ export default function TravelMonitor() {
       ]);
     } catch (e) { toast((e as Error).message, "error"); }
   };
-  const quick = [[tr("Today"), 0, 0], [tr("Yesterday"), 1, 1], [tr("7 days"), 6, 0], [tr("30 days"), 29, 0]] as const;
+  const presets = ([["today", tr("Today"), 0, 0], ["yesterday", tr("Yesterday"), 1, 1], ["7", tr("Last 7 days"), 6, 0], ["30", tr("Last 30 days"), 29, 0]] as const)
+    .map(([value, label, a, b]) => ({ value, label, from: daysAgo(a), to: daysAgo(b) }));
   return (
     <Page title={tr("Travel Path")} eyebrow={tr("Operations")} subtitle={tr("Photo check of every outlet, several times a day")} media={<Footprints size={19} />}
       actions={<span className="flex items-center gap-2">        <Button variant="secondary" size="sm" disabled={!data} onClick={() => void exportXlsx()}><Download size={14} /> {tr("Excel")}</Button></span>}>
@@ -107,10 +110,9 @@ export default function TravelMonitor() {
           <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "compliance", label: tr("Compliance"), icon: <CalendarCheck size={15} /> }, { key: "reports", label: tr("Reports"), icon: <FileText size={15} />, count: s?.reports },
             { key: "findings", label: tr("Findings"), icon: <AlertTriangle size={15} />, count: s?.openFindings }, { key: "analysis", label: tr("Analysis"), icon: <BarChart3 size={15} /> }]}
             left={<div className="flex flex-wrap items-center gap-2">
-              <span className="block w-36"><Input type="date" value={from} max={to} onChange={(e) => e.target.value && setFrom(e.target.value)} className="h-9" aria-label={tr("From")} /></span>
-              <span className="block w-36"><Input type="date" value={to} min={from} onChange={(e) => e.target.value && setTo(e.target.value)} className="h-9" aria-label={tr("To")} /></span>
-              {quick.map(([l, a, b]) => <button key={l} type="button" onClick={() => { setFrom(daysAgo(a)); setTo(daysAgo(b)); }} className={cx("h-8 rounded-md px-2 text-xs font-medium", from === daysAgo(a) && to === daysAgo(b) ? "bg-brand-50 text-brand-800" : "text-neutral-600 hover:bg-neutral-100")}>{l}</button>)}
-              <div className="w-32"><Select value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Group")}><option value="">{tr("All groups")}</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.code}</option>)}</Select></div>
+              <Button variant="secondary" size="sm" className="!h-9" onClick={() => setFiltering(true)}><SlidersHorizontal size={14} /> {tr("Filter")}{group ? <span className="rounded-full bg-brand-700 px-1.5 text-[10px] font-bold text-white">1</span> : null}</Button>
+              <button type="button" onClick={() => setFiltering(true)} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-neutral-100 px-3 text-xs font-medium text-neutral-700"><CalendarDays size={13} />{from === to ? dmy(from) : `${dmy(from)} – ${dmy(to)}`}</button>
+              {group && <button type="button" onClick={() => setGroup("")} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-brand-50 px-3 text-xs font-medium text-brand-800">{tr("Group")}: {groups.find((g) => g.id === group)?.code ?? group}<X size={13} /></button>}
             </div>}>
             {tab !== "analysis" && <Toolbar><div className="flex flex-wrap items-center gap-2">
               <div className="w-full sm:w-64"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet")} /></div>
@@ -176,6 +178,8 @@ export default function TravelMonitor() {
       )}
       {open && <ReportDrawer id={open} onClose={() => setOpen(null)} />}
       {reopening && <Reopen finding={reopening} onClose={() => setReopening(null)} onDone={() => { setReopening(null); toast(tr("Finding opened again")); setVersion((v) => v + 1); }} />}
+      {filtering && <FilterDrawer from={from} to={to} group={group} groups={groups} presets={presets} onClose={() => setFiltering(false)}
+        onApply={(f, t2, g) => { setFrom(f); setTo(t2); setGroup(g); setFiltering(false); }} />}
     </Page>
   );
 }
@@ -219,6 +223,24 @@ function Reopen({ finding, onClose, onDone }: { finding: Finding; onClose: () =>
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={note.trim().length < 3} onClick={() => void save()}>{tr("Open again")}</Button></>}>
       <div className="space-y-4"><p className="text-sm text-neutral-700">{finding.fixNote}</p><Photos ids={finding.photos.AFTER} label={tr("After")} />
         <Field label={tr("What is still not right")} required><textarea className="min-h-[80px] w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} /></Field></div>
+    </Drawer>
+  );
+}
+
+/** Every filter of the monitor in one drawer: the period (shortcuts or two dates) and the branch group. */
+function FilterDrawer({ from, to, group, groups, presets, onApply, onClose }: { from: string; to: string; group: string; groups: { id: string; code: string }[];
+  presets: { value: string; label: string; from: string; to: string }[]; onApply: (from: string, to: string, group: string) => void; onClose: () => void }) {
+  const [f, setF] = useState(from);
+  const [t2, setT] = useState(to);
+  const [g, setG] = useState(group);
+  const preset = presets.find((p) => p.from === f && p.to === t2)?.value ?? "custom";
+  return (
+    <Drawer open onClose={onClose} icon={<SlidersHorizontal size={18} />} title={tr("Filter")} description={tr("The period and the branch group of the monitor")}
+      footer={<><Button variant="secondary" onClick={() => { setF(presets[2].from); setT(presets[2].to); setG(""); }}><RotateCcw size={14} /> {tr("Reset")}</Button><Button onClick={() => onApply(f, t2, g)}>{tr("Show")}</Button></>}>
+      <div className="space-y-5">
+        <FRow label={tr("Period")} hint={tr("At most 93 days")}><PeriodField label={tr("Period")} from={f} to={t2} preset={preset} presets={presets} onChange={(a, b) => { setF(a); setT(b); }} /></FRow>
+        <FRow label={tr("Branch group")}><JSelect value={g} onChange={setG} label={tr("Branch group")} placeholder={tr("All groups")} options={[{ value: "", label: tr("All groups") }, ...groups.map((x) => ({ value: x.id, label: x.code }))]} /></FRow>
+      </div>
     </Drawer>
   );
 }
