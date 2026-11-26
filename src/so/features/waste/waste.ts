@@ -72,9 +72,11 @@ export const unitText = (uom: string) => (isGram(uom) ? "g" : uom);
 export const explodePremix = (item: WasteItem, uom: string, qty: number) => {
   const unit = item.units?.find((u) => u.uom === uom) ?? { uom, grams: 1 };
   const grams = qty * unit.grams;
-  return { grams, ingredients: (item.components ?? []).map((c) => ({ ...c, grams: grams > 0 ? Math.ceil(grams * c.perGram - 0.001) : 0 })) };
+  return { grams, ingredients: (item.components ?? []).map((c) => ({ ...c, grams: grams > 0 ? Math.ceil(grams * c.perGram * 100 - 0.001) / 100 : 0 /* 2 decimals, rounded up (2026-11-26) */ })) };
 };
 export const fmtQty = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 3 });
+/** grams of a premix breakdown: always 2 decimals (2026-11-26) */
+export const fmtGrams = (n: number) => n.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /** An investigation of waste (migration 055): the form FM-QAQC-03 "Investigasi Komplain & Waste". */
 export type Check = { checked: boolean; finding: string };

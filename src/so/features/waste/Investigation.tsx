@@ -17,13 +17,13 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
 import { dmy } from "@/so/ui/Filters";
 import { tr } from "@/lib/i18n";
-import { CHECKS, DOC_DEFAULT, type Entry, fmtQty, type Investigation, type Report, SIGNERS, type Signer, SOURCES, WASTE_KINDS, scopeLabel } from "./waste";
+import { CHECKS, DOC_DEFAULT, type Entry, fmtQty, fmtGrams, type Investigation, type Report, SIGNERS, type Signer, SOURCES, WASTE_KINDS, scopeLabel } from "./waste";
 import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
 import { thumb } from "@/lib/assets";
 
 export const printUrl = (id: string) => `/cost-control/waste/reviews/investigation?id=${id}`;
 
-/** The ingredients of a premix entry (grams, rounded up as the premix calculator), as filled by the outlet. */
+/** The ingredients of a premix entry (grams, 2 decimals rounded up), as filled by the outlet. */
 export function Ingredients({ entry }: { entry: Entry }) {
   if (!entry.ingredients?.length) return null;
   return (
@@ -36,7 +36,7 @@ export function Ingredients({ entry }: { entry: Entry }) {
           {entry.ingredients.map((c) => (
             <tr key={c.code ?? c.name} className={c.isStock ? "" : "text-neutral-400"}>
               <td className="px-3 py-1.5">{c.name}{c.code ? <span className="ml-1 text-[10px] text-neutral-400">{c.code}</span> : null}{!c.isStock && ` (${tr("not stock")})`}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums">{fmtQty(c.grams)} g</td>
+              <td className="px-3 py-1.5 text-right tabular-nums">{fmtGrams(c.grams)} g</td>
             </tr>
           ))}
         </tbody>

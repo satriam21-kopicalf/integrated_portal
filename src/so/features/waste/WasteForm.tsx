@@ -27,7 +27,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { useAuth } from "@/lib/auth";
 import { locale, tr } from "@/lib/i18n";
 import { TZ, wibDateTime } from "@/so/lib/wib";
-import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, explodePremix, usagePhotoUrl, fmtQty, photoUrl, scopeLabel, statusLabel, statusTone, unitText } from "./waste";
+import { type Entry, type FormData, type Scope, type WasteItem, ENTRY_SCOPES, explodePremix, usagePhotoUrl, fmtQty, fmtGrams, photoUrl, scopeLabel, statusLabel, statusTone, unitText } from "./waste";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { thumb } from "@/lib/assets";
 
@@ -375,7 +375,7 @@ export default function WasteForm() {
                                     {calc && calc.ingredients.length > 0 && (
                                       <div className="rounded-lg bg-white/70 px-2.5 py-1.5 text-[11px] text-neutral-600 ring-1 ring-violet-100 sm:col-span-2">
                                         <span className="font-semibold text-violet-700">{tr("Ingredients")}: </span>
-                                        {calc.ingredients.map((c) => `${c.name} ${fmtQty(c.grams)} g`).join(" · ")}
+                                        {calc.ingredients.map((c) => `${c.name} ${fmtGrams(c.grams)} g`).join(" · ")}
                                       </div>
                                     )}
                                     <div className="flex items-center gap-2 sm:col-span-2">
@@ -408,7 +408,7 @@ export default function WasteForm() {
                     <ul className="grid gap-x-4 gap-y-0.5 text-xs sm:grid-cols-2">
                       {premixTotals.map((p) => (
                         <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-neutral-400")}>
-                          <span className="truncate">{p.name}{!p.stock && ` (${tr("not stock")})`}</span><span className="tabular-nums">{fmtQty(p.grams)} g</span>
+                          <span className="truncate">{p.name}{!p.stock && ` (${tr("not stock")})`}</span><span className="tabular-nums">{fmtGrams(p.grams)} g</span>
                         </li>
                       ))}
                     </ul>
@@ -567,7 +567,7 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
                   <Badge tone={statusTone(e.status)}>{e.status === "approved" ? <CheckCircle2 size={11} /> : null}{statusLabel(e.status)}</Badge>
                 </div>
                 <p className="text-xs text-neutral-600">{fmtQty(e.qty)} {e.scope === "premix" ? unitText(e.unit) : e.unit}{e.scope === "premix" && e.grams != null && e.unit.toLowerCase() !== "gram" ? ` (${fmtQty(e.grams)} g)` : ""} · {scopeLabel(e.scope)} · {e.category}</p>
-                {e.ingredients?.length ? <p className="text-[11px] text-violet-700">{e.ingredients.map((c) => `${c.name} ${fmtQty(c.grams)} g`).join(" · ")}</p> : null}
+                {e.ingredients?.length ? <p className="text-[11px] text-violet-700">{e.ingredients.map((c) => `${c.name} ${fmtGrams(c.grams)} g`).join(" · ")}</p> : null}
                 {(e.productionDate || e.expiredDate) && <p className="text-[11px] text-neutral-500">{tr("Production")} {e.productionDate ?? "—"} · {tr("Expired")} {e.expiredDate ?? "—"}</p>}
                 {e.note && <p className="mt-0.5 text-xs text-neutral-500">“{e.note}”</p>}
                 {e.review?.note && <p className="mt-0.5 text-xs text-neutral-500">{tr("Cost Control")}: {e.review.note}</p>}
