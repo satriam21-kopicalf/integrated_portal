@@ -130,12 +130,11 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
           </div>
         </FormCard>
 
-        <FormCard n={2} title={tr("Materials")} hint={stock?.so ? tr("Stock of {0} from its SO of {1}: information for Cost Control, not a limit", fromName, stock.so.date) : tr("Choose the outlet to take from first")}
+        <FormCard n={2} title={tr("Materials")} hint={stock ? (stock.so ? tr("In the whole units of the HUB stock opname. Stock of {0} from its SO of {1}: information for Cost Control, not a limit", fromName, stock.so.date) : tr("In the whole units of the HUB stock opname. This outlet has no SO in the portal: its stock is unknown.")) : tr("Choose the outlet to take from first")}
           aside={picked.length ? <Badge tone="blue">{tr("{0} chosen", picked.length)}</Badge> : undefined}>
           {!from ? <p className="text-sm text-neutral-500">{tr("Choose the outlet to take from first")}</p>
             : loading ? <SkeletonList rows={3} />
-            : !stock?.so ? <Note tone="warn" icon={<Info />}>{tr("This outlet has no stock opname in the portal in the last 60 days: its stock is unknown.")}</Note>
-            : !stock.items.length ? <p className="text-sm text-neutral-500">{tr("This outlet has no material in its last count.")}</p> : (
+            : !stock?.items.length ? <p className="text-sm text-neutral-500">{tr("This outlet has no material in its last count.")}</p> : (
               <>
                 <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input className={cx(searchClass, "pl-8")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search material")} /></div>
@@ -146,12 +145,12 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
                     return (
                       <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2.5", v && !bad ? "bg-brand-50/50" : bad ? "bg-red-50" : "")}>
                         <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug text-neutral-900">{i.name}</span>
-                          <span className="block text-[11px] text-neutral-500">{i.code}{i.category ? ` · ${i.category}` : ""}</span>
+                          <span className="block text-[11px] text-neutral-500">{i.code}{i.category ? ` · ${i.category}` : ""}{i.factor && i.factor !== 1 ? ` · 1 ${i.unit} = ${qtyText(i.factor)} ${i.base}` : ""}</span>
                           <span className="mt-1 block"><StockBadge available={i.available} unit={i.unit} taking={v} /></span></span>
-                        <span className="relative w-28 flex-shrink-0 sm:w-32">
-                          <input inputMode="decimal" className={cx(inputClass, "h-11 pr-11 text-right text-base tabular-nums sm:h-10 sm:text-sm", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
+                        <span className="relative w-32 flex-shrink-0 sm:w-36">
+                          <input inputMode="decimal" className={cx(inputClass, "h-11 pr-16 text-right text-base tabular-nums sm:h-10 sm:text-sm", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
                             onChange={(e) => setQty({ ...qty, [i.code]: e.target.value })} aria-label={`${tr("Qty")} ${i.name}`} />
-                          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs capitalize text-neutral-400">{i.unit}</span>
+                          <span className="pointer-events-none absolute right-2 top-1/2 max-w-[3.5rem] -translate-y-1/2 truncate text-[10px] text-neutral-400">{i.unit}</span>
                         </span>
                       </li>
                     );
@@ -297,7 +296,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
   const adjusted: Record<string, number> = {};
   for (const i of t.items ?? []) {
     const n = adjust[i.code] === undefined ? null : numOf(adjust[i.code]);
-    if (n !== null && Math.abs(n - i.qty) > 1e-9) adjusted[i.code] = n;
+    if (n !== null && Math.abs(n - i.packQty) > 1e-9) adjusted[i.code] = n;
   }
   const nAdjusted = Object.keys(adjusted).length;
   const badAdjust = (t.items ?? []).some((i) => adjust[i.code] !== undefined && (numOf(adjust[i.code]) ?? 0) <= 0);
@@ -320,17 +319,18 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           <table className="w-full text-sm">
             <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
             <tbody className="divide-y divide-neutral-100">{(t.items ?? []).map((i) => (
-              <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p>{i.available != null && <p className="mt-1 text-[11px] text-neutral-500">{tr("Stock of the outlet when asked")}: <span className="font-semibold tabular-nums text-neutral-700">{qtyText(i.available)} {i.unit}</span></p>}</td>
+              <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p>{i.available != null && <p className="mt-1 text-[11px] text-neutral-500">{tr("Stock of the outlet when asked")}: <span className="font-semibold tabular-nums text-neutral-700">{qtyText(i.available / (i.factor || 1))} {i.pack}</span></p>}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
                   {deciding ? (
                     <span className="relative inline-block w-28 sm:w-32">
                       <input inputMode="decimal" className={cx(inputClass, "h-10 pr-10 text-right text-base tabular-nums sm:h-9 sm:text-sm", adjusted[i.code] !== undefined && "border-amber-400 bg-amber-50")}
-                        value={adjust[i.code] ?? String(i.qty).replace(".", ",")} onChange={(e) => setAdjust({ ...adjust, [i.code]: e.target.value })} aria-label={`${tr("Approved Qty")} ${i.name}`} />
-                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs capitalize text-neutral-400">{i.unit}</span>
+                        value={adjust[i.code] ?? String(i.packQty).replace(".", ",")} onChange={(e) => setAdjust({ ...adjust, [i.code]: e.target.value })} aria-label={`${tr("Approved Qty")} ${i.name}`} />
+                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-neutral-400">{i.pack}</span>
                     </span>
-                  ) : <>{qtyText(i.qty)} <span className="text-neutral-400">{i.unit}</span></>}
-                  {Math.abs(i.requested - i.qty) > 1e-9 && <span className="block text-[11px] text-amber-700">{tr("asked {0}, adjusted by Cost Control", qtyText(i.requested))}</span>}
-                  {deciding && adjusted[i.code] !== undefined && <span className="block text-[11px] text-amber-700">{tr("asked {0}", qtyText(i.requested))}</span>}
+                  ) : <>{qtyText(i.packQty)} <span className="text-neutral-400">{i.pack}</span></>}
+                  {i.factor !== 1 && <span className="block text-[11px] text-neutral-400">= {qtyText(i.qty)} {i.unit}</span>}
+                  {i.requestedPack != null && Math.abs(i.requestedPack - i.packQty) > 1e-9 && <span className="block text-[11px] text-amber-700">{tr("asked {0}, adjusted by Cost Control", qtyText(i.requestedPack))}</span>}
+                  {deciding && adjusted[i.code] !== undefined && <span className="block text-[11px] text-amber-700">{tr("asked {0}", qtyText(i.requestedPack ?? i.packQty))}</span>}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-neutral-700">{rpText(i.value)}</td></tr>))}</tbody>
           </table>

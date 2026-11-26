@@ -11,7 +11,8 @@ export type Transfer = {
   received: Step | null; value: number | null; estimate?: number;
   esbLabel: { value: "esb" | "portal"; note: string | null; by: string | null; at: string | null } | null;
   /** qty: approved by Cost Control (what moves); requested: what the outlet asked (migration 076) */
-  items?: { code: string; name: string; unit: string; qty: number; requested: number; available: number | null; price: number | null; value: number | null }[];
+  items?: { code: string; name: string; unit: string; qty: number; requested: number;
+    /** the whole unit of the template (2026-11-26): pack, its base units, the quantity in it */ pack: string; factor: number; packQty: number; requestedPack: number | null; available: number | null; price: number | null; value: number | null }[];
   canDecide?: boolean;
   /** made in ESB by Cost Control (2026-11-26, migration 155) */
   esb?: { number: string; note: string | null; by: string | null; at: string | null } | null;
@@ -22,7 +23,7 @@ export type Transfer = {
 };
 export type FormData = { branches: { code: string; name: string }[]; sources: { code: string; name: string }[];
   requests: Transfer[]; incoming: Transfer[]; todo: { answer: number; receive: number; pending?: number } };
-export type Available = { so: { date: string; refs: string[] } | null; items: { code: string; name: string; category: string; unit: string; available: number }[] };
+export type Available = { so: { date: string; refs: string[] } | null; items: { code: string; name: string; category: string; unit: string; base?: string; factor?: number; available: number | null }[] };
 
 export const STATUS: Record<Status, { label: () => string; tone: "amber" | "blue" | "green" | "red" | "slate" | "violet" }> = {
   submitted: { label: () => tr("Pending · Cost Control"), tone: "amber" },
