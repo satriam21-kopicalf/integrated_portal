@@ -17,6 +17,7 @@ import { downloadSheets } from "@/aggregator/ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
+import { Facts, Group } from "@/aggregator/fields";
 import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
 import { hasPage, useAuth } from "@/lib/auth";
 import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
@@ -162,6 +163,17 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const exportAll = async () => {
     const [d, u] = await Promise.all([call<DailyData>(`/api/waste/daily?${q()}`), call<{ data: UsageRow[] }>(`/api/waste/usage?${q()}`)]);
     const premix = rows.filter((e) => e.scope === "premix" && e.ingredients?.length);
+    const perItem = () => {
+      const m = new Map<string, { code: string; name: string; unit: string; qty: number; entries: number; branches: Set<string>; value: number; priced: boolean }>();
+      for (const e of rows.filter((x) => x.scope === "waste")) {
+        const k = `${e.itemCode}|${e.unit}`;
+        const g = m.get(k) ?? { code: e.itemCode, name: e.itemName, unit: e.unit, qty: 0, entries: 0, branches: new Set<string>(), value: 0, priced: false };
+        g.qty += e.qty; g.entries += 1; g.branches.add(e.branchName);
+        if (e.value != null) { g.value += e.value; g.priced = true; }
+        m.set(k, g);
+      }
+      return [...m.values()].sort((a, b) => b.value - a.value || a.name.localeCompare(b.name));
+    };
     const mark = (c: DailyData["branches"][number]["days"][number]) => (c.entries ? c.entries : c.noWaste ? "Tidak ada waste" : "Belum lapor");
     const n = (r: unknown[]) => r.map((v) => (v ?? null) as string | number | null);
     await downloadSheets(file("Waste"), [
@@ -181,8 +193,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           return (e.ingredients ?? []).map((x) => n([e.itemName, e.itemCode, e.businessDate, e.branchName, e.category, statusLabel(e.status),
             e.qty, e.grams, total, diff, x.code, x.name, x.isStock ? "Ya" : "Tidak", x.price, x.value, Math.round(x.grams * 100) / 100, "GR"]));
         }) },
-      { sheet: "Per item", title: `Waste per item ${dmy(period.from)} – ${dmy(period.to)}`, header: ["Jenis", "Kode", "Item", "Qty", "Satuan", "Entri", "Cabang", "Nilai (Rp)"],
-        rows: (res?.byItem ?? []).map((i) => n([scopeLabel(i.scope), i.code, i.name, i.qty, i.unit, i.entries, i.branches, i.value])) },
+      // materials only (2026-11-26, Cost Control): a premix is in "Breakdown premix", so it is not counted twice; Cabang = the outlets
+      { sheet: "Per item", title: `Waste per item (material) ${dmy(period.from)} – ${dmy(period.to)}`, header: ["Kode", "Item", "Qty", "Satuan", "Entri", "Cabang", "Nilai (Rp)"],
+        rows: perItem().map((i) => n([i.code, i.name, Math.round(i.qty * 1000) / 1000, i.unit, i.entries, [...i.branches].sort().join(", "), i.priced ? Math.round(i.value) : null])) },
       { sheet: "Laporan harian", title: `Laporan waste harian ${dmy(period.from)} – ${dmy(period.to)}`,
         header: ["Cabang", "Kode", "Hari lapor", "Hari belum lapor", "Hari daftar usage", ...d.dates.map(dmy)],
         rows: d.branches.map((b) => n([b.name, b.code, b.reported, b.missing, b.usageDays, ...b.days.map(mark)])) },
@@ -341,65 +354,77 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
       </Panel>
 
       <Drawer open={!!open} onClose={() => setOpen(null)} icon={<Trash2 size={18} />} title={open?.itemName ?? ""} description={open ? `${open.branchName} · ${dmy(open.businessDate)}` : ""}
-        footer={open && review && (open.status === "submitted" || open.status === "investigating") ? (
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
-            {open.investigationId
-              ? <Button variant="secondary" className="mr-auto" onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={14} />{tr("Open the investigation")}</Button>
-              : <Button variant="secondary" className="mr-auto" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button>}
-            <Button variant="secondary" onClick={() => { setPicked(new Set()); setVerdict("rejected"); }}><XCircle size={14} />{tr("Reject")}</Button>
-            <Button onClick={() => { setPicked(new Set()); setVerdict("approved"); }}><CheckCircle2 size={14} />{tr("Approve")}</Button>
-          </div>
-        ) : open && review && open.status === "approved" ? (
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <span className="mr-auto text-xs text-neutral-500">{tr("Approved: counted in the COGS; QA can still investigate it")}</span>
-            <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
-            {open.investigationId
-              ? <Button variant="secondary" onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={14} />{tr("Open the investigation")}</Button>
-              : <Button variant="secondary" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button>}
-            {/* an approved entry can still be rejected by Cost Control (2026-11-17): it leaves the COGS and the stock */}
-            <Button variant="secondary" onClick={() => { setPicked(new Set()); setVerdict("rejected"); }}><XCircle size={14} />{tr("Reject")}</Button>
-          </div>
-        ) : open && review ? (
-          <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
-        ) : undefined}>
+        footer={open && review ? (() => {
+          // 2026-11-26: the tidy footer: what checks the entry on the left, the verdict on the right (one row on phones each)
+          const pending = open.status === "submitted" || open.status === "investigating";
+          const inv = open.investigationId
+            ? <Button variant="secondary" onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={14} />{tr("Open the investigation")}</Button>
+            : open.status !== "rejected" ? <Button variant="secondary" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button> : null;
+          return (
+            <div className="space-y-2">
+              {open.status === "approved" && <p className="text-xs text-neutral-500">{tr("Approved: counted in the COGS; QA can still investigate it")}</p>}
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+                <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
+                {(pending || open.status === "approved") && inv}
+                <span className="hidden sm:block sm:flex-1" />
+                {(pending || open.status === "approved") && <Button variant="secondary" onClick={() => { setPicked(new Set()); setVerdict("rejected"); }}><XCircle size={14} />{tr("Reject")}</Button>}
+                {pending && <Button onClick={() => { setPicked(new Set()); setVerdict("approved"); }}><CheckCircle2 size={14} />{tr("Approve")}</Button>}
+              </div>
+            </div>
+          );
+        })() : undefined}>
         {open && (
-          <div className="space-y-4">
-            <a href={photoUrl(open.id)} target="_blank" rel="noreferrer">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={thumb(photoUrl(open.id), 640)} decoding="async" loading="lazy" alt={tr("Photo evidence")} className="w-full rounded-xl bg-neutral-100 object-contain" />
-            </a>
-            <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
-              {([
-                [tr("Status"), <Badge key="s" tone={statusTone(open.status)}>{statusLabel(open.status)}</Badge>],
-                [tr("Type"), scopeLabel(open.scope)],
-                [tr("Item"), `${open.itemName} (${open.itemCode})`],
-                [tr("Quantity"), `${fmtQty(open.qty)} ${open.unit}`],
-                [tr("Value"), `${fmtRp(open.value)}${open.unitPrice != null ? ` (${fmtRp(open.unitPrice)} / ${open.unit})` : ""} · ${open.priceSource ? PRICE_SOURCE[open.priceSource]() : "—"}`],
-                [tr("Waste category"), open.category],
-                [tr("Production Date"), open.productionDate || "—"], [tr("Expired Date"), open.expiredDate || "—"],
+          <div>
+            <Group title={tr("Summary")}>
+              <div className="flex gap-3">
+                <a href={photoUrl(open.id)} target="_blank" rel="noreferrer" className="block h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-neutral-100 sm:h-32 sm:w-32" title={tr("Photo evidence")}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={thumb(photoUrl(open.id), 320)} decoding="async" loading="lazy" alt={tr("Photo evidence")} className="h-full w-full object-cover" />
+                </a>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center gap-1.5"><Badge tone={statusTone(open.status)}>{statusLabel(open.status)}</Badge><Badge tone="slate">{scopeLabel(open.scope)}</Badge></div>
+                  <div><p className="text-[11px] uppercase text-neutral-400">{tr("Quantity")}</p><p className="text-lg font-semibold tabular-nums text-neutral-900">{fmtQty(open.qty)} {open.unit}</p></div>
+                  <div><p className="text-[11px] uppercase text-neutral-400">{tr("Value")}</p><p className="font-semibold tabular-nums text-neutral-900">{fmtRp(open.value)}</p>
+                    <p className="text-[11px] text-neutral-500">{open.unitPrice != null ? `${fmtRp(open.unitPrice)} / ${open.unit} · ` : ""}{open.priceSource ? PRICE_SOURCE[open.priceSource]() : "—"}</p></div>
+                </div>
+              </div>
+            </Group>
+            <Group title={tr("Item")}>
+              <Facts rows={[
+                [tr("Item"), <span key="i">{open.itemName} <span className="text-xs font-normal text-neutral-400">{open.itemCode}</span></span>],
+                [tr("Waste category"), open.category || "—"],
+                [tr("Production Date"), open.productionDate ? dmy(open.productionDate) : "—"],
+                [tr("Expired Date"), open.expiredDate ? dmy(open.expiredDate) : "—"],
                 [tr("Note / reason"), open.note || "—"],
+              ]} />
+            </Group>
+            {open.ingredients?.length ? <Group title={tr("Breakdown of the premix")}><Ingredients entry={open} bare /></Group> : null}
+            <Group title={tr("Input")}>
+              <Facts rows={[
                 [tr("Entered by"), `${open.name} · @${open.username}`],
                 [tr("Entered at"), wibDateTime(open.createdAt)],
                 [tr("Photo taken"), open.photoTakenAt ? wibDateTime(open.photoTakenAt) : "—"],
                 [tr("Position"), open.latitude !== null && open.longitude !== null
                   ? <a key="p" href={mapsUrl(open.latitude, open.longitude)} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">{open.latitude.toFixed(5)}, {open.longitude.toFixed(5)}</a> : "—"],
-                ...(open.investigationId ? [[tr("Investigation"), <button key="inv" type="button" className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline"
-                  onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={13} />{tr("Open the investigation")}</button>]] : []),
-                ...(open.review ? [[tr("Review"), `${open.review.by ?? ""} · ${open.review.at ? wibDateTime(open.review.at) : ""}${open.review.note ? ` · ${open.review.note}` : ""}`]] : []),
-              ] as [string, React.ReactNode][]).map(([k, v]) => (
-                <div key={k} className="flex gap-3 px-3 py-2"><dt className="w-32 flex-shrink-0 text-neutral-500">{k}</dt><dd className="min-w-0 flex-1 text-neutral-800">{v}</dd></div>
-              ))}
-            </dl>
-            <CorrectionHistory entry={open} version={fixes} />
-            <Ingredients entry={open} />
-            {open.signed && (
-              <div className="rounded-md border border-neutral-200 p-3">
-                <p className="mb-1 text-xs font-semibold text-neutral-700">{tr("Signature of {0}", open.name)}</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={signatureUrl(open.id)} alt={tr("Signature")} className="max-h-28 object-contain" />
-              </div>
-            )}
+              ]} />
+              {open.signed && (
+                <div className="rounded-lg border border-neutral-200 p-3">
+                  <p className="mb-1 text-xs text-neutral-500">{tr("Signature of {0}", open.name)}</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={signatureUrl(open.id)} alt={tr("Signature")} className="max-h-24 object-contain" />
+                </div>
+              )}
+            </Group>
+            {(open.review || open.investigationId || open.corrections) ? (
+              <Group title={tr("Review")}>
+                {(open.review || open.investigationId) && <Facts rows={[
+                  ...(open.review ? [[tr("Reviewed by"), `${open.review.by ?? "—"}${open.review.at ? ` · ${wibDateTime(open.review.at)}` : ""}`], [tr("Note"), open.review.note || "—"]] : []),
+                  ...(open.investigationId ? [[tr("Investigation"), <button key="inv" type="button" className="inline-flex items-center gap-1 text-brand-700 hover:underline"
+                    onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={13} />{tr("Open the investigation")}</button>]] : []),
+                ] as [string, React.ReactNode][]} />}
+                <CorrectionHistory entry={open} version={fixes} />
+              </Group>
+            ) : null}
           </div>
         )}
       </Drawer>

@@ -8304,4 +8304,6 @@ export const ID: Record<string, string> = {
   "Use request": "Pakai request",
   "Breakdown total": "Total breakdown",
   "entered": "input",
+  "Input": "Input",
+  "Reviewed by": "Direview oleh",
 };

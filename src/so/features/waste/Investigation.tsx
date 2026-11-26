@@ -24,13 +24,13 @@ import { thumb } from "@/lib/assets";
 export const printUrl = (id: string) => `/cost-control/waste/reviews/investigation?id=${id}`;
 
 /** The ingredients of a premix entry (grams, 2 decimals rounded up), as filled by the outlet. */
-export function Ingredients({ entry }: { entry: Entry }) {
+export function Ingredients({ entry, bare }: { entry: Entry; bare?: boolean }) {
   if (!entry.ingredients?.length) return null;
   return (
     <div className="rounded-md border border-neutral-200">
-      <p className="border-b border-neutral-100 px-3 py-2 text-xs font-semibold text-neutral-700">
+      {!bare && <p className="border-b border-neutral-100 px-3 py-2 text-xs font-semibold text-neutral-700">
         {tr("Breakdown of the premix")}{entry.grams ? ` · ${fmtQty(entry.grams)} g` : ""}
-      </p>
+      </p>}
       <table className="w-full text-xs">
         <tbody className="divide-y divide-neutral-100">
           {entry.ingredients.map((c) => (
