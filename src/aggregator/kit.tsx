@@ -5,7 +5,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, Info, RotateCcw, SlidersHorizontal, X } from "lucide-react";
-import Floating, { usePhone } from "@/components/kc/Floating";
+import Floating from "@/components/kc/Floating";
 import ChannelLogo from "@/components/ChannelLogo";
 import ExcelIconButton from "@/components/ExcelIconButton";
 import { Button, Empty, SearchBox, cx } from "@/so/ui";
@@ -98,11 +98,12 @@ export function useScope<T extends { branchCode?: string | null }>(rows: T[] | u
 
 export type Extra = { key: string; any?: string; label: string; value: string; onChange: (v: string) => void; options: JOption[] };
 
-/** The head of the table card: search, Excel, the filters and the quick chips (children). Tablets up: labelled fields. Phones and the PWA: the period (or the date) and a button that
- *  opens the others as a sheet; what is chosen stays readable as chips. `period` off for a page about now. */
-export function FilterBar({ a, ctx, extra = [], period = true, outlet = true, platform = true, lead, note, q, onQ, placeholder, excel, excelOff, excelBusy, children }: { lead?: ReactNode; note?: string; q?: string; onQ?: (v: string) => void; placeholder?: string; excel?: () => void; excelOff?: boolean; excelBusy?: boolean; children?: ReactNode; a: AggFilters; ctx: Ctx | null; extra?: Extra[]; period?: boolean; outlet?: boolean; platform?: boolean }) {
+/** The head of the table card, one pattern on every screen (2026-11-26): search, one Filter button (the period and every filter in
+ *  one panel: a sheet on phones, a popover on wider screens), reset and Excel in one row; what is chosen stays readable as chips.
+ *  `lead` (e.g. the day of the schedule) stays in the row; `more` goes into the panel below the filters; `children` = the quick
+ *  status chips with their counts. `period` off for a page about now. */
+export function FilterBar({ a, ctx, extra = [], period = true, outlet = true, platform = true, lead, note, q, onQ, placeholder, excel, excelOff, excelBusy, more, children }: { lead?: ReactNode; note?: string; q?: string; onQ?: (v: string) => void; placeholder?: string; excel?: () => void; excelOff?: boolean; excelBusy?: boolean; more?: ReactNode; children?: ReactNode; a: AggFilters; ctx: Ctx | null; extra?: Extra[]; period?: boolean; outlet?: boolean; platform?: boolean }) {
   const { f, set, preset } = a;
-  const phone = usePhone();
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
   const short = (n: string) => n.replace(/^Kopi Calf (To Go )?/, "");
@@ -114,44 +115,41 @@ export function FilterBar({ a, ctx, extra = [], period = true, outlet = true, pl
     ...extra,
   ];
   const chosen = all.filter((e) => e.value);
-  const changed = (period && preset !== FIRST) || chosen.length > 0;
+  const periodChanged = period && preset !== FIRST;
+  const count = chosen.length + (periodChanged ? 1 : 0);
+  const changed = count > 0;
   const clear = () => { a.reset(); extra.forEach((e) => e.onChange("")); };
-  const fields = all.map((e) => <Row key={e.key} label={e.label}><JSelect value={e.value} onChange={e.onChange} placeholder={e.any ?? tr("All")} label={e.label} options={[{ value: "", label: e.any ?? tr("All") }, ...e.options]} /></Row>);
-  const when = period ? (
-    <PeriodField label={tr("Period")} from={f.from} to={f.to} preset={preset} presets={Object.entries(PRESETS).map(([value, p]) => ({ value, label: p.label(), from: p.range()[0], to: p.range()[1] }))} onChange={(from, to, p) => set({ from, to, preset: p })} />
-  ) : lead;
-  const name = PRESETS[preset]?.label() ?? tr("Chosen dates");
+  const name = PRESETS[preset]?.label() ?? `${fmtDayShort(f.from)} – ${fmtDayShort(f.to)}`;
   const info = period ? `${tr("{0} · all times in WIB", name)}${preset === FIRST ? ` · ${tr("choose a period for earlier days")}` : ""}` : note ?? tr("The situation now · all times in WIB");
   const box = q != null && onQ ? <SearchBox value={q} onChange={onQ} placeholder={placeholder ?? tr("Search")} /> : null;
   const xl = excel && <ExcelIconButton boxed label={tr("Export to Excel")} disabled={excelOff} loading={excelBusy} onClick={excel} className="!h-11 !w-11 sm:!h-10 sm:!w-10" />;
-  if (phone) return (
-    <div role="group" aria-label={tr("Filter")} className="space-y-2.5 border-b border-neutral-200 p-4">
-      {box}
-      {when && <Row label={period ? tr("Period") : tr("Date")}>{when}</Row>}
-      <div className="flex items-center gap-2">
-        <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border text-[15px] font-medium", chosen.length ? "border-brand-200 bg-brand-50 text-brand-800" : "border-neutral-200 bg-white text-neutral-800")}>
-          <SlidersHorizontal size={16} /> {tr("Filter")}{chosen.length > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold leading-[18px] text-white">{chosen.length}</span>}</button>
-        {changed && <button type="button" onClick={clear} aria-label={tr("Clear the filters")} title={tr("Clear the filters")} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-700"><RotateCcw size={16} /></button>}
-        {xl}
-      </div>
-      {chosen.length > 0 && <ul className="flex flex-wrap gap-1.5">{chosen.map((e) => <li key={e.key}><button type="button" onClick={() => e.onChange("")} aria-label={tr("Remove {0}", e.label)} className="inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full bg-brand-50 px-2.5 text-xs text-brand-900"><span className="text-brand-700/70">{e.label}:</span><span className="min-w-0 truncate font-semibold">{e.options.find((o) => o.value === e.value)?.label ?? e.value}</span><X size={13} className="shrink-0" /></button></li>)}</ul>}
-      <p className="flex items-center gap-1.5 text-xs text-neutral-500"><Clock size={12} className="shrink-0" aria-hidden />{info}</p>
-      <Floating open={open} onClose={() => setOpen(false)} title={tr("Filter")} subtitle={chosen.length ? tr("{0} chosen", chosen.length) : tr("Nothing chosen: everything is shown")} anchor={btn}
-        footer={<><Button variant="secondary" className="flex-1" disabled={!changed} onClick={clear}>{tr("Clear")}</Button><Button className="flex-1" onClick={() => setOpen(false)}>{tr("Show")}</Button></>}><div className="space-y-4 px-4 py-4">{fields}</div></Floating>
-      {children}
-    </div>
-  );
+  const chip = "inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full bg-brand-50 px-2.5 text-xs text-brand-900";
   return (
-    <div role="group" aria-label={tr("Filter")} className="space-y-3 border-b border-neutral-200 px-5 py-4">
-      {(box || xl) && <div className="flex items-center gap-3"><div className="min-w-0 max-w-md flex-1">{box}</div><span className="ml-auto">{xl}</span></div>}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-3 [&_button]:!h-10 [&_button]:!rounded-lg [&_button]:!bg-white">
-        {when && <Row label={period ? tr("Period") : tr("Date")} className="col-span-2">{when}</Row>}{fields}
+    <div role="group" aria-label={tr("Filter")} className="space-y-2.5 border-b border-neutral-200 p-4 sm:px-5">
+      <div className="flex flex-wrap items-center gap-2">
+        {box && <div className="min-w-0 flex-1 basis-full sm:basis-64 sm:max-w-md">{box}</div>}
+        {lead && <div className="min-w-0 flex-1 basis-full sm:basis-72 sm:max-w-sm">{lead}</div>}
+        <div className="flex flex-1 items-center gap-2 sm:flex-none">
+          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", changed ? "border-brand-200 bg-brand-50 text-brand-800" : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-300")}>
+            <SlidersHorizontal size={16} /> {tr("Filter")}{count > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold leading-[18px] text-white">{count}</span>}</button>
+          {changed && <button type="button" onClick={clear} aria-label={tr("Clear the filters")} title={tr("Clear the filters")} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-700 hover:bg-neutral-50 sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
+          {xl}
+        </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500">
-        <span className="inline-flex items-center gap-1.5"><Clock size={12} aria-hidden />{info}</span>
-        {changed && <button type="button" onClick={clear} className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline"><RotateCcw size={12} /> {tr("Clear the filters")}</button>}
-      </div>
+      {(periodChanged || chosen.length > 0) && <ul className="flex flex-wrap gap-1.5">
+        {periodChanged && <li><button type="button" onClick={() => a.reset()} aria-label={tr("Remove {0}", tr("Period"))} className={chip}><span className="text-brand-700/70">{tr("Period")}:</span><span className="min-w-0 truncate font-semibold">{name}</span><X size={13} className="shrink-0" /></button></li>}
+        {chosen.map((e) => <li key={e.key}><button type="button" onClick={() => e.onChange("")} aria-label={tr("Remove {0}", e.label)} className={chip}><span className="text-brand-700/70">{e.label}:</span><span className="min-w-0 truncate font-semibold">{e.options.find((o) => o.value === e.value)?.label ?? e.value}</span><X size={13} className="shrink-0" /></button></li>)}
+      </ul>}
+      <p className="flex items-center gap-1.5 text-xs text-neutral-500"><Clock size={12} className="shrink-0" aria-hidden />{info}</p>
       {children && <div className="flex flex-wrap items-center gap-x-4 gap-y-2">{children}</div>}
+      <Floating open={open} onClose={() => setOpen(false)} title={tr("Filter")} subtitle={count ? tr("{0} chosen", count) : tr("Nothing chosen: everything is shown")} anchor={btn}
+        footer={<><Button variant="secondary" className="flex-1" disabled={!changed} onClick={clear}>{tr("Clear")}</Button><Button className="flex-1" onClick={() => setOpen(false)}>{tr("Show")}</Button></>}>
+        <div className="space-y-4 px-4 py-4">
+          {period && <Row label={tr("Period")}><PeriodField label={tr("Period")} from={f.from} to={f.to} preset={preset} presets={Object.entries(PRESETS).map(([value, p]) => ({ value, label: p.label(), from: p.range()[0], to: p.range()[1] }))} onChange={(from, to, p) => set({ from, to, preset: p })} /></Row>}
+          {all.map((e) => <Row key={e.key} label={e.label}><JSelect value={e.value} onChange={e.onChange} placeholder={e.any ?? tr("All")} label={e.label} options={[{ value: "", label: e.any ?? tr("All") }, ...e.options]} /></Row>)}
+          {more && <div className="space-y-3 border-t border-neutral-100 pt-4">{more}</div>}
+        </div>
+      </Floating>
     </div>
   );
 }

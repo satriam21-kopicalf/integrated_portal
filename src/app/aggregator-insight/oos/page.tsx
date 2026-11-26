@@ -81,8 +81,8 @@ export default function OutOfStock() {
     } catch (e) { toast((e as Error).message, "error"); }
   };
   const filter = (
-    <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((c) => ({ value: c, label: c })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, item or category")} excel={() => void exportXlsx()} excelOff={!data}>{tab !== "period" && <QuickChips<"period" | "all"> value={only} onChange={setOnly} label={tr("Out since")} items={[{ key: "period", label: tr("Went out in the period"), dot: "bg-red-500", count: nowAll.filter(inPeriod).length }, { key: "all", label: tr("All still out"), count: nowAll.length }]} />}
-              <label className="flex min-h-9 items-center gap-2 text-sm text-neutral-600"><input type="checkbox" checked={packaging} onChange={(e) => setPackaging(e.target.checked)} /> {tr("Include packaging")}</label></FilterBar>
+    <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((c) => ({ value: c, label: c })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, item or category")} excel={() => void exportXlsx()} excelOff={!data} more={<label className="flex min-h-11 items-center gap-2.5 text-sm text-neutral-700"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={packaging} onChange={(e) => setPackaging(e.target.checked)} /> {tr("Include packaging")}</label>}>{tab !== "period" && <QuickChips<"period" | "all"> value={only} onChange={setOnly} label={tr("Out since")} items={[{ key: "period", label: tr("Went out in the period"), dot: "bg-red-500", count: nowAll.filter(inPeriod).length }, { key: "all", label: tr("All still out"), count: nowAll.length }]} />}
+</FilterBar>
   );
   const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
   return (
