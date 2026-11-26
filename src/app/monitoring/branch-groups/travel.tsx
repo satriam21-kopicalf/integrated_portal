@@ -3,6 +3,7 @@
 // Branch Groups → Travel Path (2026-11-25; integrated_portal_be app/travel_path.py settings): the sessions of the day and the
 // branch groups that do them, the score and the repair deadline of every category. Its areas are in Form Items.
 
+import { TimeField } from "@/aggregator/fields";
 import { useEffect, useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { Button, ErrorState, Field, Input, cx, useToast } from "@/so/ui";
@@ -61,7 +62,7 @@ export function TravelSettings({ canEdit }: { canEdit: boolean }) {
           {d.sessions.map((s, i) => (
             <li key={s.key} className={cx("flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3", !s.active && "bg-neutral-50")}>
               <span className="block w-44"><Input value={s.label} disabled={!canEdit} maxLength={40} onChange={(e) => ses(i, { label: e.target.value, labelEn: e.target.value })} placeholder={tr("Session name")} aria-label={tr("Session name")} /></span>
-              <span className="inline-flex items-center gap-1.5"><Input type="time" value={s.from} disabled={!canEdit} onChange={(e) => ses(i, { from: e.target.value })} aria-label={tr("From")} className="w-28" />–<Input type="time" value={s.to} disabled={!canEdit} onChange={(e) => ses(i, { to: e.target.value })} aria-label={tr("To")} className="w-28" /></span>
+              <span className={cx("inline-flex items-center gap-1.5", !canEdit && "pointer-events-none opacity-60")}><span className="block w-24"><TimeField label={tr("From")} value={s.from} onChange={(v) => ses(i, { from: v })} /></span>–<span className="block w-24"><TimeField label={tr("To")} value={s.to} onChange={(v) => ses(i, { to: v })} /></span><span className="text-xs font-semibold text-neutral-500">WIB</span></span>
               <span className="flex flex-wrap items-center gap-1" role="group" aria-label={tr("Branch Groups")}>
                 <button type="button" disabled={!canEdit} aria-pressed={!s.groups.length} onClick={() => ses(i, { groups: [] })} className={cx("rounded border px-2 py-1 text-xs font-medium", !s.groups.length ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-600")}>{tr("Every outlet")}</button>
                 {groups.map((g) => { const on = s.groups.includes(g); return <button key={g} type="button" disabled={!canEdit} aria-pressed={on} onClick={() => ses(i, { groups: on ? s.groups.filter((x) => x !== g) : [...s.groups, g] })} className={cx("rounded border px-2 py-1 text-xs font-medium", on ? "border-brand-700 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600")}>{g}</button>; })}
@@ -77,7 +78,7 @@ export function TravelSettings({ canEdit }: { canEdit: boolean }) {
         {num("standard", tr("Standard from"), "%")}
         {num("pass", tr("Passed from"), "%")}
         {num("reportMinutes", tr("Report after the last photo"), tr("minutes"))}
-        <Field label={tr("The day ends at")} hint={tr("A closing after midnight belongs to the day before")}><span className="block w-32"><Input type="time" value={d.dayEnds} disabled={!canEdit} onChange={(e) => set({ dayEnds: e.target.value })} /></span></Field>
+        <Field label={tr("The day ends at")} hint={tr("A closing after midnight belongs to the day before")}><span className={cx("inline-flex items-center gap-1.5", !canEdit && "pointer-events-none opacity-60")}><span className="block w-24"><TimeField label={tr("The day ends at")} value={d.dayEnds} onChange={(v) => set({ dayEnds: v })} /></span><span className="text-xs font-semibold text-neutral-500">WIB</span></span></Field>
         <Field label={tr("Counted from")} hint={tr("Days before are not expected")}><span className="block w-40"><Input type="date" value={d.since} disabled={!canEdit} onChange={(e) => e.target.value && set({ since: e.target.value })} /></span></Field>
         <label className="flex items-center gap-2 text-sm text-neutral-800 sm:col-span-2"><input type="checkbox" className="h-4 w-4 accent-brand-700" checked={d.needSupervisor} disabled={!canEdit} onChange={(e) => set({ needSupervisor: e.target.checked })} /> {tr("The name of the Outlet Supervisor is required")}</label>
       </section>

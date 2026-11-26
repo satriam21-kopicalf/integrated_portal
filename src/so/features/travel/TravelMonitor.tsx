@@ -4,8 +4,7 @@
 // of the day, the reports with their photos and score, and the findings with their deadline and after photo.
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, BarChart3, CalendarCheck, Download, FileText, Footprints, RotateCcw, Settings2, Wrench } from "lucide-react";
-import Link from "next/link";
+import { AlertTriangle, BarChart3, CalendarCheck, Download, FileText, Footprints, RotateCcw, Wrench } from "lucide-react";
 import { Button, Empty, ErrorState, Field, Input, PageNav, SearchBox, Select, cx, fmtNumber, usePaged, useToast } from "@/so/ui";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { SkeletonList, SkeletonTable } from "@/components/kc/Skeleton";
@@ -16,7 +15,6 @@ import { wibDateTime } from "@/so/lib/wib";
 import { dmy } from "@/so/ui/Filters";
 import { daysAgo, downloadSheets } from "@/aggregator/ui";
 import { tl } from "@/so/features/visit/visit";
-import { hasPage, useAuth } from "@/lib/auth";
 import { thumb } from "@/lib/assets";
 import { tr } from "@/lib/i18n";
 import { type Band, type Finding, type FullReport, type Report, bandClass, bandText, categoryClass, categoryText, photoUrl, ratingText, sessionName } from "./travel";
@@ -49,7 +47,6 @@ function Photos({ ids, label }: { ids?: string[]; label?: string }) {
 
 export default function TravelMonitor() {
   const toast = useToast();
-  const { user } = useAuth();
   const [from, setFrom] = useState(daysAgo(6));
   const [to, setTo] = useState(daysAgo(0));
   const [group, setGroup] = useState("");
@@ -97,8 +94,7 @@ export default function TravelMonitor() {
   const quick = [[tr("Today"), 0, 0], [tr("Yesterday"), 1, 1], [tr("7 days"), 6, 0], [tr("30 days"), 29, 0]] as const;
   return (
     <Page title={tr("Travel Path")} eyebrow={tr("Operations")} subtitle={tr("Photo check of every outlet, several times a day")} media={<Footprints size={19} />}
-      actions={<span className="flex items-center gap-2">{hasPage(user, "mon.branch-groups") && <Link href="/monitoring/branch-groups" className="inline-flex h-9 items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"><Settings2 size={14} /> {tr("Settings")}</Link>}
-        <Button variant="secondary" size="sm" disabled={!data} onClick={() => void exportXlsx()}><Download size={14} /> {tr("Excel")}</Button></span>}>
+      actions={<span className="flex items-center gap-2">        <Button variant="secondary" size="sm" disabled={!data} onClick={() => void exportXlsx()}><Download size={14} /> {tr("Excel")}</Button></span>}>
       {err ? <ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /> : (
         <div className="space-y-4">
           <StatStrip columns={5} label={tr("Summary")} gridClassName="grid-cols-2 lg:grid-cols-5">
