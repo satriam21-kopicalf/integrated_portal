@@ -14,6 +14,7 @@ import { Tabs } from "@/components/kc";
 import { BarChart3, Scale, CalendarCheck, CalendarDays, Check, CheckCircle2, ClipboardList, FileSearch, PencilLine, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
 import ExcelExportMenu from "@/components/ExcelExportMenu";
 import { downloadXlsx } from "@/lib/xlsx";
+import { downloadSheets } from "@/aggregator/ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, theadClass, usePaged, useToast } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -156,12 +157,24 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
 
   // Excel (POST /api/xlsx): the filtered entries, the totals per item, the daily report and the Usage Management lists
   const file = (what: string) => `${what} ${period.from} - ${period.to}`;
-  const exportEntries = () => downloadXlsx({ fileName: file("Waste"), sheet: "Waste", title: `Waste ${dmy(period.from)} – ${dmy(period.to)}`,
-    header: ["Tanggal", "Cabang", "Jenis", "Kode", "Item", "Qty", "Satuan", "Kategori", "Production date", "Expired date", "Catatan", "Status",
-      "Diinput oleh", "Waktu input", "Catatan review", "Foto", "Harga satuan (Rp)", "Nilai (Rp)", "Sumber harga"],
-    rows: rows.map((e) => [e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category,
-      e.productionDate, e.expiredDate, e.note, statusLabel(e.status), e.name, wibDateTime(e.createdAt), e.review?.note,
-      `${location.origin}${photoUrl(e.id)}`, e.unitPrice ?? null, e.value ?? null, e.priceSource ? PRICE_SOURCE[e.priceSource]() : null]) });
+  // 2026-11-26: a second sheet with the breakdown of every premix into its ingredients (grams, price, value)
+  const exportEntries = () => {
+    const premix = rows.filter((e) => e.scope === "premix" && e.ingredients?.length);
+    return downloadSheets(file("Waste"), [
+      { sheet: "Waste", title: `Waste ${dmy(period.from)} – ${dmy(period.to)}`,
+        header: ["Tanggal", "Cabang", "Jenis", "Kode", "Item", "Qty", "Satuan", "Kategori", "Production date", "Expired date", "Catatan", "Status",
+          "Diinput oleh", "Waktu input", "Catatan review", "Foto", "Harga satuan (Rp)", "Nilai (Rp)", "Sumber harga"],
+        rows: rows.map((e) => [e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category,
+          e.productionDate, e.expiredDate, e.note, statusLabel(e.status), e.name, wibDateTime(e.createdAt), e.review?.note ?? null,
+          `${location.origin}${photoUrl(e.id)}`, e.unitPrice ?? null, e.value ?? null, e.priceSource ? PRICE_SOURCE[e.priceSource]() : null].map((v) => v ?? null)) },
+      { sheet: "Breakdown premix", title: `Breakdown premix ${dmy(period.from)} – ${dmy(period.to)} · bahan baku per waste premix`,
+        // 2026-11-26 (Cost Control): the premix on the left, the unit on the right
+        header: ["Premix", "Kode premix", "Tanggal", "Cabang", "Kategori", "Status", "Qty premix", "Gram premix", "Kode bahan", "Bahan baku",
+          "Masuk stok", "Harga per gram (Rp)", "Nilai (Rp)", "Gram bahan", "Satuan"],
+        rows: premix.flatMap((e) => (e.ingredients ?? []).map((x) => [e.itemName, e.itemCode, e.businessDate, e.branchName, e.category, statusLabel(e.status),
+          e.qty, e.grams ?? null, x.code, x.name, x.isStock ? "Ya" : "Tidak", x.price ?? null, x.value ?? null, x.grams, "GR"].map((v) => v ?? null))) },
+    ]);
+  };
   const exportItems = () => downloadXlsx({ fileName: file("Waste per item"), sheet: "Per item", title: `Waste per item ${dmy(period.from)} – ${dmy(period.to)}`,
     header: ["Jenis", "Kode", "Item", "Qty", "Satuan", "Entri", "Cabang", "Nilai (Rp)"],
     rows: (res?.byItem ?? []).map((i) => [scopeLabel(i.scope), i.code, i.name, i.qty, i.unit, i.entries, i.branches, i.value ?? null]) });

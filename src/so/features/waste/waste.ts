@@ -19,7 +19,7 @@ export type Entry = {
   scope: Scope; itemCode: string; itemName: string; unit: string; qty: number; category: string; note: string | null;
   productionDate?: string | null; expiredDate?: string | null;
   /** premix (migration 044): grams of the WIP and of every ingredient, rounded up */
-  grams?: number | null; ingredients?: { code: string | null; name: string; isStock: boolean; grams: number }[] | null;
+  grams?: number | null; ingredients?: { code: string | null; name: string; isStock: boolean; grams: number; /** per gram and the value in the Excel (2026-11-26) */ price?: number | null; value?: number | null }[] | null;
   photoTakenAt: string | null; latitude: number | null; longitude: number | null; status: Status;
   review: { note: string | null; by: string | null; at: string | null } | null; createdAt: string;
   /** migration 055: signed before submitting, the investigation the entry is part of */
