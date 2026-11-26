@@ -60,14 +60,23 @@ export function Tracker({ steps }: { steps: Step[] }) {
   );
 }
 
-/** The four steps of a Transfer Stock from its status and dates. */
+/** The steps of a Transfer Stock: since 2026-11-26 requested → Cost Control → processed in ESB; the transfers of before
+ *  keep their four steps (the source checked, the destination received). */
 export function transferSteps(t: {
   status: string; toName: string; fromName: string; note: string | null; requested: { by: string; at: string };
   source: { note: string | null; by: string | null; at: string | null } | null; costControl: { note: string | null; by: string | null; at: string | null } | null;
   received: { note: string | null; by: string | null; at: string | null } | null;
+  esb?: { number: string; note: string | null; by: string | null; at: string | null } | null;
 }, short: (n: string) => string): Step[] {
   const st = t.status;
   const cancelled = st === "cancelled";
+  if (!t.source && !t.received) return [
+    { label: tr("Requested by {0}", short(t.toName)), by: t.requested.by, at: t.requested.at, note: t.note, state: "done" },
+    { label: st === "rejected" ? tr("Rejected by Cost Control") : tr("Approved by Cost Control"), ...t.costControl,
+      state: st === "rejected" || cancelled ? "failed" : t.costControl ? "done" : "current" },
+    { label: t.esb ? tr("Processed in ESB · {0}", t.esb.number) : tr("Processed in ESB by Cost Control"), ...(t.esb ?? {}),
+      state: t.esb ? "done" : st === "approved" ? "current" : "todo" },
+  ];
   return [
     { label: tr("Requested by {0}", short(t.toName)), by: t.requested.by, at: t.requested.at, note: t.note, state: "done" },
     { label: st === "declined" ? tr("Declined by {0}", short(t.fromName)) : tr("Checked by {0}", short(t.fromName)), ...t.source,

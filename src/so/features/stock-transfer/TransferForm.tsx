@@ -1,16 +1,14 @@
 "use client";
 
 // Form → Transfer Stock (TITO, page form.stock-transfer; integrated_portal_be app/stock_transfer.py, migration 075), the
-// same screen in the portal and in Operations. Three tabs:
-//   Request    my outlet asks another outlet for materials: the materials the outlet has available (its latest SO less
-//              the transfers on their way out), the exact quantities (at most what it has; none of a material ≤ 0),
-//              a photo and a signature before submitting;
-//   My requests  their steps; once Cost Control approved, "Receive" with a clear photo of the goods (only then the stock
-//              of both outlets moves); a request the outlet has not answered can be cancelled;
-//   Incoming   the requests to my outlets: accept (the stock does not move yet) or decline, with a note.
+// same screen in the portal and in Operations (2026-11-26, the flow of Cost Control). Three tabs:
+//   Request      my outlet (the destination) asks another outlet for materials: every material of its last count with its
+//                stock as information, the quantities, a photo and a signature; it is then pending for Cost Control;
+//   My requests  their steps: Cost Control approves (or adjusts / rejects) and makes it in ESB; cancel while pending;
+//   Incoming     the transfers out of my outlets, to see only.
 
 import { NativeSelect } from "@/so/ui/Jira";
-import { ArrowDown, ArrowRight, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Inbox, Info, PackageCheck, PenLine, Search, Send, Store, Trash2, Undo2, X, XCircle } from "lucide-react";
+import { ArrowDown, ArrowRight, Camera, Check, CheckCircle2, ChevronRight, ClipboardList, Info, PackageCheck, PenLine, Search, Send, Store, Trash2, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, inputClass, Page, useToast, searchClass } from "@/so/ui";
 import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
@@ -52,25 +50,17 @@ export default function TransferForm() {
   }
   const tabs: { value: Tab; label: string }[] = [
     { value: "request", label: tr("Request") },
-    { value: "mine", label: data.todo.receive ? tr("My Requests ({0} to receive)", data.todo.receive) : tr("My Requests") },
-    { value: "incoming", label: data.todo.answer ? tr("Incoming ({0} to check)", data.todo.answer) : tr("Incoming") },
+    { value: "mine", label: data.todo.pending ? tr("My Requests ({0} pending)", data.todo.pending) : tr("My Requests") },
+    { value: "incoming", label: tr("Out of my outlet") },
   ];
   return (
     <Page title={tr("Transfer Stock")} subtitle={tr("Take materials from another outlet")} actions={<LiveClock />}>
       <div className="mx-auto max-w-5xl space-y-4">
-        {(data.todo.answer > 0 || data.todo.receive > 0) && (
-          <div className="flex flex-wrap gap-2">
-            {data.todo.answer > 0 && <button type="button" onClick={() => setTab("incoming")} className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              <Inbox size={15} />{tr("{0} requests from other outlets to check", data.todo.answer)}</button>}
-            {data.todo.receive > 0 && <button type="button" onClick={() => setTab("mine")} className="inline-flex items-center gap-2 rounded-md border border-violet-200 bg-violet-50 px-3 py-2 text-sm text-violet-900">
-              <PackageCheck size={15} />{tr("{0} approved transfers to receive", data.todo.receive)}</button>}
-          </div>
-        )}
         <Segmented label={tr("View")} value={tab} onChange={setTab} options={tabs} />
         {!data.branches.length ? (
           <div className="rounded-2xl border border-neutral-200/70 bg-white px-6 py-12 text-center text-sm text-neutral-500 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">{tr("No outlet is assigned to your account.")}</div>
         ) : tab === "request" ? (
-          <RequestForm data={data} onDone={(t) => { toast(tr("Transfer {0} sent to {1}", t.number, shortBranch(t.fromName))); void load(); setTab("mine"); setOpen(t.id); }} />
+          <RequestForm data={data} onDone={(t) => { toast(tr("Transfer {0} sent: waiting for Cost Control", t.number)); void load(); setTab("mine"); setOpen(t.id); }} />
         ) : (
           <List rows={tab === "mine" ? data.requests : data.incoming} side={tab} onOpen={setOpen} />
         )}
@@ -102,9 +92,8 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
   }, [from, toast]);
   const num = (v: string) => { const n = Number(v.replace(",", ".")); return v.trim() && !Number.isNaN(n) ? n : null; };
   const picked = useMemo(() => (stock?.items ?? []).filter((i) => (num(qty[i.code] ?? "") ?? 0) > 0), [stock, qty]);
-  const over = picked.filter((i) => (num(qty[i.code] ?? "") ?? 0) > i.available);
   const shown = (stock?.items ?? []).filter((i) => !q || `${i.name} ${i.code} ${i.category}`.toLowerCase().includes(q.toLowerCase()));
-  const ready = !!to && !!from && picked.length > 0 && !over.length && !!photo;
+  const ready = !!to && !!from && picked.length > 0 && !!photo;
   const fromName = data.sources.find((s) => s.code === from)?.name ?? "";
   const send = async (signature: string) => {
     setBusy(true);
@@ -118,7 +107,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
       <div className="space-y-4">
-        <FormCard n={1} title={tr("Outlets")} hint={tr("Your outlet asks the outlet that has the material")}>
+        <FormCard n={1} title={tr("Outlets")} hint={tr("Your outlet receives; the other outlet sends")}>
           <div className="grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-end sm:gap-3">
             <label className="block text-xs font-medium text-neutral-600">{tr("My outlet (receives)")}
               {data.branches.length === 1 ? (
@@ -141,19 +130,19 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
           </div>
         </FormCard>
 
-        <FormCard n={2} title={tr("Materials")} hint={stock?.so ? tr("Stock of {0} from its SO of {1}, less the transfers on their way out", fromName, stock.so.date) : tr("Choose the outlet to take from first")}
+        <FormCard n={2} title={tr("Materials")} hint={stock?.so ? tr("Stock of {0} from its SO of {1}: information for Cost Control, not a limit", fromName, stock.so.date) : tr("Choose the outlet to take from first")}
           aside={picked.length ? <Badge tone="blue">{tr("{0} chosen", picked.length)}</Badge> : undefined}>
           {!from ? <p className="text-sm text-neutral-500">{tr("Choose the outlet to take from first")}</p>
             : loading ? <SkeletonList rows={3} />
             : !stock?.so ? <Note tone="warn" icon={<Info />}>{tr("This outlet has no stock opname in the portal in the last 60 days: its stock is unknown.")}</Note>
-            : !stock.items.length ? <p className="text-sm text-neutral-500">{tr("This outlet has no material in stock.")}</p> : (
+            : !stock.items.length ? <p className="text-sm text-neutral-500">{tr("This outlet has no material in its last count.")}</p> : (
               <>
                 <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input className={cx(searchClass, "pl-8")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search material")} /></div>
                 <ul className="max-h-[28rem] divide-y divide-neutral-100 overflow-auto rounded-lg border border-neutral-200">
                   {shown.map((i) => {
                     const v = num(qty[i.code] ?? "");
-                    const bad = v != null && v > i.available;
+                    const bad = false;
                     return (
                       <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2.5", v && !bad ? "bg-brand-50/50" : bad ? "bg-red-50" : "")}>
                         <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug text-neutral-900">{i.name}</span>
@@ -168,7 +157,6 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
                     );
                   })}
                 </ul>
-                {over.length > 0 && <p className="text-xs text-red-600">{tr("More than the stock of the outlet: {0}", over.map((i) => i.name).join(", "))}</p>}
               </>
             )}
         </FormCard>
@@ -197,7 +185,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
           <Button className="mt-3 w-full" disabled={!ready} loading={busy} onClick={() => setSigning(true)}><PenLine size={15} />{tr("Sign & Submit")}</Button>
           {!ready && <p className="mt-2 text-center text-xs text-neutral-400">{tr("Choose the outlets, the materials and take the photo.")}</p>}
         </section>
-        <Note icon={<Info />}>{tr("The outlet checks the request and Cost Control approves it: the stock leaves that outlet. You receive the goods with a photo and the ESB GR: then the stock enters your outlet.")}</Note>
+        <Note icon={<Info />}>{tr("After you submit, the request is pending until Cost Control approves it; Cost Control then makes the transfer in ESB. The other outlet does not need to approve.")}</Note>
       </aside>
       {/* phones & tablets: what is ready and the send button, at the bottom */}
       <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-neutral-200/70 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden"
@@ -261,11 +249,11 @@ function SignDialog({ busy, onSign, onClose }: { busy: boolean; onSign: (sig: st
 }
 
 function List({ rows, side, onOpen }: { rows: Transfer[]; side: "mine" | "incoming"; onOpen: (id: string) => void }) {
-  if (!rows.length) return <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No request from other outlets")} /></div>;
+  if (!rows.length) return <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No transfer out of your outlet")} /></div>;
   return (
     <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200 bg-white">
       {rows.map((t) => {
-        const todo = side === "mine" ? t.status === "approved" : t.status === "submitted";
+        const todo = false;
         return (
           <li key={t.id}>
             <button type="button" onClick={() => onOpen(t.id)} className={cx("flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-neutral-50", todo && "bg-amber-50/40")}>
@@ -290,8 +278,8 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
 }) {
   const toast = useToast();
   const [t, setT] = useState<Transfer | null>(null);
-  const [act, setAct] = useState<null | "accept" | "decline" | "cancel" | "approve" | "reject">(null);
-  const [receiving, setReceiving] = useState(false);
+  const [act, setAct] = useState<null | "cancel" | "approve" | "reject">(null);
+  const [processing, setProcessing] = useState(false);
   const [busy, setBusy] = useState(false);
   // Cost Control adjusts the quantities before approving (migration 076)
   const [adjust, setAdjust] = useState<Record<string, string>>({});
@@ -299,12 +287,12 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
   useEffect(() => { load(); }, [load]);
   const run = async (path: string, json: unknown) => {
     setBusy(true);
-    try { setT(await call<Transfer>(path, { method: "POST", json })); onChanged(); setAct(null); setReceiving(false); }
+    try { setT(await call<Transfer>(path, { method: "POST", json })); onChanged(); setAct(null); setProcessing(false); }
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   if (!t) return <Drawer open onClose={onClose} size="lg" title={tr("Transfer Stock")}><SkeletonList rows={4} /></Drawer>;
-  const isTo = mine.has(t.toBranch), isFrom = mine.has(t.fromBranch);
-  const deciding = monitor && !!t.canDecide && t.status === "accepted";
+  const isTo = mine.has(t.toBranch);
+  const deciding = monitor && !!t.canDecide && (t.status === "submitted" || t.status === "accepted");
   const numOf = (v: string) => { const n = Number(v.replace(",", ".")); return v.trim() && !Number.isNaN(n) ? n : null; };
   const adjusted: Record<string, number> = {};
   for (const i of t.items ?? []) {
@@ -316,9 +304,8 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
   const steps = transferSteps(t, shortBranch);
   const footer = (
     <div className="flex w-full flex-wrap justify-end gap-2">
-      {!monitor && isFrom && t.status === "submitted" && <><Button variant="secondary" onClick={() => setAct("decline")}><XCircle size={14} />{tr("Decline")}</Button><Button onClick={() => setAct("accept")}><CheckCircle2 size={14} />{tr("Accept")}</Button></>}
-      {!monitor && isTo && t.status === "submitted" && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => setAct("cancel")}><Trash2 size={14} />{tr("Cancel the request")}</Button>}
-      {!monitor && isTo && t.status === "approved" && <Button onClick={() => setReceiving(true)}><PackageCheck size={15} />{tr("Receive the Goods")}</Button>}
+      {!monitor && isTo && (t.status === "submitted" || t.status === "accepted") && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => setAct("cancel")}><Trash2 size={14} />{tr("Cancel the request")}</Button>}
+      {monitor && !!t.canDecide && t.status === "approved" && <Button onClick={() => setProcessing(true)}><PackageCheck size={15} />{tr("Mark Processed in ESB")}</Button>}
       {deciding && <><Button variant="secondary" onClick={() => setAct("reject")}><XCircle size={14} />{tr("Reject")}</Button>
         <Button disabled={badAdjust} onClick={() => setAct("approve")}><CheckCircle2 size={14} />{nAdjusted ? tr("Approve with {0} adjusted", nAdjusted) : tr("Approve")}</Button></>}
     </div>
@@ -352,6 +339,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           <p className="mb-3 text-xs font-semibold capitalize text-neutral-500">{tr("Process")}</p>
           <Tracker steps={steps} />
         </section>
+        {t.esb && <Note tone="ok" icon={<CheckCircle2 />} title={tr("ESB document {0}", t.esb.number)}>{[t.esb.by, t.esb.at ? wibDateTime(t.esb.at) : null, t.esb.note].filter(Boolean).join(" · ")}</Note>}
         {t.gr && <GrStatus gr={t.gr} />}
         <div className="grid grid-cols-3 gap-2">
           {([["photo", tr("Request photo")], ["signature", tr("Signature")], ["receive", tr("Goods received")]] as const).filter(([k]) => k !== "receive" || t.received).map(([k, label]) => (
@@ -363,47 +351,34 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           ))}
         </div>
       </div>
-      <ConfirmDialog open={!!act} busy={busy} danger={act === "decline" || act === "reject" || act === "cancel"}
-        title={{ accept: tr("Accept the request?"), decline: tr("Decline the request?"), cancel: tr("Cancel the request?"), approve: tr("Approve the transfer?"), reject: tr("Reject the transfer?") }[act ?? "accept"]}
-        description={act === "accept" ? tr("Your stock does not change yet: it moves when the outlet receives the goods after Cost Control approves.")
-          : act === "approve" && nAdjusted ? tr("{0} quantities adjusted: the stock and the COGS follow the approved quantities.", nAdjusted) : undefined}
-        confirmLabel={{ accept: tr("Accept"), decline: tr("Decline"), cancel: tr("Cancel the request"), approve: tr("Approve"), reject: tr("Reject") }[act ?? "accept"]}
+      <ConfirmDialog open={!!act} busy={busy} danger={act === "reject" || act === "cancel"}
+        title={{ cancel: tr("Cancel the request?"), approve: tr("Approve the transfer?"), reject: tr("Reject the transfer?") }[act ?? "approve"]}
+        description={act === "approve" ? (nAdjusted ? tr("{0} quantities adjusted. Then make the transfer in ESB and mark it processed.", nAdjusted) : tr("Then make the transfer in ESB and mark it processed.")) : undefined}
+        confirmLabel={{ cancel: tr("Cancel the request"), approve: tr("Approve"), reject: tr("Reject") }[act ?? "approve"]}
         reasonLabel={act === "cancel" ? undefined : act === "approve" ? (nAdjusted ? tr("Reason of the adjustment (required)") : tr("Note (optional)")) : tr("Reason / note (required)")}
         onClose={() => setAct(null)}
         onConfirm={(note) => {
-          if ((act === "accept" || act === "decline" || act === "reject" || (act === "approve" && nAdjusted > 0)) && !note.trim()) { toast(tr("Write the reason / note"), "error"); return; }
-          if (act === "accept" || act === "decline") void run(`/api/stock-transfer/${t.id}/answer`, { accept: act === "accept", note });
-          else if (act === "cancel") void run(`/api/stock-transfer/${t.id}/cancel`, {});
+          if ((act === "reject" || (act === "approve" && nAdjusted > 0)) && !note.trim()) { toast(tr("Write the reason / note"), "error"); return; }
+          if (act === "cancel") void run(`/api/stock-transfer/${t.id}/cancel`, {});
           else if (act) void run(`/api/monitoring/stock/transfers/${t.id}/decide`, { approve: act === "approve", note, ...(act === "approve" && nAdjusted ? { qty: adjusted } : {}) });
         }} />
-      {receiving && <ReceiveDialog t={t} busy={busy} onClose={() => setReceiving(false)} onReceive={(photo, note, grNumber) => void run(`/api/stock-transfer/${t.id}/receive`, { photo, note, grNumber })} />}
+      {processing && <ProcessDialog busy={busy} onClose={() => setProcessing(false)} onSave={(esbNumber, note) => void run(`/api/monitoring/stock/transfers/${t.id}/process`, { esbNumber, note })} />}
     </Drawer>
   );
 }
 
-function ReceiveDialog({ t, busy, onReceive, onClose }: { t: Transfer; busy: boolean; onReceive: (photo: string, note: string, grNumber: string) => void; onClose: () => void }) {
-  const [photo, setPhoto] = useState<Shot | null>(null);
-  const [gr, setGr] = useState("");
-  const [camera, setCamera] = useState(false);
+/** Cost Control made the transfer in ESB: its document number closes it. */
+function ProcessDialog({ busy, onSave, onClose }: { busy: boolean; onSave: (esbNumber: string, note: string) => void; onClose: () => void }) {
+  const [no, setNo] = useState("");
   const [note, setNote] = useState("");
   return (
-    <Dialog open title={tr("Receive the Goods")} description={tr("Enter the ESB Good Receipt number and take a clear photo of the goods; your stock changes when you confirm.")} onClose={onClose}
-      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!photo || !gr.trim()} onClick={() => photo && onReceive(photo.image, note, gr.trim())}><PackageCheck size={15} />{tr("Confirm Received")}</Button></>}>
+    <Dialog open title={tr("Processed in ESB")} description={tr("Make the transfer in ESB with the approved quantities, then enter its document number.")} onClose={onClose}
+      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!no.trim()} onClick={() => onSave(no.trim(), note)}><PackageCheck size={15} />{tr("Mark Processed")}</Button></>}>
       <div className="space-y-3">
-        <label className="block text-xs font-medium text-neutral-600">{tr("ESB Good Receipt number")}
-          <input className={cx(inputClass, "mt-1 h-11 text-base uppercase sm:h-10 sm:text-sm")} value={gr} maxLength={60} onChange={(e) => setGr(e.target.value)}
-            placeholder={tr("e.g. GR-CTG18-2611-0001")} autoCapitalize="characters" /></label>
-        <Note icon={<Info />}>{tr("Make the Good Receipt of these goods in ESB first. The portal matches the materials and quantities with it once ESB syncs (every 30 minutes).")}</Note>
-        {photo ? (
-          <div className="flex items-start gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element -- the photo just taken */}
-            <img src={photo.image} alt={tr("Goods received")} className="h-36 w-36 rounded-lg bg-neutral-100 object-cover" />
-            <Button variant="secondary" size="sm" onClick={() => setCamera(true)}><Undo2 size={14} />{tr("Retake")}</Button>
-          </div>
-        ) : <Button onClick={() => setCamera(true)}><Camera size={15} />{tr("Take photo of the goods")}</Button>}
+        <label className="block text-xs font-medium text-neutral-600">{tr("ESB document number")} <span className="text-red-500">*</span>
+          <input className={cx(inputClass, "mt-1 h-11 text-base uppercase sm:h-10 sm:text-sm")} value={no} maxLength={60} onChange={(e) => setNo(e.target.value)} autoCapitalize="characters" /></label>
         <textarea className={cx(inputClass, "py-2")} rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (optional)")} />
       </div>
-      <CameraCapture open={camera} title={tr("Goods received")} branch={t.toName} countNumber={t.number} onClose={() => setCamera(false)} onShot={async (s) => { setPhoto(s); setCamera(false); }} />
     </Dialog>
   );
 }

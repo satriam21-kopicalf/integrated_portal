@@ -3,7 +3,7 @@
 
 import { tr } from "@/lib/i18n";
 
-export type Status = "submitted" | "accepted" | "declined" | "approved" | "rejected" | "received" | "cancelled";
+export type Status = "submitted" | "accepted" | "declined" | "approved" | "rejected" | "processed" | "received" | "cancelled";
 export type Step = { note: string | null; by: string | null; at: string | null };
 export type Transfer = {
   id: string; number: string; status: Status; toBranch: string; toName: string; fromBranch: string; fromName: string;
@@ -13,21 +13,24 @@ export type Transfer = {
   /** qty: approved by Cost Control (what moves); requested: what the outlet asked (migration 076) */
   items?: { code: string; name: string; unit: string; qty: number; requested: number; available: number | null; price: number | null; value: number | null }[];
   canDecide?: boolean;
+  /** made in ESB by Cost Control (2026-11-26, migration 155) */
+  esb?: { number: string; note: string | null; by: string | null; at: string | null } | null;
   /** the ESB GR entered when receiving (migration 079), matched with the GR synced from ESB */
   grNumber?: string | null;
   gr?: { number: string; status: "waiting" | "matched" | "mismatch" | "otherBranch"; date?: string | null; branch?: string;
     diffs?: { code: string; name: string; transfer: number | null; gr: number | null }[] };
 };
 export type FormData = { branches: { code: string; name: string }[]; sources: { code: string; name: string }[];
-  requests: Transfer[]; incoming: Transfer[]; todo: { answer: number; receive: number } };
+  requests: Transfer[]; incoming: Transfer[]; todo: { answer: number; receive: number; pending?: number } };
 export type Available = { so: { date: string; refs: string[] } | null; items: { code: string; name: string; category: string; unit: string; available: number }[] };
 
 export const STATUS: Record<Status, { label: () => string; tone: "amber" | "blue" | "green" | "red" | "slate" | "violet" }> = {
-  submitted: { label: () => tr("Waiting for the outlet"), tone: "amber" },
-  accepted: { label: () => tr("Waiting for Cost Control"), tone: "blue" },
+  submitted: { label: () => tr("Pending · Cost Control"), tone: "amber" },
+  accepted: { label: () => tr("Pending · Cost Control"), tone: "amber" },
   declined: { label: () => tr("Declined by the outlet"), tone: "red" },
-  approved: { label: () => tr("Approved · to receive"), tone: "violet" },
+  approved: { label: () => tr("Approved · to process in ESB"), tone: "blue" },
   rejected: { label: () => tr("Rejected by Cost Control"), tone: "red" },
+  processed: { label: () => tr("Processed in ESB"), tone: "green" },
   received: { label: () => tr("Received"), tone: "green" },
   cancelled: { label: () => tr("Cancelled"), tone: "slate" },
 };

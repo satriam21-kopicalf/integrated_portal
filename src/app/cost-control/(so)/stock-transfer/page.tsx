@@ -1,11 +1,10 @@
 "use client";
 
 // Monitoring Stock → Transfer Stock (page cc.stock-transfer; integrated_portal_be app/stock_transfer.py, migration 075):
-// every transfer between outlets with its steps; the approvers (Settings) approve or reject the transfers the source
-// accepted, Cost Control labels the received ones whether they go to ESB; exports: the transfers, their lines, per
+// every transfer between outlets with its steps; the approvers (Settings) approve, adjust or reject the pending ones and
+// mark the approved ones processed in ESB with the ESB document number (2026-11-26); exports: the transfers, their lines, per
 // outlet (value in / out) and per material.
 
-import { NativeSelect } from "@/so/ui/Jira";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { CalendarDays, CheckCircle2, ClipboardList, ListChecks, Package, Save, Settings2, Store, Tags, Truck } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -26,15 +25,15 @@ type Result = { period: { from: string; to: string }; canDecide: boolean; data: 
 type BranchOpt = { branch_code: string; branch_name: string };
 type TKey = "number" | "route" | "requested" | "lines" | "value" | "status" | "label";
 const tValue = (t: Transfer, k: TKey) => ({ number: t.number, route: `${t.fromName} ${t.toName}`, requested: t.requested.at, lines: t.lines,
-  value: t.value ?? t.estimate ?? null, status: t.status, label: t.esbLabel?.value ?? null }[k]);
+  value: t.value ?? t.estimate ?? null, status: t.status, label: t.esb?.number ?? null }[k]);
 type F = { period: Period; branch: string; status: Status | "" };
 const NO_F = (): F => ({ period: { from: wibDay(-29), to: wibDay(0) }, branch: "", status: "" });
-const STATUSES: Status[] = ["submitted", "accepted", "approved", "received", "declined", "rejected", "cancelled"];
+const STATUSES: Status[] = ["submitted", "approved", "processed", "rejected", "cancelled", "received", "declined"];
 
 export default function StockTransferPage() {
   const [tab, setTab] = useState<"transfers" | "settings">("transfers");
   return (
-    <Page title={tr("Transfer Stock")} subtitle={tr("Transfers of materials between outlets: approval, ESB label and exports")}
+    <Page title={tr("Transfer Stock")} subtitle={tr("Requests of the outlets: approve, process in ESB, export")}
       actions={<div className="inline-flex rounded-lg border border-neutral-200 bg-white p-0.5">
         {([["transfers", tr("Transfers"), Truck], ["settings", tr("Settings"), Settings2]] as const).map(([v, l, Icon]) => (
           <button key={v} type="button" onClick={() => setTab(v)} className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium", tab === v ? "bg-brand-700 text-white" : "text-neutral-600 hover:bg-neutral-100")}><Icon size={14} />{l}</button>))}
@@ -70,16 +69,11 @@ function Transfers() {
     ...(f.branch ? [{ key: "b", label: branches.find((b) => b.branch_code === f.branch)?.branch_name ?? f.branch, onRemove: () => setF({ ...f, branch: "" }) }] : []),
     ...(f.status ? [{ key: "s", label: STATUS[f.status].label(), onRemove: () => setF({ ...f, status: "" }) }] : []),
   ];
-  const label = async (t: Transfer, value: "esb" | "portal" | null) => {
-    try { await call(`/api/monitoring/stock/transfers/${t.id}/label`, { method: "POST", json: { label: value } }); void load(); }
-    catch (e) { toast((e as Error).message, "error"); }
-  };
   const file = (what: string) => `${what} ${f.period.from} - ${f.period.to}`;
-  const header = ["No", "Tanggal", "Dari (outlet tujuan)", "Ke (outlet peminta)", "Status", "Material", "Nilai (Rp)", "Diajukan oleh", "Validasi outlet", "Cost Control", "Diterima", "Label ESB"];
+  const header = ["No", "Tanggal", "Dari (outlet tujuan)", "Ke (outlet peminta)", "Status", "Material", "Nilai (Rp)", "Diajukan oleh", "Cost Control", "Diproses ESB", "No. ESB"];
   const exportList = () => downloadXlsx({ fileName: file("Transfer Stock"), sheet: "Transfer", title: file("Transfer Stock"), header,
     rows: rows.map((t) => [t.number, wibDateTime(t.requested.at), t.fromName, t.toName, STATUS[t.status].label(), t.lines, t.value, t.requested.by,
-      t.source ? `${t.source.by} · ${t.source.note ?? ""}` : "", t.costControl ? `${t.costControl.by} · ${t.costControl.note ?? ""}` : "",
-      t.received?.at ? wibDateTime(t.received.at) : "", t.esbLabel ? ESB_LABEL[t.esbLabel.value]() : ""]) });
+      t.costControl ? `${t.costControl.by} · ${t.costControl.note ?? ""}` : "", t.esb?.at ? wibDateTime(t.esb.at) : "", t.esb?.number ?? ""]) });
   const lines = async () => (await call<{ data: { id: string; code: string; name: string; unit: string; qty: number; requested: number; price: number | null; value: number | null }[] }>(
     `/api/monitoring/stock/transfers/lines?ids=${rows.map((t) => t.id).join(",")}`)).data;
   const exportLines = async () => {
@@ -91,43 +85,44 @@ function Transfers() {
   };
   const exportOutlets = async () => {
     const m = new Map<string, { name: string; inN: number; inV: number; outN: number; outV: number }>();
-    for (const t of rows.filter((x) => x.status === "received")) {
+    for (const t of rows.filter((x) => x.status === "received" || x.status === "processed")) {
       const a = m.get(t.toBranch) ?? { name: t.toName, inN: 0, inV: 0, outN: 0, outV: 0 };
       a.inN += 1; a.inV += t.value ?? 0; m.set(t.toBranch, a);
       const b = m.get(t.fromBranch) ?? { name: t.fromName, inN: 0, inV: 0, outN: 0, outV: 0 };
       b.outN += 1; b.outV += t.value ?? 0; m.set(t.fromBranch, b);
     }
-    await downloadXlsx({ fileName: file("Transfer Stock per outlet"), sheet: "Outlet", title: file("Transfer Stock per outlet (diterima)"),
+    await downloadXlsx({ fileName: file("Transfer Stock per outlet"), sheet: "Outlet", title: file("Transfer Stock per outlet (diproses ESB)"),
       header: ["Outlet", "Transfer Masuk", "Nilai Masuk", "Transfer Keluar", "Nilai Keluar", "Bersih"],
       rows: [...m.values()].sort((a, b) => b.inV + b.outV - a.inV - a.outV).map((x) => [x.name, x.inN, x.inV, x.outN, x.outV, x.inV - x.outV]) });
   };
   const exportMaterials = async () => {
-    const received = new Set(rows.filter((t) => t.status === "received").map((t) => t.id));
+    const received = new Set(rows.filter((t) => t.status === "received" || t.status === "processed").map((t) => t.id));
     const m = new Map<string, { name: string; unit: string; qty: number; value: number; n: number }>();
     for (const x of (await lines()).filter((y) => received.has(y.id))) {
       const a = m.get(x.code) ?? { name: x.name, unit: x.unit, qty: 0, value: 0, n: 0 };
       a.qty += x.qty; a.value += x.value ?? 0; a.n += 1; m.set(x.code, a);
     }
-    await downloadXlsx({ fileName: file("Transfer Stock per material"), sheet: "Material", title: file("Transfer Stock per material (diterima)"),
+    await downloadXlsx({ fileName: file("Transfer Stock per material"), sheet: "Material", title: file("Transfer Stock per material (diproses ESB)"),
       header: ["Kode", "Material", "Qty", "Satuan", "Transfer", "Nilai"], rows: [...m.entries()].sort((a, b) => b[1].value - a[1].value).map(([c, x]) => [c, x.name, x.qty, x.unit, x.n, x.value]) });
   };
   const safe = (fn: () => Promise<void>) => async () => { try { await fn(); } catch (e) { toast((e as Error).message, "error"); } };
   return (
     <>
       <StatStrip label={tr("Summary")} columns={5}>
-        <Stat label={tr("Transfers")} emphasis icon={<Truck size={13} />} value={s ? fmtNumber(s.total) : <StatSkeleton />}>{s && <p>{tr("{0} received", fmtNumber(s.received))}</p>}</Stat>
-        <Stat label={tr("Waiting for Cost Control")} icon={<ListChecks size={13} />} active={f.status === "accepted"} onClick={s ? () => setF({ ...f, status: f.status === "accepted" ? "" : "accepted" }) : undefined}
-          value={s ? <span className={s.accepted ? "text-blue-700" : undefined}>{fmtNumber(s.accepted)}</span> : <StatSkeleton />}>{s && <p>{tr("{0} waiting for the outlet", fmtNumber(s.submitted))}</p>}</Stat>
-        <Stat label={tr("To Receive")} icon={<Package size={13} />} value={s ? fmtNumber(s.approved) : <StatSkeleton />}>{s && <p>{tr("approved, goods not received yet")}</p>}</Stat>
-        <Stat label={tr("Value Transferred")} icon={<CheckCircle2 size={13} />} value={s ? rpText(s.value) : <StatSkeleton />}>{s && <p>{tr("received transfers")}</p>}</Stat>
-        <Stat label={tr("Without ESB Label")} icon={<Tags size={13} />} value={s ? <span className={s.unlabelled ? "text-amber-700" : undefined}>{fmtNumber(s.unlabelled)}</span> : <StatSkeleton />}>{s && <p>{tr("received, to label")}</p>}</Stat>
+        <Stat label={tr("Transfers")} emphasis icon={<Truck size={13} />} value={s ? fmtNumber(s.total) : <StatSkeleton />}>{s && <p>{tr("{0} processed in ESB", fmtNumber(s.processed + s.received))}</p>}</Stat>
+        <Stat label={tr("Pending")} icon={<ListChecks size={13} />} active={f.status === "submitted"} onClick={s ? () => setF({ ...f, status: f.status === "submitted" ? "" : "submitted" }) : undefined}
+          value={s ? <span className={s.submitted ? "text-amber-700" : undefined}>{fmtNumber(s.submitted + s.accepted)}</span> : <StatSkeleton />}>{s && <p>{tr("waiting for Cost Control")}</p>}</Stat>
+        <Stat label={tr("To Process in ESB")} icon={<Package size={13} />} active={f.status === "approved"} onClick={s ? () => setF({ ...f, status: f.status === "approved" ? "" : "approved" }) : undefined}
+          value={s ? <span className={s.approved ? "text-blue-700" : undefined}>{fmtNumber(s.approved)}</span> : <StatSkeleton />}>{s && <p>{tr("approved, not in ESB yet")}</p>}</Stat>
+        <Stat label={tr("Value Processed")} icon={<CheckCircle2 size={13} />} value={s ? rpText(s.value) : <StatSkeleton />}>{s && <p>{tr("does not move the portal stock")}</p>}</Stat>
+        <Stat label={tr("Rejected")} icon={<Tags size={13} />} value={s ? fmtNumber(s.rejected) : <StatSkeleton />}>{s && <p>{tr("{0} cancelled", fmtNumber(s.cancelled))}</p>}</Stat>
       </StatStrip>
       <Panel className="mt-4" toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search number, outlet or person")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
         extra={<div className="ml-auto"><ExcelExportMenu footer={<>{dmy(f.period.from)} – {dmy(f.period.to)}</>} choices={[
-          { key: "list", label: tr("Transfers"), hint: tr("Every transfer with its steps and ESB label"), icon: <Truck size={16} />, tone: "bg-brand-50 text-brand-600", count: res ? rows.length : null, run: safe(exportList) },
+          { key: "list", label: tr("Transfers"), hint: tr("Every transfer with its steps and ESB number"), icon: <Truck size={16} />, tone: "bg-brand-50 text-brand-600", count: res ? rows.length : null, run: safe(exportList) },
           { key: "lines", label: tr("Transfer Lines"), hint: tr("Every material of every transfer"), icon: <ClipboardList size={16} />, tone: "bg-violet-50 text-violet-600", run: safe(exportLines) },
-          { key: "outlets", label: tr("Per Outlet"), hint: tr("Value in and out of every outlet (received)"), icon: <Store size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportOutlets) },
-          { key: "materials", label: tr("Per Material"), hint: tr("Quantity and value per material (received)"), icon: <Package size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportMaterials) },
+          { key: "outlets", label: tr("Per Outlet"), hint: tr("Value in and out of every outlet (processed)"), icon: <Store size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportOutlets) },
+          { key: "materials", label: tr("Per Material"), hint: tr("Quantity and value per material (processed)"), icon: <Package size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportMaterials) },
         ]} /></div>} />}
         footer={res ? <><span>{tr("{0} shown", fmtNumber(rows.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table>
@@ -136,22 +131,16 @@ function Transfers() {
               <thead className={theadClass}><tr><SortTh k="number" sort={sorted.sort} onSort={sorted.toggle} pad="py-2.5 pl-5 pr-3">{tr("Number")}</SortTh><SortTh k="route" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("From → To")}</SortTh>
                 <SortTh k="requested" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" first="desc">{tr("Requested")}</SortTh><SortTh k="lines" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Materials")}</SortTh>
                 <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Value")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Status")}</SortTh>
-                <SortTh k="label" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5">{tr("ESB label")}</SortTh></tr></thead>
+                <SortTh k="label" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5">{tr("ESB document")}</SortTh></tr></thead>
               <tbody className="divide-y divide-neutral-100">{paged.rows.map((t) => (
-                <tr key={t.id} className={cx("cursor-pointer", t.status === "accepted" && res.canDecide ? "bg-blue-50/40 hover:bg-blue-50" : "hover:bg-neutral-50/70")} onClick={() => setOpen(t.id)}>
+                <tr key={t.id} className={cx("cursor-pointer", (t.status === "submitted" || t.status === "accepted" || t.status === "approved") && res.canDecide ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-neutral-50/70")} onClick={() => setOpen(t.id)}>
                   <td className="py-2.5 pl-5 pr-3 font-mono text-[13px] font-medium text-neutral-900">{t.number}</td>
                   <td className="max-w-[18rem] px-3 py-2.5"><p className="truncate text-neutral-800">{shortBranch(t.fromName)} → {shortBranch(t.toName)}</p></td>
                   <td className="whitespace-nowrap px-3 py-2.5"><p className="text-neutral-700">{wibDateTime(t.requested.at)}</p><p className="text-[11px] text-neutral-400">{t.requested.by}</p></td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{t.lines}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{t.value != null ? rpText(t.value) : "—"}</td>
                   <td className="px-3 py-2.5"><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge></td>
-                  <td className="px-3 py-2.5 pr-5" onClick={(e) => e.stopPropagation()}>
-                    {t.status === "received" ? (
-                      <NativeSelect className="h-8 rounded-lg border border-neutral-200 bg-white px-2 text-xs" value={t.esbLabel?.value ?? ""} onChange={(e) => void label(t, (e.target.value || null) as "esb" | "portal" | null)} aria-label={tr("ESB label")}>
-                        <option value="">{tr("Not labelled")}</option><option value="esb">{ESB_LABEL.esb()}</option><option value="portal">{ESB_LABEL.portal()}</option>
-                      </NativeSelect>
-                    ) : <span className="text-xs text-neutral-300">—</span>}
-                  </td>
+                  <td className="px-3 py-2.5 pr-5 font-mono text-xs text-neutral-700">{t.esb?.number ?? (t.esbLabel ? ESB_LABEL[t.esbLabel.value]() : "—")}</td>
                 </tr>))}</tbody>
             </table></div>
           )}
@@ -199,7 +188,7 @@ function Settings() {
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   return (
-    <Panel title={tr("Approvers of Transfer Stock")} description={tr("The Cost Control accounts that approve or reject the transfers the outlets accepted; superadmins always may")}
+    <Panel title={tr("Approvers of Transfer Stock")} description={tr("The Cost Control accounts that approve, reject and process the transfers in ESB; superadmins always may")}
       actions={data?.canEdit ? <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} />{tr("Save")}</Button> : undefined}>
       {!data ? <table className="w-full"><tbody><SkeletonRows cols={3} /></tbody></table> : !data.candidates.length ? <Empty title={tr("No Cost Control account yet")} /> : (
         <ul className="divide-y divide-neutral-100">{data.candidates.map((p) => (
