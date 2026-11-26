@@ -12,8 +12,7 @@ import { NativeSelect } from "@/so/ui/Jira";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
 import { BarChart3, Scale, CalendarCheck, CalendarDays, Check, CheckCircle2, ClipboardList, FileSearch, PencilLine, Layers, ListChecks, Package, Store, Tags, Trash2, XCircle } from "lucide-react";
-import ExcelExportMenu from "@/components/ExcelExportMenu";
-import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 import { downloadSheets } from "@/aggregator/ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, Page, PageNav, Panel, theadClass, usePaged, useToast } from "@/so/ui";
@@ -157,41 +156,37 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
 
   // Excel (POST /api/xlsx): the filtered entries, the totals per item, the daily report and the Usage Management lists
   const file = (what: string) => `${what} ${period.from} - ${period.to}`;
-  // 2026-11-26: a second sheet with the breakdown of every premix into its ingredients (grams, price, value)
-  const exportEntries = () => {
+  // 2026-11-26 (Cost Control): one Excel, every sheet in it — the entries, the breakdown of every premix into its ingredients,
+  // the totals per item, the daily report and the Usage Management lists (filters applied)
+  const q = () => new URLSearchParams({ dateFrom: period.from, dateTo: period.to, ...(branch ? { branch } : {}) });
+  const exportAll = async () => {
+    const [d, u] = await Promise.all([call<DailyData>(`/api/waste/daily?${q()}`), call<{ data: UsageRow[] }>(`/api/waste/usage?${q()}`)]);
     const premix = rows.filter((e) => e.scope === "premix" && e.ingredients?.length);
-    return downloadSheets(file("Waste"), [
+    const mark = (c: DailyData["branches"][number]["days"][number]) => (c.entries ? c.entries : c.noWaste ? "Tidak ada waste" : "Belum lapor");
+    const n = (r: unknown[]) => r.map((v) => (v ?? null) as string | number | null);
+    await downloadSheets(file("Waste"), [
       { sheet: "Waste", title: `Waste ${dmy(period.from)} – ${dmy(period.to)}`,
         header: ["Tanggal", "Cabang", "Jenis", "Kode", "Item", "Qty", "Satuan", "Kategori", "Production date", "Expired date", "Catatan", "Status",
           "Diinput oleh", "Waktu input", "Catatan review", "Foto", "Harga satuan (Rp)", "Nilai (Rp)", "Sumber harga"],
-        rows: rows.map((e) => [e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category,
-          e.productionDate, e.expiredDate, e.note, statusLabel(e.status), e.name, wibDateTime(e.createdAt), e.review?.note ?? null,
-          `${location.origin}${photoUrl(e.id)}`, e.unitPrice ?? null, e.value ?? null, e.priceSource ? PRICE_SOURCE[e.priceSource]() : null].map((v) => v ?? null)) },
+        rows: rows.map((e) => n([e.businessDate, e.branchName, scopeLabel(e.scope), e.itemCode, e.itemName, e.qty, e.unit, e.category,
+          e.productionDate, e.expiredDate, e.note, statusLabel(e.status), e.name, wibDateTime(e.createdAt), e.review?.note,
+          `${location.origin}${photoUrl(e.id)}`, e.unitPrice, e.value, e.priceSource ? PRICE_SOURCE[e.priceSource]() : null])) },
+      // the premix on the left, the unit on the right (Cost Control)
       { sheet: "Breakdown premix", title: `Breakdown premix ${dmy(period.from)} – ${dmy(period.to)} · bahan baku per waste premix`,
-        // 2026-11-26 (Cost Control): the premix on the left, the unit on the right
         header: ["Premix", "Kode premix", "Tanggal", "Cabang", "Kategori", "Status", "Qty premix", "Gram premix", "Kode bahan", "Bahan baku",
           "Masuk stok", "Harga per gram (Rp)", "Nilai (Rp)", "Gram bahan", "Satuan"],
-        rows: premix.flatMap((e) => (e.ingredients ?? []).map((x) => [e.itemName, e.itemCode, e.businessDate, e.branchName, e.category, statusLabel(e.status),
-          e.qty, e.grams ?? null, x.code, x.name, x.isStock ? "Ya" : "Tidak", x.price ?? null, x.value ?? null, x.grams, "GR"].map((v) => v ?? null))) },
+        rows: premix.flatMap((e) => (e.ingredients ?? []).map((x) => n([e.itemName, e.itemCode, e.businessDate, e.branchName, e.category, statusLabel(e.status),
+          e.qty, e.grams, x.code, x.name, x.isStock ? "Ya" : "Tidak", x.price, x.value, x.grams, "GR"]))) },
+      { sheet: "Per item", title: `Waste per item ${dmy(period.from)} – ${dmy(period.to)}`, header: ["Jenis", "Kode", "Item", "Qty", "Satuan", "Entri", "Cabang", "Nilai (Rp)"],
+        rows: (res?.byItem ?? []).map((i) => n([scopeLabel(i.scope), i.code, i.name, i.qty, i.unit, i.entries, i.branches, i.value])) },
+      { sheet: "Laporan harian", title: `Laporan waste harian ${dmy(period.from)} – ${dmy(period.to)}`,
+        header: ["Cabang", "Kode", "Hari lapor", "Hari belum lapor", "Hari daftar usage", ...d.dates.map(dmy)],
+        rows: d.branches.map((b) => n([b.name, b.code, b.reported, b.missing, b.usageDays, ...b.days.map(mark)])) },
+      { sheet: "Usage Management", title: `Usage Management ${dmy(period.from)} – ${dmy(period.to)}`,
+        header: ["Tanggal", "Cabang", "Kode", "Item", "Qty", "Satuan", "Kategori", "Alasan", "Diisi oleh", "Waktu", "Foto", "Tidak wajar", "Dikoreksi"],
+        rows: u.data.map((r) => n([r.businessDate, r.branchName, r.itemCode, r.itemName, r.qty, r.unit, r.category, r.note, r.by,
+          wibDateTime(r.updatedAt), r.hasPhoto ? `${location.origin}${usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)}` : "", r.unusual ? "Ya" : "", r.corrections ? "Ya" : ""])) },
     ]);
-  };
-  const exportItems = () => downloadXlsx({ fileName: file("Waste per item"), sheet: "Per item", title: `Waste per item ${dmy(period.from)} – ${dmy(period.to)}`,
-    header: ["Jenis", "Kode", "Item", "Qty", "Satuan", "Entri", "Cabang", "Nilai (Rp)"],
-    rows: (res?.byItem ?? []).map((i) => [scopeLabel(i.scope), i.code, i.name, i.qty, i.unit, i.entries, i.branches, i.value ?? null]) });
-  const q = () => new URLSearchParams({ dateFrom: period.from, dateTo: period.to, ...(branch ? { branch } : {}) });
-  const exportDaily = async () => {
-    const d = await call<DailyData>(`/api/waste/daily?${q()}`);
-    const mark = (c: DailyData["branches"][number]["days"][number]) => (c.entries ? c.entries : c.noWaste ? "Tidak ada waste" : "Belum lapor");
-    await downloadXlsx({ fileName: file("Laporan waste harian"), sheet: "Laporan harian", title: `Laporan waste harian ${dmy(period.from)} – ${dmy(period.to)}`,
-      header: ["Cabang", "Kode", "Hari lapor", "Hari belum lapor", "Hari daftar usage", ...d.dates.map(dmy)],
-      rows: d.branches.map((b) => [b.name, b.code, b.reported, b.missing, b.usageDays, ...b.days.map(mark)]) });
-  };
-  const exportUsage = async () => {
-    const u = await call<{ data: UsageRow[] }>(`/api/waste/usage?${q()}`);
-    await downloadXlsx({ fileName: file("Usage Management"), sheet: "Usage Management", title: `Usage Management ${dmy(period.from)} – ${dmy(period.to)}`,
-      header: ["Tanggal", "Cabang", "Kode", "Item", "Qty", "Satuan", "Kategori", "Alasan", "Diisi oleh", "Waktu", "Foto", "Tidak wajar", "Dikoreksi"],
-      rows: u.data.map((r) => [r.businessDate, r.branchName, r.itemCode, r.itemName, r.qty, r.unit, r.category, r.note, r.by,
-        wibDateTime(r.updatedAt), r.hasPhoto ? `${location.origin}${usagePhotoUrl(r.branchCode, r.businessDate, r.itemCode)}` : "", r.unusual ? "Ya" : "", r.corrections ? "Ya" : ""]) });
   };
   const safe = (f: () => Promise<void>) => async () => { try { await f(); } catch (e) { toast((e as Error).message, "error"); } };
 
@@ -205,6 +200,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
     ...(status ? [{ key: "s", label: statusLabel(status), onRemove: () => setStatus("") }] : []),
   ];
 
+  const [exporting, setExporting] = useState(false);
   const toggle = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   return (
@@ -231,12 +227,8 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           <FilterToolbar search={view === "entries" ? search : undefined} onSearch={view === "entries" ? setSearch : undefined}
             placeholder={tr("Search item, branch or person")} filters={chips} onOpen={() => setSheet(true)}
             onClear={() => { setPeriod(DEFAULT_PERIOD()); setBranch(""); setScope(""); setCategory(""); setStatus(review ? "submitted" : ""); }}
-            extra={<div className="ml-auto"><ExcelExportMenu footer={<>{branch ? `${branches.find((b) => b.branch_code === branch)?.branch_name ?? branch} · ` : `${tr("All Branches")} · `}{dmy(period.from)} – {dmy(period.to)}</>} choices={[
-        { key: "entries", label: tr("Waste Entries"), hint: tr("Every entry with category, dates, note, status and photo link (filters applied)"), icon: <Trash2 size={16} />, tone: "bg-brand-50 text-brand-600", count: res ? rows.length : null, run: safe(exportEntries) },
-        { key: "items", label: tr("Totals per Item"), hint: tr("Quantity per SKU, without rejected entries"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: res ? res.byItem.length : null, run: safe(exportItems) },
-        { key: "daily", label: tr("Daily Report"), hint: tr("Per branch and day: waste entries, no waste or not reported"), icon: <CalendarCheck size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportDaily) },
-        { key: "usage", label: tr("Usage Management"), hint: tr("The daily usage lists of the branches"), icon: <ClipboardList size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportUsage) },
-      ]} /></div>} />
+            extra={<div className="ml-auto"><ExcelIconButton boxed label={tr("Export to Excel")} loading={exporting} disabled={!res}
+              onClick={async () => { setExporting(true); await safe(exportAll)(); setExporting(false); }} /></div>} />
           <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={VIEWS.filter((v) => !(review && v.monitor)).map((v) => {
             const Icon = v.icon;
             const count = !res ? null : v.value === "entries" ? res.data.length : v.value === "items" ? res.byItem.length
