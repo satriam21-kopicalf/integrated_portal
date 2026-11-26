@@ -29,7 +29,7 @@ type Dispatch = { id: string; lines: Stock; note: string | null; status: "assign
   /** migration 061: the part of the lines for tasting */ cupping?: Stock };
 /** what a driver should carry from his last 14 days (or the pool average): to sell and for cupping */
 type Advice = { days: number; sell: Stock; cupping: Stock; avgSold: Record<string, number>; wasteRate: number | null; source: "driver" | "pool" };
-type Row = { code: string; name: string; nickname?: string | null; pool: string; fleet: string | null; dispatch: Dispatch | null; previous: Stock | null; shift: "open" | "closed" | null; advice?: Advice | null };
+type Row = { /** asked by the driver before the shift (2026-11-26) */ request?: { lines: Record<string, number>; note: string | null; at: string } | null; code: string; name: string; nickname?: string | null; pool: string; fleet: string | null; dispatch: Dispatch | null; previous: Stock | null; shift: "open" | "closed" | null; advice?: Advice | null };
 /** the assignment being edited: to sell and for cupping (the driver carries both) */
 type Plan = { sell: Stock; cupping: Stock };
 type Reload = { id: string; at: string; lines: Stock; note: string | null; status: string; approvedLines: Stock | null; driverCounts: Stock | null; driverNote: string | null; driver: string };
@@ -281,6 +281,13 @@ export default function CotrStoragePage() {
           <ChevronDown size={16} className={cx("flex-shrink-0 text-neutral-400 transition-transform sm:hidden", open && "rotate-180")} />
         </div>
         <div className={cx(!open && "max-sm:hidden")}>
+          {r.request && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-sky-100 bg-sky-50/70 px-4 py-2 text-[11px] text-sky-900">
+              <span className="inline-flex items-center gap-1 font-semibold"><PackagePlus size={12} />{tr("Driver request: {0} cups", cups(r.request.lines))}</span>
+              <span className="min-w-0 truncate">{menus.filter((m) => r.request!.lines[m.code]).map((m) => `${r.request!.lines[m.code]}× ${m.name}`).join(", ")}{r.request.note ? ` · “${r.request.note}”` : ""}</span>
+              {can && <button type="button" onClick={() => setDraft((d) => ({ ...d, [r.code]: { sell: { ...r.request!.lines }, cupping: { ...(d[r.code]?.cupping ?? {}) } } }))} className="ml-auto rounded-md bg-sky-700 px-2 py-1 text-[11px] font-semibold text-white hover:bg-sky-800">{tr("Use request")}</button>}
+            </div>
+          )}
           {a && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-neutral-50/70 px-4 py-2 text-[11px] text-neutral-600">
               <span className="inline-flex items-center gap-1 font-medium text-neutral-700"><Sparkles size={12} className="text-violet-600" />
