@@ -372,10 +372,10 @@ function ProcessDialog({ busy, onSave, onClose }: { busy: boolean; onSave: (esbN
   const [no, setNo] = useState("");
   const [note, setNote] = useState("");
   return (
-    <Dialog open title={tr("Processed in ESB")} description={tr("Make the transfer in ESB with the approved quantities, then enter its document number.")} onClose={onClose}
+    <Dialog open title={tr("Processed in ESB")} description={tr("Make it in ESB as usual (PR > PO > SL > GD > GR through the virtual warehouse) with the approved quantities, then enter the GR number of the destination outlet: the portal matches it with ESB.")} onClose={onClose}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!no.trim()} onClick={() => onSave(no.trim(), note)}><PackageCheck size={15} />{tr("Mark Processed")}</Button></>}>
       <div className="space-y-3">
-        <label className="block text-xs font-medium text-neutral-600">{tr("ESB document number")} <span className="text-red-500">*</span>
+        <label className="block text-xs font-medium text-neutral-600">{tr("ESB GR number at the destination")} <span className="text-red-500">*</span>
           <input className={cx(inputClass, "mt-1 h-11 text-base uppercase sm:h-10 sm:text-sm")} value={no} maxLength={60} onChange={(e) => setNo(e.target.value)} autoCapitalize="characters" /></label>
         <textarea className={cx(inputClass, "py-2")} rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (optional)")} />
       </div>
