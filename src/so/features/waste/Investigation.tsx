@@ -40,6 +40,20 @@ export function Ingredients({ entry }: { entry: Entry }) {
             </tr>
           ))}
         </tbody>
+        {(() => {
+          // 2026-11-26 (Cost Control): the total of the breakdown beside the grams entered, to compare them
+          const total = Math.round(entry.ingredients.reduce((s, c) => s + c.grams, 0) * 100) / 100;
+          const diff = entry.grams ? Math.round((total - entry.grams) * 100) / 100 : 0;
+          return (
+            <tfoot className="border-t border-neutral-200 bg-neutral-50 font-semibold text-neutral-800">
+              <tr>
+                <td className="px-3 py-1.5">{tr("Breakdown total")}{entry.grams ? <span className="ml-1 font-normal text-neutral-500">· {tr("entered")} {fmtQty(entry.grams)} g</span> : null}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{fmtGrams(total)} g
+                  {entry.grams && diff !== 0 ? <span className={diff > 0 ? "ml-1 text-red-700" : "ml-1 text-emerald-700"}>({diff > 0 ? "+" : ""}{fmtGrams(diff)})</span> : null}</td>
+              </tr>
+            </tfoot>
+          );
+        })()}
       </table>
     </div>
   );

@@ -8302,4 +8302,6 @@ export const ID: Record<string, string> = {
   "Keyboard: ↑ ↓ or Enter between rows, ← → between columns": "Keyboard: ↑ ↓ atau Enter antar baris, ← → antar kolom",
   "Driver request: {0} cups": "Request driver: {0} cup",
   "Use request": "Pakai request",
+  "Breakdown total": "Total breakdown",
+  "entered": "input",
 };

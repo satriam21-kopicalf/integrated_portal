@@ -173,10 +173,14 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           `${location.origin}${photoUrl(e.id)}`, e.unitPrice, e.value, e.priceSource ? PRICE_SOURCE[e.priceSource]() : null])) },
       // the premix on the left, the unit on the right (Cost Control)
       { sheet: "Breakdown premix", title: `Breakdown premix ${dmy(period.from)} – ${dmy(period.to)} · bahan baku per waste premix`,
-        header: ["Premix", "Kode premix", "Tanggal", "Cabang", "Kategori", "Status", "Qty premix", "Gram premix", "Kode bahan", "Bahan baku",
-          "Masuk stok", "Harga per gram (Rp)", "Nilai (Rp)", "Gram bahan", "Satuan"],
-        rows: premix.flatMap((e) => (e.ingredients ?? []).map((x) => n([e.itemName, e.itemCode, e.businessDate, e.branchName, e.category, statusLabel(e.status),
-          e.qty, e.grams, x.code, x.name, x.isStock ? "Ya" : "Tidak", x.price, x.value, Math.round(x.grams * 100) / 100, "GR"]))) },
+        header: ["Premix", "Kode premix", "Tanggal", "Cabang", "Kategori", "Status", "Qty premix", "Gram premix", "Total gram breakdown", "Selisih (g)",
+          "Kode bahan", "Bahan baku", "Masuk stok", "Harga per gram (Rp)", "Nilai (Rp)", "Gram bahan", "Satuan"],
+        rows: premix.flatMap((e) => {
+          const total = Math.round((e.ingredients ?? []).reduce((s, x) => s + x.grams, 0) * 100) / 100;
+          const diff = e.grams ? Math.round((total - e.grams) * 100) / 100 : null;
+          return (e.ingredients ?? []).map((x) => n([e.itemName, e.itemCode, e.businessDate, e.branchName, e.category, statusLabel(e.status),
+            e.qty, e.grams, total, diff, x.code, x.name, x.isStock ? "Ya" : "Tidak", x.price, x.value, Math.round(x.grams * 100) / 100, "GR"]));
+        }) },
       { sheet: "Per item", title: `Waste per item ${dmy(period.from)} – ${dmy(period.to)}`, header: ["Jenis", "Kode", "Item", "Qty", "Satuan", "Entri", "Cabang", "Nilai (Rp)"],
         rows: (res?.byItem ?? []).map((i) => n([scopeLabel(i.scope), i.code, i.name, i.qty, i.unit, i.entries, i.branches, i.value])) },
       { sheet: "Laporan harian", title: `Laporan waste harian ${dmy(period.from)} – ${dmy(period.to)}`,
