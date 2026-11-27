@@ -20,7 +20,7 @@ import Drawer from "@/so/ui/Drawer";
 import { Facts, Group } from "@/aggregator/fields";
 import Dialog, { ConfirmDialog } from "@/so/ui/Dialog";
 import { hasPage, useAuth } from "@/lib/auth";
-import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, Segments, periodLabel } from "@/so/ui/MonitorFilters";
+import { ComboFilter, FilterRow, MonitorFilterSheet, QuickPeriod, periodLabel } from "@/so/ui/MonitorFilters";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { type ActiveFilter, FilterToolbar, type Period, dmy, wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
@@ -38,7 +38,7 @@ import { thumb } from "@/lib/assets";
 import { DataSources } from '@/so/features/health/DataHealth';
 
 const DEFAULT_PERIOD = (): Period => ({ from: wibDay(-6), to: wibDay(0) });
-type Filters = { period: Period; branch: string; scope: Scope | ""; category: string; status: Status | "" };
+type Filters = { period: Period; branch: string; /** one or more, joined by "|" */ scope: string; category: string; /** one or more, joined by "|" (2026-11-27) */ status: string };
 type View = "analysis" | "entries" | "items" | "branches" | "categories" | "daily" | "usage" | "investigations" | "esb";
 type BranchOpt = { branch_code: string; branch_name: string };
 // the Monitor opens on its Analysis (2026-11-10); the Review on the entries to decide
@@ -63,9 +63,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const [recat, setRecat] = useState(false);
   const [period, setPeriod] = useState<Period>({ from: wibDay(-6), to: wibDay(0) });
   const [branch, setBranch] = useState("");
-  const [scope, setScope] = useState<Scope | "">("");
+  const [scope, setScope] = useState<string>("");
   const [category, setCategory] = useState("");
-  const [status, setStatus] = useState<Status | "">(review ? "submitted" : "");
+  const [status, setStatus] = useState<string>(review ? "submitted" : "");
   const [view, setView] = useState<View>(review ? "entries" : "analysis");
   const [res, setRes] = useState<MonitorData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -212,9 +212,9 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
   const chips: ActiveFilter[] = [
     ...(!isDefaultPeriod ? [{ key: "p", label: `${dmy(period.from)} – ${dmy(period.to)}`, onRemove: () => setPeriod(DEFAULT_PERIOD()) }] : []),
     ...(branch ? [{ key: "b", label: branches.find((x) => x.branch_code === branch)?.branch_name ?? branch, onRemove: () => setBranch("") }] : []),
-    ...(scope ? [{ key: "t", label: scopeLabel(scope), onRemove: () => setScope("") }] : []),
+    ...(scope ? [{ key: "t", label: scope.split("|").map((x) => scopeLabel(x as Scope)).join(", "), onRemove: () => setScope("") }] : []),
     ...splitCats(category).map((c) => ({ key: `c:${c}`, label: c, onRemove: () => setCategory(splitCats(category).filter((x) => x !== c).join("|")) })),
-    ...(status ? [{ key: "s", label: statusLabel(status), onRemove: () => setStatus("") }] : []),
+    ...(status ? [{ key: "s", label: status.split("|").map((x) => statusLabel(x as Status)).join(", "), onRemove: () => setStatus("") }] : []),
   ];
 
   const [exporting, setExporting] = useState(false);
@@ -576,6 +576,23 @@ function TableFoot({ note, paged }: { note?: string; paged: ReturnType<typeof us
   );
 }
 
+/** A selection of one or more (2026-11-27, Cost Control): nothing ticked = all. */
+function Checks({ label, picked, onChange, items }: { label: string; picked: string[]; onChange: (v: string[]) => void; items: { value: string; label: React.ReactNode }[] }) {
+  return (
+    <div role="group" aria-label={label} className="divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+      {items.map((x) => {
+        const on = picked.includes(x.value);
+        return (
+          <label key={x.value} className={cx("flex min-h-11 cursor-pointer items-center gap-3 px-3 text-sm sm:min-h-10", on ? "bg-brand-50/60 text-brand-900" : "text-neutral-700 hover:bg-neutral-50")}>
+            <input type="checkbox" className="h-4 w-4 accent-brand-700" checked={on} onChange={() => onChange(on ? picked.filter((y) => y !== x.value) : [...picked, x.value])} />
+            {x.label}
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
 /** The filters of the monitor / review in one sheet: period, branch, type, category, status. */
 /** the categories chosen, kept joined by "|" (the backend reads them so) */
 const splitCats = (v: string) => v.split("|").filter(Boolean);
@@ -589,6 +606,8 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
   const days = Math.round((Date.parse(d.period.to) - Date.parse(d.period.from)) / 864e5) + 1;
   const active = [period, d.branch, d.scope, d.status, d.category].filter(Boolean).length;
   const picked = splitCats(d.category);
+  const stats = d.status ? d.status.split("|") : [];
+  const kinds = d.scope ? d.scope.split("|") : [];
   return (
     <MonitorFilterSheet active={active} onClose={onClose} onReset={() => setD(onReset())} onApply={() => onApply(d)} applyDisabled={days > 92}>
       <FilterRow icon={<CalendarDays size={15} />} label={tr("Period")} value={period ?? tr("Last 7 Days")} onClear={period ? () => setD({ ...d, period: def }) : undefined}>
@@ -598,13 +617,14 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
         <ComboFilter value={d.branch} onChange={(v) => setD({ ...d, branch: v })} allLabel={tr("All Branches")} placeholder={tr("Search branch")}
           options={branches.map((b) => ({ value: b.branch_code, label: b.branch_name, hint: b.branch_code }))} />
       </FilterRow>
-      <FilterRow icon={<Package size={15} />} label={tr("Type")} value={d.scope ? scopeLabel(d.scope) : null} onClear={() => setD({ ...d, scope: "" })}>
-        <Segments value={d.scope} onChange={(v) => setD({ ...d, scope: v as Filters["scope"] })}
-          choices={[{ value: "", label: tr("All types") }, ...SCOPES.map((x) => ({ value: x, label: scopeLabel(x) }))]} />
+      <FilterRow icon={<Package size={15} />} label={tr("Kind")} value={kinds.length ? kinds.map((x) => scopeLabel(x as Scope)).join(", ") : null} onClear={() => setD({ ...d, scope: "" })}>
+        <Checks label={tr("Kind")} picked={kinds} onChange={(v) => setD({ ...d, scope: v.join("|") })} items={SCOPES.map((x) => ({ value: x, label: <span className="font-medium">{scopeLabel(x)}</span> }))} />
       </FilterRow>
-      <FilterRow icon={<ListChecks size={15} />} label={tr("Status")} value={d.status ? statusLabel(d.status) : null} onClear={() => setD({ ...d, status: "" })}>
-        <Segments value={d.status} onChange={(v) => setD({ ...d, status: v as Filters["status"] })}
-          choices={[{ value: "", label: tr("All statuses") }, ...(["submitted", "investigating", "approved", "rejected"] as Status[]).map((x) => ({ value: x, label: statusLabel(x) }))]} />
+      <FilterRow icon={<ListChecks size={15} />} label={tr("Status")} value={stats.length ? stats.map((x) => statusLabel(x as Status)).join(", ") : null} onClear={() => setD({ ...d, status: "" })}>
+        {/* 2026-11-27 (Cost Control): a selection of one or more statuses; none = every status */}
+        <Checks label={tr("Status")} picked={stats} onChange={(v) => setD({ ...d, status: v.join("|") })}
+          items={(["submitted", "investigating", "approved", "rejected"] as Status[]).map((x) => ({ value: x, label: <Badge tone={statusTone(x)}>{statusLabel(x)}</Badge> }))} />
+        {!stats.length && <p className="mt-1.5 text-xs text-neutral-500">{tr("None chosen: every status")}</p>}
       </FilterRow>
       <FilterRow icon={<Tags size={15} />} label={tr("Waste Category")} value={picked.length ? (picked.length === 1 ? picked[0] : tr("{0} categories", picked.length)) : null}
         onClear={() => setD({ ...d, category: "" })}>

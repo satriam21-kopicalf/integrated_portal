@@ -8497,4 +8497,5 @@ export const ID: Record<string, string> = {
   "A store with its bank account fills the transfer": "Toko dengan rekening bank mengisi data transfer",
   "no bank account": "belum ada rekening",
   "Money of a Building & Renovation project, asked from its approved RAB": "Dana proyek Building & Renovation, diajukan dari RAB yang disetujui",
+  "None chosen: every status": "Tidak ada yang dipilih: semua status",
 };
