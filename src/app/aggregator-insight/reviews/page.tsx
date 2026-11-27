@@ -5,7 +5,6 @@
 // when BotFood received the review. It gives no merchant reply: replied or not is not shown.
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { MessageSquareText, Star } from "lucide-react";
 import { useToast } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
@@ -13,6 +12,7 @@ import { tr } from "@/lib/i18n";
 import { Tip } from "@/aggregator/info";
 import { Bars, DataTable, FilterBar, FreshLine, OutletCell, Platform, noMembers, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
 import { downloadSheets } from "@/aggregator/ui";
+import TicketDrawer from "@/aggregator/Ticket";
 import { dayOf, fmtClock, fmtDay, fmtPeriod, nf, pct, xlStamp } from "@/aggregator/time";
 import { Page, Stat, StatSkeleton, StatStrip, Lozenge, QuickChips, WorkCard, Button, ErrorState, cx } from "@/jira";
 
@@ -37,6 +37,7 @@ export default function Reviews() {
   const [stars, setStars] = useState("");
   const [q, setQ] = useState("");
   const [version, setVersion] = useState(0);
+  const [handle, setHandle] = useState<number | null>(null);
   useEffect(() => {
     if (!a.ready) return;
     let off = false;
@@ -59,7 +60,7 @@ export default function Reviews() {
     try {
       const x = await call<{ id: number }>("/api/aggregator/complaints", { method: "POST", json: { reviewId: r.id } });
       setData((d) => (d ? { ...d, rows: d.rows.map((y) => (y.id === r.id ? { ...y, complaintId: x.id } : y)) } : d));
-      toast(tr("Complaint #{0} made", x.id));
+      setHandle(x.id); // 2026-11-27: handled right here: the ticket drawer (action, evidence, reply)
     } catch (e) { toast((e as Error).message, "error"); }
   };
   const cols: Col<Row>[] = [
@@ -70,7 +71,7 @@ export default function Reviews() {
     { key: "comment", card: "wide", label: tr("Comment"), className: "max-w-[26rem]", render: (r) => <><span className="block text-[#172B4D]">{r.comment || <span className="text-[#626F86]">{tr("no comment")}</span>}</span>{r.item && <span className="block text-[11px] text-[#626F86]">{r.item}</span>}{r.orderId && <span className="block text-[11px] text-[#626F86]">{tr("Order no.")} {r.orderId}</span>}</> },
     { key: "topic", label: tr("Topic"), sort: (r) => r.topic, className: "text-[#44546F]", render: (r) => r.topic ?? "—" },
     { key: "member", label: tr("Handled by"), sort: (r) => r.member, hide: noMembers(scoped), render: (r) => r.member ?? "—" },
-    { key: "ticket", label: tr("Complaint"), sort: (r) => r.complaintId, render: (r) => r.complaintId ? <Link href="/aggregator-insight/complaints" className="text-xs font-semibold text-[#0C66E4] hover:underline">#{r.complaintId}</Link> : r.rating <= 3 ? <Button size="sm" variant="ghost" className="whitespace-nowrap" onClick={() => void ticket(r)}><MessageSquareText size={13} /> {tr("Make a ticket")}</Button> : <span className="text-[#8590A2]">—</span> },
+    { key: "ticket", label: tr("Complaint"), sort: (r) => r.complaintId, render: (r) => r.complaintId ? <button type="button" onClick={(e) => { e.stopPropagation(); setHandle(r.complaintId!); }} className="text-xs font-semibold text-[#0C66E4] hover:underline">#{r.complaintId}</button> : r.rating <= 3 ? <Button size="sm" variant="ghost" className="whitespace-nowrap" onClick={() => void ticket(r)}><MessageSquareText size={13} /> {tr("Handle")}</Button> : <span className="text-[#8590A2]">—</span> },
   ];
   const exportXlsx = async () => {
     if (!data) return;
@@ -113,6 +114,7 @@ export default function Reviews() {
           </WorkCard>
         </>
       )}
+      {handle != null && <TicketDrawer id={handle} topics={(data?.topics ?? []).map((x) => x.topic)} onClose={() => setHandle(null)} onSaved={() => { setHandle(null); setVersion((v) => v + 1); }} />}
     </Page>
   );
 }
