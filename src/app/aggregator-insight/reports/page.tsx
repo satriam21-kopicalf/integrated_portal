@@ -5,14 +5,13 @@
 
 import { useEffect, useState } from "react";
 import { FileBarChart } from "lucide-react";
-import { ErrorState, cx, useToast } from "@/so/ui";
-import { Page } from "@/components/kc/compat";
-import { WorkCard } from "@/so/ui/Jira";
+import { useToast } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 import { type Sheet, downloadSheets } from "@/aggregator/ui";
 import { DataTable, FilterBar, FreshLine, useCtx, useFilters, type Col } from "@/aggregator/kit";
 import { fmtDay, fmtPeriod, nf } from "@/aggregator/time";
+import { Page, WorkCard, ErrorState, cx } from "@/jira";
 
 type Res = { from: string; to: string; summary: [string, number | null][]; sheets: Sheet[] };
 type R = { id: string; v: (string | number | null)[] };
@@ -45,12 +44,12 @@ export default function Reports() {
   const rows: R[] = (sheet?.rows ?? []).map((v, i) => ({ id: String(i), v })).filter((r) => !t || r.v.some((x) => String(x ?? "").toLowerCase().includes(t)));
   const cols: Col<R>[] = (sheet?.header ?? []).map((h, i) => {
     const num = (sheet?.rows ?? []).some((r) => typeof r[i] === "number") && !(sheet?.rows ?? []).some((r) => typeof r[i] === "string" && r[i] !== "");
-    return { key: String(i), label: h, card: i === 0 ? "title" as const : (sheet?.header.length ?? 0) === 2 ? "side" as const : undefined, sort: (r) => r.v[i], first: num ? "desc" : "asc", right: num, className: cx("max-w-[26rem]", i === 0 && "font-medium text-neutral-900"), render: (r) => cell(r.v[i]) };
+    return { key: String(i), label: h, card: i === 0 ? "title" as const : (sheet?.header.length ?? 0) === 2 ? "side" as const : undefined, sort: (r) => r.v[i], first: num ? "desc" : "asc", right: num, className: cx("max-w-[26rem]", i === 0 && "font-medium text-[#172B4D]"), render: (r) => cell(r.v[i]) };
   });
   const filter = (
     <FilterBar a={a} ctx={ctx} outlet={false} q={q} onQ={setQ} placeholder={tr("Search in this sheet")} excel={() => void excel()} excelOff={!data} excelBusy={busy} />
   );
-  const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
+  const card = <section className="overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-white">{filter}</section>;
   return (
     <Page title={tr("Reports")} eyebrow={tr("Aggregator Insight")} subtitle={tr("The whole period in one Excel, a summary sheet first")} media={<FileBarChart size={19} />}>
       <FreshLine ctx={ctx} sources={["status", "reviews", "daily"]} />

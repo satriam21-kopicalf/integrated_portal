@@ -5,15 +5,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ListChecks } from "lucide-react";
-import { ErrorState, cx, useToast } from "@/so/ui";
-import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { WorkCard } from "@/so/ui/Jira";
+import { useToast } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 import { Tip } from "@/aggregator/info";
 import { downloadSheets } from "@/aggregator/ui";
 import { DataTable, FilterBar, FreshLine, OutletCell, Platform, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
 import { fmtPeriod, fmtStamp, nf, pct, rp, xlStamp } from "@/aggregator/time";
+import { Page, Stat, StatSkeleton, StatStrip, WorkCard, ErrorState, cx } from "@/jira";
 
 type Spread = { platform: string; menu: string; outlets: number; usual: number; min: number; max: number; different: number; who: { outlet: string; price: number }[] };
 type Missing = { platform: string; outlet: string; branchCode: string | null; menu: string; have: number; of: number };
@@ -58,13 +57,13 @@ export default function PriceMenu() {
   const s = data?.summary;
   const key = `${platform}${outlet}${a.f.group}${t}${tab}`;
   const spreadCols: Col<Spread>[] = [
-    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="font-medium text-neutral-900">{r.menu}</span> }, { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
+    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="font-medium text-[#172B4D]">{r.menu}</span> }, { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
     { key: "usual", label: tr("Usual price"), sort: (r) => r.usual, right: true, render: (r) => rp(r.usual) }, { key: "min", label: tr("Lowest"), sort: (r) => r.min, right: true, render: (r) => rp(r.min) }, { key: "max", label: tr("Highest"), sort: (r) => r.max, right: true, render: (r) => rp(r.max) },
     { key: "d", card: "side", label: tr("Outlets that differ"), sort: (r) => r.different, first: "desc", right: true, render: (r) => tr("{0} of {1}", r.different, r.outlets) },
   ];
   const missCols: Col<Missing>[] = [
     { key: "o", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "p", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="text-neutral-900">{r.menu}</span> }, { key: "have", card: "side", label: tr("Outlets that have it"), sort: (r) => r.have / r.of, first: "desc", right: true, render: (r) => <>{tr("{0} of {1}", r.have, r.of)}<span className="block text-[11px] text-neutral-400">{pct((r.have / r.of) * 100, 0)}</span></> },
+    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="text-[#172B4D]">{r.menu}</span> }, { key: "have", card: "side", label: tr("Outlets that have it"), sort: (r) => r.have / r.of, first: "desc", right: true, render: (r) => <>{tr("{0} of {1}", r.have, r.of)}<span className="block text-[11px] text-[#626F86]">{pct((r.have / r.of) * 100, 0)}</span></> },
   ];
   const changeCols: Col<Change>[] = [
     { key: "at", label: tr("Time (WIB)"), sort: (r) => r.at, first: "desc", className: "whitespace-nowrap", render: (r) => fmtStamp(r.at).replace(" WIB", "") }, { key: "o", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
@@ -72,9 +71,9 @@ export default function PriceMenu() {
     { key: "new", label: tr("New"), sort: (r) => r.new, right: true, render: (r) => <>{rp(r.new)}<span className={cx("block text-[11px]", r.new < r.old ? "text-red-700" : "text-emerald-700")}>{r.old ? `${r.new > r.old ? "+" : ""}${pct(((r.new - r.old) / r.old) * 100)}` : ""}</span></> },
   ];
   const fitCols: Col<Fit>[] = [
-    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="font-medium text-neutral-900">{r.menu}</span> }, { key: "qty", label: tr("Portions"), sort: (r) => r.qty, first: "desc", right: true, render: (r) => nf(r.qty) }, { key: "amount", label: tr("Sales"), sort: (r) => r.amount, first: "desc", right: true, render: (r) => rp(r.amount) },
+    { key: "menu", card: "title", label: tr("Menu"), sort: (r) => r.menu, render: (r) => <span className="font-medium text-[#172B4D]">{r.menu}</span> }, { key: "qty", label: tr("Portions"), sort: (r) => r.qty, first: "desc", right: true, render: (r) => nf(r.qty) }, { key: "amount", label: tr("Sales"), sort: (r) => r.amount, first: "desc", right: true, render: (r) => rp(r.amount) },
     { key: "share", label: tr("Share here %"), sort: (r) => r.share, first: "desc", right: true, render: (r) => pct(r.share, 2) }, { key: "else", label: tr("Share elsewhere %"), sort: (r) => r.shareElsewhere, first: "desc", right: true, render: (r) => pct(r.shareElsewhere, 2) },
-    { key: "lift", card: "side", label: tr("Strength"), sort: (r) => r.lift ?? 999, first: "desc", right: true, render: (r) => <span className={cx("font-semibold", r.lift == null ? "text-neutral-400" : r.lift >= 1.3 ? "text-emerald-700" : r.lift <= 0.7 ? "text-red-700" : "")}>{r.lift == null ? tr("only here") : `${nf(r.lift, 2)}×`}</span> },
+    { key: "lift", card: "side", label: tr("Strength"), sort: (r) => r.lift ?? 999, first: "desc", right: true, render: (r) => <span className={cx("font-semibold", r.lift == null ? "text-[#626F86]" : r.lift >= 1.3 ? "text-emerald-700" : r.lift <= 0.7 ? "text-red-700" : "")}>{r.lift == null ? tr("only here") : `${nf(r.lift, 2)}×`}</span> },
   ];
   const exportXlsx = async () => {
     if (!data) return;
@@ -91,7 +90,7 @@ export default function PriceMenu() {
   const filter = (
     <FilterBar a={a} ctx={ctx} period={false} note={tab === "fit" ? (fit ? tr("Sales of {0}", fmtPeriod(fit.from, fit.to)) : "…") : tab === "changes" ? tr("Price changes since 25 Nov 2026 · all times in WIB") : undefined} q={q} onQ={setQ} placeholder={tr("Search menu or outlet")} excel={() => void exportXlsx()} excelOff={!data} />
   );
-  const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
+  const card = <section className="overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-white">{filter}</section>;
   return (
     <Page title={tr("Price & Menu")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Prices and menus that are not the same at every outlet, and what sells on each platform")} media={<ListChecks size={19} />}>
       <FreshLine ctx={ctx} sources={["menu"]} />

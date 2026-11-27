@@ -4,18 +4,17 @@
 // fresh the data is, the table (sort, pages, cards on phones) and the Excel.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, Info, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, Info, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import Floating from "@/components/kc/Floating";
 import ChannelLogo from "@/components/ChannelLogo";
 import ExcelIconButton from "@/components/ExcelIconButton";
-import { Button, Empty, SearchBox, cx } from "@/so/ui";
-import { type JOption, JSelect, jHeadRow, jTable, jTd, jTh } from "@/so/ui/Jira";
 import { SortTh, useSort, type SortDir } from "@/so/ui/Sort";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 import { PeriodField, Row } from "./fields";
 import { ago, dayOf, daysAgo, fmtClock, fmtDayShort, nf } from "./time";
+import { type JOption, JSelect, jHeadRow, jTable, jTd, jTh, Button, EmptyState as Empty, SearchBox, cx } from "@/jira";
 
 export const PLATFORMS = ["GoFood", "GrabFood", "ShopeeFood"] as const;
 /** the artwork of Grab has a wide margin */
@@ -106,8 +105,7 @@ export function FilterBar({ a, ctx, extra = [], period = true, outlet = true, pl
   const { f, set, preset } = a;
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
-  const short = (n: string) => n.replace(/^Kopi Calf (To Go )?/, "");
-  const outs = (ctx?.outlets ?? []).filter((o) => !f.group || o.group === f.group).map((o) => ({ value: o.code, label: short(o.name), hint: o.zone !== "WIB" ? o.zone : o.group ?? undefined }));
+  const outs = (ctx?.outlets ?? []).filter((o) => !f.group || o.group === f.group).map((o) => ({ value: o.code, label: o.name, hint: o.zone !== "WIB" ? o.zone : o.group ?? undefined }));
   const all: Extra[] = [
     ...(platform ? [{ key: "platform", label: tr("Platform"), value: f.platform, onChange: (v: string) => set({ platform: v }), options: platformOptions(), any: tr("All") }] : []),
     ...(outlet ? [{ key: "group", label: tr("Branch group"), value: f.group, onChange: (v: string) => set({ group: v, outlet: "" }), options: (ctx?.groups ?? []).map((g) => ({ value: g, label: g })), any: tr("All") },
@@ -123,31 +121,31 @@ export function FilterBar({ a, ctx, extra = [], period = true, outlet = true, pl
   const info = period ? `${tr("{0} · all times in WIB", name)}${preset === FIRST ? ` · ${tr("choose a period for earlier days")}` : ""}` : note ?? tr("The situation now · all times in WIB");
   const box = q != null && onQ ? <SearchBox value={q} onChange={onQ} placeholder={placeholder ?? tr("Search")} /> : null;
   const xl = excel && <ExcelIconButton boxed label={tr("Export to Excel")} disabled={excelOff} loading={excelBusy} onClick={excel} className="!h-11 !w-11 sm:!h-10 sm:!w-10" />;
-  const chip = "inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full bg-brand-50 px-2.5 text-xs text-brand-900";
+  const chip = "inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full bg-[#E9F2FF] px-2.5 text-xs text-[#0055CC]";
   return (
-    <div role="group" aria-label={tr("Filter")} className="space-y-2.5 border-b border-neutral-200 p-4 sm:px-5">
+    <div role="group" aria-label={tr("Filter")} className="space-y-2.5 border-b border-[#DCDFE4] p-4 sm:px-5">
       <div className="flex flex-wrap items-center gap-2">
         {box && <div className="min-w-0 flex-1 basis-full sm:basis-64 sm:max-w-md">{box}</div>}
         {lead && <div className="min-w-0 flex-1 basis-full sm:basis-72 sm:max-w-sm">{lead}</div>}
         <div className="flex flex-1 items-center gap-2 sm:flex-none">
-          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", changed ? "border-brand-200 bg-brand-50 text-brand-800" : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-300")}>
-            <SlidersHorizontal size={16} /> {tr("Filter")}{count > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold leading-[18px] text-white">{count}</span>}</button>
-          {changed && <button type="button" onClick={clear} aria-label={tr("Clear the filters")} title={tr("Clear the filters")} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-700 hover:bg-neutral-50 sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
+          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-[3px] border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", changed ? "border-[#85B8FF] bg-[#E9F2FF] text-[#0055CC]" : "border-[#DCDFE4] bg-white text-[#172B4D] hover:border-[#8590A2]")}>
+            <SlidersHorizontal size={16} /> {tr("Filter")}{count > 0 && <span className="rounded-full bg-[#0C66E4] px-1.5 text-[11px] font-semibold leading-[18px] text-white">{count}</span>}</button>
+          {changed && <button type="button" onClick={clear} aria-label={tr("Clear the filters")} title={tr("Clear the filters")} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[3px] border border-[#DCDFE4] text-[#44546F] hover:bg-[#F7F8F9] sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
           {xl}
         </div>
       </div>
       {(periodChanged || chosen.length > 0) && <ul className="flex flex-wrap gap-1.5">
-        {periodChanged && <li><button type="button" onClick={() => a.reset()} aria-label={tr("Remove {0}", tr("Period"))} className={chip}><span className="text-brand-700/70">{tr("Period")}:</span><span className="min-w-0 truncate font-semibold">{name}</span><X size={13} className="shrink-0" /></button></li>}
-        {chosen.map((e) => <li key={e.key}><button type="button" onClick={() => e.onChange("")} aria-label={tr("Remove {0}", e.label)} className={chip}><span className="text-brand-700/70">{e.label}:</span><span className="min-w-0 truncate font-semibold">{e.options.find((o) => o.value === e.value)?.label ?? e.value}</span><X size={13} className="shrink-0" /></button></li>)}
+        {periodChanged && <li><button type="button" onClick={() => a.reset()} aria-label={tr("Remove {0}", tr("Period"))} className={chip}><span className="text-[#0C66E4]/70">{tr("Period")}:</span><span className="min-w-0 truncate font-semibold">{name}</span><X size={13} className="shrink-0" /></button></li>}
+        {chosen.map((e) => <li key={e.key}><button type="button" onClick={() => e.onChange("")} aria-label={tr("Remove {0}", e.label)} className={chip}><span className="text-[#0C66E4]/70">{e.label}:</span><span className="min-w-0 truncate font-semibold">{e.options.find((o) => o.value === e.value)?.label ?? e.value}</span><X size={13} className="shrink-0" /></button></li>)}
       </ul>}
-      <p className="flex items-center gap-1.5 text-xs text-neutral-500"><Clock size={12} className="shrink-0" aria-hidden />{info}</p>
+      <p className="flex items-center gap-1.5 text-xs text-[#626F86]"><Clock size={12} className="shrink-0" aria-hidden />{info}</p>
       {children && <div className="flex flex-wrap items-center gap-x-4 gap-y-2">{children}</div>}
       <Floating open={open} onClose={() => setOpen(false)} title={tr("Filter")} subtitle={count ? tr("{0} chosen", count) : tr("Nothing chosen: everything is shown")} anchor={btn}
         footer={<><Button variant="secondary" className="flex-1" disabled={!changed} onClick={clear}>{tr("Clear")}</Button><Button className="flex-1" onClick={() => setOpen(false)}>{tr("Show")}</Button></>}>
         <div className="space-y-4 px-4 py-4">
           {period && <Row label={tr("Period")}><PeriodField label={tr("Period")} from={f.from} to={f.to} preset={preset} presets={Object.entries(PRESETS).map(([value, p]) => ({ value, label: p.label(), from: p.range()[0], to: p.range()[1] }))} onChange={(from, to, p) => set({ from, to, preset: p })} /></Row>}
           {all.map((e) => <Row key={e.key} label={e.label}><JSelect value={e.value} onChange={e.onChange} placeholder={e.any ?? tr("All")} label={e.label} options={[{ value: "", label: e.any ?? tr("All") }, ...e.options]} /></Row>)}
-          {more && <div className="space-y-3 border-t border-neutral-100 pt-4">{more}</div>}
+          {more && <div className="space-y-3 border-t border-[#F1F2F4] pt-4">{more}</div>}
         </div>
       </Floating>
     </div>
@@ -160,19 +158,33 @@ const SOURCES: Record<string, { label: () => string; key: keyof Freshness; limit
   status: { label: () => tr("Status and stock changes"), key: "histories", limit: 60 }, menu: { label: () => tr("Outlets and menus"), key: "global", limit: 180 },
   reviews: { label: () => tr("Reviews"), key: "reviews", limit: 180 }, daily: { label: () => tr("Daily report"), key: "daily", limit: 36 * 60 },
 };
-/** One line: when the portal last read each source of the page, and how old BotFood's own reading is. */
+/** When the portal last read each source of the page, and how old BotFood's own reading is (2026-11-27: one line that
+ *  opens; the choice is kept on the device. A late source keeps the line in amber with what is late, even closed). */
 export function FreshLine({ ctx, sources }: { ctx: Ctx | null; sources: ("status" | "menu" | "reviews" | "daily")[] }) {
   const [now, setNow] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
   useEffect(() => { setNow(Date.now()); const t = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(t); }, []);
-  if (!ctx || now == null) return <p className="h-5 text-xs text-neutral-400">…</p>;
+  useEffect(() => { try { setOpen(localStorage.getItem("agg.fresh.open") === "1"); } catch { /* closed */ } }, []);
+  const toggle = () => { setOpen(!open); try { localStorage.setItem("agg.fresh.open", open ? "0" : "1"); } catch { /* private window */ } };
+  if (!ctx || now == null) return <p className="h-9 text-xs text-[#626F86]">…</p>;
   const old = (iso: string | null, min: number) => !iso || now - new Date(iso).getTime() > min * 60_000;
-  const bad = sources.some((s) => old(ctx.freshness[SOURCES[s].key] as string | null, SOURCES[s].limit)) || old(ctx.freshness.synced, 180) || ctx.freshness.errors.length > 0;
   const facts: [string, string | null, boolean][] = [...sources.map((s): [string, string | null, boolean] => { const at = ctx.freshness[SOURCES[s].key] as string | null; return [SOURCES[s].label(), at, old(at, SOURCES[s].limit)]; }),
     [tr("BotFood read the apps"), ctx.freshness.synced, old(ctx.freshness.synced, 180)]];
+  const late = facts.filter((f) => f[2]);
+  const bad = late.length > 0 || ctx.freshness.errors.length > 0;
+  const newest = facts.map((f) => f[1]).filter(Boolean).sort().pop() ?? null;
   return (
-    <section aria-label={tr("Last update")} className={cx("rounded-xl border px-3 py-2.5", bad ? "border-amber-200 bg-amber-50" : "border-neutral-200/70 bg-white")}>
-      <p className={cx("mb-1.5 flex items-center gap-1.5 text-xs font-semibold", bad ? "text-amber-900" : "text-neutral-700")}>{bad ? <AlertTriangle size={14} aria-hidden /> : <Clock size={13} aria-hidden />}{tr("Last update")}{bad && <span className="font-normal">· {tr("Check the merchant account before acting.")}</span>}</p>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-x-8">{facts.map(([l, at, o]) => <div key={l} className="min-w-0"><dt className="text-[11px] text-neutral-500">{l}</dt><dd className={cx("text-[13px] font-semibold", o ? "text-amber-900" : "text-neutral-900")}>{ago(at)}<span className="ml-1.5 whitespace-nowrap text-[11px] font-normal text-neutral-500">{at ? `${dayOf(at) === daysAgo(0) ? "" : `${fmtDayShort(dayOf(at))}, `}${fmtClock(at)} WIB` : ""}</span></dd></div>)}</dl>
+    <section aria-label={tr("Last update")} className={cx("rounded-[3px] border", bad ? "border-[#F5CD47] bg-[#FFF7D6]" : "border-[#DCDFE4] bg-white")}>
+      <button type="button" onClick={toggle} aria-expanded={open} className="flex min-h-11 w-full items-center gap-2 px-3 text-left text-sm sm:min-h-9">
+        {bad ? <AlertTriangle size={15} className="shrink-0 text-[#B38600]" aria-hidden /> : <Clock size={14} className="shrink-0 text-[#626F86]" aria-hidden />}
+        <span className="min-w-0 flex-1 truncate">
+          <span className="font-semibold text-[#172B4D]">{tr("Last update")}</span>
+          <span className="text-[#44546F]"> · {bad ? tr("{0} late: check the merchant account before acting", late.map((f) => f[0]).join(", ") || tr("a source")) : tr("all sources up to date, {0}", ago(newest))}</span>
+        </span>
+        <span className="shrink-0 text-xs font-medium text-[#0C66E4]">{open ? tr("Hide") : tr("Details")}</span>
+        <ChevronDown size={16} className={cx("shrink-0 text-[#44546F] transition-transform", open && "rotate-180")} aria-hidden />
+      </button>
+      {open && <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[#DCDFE4] px-3 py-2.5 sm:flex sm:flex-wrap sm:gap-x-8">{facts.map(([l, at, o]) => <div key={l} className="min-w-0"><dt className="text-xs text-[#626F86]">{l}</dt><dd className={cx("text-[13px] font-semibold", o ? "text-[#7F5F01]" : "text-[#172B4D]")}>{ago(at)}<span className="ml-1.5 whitespace-nowrap text-xs font-normal text-[#626F86]">{at ? `${dayOf(at) === daysAgo(0) ? "" : `${fmtDayShort(dayOf(at))}, `}${fmtClock(at)} WIB` : ""}</span></dd></div>)}</dl>}
     </section>
   );
 }
@@ -216,24 +228,24 @@ export function DataTable<T>({ cols, rows, loading, rowKey, onRow, initial, note
   return (
     <div>
       {select && select.picked.size > 0 && sorted.length > shown.length && all && select.picked.size < sorted.length && (
-        <p className="border-b border-brand-100 bg-brand-50/60 px-4 py-2 text-xs text-brand-900 sm:px-5">{tr("{0} on this page are chosen.", nf(shown.length))} <button type="button" className="font-semibold underline" onClick={() => setMany(sorted.map(rowKey), true)}>{tr("Choose all {0}", nf(sorted.length))}</button></p>)}
+        <p className="border-b border-[#85B8FF] bg-[#E9F2FF] px-4 py-2 text-xs text-[#0055CC] sm:px-5">{tr("{0} on this page are chosen.", nf(shown.length))} <button type="button" className="font-semibold underline" onClick={() => setMany(sorted.map(rowKey), true)}>{tr("Choose all {0}", nf(sorted.length))}</button></p>)}
       <div className="md:hidden">
-        {(select || sorts.length > 1) && <div className="flex items-center gap-3 border-b border-neutral-200 bg-neutral-50/60 px-4 py-2.5">
-          {select && <label className="flex min-h-11 flex-shrink-0 items-center gap-2.5 text-sm text-neutral-700"><input type="checkbox" className="h-5 w-5" checked={!!all} onChange={(e) => setMany(ids, e.target.checked)} />{tr("All")}</label>}
-          {sorts.length > 1 && <><span className="ml-auto flex-shrink-0 text-xs text-neutral-500">{tr("Sort by")}</span><div className="min-w-0 max-w-[13rem] flex-1"><JSelect value={sort.key ? `${sort.key}|${sort.dir}` : ""} onChange={(v) => { const [key, dir] = v.split("|"); setSort({ key, dir: dir as SortDir }); }} label={tr("Sort by")} placeholder={tr("Choose")} options={sorts} /></div></>}
+        {(select || sorts.length > 1) && <div className="flex items-center gap-3 border-b border-[#DCDFE4] bg-[#F7F8F9] px-4 py-2.5">
+          {select && <label className="flex min-h-11 flex-shrink-0 items-center gap-2.5 text-sm text-[#44546F]"><input type="checkbox" className="h-5 w-5" checked={!!all} onChange={(e) => setMany(ids, e.target.checked)} />{tr("All")}</label>}
+          {sorts.length > 1 && <><span className="ml-auto flex-shrink-0 text-xs text-[#626F86]">{tr("Sort by")}</span><div className="min-w-0 max-w-[13rem] flex-1"><JSelect value={sort.key ? `${sort.key}|${sort.dir}` : ""} onChange={(v) => { const [key, dir] = v.split("|"); setSort({ key, dir: dir as SortDir }); }} label={tr("Sort by")} placeholder={tr("Choose")} options={sorts} /></div></>}
         </div>}
-        <ul className="divide-y divide-neutral-200">{shown.map((r) => {
+        <ul className="divide-y divide-[#DCDFE4]">{shown.map((r) => {
           const id = rowKey(r), click = onRow ? () => onRow(r) : expand ? () => setOpen(open === id ? null : id) : undefined;
           return (
-            <li key={id} className={cx("px-4 py-3.5", select?.picked.has(id) && "bg-brand-50/40")}>
+            <li key={id} className={cx("px-4 py-3.5", select?.picked.has(id) && "bg-[#E9F2FF]")}>
               <div className="flex items-start gap-3">
                 {select && <input type="checkbox" className="mt-0.5 h-5 w-5 flex-shrink-0" aria-label={select.label(r)} checked={select.picked.has(id)} onChange={(e) => setMany([id], e.target.checked)} />}
                 {click ? <button type="button" onClick={click} className="min-w-0 flex-1 text-left text-[15px]">{title.render(r)}</button> : <div className="min-w-0 flex-1 text-[15px]">{title.render(r)}</div>}
                 {side && <div className="max-w-[45%] flex-shrink-0 text-right text-sm">{side.render(r)}</div>}
-                {click && <ChevronRight size={18} className={cx("mt-0.5 flex-shrink-0 text-neutral-300", !onRow && open === id && "rotate-90")} aria-hidden />}
+                {click && <ChevronRight size={18} className={cx("mt-0.5 flex-shrink-0 text-[#8590A2]", !onRow && open === id && "rotate-90")} aria-hidden />}
               </div>
-              {rest.length > 0 && <dl className={cx("mt-2.5 grid grid-cols-2 gap-x-4 gap-y-2.5", select && "pl-8")}>{rest.map((c) => <div key={c.key} className={cx("min-w-0", (c.card === "wide" || !c.label) && "col-span-2")}>{c.label && <dt className="mb-0.5 text-[11px] text-neutral-500">{c.label}</dt>}<dd className="break-words text-sm text-neutral-900">{c.render(r)}</dd></div>)}</dl>}
-              {expand && open === id && <div className="mt-3 rounded-lg bg-neutral-50 p-3">{expand(r)}</div>}
+              {rest.length > 0 && <dl className={cx("mt-2.5 grid grid-cols-2 gap-x-4 gap-y-2.5", select && "pl-8")}>{rest.map((c) => <div key={c.key} className={cx("min-w-0", (c.card === "wide" || !c.label) && "col-span-2")}>{c.label && <dt className="mb-0.5 text-[11px] text-[#626F86]">{c.label}</dt>}<dd className="break-words text-sm text-[#172B4D]">{c.render(r)}</dd></div>)}</dl>}
+              {expand && open === id && <div className="mt-3 rounded-[3px] bg-[#F7F8F9] p-3">{expand(r)}</div>}
             </li>);
         })}</ul>
       </div>
@@ -247,21 +259,21 @@ export function DataTable<T>({ cols, rows, loading, rowKey, onRow, initial, note
             {shown.map((r) => {
               const id = rowKey(r), click = onRow ? () => onRow(r) : expand ? () => setOpen(open === id ? null : id) : undefined;
               return [
-                <tr key={id} onClick={click} className={cx("border-b border-neutral-100 align-top hover:bg-neutral-50", click && "cursor-pointer", select?.picked.has(id) && "bg-brand-50/40")}>
+                <tr key={id} onClick={click} className={cx("border-b border-[#F1F2F4] align-top hover:bg-[#F7F8F9]", click && "cursor-pointer", select?.picked.has(id) && "bg-[#E9F2FF]")}>
                   {select && <td className={jTd} onClick={(e) => e.stopPropagation()}><input type="checkbox" aria-label={select.label(r)} checked={select.picked.has(id)} onChange={(e) => setMany([id], e.target.checked)} /></td>}
                   {vis.map((c) => <td key={c.key} data-label={c.label} className={cx(jTd, c.right && "text-right tabular-nums", c.className)}>{c.render(r)}</td>)}
                 </tr>,
-                expand && open === id && <tr key={`${id}x`} className="border-b border-neutral-100 bg-neutral-50/70"><td colSpan={span} className="px-5 py-3">{expand(r)}</td></tr>,
+                expand && open === id && <tr key={`${id}x`} className="border-b border-[#F1F2F4] bg-[#F7F8F9]"><td colSpan={span} className="px-5 py-3">{expand(r)}</td></tr>,
               ];
             })}
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col gap-2.5 border-t border-neutral-200 px-4 py-3 text-xs text-neutral-500 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:py-2.5">
-        {note ? <span className="flex max-w-3xl items-start gap-1.5"><Info size={13} className="mt-0.5 shrink-0 text-neutral-400" aria-hidden /><span>{note}</span></span> : <span />}
+      <div className="flex flex-col gap-2.5 border-t border-[#DCDFE4] px-4 py-3 text-xs text-[#626F86] sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:py-2.5">
+        {note ? <span className="flex max-w-3xl items-start gap-1.5"><Info size={13} className="mt-0.5 shrink-0 text-[#626F86]" aria-hidden /><span>{note}</span></span> : <span />}
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5 lg:shrink-0">
           <label className="inline-flex items-center gap-1.5 whitespace-nowrap">{tr("Rows per page")}
-            <span className="inline-flex overflow-hidden rounded border border-neutral-200" role="group">{SIZES.map((n) => <button key={n} type="button" aria-pressed={size === n} onClick={() => setSize(n)} className={cx("h-9 px-2.5 tabular-nums lg:h-7 lg:px-2", size === n ? "bg-brand-700 font-semibold text-white" : "bg-white text-neutral-600 hover:bg-neutral-100")}>{n}</button>)}</span></label>
+            <span className="inline-flex overflow-hidden rounded border border-[#DCDFE4]" role="group">{SIZES.map((n) => <button key={n} type="button" aria-pressed={size === n} onClick={() => setSize(n)} className={cx("h-9 px-2.5 tabular-nums lg:h-7 lg:px-2", size === n ? "bg-[#0C66E4] font-semibold text-white" : "bg-white text-[#44546F] hover:bg-[#091E420F]")}>{n}</button>)}</span></label>
           <span className="whitespace-nowrap tabular-nums">{tr("{0}–{1} of {2}", nf((cur - 1) * size + 1), nf(Math.min(cur * size, sorted.length)), nf(sorted.length))}</span>
           {pages > 1 && <span className="flex w-full items-center justify-center gap-1.5 lg:w-auto lg:gap-1">
             <Nav label={tr("First page")} off={cur <= 1} go={() => setPage(1)}><ChevronsLeft size={15} /></Nav><Nav label={tr("Previous Page")} off={cur <= 1} go={() => setPage(cur - 1)}><ChevronLeft size={15} /></Nav>
@@ -274,21 +286,21 @@ export function DataTable<T>({ cols, rows, loading, rowKey, onRow, initial, note
 }
 const Nav = ({ label, off, go, children }: { label: string; off: boolean; go: () => void; children: ReactNode }) => <Button variant="secondary" size="sm" className="!h-10 px-2.5 lg:!h-8 lg:px-1.5" disabled={off} onClick={go} aria-label={label}>{children}</Button>;
 
-/** The outlet of a row: short name, its code, the zone when not WIB. */
+/** The outlet of a row: its full name (2026-11-27: never shortened), its code, the zone when not WIB. */
 export function OutletCell({ name, code, ctx }: { name: string; code?: string | null; ctx: Ctx | null }) {
   const o = code ? ctx?.outlets.find((x) => x.code === code) : null;
-  return <span className="block min-w-0"><span className="font-medium text-neutral-900">{name.replace(/^Kopi Calf,? ?(To Go )?/, "") || name}</span>
-    <span className="block text-[11px] text-neutral-400">{code ?? tr("not matched to our outlet")}{o?.group ? ` · ${o.group}` : ""}{o && o.zone !== "WIB" ? ` · ${o.zone}` : ""}</span></span>;
+  return <span className="block min-w-0"><span className="font-medium text-[#172B4D]">{name}</span>
+    <span className="block text-[11px] text-[#626F86]">{code ?? tr("not matched to our outlet")}{o?.group ? ` · ${o.group}` : ""}{o && o.zone !== "WIB" ? ` · ${o.zone}` : ""}</span></span>;
 }
 
 /** Label, bar, number. */
 export function Bars({ rows, onPick, empty }: { rows: { key: string; label: string; n: number; sub?: string }[]; onPick?: (key: string) => void; empty?: string }) {
   const max = Math.max(1, ...rows.map((r) => r.n));
   if (!rows.length) return <Empty title={empty ?? tr("Nothing in this period")} />;
-  return <ul className="divide-y divide-neutral-100">{rows.map((r) => {
-    const body = <><span className="min-w-0 truncate text-neutral-800" title={r.label}>{r.label}{r.sub && <span className="ml-1.5 text-[11px] text-neutral-400">{r.sub}</span>}</span><span className="h-2.5 rounded-sm bg-neutral-100"><span className="block h-2.5 rounded-sm bg-brand-600" style={{ width: `${(r.n / max) * 100}%` }} /></span><span className="text-right tabular-nums text-neutral-700">{nf(r.n)}</span></>;
+  return <ul className="divide-y divide-[#F1F2F4]">{rows.map((r) => {
+    const body = <><span className="min-w-0 truncate text-[#172B4D]" title={r.label}>{r.label}{r.sub && <span className="ml-1.5 text-[11px] text-[#626F86]">{r.sub}</span>}</span><span className="h-2.5 rounded-sm bg-[#091E420F]"><span className="block h-2.5 rounded-sm bg-[#0C66E4]" style={{ width: `${(r.n / max) * 100}%` }} /></span><span className="text-right tabular-nums text-[#44546F]">{nf(r.n)}</span></>;
     const cls = "grid w-full grid-cols-[minmax(0,1fr)_minmax(4rem,1.2fr)_3.5rem] items-center gap-3 px-4 py-2.5 text-left text-sm sm:px-5";
-    return <li key={r.key}>{onPick ? <button type="button" onClick={() => onPick(r.key)} className={cx(cls, "hover:bg-neutral-50")}>{body}</button> : <div className={cls}>{body}</div>}</li>;
+    return <li key={r.key}>{onPick ? <button type="button" onClick={() => onPick(r.key)} className={cx(cls, "hover:bg-[#F7F8F9]")}>{body}</button> : <div className={cls}>{body}</div>}</li>;
   })}</ul>;
 }
 

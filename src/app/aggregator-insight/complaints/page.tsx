@@ -5,20 +5,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { MessageSquareText, Plus, Save } from "lucide-react";
-import { Button, ErrorState, cx, useToast } from "@/so/ui";
-import Drawer from "@/components/kc/Drawer";
-import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
-import { JSelect, Lozenge, type LozengeTone, QuickChips, WorkCard } from "@/so/ui/Jira";
+import { useToast } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 import { Tip } from "@/aggregator/info";
-import { Facts, Group, DateField, Row, ctl } from "@/aggregator/fields";
 import { downloadSheets } from "@/aggregator/ui";
+import TicketDrawer from "@/aggregator/Ticket";
 import { DataTable, FilterBar, FreshLine, OutletCell, platformOptions, Platform, noMembers, useCtx, useFilters, useScope, type Col } from "@/aggregator/kit";
 import { ago, daysAgo, fmtDay, fmtPeriod, fmtSpan, fmtStamp, nf, rp, xlStamp } from "@/aggregator/time";
+import Drawer, { Page, Stat, StatSkeleton, StatStrip, JSelect, Lozenge, type LozengeTone, QuickChips, WorkCard, Button, ErrorState, cx, Group, DateField, Row, ctl } from "@/jira";
 
 type Status = "open" | "progress" | "done";
-type Row = { id: number; reviewId: string | null; branchCode: string | null; outlet: string; platform: string; orderNo: string | null; day: string; source: string; category: string; detail: string;
+type Row = { evidence?: number; id: number; reviewId: string | null; branchCode: string | null; outlet: string; platform: string; orderNo: string | null; day: string; source: string; category: string; detail: string;
   status: Status; resolution: string | null; compensation: number | null; createdAt: string; createdBy: string | null; firstResponseAt: string | null; resolvedAt: string | null; responseMin: number | null; resolveMin: number | null; handledBy: string | null; member: string | null };
 type Res = { summary: { n: number; open: number; progress: number; done: number; responseMedian: number | null; resolveMedian: number | null; compensation: number };
   categories: { category: string; n: number }[]; topics: string[]; outlets: { code: string; name: string }[]; data: Row[] };
@@ -55,13 +53,14 @@ export default function Complaints() {
   const comp = scoped.reduce((x, r) => x + (r.compensation ?? 0), 0);
   const ok = !!data;
   const cols: Col<Row>[] = [
-    { key: "id", label: "#", sort: (r) => r.id, first: "desc", className: "font-semibold text-brand-700", render: (r) => r.id },
-    { key: "day", label: tr("Date"), sort: (r) => r.day, first: "desc", className: "whitespace-nowrap", render: (r) => <>{fmtDay(r.day)}<span className="block text-[11px] text-neutral-400" title={fmtStamp(r.createdAt)}>{tr("ticket {0}", ago(r.createdAt))}</span></> },
+    { key: "id", label: "#", sort: (r) => r.id, first: "desc", className: "font-semibold text-[#0C66E4]", render: (r) => r.id },
+    { key: "day", label: tr("Date"), sort: (r) => r.day, first: "desc", className: "whitespace-nowrap", render: (r) => <>{fmtDay(r.day)}<span className="block text-[11px] text-[#626F86]" title={fmtStamp(r.createdAt)}>{tr("ticket {0}", ago(r.createdAt))}</span></> },
     { key: "outlet", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
     { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "detail", card: "wide", label: tr("Complaint"), className: "max-w-[26rem]", render: (r) => <><span className="line-clamp-3 text-neutral-900">{r.detail}</span><span className="block text-[11px] text-neutral-500">{r.category} · {SOURCE[r.source]?.() ?? r.source}{r.orderNo ? ` · ${r.orderNo}` : ""}</span>{r.resolution && <span className="block text-[11px] text-emerald-700">{r.resolution}</span>}</> },
+    { key: "detail", card: "wide", label: tr("Complaint"), className: "max-w-[26rem]", render: (r) => <><span className="line-clamp-3 text-[#172B4D]">{r.detail}</span><span className="block text-[11px] text-[#626F86]">{r.category} · {SOURCE[r.source]?.() ?? r.source}{r.orderNo ? ` · ${r.orderNo}` : ""}</span>{r.resolution && <span className="block text-[11px] text-emerald-700">{r.resolution}</span>}</> },
     { key: "status", card: "side", label: tr("Status"), sort: (r) => ["open", "progress", "done"].indexOf(r.status), render: (r) => <Lozenge tone={TONE[r.status]}>{LABEL[r.status]()}</Lozenge> },
     { key: "resp", label: tr("First response"), sort: (r) => r.responseMin, right: true, className: "whitespace-nowrap", render: (r) => r.responseMin != null ? fmtSpan(r.responseMin) : <span className="text-red-700">{tr("not yet")}</span> },
+    { key: "ev", label: tr("Evidence"), sort: (r) => r.evidence ?? 0, right: true, render: (r) => r.evidence ? <span className="inline-flex items-center gap-1 text-[#44546F]">{nf(r.evidence)}</span> : <span className="text-[#626F86]">—</span> },
     { key: "reso", label: tr("Resolved in"), sort: (r) => r.resolveMin, right: true, className: "whitespace-nowrap", render: (r) => fmtSpan(r.resolveMin) },
     { key: "comp", label: tr("Compensation"), sort: (r) => r.compensation, first: "desc", right: true, hide: !scoped.some((r) => r.compensation), className: "whitespace-nowrap", render: (r) => rp(r.compensation) },
     { key: "member", label: tr("On duty"), sort: (r) => r.member, hide: noMembers(scoped), render: (r) => r.member ?? "—" },
@@ -81,7 +80,7 @@ export default function Complaints() {
     <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: (data?.topics ?? []).map((c) => ({ value: c, label: c })) },
         { key: "source", label: tr("Source"), value: source, onChange: setSource, options: Object.entries(SOURCE).map(([value, l]) => ({ value, label: l() })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, order or complaint")} excel={() => void exportXlsx()} excelOff={!data}><QuickChips<Status | "all"> value={only} onChange={setOnly} label={tr("Status")} items={[{ key: "open", label: LABEL.open(), dot: "bg-red-500", count: n("open") }, { key: "progress", label: LABEL.progress(), dot: "bg-amber-400", count: n("progress") }, { key: "done", label: LABEL.done(), dot: "bg-emerald-500", count: n("done") }, { key: "all", label: tr("All"), count: scoped.length }]} /></FilterBar>
   );
-  const card = <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white">{filter}</section>;
+  const card = <section className="overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-white">{filter}</section>;
   return (
     <Page title={tr("Complaints")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Tickets from low reviews, chat and the delivery apps, with response and resolution times")} media={<MessageSquareText size={19} />}
       actions={<><Button size="sm" onClick={() => setAdding(true)} disabled={!data}><Plus size={14} /> {tr("New complaint")}</Button></>}>
@@ -100,42 +99,9 @@ export default function Complaints() {
           </WorkCard>
         </>
       )}
-      {edit && data && <Edit key={edit.id} row={edit} topics={data.topics} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
+      {edit && data && <TicketDrawer key={edit.id} id={edit.id} topics={data.topics} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); load(); }} />}
       {adding && data && <Add res={data} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); load(); }} />}
     </Page>
-  );
-}
-
-function Edit({ row, topics, onClose, onSaved }: { row: Row; topics: string[]; onClose: () => void; onSaved: () => void }) {
-  const toast = useToast();
-  const [status, setStatus] = useState<Status>(row.status === "open" ? "progress" : row.status);
-  const [category, setCategory] = useState(row.category);
-  const [resolution, setResolution] = useState(row.resolution ?? "");
-  const [comp, setComp] = useState(row.compensation != null ? String(row.compensation) : "");
-  const [busy, setBusy] = useState(false);
-  const save = async () => {
-    setBusy(true);
-    try { await call(`/api/aggregator/complaints/${row.id}`, { method: "PATCH", json: { status, category, resolution: resolution.trim() || null, compensation: comp ? Number(comp) : null } }); toast(tr("Saved")); onSaved(); }
-    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
-  };
-  const steps = [[tr("Ticket made"), row.createdAt, row.createdBy], [tr("First response"), row.firstResponseAt, row.responseMin != null ? tr("after {0}", fmtSpan(row.responseMin)) : null], [tr("Done"), row.resolvedAt, row.resolveMin != null ? tr("after {0}", fmtSpan(row.resolveMin)) : null]] as const;
-  return (
-    <Drawer open onClose={onClose} icon={<MessageSquareText size={18} />} title={tr("Complaint #{0}", row.id)} description={row.outlet}
-      footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={status === "done" && !resolution.trim()} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button></>}>
-      <Group title={tr("The complaint")}>
-        <p className="whitespace-pre-line rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-800">{row.detail}</p>
-        <Facts rows={[[tr("Outlet"), row.outlet], [tr("Platform"), <Platform key="p" p={row.platform} />], [tr("Date"), fmtDay(row.day)], [tr("Order no."), row.orderNo ?? "—"], [tr("Source"), SOURCE[row.source]?.() ?? row.source], ...(row.member ? [[tr("On duty"), row.member] as [string, string]] : [])]} />
-      </Group>
-      <Group title={tr("Handling times")} note={tr("All times in WIB")}>
-        <ol className="space-y-3">{steps.map(([l, at, sub]) => <li key={l} className="flex gap-3"><span className={cx("mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full", at ? "bg-brand-700" : "border border-neutral-300")} aria-hidden /><span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{l}</span><span className="block text-xs text-neutral-500">{at ? [fmtStamp(at), sub].filter(Boolean).join(" · ") : tr("not yet")}</span></span></li>)}</ol>
-      </Group>
-      <Group title={tr("Follow-up")}>
-        <Row label={tr("Status")}><div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={tr("Status")}>{(["open", "progress", "done"] as Status[]).map((x) => <button key={x} type="button" role="radio" aria-checked={status === x} onClick={() => setStatus(x)} className={cx("h-11 rounded-lg border text-sm font-medium sm:h-10", status === x ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-700 hover:bg-neutral-50")}>{LABEL[x]()}</button>)}</div></Row>
-        <Row label={tr("Category")}><JSelect label={tr("Category")} placeholder={tr("Category")} value={category} onChange={setCategory} options={[...new Set([...topics, category])].map((c) => ({ value: c, label: c }))} /></Row>
-        <Row label={tr("Resolution")} required={status === "done"} hint={tr("Required to close the ticket")}><textarea aria-label={tr("Resolution")} value={resolution} onChange={(e) => setResolution(e.target.value)} rows={4} maxLength={2000} className={cx(ctl, "!h-auto py-2.5")} /></Row>
-        <Row label={tr("Compensation (Rp)")} hint={comp ? rp(Number(comp)) : tr("Leave empty when there is none")}><input aria-label={tr("Compensation (Rp)")} inputMode="numeric" value={comp} onChange={(e) => setComp(e.target.value.replace(/\D/g, ""))} className={cx(ctl, "tabular-nums")} /></Row>
-      </Group>
-    </Drawer>
   );
 }
 
