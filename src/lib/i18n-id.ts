@@ -8306,4 +8306,6 @@ export const ID: Record<string, string> = {
   "entered": "input",
   "Input": "Input",
   "Reviewed by": "Direview oleh",
+  "Waiting for transfer": "Menunggu Transfer",
+  "{0} requests ({1}) are still in approval: they appear here once every approval is given": "{0} pengajuan ({1}) masih dalam approval: muncul di sini setelah seluruh approval diberikan",
 };

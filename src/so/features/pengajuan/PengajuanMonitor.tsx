@@ -9,7 +9,7 @@
 // steps of every kind with their users (superadmin) and the petty cash plafon (superadmin, Finance).
 
 import { CardFooter, JSelect, Lozenge, NativeSelect, type LozengeTone, Person, QuickChips, Toolbar, TypeIcon, WorkCard, jHeadRow, jKey, jRow, jTable, jTd, jTh } from "@/so/ui/Jira";
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, GripVertical, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet, Store, UserRound, ListChecks, ChevronRight, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, Clock, GripVertical, ClipboardList, Copy, MessageSquareText, Paperclip, Plus, Send, Settings2, Trash2, UserCheck, Wallet, Store, UserRound, ListChecks, ChevronRight, Wrench } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Page, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
 import Drawer from "@/so/ui/Drawer";
@@ -31,7 +31,9 @@ import { SkeletonList } from "@/components/kc/Skeleton";
 import { type Action, type Kind, type Pengajuan, type PgFile, type Status, type Unit, ACTION_LABEL, CATEGORY_LABEL, DE_KINDS, KINDS, KIND_LABEL, OPEN, STATUS_LABEL, acceptedTotal,
   categoryLabel, fmtRp, kindLabel, parseRp, placeOf, requestLabel, setKindLabels, typeRp, upload, type FundOption, type OptionList } from "./pengajuan";
 
-type Result = { period: { from: string; to: string }; me: string; superadmin: boolean; data: Pengajuan[]; categories: Record<string, string>; units?: Unit[]; openByUnit?: Record<string, number> };
+type Result = { period: { from: string; to: string }; me: string; superadmin: boolean; data: Pengajuan[]; categories: Record<string, string>; units?: Unit[]; openByUnit?: Record<string, number>;
+  /** 2026-11-27: the requests still in approval this account has not reached (not listed): the cash to come */
+  pipeline?: { count: number; amount: number; byUnit: Record<string, number> } };
 type F = { period: Period; bgroup: string; branch: string; kind: Kind | ""; account: string; category: string; flag: "" | "reused" | "negative" | "opening" | "rejected" | "aboveRef" };
 const NO_F = (): F => ({ period: { from: wibOffset(-89), to: wibOffset(0) }, bgroup: "", branch: "", kind: "", account: "", category: "", flag: "" });
 type GroupOpt = { id: string; code: string; name: string };
@@ -202,6 +204,10 @@ export default function PengajuanMonitor() {
             </Stat>
           ))}
         </StatStrip>
+        {res?.pipeline && res.pipeline.count > 0 && (
+          <p className="mt-3 flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+            <Clock size={14} className="mt-px shrink-0" />{tr("{0} requests ({1}) are still in approval: they appear here once every approval is given", fmtNumber(res.pipeline.count), fmtRp(res.pipeline.amount))}</p>
+        )}
         </>
       }>
       {/* Jira-like (2026-11-18): one card, the kinds as tabs, the status as quick filters, the requests as an issue table */}

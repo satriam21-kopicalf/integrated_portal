@@ -74,7 +74,7 @@ export type FormState = { user: { id: string; username: string; name: string }; 
 
 export const STATUS_LABEL: Record<Status, () => string> = {
   DRAFT: () => tr("Draft"), SUBMITTED: () => tr("Pending"), REVISION: () => tr("Revision"),
-  APPROVED: () => tr("Approved"), PAID: () => tr("In Progress"), VERIFYING: () => tr("Verifying"),
+  APPROVED: () => tr("Waiting for transfer"), PAID: () => tr("In Progress · proof awaited"), VERIFYING: () => tr("Verifying"),
   DONE: () => tr("Done"), REJECTED: () => tr("Rejected"), CANCELLED: () => tr("Cancelled"),
 };
 export const STATUS_TONE: Record<Status, Tone> = { DRAFT: "slate", SUBMITTED: "blue", REVISION: "amber", APPROVED: "cyan", PAID: "violet",
