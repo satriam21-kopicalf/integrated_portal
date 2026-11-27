@@ -30,6 +30,7 @@ module.exports = {
     './src/so/**/*.{js,ts,jsx,tsx,mdx}',
     './src/cotr/**/*.{js,ts,jsx,tsx,mdx}',  // Calf On The Road (2026-11-12: its own classes were never built)
     './src/social/**/*.{js,ts,jsx,tsx,mdx}',  // Social Media (2026-11-23: the drawers' own classes were not built)
+    './src/building/**/*.{js,ts,jsx,tsx,mdx}',  // Building & Renovation (2026-11-27)
     './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {

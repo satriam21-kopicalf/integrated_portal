@@ -17,6 +17,8 @@ import { downloadSheets } from "@/aggregator/ui";
 import { DataTable, type Col } from "@/aggregator/kit";
 import { DateField, Facts, Group, Row, ctl } from "@/aggregator/fields";
 import { dmy } from "@/so/ui/Filters";
+import { useRouter } from "next/navigation";
+import { ProjectForm, ProjectList } from "@/building/Projects";
 
 type Material = { id: number; group: string; category: string; spec: string | null; detail: string | null; unit: string | null; price: number | null;
   priceOn: string | null; priceAge: number | null; stale: boolean; vendorId: number | null; vendor: string | null; vendorPhone: string | null; note: string | null;
@@ -27,7 +29,7 @@ type Vendor = { id: number; kind: "STORE" | "SUPPLIER"; kindLabel: string; name:
 type Res = { data: Material[]; groups: string[]; staleDays: number; vendors: Vendor[]; kinds: Record<string, string>;
   summary: { materials: number; no_price: number; stale: number; categories: number; stores: number; suppliers: number } };
 type Price = { price: number; priceOn: string; vendor: string | null; source: string; note: string | null; by: string | null; at: string };
-type Tab = "materials" | "vendors";
+type Tab = "projects" | "materials" | "vendors";
 
 const rp = (n: number | null | undefined) => (n == null ? "—" : `Rp ${Math.round(n).toLocaleString("id-ID")}`);
 const today = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
@@ -67,7 +69,9 @@ export default function BuildingPage() {
   const toast = useToast();
   const [res, setRes] = useState<Res | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("materials");
+  const router = useRouter();
+  const [tab, setTab] = useState<Tab>("projects");
+  const [newProject, setNewProject] = useState(false);
   const [q, setQ] = useState("");
   const [grp, setGrp] = useState(""), [cat, setCat] = useState(""), [priceState, setPriceState] = useState(""), [vendorF, setVendorF] = useState("");
   const [kind, setKind] = useState(""), [loc, setLoc] = useState("");
@@ -109,7 +113,7 @@ export default function BuildingPage() {
   const key = `${tab}${grp}${cat}${priceState}${vendorF}${kind}${loc}${t}`;
   return (
     <Page title={tr("Building & Renovation")} eyebrow={tr("Operations")} media={<Building2 size={19} />}
-      subtitle={tr("Material catalog with dated prices, stores and suppliers of the Building team")}>
+      subtitle={tr("Projects with RAB and progress, the material catalog, stores and suppliers of the Building team")}>
       {err ? <ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /> : (
         <>
           <StatStrip columns={4} label={tr("Catalog")} gridClassName="grid-cols-2 lg:grid-cols-4">
@@ -119,8 +123,8 @@ export default function BuildingPage() {
             <Stat label={tr("Stores & suppliers")} onClick={() => setTab("vendors")} active={tab === "vendors"} value={s ? (s.stores + s.suppliers).toLocaleString("id-ID") : <StatSkeleton />}>{s && <p>{tr("{0} stores · {1} suppliers", s.stores, s.suppliers)}</p>}</Stat>
           </StatStrip>
           <WorkCard<Tab> active={tab} onTab={(k) => { setTab(k); setQ(""); }} label={tr("Views")}
-            tabs={[{ key: "materials", label: tr("Material Catalog"), count: res ? res.data.length : null }, { key: "vendors", label: tr("Stores & Suppliers"), count: res ? res.vendors.length : null }]}>
-            {tab === "materials" ? <>
+            tabs={[{ key: "projects", label: tr("Projects") }, { key: "materials", label: tr("Material Catalog"), count: res ? res.data.length : null }, { key: "vendors", label: tr("Stores & Suppliers"), count: res ? res.vendors.length : null }]}>
+            {tab === "projects" ? <ProjectList onAdd={() => setNewProject(true)} /> : tab === "materials" ? <>
               <Filters q={q} onQ={setQ} placeholder={tr("Search material, brand, size or store")} excel={exportXlsx} add={() => setMat({ group: grp || "Sipil", category: cat || "", priceOn: today(), active: true })}
                 fields={[{ key: "g", label: tr("Group"), value: grp, onChange: (v) => { setGrp(v); setCat(""); }, options: (res?.groups ?? []).map((x) => ({ value: x, label: x })) },
                   { key: "c", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((x) => ({ value: x, label: x })) },
@@ -136,6 +140,7 @@ export default function BuildingPage() {
           </WorkCard>
         </>
       )}
+      {newProject && <ProjectForm onClose={() => setNewProject(false)} onSaved={(id) => router.push(`/monitoring/building/${id}`)} />}
       {mat && res && <MaterialDrawer m={mat} res={res} onClose={() => setMat(null)} onSaved={() => { setMat(null); setVersion((v) => v + 1); }} />}
       {ven && <VendorDrawer v={ven} onClose={() => setVen(null)} onSaved={() => { setVen(null); setVersion((x) => x + 1); }} />}
     </Page>
