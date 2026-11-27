@@ -37,12 +37,12 @@ export default function FundUnits({ userId }: { userId: string }) {
     <DrawerSection title={tr("Fund Request Units")} description={tr("The units this account asks for and monitors. None chosen: the units of its branches; superadmin and admin every unit. Saved at once.")}>
       <div className="grid gap-2 sm:grid-cols-2">
         {units.map((u) => (
-          <label key={u.code} className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-neutral-200 px-3 py-2 text-sm hover:bg-neutral-50">
+          <label key={u.code} className="flex cursor-pointer items-center gap-2.5 rounded-[3px] border border-[#DCDFE4] px-3 py-2 text-sm hover:bg-[#F7F8F9]">
             <input type="checkbox" checked={chosen.includes(u.code)} onChange={() => void toggle(u.code)} />
             <span className="flex h-8 w-14 flex-shrink-0 items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {LOGOS[u.code] && <img src={LOGOS[u.code]} alt="" aria-hidden className="max-h-8 max-w-full object-contain" />}</span>
-            <span className="min-w-0"><span className="block font-medium text-neutral-900">{u.name}{chosen.length === 0 && preset.includes(u.code) && <span className="ml-1.5 rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-brand-700" title={tr("The default of this account")}>{tr("Default")}</span>}</span><span className="block truncate text-[11px] text-neutral-500">{u.payer}</span></span>
+            <span className="min-w-0"><span className="block font-medium text-[#172B4D]">{u.name}{chosen.length === 0 && preset.includes(u.code) && <span className="ml-1.5 rounded bg-[#E9F2FF] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-[#0C66E4]" title={tr("The default of this account")}>{tr("Default")}</span>}</span><span className="block truncate text-[11px] text-[#626F86]">{u.payer}</span></span>
           </label>
         ))}
       </div>

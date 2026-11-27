@@ -16,12 +16,13 @@ import HrmsEmployeePicker, { HRMS_FIELDS, followsHrms, hrmsValue, type HrmsEmplo
 import HrmsSyncDrawer from '@/components/access/HrmsSyncDrawer';
 import { AccessSettingsDrawer, PageAccessEditor } from '@/components/access/PageAccess';
 import ProfileFields, { PROFILE_KEYS, ProfileValues, profileValues } from '@/components/ProfileFields';
-import { EmptyState, ErrorBlock, IconButton, PageHeader, PageShell, Pill, type PillTone, SearchInput, StatCard, StatGrid, Toolbar, ValueSkeleton, btn } from '@/components/kc';
-import { CardFooter, Toolbar as JToolbar, WorkCard, jHeadRow, jRow, jTable, jTd, jTh } from '@/so/ui/Jira';
+import { EmptyState, ErrorBlock, IconButton, PageHeader, PageShell, Pill, type PillTone, SearchInput, StatCard, StatGrid, Toolbar, ValueSkeleton, btn } from '@/jira/kc';
+import { CardFooter, Toolbar as JToolbar, WorkCard, jHeadRow, jRow, jTable, jTd, jTh } from '@/jira';
 import { Segmented } from '@/so/ui/Simple';
 import ActionMenu, { ActionItem } from '@/components/ui/ActionMenu';
-import Dialog, { buttonDanger, buttonPrimary, buttonSecondary, Field, inputClass } from '@/components/ui/Dialog';
-import Drawer, { DrawerSection } from '@/components/ui/Drawer';
+import Dialog, { Field } from '@/components/ui/Dialog';
+import { buttonDanger, buttonPrimary, buttonSecondary, inputClass } from '@/jira/kc';
+import Drawer, { DrawerSection } from '@/jira';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
 import FundUnits from '@/components/access/FundUnits';
@@ -286,10 +287,10 @@ export default function UsersPage() {
             const on = l.key === line;
             return (
               <button key={l.key} type="button" role="radio" aria-checked={on} onClick={() => pickTab(l.key)}
-                className={`inline-flex h-9 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors ${on ? 'border-brand-700 bg-white text-brand-800 ring-1 ring-brand-700' : 'border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100'}`}>
+                className={`inline-flex h-9 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors ${on ? 'border-[#0C66E4] bg-white text-[#0055CC] ring-1 ring-[#388BFF]' : 'border-[#DCDFE4] bg-[#F7F8F9] text-[#44546F] hover:bg-[#091E420F]'}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={LOGOS[l.unit]} alt="" aria-hidden className={`max-h-6 max-w-14 object-contain ${on ? '' : 'opacity-60 grayscale'}`} />
-                {l.label}{s?.lines && <span className="rounded-full bg-neutral-200/80 px-1.5 text-[11px] tabular-nums text-neutral-700">{formatNumber(s.lines[l.key] ?? 0)}</span>}
+                {l.label}{s?.lines && <span className="rounded-full bg-neutral-200/80 px-1.5 text-[11px] tabular-nums text-[#44546F]">{formatNumber(s.lines[l.key] ?? 0)}</span>}
               </button>
             );
           })}
@@ -336,18 +337,18 @@ export default function UsersPage() {
                       <UserRow key={(u as AuthUser).id} user={u as AuthUser} isMe={(u as AuthUser).id === me?.id} branchName={branchName}
                         onView={() => setViewing(u as AuthUser)} actions={actionsFor(u as AuthUser)} />
                     ) : (
-                      <tr key={i}><td colSpan={7} className="px-3 py-2"><div className="h-9 skeleton rounded-lg" /></td></tr>
+                      <tr key={i}><td colSpan={7} className="px-3 py-2"><div className="h-9 skeleton rounded-[3px]" /></td></tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <ul className="divide-y divide-neutral-100 md:hidden">
+              <ul className="divide-y divide-[#F1F2F4] md:hidden">
                 {rows.map(u => (
                   <li key={u.id} className="flex items-start gap-3 px-4 py-3">
                     <Avatar user={u} />
                     <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setViewing(u)}>
-                      <p className="truncate text-sm font-medium text-neutral-900">{u.displayName}{u.id === me?.id && <span className="ml-1.5 text-xs font-normal text-neutral-400">{tr('(you)')}</span>}</p>
-                      <p className="truncate text-xs text-neutral-500">{u.username} · {u.email}</p>
+                      <p className="truncate text-sm font-medium text-[#172B4D]">{u.displayName}{u.id === me?.id && <span className="ml-1.5 text-xs font-normal text-[#626F86]">{tr('(you)')}</span>}</p>
+                      <p className="truncate text-xs text-[#626F86]">{u.username} · {u.email}</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5"><RoleBadge role={u.role} /><BranchesBadge user={u} branchName={branchName} /><StatusBadge user={u} /></div>
                     </button>
                     <ActionMenu items={actionsFor(u)} label={tr('Actions for {0}', u.username)} />
@@ -357,8 +358,8 @@ export default function UsersPage() {
             </div>
           )}
           <CardFooter>
-            <span className="text-xs text-neutral-500">{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
-            <div className="flex items-center gap-2 text-xs text-neutral-500">
+            <span className="text-xs text-[#626F86]">{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
+            <div className="flex items-center gap-2 text-xs text-[#626F86]">
               <button type="button" className={btn('outline', 'sm')} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous Page')}><ChevronLeft size={15} /></button>
               <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
               <button type="button" className={btn('outline', 'sm')} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next Page')}><ChevronRight size={15} /></button>
@@ -382,7 +383,7 @@ export default function UsersPage() {
       {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
       {toast && (
-        <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-neutral-900' : 'bg-red-600'}`} role="status">
+        <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-[3px] px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-[#172B4D]' : 'bg-red-600'}`} role="status">
           {toast.tone === 'ok' ? <CheckCircle2 size={16} className="text-emerald-400" /> : <AlertCircle size={16} />}
           {toast.text}
           <button type="button" onClick={() => setToast(null)} className="ml-1 rounded p-0.5 opacity-70 hover:opacity-100" aria-label={tr('Dismiss')}><X size={14} /></button>
@@ -410,7 +411,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
   const [draft, setDraft] = useState<UserFilters>(value);
   const set = (key: keyof UserFilters) => (v: string) => setDraft(d => ({ ...d, [key]: v }));
   const options = useMemo(() => [...branches].sort((a, b) => a.branch_name.localeCompare(b.branch_name)).map(b => ({
-    value: b.branch_code, label: b.branch_name, meta: <span className="font-mono text-[11px] text-neutral-400">{b.branch_code}</span>,
+    value: b.branch_code, label: b.branch_name, meta: <span className="font-mono text-[11px] text-[#626F86]">{b.branch_code}</span>,
   })), [branches]);
   return (
     <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter Users')}
@@ -432,7 +433,7 @@ function UserFiltersDrawer({ value, branches, branchesLoading, onApply, onClose 
         ]} />
         <SearchChoice label={tr('Branch')} anyLabel={tr('All Branches')} options={options} value={draft.branch} onChange={set('branch')}
           placeholder={tr('Search outlet name or code')} loading={branchesLoading} />
-        <p className="text-xs text-neutral-500">{tr('A branch shows the users assigned to it. A Superadmin sees every branch and is always included.')}</p>
+        <p className="text-xs text-[#626F86]">{tr('A branch shows the users assigned to it. A Superadmin sees every branch and is always included.')}</p>
       </div>
     </Drawer>
   );
@@ -457,7 +458,7 @@ function StatusBadge({ user }: { user: AuthUser }) {
 
 /** Branches the account may see: superadmins every branch; a user without branches sees no data. */
 function BranchesBadge({ user, branchName }: { user: AuthUser; branchName: (code: string) => string }) {
-  if (!branchScoped(user.role) && !(branchLimitable(user.role) && user.branches?.length)) return <span className="whitespace-nowrap text-xs text-neutral-500">{tr('All Branches')}</span>;
+  if (!branchScoped(user.role) && !(branchLimitable(user.role) && user.branches?.length)) return <span className="whitespace-nowrap text-xs text-[#626F86]">{tr('All Branches')}</span>;
   const codes = user.branches ?? [];
   if (!codes.length) return <Pill tone="red" icon={<CircleAlert size={11} />} title={tr('This user sees no data until branches are assigned')}>{tr('No branch')}</Pill>;
   const label = codes.length === 1 ? branchName(codes[0]) : tr('{0} branches', codes.length);
@@ -485,14 +486,14 @@ function HrmsSection({ user }: { user: AuthUser }) {
   if (!id) {
     return (
       <DrawerSection title={tr('HRMS')}>
-        <p className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800"><CircleAlert size={16} /> {tr('Not linked to an HRMS employee: job title and department are filled in by hand.')}</p>
+        <p className="flex items-center gap-2 rounded-[3px] bg-amber-50 px-3 py-2 text-sm text-amber-800"><CircleAlert size={16} /> {tr('Not linked to an HRMS employee: job title and department are filled in by hand.')}</p>
       </DrawerSection>
     );
   }
   const status = emp?.status ?? user.hrmsStatus ?? null;
   return (
     <DrawerSection title={tr('HRMS')} description={user.hrmsSyncedAt ? tr('Follows HRMS · last synced {0}', formatDateTime(user.hrmsSyncedAt)) : tr('Follows HRMS')}>
-      {emp === undefined ? <div className="h-16 skeleton rounded-lg" /> : (
+      {emp === undefined ? <div className="h-16 skeleton rounded-[3px]" /> : (
         <InfoGrid items={[
           [tr('Employee status'), status ? <span key="s" className={status === 'keluar' ? 'font-medium text-red-700' : undefined}>{HRMS_STATUS[status] ?? status}</span> : null],
           [tr('Employee Number'), emp?.employeeNo ?? user.employeeNumber],
@@ -523,24 +524,24 @@ function UserRow({ user, isMe, branchName, onView, actions }: {
         <button type="button" onClick={e => { e.stopPropagation(); onView(); }} className="flex min-w-0 items-center gap-3 text-left">
           <Avatar user={user} />
           <span className="min-w-0">
-            <span className="block truncate font-medium text-neutral-900 group-hover:text-brand-700">
-              {user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-neutral-400">{tr('(you)')}</span>}
+            <span className="block truncate font-medium text-[#172B4D] group-hover:text-[#0C66E4]">
+              {user.displayName}{isMe && <span className="ml-1.5 text-xs font-normal text-[#626F86]">{tr('(you)')}</span>}
             </span>
             {user.profileComplete
-              ? <span className="block truncate text-xs text-neutral-500">@{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
-              : <span className="mt-0.5 flex items-center gap-1.5 text-xs text-neutral-500">@{user.username} <ProfileBadge /></span>}
+              ? <span className="block truncate text-xs text-[#626F86]">@{user.username}{user.jobTitle ? ` · ${user.jobTitle}` : ''}</span>
+              : <span className="mt-0.5 flex items-center gap-1.5 text-xs text-[#626F86]">@{user.username} <ProfileBadge /></span>}
             {user.hrmsLeft && <span className="mt-0.5 block"><HrmsLeftBadge /></span>}
           </span>
         </button>
       </td>
       <td className={`${jTd} hidden max-w-[16rem] lg:table-cell`}>
-        <span className="block truncate text-neutral-700">{user.email}</span>
-        <span className="block truncate text-xs text-neutral-400">{user.phoneNumber || '—'}</span>
+        <span className="block truncate text-[#44546F]">{user.email}</span>
+        <span className="block truncate text-xs text-[#626F86]">{user.phoneNumber || '—'}</span>
       </td>
       <td className={jTd}><RoleBadge role={user.role} /></td>
       <td className={jTd}><BranchesBadge user={user} branchName={branchName} /></td>
       <td className={jTd}><StatusBadge user={user} /></td>
-      <td className={`${jTd} hidden whitespace-nowrap text-xs text-neutral-500 xl:table-cell`}>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('Never')}</td>
+      <td className={`${jTd} hidden whitespace-nowrap text-xs text-[#626F86] xl:table-cell`}>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('Never')}</td>
       <td className={`${jTd} text-right`} onClick={e => e.stopPropagation()}><ActionMenu items={actions} label={tr('Actions for {0}', user.username)} /></td>
     </tr>
   );
@@ -706,7 +707,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
     >
       <form id="user-form" onSubmit={submit} noValidate>
         {error && !knownField && (
-          <p className="mb-5 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
+          <p className="mb-5 flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
         )}
 
         {!creating && (
@@ -793,7 +794,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                   <input id="f-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" className={`${inputClass} pr-10 font-mono`}
                     value={form.password} onChange={e => set('password', e.target.value)} maxLength={128} required={creating}
                     placeholder={creating ? '' : tr('Keep current password')} />
-                  <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700"
+                  <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-[#626F86] hover:text-[#44546F]"
                     aria-label={showPassword ? tr('Hide password') : tr('Show password')}>
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -803,9 +804,9 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 </button>
               </div>
             </Field>
-            <label className="flex items-center gap-2 text-sm text-neutral-600">
+            <label className="flex items-center gap-2 text-sm text-[#44546F]">
               <input type="checkbox" checked={form.mustChangePassword} onChange={e => set('mustChangePassword', e.target.checked)}
-                className="h-4 w-4 rounded border-neutral-300 text-brand-700" />
+                className="h-4 w-4 rounded border-[#8590A2] text-[#0C66E4]" />
               {tr('Must change password at next sign-in')}
             </label>
           </div>
@@ -846,8 +847,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         )}
 
         {cotrMode ? (
-          <p className="mt-6 flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">
-            <Info size={16} className="mt-0.5 flex-shrink-0 text-brand-700" /> {tr('No ESB branches for the COTR team: the pool comes from the employee in Master Driver.')}
+          <p className="mt-6 flex items-start gap-2 rounded-[3px] border border-[#DCDFE4] bg-[#F7F8F9] px-3 py-2.5 text-sm text-[#44546F]">
+            <Info size={16} className="mt-0.5 flex-shrink-0 text-[#0C66E4]" /> {tr('No ESB branches for the COTR team: the pool comes from the employee in Master Driver.')}
           </p>
         ) : branchScoped(form.role) || branchLimitable(form.role) ? (
           <DrawerSection title={tr('Branch Access')} description={branchLimitable(form.role) ? tr('Optional: choose branches to narrow this account. None chosen = every branch.') : tr('Dashboard, Sales Transactions, Stock Opname and the forms show only these branches, exports too. Required for the roles User and Outlet/HUB.')}>
@@ -856,7 +857,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 options={[{ value: 'all', label: tr('Every branch') }, { value: 'some', label: tr('Chosen branches') }]} />
             )}
             {branchLimitable(form.role) && everyBranch ? (
-              <p className="mt-2 text-xs text-neutral-500">{tr('Every brand and unit, new branches included.')}</p>
+              <p className="mt-2 text-xs text-[#626F86]">{tr('Every brand and unit, new branches included.')}</p>
             ) : (
               <div className={branchLimitable(form.role) ? 'mt-3' : ''}>
                 {/* what the account already holds outside this tab stays visible, never silently kept or lost */}
@@ -870,7 +871,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
             {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
           </DrawerSection>
         ) : (
-          <p className="mt-6 flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">
+          <p className="mt-6 flex items-start gap-2 rounded-[3px] border border-[#DCDFE4] bg-[#F7F8F9] px-3 py-2.5 text-sm text-[#44546F]">
             <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {form.role === 'driver' ? tr('Drivers have no branches: their pool and fleet are set in Master Driver.') : tr('A Superadmin sees every branch.')}
           </p>
         )}
@@ -884,8 +885,8 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 <textarea id="f-notes" rows={2} className={`${inputClass} h-auto py-2`} value={form.notes} onChange={e => set('notes', e.target.value)} maxLength={500} />
               </Field>
             </DrawerSection>
-            <div className="mt-6 flex items-start gap-2.5 rounded-lg border border-brand-100 bg-brand-50/60 px-3.5 py-3 text-sm text-brand-900">
-              <Info size={16} className="mt-0.5 flex-shrink-0 text-brand-700" />
+            <div className="mt-6 flex items-start gap-2.5 rounded-[3px] border border-[#85B8FF] bg-[#E9F2FF] px-3.5 py-3 text-sm text-[#0055CC]">
+              <Info size={16} className="mt-0.5 flex-shrink-0 text-[#0C66E4]" />
               <p>
                 {tr('After saving you get the login details to share with the user. At the first sign-in the user sets a new password and completes')} <span className="font-medium">{tr('My profile')}</span> {tr('(gender, date of birth, address, work location…).')}
               </p>
@@ -894,7 +895,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         ) : (
           <>
             {!user!.profileComplete && (
-              <p className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-sm text-amber-900">
+              <p className="mt-6 flex items-start gap-2 rounded-[3px] border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-sm text-amber-900">
                 <CircleAlert size={16} className="mt-0.5 flex-shrink-0" /> {tr('The user has not completed their profile yet. They can fill it in themself under My profile.')}
               </p>
             )}
@@ -916,11 +917,11 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
 
 function DetailList({ rows }: { rows: [string, ReactNode][] }) {
   return (
-    <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100">
+    <dl className="divide-y divide-[#F1F2F4] rounded-[3px] border border-[#F1F2F4]">
       {rows.map(([k, v]) => (
         <div key={k} className="grid grid-cols-[9.5rem_1fr] gap-3 px-3 py-2 text-sm">
-          <dt className="text-neutral-500">{k}</dt>
-          <dd className="min-w-0 break-words text-neutral-800">{v ?? '—'}</dd>
+          <dt className="text-[#626F86]">{k}</dt>
+          <dd className="min-w-0 break-words text-[#172B4D]">{v ?? '—'}</dd>
         </div>
       ))}
     </dl>
@@ -933,8 +934,8 @@ function InfoGrid({ items }: { items: [string, ReactNode][] }) {
     <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
       {items.map(([k, v]) => (
         <div key={k} className="min-w-0">
-          <dt className="text-xs font-semibold capitalize text-neutral-400">{k}</dt>
-          <dd className="mt-0.5 break-words text-sm text-neutral-800">{v === null || v === undefined || v === '' ? <span className="text-neutral-400">—</span> : v}</dd>
+          <dt className="text-xs font-semibold capitalize text-[#626F86]">{k}</dt>
+          <dd className="mt-0.5 break-words text-sm text-[#172B4D]">{v === null || v === undefined || v === '' ? <span className="text-[#626F86]">—</span> : v}</dd>
         </div>
       ))}
     </dl>
@@ -1024,8 +1025,8 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <UserAvatar name={user.displayName} src={user.avatarUrl} size="xl" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xl font-semibold text-neutral-900">{user.displayName}</p>
-          <p className="truncate text-sm text-neutral-500">
+          <p className="truncate text-xl font-semibold text-[#172B4D]">{user.displayName}</p>
+          <p className="truncate text-sm text-[#626F86]">
             {[user.jobTitle, user.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><StatusBadge user={user} />{user.hrmsLeft && <HrmsLeftBadge />}{!user.profileComplete && <ProfileBadge />}</div>
@@ -1033,7 +1034,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
       </div>
 
       {/* at a glance */}
-      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-neutral-200 bg-neutral-200 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-[#DCDFE4] sm:grid-cols-4">
         <Glance label={tr('Last Sign-in')} value={ago(user.lastLoginAt)} sub={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tr('has not signed in')} />
         <Glance label={tr('Branch Access')} value={!limited ? 'All' : formatNumber(branchCodes.length)}
           sub={!limited ? ROLE_LABELS[user.role] : branchCodes.length ? (branchCodes.length === 1 ? branchName(branchCodes[0]) : tr('branches')) : tr('sees no data')}
@@ -1045,19 +1046,19 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       <DrawerSection title={tr('Branch Access')} description={!limited ? tr('{0} sees every branch', ROLE_LABELS[user.role]) : tr('Overview, Sales Transactions and exports are limited to these branches')}>
         {!limited ? (
-          <p className="flex items-center gap-2 text-sm text-neutral-600"><ShieldCheck size={16} className="text-red-700" /> {tr('All Branches')}</p>
+          <p className="flex items-center gap-2 text-sm text-[#44546F]"><ShieldCheck size={16} className="text-red-700" /> {tr('All Branches')}</p>
         ) : branchCodes.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {branchCodes.map(code => (
-              <li key={code} className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm">
-                <Store size={14} className="flex-shrink-0 text-neutral-400" />
-                <span className="min-w-0 flex-1 truncate text-neutral-800">{branchName(code)}</span>
-                <span className="font-mono text-[11px] text-neutral-400">{code}</span>
+              <li key={code} className="flex items-center gap-2 rounded-[3px] border border-[#DCDFE4] px-3 py-2 text-sm">
+                <Store size={14} className="flex-shrink-0 text-[#626F86]" />
+                <span className="min-w-0 flex-1 truncate text-[#172B4D]">{branchName(code)}</span>
+                <span className="font-mono text-[11px] text-[#626F86]">{code}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> {tr('No branch assigned — this user sees no data.')}</p>
+          <p className="flex items-center gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> {tr('No branch assigned — this user sees no data.')}</p>
         )}
       </DrawerSection>
 
@@ -1068,7 +1069,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           {PAGES.filter(p => user.role === 'superadmin' || (user.pages ?? []).includes(p.key)).map(p => {
             const extra = user.pageOverrides?.[p.key] === true;
             return (
-              <li key={p.key} className={`rounded-full px-2.5 py-1 text-xs ${extra ? 'bg-emerald-50 font-medium text-emerald-800' : 'bg-neutral-100 text-neutral-700'}`}
+              <li key={p.key} className={`rounded-full px-2.5 py-1 text-xs ${extra ? 'bg-emerald-50 font-medium text-emerald-800' : 'bg-[#091E420F] text-[#44546F]'}`}
                 title={extra ? tr('Added for this user') : p.group}>{p.label}</li>
             );
           })}
@@ -1082,10 +1083,10 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       <DrawerSection title={tr('Contact')}>
         <InfoGrid items={[
-          [tr('Email'), <a key="e" href={`mailto:${user.email}`} className="text-brand-700 hover:underline">{user.email}</a>],
+          [tr('Email'), <a key="e" href={`mailto:${user.email}`} className="text-[#0C66E4] hover:underline">{user.email}</a>],
           [tr('Phone'), user.phoneNumber ? (
             <span key="p" className="flex flex-wrap items-center gap-2">
-              <a href={`tel:${user.phoneNumber}`} className="text-brand-700 hover:underline">{user.phoneNumber}</a>
+              <a href={`tel:${user.phoneNumber}`} className="text-[#0C66E4] hover:underline">{user.phoneNumber}</a>
               <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100">{tr('WhatsApp')}</a>
             </span>
           ) : null],
@@ -1125,21 +1126,21 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       <DrawerSection title={tr('Recent Activity')} description={tr('Last 30 Days')}>
         {recent === null ? (
-          <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 skeleton rounded-lg" />)}</div>
+          <div className="space-y-2">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-10 skeleton rounded-[3px]" />)}</div>
         ) : recent.length === 0 ? (
-          <p className="text-sm text-neutral-400">{tr('No activity in the last 30 days.')}</p>
+          <p className="text-sm text-[#626F86]">{tr('No activity in the last 30 days.')}</p>
         ) : (
-          <ol className="relative space-y-3 border-l border-neutral-200 pl-4">
+          <ol className="relative space-y-3 border-l border-[#DCDFE4] pl-4">
             {recent.map(a => (
               <li key={a.id} className="relative">
                 <span className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-white ${a.status === 'ok' ? 'bg-neutral-300' : a.status === 'denied' ? 'bg-red-500' : 'bg-amber-500'}`} />
-                <p className="text-sm text-neutral-800">{a.summary || a.action}</p>
-                <p className="text-[11px] text-neutral-400">{formatDateTime(a.at)} · <span className="font-mono">{a.action}</span></p>
+                <p className="text-sm text-[#172B4D]">{a.summary || a.action}</p>
+                <p className="text-[11px] text-[#626F86]">{formatDateTime(a.at)} · <span className="font-mono">{a.action}</span></p>
               </li>
             ))}
           </ol>
         )}
-        <button type="button" onClick={() => router.push(`/activity?user=${user.id}`)} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:underline">
+        <button type="button" onClick={() => router.push(`/activity?user=${user.id}`)} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[#0C66E4] hover:underline">
           <History size={14} /> {tr('Open in Activity Logs')}
         </button>
       </DrawerSection>
@@ -1156,12 +1157,12 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 }
 
 function Glance({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: 'good' | 'warn' | 'bad' }) {
-  const color = tone === 'bad' ? 'text-red-700' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : 'text-neutral-900';
+  const color = tone === 'bad' ? 'text-red-700' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : 'text-[#172B4D]';
   return (
     <div className="min-w-0 bg-white px-3 py-3">
-      <p className="text-xs font-semibold capitalize text-neutral-400">{label}</p>
+      <p className="text-xs font-semibold capitalize text-[#626F86]">{label}</p>
       <p className={`mt-0.5 truncate text-base font-semibold tabular-nums ${color}`}>{value}</p>
-      <p className="truncate text-[11px] text-neutral-500" title={sub}>{sub}</p>
+      <p className="truncate text-[11px] text-[#626F86]" title={sub}>{sub}</p>
     </div>
   );
 }
@@ -1202,10 +1203,10 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
           </button>
         </>
       }>
-      <div className="flex items-center gap-3 border-b border-neutral-100 pb-5">
+      <div className="flex items-center gap-3 border-b border-[#F1F2F4] pb-5">
         <UserAvatar name={user.displayName} src={user.avatarUrl} size="lg" />
         <div className="min-w-0">
-          <p className="truncate font-semibold text-neutral-900">{user.displayName}</p>
+          <p className="truncate font-semibold text-[#172B4D]">{user.displayName}</p>
           <div className="mt-1 flex flex-wrap gap-1.5"><RoleBadge role={user.role} /><BranchesBadge user={user} branchName={branchName} /></div>
         </div>
       </div>
@@ -1216,7 +1217,7 @@ function IssuedLoginDrawer({ issued, branchName, onClose }: { issued: IssuedLogi
           [tr('Password'), (
             <span key="p" className="flex items-center gap-2">
               <span className="font-mono">{show ? password : '•'.repeat(Math.min(password.length, 14))}</span>
-              <button type="button" onClick={() => setShow(s => !s)} className="rounded p-1 text-neutral-400 hover:text-neutral-700" aria-label={show ? tr('Hide password') : tr('Show password')}>
+              <button type="button" onClick={() => setShow(s => !s)} className="rounded p-1 text-[#626F86] hover:text-[#44546F]" aria-label={show ? tr('Hide password') : tr('Show password')}>
                 {show ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </span>
@@ -1256,11 +1257,11 @@ function DeleteDialog({ user, onClose, onDeleted, onError }: { user: AuthUser; o
         </>
       }
     >
-      <div className="flex items-center gap-3 rounded-lg bg-red-50 px-3 py-3">
+      <div className="flex items-center gap-3 rounded-[3px] bg-red-50 px-3 py-3">
         <KeyRound size={18} className="text-red-600" />
         <div className="text-sm">
-          <p className="font-semibold text-neutral-900">{user.displayName}</p>
-          <p className="text-neutral-600">{user.username} · {user.email}</p>
+          <p className="font-semibold text-[#172B4D]">{user.displayName}</p>
+          <p className="text-[#44546F]">{user.username} · {user.email}</p>
         </div>
       </div>
     </Dialog>

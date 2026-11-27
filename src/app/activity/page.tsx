@@ -9,9 +9,9 @@ import ActivityInsights, { ActivityInsightsData } from '@/components/activity/Ac
 import ResetLogsDrawer, { LogStorage } from '@/components/activity/ResetLogsDrawer';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import DateRangePicker from '@/components/DateRangePicker';
-import { Card, EmptyState, IconButton, PageHeader, PageShell, Pill, SearchInput, StatCard, StatGrid, Tabs, Toolbar, ValueSkeleton, btn } from '@/components/kc';
-import { buttonPrimary, buttonSecondary } from '@/components/ui/Dialog';
-import Drawer, { DrawerSection } from '@/components/ui/Drawer';
+import { Card, EmptyState, IconButton, PageHeader, PageShell, Pill, SearchInput, StatCard, StatGrid, Tabs, Toolbar, ValueSkeleton, btn } from '@/jira/kc';
+import { buttonPrimary, buttonSecondary } from '@/jira/kc';
+import Drawer, { DrawerSection } from '@/jira';
 import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
 import UserAvatar from '@/components/UserAvatar';
 import { AuthUser, ROLE_LABELS, Role } from '@/lib/auth';
@@ -99,15 +99,15 @@ const PAGES: Record<string, string> = {
 /** category -> icon tile + bar colour */
 const TONES: Record<string, { tile: string; bar: string; label: string }> = {
   export: { tile: 'bg-emerald-50 text-emerald-700', bar: 'bg-emerald-500', get label() { return tr('Exports'); } },
-  auth: { tile: 'bg-brand-50 text-brand-700', bar: 'bg-brand-500', get label() { return tr('Sign-in'); } },
-  page: { tile: 'bg-neutral-100 text-neutral-600', bar: 'bg-neutral-400', get label() { return tr('Pages'); } },
-  filter: { tile: 'bg-neutral-100 text-neutral-600', bar: 'bg-neutral-300', get label() { return tr('Filters'); } },
+  auth: { tile: 'bg-[#E9F2FF] text-[#0C66E4]', bar: 'bg-brand-500', get label() { return tr('Sign-in'); } },
+  page: { tile: 'bg-[#091E420F] text-[#44546F]', bar: 'bg-neutral-400', get label() { return tr('Pages'); } },
+  filter: { tile: 'bg-[#091E420F] text-[#44546F]', bar: 'bg-neutral-300', get label() { return tr('Filters'); } },
   transaction: { tile: 'bg-violet-50 text-violet-700', bar: 'bg-violet-500', get label() { return tr('Transactions'); } },
   user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', get label() { return tr('User Accounts'); } },
   profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', get label() { return tr('Own Profile'); } },
   access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', get label() { return tr('Access Denied'); } },
   form: { tile: 'bg-teal-50 text-teal-700', bar: 'bg-teal-500', get label() { return tr('Forms'); } },
-  system: { tile: 'bg-neutral-900 text-white', bar: 'bg-neutral-700', get label() { return tr('System'); } },
+  system: { tile: 'bg-[#172B4D] text-white', bar: 'bg-neutral-700', get label() { return tr('System'); } },
 };
 
 const REPORT_LABELS: Record<string, string> = { get detail() { return tr('Sales Recapitulation Detail'); }, get daily() { return tr('Daily Sales Recapitulation'); } };
@@ -331,7 +331,7 @@ export default function ActivityPage() {
           </>} />
 
         {notice && (
-          <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
+          <div className="flex items-center gap-2 rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
             <CheckCircle2 size={16} /> {notice}
             <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label={tr('Dismiss')}><X size={14} /></button>
           </div>
@@ -357,7 +357,7 @@ export default function ActivityPage() {
                 <div className="hidden gap-1 sm:flex" role="radiogroup" aria-label={tr('View')}>
                   {([['timeline', tr('Timeline'), <List key="i" size={14} />], ['table', tr('Table'), <Rows3 key="i" size={14} />]] as const).map(([v, l, icon]) => (
                     <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
-                      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium ${view === v ? 'rounded-[4px] border border-brand-700 bg-brand-700 text-white' : 'text-neutral-500 hover:text-neutral-800'}`}>
+                      className={`inline-flex h-7 items-center gap-1.5 rounded-[3px] px-2.5 text-xs font-medium ${view === v ? 'rounded-[4px] border border-[#0C66E4] bg-[#0C66E4] text-white' : 'text-[#626F86] hover:text-[#172B4D]'}`}>
                       {icon}{l}
                     </button>
                   ))}
@@ -379,11 +379,11 @@ export default function ActivityPage() {
             {error ? (
               <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
                 <AlertCircle className="text-red-500" />
-                <p className="text-sm text-neutral-700">{error}</p>
-                <p className="text-xs text-neutral-400">{tr('Retrying automatically…')}</p>
+                <p className="text-sm text-[#44546F]">{error}</p>
+                <p className="text-xs text-[#626F86]">{tr('Retrying automatically…')}</p>
               </div>
             ) : loading && !entries.length ? (
-              <div className="space-y-2 p-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="h-12 skeleton rounded-lg" />)}</div>
+              <div className="space-y-2 p-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="h-12 skeleton rounded-[3px]" />)}</div>
             ) : entries.length === 0 ? (
               <EmptyState icon={<Filter size={22} />} title={filtered ? tr('No activity matches the search or filters') : tr('No activity in this period yet')}>
                 {tr('New activity appears here automatically.')}
@@ -395,11 +395,11 @@ export default function ActivityPage() {
               <div className={loading ? 'opacity-60 transition-opacity' : ''}>
                 {days.map(day => (
                   <section key={day.key} aria-label={day.label}>
-                    <h2 className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-100 bg-neutral-50/95 px-4 py-2 text-xs font-semibold text-neutral-600 backdrop-blur">
+                    <h2 className="sticky top-0 z-10 flex items-center justify-between border-b border-[#F1F2F4] bg-[#F7F8F9] px-4 py-2 text-xs font-semibold text-[#44546F] backdrop-blur">
                       <span>{day.label}</span>
-                      <span className="font-normal text-neutral-400">{formatNumber(day.items.length)} {tr('shown')}</span>
+                      <span className="font-normal text-[#626F86]">{formatNumber(day.items.length)} {tr('shown')}</span>
                     </h2>
-                    <ol className="divide-y divide-neutral-100">
+                    <ol className="divide-y divide-[#F1F2F4]">
                       {day.items.map(e => <TimelineRow key={e.id} entry={e} isNew={fresh.has(e.id)} onOpen={() => setSelected(e)} />)}
                     </ol>
                   </section>
@@ -412,26 +412,26 @@ export default function ActivityPage() {
           <aside className="min-w-0 space-y-5 xl:col-span-4 2xl:col-span-3">
             <Card title={tr('Most Active Users')} flush>
               {!summary ? (
-                <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 skeleton rounded-lg" />)}</div>
+                <div className="space-y-2 p-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="h-8 skeleton rounded-[3px]" />)}</div>
               ) : summary.topUsers.length === 0 ? (
-                <p className="px-4 py-6 text-center text-sm text-neutral-400">{tr('No activity')}</p>
+                <p className="px-4 py-6 text-center text-sm text-[#626F86]">{tr('No activity')}</p>
               ) : (
-                <ul className="divide-y divide-neutral-100">
+                <ul className="divide-y divide-[#F1F2F4]">
                   {summary.topUsers.map((u, i) => {
                     const on = filters.user === u.id;
                     return (
                       <li key={u.id}>
                         <button type="button" onClick={() => setFilters(f => ({ ...f, user: on ? '' : u.id }))}
-                          className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${on ? 'bg-brand-50' : 'hover:bg-neutral-50'}`}
+                          className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${on ? 'bg-[#E9F2FF]' : 'hover:bg-[#F7F8F9]'}`}
                           title={on ? tr('Show all users') : tr('Only {0}', u.username)}>
-                          <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums ${on ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-500'}`}>{i + 1}</span>
+                          <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums ${on ? 'bg-[#0C66E4] text-white' : 'bg-[#091E420F] text-[#626F86]'}`}>{i + 1}</span>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-[13px] font-medium text-neutral-900">{u.username}</p>
-                            <p className="truncate text-[11px] text-neutral-500">{ROLE_LABELS[u.role] ?? u.role} {tr('· last')} {formatDateTime(u.lastAt)}</p>
+                            <p className="truncate text-[13px] font-medium text-[#172B4D]">{u.username}</p>
+                            <p className="truncate text-[11px] text-[#626F86]">{ROLE_LABELS[u.role] ?? u.role} {tr('· last')} {formatDateTime(u.lastAt)}</p>
                           </div>
                           <div className="text-right text-xs tabular-nums">
-                            <p className="font-semibold text-neutral-900">{formatNumber(u.count)}</p>
-                            <p className="text-neutral-400">{formatNumber(u.exports)} {tr('export')}</p>
+                            <p className="font-semibold text-[#172B4D]">{formatNumber(u.count)}</p>
+                            <p className="text-[#626F86]">{formatNumber(u.exports)} {tr('export')}</p>
                           </div>
                         </button>
                       </li>
@@ -441,11 +441,11 @@ export default function ActivityPage() {
               )}
             </Card>
 
-            <Card title={<span className="inline-flex items-center gap-2"><Database size={15} className="text-neutral-400" /> {tr('Log storage')}</span>}>
+            <Card title={<span className="inline-flex items-center gap-2"><Database size={15} className="text-[#626F86]" /> {tr('Log storage')}</span>}>
               <dl className="space-y-1.5 text-xs">
-                <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr('Entries stored')}</dt><dd className="font-semibold tabular-nums text-neutral-900">{summary?.storage ? formatNumber(summary.storage.entries) : '…'}</dd></div>
-                <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr('Oldest entry')}</dt><dd className="text-neutral-800">{summary?.storage?.oldest ? formatDateTime(summary.storage.oldest) : '—'}</dd></div>
-                <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr('Auto clean-up')}</dt><dd className="text-neutral-800">{summary?.retentionDays ? tr('older than {0} days, daily 03:30', summary.retentionDays) : tr('off')}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-[#626F86]">{tr('Entries stored')}</dt><dd className="font-semibold tabular-nums text-[#172B4D]">{summary?.storage ? formatNumber(summary.storage.entries) : '…'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-[#626F86]">{tr('Oldest entry')}</dt><dd className="text-[#172B4D]">{summary?.storage?.oldest ? formatDateTime(summary.storage.oldest) : '—'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-[#626F86]">{tr('Auto clean-up')}</dt><dd className="text-[#172B4D]">{summary?.retentionDays ? tr('older than {0} days, daily 03:30', summary.retentionDays) : tr('off')}</dd></div>
               </dl>
               <button type="button" onClick={() => setResetting(true)} className={`${btn('outline', 'sm')} mt-3 w-full border-red-200 text-red-700 hover:bg-red-50`}>
                 <Trash2 size={13} /> {tr('Reset logs now')}
@@ -456,16 +456,16 @@ export default function ActivityPage() {
               {!summary ? (
                 <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <div key={i} className="h-5 skeleton rounded" />)}</div>
               ) : !categoryTotal ? (
-                <p className="text-sm text-neutral-400">{tr('No activity')}</p>
+                <p className="text-sm text-[#626F86]">{tr('No activity')}</p>
               ) : (
                 <ul className="space-y-2.5">
                   {Object.entries(summary.byCategory).sort((a, b) => b[1] - a[1]).map(([cat, n]) => (
                     <li key={cat}>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-neutral-600">{TONES[cat]?.label ?? cat}</span>
-                        <span className="tabular-nums text-neutral-900">{formatNumber(n)}</span>
+                        <span className="text-[#44546F]">{TONES[cat]?.label ?? cat}</span>
+                        <span className="tabular-nums text-[#172B4D]">{formatNumber(n)}</span>
                       </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-neutral-100">
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#091E420F]">
                         <div className={`h-full rounded-full ${TONES[cat]?.bar ?? 'bg-neutral-400'}`} style={{ width: `${Math.max(2, (n / categoryTotal) * 100)}%` }} />
                       </div>
                     </li>
@@ -505,24 +505,24 @@ function TimelineRow({ entry, isNew, onOpen }: { entry: Entry; isNew: boolean; o
   return (
     <li>
       <button type="button" onClick={onOpen}
-        className={`group grid w-full grid-cols-[3.75rem_2rem_minmax(0,1fr)_1rem] items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors duration-700 hover:bg-neutral-50 ${accent} ${isNew ? 'bg-brand-50/70' : ''}`}>
-        <span className="pt-1.5 text-xs tabular-nums text-neutral-500">{clock(entry.at)}</span>
-        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${tone.tile}`}>{action?.icon ?? <History size={15} />}</span>
+        className={`group grid w-full grid-cols-[3.75rem_2rem_minmax(0,1fr)_1rem] items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors duration-700 hover:bg-[#F7F8F9] ${accent} ${isNew ? 'bg-[#E9F2FF]' : ''}`}>
+        <span className="pt-1.5 text-xs tabular-nums text-[#626F86]">{clock(entry.at)}</span>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-[3px] ${tone.tile}`}>{action?.icon ?? <History size={15} />}</span>
         <span className="min-w-0">
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
-            <span className="font-semibold text-neutral-900">{displayName(entry)}</span>
-            <span className="text-neutral-600">{verb.startsWith("'") ? verb.slice(1) : verb}</span>
-            {entry.action === 'page.view' && <span className="font-medium text-neutral-800">{pageLabel(entry.page)}</span>}
+            <span className="font-semibold text-[#172B4D]">{displayName(entry)}</span>
+            <span className="text-[#44546F]">{verb.startsWith("'") ? verb.slice(1) : verb}</span>
+            {entry.action === 'page.view' && <span className="font-medium text-[#172B4D]">{pageLabel(entry.page)}</span>}
             <StatusBadge status={entry.status} />
-            {isNew && <span className="rounded-full bg-brand-700 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">{tr('New')}</span>}
+            {isNew && <span className="rounded-full bg-[#0C66E4] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">{tr('New')}</span>}
           </span>
-          {entry.summary && entry.action !== 'page.view' && <span className="mt-0.5 block truncate text-sm text-neutral-600">{entry.summary}</span>}
-          <span className="mt-0.5 block truncate text-[11px] text-neutral-400">
+          {entry.summary && entry.action !== 'page.view' && <span className="mt-0.5 block truncate text-sm text-[#44546F]">{entry.summary}</span>}
+          <span className="mt-0.5 block truncate text-[11px] text-[#626F86]">
             {entry.user.username && entry.user.fullName ? `@${entry.user.username} · ` : ''}
             {pageLabel(entry.page)} · {device(entry.userAgent)}{entry.ip ? ` · ${entry.ip}` : ''}
           </span>
         </span>
-        <ChevronRight size={16} className="mt-1.5 text-neutral-300 group-hover:text-neutral-500" />
+        <ChevronRight size={16} className="mt-1.5 text-[#8590A2] group-hover:text-[#626F86]" />
       </button>
     </li>
   );
@@ -535,7 +535,7 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
   const set = (key: keyof Filters) => (v: string) => setDraft(d => ({ ...d, [key]: v }));
   const options = useMemo(() => [...users].sort((a, b) => a.displayName.localeCompare(b.displayName)).map(u => ({
     value: u.id, label: `${u.displayName} (${u.username})`,
-    meta: <span className="text-[11px] text-neutral-400">{ROLE_LABELS[u.role]}</span>,
+    meta: <span className="text-[11px] text-[#626F86]">{ROLE_LABELS[u.role]}</span>,
   })), [users]);
   return (
     <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={tr('Filter Activity')}
@@ -564,11 +564,11 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
 
 function Rows({ rows }: { rows: [string, ReactNode][] }) {
   return (
-    <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100">
+    <dl className="divide-y divide-[#F1F2F4] rounded-[3px] border border-[#F1F2F4]">
       {rows.filter(([, v]) => v !== undefined).map(([k, v]) => (
         <div key={k} className="grid grid-cols-[9rem_1fr] gap-3 px-3 py-2 text-sm">
-          <dt className="text-neutral-500">{k}</dt>
-          <dd className="min-w-0 break-words text-neutral-800">{v === null || v === '' ? '—' : v}</dd>
+          <dt className="text-[#626F86]">{k}</dt>
+          <dd className="min-w-0 break-words text-[#172B4D]">{v === null || v === '' ? '—' : v}</dd>
         </div>
       ))}
     </dl>
@@ -578,7 +578,7 @@ function Rows({ rows }: { rows: [string, ReactNode][] }) {
 function value(v: unknown): ReactNode {
   if (v === null || v === undefined || v === '') return '—';
   if (Array.isArray(v)) return v.length ? v.join(', ') : '—';
-  if (typeof v === 'object') return <pre className="whitespace-pre-wrap break-all font-mono text-xs text-neutral-700">{JSON.stringify(v, null, 2)}</pre>;
+  if (typeof v === 'object') return <pre className="whitespace-pre-wrap break-all font-mono text-xs text-[#44546F]">{JSON.stringify(v, null, 2)}</pre>;
   if (typeof v === 'boolean') return v ? tr('Yes') : tr('No');
   return String(v);
 }
@@ -614,11 +614,11 @@ function EntryDrawer({ entry, onClose }: { entry: Entry; onClose: () => void }) 
     <Drawer open onClose={onClose} size="md" icon={<History size={18} />} title={action?.label ?? entry.action}
       description={formatDateTime(entry.at)}
       footer={<button type="button" className={buttonSecondary} onClick={onClose}><X size={16} /> {tr('Close')}</button>}>
-      <div className="flex items-center gap-3 border-b border-neutral-100 pb-5">
+      <div className="flex items-center gap-3 border-b border-[#F1F2F4] pb-5">
         <UserAvatar name={name} src={entry.user.avatarUrl} size="lg" />
         <div className="min-w-0">
-          <p className="truncate font-semibold text-neutral-900">{name}</p>
-          <p className="truncate text-sm text-neutral-500">
+          <p className="truncate font-semibold text-[#172B4D]">{name}</p>
+          <p className="truncate text-sm text-[#626F86]">
             {entry.user.username ?? '—'}{entry.user.role ? ` · ${ROLE_LABELS[entry.user.role] ?? entry.user.role}` : ''}
           </p>
         </div>
@@ -645,7 +645,7 @@ function EntryDrawer({ entry, onClose }: { entry: Entry; onClose: () => void }) 
         <Rows rows={[
           [tr('IP address'), entry.ip],
           [tr('Browser'), device(entry.userAgent)],
-          [tr('User agent'), entry.userAgent ? <span key="ua" className="text-xs text-neutral-500">{entry.userAgent}</span> : null],
+          [tr('User agent'), entry.userAgent ? <span key="ua" className="text-xs text-[#626F86]">{entry.userAgent}</span> : null],
         ]} />
       </DrawerSection>
     </Drawer>
@@ -658,26 +658,26 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
   return (
     <div className={`custom-scrollbar max-h-[70vh] overflow-auto ${loading ? 'opacity-60' : ''}`}>
       <table className="m-cards w-full text-sm">
-        <thead className="sticky top-0 z-[1] border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+        <thead className="sticky top-0 z-[1] border-b-2 border-[#DCDFE4] bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-[#626F86]">
           <tr>
             {[tr('Time'), tr('User'), tr('Activity'), tr('Details'), tr('Page'), tr('Result'), tr('Device · IP')].map(h => <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5">{h}</th>)}
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-100">
+        <tbody className="divide-y divide-[#F1F2F4]">
           {entries.map(e => {
             const action = ACTIONS[e.action];
             const tone = TONES[e.category] ?? TONES.page;
             return (
-              <tr key={e.id} onClick={() => onOpen(e)} className={`cursor-pointer align-top hover:bg-neutral-50 ${fresh.has(e.id) ? 'bg-brand-50/70' : ''}`}>
-                <td className="whitespace-nowrap px-3 py-2 text-xs tabular-nums text-neutral-500">{formatDate(toIsoDate(new Date(e.at)))}<span className="block text-neutral-700">{clock(e.at)}</span></td>
-                <td className="max-w-[11rem] px-3 py-2"><span className="block truncate font-medium text-neutral-900">{displayName(e)}</span><span className="block truncate text-[11px] text-neutral-400">{e.user.username ?? '—'}</span></td>
+              <tr key={e.id} onClick={() => onOpen(e)} className={`cursor-pointer align-top hover:bg-[#F7F8F9] ${fresh.has(e.id) ? 'bg-[#E9F2FF]' : ''}`}>
+                <td className="whitespace-nowrap px-3 py-2 text-xs tabular-nums text-[#626F86]">{formatDate(toIsoDate(new Date(e.at)))}<span className="block text-[#44546F]">{clock(e.at)}</span></td>
+                <td className="max-w-[11rem] px-3 py-2"><span className="block truncate font-medium text-[#172B4D]">{displayName(e)}</span><span className="block truncate text-[11px] text-[#626F86]">{e.user.username ?? '—'}</span></td>
                 <td className="whitespace-nowrap px-3 py-2">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-700"><span className={`flex h-6 w-6 items-center justify-center rounded-md ${tone.tile}`}>{action?.icon ?? <History size={13} />}</span>{action?.label ?? e.action}</span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#44546F]"><span className={`flex h-6 w-6 items-center justify-center rounded-[3px] ${tone.tile}`}>{action?.icon ?? <History size={13} />}</span>{action?.label ?? e.action}</span>
                 </td>
-                <td className="max-w-[22rem] px-3 py-2 text-xs text-neutral-600"><span className="line-clamp-2">{e.summary ?? '—'}</span></td>
-                <td className="whitespace-nowrap px-3 py-2 text-xs text-neutral-600">{pageLabel(e.page)}</td>
+                <td className="max-w-[22rem] px-3 py-2 text-xs text-[#44546F]"><span className="line-clamp-2">{e.summary ?? '—'}</span></td>
+                <td className="whitespace-nowrap px-3 py-2 text-xs text-[#44546F]">{pageLabel(e.page)}</td>
                 <td className="whitespace-nowrap px-3 py-2">{e.status === 'ok' ? <span className="text-xs text-emerald-700">{tr('Succeeded')}</span> : <StatusBadge status={e.status} />}</td>
-                <td className="whitespace-nowrap px-3 py-2 text-[11px] text-neutral-400">{device(e.userAgent)}<span className="block">{e.ip ?? ''}</span></td>
+                <td className="whitespace-nowrap px-3 py-2 text-[11px] text-[#626F86]">{device(e.userAgent)}<span className="block">{e.ip ?? ''}</span></td>
               </tr>
             );
           })}

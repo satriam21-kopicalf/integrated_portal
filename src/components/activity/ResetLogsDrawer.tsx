@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { AlertTriangle, Loader2, Trash2 } from 'lucide-react';
-import Drawer from '@/components/ui/Drawer';
-import { buttonDanger, buttonSecondary, inputClass } from '@/components/ui/Dialog';
+import Drawer from '@/jira';
+import { buttonDanger, buttonSecondary, inputClass } from '@/jira/kc';
 import { formatDate, formatDateTime, formatNumber, toIsoDate } from '@/lib/format';
 import { tr, serverMsg } from '@/lib/i18n';
 
@@ -63,44 +63,44 @@ export default function ResetLogsDrawer({ storage, retentionDays, onClose, onDon
         </>
       }>
       <div className="space-y-6">
-        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200 text-sm">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-[#DCDFE4] text-sm">
           <div className="bg-white px-3 py-2.5">
-            <dt className="text-xs font-semibold capitalize text-neutral-500">{tr('Entries stored')}</dt>
-            <dd className="mt-0.5 font-semibold tabular-nums text-neutral-900">{storage ? formatNumber(storage.entries) : '…'}</dd>
+            <dt className="text-xs font-semibold capitalize text-[#626F86]">{tr('Entries stored')}</dt>
+            <dd className="mt-0.5 font-semibold tabular-nums text-[#172B4D]">{storage ? formatNumber(storage.entries) : '…'}</dd>
           </div>
           <div className="bg-white px-3 py-2.5">
-            <dt className="text-xs font-semibold capitalize text-neutral-500">{tr('Auto clean-up')}</dt>
-            <dd className="mt-0.5 font-semibold text-neutral-900">{retentionDays ? tr('after {0} days', retentionDays) : tr('off')}</dd>
+            <dt className="text-xs font-semibold capitalize text-[#626F86]">{tr('Auto clean-up')}</dt>
+            <dd className="mt-0.5 font-semibold text-[#172B4D]">{retentionDays ? tr('after {0} days', retentionDays) : tr('off')}</dd>
           </div>
-          <div className="col-span-2 bg-white px-3 py-2.5 text-xs text-neutral-500">
+          <div className="col-span-2 bg-white px-3 py-2.5 text-xs text-[#626F86]">
             {storage?.oldest ? <>{tr('From')} {formatDateTime(storage.oldest)} {tr('to')} {formatDateTime(storage.newest)}</> : tr('The log is empty')}
           </div>
         </dl>
 
         <fieldset className="space-y-2">
-          <legend className="mb-2 text-sm font-medium text-neutral-700">{tr('What to remove')}</legend>
+          <legend className="mb-2 text-sm font-medium text-[#44546F]">{tr('What to remove')}</legend>
           {([
             ['all', tr('All entries'), tr('Empty the whole log.')],
             ['before', tr('Entries before a date'), tr('Keep recent activity, remove what is older.')],
           ] as const).map(([value, label, hint]) => (
-            <label key={value} className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 ${scope === value ? 'border-red-300 bg-red-50/50' : 'border-neutral-200 hover:bg-neutral-50'}`}>
+            <label key={value} className={`flex cursor-pointer items-start gap-3 rounded-[3px] border px-3 py-2.5 ${scope === value ? 'border-red-300 bg-red-50/50' : 'border-[#DCDFE4] hover:bg-[#F7F8F9]'}`}>
               <input type="radio" name="scope" value={value} checked={scope === value} onChange={() => setScope(value)} className="mt-1 accent-red-600" />
               <span>
-                <span className="block text-sm font-medium text-neutral-800">{label}</span>
-                <span className="block text-xs text-neutral-500">{hint}</span>
+                <span className="block text-sm font-medium text-[#172B4D]">{label}</span>
+                <span className="block text-xs text-[#626F86]">{hint}</span>
               </span>
             </label>
           ))}
           {scope === 'before' && (
             <div className="pl-1 pt-1">
-              <label className="text-xs text-neutral-500" htmlFor="reset-before">{tr('Remove everything before (WIB)')}</label>
+              <label className="text-xs text-[#626F86]" htmlFor="reset-before">{tr('Remove everything before (WIB)')}</label>
               <input id="reset-before" type="date" value={before} max={toIsoDate(new Date())} onChange={e => setBefore(e.target.value)} className={`${inputClass} mt-1`} />
-              {before && <p className="mt-1 text-[11px] text-neutral-500">{tr('Entries up to')} {formatDate(toIsoDate(new Date(new Date(`${before}T00:00:00`).getTime() - 86_400_000)))} {tr('are removed.')}</p>}
+              {before && <p className="mt-1 text-[11px] text-[#626F86]">{tr('Entries up to')} {formatDate(toIsoDate(new Date(new Date(`${before}T00:00:00`).getTime() - 86_400_000)))} {tr('are removed.')}</p>}
             </div>
           )}
         </fieldset>
 
-        <div className="space-y-2 rounded-lg border border-red-200 bg-red-50/60 p-3">
+        <div className="space-y-2 rounded-[3px] border border-red-200 bg-red-50/60 p-3">
           <p className="flex items-center gap-2 text-sm font-semibold text-red-800"><AlertTriangle size={16} /> {tr('This cannot be undone')}</p>
           <p className="text-xs leading-relaxed text-red-800">
             {tr('Removed entries are gone for good. The reset itself is recorded as a new entry with your name, so it stays traceable.')}
@@ -109,7 +109,7 @@ export default function ResetLogsDrawer({ storage, retentionDays, onClose, onDon
           <input id="reset-confirm" value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="off" placeholder={tr('RESET')}
             className={`${inputClass} border-red-200 font-mono`} />
         </div>
-        {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       </div>
     </Drawer>
   );
