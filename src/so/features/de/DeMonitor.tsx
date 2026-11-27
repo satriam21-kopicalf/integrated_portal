@@ -8,7 +8,7 @@
 // duplicates), the request and its history. Overview: the analysis of every request and its handling (DeOverview).
 
 import { JSelect } from "@/so/ui/Jira";
-import { AlertTriangle, BarChart3, CalendarClock, Camera, Check, ChevronDown, Columns3, ChevronRight, Clock, Copy, Hammer, Handshake, Link2, ListChecks,
+import { AlertTriangle, Package, BarChart3, CalendarClock, Camera, Check, ChevronDown, Columns3, ChevronRight, Clock, Copy, Hammer, Handshake, Link2, ListChecks,
   MessageCircle, Paperclip, PenLine, Plus, Save, Shuffle, ShoppingCart, Tags, Trash2, Upload, Users, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, Input, Page, Panel, SkeletonRows, fmtNumber, inputClass, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -1092,7 +1092,7 @@ function CategoriesDrawer({ kind, bgroups, onClose }: { kind: Kind; bgroups: Gro
 
 type Act = (path: string, json: unknown, ok: string, method?: string) => Promise<boolean>;
 // 2026-11-24: a line takes a Jenis Transaksi of Fund Request (migration 142) and its price per unit; the totals are qty × price
-type LineDraft = { id?: number; kind: CostKind; trx: string; description: string; qty: string; est: string; actual: string };
+type LineDraft = { id?: number; kind: CostKind; trx: string; description: string; qty: string; est: string; actual: string; materialId?: number | null };
 const blankLine = (): LineDraft => ({ kind: "OTHER", trx: "", description: "", qty: "1", est: "", actual: "" });
 const unitOf = (total: number | null, qty: number) => (total == null ? "" : String(Math.round(total / (qty || 1))));
 const digits = (v: string) => v.replace(/[^0-9]/g, "");
@@ -1109,17 +1109,18 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
     if (!line) return;
     const q = Number(line.qty) || 1;
     const body = { kind: line.kind, transactionId: Number(line.trx) || null, description: line.description, qty: q,
-      estAmount: line.est ? Number(line.est) * q : null, actualAmount: line.actual ? Number(line.actual) * q : null };
+      estAmount: line.est ? Number(line.est) * q : null, actualAmount: line.actual ? Number(line.actual) * q : null, materialId: line.materialId ?? null };
     if (await act(line.id ? `${base}/cost-items/${line.id}` : `${base}/cost-items`, body, line.id ? tr("Cost line saved") : tr("Cost line added"), line.id ? "PATCH" : "POST")) setLine(null);
   };
   const edit = (i: CostItem) => setLine({ id: i.id, kind: i.kind, trx: i.transactionId ? String(i.transactionId) : "", description: i.description, qty: String(i.qty),
-    est: unitOf(i.estAmount, i.qty), actual: unitOf(i.actualAmount, i.qty) });
+    est: unitOf(i.estAmount, i.qty), actual: unitOf(i.actualAmount, i.qty), materialId: i.materialId ?? null });
   const qtyN = Number(line?.qty) || 1;
   const trxOptions = (r.transactionOptions ?? []).map((o) => ({ value: String(o.id), label: o.name }));
   const laborTotal = work.reduce((a, x) => a + (x.amount ?? 0), 0);
   const diff = r.estCost !== null && r.actualCost !== null ? r.actualCost - r.estCost : null;
   const form = line && (
     <div className="space-y-2 rounded-md border border-brand-200 bg-brand-50/40 p-3">
+      <CatalogPick picked={line.materialId ?? null} onPick={(m) => setLine({ ...line, materialId: m?.id ?? null, ...(m ? { description: m.label, est: m.price != null ? String(Math.round(m.price)) : line.est } : {}) })} />
       <JSelect value={line.trx} onChange={(v) => setLine({ ...line, trx: v })} label={tr("Jenis Transaksi")} placeholder={tr("Jenis Transaksi (Fund Request)")} options={trxOptions} />
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_5rem]">
         <input value={line.description} onChange={(e) => setLine({ ...line, description: e.target.value })} maxLength={200} autoFocus
@@ -1154,7 +1155,8 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
             {items.map((i) => (
               <tr key={i.id} className={cx(line?.id === i.id && "bg-brand-50/50")}>
                 <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{i.description}</span>
-                  <span className="text-[11px] text-neutral-500">{i.transactionName ?? COST_KIND_LABEL[i.kind]()}<span className="sm:hidden"> · {i.qty} ×</span></span></td>
+                  <span className="text-[11px] text-neutral-500">{i.transactionName ?? COST_KIND_LABEL[i.kind]()}<span className="sm:hidden"> · {i.qty} ×</span></span>
+                  {i.materialId != null && <span className="block text-[11px] text-brand-700">{tr("Catalog")}: {i.catalogPrice != null ? `${fmtRp(i.catalogPrice)}${i.catalogUnit ? ` / ${i.catalogUnit}` : ""}${i.catalogOn ? ` · ${dmy(i.catalogOn)}` : ""}` : tr("no price")}</span>}</td>
                 <td className="hidden px-2 py-2 text-right tabular-nums text-neutral-600 sm:table-cell">{i.qty}</td>
                 <td className="px-2 py-2 text-right tabular-nums text-neutral-700">{fmtRp(i.estAmount)}</td>
                 <td className="px-2 py-2 text-right font-semibold tabular-nums text-neutral-900">{fmtRp(i.actualAmount)}</td>
@@ -1212,6 +1214,45 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
         </div>
       )}
       {form ?? <Button size="sm" variant="secondary" className="self-start" onClick={() => setLine(blankLine())}><Plus size={14} /> {tr("Add Cost Line")}</Button>}
+    </div>
+  );
+}
+
+type Pick = { id: number; label: string; price: number | null; unit: string | null; priceOn: string | null; stale: boolean; vendor: string | null; group: string };
+
+/** Search the material catalog of Building & Renovation (migration 163): the line takes its description and price per unit. */
+function CatalogPick({ picked, onPick }: { picked: number | null; onPick: (m: Pick | null) => void }) {
+  const [q, setQ] = useState("");
+  const [list, setList] = useState<Pick[] | null>(null);
+  const [chosen, setChosen] = useState<Pick | null>(null);
+  useEffect(() => {
+    const t = q.trim();
+    if (t.length < 2) { setList(null); return; }
+    let off = false;
+    const h = setTimeout(() => { call<Pick[]>(`/api/building/pick?q=${encodeURIComponent(t)}`).then((r) => { if (!off) setList(r); }).catch(() => { if (!off) setList([]); }); }, 250);
+    return () => { off = true; clearTimeout(h); };
+  }, [q]);
+  if (picked && (chosen?.id === picked || !chosen)) return (
+    <div className="flex items-center gap-2 rounded-md border border-brand-200 bg-white px-3 py-2 text-xs">
+      <Package size={14} className="shrink-0 text-brand-700" />
+      <span className="min-w-0 flex-1"><span className="font-medium text-neutral-900">{chosen?.label ?? tr("Material from the catalog")}</span>
+        {chosen && <span className="block text-neutral-500">{chosen.price != null ? `${fmtRp(chosen.price)}${chosen.unit ? ` / ${chosen.unit}` : ""}` : tr("no price")}{chosen.priceOn ? ` · ${dmy(chosen.priceOn)}` : ""}{chosen.vendor ? ` · ${chosen.vendor}` : ""}{chosen.stale ? ` · ${tr("price to check")}` : ""}</span>}</span>
+      <button type="button" onClick={() => { setChosen(null); onPick(null); }} className="font-medium text-brand-700 hover:underline">{tr("Change")}</button>
+    </div>
+  );
+  return (
+    <div className="relative">
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search the material catalog (optional), e.g. ACP Taco")} aria-label={tr("Search the material catalog")}
+        className={cx(inputClass, "h-9 bg-white text-sm")} />
+      {list && (
+        <ul className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-neutral-200 bg-white shadow-lg">
+          {list.length === 0 ? <li className="px-3 py-2 text-xs text-neutral-500">{tr("Not in the catalog: type the description below")}</li> : list.map((m) => (
+            <li key={m.id}><button type="button" onClick={() => { setChosen(m); setQ(""); setList(null); onPick(m); }} className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left text-xs hover:bg-neutral-50">
+              <span className="min-w-0"><span className="block font-medium text-neutral-900">{m.label}</span><span className="text-neutral-500">{m.group}{m.vendor ? ` · ${m.vendor}` : ""}</span></span>
+              <span className="shrink-0 text-right tabular-nums"><span className="block font-semibold text-neutral-900">{m.price != null ? fmtRp(m.price) : "—"}</span>{m.priceOn && <span className={cx("text-[10px]", m.stale ? "text-amber-700" : "text-neutral-400")}>{dmy(m.priceOn)}</span>}</span>
+            </button></li>))}
+        </ul>
+      )}
     </div>
   );
 }

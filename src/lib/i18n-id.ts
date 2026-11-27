@@ -8356,4 +8356,9 @@ export const ID: Record<string, string> = {
   "{0} days · check": "{0} hari · cek",
   "{0} stores · {1} suppliers": "{0} toko · {1} supplier",
   "Material catalog, stores & suppliers": "Katalog material, toko & supplier",
+  "Material from the catalog": "Material dari katalog",
+  "price to check": "harga perlu dicek",
+  "Search the material catalog (optional), e.g. ACP Taco": "Cari di katalog material (opsional), mis. ACP Taco",
+  "Search the material catalog": "Cari di katalog material",
+  "Not in the catalog: type the description below": "Tidak ada di katalog: ketik deskripsi di bawah",
 };

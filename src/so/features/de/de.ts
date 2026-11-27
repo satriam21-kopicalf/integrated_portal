@@ -78,7 +78,9 @@ export const COST_KIND_LABEL: Record<CostKind, () => string> = {
   MATERIAL: () => tr("Material / parts"), SERVICE: () => tr("Service"), TRANSPORT: () => tr("Transport"), OTHER: () => tr("Other"),
 };
 export type CostItem = { id: number; kind: CostKind; transactionId: number | null; transactionName: string | null; description: string; qty: number;
-  estAmount: number | null; actualAmount: number | null; by: string | null; at: string };
+  estAmount: number | null; actualAmount: number | null; by: string | null; at: string;
+  /** migration 163: from the material catalog of Building & Renovation, with the catalog price of today */
+  materialId?: number | null; catalogPrice?: number | null; catalogOn?: string | null; catalogUnit?: string | null };
 /** A Jenis Transaksi of Fund Request: the category of a cost line (migration 142). */
 export type TransactionOption = { id: number; name: string };
 /** the labour of a technician: rate × units from the time worked, or the team's adjustment */
